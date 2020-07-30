@@ -16,7 +16,7 @@
 import java.util.jar.Attributes
 
 plugins {
-    gradlebuild.distribution.`api-java`
+    id("gradlebuild.distribution.api-java")
 }
 
 gradlebuildJava.usedInWorkers()
@@ -26,14 +26,14 @@ dependencies {
 
     testImplementation(project(":baseServices"))
     testImplementation(project(":native"))
-    testImplementation(library("ant"))
+    testImplementation(libs.ant)
     testImplementation(testFixtures(project(":core")))
 
     integTestImplementation(project(":logging"))
     integTestImplementation(project(":coreApi"))
-    integTestImplementation(library("commons_io"))
-    integTestImplementation(testLibrary("littleproxy"))
-    integTestImplementation(testLibrary("jetty"))
+    integTestImplementation(libs.commonsIo)
+    integTestImplementation(libs.littleproxy)
+    integTestImplementation(libs.jetty)
 
     crossVersionTestImplementation(project(":logging"))
     crossVersionTestImplementation(project(":persistentCache"))

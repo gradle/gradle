@@ -21,23 +21,25 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ResolvedModuleVersion;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 
+import javax.annotation.Nullable;
 import java.io.File;
+import java.time.Duration;
 import java.util.Set;
 
 public interface CachePolicy {
-    boolean mustRefreshVersionList(ModuleIdentifier selector, Set<ModuleVersionIdentifier> moduleVersions, long ageMillis);
+    Expiry versionListExpiry(ModuleIdentifier selector, Set<ModuleVersionIdentifier> moduleVersions, Duration age);
 
-    boolean mustRefreshMissingModule(ModuleComponentIdentifier component, long ageMillis);
+    Expiry missingModuleExpiry(ModuleComponentIdentifier component, Duration age);
 
-    boolean mustRefreshModule(ModuleComponentIdentifier component, ResolvedModuleVersion resolvedModuleVersion, long ageMillis);
+    Expiry moduleExpiry(ModuleComponentIdentifier component, ResolvedModuleVersion resolvedModuleVersion, Duration age);
 
-    boolean mustRefreshModule(ResolvedModuleVersion resolvedModuleVersion, long ageMillis, boolean changing);
+    Expiry moduleExpiry(ResolvedModuleVersion resolvedModuleVersion, Duration age, boolean changing);
 
-    boolean mustRefreshChangingModule(ModuleComponentIdentifier component, ResolvedModuleVersion resolvedModuleVersion, long ageMillis);
+    Expiry changingModuleExpiry(ModuleComponentIdentifier component, ResolvedModuleVersion resolvedModuleVersion, Duration age);
 
-    boolean mustRefreshModuleArtifacts(ModuleVersionIdentifier moduleVersionId, Set<ArtifactIdentifier> artifacts, long ageMillis, boolean belongsToChangingModule, boolean moduleDescriptorInSync);
+    Expiry moduleArtifactsExpiry(ModuleVersionIdentifier moduleVersionId, Set<ArtifactIdentifier> artifacts, Duration age, boolean belongsToChangingModule, boolean moduleDescriptorInSync);
 
-    boolean mustRefreshArtifact(ArtifactIdentifier artifactIdentifier, File cachedArtifactFile, long ageMillis, boolean belongsToChangingModule, boolean moduleDescriptorInSync);
+    Expiry artifactExpiry(ArtifactIdentifier artifactIdentifier, @Nullable File cachedArtifactFile, Duration age, boolean belongsToChangingModule, boolean moduleDescriptorInSync);
 
     void setOffline();
 

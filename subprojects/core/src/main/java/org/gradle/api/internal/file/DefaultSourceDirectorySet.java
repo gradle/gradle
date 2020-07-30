@@ -28,7 +28,6 @@ import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.file.collections.FileCollectionAdapter;
-import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
 import org.gradle.api.internal.file.collections.MinimalFileSet;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.model.ObjectFactory;
@@ -48,6 +47,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 public class DefaultSourceDirectorySet extends CompositeFileTree implements SourceDirectorySet {
@@ -210,20 +210,20 @@ public class DefaultSourceDirectorySet extends CompositeFileTree implements Sour
     public Set<DirectoryTree> getSrcDirTrees() {
         // This implementation is broken. It does not consider include and exclude patterns
         Map<File, DirectoryTree> trees = new LinkedHashMap<File, DirectoryTree>();
-        for (DirectoryTree tree : doGetSrcDirTrees()) {
+        for (DirectoryTree tree : getSourceTrees()) {
             if (!trees.containsKey(tree.getDir())) {
                 trees.put(tree.getDir(), tree);
             }
         }
-        return new LinkedHashSet<DirectoryTree>(trees.values());
+        return new LinkedHashSet<>(trees.values());
     }
 
-    private Set<DirectoryTree> doGetSrcDirTrees() {
-        Set<DirectoryTree> result = new LinkedHashSet<DirectoryTree>();
+    protected Set<DirectoryFileTree> getSourceTrees() {
+        Set<DirectoryFileTree> result = new LinkedHashSet<>();
         for (Object path : source) {
-            if (path instanceof SourceDirectorySet) {
-                SourceDirectorySet nested = (SourceDirectorySet) path;
-                result.addAll(nested.getSrcDirTrees());
+            if (path instanceof DefaultSourceDirectorySet) {
+                DefaultSourceDirectorySet nested = (DefaultSourceDirectorySet) path;
+                result.addAll(nested.getSourceTrees());
             } else {
                 for (File srcDir : fileCollectionFactory.resolving(path)) {
                     if (srcDir.exists() && !srcDir.isDirectory()) {
@@ -248,9 +248,9 @@ public class DefaultSourceDirectorySet extends CompositeFileTree implements Sour
     }
 
     @Override
-    public void visitContents(FileCollectionResolveContext context) {
-        for (DirectoryTree directoryTree : doGetSrcDirTrees()) {
-            context.add(((DirectoryFileTree) directoryTree).filter(filter));
+    protected void visitChildren(Consumer<FileCollectionInternal> visitor) {
+        for (DirectoryFileTree directoryTree : getSourceTrees()) {
+            visitor.accept(fileCollectionFactory.treeOf(directoryTree.filter(filter)));
         }
     }
 

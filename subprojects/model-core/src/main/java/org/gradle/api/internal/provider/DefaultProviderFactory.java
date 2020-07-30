@@ -35,6 +35,7 @@ import org.gradle.internal.event.ListenerManager;
 
 import javax.annotation.Nullable;
 import java.util.concurrent.Callable;
+import java.util.function.BiFunction;
 
 public class DefaultProviderFactory implements ProviderFactory {
 
@@ -148,6 +149,11 @@ public class DefaultProviderFactory implements ProviderFactory {
     @Override
     public <T extends Credentials> Provider<T> credentials(Class<T> credentialsType, Provider<String> identity) {
         return credentialsProviderFactory.provide(credentialsType, identity);
+    }
+
+    @Override
+    public <A, B, R> Provider<R> zip(Provider<A> left, Provider<B> right, BiFunction<A, B, R> combiner) {
+        return new BiProvider<>(left, right, combiner);
     }
 
 }

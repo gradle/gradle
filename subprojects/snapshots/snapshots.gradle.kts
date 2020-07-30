@@ -14,11 +14,9 @@
  * limitations under the License.
  */
 
-import accessors.java
-
 plugins {
-    gradlebuild.distribution.`implementation-java`
-    gradlebuild.`publish-public-libraries`
+    id("gradlebuild.distribution.implementation-java")
+    id("gradlebuild.publish-public-libraries")
 }
 
 description = "Tools to take immutable, comparable snapshots of files and other things"
@@ -29,14 +27,14 @@ dependencies {
 
     implementation(project(":baseAnnotations"))
 
-    implementation(library("guava")) { version { require(libraryVersion("guava")) } }
-    implementation(library("slf4j_api")) { version { require(libraryVersion("slf4j_api")) } }
+    implementation(libs.guava)
+    implementation(libs.slf4jApi)
 
     testImplementation(project(":processServices"))
     testImplementation(project(":resources"))
     testImplementation(project(":native"))
     testImplementation(project(":persistentCache"))
-    testImplementation(library("ant"))
+    testImplementation(libs.ant)
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":coreApi")))
     testImplementation(testFixtures(project(":baseServices")))
@@ -54,7 +52,6 @@ afterEvaluate {
     // This is a workaround for the validate plugins task trying to inspect classes which have changed but are NOT tasks.
     // For the current project, we exclude all internal packages, since there are no tasks in there.
     tasks.withType<ValidatePlugins>().configureEach {
-        val main by project.java.sourceSets
-        classes.setFrom(main.output.classesDirs.asFileTree.matching { exclude("**/internal/**") })
+        classes.setFrom(sourceSets.main.get().output.classesDirs.asFileTree.matching { exclude("**/internal/**") })
     }
 }

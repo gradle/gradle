@@ -535,7 +535,7 @@ The following types/formats are supported:
         file("out.txt").text == "1"
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "queries mapped value of task output before it has completed")
     def "input file collection containing filtered tree of task output implies dependency on the task"() {
         taskTypeWithOutputDirectoryProperty()
         taskTypeWithInputFileCollection()
@@ -698,7 +698,7 @@ The following types/formats are supported:
         file("out.txt").text == "b"
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "queries mapped value of task output before it has completed")
     def "input file collection containing mapped task output property implies dependency on a specific output of the task"() {
         taskTypeWithMultipleOutputFileProperties()
         taskTypeWithInputFileCollection()
@@ -890,7 +890,7 @@ The following types/formats are supported:
         file("out.txt").text == "22"
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "queries mapped value of task output before it has completed")
     def "ad hoc input property with value of mapped task output implies dependency on the task"() {
         taskTypeWithOutputFileProperty()
         buildFile << """

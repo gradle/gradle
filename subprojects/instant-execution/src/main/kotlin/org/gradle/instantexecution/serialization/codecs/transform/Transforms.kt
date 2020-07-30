@@ -24,14 +24,12 @@ import org.gradle.api.internal.artifacts.transform.ExecutionGraphDependenciesRes
 import org.gradle.api.internal.artifacts.transform.Transformation
 import org.gradle.api.internal.artifacts.transform.TransformationNode
 import org.gradle.api.internal.artifacts.transform.TransformationStep
-import org.gradle.api.internal.artifacts.transform.TransformationSubject
 import org.gradle.api.internal.artifacts.transform.Transformer
 import org.gradle.api.internal.tasks.TaskDependencyContainer
 import org.gradle.instantexecution.serialization.Codec
 import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.WriteContext
 import org.gradle.internal.Try
-import java.io.File
 
 
 sealed class TransformDependencies {
@@ -71,27 +69,15 @@ object TransformDependenciesCodec : Codec<TransformDependencies> {
 }
 
 
-class TransformationSpec(val steps: List<TransformationStep>, val dependencies: List<TransformDependencies>) {
-    fun files(initialSubject: TransformationSubject): List<File> {
-        var subject = initialSubject
-        for (i in steps.indices) {
-            val step = steps[i]
-            val dependencies = dependencies[i].recreate()
-            subject = step.createInvocation(subject, dependencies, null).invoke().get()
-        }
-        return subject.files
-    }
-}
+class TransformationSpec(val transformation: Transformation, val dependencies: List<TransformDependencies>)
 
 
 fun unpackTransformation(transformation: Transformation, dependenciesResolver: ExecutionGraphDependenciesResolver): TransformationSpec {
-    val steps = mutableListOf<TransformationStep>()
     val dependencies = mutableListOf<TransformDependencies>()
     transformation.visitTransformationSteps {
-        steps.add(it)
         dependencies.add(transformDependencies(it.transformer, dependenciesResolver))
     }
-    return TransformationSpec(steps, dependencies)
+    return TransformationSpec(transformation, dependencies)
 }
 
 

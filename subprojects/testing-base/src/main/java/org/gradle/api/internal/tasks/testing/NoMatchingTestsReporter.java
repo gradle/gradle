@@ -21,6 +21,8 @@ import org.gradle.api.tasks.testing.TestDescriptor;
 import org.gradle.api.tasks.testing.TestListener;
 import org.gradle.api.tasks.testing.TestResult;
 
+import static org.gradle.api.tasks.testing.TestResult.ResultType.FAILURE;
+
 public class NoMatchingTestsReporter implements TestListener {
     private final String message;
 
@@ -33,7 +35,7 @@ public class NoMatchingTestsReporter implements TestListener {
 
     @Override
     public void afterSuite(TestDescriptor suite, TestResult result) {
-        if (suite.getParent() == null && result.getTestCount() == 0) {
+        if (suite.getParent() == null && result.getTestCount() == 0 && result.getResultType() != FAILURE) {
             throw new TestExecutionException(message);
         }
     }

@@ -28,7 +28,7 @@ The file must be encoded using UTF-8.
 
 The file must contain a JSON object with the following values:
 
-- `formatVersion`: must be present and the first value of the JSON object. Its value must be `"1.0"`
+- `formatVersion`: must be present and the first value of the JSON object. Its value must be `"1.1"`
 - `component`: optional. Describes the identity of the component contained in the module.
 - `createdBy`: optional. Describes the producer of this metadata file and the contents of the module.
 - `variants`: optional. Describes the variants of the component packaged in the module, if any.

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 plugins {
-    gradlebuild.distribution.`api-java`
+    id("gradlebuild.distribution.api-java")
 }
 
 dependencies {
@@ -32,7 +32,7 @@ dependencies {
         because("To pick up various builders (which should live somewhere else)")
     }
 
-    implementation(library("guava"))
+    implementation(libs.guava)
 
     testImplementation(testFixtures(project(":platformNative")))
 

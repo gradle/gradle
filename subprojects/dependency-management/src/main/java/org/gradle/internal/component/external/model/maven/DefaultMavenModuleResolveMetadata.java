@@ -31,6 +31,7 @@ import org.gradle.internal.component.external.model.ConfigurationBoundExternalDe
 import org.gradle.internal.component.external.model.DefaultConfigurationMetadata;
 import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactMetadata;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
+import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
 import org.gradle.internal.component.external.model.VariantDerivationStrategy;
 import org.gradle.internal.component.external.model.VariantMetadataRules;
@@ -78,8 +79,8 @@ public class DefaultMavenModuleResolveMetadata extends AbstractLazyModuleCompone
         dependencies = metadata.getDependencies();
     }
 
-    private DefaultMavenModuleResolveMetadata(DefaultMavenModuleResolveMetadata metadata, ModuleSources sources) {
-        super(metadata, sources);
+    private DefaultMavenModuleResolveMetadata(DefaultMavenModuleResolveMetadata metadata, ModuleSources sources, VariantDerivationStrategy derivationStrategy) {
+        super(metadata, sources, derivationStrategy);
         this.objectInstantiator = metadata.objectInstantiator;
         this.mavenImmutableAttributesFactory = metadata.mavenImmutableAttributesFactory;
         packaging = metadata.packaging;
@@ -87,7 +88,7 @@ public class DefaultMavenModuleResolveMetadata extends AbstractLazyModuleCompone
         snapshotTimestamp = metadata.snapshotTimestamp;
         dependencies = metadata.dependencies;
 
-        copyCachedState(metadata);
+        copyCachedState(metadata, metadata.getVariantDerivationStrategy() != derivationStrategy);
     }
 
     @Override
@@ -110,7 +111,7 @@ public class DefaultMavenModuleResolveMetadata extends AbstractLazyModuleCompone
     }
 
     private ImmutableList<? extends ConfigurationMetadata> getDerivedVariants() {
-        VariantDerivationStrategy strategy = getVariantMetadataRules().getVariantDerivationStrategy();
+        VariantDerivationStrategy strategy = getVariantDerivationStrategy();
         if (derivedVariants == null && strategy.derivesVariants()) {
             filterConstraints = false;
             derivedVariants = strategy.derive(this);
@@ -209,7 +210,15 @@ public class DefaultMavenModuleResolveMetadata extends AbstractLazyModuleCompone
 
     @Override
     public DefaultMavenModuleResolveMetadata withSources(ModuleSources sources) {
-        return new DefaultMavenModuleResolveMetadata(this, sources);
+        return new DefaultMavenModuleResolveMetadata(this, sources, getVariantDerivationStrategy());
+    }
+
+    @Override
+    public ModuleComponentResolveMetadata withDerivationStrategy(VariantDerivationStrategy derivationStrategy) {
+        if (getVariantDerivationStrategy() == derivationStrategy) {
+            return this;
+        }
+        return new DefaultMavenModuleResolveMetadata(this, getSources(), derivationStrategy);
     }
 
     @Override

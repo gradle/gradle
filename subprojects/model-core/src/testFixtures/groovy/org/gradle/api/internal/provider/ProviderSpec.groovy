@@ -16,14 +16,14 @@
 
 package org.gradle.api.internal.provider
 
-import org.gradle.api.Task
+
 import org.gradle.api.Transformer
 import org.gradle.api.provider.Provider
 import org.gradle.internal.state.Managed
 import org.gradle.internal.state.ManagedFactory
 import spock.lang.Specification
 
-abstract class ProviderSpec<T> extends Specification {
+abstract class ProviderSpec<T> extends Specification implements ProviderAssertions {
     abstract Provider<T> providerWithValue(T value)
 
     abstract Provider<T> providerWithNoValue()
@@ -449,32 +449,5 @@ abstract class ProviderSpec<T> extends Specification {
                 throw new RuntimeException("broken!")
             }
         }
-    }
-
-    void assertHasNoProducer(ProviderInternal<?> provider) {
-        def producer = provider.producer
-        assert !producer.known
-        producer.visitProducerTasks { assert false }
-        producer.visitContentProducerTasks { assert false }
-    }
-
-    void assertHasKnownProducer(ProviderInternal<?> provider) {
-        def producer = provider.producer
-        assert producer.known
-        producer.visitProducerTasks { assert false }
-        producer.visitContentProducerTasks { assert false }
-    }
-
-    void assertHasProducer(ProviderInternal<?> provider, Task task, Task... additional) {
-        def expected = [task] + (additional as List)
-
-        def producer = provider.producer
-        assert producer.known
-        def tasks = []
-        producer.visitProducerTasks { tasks.add(it) }
-        assert tasks == expected
-        tasks.clear()
-        producer.visitContentProducerTasks { tasks.add(it) }
-        assert tasks == expected
     }
 }

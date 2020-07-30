@@ -16,10 +16,11 @@
 
 package org.gradle.execution
 
-import org.gradle.StartParameter
+
 import org.gradle.TaskExecutionRequest
 import org.gradle.api.Task
 import org.gradle.api.internal.GradleInternal
+import org.gradle.api.internal.StartParameterInternal
 import org.gradle.execution.commandline.CommandLineTaskParser
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal
 import spock.lang.Specification
@@ -39,7 +40,7 @@ class TaskNameResolvingBuildConfigurationActionSpec extends Specification {
 
     def "empty task parameters are no-op action"() {
         given:
-        def startParameters = Mock(StartParameter)
+        def startParameters = Mock(StartParameterInternal)
 
         when:
         _ * context.getGradle() >> gradle
@@ -55,7 +56,7 @@ class TaskNameResolvingBuildConfigurationActionSpec extends Specification {
     }
 
     def "expand task parameters to tasks"() {
-        def startParameters = Mock(StartParameter)
+        def startParameters = Mock(StartParameterInternal)
         def taskGraph = Mock(TaskExecutionGraphInternal)
         TaskExecutionRequest request1 = Stub(TaskExecutionRequest)
         TaskExecutionRequest request2 = Stub(TaskExecutionRequest)

@@ -31,6 +31,7 @@ import org.gradle.internal.ErroringAction;
 import org.gradle.internal.IoActions;
 
 import javax.annotation.Nullable;
+import javax.inject.Inject;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.StringWriter;
@@ -80,6 +81,7 @@ public class TestNGOptions extends TestFrameworkOptions {
 
     private final File projectDir;
 
+    @Inject
     public TestNGOptions(File projectDir) {
         this.projectDir = projectDir;
     }
@@ -173,7 +175,7 @@ public class TestNGOptions extends TestFrameworkOptions {
             return suiteXmlBuilder.getMetaClass().invokeMethod(suiteXmlBuilder, name, args);
         }
 
-        throw new MissingMethodException(name, getClass(), (Object[])args);
+        throw new MissingMethodException(name, getClass(), (Object[]) args);
     }
 
     /**

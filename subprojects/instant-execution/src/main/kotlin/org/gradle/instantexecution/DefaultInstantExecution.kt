@@ -22,7 +22,6 @@ import org.gradle.api.logging.Logging
 import org.gradle.initialization.GradlePropertiesController
 import org.gradle.initialization.InstantExecution
 import org.gradle.instantexecution.InstantExecutionCache.CheckedFingerprint
-import org.gradle.instantexecution.coroutines.runToCompletion
 import org.gradle.instantexecution.extensions.unsafeLazy
 import org.gradle.instantexecution.fingerprint.InstantExecutionCacheFingerprintController
 import org.gradle.instantexecution.fingerprint.InvalidationReason
@@ -34,6 +33,7 @@ import org.gradle.instantexecution.serialization.IsolateOwner
 import org.gradle.instantexecution.serialization.MutableIsolateContext
 import org.gradle.instantexecution.serialization.beans.BeanConstructors
 import org.gradle.instantexecution.serialization.codecs.Codecs
+import org.gradle.instantexecution.serialization.runReadOperation
 import org.gradle.instantexecution.serialization.runWriteOperation
 import org.gradle.instantexecution.serialization.withIsolate
 import org.gradle.internal.Factory
@@ -88,6 +88,20 @@ class DefaultInstantExecution internal constructor(
             )
             false
         }
+        startParameter.isWriteDependencyLocks -> {
+            logBootstrapSummary(
+                "Calculating task graph as configuration cache cannot be reused due to {}",
+                "--write-locks"
+            )
+            false
+        }
+        startParameter.isUpdateDependencyLocks -> {
+            logBootstrapSummary(
+                "Calculating task graph as configuration cache cannot be reused due to {}",
+                "--update-locks"
+            )
+            false
+        }
         else -> {
             val checkedFingerprint = cache.useForFingerprintCheck(
                 cacheKey.string,
@@ -135,6 +149,9 @@ class DefaultInstantExecution internal constructor(
 
         problems.storing()
 
+        // TODO - fingerprint should be collected until the state file has been written, as user code can run during this process
+        // Moving this is currently broken because the Jar task queries provider values when serializing the manifest file tree and this
+        // can cause the provider value to incorrectly be treated as a task graph input
         Instrumented.discardListener()
         stopCollectingCacheFingerprint()
 
@@ -147,6 +164,8 @@ class DefaultInstantExecution internal constructor(
                     invalidateInstantExecutionState(layout)
                     problems.failingBuildDueToSerializationError()
                     throw error
+                } finally {
+                    cacheFingerprintController.stop()
                 }
             }
         }
@@ -179,7 +198,7 @@ class DefaultInstantExecution internal constructor(
     fun writeInstantExecutionState(stateFile: File) {
         service<ProjectStateRegistry>().withLenientState {
             withWriteContextFor(stateFile) {
-                InstantExecutionState(codecs, host, relevantProjectsRegistry).run {
+                instantExecutionState().run {
                     writeState()
                 }
             }
@@ -189,11 +208,15 @@ class DefaultInstantExecution internal constructor(
     private
     fun readInstantExecutionState(stateFile: File) {
         withReadContextFor(stateFile) {
-            InstantExecutionState(codecs, host, relevantProjectsRegistry).run {
+            instantExecutionState().run {
                 readState()
             }
         }
     }
+
+    private
+    fun instantExecutionState() =
+        InstantExecutionState(codecs(), host, relevantProjectsRegistry)
 
     private
     fun startCollectingCacheFingerprint() {
@@ -214,7 +237,7 @@ class DefaultInstantExecution internal constructor(
     private
     fun cacheFingerprintWriterContextFor(outputStream: OutputStream) =
         writerContextFor(outputStream).apply {
-            push(IsolateOwner.OwnerHost(host), codecs.userTypesCodec)
+            push(IsolateOwner.OwnerHost(host), codecs().userTypesCodec)
         }
 
     private
@@ -261,9 +284,7 @@ class DefaultInstantExecution internal constructor(
         KryoBackedDecoder(file.inputStream()).use { decoder ->
             readContextFor(decoder).run {
                 initClassLoader(javaClass.classLoader)
-                runToCompletion {
-                    readOperation()
-                }
+                runReadOperation(readOperation)
             }
         }
 
@@ -271,7 +292,7 @@ class DefaultInstantExecution internal constructor(
     fun writeContextFor(
         encoder: Encoder
     ) = DefaultWriteContext(
-        codecs.userTypesCodec,
+        codecs().userTypesCodec,
         encoder,
         scopeRegistryListener,
         logger,
@@ -279,8 +300,10 @@ class DefaultInstantExecution internal constructor(
     )
 
     private
-    fun readContextFor(decoder: KryoBackedDecoder) = DefaultReadContext(
-        codecs.userTypesCodec,
+    fun readContextFor(
+        decoder: KryoBackedDecoder
+    ) = DefaultReadContext(
+        codecs().userTypesCodec,
         decoder,
         service(),
         beanConstructors,
@@ -289,7 +312,7 @@ class DefaultInstantExecution internal constructor(
     )
 
     private
-    val codecs: Codecs by unsafeLazy {
+    fun codecs(): Codecs =
         Codecs(
             directoryFileTreeFactory = service(),
             fileCollectionFactory = service(),
@@ -312,17 +335,17 @@ class DefaultInstantExecution internal constructor(
             actionScheme = service(),
             attributesFactory = service(),
             transformListener = service(),
+            transformationNodeRegistry = service(),
             valueSourceProviderFactory = service(),
             patternSetFactory = factory(),
             fileOperations = service(),
             fileSystem = service(),
             fileFactory = service()
         )
-    }
 
     private
     inline fun <T : MutableIsolateContext, R> T.withHostIsolate(block: T.() -> R): R =
-        withIsolate(IsolateOwner.OwnerHost(host), codecs.userTypesCodec) {
+        withIsolate(IsolateOwner.OwnerHost(host), codecs().userTypesCodec) {
             block()
         }
 

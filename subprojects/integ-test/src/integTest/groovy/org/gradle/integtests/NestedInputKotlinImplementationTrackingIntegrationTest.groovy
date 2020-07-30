@@ -32,7 +32,7 @@ class NestedInputKotlinImplementationTrackingIntegrationTest extends AbstractPlu
         return 'build.gradle.kts'
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "Kotlin Gradle Plugin")
     def "implementations in nested Action property in Kotlin build script is tracked"() {
         setupTaskWithNestedAction('org.gradle.api.Action<File>', '.execute')
         buildFile << """
@@ -66,7 +66,7 @@ class NestedInputKotlinImplementationTrackingIntegrationTest extends AbstractPlu
         output.contains "Implementation of input property 'action' has changed for task ':myTask'"
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "Kotlin Gradle Plugin")
     def "implementations in nested lambda property in Kotlin build script is tracked"() {
         setupTaskWithNestedAction('(File) -> Unit', '')
         buildFile << """

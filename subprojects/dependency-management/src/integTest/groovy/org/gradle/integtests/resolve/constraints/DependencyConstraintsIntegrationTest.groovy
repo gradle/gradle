@@ -19,6 +19,7 @@ import org.gradle.integtests.fixtures.AbstractPolyglotIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import spock.lang.Issue
+import spock.lang.Unroll
 
 /**
  * This is a variation of {@link PublishedDependencyConstraintsIntegrationTest} that tests dependency constraints
@@ -750,5 +751,42 @@ class DependencyConstraintsIntegrationTest extends AbstractPolyglotIntegrationSp
 
         then:
         outputContains("org:bar: FAILED")
+    }
+
+    @ToBeFixedForInstantExecution(because = "broken file collection")
+    @Unroll
+    void 'multiple dependency constraints on single module are all taken into account (#one then #two)'() {
+        def bar10 = mavenRepo.module('org', 'bar', '1.0').publish()
+        def bar20 = mavenRepo.module('org', 'bar', '2.0').publish()
+        def foo10 = mavenRepo.module('org', 'foo', '1.0').dependsOn(bar10).publish()
+        def foo13 = mavenRepo.module('org', 'foo', '1.3').dependsOn(bar10).publish()
+        def bar15 = mavenRepo.module('org', 'bar', '1.5').publish()
+        def foo15 = mavenRepo.module('org', 'foo', '1.5').dependsOn(bar15).publish()
+
+        def third = mavenRepo.module('org', 'third', '1.0').dependsOn(foo15).publish()
+        def second = mavenRepo.module('org', 'second', '1.0').dependsOn(third).dependsOn(foo13).publish()
+        mavenRepo.module('org', 'first', '1.0').dependsOn(second).dependsOn(foo10).publish()
+        writeSpec {
+            rootProject {
+                dependencies {
+                    constraints {
+                        conf "org:bar:$one"
+                        conf "org:bar:$two"
+                    }
+                    conf('org:first:1.0')
+                }
+            }
+        }
+
+        when:
+        succeeds 'dependencyInsight', '--configuration', 'conf', '--dependency', 'org:bar'
+
+        then:
+        outputContains("org:bar:2.0")
+
+        where:
+        one   | two
+        '1.5'   | '2.0'
+        '2.0'   | '1.5'
     }
 }

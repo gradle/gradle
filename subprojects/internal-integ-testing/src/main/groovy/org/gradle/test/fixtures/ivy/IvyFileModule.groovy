@@ -219,6 +219,11 @@ class IvyFileModule extends AbstractModule implements IvyModule {
         return this
     }
 
+    IvyFileModule exclude(Map<String, ?> attributes) {
+        configurationExcludes.add(attributes)
+        return this
+    }
+
     IvyFileModule excludeFromConfig(String group, String module, String configuration) {
         Map<String, ?> allAttrs = [organisation: group, module: module, conf: configuration]
         configurationExcludes.add allAttrs
@@ -546,7 +551,20 @@ class IvyFileModule extends AbstractModule implements IvyModule {
                 }
             }
             configurationExcludes.each { exclude ->
-                ivyFileWriter << "\n<exclude org=\"${exclude.organisation}\" module=\"${exclude.module}\" conf=\"${exclude.conf}\"/>"
+                ivyFileWriter << "\n  <exclude"
+                if (exclude.containsKey("organisation")) {
+                    ivyFileWriter << " org=\"${exclude.organisation}\""
+                }
+                if (exclude.containsKey("module")) {
+                    ivyFileWriter << " module=\"${exclude.module}\""
+                }
+                if (exclude.containsKey("artifact")) {
+                    ivyFileWriter << " artifact=\"${exclude.artifact}\""
+                }
+                if (exclude.containsKey("conf")) {
+                    ivyFileWriter << " conf=\"${exclude.conf}\""
+                }
+                ivyFileWriter << "/>"
             }
             def compileDependencies = variants.find{ it.name == 'api' }?.dependencies
             def runtimeDependencies = variants.find{ it.name == 'runtime' }?.dependencies

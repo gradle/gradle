@@ -53,7 +53,7 @@ class ApplicationPluginIntegrationTest extends WellBehavedPluginTest {
         windowsStartScriptContentText.contains('set DEFAULT_JVM_OPTS=')
         windowsStartScriptContentText.contains('set CLASSPATH=%APP_HOME%\\lib\\sample.jar')
         !windowsStartScriptContentText.contains('set MODULE_PATH=')
-        windowsStartScriptContentText.contains('"%JAVA_EXE%" %DEFAULT_JVM_OPTS% %JAVA_OPTS% %SAMPLE_OPTS%  -classpath "%CLASSPATH%" org.gradle.test.Main %CMD_LINE_ARGS%')
+        windowsStartScriptContentText.contains('"%JAVA_EXE%" %DEFAULT_JVM_OPTS% %JAVA_OPTS% %SAMPLE_OPTS%  -classpath "%CLASSPATH%" org.gradle.test.Main %*')
     }
 
     @Requires(TestPrecondition.JDK9_OR_LATER)
@@ -79,7 +79,7 @@ class ApplicationPluginIntegrationTest extends WellBehavedPluginTest {
         windowsStartScriptContentText.contains('set DEFAULT_JVM_OPTS=')
         windowsStartScriptContentText.contains('set CLASSPATH=')
         windowsStartScriptContentText.contains('set MODULE_PATH=%APP_HOME%\\lib\\sample.jar')
-        windowsStartScriptContentText.contains('"%JAVA_EXE%" %DEFAULT_JVM_OPTS% %JAVA_OPTS% %SAMPLE_OPTS%  -classpath "%CLASSPATH%" --module-path "%MODULE_PATH%" --module org.gradle.test.main/org.gradle.test.Main %CMD_LINE_ARGS%')
+        windowsStartScriptContentText.contains('"%JAVA_EXE%" %DEFAULT_JVM_OPTS% %JAVA_OPTS% %SAMPLE_OPTS%  -classpath "%CLASSPATH%" --module-path "%MODULE_PATH%" --module org.gradle.test.main/org.gradle.test.Main %*')
     }
 
     def "can generate starts script generation with custom user configuration"() {
@@ -105,7 +105,7 @@ applicationDefaultJvmArgs = ["-Dgreeting.language=en", "-DappId=\${project.name 
         windowsStartScriptContentText.contains('@rem  myApp startup script for Windows')
         windowsStartScriptContentText.contains('set DEFAULT_JVM_OPTS="-Dgreeting.language=en" "-DappId=sample"')
         windowsStartScriptContentText.contains('set CLASSPATH=%APP_HOME%\\lib\\sample.jar')
-        windowsStartScriptContentText.contains('"%JAVA_EXE%" %DEFAULT_JVM_OPTS% %JAVA_OPTS% %MY_APP_OPTS%  -classpath "%CLASSPATH%" org.gradle.test.Main %CMD_LINE_ARGS%')
+        windowsStartScriptContentText.contains('"%JAVA_EXE%" %DEFAULT_JVM_OPTS% %JAVA_OPTS% %MY_APP_OPTS%  -classpath "%CLASSPATH%" org.gradle.test.Main %*')
     }
 
     def "can change template file for default start script generators"() {
@@ -237,6 +237,7 @@ $binFile.text
 task execStartScript(type: Exec) {
     workingDir '$startScriptDir.canonicalPath'
     commandLine './sample'
+    environment JAVA_OPTS: ''
 }
 """
         return succeeds('execStartScript')
@@ -250,6 +251,7 @@ task execStartScript(type: Exec) {
     workingDir '$startScriptDir.canonicalPath'
     commandLine './sample'
     environment JAVA_HOME: "$javaHome"
+    environment JAVA_OPTS: ''
 }
 """
         return succeeds('execStartScript')
@@ -261,6 +263,7 @@ task execStartScript(type: Exec) {
 task execStartScript(type: Exec) {
     workingDir '$escapedStartScriptDir'
     commandLine 'cmd', '/c', 'sample.bat'
+    environment JAVA_OPTS: ''
 }
 """
         return succeeds('execStartScript')

@@ -205,7 +205,6 @@ class ModuleVersionSpec {
         expectGetMetadata.each {
             switch (it) {
                 case InteractionExpectation.NONE:
-                    true // workaround for groovy-2.5.10 regression: https://issues.apache.org/jira/browse/GROOVY-9424
                     break
                 case InteractionExpectation.MAYBE:
                     if (module instanceof MavenModule) {

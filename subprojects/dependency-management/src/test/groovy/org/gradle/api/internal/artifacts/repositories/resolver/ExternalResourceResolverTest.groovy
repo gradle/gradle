@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.repositories.resolver
 
 import com.google.common.collect.ImmutableList
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
-import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.repositories.metadata.DefaultArtifactMetadataSource
 import org.gradle.api.internal.artifacts.repositories.metadata.ImmutableMetadataSources
 import org.gradle.api.internal.artifacts.repositories.metadata.MetadataArtifactProvider
@@ -55,13 +54,12 @@ class ExternalResourceResolverTest extends Specification {
     CacheAwareExternalResourceAccessor resourceAccessor = Stub()
     LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder = Mock()
     FileStore<ModuleComponentArtifactIdentifier> fileStore = Stub()
-    ImmutableModuleIdentifierFactory moduleIdentifierFactory = Stub()
     ExternalResourceArtifactResolver artifactResolver = Mock()
     ImmutableMetadataSources metadataSources = Mock()
     ExternalResourceResolver resolver
 
     def setup() {
-        resolver = new TestResolver(name, true, repository, resourceAccessor, locallyAvailableResourceFinder, fileStore, moduleIdentifierFactory, metadataSources, Stub(MetadataArtifactProvider))
+        resolver = new TestResolver(name, true, repository, resourceAccessor, locallyAvailableResourceFinder, fileStore, metadataSources, Stub(MetadataArtifactProvider))
         resolver.artifactResolver = artifactResolver
     }
 
@@ -147,7 +145,7 @@ class ExternalResourceResolverTest extends Specification {
 
         then:
         1 * metadataSources.sources() >> ImmutableList.of(new DefaultArtifactMetadataSource(Mock(MutableModuleMetadataFactory)))
-        1 * artifactResolver.artifactExists({ it.componentId.is(id) && it.name.type == 'jar'}, _)
+        1 * artifactResolver.artifactExists({ it.componentId.is(id) && it.name.type == 'jar' }, _)
         1 * metadataResult.missing()
         0 * _
     }

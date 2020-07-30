@@ -50,6 +50,12 @@ class InstantExecutionStartParameter(
     val recreateCache: Boolean
         get() = startParameter.isConfigurationCacheRecreateCache
 
+    /**
+     * See [StartParameter.getProjectDir].
+     */
+    val projectDirectory: File?
+        get() = startParameter.projectDir
+
     val currentDirectory: File
         get() = startParameter.currentDir
 
@@ -62,6 +68,12 @@ class InstantExecutionStartParameter(
     val isRefreshDependencies
         get() = startParameter.isRefreshDependencies
 
+    val isWriteDependencyLocks
+        get() = startParameter.isWriteDependencyLocks && !isUpdateDependencyLocks
+
+    val isUpdateDependencyLocks
+        get() = startParameter.lockedDependenciesToUpdate.isNotEmpty()
+
     val requestedTaskNames: List<String> by unsafeLazy {
         startParameter.taskNames
     }
@@ -71,4 +83,7 @@ class InstantExecutionStartParameter(
 
     val allInitScripts: List<File>
         get() = startParameter.allInitScripts
+
+    val gradleUserHomeDir: File
+        get() = startParameter.gradleUserHomeDir
 }

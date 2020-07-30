@@ -1,1 +1,1 @@
-val enabled = System.getProperty("some-property")
+val enabled = System.getProperty("some-property") != null

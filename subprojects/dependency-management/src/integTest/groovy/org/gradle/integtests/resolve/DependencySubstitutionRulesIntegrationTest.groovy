@@ -17,6 +17,8 @@
 
 package org.gradle.integtests.resolve
 
+import org.gradle.api.attributes.Category
+import org.gradle.api.attributes.Usage
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
@@ -873,7 +875,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
         }
     }
 
-    void "can blacklist a version"() {
+    void "can deny a version"() {
         mavenRepo.module("org.utils", "a", '1.4').publish()
         mavenRepo.module("org.utils", "a", '1.3').publish()
         mavenRepo.module("org.utils", "a", '1.2').publish()
@@ -906,7 +908,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
         }
     }
 
-    void "can blacklist a version that is not used"() {
+    void "can deny a version that is not used"() {
         mavenRepo.module("org.utils", "a", '1.3').publish()
         mavenRepo.module("org.utils", "a", '1.2').publish()
         mavenRepo.module("org.utils", "b", '1.3').dependsOn("org.utils", "a", "1.3").publish()
@@ -1634,5 +1636,60 @@ configurations.all {
             }
         }
 
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/13658")
+    def "constraint shouldn't be converted to hard dependency when a dependency subsitution applies on an external module"() {
+        def fooModule = mavenRepo.module("org", "foo", "1.0")
+        mavenRepo.module("org", "platform", "1.0")
+            .withModuleMetadata()
+            .adhocVariants()
+            .variant("apiElements", [(Usage.USAGE_ATTRIBUTE.name): Usage.JAVA_API, (Category.CATEGORY_ATTRIBUTE.name): Category.REGULAR_PLATFORM]) {
+                useDefaultArtifacts = false
+            }
+            .dependencyConstraint(fooModule)
+            .variant("runtimeElements", [(Usage.USAGE_ATTRIBUTE.name): Usage.JAVA_RUNTIME, (Category.CATEGORY_ATTRIBUTE.name): Category.REGULAR_PLATFORM]) {
+                useDefaultArtifacts = false
+            }
+            .dependencyConstraint(fooModule)
+            .publish()
+
+        settingsFile << """
+            include 'lib'
+        """
+
+        file('lib/build.gradle') << """
+            plugins {
+                id 'java-library'
+            }
+        """
+
+        when:
+        buildFile << """
+            apply plugin: 'java-library'
+
+            repositories {
+                maven { url = "${mavenRepo.uri}" }
+            }
+
+            dependencies {
+                api platform('org:platform:1.0')
+            }
+
+            configurations.all {
+                resolutionStrategy.dependencySubstitution {
+                    substitute module('org:foo:1.0') with project(':lib')
+                }
+            }
+
+            task assertNotConvertedToHardDependency {
+                doLast {
+                    assert configurations.runtimeClasspath.files.empty
+                }
+            }
+        """
+
+        then:
+        succeeds 'assertNotConvertedToHardDependency'
     }
 }

@@ -62,28 +62,19 @@ public class JavaPlatformPlugin implements Plugin<Project> {
     // Resolvable configurations
     public static final String CLASSPATH_CONFIGURATION_NAME = "classpath";
 
-    private static final Action<Configuration> AS_CONSUMABLE_CONFIGURATION = new Action<Configuration>() {
-        @Override
-        public void execute(Configuration conf) {
-            conf.setCanBeResolved(false);
-            conf.setCanBeConsumed(true);
-        }
+    private static final Action<Configuration> AS_CONSUMABLE_CONFIGURATION = conf -> {
+        conf.setCanBeResolved(false);
+        conf.setCanBeConsumed(true);
     };
 
-    private static final Action<Configuration> AS_BUCKET = new Action<Configuration>() {
-        @Override
-        public void execute(Configuration conf) {
-            conf.setCanBeResolved(false);
-            conf.setCanBeConsumed(false);
-        }
+    private static final Action<Configuration> AS_BUCKET = conf -> {
+        conf.setCanBeResolved(false);
+        conf.setCanBeConsumed(false);
     };
 
-    private static final Action<Configuration> AS_RESOLVABLE_CONFIGURATION = new Action<Configuration>() {
-        @Override
-        public void execute(Configuration conf) {
-            conf.setCanBeResolved(true);
-            conf.setCanBeConsumed(false);
-        }
+    private static final Action<Configuration> AS_RESOLVABLE_CONFIGURATION = conf -> {
+        conf.setCanBeResolved(true);
+        conf.setCanBeConsumed(false);
     };
     private static final String DISALLOW_DEPENDENCIES = "Adding dependencies to platforms is not allowed by default.\n" +
         "Most likely you want to add constraints instead.\n" +
@@ -179,12 +170,9 @@ public class JavaPlatformPlugin implements Plugin<Project> {
 
     private void configureExtension(Project project) {
         final DefaultJavaPlatformExtension platformExtension = (DefaultJavaPlatformExtension) project.getExtensions().create(JavaPlatformExtension.class, "javaPlatform", DefaultJavaPlatformExtension.class);
-        project.afterEvaluate(new Action<Project>() {
-            @Override
-            public void execute(Project project) {
-                if (!platformExtension.isAllowDependencies()) {
-                    checkNoDependencies(project);
-                }
+        project.afterEvaluate(project1 -> {
+            if (!platformExtension.isAllowDependencies()) {
+                checkNoDependencies(project1);
             }
         });
     }

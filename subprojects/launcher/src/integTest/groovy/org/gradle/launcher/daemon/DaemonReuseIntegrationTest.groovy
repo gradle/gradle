@@ -16,7 +16,6 @@
 
 package org.gradle.launcher.daemon
 
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.daemon.DaemonClientFixture
 import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
 import org.gradle.launcher.daemon.logging.DaemonMessages
@@ -152,7 +151,6 @@ class DaemonReuseIntegrationTest extends DaemonIntegrationSpec {
 
     // GradleHandle.abort() does not work reliably on windows and creates flakiness
     @Requires(TestPrecondition.NOT_WINDOWS)
-    @ToBeFixedForInstantExecution
     def "prefers an idle daemon when daemons with canceled builds are available"() {
         given:
         expectEvent("started1")
@@ -199,7 +197,7 @@ class DaemonReuseIntegrationTest extends DaemonIntegrationSpec {
         canceledDaemon2.becomesCanceled()
 
         when:
-        build3 = executer.withTasks("tasks").start()
+        build3 = executer.withTasks("help").start()
 
         then:
         build3.waitForFinish()

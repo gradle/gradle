@@ -1,20 +1,8 @@
-import org.gradle.build.GradleStartScriptGenerator
-import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
+import gradlebuild.cleanup.WhenNotEmpty
 
 plugins {
-    gradlebuild.distribution.`api-java`
-}
-
-val manifestClasspath by configurations.creating {
-    isCanBeResolved = true
-    isCanBeConsumed = false
-    isTransitive = false
-
-    attributes {
-        attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_RUNTIME))
-        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.LIBRARY))
-        attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements.JAR))
-    }
+    id("gradlebuild.distribution.api-java")
+    id("gradlebuild.launchable-jar")
 }
 
 dependencies {
@@ -35,19 +23,20 @@ dependencies {
     implementation(project(":jvmServices"))
     implementation(project(":buildEvents"))
     implementation(project(":toolingApi"))
+    implementation(project(":fileWatching"))
 
-    implementation(library("groovy")) // for 'ReleaseInfo.getVersion()'
-    implementation(library("slf4j_api"))
-    implementation(library("guava"))
-    implementation(library("commons_io"))
-    implementation(library("commons_lang"))
-    implementation(library("asm"))
-    implementation(library("ant"))
+    implementation(libs.groovy) // for 'ReleaseInfo.getVersion()'
+    implementation(libs.slf4jApi)
+    implementation(libs.guava)
+    implementation(libs.commonsIo)
+    implementation(libs.commonsLang)
+    implementation(libs.asm)
+    implementation(libs.ant)
 
-    runtimeOnly(library("asm"))
-    runtimeOnly(library("commons_io"))
-    runtimeOnly(library("commons_lang"))
-    runtimeOnly(library("slf4j_api"))
+    runtimeOnly(libs.asm)
+    runtimeOnly(libs.commonsIo)
+    runtimeOnly(libs.commonsLang)
+    runtimeOnly(libs.slf4jApi)
 
     manifestClasspath(project(":bootstrap"))
     manifestClasspath(project(":baseServices"))
@@ -72,10 +61,10 @@ dependencies {
     testImplementation(testFixtures(project(":toolingApi")))
 
     integTestImplementation(project(":persistentCache"))
-    integTestImplementation(library("slf4j_api"))
-    integTestImplementation(library("guava"))
-    integTestImplementation(library("commons_lang"))
-    integTestImplementation(library("commons_io"))
+    integTestImplementation(libs.slf4jApi)
+    integTestImplementation(libs.guava)
+    integTestImplementation(libs.commonsLang)
+    integTestImplementation(libs.commonsIo)
 
     testRuntimeOnly(project(":distributionsCore")) {
         because("Tests instantiate DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")
@@ -89,40 +78,12 @@ strictCompile {
     ignoreRawTypes() // raw types used in public API
 }
 
-// Needed for testing debug command line option (JDWPUtil) - 'CommandLineIntegrationSpec.can debug with org.gradle.debug=true'
-val toolsJar = buildJvms.testJvm.map { jvm -> jvm.toolsClasspath }
-dependencies {
-    integTestRuntimeOnly(files(toolsJar))
-}
-
-tasks.jar.configure {
-    val classpath = manifestClasspath.elements.map { classpathDependency ->
-        classpathDependency.joinToString(" ") {
-            it.asFile.name
-        }
-    }
-    manifest.attributes("Class-Path" to classpath)
-    manifest.attributes("Main-Class" to "org.gradle.launcher.GradleMain")
-}
-
-val startScripts = tasks.register<GradleStartScriptGenerator>("startScripts") {
-    startScriptsDir = file("$buildDir/startScripts")
-    launcherJar = tasks.jar.get().outputs.files
-}
-
-configurations {
-    create("gradleScriptsElements") {
-        isVisible = false
-        isCanBeResolved = false
-        isCanBeConsumed = true
-        attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage::class.java, "start-scripts"))
-        // TODO: Update GradleStartScriptGenerator to retain dependency information with Provider API
-        outgoing.artifact(startScripts.map { it.startScriptsDir }) {
-            builtBy(startScripts)
-        }
-    }
-}
-
 testFilesCleanup {
     policy.set(WhenNotEmpty.REPORT)
+}
+
+// Needed for testing debug command line option (JDWPUtil) - 'CommandLineIntegrationSpec.can debug with org.gradle.debug=true'
+val toolsJar = buildJvms.testJvm.map { jvm -> jvm.jdk.get().toolsClasspath }
+dependencies {
+    integTestRuntimeOnly(toolsJar)
 }

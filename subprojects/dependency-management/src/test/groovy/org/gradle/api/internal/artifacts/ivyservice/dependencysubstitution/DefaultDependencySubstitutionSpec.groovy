@@ -20,6 +20,7 @@ import org.gradle.api.artifacts.component.ComponentSelector
 import org.gradle.api.artifacts.component.ModuleComponentSelector
 import org.gradle.api.artifacts.component.ProjectComponentSelector
 import org.gradle.api.artifacts.result.ComponentSelectionCause
+import org.gradle.api.internal.artifacts.DependencyManagementTestUtil
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.component.model.IvyArtifactName
@@ -38,7 +39,7 @@ class DefaultDependencySubstitutionSpec extends Specification {
     def details = newSubstitution()
 
     private DefaultDependencySubstitution newSubstitution() {
-        new DefaultDependencySubstitution(componentSelector, artifacts)
+        new DefaultDependencySubstitution(DependencyManagementTestUtil.componentSelectionDescriptorFactory(), componentSelector, artifacts)
     }
 
     def "can override target and selection reason for project"() {

@@ -194,4 +194,63 @@ class ExceptionPlaceholderIntegrationTest extends AbstractIntegrationSpec {
             'getCauses'
         ]
     }
+
+    @Issue("https://github.com/gradle/gradle/issues/9487")
+    def 'break cycles with suppressed and cause exceptions'() {
+        given:
+        buildFile << """
+            task doIt {
+                doLast {
+                    RuntimeException custom = new CustomException("Dang!")
+                    RuntimeException other = new IllegalStateException("Woops!", custom)
+                    custom.addSuppressed(other)
+                    throw new RuntimeException("Boom!", custom)
+                }
+            }
+
+            class CustomException extends RuntimeException {
+                CustomException(String msg) {
+                    super(msg);
+                }
+            }
+        """
+
+        when:
+        fails 'doIt', '-s'
+
+        then:
+        failureCauseContains('Boom!')
+        failure.assertHasErrorOutput('Suppressed:')
+        failure.assertHasErrorOutput('CIRCULAR REFERENCE:')
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/9487")
+    def 'break cycles with suppressed exceptions'() {
+        given:
+        buildFile << """
+            task doIt {
+                doLast {
+                    RuntimeException custom = new CustomException("Dang!")
+                    RuntimeException other = new IllegalStateException("Woops!")
+                    custom.addSuppressed(other)
+                    other.addSuppressed(custom)
+                    throw new RuntimeException("Boom!", custom)
+                }
+            }
+
+            class CustomException extends RuntimeException {
+                CustomException(String msg) {
+                    super(msg);
+                }
+            }
+        """
+
+        when:
+        fails 'doIt', '-s'
+
+        then:
+        failureCauseContains('Boom!')
+        failure.assertHasErrorOutput('Suppressed:')
+        failure.assertHasErrorOutput('CIRCULAR REFERENCE:')
+    }
 }

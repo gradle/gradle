@@ -21,10 +21,8 @@ import org.gradle.api.Action;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.tasks.DefaultSourceSetContainer;
 import org.gradle.api.java.archives.Manifest;
 import org.gradle.api.java.archives.internal.DefaultManifest;
-import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.JavaPluginConvention;
 import org.gradle.api.reflect.HasPublicType;
 import org.gradle.api.reflect.TypeOf;
@@ -54,9 +52,9 @@ public class DefaultJavaPluginConvention extends JavaPluginConvention implements
 
     private boolean autoTargetJvm = true;
 
-    public DefaultJavaPluginConvention(ProjectInternal project, ObjectFactory objectFactory) {
+    public DefaultJavaPluginConvention(ProjectInternal project, SourceSetContainer sourceSets) {
         this.project = project;
-        sourceSets = objectFactory.newInstance(DefaultSourceSetContainer.class);
+        this.sourceSets = sourceSets;
         docsDirName = "docs";
         testResultsDirName = TestingBasePlugin.TEST_RESULTS_DIR_NAME;
         testReportDirName = TestingBasePlugin.TESTS_DIR_NAME;
@@ -123,7 +121,7 @@ public class DefaultJavaPluginConvention extends JavaPluginConvention implements
 
     @Override
     public Manifest manifest() {
-        return manifest(Actions.<Manifest>doNothing());
+        return manifest(Actions.doNothing());
     }
 
     @Override

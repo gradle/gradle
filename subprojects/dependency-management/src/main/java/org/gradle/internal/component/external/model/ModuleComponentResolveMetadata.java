@@ -48,6 +48,13 @@ public interface ModuleComponentResolveMetadata extends ComponentResolveMetadata
     @Override
     ModuleComponentResolveMetadata withSources(ModuleSources sources);
 
+
+    /**
+     * Creates a copy of this meta-data with the given derivation strategy.
+     */
+    ModuleComponentResolveMetadata withDerivationStrategy(VariantDerivationStrategy derivationStrategy);
+
+
     /**
      * Creates an artifact for this module. Does not mutate this metadata.
      */
@@ -62,4 +69,6 @@ public interface ModuleComponentResolveMetadata extends ComponentResolveMetadata
     ImmutableAttributesFactory getAttributesFactory();
 
     VariantMetadataRules getVariantMetadataRules();
+
+    VariantDerivationStrategy getVariantDerivationStrategy();
 }

@@ -61,7 +61,7 @@ class PluginDetectionIntegrationTest extends AbstractIntegrationSpec {
         detectedBy << JAVA_PLUGIN_IDS + JAVA_PLUGIN_IDS.reverse()
     }
 
-    @ToBeFixedForInstantExecution(because = "Gradle.buildFinishedl")
+    @ToBeFixedForInstantExecution(because = "Gradle.buildFinished")
     def "unqualified ids from classpath are detectable"() {
         def pluginBuilder = new PluginBuilder(testDirectory)
         pluginBuilder.addPlugin("")

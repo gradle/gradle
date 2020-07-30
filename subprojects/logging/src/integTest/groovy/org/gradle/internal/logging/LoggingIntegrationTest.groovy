@@ -151,60 +151,60 @@ class LoggingIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FAILS_TO_CLEANUP)
-    public void quietLogging() {
+    void quietLogging() {
         checkOutput(this.&run, logOutput.quiet)
     }
 
     @Test
     @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FAILS_TO_CLEANUP)
-    public void lifecycleLogging() {
+    void lifecycleLogging() {
         checkOutput(this.&run, logOutput.lifecycle)
     }
 
     @Test
     @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FAILS_TO_CLEANUP)
-    public void infoLogging() {
+    void infoLogging() {
         checkOutput(this.&run, logOutput.info)
     }
 
     @Test
     @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FAILS_TO_CLEANUP)
-    public void debugLogging() {
+    void debugLogging() {
         checkOutput(this.&run, logOutput.debug)
     }
 
     @Test @UsesSample('tutorial/logging/groovy')
-    public void sampleQuietLogging() {
+    void sampleQuietLogging() {
         checkOutput(this.&runSample, sample.quiet)
     }
 
     @Test @UsesSample('tutorial/logging/groovy')
-    public void sampleLifecycleLogging() {
+    void sampleLifecycleLogging() {
         checkOutput(this.&runSample, sample.lifecycle)
     }
 
     @Test @UsesSample('tutorial/logging/groovy')
-    public void sampleInfoLogging() {
+    void sampleInfoLogging() {
         checkOutput(this.&runSample, sample.info)
     }
 
     @Test @UsesSample('tutorial/logging/groovy')
-    public void sampleDebugLogging() {
+    void sampleDebugLogging() {
         checkOutput(this.&runSample, sample.debug)
     }
 
     @Test
-    public void multiThreadedQuietLogging() {
+    void multiThreadedQuietLogging() {
         checkOutput(this.&runMultiThreaded, multiThreaded.quiet)
     }
 
     @Test
-    public void multiThreadedlifecycleLogging() {
+    void multiThreadedlifecycleLogging() {
         checkOutput(this.&runMultiThreaded, multiThreaded.lifecycle)
     }
 
     @Test
-    public void multiThreadedDebugLogging() {
+    void multiThreadedDebugLogging() {
         checkOutput(this.&runMultiThreaded, multiThreaded.debug)
     }
 

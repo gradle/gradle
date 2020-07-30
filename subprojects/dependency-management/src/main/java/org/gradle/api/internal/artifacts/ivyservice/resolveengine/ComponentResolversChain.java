@@ -27,6 +27,7 @@ import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.ModuleSources;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
+import org.gradle.internal.resolve.resolver.ArtifactSelector;
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
 import org.gradle.internal.resolve.resolver.DefaultArtifactSelector;
 import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver;
@@ -40,6 +41,9 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * A factory for the various resolver services backed by a chain of repositories.
+ */
 public class ComponentResolversChain {
     private final DependencyToComponentIdResolverChain dependencyToComponentIdResolver;
     private final ComponentMetaDataResolverChain componentMetaDataResolver;
@@ -64,7 +68,7 @@ public class ComponentResolversChain {
         artifactSelector = new DefaultArtifactSelector(artifactSelectors, artifactResolverChain, artifactTypeRegistry);
     }
 
-    public DefaultArtifactSelector getArtifactSelector() {
+    public ArtifactSelector getArtifactSelector() {
         return artifactSelector;
     }
 

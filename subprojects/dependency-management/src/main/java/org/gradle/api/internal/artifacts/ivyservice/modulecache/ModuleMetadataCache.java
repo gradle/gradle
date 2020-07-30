@@ -22,6 +22,7 @@ import org.gradle.internal.component.external.model.ModuleComponentResolveMetada
 import org.gradle.internal.component.model.ModuleSources;
 
 import javax.annotation.Nullable;
+import java.time.Duration;
 
 public interface ModuleMetadataCache {
     CachedMetadata cacheMissing(ModuleComponentRepository repository, ModuleComponentIdentifier id);
@@ -35,7 +36,7 @@ public interface ModuleMetadataCache {
 
         ModuleComponentResolveMetadata getMetadata();
 
-        long getAgeMillis();
+        Duration getAge();
 
         boolean isMissing();
 
@@ -54,5 +55,12 @@ public interface ModuleMetadataCache {
          * Set the processed metadata to be cached in-memory only.
          */
         void putProcessedMetadata(int key, ModuleComponentResolveMetadata processedMetadata);
+
+        /**
+         * Returns a copy of this cached metadata where the module metadata is safe to store
+         * in-memory, cross-build. That is to say it shouldn't contain any reference to projects,
+         * for example.
+         */
+        ModuleMetadataCache.CachedMetadata dehydrate();
     }
 }

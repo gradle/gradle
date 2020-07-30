@@ -16,11 +16,16 @@
 
 package org.gradle.api.internal.provider
 
+import org.gradle.api.Task
+import org.gradle.api.provider.Provider
 import org.gradle.testfixtures.ProjectBuilder
 import spock.lang.Specification
 import spock.lang.Unroll
 
-class DefaultProviderFactoryTest extends Specification {
+import static org.gradle.api.internal.provider.ProviderTestUtil.withProducer
+import static org.gradle.api.internal.provider.ProviderTestUtil.withValues
+
+class DefaultProviderFactoryTest extends Specification implements ProviderAssertions {
 
     static final PROJECT = ProjectBuilder.builder().build()
     static final File TEST_FILE = PROJECT.file('someDir')
@@ -57,5 +62,46 @@ class DefaultProviderFactoryTest extends Specification {
         Character | '\u1234'
         String    | 'hello'
         File      | TEST_FILE
+    }
+
+    def "can zip two providers"() {
+        def big = withValues("big")
+        def black = withValues("black")
+        def cat = withValues("cat")
+
+        when:
+        def zipped = providerFactory.zip(
+                providerFactory.zip(big, black) { s1, s2 -> "$s1 $s2" } ,
+                cat) { s1, s2 -> "${s1.capitalize()} ${s2}"}
+
+        then:
+        zipped instanceof Provider
+        zipped.get() == 'Big black cat'
+    }
+
+    def "can zip two providers of arbitrary types"() {
+        def a = withValues("big")
+        def b = withValues(123L)
+
+        when:
+        def zipped = providerFactory.zip(a, b) { x, y -> x.length() + y }
+
+        then:
+        zipped instanceof Provider
+        zipped.get() == 126
+    }
+
+    def "zip tracks task dependencies"() {
+        def task1 = Stub(Task)
+        def a = withProducer(Integer, task1, 5)
+        def task2 = Stub(Task)
+        def b = withProducer(String, task2, "Hello")
+
+        when:
+        def zipped = providerFactory.zip(a, b) { i, s -> s.length() == i }
+
+        then:
+        assertHasProducer(zipped, task1, task2)
+        zipped.get() == true
     }
 }

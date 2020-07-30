@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 plugins {
-    gradlebuild.distribution.`api-java`
+    id("gradlebuild.distribution.api-java")
 }
 
 dependencies {
@@ -29,20 +29,20 @@ dependencies {
     implementation(project(":testingJvm"))
     implementation(project(":plugins"))
     implementation(project(":reporting"))
+    implementation(project(":fileCollections"))
 
-    implementation(library("groovy"))
-    implementation(library("slf4j_api"))
-    implementation(library("guava"))
-    implementation(library("commons_lang"))
-    implementation(library("inject"))
+    implementation(libs.groovy)
+    implementation(libs.slf4jApi)
+    implementation(libs.guava)
+    implementation(libs.commonsLang)
+    implementation(libs.inject)
 
     testFixturesImplementation(project(":baseServices"))
     testFixturesImplementation(project(":coreApi"))
     testFixturesImplementation(project(":core"))
     testFixturesImplementation(project(":internalIntegTesting"))
-    testFixturesImplementation(testLibrary("jsoup"))
+    testFixturesImplementation(libs.jsoup)
 
-    testImplementation(project(":fileCollections"))
     testImplementation(project(":internalTesting"))
     testImplementation(project(":resources"))
     testImplementation(project(":internalIntegTesting"))

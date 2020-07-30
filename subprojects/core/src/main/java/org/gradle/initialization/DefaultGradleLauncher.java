@@ -67,6 +67,7 @@ public class DefaultGradleLauncher implements GradleLauncher {
     private final SettingsPreparer settingsPreparer;
     private final TaskExecutionPreparer taskExecutionPreparer;
     private final BuildSourceBuilder buildSourceBuilder;
+    private final BuildOptionBuildOperationProgressEventsEmitter buildOptionBuildOperationProgressEventsEmitter;
 
     private Stage stage;
 
@@ -83,7 +84,9 @@ public class DefaultGradleLauncher implements GradleLauncher {
                                  SettingsPreparer settingsPreparer,
                                  TaskExecutionPreparer taskExecutionPreparer,
                                  InstantExecution instantExecution,
-                                 BuildSourceBuilder buildSourceBuilder) {
+                                 BuildSourceBuilder buildSourceBuilder,
+                                 BuildOptionBuildOperationProgressEventsEmitter buildOptionBuildOperationProgressEventsEmitter
+    ) {
         this.gradle = gradle;
         this.projectsPreparer = projectsPreparer;
         this.exceptionAnalyser = exceptionAnalyser;
@@ -98,6 +101,7 @@ public class DefaultGradleLauncher implements GradleLauncher {
         this.settingsPreparer = settingsPreparer;
         this.taskExecutionPreparer = taskExecutionPreparer;
         this.buildSourceBuilder = buildSourceBuilder;
+        this.buildOptionBuildOperationProgressEventsEmitter = buildOptionBuildOperationProgressEventsEmitter;
     }
 
     @Override
@@ -141,6 +145,10 @@ public class DefaultGradleLauncher implements GradleLauncher {
             "Stage.Finished is not supported by doBuildStages."
         );
         try {
+            if (stage == null && gradle.isRootBuild()) {
+                buildOptionBuildOperationProgressEventsEmitter.emit(gradle.getStartParameter());
+            }
+
             if (upTo == Stage.RunTasks && instantExecution.canExecuteInstantaneously()) {
                 doInstantExecution();
             } else {

@@ -219,7 +219,7 @@ Gradle uses operating system features for watching the file system.
 It supports the feature on these operating systems:
 
 - Windows 10,
-- Linux (Ubuntu 16.04 or later),
+- Linux (Ubuntu 16.04 or later, CentOS 8 or later, Red Hat Enterprise Linux 8 or later, Amazon Linux 2),
 - macOS 10.14 (Mojave) or later.
 
 Watching the file system is an experimental feature and is disabled by default.
@@ -236,7 +236,6 @@ This enables watching the file system for all builds, unless explicitly disabled
 Limitations::
 We are working on removing the following limitations to make file system watching production ready.
 - If you have symlinks in your build, you won’t get the performance benefits for those locations (we plan to change this in the future).
-- Default excludes (ignoring files and directories like “CVS/”, “.DS_Store” etc.) cannot be configured when file system watching is enabled.
 - When multiple daemons are running, the idle ones can pick up the changes produced by the others and create large log files with lots of debug info about the changes.
 - On Windows, we don’t support SUBST and network drives (they might work, but we don’t test them yet).
 
@@ -258,9 +257,32 @@ This message means that either
 --
 In both cases the build cannot benefit from file system watching.
 
-`Caught exception: Couldn't add watch, error = 28`::
-If you receive this error on Linux then you ran out of inotify handles.
-To raise the limit see https://confluence.jetbrains.com/display/IDEADEV/Inotify+Watches+Limit[here].
-
 `java.io.IOException: Too many open files`::
 If you receive this error on macOS, you need to raise your open files limit, see https://superuser.com/a/443168/8117[here].
+
+[[sec:inotify_watches_limit]]
+===  Linux-specific notes
+
+File system watching uses http://en.wikipedia.org/wiki/Inotify[inotify] on Linux.
+Depending on the size of your build, it may be necessary to increase inotify limits.
+If you are using an IDE, then you probably already had to increase the limits in the past.
+
+File system watching uses one inotify watch per watched directory.
+You can see the current limit of inotify watches per user by running:
+
+[source,bash]
+----
+cat /proc/sys/fs/inotify/max_user_watches
+----
+
+To increase the limit to e.g. 512K watches run the following:
+
+[source,bash]
+----
+echo 524288 | sudo tee -a /etc/sysctl.conf
+sudo sysctl -p --system
+----
+
+Each used inotify watch takes up to 1KB of memory.
+Assuming inotify uses all the 512K watches then around 500MB will be used for watching the file system.
+If your environment is memory constraint, you may want to disable file system watching.

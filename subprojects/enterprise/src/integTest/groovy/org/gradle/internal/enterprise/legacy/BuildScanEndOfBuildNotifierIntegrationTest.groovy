@@ -21,6 +21,7 @@ import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
 import org.gradle.internal.scan.eob.BuildScanEndOfBuildNotifier
 import spock.lang.Issue
 
+@UnsupportedWithInstantExecution(because = "legacy plugin is incompatible")
 class BuildScanEndOfBuildNotifierIntegrationTest extends AbstractIntegrationSpec {
 
     def scanPlugin = new GradleEnterprisePluginLegacyContactPointFixture(testDirectory, mavenRepo, createExecuter())
@@ -57,7 +58,7 @@ class BuildScanEndOfBuildNotifierIntegrationTest extends AbstractIntegrationSpec
         output.contains("projects evaluated")
         output.matches("""(?s).*
 BUILD SUCCESSFUL in [ \\dms]+
-1 actionable task: 1 executed
+1 actionable task: 1 executed.*
 failure is null: true
 .*""")
     }
@@ -82,15 +83,14 @@ failure is null: true
         then:
         outputContains("projects evaluated")
         output.matches("""(?s).*
-1 actionable task: 1 executed
+1 actionable task: 1 executed.*
 failure message: Execution failed for task ':t'.
 .*""")
 
         errorOutput.contains("projects evaluated")
         result.error.matches("""(?s)projects evaluated
 
-FAILURE: Build failed with an exception.
-.*
+FAILURE: Build failed with an exception\\..*
 BUILD FAILED in [ \\dms]+
 notified
 \$""")
@@ -123,7 +123,7 @@ notified
 
         then:
         output.matches("""(?s).*
-1 actionable task: 1 executed
+1 actionable task: 1 executed.*
 failure message: broken
 .*""")
     }

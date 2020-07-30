@@ -33,7 +33,7 @@ import spock.lang.Specification
 class AttributeMatchingVariantSelectorSpec extends Specification {
 
     def consumerProvidedVariantFinder = Mock(ConsumerProvidedVariantFinder)
-    def transformationNodeRegistry = Mock(TransformationNodeRegistry)
+    def transformedVariantFactory = Mock(TransformedVariantFactory)
     def dependenciesResolverFactory = Mock(ExtraExecutionGraphDependenciesResolverFactory)
     def attributeMatcher = Mock(AttributeMatcher)
     def attributesSchema = Mock(AttributesSchemaInternal) {
@@ -46,10 +46,8 @@ class AttributeMatchingVariantSelectorSpec extends Specification {
     def requestedAttributes = AttributeTestUtil.attributes(['artifactType': 'jar'])
     def variantAttributes = AttributeTestUtil.attributes(['artifactType': 'jar'])
     def otherVariantAttributes = AttributeTestUtil.attributes(['artifactType': 'classes'])
-    def variantArtifacts = Stub(ResolvedArtifactSet)
     def variant = Mock(ResolvedVariant) {
         getAttributes() >> variantAttributes
-        getArtifacts() >> variantArtifacts
         asDescribable() >> Describables.of("mock resolved variant")
     }
     def variantSet = Mock(ResolvedVariantSet) {
@@ -61,7 +59,7 @@ class AttributeMatchingVariantSelectorSpec extends Specification {
     def 'direct match on variant means no finder interaction'() {
         given:
         def resolvedArtifactSet = Mock(ResolvedArtifactSet)
-        def selector = new AttributeMatchingVariantSelector(consumerProvidedVariantFinder, attributesSchema, attributesFactory, transformationNodeRegistry, requestedAttributes, false, dependenciesResolverFactory)
+        def selector = new AttributeMatchingVariantSelector(consumerProvidedVariantFinder, attributesSchema, attributesFactory, transformedVariantFactory, requestedAttributes, false, dependenciesResolverFactory)
 
         when:
         def result = selector.select(variantSet, factory)
@@ -79,7 +77,7 @@ class AttributeMatchingVariantSelectorSpec extends Specification {
             asDescribable() >> Describables.of('other mocked variant')
             getAttributes() >> otherVariantAttributes
         }
-        def selector = new AttributeMatchingVariantSelector(consumerProvidedVariantFinder, attributesSchema, attributesFactory, transformationNodeRegistry, requestedAttributes, false, dependenciesResolverFactory)
+        def selector = new AttributeMatchingVariantSelector(consumerProvidedVariantFinder, attributesSchema, attributesFactory, transformedVariantFactory, requestedAttributes, false, dependenciesResolverFactory)
 
         when:
         def result = selector.select(variantSet, factory)
@@ -100,7 +98,7 @@ class AttributeMatchingVariantSelectorSpec extends Specification {
         def transformation = Mock(Transformation)
         def transformed = Mock(ResolvedArtifactSet)
 
-        def selector = new AttributeMatchingVariantSelector(consumerProvidedVariantFinder, attributesSchema, attributesFactory, transformationNodeRegistry, requestedAttributes, false, dependenciesResolverFactory)
+        def selector = new AttributeMatchingVariantSelector(consumerProvidedVariantFinder, attributesSchema, attributesFactory, transformedVariantFactory, requestedAttributes, false, dependenciesResolverFactory)
 
         when:
         def result = selector.select(variantSet, factory)
@@ -112,7 +110,7 @@ class AttributeMatchingVariantSelectorSpec extends Specification {
         1 * consumerProvidedVariantFinder.collectConsumerVariants(variantAttributes, requestedAttributes) >> { args ->
             match(requestedAttributes, transformation, 1)
         }
-        1 * factory.asTransformed(variantArtifacts, requestedAttributes, transformation, dependenciesResolverFactory, transformationNodeRegistry) >> transformed
+        1 * factory.asTransformed(variant, requestedAttributes, transformation, dependenciesResolverFactory, transformedVariantFactory) >> transformed
     }
 
     def 'can disambiguate sub chains'() {
@@ -129,7 +127,7 @@ class AttributeMatchingVariantSelectorSpec extends Specification {
         def transform1 = Mock(Transformation)
         def transform2 = Mock(Transformation)
 
-        def selector = new AttributeMatchingVariantSelector(consumerProvidedVariantFinder, attributesSchema, attributesFactory, transformationNodeRegistry, requestedAttributes, false, dependenciesResolverFactory)
+        def selector = new AttributeMatchingVariantSelector(consumerProvidedVariantFinder, attributesSchema, attributesFactory, transformedVariantFactory, requestedAttributes, false, dependenciesResolverFactory)
 
         when:
         def result = selector.select(multiVariantSet, factory)
@@ -146,7 +144,7 @@ class AttributeMatchingVariantSelectorSpec extends Specification {
             match(requestedAttributes, transform2, 3)
         }
         1 * attributeMatcher.matches(_, _, _) >> { args -> args[0] }
-        1 * factory.asTransformed(variantArtifacts, requestedAttributes, transform1, dependenciesResolverFactory, transformationNodeRegistry) >> transformed
+        1 * factory.asTransformed(variant, requestedAttributes, transform1, dependenciesResolverFactory, transformedVariantFactory) >> transformed
     }
 
     def 'can disambiguate 2 equivalent chains by picking shortest'() {
@@ -162,7 +160,7 @@ class AttributeMatchingVariantSelectorSpec extends Specification {
         }
         def transform1 = Mock(Transformation)
         def transform2 = Mock(Transformation)
-        def selector = new AttributeMatchingVariantSelector(consumerProvidedVariantFinder, attributesSchema, attributesFactory, transformationNodeRegistry, requestedAttributes, false, dependenciesResolverFactory)
+        def selector = new AttributeMatchingVariantSelector(consumerProvidedVariantFinder, attributesSchema, attributesFactory, transformedVariantFactory, requestedAttributes, false, dependenciesResolverFactory)
 
         when:
         def result = selector.select(multiVariantSet, factory)
@@ -179,7 +177,7 @@ class AttributeMatchingVariantSelectorSpec extends Specification {
             match(requestedAttributes, transform2, 3)
         }
         1 * attributeMatcher.matches(_, _, _) >> { args -> args[0] }
-        1 * factory.asTransformed(variantArtifacts, requestedAttributes, transform1, dependenciesResolverFactory, transformationNodeRegistry) >> transformed
+        1 * factory.asTransformed(variant, requestedAttributes, transform1, dependenciesResolverFactory, transformedVariantFactory) >> transformed
     }
 
     def 'can leverage schema disambiguation'() {
@@ -195,7 +193,7 @@ class AttributeMatchingVariantSelectorSpec extends Specification {
         }
         def transform1 = Mock(Transformation)
         def transform2 = Mock(Transformation)
-        def selector = new AttributeMatchingVariantSelector(consumerProvidedVariantFinder, attributesSchema, attributesFactory, transformationNodeRegistry, requestedAttributes, false, dependenciesResolverFactory)
+        def selector = new AttributeMatchingVariantSelector(consumerProvidedVariantFinder, attributesSchema, attributesFactory, transformedVariantFactory, requestedAttributes, false, dependenciesResolverFactory)
 
         when:
         def result = selector.select(multiVariantSet, factory)
@@ -211,13 +209,12 @@ class AttributeMatchingVariantSelectorSpec extends Specification {
             match(variantAttributes, transform2, 3)
         }
         1 * attributeMatcher.matches(_, _, _) >> { args -> [args[0].get(0)] }
-        1 * factory.asTransformed(variantArtifacts, otherVariantAttributes, transform1, dependenciesResolverFactory, transformationNodeRegistry) >> transformed
+        1 * factory.asTransformed(variant, otherVariantAttributes, transform1, dependenciesResolverFactory, transformedVariantFactory) >> transformed
     }
 
     def 'can disambiguate between three chains when one subset of both others'() {
         given:
         def transformed = Mock(ResolvedArtifactSet)
-        def source = Mock(ResolvedArtifactSet)
         def yetAnotherVariantAttributes = AttributeTestUtil.attributes(['artifactType': 'foo'])
         def otherVariant = Mock(ResolvedVariant) {
             getAttributes() >> otherVariantAttributes
@@ -225,7 +222,6 @@ class AttributeMatchingVariantSelectorSpec extends Specification {
         }
         def yetAnotherVariant = Mock(ResolvedVariant) {
             getAttributes() >> yetAnotherVariantAttributes
-            getArtifacts() >> source
             asDescribable() >> Describables.of("mock another resolved variant")
         }
         def multiVariantSet = Mock(ResolvedVariantSet) {
@@ -235,7 +231,7 @@ class AttributeMatchingVariantSelectorSpec extends Specification {
         def transform1 = Mock(Transformation)
         def transform2 = Mock(Transformation)
         def transform3 = Mock(Transformation)
-        def selector = new AttributeMatchingVariantSelector(consumerProvidedVariantFinder, attributesSchema, attributesFactory, transformationNodeRegistry, requestedAttributes, false, dependenciesResolverFactory)
+        def selector = new AttributeMatchingVariantSelector(consumerProvidedVariantFinder, attributesSchema, attributesFactory, transformedVariantFactory, requestedAttributes, false, dependenciesResolverFactory)
 
         when:
         def result = selector.select(multiVariantSet, factory)
@@ -255,17 +251,15 @@ class AttributeMatchingVariantSelectorSpec extends Specification {
             match(requestedAttributes, transform3, 2)
         }
         1 * attributeMatcher.matches(_, _, _) >> { args -> args[0] }
-        1 * factory.asTransformed(source, requestedAttributes, transform3, dependenciesResolverFactory, transformationNodeRegistry) >> transformed
+        1 * factory.asTransformed(yetAnotherVariant, requestedAttributes, transform3, dependenciesResolverFactory, transformedVariantFactory) >> transformed
     }
 
     def 'can disambiguate 3 equivalent chains by picking shortest'() {
         given:
         def transformed = Mock(ResolvedArtifactSet)
-        def source = Mock(ResolvedArtifactSet)
         def yetAnotherVariantAttributes = AttributeTestUtil.attributes(['artifactType': 'foo'])
         def otherVariant = Mock(ResolvedVariant) {
             getAttributes() >> otherVariantAttributes
-            getArtifacts() >> source
             asDescribable() >> Describables.of("mock other resolved variant")
         }
         def yetAnotherVariant = Mock(ResolvedVariant) {
@@ -279,7 +273,7 @@ class AttributeMatchingVariantSelectorSpec extends Specification {
         def transform1 = Mock(Transformation)
         def transform2 = Mock(Transformation)
         def transform3 = Mock(Transformation)
-        def selector = new AttributeMatchingVariantSelector(consumerProvidedVariantFinder, attributesSchema, attributesFactory, transformationNodeRegistry, requestedAttributes, false, dependenciesResolverFactory)
+        def selector = new AttributeMatchingVariantSelector(consumerProvidedVariantFinder, attributesSchema, attributesFactory, transformedVariantFactory, requestedAttributes, false, dependenciesResolverFactory)
 
         when:
         def result = selector.select(multiVariantSet, factory)
@@ -299,7 +293,7 @@ class AttributeMatchingVariantSelectorSpec extends Specification {
         }
         2 * attributeMatcher.isMatching(requestedAttributes, requestedAttributes) >> true
         1 * attributeMatcher.matches(_, _, _) >> { args -> args[0] }
-        1 * factory.asTransformed(source, requestedAttributes, transform2, dependenciesResolverFactory, transformationNodeRegistry) >> transformed
+        1 * factory.asTransformed(otherVariant, requestedAttributes, transform2, dependenciesResolverFactory, transformedVariantFactory) >> transformed
     }
 
     def 'cannot disambiguate 3 chains when 2 different'() {
@@ -320,7 +314,7 @@ class AttributeMatchingVariantSelectorSpec extends Specification {
         def transform1 = Mock(Transformation)
         def transform2 = Mock(Transformation)
         def transform3 = Mock(Transformation)
-        def selector = new AttributeMatchingVariantSelector(consumerProvidedVariantFinder, attributesSchema, attributesFactory, transformationNodeRegistry, requestedAttributes, false, dependenciesResolverFactory)
+        def selector = new AttributeMatchingVariantSelector(consumerProvidedVariantFinder, attributesSchema, attributesFactory, transformedVariantFactory, requestedAttributes, false, dependenciesResolverFactory)
 
         when:
         def result = selector.select(multiVariantSet, factory)
@@ -343,8 +337,8 @@ class AttributeMatchingVariantSelectorSpec extends Specification {
         3 * attributeMatcher.isMatching(requestedAttributes, requestedAttributes) >>> [false, false, true]
     }
 
-    static ConsumerVariantMatchResult match(ImmutableAttributes output, Transformation trn, int depth) {
-        def result = new ConsumerVariantMatchResult(2)
+    static MutableConsumerVariantMatchResult match(ImmutableAttributes output, Transformation trn, int depth) {
+        def result = new MutableConsumerVariantMatchResult(2)
         result.matched(output, trn, depth)
         result
     }

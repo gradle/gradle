@@ -220,7 +220,6 @@ task retrieve(type: Sync) {
         file('libs/projectA-1.0-SNAPSHOT-tests.jar').assertHasNotChangedSince(snapshotA);
     }
 
-    @ToBeFixedForInstantExecution
     def "will detect changed snapshot artifacts when pom has not changed"() {
         buildFile << """
 configurations.compile.resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
@@ -443,7 +442,6 @@ task resolveStaleThenFresh {
         file('fresh/unique-1.0-SNAPSHOT.jar').assertIsCopyOf(snapshotModule.artifactFile)
     }
 
-    @ToBeFixedForInstantExecution
     def "does not download snapshot artifacts after expiry when snapshot has not changed"() {
         buildFile << """
 configurations.all {
@@ -534,7 +532,6 @@ tasks.getByPath(":a:retrieve").dependsOn ":b:retrieve"
         file('b/build').assertHasDescendants('testproject-1.0-SNAPSHOT.jar')
     }
 
-    @ToBeFixedForInstantExecution
     def "avoid redownload unchanged artifact when no checksum available"() {
         given:
         buildFile << """

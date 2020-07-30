@@ -436,17 +436,26 @@ include::sample[dir="snippets/files/fileTrees/kotlin",files="build.gradle.kts[ta
 
 You can see more examples of supported patterns in the API docs for link:{javadocPath}/org/gradle/api/tasks/util/PatternFilterable.html[PatternFilterable]. Also, see the API documentation for `fileTree()` to see what types you can pass as the base directory.
 
-By default, `fileTree()` returns a `FileTree` instance that applies some default exclusion patterns for convenience — the same defaults as Ant in fact. For the complete default exclusion list, see http://ant.apache.org/manual/dirtasks.html#defaultexcludes[the Ant manual].
+By default, `fileTree()` returns a `FileTree` instance that applies some default exclude patterns for convenience — the same defaults as Ant in fact. For the complete default exclude list, see http://ant.apache.org/manual/dirtasks.html#defaultexcludes[the Ant manual].
 
-If those default exclusions prove problematic, you can workaround the issue by using the {antManual}/Tasks/defaultexcludes.html[`defaultexcludes` Ant task], as demonstrated in this example:
+[[sec:change_default_excludes]]
+If those default excludes prove problematic, you can workaround the issue by changing the default excludes in the settings script:
 
-.Changing Ant default exclusions for a copy task
+.Changing default excludes in the settings script
 ====
-include::sample[dir="snippets/files/copy/groovy",files="build.gradle[tags=change-default-exclusions]"]
-include::sample[dir="snippets/files/copy/kotlin",files="build.gradle.kts[tags=change-default-exclusions]"]
+include::sample[dir="snippets/files/copy/groovy",files="settings.gradle[tags=change-default-exclusions]"]
+include::sample[dir="snippets/files/copy/kotlin",files="settings.gradle.kts[tags=change-default-exclusions]"]
 ====
 
-In general, it's best to ensure that the default exclusions are reset whenever you change them as modifications are visible to the entire build. The above example is performing such a reset in its `doLast` action.
+[NOTE]
+====
+Currently, Gradle's default excludes are configured via Ant's `DirectoryScanner` class.
+====
+
+[NOTE]
+====
+Gradle does not support changing default excludes during the execution phase.
+====
 
 You can do many of the same things with file trees that you can with file collections:
 

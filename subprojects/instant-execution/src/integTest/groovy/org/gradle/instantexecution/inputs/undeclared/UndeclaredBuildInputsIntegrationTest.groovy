@@ -46,6 +46,76 @@ class UndeclaredBuildInputsIntegrationTest extends AbstractInstantExecutionInteg
         mechanism << SystemPropertyInjection.all("CI", "false")
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/13569")
+    @Unroll
+    def "reports build logic reading system properties using GString parameters - #expression"() {
+        buildFile << """
+            def ci = "ci"
+            def value = "value"
+            println "CI1 = " + $expression
+        """
+
+        when:
+        instantRun()
+
+        then:
+        outputContains("CI1 = ${notDefined}")
+
+        when:
+        instantFails("-DCI1=${value}")
+
+        then:
+        problems.assertFailureHasProblems(failure) {
+            withProblem("build file 'build.gradle': read system property 'CI1'")
+        }
+        failure.assertHasFileName("Build file '${buildFile.absolutePath}'")
+        failure.assertHasLineNumber(4)
+        failure.assertThatCause(containsNormalizedString("Read system property 'CI1'"))
+
+        outputContains("CI1 = ${expectedValue}")
+
+        where:
+        expression                                                             | notDefined | value     | expectedValue
+        'System.getProperty("${ci.toUpperCase()}1")'                           | ""         | "defined" | "defined"
+        'System.getProperty("${ci.toUpperCase()}1", "${value.toUpperCase()}")' | "VALUE"    | "defined" | "defined"
+        'Boolean.getBoolean("${ci.toUpperCase()}1")'                           | "false"    | "true"    | "true"
+        'Integer.getInteger("${ci.toUpperCase()}1")'                           | "null"     | "123"     | "123"
+        'Long.getLong("${ci.toUpperCase()}1")'                                 | "null"     | "123"     | "123"
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/13652")
+    @Unroll
+    def "reports build logic reading system properties with null defaults - #expression"() {
+        buildFile << """
+            println "CI1 = " + $expression
+        """
+
+        when:
+        instantRun()
+
+        then:
+        outputContains("CI1 = null")
+
+        when:
+        instantFails("-DCI1=${value}")
+
+        then:
+        problems.assertFailureHasProblems(failure) {
+            withProblem("build file 'build.gradle': read system property 'CI1'")
+        }
+        failure.assertHasFileName("Build file '${buildFile.absolutePath}'")
+        failure.assertHasLineNumber(2)
+        failure.assertThatCause(containsNormalizedString("Read system property 'CI1'"))
+
+        outputContains("CI1 = ${expectedValue}")
+
+        where:
+        expression                        | value     | expectedValue
+        'System.getProperty("CI1", null)' | "defined" | "defined"
+        'Integer.getInteger("CI1", null)' | "123"     | "123"
+        'Long.getLong("CI1", null)'       | "123"     | "123"
+    }
+
     @Unroll
     def "reports buildSrc build logic and tasks reading a system property set #mechanism.description via the Java API"() {
         def buildSrcBuildFile = file("buildSrc/build.gradle")
@@ -269,5 +339,39 @@ class UndeclaredBuildInputsIntegrationTest extends AbstractInstantExecutionInteg
         // The JVM only exposes one of the resources
         output.count("resource = ") == 1
         outputContains("resource = two")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/13325")
+    def "Java plugin can use serializable lambda and action lambda"() {
+        file("buildSrc/src/main/java/SomePlugin.java") << """
+            import ${Project.name};
+            import ${Plugin.name};
+            import ${Serializable.name};
+
+            public class SomePlugin implements Plugin<Project> {
+                interface SerializableThing<T> extends Serializable {
+                    void run(T value);
+                }
+
+                public void apply(Project project) {
+                    SerializableThing<String> action = v -> { System.out.println("value = " + v); };
+                    project.getTasks().register("task", t1 -> {
+                        t1.doLast(t2 -> {
+                            action.run("value");
+                        });
+                    });
+                }
+            }
+        """
+        buildFile << """
+            apply plugin: SomePlugin
+        """
+
+        when:
+        instantRun("task")
+        instantRun("task")
+
+        then:
+        outputContains("value = value")
     }
 }

@@ -18,6 +18,7 @@ package org.gradle.integtests.fixtures.executer;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import com.google.common.io.CharSource;
 import groovy.lang.Closure;
@@ -50,6 +51,7 @@ import org.gradle.internal.service.scopes.GlobalScopeServices;
 import org.gradle.launcher.cli.DefaultCommandLineActionFactory;
 import org.gradle.launcher.daemon.configuration.DaemonBuildOptions;
 import org.gradle.process.internal.streams.SafeStreams;
+import org.gradle.test.fixtures.ResettableExpectations;
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
 import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.testfixtures.internal.NativeServicesTestFixture;
@@ -72,6 +74,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.joining;
 import static org.gradle.api.internal.artifacts.BaseRepositoryFactory.PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY;
@@ -85,7 +89,7 @@ import static org.gradle.internal.service.scopes.DefaultGradleUserHomeScopeServi
 import static org.gradle.util.CollectionUtils.collect;
 import static org.gradle.util.CollectionUtils.join;
 
-public abstract class AbstractGradleExecuter implements GradleExecuter {
+public abstract class AbstractGradleExecuter implements GradleExecuter, ResettableExpectations {
 
     protected static final ServiceRegistry GLOBAL_SERVICES = ServiceRegistryBuilder.builder()
         .displayName("Global services")
@@ -120,6 +124,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     protected final IntegrationTestBuildContext buildContext;
 
     private final Set<File> isolatedDaemonBaseDirs = new HashSet<>();
+    private final Set<File> daemonCrashLogsBeforeTest;
     private final Set<GradleHandle> running = new HashSet<>();
     private final List<ExecutionResult> results = new ArrayList<>();
     private final List<String> args = new ArrayList<>();
@@ -140,6 +145,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     private File projectDir;
     private File settingsFile;
     private boolean ignoreMissingSettingsFile;
+    private boolean ignoreCleanupAssertions;
     private PipedOutputStream stdinPipe;
     private String defaultCharacterEncoding;
     private Locale defaultLocale;
@@ -194,10 +200,11 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         this.distribution = distribution;
         this.testDirectoryProvider = testDirectoryProvider;
         this.gradleVersion = gradleVersion;
-        logger = Logging.getLogger(getClass());
+        this.logger = Logging.getLogger(getClass());
         this.buildContext = buildContext;
-        gradleUserHomeDir = buildContext.getGradleUserHomeDir();
-        daemonBaseDir = buildContext.getDaemonBaseDir();
+        this.gradleUserHomeDir = buildContext.getGradleUserHomeDir();
+        this.daemonBaseDir = buildContext.getDaemonBaseDir();
+        this.daemonCrashLogsBeforeTest = ImmutableSet.copyOf(DaemonLogsAnalyzer.findCrashLogs(daemonBaseDir));
     }
 
     protected Logger getLogger() {
@@ -214,6 +221,8 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         buildScript = null;
         settingsFile = null;
         ignoreMissingSettingsFile = false;
+        // ignoreCleanupAssertions is intentionally sticky
+        // ignoreCleanupAssertions = false;
         quiet = false;
         taskList = false;
         dependencyList = false;
@@ -302,6 +311,9 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         if (ignoreMissingSettingsFile) {
             executer.ignoreMissingSettingsFile();
         }
+        if (ignoreCleanupAssertions) {
+            executer.ignoreCleanupAssertions();
+        }
         if (javaHome != null) {
             executer.withJavaHome(javaHome);
         }
@@ -367,6 +379,9 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         }
         if (requireDaemon) {
             executer.requireDaemon();
+        }
+        if (!checkDaemonCrash) {
+            executer.noDaemonCrashChecks();
         }
 
         executer.startBuildProcessInDebugger(debug);
@@ -819,15 +834,25 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         return this;
     }
 
+    @Override
+    public GradleExecuter ignoreCleanupAssertions() {
+        this.ignoreCleanupAssertions = true;
+        return this;
+    }
+
+    @Override
+    public void resetExpectations() {
+        cleanup();
+    }
+
     /**
      * Performs cleanup at completion of the test.
      */
     public void cleanup() {
         stopRunningBuilds();
         cleanupIsolatedDaemons();
-        for (ExecutionResult result : results) {
-            result.assertResultVisited();
-        }
+        checkForDaemonCrashesInSharedLocations();
+        assertVisitedExecutionResults();
     }
 
     private void stopRunningBuilds() {
@@ -854,6 +879,33 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
 
         if (checkDaemonCrash) {
             analyzers.forEach(DaemonLogsAnalyzer::assertNoCrashedDaemon);
+        }
+    }
+
+    private void checkForDaemonCrashesInSharedLocations() {
+        checkForDaemonCrashes(getWorkingDir(), it -> true);
+        checkForDaemonCrashes(buildContext.getDaemonBaseDir(), crashLog -> !daemonCrashLogsBeforeTest.contains(crashLog));
+    }
+
+    private void checkForDaemonCrashes(File dirToSearch, Predicate<File> crashLogFilter) {
+        if (checkDaemonCrash) {
+            List<File> crashLogs = DaemonLogsAnalyzer.findCrashLogs(dirToSearch).stream()
+                .filter(crashLogFilter)
+                .collect(Collectors.toList());
+            if (!crashLogs.isEmpty()) {
+                throw new AssertionError(String.format(
+                    "Found crash logs: '%s'",
+                    crashLogs.stream().map(File::getAbsolutePath).collect(joining("', '"))
+                ));
+            }
+        }
+    }
+
+    private void assertVisitedExecutionResults() {
+        if (!ignoreCleanupAssertions) {
+            for (ExecutionResult result : results) {
+                result.assertResultVisited();
+            }
         }
     }
 
@@ -1084,12 +1136,14 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         }
         beforeExecute.execute(this);
         assertCanExecute();
+        assert !(usesSharedDaemons() && (args.contains("--stop") || tasks.contains("--stop"))) : "--stop cannot be used with daemons that are shared with other tests, since this will cause other tests to fail.";
         collectStateBeforeExecution();
     }
 
     private void afterBuildCleanup(ExecutionResult result) {
         afterExecute.execute(this);
         results.add(result);
+        checkForDaemonCrashes(getWorkingDir(), it -> true);
     }
 
     protected GradleHandle createGradleHandle() {

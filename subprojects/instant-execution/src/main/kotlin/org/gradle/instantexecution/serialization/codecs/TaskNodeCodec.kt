@@ -37,7 +37,6 @@ import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.FileNormalizer
 import org.gradle.execution.plan.LocalTaskNode
 import org.gradle.execution.plan.TaskNodeFactory
-import org.gradle.instantexecution.coroutines.runToCompletion
 import org.gradle.instantexecution.extensions.uncheckedCast
 import org.gradle.instantexecution.problems.PropertyKind
 import org.gradle.instantexecution.problems.PropertyTrace
@@ -55,6 +54,7 @@ import org.gradle.instantexecution.serialization.readCollection
 import org.gradle.instantexecution.serialization.readCollectionInto
 import org.gradle.instantexecution.serialization.readEnum
 import org.gradle.instantexecution.serialization.readNonNull
+import org.gradle.instantexecution.serialization.runWriteOperation
 import org.gradle.instantexecution.serialization.withIsolate
 import org.gradle.instantexecution.serialization.withPropertyTrace
 import org.gradle.instantexecution.serialization.writeCollection
@@ -70,7 +70,7 @@ class TaskNodeCodec(
 
     override suspend fun WriteContext.encode(value: LocalTaskNode) {
         val task = value.task
-        runToCompletionWithMutableStateOf(task.project) {
+        runWriteOperationWithMutableStateOf(task.project) {
             writeTask(task)
         }
     }
@@ -194,12 +194,12 @@ class TaskNodeCodec(
     }
 
     /**
-     * Runs the suspending [block] to completion against the [public mutable state][ProjectState.withMutableState] of [project].
+     * Runs the suspending [operation] against the [public mutable state][ProjectState.withMutableState] of [project].
      */
     private
-    fun runToCompletionWithMutableStateOf(project: Project, block: suspend () -> Unit) {
+    fun WriteContext.runWriteOperationWithMutableStateOf(project: Project, operation: suspend WriteContext.() -> Unit) {
         projectStateRegistry.stateFor(project).withMutableState {
-            runToCompletion(block)
+            runWriteOperation(operation)
         }
     }
 }

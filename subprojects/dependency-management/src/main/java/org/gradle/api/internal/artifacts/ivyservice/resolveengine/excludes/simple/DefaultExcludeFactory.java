@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.simp
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.factories.ExcludeFactory;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ArtifactExclude;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeEverything;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeNothing;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
@@ -56,11 +55,6 @@ public class DefaultExcludeFactory implements ExcludeFactory {
     @Override
     public ModuleIdExclude moduleId(ModuleIdentifier id) {
         return DefaultModuleIdExclude.of(id);
-    }
-
-    @Override
-    public ArtifactExclude artifact(ModuleIdentifier id, IvyArtifactName artifact) {
-        return DefaultModuleArtifactExclude.of(id, artifact);
     }
 
     @Override

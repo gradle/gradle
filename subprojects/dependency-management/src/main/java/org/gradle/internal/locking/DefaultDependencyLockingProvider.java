@@ -46,6 +46,7 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.provider.Property;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
+import org.gradle.internal.resource.local.FileResourceListener;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
@@ -61,13 +62,6 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
     private static final Logger LOGGER = Logging.getLogger(DefaultDependencyLockingProvider.class);
     private static final DocumentationRegistry DOC_REG = new DocumentationRegistry();
 
-    private static ComponentSelector toComponentSelector(ModuleComponentIdentifier lockIdentifier) {
-        String lockedVersion = lockIdentifier.getVersion();
-        VersionConstraint versionConstraint = DefaultMutableVersionConstraint.withVersion(lockedVersion);
-        return DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId(lockIdentifier.getGroup(), lockIdentifier.getModule()), versionConstraint);
-
-    }
-
     private final DependencyLockingNotationConverter converter = new DependencyLockingNotationConverter();
     private final LockFileReaderWriter lockFileReaderWriter;
     private final boolean writeLocks;
@@ -81,7 +75,7 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
     private boolean uniqueLockStateLoaded;
     private Map<String, List<String>> allLockState;
 
-    public DefaultDependencyLockingProvider(FileResolver fileResolver, StartParameter startParameter, DomainObjectContext context, DependencySubstitutionRules dependencySubstitutionRules, FeaturePreviews featurePreviews, PropertyFactory propertyFactory, FilePropertyFactory filePropertyFactory) {
+    public DefaultDependencyLockingProvider(FileResolver fileResolver, StartParameter startParameter, DomainObjectContext context, DependencySubstitutionRules dependencySubstitutionRules, FeaturePreviews featurePreviews, PropertyFactory propertyFactory, FilePropertyFactory filePropertyFactory, FileResourceListener listener) {
         this.context = context;
         this.dependencySubstitutionRules = dependencySubstitutionRules;
         this.writeLocks = startParameter.isWriteDependencyLocks();
@@ -95,7 +89,13 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
         lockMode = propertyFactory.property(LockMode.class);
         lockMode.convention(LockMode.DEFAULT);
         lockFile = filePropertyFactory.newFileProperty();
-        this.lockFileReaderWriter = new LockFileReaderWriter(fileResolver, context, lockFile);
+        this.lockFileReaderWriter = new LockFileReaderWriter(fileResolver, context, lockFile, listener);
+    }
+
+    private static ComponentSelector toComponentSelector(ModuleComponentIdentifier lockIdentifier) {
+        String lockedVersion = lockIdentifier.getVersion();
+        VersionConstraint versionConstraint = DefaultMutableVersionConstraint.withVersion(lockedVersion);
+        return DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId(lockIdentifier.getGroup(), lockIdentifier.getModule()), versionConstraint);
     }
 
     @Override
@@ -236,6 +236,7 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
         private LockingDependencySubstitution(ComponentSelector selector) {
             this.selector = selector;
         }
+
         @Override
         public ComponentSelector getRequested() {
             return selector;

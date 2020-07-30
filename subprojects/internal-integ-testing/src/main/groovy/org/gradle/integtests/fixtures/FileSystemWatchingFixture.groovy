@@ -33,7 +33,7 @@ trait FileSystemWatchingFixture {
         this
     }
 
-    def withoutWatchFs() {
+    AbstractIntegrationSpec withoutWatchFs() {
         executer.withArgument(FileSystemWatchingHelper.disableFsWatchingArgument)
         this
     }

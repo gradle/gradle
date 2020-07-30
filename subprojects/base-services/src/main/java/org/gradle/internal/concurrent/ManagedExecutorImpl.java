@@ -47,7 +47,7 @@ class ManagedExecutorImpl extends AbstractDelegatingExecutorService implements M
                 try {
                     executorPolicy.onExecute(command);
                 } finally {
-                    executing.set(null);
+                    executing.remove();
                 }
             }
         };
@@ -61,7 +61,7 @@ class ManagedExecutorImpl extends AbstractDelegatingExecutorService implements M
                 try {
                     return executorPolicy.onExecute(command);
                 } finally {
-                    executing.set(null);
+                    executing.remove();
                 }
             }
         };

@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 plugins {
-    gradlebuild.distribution.`api-java`
-    gradlebuild.`publish-public-libraries`
+    id("gradlebuild.distribution.api-java")
+    id("gradlebuild.publish-public-libraries")
 }
 
 description = "Package build cache results"
@@ -28,9 +28,9 @@ dependencies {
 
     implementation(project(":baseAnnotations"))
 
-    implementation(library("guava")) { version { require(libraryVersion("guava")) } }
-    implementation(library("commons_compress")) { version { require(libraryVersion("commons_compress")) } }
-    implementation(library("commons_io")) { version { require(libraryVersion("commons_io")) } }
+    implementation(libs.guava)
+    implementation(libs.commonsCompress)
+    implementation(libs.commonsIo)
 
     testImplementation(project(":processServices"))
     testImplementation(project(":fileCollections"))

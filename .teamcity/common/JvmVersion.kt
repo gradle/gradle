@@ -17,5 +17,5 @@
 package common
 
 enum class JvmVersion {
-    java8, java9, java10, java11, java12, java13, java14, java15
+    java8, java9, java10, java11, java12, java13, java14, java15, java16
 }

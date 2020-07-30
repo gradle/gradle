@@ -22,6 +22,7 @@ import org.gradle.api.file.ProjectLayout
 import org.gradle.api.internal.artifacts.transform.ArtifactTransformActionScheme
 import org.gradle.api.internal.artifacts.transform.ArtifactTransformListener
 import org.gradle.api.internal.artifacts.transform.ArtifactTransformParameterScheme
+import org.gradle.api.internal.artifacts.transform.TransformationNodeRegistry
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.FileFactory
@@ -41,15 +42,20 @@ import org.gradle.api.tasks.util.PatternSet
 import org.gradle.api.tasks.util.internal.PatternSpecFactory
 import org.gradle.execution.plan.TaskNodeFactory
 import org.gradle.initialization.BuildRequestMetaData
+import org.gradle.instantexecution.problems.DocumentationSection.NotYetImplementedJavaSerialization
+import org.gradle.instantexecution.serialization.codecs.jos.JavaObjectSerializationCodec
 import org.gradle.instantexecution.serialization.codecs.transform.ChainedTransformationNodeCodec
 import org.gradle.instantexecution.serialization.codecs.transform.DefaultTransformerCodec
 import org.gradle.instantexecution.serialization.codecs.transform.InitialTransformationNodeCodec
 import org.gradle.instantexecution.serialization.codecs.transform.LegacyTransformerCodec
 import org.gradle.instantexecution.serialization.codecs.transform.TransformDependenciesCodec
+import org.gradle.instantexecution.serialization.codecs.transform.TransformationChainCodec
 import org.gradle.instantexecution.serialization.codecs.transform.TransformationNodeReferenceCodec
 import org.gradle.instantexecution.serialization.codecs.transform.TransformationStepCodec
+import org.gradle.instantexecution.serialization.codecs.transform.TransformedExternalArtifactSetCodec
 import org.gradle.instantexecution.serialization.ownerServiceCodec
 import org.gradle.instantexecution.serialization.reentrant
+import org.gradle.instantexecution.serialization.unsupported
 import org.gradle.internal.Factory
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.execution.OutputChangeListener
@@ -76,10 +82,12 @@ import org.gradle.internal.serialize.BaseSerializerFactory.SHORT_SERIALIZER
 import org.gradle.internal.serialize.BaseSerializerFactory.STRING_SERIALIZER
 import org.gradle.internal.snapshot.ValueSnapshotter
 import org.gradle.internal.state.ManagedFactoryRegistry
+import org.gradle.jvm.toolchain.internal.JavaCompilerFactory
 import org.gradle.process.ExecOperations
 import org.gradle.process.internal.ExecActionFactory
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
 import org.gradle.workers.WorkerExecutor
+import java.io.Externalizable
 
 
 class Codecs(
@@ -104,6 +112,7 @@ class Codecs(
     actionScheme: ArtifactTransformActionScheme,
     attributesFactory: ImmutableAttributesFactory,
     transformListener: ArtifactTransformListener,
+    transformationNodeRegistry: TransformationNodeRegistry,
     valueSourceProviderFactory: ValueSourceProviderFactory,
     patternSetFactory: Factory<PatternSet>,
     fileOperations: FileOperations,
@@ -138,11 +147,13 @@ class Codecs(
         bind(AttributeContainerCodec(attributesFactory, managedFactoryRegistry))
         bind(TransformationNodeReferenceCodec)
         bind(TransformationStepCodec(projectStateRegistry, fingerprinterRegistry))
+        bind(TransformationChainCodec())
         bind(DefaultTransformerCodec(buildOperationExecutor, classLoaderHierarchyHasher, isolatableFactory, valueSnapshotter, fileCollectionFactory, fileLookup, parameterScheme, actionScheme))
         bind(LegacyTransformerCodec(actionScheme))
         bind(ResolvableArtifactCodec)
         bind(TransformDependenciesCodec)
         bind(PublishArtifactLocalArtifactMetadataCodec)
+        bind(TransformedExternalArtifactSetCodec(transformationNodeRegistry))
 
         bind(DefaultCopySpecCodec(patternSetFactory, fileCollectionFactory, instantiator))
         bind(DestinationRootCopySpecCodec(fileResolver))
@@ -184,12 +195,14 @@ class Codecs(
         bind(ownerServiceCodec<ListenerManager>())
         bind(ownerServiceCodec<TemporaryFileProvider>())
         bind(ownerServiceCodec<OutputChangeListener>())
+        bind(ownerServiceCodec<JavaCompilerFactory>())
         bind(ServicesCodec())
 
         bind(ProxyCodec)
 
-        bind(SerializableWriteObjectCodec())
-        bind(SerializableWriteReplaceCodec())
+        // Java serialization integration
+        bind(unsupported<Externalizable>(NotYetImplementedJavaSerialization))
+        bind(JavaObjectSerializationCodec())
 
         // This protects the BeanCodec against StackOverflowErrors but
         // we can still get them for the other codecs, for instance,
@@ -263,7 +276,6 @@ class Codecs(
         bind(ImmutableListCodec)
 
         // Only serialize certain Set implementations for now, as some custom types extend Set (eg DomainObjectContainer)
-        bind(linkedHashSetCodec)
         bind(hashSetCodec)
         bind(treeSetCodec)
         bind(ImmutableSetCodec)

@@ -33,10 +33,11 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheLockingManager;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetadata;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCachesProvider;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConnectionFailureRepositoryBlacklister;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ChangingValueDependencyResolutionListener;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConnectionFailureRepositoryDisabler;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleDescriptorHashCodec;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleDescriptorHashModuleSource;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.RepositoryBlacklister;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.RepositoryDisabler;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolveIvyFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolverProviderFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.StartParameterResolutionOverride;
@@ -86,6 +87,8 @@ import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectPublica
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.DefaultArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.AttributeContainerSerializer;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.CachingComponentSelectionDescriptorFactory;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorFactory;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.DesugaredAttributeContainerSerializer;
 import org.gradle.api.internal.artifacts.mvnsettings.DefaultLocalMavenRepositoryLocator;
 import org.gradle.api.internal.artifacts.mvnsettings.DefaultMavenFileLocations;
@@ -159,6 +162,7 @@ import org.gradle.internal.resource.cached.ExternalResourceFileStore;
 import org.gradle.internal.resource.cached.TwoStageByUrlCachedExternalResourceIndex;
 import org.gradle.internal.resource.cached.TwoStageExternalResourceFileStore;
 import org.gradle.internal.resource.connector.ResourceConnectorFactory;
+import org.gradle.internal.resource.local.FileResourceListener;
 import org.gradle.internal.resource.local.FileResourceRepository;
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
 import org.gradle.internal.resource.local.ivy.LocallyAvailableResourceFinderFactory;
@@ -229,10 +233,6 @@ class DependencyManagementBuildScopeServices {
 
     RuntimeShadedJarFactory createRuntimeShadedJarFactory(GeneratedGradleJarCache jarCache, ProgressLoggerFactory progressLoggerFactory, ClasspathWalker classpathWalker, ClasspathBuilder classpathBuilder, BuildOperationExecutor executor) {
         return new RuntimeShadedJarFactory(jarCache, progressLoggerFactory, classpathWalker, classpathBuilder, executor);
-    }
-
-    BuildCommencedTimeProvider createBuildTimeProvider() {
-        return new BuildCommencedTimeProvider();
     }
 
     ModuleExclusions createModuleExclusions() {
@@ -433,8 +433,7 @@ class DependencyManagementBuildScopeServices {
         return finderFactory.create();
     }
 
-    RepositoryTransportFactory createRepositoryTransportFactory(StartParameter startParameter,
-                                                                ProgressLoggerFactory progressLoggerFactory,
+    RepositoryTransportFactory createRepositoryTransportFactory(ProgressLoggerFactory progressLoggerFactory,
                                                                 TemporaryFileProvider temporaryFileProvider,
                                                                 FileStoreAndIndexProvider fileStoreAndIndexProvider,
                                                                 BuildCommencedTimeProvider buildCommencedTimeProvider,
@@ -444,7 +443,8 @@ class DependencyManagementBuildScopeServices {
                                                                 ProducerGuard<ExternalResourceName> producerGuard,
                                                                 FileResourceRepository fileResourceRepository,
                                                                 ChecksumService checksumService,
-                                                                StartParameterResolutionOverride startParameterResolutionOverride) {
+                                                                StartParameterResolutionOverride startParameterResolutionOverride,
+                                                                ListenerManager listenerManager) {
         return artifactCachesProvider.withWritableCache((md, manager) -> new RepositoryTransportFactory(
             resourceConnectorFactories,
             progressLoggerFactory,
@@ -456,11 +456,12 @@ class DependencyManagementBuildScopeServices {
             startParameterResolutionOverride,
             producerGuard,
             fileResourceRepository,
-            checksumService));
+            checksumService,
+            listenerManager.getBroadcaster(FileResourceListener.class)));
     }
 
-    RepositoryBlacklister createRepositoryBlacklister() {
-        return new ConnectionFailureRepositoryBlacklister();
+    RepositoryDisabler createRepositoryDisabler() {
+        return new ConnectionFailureRepositoryDisabler();
     }
 
     StartParameterResolutionOverride createStartParameterResolutionOverride(StartParameter startParameter, BuildLayout buildLayout) {
@@ -482,14 +483,15 @@ class DependencyManagementBuildScopeServices {
         return override;
     }
 
-    ResolveIvyFactory createResolveIvyFactory(StartParameterResolutionOverride startParameterResolutionOverride, ModuleRepositoryCacheProvider moduleRepositoryCacheProvider,
+    ResolveIvyFactory createResolveIvyFactory(StartParameterResolutionOverride startParameterResolutionOverride,
+                                              ModuleRepositoryCacheProvider moduleRepositoryCacheProvider,
                                               DependencyVerificationOverride dependencyVerificationOverride,
                                               BuildCommencedTimeProvider buildCommencedTimeProvider,
                                               VersionComparator versionComparator,
                                               ImmutableModuleIdentifierFactory moduleIdentifierFactory,
-                                              RepositoryBlacklister repositoryBlacklister,
+                                              RepositoryDisabler repositoryBlacklister,
                                               VersionParser versionParser,
-                                              InstantiatorFactory instantiatorFactory) {
+                                              ListenerManager listenerManager) {
         return new ResolveIvyFactory(
             moduleRepositoryCacheProvider,
             startParameterResolutionOverride,
@@ -499,8 +501,12 @@ class DependencyManagementBuildScopeServices {
             moduleIdentifierFactory,
             repositoryBlacklister,
             versionParser,
-            instantiatorFactory
+            listenerManager.getBroadcaster(ChangingValueDependencyResolutionListener.class)
         );
+    }
+
+    ComponentSelectionDescriptorFactory createComponentSelectionDescriptorFactory() {
+        return new CachingComponentSelectionDescriptorFactory();
     }
 
     ArtifactDependencyResolver createArtifactDependencyResolver(ResolveIvyFactory resolveIvyFactory,
@@ -515,7 +521,8 @@ class DependencyManagementBuildScopeServices {
                                                                 VersionSelectorScheme versionSelectorScheme,
                                                                 VersionParser versionParser,
                                                                 ComponentMetadataSupplierRuleExecutor componentMetadataSupplierRuleExecutor,
-                                                                InstantiatorFactory instantiatorFactory) {
+                                                                InstantiatorFactory instantiatorFactory,
+                                                                ComponentSelectionDescriptorFactory componentSelectionDescriptorFactory) {
         return new DefaultArtifactDependencyResolver(
             buildOperationExecutor,
             resolverFactories,
@@ -529,7 +536,8 @@ class DependencyManagementBuildScopeServices {
             versionSelectorScheme,
             versionParser,
             componentMetadataSupplierRuleExecutor,
-            instantiatorFactory);
+            instantiatorFactory,
+            componentSelectionDescriptorFactory);
     }
 
     ProjectPublicationRegistry createProjectPublicationRegistry() {

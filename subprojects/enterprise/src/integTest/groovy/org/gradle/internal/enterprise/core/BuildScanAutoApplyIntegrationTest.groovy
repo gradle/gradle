@@ -87,7 +87,7 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
         pluginAppliedOnce()
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "composite builds")
     def "does not apply plugin to nested builds in a composite"() {
         when:
         settingsFile << """
@@ -281,7 +281,7 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
         fixture.didNotIssuedNoPluginWarning(output)
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "composite builds")
     def "does not warn for each nested build if --scan used"() {
         given:
         applyPlugin()

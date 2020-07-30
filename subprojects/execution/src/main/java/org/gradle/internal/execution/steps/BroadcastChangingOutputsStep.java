@@ -22,8 +22,6 @@ import org.gradle.internal.execution.Result;
 import org.gradle.internal.execution.Step;
 import org.gradle.internal.execution.UnitOfWork;
 
-import java.util.Optional;
-
 public class BroadcastChangingOutputsStep<C extends Context, R extends Result> implements Step<C, R> {
 
     private final OutputChangeListener outputChangeListener;
@@ -40,12 +38,7 @@ public class BroadcastChangingOutputsStep<C extends Context, R extends Result> i
     @Override
     public R execute(C context) {
         UnitOfWork work = context.getWork();
-
-        Optional<? extends Iterable<String>> changingOutputs = work.getChangingOutputs();
-        changingOutputs.ifPresent(outputChangeListener::beforeOutputChange);
-        if (!changingOutputs.isPresent()) {
-            outputChangeListener.beforeOutputChange();
-        }
+        outputChangeListener.beforeOutputChange(work.getChangingOutputs());
         return delegate.execute(context);
     }
 }

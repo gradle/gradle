@@ -57,7 +57,7 @@ abstract class AbstractContinuousIntegrationTest extends AbstractIntegrationSpec
     boolean withoutContinuousArg
     List<ExecutionResult> results = []
 
-    public void turnOnDebug() {
+    void turnOnDebug() {
         executer.startBuildProcessInDebugger(true)
         executer.withArgument("--no-daemon")
         buildTimeout *= 100

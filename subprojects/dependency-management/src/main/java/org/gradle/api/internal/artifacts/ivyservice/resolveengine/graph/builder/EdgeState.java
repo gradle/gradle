@@ -67,6 +67,7 @@ class EdgeState implements DependencyGraphEdge {
 
     private ResolvedVariantResult resolvedVariant;
     private boolean unattached;
+    private boolean used;
 
     EdgeState(NodeState from, DependencyState dependencyState, ExcludeSpec transitiveExclusions, ResolveState resolveState) {
         this.from = from;
@@ -182,15 +183,26 @@ class EdgeState implements DependencyGraphEdge {
         targetNodeSelectionFailure = new ModuleVersionResolveException(dependencyState.getRequested(), err);
     }
 
-    public void restart(boolean checkUnattached) {
+
+    public void restart() {
         if (from.isSelected()) {
-            removeFromTargetConfigurations();
-            // We now have corner cases that can lead to this restart not succeeding
-            if (checkUnattached && !isUnattached()) {
-                selector.getTargetModule().addUnattachedDependency(this);
-            }
-            attachToTargetConfigurations();
+            restartInternal(false);
         }
+    }
+
+    public void restartConnected(boolean checkUnattached) {
+        if (from.isSelected() && isUsed()) {
+            restartInternal(checkUnattached);
+        }
+    }
+
+    private void restartInternal(boolean checkUnattached) {
+        removeFromTargetConfigurations();
+        // We now have corner cases that can lead to this restart not succeeding
+        if (checkUnattached && !isUnattached()) {
+            selector.getTargetModule().addUnattachedDependency(this);
+        }
+        attachToTargetConfigurations();
     }
 
     @Override
@@ -328,7 +340,18 @@ class EdgeState implements DependencyGraphEdge {
         if (selectorFailure != null) {
             return selectorFailure;
         }
-        return getSelectedComponent().getMetadataResolveFailure();
+        ComponentState selectedComponent = getSelectedComponent();
+        if (selectedComponent == null) {
+            ModuleSelectors<SelectorState> selectors = selector.getTargetModule().getSelectors();
+            for (SelectorState state : selectors) {
+                selectorFailure = state.getFailure();
+                if (selectorFailure != null) {
+                    return selectorFailure;
+                }
+            }
+            throw new IllegalStateException("Expected to find a selector with a failure but none was found");
+        }
+        return selectedComponent.getMetadataResolveFailure();
     }
 
     @Override
@@ -446,5 +469,23 @@ class EdgeState implements DependencyGraphEdge {
 
     public boolean isUnattached() {
         return unattached;
+    }
+
+    void markUsed() {
+        this.used = true;
+    }
+
+    void markUnused() {
+        this.used = false;
+    }
+
+    /**
+     * Indicates whether the edge is currently listed as outgoing in a node.
+     * It can be either a full edge or an edge to a virtual platform.
+     *
+     * @return true if used, false otherwise
+     */
+    boolean isUsed() {
+        return used;
     }
 }

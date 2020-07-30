@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.file.collections
 
+import com.google.common.collect.ImmutableSet
 import spock.lang.Specification
 
 class ListBackedFileSetTest extends Specification {
@@ -24,15 +25,15 @@ class ListBackedFileSetTest extends Specification {
         def testFile2 = new File('test-file2')
 
         expect:
-        new ListBackedFileSet().displayName == "empty file collection"
-        new ListBackedFileSet(testFile).displayName == "file '$testFile'"
-        new ListBackedFileSet(testFile, testFile2).displayName == "files '$testFile', '$testFile2'"
+        new ListBackedFileSet(ImmutableSet.of()).displayName == "empty file collection"
+        new ListBackedFileSet(ImmutableSet.of(testFile)).displayName == "file '$testFile'"
+        new ListBackedFileSet(ImmutableSet.of(testFile, testFile2)).displayName == "files '$testFile', '$testFile2'"
     }
 
     void containsSpecifiedFiles() {
         def testFile = new File('test-file')
 
         expect:
-        new ListBackedFileSet(testFile).files == [testFile] as Set
+        new ListBackedFileSet(ImmutableSet.of(testFile)).files == [testFile] as Set
     }
 }

@@ -18,19 +18,26 @@ package org.gradle.instantexecution
 
 
 import org.gradle.integtests.resolve.transform.ArtifactTransformTestFixture
-import spock.lang.Ignore
+import org.gradle.test.fixtures.server.http.HttpServer
+import org.gradle.test.fixtures.server.http.MavenHttpRepository
+import org.junit.Rule
 import spock.lang.Issue
 
 class InstantExecutionDependencyResolutionIntegrationTest extends AbstractInstantExecutionIntegrationTest implements ArtifactTransformTestFixture {
+    @Rule
+    HttpServer httpServer = new HttpServer()
+    def remoteRepo = new MavenHttpRepository(httpServer, mavenRepo)
+
     def setup() {
         // So that dependency resolution results from previous executions do not interfere
         requireOwnGradleUserHomeDir()
     }
 
     def setupBuildWithEachDependencyType() {
+        httpServer.start()
         taskTypeWithOutputFileProperty()
 
-        mavenRepo.module("group", "lib1", "6500").publish()
+        remoteRepo.module("group", "lib1", "6500").publish().allowAll()
 
         settingsFile << """
             include 'a', 'b'"""
@@ -45,7 +52,7 @@ class InstantExecutionDependencyResolutionIntegrationTest extends AbstractInstan
                 configurations.default.outgoing.artifact(producer.output)
             }
             repositories {
-                maven { url = uri('${mavenRepo.uri}') }
+                maven { url = uri('${remoteRepo.uri}') }
             }
             configurations {
                 implementation
@@ -66,13 +73,10 @@ class InstantExecutionDependencyResolutionIntegrationTest extends AbstractInstan
         def fixture = newInstantExecutionFixture()
 
         setupBuildWithEachDependencyType()
+        taskTypeLogsInputFileCollectionContent()
         buildFile << """
-            task resolve {
-                def view = configurations.implementation
-                inputs.files view
-                doLast {
-                    println "result = \${view.files.name}"
-                }
+            task resolve(type: ShowFilesTask) {
+                inFiles.from(configurations.implementation)
             }
         """
 
@@ -169,9 +173,6 @@ class InstantExecutionDependencyResolutionIntegrationTest extends AbstractInstan
                     output = layout.buildDirectory.file("\${project.name}.out")
                 }
                 configurations.default.outgoing.artifact(producer.output)
-            }
-            repositories {
-                maven { url = uri('${mavenRepo.uri}') }
             }
             configurations {
                 implementation
@@ -315,14 +316,15 @@ class InstantExecutionDependencyResolutionIntegrationTest extends AbstractInstan
     }
 
     def setupBuildWithArtifactTransformsOfExternalDependencies() {
-        withColorVariants(mavenRepo.module("group", "thing1", "1.2")).publish()
-        withColorVariants(mavenRepo.module("group", "thing2", "1.2")).publish()
+        httpServer.start()
+        withColorVariants(remoteRepo.module("group", "thing1", "1.2")).publish().allowAll()
+        withColorVariants(remoteRepo.module("group", "thing2", "1.2")).publish().allowAll()
 
         setupBuildWithSimpleColorTransform()
         buildFile << """
             repositories {
                 maven {
-                    url = uri('${mavenRepo.uri}')
+                    url = uri('${remoteRepo.uri}')
                     metadataSources { gradleMetadata() }
                 }
             }
@@ -748,9 +750,10 @@ class InstantExecutionDependencyResolutionIntegrationTest extends AbstractInstan
     }
 
     private void setupBuildWithArtifactTransformsOfExternalDependenciesThatTakeUpstreamDependencies() {
-        def dep1 = withColorVariants(mavenRepo.module("group", "thing1", "1.2")).publish()
-        def dep2 = withColorVariants(mavenRepo.module("group", "thing2", "1.2")).publish()
-        withColorVariants(mavenRepo.module("group", "thing3", "1.2")).dependsOn(dep1).dependsOn(dep2).publish()
+        httpServer.start()
+        def dep1 = withColorVariants(remoteRepo.module("group", "thing1", "1.2")).publish().allowAll()
+        def dep2 = withColorVariants(remoteRepo.module("group", "thing2", "1.2")).publish().allowAll()
+        withColorVariants(remoteRepo.module("group", "thing3", "1.2")).dependsOn(dep1).dependsOn(dep2).publish().allowAll()
 
         setupBuildWithColorTransformThatTakesUpstreamArtifacts()
         buildFile << """
@@ -759,7 +762,7 @@ class InstantExecutionDependencyResolutionIntegrationTest extends AbstractInstan
             }
 
             repositories {
-                maven { url = '${mavenRepo.uri}' }
+                maven { url = '${remoteRepo.uri}' }
             }
         """
     }
@@ -834,9 +837,10 @@ class InstantExecutionDependencyResolutionIntegrationTest extends AbstractInstan
     def "task input file collection can include output of artifact transform of external dependencies when transform takes transformed upstream artifacts"() {
         def fixture = newInstantExecutionFixture()
 
-        def dep1 = withColorVariants(mavenRepo.module("group", "thing1", "1.2")).publish()
-        def dep2 = withColorVariants(mavenRepo.module("group", "thing2", "1.2")).publish()
-        withColorVariants(mavenRepo.module("group", "thing3", "1.2")).dependsOn(dep1).dependsOn(dep2).publish()
+        httpServer.start()
+        def dep1 = withColorVariants(remoteRepo.module("group", "thing1", "1.2")).publish().allowAll()
+        def dep2 = withColorVariants(remoteRepo.module("group", "thing2", "1.2")).publish().allowAll()
+        withColorVariants(remoteRepo.module("group", "thing3", "1.2")).dependsOn(dep1).dependsOn(dep2).publish().allowAll()
 
         setupBuildWithChainedColorTransformThatTakesUpstreamArtifacts()
 
@@ -845,7 +849,7 @@ class InstantExecutionDependencyResolutionIntegrationTest extends AbstractInstan
                 implementation 'group:thing3:1.2'
             }
             repositories {
-                maven { url = '${mavenRepo.uri}' }
+                maven { url = '${remoteRepo.uri}' }
             }
         """
 
@@ -989,8 +993,9 @@ class InstantExecutionDependencyResolutionIntegrationTest extends AbstractInstan
     }
 
     def "reports failure to transform external dependency"() {
-        withColorVariants(mavenRepo.module("group", "thing1", "1.2")).publish()
-        withColorVariants(mavenRepo.module("group", "thing2", "1.2")).publish()
+        httpServer.start()
+        withColorVariants(remoteRepo.module("group", "thing1", "1.2")).publish().allowAll()
+        withColorVariants(remoteRepo.module("group", "thing2", "1.2")).publish().allowAll()
 
         setupBuildWithColorTransformAction()
 
@@ -1007,7 +1012,7 @@ class InstantExecutionDependencyResolutionIntegrationTest extends AbstractInstan
             }
 
             repositories {
-                maven { url = '${mavenRepo.uri}' }
+                maven { url = '${remoteRepo.uri}' }
             }
 
             dependencies {
@@ -1044,7 +1049,6 @@ class InstantExecutionDependencyResolutionIntegrationTest extends AbstractInstan
         // TODO - stops on first failure, should collect all failures
     }
 
-    @Ignore("wip")
     def 'transform action is re-executed when input artifact changes'() {
         given:
         buildKotlinFile '''

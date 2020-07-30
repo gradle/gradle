@@ -19,7 +19,7 @@ package org.gradle.instantexecution
 
 class InstantExecutionCompositeBuildsIntegrationTest extends AbstractInstantExecutionIntegrationTest {
 
-    def "problem when included builds are present"() {
+    def "reports a problem when included builds are present"() {
 
         given:
         def instantExecution = newInstantExecutionFixture()
@@ -28,6 +28,54 @@ class InstantExecutionCompositeBuildsIntegrationTest extends AbstractInstantExec
 
         and:
         def expectedProblem = "Gradle runtime: support for included builds is not yet implemented with the configuration cache."
+
+        when:
+        instantFails("help")
+
+        then:
+        problems.assertFailureHasProblems(failure) {
+            withUniqueProblems(expectedProblem)
+            withProblemsWithStackTraceCount(0)
+        }
+
+        when:
+        instantFails("help")
+
+        then:
+        instantExecution.assertStateLoaded()
+        problems.assertFailureHasProblems(failure) {
+            withUniqueProblems(expectedProblem)
+            withProblemsWithStackTraceCount(0)
+        }
+
+        when:
+        instantRunLenient("help")
+
+        then:
+        instantExecution.assertStateLoaded()
+        problems.assertResultHasProblems(result) {
+            withUniqueProblems(expectedProblem)
+            withProblemsWithStackTraceCount(0)
+        }
+    }
+
+    def "reports a problem when source dependencies are present"() {
+        given:
+        def instantExecution = newInstantExecutionFixture()
+        settingsFile << """
+            sourceControl {
+                vcsMappings {
+                    withModule("org.test:buildB") {
+                        from(GitVersionControlSpec) {
+                            url = uri("some-repo")
+                        }
+                    }
+                }
+            }
+        """
+
+        and:
+        def expectedProblem = "Gradle runtime: support for source dependencies is not yet implemented with the configuration cache."
 
         when:
         instantFails("help")

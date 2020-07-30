@@ -18,10 +18,8 @@ package org.gradle.api.internal.file;
 
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection;
-import org.gradle.api.internal.file.collections.DefaultFileCollectionResolveContext;
-import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
+import org.gradle.api.internal.file.collections.FileCollectionAdapter;
 import org.gradle.api.internal.file.collections.ListBackedFileSet;
-import org.gradle.api.internal.file.collections.MinimalFileSet;
 import org.gradle.api.internal.provider.PropertyHost;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.properties.LifecycleAwareValue;
@@ -30,6 +28,7 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.file.PathToFileResolver;
 
 import java.io.File;
+import java.util.function.Consumer;
 
 /**
  * A {@link org.gradle.api.file.ConfigurableFileCollection} that can be used as a task input property. Caches the matching set of files during task execution, and discards the result after task execution.
@@ -39,7 +38,7 @@ import java.io.File;
  */
 public class CachingTaskInputFileCollection extends DefaultConfigurableFileCollection implements LifecycleAwareValue {
     private boolean canCache;
-    private MinimalFileSet cachedValue;
+    private FileCollectionInternal cachedValue;
 
     // TODO - display name
     public CachingTaskInputFileCollection(PathToFileResolver fileResolver, Factory<PatternSet> patternSetFactory, TaskDependencyFactory taskDependencyFactory, PropertyHost propertyHost) {
@@ -47,20 +46,16 @@ public class CachingTaskInputFileCollection extends DefaultConfigurableFileColle
     }
 
     @Override
-    public void visitContents(FileCollectionResolveContext context) {
+    protected void visitChildren(Consumer<FileCollectionInternal> visitor) {
         if (canCache) {
             if (cachedValue == null) {
-                DefaultFileCollectionResolveContext nested = new DefaultFileCollectionResolveContext(patternSetFactory);
-                super.visitContents(nested);
                 ImmutableSet.Builder<File> files = ImmutableSet.builder();
-                for (FileCollectionInternal fileCollection : nested.resolveAsFileCollections()) {
-                    files.addAll(fileCollection);
-                }
-                this.cachedValue = new ListBackedFileSet(files.build());
+                super.visitChildren(files::addAll);
+                this.cachedValue = new FileCollectionAdapter(new ListBackedFileSet(files.build()), patternSetFactory);
             }
-            context.add(cachedValue);
+            visitor.accept(cachedValue);
         } else {
-            super.visitContents(context);
+            super.visitChildren(visitor);
         }
     }
 

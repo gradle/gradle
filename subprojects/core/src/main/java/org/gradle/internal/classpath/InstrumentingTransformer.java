@@ -97,13 +97,15 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
 
     private static final String INSTRUMENTED_CALL_SITE_METHOD = "$instrumentedCallSiteArray";
     private static final String CREATE_CALL_SITE_ARRAY_METHOD = "$createCallSiteArray";
+    private static final String DESERIALIZE_LAMBDA = "$deserializeLambda$";
+    private static final String RENAMED_DESERIALIZE_LAMBDA = "$renamedDeserializeLambda$";
 
     private static final String[] NO_EXCEPTIONS = new String[0];
 
     @Override
     public void applyConfigurationTo(Hasher hasher) {
         hasher.putString(InstrumentingTransformer.class.getSimpleName());
-        hasher.putInt(9); // decoration format, increment this when making changes
+        hasher.putInt(10); // decoration format, increment this when making changes
     }
 
     @Override
@@ -113,8 +115,9 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
 
     private static class InstrumentingVisitor extends ClassVisitor {
         String className;
-        private boolean hasGroovyCallSites;
         private final List<LambdaFactoryDetails> lambdaFactories = new ArrayList<>();
+        private boolean hasGroovyCallSites;
+        private boolean hasDeserializeLambda;
 
         public InstrumentingVisitor(ClassVisitor visitor) {
             super(ASM7, visitor);
@@ -132,10 +135,13 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
 
         @Override
         public MethodVisitor visitMethod(int access, String name, String descriptor, String signature, String[] exceptions) {
-            MethodVisitor methodVisitor = super.visitMethod(access, name, descriptor, signature, exceptions);
             if (name.equals(CREATE_CALL_SITE_ARRAY_METHOD) && descriptor.equals(RETURN_CALL_SITE_ARRAY)) {
                 hasGroovyCallSites = true;
+            } else if (name.equals(DESERIALIZE_LAMBDA) && descriptor.equals(RETURN_OBJECT_FROM_SERIALIZED_LAMBDA)) {
+                hasDeserializeLambda = true;
+                return super.visitMethod(access, RENAMED_DESERIALIZE_LAMBDA, descriptor, signature, exceptions);
             }
+            MethodVisitor methodVisitor = super.visitMethod(access, name, descriptor, signature, exceptions);
             return new InstrumentingMethodVisitor(this, methodVisitor);
         }
 
@@ -144,7 +150,7 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
             if (hasGroovyCallSites) {
                 generateCallSiteFactoryMethod();
             }
-            if (!lambdaFactories.isEmpty()) {
+            if (!lambdaFactories.isEmpty() || hasDeserializeLambda) {
                 generateLambdaDeserializeMethod();
             }
             super.visitEnd();
@@ -152,7 +158,7 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
 
         private void generateLambdaDeserializeMethod() {
             new MethodVisitorScope(
-                visitStaticPrivateMethod("$deserializeLambda$", RETURN_OBJECT_FROM_SERIALIZED_LAMBDA)
+                visitStaticPrivateMethod(DESERIALIZE_LAMBDA, RETURN_OBJECT_FROM_SERIALIZED_LAMBDA)
             ) {
                 {
                     visitCode();
@@ -178,9 +184,16 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
                         _INVOKEDYNAMIC(factory.name, factory.descriptor, factory.bootstrapMethodHandle, factory.bootstrapMethodArguments);
                         _ARETURN();
                     }
-                    visitLabel(next);
-                    _F_SAME();
-                    _ACONST_NULL();
+                    if (next != null) {
+                        visitLabel(next);
+                        _F_SAME();
+                    }
+                    if (hasDeserializeLambda) {
+                        _ALOAD(0);
+                        _INVOKESTATIC(className, RENAMED_DESERIALIZE_LAMBDA, RETURN_OBJECT_FROM_SERIALIZED_LAMBDA);
+                    } else {
+                        _ACONST_NULL();
+                    }
                     _ARETURN();
                     visitMaxs(0, 0);
                     visitEnd();
@@ -212,6 +225,21 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
                 null,
                 NO_EXCEPTIONS
             );
+        }
+    }
+
+    private static class DeserializeLambdaMethodVisitor extends MethodVisitorScope {
+        private final InstrumentingVisitor owner;
+
+        public DeserializeLambdaMethodVisitor(InstrumentingVisitor owner, MethodVisitor methodVisitor) {
+            super(methodVisitor);
+            this.owner = owner;
+        }
+
+        @Override
+        public void visitCode() {
+            super.visitCode();
+            _INVOKESTATIC(owner.className, RENAMED_DESERIALIZE_LAMBDA, RETURN_OBJECT_FROM_SERIALIZED_LAMBDA);
         }
     }
 
@@ -352,7 +380,7 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
         }
 
         /**
-         * @see F_SAME
+         * @see org.objectweb.asm.Opcodes#F_SAME
          */
         protected void _F_SAME() {
             super.visitFrame(F_SAME, 0, new Object[0], 0, new Object[0]);

@@ -15,7 +15,7 @@
  */
 
 plugins {
-    gradlebuild.internal.kotlin
+    id("gradlebuild.internal.kotlin")
 }
 
 dependencies {
@@ -30,8 +30,8 @@ dependencies {
     integTestImplementation(project(":persistentCache"))
     integTestImplementation(project(":launcher"))
     integTestImplementation(project(":fileWatching"))
-    integTestImplementation(library("slf4j_api"))
-    integTestImplementation(testLibrary("jetty"))
+    integTestImplementation(libs.slf4jApi)
+    integTestImplementation(libs.jetty)
 
     integTestDistributionRuntimeOnly(project(":distributionsFull"))
 }

@@ -30,6 +30,7 @@ import org.gradle.api.publish.ivy.internal.publisher.IvyNormalizedPublication;
 import org.gradle.api.publish.ivy.internal.publisher.IvyPublisher;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
+import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.artifacts.repositories.AuthenticationSupportedInternal;
@@ -44,12 +45,9 @@ import java.util.concurrent.Callable;
  */
 public class PublishToIvyRepository extends DefaultTask {
 
-    private static final Credentials NO_CREDENTIALS = new Credentials() {
-    };
-
     private IvyPublicationInternal publication;
     private IvyArtifactRepository repository;
-    private final Property<Credentials> credentials = getProject().getObjects().property(Credentials.class).convention(NO_CREDENTIALS);
+    private final Property<Credentials> credentials = getProject().getObjects().property(Credentials.class);
 
     public PublishToIvyRepository() {
 
@@ -118,6 +116,7 @@ public class PublishToIvyRepository extends DefaultTask {
     }
 
     @Input
+    @Optional
     Property<Credentials> getCredentials() {
         return credentials;
     }
@@ -129,7 +128,7 @@ public class PublishToIvyRepository extends DefaultTask {
      */
     public void setRepository(IvyArtifactRepository repository) {
         this.repository = repository;
-        this.credentials.set(((AuthenticationSupportedInternal) repository).getConfiguredCredentials().orElse(NO_CREDENTIALS));
+        this.credentials.set(((AuthenticationSupportedInternal) repository).getConfiguredCredentials());
     }
 
     @TaskAction

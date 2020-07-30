@@ -18,7 +18,6 @@ package org.gradle.gradlebuild.versioning
 
 import GitInformationExtension
 import org.eclipse.jgit.lib.Repository
-import org.eclipse.jgit.storage.file.FileRepositoryBuilder
 import org.gradle.api.Describable
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Plugin
@@ -79,19 +78,9 @@ fun Project.resolveGitInfo(): LazyGitInformation {
     val gitDirOrFile = projectDir.resolve(".git")
     return when {
         gitDirOrFile.isFile -> gitWorktreeInfoFor(projectDir)
-        else -> gitRepositoryInfoFor(gitDirOrFile)
+        else -> LazyGitInformation({ "UNKNOWN" }, { "UNKNOWN" })
     }
 }
-
-
-private
-fun gitRepositoryInfoFor(gitDir: File): LazyGitInformation =
-    FileRepositoryBuilder().setGitDir(gitDir).build().let { repository ->
-        LazyGitInformation(
-            branch = { repository.branch },
-            commitId = { repository.resolve(repository.fullBranch).name }
-        )
-    }
 
 
 /**

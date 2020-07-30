@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 
-import accessors.java
-import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
+import gradlebuild.cleanup.WhenNotEmpty
 
 plugins {
-    gradlebuild.distribution.`implementation-java`
+    id("gradlebuild.distribution.implementation-java")
 }
 
 dependencies {
@@ -40,25 +39,25 @@ dependencies {
     implementation(project(":execution"))
     implementation(project(":security"))
 
-    implementation(library("slf4j_api"))
-    implementation(library("groovy"))
-    implementation(library("asm"))
-    implementation(library("asm_commons"))
-    implementation(library("asm_util"))
-    implementation(library("guava"))
-    implementation(library("commons_lang"))
-    implementation(library("commons_io"))
-    implementation(library("commons_httpclient"))
-    implementation(library("inject"))
-    implementation(library("gson"))
-    implementation(library("ant"))
-    implementation(library("ivy"))
-    implementation(library("maven3"))
+    implementation(libs.slf4jApi)
+    implementation(libs.groovy)
+    implementation(libs.asm)
+    implementation(libs.asmCommons)
+    implementation(libs.asmUtil)
+    implementation(libs.guava)
+    implementation(libs.commonsLang)
+    implementation(libs.commonsIo)
+    implementation(libs.commonsHttpclient)
+    implementation(libs.inject)
+    implementation(libs.gson)
+    implementation(libs.ant)
+    implementation(libs.ivy)
+    implementation(libs.maven3)
 
     testImplementation(project(":processServices"))
     testImplementation(project(":diagnostics"))
     testImplementation(project(":buildCachePackaging"))
-    testImplementation(library("nekohtml"))
+    testImplementation(libs.nekohtml)
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":messaging")))
     testImplementation(testFixtures(project(":coreApi")))
@@ -69,9 +68,9 @@ dependencies {
     testImplementation(testFixtures(project(":execution")))
 
     integTestImplementation(project(":buildOption"))
-    integTestImplementation(library("jansi"))
-    integTestImplementation(library("ansi_control_sequence_util"))
-    integTestImplementation(testLibrary("jetty")) {
+    integTestImplementation(libs.jansi)
+    integTestImplementation(libs.ansiControlSequenceUtil)
+    integTestImplementation(libs.jetty) {
         because("tests use HttpServlet directly")
     }
     integTestImplementation(testFixtures(project(":security")))
@@ -83,20 +82,20 @@ dependencies {
         because("Test fixtures export the CacheAccess class")
     }
 
-    testFixturesApi(testLibrary("jetty"))
+    testFixturesApi(libs.jetty)
     testFixturesImplementation(project(":core"))
     testFixturesImplementation(testFixtures(project(":core")))
     testFixturesImplementation(testFixtures(project(":resourcesHttp")))
     testFixturesImplementation(project(":coreApi"))
     testFixturesImplementation(project(":messaging"))
     testFixturesImplementation(project(":internalIntegTesting"))
-    testFixturesImplementation(library("slf4j_api"))
-    testFixturesImplementation(library("inject"))
-    testFixturesImplementation(library("guava")) {
+    testFixturesImplementation(libs.slf4jApi)
+    testFixturesImplementation(libs.inject)
+    testFixturesImplementation(libs.guava) {
         because("Groovy compiler reflects on private field on TextUtil")
     }
-    testFixturesImplementation(library("bouncycastle_pgp"))
-    testFixturesApi(testLibrary("testcontainers_spock")) {
+    testFixturesImplementation(libs.bouncycastlePgp)
+    testFixturesApi(libs.testcontainersSpock) {
         because("API because of Groovy compiler bug leaking internals")
     }
     testFixturesImplementation(project(":jvmServices")) {
@@ -119,10 +118,11 @@ testFilesCleanup {
 }
 
 tasks.clean {
+    val testFiles = layout.buildDirectory.dir("tmp/test files")
     doFirst {
         // On daemon crash, read-only cache tests can leave read-only files around.
         // clean now takes care of those files as well
-        fileTree("$buildDir/tmp/test files").matching {
+        testFiles.get().asFileTree.matching {
             include("**/read-only-cache/**")
         }.visit { this.file.setWritable(true) }
     }
@@ -132,7 +132,7 @@ afterEvaluate {
     // This is a workaround for the validate plugins task trying to inspect classes which
     // have changed but are NOT tasks
     tasks.withType<ValidatePlugins>().configureEach {
-        val main by project.java.sourceSets
+        val main = sourceSets.main.get()
         classes.setFrom(main.output.classesDirs.asFileTree.filter { !it.isInternal(main) })
     }
 }

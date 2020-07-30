@@ -36,6 +36,7 @@ import org.gradle.initialization.ProjectAccessListener
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.reflect.Instantiator
+import org.gradle.internal.typeconversion.NotationParser
 import org.gradle.util.AttributeTestUtil
 import org.gradle.util.Path
 import org.gradle.util.TestUtil
@@ -74,7 +75,7 @@ class DefaultConfigurationContainerSpec extends Specification {
     private DefaultConfigurationContainer configurationContainer = new DefaultConfigurationContainer(resolver, instantiator, domainObjectContext, listenerManager, metaDataProvider,
         projectAccessListener, metaDataBuilder, fileCollectionFactory, globalSubstitutionRules, vcsMappingsInternal, componentIdentifierFactory, buildOperationExecutor, taskResolver,
         immutableAttributesFactory, moduleIdentifierFactory, componentSelectorConverter, dependencyLockingProvider, projectStateRegistry, documentationRegistry,
-        domainObjectCollectionCallbackActionDecorator, userCodeApplicationContext, TestUtil.domainObjectCollectionFactory(), TestUtil.objectFactory())
+        domainObjectCollectionCallbackActionDecorator, userCodeApplicationContext, TestUtil.domainObjectCollectionFactory(), Mock(NotationParser), TestUtil.objectFactory())
 
     def "adds and gets"() {
         1 * domainObjectContext.identityPath("compile") >> Path.path(":build:compile")

@@ -17,19 +17,18 @@
 package org.gradle.api.internal.file.archive.impl
 
 import org.gradle.api.JavaVersion
+import org.gradle.internal.file.FileException
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import org.junit.Rule
-import org.junit.rules.TemporaryFolder
 import spock.lang.Specification
 
 import java.util.zip.ZipOutputStream
 
-
 class FileZipInputTest extends Specification {
-    @Rule TemporaryFolder temporaryFolder = new TemporaryFolder()
-
-    def setup() {
-        temporaryFolder.create()
-    }
+    @Rule
+    TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
 
     def "selects the correct zip input type"() {
         def file = makeZip("foo.zip")
@@ -43,10 +42,40 @@ class FileZipInputTest extends Specification {
         } else {
             assert zipInput instanceof StreamZipInput
         }
+
+        cleanup:
+        zipInput?.close()
+    }
+
+    @Requires(TestPrecondition.JDK11_OR_LATER)
+    def "throws FileException when zip is badly formed"() {
+        def file = temporaryFolder.file("badly-formed").createFile()
+
+        when:
+        FileZipInput.create(file)
+
+        then:
+        thrown(FileException)
+    }
+
+    // This documents current behaviour, not desired behaviour
+    @Requires(TestPrecondition.JDK10_OR_EARLIER)
+    def "silently ignores zip that is badly formed"() {
+        def file = temporaryFolder.file("badly-formed").createFile()
+
+        when:
+        def zipInput = FileZipInput.create(file)
+        zipInput.forEach {throw new RuntimeException() }
+
+        then:
+        noExceptionThrown()
+
+        cleanup:
+        zipInput?.close()
     }
 
     private File makeZip(String filename) {
-        def file = temporaryFolder.newFile(filename)
+        def file = temporaryFolder.file(filename)
         new ZipOutputStream(new FileOutputStream(file)).close()
         return file
     }

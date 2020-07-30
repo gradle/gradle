@@ -41,6 +41,7 @@ import org.gradle.internal.component.external.model.ModuleComponentArtifactMetad
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
 import org.gradle.internal.component.external.model.RealisedConfigurationMetadata;
+import org.gradle.internal.component.external.model.VariantDerivationStrategy;
 import org.gradle.internal.component.external.model.VariantMetadataRules;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
@@ -240,8 +241,8 @@ public class RealisedMavenModuleResolveMetadata extends AbstractRealisedModuleCo
         this.derivedVariants = ImmutableList.copyOf(derivedVariants);
     }
 
-    private RealisedMavenModuleResolveMetadata(RealisedMavenModuleResolveMetadata metadata, ModuleSources sources) {
-        super(metadata, sources);
+    private RealisedMavenModuleResolveMetadata(RealisedMavenModuleResolveMetadata metadata, ModuleSources sources, VariantDerivationStrategy derivationStrategy) {
+        super(metadata, sources, derivationStrategy);
         this.objectInstantiator = metadata.objectInstantiator;
         packaging = metadata.packaging;
         relocated = metadata.relocated;
@@ -261,7 +262,15 @@ public class RealisedMavenModuleResolveMetadata extends AbstractRealisedModuleCo
 
     @Override
     public RealisedMavenModuleResolveMetadata withSources(ModuleSources sources) {
-        return new RealisedMavenModuleResolveMetadata(this, sources);
+        return new RealisedMavenModuleResolveMetadata(this, sources, getVariantDerivationStrategy());
+    }
+
+    @Override
+    public ModuleComponentResolveMetadata withDerivationStrategy(VariantDerivationStrategy derivationStrategy) {
+        if (getVariantDerivationStrategy() == derivationStrategy) {
+            return this;
+        }
+        return new RealisedMavenModuleResolveMetadata(this, getSources(), derivationStrategy);
     }
 
     @Override

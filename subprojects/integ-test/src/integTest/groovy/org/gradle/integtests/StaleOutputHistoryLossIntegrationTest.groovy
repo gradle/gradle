@@ -25,6 +25,7 @@ import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
 import org.gradle.internal.jvm.Jvm
+import org.gradle.util.GradleVersion
 import org.junit.Assume
 import spock.lang.Issue
 import spock.lang.Unroll
@@ -46,6 +47,10 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
         buildFile << "apply plugin: 'base'\n"
         // When adding support for a new JDK version, the previous release might not work with it yet.
         Assume.assumeTrue(releasedVersionDistributions.mostRecentRelease.worksWith(Jvm.current()))
+    }
+
+    GradleVersion getMostRecentReleaseVersion() {
+        releasedVersionDistributions.mostRecentRelease.version
     }
 
     @Issue("https://github.com/gradle/gradle/issues/821")
@@ -155,7 +160,6 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
         javaProject.redundantClassFileAlternate.assertIsFile()
 
         when:
-        buildFile.text = buildFile.text.replace('compileJava.destinationDir', 'compileJava.destinationDirectory')
         forceDelete(javaProject.redundantSourceFile)
         succeeds JAR_TASK_NAME
 

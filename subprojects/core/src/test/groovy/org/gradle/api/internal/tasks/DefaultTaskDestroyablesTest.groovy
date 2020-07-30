@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.tasks
 
-import org.gradle.api.internal.file.FileCollectionInternal
+
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.UsesNativeServices
@@ -70,7 +70,7 @@ class DefaultTaskDestroyablesTest extends Specification {
 
     def "can declare a file collection that a task destroys"() {
         def files = [testDir.file('a'), testDir.file('b')] as Set
-        def fileCollection = [getFiles: { files }] as FileCollectionInternal
+        def fileCollection = TestFiles.fileCollectionFactory().fixed(files)
 
         when:
         taskDestroys.register(fileCollection)

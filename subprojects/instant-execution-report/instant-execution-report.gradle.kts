@@ -16,7 +16,7 @@
 import java.util.Base64
 
 plugins {
-    gradlebuild.internal.`kotlin-js`
+    id("gradlebuild.internal.kotlin-js")
 }
 
 dependencies {

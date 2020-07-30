@@ -23,6 +23,9 @@ plugins {
 configurations {
     jmhImplementation {
         extendsFrom(configurations.implementation.get())
+        configurations.findByName("platformImplementation")?.let {
+            extendsFrom(it)
+        }
     }
     jmhRuntime {
         attributes {

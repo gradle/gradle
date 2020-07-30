@@ -43,8 +43,6 @@ import org.gradle.instantexecution.serialization.Codec
 import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.WriteContext
 import org.gradle.instantexecution.serialization.codecs.transform.FixedDependenciesResolver
-import org.gradle.instantexecution.serialization.codecs.transform.TransformationSpec
-import org.gradle.instantexecution.serialization.codecs.transform.unpackTransformation
 import org.gradle.instantexecution.serialization.readList
 import org.gradle.instantexecution.serialization.writeCollection
 import org.gradle.internal.Describables
@@ -80,10 +78,8 @@ class ArtifactCollectionCodec(private val fileCollectionFactory: FileCollectionF
                 is TransformedLocalArtifactSpec -> Callable {
                     element.transformation.createInvocation(TransformationSubject.initial(element.origin), FixedDependenciesResolver(DefaultArtifactTransformDependencies(fileCollectionFactory.empty())), null).invoke().get().files
                 }
-                is TransformedExternalVariantSpec -> Callable {
-                    element.files.flatMap {
-                        element.transformation.files(TransformationSubject.initial(it))
-                    }
+                is TransformedExternalArtifactSet -> Callable {
+                    element.calculateResult()
                 }
                 else -> throw IllegalArgumentException("Unexpected element $element in artifact collection")
             }
@@ -108,15 +104,6 @@ class TransformedProjectVariantSpec(
     val ownerId: ComponentIdentifier,
     val variantAttributes: ImmutableAttributes,
     val nodes: Collection<TransformationNode>
-)
-
-
-private
-class TransformedExternalVariantSpec(
-    val ownerId: ComponentIdentifier,
-    val variantAttributes: ImmutableAttributes,
-    val files: List<File>,
-    val transformation: TransformationSpec
 )
 
 
@@ -165,11 +152,7 @@ class CollectingArtifactVisitor : ArtifactVisitor {
         } else if (source is LocalFileDependencyBackedArtifactSet.TransformedLocalFileArtifactSet) {
             elements.add(TransformedLocalArtifactSpec(source.ownerId, source.file, source.transformation, source.targetVariantAttributes))
         } else if (source is TransformedExternalArtifactSet) {
-            val files = mutableListOf<File>()
-            source.visitArtifacts { artifact ->
-                files.add(artifact.file)
-            }
-            elements.add(TransformedExternalVariantSpec(source.ownerId, source.targetVariantAttributes, files, unpackTransformation(source.transformation, source.dependenciesResolver)))
+            elements.add(source)
         }
     }
 }
@@ -204,15 +187,12 @@ class FixedArtifactCollection(
                         }
                     }
                 }
-                is TransformedExternalVariantSpec -> {
-                    val displayName = Describables.of(element.ownerId, element.variantAttributes)
-                    for (file in element.files) {
+                is TransformedExternalArtifactSet -> {
+                    val displayName = Describables.of(element.ownerId, element.targetVariantAttributes)
+                    for (file in element.calculateResult()) {
                         // TODO - preserve artifact id, for error reporting
-                        val initialSubject = TransformationSubject.initial(file)
-                        for (output in element.transformation.files(initialSubject)) {
-                            val artifactId = ComponentFileArtifactIdentifier(element.ownerId, output.name)
-                            result.add(DefaultResolvedArtifactResult(artifactId, displayName, element.variantAttributes, Artifact::class.java, output))
-                        }
+                        val artifactId = ComponentFileArtifactIdentifier(element.ownerId, file.name)
+                        result.add(DefaultResolvedArtifactResult(artifactId, displayName, element.targetVariantAttributes, Artifact::class.java, file))
                     }
                 }
                 is TransformedLocalArtifactSpec -> {

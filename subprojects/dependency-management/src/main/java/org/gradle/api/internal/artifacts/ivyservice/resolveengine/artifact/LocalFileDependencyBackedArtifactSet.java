@@ -25,6 +25,7 @@ import org.gradle.api.internal.artifacts.transform.AbstractTransformedArtifactSe
 import org.gradle.api.internal.artifacts.transform.ExtraExecutionGraphDependenciesResolverFactory;
 import org.gradle.api.internal.artifacts.transform.Transformation;
 import org.gradle.api.internal.artifacts.transform.TransformationNodeRegistry;
+import org.gradle.api.internal.artifacts.transform.TransformedVariantFactory;
 import org.gradle.api.internal.artifacts.transform.VariantSelector;
 import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
@@ -110,8 +111,8 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
     }
 
     @Override
-    public ResolvedArtifactSet asTransformed(ResolvedArtifactSet artifacts, ImmutableAttributes targetAttributes, Transformation transformation, ExtraExecutionGraphDependenciesResolverFactory dependenciesResolver, TransformationNodeRegistry transformationNodeRegistry) {
-        return new TransformedLocalFileArtifactSet((SingletonFileResolvedVariant) artifacts, targetAttributes, transformation, dependenciesResolver, transformationNodeRegistry);
+    public ResolvedArtifactSet asTransformed(ResolvedVariant sourceVariant, ImmutableAttributes targetAttributes, Transformation transformation, ExtraExecutionGraphDependenciesResolverFactory dependenciesResolver, TransformedVariantFactory transformedVariantFactory) {
+        return new TransformedLocalFileArtifactSet((SingletonFileResolvedVariant) sourceVariant, targetAttributes, transformation, dependenciesResolver, TransformationNodeRegistry.EMPTY);
     }
 
     @Override
@@ -141,6 +142,11 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
             this.variantAttributes = variantAttributes;
             this.dependencyMetadata = dependencyMetadata;
             artifact = new PreResolvedResolvableArtifact(null, DefaultIvyArtifactName.forFile(file, null), this.artifactIdentifier, file, this.dependencyMetadata.getFiles());
+        }
+
+        @Override
+        public Identifier getIdentifier() {
+            return null;
         }
 
         @Override

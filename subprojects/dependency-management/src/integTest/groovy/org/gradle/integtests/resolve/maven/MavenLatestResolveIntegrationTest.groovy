@@ -20,7 +20,7 @@ import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import spock.lang.Unroll
 
 class MavenLatestResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
-    def setup(){
+    def setup() {
         buildFile << """
             repositories {
                 maven { url '${mavenRepo().uri}' }

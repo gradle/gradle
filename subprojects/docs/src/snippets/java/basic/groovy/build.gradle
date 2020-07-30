@@ -89,6 +89,12 @@ compileJava {
 }
 // end::java-compiler-options[]
 
+// tag::java-release-flag[]
+compileJava {
+    options.release = 7
+}
+// end::java-release-flag[]
+
 // tag::integ-test-task[]
 task integrationTest(type: Test) {
     description = 'Runs integration tests.'

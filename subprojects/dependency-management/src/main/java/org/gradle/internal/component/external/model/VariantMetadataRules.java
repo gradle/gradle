@@ -47,25 +47,17 @@ import java.util.List;
 
 public class VariantMetadataRules {
     private final ImmutableAttributesFactory attributesFactory;
+    private final ModuleVersionIdentifier moduleVersionId;
+    private final List<AdditionalVariant> additionalVariants = Lists.newArrayList();
+
     private DependencyMetadataRules dependencyMetadataRules;
     private VariantAttributesRules variantAttributesRules;
     private CapabilitiesRules capabilitiesRules;
     private VariantFilesRules variantFilesRules;
-    private VariantDerivationStrategy variantDerivationStrategy = NoOpDerivationStrategy.getInstance();
-    private final ModuleVersionIdentifier moduleVersionId;
-    private final List<AdditionalVariant> additionalVariants = Lists.newArrayList();
 
     public VariantMetadataRules(ImmutableAttributesFactory attributesFactory, ModuleVersionIdentifier moduleVersionId) {
         this.attributesFactory = attributesFactory;
         this.moduleVersionId = moduleVersionId;
-    }
-
-    public VariantDerivationStrategy getVariantDerivationStrategy() {
-        return variantDerivationStrategy;
-    }
-
-    public void setVariantDerivationStrategy(VariantDerivationStrategy variantDerivationStrategy) {
-        this.variantDerivationStrategy = variantDerivationStrategy;
     }
 
     public ImmutableAttributes applyVariantAttributeRules(VariantResolveMetadata variant, AttributeContainerInternal source) {
@@ -192,11 +184,6 @@ public class VariantMetadataRules {
 
         private ImmutableRules() {
             super(null, null);
-        }
-
-        @Override
-        public void setVariantDerivationStrategy(VariantDerivationStrategy variantDerivationStrategy) {
-            throw new UnsupportedOperationException("You are probably trying to set the derivation strategy to something that wasn't supposed to be mutable");
         }
 
         @Override

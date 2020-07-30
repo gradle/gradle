@@ -16,9 +16,9 @@
 
 package org.gradle.internal.scan.config
 
-import org.gradle.StartParameter
 import org.gradle.api.internal.BuildType
 import org.gradle.api.internal.GradleInternal
+import org.gradle.api.internal.StartParameterInternal
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager
 import org.gradle.internal.enterprise.impl.legacy.LegacyGradleEnterprisePluginCheckInService
 import org.gradle.internal.enterprise.impl.legacy.UnsupportedBuildScanPluginVersionException
@@ -96,7 +96,7 @@ class LegacyGradleEnterprisePluginCheckInServiceTest extends Specification {
 
     LegacyGradleEnterprisePluginCheckInService manager() {
         def gradle = Mock(GradleInternal) {
-            getStartParameter() >> Mock(StartParameter) {
+            getStartParameter() >> Mock(StartParameterInternal) {
                 isBuildScan() >> scanEnabled
                 isNoBuildScan() >> scanDisabled
                 getSystemPropertiesArgs() >> { [:] }

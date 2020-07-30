@@ -33,9 +33,9 @@ public class SetupLoggingActionExecuter implements BuildExecuter {
     private final BuildActionExecuter<BuildActionParameters> delegate;
     private final LoggingManagerInternal loggingManager;
 
-    public SetupLoggingActionExecuter(BuildActionExecuter<BuildActionParameters> delegate, LoggingManagerInternal loggingManager) {
-        this.delegate = delegate;
+    public SetupLoggingActionExecuter(LoggingManagerInternal loggingManager, BuildActionExecuter<BuildActionParameters> delegate) {
         this.loggingManager = loggingManager;
+        this.delegate = delegate;
     }
 
     @Override

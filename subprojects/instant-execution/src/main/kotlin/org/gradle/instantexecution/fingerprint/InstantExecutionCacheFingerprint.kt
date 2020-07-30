@@ -26,6 +26,11 @@ import java.io.File
 internal
 sealed class InstantExecutionCacheFingerprint {
 
+    data class GradleEnvironment(
+        val gradleUserHomeDir: File,
+        val jvm: String
+    ) : InstantExecutionCacheFingerprint()
+
     data class InitScripts(
         val fingerprints: List<InputFile>
     ) : InstantExecutionCacheFingerprint()
@@ -48,6 +53,28 @@ sealed class InstantExecutionCacheFingerprint {
     data class UndeclaredSystemProperty(
         val key: String
     ) : InstantExecutionCacheFingerprint()
+
+    abstract class ChangingDependencyResolutionValue(
+        val expireAt: Long
+    ) : InstantExecutionCacheFingerprint() {
+        abstract val reason: String
+    }
+
+    class DynamicDependencyVersion(
+        val displayName: String,
+        expireAt: Long
+    ) : ChangingDependencyResolutionValue(expireAt) {
+        override val reason: String
+            get() = "cached version information for $displayName has expired"
+    }
+
+    class ChangingModule(
+        val displayName: String,
+        expireAt: Long
+    ) : ChangingDependencyResolutionValue(expireAt) {
+        override val reason: String
+            get() = "cached artifact information for $displayName has expired"
+    }
 }
 
 

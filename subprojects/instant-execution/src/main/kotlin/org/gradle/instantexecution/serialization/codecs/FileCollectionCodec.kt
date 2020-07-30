@@ -16,7 +16,6 @@
 
 package org.gradle.instantexecution.serialization.codecs
 
-import org.gradle.api.artifacts.component.ComponentArtifactIdentifier
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.FileTree
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.LocalFileDependencyBackedArtifactSet
@@ -40,8 +39,6 @@ import org.gradle.instantexecution.serialization.Codec
 import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.WriteContext
 import org.gradle.instantexecution.serialization.codecs.transform.FixedDependenciesResolver
-import org.gradle.instantexecution.serialization.codecs.transform.TransformationSpec
-import org.gradle.instantexecution.serialization.codecs.transform.unpackTransformation
 import org.gradle.instantexecution.serialization.decodePreservingIdentity
 import org.gradle.instantexecution.serialization.encodePreservingIdentityOf
 import org.gradle.instantexecution.serialization.logPropertyProblem
@@ -90,9 +87,8 @@ class FileCollectionCodec(
                         is SubtractingFileCollectionSpec -> element.left.minus(element.right)
                         is FilteredFileCollectionSpec -> element.collection.filter(element.filter)
                         is FileTree -> element
-                        is TransformedExternalFileSpec -> Callable {
-                            val initialSubject = TransformationSubject.initial(element.artifactIdentifier, element.origin)
-                            element.transformation.files(initialSubject)
+                        is TransformedExternalArtifactSet -> Callable {
+                            element.calculateResult()
                         }
                         is TransformedLocalFileSpec -> Callable {
                             element.transformation.createInvocation(TransformationSubject.initial(element.origin), noDependencies, null).invoke().get().files
@@ -126,29 +122,27 @@ TransformedLocalFileSpec(val origin: File, val transformation: Transformation)
 
 
 private
-class
-TransformedExternalFileSpec(val artifactIdentifier: ComponentArtifactIdentifier, val origin: File, val transformation: TransformationSpec)
-
-
-private
 class CollectingVisitor : FileCollectionStructureVisitor {
     val elements: MutableSet<Any> = mutableSetOf()
-    override fun startVisit(source: FileCollectionInternal.Source, fileCollection: FileCollectionInternal): Boolean {
-        if (fileCollection is SubtractingFileCollection) {
-            // TODO - when left and right are both static then we should serialize the current contents of the collection
-            elements.add(SubtractingFileCollectionSpec(fileCollection.left, fileCollection.right))
-            return false
-        } else if (fileCollection is FilteredFileCollection) {
-            // TODO - when the collection is static then we should serialize the current contents of the collection
-            elements.add(FilteredFileCollectionSpec(fileCollection.collection, fileCollection.filterSpec))
-            return false
-        } else {
-            return true
+    override fun startVisit(source: FileCollectionInternal.Source, fileCollection: FileCollectionInternal): Boolean =
+        when (fileCollection) {
+            is SubtractingFileCollection -> {
+                // TODO - when left and right are both static then we should serialize the current contents of the collection
+                elements.add(SubtractingFileCollectionSpec(fileCollection.left, fileCollection.right))
+                false
+            }
+            is FilteredFileCollection -> {
+                // TODO - when the collection is static then we should serialize the current contents of the collection
+                elements.add(FilteredFileCollectionSpec(fileCollection.collection, fileCollection.filterSpec))
+                false
+            }
+            else -> {
+                true
+            }
         }
-    }
 
-    override fun prepareForVisit(source: FileCollectionInternal.Source): FileCollectionStructureVisitor.VisitType {
-        return if (source is TransformedProjectArtifactSet || source is LocalFileDependencyBackedArtifactSet.TransformedLocalFileArtifactSet || source is TransformedExternalArtifactSet) {
+    override fun prepareForVisit(source: FileCollectionInternal.Source): FileCollectionStructureVisitor.VisitType =
+        if (source is TransformedProjectArtifactSet || source is LocalFileDependencyBackedArtifactSet.TransformedLocalFileArtifactSet || source is TransformedExternalArtifactSet) {
             // Represents artifact transform outputs. Visit the source rather than the files
             // Transforms may have inputs or parameters that are task outputs or other changing files
             // When this is not the case, we should run the transform now and write the result.
@@ -158,19 +152,21 @@ class CollectingVisitor : FileCollectionStructureVisitor {
         } else {
             FileCollectionStructureVisitor.VisitType.Visit
         }
-    }
 
     override fun visitCollection(source: FileCollectionInternal.Source, contents: Iterable<File>) {
-        if (source is TransformedProjectArtifactSet) {
-            elements.addAll(source.scheduledNodes)
-        } else if (source is LocalFileDependencyBackedArtifactSet.TransformedLocalFileArtifactSet) {
-            elements.add(TransformedLocalFileSpec(source.file, source.transformation))
-        } else if (source is TransformedExternalArtifactSet) {
-            source.visitArtifacts { artifact ->
-                elements.add(TransformedExternalFileSpec(artifact.id, artifact.file, unpackTransformation(source.transformation, source.dependenciesResolver)))
+        when (source) {
+            is TransformedProjectArtifactSet -> {
+                elements.addAll(source.scheduledNodes)
             }
-        } else {
-            elements.addAll(contents)
+            is LocalFileDependencyBackedArtifactSet.TransformedLocalFileArtifactSet -> {
+                elements.add(TransformedLocalFileSpec(source.file, source.transformation))
+            }
+            is TransformedExternalArtifactSet -> {
+                elements.add(source)
+            }
+            else -> {
+                elements.addAll(contents)
+            }
         }
     }
 

@@ -24,10 +24,10 @@ pluginManagement {
 }
 
 plugins {
-    id("com.gradle.enterprise").version("3.3.4")
+    id("com.gradle.enterprise").version("3.4")
+    id("com.gradle.enterprise.gradle-enterprise-conventions-plugin").version("0.6")
 }
 
-apply(from = "gradle/build-cache-configuration.settings.gradle.kts")
 apply(from = "gradle/shared-with-buildSrc/mirrors.settings.gradle.kts")
 
 // If you include a new subproject here, you will need to execute the
@@ -189,6 +189,7 @@ for (project in rootProject.children) {
 }
 
 FeaturePreviews.Feature.values().forEach { feature ->
-    if (feature.isActive) { enableFeaturePreview(feature.name) }
+    if (feature.isActive) {
+        enableFeaturePreview(feature.name)
+    }
 }
-

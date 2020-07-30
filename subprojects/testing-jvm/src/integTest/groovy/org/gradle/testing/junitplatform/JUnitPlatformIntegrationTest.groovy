@@ -413,38 +413,38 @@ public class StaticInnerTest {
         }
     }
 
-    @Issue("https://github.com/junit-team/junit5/issues/2028")
-    def 'properly fails when engine fails during discovery'() {
+    @Unroll
+    @Issue("https://github.com/junit-team/junit5/issues/2028 and https://github.com/gradle/gradle/issues/12073")
+    def 'properly fails when engine fails during discovery #scenario'() {
         given:
         createSimpleJupiterTest()
         file('src/test/java/EngineFailingDiscovery.java') << '''
-import org.junit.platform.engine.*;
-public class EngineFailingDiscovery implements TestEngine {
-    @Override
-    public String getId() {
-        return "EngineFailingDiscovery";
-    }
+            import org.junit.platform.engine.*;
+            public class EngineFailingDiscovery implements TestEngine {
+                @Override
+                public String getId() {
+                    return "EngineFailingDiscovery";
+                }
 
-    @Override
-    public TestDescriptor discover(EngineDiscoveryRequest discoveryRequest, UniqueId uniqueId) {
-        throw new RuntimeException("oops");
-    }
+                @Override
+                public TestDescriptor discover(EngineDiscoveryRequest discoveryRequest, UniqueId uniqueId) {
+                    throw new RuntimeException("oops");
+                }
 
-    @Override
-    public void execute(ExecutionRequest request) {
-    }
-}
-
-'''
-        file('src/test/resources/META-INF/services/org.junit.platform.engine.TestEngine') << 'EngineFailingDiscovery'
-        buildFile << '''
-            test {
-                systemProperty('junit.jupiter.extensions.autodetection.enabled', 'true')
+                @Override
+                public void execute(ExecutionRequest request) {
+                }
             }
         '''
+        file('src/test/resources/META-INF/services/org.junit.platform.engine.TestEngine') << 'EngineFailingDiscovery'
 
         expect:
-        fails('test')
+        fails('test', *extraArgs)
         failureCauseContains('There were failing tests.')
+
+        where:
+        scenario       | extraArgs
+        "w/o filters"  | []
+        "with filters" | ['--tests', 'JUnitJupiterTest']
     }
 }

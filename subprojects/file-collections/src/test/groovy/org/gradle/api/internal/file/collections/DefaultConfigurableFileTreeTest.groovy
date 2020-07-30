@@ -18,6 +18,7 @@ package org.gradle.api.internal.file.collections
 
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.file.FileTree
+import org.gradle.api.internal.file.FileCollectionStructureVisitor
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.tasks.DefaultTaskDependency
@@ -40,7 +41,8 @@ import static org.gradle.api.tasks.AntBuilderAwareUtil.assertSetContainsForAllTy
 class DefaultConfigurableFileTreeTest extends AbstractTestForPatternSet {
     TaskDependencyFactory taskDependencyFactory = DefaultTaskDependencyFactory.withNoAssociatedProject()
     DefaultConfigurableFileTree fileSet
-    @Rule public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
+    @Rule
+    public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     File testDir = tmpDir.testDirectory
     FileResolver fileResolverStub = resolver(testDir)
 
@@ -67,17 +69,16 @@ class DefaultConfigurableFileTreeTest extends AbstractTestForPatternSet {
         thrown(InvalidUserDataException)
     }
 
-    def testResolveAddsADirectoryFileTree() {
-        def resolveContext = Mock(FileCollectionResolveContext)
+    def testCanVisitStructure() {
+        def visitor = Mock(FileCollectionStructureVisitor)
 
         when:
-        fileSet.visitContents(resolveContext)
+        fileSet.visitStructure(visitor)
+
         then:
-        1 * resolveContext.add({ it != null }) >> { args ->
-            def fileTree = args[0]
-            assert fileTree instanceof DirectoryFileTree
-            assert fileTree.dir == testDir
-        }
+        1 * visitor.startVisit(_, fileSet) >> true
+        1 * visitor.startVisit(_, { it instanceof FileTreeAdapter }) >> true
+        1 * visitor.visitFileTree(testDir, _, _)
         0 * _
     }
 
@@ -88,14 +89,14 @@ class DefaultConfigurableFileTreeTest extends AbstractTestForPatternSet {
         when:
         fileSet.visitDependencies(resolveContext)
         then:
-        1 * resolveContext.add({ it instanceof TaskDependency})
+        1 * resolveContext.add({ it instanceof TaskDependency })
         0 * _
     }
 
     def testCanScanForFiles() {
         File included1 = new File(testDir, 'subDir/included1')
         File included2 = new File(testDir, 'subDir2/included2')
-        [included1, included2].each {File file ->
+        [included1, included2].each { File file ->
             file.parentFile.mkdirs()
             file.text = 'some text'
         }
@@ -107,7 +108,7 @@ class DefaultConfigurableFileTreeTest extends AbstractTestForPatternSet {
     def testCanVisitFiles() {
         File included1 = new File(testDir, 'subDir/included1')
         File included2 = new File(testDir, 'subDir2/included2')
-        [included1, included2].each {File file ->
+        [included1, included2].each { File file ->
             file.parentFile.mkdirs()
             file.text = 'some text'
         }
@@ -119,7 +120,7 @@ class DefaultConfigurableFileTreeTest extends AbstractTestForPatternSet {
     def testCanStopVisitingFiles() {
         File included1 = new File(testDir, 'subDir/included1')
         File included2 = new File(testDir, 'subDir/otherDir/included2')
-        [included1, included2].each {File file ->
+        [included1, included2].each { File file ->
             file.parentFile.mkdirs()
             file.text = 'some text'
         }
@@ -131,7 +132,7 @@ class DefaultConfigurableFileTreeTest extends AbstractTestForPatternSet {
     def testContainsFiles() {
         File included1 = new File(testDir, 'subDir/included1')
         File included2 = new File(testDir, 'subDir2/included2')
-        [included1, included2].each {File file ->
+        [included1, included2].each { File file ->
             file.parentFile.mkdirs()
             file.text = 'some text'
         }
@@ -150,7 +151,7 @@ class DefaultConfigurableFileTreeTest extends AbstractTestForPatternSet {
     def testCanAddToAntTask() {
         File included1 = new File(testDir, 'subDir/included1')
         File included2 = new File(testDir, 'subDir2/included2')
-        [included1, included2].each {File file ->
+        [included1, included2].each { File file ->
             file.parentFile.mkdirs()
             file.text = 'some text'
         }
@@ -173,7 +174,7 @@ class DefaultConfigurableFileTreeTest extends AbstractTestForPatternSet {
         File included2 = new File(testDir, 'subDir2/included2')
         File excluded1 = new File(testDir, 'subDir/notincluded')
         File ignored1 = new File(testDir, 'ignored')
-        [included1, included2, excluded1, ignored1].each {File file ->
+        [included1, included2, excluded1, ignored1].each { File file ->
             file.parentFile.mkdirs()
             file.text = 'some text'
         }
@@ -195,7 +196,7 @@ class DefaultConfigurableFileTreeTest extends AbstractTestForPatternSet {
         File included2 = new File(testDir, 'subDir2/included2')
         File excluded1 = new File(testDir, 'subDir/notincluded')
         File ignored1 = new File(testDir, 'ignored')
-        [included1, included2, excluded1, ignored1].each {File file ->
+        [included1, included2, excluded1, ignored1].each { File file ->
             file.parentFile.mkdirs()
             file.text = 'some text'
         }
@@ -219,7 +220,7 @@ class DefaultConfigurableFileTreeTest extends AbstractTestForPatternSet {
         File included2 = new File(testDir, 'subDir2/included2')
         File excluded1 = new File(testDir, 'subDir/notincluded')
         File ignored1 = new File(testDir, 'ignored')
-        [included1, included2, excluded1, ignored1].each {File file ->
+        [included1, included2, excluded1, ignored1].each { File file ->
             file.parentFile.mkdirs()
             file.text = 'some text'
         }
@@ -242,7 +243,7 @@ class DefaultConfigurableFileTreeTest extends AbstractTestForPatternSet {
         File excluded1 = new File(testDir, 'subDir/notincluded')
         File excluded2 = new File(testDir, 'subDir/excluded')
         File ignored1 = new File(testDir, 'ignored')
-        [included1, included2, excluded1, excluded2, ignored1].each {File file ->
+        [included1, included2, excluded1, excluded2, ignored1].each { File file ->
             file.parentFile.mkdirs()
             file.text = 'some text'
         }

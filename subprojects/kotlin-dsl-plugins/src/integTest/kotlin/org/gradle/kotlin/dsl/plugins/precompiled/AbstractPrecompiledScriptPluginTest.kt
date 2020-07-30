@@ -16,18 +16,12 @@
 
 package org.gradle.kotlin.dsl.plugins.precompiled
 
-import org.gradle.integtests.fixtures.ToBeFixedForFileSystemWatching
 import org.gradle.kotlin.dsl.fixtures.AbstractPluginTest
 import org.gradle.kotlin.dsl.fixtures.classLoaderFor
-import org.gradle.util.TestPrecondition
 
 import org.junit.Before
 
 
-@ToBeFixedForFileSystemWatching(
-    because = "https://github.com/gradle/gradle/issues/12184",
-    failsOnlyIf = TestPrecondition.WINDOWS
-)
 open class AbstractPrecompiledScriptPluginTest : AbstractPluginTest() {
 
     @Before

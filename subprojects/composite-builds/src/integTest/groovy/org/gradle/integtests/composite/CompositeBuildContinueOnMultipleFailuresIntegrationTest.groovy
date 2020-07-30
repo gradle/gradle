@@ -150,4 +150,4 @@ class CompositeBuildContinueOnMultipleFailuresIntegrationTest extends AbstractCo
         """
     }
 
-    }
+}

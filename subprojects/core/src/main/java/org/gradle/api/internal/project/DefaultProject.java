@@ -793,7 +793,7 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
     @Override
     public String getDisplayName() {
         StringBuilder builder = new StringBuilder();
-        if (parent == null && gradle.getParent() == null) {
+        if (parent == null && gradle.isRootBuild()) {
             builder.append("root project '");
             builder.append(name);
             builder.append('\'');

@@ -1,6 +1,3 @@
-import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
-import org.gradle.gradlebuild.test.integrationtests.integrationTestUsesSampleDir
-
 /*
  * Copyright 2010 the original author or authors.
  *
@@ -16,8 +13,11 @@ import org.gradle.gradlebuild.test.integrationtests.integrationTestUsesSampleDir
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import gradlebuild.cleanup.WhenNotEmpty
+import gradlebuild.integrationtests.integrationTestUsesSampleDir
+
 plugins {
-    gradlebuild.distribution.`api-java`
+    id("gradlebuild.distribution.api-java")
 }
 
 dependencies {
@@ -40,12 +40,12 @@ dependencies {
     implementation(project(":ear"))
     implementation(project(":toolingApi"))
 
-    implementation(library("groovy"))
-    implementation(library("slf4j_api"))
-    implementation(library("guava"))
-    implementation(library("commons_lang"))
-    implementation(library("commons_io"))
-    implementation(library("inject"))
+    implementation(libs.groovy)
+    implementation(libs.slf4jApi)
+    implementation(libs.guava)
+    implementation(libs.commonsLang)
+    implementation(libs.commonsIo)
+    implementation(libs.inject)
 
     testFixturesApi(project(":baseServices")) {
         because("test fixtures export the Action class")
@@ -56,12 +56,12 @@ dependencies {
     testFixturesImplementation(project(":internalIntegTesting"))
 
     testImplementation(project(":dependencyManagement"))
-    testImplementation(testLibrary("xmlunit"))
-    testImplementation("nl.jqno.equalsverifier:equalsverifier:2.1.6")
+    testImplementation(libs.xmlunit)
+    testImplementation(libs.equalsverifier)
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":dependencyManagement")))
 
-    integTestImplementation(testLibrary("jetty"))
+    integTestImplementation(libs.jetty)
 
     testRuntimeOnly(project(":distributionsCore")) {
         because("ProjectBuilder tests load services from a Gradle distribution.")

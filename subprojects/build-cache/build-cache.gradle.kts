@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 plugins {
-    gradlebuild.distribution.`api-java`
+    id("gradlebuild.distribution.api-java")
+    id("gradlebuild.jmh")
 }
 
 dependencies {
@@ -29,26 +30,17 @@ dependencies {
     implementation(project(":resources"))
     implementation(project(":logging"))
 
-    implementation(library("slf4j_api"))
-    implementation(library("guava"))
-    implementation(library("commons_io"))
-    implementation(library("inject"))
+    implementation(libs.slf4jApi)
+    implementation(libs.guava)
+    implementation(libs.commonsIo)
+    implementation(libs.inject)
 
-    jmhImplementation(library("ant")) {
-        version {
-            prefer(libraryVersion("ant"))
-        }
-    }
-
-    jmhImplementation(library("commons_compress")) {
-        version {
-            prefer(libraryVersion("commons_compress"))
-        }
-    }
-
-    jmhImplementation("io.airlift:aircompressor:0.8")
-    jmhImplementation("org.iq80.snappy:snappy:0.4")
-    jmhImplementation("org.kamranzafar:jtar:2.3")
+    jmhImplementation(platform(project(":distributionsDependencies")))
+    jmhImplementation(libs.ant)
+    jmhImplementation(libs.commonsCompress)
+    jmhImplementation(libs.aircompressor)
+    jmhImplementation(libs.snappy)
+    jmhImplementation(libs.jtar)
 
     testImplementation(project(":modelCore"))
     testImplementation(project(":fileCollections"))

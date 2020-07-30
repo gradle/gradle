@@ -477,11 +477,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     @Override
-    public Set<File> getFiles() {
-        return intrinsicFiles.getFiles();
-    }
-
-    @Override
     protected void visitContents(FileCollectionStructureVisitor visitor) {
         intrinsicFiles.visitContents(visitor);
     }
@@ -1229,18 +1224,11 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
 
         @Override
-        public Set<File> getFiles() {
-            ResolvedFilesCollectingVisitor visitor = new ResolvedFilesCollectingVisitor();
-            visitContents(visitor);
-            return visitor.getFiles();
-        }
-
-        @Override
         protected void visitContents(FileCollectionStructureVisitor visitor) {
-            visitContents(new ResolvedFileCollectionVisitor(visitor));
+            visitArtifacts(new ResolvedFileCollectionVisitor(visitor));
         }
 
-        private void visitContents(ResolvedFilesCollectingVisitor visitor) {
+        private void visitArtifacts(ResolvedFilesCollectingVisitor visitor) {
             getSelectedArtifacts().visitArtifacts(visitor, lenient);
 
             if (!lenient) {

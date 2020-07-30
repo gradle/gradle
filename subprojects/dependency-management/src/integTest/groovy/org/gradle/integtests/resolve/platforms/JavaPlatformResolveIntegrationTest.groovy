@@ -536,9 +536,13 @@ class JavaPlatformResolveIntegrationTest extends AbstractHttpDependencyResolutio
                 attribute(Category.CATEGORY_ATTRIBUTE.name, Category.REGULAR_PLATFORM)
             }.publish()
         def moduleA = mavenHttpRepo.module("org.test", "b", "1.9").withModuleMetadata().withVariant("runtime") {
-            dependsOn("org.test", "platform", "1.9", null, [(Category.CATEGORY_ATTRIBUTE.name): Category.REGULAR_PLATFORM])
+            dependsOn("org.test", "platform", "1.9") {
+                attribute(Category.CATEGORY_ATTRIBUTE.name, Category.REGULAR_PLATFORM)
+            }
         }.withVariant("api") {
-            dependsOn("org.test", "platform", "1.9", null, [(Category.CATEGORY_ATTRIBUTE.name): Category.REGULAR_PLATFORM])
+            dependsOn("org.test", "platform", "1.9") {
+                attribute(Category.CATEGORY_ATTRIBUTE.name, Category.REGULAR_PLATFORM)
+            }
         }.publish()
 
         when:
@@ -661,7 +665,9 @@ class JavaPlatformResolveIntegrationTest extends AbstractHttpDependencyResolutio
             }.publish()
         def depC = mavenHttpRepo.module('org.test', 'depC', '1.0').withModuleMetadata()
             .withVariant('runtime') {
-                dependsOn('org.test', 'platform', '1.0', null, [(Category.CATEGORY_ATTRIBUTE.name): Category.REGULAR_PLATFORM])
+                dependsOn('org.test', 'platform', '1.0') {
+                    attribute(Category.CATEGORY_ATTRIBUTE.name, Category.REGULAR_PLATFORM)
+                }
             }.publish()
         def depB = mavenHttpRepo.module('org.test', 'depB', '1.0').dependsOn([exclusions: [[module: 'excluded']]], depC).publish()
         def depF = mavenHttpRepo.module('org.test', 'depF', '1.0').dependsOn(depC).publish()
@@ -736,17 +742,23 @@ class JavaPlatformResolveIntegrationTest extends AbstractHttpDependencyResolutio
             }.publish()
         def depA = mavenHttpRepo.module('org.test', 'depA', '1.0').withModuleMetadata()
             .withVariant('runtime') {
-                dependsOn('org.test', 'platform', '1.0', null, [(Category.CATEGORY_ATTRIBUTE.name): Category.REGULAR_PLATFORM])
+                dependsOn('org.test', 'platform', '1.0') {
+                    attribute(Category.CATEGORY_ATTRIBUTE.name, Category.REGULAR_PLATFORM)
+                }
                 dependsOn('org.test', 'depB', '1.0')
             }.publish()
         def depA11 = mavenHttpRepo.module('org.test', 'depA', '1.1').withModuleMetadata()
             .withVariant('runtime') {
-                dependsOn('org.test', 'platform', '1.0', null, [(Category.CATEGORY_ATTRIBUTE.name): Category.REGULAR_PLATFORM])
+                dependsOn('org.test', 'platform', '1.0') {
+                    attribute(Category.CATEGORY_ATTRIBUTE.name, Category.REGULAR_PLATFORM)
+                }
                 dependsOn('org.test', 'depB', '1.0')
             }.publish()
         def depB = mavenHttpRepo.module('org.test', 'depB', '1.0').withModuleMetadata()
             .withVariant('runtime') {
-                dependsOn('org.test', 'platform', '1.0', null, [(Category.CATEGORY_ATTRIBUTE.name): Category.REGULAR_PLATFORM])
+                dependsOn('org.test', 'platform', '1.0') {
+                    attribute(Category.CATEGORY_ATTRIBUTE.name, Category.REGULAR_PLATFORM)
+                }
             }.publish()
 
         def otherPlatform10 = mavenHttpRepo.module('org.test', 'otherPlatform', '1.0').withModuleMetadata().withoutDefaultVariants()
@@ -781,7 +793,9 @@ class JavaPlatformResolveIntegrationTest extends AbstractHttpDependencyResolutio
             }.publish()
         def depE = mavenHttpRepo.module('org.test', 'depE', '1.0').withModuleMetadata()
             .withVariant('runtime') {
-                dependsOn('org.test', 'otherPlatform', '1.1', null, [(Category.CATEGORY_ATTRIBUTE.name): Category.REGULAR_PLATFORM])
+                dependsOn('org.test', 'otherPlatform', '1.1') {
+                    attribute(Category.CATEGORY_ATTRIBUTE.name, Category.REGULAR_PLATFORM)
+                }
             }.publish()
         def depD = mavenHttpRepo.module('org.test', 'depD', '1.0').dependsOn(depE).publish()
         def depC = mavenHttpRepo.module('org.test', 'depC', '1.0').dependsOn(depD).publish()
@@ -838,6 +852,99 @@ class JavaPlatformResolveIntegrationTest extends AbstractHttpDependencyResolutio
                             }
                         }
                     }
+                }
+            }
+        }
+    }
+
+    def 'platform upgrade does not leave orphaned edges'() {
+        given:
+        def platform = mavenHttpRepo.module('org.test', 'platform', '1.0').withModuleMetadata().withoutDefaultVariants()
+            .withVariant('apiElements') {
+                useDefaultArtifacts = false
+                attribute(Usage.USAGE_ATTRIBUTE.name, Usage.JAVA_API)
+                attribute(Category.CATEGORY_ATTRIBUTE.name, Category.REGULAR_PLATFORM)
+                constraint('org.test', 'depA', '1.0')
+                constraint('org.test', 'depB', '1.0')
+            }
+            .withVariant('runtimeElements') {
+                useDefaultArtifacts = false
+                attribute(Usage.USAGE_ATTRIBUTE.name, Usage.JAVA_RUNTIME)
+                attribute(Category.CATEGORY_ATTRIBUTE.name, Category.REGULAR_PLATFORM)
+                constraint('org.test', 'depA', '1.0')
+                constraint('org.test', 'depB', '1.0')
+            }.publish()
+        def platform11 = mavenHttpRepo.module('org.test', 'platform', '1.1').withModuleMetadata().withoutDefaultVariants()
+            .withVariant('apiElements') {
+                useDefaultArtifacts = false
+                attribute(Usage.USAGE_ATTRIBUTE.name, Usage.JAVA_API)
+                attribute(Category.CATEGORY_ATTRIBUTE.name, Category.REGULAR_PLATFORM)
+                constraint('org.test', 'depA', '1.1')
+                constraint('org.test', 'depB', '1.1')
+            }
+            .withVariant('runtimeElements') {
+                useDefaultArtifacts = false
+                attribute(Usage.USAGE_ATTRIBUTE.name, Usage.JAVA_RUNTIME)
+                attribute(Category.CATEGORY_ATTRIBUTE.name, Category.REGULAR_PLATFORM)
+                constraint('org.test', 'depA', '1.1')
+                constraint('org.test', 'depB', '1.1')
+            }.publish()
+        def depA = mavenHttpRepo.module('org.test', 'depA', '1.0').withModuleMetadata()
+            .withVariant('runtime') {
+                dependsOn('org.test', 'platform', '1.0') {
+                    attribute(Category.CATEGORY_ATTRIBUTE.name, Category.REGULAR_PLATFORM)
+                }
+            }.publish()
+        def depA11 = mavenHttpRepo.module('org.test', 'depA', '1.1').withModuleMetadata()
+            .withVariant('runtime') {
+                dependsOn('org.test', 'platform', '1.1') {
+                    attribute(Category.CATEGORY_ATTRIBUTE.name, Category.REGULAR_PLATFORM)
+                }
+            }.publish()
+
+        def depB11 = mavenHttpRepo.module('org.test', 'depB', '1.1').withModuleMetadata()
+            .withVariant('runtime') {
+                dependsOn('org.test', 'platform', '1.1') {
+                    attribute(Category.CATEGORY_ATTRIBUTE.name, Category.REGULAR_PLATFORM)
+                }
+                dependsOn('org.test', 'depA', '1.1')
+            }.publish()
+
+        depA.allowAll()
+        depA11.allowAll()
+        depB11.allowAll()
+        platform.allowAll()
+        platform11.allowAll()
+
+        buildFile << """
+            configurations {
+                conf.dependencies.clear()
+            }
+
+            dependencies {
+                conf 'org.test:depA:1.0'
+                conf 'org.test:depB:1.1'
+            }
+"""
+        checkConfiguration("conf")
+        resolve.expectDefaultConfiguration("runtime")
+
+        when:
+        succeeds 'checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", "org.test:test:1.9") {
+                edge('org.test:depA:1.0', 'org.test:depA:1.1') {
+                    module('org.test:platform:1.1') {
+                        noArtifacts()
+                        constraint('org.test:depA:1.1')
+                        constraint('org.test:depB:1.1')
+                    }
+                }
+                module('org.test:depB:1.1') {
+                    module('org.test:platform:1.1')
+                    module('org.test:depA:1.1')
                 }
             }
         }

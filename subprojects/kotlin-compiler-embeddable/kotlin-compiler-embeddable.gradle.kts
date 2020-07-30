@@ -1,30 +1,29 @@
-import build.CheckKotlinCompilerEmbeddableDependencies
-import build.PatchKotlinCompilerEmbeddable
-import build.futureKotlin
-import build.kotlinVersion
+import gradlebuild.basics.BuildEnvironment
+import gradlebuild.kotlindsl.tasks.CheckKotlinCompilerEmbeddableDependencies
+import gradlebuild.kotlindsl.tasks.PatchKotlinCompilerEmbeddable
 
 plugins {
-    gradlebuild.distribution.`implementation-kotlin`
+    id("gradlebuild.distribution.implementation-kotlin")
 }
 
 description = "Kotlin Compiler Embeddable - patched for Gradle"
 
-base.archivesBaseName = "kotlin-compiler-embeddable-$kotlinVersion-patched-for-gradle"
+moduleIdentity.baseName.set("kotlin-compiler-embeddable-${libs.kotlinVersion}-patched-for-gradle")
 
 dependencies {
-    api(futureKotlin("stdlib"))
-    api(futureKotlin("reflect"))
-    api(futureKotlin("script-runtime"))
-    api(futureKotlin("daemon-embeddable"))
+    api(libs.futureKotlin("stdlib"))
+    api(libs.futureKotlin("reflect"))
+    api(libs.futureKotlin("script-runtime"))
+    api(libs.futureKotlin("daemon-embeddable"))
 
-    runtimeOnly(library("trove4j"))
+    runtimeOnly(libs.trove4j)
 }
 
 val kotlinCompilerEmbeddable by configurations.creating
 
 dependencies {
     kotlinCompilerEmbeddable(project(":distributionsDependencies"))
-    kotlinCompilerEmbeddable(futureKotlin("compiler-embeddable"))
+    kotlinCompilerEmbeddable(libs.futureKotlin("compiler-embeddable"))
 }
 
 tasks {
@@ -43,7 +42,7 @@ tasks {
         originalFiles.from(kotlinCompilerEmbeddable)
         dependencies.from(configurations.detachedConfiguration(
             project.dependencies.project(":distributionsDependencies"),
-            project.dependencies.create(library("jansi"))
+            project.dependencies.create(libs.jansi)
         ))
         dependenciesIncludes.set(mapOf(
             "jansi-" to listOf("META-INF/native/**", "org/fusesource/jansi/internal/CLibrary*.class")
@@ -58,5 +57,11 @@ tasks {
     jar {
         dependsOn(patchKotlinCompilerEmbeddable)
         actions.clear()
+    }
+}
+
+fun TaskOutputs.doNotCacheIfSlowInternetConnection() {
+    doNotCacheIf("Slow internet connection") {
+        BuildEnvironment.isSlowInternetConnection
     }
 }

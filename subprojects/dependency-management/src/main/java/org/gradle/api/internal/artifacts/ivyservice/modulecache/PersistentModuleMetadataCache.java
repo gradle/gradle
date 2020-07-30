@@ -89,7 +89,7 @@ public class PersistentModuleMetadataCache extends AbstractModuleMetadataCache {
     }
 
     @Override
-    protected void store(final ModuleComponentAtRepositoryKey key, final ModuleMetadataCacheEntry entry, final CachedMetadata cachedMetadata) {
+    protected CachedMetadata store(final ModuleComponentAtRepositoryKey key, final ModuleMetadataCacheEntry entry, final CachedMetadata cachedMetadata) {
         if (entry.isMissing()) {
             getCache().put(key, entry);
         } else {
@@ -100,6 +100,7 @@ public class PersistentModuleMetadataCache extends AbstractModuleMetadataCache {
                 getCache().put(key, entry);
             });
         }
+        return cachedMetadata;
     }
 
     private static class RevisionKeySerializer extends AbstractSerializer<ModuleComponentAtRepositoryKey> {

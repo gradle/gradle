@@ -88,6 +88,12 @@ tasks.compileJava {
 }
 // end::java-compiler-options[]
 
+// tag::java-release-flag[]
+tasks.compileJava {
+    options.release.set(7)
+}
+// end::java-release-flag[]
+
 // tag::integ-test-task[]
 val integrationTest = task<Test>("integrationTest") {
     description = "Runs integration tests."

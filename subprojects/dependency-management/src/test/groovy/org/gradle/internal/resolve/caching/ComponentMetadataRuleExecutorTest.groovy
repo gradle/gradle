@@ -27,6 +27,7 @@ import org.gradle.api.artifacts.ComponentMetadataRule
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy
+import org.gradle.api.internal.artifacts.configurations.dynamicversion.Expiry
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleDescriptorHashModuleSource
 import org.gradle.cache.CacheBuilder
 import org.gradle.cache.CacheDecorator
@@ -38,6 +39,7 @@ import org.gradle.internal.action.DefaultConfigurableRule
 import org.gradle.internal.action.DefaultConfigurableRules
 import org.gradle.internal.action.InstantiatingAction
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata
+import org.gradle.internal.component.external.model.VariantDerivationStrategy
 import org.gradle.internal.component.model.MutableModuleSources
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.Hashing
@@ -53,6 +55,7 @@ import spock.lang.Subject
 import spock.lang.Unroll
 
 import javax.inject.Inject
+import java.time.Duration
 
 class ComponentMetadataRuleExecutorTest extends Specification {
     @Subject
@@ -129,6 +132,7 @@ class ComponentMetadataRuleExecutorTest extends Specification {
 
         then:
         1 * key.getSources() >> moduleSources
+        1 * key.getVariantDerivationStrategy() >> Stub(VariantDerivationStrategy)
         1 * valueSnapshotter.snapshot(_) >> inputsSnapshot
         1 * store.get(keyHash) >> cachedEntry
         if (expired) {
@@ -137,13 +141,17 @@ class ComponentMetadataRuleExecutorTest extends Specification {
             1 * record.getOutput() >> HashCode.fromInt(10000)
             1 * cachedResult.isChanging() >> changing
             1 * cachedResult.getModuleVersionId() >> id
-            1 * cachePolicy.mustRefreshModule({ it.id == id }, 0, changing) >> false
+            1 * cachePolicy.moduleExpiry({ it.id == id }, Duration.ZERO, changing) >> Stub(Expiry) {
+                isMustCheck() >> false
+            }
             // we make it return false, this should invalidate the cache
             1 * someService.isUpToDate('124', HashCode.fromInt(10000)) >> false
         } else {
             1 * cachedResult.isChanging() >> changing
             1 * cachedResult.getModuleVersionId() >> id
-            1 * cachePolicy.mustRefreshModule({ it.id == id }, 0, changing) >> mustRefresh
+            1 * cachePolicy.moduleExpiry({ it.id == id }, Duration.ZERO, changing) >> Stub(Expiry) {
+                isMustCheck() >> mustRefresh
+            }
         }
         if (reexecute) {
             def details = Mock(ComponentMetadataContext)

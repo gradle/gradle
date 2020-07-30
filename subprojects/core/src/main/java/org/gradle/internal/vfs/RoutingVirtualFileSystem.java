@@ -19,6 +19,8 @@ package org.gradle.internal.vfs;
 import com.google.common.collect.Iterables;
 import org.gradle.cache.GlobalCacheLocations;
 import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.SnapshottingFilter;
 
@@ -27,6 +29,7 @@ import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+@ServiceScope(Scopes.BuildSession)
 public class RoutingVirtualFileSystem implements VirtualFileSystem {
     private final GlobalCacheLocations globalCacheLocations;
     private final VirtualFileSystem gradleUserHomeVirtualFileSystem;

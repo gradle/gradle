@@ -1,5 +1,5 @@
 plugins {
-    gradlebuild.distribution.`api-java`
+    id("gradlebuild.distribution.api-java")
 }
 
 description = "JVM invocation and inspection abstractions"
@@ -13,6 +13,6 @@ dependencies {
     testImplementation(project(":fileCollections"))
     testImplementation(project(":snapshots"))
     testImplementation(project(":resources"))
-    testImplementation(library("slf4j_api"))
+    testImplementation(libs.slf4jApi)
     testImplementation(testFixtures(project(":core")))
 }

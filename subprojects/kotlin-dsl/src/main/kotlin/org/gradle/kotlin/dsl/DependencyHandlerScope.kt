@@ -17,7 +17,6 @@
 package org.gradle.kotlin.dsl
 
 import org.gradle.api.Action
-import org.gradle.api.Incubating
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.ExternalModuleDependency
@@ -57,7 +56,6 @@ private constructor(
      *
      * @since 6.3
      */
-    @Incubating
     fun constraints(configureAction: DependencyConstraintHandlerScope.() -> Unit) {
         super.constraints { t -> configureAction(DependencyConstraintHandlerScope.of(t)) }
     }

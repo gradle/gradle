@@ -17,7 +17,6 @@ package org.gradle.api.internal.artifacts.repositories
 
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.internal.artifacts.DependencyManagementTestUtil
-import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.repositories.metadata.IvyMutableModuleMetadataFactory
 import org.gradle.api.internal.artifacts.repositories.resolver.IvyResolver
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport
@@ -40,10 +39,9 @@ class DefaultFlatDirArtifactRepositoryTest extends Specification {
     final RepositoryTransportFactory transportFactory = Mock()
     final LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder = Mock()
     final DefaultArtifactIdentifierFileStore artifactIdentifierFileStore = Stub()
-    final ImmutableModuleIdentifierFactory moduleIdentifierFactory = Mock()
     final IvyMutableModuleMetadataFactory metadataFactory = DependencyManagementTestUtil.ivyMetadataFactory()
 
-    final DefaultFlatDirArtifactRepository repository = new DefaultFlatDirArtifactRepository(fileCollectionFactory, transportFactory, locallyAvailableResourceFinder, artifactIdentifierFileStore, moduleIdentifierFactory, metadataFactory, Mock(InstantiatorFactory), Mock(ObjectFactory), TestUtil.checksumService)
+    final DefaultFlatDirArtifactRepository repository = new DefaultFlatDirArtifactRepository(fileCollectionFactory, transportFactory, locallyAvailableResourceFinder, artifactIdentifierFileStore, metadataFactory, Mock(InstantiatorFactory), Mock(ObjectFactory), TestUtil.checksumService)
 
     def "creates a repository with multiple root directories"() {
         given:

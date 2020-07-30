@@ -69,7 +69,7 @@ class LocationListInstallationSupplierTest extends Specification {
     }
 
     private createSupplier(String propertyValue) {
-        def supplier = new LocationListInstallationSupplier(createProviderFactory(propertyValue))
+        new LocationListInstallationSupplier(createProviderFactory(propertyValue))
     }
 
     private ProviderFactory createProviderFactory(String propertyValue) {

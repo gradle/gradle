@@ -294,7 +294,6 @@ Required by:
 
     }
 
-    @ToBeFixedForInstantExecution
     def "needs explicit refresh of dependencies when dynamic version appears in a previously empty repository"() {
         given:
         def repo1 = mavenHttpRepo("repo1")

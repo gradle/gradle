@@ -140,7 +140,7 @@ class DependencyUnresolvedModuleIntegrationTest extends AbstractHttpDependencyRe
         protocol << ['http', 'https']
     }
 
-    def "blacklists repository from later resolution within the same build on HTTP timeout "() {
+    def "prevents using repository in later resolution within the same build on HTTP timeout"() {
         given:
         MavenHttpModule moduleB = publishMavenModule(mavenHttpRepo, 'b')
         MavenHttpModule moduleC = publishMavenModule(mavenHttpRepo, 'c')
@@ -183,7 +183,7 @@ class DependencyUnresolvedModuleIntegrationTest extends AbstractHttpDependencyRe
     }
 
     @ToBeFixedForInstantExecution
-    def "repository is blacklisted only for the current build execution"() {
+    def "repository is disabled only for the current build execution"() {
         given:
 
         buildFile << """

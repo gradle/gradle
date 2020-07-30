@@ -36,16 +36,14 @@ import org.gradle.plugin.use.resolve.internal.PluginResolver;
 
 import java.io.File;
 
-import static org.gradle.internal.classpath.CachedClasspathTransformer.StandardTransform.BuildLogic;
-
 public class InjectedClasspathPluginResolver implements PluginResolver {
 
     private final ClassPath injectedClasspath;
     private final PluginRegistry pluginRegistry;
 
-    public InjectedClasspathPluginResolver(ClassLoaderScope parentScope, CachedClasspathTransformer classpathTransformer, PluginInspector pluginInspector, ClassPath injectedClasspath) {
+    public InjectedClasspathPluginResolver(ClassLoaderScope parentScope, CachedClasspathTransformer classpathTransformer, PluginInspector pluginInspector, ClassPath injectedClasspath, InjectedClasspathInstrumentationStrategy instrumentationStrategy) {
         this.injectedClasspath = injectedClasspath;
-        ClassPath cachedClassPath = classpathTransformer.transform(injectedClasspath, BuildLogic);
+        ClassPath cachedClassPath = classpathTransformer.transform(injectedClasspath, instrumentationStrategy.getTransform());
         this.pluginRegistry = new DefaultPluginRegistry(pluginInspector,
             parentScope.createChild("injected-plugin")
                 .local(cachedClassPath)

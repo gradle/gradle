@@ -16,13 +16,18 @@
 
 package org.gradle.api.internal.artifacts;
 
+import org.gradle.StartParameter;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.store.ResolutionResultsStoreFactory;
 import org.gradle.api.internal.file.TemporaryFileProvider;
+import org.gradle.util.BuildCommencedTimeProvider;
 
 /**
  * The set of dependency management services that are created per build tree.
  */
 class DependencyManagementBuildTreeScopeServices {
+    BuildCommencedTimeProvider createBuildTimeProvider(StartParameter startParameter) {
+        return new BuildCommencedTimeProvider(startParameter);
+    }
 
     ResolutionResultsStoreFactory createResolutionResultsStoreFactory(TemporaryFileProvider temporaryFileProvider) {
         return new ResolutionResultsStoreFactory(temporaryFileProvider);

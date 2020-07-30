@@ -62,11 +62,8 @@ public abstract class FileTimeStampInspector {
     protected void updateOnFinishBuild() {
         markerFile.getParentFile().mkdirs();
         try {
-            FileOutputStream outputStream = new FileOutputStream(markerFile);
-            try {
+            try (FileOutputStream outputStream = new FileOutputStream(markerFile)) {
                 outputStream.write(0);
-            } finally {
-                outputStream.close();
             }
         } catch (IOException e) {
             throw new UncheckedIOException("Could not update " + markerFile, e);

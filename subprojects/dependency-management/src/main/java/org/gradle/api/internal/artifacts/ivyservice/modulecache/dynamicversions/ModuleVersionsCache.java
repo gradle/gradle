@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.modulecache.dynamicversions
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepository;
 
+import java.time.Duration;
 import java.util.Set;
 
 public interface ModuleVersionsCache {
@@ -29,6 +30,6 @@ public interface ModuleVersionsCache {
     interface CachedModuleVersionList {
         Set<String> getModuleVersions();
 
-        long getAgeMillis();
+        Duration getAge();
     }
 }

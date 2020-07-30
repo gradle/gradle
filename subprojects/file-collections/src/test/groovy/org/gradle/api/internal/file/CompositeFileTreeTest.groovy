@@ -20,15 +20,17 @@ import org.gradle.api.Action
 import org.gradle.api.file.FileTree
 import org.gradle.api.file.FileVisitDetails
 import org.gradle.api.file.FileVisitor
-import org.gradle.api.internal.file.collections.FileCollectionResolveContext
 import org.gradle.api.tasks.util.PatternFilterable
 import org.gradle.api.tasks.util.PatternSet
 import org.gradle.internal.Actions
 import org.gradle.internal.Factory
-import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import org.gradle.util.TestUtil
+import org.gradle.util.UsesNativeServices
 import spock.lang.Specification
 
+import java.util.function.Consumer
+
+@UsesNativeServices
 class CompositeFileTreeTest extends Specification {
     private final FileTreeInternal source1 = Mock()
     private final FileTreeInternal source2 = Mock()
@@ -40,18 +42,14 @@ class CompositeFileTreeTest extends Specification {
         }
 
         @Override
-        void visitContents(FileCollectionResolveContext context) {
-            context.add(source1)
-            context.add(source2)
+        protected void visitChildren(Consumer<FileCollectionInternal> visitor) {
+            visitor.accept(source1)
+            visitor.accept(source2)
         }
     }
 
-    def setup() {
-        NativeServicesTestFixture.initialize()
-    }
-
     def matchingWithClosureReturnsUnionOfFilteredSets() {
-        final Closure closure = { }
+        final Closure closure = {}
         final FileTreeInternal filtered1 = Mock()
         final FileTreeInternal filtered2 = Mock()
         final PatternSet patterns = Mock()
@@ -118,7 +116,7 @@ class CompositeFileTreeTest extends Specification {
         FileTree sum = tree.plus(other)
 
         then:
-        (sum as UnionFileTree).sourceCollections == [source1, source2, other]
+        sum.sourceCollections == [tree, other]
     }
 
     def visitsEachTreeWithVisitor() {

@@ -74,7 +74,7 @@ class CrossBuildScriptCachingIntegrationSpec extends AbstractIntegrationSpec {
         scriptCacheSize() == 4 // classpath + body for settings and for the 2 identical scripts
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "test expect script evaluation")
     def "identical build files are compiled once for distinct invocations"() {
         given:
         root {
@@ -292,7 +292,7 @@ class CrossBuildScriptCachingIntegrationSpec extends AbstractIntegrationSpec {
         scriptCacheSize() == 4 // classpath + body for each build script
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "remote scripts skipped")
     def "caches scripts applied from remote locations when remote script changes"() {
         server.start()
 
@@ -377,7 +377,7 @@ task fastTask { }
         scriptCacheSize() == 4 // classpath + body for build.gradle version 1, build.gradle version 2
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "changing buildscript files dependency")
     def "build script is recompiled when project's classpath changes"() {
         createJarWithProperties("lib/foo.jar", [source: 1])
         root {
@@ -406,7 +406,7 @@ task fastTask { }
         scriptCacheSize() == 3 // single classpath block, plus a build script body for each parent classpath
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "changing buildscript files dependency")
     def "build script is recompiled when parent project's classpath changes"() {
         createJarWithProperties("lib/foo.jar", [source: 1])
         root {
@@ -611,7 +611,7 @@ task fastTask { }
         scriptCacheSize() == 2 * (1 + iterations) // common + 1 build script per iteration
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "test expect script evaluation")
     def "script doesn't get recompiled if daemon disappears"() {
         root {
             buildSrc {

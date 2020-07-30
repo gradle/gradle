@@ -31,7 +31,9 @@ import org.gradle.internal.component.external.model.ModuleComponentArtifactMetad
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
+import org.gradle.internal.component.external.model.NoOpDerivationStrategy;
 import org.gradle.internal.component.external.model.RealisedConfigurationMetadata;
+import org.gradle.internal.component.external.model.VariantDerivationStrategy;
 import org.gradle.internal.component.external.model.VariantMetadataRules;
 import org.gradle.internal.component.external.model.VirtualComponentIdentifier;
 import org.gradle.internal.component.model.ConfigurationMetadata;
@@ -150,6 +152,16 @@ class LenientPlatformResolveMetadata implements ModuleComponentResolveMetadata {
     @Override
     public ModuleComponentResolveMetadata withSources(ModuleSources sources) {
         return this;
+    }
+
+    @Override
+    public ModuleComponentResolveMetadata withDerivationStrategy(VariantDerivationStrategy derivationStrategy) {
+        return this;
+    }
+
+    @Override
+    public VariantDerivationStrategy getVariantDerivationStrategy() {
+        return NoOpDerivationStrategy.getInstance();
     }
 
     @Override

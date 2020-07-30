@@ -17,6 +17,7 @@
 package org.gradle.instantexecution.serialization.codecs
 
 import org.gradle.api.Task
+import org.gradle.instantexecution.problems.DocumentationSection.RequirementsTaskAccess
 import org.gradle.instantexecution.serialization.Codec
 import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.WriteContext
@@ -34,7 +35,7 @@ object TaskReferenceCodec : Codec<Task> {
                 "serialize",
                 Task::class,
                 value.javaClass,
-                documentationSection = "config_cache:requirements:task_access"
+                documentationSection = RequirementsTaskAccess
             )
             writeBoolean(false)
         }
@@ -47,7 +48,7 @@ object TaskReferenceCodec : Codec<Task> {
             logUnsupported(
                 "deserialize",
                 Task::class,
-                documentationSection = "config_cache:requirements:task_access"
+                documentationSection = RequirementsTaskAccess
             )
             null
         }

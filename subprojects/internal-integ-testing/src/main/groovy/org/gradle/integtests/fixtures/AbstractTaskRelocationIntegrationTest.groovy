@@ -16,8 +16,12 @@
 
 package org.gradle.integtests.fixtures
 
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
+
 abstract class AbstractTaskRelocationIntegrationTest extends AbstractIntegrationSpec {
 
+    @Requires(TestPrecondition.JDK14_OR_EARLIER) // reevaluate when upgrading JaCoco from current 0.8.5
     @ToBeFixedForInstantExecution(bottomSpecs = [
         "JacocoReportRelocationIntegrationTest",
         "ScalaDocRelocationIntegrationTest"

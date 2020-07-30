@@ -48,7 +48,7 @@ public class ProjectBuilder {
     private File gradleUserHomeDir;
     private String name = "test";
     private Project parent;
-    private ProjectBuilderImpl impl = new ProjectBuilderImpl();
+    private final ProjectBuilderImpl impl = new ProjectBuilderImpl();
 
     /**
      * An instance should only be created via the {@link #builder()}.

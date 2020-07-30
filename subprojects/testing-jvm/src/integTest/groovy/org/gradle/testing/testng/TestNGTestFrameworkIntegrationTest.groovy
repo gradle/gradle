@@ -16,7 +16,6 @@
 
 package org.gradle.testing.testng
 
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.testing.AbstractTestFrameworkIntegrationTest
 import org.gradle.testing.fixture.TestNGCoverage
 import spock.lang.Issue
@@ -78,7 +77,6 @@ class TestNGTestFrameworkIntegrationTest extends AbstractTestFrameworkIntegratio
     }
 
     @Issue("https://github.com/gradle/gradle/issues/3545")
-    @ToBeFixedForInstantExecution
     def "can run tests with ignored test class"() {
         given:
         file("src/test/java/DisabledTest.java") << """
@@ -97,7 +95,6 @@ class TestNGTestFrameworkIntegrationTest extends AbstractTestFrameworkIntegratio
     }
 
     @Issue("https://github.com/gradle/gradle/issues/3545")
-    @ToBeFixedForInstantExecution
     def "can run tests with ignored test methods"() {
         given:
         file("src/test/java/DisabledTest.java") << """

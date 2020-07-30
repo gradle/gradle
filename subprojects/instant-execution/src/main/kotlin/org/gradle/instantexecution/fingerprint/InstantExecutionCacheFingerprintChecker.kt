@@ -35,7 +35,9 @@ internal
 class InstantExecutionCacheFingerprintChecker(private val host: Host) {
 
     interface Host {
+        val gradleUserHomeDir: File
         val allInitScripts: List<File>
+        val buildStartTime: Long
         fun fingerprintOf(fileCollection: FileCollectionInternal): HashCode
         fun hashCodeOf(file: File): HashCode?
         fun displayNameOf(fileOrDirectory: File): String
@@ -72,6 +74,19 @@ class InstantExecutionCacheFingerprintChecker(private val host: Host) {
                 is InstantExecutionCacheFingerprint.UndeclaredSystemProperty -> input.run {
                     if (isDefined(key)) {
                         return "system property '$key' has changed"
+                    }
+                }
+                is InstantExecutionCacheFingerprint.ChangingDependencyResolutionValue -> input.run {
+                    if (host.buildStartTime >= expireAt) {
+                        return input.reason
+                    }
+                }
+                is InstantExecutionCacheFingerprint.GradleEnvironment -> input.run {
+                    if (host.gradleUserHomeDir != gradleUserHomeDir) {
+                        return "Gradle user home directory has changed"
+                    }
+                    if (jvmFingerprint() != jvm) {
+                        return "JVM has changed"
                     }
                 }
                 else -> throw IllegalStateException("Unexpected configuration cache fingerprint: $input")

@@ -27,7 +27,7 @@ import spock.lang.IgnoreIf
 @IgnoreIf({ GradleContextualExecuter.embedded }) // wrapperExecuter requires a real distribution
 class WrapperIntegrationTest extends AbstractWrapperIntegrationSpec {
     @Requires(TestPrecondition.MAC_OS_X)
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.LONG_TIMEOUT)
     def "can execute from Finder"() {
         given:
         file("build.gradle") << """

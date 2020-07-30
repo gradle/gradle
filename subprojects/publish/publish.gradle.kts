@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import org.gradle.gradlebuild.test.integrationtests.integrationTestUsesSampleDir
+import gradlebuild.integrationtests.integrationTestUsesSampleDir
 
 plugins {
-    gradlebuild.distribution.`api-java`
+    id("gradlebuild.distribution.api-java")
 }
 
 dependencies {
@@ -29,12 +29,12 @@ dependencies {
     implementation(project(":baseServicesGroovy")) // for 'Specs'
     implementation(project(":dependencyManagement"))
 
-    implementation(library("slf4j_api"))
-    implementation(library("groovy"))
-    implementation(library("guava"))
-    implementation(library("commons_lang"))
-    implementation(library("gson"))
-    implementation(library("inject"))
+    implementation(libs.slf4jApi)
+    implementation(libs.groovy)
+    implementation(libs.guava)
+    implementation(libs.commonsLang)
+    implementation(libs.gson)
+    implementation(libs.inject)
 
     testImplementation(testFixtures(project(":core")))
 

@@ -72,6 +72,7 @@ public class NonHierarchicalFileWatcherUpdater implements FileWatcherUpdater {
 
     @Override
     public void buildFinished() {
+        LOGGER.warn("Watching {} directories to track changes", watchedRoots.entrySet().size());
     }
 
     @Override

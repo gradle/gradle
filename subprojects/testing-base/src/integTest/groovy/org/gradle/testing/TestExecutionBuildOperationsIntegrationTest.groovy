@@ -50,7 +50,6 @@ class TestExecutionBuildOperationsIntegrationTest extends AbstractIntegrationSpe
         assertJunit(rootTestOp, operations)
     }
 
-    @ToBeFixedForInstantExecution(because = "test-ng")
     def "emitsBuildOperationsForTestNgTests"() {
         given:
         executer.withRepositoryMirrors()
@@ -106,7 +105,7 @@ class TestExecutionBuildOperationsIntegrationTest extends AbstractIntegrationSpe
             task testng {
                 dependsOn gradle.includedBuild('testng').task(':test')
             }
-            
+
             task junit {
                 dependsOn gradle.includedBuild('junit').task(':test')
             }

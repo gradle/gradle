@@ -27,10 +27,14 @@ import org.gradle.instantexecution.extensions.serviceOf
 import org.gradle.instantexecution.initialization.InstantExecutionStartParameter
 import org.gradle.instantexecution.serialization.DefaultWriteContext
 import org.gradle.instantexecution.serialization.ReadContext
+import org.gradle.internal.concurrent.Stoppable
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.fingerprint.impl.AbsolutePathFileCollectionFingerprinter
 import org.gradle.internal.hash.HashCode
+import org.gradle.internal.service.scopes.Scopes
+import org.gradle.internal.service.scopes.ServiceScope
 import org.gradle.internal.vfs.VirtualFileSystem
+import org.gradle.util.BuildCommencedTimeProvider
 import org.gradle.util.GFileUtils
 import java.io.ByteArrayOutputStream
 import java.io.File
@@ -40,6 +44,7 @@ import java.io.OutputStream
 /**
  * Coordinates the writing and reading of the instant execution cache fingerprint.
  */
+@ServiceScope(Scopes.Build)
 internal
 class InstantExecutionCacheFingerprintController internal constructor(
     private val startParameter: InstantExecutionStartParameter,
@@ -47,12 +52,13 @@ class InstantExecutionCacheFingerprintController internal constructor(
     private val valueSourceProviderFactory: ValueSourceProviderFactory,
     private val virtualFileSystem: VirtualFileSystem,
     private val fileCollectionFingerprinter: AbsolutePathFileCollectionFingerprinter,
+    private val buildCommencedTimeProvider: BuildCommencedTimeProvider,
     private val listenerManager: ListenerManager,
     private val buildTreeListenerManager: BuildTreeListenerManager
-) {
+) : Stoppable {
 
     private
-    open class WritingState {
+    abstract class WritingState {
 
         open fun start(writeContextForOutputStream: (OutputStream) -> DefaultWriteContext): WritingState =
             illegalStateFor("start")
@@ -62,6 +68,8 @@ class InstantExecutionCacheFingerprintController internal constructor(
 
         open fun commit(fingerprintFile: File): WritingState =
             illegalStateFor("commit")
+
+        abstract fun dispose(): WritingState
 
         private
         fun illegalStateFor(operation: String): Nothing = throw IllegalStateException(
@@ -80,6 +88,9 @@ class InstantExecutionCacheFingerprintController internal constructor(
             addListener(fingerprintWriter)
             return Writing(fingerprintWriter, outputStream)
         }
+
+        override fun dispose(): WritingState =
+            this
     }
 
     private
@@ -88,20 +99,31 @@ class InstantExecutionCacheFingerprintController internal constructor(
         private val outputStream: ByteArrayOutputStream
     ) : WritingState() {
         override fun stop(): WritingState {
-            removeListener(fingerprintWriter)
-            fingerprintWriter.close()
-            return Written(outputStream)
+            // TODO - this is a temporary step, see the comment in DefaultInstantExecution
+            fingerprintWriter.stopCollectingValueSources()
+            return Written(fingerprintWriter, outputStream)
         }
+
+        override fun dispose() =
+            stop().dispose()
     }
 
     private
     inner class Written(
+        private val fingerprintWriter: InstantExecutionCacheFingerprintWriter,
         private val outputStream: ByteArrayOutputStream
     ) : WritingState() {
         override fun commit(fingerprintFile: File): WritingState {
+            dispose()
             fingerprintFile
                 .outputStream()
                 .use(outputStream::writeTo)
+            return Idle()
+        }
+
+        override fun dispose(): WritingState {
+            removeListener(fingerprintWriter)
+            fingerprintWriter.close()
             return Idle()
         }
     }
@@ -119,6 +141,10 @@ class InstantExecutionCacheFingerprintController internal constructor(
 
     fun commitFingerprintTo(fingerprintFile: File) {
         writingState = writingState.commit(fingerprintFile)
+    }
+
+    override fun stop() {
+        writingState = writingState.dispose()
     }
 
     suspend fun ReadContext.checkFingerprint(): InvalidationReason? =
@@ -144,8 +170,14 @@ class InstantExecutionCacheFingerprintController internal constructor(
     inner class CacheFingerprintComponentHost :
         InstantExecutionCacheFingerprintWriter.Host, InstantExecutionCacheFingerprintChecker.Host {
 
+        override val gradleUserHomeDir: File
+            get() = startParameter.gradleUserHomeDir
+
         override val allInitScripts: List<File>
             get() = startParameter.allInitScripts
+
+        override val buildStartTime: Long
+            get() = buildCommencedTimeProvider.currentTime
 
         override fun hashCodeOf(file: File) =
             virtualFileSystem.hashCodeOf(file)

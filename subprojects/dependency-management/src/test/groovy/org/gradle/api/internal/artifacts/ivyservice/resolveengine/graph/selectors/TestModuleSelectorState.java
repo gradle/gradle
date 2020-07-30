@@ -27,7 +27,6 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionP
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 import org.gradle.internal.component.model.IvyArtifactName;
-import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver;
 import org.gradle.internal.resolve.result.BuildableComponentIdResolveResult;
 import org.gradle.internal.resolve.result.ComponentIdResolveResult;
@@ -91,11 +90,6 @@ public class TestModuleSelectorState implements ResolvableSelectorState {
         BuildableComponentIdResolveResult result = new DefaultBuildableComponentIdResolveResult();
         resolver.resolve(null, acceptor, rejector, result);
         return result;
-    }
-
-    @Override
-    public void failed(ModuleVersionResolveException failure) {
-        throw new UnsupportedOperationException("To be implemented");
     }
 
     @Override

@@ -28,6 +28,8 @@ import org.gradle.internal.component.external.model.AbstractLazyModuleComponentR
 import org.gradle.internal.component.external.model.DefaultConfigurationMetadata;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
+import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
+import org.gradle.internal.component.external.model.VariantDerivationStrategy;
 import org.gradle.internal.component.external.model.VariantMetadataRules;
 import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.ExcludeMetadata;
@@ -63,8 +65,8 @@ public class DefaultIvyModuleResolveMetadata extends AbstractLazyModuleComponent
         this.extraAttributes = metadata.getExtraAttributes();
     }
 
-    private DefaultIvyModuleResolveMetadata(DefaultIvyModuleResolveMetadata metadata, ModuleSources sources) {
-        super(metadata, sources);
+    private DefaultIvyModuleResolveMetadata(DefaultIvyModuleResolveMetadata metadata, ModuleSources sources, VariantDerivationStrategy variantDerivationStrategy) {
+        super(metadata, sources, variantDerivationStrategy);
         this.configurationDefinitions = metadata.configurationDefinitions;
         this.branch = metadata.branch;
         this.artifactDefinitions = metadata.artifactDefinitions;
@@ -72,11 +74,11 @@ public class DefaultIvyModuleResolveMetadata extends AbstractLazyModuleComponent
         this.excludes = metadata.excludes;
         this.extraAttributes = metadata.extraAttributes;
 
-        copyCachedState(metadata);
+        copyCachedState(metadata, metadata.getVariantDerivationStrategy() != variantDerivationStrategy);
     }
 
     private DefaultIvyModuleResolveMetadata(DefaultIvyModuleResolveMetadata metadata, List<IvyDependencyDescriptor> dependencies) {
-        super(metadata, metadata.getSources());
+        super(metadata, metadata.getSources(), metadata.getVariantDerivationStrategy());
         this.configurationDefinitions = metadata.configurationDefinitions;
         this.branch = metadata.branch;
         this.artifactDefinitions = metadata.artifactDefinitions;
@@ -108,7 +110,16 @@ public class DefaultIvyModuleResolveMetadata extends AbstractLazyModuleComponent
 
     @Override
     public DefaultIvyModuleResolveMetadata withSources(ModuleSources sources) {
-        return new DefaultIvyModuleResolveMetadata(this, sources);
+        return new DefaultIvyModuleResolveMetadata(this, sources, getVariantDerivationStrategy());
+    }
+
+
+    @Override
+    public ModuleComponentResolveMetadata withDerivationStrategy(VariantDerivationStrategy derivationStrategy) {
+        if (getVariantDerivationStrategy() == derivationStrategy) {
+            return this;
+        }
+        return new DefaultIvyModuleResolveMetadata(this, getSources(), derivationStrategy);
     }
 
     @Override

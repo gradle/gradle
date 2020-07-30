@@ -3,7 +3,7 @@ tasks.register("someTask") {
     inputs.dir("source")
     outputs.dir(destination)
     doLast {
-        project.copy {                              // <2>
+        project.copy { // <2>
             from("source")
             into(destination)
         }

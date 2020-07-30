@@ -18,7 +18,6 @@ package org.gradle.instantexecution.serialization.codecs
 
 import com.nhaarman.mockitokotlin2.mock
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
-import org.gradle.instantexecution.coroutines.runToCompletion
 import org.gradle.instantexecution.extensions.uncheckedCast
 import org.gradle.instantexecution.problems.ProblemsListener
 import org.gradle.instantexecution.problems.PropertyProblem
@@ -28,6 +27,8 @@ import org.gradle.instantexecution.serialization.DefaultWriteContext
 import org.gradle.instantexecution.serialization.IsolateOwner
 import org.gradle.instantexecution.serialization.MutableIsolateContext
 import org.gradle.instantexecution.serialization.beans.BeanConstructors
+import org.gradle.instantexecution.serialization.runReadOperation
+import org.gradle.instantexecution.serialization.runWriteOperation
 import org.gradle.instantexecution.serialization.withIsolate
 import org.gradle.internal.io.NullOutputStream
 import org.gradle.internal.serialize.Encoder
@@ -45,7 +46,7 @@ import java.io.OutputStream
 abstract class AbstractUserTypeCodecTest {
 
     protected
-    fun serializationProblemsOf(bean: Any, codec: Codec<Any?>): List<PropertyProblem> =
+    fun serializationProblemsOf(bean: Any, codec: Codec<Any?> = userTypesCodec()): List<PropertyProblem> =
         mutableListOf<PropertyProblem>().also { problems ->
             writeTo(
                 NullOutputStream.INSTANCE,
@@ -60,7 +61,7 @@ abstract class AbstractUserTypeCodecTest {
         }
 
     protected
-    fun <T : Any> roundtrip(graph: T, codec: Codec<Any?> = userTypesCodec()): T =
+    fun <T : Any> configurationCacheRoundtripOf(graph: T, codec: Codec<Any?> = userTypesCodec()): T =
         writeToByteArray(graph, codec)
             .let { readFromByteArray(it, codec)!! }
             .uncheckedCast()
@@ -74,7 +75,11 @@ abstract class AbstractUserTypeCodecTest {
     private
     fun writeToByteArray(graph: Any, codec: Codec<Any?>): ByteArray {
         val outputStream = ByteArrayOutputStream()
-        writeTo(outputStream, graph, codec)
+        writeTo(outputStream, graph, codec, object : ProblemsListener {
+            override fun onProblem(problem: PropertyProblem) {
+                println(problem)
+            }
+        })
         return outputStream.toByteArray()
     }
 
@@ -87,7 +92,7 @@ abstract class AbstractUserTypeCodecTest {
     ) {
         writeContextFor(KryoBackedEncoder(outputStream), codec, problemsListener).useToRun {
             withIsolateMock(codec) {
-                runToCompletion {
+                runWriteOperation {
                     write(graph)
                 }
             }
@@ -103,7 +108,7 @@ abstract class AbstractUserTypeCodecTest {
         readContextFor(inputStream, codec).run {
             initClassLoader(javaClass.classLoader)
             withIsolateMock(codec) {
-                runToCompletion {
+                runReadOperation {
                     read()
                 }
             }
@@ -136,7 +141,7 @@ abstract class AbstractUserTypeCodecTest {
             problemsListener = mock()
         )
 
-    protected
+    private
     fun userTypesCodec() = codecs().userTypesCodec
 
     protected
@@ -162,6 +167,7 @@ abstract class AbstractUserTypeCodecTest {
         actionScheme = mock(),
         attributesFactory = mock(),
         transformListener = mock(),
+        transformationNodeRegistry = mock(),
         valueSourceProviderFactory = mock(),
         patternSetFactory = mock(),
         fileOperations = mock(),

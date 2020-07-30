@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import org.gradle.gradlebuild.test.integrationtests.getIncludeCategories
-import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
+import gradlebuild.cleanup.WhenNotEmpty
+import gradlebuild.integrationtests.getIncludeCategories
 import org.gradle.api.internal.runtimeshaded.PackageListGenerator
 
 plugins {
-    gradlebuild.distribution.`implementation-java`
+    id("gradlebuild.distribution.implementation-java")
 }
 
 dependencies {
@@ -27,9 +27,9 @@ dependencies {
     implementation(project(":core"))
     implementation(project(":wrapper"))
     implementation(project(":toolingApi"))
-    implementation(library("commons_io"))
+    implementation(libs.commonsIo)
 
-    testImplementation(library("guava"))
+    testImplementation(libs.guava)
     testImplementation(testFixtures(project(":core")))
 
     integTestImplementation(project(":native"))
@@ -37,7 +37,7 @@ dependencies {
     integTestImplementation(project(":launcher"))
     integTestImplementation(project(":buildOption"))
     integTestImplementation(project(":jvmServices"))
-    integTestImplementation(library("slf4j_api"))
+    integTestImplementation(libs.slf4jApi)
 
     testRuntimeOnly(project(":distributionsCore")) {
         because("Tests instantiate DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")

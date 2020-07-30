@@ -21,6 +21,7 @@ import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.internal.file.FileType
+import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.hamcrest.Matcher
 import spock.lang.Issue
 import spock.lang.Unroll
@@ -28,7 +29,7 @@ import spock.lang.Unroll
 import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.jcenterRepository
 import static org.gradle.util.Matchers.matchesRegexp
 
-class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionTest {
+class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionTest implements ArtifactTransformTestFixture {
     def setup() {
         settingsFile << """
             rootProject.name = 'root'
@@ -1418,7 +1419,7 @@ Found the following transforms:
         outputContains("files: [b.jar]")
     }
 
-    @ToBeFixedForInstantExecution(because = "treating file collection visit failures as a configuration cache problem adds an additional failure to the build summary")
+    @ToBeFixedForInstantExecution(because = "treating file collection visit failures as a configuration cache problem adds an additional failure to the build summary; exception chain is different when transform input cannot be resolved")
     def "user gets a reasonable error message when a transform input cannot be downloaded and proceeds with other inputs"() {
         def m1 = ivyHttpRepo.module("test", "test", "1.3")
             .artifact(type: 'jar', name: 'test-api')
@@ -1472,7 +1473,7 @@ Found the following transforms:
         outputContains("files: [test-api-1.3.jar.txt, test-impl2-1.3.jar.txt, test-2-0.1.jar.txt]")
     }
 
-    @ToBeFixedForInstantExecution(because = "treating file collection visit failures as a configuration cache problem adds an additional failure to the build summary")
+    @ToBeFixedForInstantExecution(because = "treating file collection visit failures as a configuration cache problem adds an additional failure to the build summary; exception chain is different when transform input cannot be resolved")
     def "user gets a reasonable error message when file dependency cannot be listed and continues with other inputs"() {
         given:
         buildFile << """
@@ -1833,7 +1834,7 @@ Found the following transforms:
         failure.assertHasCause("broken")
     }
 
-    @ToBeFixedForInstantExecution(because = "treating file collection visit failures as a configuration cache problem adds an additional failure to the build summary")
+    @ToBeFixedForInstantExecution(because = "treating file collection visit failures as a configuration cache problem adds an additional failure to the build summary; exception chain is different when transform input cannot be resolved")
     def "collects multiple failures"() {
         def m1 = mavenHttpRepo.module("test", "a", "1.3").publish()
         def m2 = mavenHttpRepo.module("test", "broken", "2.0").publish()
@@ -2076,6 +2077,142 @@ Found the following transforms:
 
         then:
         outputContains("ids: [out-foo.txt (test:test:1.3), out-bar.txt (test:test:1.3)]")
+    }
+
+    def "artifact excludes on different graphs are honored"() {
+        def m1 = ivyRepo.module("test", "test", "1.3")
+        m1.artifact(name: "test-one", conf: "*")
+        m1.artifact(name: "test-two", conf: "*")
+        m1.publish()
+        def m2 = ivyRepo.module("test", "test2", "2.3").dependsOn(m1).exclude(module: "test", artifact: "test-one")
+        m2.publish()
+        def m3 = ivyRepo.module("test", "test3", "3.4").dependsOn(m1).exclude(module: "test", artifact: "test-two")
+        m3.publish()
+
+        given:
+        taskTypeLogsArtifactCollectionDetails()
+        buildFile << """
+            repositories {
+                ivy { url "${ivyRepo.uri}" }
+            }
+            configurations {
+                compile1 {
+                    attributes { attribute usage, 'api' }
+                }
+                compile2 {
+                    attributes { attribute usage, 'api' }
+                }
+            }
+            dependencies {
+                compile1 'test:test2:2.3'
+                compile2 'test:test3:3.4'
+            }
+
+            ${declareTransform('FileSizer')}
+
+            task resolve1(type: ShowArtifactCollection) {
+                collection = configurations.compile1.incoming.artifactView {
+                    attributes { it.attribute(artifactType, 'size') }
+                }.artifacts
+            }
+
+            task resolve2(type: ShowArtifactCollection) {
+                collection = configurations.compile2.incoming.artifactView {
+                    attributes { it.attribute(artifactType, 'size') }
+                }.artifacts
+            }
+        """
+
+        when:
+        run "resolve1", "resolve2"
+
+        then:
+        def task1 = result.groupedOutput.task(":resolve1")
+        task1.assertOutputContains("variants = [{artifactType=size, org.gradle.status=integration}, {artifactType=size, org.gradle.status=integration}]")
+        task1.assertOutputContains("components = [test:test2:2.3, test:test:1.3]")
+        task1.assertOutputContains("artifacts = [test2-2.3.jar.txt (test:test2:2.3), test-two-1.3.jar.txt (test:test:1.3)]")
+        task1.assertOutputContains("files = [test2-2.3.jar.txt, test-two-1.3.jar.txt]")
+
+        def task2 = result.groupedOutput.task(":resolve2")
+        task2.assertOutputContains("variants = [{artifactType=size, org.gradle.status=integration}, {artifactType=size, org.gradle.status=integration}]")
+        task2.assertOutputContains("components = [test:test3:3.4, test:test:1.3]")
+        task2.assertOutputContains("artifacts = [test3-3.4.jar.txt (test:test3:3.4), test-one-1.3.jar.txt (test:test:1.3)]")
+        task2.assertOutputContains("files = [test3-3.4.jar.txt, test-one-1.3.jar.txt]")
+
+        and:
+        output.count("Transforming") == 4
+        output.count("Transforming test-one-1.3.jar to test-one-1.3.jar.txt") == 1
+        output.count("Transforming test-two-1.3.jar to test-two-1.3.jar.txt") == 1
+        output.count("Transforming test2-2.3.jar to test2-2.3.jar.txt") == 1
+        output.count("Transforming test3-3.4.jar to test3-3.4.jar.txt") == 1
+
+        when:
+        run "resolve1", "resolve2"
+
+        then:
+        output.count("Transforming") == 0
+    }
+
+    def "artifacts with the same id but different content are transformed independently"() {
+        def repo1 = new MavenFileRepository(testDirectory.file("repo1"))
+        def repo2 = new MavenFileRepository(testDirectory.file("repo2"))
+        def m1 = repo1.module("test", "test", "1.3").publish()
+        m1.artifactFile.text = "1234"
+        def m2 = repo2.module("test", "test", "1.3").publish()
+        m2.artifactFile.text = "12345"
+
+        given:
+        settingsFile << """
+            include "a"
+            include "b"
+        """
+        buildFile << """
+            project(":a") {
+                repositories {
+                    maven { url "${repo1.uri}" }
+                }
+            }
+            project(":b") {
+                repositories {
+                    maven { url "${repo2.uri}" }
+                }
+            }
+            allprojects {
+                dependencies {
+                    compile 'test:test:1.3'
+                }
+                ${configurationAndTransform('FileSizer')}
+            }
+        """
+
+        when:
+        run "a:resolve", "b:resolve"
+
+        then:
+        def task1 = result.groupedOutput.task(":a:resolve")
+        task1.assertOutputContains("variants: [{artifactType=size, org.gradle.status=release}]")
+        task1.assertOutputContains("components: [test:test:1.3]")
+        task1.assertOutputContains("ids: [test-1.3.jar.txt (test:test:1.3)]")
+        task1.assertOutputContains("files: [test-1.3.jar.txt]")
+
+        def task2 = result.groupedOutput.task(":b:resolve")
+        task2.assertOutputContains("variants: [{artifactType=size, org.gradle.status=release}]")
+        task2.assertOutputContains("components: [test:test:1.3]")
+        task2.assertOutputContains("ids: [test-1.3.jar.txt (test:test:1.3)]")
+        task2.assertOutputContains("files: [test-1.3.jar.txt]")
+
+        file("a/build/libs/test-1.3.jar.txt").text == "4"
+        file("b/build/libs/test-1.3.jar.txt").text == "5"
+
+        and:
+        output.count("Transforming") == 2
+        output.count("Transforming test-1.3.jar to test-1.3.jar.txt") == 2
+
+        when:
+        run "a:resolve", "b:resolve"
+
+        then:
+        output.count("Transforming") == 0
     }
 
     def "transform runs only once even when variant is consumed from multiple projects"() {

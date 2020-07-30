@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 plugins {
-    gradlebuild.distribution.`api-java`
-    gradlebuild.`publish-public-libraries`
+    id("gradlebuild.distribution.api-java")
+    id("gradlebuild.publish-public-libraries")
 }
 
 dependencies {
     implementation(project(":baseAnnotations"))
     implementation(project(":files"))
-    implementation(library("slf4j_api")) { version { require(libraryVersion("slf4j_api")) } }
+    implementation(libs.slf4jApi)
 }

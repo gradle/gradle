@@ -1763,17 +1763,17 @@ org:leaf2:1.0
         outputContains """
 project :
    variant "runtimeClasspath" [
-      org.gradle.usage               = java-runtime
       org.gradle.category            = library
+      org.gradle.usage               = java-runtime
       org.gradle.libraryelements     = jar
       org.gradle.dependency.bundling = external
       org.gradle.jvm.version         = $jvmVersion
    ]
    variant "runtimeElements" [
+      org.gradle.category            = library
+      org.gradle.dependency.bundling = external
       org.gradle.usage               = java-runtime
       org.gradle.libraryelements     = jar
-      org.gradle.dependency.bundling = external
-      org.gradle.category            = library
       org.gradle.jvm.version         = $jvmVersion
    ]
 
@@ -1878,10 +1878,10 @@ org:leaf2:1.0
         outputContains """
 project :impl
    variant "apiElements" [
+      org.gradle.category            = library
+      org.gradle.dependency.bundling = external
       org.gradle.usage               = java-api
       org.gradle.libraryelements     = jar (compatible with: classes)
-      org.gradle.dependency.bundling = external
-      org.gradle.category            = library
       org.gradle.jvm.version         = $jvmVersion
    ]
 
@@ -2056,10 +2056,10 @@ org:leaf2:1.0
         outputContains """
 project :api
    variant "apiElements" [
+      org.gradle.category            = library
+      org.gradle.dependency.bundling = external
       org.gradle.usage               = java-api
       org.gradle.libraryelements     = jar (compatible with: classes)
-      org.gradle.dependency.bundling = external
-      org.gradle.category            = library
       org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
    ]
 
@@ -2075,10 +2075,10 @@ project :api
         outputContains """
 project :some:deeply:nested
    variant "apiElements" [
+      org.gradle.category            = library
+      org.gradle.dependency.bundling = external
       org.gradle.usage               = java-api
       org.gradle.libraryelements     = jar (compatible with: classes)
-      org.gradle.dependency.bundling = external
-      org.gradle.category            = library
       org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
    ]
 
@@ -2093,10 +2093,10 @@ project :some:deeply:nested
         outputContains """
 project :some:deeply:nested
    variant "apiElements" [
+      org.gradle.category            = library
+      org.gradle.dependency.bundling = external
       org.gradle.usage               = java-api
       org.gradle.libraryelements     = jar (compatible with: classes)
-      org.gradle.dependency.bundling = external
-      org.gradle.category            = library
       org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
    ]
 

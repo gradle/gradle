@@ -12,6 +12,7 @@
 	<classpathentry kind="src" path="/api">
 		<attributes>
 			<attribute name="org.eclipse.jst.component.nondependency" value=""/>
+			<attribute name="without_test_code" value="true"/>
 		</attributes>
 	</classpathentry>
 	<classpathentry sourcepath="@CACHE_DIR@/org.slf4j/slf4j-api/1.5.8/@SHA1@/slf4j-api-1.5.8-sources.jar" kind="lib" path="@CACHE_DIR@/org.slf4j/slf4j-api/1.5.8/@SHA1@/slf4j-api-1.5.8.jar">

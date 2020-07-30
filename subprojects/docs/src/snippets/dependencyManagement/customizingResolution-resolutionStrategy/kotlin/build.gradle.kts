@@ -17,7 +17,7 @@ fun findDefaultVersionInCatalog(group: String, name: String): DefaultVersion {
 }
 // end::custom-versioning-scheme[]
 
-// tag::blacklisting_version[]
+// tag::denying_version[]
 configurations.all {
     resolutionStrategy.eachDependency {
         if (requested.group == "org.software" && requested.name == "some-library" && requested.version == "1.2") {
@@ -26,7 +26,7 @@ configurations.all {
         }
     }
 }
-// end::blacklisting_version[]
+// end::denying_version[]
 
 // tag::module_substitution[]
 configurations.all {

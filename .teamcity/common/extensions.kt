@@ -58,13 +58,15 @@ fun VcsSettings.filterDefaultBranch() {
     branchFilter = allBranchesFilter
 }
 
+const val failedTestArtifactDestination = ".teamcity/gradle-logs"
+
 fun BuildType.applyDefaultSettings(os: Os = Os.linux, timeout: Int = 30, vcsRoot: String = "Gradle_Branches_GradlePersonalBranches") {
     artifactRules = """
-        build/report-* => .
-        buildSrc/build/report-* => .
-        subprojects/*/build/tmp/test files/** => test-files
-        subprojects/*/build/tmp/test files/** => test-files
-        build/errorLogs/** => errorLogs
+        build/report-* => $failedTestArtifactDestination
+        buildSrc/build/report-* => $failedTestArtifactDestination
+        subprojects/*/build/tmp/test files/** => $failedTestArtifactDestination/test-files
+        subprojects/*/build/tmp/test files/** => $failedTestArtifactDestination/test-files
+        build/errorLogs/** => $failedTestArtifactDestination/errorLogs
         subprojects/internal-build-reports/build/reports/incubation/all-incubating.html => incubation-reports
         build/reports/dependency-verification/** => dependency-verification-reports
     """.trimIndent()
@@ -113,7 +115,6 @@ fun buildToolGradleParameters(daemon: Boolean = true, isContinue: Boolean = true
         "-s",
         if (daemon) "--daemon" else "--no-daemon",
         if (isContinue) "--continue" else "",
-        """-I "%teamcity.build.checkoutDir%/gradle/init-scripts/build-scan.init.gradle.kts"""",
         "-Dorg.gradle.internal.tasks.createops"
     )
 

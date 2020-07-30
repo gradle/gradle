@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
+import gradlebuild.cleanup.WhenNotEmpty
 
 
 plugins {
-    gradlebuild.distribution.`implementation-kotlin`
+    id("gradlebuild.distribution.implementation-kotlin")
 }
 
 description = "Kotlin DSL Tooling Builders for IDEs"
@@ -41,9 +41,9 @@ dependencies {
     integTestImplementation(project(":internalTesting"))
 
     crossVersionTestImplementation(project(":persistentCache"))
-    crossVersionTestImplementation(library("slf4j_api"))
-    crossVersionTestImplementation(library("guava"))
-    crossVersionTestImplementation(library("ant"))
+    crossVersionTestImplementation(libs.slf4jApi)
+    crossVersionTestImplementation(libs.guava)
+    crossVersionTestImplementation(libs.ant)
 
     integTestDistributionRuntimeOnly(project(":distributionsBasics"))
     crossVersionTestDistributionRuntimeOnly(project(":distributionsBasics"))

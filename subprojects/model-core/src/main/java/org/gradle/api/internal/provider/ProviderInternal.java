@@ -22,6 +22,7 @@ import org.gradle.api.provider.Provider;
 import org.gradle.internal.DisplayName;
 
 import javax.annotation.Nullable;
+import java.util.function.BiFunction;
 
 public interface ProviderInternal<T> extends Provider<T>, ValueSupplier, TaskDependencyContainer {
     /**
@@ -63,4 +64,8 @@ public interface ProviderInternal<T> extends Provider<T>, ValueSupplier, TaskDep
      * intermediate steps.
      */
     ExecutionTimeValue<? extends T> calculateExecutionTimeValue();
+
+    default <B, R> Provider<R> zip(Provider<B> right, BiFunction<T, B, R> combiner) {
+        return new BiProvider<>(this, right, combiner);
+    }
 }

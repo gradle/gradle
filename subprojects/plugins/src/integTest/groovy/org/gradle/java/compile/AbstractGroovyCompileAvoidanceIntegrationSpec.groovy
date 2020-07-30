@@ -136,7 +136,7 @@ abstract class AbstractGroovyCompileAvoidanceIntegrationSpec extends AbstractJav
         executedAndNotSkipped ":b:compileGroovy"
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "groovy ast transformation")
     def "recompile with change of local ast transformation"() {
         given:
         executer.beforeExecute {
@@ -178,7 +178,7 @@ abstract class AbstractGroovyCompileAvoidanceIntegrationSpec extends AbstractJav
         failure.assertHasCause('Bad AST transformation!')
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "groovy ast transformation")
     def "recompile with change of global ast transformation"() {
         given:
         executer.beforeExecute {

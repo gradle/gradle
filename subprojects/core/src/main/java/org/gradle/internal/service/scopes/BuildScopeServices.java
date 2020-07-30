@@ -491,7 +491,8 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         return new BuildOperatingFiringSettingsPreparer(
             new DefaultSettingsPreparer(
                 initScriptHandler,
-                settingsLoaderFactory),
+                settingsLoaderFactory
+            ),
             buildOperationExecutor,
             buildDefinition.getFromBuild());
     }

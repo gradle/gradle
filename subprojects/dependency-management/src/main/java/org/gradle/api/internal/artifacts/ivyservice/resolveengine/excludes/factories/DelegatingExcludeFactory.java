@@ -16,7 +16,6 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.factories;
 
 import org.gradle.api.artifacts.ModuleIdentifier;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ArtifactExclude;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeEverything;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeNothing;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
@@ -60,11 +59,6 @@ public abstract class DelegatingExcludeFactory implements ExcludeFactory {
     @Override
     public ModuleIdExclude moduleId(ModuleIdentifier id) {
         return delegate.moduleId(id);
-    }
-
-    @Override
-    public ArtifactExclude artifact(ModuleIdentifier id, IvyArtifactName artifact) {
-        return delegate.artifact(id, artifact);
     }
 
     @Override

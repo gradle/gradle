@@ -26,8 +26,13 @@ import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.eclipse.EclipseProject
 import spock.lang.Ignore
+import spock.lang.Retry
+import spock.lang.Timeout
 import spock.util.concurrent.PollingConditions
 
+@Ignore
+@Timeout(60)
+@Retry(count = 3)
 @ToolingApiVersion(">=6.5")
 class ToolingApiShutdownCrossVersionSpec extends CancellationSpec {
 
@@ -41,7 +46,7 @@ class ToolingApiShutdownCrossVersionSpec extends CancellationSpec {
     @TargetGradleVersion(">=6.5")
     def "disconnect during build stops daemon"() {
         setup:
-        buildFile << """
+        buildFile.text = """
             task hang {
                 doLast {
                     ${server.callFromBuild("waiting")}
@@ -68,10 +73,9 @@ class ToolingApiShutdownCrossVersionSpec extends CancellationSpec {
     }
 
     @TargetGradleVersion(">=6.5")
-    @Ignore('https://github.com/gradle/gradle-private/issues/3107')
     def "disconnect during tooling model query stops daemon"() {
         setup:
-        buildFile << """
+        buildFile.text = """
             apply plugin: 'eclipse'
             eclipse {
                 project {
@@ -104,7 +108,7 @@ class ToolingApiShutdownCrossVersionSpec extends CancellationSpec {
     @TargetGradleVersion(">=6.5")
     def "disconnect stops multiple daemons"() {
         setup:
-        buildFile << """
+        buildFile.text = """
             task hang {
                 doLast {
                     ${server.callFromBuild("waiting")}
@@ -140,7 +144,7 @@ class ToolingApiShutdownCrossVersionSpec extends CancellationSpec {
     }
 
     def "disconnect cancels the current build"() {
-        buildFile << """
+        buildFile.text = """
             task hang {
                 doLast {
                     ${server.callFromBuild("waiting")}
@@ -177,9 +181,8 @@ class ToolingApiShutdownCrossVersionSpec extends CancellationSpec {
         assertNoRunningDaemons()
     }
 
-    @Ignore
     def "can call disconnect after the build was cancelled"() {
-        buildFile << """
+        buildFile.text = """
             task hang {
                 doLast {
                     ${server.callFromBuild("waiting")}
@@ -200,6 +203,7 @@ class ToolingApiShutdownCrossVersionSpec extends CancellationSpec {
         build.forTasks('hang').withCancellationToken(cancellation.token()).run(resultHandler)
         sync.waitForAllPendingCalls(resultHandler)
         cancellation.cancel()
+        Thread.sleep(200) // The daemon seems to drop messages arriving the same time
         connector.disconnect()
         resultHandler.finished()
 
@@ -208,7 +212,7 @@ class ToolingApiShutdownCrossVersionSpec extends CancellationSpec {
     }
 
     def "can call cancel after disconnect"() {
-        buildFile << """
+        buildFile.text = """
             task hang {
                 doLast {
                     ${server.callFromBuild("waiting")}
@@ -229,6 +233,7 @@ class ToolingApiShutdownCrossVersionSpec extends CancellationSpec {
         build.forTasks('hang').withCancellationToken(cancellation.token()).run(resultHandler)
         sync.waitForAllPendingCalls(resultHandler)
         connector.disconnect()
+        Thread.sleep(200) // The daemon seems to drop messages arriving the same time
         cancellation.cancel()
         resultHandler.finished()
 
@@ -237,7 +242,7 @@ class ToolingApiShutdownCrossVersionSpec extends CancellationSpec {
     }
 
     def "can call close after disconnect"() {
-        buildFile << """
+        buildFile.text = """
             task hang {
                 doLast {
                     ${server.callFromBuild("waiting")}
@@ -264,9 +269,8 @@ class ToolingApiShutdownCrossVersionSpec extends CancellationSpec {
         resultHandler.assertFailedWith(BuildCancelledException)
     }
 
-    @Ignore('https://github.com/gradle/gradle-private/issues/3107')
     def "can call disconnect after project connection closed"() {
-        buildFile << """
+        buildFile.text = """
             task myTask {
                 doLast {
                     println "myTask"
@@ -286,9 +290,8 @@ class ToolingApiShutdownCrossVersionSpec extends CancellationSpec {
         noExceptionThrown()
     }
 
-    @Ignore('https://github.com/gradle/gradle-private/issues/3107')
     def "can call disconnect before project connection closed"() {
-        buildFile << """
+        buildFile.text = """
             task hang {
                 doLast {
                     ${server.callFromBuild("waiting")}

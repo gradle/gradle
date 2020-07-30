@@ -1,5 +1,5 @@
 plugins {
-    gradlebuild.distribution.packaging
+    id("gradlebuild.distribution.packaging")
 }
 
 dependencies {

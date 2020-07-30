@@ -19,6 +19,7 @@ package org.gradle.instantexecution
 import org.gradle.api.internal.SettingsInternal
 import org.gradle.configuration.internal.UserCodeApplicationContext
 import org.gradle.instantexecution.fingerprint.InstantExecutionCacheFingerprintController
+import org.gradle.instantexecution.initialization.DefaultInjectedClasspathInstrumentationStrategy
 import org.gradle.instantexecution.initialization.DefaultInstantExecutionProblemsListener
 import org.gradle.instantexecution.initialization.InstantExecutionProblemsListener
 import org.gradle.instantexecution.initialization.InstantExecutionStartParameter
@@ -29,6 +30,8 @@ import org.gradle.internal.build.PublicBuildPath
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.service.ServiceRegistration
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry
+import org.gradle.internal.service.scopes.Scopes
+import org.gradle.internal.service.scopes.ServiceScope
 
 
 class InstantExecutionServices : AbstractPluginServiceRegistry() {
@@ -42,6 +45,7 @@ class InstantExecutionServices : AbstractPluginServiceRegistry() {
         registration.run {
             add(BuildTreeListenerManager::class.java)
             add(InstantExecutionStartParameter::class.java)
+            add(DefaultInjectedClasspathInstrumentationStrategy::class.java)
             add(InstantExecutionCacheKey::class.java)
             add(InstantExecutionReport::class.java)
             add(InstantExecutionProblems::class.java)
@@ -54,6 +58,7 @@ class InstantExecutionServices : AbstractPluginServiceRegistry() {
             add(InstantExecutionBuildScopeListenerManagerAction::class.java)
             add(SystemPropertyAccessListener::class.java)
             add(RelevantProjectsRegistry::class.java)
+            add(InstantExecutionCacheFingerprintController::class.java)
             addProvider(BuildServicesProvider())
         }
     }
@@ -61,7 +66,6 @@ class InstantExecutionServices : AbstractPluginServiceRegistry() {
     override fun registerGradleServices(registration: ServiceRegistration) {
         registration.run {
             add(InstantExecutionCache::class.java)
-            add(InstantExecutionCacheFingerprintController::class.java)
             add(InstantExecutionHost::class.java)
             add(DefaultInstantExecution::class.java)
         }
@@ -85,6 +89,7 @@ class BuildServicesProvider {
 }
 
 
+@ServiceScope(Scopes.BuildTree)
 class BuildTreeListenerManager(
     val service: ListenerManager
 )

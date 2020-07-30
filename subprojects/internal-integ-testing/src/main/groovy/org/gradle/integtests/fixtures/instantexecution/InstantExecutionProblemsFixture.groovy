@@ -200,7 +200,7 @@ final class InstantExecutionProblemsFixture {
         return buildMatcherForProblemsFailureDescription(
             "Configuration cache problems found in this build.\n" +
                 "Gradle can be made to ignore these problems, " +
-                "see ${new DocumentationRegistry().getDocumentationFor("configuration_cache", "ignore_problems")}.",
+                "see ${new DocumentationRegistry().getDocumentationFor("configuration_cache", "config_cache:usage:ignore_problems")}.",
             spec
         )
     }
@@ -209,7 +209,7 @@ final class InstantExecutionProblemsFixture {
         return buildMatcherForProblemsFailureDescription(
             "Maximum number of configuration cache problems has been reached.\n" +
                 "This behavior can be adjusted, " +
-                "see ${new DocumentationRegistry().getDocumentationFor("configuration_cache", "max_problems")}",
+                "see ${new DocumentationRegistry().getDocumentationFor("configuration_cache", "config_cache:usage:max_problems")}",
             spec
         )
     }
@@ -324,8 +324,8 @@ final class InstantExecutionProblemsFixture {
     }
 
     @Nullable
-    private static TestFile resolveInstantExecutionReportDirectory(File rootDir, String output) {
-        def baseDirUri = clickableUrlFor(new File(rootDir, "build/reports/configuration-cache"))
+    static TestFile resolveInstantExecutionReportDirectory(File rootDir, String output, String buildDir = "build") {
+        def baseDirUri = clickableUrlFor(new File(rootDir, "$buildDir/reports/configuration-cache"))
         def pattern = Pattern.compile("See the complete report at (${baseDirUri}.*)$PROBLEMS_REPORT_HTML_FILE_NAME")
         def reportDirUri = output.readLines().findResult { line ->
             def matcher = pattern.matcher(line)

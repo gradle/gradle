@@ -214,6 +214,41 @@ trait TasksWithInputsAndOutputs {
         """
     }
 
+    def taskTypeLogsInputFileCollectionContent() {
+        buildFile << """
+            class ShowFilesTask extends DefaultTask {
+                @InputFiles
+                final ConfigurableFileCollection inFiles = project.files()
+                @TaskAction
+                def go() {
+                    println "result = " + inFiles.files.name
+                }
+            }
+        """
+    }
+
+    def taskTypeLogsArtifactCollectionDetails() {
+        buildFile << """
+            class ShowArtifactCollection extends DefaultTask {
+                @Internal
+                ArtifactCollection collection
+
+                @InputFiles
+                FileCollection getFiles() {
+                    return collection?.artifactFiles
+                }
+
+                @TaskAction
+                def log() {
+                    println("files = \${collection.artifactFiles.files.name}")
+                    println("artifacts = \${collection.artifacts.id}")
+                    println("components = \${collection.artifacts.id.componentIdentifier}")
+                    println("variants = \${collection.artifacts.variant.attributes}")
+                }
+            }
+        """
+    }
+
     def taskTypeWithInputFileListProperty() {
         buildFile << """
             class InputFilesTask extends DefaultTask {

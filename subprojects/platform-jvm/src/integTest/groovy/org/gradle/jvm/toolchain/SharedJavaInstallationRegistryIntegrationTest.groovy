@@ -18,10 +18,12 @@ package org.gradle.jvm.toolchain
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.internal.jvm.Jvm
+import spock.lang.IgnoreIf
 
 class SharedJavaInstallationRegistryIntegrationTest extends AbstractIntegrationSpec {
 
-    def "installation registry empty without environment setup"() {
+    def "installation registry has only current vm without environment setup"() {
         buildFile << """
             import org.gradle.jvm.toolchain.internal.SharedJavaInstallationRegistry;
             import javax.inject.Inject
@@ -41,11 +43,17 @@ class SharedJavaInstallationRegistryIntegrationTest extends AbstractIntegrationS
         """
 
         when:
-        succeeds("show")
+        result = executer
+            .withArgument("-Porg.gradle.java.installations.auto-detect=false")
+            .withTasks("show")
+            .run()
+
         then:
-        outputContains("installations:[]")
+        def currentVm = Jvm.current().getJavaHome().getAbsolutePath()
+        outputContains("installations:[${currentVm}]")
     }
 
+    @IgnoreIf({ AvailableJavaHomes.availableJvms.size() < 2 })
     def "installation registry is populated by environment"() {
         def firstJavaHome = AvailableJavaHomes.availableJvms[0].javaHome.absolutePath
         def secondJavaHome = AvailableJavaHomes.availableJvms[1].javaHome.absolutePath

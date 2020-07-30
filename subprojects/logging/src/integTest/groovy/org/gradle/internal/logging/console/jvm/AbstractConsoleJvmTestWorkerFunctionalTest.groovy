@@ -18,7 +18,6 @@ package org.gradle.internal.logging.console.jvm
 
 import org.gradle.api.logging.configuration.ConsoleOutput
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.RichConsoleStyling
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.ConcurrentTestUtil
@@ -47,11 +46,6 @@ abstract class AbstractConsoleJvmTestWorkerFunctionalTest extends AbstractIntegr
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution(
-        because = "test-ng",
-        skip = ToBeFixedForInstantExecution.Skip.LONG_TIMEOUT,
-        bottomSpecs = "ConsoleTestNGTestWorkerFunctionalTest"
-    )
     def "shows test class execution #description test class name in work-in-progress area of console for single project build"() {
         given:
         buildFile << testableJavaProject(testDependency(), MAX_WORKERS)
@@ -80,11 +74,6 @@ abstract class AbstractConsoleJvmTestWorkerFunctionalTest extends AbstractIntegr
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution(
-        because = "test-ng",
-        skip = ToBeFixedForInstantExecution.Skip.LONG_TIMEOUT,
-        bottomSpecs = "ConsoleTestNGTestWorkerFunctionalTest"
-    )
     def "shows test class execution #description test class name in work-in-progress area of console for multi-project build"() {
         given:
         settingsFile << "include 'project1', 'project2'"

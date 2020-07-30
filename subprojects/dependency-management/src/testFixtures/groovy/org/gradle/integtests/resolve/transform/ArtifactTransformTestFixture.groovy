@@ -378,27 +378,6 @@ allprojects { p ->
 """
     }
 
-    def taskTypeLogsArtifactCollectionDetails() {
-        buildFile << """
-            class ShowArtifactCollection extends DefaultTask {
-                @Internal
-                ArtifactCollection collection
-
-                @InputFiles
-                FileCollection getFiles() {
-                    return collection?.artifactFiles
-                }
-
-                @TaskAction
-                def log() {
-                    println("files = \${collection.artifactFiles.files.name}")
-                    println("artifacts = \${collection.artifacts.id.displayName}")
-                    println("variants = \${collection.artifacts.variant.attributes}")
-                }
-            }
-        """
-    }
-
     static class Builder {
         String producerTaskClassName
         String producerConfig

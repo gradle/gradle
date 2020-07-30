@@ -1,6 +1,6 @@
 // Defines which JARs go into the core part (libs/*.jar) of a Gradle distribution (NOT libs/plugins/*.jar).
 plugins {
-    gradlebuild.platform
+    id("gradlebuild.platform")
 }
 
 javaPlatform.allowDependencies()

@@ -22,7 +22,6 @@ import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import spock.lang.Unroll
 
 class IvyModuleResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
-    @ToBeFixedForInstantExecution
     def "wildcard on LHS of configuration mapping includes all public configurations of target module"() {
         given:
         buildFile << """

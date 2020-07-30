@@ -47,7 +47,7 @@ class StageProject(model: CIBuildModel, gradleBuildBucketProvider: GradleBuildBu
         performanceTests = stage.performanceTests.map { PerformanceTestCoordinator(model, it, stage) }
         performanceTests.forEach(this::buildType)
 
-        val (topLevelCoverage, allCoverage) = stage.functionalTests.partition { it.testType == TestType.soak }
+        val (topLevelCoverage, allCoverage) = stage.functionalTests.partition { it.testType == TestType.soak || it.testDistribution }
         val topLevelFunctionalTests = topLevelCoverage
             .map { FunctionalTest(model, it.asConfigurationId(model), it.asName(), it.asName(), it, stage = stage) }
         topLevelFunctionalTests.forEach(this::buildType)

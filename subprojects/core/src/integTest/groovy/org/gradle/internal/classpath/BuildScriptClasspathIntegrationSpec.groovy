@@ -18,13 +18,13 @@ package org.gradle.internal.classpath
 
 import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.cache.FileAccessTimeJournalFixture
 import org.gradle.integtests.fixtures.executer.ArtifactBuilder
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.junit.Rule
+import spock.lang.Issue
 import spock.lang.Unroll
 
 class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implements FileAccessTimeJournalFixture {
@@ -44,7 +44,6 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
     }
 
     @Unroll("jars on buildscript classpath can change (loopNumber: #loopNumber)")
-    @ToBeFixedForInstantExecution
     def "jars on buildscript classpath can change"() {
         given:
         buildFile << '''
@@ -164,7 +163,6 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
         succeeds("checkUrlConnectionCaching")
     }
 
-    @ToBeFixedForInstantExecution
     def "jars with resources on buildscript classpath can change"() {
         given:
         buildFile << '''
@@ -272,6 +270,21 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
         oldCacheDirs.each {
             it.assertDoesNotExist()
         }
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/13816")
+    def "classpath can contain badly formed jar"() {
+        given:
+        file("broken.jar") << "not a jar"
+        buildFile << """
+            buildscript { dependencies { classpath files("broken.jar") } }
+        """
+
+        when:
+        succeeds()
+
+        then:
+        noExceptionThrown()
     }
 
     void notInJarCache(String filename) {

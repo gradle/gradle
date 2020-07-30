@@ -21,6 +21,8 @@ import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import spock.lang.IgnoreIf
 
 import static org.gradle.internal.enterprise.GradleEnterprisePluginConfig.BuildScanRequest.NONE
+import static org.gradle.internal.enterprise.GradleEnterprisePluginConfig.BuildScanRequest.REQUESTED
+import static org.gradle.internal.enterprise.GradleEnterprisePluginConfig.BuildScanRequest.SUPPRESSED
 
 // Note: most of the other tests are structure to implicitly also exercise configuration caching
 // This tests some specific aspects, and serves as an early smoke test.
@@ -74,4 +76,94 @@ class GradleEnterprisePluginConfigurationCachingIntegrationTest extends Abstract
         firstInvocationId != secondInvocationId
     }
 
+    def "--scan does not auto apply plugin for build from cache"() {
+        when:
+        succeeds "t", "--configuration-cache", "--scan"
+
+        then:
+        plugin.appliedOnce(output)
+        plugin.assertBuildScanRequest(output, REQUESTED)
+
+        when:
+        succeeds "t", "--configuration-cache", "--scan"
+
+        // If this stops working and the auto apply does happen,
+        // the above will fail as the check in point is only expecting one plugin
+        // and two will check in.
+
+        then:
+        plugin.notApplied(output)
+        plugin.assertBuildScanRequest(output, REQUESTED)
+    }
+
+    def "does not consider scan arg part of key and provides value to service"() {
+        when:
+        succeeds "t", "--configuration-cache"
+
+        then:
+        plugin.appliedOnce(output)
+        plugin.assertBuildScanRequest(output, NONE)
+
+        when:
+        succeeds "t", "--configuration-cache", "--scan"
+
+        then:
+        plugin.notApplied(output)
+        plugin.assertBuildScanRequest(output, REQUESTED)
+
+        when:
+        succeeds "t", "--configuration-cache", "--no-scan"
+
+        then:
+        plugin.notApplied(output)
+        plugin.assertBuildScanRequest(output, SUPPRESSED)
+    }
+
+    def "can use input handler when from cache"() {
+        given:
+        buildFile << """
+            def serviceRef = gradle.serviceRef
+            task read {
+                doLast {
+                    def response =  serviceRef.get()._requiredServices.userInputHandler.askYesNoQuestion("there?")
+                    println "response: \$response"
+                }
+            }
+        """
+
+        when:
+        executer.withForceInteractive(true).withStdIn("yes\n")
+        succeeds "read", "--configuration-cache"
+
+        then:
+        output.contains("response: true")
+
+        when:
+        executer.withForceInteractive(true).withStdIn("no\n")
+        succeeds "read", "--configuration-cache"
+
+        then:
+        output.contains("response: false")
+    }
+
+    def "exposes correct start parameter"() {
+        given:
+        buildFile << """
+            def serviceRef = gradle.serviceRef
+            t.doLast {
+                println "offline: " + serviceRef.get()._buildState.startParameter.offline
+            }
+        """
+        when:
+        succeeds "t", "--configuration-cache"
+
+        then:
+        output.contains("offline: false")
+
+        when:
+        succeeds "t", "--configuration-cache", "--offline"
+
+        then:
+        output.contains("offline: true")
+    }
 }

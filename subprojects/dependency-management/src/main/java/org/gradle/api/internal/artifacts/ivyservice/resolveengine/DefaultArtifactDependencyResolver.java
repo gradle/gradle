@@ -52,6 +52,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflict
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.ModuleConflictHandler;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.RejectRemainingCandidates;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.UserConfiguredCapabilityResolver;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorFactory;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
@@ -89,6 +90,7 @@ public class DefaultArtifactDependencyResolver implements ArtifactDependencyReso
     private final VersionParser versionParser;
     private final ComponentMetadataSupplierRuleExecutor componentMetadataSupplierRuleExecutor;
     private final Instantiator instantiator;
+    private final ComponentSelectionDescriptorFactory componentSelectionDescriptorFactory;
 
     public DefaultArtifactDependencyResolver(BuildOperationExecutor buildOperationExecutor,
                                              List<ResolverProviderFactory> resolverFactories,
@@ -102,7 +104,8 @@ public class DefaultArtifactDependencyResolver implements ArtifactDependencyReso
                                              VersionSelectorScheme versionSelectorScheme,
                                              VersionParser versionParser,
                                              ComponentMetadataSupplierRuleExecutor componentMetadataSupplierRuleExecutor,
-                                             InstantiatorFactory instantiatorFactory) {
+                                             InstantiatorFactory instantiatorFactory,
+                                             ComponentSelectionDescriptorFactory componentSelectionDescriptorFactory) {
         this.resolverFactories = resolverFactories;
         this.projectDependencyResolver = projectDependencyResolver;
         this.ivyFactory = ivyFactory;
@@ -116,6 +119,7 @@ public class DefaultArtifactDependencyResolver implements ArtifactDependencyReso
         this.versionParser = versionParser;
         this.componentMetadataSupplierRuleExecutor = componentMetadataSupplierRuleExecutor;
         this.instantiator = instantiatorFactory.decorateScheme().instantiator();
+        this.componentSelectionDescriptorFactory = componentSelectionDescriptorFactory;
     }
 
     @Override
@@ -148,7 +152,13 @@ public class DefaultArtifactDependencyResolver implements ArtifactDependencyReso
 
     }
 
-    private DependencyGraphBuilder createDependencyGraphBuilder(ComponentResolversChain componentSource, ResolutionStrategyInternal resolutionStrategy, GlobalDependencyResolutionRules globalRules, Spec<? super DependencyMetadata> edgeFilter, AttributesSchemaInternal attributesSchema, ModuleExclusions moduleExclusions, BuildOperationExecutor buildOperationExecutor) {
+    private DependencyGraphBuilder createDependencyGraphBuilder(ComponentResolversChain componentSource,
+                                                                ResolutionStrategyInternal resolutionStrategy,
+                                                                GlobalDependencyResolutionRules globalRules,
+                                                                Spec<? super DependencyMetadata> edgeFilter,
+                                                                AttributesSchemaInternal attributesSchema,
+                                                                ModuleExclusions moduleExclusions,
+                                                                BuildOperationExecutor buildOperationExecutor) {
 
         DependencyToComponentIdResolver componentIdResolver = componentSource.getComponentIdResolver();
         ComponentMetaDataResolver componentMetaDataResolver = new ClientModuleResolver(componentSource.getComponentResolver(), dependencyDescriptorFactory);
@@ -167,7 +177,7 @@ public class DefaultArtifactDependencyResolver implements ArtifactDependencyReso
         if (Actions.<DependencySubstitution>doNothing() == rule) {
             applicator = NO_OP;
         } else {
-            applicator = new CachingDependencySubstitutionApplicator(new DefaultDependencySubstitutionApplicator(rule, instantiator));
+            applicator = new CachingDependencySubstitutionApplicator(new DefaultDependencySubstitutionApplicator(componentSelectionDescriptorFactory, rule, instantiator));
         }
         return applicator;
     }

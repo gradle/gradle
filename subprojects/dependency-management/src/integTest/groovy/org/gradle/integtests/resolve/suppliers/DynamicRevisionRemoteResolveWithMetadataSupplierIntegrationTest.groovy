@@ -154,7 +154,7 @@ class DynamicRevisionRemoteResolveWithMetadataSupplierIntegrationTest extends Ab
         }
 
         then:
-        checkResolve "group:projectA:1.+":  ["group:projectA:1.2", "didn't match version 2.0"], "group:projectB:latest.release": ["group:projectB:1.1", "didn't match version 2.2"]
+        checkResolve "group:projectA:1.+": ["group:projectA:1.2", "didn't match version 2.0"], "group:projectB:latest.release": ["group:projectB:1.1", "didn't match version 2.2"]
 
         when: "publish a new integration version"
         resetExpectations()
@@ -181,7 +181,7 @@ class DynamicRevisionRemoteResolveWithMetadataSupplierIntegrationTest extends Ab
             }
         }
         supplierInteractions.refresh('group:projectB:2.2', 'group:projectB:1.1')
-        checkResolve "group:projectA:1.+":  ["group:projectA:1.2", "didn't match version 2.0"], "group:projectB:latest.release": ["group:projectB:1.1", "didn't match versions 2.3, 2.2"]
+        checkResolve "group:projectA:1.+": ["group:projectA:1.2", "didn't match version 2.0"], "group:projectB:latest.release": ["group:projectB:1.1", "didn't match versions 2.3, 2.2"]
     }
 
     @ToBeFixedForInstantExecution
@@ -214,7 +214,7 @@ class DynamicRevisionRemoteResolveWithMetadataSupplierIntegrationTest extends Ab
         }
 
         then:
-        checkResolve "group:projectA:1.+":  ["group:projectA:1.2", "didn't match version 2.0"], "group:projectB:latest.release": ["group:projectB:1.1", "didn't match version 2.2"]
+        checkResolve "group:projectA:1.+": ["group:projectA:1.2", "didn't match version 2.0"], "group:projectB:latest.release": ["group:projectB:1.1", "didn't match version 2.2"]
 
         when: "publish a new integration version"
         resetExpectations()
@@ -333,7 +333,7 @@ class DynamicRevisionRemoteResolveWithMetadataSupplierIntegrationTest extends Ab
         }
 
         then: "recovers from previous --offline mode"
-        checkResolve "group:projectA:1.+":  ["group:projectA:1.2", "didn't match version 2.0"], "group:projectB:latest.release": ["group:projectB:1.1", "didn't match version 2.2"]
+        checkResolve "group:projectA:1.+": ["group:projectA:1.2", "didn't match version 2.0"], "group:projectB:latest.release": ["group:projectB:1.1", "didn't match version 2.2"]
     }
 
     @ToBeFixedForInstantExecution
@@ -595,7 +595,7 @@ class DynamicRevisionRemoteResolveWithMetadataSupplierIntegrationTest extends Ab
     }
 
 
-    @RequiredFeature(feature=GradleMetadataResolveRunner.REPOSITORY_TYPE, value="ivy")
+    @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "ivy")
     def "custom metadata provider doesn't have to do something"() {
         given:
         buildFile << """
@@ -699,7 +699,7 @@ group:projectB:2.2;integration
         }
 
         then: "custom metadata rule prevented parsing of ivy descriptor"
-        checkResolve "group:projectA:1.+":  ["group:projectA:1.2", "didn't match version 2.0"], "group:projectB:latest.release": ["group:projectB:1.1", "didn't match version 2.2"]
+        checkResolve "group:projectA:1.+": ["group:projectA:1.2", "didn't match version 2.0"], "group:projectB:latest.release": ["group:projectB:1.1", "didn't match version 2.2"]
         outputContains 'Providing metadata for group:projectB:2.2'
         outputContains 'Providing metadata for group:projectB:1.1'
         outputDoesNotContain('Providing metadata for group:projectA:1.1')
@@ -710,7 +710,7 @@ group:projectB:2.2;integration
 
         when: "resolving the same dependencies"
         server.expectHead("/repo/status.txt", statusFile)
-        checkResolve "group:projectA:1.+":  ["group:projectA:1.2", "didn't match version 2.0"], "group:projectB:latest.release": ["group:projectB:1.1", "didn't match version 2.2"]
+        checkResolve "group:projectA:1.+": ["group:projectA:1.2", "didn't match version 2.0"], "group:projectB:latest.release": ["group:projectB:1.1", "didn't match version 2.2"]
 
         then: "should get the result from cache"
         outputDoesNotContain('Parsing status file call count')
@@ -781,7 +781,7 @@ group:projectB:2.2;release
         }
 
         then: "custom metadata rule prevented parsing of ivy descriptor"
-        checkResolve "group:projectA:1.+":  ["group:projectA:1.2", "didn't match version 2.0"], "group:projectB:latest.release": ["group:projectB:1.1", "didn't match version 2.2"]
+        checkResolve "group:projectA:1.+": ["group:projectA:1.2", "didn't match version 2.0"], "group:projectB:latest.release": ["group:projectB:1.1", "didn't match version 2.2"]
 
         when:
         executer.withArgument('--refresh-dependencies')
@@ -805,7 +805,7 @@ group:projectB:2.2;release
             }
         }
         supplierInteractions.refresh('group:projectB:2.2', 'group:projectB:1.1')
-        checkResolve "group:projectA:1.+":  ["group:projectA:1.2", "didn't match version 2.0"], "group:projectB:latest.release": ["group:projectB:1.1", "didn't match version 2.2"]
+        checkResolve "group:projectA:1.+": ["group:projectA:1.2", "didn't match version 2.0"], "group:projectB:latest.release": ["group:projectB:1.1", "didn't match version 2.2"]
     }
 
     def "component metadata rules are executed after metadata supplier is called"() {
@@ -864,15 +864,15 @@ group:projectB:2.2;release
         outputContains "Changing status for group:projectB:1.1 from 'should be overridden by rule' to 'release'"
 
         // second one comes from the rule executed on "real" metadata, after parsing the module
-        outputContains "Changing status for group:projectB:1.1 from '${GradleMetadataResolveRunner.useIvy()?'integration':'release'}' to 'release'"
+        outputContains "Changing status for group:projectB:1.1 from '${GradleMetadataResolveRunner.useIvy() ? 'integration' : 'release'}' to 'release'"
     }
 
     def "can use a custom metadata provider to expose components with custom attributes"() {
         given:
         withSupplierWithAttributes([
-                'projectA:1.2': [:],
-                'projectB:2.2': ['ProjectInternal.STATUS_ATTRIBUTE': '"integration"'],
-                'projectB:1.1': ['ProjectInternal.STATUS_ATTRIBUTE': '"release"']
+            'projectA:1.2': [:],
+            'projectB:2.2': ['ProjectInternal.STATUS_ATTRIBUTE': '"integration"'],
+            'projectB:1.1': ['ProjectInternal.STATUS_ATTRIBUTE': '"release"']
         ])
 
         when:
@@ -901,9 +901,9 @@ group:projectB:2.2;release
     def "can use a custom metadata provider to perform selection using attributes without fetching component metadata"() {
         given:
         withSupplierWithAttributes([
-                'projectA:1.2': [:],
-                'projectB:2.2': ['ProjectInternal.STATUS_ATTRIBUTE': '"release"', 'MyAttributes.CUSTOM_STR': '"v1"'],
-                'projectB:1.1': ['ProjectInternal.STATUS_ATTRIBUTE': '"release"', 'MyAttributes.CUSTOM_STR': '"v2"']
+            'projectA:1.2': [:],
+            'projectB:2.2': ['ProjectInternal.STATUS_ATTRIBUTE': '"release"', 'MyAttributes.CUSTOM_STR': '"v1"'],
+            'projectB:1.1': ['ProjectInternal.STATUS_ATTRIBUTE': '"release"', 'MyAttributes.CUSTOM_STR': '"v2"']
         ])
 
         buildFile << """
@@ -934,7 +934,7 @@ group:projectB:2.2;release
         }
 
         then: "custom metadata rule prevented parsing of ivy descriptor"
-        checkResolve "group:projectA:1.+":["group:projectA:1.2", "didn't match version 2.0"], "group:projectB:latest.release": ["group:projectB:1.1", "rejection: version 2.2:   - Attribute 'custom string' didn't match. Requested 'v2', was: 'v1'"]
+        checkResolve "group:projectA:1.+": ["group:projectA:1.2", "didn't match version 2.0"], "group:projectB:latest.release": ["group:projectB:1.1", "rejection: version 2.2:   - Attribute 'custom string' didn't match. Requested 'v2', was: 'v1'"]
         outputContains 'Providing metadata for group:projectB:2.2'
         outputContains 'Providing metadata for group:projectB:1.1'
 
@@ -951,9 +951,9 @@ group:projectB:2.2;release
     def "user provided attributes are properly coerced to typed attributes"() {
         given:
         withSupplierWithAttributes([
-                'projectA:1.2': [:],
-                'projectB:2.2': ['ProjectInternal.STATUS_ATTRIBUTE': '"release"', 'MyAttributes.CUSTOM_STR': '"v1"'],
-                'projectB:1.1': ['ProjectInternal.STATUS_ATTRIBUTE': '"release"', 'MyAttributes.CUSTOM_STR': '"v2"']
+            'projectA:1.2': [:],
+            'projectB:2.2': ['ProjectInternal.STATUS_ATTRIBUTE': '"release"', 'MyAttributes.CUSTOM_STR': '"v1"'],
+            'projectB:1.1': ['ProjectInternal.STATUS_ATTRIBUTE': '"release"', 'MyAttributes.CUSTOM_STR': '"v2"']
         ])
 
         buildFile << """
@@ -1272,7 +1272,7 @@ group:projectB:2.2;release
           import javax.inject.Inject
           import org.gradle.api.artifacts.CacheableRule
 
-          ${cacheable?'@CacheableRule':''}
+          ${cacheable ? '@CacheableRule' : ''}
           class MP implements ComponentMetadataSupplier {
 
             final RepositoryResourceAccessor repositoryResourceAccessor
@@ -1362,6 +1362,7 @@ group:projectB:2.2;release
 
     interface SupplierInteractions {
         void expectGetStatus(HttpModule module, String status, boolean broken)
+
         void refresh(String... modules)
     }
 

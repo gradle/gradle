@@ -16,11 +16,11 @@
 package org.gradle.scala.compile
 
 import org.gradle.integtests.fixtures.AvailableJavaHomes
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.ScalaCoverage
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.TestResources
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.internal.hash.Hashing
 import org.gradle.test.fixtures.file.ClassFile
 import org.gradle.util.VersionNumber
@@ -32,9 +32,10 @@ import static org.gradle.util.TextUtil.escapeString
 import static org.gradle.util.TextUtil.normaliseFileSeparators
 import static org.hamcrest.core.IsNull.notNullValue
 
-@TargetCoverage({ScalaCoverage.DEFAULT})
+@TargetCoverage({ ScalaCoverage.DEFAULT })
 class ZincScalaCompilerIntegrationTest extends MultiVersionIntegrationSpec {
-    @Rule TestResources testResources = new TestResources(temporaryFolder)
+    @Rule
+    TestResources testResources = new TestResources(temporaryFolder)
 
     def setup() {
         args("-PscalaVersion=$version")
@@ -136,7 +137,7 @@ class ZincScalaCompilerIntegrationTest extends MultiVersionIntegrationSpec {
 
         and:
         buildFile <<
-"""
+            """
 compileScala.scalaCompileOptions.failOnError = false
 """
 
@@ -168,7 +169,7 @@ compileScala.scalaCompileOptions.failOnError = false
                 sourceCompatibility = JavaVersion.${differentJvm.javaVersion.name()}
                 targetCompatibility = JavaVersion.${differentJvm.javaVersion.name()}
             }
-            
+
             tasks.withType(ScalaCompile) {
                 options.forkOptions.executable = "${differentJavaExecutablePath}"
                 options.forkOptions.memoryInitialSize = "128m"
@@ -197,14 +198,13 @@ compileScala.scalaCompileOptions.failOnError = false
 
     }
 
-    @ToBeFixedForInstantExecution
     def compileWithSpecifiedEncoding() {
         given:
         goodCodeEncodedWith("ISO8859_7")
 
         and:
         buildFile <<
-"""
+            """
 apply plugin: "application"
 mainClassName = "Main"
 compileScala.scalaCompileOptions.encoding = "ISO8859_7"
@@ -230,7 +230,7 @@ compileScala.scalaCompileOptions.encoding = "ISO8859_7"
 
         when:
         buildFile <<
-"""
+            """
 compileScala.scalaCompileOptions.debugLevel = "line"
 """
         run("compileScala")
@@ -242,11 +242,13 @@ compileScala.scalaCompileOptions.debugLevel = "line"
         !linesOnly.debugIncludesLocalVariables
 
         // older versions of scalac Ant task don't handle 'none' correctly
-        if (versionNumber < VersionNumber.parse("2.10.0-AAA")) { return }
+        if (versionNumber < VersionNumber.parse("2.10.0-AAA")) {
+            return
+        }
 
         when:
         buildFile <<
-"""
+            """
 compileScala.scalaCompileOptions.debugLevel = "none"
 """
         run("compileScala")
@@ -259,7 +261,7 @@ compileScala.scalaCompileOptions.debugLevel = "none"
     }
 
     def buildScript() {
-"""
+        """
 apply plugin: "scala"
 
 repositories {
@@ -274,7 +276,7 @@ dependencies {
 
     def goodCode() {
         file("src/main/scala/compile/test/Person.scala") <<
-"""
+            """
 package compile.test
 
 class Person(val name: String, val age: Int) {
@@ -282,7 +284,7 @@ class Person(val name: String, val age: Int) {
 }
 """
         file("src/main/scala/compile/test/Person2.scala") <<
-"""
+            """
 package compile.test
 
 class Person2(name: String, age: Int) extends Person(name, age) {
@@ -292,7 +294,7 @@ class Person2(name: String, age: Int) extends Person(name, age) {
 
     def goodCodeEncodedWith(String encoding) {
         def code =
-"""
+            """
 import java.io.{FileOutputStream, File, OutputStreamWriter}
 
 object Main {
@@ -318,7 +320,7 @@ object Main {
 
     def badCode() {
         file("src/main/scala/compile/test/Person.scala") <<
-"""
+            """
 package compile.test
 
 class Person(val name: String, val age: Int) {
@@ -424,7 +426,7 @@ class Person(val name: String, val age: Int) {
         def dir = file.parentFile
         def name = file.name - '.class'
         def hasher = Hashing.md5().newHasher()
-        dir.listFiles().findAll { it.name.startsWith(name) && it.name.endsWith('.class')}.sort().each {
+        dir.listFiles().findAll { it.name.startsWith(name) && it.name.endsWith('.class') }.sort().each {
             hasher.putBytes(it.bytes)
         }
         hasher.hash()

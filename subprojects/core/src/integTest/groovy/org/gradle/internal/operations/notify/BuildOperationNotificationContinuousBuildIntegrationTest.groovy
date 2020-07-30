@@ -24,7 +24,7 @@ class BuildOperationNotificationContinuousBuildIntegrationTest extends AbstractC
 
     def notifications = new BuildOperationNotificationFixture(testDirectory)
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "run1.id == run2.id")
     def "obtains notifications about init scripts"() {
         when:
         settingsFile << notifications.registerListener()

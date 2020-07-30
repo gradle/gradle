@@ -26,7 +26,6 @@ import org.gradle.internal.hash.FileHasher
 import org.gradle.internal.nativeintegration.filesystem.FileSystem
 import org.gradle.internal.vfs.RoutingVirtualFileSystem
 import org.gradle.internal.vfs.VirtualFileSystem
-import org.gradle.internal.watch.vfs.WatchingAwareVirtualFileSystem
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -70,29 +69,5 @@ class VirtualFileSystemServicesTest extends Specification {
 
         where:
         watchFsEnabled << [true, false]
-    }
-
-    def "global virtual file system is informed about watching the file system being #watchFsEnabledString"() {
-        _ * startParameter.getSystemPropertiesArgs() >> [:]
-        _ * startParameter.getCurrentDir() >> new File("current/dir").absoluteFile
-        _ * gradle.getStartParameter() >> startParameter
-        _ * startParameter.isWatchFileSystem() >> watchFsEnabled
-        def virtualFileSystem = Mock(WatchingAwareVirtualFileSystem)
-
-        def buildLifecycleListener = new VirtualFileSystemBuildLifecycleListener(virtualFileSystem)
-
-        when:
-        buildLifecycleListener.afterStart(gradle)
-        then:
-        1 * virtualFileSystem.afterBuildStarted(watchFsEnabled)
-
-        when:
-        buildLifecycleListener.beforeComplete(gradle)
-        then:
-        1 * virtualFileSystem.beforeBuildFinished(watchFsEnabled)
-
-        where:
-        watchFsEnabled << [true, false]
-        watchFsEnabledString = watchFsEnabled ? "enabled" : "disabled"
     }
 }

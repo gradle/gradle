@@ -20,7 +20,10 @@ import org.gradle.StartParameter;
 import org.gradle.api.internal.BuildType;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.internal.enterprise.GradleEnterprisePluginConfig;
+import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.ServiceScope;
 
+@ServiceScope(Scopes.BuildTree)
 public class DefaultGradleEnterprisePluginConfig implements GradleEnterprisePluginConfig {
 
     private final BuildScanRequest buildScanRequest;

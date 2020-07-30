@@ -38,7 +38,8 @@ public class DefaultGradleEnterprisePluginAdapter implements GradleEnterprisePlu
     private final BuildOperationNotificationListenerRegistrar buildOperationNotificationListenerRegistrar;
 
     private GradleEnterprisePluginServiceFactory pluginServiceFactory;
-    private GradleEnterprisePluginService pluginService;
+
+    private transient GradleEnterprisePluginService pluginService;
 
     public DefaultGradleEnterprisePluginAdapter(
         GradleEnterprisePluginConfig config,
@@ -61,7 +62,7 @@ public class DefaultGradleEnterprisePluginAdapter implements GradleEnterprisePlu
     }
 
     @Override
-    public boolean isConfigurationCacheCompatible() {
+    public boolean shouldSaveToConfigurationCache() {
         return true;
     }
 
@@ -86,7 +87,6 @@ public class DefaultGradleEnterprisePluginAdapter implements GradleEnterprisePlu
     private void createPluginService() {
         pluginService = pluginServiceFactory.create(config, requiredServices, buildState);
         pluginServiceRef.set(pluginService);
-
         buildOperationNotificationListenerRegistrar.register(pluginService.getBuildOperationNotificationListener());
     }
 

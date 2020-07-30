@@ -17,6 +17,9 @@
 package org.gradle.instantexecution.serialization
 
 import org.gradle.api.internal.GeneratedSubclasses
+import org.gradle.instantexecution.problems.DocumentationSection
+import org.gradle.instantexecution.problems.DocumentationSection.NotYetImplemented
+import org.gradle.instantexecution.problems.DocumentationSection.RequirementsDisallowedTypes
 
 import org.gradle.instantexecution.problems.PropertyProblem
 import org.gradle.instantexecution.problems.StructuredMessage
@@ -28,8 +31,13 @@ import kotlin.reflect.KClass
 typealias StructuredMessageBuilder = StructuredMessage.Builder.() -> Unit
 
 
-fun IsolateContext.logPropertyProblem(action: String, exception: Throwable? = null, message: StructuredMessageBuilder) {
-    logPropertyProblem(action, PropertyProblem(trace, build(message), exception))
+fun IsolateContext.logPropertyProblem(
+    action: String,
+    exception: Throwable? = null,
+    documentationSection: DocumentationSection? = null,
+    message: StructuredMessageBuilder
+) {
+    logPropertyProblem(action, PropertyProblem(trace, build(message), exception, documentationSection))
 }
 
 
@@ -38,11 +46,12 @@ fun IsolateContext.logPropertyInfo(action: String, value: Any?) {
 }
 
 
+internal
 fun IsolateContext.logUnsupported(
     action: String,
     baseType: KClass<*>,
     actualType: Class<*>,
-    documentationSection: String = "config_cache:requirements:disallowed_types"
+    documentationSection: DocumentationSection = RequirementsDisallowedTypes
 ) {
     logPropertyProblem(action, PropertyProblem(trace,
         build {
@@ -57,10 +66,11 @@ fun IsolateContext.logUnsupported(
 }
 
 
+internal
 fun IsolateContext.logUnsupported(
     action: String,
     baseType: KClass<*>,
-    documentationSection: String = "config_cache:requirements:disallowed_types"
+    documentationSection: DocumentationSection = RequirementsDisallowedTypes
 ) {
     logPropertyProblem(action, PropertyProblem(trace,
         build {
@@ -82,7 +92,8 @@ fun IsolateContext.logNotImplemented(baseType: Class<*>) {
 }
 
 
-fun IsolateContext.logNotImplemented(feature: String, documentationSection: String = "config_cache:not_yet_implemented") {
+internal
+fun IsolateContext.logNotImplemented(feature: String, documentationSection: DocumentationSection = NotYetImplemented) {
     onProblem(PropertyProblem(trace, build {
         text("support for $feature is not yet implemented with the configuration cache.")
     }, null, documentationSection))
@@ -90,7 +101,7 @@ fun IsolateContext.logNotImplemented(feature: String, documentationSection: Stri
 
 
 private
-fun IsolateContext.logPropertyProblem(documentationSection: String? = null, message: StructuredMessageBuilder) {
+fun IsolateContext.logPropertyProblem(documentationSection: DocumentationSection? = null, message: StructuredMessageBuilder) {
     val problem = PropertyProblem(trace, build(message), null, documentationSection)
     logPropertyProblem("serialize", problem)
 }

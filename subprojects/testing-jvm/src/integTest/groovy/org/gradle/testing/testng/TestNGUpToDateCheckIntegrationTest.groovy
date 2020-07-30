@@ -17,7 +17,6 @@
 package org.gradle.testing.testng
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.testing.fixture.TestNGCoverage
 import spock.lang.Issue
 import spock.lang.Unroll
@@ -46,7 +45,6 @@ class TestNGUpToDateCheckIntegrationTest extends AbstractIntegrationSpec {
 
     @Unroll
     @Issue('https://github.com/gradle/gradle/issues/4924')
-    @ToBeFixedForInstantExecution
     def 'test task is up-to-date when #property is changed because it should not impact output'() {
         given:
         TestNGCoverage.enableTestNG(buildFile)
@@ -90,7 +88,6 @@ class TestNGUpToDateCheckIntegrationTest extends AbstractIntegrationSpec {
 
     @Unroll
     @Issue('https://github.com/gradle/gradle/issues/4924')
-    @ToBeFixedForInstantExecution
     def "re-executes test when #property is changed"() {
         given:
         TestNGCoverage.enableTestNG(buildFile)

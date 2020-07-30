@@ -16,27 +16,33 @@
 
 package org.gradle.api.internal.tasks.testing;
 
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.initialization.ClassLoaderIds;
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
-import org.gradle.api.tasks.testing.Test;
 import org.gradle.internal.Factory;
 import org.gradle.internal.classpath.DefaultClassPath;
 
-public class TestClassLoaderFactory implements Factory<ClassLoader> {
-    private final ClassLoaderCache classLoaderCache;
-    private final Test testTask;
-    private ClassLoader testClassLoader;
+import javax.inject.Inject;
 
-    public TestClassLoaderFactory(ClassLoaderCache classLoaderCache, Test testTask) {
+public class TestClassLoaderFactory implements Factory<ClassLoader> {
+
+    private final ClassLoaderCache classLoaderCache;
+    private final String testTaskPath;
+    private final FileCollection testTaskClasspath;
+
+    @Inject
+    public TestClassLoaderFactory(
+        ClassLoaderCache classLoaderCache,
+        String testTaskPath,
+        FileCollection testTaskClasspath
+    ) {
         this.classLoaderCache = classLoaderCache;
-        this.testTask = testTask;
+        this.testTaskPath = testTaskPath;
+        this.testTaskClasspath = testTaskClasspath;
     }
 
     @Override
     public ClassLoader create() {
-        if (testClassLoader == null) {
-            testClassLoader = classLoaderCache.get(ClassLoaderIds.testTaskClasspath(testTask.getPath()), DefaultClassPath.of(testTask.getClasspath()), null, null);
-        }
-        return testClassLoader;
+        return classLoaderCache.get(ClassLoaderIds.testTaskClasspath(testTaskPath), DefaultClassPath.of(testTaskClasspath), null, null);
     }
 }

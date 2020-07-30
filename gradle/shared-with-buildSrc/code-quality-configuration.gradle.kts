@@ -47,7 +47,7 @@ fun Project.configureCheckstyle(codeQualityConfigDir: File) {
 
 fun getIntegrationTestFixturesRule(): Class<*>? {
     try {
-        return Class.forName("org.gradle.gradlebuild.buildquality.codenarc.IntegrationTestFixturesRule", false, this.javaClass.classLoader)
+        return Class.forName("gradlebuild.codenarc.rules.IntegrationTestFixturesRule", false, this.javaClass.classLoader)
     } catch (e: Throwable) {
         return null
     }
@@ -82,7 +82,7 @@ fun Project.configureCodenarc(codeQualityConfigDir: File) {
 
 
 fun Project.configureCodeQualityTasks() {
-    val codeQualityTasks = tasks.matching { it is CodeNarc || it is Checkstyle || it.name == "classycle" }
+    val codeQualityTasks = tasks.matching { it is CodeNarc || it is Checkstyle || it.name == "classycle" || it is ValidatePlugins }
     tasks.register("codeQuality").configure {
         dependsOn(codeQualityTasks)
     }
@@ -104,7 +104,6 @@ open class CodeNarcRule : ComponentMetadataRule {
             withDependencies {
                 removeAll { it.group == "org.codehaus.groovy" }
                 add("org.gradle.groovy:groovy-all") {
-                    // TODO This must match the version number in dependencies.gradle
                     version { prefer("1.3-" + groovy.lang.GroovySystem.getVersion()) }
                     because("We use groovy-all everywhere")
                 }

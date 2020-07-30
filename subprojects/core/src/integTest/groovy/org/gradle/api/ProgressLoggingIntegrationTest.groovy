@@ -34,7 +34,7 @@ class ProgressLoggingIntegrationTest extends AbstractIntegrationSpec {
         events.progressLogged("Task :help")
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "buildSrc is skipped")
     def "generates buildSrc progress events when there is a nested buildSrc build"() {
         when:
         run()

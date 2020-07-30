@@ -46,7 +46,7 @@ abstract class AbstractFileWatcherUpdaterTest extends Specification {
     TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
 
     def watcher = Mock(FileWatcher)
-    def directorySnapshotter = new DirectorySnapshotter(TestFiles.fileHasher(), new StringInterner())
+    def directorySnapshotter = new DirectorySnapshotter(TestFiles.fileHasher(), new StringInterner(), [])
     def decorator = new DelegatingDiffCapturingUpdateFunctionDecorator({ String path -> true})
     def root = DefaultSnapshotHierarchy.empty(CaseSensitivity.CASE_SENSITIVE)
 

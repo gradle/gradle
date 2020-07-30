@@ -160,6 +160,6 @@ class ContinuousBuildActionExecuterTest extends ConcurrentSpec {
     }
 
     private ContinuousBuildActionExecuter executer() {
-        new ContinuousBuildActionExecuter(delegate, waiterFactory, inputsListeners, new TestStyledTextOutputFactory(), executorFactory)
+        new ContinuousBuildActionExecuter(waiterFactory, inputsListeners, new TestStyledTextOutputFactory(), executorFactory, delegate)
     }
 }

@@ -67,12 +67,16 @@ public abstract class AbstractMutableModuleComponentResolveMetadata implements M
     private final AttributesSchemaInternal schema;
 
     private final VariantMetadataRules variantMetadataRules;
+    private final VariantDerivationStrategy variantDerivationStrategy;
 
     private List<MutableComponentVariant> newVariants;
     private ImmutableList<? extends ComponentVariant> variants;
     private Set<VirtualComponentIdentifier> owners;
 
-    protected AbstractMutableModuleComponentResolveMetadata(ImmutableAttributesFactory attributesFactory, ModuleVersionIdentifier moduleVersionId, ModuleComponentIdentifier componentIdentifier, AttributesSchemaInternal schema) {
+    protected AbstractMutableModuleComponentResolveMetadata(ImmutableAttributesFactory attributesFactory,
+                                                            ModuleVersionIdentifier moduleVersionId,
+                                                            ModuleComponentIdentifier componentIdentifier,
+                                                            AttributesSchemaInternal schema) {
         this.attributesFactory = attributesFactory;
         this.componentId = componentIdentifier;
         this.moduleVersionId = moduleVersionId;
@@ -80,6 +84,7 @@ public abstract class AbstractMutableModuleComponentResolveMetadata implements M
         this.schema = schema;
         this.variantMetadataRules = new VariantMetadataRules(attributesFactory, moduleVersionId);
         this.moduleSources = new MutableModuleSources();
+        this.variantDerivationStrategy = NoOpDerivationStrategy.getInstance();
     }
 
     protected AbstractMutableModuleComponentResolveMetadata(ModuleComponentResolveMetadata metadata) {
@@ -93,8 +98,8 @@ public abstract class AbstractMutableModuleComponentResolveMetadata implements M
         this.attributesFactory = metadata.getAttributesFactory();
         this.schema = metadata.getAttributesSchema();
         this.componentLevelAttributes = attributesFactory.mutable(metadata.getAttributes());
+        this.variantDerivationStrategy = metadata.getVariantDerivationStrategy();
         this.variantMetadataRules = new VariantMetadataRules(attributesFactory, moduleVersionId);
-        this.variantMetadataRules.setVariantDerivationStrategy(metadata.getVariantMetadataRules().getVariantDerivationStrategy());
     }
 
     private static AttributeContainerInternal defaultAttributes(ImmutableAttributesFactory attributesFactory) {
@@ -115,6 +120,10 @@ public abstract class AbstractMutableModuleComponentResolveMetadata implements M
     public void setId(ModuleComponentIdentifier componentId) {
         this.componentId = componentId;
         this.moduleVersionId = DefaultModuleVersionIdentifier.newId(componentId);
+    }
+
+    public VariantDerivationStrategy getVariantDerivationStrategy() {
+        return variantDerivationStrategy;
     }
 
     @Override

@@ -31,7 +31,7 @@ class ToBeFixedForFileSystemWatchingRule implements TestRule {
     Statement apply(Statement base, Description description) {
         def annotation = description.getAnnotation(ToBeFixedForFileSystemWatching.class) ?: description.getTestClass().getAnnotation(ToBeFixedForFileSystemWatching.class)
         if (GradleContextualExecuter.isWatchFs() && annotation != null && annotation.failsOnlyIf().fulfilled) {
-            Assume.assumeFalse("Test needs to be fixed for instant execution", true)
+            Assume.assumeFalse("Test needs to be fixed for file system watching", true)
         }
         return base
     }

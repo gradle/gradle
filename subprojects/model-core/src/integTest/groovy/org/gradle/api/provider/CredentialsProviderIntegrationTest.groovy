@@ -16,8 +16,15 @@
 
 package org.gradle.api.provider
 
+import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.hamcrest.CoreMatchers
+import spock.lang.IgnoreIf
+import spock.lang.Issue
+import spock.lang.Unroll
 
 class CredentialsProviderIntegrationTest extends AbstractIntegrationSpec {
 
@@ -123,7 +130,7 @@ class CredentialsProviderIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasErrorOutput("- testCredentialsPassword")
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = ":tasks")
     def "missing credentials declared as task inputs do not break tasks listing"() {
         when:
         buildFile << """
@@ -199,9 +206,46 @@ class CredentialsProviderIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasErrorOutput("- testCredentialsPassword")
     }
 
-    // Should be ignored for instant execution - this test checks behavior with and without configuration cache
-    @ToBeFixedForInstantExecution
-    def "credentials are not cached"() {
+    @Unroll
+    @Issue("https://github.com/gradle/gradle/issues/13770")
+    @IgnoreIf({ GradleContextualExecuter.parallel })
+    def "missing credentials error messages can be assembled in parallel execution (#credentialsType)"() {
+        def buildScript = """
+            tasks.register('executionCredentials') {
+                def providers = project.providers
+                doLast {
+                    providers.credentials($credentialsType, 'test').get()
+                }
+            }
+        """
+        file('submodule1/build.gradle') << buildScript
+        file('submodule2/build.gradle') << buildScript
+        file('submodule3/build.gradle') << buildScript
+        file('submodule4/build.gradle') << buildScript
+        settingsFile << """
+            rootProject.name="test"
+            include("submodule1", "submodule2", "submodule3", "submodule4")
+        """
+        buildFile << ""
+
+        expect:
+        for (int i = 0; i < 10; i++) {
+            args '--parallel', '--continue'
+            fails 'executionCredentials'
+
+            failure.assertNotOutput("ConcurrentModificationException")
+            failure.assertThatCause(CoreMatchers.equalTo(errorMessage))
+            failure.assertHasFailures(4)
+        }
+
+        where:
+        credentialsType       | errorMessage
+        'AwsCredentials'      | "The following Gradle properties are missing for 'test' credentials:\n  - testAccessKey\n  - testSecretKey"
+        'PasswordCredentials' | "The following Gradle properties are missing for 'test' credentials:\n  - testUsername\n  - testPassword"
+    }
+
+    @UnsupportedWithInstantExecution(because = "test checks behavior with and without configuration cache")
+    def "credential values are not cached between executions"() {
         given:
         buildFile << """
             def firstTask = tasks.register('firstTask') {
@@ -225,5 +269,39 @@ class CredentialsProviderIntegrationTest extends AbstractIntegrationSpec {
         args '--configuration-cache'
         fails 'finalTask'
         failure.assertHasDescription("Credentials required for this build could not be resolved.")
+    }
+
+    @NotYetImplemented
+    @UnsupportedWithInstantExecution(because = "test checks behavior with configuration cache")
+    def "credential values are not stored in configuration cache`"() {
+        given:
+        buildFile << """
+            def firstTask = tasks.register('firstTask') {
+            }
+
+            def taskWithCredentials = tasks.register('taskWithCredentials', TaskWithCredentials) {
+                dependsOn(firstTask)
+                credentials.set(providers.credentials(PasswordCredentials, 'testCredentials'))
+            }
+
+            tasks.register('finalTask') {
+                dependsOn(taskWithCredentials)
+            }
+        """
+
+        when:
+        args '-PtestCredentialsUsername=user-value', '-PtestCredentialsPassword=password-value', '--configuration-cache'
+
+        then:
+        succeeds 'finalTask'
+        def configurationCacheDirs = file('.gradle/configuration-cache/').listFiles().findAll { it.isDirectory() }
+        configurationCacheDirs.size() == 1
+        def configurationCacheFiles = configurationCacheDirs[0].listFiles()
+        configurationCacheFiles.size() == 2
+        configurationCacheFiles.each {
+            def content = it.getText()
+            assert !content.contains('user-value')
+            assert !content.contains('password-value')
+        }
     }
 }
