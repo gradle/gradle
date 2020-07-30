@@ -59,9 +59,6 @@ open class InstantExecutionProblemsException : InstantExecutionException {
     protected
     object Documentation {
 
-        val ignoreProblems: String
-            get() = DocumentationRegistry().getDocumentationFor("configuration_cache", "config_cache:usage:ignore_problems")
-
         val maxProblems: String
             get() = DocumentationRegistry().getDocumentationFor("configuration_cache", "config_cache:usage:max_problems")
     }
@@ -85,8 +82,7 @@ open class InstantExecutionProblemsException : InstantExecutionException {
         problems: List<PropertyProblem>,
         htmlReportFile: File
     ) : this(
-        "Configuration cache problems found in this build.\n" +
-            "Gradle can be made to ignore these problems, see ${Documentation.ignoreProblems}.",
+        "Configuration cache problems found in this build.",
         causes,
         cacheAction,
         problems,

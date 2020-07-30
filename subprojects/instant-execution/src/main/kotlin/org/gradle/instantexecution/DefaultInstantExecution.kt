@@ -147,8 +147,6 @@ class DefaultInstantExecution internal constructor(
             return
         }
 
-        problems.storing()
-
         // TODO - fingerprint should be collected until the state file has been written, as user code can run during this process
         // Moving this is currently broken because the Jar task queries provider values when serializing the manifest file tree and this
         // can cause the provider value to incorrectly be treated as a task graph input
@@ -157,10 +155,13 @@ class DefaultInstantExecution internal constructor(
 
         buildOperationExecutor.withStoreOperation {
             cache.useForStore(cacheKey.string) { layout ->
+                problems.storing {
+                    invalidateInstantExecutionState(layout)
+                }
                 try {
                     writeInstantExecutionFiles(layout)
                 } catch (error: InstantExecutionError) {
-                    // Invalidate state on problems that fail the build
+                    // Invalidate state on serialization errors
                     invalidateInstantExecutionState(layout)
                     problems.failingBuildDueToSerializationError()
                     throw error
