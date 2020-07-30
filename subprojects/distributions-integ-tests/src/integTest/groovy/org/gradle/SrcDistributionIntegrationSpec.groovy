@@ -34,6 +34,11 @@ class SrcDistributionIntegrationSpec extends DistributionIntegrationSpec {
     }
 
     @Override
+    int getMaxDistributionSizeBytes() {
+        return 42 * 1024 * 1024
+    }
+
+    @Override
     int getLibJarsCount() {
         0
     }
