@@ -37,6 +37,7 @@ class JavaToolchainDownloadIntegrationTest extends AbstractPluginIntegrationTest
         result = executer
             .withArguments("-Porg.gradle.java.installations.auto-detect=false", "--info")
             .withTasks("compileJava")
+            .requireOwnGradleUserHomeDir()
             .run()
 
         then:

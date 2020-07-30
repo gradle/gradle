@@ -23,6 +23,6 @@ import java.util.Optional;
 
 public interface JavaToolchainProvisioningService {
 
-    public Optional<File> tryInstall(JavaToolchainSpec spec);
+    Optional<File> tryInstall(JavaToolchainSpec spec);
 
 }
