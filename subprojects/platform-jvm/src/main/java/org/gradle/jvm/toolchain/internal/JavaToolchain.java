@@ -18,8 +18,6 @@ package org.gradle.jvm.toolchain.internal;
 
 import org.gradle.api.Describable;
 import org.gradle.api.JavaVersion;
-import org.gradle.api.internal.provider.Providers;
-import org.gradle.api.provider.Provider;
 import org.gradle.jvm.toolchain.JavaCompiler;
 import org.gradle.jvm.toolchain.JavaInstallation;
 
@@ -36,8 +34,8 @@ public class JavaToolchain implements Describable {
         this.compilerFactory = compilerFactory;
     }
 
-    public Provider<JavaCompiler> getJavaCompiler() {
-        return Providers.of(new DefaultToolchainJavaCompiler(this, compilerFactory));
+    public JavaCompiler getJavaCompiler() {
+        return new DefaultToolchainJavaCompiler(this, compilerFactory);
     }
 
     public JavaVersion getJavaMajorVersion() {
