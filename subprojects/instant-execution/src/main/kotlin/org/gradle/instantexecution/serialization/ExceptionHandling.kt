@@ -28,6 +28,9 @@ import java.io.IOException
 internal
 inline fun Throwable.bubbleUp() {
     if (mustBubbleUp) {
+        if (this is InterruptedException) {
+            Thread.currentThread().interrupt()
+        }
         throw this
     }
 }
@@ -50,5 +53,7 @@ val Throwable.mustBubbleUp: Boolean
         is InstantExecutionThrowable -> true
         is IOException -> true
         is InterruptedException -> true
+        is org.gradle.api.UncheckedIOException -> true
+        is org.gradle.internal.UncheckedException -> true
         else -> false
     }

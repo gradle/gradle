@@ -499,7 +499,7 @@ class DefaultReadContext(
  * chance that a very deep object graph could blow up the stack.
  */
 private
-const val MAX_STACK_DEPTH = 64
+const val MAX_STACK_DEPTH = 1
 
 
 private
