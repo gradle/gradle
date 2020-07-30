@@ -16,13 +16,14 @@
 
 package org.gradle.internal.nativeintegration.console
 
-
+import net.rubygrapefruit.platform.NativeException
 import net.rubygrapefruit.platform.terminal.Terminals
 import org.gradle.internal.nativeintegration.ProcessEnvironment
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Specification
+import spock.lang.Unroll
 
 class NativePlatformConsoleDetectorTest extends Specification {
     private Terminals terminals = Mock()
@@ -103,5 +104,18 @@ class NativePlatformConsoleDetectorTest extends Specification {
 
         expect:
         detector.console == null
+    }
+
+    @Unroll
+    def "returns null when failing to get #terminal terminal size"() {
+        given:
+        terminals.isTerminal(terminal) >> true
+        terminals.getTerminal(terminal) >> { throw new NativeException("error getting terminal") }
+
+        expect:
+        detector.console == null
+
+        where:
+        terminal << [Terminals.Output.Stdout, Terminals.Output.Stderr]
     }
 }
