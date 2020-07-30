@@ -38,10 +38,13 @@ import org.gradle.jvm.internal.resolve.VariantsMetaData;
 import org.gradle.jvm.platform.JavaPlatform;
 import org.gradle.jvm.toolchain.install.internal.AdoptOpenJdkRemoteBinary;
 import org.gradle.jvm.toolchain.install.internal.DefaultJavaToolchainProvisioningService;
+import org.gradle.jvm.toolchain.install.internal.JavaToolchainProvisioningService;
 import org.gradle.jvm.toolchain.install.internal.JdkCacheDirectory;
 import org.gradle.jvm.toolchain.internal.AutoInstalledInstallationSupplier;
+import org.gradle.jvm.toolchain.internal.CachingJavaToolchainQueryService;
 import org.gradle.jvm.toolchain.internal.CurrentInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.DefaultJavaInstallationRegistry;
+import org.gradle.jvm.toolchain.internal.DefaultJavaToolchainQueryService;
 import org.gradle.jvm.toolchain.internal.EnvironmentVariableListInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.JavaInstallationProbe;
 import org.gradle.jvm.toolchain.internal.JavaToolchainFactory;
@@ -83,9 +86,15 @@ public class PlatformJvmServices extends AbstractPluginServiceRegistry {
     @Override
     public void registerProjectServices(ServiceRegistration registration) {
         registration.add(JavaToolchainFactory.class);
-        registration.add(JavaToolchainQueryService.class);
         registration.add(DefaultJavaToolchainProvisioningService.class);
         registration.add(AdoptOpenJdkRemoteBinary.class);
+        registration.addProvider(new ProjectServices());
+    }
+
+    private static class ProjectServices {
+        JavaToolchainQueryService createQueryService(SharedJavaInstallationRegistry registry, JavaToolchainFactory toolchainFactory, JavaToolchainProvisioningService provisioningService) {
+            return new CachingJavaToolchainQueryService(new DefaultJavaToolchainQueryService(registry, toolchainFactory, provisioningService));
+        }
     }
 
     private static class BuildScopeServices {
