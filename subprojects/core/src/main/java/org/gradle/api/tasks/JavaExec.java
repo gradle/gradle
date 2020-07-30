@@ -29,6 +29,7 @@ import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.options.Option;
 import org.gradle.internal.jvm.DefaultModularitySpec;
+import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.ExecResult;
@@ -146,6 +147,7 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
         setJvmArgs(getJvmArgs()); // convention mapping for 'jvmArgs'
         JavaExecAction javaExecAction = getExecActionFactory().newJavaExecAction();
         javaExecSpec.copyTo(javaExecAction);
+        javaExecAction.setExecutable(getEffectiveExecutable());
         execResult.set(javaExecAction.execute());
     }
 
@@ -523,7 +525,7 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
      */
     @Input
     public JavaVersion getJavaVersion() {
-        return getServices().get(JvmVersionDetector.class).getJavaVersion(getExecutable());
+        return getServices().get(JvmVersionDetector.class).getJavaVersion(getEffectiveExecutable());
     }
 
     /**
@@ -739,4 +741,11 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
     public Provider<ExecResult> getExecutionResult() {
         return execResult;
     }
+
+    @Nullable
+    private String getEffectiveExecutable() {
+        final String executable = getExecutable();
+        return executable == null ? Jvm.current().getJavaExecutable().getAbsolutePath() : executable;
+    }
+
 }
