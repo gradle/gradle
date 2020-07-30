@@ -53,7 +53,6 @@ import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.LocalState;
 import org.gradle.api.tasks.Nested;
-import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SkipWhenEmpty;
@@ -114,6 +113,7 @@ public class JavaCompile extends AbstractCompile implements HasCompileOptions {
         CompilerForkUtils.doNotCacheIfForkingViaExecutable(compileOptions, getOutputs());
         modularity = objects.newInstance(DefaultModularitySpec.class);
         javaCompiler = objects.property(JavaCompiler.class);
+        javaCompiler.finalizeValueOnRead();
     }
 
     /**
@@ -167,8 +167,7 @@ public class JavaCompile extends AbstractCompile implements HasCompileOptions {
      * @since 6.7
      */
     @Incubating
-    @Nested
-    @Optional
+    @Internal
     public Property<JavaCompiler> getJavaCompiler() {
         return javaCompiler;
     }
