@@ -19,8 +19,21 @@ package org.gradle.jvm.toolchain.internal;
 import org.gradle.api.provider.Provider;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
 
-public interface JavaToolchainQueryService {
+import javax.inject.Inject;
 
-    Provider<JavaToolchain> findMatchingToolchain(JavaToolchainSpec filter);
+public class CachingJavaToolchainQueryService implements JavaToolchainQueryService {
+
+    private final DefaultJavaToolchainQueryService delegate;
+
+    @Inject
+    public CachingJavaToolchainQueryService(DefaultJavaToolchainQueryService delegate) {
+        this.delegate = delegate;
+    }
+
+    @Override
+    public Provider<JavaToolchain> findMatchingToolchain(JavaToolchainSpec filter) {
+        // TODO: [bm] actually cache
+        return delegate.findMatchingToolchain(filter);
+    }
 
 }
