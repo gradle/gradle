@@ -189,7 +189,7 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
     }
 
     private Provider<JavaCompiler> toolchainCompiler(JavaToolchainSpec filter) {
-        return getJavaToolchainQueryService().findMatchingToolchain(filter).map(JavaToolchain::getJavaCompiler).getOrElse(Providers.notDefined());
+        return getJavaToolchainQueryService().findMatchingToolchain(filter).map(JavaToolchain::getJavaCompiler).orElse(Providers.notDefined());
     }
 
     private void createProcessResourcesTask(final SourceSet sourceSet, final SourceDirectorySet resourceSet, final Project target) {
