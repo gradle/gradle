@@ -46,7 +46,7 @@ import java.io.File;
 
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
-@ServiceScope(Scopes.Build)
+@ServiceScope(Scopes.Build.class)
 public class BuildSourceBuilder {
     private static final Logger LOGGER = LoggerFactory.getLogger(BuildSourceBuilder.class);
     private static final BuildBuildSrcBuildOperationType.Result BUILD_BUILDSRC_RESULT = new BuildBuildSrcBuildOperationType.Result() {

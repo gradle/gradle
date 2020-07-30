@@ -25,7 +25,7 @@ import org.gradle.plugin.management.internal.PluginRequests;
 
 import javax.annotation.Nullable;
 
-@ServiceScope(Scopes.Build)
+@ServiceScope(Scopes.Build.class)
 public interface PluginRequestApplicator {
 
     /**

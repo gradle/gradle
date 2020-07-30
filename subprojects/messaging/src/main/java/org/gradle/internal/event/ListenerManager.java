@@ -16,7 +16,7 @@
 
 package org.gradle.internal.event;
 
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 
 /**
  * Unified manager for all Gradle events.  Provides a simple way to find all listeners of a given type in the
@@ -112,5 +112,5 @@ public interface ListenerManager {
      *
      * @return The child
      */
-    ListenerManager createChild(Scopes scope);
+    ListenerManager createChild(Class<? extends Scope> scope);
 }

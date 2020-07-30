@@ -16,7 +16,7 @@
 package org.gradle.internal.operations;
 
 import org.gradle.internal.service.scopes.EventScope;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope.Global;
 
 /**
  * A listener that is notified as build operations are executed.
@@ -31,7 +31,7 @@ import org.gradle.internal.service.scopes.Scopes;
  *
  * @since 3.5
  */
-@EventScope(Scopes.Global)
+@EventScope(Global.class)
 public interface BuildOperationListener {
 
     void started(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent);

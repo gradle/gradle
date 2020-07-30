@@ -41,7 +41,7 @@ private
 const val maxCauses = 5
 
 
-@ServiceScope(Scopes.BuildTree)
+@ServiceScope(Scopes.BuildTree::class)
 class InstantExecutionProblems(
 
     private

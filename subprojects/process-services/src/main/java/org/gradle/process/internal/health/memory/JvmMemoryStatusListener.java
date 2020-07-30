@@ -17,9 +17,9 @@
 package org.gradle.process.internal.health.memory;
 
 import org.gradle.internal.service.scopes.EventScope;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope.Global;
 
-@EventScope(Scopes.Global)
+@EventScope(Global.class)
 public interface JvmMemoryStatusListener {
     void onJvmMemoryStatus(JvmMemoryStatus jvmMemoryStatus);
 }

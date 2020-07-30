@@ -26,7 +26,7 @@ import org.gradle.internal.service.scopes.Scopes;
  *
  * <p>You can add a {@code TaskExecutionListener} to a build using {@link org.gradle.api.execution.TaskExecutionGraph#addTaskExecutionListener}
  */
-@EventScope(Scopes.Build)
+@EventScope(Scopes.Build.class)
 public interface TaskExecutionListener {
     /**
      * This method is called immediately before a task is executed.

@@ -17,13 +17,13 @@
 package org.gradle.launcher.daemon.client;
 
 import org.gradle.internal.service.scopes.EventScope;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope.Global;
 import org.gradle.launcher.daemon.context.DaemonConnectDetails;
 
 /**
  * Notified when a daemon is started.
  */
-@EventScope(Scopes.Global)
+@EventScope(Global.class)
 public interface DaemonStartListener {
     void daemonStarted(DaemonConnectDetails daemonInfo);
 }

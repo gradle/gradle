@@ -26,7 +26,7 @@ import org.gradle.internal.service.scopes.EventScope;
 import org.gradle.internal.service.scopes.Scopes;
 
 @UsedByScanPlugin
-@EventScope(Scopes.Build)
+@EventScope(Scopes.Build.class)
 public interface TestListenerInternal {
     void started(TestDescriptorInternal testDescriptor, TestStartEvent startEvent);
 

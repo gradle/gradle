@@ -20,7 +20,7 @@ import org.gradle.internal.classpath.CachedClasspathTransformer;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 
-@ServiceScope(Scopes.BuildTree)
+@ServiceScope(Scopes.BuildTree.class)
 public interface InjectedClasspathInstrumentationStrategy {
     CachedClasspathTransformer.StandardTransform getTransform();
 }

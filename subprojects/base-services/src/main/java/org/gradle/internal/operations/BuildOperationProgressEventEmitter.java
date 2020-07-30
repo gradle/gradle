@@ -16,7 +16,7 @@
 
 package org.gradle.internal.operations;
 
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope.Global;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.time.Clock;
 
@@ -25,7 +25,7 @@ import javax.annotation.Nullable;
 /**
  * Specialised event emitter for cross cutting type progress events not tied more deeply to operation execution.
  */
-@ServiceScope(Scopes.Global)
+@ServiceScope(Global.class)
 public class BuildOperationProgressEventEmitter {
 
     private final Clock clock;

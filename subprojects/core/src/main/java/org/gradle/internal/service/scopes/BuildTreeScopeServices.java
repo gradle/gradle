@@ -46,7 +46,7 @@ public class BuildTreeScopeServices extends DefaultServiceRegistry {
     }
 
     protected ListenerManager createListenerManager(ListenerManager parent) {
-        return parent.createChild(Scopes.BuildTree);
+        return parent.createChild(Scopes.BuildTree.class);
     }
 
     protected ExceptionAnalyser createExceptionAnalyser(ListenerManager listenerManager, LoggingConfiguration loggingConfiguration) {

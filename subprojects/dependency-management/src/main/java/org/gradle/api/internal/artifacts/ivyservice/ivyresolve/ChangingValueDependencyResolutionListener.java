@@ -25,7 +25,7 @@ import org.gradle.internal.service.scopes.Scopes;
 /**
  * Notified of the use of changing values during dependency resolution, so this can be noted in the configuration cache inputs
  */
-@EventScope(Scopes.Build)
+@EventScope(Scopes.Build.class)
 public interface ChangingValueDependencyResolutionListener {
     ChangingValueDependencyResolutionListener NO_OP = new ChangingValueDependencyResolutionListener() {
         @Override

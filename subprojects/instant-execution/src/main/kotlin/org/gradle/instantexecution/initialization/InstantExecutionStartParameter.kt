@@ -26,7 +26,7 @@ import org.gradle.internal.service.scopes.ServiceScope
 import java.io.File
 
 
-@ServiceScope(Scopes.BuildTree)
+@ServiceScope(Scopes.BuildTree::class)
 class InstantExecutionStartParameter(
     private val buildLayout: BuildLayout,
     startParameter: StartParameter

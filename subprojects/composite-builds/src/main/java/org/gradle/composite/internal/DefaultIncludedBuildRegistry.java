@@ -45,7 +45,7 @@ import java.util.Collection;
 import java.util.Deque;
 import java.util.Map;
 
-@ServiceScope(Scopes.BuildTree)
+@ServiceScope(Scopes.BuildTree.class)
 public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppable {
     private final IncludedBuildFactory includedBuildFactory;
     private final IncludedBuildDependencySubstitutionsBuilder dependencySubstitutionsBuilder;

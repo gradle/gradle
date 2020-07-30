@@ -30,7 +30,7 @@ import java.util.Collection;
 /**
  * Represents a transformer that takes a given ClassPath and transforms it to a ClassPath with cached jars
  */
-@ServiceScope(Scopes.UserHome)
+@ServiceScope(Scopes.UserHome.class)
 public interface CachedClasspathTransformer {
     enum StandardTransform {
         BuildLogic, None

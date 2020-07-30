@@ -30,7 +30,7 @@ import org.gradle.internal.service.scopes.ServiceScope;
  * @since 4.0
  */
 @UsedByScanPlugin("obtained from the root build's root project's service registry")
-@ServiceScope(Scopes.BuildSession)
+@ServiceScope(Scopes.BuildSession.class)
 public interface BuildOperationNotificationListenerRegistrar {
 
     /**
