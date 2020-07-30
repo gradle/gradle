@@ -30,6 +30,9 @@ import jetbrains.buildServer.configs.kotlin.v2019_2.Requirements
 import jetbrains.buildServer.configs.kotlin.v2019_2.VcsSettings
 import jetbrains.buildServer.configs.kotlin.v2019_2.buildSteps.GradleBuildStep
 import jetbrains.buildServer.configs.kotlin.v2019_2.buildSteps.script
+import jetbrains.buildServer.configs.kotlin.v2019_2.failureConditions.BuildFailureOnText
+import jetbrains.buildServer.configs.kotlin.v2019_2.failureConditions.failOnText
+import jetbrains.buildServer.configs.kotlin.v2019_2.ui.add
 
 fun BuildSteps.customGradle(init: GradleBuildStep.() -> Unit, custom: GradleBuildStep.() -> Unit): GradleBuildStep =
     GradleBuildStep(init)
@@ -86,6 +89,15 @@ fun BuildType.applyDefaultSettings(os: Os = Os.linux, timeout: Int = 30, vcsRoot
     failureConditions {
         executionTimeoutMin = timeout
         testFailure = false
+        add {
+            failOnText {
+                conditionType = BuildFailureOnText.ConditionType.CONTAINS
+                pattern = "%unmaskedFakeCredentials%"
+                failureMessage = "This build might be leaking credentials"
+                reverse = false
+                stopBuildOnFailure = true
+            }
+        }
     }
 
     if (os == Os.linux || os == Os.macos) {

@@ -10,6 +10,7 @@ import configurations.FunctionalTest
 import configurations.StagePasses
 import jetbrains.buildServer.configs.kotlin.v2019_2.Project
 import jetbrains.buildServer.configs.kotlin.v2019_2.buildSteps.GradleBuildStep
+import jetbrains.buildServer.configs.kotlin.v2019_2.failureConditions.BuildFailureOnText
 import model.CIBuildModel
 import model.GradleSubproject
 import model.Stage
@@ -206,6 +207,16 @@ class CIConfigIntegrationTests {
         assertEquals(":baseServices:createBuildReceipt updateBranchStatus -PgithubToken=%github.bot-teamcity.token%", triggerNameToTasks[readyForNightlyId])
         val otherTaskNames = triggerNameToTasks.filterKeys { it != readyForNightlyId }.values.toSet()
         assertEquals(setOf(":baseServices:createBuildReceipt"), otherTaskNames)
+    }
+
+    @Test
+    fun buildsContainFailureConditionForPotentialCredentialsLeaks() {
+        val allBuildTypes = rootProject.subProjects.flatMap { it.buildTypes }
+        allBuildTypes.forEach {
+            val credentialLeakCondition = it.failureConditions.items.find { it.type.equals("BuildFailureOnMessage") } as BuildFailureOnText
+            assertTrue(credentialLeakCondition.enabled)
+            assertTrue(credentialLeakCondition.stopBuildOnFailure!!)
+        }
     }
 
     private fun toTriggerId(id: String) = "Gradle_Check_Stage_${id}_Trigger"
