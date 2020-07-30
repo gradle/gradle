@@ -16,11 +16,58 @@
 
 package org.gradle.jvm.toolchain.internal;
 
+import org.gradle.api.internal.provider.DefaultProvider;
+import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.provider.Provider;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
+import org.gradle.jvm.toolchain.install.internal.JavaToolchainProvisioningService;
 
-public interface JavaToolchainQueryService {
+import javax.inject.Inject;
+import java.io.File;
+import java.util.Optional;
+import java.util.function.Predicate;
 
-    Provider<JavaToolchain> findMatchingToolchain(JavaToolchainSpec filter);
+public class JavaToolchainQueryService {
+
+    private final SharedJavaInstallationRegistry registry;
+    private final JavaToolchainFactory toolchainFactory;
+    private final JavaToolchainProvisioningService installService;
+
+    @Inject
+    public JavaToolchainQueryService(SharedJavaInstallationRegistry registry, JavaToolchainFactory toolchainFactory, JavaToolchainProvisioningService provisioningService) {
+        this.registry = registry;
+        this.toolchainFactory = toolchainFactory;
+        this.installService = provisioningService;
+    }
+
+    public Provider<JavaToolchain> findMatchingToolchain(JavaToolchainSpec filter) {
+        if (!((DefaultToolchainSpec) filter).isConfigured()) {
+            return Providers.notDefined();
+        }
+        return new DefaultProvider<>(() -> query(filter));
+    }
+
+    private JavaToolchain query(JavaToolchainSpec filter) {
+        return registry.listInstallations().stream()
+            .map(this::asToolchain)
+            .filter(matchingToolchain(filter))
+            .findFirst()
+            .orElseGet(() -> downloadToolchain(filter));
+    }
+
+    private JavaToolchain downloadToolchain(JavaToolchainSpec spec) {
+        final Optional<File> installation = installService.tryInstall(spec);
+        return installation.map(this::asToolchain).orElseThrow(() ->
+            new NoToolchainAvailableException(spec));
+    }
+
+    // TODO: [bm] to be replaced with AttributeContainer/AttributeMatcher
+    private Predicate<JavaToolchain> matchingToolchain(JavaToolchainSpec spec) {
+        return toolchain -> toolchain.getJavaMajorVersion() == spec.getLanguageVersion().get();
+    }
+
+    private JavaToolchain asToolchain(File javaHome) {
+        return toolchainFactory.newInstance(javaHome);
+    }
 
 }

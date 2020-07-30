@@ -16,8 +16,6 @@
 
 package org.gradle.jvm.toolchain.internal;
 
-import org.gradle.api.JavaVersion;
-import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.jvm.toolchain.JavaCompiler;
 import org.gradle.language.base.internal.compile.CompileSpec;
@@ -34,11 +32,6 @@ public class DefaultToolchainJavaCompiler implements JavaCompiler {
     public DefaultToolchainJavaCompiler(JavaToolchain javaToolchain, JavaCompilerFactory compilerFactory) {
         this.javaToolchain = javaToolchain;
         this.compilerFactory = compilerFactory;
-    }
-
-    @Input
-    public JavaVersion getJavaMajorVersion() {
-        return javaToolchain.getJavaMajorVersion();
     }
 
     @SuppressWarnings("unchecked")
