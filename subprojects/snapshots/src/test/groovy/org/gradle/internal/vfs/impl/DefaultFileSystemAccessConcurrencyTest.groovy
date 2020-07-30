@@ -20,7 +20,7 @@ package org.gradle.internal.vfs.impl
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
-class DefaultVirtualFileSystemConcurrencyTest extends AbstractVirtualFileSystemTest {
+class DefaultFileSystemAccessConcurrencyTest extends AbstractFileSystemAccessTest {
 
     def "parallel invalidation yields correct results"() {
         def dir = temporaryFolder.createDir("some/deep/hierarchy")
@@ -30,14 +30,14 @@ class DefaultVirtualFileSystemConcurrencyTest extends AbstractVirtualFileSystemT
         }
 
         allowFileSystemAccess(true)
-        readFromVfs(dir)
+        read(dir)
         def executorService = Executors.newFixedThreadPool(100)
 
         when:
         (1..1000).each { num ->
             executorService.submit({
                 def locationToUpdate = dir.file(num).file("in-dir.txt")
-                vfs.update([locationToUpdate.absolutePath]) {
+                fileSystemAccess.update([locationToUpdate.absolutePath]) {
                     locationToUpdate.text = "updated"
                 }
             })
@@ -46,7 +46,7 @@ class DefaultVirtualFileSystemConcurrencyTest extends AbstractVirtualFileSystemT
         then:
         (1..1000).each { num ->
             def updatedLocation = dir.file(num).file("in-dir.txt")
-            assertIsFileSnapshot(readFromVfs(updatedLocation), updatedLocation)
+            assertIsFileSnapshot(read(updatedLocation), updatedLocation)
         }
 
         cleanup:

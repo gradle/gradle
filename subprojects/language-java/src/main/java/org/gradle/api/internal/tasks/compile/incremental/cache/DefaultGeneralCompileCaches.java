@@ -38,7 +38,7 @@ import org.gradle.cache.PersistentIndexedCacheParameters;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.serialize.HashCodeSerializer;
-import org.gradle.internal.vfs.VirtualFileSystem;
+import org.gradle.internal.vfs.FileSystemAccess;
 
 import java.io.Closeable;
 
@@ -57,7 +57,7 @@ public class DefaultGeneralCompileCaches implements GeneralCompileCaches, Closea
         InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory,
         StringInterner interner,
         UserHomeScopedCompileCaches userHomeScopedCompileCaches,
-        VirtualFileSystem virtualFileSystem
+        FileSystemAccess fileSystemAccess
     ) {
         cache = cacheRepository
             .cache(gradle, "javaCompile")
@@ -70,7 +70,7 @@ public class DefaultGeneralCompileCaches implements GeneralCompileCaches, Closea
 
         PersistentIndexedCacheParameters<HashCode, ClasspathEntrySnapshotData> jarCacheParameters = PersistentIndexedCacheParameters.of("jarAnalysis", new HashCodeSerializer(), new ClasspathEntrySnapshotDataSerializer(interner))
             .withCacheDecorator(inMemoryCacheDecoratorFactory.decorator(20000, true));
-        this.classpathEntrySnapshotCache = new SplitClasspathEntrySnapshotCache(globalCacheLocations, userHomeScopedCompileCaches.getClasspathEntrySnapshotCache(), new DefaultClasspathEntrySnapshotCache(virtualFileSystem, cache.createCache(jarCacheParameters)));
+        this.classpathEntrySnapshotCache = new SplitClasspathEntrySnapshotCache(globalCacheLocations, userHomeScopedCompileCaches.getClasspathEntrySnapshotCache(), new DefaultClasspathEntrySnapshotCache(fileSystemAccess, cache.createCache(jarCacheParameters)));
 
         PersistentIndexedCacheParameters<String, PreviousCompilationData> previousCompilationCacheParameters = PersistentIndexedCacheParameters.of("taskHistory", String.class, new PreviousCompilationData.Serializer(interner))
             .withCacheDecorator(inMemoryCacheDecoratorFactory.decorator(2000, false));

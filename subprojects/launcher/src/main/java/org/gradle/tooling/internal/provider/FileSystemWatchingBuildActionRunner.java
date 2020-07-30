@@ -24,7 +24,7 @@ import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.invocation.BuildActionRunner;
 import org.gradle.internal.invocation.BuildController;
 import org.gradle.internal.service.scopes.VirtualFileSystemServices;
-import org.gradle.internal.vfs.VirtualFileSystem;
+import org.gradle.internal.vfs.FileSystemAccess;
 import org.gradle.internal.watch.vfs.FileSystemWatchingHandler;
 import org.gradle.util.IncubationLogger;
 
@@ -40,14 +40,14 @@ public class FileSystemWatchingBuildActionRunner implements BuildActionRunner {
         GradleInternal gradle = buildController.getGradle();
         StartParameterInternal startParameter = gradle.getStartParameter();
         FileSystemWatchingHandler watchingHandler = gradle.getServices().get(FileSystemWatchingHandler.class);
-        VirtualFileSystem virtualFileSystem = gradle.getServices().get(VirtualFileSystem.class);
+        FileSystemAccess fileSystemAccess = gradle.getServices().get(FileSystemAccess.class);
 
         boolean watchFileSystem = startParameter.isWatchFileSystem();
 
         logMessageForDeprecatedVfsRetentionProperty(startParameter);
         if (watchFileSystem) {
             IncubationLogger.incubatingFeatureUsed("Watching the file system");
-            dropVirtualFileSystemIfRequested(startParameter, virtualFileSystem);
+            dropVirtualFileSystemIfRequested(startParameter, fileSystemAccess);
         }
         watchingHandler.afterBuildStarted(watchFileSystem);
         try {
@@ -57,9 +57,9 @@ public class FileSystemWatchingBuildActionRunner implements BuildActionRunner {
         }
     }
 
-    private static void dropVirtualFileSystemIfRequested(StartParameterInternal startParameter, VirtualFileSystem virtualFileSystem) {
+    private static void dropVirtualFileSystemIfRequested(StartParameterInternal startParameter, FileSystemAccess fileSystemAccess) {
         if (VirtualFileSystemServices.isDropVfs(startParameter)) {
-            virtualFileSystem.invalidateAll();
+            fileSystemAccess.invalidateAll();
         }
     }
 

@@ -41,9 +41,9 @@ import org.gradle.internal.resource.local.FileResourceRepository;
 import org.gradle.internal.snapshot.AtomicSnapshotHierarchyReference;
 import org.gradle.internal.snapshot.CaseSensitivity;
 import org.gradle.internal.time.Time;
-import org.gradle.internal.vfs.VirtualFileSystem;
+import org.gradle.internal.vfs.FileSystemAccess;
+import org.gradle.internal.vfs.impl.DefaultFileSystemAccess;
 import org.gradle.internal.vfs.impl.DefaultSnapshotHierarchy;
-import org.gradle.internal.vfs.impl.DefaultVirtualFileSystem;
 import org.gradle.process.internal.DefaultExecActionFactory;
 import org.gradle.process.internal.ExecActionFactory;
 import org.gradle.process.internal.ExecFactory;
@@ -189,13 +189,13 @@ public class TestFiles {
     }
 
     public static DefaultFileCollectionSnapshotter fileCollectionSnapshotter() {
-        return new DefaultFileCollectionSnapshotter(virtualFileSystem(), genericFileTreeSnapshotter(), fileSystem());
+        return new DefaultFileCollectionSnapshotter(fileSystemAccess(), genericFileTreeSnapshotter(), fileSystem());
     }
 
-    public static VirtualFileSystem virtualFileSystem() {
+    public static FileSystemAccess fileSystemAccess() {
         CaseSensitivity caseSensitivity = fileSystem().isCaseSensitive() ? CASE_SENSITIVE : CASE_INSENSITIVE;
         AtomicSnapshotHierarchyReference rootReference = new AtomicSnapshotHierarchyReference(DefaultSnapshotHierarchy.empty(caseSensitivity), path -> true);
-        return new DefaultVirtualFileSystem(
+        return new DefaultFileSystemAccess(
             fileHasher(),
             new StringInterner(),
             fileSystem(),

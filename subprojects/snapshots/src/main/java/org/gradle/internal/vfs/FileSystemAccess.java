@@ -30,10 +30,10 @@ import java.util.function.Function;
  *
  * The implementation will attempt to efficiently honour the queries, maintaining some or all state in-memory and dealing with concurrent access to the same parts of the file system.
  *
- * The virtual file system needs to be informed when some state on disk changes, so it does not become out of sync with the actual file system.
+ * The file system access needs to be informed when some state on disk changes, so it does not become out of sync with the actual file system.
  */
 @UsedByScanPlugin("test-distribution")
-public interface VirtualFileSystem {
+public interface FileSystemAccess {
 
     /**
      * Visits the hash of the content of the file only if the file is a regular file.

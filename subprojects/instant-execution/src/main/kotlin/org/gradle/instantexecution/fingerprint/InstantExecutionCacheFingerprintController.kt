@@ -33,7 +33,7 @@ import org.gradle.internal.fingerprint.impl.AbsolutePathFileCollectionFingerprin
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.service.scopes.Scopes
 import org.gradle.internal.service.scopes.ServiceScope
-import org.gradle.internal.vfs.VirtualFileSystem
+import org.gradle.internal.vfs.FileSystemAccess
 import org.gradle.util.BuildCommencedTimeProvider
 import org.gradle.util.GFileUtils
 import java.io.ByteArrayOutputStream
@@ -50,7 +50,7 @@ class InstantExecutionCacheFingerprintController internal constructor(
     private val startParameter: InstantExecutionStartParameter,
     private val taskInputsListeners: TaskInputsListeners,
     private val valueSourceProviderFactory: ValueSourceProviderFactory,
-    private val virtualFileSystem: VirtualFileSystem,
+    private val fileSystemAccess: FileSystemAccess,
     private val fileCollectionFingerprinter: AbsolutePathFileCollectionFingerprinter,
     private val buildCommencedTimeProvider: BuildCommencedTimeProvider,
     private val listenerManager: ListenerManager,
@@ -180,7 +180,7 @@ class InstantExecutionCacheFingerprintController internal constructor(
             get() = buildCommencedTimeProvider.currentTime
 
         override fun hashCodeOf(file: File) =
-            virtualFileSystem.hashCodeOf(file)
+            fileSystemAccess.hashCodeOf(file)
 
         override fun fingerprintOf(
             fileCollection: FileCollectionInternal,

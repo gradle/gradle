@@ -22,26 +22,26 @@ import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot
 import org.gradle.internal.snapshot.FileSystemSnapshotVisitor
 import org.gradle.test.fixtures.file.TestFile
 
-class DefaultVirtualFileSystemTest extends AbstractVirtualFileSystemTest {
+class DefaultFileSystemAccessTest extends AbstractFileSystemAccessTest {
 
     def "can read a file"() {
         TestFile someFile = temporaryFolder.file("some/subdir/someFile").createFile()
 
         when:
         allowFileSystemAccess(true)
-        def snapshot = readFromVfs(someFile)
+        def snapshot = read(someFile)
         then:
         assertIsFileSnapshot(snapshot, someFile)
 
         when:
         allowFileSystemAccess(false)
-        snapshot = readFromVfs(someFile)
+        snapshot = read(someFile)
         then:
         assertIsFileSnapshot(snapshot, someFile)
 
         def missingSubfile = someFile.file("subfile/which/is/deep.txt")
         when:
-        snapshot = readFromVfs(missingSubfile)
+        snapshot = read(missingSubfile)
         then:
         assertIsMissingFileSnapshot(snapshot, missingSubfile)
     }
@@ -52,25 +52,25 @@ class DefaultVirtualFileSystemTest extends AbstractVirtualFileSystemTest {
 
         when:
         allowFileSystemAccess(true)
-        def snapshot = readFromVfs(someFile)
+        def snapshot = read(someFile)
         then:
         assertIsMissingFileSnapshot(snapshot, someFile)
 
         when:
         allowFileSystemAccess(false)
-        snapshot = readFromVfs(someFile)
+        snapshot = read(someFile)
         then:
         assertIsMissingFileSnapshot(snapshot, someFile)
 
         def missingSubfile = someFile.file("subfile")
         when:
-        snapshot = readFromVfs(missingSubfile)
+        snapshot = read(missingSubfile)
         then:
         assertIsMissingFileSnapshot(snapshot, missingSubfile)
 
         when:
         allowFileSystemAccess(true)
-        snapshot = readFromVfs(regularParent)
+        snapshot = read(regularParent)
         then:
         assertIsFileSnapshot(snapshot, regularParent)
     }
@@ -91,14 +91,14 @@ class DefaultVirtualFileSystemTest extends AbstractVirtualFileSystemTest {
 
         when:
         allowFileSystemAccess(true)
-        def snapshot = readFromVfs(someDir)
+        def snapshot = read(someDir)
         then:
         assertIsDirectorySnapshot(snapshot, someDir)
 
         when:
         allowFileSystemAccess(false)
         def subDir = someDir.file("sub")
-        snapshot = readFromVfs(subDir)
+        snapshot = read(subDir)
         then:
         assertIsDirectorySnapshot(snapshot, subDir)
     }
@@ -108,39 +108,39 @@ class DefaultVirtualFileSystemTest extends AbstractVirtualFileSystemTest {
         def someFile = parentDir.file("directory/somefile.txt").createFile()
         when:
         allowFileSystemAccess(true)
-        def snapshot = readFromVfs(someFile)
+        def snapshot = read(someFile)
         then:
         assertIsFileSnapshot(snapshot, someFile)
 
         when:
         allowFileSystemAccess(false)
-        vfs.update([someFile.absolutePath]) {
+        fileSystemAccess.update([someFile.absolutePath]) {
             someFile << "Updated"
         }
 
         and:
         allowFileSystemAccess(true)
-        snapshot = readFromVfs(someFile)
+        snapshot = read(someFile)
 
         then:
         someFile.text == "Updated"
         assertIsFileSnapshot(snapshot, someFile)
 
         when:
-        snapshot = readFromVfs(parentDir)
+        snapshot = read(parentDir)
         allowFileSystemAccess(false)
         then:
         assertIsDirectorySnapshot(snapshot, parentDir)
         and:
-        assertIsFileSnapshot(readFromVfs(someFile), someFile)
+        assertIsFileSnapshot(read(someFile), someFile)
 
         when:
-        vfs.update([someFile.absolutePath]) {
+        fileSystemAccess.update([someFile.absolutePath]) {
             someFile.text = "Updated again"
         }
         and:
         allowFileSystemAccess(true)
-        snapshot = readFromVfs(someFile)
+        snapshot = read(someFile)
         then:
         someFile.text == "Updated again"
         assertIsFileSnapshot(snapshot, someFile)
@@ -153,22 +153,22 @@ class DefaultVirtualFileSystemTest extends AbstractVirtualFileSystemTest {
 
         when:
         allowFileSystemAccess(true)
-        def snapshot = readFromVfs(dir)
+        def snapshot = read(dir)
         then:
         assertIsDirectorySnapshot(snapshot, dir)
-        assertIsFileSnapshot(readFromVfs(existingFileInDir), existingFileInDir)
+        assertIsFileSnapshot(read(existingFileInDir), existingFileInDir)
 
         when:
         allowFileSystemAccess(false)
-        vfs.update([nonExistingFileInDir.absolutePath]) {
+        fileSystemAccess.update([nonExistingFileInDir.absolutePath]) {
             nonExistingFileInDir.text = "created"
         }
         then:
-        assertIsFileSnapshot(readFromVfs(existingFileInDir), existingFileInDir)
+        assertIsFileSnapshot(read(existingFileInDir), existingFileInDir)
 
         when:
         allowFileSystemAccess(true)
-        snapshot = readFromVfs(nonExistingFileInDir)
+        snapshot = read(nonExistingFileInDir)
         then:
         assertIsFileSnapshot(snapshot, nonExistingFileInDir)
     }
@@ -181,7 +181,7 @@ class DefaultVirtualFileSystemTest extends AbstractVirtualFileSystemTest {
 
         when:
         allowFileSystemAccess(true)
-        def snapshot = readFromVfs(d, new FileNameFilter({ name -> name.endsWith('1')}))
+        def snapshot = read(d, new FileNameFilter({ name -> name.endsWith('1')}))
         def visitor = new RelativePathCapturingVisitor()
         snapshot.accept(visitor)
         then:
@@ -191,12 +191,12 @@ class DefaultVirtualFileSystemTest extends AbstractVirtualFileSystemTest {
         when:
         // filtered snapshots are currently not stored in the VFS
         allowFileSystemAccess(true)
-        snapshot = readFromVfs(includedFile)
+        snapshot = read(includedFile)
         then:
         assertIsFileSnapshot(snapshot, includedFile)
 
         when:
-        snapshot = readFromVfs(excludedFile)
+        snapshot = read(excludedFile)
         then:
         assertIsFileSnapshot(snapshot, excludedFile)
     }
@@ -209,14 +209,14 @@ class DefaultVirtualFileSystemTest extends AbstractVirtualFileSystemTest {
         d.file("d1/f2").createFile()
 
         allowFileSystemAccess(true)
-        readFromVfs(d)
+        read(d)
 
         and: "A filtered tree over the same directory"
         def patterns = new FileNameFilter({ it.endsWith('1') })
 
         when:
         allowFileSystemAccess(false)
-        def snapshot = readFromVfs(d, patterns)
+        def snapshot = read(d, patterns)
         def relativePaths = [] as Set
         snapshot.accept(new FileSystemSnapshotVisitor() {
             private Deque<String> relativePath = new ArrayDeque<String>()

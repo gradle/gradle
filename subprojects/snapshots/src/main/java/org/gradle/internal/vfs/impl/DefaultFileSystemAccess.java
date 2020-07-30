@@ -33,7 +33,7 @@ import org.gradle.internal.snapshot.RegularFileSnapshot;
 import org.gradle.internal.snapshot.SnapshottingFilter;
 import org.gradle.internal.snapshot.impl.DirectorySnapshotter;
 import org.gradle.internal.snapshot.impl.FileSystemSnapshotFilter;
-import org.gradle.internal.vfs.VirtualFileSystem;
+import org.gradle.internal.vfs.FileSystemAccess;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,8 +45,8 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-public class DefaultVirtualFileSystem implements VirtualFileSystem {
-    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultVirtualFileSystem.class);
+public class DefaultFileSystemAccess implements FileSystemAccess {
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultFileSystemAccess.class);
 
     private final AtomicSnapshotHierarchyReference root;
     private final Stat stat;
@@ -57,7 +57,7 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem {
     private final FileHasher hasher;
     private final StripedProducerGuard<String> producingSnapshots = new StripedProducerGuard<>();
 
-    public DefaultVirtualFileSystem(
+    public DefaultFileSystemAccess(
         FileHasher hasher,
         Interner<String> stringInterner,
         Stat stat,

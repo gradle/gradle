@@ -18,12 +18,12 @@ package org.gradle.internal.watch.vfs.impl;
 
 import org.gradle.internal.file.DefaultFileHierarchySet;
 import org.gradle.internal.file.FileHierarchySet;
-import org.gradle.internal.vfs.VirtualFileSystem;
+import org.gradle.internal.vfs.FileSystemAccess;
 
 import java.io.File;
 import java.util.concurrent.atomic.AtomicReference;
 
-public class LocationsUpdatedByCurrentBuild implements VirtualFileSystem.UpdateListener {
+public class LocationsUpdatedByCurrentBuild implements FileSystemAccess.UpdateListener {
     private final AtomicReference<FileHierarchySet> producedByCurrentBuild = new AtomicReference<>(DefaultFileHierarchySet.of());
     private volatile boolean buildRunning;
 

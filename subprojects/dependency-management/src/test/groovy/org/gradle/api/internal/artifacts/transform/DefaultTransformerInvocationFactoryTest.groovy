@@ -64,9 +64,9 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
     def valueSnapshotter = new DefaultValueSnapshotter(classloaderHasher, null)
 
     def executionHistoryStore = new TestExecutionHistoryStore()
-    def virtualFileSystem = TestFiles.virtualFileSystem()
-    def workExecutorTestFixture = new WorkExecutorTestFixture(virtualFileSystem, classloaderHasher, valueSnapshotter)
-    def fileCollectionSnapshotter = new DefaultFileCollectionSnapshotter(virtualFileSystem, TestFiles.genericFileTreeSnapshotter(), TestFiles.fileSystem())
+    def fileSystemAccess = TestFiles.fileSystemAccess()
+    def workExecutorTestFixture = new WorkExecutorTestFixture(fileSystemAccess, classloaderHasher, valueSnapshotter)
+    def fileCollectionSnapshotter = new DefaultFileCollectionSnapshotter(fileSystemAccess, TestFiles.genericFileTreeSnapshotter(), TestFiles.fileSystem())
 
     def transformationWorkspaceProvider = new TestTransformationWorkspaceProvider(immutableTransformsStoreDirectory, executionHistoryStore)
 
@@ -103,7 +103,7 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
 
     def invoker = new DefaultTransformerInvocationFactory(
         workExecutorTestFixture.workExecutor,
-        virtualFileSystem,
+        fileSystemAccess,
         artifactTransformListener,
         transformationWorkspaceProvider,
         fileCollectionFactory,
@@ -293,7 +293,7 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
 
         when:
         outputFile.text = "changed"
-        virtualFileSystem.invalidateAll()
+        fileSystemAccess.invalidateAll()
 
         invoke(transformer, inputArtifact, dependencies, TransformationSubject.initial(inputArtifact), fingerprinterRegistry)
         then:
@@ -346,7 +346,7 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
         workspaces.size() == 1
 
         when:
-        virtualFileSystem.invalidateAll()
+        fileSystemAccess.invalidateAll()
         inputArtifact1.text = "changed"
         invoke(transformer, inputArtifact2, dependencies, dependency(transformationType, inputArtifact2), fingerprinterRegistry)
 
@@ -376,7 +376,7 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
         workspaces.size() == 1
 
         when:
-        virtualFileSystem.invalidateAll()
+        fileSystemAccess.invalidateAll()
         inputArtifact.text = "changed"
         invoke(transformer, inputArtifact, dependencies, subject, fingerprinterRegistry)
 
@@ -403,7 +403,7 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
         workspaces.size() == 1
 
         when:
-        virtualFileSystem.invalidateAll()
+        fileSystemAccess.invalidateAll()
         inputArtifact.text = "changed"
         invoke(transformer, inputArtifact, dependencies, subject, fingerprinterRegistry)
 

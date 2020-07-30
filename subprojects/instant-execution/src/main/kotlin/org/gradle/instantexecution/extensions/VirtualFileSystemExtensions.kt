@@ -17,11 +17,11 @@
 package org.gradle.instantexecution.extensions
 
 import org.gradle.internal.hash.HashCode
-import org.gradle.internal.vfs.VirtualFileSystem
+import org.gradle.internal.vfs.FileSystemAccess
 import java.io.File
 
 
 internal
-fun VirtualFileSystem.hashCodeOf(file: File): HashCode? =
+fun FileSystemAccess.hashCodeOf(file: File): HashCode? =
     readRegularFileContentHash(file.path) { hashCode -> hashCode }
         .orElse(null)

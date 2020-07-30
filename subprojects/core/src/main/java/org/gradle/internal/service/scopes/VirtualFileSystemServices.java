@@ -79,9 +79,9 @@ import org.gradle.internal.serialize.HashCodeSerializer;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.snapshot.AtomicSnapshotHierarchyReference;
 import org.gradle.internal.snapshot.CaseSensitivity;
-import org.gradle.internal.vfs.VirtualFileSystem;
+import org.gradle.internal.vfs.FileSystemAccess;
+import org.gradle.internal.vfs.impl.DefaultFileSystemAccess;
 import org.gradle.internal.vfs.impl.DefaultSnapshotHierarchy;
-import org.gradle.internal.vfs.impl.DefaultVirtualFileSystem;
 import org.gradle.internal.watch.registry.FileWatcherRegistryFactory;
 import org.gradle.internal.watch.registry.impl.DarwinFileWatcherRegistryFactory;
 import org.gradle.internal.watch.registry.impl.LinuxFileWatcherRegistryFactory;
@@ -191,16 +191,16 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
             return new AtomicSnapshotHierarchyReference(DefaultSnapshotHierarchy.empty(caseSensitivity), watchFilter);
         }
 
-        VirtualFileSystem createVirtualFileSystem(
+        FileSystemAccess createFileSystemAccess(
             FileHasher hasher,
             AtomicSnapshotHierarchyReference root,
             Stat stat,
             StringInterner stringInterner,
             ListenerManager listenerManager,
             PatternSpecFactory patternSpecFactory,
-            VirtualFileSystem.UpdateListener updateListener
+            FileSystemAccess.UpdateListener updateListener
         ) {
-            DefaultVirtualFileSystem virtualFileSystem = new DefaultVirtualFileSystem(
+            DefaultFileSystemAccess virtualFileSystem = new DefaultFileSystemAccess(
                 hasher,
                 stringInterner,
                 stat,
@@ -276,8 +276,8 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
             return new DefaultGenericFileTreeSnapshotter(hasher, stringInterner);
         }
 
-        FileCollectionSnapshotter createFileCollectionSnapshotter(VirtualFileSystem virtualFileSystem, GenericFileTreeSnapshotter genericFileTreeSnapshotter, Stat stat) {
-            return new DefaultFileCollectionSnapshotter(virtualFileSystem, genericFileTreeSnapshotter, stat);
+        FileCollectionSnapshotter createFileCollectionSnapshotter(FileSystemAccess fileSystemAccess, GenericFileTreeSnapshotter genericFileTreeSnapshotter, Stat stat) {
+            return new DefaultFileCollectionSnapshotter(fileSystemAccess, genericFileTreeSnapshotter, stat);
         }
 
         ResourceSnapshotterCacheService createResourceSnapshotterCacheService(CrossBuildFileHashCache store) {
@@ -317,15 +317,15 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
             return new SplitFileHasher(globalHasher, localHasher, globalCacheLocations);
         }
 
-        VirtualFileSystem createVirtualFileSystem(
+        FileSystemAccess createFileSystemAccess(
             FileHasher hasher,
             ListenerManager listenerManager,
             Stat stat,
             StringInterner stringInterner,
             AtomicSnapshotHierarchyReference root,
-            VirtualFileSystem.UpdateListener updateListener
+            FileSystemAccess.UpdateListener updateListener
         ) {
-            DefaultVirtualFileSystem buildSessionsScopedVirtualFileSystem = new DefaultVirtualFileSystem(
+            DefaultFileSystemAccess buildSessionsScopedVirtualFileSystem = new DefaultFileSystemAccess(
                 hasher,
                 stringInterner,
                 stat,
@@ -344,8 +344,8 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
             return new DefaultGenericFileTreeSnapshotter(hasher, stringInterner);
         }
 
-        FileCollectionSnapshotter createFileCollectionSnapshotter(VirtualFileSystem virtualFileSystem, GenericFileTreeSnapshotter genericFileTreeSnapshotter, Stat stat) {
-            return new DefaultFileCollectionSnapshotter(virtualFileSystem, genericFileTreeSnapshotter, stat);
+        FileCollectionSnapshotter createFileCollectionSnapshotter(FileSystemAccess fileSystemAccess, GenericFileTreeSnapshotter genericFileTreeSnapshotter, Stat stat) {
+            return new DefaultFileCollectionSnapshotter(fileSystemAccess, genericFileTreeSnapshotter, stat);
         }
 
         AbsolutePathFileCollectionFingerprinter createAbsolutePathFileCollectionFingerprinter(FileCollectionSnapshotter fileCollectionSnapshotter) {
@@ -388,15 +388,15 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
     }
 
     private static class DefaultExcludesBuildListener extends BuildAdapter {
-        private final DefaultVirtualFileSystem virtualFileSystem;
+        private final DefaultFileSystemAccess fileSystemAccess;
 
-        public DefaultExcludesBuildListener(DefaultVirtualFileSystem virtualFileSystem) {
-            this.virtualFileSystem = virtualFileSystem;
+        public DefaultExcludesBuildListener(DefaultFileSystemAccess fileSystemAccess) {
+            this.fileSystemAccess = fileSystemAccess;
         }
 
         @Override
         public void settingsEvaluated(Settings settings) {
-            virtualFileSystem.updateDefaultExcludes(DirectoryScanner.getDefaultExcludes());
+            fileSystemAccess.updateDefaultExcludes(DirectoryScanner.getDefaultExcludes());
         }
     }
 

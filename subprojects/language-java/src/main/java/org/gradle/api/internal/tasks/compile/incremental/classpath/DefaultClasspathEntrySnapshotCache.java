@@ -21,16 +21,16 @@ import org.gradle.cache.internal.MinimalPersistentCache;
 import org.gradle.internal.Factory;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
-import org.gradle.internal.vfs.VirtualFileSystem;
+import org.gradle.internal.vfs.FileSystemAccess;
 
 import java.io.File;
 
 public class DefaultClasspathEntrySnapshotCache implements ClasspathEntrySnapshotCache {
-    private final VirtualFileSystem virtualFileSystem;
+    private final FileSystemAccess fileSystemAccess;
     private final MinimalPersistentCache<HashCode, ClasspathEntrySnapshotData> cache;
 
-    public DefaultClasspathEntrySnapshotCache(VirtualFileSystem virtualFileSystem, PersistentIndexedCache<HashCode, ClasspathEntrySnapshotData> persistentCache) {
-        this.virtualFileSystem = virtualFileSystem;
+    public DefaultClasspathEntrySnapshotCache(FileSystemAccess fileSystemAccess, PersistentIndexedCache<HashCode, ClasspathEntrySnapshotData> persistentCache) {
+        this.fileSystemAccess = fileSystemAccess;
         this.cache = new MinimalPersistentCache<>(persistentCache);
     }
 
@@ -42,7 +42,7 @@ public class DefaultClasspathEntrySnapshotCache implements ClasspathEntrySnapsho
 
     @Override
     public ClasspathEntrySnapshot get(File key, final Factory<ClasspathEntrySnapshot> factory) {
-        HashCode fileContentHash = virtualFileSystem.read(
+        HashCode fileContentHash = fileSystemAccess.read(
             key.getAbsolutePath(),
             CompleteFileSystemLocationSnapshot::getHash
         );

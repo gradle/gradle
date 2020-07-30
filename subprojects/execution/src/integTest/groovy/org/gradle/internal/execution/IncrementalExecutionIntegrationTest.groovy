@@ -80,8 +80,8 @@ class IncrementalExecutionIntegrationTest extends Specification {
     @Rule
     final TestNameTestDirectoryProvider temporaryFolder = TestNameTestDirectoryProvider.newInstance(getClass())
 
-    def virtualFileSystem = TestFiles.virtualFileSystem()
-    def snapshotter = new DefaultFileCollectionSnapshotter(virtualFileSystem, TestFiles.genericFileTreeSnapshotter(), TestFiles.fileSystem())
+    def fileSystemAccess = TestFiles.fileSystemAccess()
+    def snapshotter = new DefaultFileCollectionSnapshotter(fileSystemAccess, TestFiles.genericFileTreeSnapshotter(), TestFiles.fileSystem())
     def fingerprinter = new AbsolutePathFileCollectionFingerprinter(snapshotter)
     def outputFingerprinter = new OutputFileCollectionFingerprinter(snapshotter)
     def executionHistoryStore = new TestExecutionHistoryStore()
@@ -89,7 +89,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
 
         @Override
         void beforeOutputChange(Iterable<String> affectedOutputPaths) {
-            virtualFileSystem.update(affectedOutputPaths) {}
+            fileSystemAccess.update(affectedOutputPaths) {}
         }
     }
     def buildInvocationScopeId = new BuildInvocationScopeId(UniqueId.generate())
@@ -624,7 +624,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
     }
 
     UpToDateResult execute(UnitOfWork unitOfWork) {
-        virtualFileSystem.invalidateAll()
+        fileSystemAccess.invalidateAll()
 
         executor.execute(new ExecutionRequestContext() {
             @Override
