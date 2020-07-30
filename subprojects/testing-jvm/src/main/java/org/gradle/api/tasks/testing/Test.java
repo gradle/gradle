@@ -67,6 +67,7 @@ import org.gradle.internal.actor.ActorFactory;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.jvm.DefaultModularitySpec;
 import org.gradle.internal.jvm.JavaModuleDetector;
+import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.jvm.UnsupportedJavaRuntimeException;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -635,6 +636,8 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
         JavaForkOptions javaForkOptions = getForkOptionsFactory().newJavaForkOptions();
         copyTo(javaForkOptions);
         // TODO: check invariants
+
+
         JavaModuleDetector javaModuleDetector = getJavaModuleDetector();
         boolean testIsModule = javaModuleDetector.isModule(modularity.getInferModulePath().get(), getTestClassesDirs());
         FileCollection classpath = javaModuleDetector.inferClasspath(testIsModule, stableClasspath);
@@ -1166,12 +1169,13 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
         return javaLauncher;
     }
 
+    @Nullable
     private String getEffectiveExecutable() {
         if (javaLauncher.isPresent()) {
             return ((DefaultToolchainJavaLauncher) javaLauncher.get()).getExecutable();
         }
-        return getExecutable();
+        final String executable = getExecutable();
+        return executable == null ? Jvm.current().getJavaExecutable().getAbsolutePath() : executable;
     }
-
 
 }

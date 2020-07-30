@@ -59,6 +59,7 @@ import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.file.Deleter;
+import org.gradle.internal.jvm.Jvm;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.IncubationLogger;
@@ -302,6 +303,8 @@ public class GroovyCompile extends AbstractCompile implements HasCompileOptions 
             GFileUtils.mkdirs(dir);
             spec.getGroovyCompileOptions().setStubDir(dir);
         }
+        spec.getCompileOptions().getForkOptions().setExecutable(Jvm.current().getJavaExecutable().getAbsolutePath());
+
         return spec;
     }
 

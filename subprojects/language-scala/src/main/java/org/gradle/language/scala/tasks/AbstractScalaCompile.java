@@ -47,6 +47,7 @@ import org.gradle.api.tasks.compile.CompileOptions;
 import org.gradle.api.tasks.scala.IncrementalCompileOptions;
 import org.gradle.internal.buildevents.BuildStartedTime;
 import org.gradle.internal.file.Deleter;
+import org.gradle.internal.jvm.Jvm;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.util.GFileUtils;
 
@@ -131,6 +132,7 @@ public abstract class AbstractScalaCompile extends AbstractCompile implements Ha
             ? ImmutableList.of()
             : ImmutableList.copyOf(compileOptions.getAnnotationProcessorPath()));
         spec.setBuildStartTimestamp(getServices().get(BuildStartedTime.class).getStartTime());
+        spec.getCompileOptions().getForkOptions().setExecutable(Jvm.current().getJavaExecutable().getAbsolutePath());
         return spec;
     }
 
