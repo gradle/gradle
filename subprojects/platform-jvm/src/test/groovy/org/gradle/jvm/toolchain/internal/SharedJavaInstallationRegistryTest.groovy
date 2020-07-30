@@ -68,34 +68,22 @@ class SharedJavaInstallationRegistryTest extends Specification {
     }
 
     @SuppressWarnings('GroovyAccessibility')
-    def "registry cannot be mutated after finalizing"() {
+    def "registry can be mutated at later point"() {
         given:
-        registry.add(forDirectory(tempFolder))
-        registry.add(forDirectory(tempFolder))
+        def tmpDir2 = createTempDir()
+        def registry = new SharedJavaInstallationRegistry([forDirectory(tmpDir2)])
 
         when:
-        registry.finalizeValue()
+        def before = registry.listInstallations()
         registry.add(forDirectory(tempFolder))
+        def after = registry.listInstallations()
 
         then:
-        def e = thrown(IllegalArgumentException)
-        e.message == "Installation must not be mutated after being finalized"
+        before.containsAll(tmpDir2)
+        after.containsAll(tmpDir2, tempFolder)
     }
 
-    def "accessing the list of installations finalizes it"() {
-        given:
-        registry.add(forDirectory(tempFolder))
-
-        when:
-        registry.listInstallations()
-        registry.add(forDirectory(tempFolder))
-
-        then:
-        def e = thrown(IllegalArgumentException)
-        e.message == "Installation must not be mutated after being finalized"
-    }
-
-    def "list of installations is cached"() {
+    def "list of installations is not cached"() {
         given:
         registry.add(forDirectory(tempFolder))
         registry.add(forDirectory(tempFolder))
@@ -105,7 +93,7 @@ class SharedJavaInstallationRegistryTest extends Specification {
         def installations2 = registry.listInstallations()
 
         then:
-        installations.is(installations2)
+        !installations.is(installations2)
     }
 
     @Unroll
