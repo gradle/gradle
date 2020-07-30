@@ -30,7 +30,7 @@ abstract class AbstractUndeclaredBuildInputsIntegrationTest extends AbstractInst
         def fixture = newInstantExecutionFixture()
 
         when:
-        instantRunLenient"thing", "-DCI=$value"
+        instantRunLenient "thing", "-DCI=$value"
 
         then:
         fixture.assertStateStored()
