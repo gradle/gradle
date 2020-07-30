@@ -16,22 +16,24 @@
 
 package org.gradle.jvm.toolchain.internal;
 
+import org.gradle.api.provider.ProviderFactory;
 import org.gradle.jvm.toolchain.install.internal.JdkCacheDirectory;
 
 import java.io.File;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class AutoInstalledInstallationSupplier implements InstallationSupplier {
+public class AutoInstalledInstallationSupplier extends AutoDetectingInstallationSupplier {
 
     private final JdkCacheDirectory cacheDirProvider;
 
-    public AutoInstalledInstallationSupplier(JdkCacheDirectory cacheDirProvider) {
+    public AutoInstalledInstallationSupplier(ProviderFactory factory, JdkCacheDirectory cacheDirProvider) {
+        super(factory);
         this.cacheDirProvider = cacheDirProvider;
     }
 
     @Override
-    public Set<InstallationLocation> get() {
+    protected Set<InstallationLocation> findCandidates() {
         return cacheDirProvider.listJavaHomes().stream()
             .map(this::asInstallation)
             .collect(Collectors.toSet());
