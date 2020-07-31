@@ -33,6 +33,11 @@ class DistributionIntegritySpec extends DistributionIntegrationSpec {
         'bin'
     }
 
+    @Override
+    int getMaxDistributionSizeBytes() {
+        return 98 * 1024 * 1024
+    }
+
     @Issue(['https://github.com/gradle/gradle/issues/9990', 'https://github.com/gradle/gradle/issues/10038'])
     def "validate dependency archives"() {
         when:
