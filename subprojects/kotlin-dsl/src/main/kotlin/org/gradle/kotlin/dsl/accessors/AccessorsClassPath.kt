@@ -77,47 +77,55 @@ import org.jetbrains.org.objectweb.asm.signature.SignatureVisitor
 import java.io.Closeable
 import java.io.File
 import java.util.Optional
+import javax.inject.Inject
 
 
-fun projectAccessorsClassPath(project: Project, classPath: ClassPath): AccessorsClassPath =
-    project.getOrCreateProperty("gradleKotlinDsl.projectAccessorsClassPath") {
-        buildAccessorsClassPathFor(project, classPath)
-            ?: AccessorsClassPath.empty
-    }
+class ProjectAccessorsClassPathGenerator @Inject constructor(
+    private val cacheKeyBuilder: CacheKeyBuilder,
+    private val fileCollectionFactory: FileCollectionFactory,
+    private val fileCollectionSnapshotter: FileCollectionSnapshotter,
+    private val outputFileCollectionFingerprinter: OutputFileCollectionFingerprinter,
+    private val workExecutor: WorkExecutor<ExecutionRequestContext, CachingResult>,
+    private val workspaceProvider: KotlinDslWorkspaceProvider
+) {
+
+    fun projectAccessorsClassPath(project: Project, classPath: ClassPath): AccessorsClassPath =
+        project.getOrCreateProperty("gradleKotlinDsl.projectAccessorsClassPath") {
+            buildAccessorsClassPathFor(project, classPath)
+                ?: AccessorsClassPath.empty
+        }
 
 
-private
-fun buildAccessorsClassPathFor(project: Project, classPath: ClassPath): AccessorsClassPath? {
-    val workExecutor: WorkExecutor<ExecutionRequestContext, CachingResult> = project.serviceOf()
-    val cacheKeyBuilder: CacheKeyBuilder = project.serviceOf()
-    val workspaceProvider: KotlinDslWorkspaceProvider = project.serviceOf()
-    return configuredProjectSchemaOf(project)?.let { projectSchema ->
-        // TODO:accessors make cache key computation more efficient
-        val cacheKeySpec = cacheKeyFor(projectSchema, classPath)
-        val cacheKey = cacheKeyBuilder.build(cacheKeySpec)
-        workspaceProvider.withWorkspace(cacheKey) { workspace, executionHistoryStore ->
-            val sourcesOutputDir = File(workspace, "sources")
-            val classesOutputDir = File(workspace, "classes")
-            val work = GenerateProjectAccessors(
-                project,
-                projectSchema,
-                classPath,
-                cacheKey,
-                sourcesOutputDir,
-                classesOutputDir,
-                executionHistoryStore,
-                project.serviceOf(),
-                project.serviceOf(),
-                project.serviceOf()
-            )
-            workExecutor.execute(object : ExecutionRequestContext {
-                override fun getWork() = work
-                override fun getRebuildReason() = Optional.empty<String>()
-            })
-            AccessorsClassPath(
-                DefaultClassPath.of(classesOutputDir),
-                DefaultClassPath.of(sourcesOutputDir)
-            )
+    private
+    fun buildAccessorsClassPathFor(project: Project, classPath: ClassPath): AccessorsClassPath? {
+        return configuredProjectSchemaOf(project)?.let { projectSchema ->
+            // TODO:accessors make cache key computation more efficient
+            val cacheKeySpec = cacheKeyFor(projectSchema, classPath)
+            val cacheKey = cacheKeyBuilder.build(cacheKeySpec)
+            workspaceProvider.withWorkspace(cacheKey) { workspace, executionHistoryStore ->
+                val sourcesOutputDir = File(workspace, "sources")
+                val classesOutputDir = File(workspace, "classes")
+                val work = GenerateProjectAccessors(
+                    project,
+                    projectSchema,
+                    classPath,
+                    cacheKey,
+                    sourcesOutputDir,
+                    classesOutputDir,
+                    executionHistoryStore,
+                    fileCollectionFactory,
+                    fileCollectionSnapshotter,
+                    outputFileCollectionFingerprinter
+                )
+                workExecutor.execute(object : ExecutionRequestContext {
+                    override fun getWork() = work
+                    override fun getRebuildReason() = Optional.empty<String>()
+                })
+                AccessorsClassPath(
+                    DefaultClassPath.of(classesOutputDir),
+                    DefaultClassPath.of(sourcesOutputDir)
+                )
+            }
         }
     }
 }

@@ -36,7 +36,7 @@ import org.gradle.internal.time.Time.startTimer
 import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.accessors.AccessorsClassPath
 import org.gradle.kotlin.dsl.accessors.PluginAccessorClassPathGenerator
-import org.gradle.kotlin.dsl.accessors.projectAccessorsClassPath
+import org.gradle.kotlin.dsl.accessors.ProjectAccessorsClassPathGenerator
 import org.gradle.kotlin.dsl.execution.EvalOption
 import org.gradle.kotlin.dsl.precompile.PrecompiledScriptDependenciesResolver
 import org.gradle.kotlin.dsl.provider.ClassPathModeExceptionCollector
@@ -250,7 +250,8 @@ fun projectScriptModelBuilder(
     scriptClassPath = project.scriptCompilationClassPath,
     accessorsClassPath = { classPath ->
         val pluginAccessorClassPathGenerator = project.serviceOf<PluginAccessorClassPathGenerator>()
-        projectAccessorsClassPath(project, classPath) + pluginAccessorClassPathGenerator.pluginSpecBuildersClassPath(project)
+        val projectAccessorClassPathGenerator = project.serviceOf<ProjectAccessorsClassPathGenerator>()
+        projectAccessorClassPathGenerator.projectAccessorsClassPath(project, classPath) + pluginAccessorClassPathGenerator.pluginSpecBuildersClassPath(project)
     },
     sourceLookupScriptHandlers = sourceLookupScriptHandlersFor(project),
     enclosingScriptProjectDir = project.projectDir
