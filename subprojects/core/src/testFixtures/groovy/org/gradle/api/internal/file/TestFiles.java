@@ -38,12 +38,14 @@ import org.gradle.internal.hash.DefaultStreamHasher;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.resource.local.FileResourceConnector;
 import org.gradle.internal.resource.local.FileResourceRepository;
-import org.gradle.internal.snapshot.AtomicSnapshotHierarchyReference;
 import org.gradle.internal.snapshot.CaseSensitivity;
+import org.gradle.internal.snapshot.SnapshotHierarchy;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.vfs.FileSystemAccess;
+import org.gradle.internal.vfs.VirtualFileSystem;
 import org.gradle.internal.vfs.impl.DefaultFileSystemAccess;
 import org.gradle.internal.vfs.impl.DefaultSnapshotHierarchy;
+import org.gradle.internal.vfs.impl.VfsRootReference;
 import org.gradle.process.internal.DefaultExecActionFactory;
 import org.gradle.process.internal.ExecActionFactory;
 import org.gradle.process.internal.ExecFactory;
@@ -192,14 +194,28 @@ public class TestFiles {
         return new DefaultFileCollectionSnapshotter(fileSystemAccess(), genericFileTreeSnapshotter(), fileSystem());
     }
 
-    public static FileSystemAccess fileSystemAccess() {
+    public static VirtualFileSystem virtualFileSystem() {
         CaseSensitivity caseSensitivity = fileSystem().isCaseSensitive() ? CASE_SENSITIVE : CASE_INSENSITIVE;
-        AtomicSnapshotHierarchyReference rootReference = new AtomicSnapshotHierarchyReference(DefaultSnapshotHierarchy.empty(caseSensitivity), path -> true);
+        VfsRootReference rootReference = new VfsRootReference(DefaultSnapshotHierarchy.empty(caseSensitivity));
+        return new VirtualFileSystem() {
+            @Override
+            public SnapshotHierarchy get() {
+                return rootReference.get();
+            }
+
+            @Override
+            public void update(SnapshotHierarchy.UpdateFunction updateFunction) {
+                rootReference.update(root -> updateFunction.update(root, SnapshotHierarchy.NodeDiffListener.NOOP));
+            }
+        };
+    }
+
+    public static FileSystemAccess fileSystemAccess() {
         return new DefaultFileSystemAccess(
             fileHasher(),
             new StringInterner(),
             fileSystem(),
-            rootReference,
+            virtualFileSystem(),
             locations -> {}
         );
     }

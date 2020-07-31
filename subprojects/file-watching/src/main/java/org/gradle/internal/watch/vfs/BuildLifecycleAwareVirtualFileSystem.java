@@ -16,12 +16,14 @@
 
 package org.gradle.internal.watch.vfs;
 
+import org.gradle.internal.vfs.VirtualFileSystem;
+
 import java.io.File;
 
 /**
  * Controls the lifecycle and book-keeping for file system watching.
  */
-public interface FileSystemWatchingHandler {
+public interface BuildLifecycleAwareVirtualFileSystem extends VirtualFileSystem {
 
     /**
      * Called when the build is started.

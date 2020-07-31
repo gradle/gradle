@@ -25,7 +25,6 @@ import org.gradle.internal.file.FileType
 import org.gradle.internal.file.Stat
 import org.gradle.internal.hash.FileHasher
 import org.gradle.internal.hash.HashCode
-import org.gradle.internal.snapshot.AtomicSnapshotHierarchyReference
 import org.gradle.internal.snapshot.CompleteDirectorySnapshot
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot
 import org.gradle.internal.snapshot.FileSystemSnapshotVisitor
@@ -39,8 +38,6 @@ import spock.lang.Specification
 import java.nio.file.Path
 import java.util.function.Predicate
 
-import static org.gradle.internal.snapshot.CaseSensitivity.CASE_SENSITIVE
-
 @CleanupTestDirectory
 abstract class AbstractFileSystemAccessTest extends Specification {
     @Rule
@@ -53,10 +50,7 @@ abstract class AbstractFileSystemAccessTest extends Specification {
         fileHasher,
         new StringInterner(),
         stat,
-        new AtomicSnapshotHierarchyReference(
-            DefaultSnapshotHierarchy.empty(CASE_SENSITIVE),
-            { path -> true }
-        ),
+        TestFiles.virtualFileSystem(),
         updateListener
     )
 

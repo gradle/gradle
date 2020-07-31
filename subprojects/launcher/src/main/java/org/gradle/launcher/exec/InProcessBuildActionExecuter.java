@@ -24,7 +24,6 @@ import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.invocation.BuildActionRunner;
 import org.gradle.internal.operations.notify.BuildOperationNotificationValve;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.internal.watch.vfs.FileSystemWatchingHandler;
 import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
 
 public class InProcessBuildActionExecuter implements BuildActionExecuter<BuildActionParameters> {
@@ -42,10 +41,6 @@ public class InProcessBuildActionExecuter implements BuildActionExecuter<BuildAc
 
         buildOperationNotificationValve.start();
         try {
-            // This statement ensures the creation of the FileSystemWatchingHandler.
-            // We need to enforce the creation of it, so that the BuildAddedListener is registered early enough by the creation method.
-            // If not, it won't receive the addition of the root build, which happens here..
-            contextServices.get(FileSystemWatchingHandler.class);
             RootBuildState rootBuild = buildRegistry.createRootBuild(BuildDefinition.fromStartParameter(action.getStartParameter(), null));
             return rootBuild.run(buildController -> {
                 BuildActionRunner.Result result = buildActionRunner.run(action, buildController);

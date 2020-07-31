@@ -77,19 +77,20 @@ import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.serialize.HashCodeSerializer;
 import org.gradle.internal.service.ServiceRegistration;
-import org.gradle.internal.snapshot.AtomicSnapshotHierarchyReference;
 import org.gradle.internal.snapshot.CaseSensitivity;
 import org.gradle.internal.vfs.FileSystemAccess;
+import org.gradle.internal.vfs.VirtualFileSystem;
 import org.gradle.internal.vfs.impl.DefaultFileSystemAccess;
 import org.gradle.internal.vfs.impl.DefaultSnapshotHierarchy;
+import org.gradle.internal.vfs.impl.VfsRootReference;
 import org.gradle.internal.watch.registry.FileWatcherRegistryFactory;
 import org.gradle.internal.watch.registry.impl.DarwinFileWatcherRegistryFactory;
 import org.gradle.internal.watch.registry.impl.LinuxFileWatcherRegistryFactory;
 import org.gradle.internal.watch.registry.impl.WindowsFileWatcherRegistryFactory;
-import org.gradle.internal.watch.vfs.FileSystemWatchingHandler;
-import org.gradle.internal.watch.vfs.impl.DefaultFileSystemWatchingHandler;
+import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem;
 import org.gradle.internal.watch.vfs.impl.LocationsWrittenByCurrentBuild;
-import org.gradle.internal.watch.vfs.impl.WatchingNotSupportedFileSystemWatchingHandler;
+import org.gradle.internal.watch.vfs.impl.WatchingNotSupportedVirtualFileSystem;
+import org.gradle.internal.watch.vfs.impl.WatchingVirtualFileSystem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -186,29 +187,51 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
             return path -> !globalCacheLocations.isInsideGlobalCache(path);
         }
 
-        AtomicSnapshotHierarchyReference createRoot(FileSystem fileSystem, WatchFilter watchFilter) {
+        BuildLifecycleAwareVirtualFileSystem createVirtualFileSystem(
+            LocationsWrittenByCurrentBuild locationsWrittenByCurrentBuild,
+            DocumentationRegistry documentationRegistry,
+            NativeCapabilities nativeCapabilities,
+            ListenerManager listenerManager,
+            FileSystem fileSystem,
+            GlobalCacheLocations globalCacheLocations
+        ) {
             CaseSensitivity caseSensitivity = fileSystem.isCaseSensitive() ? CASE_SENSITIVE : CASE_INSENSITIVE;
-            return new AtomicSnapshotHierarchyReference(DefaultSnapshotHierarchy.empty(caseSensitivity), watchFilter);
+            VfsRootReference rootReference = new VfsRootReference(DefaultSnapshotHierarchy.empty(caseSensitivity));
+            Predicate<String> watchFilter = path -> !globalCacheLocations.isInsideGlobalCache(path);
+
+            BuildLifecycleAwareVirtualFileSystem virtualFileSystem = determineWatcherRegistryFactory(OperatingSystem.current(), nativeCapabilities)
+                .<BuildLifecycleAwareVirtualFileSystem>map(watcherRegistryFactory -> new WatchingVirtualFileSystem(
+                    watcherRegistryFactory,
+                    rootReference,
+                    watchFilter,
+                    sectionId -> documentationRegistry.getDocumentationFor("gradle_daemon", sectionId),
+                    locationsWrittenByCurrentBuild
+                ))
+                .orElse(new WatchingNotSupportedVirtualFileSystem(rootReference));
+            listenerManager.addListener((BuildAddedListener) buildState ->
+                virtualFileSystem.buildRootDirectoryAdded(buildState.getBuildRootDir())
+            );
+            return virtualFileSystem;
         }
 
         FileSystemAccess createFileSystemAccess(
             FileHasher hasher,
-            AtomicSnapshotHierarchyReference root,
+            VirtualFileSystem virtualFileSystem,
             Stat stat,
             StringInterner stringInterner,
             ListenerManager listenerManager,
             PatternSpecFactory patternSpecFactory,
             FileSystemAccess.WriteListener writeListener
         ) {
-            DefaultFileSystemAccess virtualFileSystem = new DefaultFileSystemAccess(
+            DefaultFileSystemAccess fileSystemAccess = new DefaultFileSystemAccess(
                 hasher,
                 stringInterner,
                 stat,
-                root,
+                virtualFileSystem,
                 writeListener,
                 DirectoryScanner.getDefaultExcludes()
             );
-            listenerManager.addListener(new DefaultExcludesBuildListener(virtualFileSystem) {
+            listenerManager.addListener(new DefaultExcludesBuildListener(fileSystemAccess) {
                 @Override
                 public void settingsEvaluated(Settings settings) {
                     super.settingsEvaluated(settings);
@@ -231,28 +254,7 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
                 public void beforeComplete(GradleInternal gradle) {
                 }
             });
-            return virtualFileSystem;
-        }
-
-        FileSystemWatchingHandler createFileSystemWatchingHandler(
-            AtomicSnapshotHierarchyReference root,
-            LocationsWrittenByCurrentBuild locationsWrittenByCurrentBuild,
-            DocumentationRegistry documentationRegistry,
-            NativeCapabilities nativeCapabilities,
-            ListenerManager listenerManager
-        ) {
-            FileSystemWatchingHandler watchingHandler = determineWatcherRegistryFactory(OperatingSystem.current(), nativeCapabilities)
-                .<FileSystemWatchingHandler>map(watcherRegistryFactory -> new DefaultFileSystemWatchingHandler(
-                    watcherRegistryFactory,
-                    root,
-                    sectionId -> documentationRegistry.getDocumentationFor("gradle_daemon", sectionId),
-                    locationsWrittenByCurrentBuild
-                ))
-                .orElse(new WatchingNotSupportedFileSystemWatchingHandler(root));
-            listenerManager.addListener((BuildAddedListener) buildState ->
-                watchingHandler.buildRootDirectoryAdded(buildState.getBuildRootDir())
-            );
-            return watchingHandler;
+            return fileSystemAccess;
         }
 
         private Optional<FileWatcherRegistryFactory> determineWatcherRegistryFactory(OperatingSystem operatingSystem, NativeCapabilities nativeCapabilities) {
@@ -322,7 +324,7 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
             ListenerManager listenerManager,
             Stat stat,
             StringInterner stringInterner,
-            AtomicSnapshotHierarchyReference root,
+            VirtualFileSystem root,
             FileSystemAccess.WriteListener writeListener
         ) {
             DefaultFileSystemAccess buildSessionsScopedVirtualFileSystem = new DefaultFileSystemAccess(

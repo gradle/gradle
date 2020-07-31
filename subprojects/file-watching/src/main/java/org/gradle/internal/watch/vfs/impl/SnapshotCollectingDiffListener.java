@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.vfs.impl;
+package org.gradle.internal.watch.vfs.impl;
 
 import org.gradle.internal.file.FileMetadata.AccessType;
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;

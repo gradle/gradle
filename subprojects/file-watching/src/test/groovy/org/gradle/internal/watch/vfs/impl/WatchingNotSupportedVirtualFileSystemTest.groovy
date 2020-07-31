@@ -16,32 +16,31 @@
 
 package org.gradle.internal.watch.vfs.impl
 
-import org.gradle.internal.snapshot.AtomicSnapshotHierarchyReference
 import org.gradle.internal.snapshot.CaseSensitivity
 import org.gradle.internal.snapshot.SnapshotHierarchy
 import org.gradle.internal.vfs.impl.DefaultSnapshotHierarchy
+import org.gradle.internal.vfs.impl.VfsRootReference
 import spock.lang.Specification
 
-class WatchingNotSupportedFileSystemWatchingHandlerTest extends Specification {
+class WatchingNotSupportedVirtualFileSystemTest extends Specification {
     def emptySnapshotHierarchy = DefaultSnapshotHierarchy.empty(CaseSensitivity.CASE_SENSITIVE)
     def nonEmptySnapshotHierarchy = Stub(SnapshotHierarchy) {
         empty() >> emptySnapshotHierarchy
     }
-    def root = new AtomicSnapshotHierarchyReference(nonEmptySnapshotHierarchy, { path -> true })
-    def watchingNotSupportedHandler = new WatchingNotSupportedFileSystemWatchingHandler(root)
+    def rootReference = new VfsRootReference(nonEmptySnapshotHierarchy)
+    def watchingNotSupportedHandler = new WatchingNotSupportedVirtualFileSystem(rootReference)
 
     def "invalidates the virtual file system before and after the build"() {
-
         when:
         watchingNotSupportedHandler.afterBuildStarted(retentionEnabled)
         then:
-        root.get() == emptySnapshotHierarchy
+        rootReference.get() == emptySnapshotHierarchy
 
         when:
-        root.update { root, listener -> nonEmptySnapshotHierarchy }
+        rootReference.update { root -> nonEmptySnapshotHierarchy }
         watchingNotSupportedHandler.beforeBuildFinished(retentionEnabled)
         then:
-        root.get() == emptySnapshotHierarchy
+        rootReference.get() == emptySnapshotHierarchy
 
         where:
         retentionEnabled << [true, false]
