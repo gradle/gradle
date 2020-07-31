@@ -218,11 +218,11 @@ class UndeclaredBuildInputsIntegrationTest extends AbstractInstantExecutionInteg
         noExceptionThrown()
 
         when:
-        instantFails("-DCI=$defaultValue") // use the default value
+        instantRunLenient("-DCI=$defaultValue") // use the default value
 
         then:
         fixture.assertStateStored()
-        problems.assertFailureHasProblems(failure) {
+        problems.assertResultHasProblems(result) {
             withProblem("plugin class 'SneakyPlugin': read system property 'CI'")
         }
 

@@ -39,6 +39,15 @@ class InstantExecutionCompositeBuildsIntegrationTest extends AbstractInstantExec
         }
 
         when:
+        instantRunLenient("help")
+
+        then:
+        problems.assertResultHasProblems(result) {
+            withUniqueProblems(expectedProblem)
+            withProblemsWithStackTraceCount(0)
+        }
+
+        when:
         instantFails("help")
 
         then:
@@ -79,6 +88,15 @@ class InstantExecutionCompositeBuildsIntegrationTest extends AbstractInstantExec
 
         when:
         instantFails("help")
+
+        then:
+        problems.assertFailureHasProblems(failure) {
+            withUniqueProblems(expectedProblem)
+            withProblemsWithStackTraceCount(0)
+        }
+
+        when:
+        instantRunLenient("help")
 
         then:
         problems.assertFailureHasProblems(failure) {

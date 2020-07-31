@@ -364,7 +364,7 @@ ${TextUtil.indent(configLines.join("\n"), "                        ")}
         run('clean', 'build')
 
         then:
-        file("build/libs/util-3.2.1.jar").exists()
+        file("build/libs/util-3.2.2.jar").exists()
     }
 
     @Issue("GRADLE-2819")
