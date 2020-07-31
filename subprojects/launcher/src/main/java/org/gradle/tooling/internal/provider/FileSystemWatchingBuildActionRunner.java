@@ -24,6 +24,7 @@ import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.invocation.BuildActionRunner;
 import org.gradle.internal.invocation.BuildController;
 import org.gradle.internal.service.scopes.VirtualFileSystemServices;
+import org.gradle.internal.vfs.VirtualFileSystem;
 import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem;
 import org.gradle.util.IncubationLogger;
 
@@ -57,10 +58,7 @@ public class FileSystemWatchingBuildActionRunner implements BuildActionRunner {
 
     private static void dropVirtualFileSystemIfRequested(StartParameterInternal startParameter, BuildLifecycleAwareVirtualFileSystem virtualFileSystem) {
         if (VirtualFileSystemServices.isDropVfs(startParameter)) {
-            virtualFileSystem.update((currentRoot, diffListener) -> {
-                currentRoot.visitSnapshotRoots(diffListener::nodeRemoved);
-                return currentRoot.empty();
-            });
+            virtualFileSystem.update(VirtualFileSystem.INVALIDATE_ALL);
         }
     }
 

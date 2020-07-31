@@ -21,6 +21,7 @@ import org.gradle.internal.file.FileMetadata.AccessType
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.internal.snapshot.MissingFileSnapshot
+import org.gradle.internal.vfs.VirtualFileSystem
 import org.gradle.language.nativeplatform.internal.Include
 import org.gradle.language.nativeplatform.internal.IncludeDirectives
 import org.gradle.language.nativeplatform.internal.incremental.sourceparser.TestIncludeParser
@@ -39,7 +40,8 @@ class IncrementalCompileProcessorTest extends Specification {
 
     def includesParser = Mock(SourceIncludesParser)
     def dependencyResolver = new DummyResolver()
-    def fileSystemAccess = TestFiles.fileSystemAccess()
+    def virtualFileSystem = TestFiles.virtualFileSystem()
+    def fileSystemAccess = TestFiles.fileSystemAccess(virtualFileSystem)
     def stateCache = new DummyPersistentStateCache()
     def incrementalCompileProcessor = new IncrementalCompileProcessor(stateCache, new IncrementalCompileFilesFactory(IncludeDirectives.EMPTY, includesParser, dependencyResolver, fileSystemAccess), new TestBuildOperationExecutor())
 
@@ -93,20 +95,20 @@ class IncrementalCompileProcessorTest extends Specification {
     }
 
     def added(TestFile sourceFile) {
-        fileSystemAccess.invalidateAll()
+        virtualFileSystem.update(VirtualFileSystem.INVALIDATE_ALL)
         modifiedFiles << sourceFile
         graph[sourceFile] = []
     }
 
     def sourceAdded(TestFile sourceFile, List<File> deps = []) {
-        fileSystemAccess.invalidateAll()
+        virtualFileSystem.update(VirtualFileSystem.INVALIDATE_ALL)
         sourceFiles << sourceFile
         modifiedFiles << sourceFile
         graph[sourceFile] = deps
     }
 
     def modified(TestFile sourceFile, List<File> deps = null) {
-        fileSystemAccess.invalidateAll()
+        virtualFileSystem.update(VirtualFileSystem.INVALIDATE_ALL)
         modifiedFiles << sourceFile
         sourceFile << "More text"
         if (deps != null) {
@@ -115,13 +117,13 @@ class IncrementalCompileProcessorTest extends Specification {
     }
 
     def sourceRemoved(TestFile sourceFile) {
-        fileSystemAccess.invalidateAll()
+        virtualFileSystem.update(VirtualFileSystem.INVALIDATE_ALL)
         sourceFiles.remove(sourceFile)
         graph.remove(sourceFile)
     }
 
     def dependencyRemoved(TestFile sourceFile) {
-        fileSystemAccess.invalidateAll()
+        virtualFileSystem.update(VirtualFileSystem.INVALIDATE_ALL)
         graph.remove(sourceFile)
         sourceFile.delete()
     }

@@ -186,15 +186,6 @@ public class DefaultFileSystemAccess implements FileSystemAccess {
     }
 
     @Override
-    public void invalidateAll() {
-        virtualFileSystem.update((root, changeListener) -> {
-            // TODO: Close/restart watching here.
-            root.visitSnapshotRoots(changeListener::nodeRemoved);
-            return root.empty();
-        });
-    }
-
-    @Override
     public void record(CompleteFileSystemLocationSnapshot snapshot) {
         virtualFileSystem.update((root, changeListener) -> root.store(snapshot.getAbsolutePath(), snapshot, changeListener));
     }
@@ -219,7 +210,7 @@ public class DefaultFileSystemAccess implements FileSystemAccess {
             LOGGER.debug("Default excludes changes from {} to {}", defaultExcludes, newDefaultExcludes);
             defaultExcludes = newDefaultExcludes;
             directorySnapshotter = new DirectorySnapshotter(hasher, stringInterner, newDefaultExcludes);
-            invalidateAll();
+            virtualFileSystem.update(VirtualFileSystem.INVALIDATE_ALL);
         }
     }
 }

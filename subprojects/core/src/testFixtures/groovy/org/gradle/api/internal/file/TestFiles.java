@@ -211,11 +211,15 @@ public class TestFiles {
     }
 
     public static FileSystemAccess fileSystemAccess() {
+        return fileSystemAccess(virtualFileSystem());
+    }
+
+    public static FileSystemAccess fileSystemAccess(VirtualFileSystem virtualFileSystem) {
         return new DefaultFileSystemAccess(
             fileHasher(),
             new StringInterner(),
             fileSystem(),
-            virtualFileSystem(),
+            virtualFileSystem,
             locations -> {}
         );
     }

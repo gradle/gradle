@@ -28,4 +28,9 @@ public interface VirtualFileSystem {
     interface UpdateFunction {
         SnapshotHierarchy update(SnapshotHierarchy root, SnapshotHierarchy.NodeDiffListener diffListener);
     }
+
+    UpdateFunction INVALIDATE_ALL = (root, diffListener) -> {
+        root.visitSnapshotRoots(diffListener::nodeRemoved);
+        return root.empty();
+    };
 }

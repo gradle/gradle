@@ -65,11 +65,6 @@ public interface FileSystemAccess {
      */
     void record(CompleteFileSystemLocationSnapshot snapshot);
 
-    /**
-     * Removes all cached state from the virtual file system.
-     */
-    void invalidateAll();
-
     interface WriteListener {
         void locationsWritten(Iterable<String> locations);
     }

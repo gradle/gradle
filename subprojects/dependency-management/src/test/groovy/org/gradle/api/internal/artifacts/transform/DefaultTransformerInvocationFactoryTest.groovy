@@ -292,8 +292,7 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
         outputFile?.isFile()
 
         when:
-        outputFile.text = "changed"
-        fileSystemAccess.invalidateAll()
+        fileSystemAccess.write([outputFile.absolutePath], { -> outputFile.text = "changed" })
 
         invoke(transformer, inputArtifact, dependencies, TransformationSubject.initial(inputArtifact), fingerprinterRegistry)
         then:
@@ -346,8 +345,7 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
         workspaces.size() == 1
 
         when:
-        fileSystemAccess.invalidateAll()
-        inputArtifact1.text = "changed"
+        fileSystemAccess.write([inputArtifact1.absolutePath], { -> inputArtifact1.text = "changed"})
         invoke(transformer, inputArtifact2, dependencies, dependency(transformationType, inputArtifact2), fingerprinterRegistry)
 
         then:
@@ -376,8 +374,7 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
         workspaces.size() == 1
 
         when:
-        fileSystemAccess.invalidateAll()
-        inputArtifact.text = "changed"
+        fileSystemAccess.write([inputArtifact.absolutePath], { -> inputArtifact.text = "changed"})
         invoke(transformer, inputArtifact, dependencies, subject, fingerprinterRegistry)
 
         then:
@@ -403,8 +400,7 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
         workspaces.size() == 1
 
         when:
-        fileSystemAccess.invalidateAll()
-        inputArtifact.text = "changed"
+        fileSystemAccess.write([inputArtifact.absolutePath], { -> inputArtifact.text = "changed"})
         invoke(transformer, inputArtifact, dependencies, subject, fingerprinterRegistry)
 
         then:

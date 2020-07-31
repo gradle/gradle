@@ -27,6 +27,7 @@ import org.gradle.internal.snapshot.CompleteDirectorySnapshot
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot
 import org.gradle.internal.snapshot.FileSystemSnapshot
 import org.gradle.internal.snapshot.FileSystemSnapshotVisitor
+import org.gradle.internal.vfs.VirtualFileSystem
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
@@ -41,7 +42,8 @@ class OutputFilterUtilTest extends Specification {
     @Rule
     final TestNameTestDirectoryProvider temporaryFolder = TestNameTestDirectoryProvider.newInstance(getClass())
 
-    def fileSystemAccess = TestFiles.fileSystemAccess()
+    def virtualFileSystem = TestFiles.virtualFileSystem()
+    def fileSystemAccess = TestFiles.fileSystemAccess(virtualFileSystem)
 
     def "pre-existing directories are filtered"() {
         def outputDir = temporaryFolder.file("outputDir").createDir()
@@ -55,7 +57,7 @@ class OutputFilterUtilTest extends Specification {
 
         when:
         def outputDirFile = outputDir.file("in-output-dir").createFile()
-        fileSystemAccess.invalidateAll()
+        virtualFileSystem.update(VirtualFileSystem.INVALIDATE_ALL)
         def afterExecution = snapshotOutput(outputDir)
         filteredOutputs = filterOutputSnapshotAfterExecution(EMPTY_OUTPUT_FINGERPRINT, beforeExecution, afterExecution)
         then:
@@ -164,7 +166,7 @@ class OutputFilterUtilTest extends Specification {
     }
 
     private FileSystemSnapshot snapshotOutput(File output) {
-        fileSystemAccess.invalidateAll()
+        virtualFileSystem.update(VirtualFileSystem.INVALIDATE_ALL)
         MutableReference<CompleteFileSystemLocationSnapshot> result = MutableReference.empty()
         fileSystemAccess.read(output.getAbsolutePath(), result.&set)
         return result.get()
