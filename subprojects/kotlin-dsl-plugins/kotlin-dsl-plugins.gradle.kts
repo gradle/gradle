@@ -14,12 +14,11 @@
  * limitations under the License.
  */
 
-import gradlebuild.basics.accessors.kotlin
-import gradlebuild.kotlindsl.tasks.GenerateKotlinDslPluginsExtensions
 import gradlebuild.cleanup.WhenNotEmpty
 
 plugins {
     id("gradlebuild.portalplugin.kotlin")
+    id("gradlebuild.kotlin-dsl-plugin-extensions")
 }
 
 description = "Kotlin DSL Gradle Plugins deployed to the Plugin Portal"
@@ -28,26 +27,6 @@ group = "org.gradle.kotlin"
 version = "1.3.7"
 
 base.archivesBaseName = "plugins"
-
-val generatedSourcesDir = layout.buildDirectory.dir("generated-sources/kotlin")
-
-val generateSources by tasks.registering(GenerateKotlinDslPluginsExtensions::class) {
-    outputDir.set(generatedSourcesDir)
-    kotlinDslPluginsVersion.set(project.version)
-}
-
-sourceSets.main {
-    kotlin.srcDir(files(generatedSourcesDir).builtBy(generateSources))
-}
-
-configurations {
-    compileOnly {
-        attributes {
-            attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.LIBRARY))
-            attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements.JAR))
-        }
-    }
-}
 
 dependencies {
     compileOnly(project(":baseServices"))

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package gradlebuild.kotlindsl.tasks
+package gradlebuild.kotlindsl.generator.tasks
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.DirectoryProperty
@@ -30,7 +30,7 @@ abstract class CodeGenerationTask : DefaultTask() {
     abstract val outputDir: DirectoryProperty
 
     protected
-    abstract fun File.writeFiles(): Unit
+    abstract fun File.writeFiles()
 
     @Suppress("unused")
     @TaskAction

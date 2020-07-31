@@ -13,14 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import gradlebuild.basics.accessors.kotlin
-import gradlebuild.basics.util.ReproduciblePropertiesWriter
 import gradlebuild.cleanup.WhenNotEmpty
-import gradlebuild.kotlindsl.tasks.GenerateKotlinDependencyExtensions
 
 plugins {
     id("gradlebuild.distribution.api-kotlin")
+    id("gradlebuild.kotlin-dsl-dependencies-embedded")
 }
 
 description = "Kotlin DSL Provider"
@@ -108,74 +105,6 @@ classycle {
     excludePatterns.set(listOf("org/gradle/kotlin/dsl/**"))
 }
 
-// --- Enable automatic generation of API extensions -------------------
-val apiExtensionsOutputDir = layout.buildDirectory.dir("generated-sources/kotlin")
-
-val publishedKotlinDslPluginVersion = "1.3.6" // TODO:kotlin-dsl
-
-tasks {
-    val generateKotlinDependencyExtensions by registering(GenerateKotlinDependencyExtensions::class) {
-        outputDir.set(apiExtensionsOutputDir)
-        embeddedKotlinVersion.set(libs.kotlinVersion)
-        kotlinDslPluginsVersion.set(publishedKotlinDslPluginVersion)
-    }
-
-    val generateExtensions by registering {
-        dependsOn(generateKotlinDependencyExtensions)
-    }
-
-    sourceSets.main {
-        kotlin.srcDir(files(apiExtensionsOutputDir).builtBy(generateExtensions))
-    }
-
-// -- Version manifest properties --------------------------------------
-    val writeVersionsManifest by registering(WriteProperties::class) {
-        outputFile = buildDir.resolve("versionsManifest/gradle-kotlin-dsl-versions.properties")
-        property("kotlin", libs.kotlinVersion)
-    }
-
-    processResources {
-        from(writeVersionsManifest)
-    }
-}
-
 testFilesCleanup {
     policy.set(WhenNotEmpty.REPORT)
-}
-
-
-// -- Embedded Kotlin dependencies -------------------------------------
-
-val embeddedKotlinBaseDependencies by configurations.creating
-
-dependencies {
-    embeddedKotlinBaseDependencies(libs.futureKotlin("stdlib-jdk8"))
-    embeddedKotlinBaseDependencies(libs.futureKotlin("reflect"))
-}
-
-val writeEmbeddedKotlinDependencies by tasks.registering {
-    val outputFile = layout.buildDirectory.file("embeddedKotlinDependencies/gradle-kotlin-dsl-embedded-kotlin.properties")
-    outputs.file(outputFile)
-    val values = embeddedKotlinBaseDependencies
-    inputs.files(values)
-    val skippedModules = setOf(project.name, "distributionsDependencies", "kotlinCompilerEmbeddable")
-    // https://github.com/gradle/instant-execution/issues/183
-    val modules = provider { embeddedKotlinBaseDependencies.incoming.resolutionResult.allComponents
-        .asSequence()
-        .mapNotNull { it.moduleVersion }
-        .filter { it.name !in skippedModules }
-        .associate { "${it.group}:${it.name}" to it.version }
-    }
-
-    doLast {
-        ReproduciblePropertiesWriter.store(
-            modules.get(),
-            outputFile.get().asFile.apply { parentFile.mkdirs() },
-            null
-        )
-    }
-}
-
-tasks.processResources {
-    from(writeEmbeddedKotlinDependencies)
 }
