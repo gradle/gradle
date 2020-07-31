@@ -16,8 +16,8 @@
 package org.gradle.api.internal.artifacts.ivyservice.modulecache.artifacts;
 
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheLockingManager;
+import org.gradle.internal.file.FileAccessTracker;
 import org.gradle.internal.hash.HashCode;
-import org.gradle.internal.resource.local.FileAccessTracker;
 import org.gradle.util.BuildCommencedTimeProvider;
 
 import java.io.File;

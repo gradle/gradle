@@ -27,10 +27,11 @@ import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.exceptions.LocationAwareException
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.service.ServiceRegistry
-import org.gradle.kotlin.dsl.accessors.projectAccessorsClassPath
+import org.gradle.kotlin.dsl.accessors.ProjectAccessorsClassPathGenerator
 import org.gradle.kotlin.dsl.support.KotlinScriptHost
 import org.gradle.kotlin.dsl.support.ScriptCompilationException
 import org.gradle.kotlin.dsl.support.loggerFor
+import org.gradle.kotlin.dsl.support.serviceOf
 import org.gradle.kotlin.dsl.support.serviceRegistryOf
 import org.gradle.kotlin.dsl.support.unsafeLazy
 import org.gradle.plugin.management.internal.PluginRequests
@@ -418,11 +419,14 @@ class Interpreter(val host: Host) {
             eval(specializedProgram.programFor, scriptHost)
         }
 
-        override fun accessorsClassPathFor(scriptHost: KotlinScriptHost<*>) =
-            projectAccessorsClassPath(
-                scriptHost.target as Project,
+        override fun accessorsClassPathFor(scriptHost: KotlinScriptHost<*>): ClassPath {
+            val project = scriptHost.target as Project
+            val projectAccessorsClassPathGenerator = project.serviceOf<ProjectAccessorsClassPathGenerator>()
+            return projectAccessorsClassPathGenerator.projectAccessorsClassPath(
+                project,
                 host.compilationClassPathOf(scriptHost.targetScope)
             ).bin
+        }
 
         override fun compileSecondStageOf(
             program: ExecutableProgram.StagedProgram,

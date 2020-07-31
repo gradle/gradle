@@ -42,6 +42,7 @@ dependencies {
     implementation(project(":resources"))
     implementation(project(":buildCache"))
     implementation(project(":toolingApi"))
+    implementation(project(":execution"))
 
     implementation(libs.groovy)
     implementation(libs.slf4jApi)

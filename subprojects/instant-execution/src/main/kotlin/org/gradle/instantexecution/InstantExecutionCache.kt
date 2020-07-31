@@ -29,8 +29,8 @@ import org.gradle.instantexecution.initialization.InstantExecutionStartParameter
 import org.gradle.internal.Factory
 import org.gradle.internal.concurrent.Stoppable
 import org.gradle.internal.file.FileAccessTimeJournal
+import org.gradle.internal.file.impl.SingleDepthFileAccessTracker
 import org.gradle.internal.nativeintegration.filesystem.FileSystem
-import org.gradle.internal.resource.local.SingleDepthFileAccessTracker
 import java.io.File
 
 

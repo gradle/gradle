@@ -41,10 +41,10 @@ import org.gradle.internal.exceptions.LocationAwareException
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.resource.TextFileResourceLoader
 import org.gradle.kotlin.dsl.accessors.AccessorFormats
+import org.gradle.kotlin.dsl.accessors.ProjectSchemaProvider
 import org.gradle.kotlin.dsl.accessors.TypedProjectSchema
 import org.gradle.kotlin.dsl.accessors.buildAccessorsFor
 import org.gradle.kotlin.dsl.accessors.hashCodeFor
-import org.gradle.kotlin.dsl.accessors.schemaFor
 import org.gradle.kotlin.dsl.concurrent.AsyncIOScopeFactory
 import org.gradle.kotlin.dsl.concurrent.IO
 import org.gradle.kotlin.dsl.concurrent.writeFile
@@ -79,7 +79,10 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
     val asyncIOScopeFactory: AsyncIOScopeFactory,
 
     private
-    val textFileResourceLoader: TextFileResourceLoader
+    val textFileResourceLoader: TextFileResourceLoader,
+
+    private
+    val projectSchemaProvider: ProjectSchemaProvider
 
 ) : ClassPathSensitiveCodeGenerationTask() {
 
@@ -280,7 +283,8 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
         val schemaBuilder = SyntheticProjectSchemaBuilder(
             gradleUserHomeDir = gradleUserHomeDir,
             rootProjectDir = uniqueTempDirectory(),
-            rootProjectClassPath = (classPathFiles + runtimeClassPathFiles).files
+            rootProjectClassPath = (classPathFiles + runtimeClassPathFiles).files,
+            projectSchemaProvider = projectSchemaProvider
         )
         return pluginGroupsPerRequests.flatMap { (uniquePluginRequests, scriptPlugins) ->
             try {
@@ -354,14 +358,15 @@ internal
 class SyntheticProjectSchemaBuilder(
     gradleUserHomeDir: File,
     rootProjectDir: File,
-    rootProjectClassPath: Collection<File>
+    rootProjectClassPath: Collection<File>,
+    private val projectSchemaProvider: ProjectSchemaProvider
 ) {
 
     private
     val rootProject = buildRootProject(gradleUserHomeDir, rootProjectDir, rootProjectClassPath)
 
     fun schemaFor(plugins: PluginRequests): TypedProjectSchema =
-        schemaFor(childProjectWith(plugins))
+        projectSchemaProvider.schemaFor(childProjectWith(plugins))
 
     private
     fun childProjectWith(pluginRequests: PluginRequests): Project {
