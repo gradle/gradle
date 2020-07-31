@@ -33,7 +33,7 @@ import java.nio.file.StandardCopyOption;
 import java.util.HashSet;
 import java.util.Set;
 
-@ServiceScope(Scopes.UserHome)
+@ServiceScope(Scopes.UserHome.class)
 public class ClasspathBuilder {
     private static final int BUFFER_SIZE = 8192;
 

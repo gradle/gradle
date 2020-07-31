@@ -45,6 +45,8 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
 
     abstract String getDistributionLabel()
 
+    abstract int getMaxDistributionSizeBytes()
+
     /**
      * Change this whenever you add or remove subprojects for distribution core modules (lib/).
      */
@@ -68,6 +70,11 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
 
     int getLibJarsCount() {
         coreLibJarsCount + packagedPluginsJarCount + thirdPartyLibJarsCount
+    }
+
+    def "distribution size should not exceed a certain number"() {
+        expect:
+        getZip().size() <= getMaxDistributionSizeBytes()
     }
 
     def "no duplicate entries"() {

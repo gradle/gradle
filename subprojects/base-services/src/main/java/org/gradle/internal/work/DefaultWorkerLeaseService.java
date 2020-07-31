@@ -55,7 +55,7 @@ import static org.gradle.internal.resources.DefaultResourceLockCoordinationServi
 import static org.gradle.internal.resources.DefaultResourceLockCoordinationService.unlock;
 import static org.gradle.internal.resources.ResourceLockState.Disposition.FINISHED;
 
-@ServiceScope(Scopes.BuildSession)
+@ServiceScope(Scopes.BuildSession.class)
 public class DefaultWorkerLeaseService implements WorkerLeaseService {
     public static final String PROJECT_LOCK_STATS_PROPERTY = "org.gradle.internal.project.lock.stats";
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultWorkerLeaseService.class);

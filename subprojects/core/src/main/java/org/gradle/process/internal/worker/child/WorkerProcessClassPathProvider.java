@@ -95,6 +95,7 @@ public class WorkerProcessClassPathProvider implements ClassPathProvider, Closea
             "gradle-file-collections",
             "gradle-hashing",
             "gradle-snapshots",
+            "gradle-base-annotations",
             "gradle-build-operations"
     };
 

@@ -657,7 +657,6 @@ If the artifacts are trustworthy, you will need to update the gradle/verificatio
         terse << [true, false]
     }
 
-    @ToBeFixedForInstantExecution
     @Unroll
     def "caches missing keys (terse output=#terse)"() {
         createMetadataFile {
@@ -727,7 +726,6 @@ This can indicate that a dependency has been compromised. Please carefully verif
     }
 
 
-    @ToBeFixedForInstantExecution
     def "cache takes ignored keys into consideration"() {
         createMetadataFile {
             keyServer(keyServerFixture.uri)

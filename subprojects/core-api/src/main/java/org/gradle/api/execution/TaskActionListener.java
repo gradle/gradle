@@ -22,7 +22,7 @@ import org.gradle.internal.service.scopes.Scopes;
 /**
  * <p>A {@code TaskActionListener} is notified of the actions that a task performs.</p>
  */
-@EventScope(Scopes.Build)
+@EventScope(Scopes.Build.class)
 public interface TaskActionListener {
     /**
      * This method is called immediately before the task starts performing its actions.

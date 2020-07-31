@@ -44,7 +44,7 @@ import java.io.OutputStream
 /**
  * Coordinates the writing and reading of the instant execution cache fingerprint.
  */
-@ServiceScope(Scopes.Build)
+@ServiceScope(Scopes.Build::class)
 internal
 class InstantExecutionCacheFingerprintController internal constructor(
     private val startParameter: InstantExecutionStartParameter,

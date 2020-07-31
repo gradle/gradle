@@ -24,7 +24,7 @@ import org.gradle.internal.service.scopes.Scopes;
  *
  * One or more builds may be run during a session. For example, when running in continuous mode, multiple builds are run during a single session.
  */
-@EventScope(Scopes.BuildSession)
+@EventScope(Scopes.BuildSession.class)
 public interface SessionLifecycleListener {
     /**
      * Called at the start of the session, immediately after initializing the session services.

@@ -40,7 +40,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
-@ServiceScope(Scopes.BuildSession)
+@ServiceScope(Scopes.BuildSession.class)
 public class DefaultBuildOperationExecutor extends DefaultBuildOperationRunner implements BuildOperationExecutor, Stoppable {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultBuildOperationExecutor.class);
     private static final String LINE_SEPARATOR = SystemProperties.getInstance().getLineSeparator();

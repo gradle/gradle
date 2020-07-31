@@ -34,7 +34,7 @@ import javax.annotation.Nullable;
  * @see ClassLoaderScopeRegistry
  * @see org.gradle.api.internal.initialization.ClassLoaderScope
  */
-@EventScope(Scopes.Build)
+@EventScope(Scopes.Build.class)
 public interface ClassLoaderScopeRegistryListener {
 
     void rootScopeCreated(ClassLoaderScopeId rootScopeId);

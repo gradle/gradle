@@ -25,6 +25,7 @@ import org.gradle.configuration.internal.DefaultUserCodeApplicationContext
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.testfixtures.CustomPluginWithInjection
 import org.gradle.util.TestUtil
 import org.junit.Rule
 import spock.lang.Specification
@@ -105,23 +106,28 @@ class DefaultPluginContainerTest extends Specification {
 
     def "offers plugin management via injectable plugin type "() {
         when:
-        def basePluginClass = classLoader.parseClass("""
-        import org.gradle.api.Plugin
-        import org.gradle.api.Project
-        class TestPlugin1 implements Plugin<Project> {
-          void apply(Project project) {}
-          @javax.inject.Inject
-          public org.gradle.internal.reflect.Instantiator getInstantiator() {
-            throw UnsupportedOperationException();
-          }
-        }
-    """)
-        def plugin = container.apply(basePluginClass)
+        def plugin = container.apply(CustomPluginWithInjection)
 
         then:
-        container.hasPlugin(basePluginClass)
-        container.getPlugin(basePluginClass) == plugin
-        container.findPlugin(basePluginClass) == plugin
+        container.hasPlugin(CustomPluginWithInjection)
+        container.getPlugin(CustomPluginWithInjection) == plugin
+        container.findPlugin(CustomPluginWithInjection) == plugin
+    }
+
+    def "id-based injectable plugins can be found by their id"() {
+        when:
+        def plugin = container.apply("custom-plugin-with-injection")
+        def executed = false
+
+        then:
+
+        container.withId("custom-plugin-with-injection", {
+            assert it == plugin
+            executed = true
+        })
+        executed
+        container.getPlugin("custom-plugin-with-injection") == plugin
+        container.hasPlugin("custom-plugin-with-injection")
     }
 
     def "does not find plugin by unknown id"() {

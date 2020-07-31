@@ -40,7 +40,7 @@ import java.io.FileNotFoundException;
 import java.util.Optional;
 import java.util.concurrent.Callable;
 
-@ServiceScope(Scopes.Build)
+@ServiceScope(Scopes.Build.class)
 public class DefaultJavaInstallationRegistry implements JavaInstallationRegistry {
     private final JavaInstallationProbe installationProbe;
     private final ProviderFactory providerFactory;

@@ -18,13 +18,13 @@ package org.gradle.api.execution.internal;
 
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.file.FileCollectionInternal;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope.Global;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 /**
  * Allows the registration of {@link TaskInputsListener task inputs listeners}.
  */
-@ServiceScope(Scopes.Global)
+@ServiceScope(Global.class)
 public interface TaskInputsListeners {
 
     /**

@@ -23,7 +23,7 @@ import org.gradle.internal.service.scopes.Scopes;
  * ProjectEvaluationListener} to a {@link org.gradle.api.invocation.Gradle} using {@link
  * org.gradle.api.invocation.Gradle#addProjectEvaluationListener(ProjectEvaluationListener)}.</p>
  */
-@EventScope(Scopes.Build)
+@EventScope(Scopes.Build.class)
 public interface ProjectEvaluationListener {
     /**
      * This method is called immediately before a project is evaluated.

@@ -17,10 +17,10 @@ package org.gradle.api.internal.artifacts;
 
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope.Global;
 import org.gradle.internal.service.scopes.ServiceScope;
 
-@ServiceScope(Scopes.Global)
+@ServiceScope(Global.class)
 public interface ImmutableModuleIdentifierFactory {
     ModuleIdentifier module(String group, String name);
     ModuleVersionIdentifier moduleWithVersion(String group, String name, String version);

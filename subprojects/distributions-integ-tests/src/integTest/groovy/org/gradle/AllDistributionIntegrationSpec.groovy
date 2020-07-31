@@ -32,6 +32,11 @@ class AllDistributionIntegrationSpec extends DistributionIntegrationSpec {
         "all"
     }
 
+    @Override
+    int getMaxDistributionSizeBytes() {
+        return 140 * 1024 * 1024
+    }
+
     def allZipContents() {
         given:
         TestFile contentsDir = unpackDistribution()

@@ -35,7 +35,7 @@ import javax.annotation.Nullable;
  *
  * @since 6.1
  */
-@ServiceScope(Scopes.Build)
+@ServiceScope(Scopes.Build.class)
 public interface ValueSourceProviderFactory {
 
     <T, P extends ValueSourceParameters> Provider<T> createProviderOf(
@@ -53,7 +53,7 @@ public interface ValueSourceProviderFactory {
         @Nullable P parameters
     );
 
-    @EventScope(Scopes.Build)
+    @EventScope(Scopes.Build.class)
     interface Listener {
 
         <T, P extends ValueSourceParameters> void valueObtained(

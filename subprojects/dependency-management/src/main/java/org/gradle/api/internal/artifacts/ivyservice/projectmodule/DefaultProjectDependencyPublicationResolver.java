@@ -37,7 +37,7 @@ import java.util.Set;
  * A service that will resolve a ProjectDependency into publication coordinates, to use for publishing.
  * For now is a simple implementation, but at some point could utilise components in the dependency project, usage in the referencing project, etc.
  */
-@ServiceScope(Scopes.Build)
+@ServiceScope(Scopes.Build.class)
 public class DefaultProjectDependencyPublicationResolver implements ProjectDependencyPublicationResolver {
     private final ProjectPublicationRegistry publicationRegistry;
     private final ProjectConfigurer projectConfigurer;

@@ -24,7 +24,7 @@ import org.gradle.internal.service.scopes.Scopes;
  * use this interface in your build file to perform some action based on the contents of the graph, before any tasks are
  * actually executed.</p>
  */
-@EventScope(Scopes.Build)
+@EventScope(Scopes.Build.class)
 public interface TaskExecutionGraphListener {
     /**
      * <p>This method is called when the {@link TaskExecutionGraph} has been populated, and before any tasks are
