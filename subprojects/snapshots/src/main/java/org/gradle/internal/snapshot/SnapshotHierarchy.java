@@ -113,11 +113,4 @@ public interface SnapshotHierarchy {
          */
         void changed(Collection<CompleteFileSystemLocationSnapshot> removedSnapshots, Collection<CompleteFileSystemLocationSnapshot> addedSnapshots);
     }
-
-    /**
-     * Updates the snapshot hierarchy, passing a {@link NodeDiffListener} to the calls on {@link SnapshotHierarchy}.
-     */
-    interface UpdateFunction {
-        SnapshotHierarchy update(SnapshotHierarchy root, NodeDiffListener diffListener);
-    }
 }

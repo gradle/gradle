@@ -73,16 +73,16 @@ public class WatchingVirtualFileSystem implements BuildLifecycleAwareVirtualFile
     }
 
     @Override
-    public SnapshotHierarchy get() {
-        return rootReference.get();
+    public SnapshotHierarchy getRoot() {
+        return rootReference.getRoot();
     }
 
     @Override
-    public void update(SnapshotHierarchy.UpdateFunction updateFunction) {
-        rootReference.update(currentRoot -> updateRootNotifyingWatchers(updateFunction, currentRoot));
+    public void update(UpdateFunction updateFunction) {
+        rootReference.update(currentRoot -> updateRootNotifyingWatchers(currentRoot, updateFunction));
     }
 
-    private SnapshotHierarchy updateRootNotifyingWatchers(SnapshotHierarchy.UpdateFunction updateFunction, SnapshotHierarchy currentRoot) {
+    private SnapshotHierarchy updateRootNotifyingWatchers(SnapshotHierarchy currentRoot, UpdateFunction updateFunction) {
         if (watchRegistry == null) {
             return updateFunction.update(currentRoot, SnapshotHierarchy.NodeDiffListener.NOOP);
         } else {
@@ -362,8 +362,8 @@ public class WatchingVirtualFileSystem implements BuildLifecycleAwareVirtualFile
 
         private void invalidateSymlink(CompleteFileSystemLocationSnapshot snapshot) {
             root = updateRootNotifyingWatchers(
-                (currentRoot, diffListener) -> currentRoot.invalidate(snapshot.getAbsolutePath(), diffListener),
-                root
+                root,
+                (currentRoot, diffListener) -> currentRoot.invalidate(snapshot.getAbsolutePath(), diffListener)
             );
         }
 

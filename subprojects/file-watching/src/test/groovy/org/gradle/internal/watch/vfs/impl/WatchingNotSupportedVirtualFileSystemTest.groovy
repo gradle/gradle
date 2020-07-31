@@ -34,13 +34,13 @@ class WatchingNotSupportedVirtualFileSystemTest extends Specification {
         when:
         watchingNotSupportedHandler.afterBuildStarted(retentionEnabled)
         then:
-        rootReference.get() == emptySnapshotHierarchy
+        rootReference.getRoot() == emptySnapshotHierarchy
 
         when:
         rootReference.update { root -> nonEmptySnapshotHierarchy }
         watchingNotSupportedHandler.beforeBuildFinished(retentionEnabled)
         then:
-        rootReference.get() == emptySnapshotHierarchy
+        rootReference.getRoot() == emptySnapshotHierarchy
 
         where:
         retentionEnabled << [true, false]

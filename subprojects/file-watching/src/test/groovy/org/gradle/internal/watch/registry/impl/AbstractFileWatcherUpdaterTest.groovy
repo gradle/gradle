@@ -52,12 +52,12 @@ abstract class AbstractFileWatcherUpdaterTest extends Specification {
     def virtualFileSystem = new VirtualFileSystem() {
         private SnapshotHierarchy root = DefaultSnapshotHierarchy.empty(CaseSensitivity.CASE_SENSITIVE)
         @Override
-        SnapshotHierarchy get() {
+        SnapshotHierarchy getRoot() {
             return root
         }
 
         @Override
-        void update(SnapshotHierarchy.UpdateFunction updateFunction) {
+        void update(VirtualFileSystem.UpdateFunction updateFunction) {
             def diffListener = new SnapshotCollectingDiffListener({ path -> true})
             root = updateFunction.update(root, diffListener)
             diffListener.publishSnapshotDiff(updater)

@@ -53,7 +53,7 @@ class WatchingVirtualFileSystemTest extends Specification {
         then:
         0 * _
 
-        rootReference.get() == emptySnapshotHierarchy
+        rootReference.getRoot() == emptySnapshotHierarchy
 
         when:
         rootReference.update { root -> nonEmptySnapshotHierarchy }
@@ -61,7 +61,7 @@ class WatchingVirtualFileSystemTest extends Specification {
         then:
         0 * _
 
-        rootReference.get() == emptySnapshotHierarchy
+        rootReference.getRoot() == emptySnapshotHierarchy
     }
 
     def "stops the watchers before the build when watching is disabled"() {
@@ -88,7 +88,7 @@ class WatchingVirtualFileSystemTest extends Specification {
         1 * watcherRegistry.close()
         0 * _
 
-        rootReference.get() == emptySnapshotHierarchy
+        rootReference.getRoot() == emptySnapshotHierarchy
     }
 
     def "retains the virtual file system when watching is enabled"() {
@@ -115,7 +115,7 @@ class WatchingVirtualFileSystemTest extends Specification {
         1 * watcherRegistry.getAndResetStatistics() >> Stub(FileWatcherRegistry.FileWatchingStatistics)
         0 * _
 
-        rootReference.get() == nonEmptySnapshotHierarchy
+        rootReference.getRoot() == nonEmptySnapshotHierarchy
     }
 
     def "collects build root directories and notifies the vfs"() {

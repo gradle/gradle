@@ -81,7 +81,7 @@ public class DefaultFileSystemAccess implements FileSystemAccess {
 
     @Override
     public <T> Optional<T> readRegularFileContentHash(String location, Function<HashCode, T> visitor) {
-        return virtualFileSystem.get().getMetadata(location)
+        return virtualFileSystem.getRoot().getMetadata(location)
             .<Optional<HashCode>>flatMap(snapshot -> {
                 if (snapshot.getType() != FileType.RegularFile) {
                     return Optional.of(Optional.empty());
@@ -101,7 +101,7 @@ public class DefaultFileSystemAccess implements FileSystemAccess {
                     return Optional.empty();
                 }
                 HashCode hash = producingSnapshots.guardByKey(location,
-                    () -> virtualFileSystem.get().getSnapshot(location)
+                    () -> virtualFileSystem.getRoot().getSnapshot(location)
                         .orElseGet(() -> {
                             HashCode hashCode = hasher.hash(file, fileMetadata.getLength(), fileMetadata.getLastModified());
                             RegularFileSnapshot snapshot = new RegularFileSnapshot(location, file.getName(), hashCode, fileMetadata);
@@ -122,11 +122,11 @@ public class DefaultFileSystemAccess implements FileSystemAccess {
         if (filter.isEmpty()) {
             visitor.accept(readLocation(location));
         } else {
-            FileSystemSnapshot filteredSnapshot = virtualFileSystem.get().getSnapshot(location)
+            FileSystemSnapshot filteredSnapshot = virtualFileSystem.getRoot().getSnapshot(location)
                 .filter(CompleteFileSystemLocationSnapshot.class::isInstance)
                 .map(snapshot -> FileSystemSnapshotFilter.filterSnapshot(filter.getAsSnapshotPredicate(), snapshot))
                 .orElseGet(() -> producingSnapshots.guardByKey(location,
-                    () -> virtualFileSystem.get().getSnapshot(location)
+                    () -> virtualFileSystem.getRoot().getSnapshot(location)
                         .map(snapshot -> FileSystemSnapshotFilter.filterSnapshot(filter.getAsSnapshotPredicate(), snapshot))
                         .orElseGet(() -> {
                             AtomicBoolean hasBeenFiltered = new AtomicBoolean(false);
@@ -167,9 +167,9 @@ public class DefaultFileSystemAccess implements FileSystemAccess {
     }
 
     private CompleteFileSystemLocationSnapshot readLocation(String location) {
-        return virtualFileSystem.get().getSnapshot(location)
+        return virtualFileSystem.getRoot().getSnapshot(location)
             .orElseGet(() -> producingSnapshots.guardByKey(location,
-                () -> virtualFileSystem.get().getSnapshot(location).orElseGet(() -> snapshot(location)))
+                () -> virtualFileSystem.getRoot().getSnapshot(location).orElseGet(() -> snapshot(location)))
             );
     }
 
@@ -180,7 +180,7 @@ public class DefaultFileSystemAccess implements FileSystemAccess {
             for (String location : locations) {
                 virtualFileSystem.update((innerRoot, diffListener) -> innerRoot.invalidate(location, diffListener));
             }
-            return virtualFileSystem.get();
+            return virtualFileSystem.getRoot();
         });
         action.run();
     }

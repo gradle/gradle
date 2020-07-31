@@ -39,12 +39,12 @@ public class WatchingNotSupportedVirtualFileSystem implements BuildLifecycleAwar
     }
 
     @Override
-    public SnapshotHierarchy get() {
-        return rootReference.get();
+    public SnapshotHierarchy getRoot() {
+        return rootReference.getRoot();
     }
 
     @Override
-    public void update(SnapshotHierarchy.UpdateFunction updateFunction) {
+    public void update(UpdateFunction updateFunction) {
         rootReference.update(root -> updateFunction.update(root, SnapshotHierarchy.NodeDiffListener.NOOP));
     }
 

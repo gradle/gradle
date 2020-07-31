@@ -25,7 +25,7 @@ public class VfsRootReference {
     private volatile SnapshotHierarchy root;
     private final ReentrantLock updateLock = new ReentrantLock();
 
-    public SnapshotHierarchy get() {
+    public SnapshotHierarchy getRoot() {
         return root;
     }
 

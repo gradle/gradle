@@ -19,6 +19,13 @@ package org.gradle.internal.vfs;
 import org.gradle.internal.snapshot.SnapshotHierarchy;
 
 public interface VirtualFileSystem {
-    SnapshotHierarchy get();
-    void update(SnapshotHierarchy.UpdateFunction updateFunction);
+    SnapshotHierarchy getRoot();
+    void update(UpdateFunction updateFunction);
+
+    /**
+     * Updates the snapshot hierarchy, passing a {@link SnapshotHierarchy.NodeDiffListener} to the calls on {@link SnapshotHierarchy}.
+     */
+    interface UpdateFunction {
+        SnapshotHierarchy update(SnapshotHierarchy root, SnapshotHierarchy.NodeDiffListener diffListener);
+    }
 }
