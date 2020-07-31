@@ -56,7 +56,7 @@ class FunctionalTest(
         preSteps = preBuildSteps)
 
     params {
-        if(enableTestDistribution) {
+        if (enableTestDistribution) {
             param("env.GRADLE_ENTERPRISE_ACCESS_KEY", "%e.grdev.net.access.key%")
         }
 
