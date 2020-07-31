@@ -79,7 +79,6 @@ import org.gradle.kotlin.dsl.support.bytecode.publicMethod
 import org.gradle.kotlin.dsl.support.bytecode.publicStaticMethod
 import org.gradle.kotlin.dsl.support.bytecode.writeFileFacadeClassHeader
 import org.gradle.kotlin.dsl.support.bytecode.writePropertyOf
-import org.gradle.kotlin.dsl.support.serviceOf
 import org.gradle.kotlin.dsl.support.useToRun
 import org.gradle.plugin.use.PluginDependenciesSpec
 import org.gradle.plugin.use.PluginDependencySpec
@@ -88,6 +87,7 @@ import org.jetbrains.org.objectweb.asm.MethodVisitor
 import java.io.BufferedWriter
 import java.io.File
 import java.util.Optional
+import javax.inject.Inject
 
 
 /**
@@ -96,36 +96,42 @@ import java.util.Optional
  *
  * The accessors provide content-assist for plugin ids and quick navigation to the plugin source code.
  */
-fun pluginSpecBuildersClassPath(project: Project): AccessorsClassPath = project.rootProject.let { rootProject ->
+class PluginAccessorClassPathGenerator @Inject constructor(
+    private val classLoaderHierarchyHasher: ClassLoaderHierarchyHasher,
+    private val fileCollectionFactory: FileCollectionFactory,
+    private val fileCollectionSnapshotter: FileCollectionSnapshotter,
+    private val outputFileCollectionFingerprinter: OutputFileCollectionFingerprinter,
+    private val workExecutor: WorkExecutor<ExecutionRequestContext, CachingResult>,
+    private val workspaceProvider: KotlinDslWorkspaceProvider
+) {
+    fun pluginSpecBuildersClassPath(project: Project): AccessorsClassPath = project.rootProject.let { rootProject ->
 
-    rootProject.getOrCreateProperty("gradleKotlinDsl.pluginAccessorsClassPath") {
-        val buildSrcClassLoaderScope = baseClassLoaderScopeOf(rootProject)
-        val workExecutor: WorkExecutor<ExecutionRequestContext, CachingResult> = rootProject.serviceOf()
-        val classLoaderHierarchyHasher: ClassLoaderHierarchyHasher = rootProject.serviceOf()
-        val classLoaderHash = requireNotNull(classLoaderHierarchyHasher.getClassLoaderHash(buildSrcClassLoaderScope.exportClassLoader))
-        val workspaceProvider: KotlinDslWorkspaceProvider = rootProject.serviceOf()
-        workspaceProvider.withWorkspace("$accessorsWorkspacePrefix/$classLoaderHash") { workspace, executionHistoryStore ->
-            val sourcesOutputDir = File(workspace, "sources")
-            val classesOutputDir = File(workspace, "classes")
-            val work = GeneratePluginAccessors(
-                rootProject,
-                buildSrcClassLoaderScope,
-                classLoaderHash,
-                sourcesOutputDir,
-                classesOutputDir,
-                executionHistoryStore,
-                rootProject.serviceOf(),
-                rootProject.serviceOf(),
-                rootProject.serviceOf()
-            )
-            workExecutor.execute(object : ExecutionRequestContext {
-                override fun getWork() = work
-                override fun getRebuildReason() = Optional.empty<String>()
-            })
-            AccessorsClassPath(
-                DefaultClassPath.of(classesOutputDir),
-                DefaultClassPath.of(sourcesOutputDir)
-            )
+        rootProject.getOrCreateProperty("gradleKotlinDsl.pluginAccessorsClassPath") {
+            val buildSrcClassLoaderScope = baseClassLoaderScopeOf(rootProject)
+            val classLoaderHash = requireNotNull(classLoaderHierarchyHasher.getClassLoaderHash(buildSrcClassLoaderScope.exportClassLoader))
+            workspaceProvider.withWorkspace("$accessorsWorkspacePrefix/$classLoaderHash") { workspace, executionHistoryStore ->
+                val sourcesOutputDir = File(workspace, "sources")
+                val classesOutputDir = File(workspace, "classes")
+                val work = GeneratePluginAccessors(
+                    rootProject,
+                    buildSrcClassLoaderScope,
+                    classLoaderHash,
+                    sourcesOutputDir,
+                    classesOutputDir,
+                    executionHistoryStore,
+                    fileCollectionFactory,
+                    fileCollectionSnapshotter,
+                    outputFileCollectionFingerprinter
+                )
+                workExecutor.execute(object : ExecutionRequestContext {
+                    override fun getWork() = work
+                    override fun getRebuildReason() = Optional.empty<String>()
+                })
+                AccessorsClassPath(
+                    DefaultClassPath.of(classesOutputDir),
+                    DefaultClassPath.of(sourcesOutputDir)
+                )
+            }
         }
     }
 }
