@@ -22,7 +22,6 @@ import org.gradle.internal.invocation.BuildAction
 import org.gradle.internal.invocation.BuildActionRunner
 import org.gradle.internal.invocation.BuildController
 import org.gradle.internal.service.ServiceRegistry
-import org.gradle.internal.vfs.FileSystemAccess
 import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -31,14 +30,12 @@ import spock.lang.Unroll
 class FileSystemWatchingBuildActionRunnerTest extends Specification {
 
     def watchingHandler = Mock(BuildLifecycleAwareVirtualFileSystem)
-    def fileSystemAccess = Mock(FileSystemAccess)
     def startParameter = Mock(StartParameterInternal)
     def buildController = Stub(BuildController) {
         getGradle() >> Stub(GradleInternal) {
             getStartParameter() >> startParameter
             getServices() >> Stub(ServiceRegistry) {
                 get(BuildLifecycleAwareVirtualFileSystem) >> watchingHandler
-                get(FileSystemAccess) >> fileSystemAccess
             }
         }
     }

@@ -24,7 +24,6 @@ import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.invocation.BuildActionRunner;
 import org.gradle.internal.invocation.BuildController;
 import org.gradle.internal.service.scopes.VirtualFileSystemServices;
-import org.gradle.internal.vfs.FileSystemAccess;
 import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem;
 import org.gradle.util.IncubationLogger;
 
@@ -39,27 +38,29 @@ public class FileSystemWatchingBuildActionRunner implements BuildActionRunner {
     public Result run(BuildAction action, BuildController buildController) {
         GradleInternal gradle = buildController.getGradle();
         StartParameterInternal startParameter = gradle.getStartParameter();
-        BuildLifecycleAwareVirtualFileSystem watchingHandler = gradle.getServices().get(BuildLifecycleAwareVirtualFileSystem.class);
-        FileSystemAccess fileSystemAccess = gradle.getServices().get(FileSystemAccess.class);
+        BuildLifecycleAwareVirtualFileSystem virtualFileSystem = gradle.getServices().get(BuildLifecycleAwareVirtualFileSystem.class);
 
         boolean watchFileSystem = startParameter.isWatchFileSystem();
 
         logMessageForDeprecatedVfsRetentionProperty(startParameter);
         if (watchFileSystem) {
             IncubationLogger.incubatingFeatureUsed("Watching the file system");
-            dropVirtualFileSystemIfRequested(startParameter, fileSystemAccess);
+            dropVirtualFileSystemIfRequested(startParameter, virtualFileSystem);
         }
-        watchingHandler.afterBuildStarted(watchFileSystem);
+        virtualFileSystem.afterBuildStarted(watchFileSystem);
         try {
             return delegate.run(action, buildController);
         } finally {
-            watchingHandler.beforeBuildFinished(watchFileSystem);
+            virtualFileSystem.beforeBuildFinished(watchFileSystem);
         }
     }
 
-    private static void dropVirtualFileSystemIfRequested(StartParameterInternal startParameter, FileSystemAccess fileSystemAccess) {
+    private static void dropVirtualFileSystemIfRequested(StartParameterInternal startParameter, BuildLifecycleAwareVirtualFileSystem virtualFileSystem) {
         if (VirtualFileSystemServices.isDropVfs(startParameter)) {
-            fileSystemAccess.invalidateAll();
+            virtualFileSystem.update((currentRoot, diffListener) -> {
+                currentRoot.visitSnapshotRoots(diffListener::nodeRemoved);
+                return currentRoot.empty();
+            });
         }
     }
 
