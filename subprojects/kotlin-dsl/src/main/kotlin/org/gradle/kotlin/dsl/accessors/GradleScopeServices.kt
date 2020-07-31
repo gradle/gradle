@@ -53,6 +53,7 @@ object GradleScopeServices {
         fileCollectionFactory: FileCollectionFactory,
         fileCollectionSnapshotter: FileCollectionSnapshotter,
         outputFileCollectionFingerprinter: OutputFileCollectionFingerprinter,
+        projectSchemaProvider: ProjectSchemaProvider,
         workExecutor: WorkExecutor<ExecutionRequestContext, CachingResult>,
         workspaceProvider: KotlinDslWorkspaceProvider
     ) = ProjectAccessorsClassPathGenerator(
@@ -60,6 +61,7 @@ object GradleScopeServices {
         fileCollectionFactory,
         fileCollectionSnapshotter,
         outputFileCollectionFingerprinter,
+        projectSchemaProvider,
         workExecutor,
         workspaceProvider
     )

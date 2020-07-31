@@ -58,7 +58,6 @@ import org.gradle.kotlin.dsl.concurrent.withAsynchronousIO
 
 import org.gradle.kotlin.dsl.support.ClassBytesRepository
 import org.gradle.kotlin.dsl.support.appendReproducibleNewLine
-import org.gradle.kotlin.dsl.support.serviceOf
 import org.gradle.kotlin.dsl.support.useToRun
 
 import org.jetbrains.kotlin.metadata.ProtoBuf
@@ -85,6 +84,7 @@ class ProjectAccessorsClassPathGenerator @Inject constructor(
     private val fileCollectionFactory: FileCollectionFactory,
     private val fileCollectionSnapshotter: FileCollectionSnapshotter,
     private val outputFileCollectionFingerprinter: OutputFileCollectionFingerprinter,
+    private val projectSchemaProvider: ProjectSchemaProvider,
     private val workExecutor: WorkExecutor<ExecutionRequestContext, CachingResult>,
     private val workspaceProvider: KotlinDslWorkspaceProvider
 ) {
@@ -128,6 +128,16 @@ class ProjectAccessorsClassPathGenerator @Inject constructor(
             }
         }
     }
+
+
+    private
+    fun configuredProjectSchemaOf(project: Project): TypedProjectSchema? =
+        if (enabledJitAccessors(project)) {
+            require(classLoaderScopeOf(project).isLocked) {
+                "project.classLoaderScope must be locked before querying the project schema"
+            }
+            projectSchemaProvider.schemaFor(project).takeIf { it.isNotEmpty() }
+        } else null
 }
 
 
@@ -228,25 +238,6 @@ data class AccessorsClassPath(val bin: ClassPath, val src: ClassPath) {
     operator fun plus(other: AccessorsClassPath) =
         AccessorsClassPath(bin + other.bin, src + other.src)
 }
-
-
-private
-fun configuredProjectSchemaOf(project: Project): TypedProjectSchema? =
-    if (enabledJitAccessors(project)) {
-        require(classLoaderScopeOf(project).isLocked) {
-            "project.classLoaderScope must be locked before querying the project schema"
-        }
-        schemaFor(project).takeIf { it.isNotEmpty() }
-    } else null
-
-
-fun schemaFor(project: Project): TypedProjectSchema =
-    projectSchemaProviderOf(project).schemaFor(project)
-
-
-private
-fun projectSchemaProviderOf(project: Project) =
-    project.serviceOf<ProjectSchemaProvider>()
 
 
 fun IO.buildAccessorsFor(
