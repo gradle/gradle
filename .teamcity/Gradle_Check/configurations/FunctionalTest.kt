@@ -41,12 +41,14 @@ class FunctionalTest(
         }
     }
 
+    val enableTestDistribution = testCoverage.testDistribution && subprojects.intersect(slowSubprojects).isEmpty()
+
     applyTestDefaults(model, this, testTasks, notQuick = !testCoverage.isQuick, os = testCoverage.os,
         extraParameters = (
             listOf(""""-PtestJavaHome=%${testCoverage.os}.${testCoverage.testJvmVersion}.${testCoverage.vendor}.64bit%"""") +
                 buildScanTags.map { buildScanTag(it) } +
                 buildScanValues.map { buildScanCustomValue(it.key, it.value) } +
-                if (testCoverage.testDistribution && subprojects.intersect(slowSubprojects).isEmpty()) "-DenableTestDistribution=true -Dscan.tag.test-distribution -Dgradle.enterprise.url=https://e.grdev.net" else "" +
+                if (enableTestDistribution) "-DenableTestDistribution=true -Dscan.tag.test-distribution -Dgradle.enterprise.url=https://e.grdev.net" else "" +
                     extraParameters
             ).filter { it.isNotBlank() }.joinToString(separator = " "),
         timeout = testCoverage.testType.timeout,
@@ -54,6 +56,10 @@ class FunctionalTest(
         preSteps = preBuildSteps)
 
     params {
+        if(enableTestDistribution) {
+            param("env.GRADLE_ENTERPRISE_ACCESS_KEY", "%e.grdev.net.access.key%")
+        }
+
         param("env.JAVA_HOME", "%${testCoverage.os}.${testCoverage.buildJvmVersion}.openjdk.64bit%")
         when (testCoverage.os) {
             Os.linux -> {
