@@ -47,5 +47,5 @@ public interface FileWatcherUpdater extends SnapshotHierarchy.SnapshotDiffListen
      *
      * Used by the hierarchical watchers to avoid stop watching root project directories during a build.
      */
-    void buildFinished(SnapshotHierarchy root);
+    SnapshotHierarchy buildFinished(SnapshotHierarchy root);
 }

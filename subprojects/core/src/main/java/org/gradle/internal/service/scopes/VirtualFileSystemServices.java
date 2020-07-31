@@ -181,12 +181,6 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
             return locationsWrittenByCurrentBuild;
         }
 
-        WatchFilter createWatchFilter(GlobalCacheLocations globalCacheLocations) {
-            // All the changes in global caches should be done by Gradle itself, so in order
-            // to minimize the number of watches we don't watch anything within the global caches.
-            return path -> !globalCacheLocations.isInsideGlobalCache(path);
-        }
-
         BuildLifecycleAwareVirtualFileSystem createVirtualFileSystem(
             LocationsWrittenByCurrentBuild locationsWrittenByCurrentBuild,
             DocumentationRegistry documentationRegistry,
@@ -197,9 +191,11 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
         ) {
             CaseSensitivity caseSensitivity = fileSystem.isCaseSensitive() ? CASE_SENSITIVE : CASE_INSENSITIVE;
             VfsRootReference rootReference = new VfsRootReference(DefaultSnapshotHierarchy.empty(caseSensitivity));
+            // All the changes in global caches should be done by Gradle itself, so in order
+            // to minimize the number of watches we don't watch anything within the global caches.
             Predicate<String> watchFilter = path -> !globalCacheLocations.isInsideGlobalCache(path);
 
-            BuildLifecycleAwareVirtualFileSystem virtualFileSystem = determineWatcherRegistryFactory(OperatingSystem.current(), nativeCapabilities)
+            BuildLifecycleAwareVirtualFileSystem virtualFileSystem = determineWatcherRegistryFactory(OperatingSystem.current(), nativeCapabilities, watchFilter)
                 .<BuildLifecycleAwareVirtualFileSystem>map(watcherRegistryFactory -> new WatchingVirtualFileSystem(
                     watcherRegistryFactory,
                     rootReference,
@@ -257,15 +253,15 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
             return fileSystemAccess;
         }
 
-        private Optional<FileWatcherRegistryFactory> determineWatcherRegistryFactory(OperatingSystem operatingSystem, NativeCapabilities nativeCapabilities) {
+        private Optional<FileWatcherRegistryFactory> determineWatcherRegistryFactory(OperatingSystem operatingSystem, NativeCapabilities nativeCapabilities, Predicate<String> watchFilter) {
             if (nativeCapabilities.isNativeIntegrationAvailable()) {
                 try {
                     if (operatingSystem.isMacOsX()) {
-                        return Optional.of(new DarwinFileWatcherRegistryFactory());
+                        return Optional.of(new DarwinFileWatcherRegistryFactory(watchFilter));
                     } else if (operatingSystem.isWindows()) {
-                        return Optional.of(new WindowsFileWatcherRegistryFactory());
+                        return Optional.of(new WindowsFileWatcherRegistryFactory(watchFilter));
                     } else if (operatingSystem.isLinux()) {
-                        return Optional.of(new LinuxFileWatcherRegistryFactory());
+                        return Optional.of(new LinuxFileWatcherRegistryFactory(watchFilter));
                     }
                 } catch (NativeIntegrationUnavailableException e) {
                     LOGGER.info("Native file system watching is not available for this operating system.", e);

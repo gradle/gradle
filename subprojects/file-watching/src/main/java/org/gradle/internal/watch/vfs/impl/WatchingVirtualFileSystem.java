@@ -20,7 +20,6 @@ import com.google.common.collect.EnumMultiset;
 import com.google.common.collect.Multiset;
 import net.rubygrapefruit.platform.internal.jni.InotifyInstanceLimitTooLowException;
 import net.rubygrapefruit.platform.internal.jni.InotifyWatchesLimitTooLowException;
-import org.gradle.internal.file.FileMetadata.AccessType;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.snapshot.CompleteDirectorySnapshot;
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
@@ -42,6 +41,7 @@ import java.nio.file.Path;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 
 public class WatchingVirtualFileSystem implements BuildLifecycleAwareVirtualFileSystem, Closeable {
     private static final Logger LOGGER = LoggerFactory.getLogger(WatchingVirtualFileSystem.class);
@@ -137,10 +137,10 @@ public class WatchingVirtualFileSystem implements BuildLifecycleAwareVirtualFile
                 reasonForNotWatchingFiles = null;
             }
             rootReference.update(currentRoot -> {
-                SnapshotHierarchy newRoot = removeSymbolicLinks(currentRoot);
-                newRoot = handleWatcherRegistryEvents(newRoot, "for current build");
+                SnapshotHierarchy newRoot = handleWatcherRegistryEvents(currentRoot, "for current build");
                 if (watchRegistry != null) {
-                    newRoot = withWatcherChangeErrorHandling(newRoot, () -> watchRegistry.getFileWatcherUpdater().buildFinished(currentRoot));
+                    SnapshotHierarchy rootAfterEvents = newRoot;
+                    newRoot = withWatcherChangeErrorHandling(newRoot, () -> watchRegistry.getFileWatcherUpdater().buildFinished(rootAfterEvents));
                 }
                 printStatistics(newRoot, "retains", "till next build");
                 return newRoot;
@@ -148,20 +148,6 @@ public class WatchingVirtualFileSystem implements BuildLifecycleAwareVirtualFile
         } else {
             rootReference.update(SnapshotHierarchy::empty);
         }
-    }
-
-    /**
-     * Removes all files which are reached via symbolic links from the VFS.
-     *
-     * Currently, we don't model symbolic links in the VFS.
-     * We can only watch the sources of symbolic links.
-     * When the target of symbolic link changes, we do not get informed about those changes.
-     * Therefore, we maintain the state of symbolic links between builds and we need to remove them from the VFS.
-     */
-    private SnapshotHierarchy removeSymbolicLinks(SnapshotHierarchy currentRoot) {
-        SymlinkRemovingFileSystemSnapshotVisitor symlinkRemovingFileSystemSnapshotVisitor = new SymlinkRemovingFileSystemSnapshotVisitor(currentRoot);
-        currentRoot.visitSnapshotRoots(snapshotRoot -> snapshotRoot.accept(symlinkRemovingFileSystemSnapshotVisitor));
-        return symlinkRemovingFileSystemSnapshotVisitor.getRootWithSymlinksRemoved();
     }
 
     /**
@@ -204,9 +190,15 @@ public class WatchingVirtualFileSystem implements BuildLifecycleAwareVirtualFile
     }
 
     private SnapshotHierarchy withWatcherChangeErrorHandling(SnapshotHierarchy currentRoot, Runnable runnable) {
-        try {
+        return withWatcherChangeErrorHandling(currentRoot, () -> {
             runnable.run();
             return currentRoot;
+        });
+    }
+
+    private SnapshotHierarchy withWatcherChangeErrorHandling(SnapshotHierarchy currentRoot, Supplier<SnapshotHierarchy> supplier) {
+        try {
+            return supplier.get();
         } catch (Exception ex) {
             logWatchingError(ex, FILE_WATCHING_ERROR_MESSAGE_DURING_BUILD);
             return stopWatchingAndInvalidateHierarchy(currentRoot);
@@ -330,45 +322,6 @@ public class WatchingVirtualFileSystem implements BuildLifecycleAwareVirtualFile
             } finally {
                 watchRegistry = null;
             }
-        }
-    }
-
-    private class SymlinkRemovingFileSystemSnapshotVisitor implements FileSystemSnapshotVisitor {
-        private SnapshotHierarchy root;
-
-        public SymlinkRemovingFileSystemSnapshotVisitor(SnapshotHierarchy root) {
-            this.root = root;
-        }
-
-        @Override
-        public boolean preVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
-            boolean accessedViaSymlink = directorySnapshot.getAccessType() == AccessType.VIA_SYMLINK;
-            if (accessedViaSymlink) {
-                invalidateSymlink(directorySnapshot);
-            }
-            return !accessedViaSymlink;
-        }
-
-        @Override
-        public void visitFile(CompleteFileSystemLocationSnapshot fileSnapshot) {
-            if (fileSnapshot.getAccessType() == AccessType.VIA_SYMLINK) {
-                invalidateSymlink(fileSnapshot);
-            }
-        }
-
-        @Override
-        public void postVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
-        }
-
-        private void invalidateSymlink(CompleteFileSystemLocationSnapshot snapshot) {
-            root = updateRootNotifyingWatchers(
-                root,
-                (currentRoot, diffListener) -> currentRoot.invalidate(snapshot.getAbsolutePath(), diffListener)
-            );
-        }
-
-        public SnapshotHierarchy getRootWithSymlinksRemoved() {
-            return root;
         }
     }
 }

@@ -34,7 +34,7 @@ class HierarchicalFileWatcherUpdaterTest extends AbstractFileWatcherUpdaterTest 
 
     @Override
     FileWatcherUpdater createUpdater(FileWatcher watcher) {
-        new HierarchicalFileWatcherUpdater(watcher, NO_VALIDATION)
+        new HierarchicalFileWatcherUpdater(watcher, NO_VALIDATION, watchFilter)
     }
 
     def "does not watch project root directory if no snapshot is inside"() {
