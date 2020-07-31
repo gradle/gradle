@@ -134,6 +134,7 @@ include("baseAnnotations")
 include("security")
 include("normalizationJava")
 include("enterprise")
+include("buildOperations")
 
 // Plugin portal projects
 include("kotlinDslPlugins")

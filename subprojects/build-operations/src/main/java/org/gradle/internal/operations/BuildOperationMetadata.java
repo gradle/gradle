@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,17 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-plugins {
-    id("gradlebuild.distribution.api-java")
-    id("gradlebuild.publish-public-libraries")
-}
 
-description = "Tools for creating secure hashes for files and other content"
+package org.gradle.internal.operations;
 
-// We need this because org.gradle.internal.nativeintegration.filesystem.Stat is used in workers
-gradlebuildJava.usedInWorkers()
-
-dependencies {
-    implementation(project(":baseAnnotations"))
-    implementation(libs.guava)
+public interface BuildOperationMetadata {
+    BuildOperationMetadata NONE = new BuildOperationMetadata() {};
 }

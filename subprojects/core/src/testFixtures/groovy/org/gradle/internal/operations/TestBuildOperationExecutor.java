@@ -68,7 +68,7 @@ public class TestBuildOperationExecutor implements BuildOperationExecutor {
     }
 
     @Override
-    public ExecutingBuildOperation start(BuildOperationDescriptor.Builder descriptor) {
+    public BuildOperationContext start(BuildOperationDescriptor.Builder descriptor) {
         return log.start(descriptor);
     }
 
@@ -282,16 +282,11 @@ public class TestBuildOperationExecutor implements BuildOperationExecutor {
             return t;
         }
 
-        private ExecutingBuildOperation start(final BuildOperationDescriptor.Builder descriptor) {
+        private BuildOperationContext start(final BuildOperationDescriptor.Builder descriptor) {
             Record record = new Record(descriptor.build());
             records.add(record);
             final TestBuildOperationContext context = new TestBuildOperationContext(record);
-            return new ExecutingBuildOperation() {
-                @Override
-                public BuildOperationDescriptor.Builder description() {
-                    return descriptor;
-                }
-
+            return new BuildOperationContext() {
                 @Override
                 public void failed(@Nullable Throwable failure) {
                     context.failed(failure);

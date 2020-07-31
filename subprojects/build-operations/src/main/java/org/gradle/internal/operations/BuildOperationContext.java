@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,18 +17,10 @@
 package org.gradle.internal.operations;
 
 import javax.annotation.Nullable;
-import javax.annotation.concurrent.NotThreadSafe;
 
-/**
- * A {@link BuildOperation} that can be finished at an arbitrary point in code.
- */
-@NotThreadSafe
-public interface ExecutingBuildOperation extends BuildOperation {
+public interface BuildOperationContext {
     /**
-     /**
      * Marks the build operation as failed, without throwing an exception out of the operation.
-     *
-     * Finishes the build operation which should only be done once.
      *
      * If called with non-null, will suppress any exception thrown by the operation being used as the operation failure.
      *
@@ -43,6 +35,9 @@ public interface ExecutingBuildOperation extends BuildOperation {
 
     /**
      * Record a status or outcome for given build operation.
+     *
+     * @param status operation status
+     * @since 4.0
      */
     void setStatus(String status);
 }

@@ -28,7 +28,6 @@ import org.gradle.internal.operations.CallableBuildOperation
 import org.gradle.internal.operations.CurrentBuildOperationRef
 import org.gradle.internal.operations.DefaultBuildOperationExecutor
 import org.gradle.internal.operations.DefaultBuildOperationIdFactory
-import org.gradle.internal.operations.ExecutingBuildOperation
 import org.gradle.internal.operations.OperationFinishEvent
 import org.gradle.internal.operations.OperationStartEvent
 import org.gradle.internal.operations.RunnableBuildOperation
@@ -473,13 +472,13 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
     }
 
     def "fails when non-wrap-around operation finishes after parent"() {
-        ExecutingBuildOperation operation
+        BuildOperationContext operationContext
         operationExecutor.run(runnableBuildOperation("parent") {
-            operation = operationExecutor.start(displayName("child"))
+            operationContext = operationExecutor.start(displayName("child"))
         })
 
         when:
-        operation.result = "result"
+        operationContext.result = "result"
 
         then:
         def e = thrown(IllegalStateException)

@@ -16,13 +16,12 @@
 
 package org.gradle.internal.operations;
 
-import com.google.common.collect.Sets;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.ListIterator;
-import java.util.Set;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -102,7 +101,7 @@ public class DefaultBuildOperationListenerManager implements BuildOperationListe
      */
     private static class ProgressShieldingBuildOperationListener implements BuildOperationListener {
 
-        private final Set<OperationIdentifier> active = Sets.newConcurrentHashSet();
+        private final Map<OperationIdentifier, Boolean> active = new ConcurrentHashMap<OperationIdentifier, Boolean>();
         private final BuildOperationListener delegate;
 
         private ProgressShieldingBuildOperationListener(BuildOperationListener delegate) {
@@ -111,13 +110,13 @@ public class DefaultBuildOperationListenerManager implements BuildOperationListe
 
         @Override
         public void started(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent) {
-            active.add(buildOperation.getId());
+            active.put(buildOperation.getId(), Boolean.TRUE);
             delegate.started(buildOperation, startEvent);
         }
 
         @Override
         public void progress(OperationIdentifier operationIdentifier, OperationProgressEvent progressEvent) {
-            if (active.contains(operationIdentifier)) {
+            if (active.containsKey(operationIdentifier)) {
                 delegate.progress(operationIdentifier, progressEvent);
             }
         }

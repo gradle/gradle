@@ -15,6 +15,7 @@ gradlebuildJava.usedInWorkers()
 dependencies {
     api(project(":baseAnnotations"))
     api(project(":hashing"))
+    api(project(":buildOperations"))
 
     implementation(libs.slf4jApi)
     implementation(libs.guava)

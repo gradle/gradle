@@ -27,6 +27,7 @@ import org.gradle.util.PreconditionVerifier
 import org.junit.Rule
 import spock.lang.Shared
 
+import java.nio.charset.StandardCharsets
 import java.util.zip.ZipEntry
 import java.util.zip.ZipFile
 
@@ -50,7 +51,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
      * Change this whenever you add or remove subprojects for distribution core modules (lib/).
      */
     int getCoreLibJarsCount() {
-        34
+        35
     }
 
     /**
@@ -200,7 +201,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         assert !contentsDir.file("lib/plugins/tools.jar").exists()
     }
 
-    protected void assertDocsExist(TestFile contentsDir, String version) {
+    protected static void assertDocsExist(TestFile contentsDir, String version) {
         // Javadoc
         contentsDir.file('docs/javadoc/index.html').assertIsFile()
         contentsDir.file('docs/javadoc/index.html').assertContents(containsString("Gradle API ${version}"))
@@ -226,11 +227,10 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
 
     private static void assertIsGradleApiMetadataJar(TestFile jar) {
         new JarTestFixture(jar.canonicalFile).with {
-            def apiDeclaration = GUtil.loadProperties(IOUtils.toInputStream(content("gradle-api-declaration.properties")))
+            def apiDeclaration = GUtil.loadProperties(IOUtils.toInputStream(content("gradle-api-declaration.properties"), StandardCharsets.UTF_8))
             assert apiDeclaration.size() == 2
             assert apiDeclaration.getProperty("includes").contains(":org/gradle/api/**:")
             assert apiDeclaration.getProperty("excludes").split(":").size() == 1
         }
     }
-
 }

@@ -131,7 +131,7 @@ public class LifecycleProjectEvaluator implements ProjectEvaluator {
             }
 
             return BuildOperationDescriptor.displayName(displayName)
-                .operationType(BuildOperationCategory.CONFIGURE_PROJECT)
+                .metadata(BuildOperationCategory.CONFIGURE_PROJECT)
                 .progressDisplayName(progressDisplayName)
                 .details(new ConfigureProjectBuildOperationType.DetailsImpl(project.getProjectPath(), project.getGradle().getIdentityPath(), project.getRootDir()));
         }

@@ -91,6 +91,13 @@
     "crossVersionTests": false
   },
   {
+    "dirName": "build-operations",
+    "name": "buildOperations",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "dirName": "build-option",
     "name": "buildOption",
     "unitTests": true,

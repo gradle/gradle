@@ -27,4 +27,7 @@
  * except for {@link org.gradle.internal.operations.notify.BuildOperationNotificationListener}
  * which is implemented by the build scan plugin.
  */
+@NonNullApi
 package org.gradle.internal.operations.notify;
+
+import org.gradle.api.NonNullApi;

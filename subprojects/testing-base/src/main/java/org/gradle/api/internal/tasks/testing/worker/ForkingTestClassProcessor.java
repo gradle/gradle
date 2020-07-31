@@ -54,7 +54,7 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
     private WorkerProcess workerProcess;
     private TestResultProcessor resultProcessor;
     private WorkerLeaseRegistry.WorkerLeaseCompletion completion;
-    private DocumentationRegistry documentationRegistry;
+    private final DocumentationRegistry documentationRegistry;
     private boolean stoppedNow;
 
     public ForkingTestClassProcessor(WorkerLeaseRegistry.WorkerLease parentWorkerLease, WorkerProcessFactory workerFactory, WorkerTestClassProcessorFactory processorFactory, JavaForkOptions options,
@@ -142,6 +142,7 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
             moduleRegistry.getModule("gradle-testing-jvm").getImplementationClasspath().getAsURLs(),
             moduleRegistry.getModule("gradle-testing-junit-platform").getImplementationClasspath().getAsURLs(),
             moduleRegistry.getModule("gradle-process-services").getImplementationClasspath().getAsURLs(),
+            moduleRegistry.getModule("gradle-build-operations").getImplementationClasspath().getAsURLs(),
             moduleRegistry.getExternalModule("slf4j-api").getImplementationClasspath().getAsURLs(),
             moduleRegistry.getExternalModule("jul-to-slf4j").getImplementationClasspath().getAsURLs(),
             moduleRegistry.getExternalModule("native-platform").getImplementationClasspath().getAsURLs(),

@@ -43,7 +43,7 @@ class TransformationOperation implements TransformationResult, RunnableBuildOper
     public BuildOperationDescriptor.Builder description() {
         return BuildOperationDescriptor.displayName(displayName)
             .progressDisplayName(displayName)
-            .operationType(BuildOperationCategory.UNCATEGORIZED);
+            .metadata(BuildOperationCategory.UNCATEGORIZED);
     }
 
     @Override

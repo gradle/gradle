@@ -37,7 +37,7 @@ public class DelegatingBuildOperationExecutor implements BuildOperationExecutor 
     }
 
     @Override
-    public ExecutingBuildOperation start(BuildOperationDescriptor.Builder descriptor) {
+    public BuildOperationContext start(BuildOperationDescriptor.Builder descriptor) {
         return delegate.start(descriptor);
     }
 

@@ -16,12 +16,12 @@
 
 package org.gradle.internal.operations;
 
-import javax.annotation.concurrent.ThreadSafe;
 import org.gradle.api.Action;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 /**
- * Runs build operations. These are the pieces of work that make up a build. Build operations can be nested inside other
- * build operations.
+ * Executes build operations synchronously, asynchronously or via a {@link BuildOperationQueue}.
  *
  * The executor provides several capabilities:
  *
@@ -30,32 +30,9 @@ import org.gradle.api.Action;
  *     execution can be received by tooling API clients.</p>
  *     <p>Generates progress logging events.</p>
  * </ul>
- *
- * <p>Operations are executed synchronously or asynchronous.</p>
  */
 @ThreadSafe
-public interface BuildOperationExecutor {
-    /**
-     * Runs the given build operation synchronously. Invokes the given operation from the current thread.
-     *
-     * <p>Rethrows any exception thrown by the action.</p>
-     */
-    void run(RunnableBuildOperation buildOperation);
-
-    /**
-     * Calls the given build operation synchronously. Invokes the given operation from the current thread.
-     * Returns the result.
-     *
-     * <p>Rethrows any exception thrown by the action.</p>
-     */
-    <T> T call(CallableBuildOperation<T> buildOperation);
-
-    /**
-     * Starts an operation that can be finished later through its context available via {@link ExecutingBuildOperation#getContext()}.
-     *
-     * When a parent operation is finished any unfinished child operations will be failed.
-     */
-    ExecutingBuildOperation start(BuildOperationDescriptor.Builder descriptor);
+public interface BuildOperationExecutor extends BuildOperationRunner {
 
     /**
      * Submits an arbitrary number of runnable operations, created synchronously by the scheduling action, to be executed in the global
@@ -69,12 +46,4 @@ public interface BuildOperationExecutor {
      * Blocks until all operations are complete.
      */
     <O extends BuildOperation> void runAll(BuildOperationWorker<O> worker, Action<BuildOperationQueue<O>> schedulingAction);
-
-    /**
-     * Returns the state of the build operation currently running on this thread. Can be used as parent of a new build operation
-     * started in a different thread (or process). See {@link BuildOperationDescriptor.Builder#parent(BuildOperationRef)}
-     *
-     * @throws IllegalStateException When the current thread is not executing an operation.
-     */
-    BuildOperationRef getCurrentOperation();
 }
