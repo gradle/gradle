@@ -22,7 +22,7 @@ import org.gradle.internal.service.scopes.Scopes;
 /**
  * Listens to the output events like printing to standard output or error
  */
-@EventScope(Scopes.Build)
+@EventScope(Scopes.Build.class)
 public interface TestOutputListener {
 
     /**

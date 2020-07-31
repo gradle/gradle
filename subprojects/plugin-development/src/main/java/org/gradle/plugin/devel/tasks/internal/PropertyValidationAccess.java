@@ -40,7 +40,7 @@ import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope.Global;
 import org.gradle.internal.state.DefaultManagedFactoryRegistry;
 
 import javax.annotation.Nullable;
@@ -67,7 +67,7 @@ public class PropertyValidationAccess {
         builder.provider(new Object() {
             @SuppressWarnings("unused")
             void configure(ServiceRegistration registration) {
-                registration.add(ListenerManager.class, new DefaultListenerManager(Scopes.Global));
+                registration.add(ListenerManager.class, new DefaultListenerManager(Global.class));
                 registration.add(DefaultCrossBuildInMemoryCacheFactory.class);
                 // TODO: do we need any factories here?
                 registration.add(DefaultManagedFactoryRegistry.class, new DefaultManagedFactoryRegistry());

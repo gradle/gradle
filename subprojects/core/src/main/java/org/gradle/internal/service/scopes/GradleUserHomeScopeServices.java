@@ -105,7 +105,7 @@ public class GradleUserHomeScopeServices extends WorkerSharedUserHomeScopeServic
     }
 
     ListenerManager createListenerManager(ListenerManager parent) {
-        return parent.createChild(Scopes.UserHome);
+        return parent.createChild(Scopes.UserHome.class);
     }
 
     GradleUserHomeScopeFileTimeStampInspector createFileTimestampInspector(CacheScopeMapping cacheScopeMapping, ListenerManager listenerManager) {

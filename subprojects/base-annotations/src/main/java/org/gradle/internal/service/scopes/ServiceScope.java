@@ -14,23 +14,23 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.execution;
+package org.gradle.internal.service.scopes;
 
-import org.gradle.api.internal.TaskInternal;
-import org.gradle.internal.service.scopes.EventScope;
-import org.gradle.internal.service.scopes.Scopes;
+import java.lang.annotation.Inherited;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 
+/**
+ * Attached to a service interface to indicate in which scope it is defined in.
+ * Services are lifecycled with their scope, and stopped/closed when the scope is closed.
+ *
+ * Services are visible to other services in the same scope and descendent scopes.
+ * Services are not visible to services in ancestor scopes.
+ */
+@Retention(RetentionPolicy.RUNTIME)
+@Inherited
+public @interface ServiceScope {
 
-@EventScope(Scopes.Build.class)
-public interface TaskExecutionAccessListener {
+    Class<? extends Scope> value();
 
-    /**
-     * Called when accessing the project during task execution.
-     */
-    void onProjectAccess(String invocationDescription, TaskInternal task);
-
-    /**
-     * Called when accessing task dependencies during task execution.
-     */
-    void onTaskDependenciesAccess(String invocationDescription, TaskInternal task);
 }

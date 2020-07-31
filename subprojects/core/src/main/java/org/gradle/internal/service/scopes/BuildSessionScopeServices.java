@@ -113,7 +113,7 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
     }
 
     ListenerManager createListenerManager(ListenerManager parent) {
-        return parent.createChild(Scopes.BuildSession);
+        return parent.createChild(Scopes.BuildSession.class);
     }
 
     CrossProjectConfigurator createCrossProjectConfigurator(BuildOperationExecutor buildOperationExecutor) {

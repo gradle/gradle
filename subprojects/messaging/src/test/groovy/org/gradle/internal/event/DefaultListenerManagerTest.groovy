@@ -18,6 +18,7 @@ package org.gradle.internal.event
 
 import com.google.common.reflect.ClassPath
 import org.gradle.internal.service.scopes.EventScope
+import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.Scopes
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import spock.lang.Ignore
@@ -976,32 +977,32 @@ class DefaultListenerManagerTest extends ConcurrentSpec {
         manager.hasListeners(TestBarListener)
     }
 
-    @EventScope(Scopes.BuildTree)
+    @EventScope(Scopes.BuildTree.class)
     interface TestFooListener {
         void foo(String param);
     }
 
-    @EventScope(Scopes.Build)
+    @EventScope(Scopes.Build.class)
     interface BuildScopeListener {
         void foo(String param);
     }
 
-    @EventScope(Scopes.BuildTree)
+    @EventScope(Scopes.BuildTree.class)
     interface TestBarListener {
         void bar(int value);
     }
 
-    @EventScope(Scopes.BuildTree)
+    @EventScope(Scopes.BuildTree.class)
     interface BothListener extends TestFooListener, TestBarListener {
     }
 
-    @EventScope(Scopes.BuildTree)
+    @EventScope(Scopes.BuildTree.class)
     interface TestBazListener {
         void baz()
     }
 
-    @EventScope(Scopes.Global)
-    public interface TestListenerWithWrongScope {
+    @EventScope(Scope.Global)
+    interface TestListenerWithWrongScope {
         void foo(String param);
     }
 }

@@ -26,7 +26,7 @@ import org.gradle.vcs.VersionControlSpec;
 
 import javax.annotation.Nullable;
 
-@ServiceScope(Scopes.BuildTree)
+@ServiceScope(Scopes.BuildTree.class)
 public interface VcsMappingsStore {
     VcsResolver asResolver();
 

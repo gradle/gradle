@@ -26,7 +26,7 @@ import org.gradle.internal.service.scopes.Scopes;
  *
  * @see org.gradle.api.invocation.Gradle#addListener(Object)
  */
-@EventScope(Scopes.Build)
+@EventScope(Scopes.Build.class)
 public interface BuildListener {
     /**
      * <p>Called when the build is started.</p>

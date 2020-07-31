@@ -21,16 +21,13 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
 /**
- * Attached to a service interface to indicate in which scope it is defined in.
- * Services are lifecycled with their scope, and stopped/closed when the scope is closed.
+ * Attached to a listener interface to indicate which scope its events are generated in.
  *
- * Services are visible to other services in the same scope and descendent scopes.
- * Services are not visible to services in ancestor scopes.
+ * Events generated in a particular scope are visible to listeners in the same scope and ancestor scopes.
+ * Events are not visible to listeners in descendent scopes.
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Inherited
-public @interface ServiceScope {
-
-    Scopes value();
-
+public @interface EventScope {
+    Class<? extends Scope> value();
 }

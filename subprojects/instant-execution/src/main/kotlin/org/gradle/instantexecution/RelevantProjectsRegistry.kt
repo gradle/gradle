@@ -23,7 +23,7 @@ import org.gradle.internal.service.scopes.Scopes
 import org.gradle.internal.service.scopes.ServiceScope
 
 
-@ServiceScope(Scopes.Build)
+@ServiceScope(Scopes.Build::class)
 class RelevantProjectsRegistry : ProjectAccessHandler {
     private
     val targetProjects = mutableSetOf<ProjectInternal>()

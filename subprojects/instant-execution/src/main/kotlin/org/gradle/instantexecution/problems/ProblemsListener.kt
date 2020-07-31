@@ -20,7 +20,7 @@ import org.gradle.internal.service.scopes.EventScope
 import org.gradle.internal.service.scopes.Scopes
 
 
-@EventScope(Scopes.BuildTree)
+@EventScope(Scopes.BuildTree::class)
 interface ProblemsListener {
 
     fun onProblem(problem: PropertyProblem)

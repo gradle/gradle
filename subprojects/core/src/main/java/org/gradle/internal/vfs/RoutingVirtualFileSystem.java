@@ -29,7 +29,7 @@ import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-@ServiceScope(Scopes.BuildSession)
+@ServiceScope(Scopes.BuildSession.class)
 public class RoutingVirtualFileSystem implements VirtualFileSystem {
     private final GlobalCacheLocations globalCacheLocations;
     private final VirtualFileSystem gradleUserHomeVirtualFileSystem;

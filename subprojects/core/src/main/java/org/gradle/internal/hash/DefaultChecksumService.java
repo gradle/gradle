@@ -25,7 +25,7 @@ import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.io.File;
 
-@ServiceScope(Scopes.BuildSession)
+@ServiceScope(Scopes.BuildSession.class)
 public class DefaultChecksumService implements ChecksumService {
     private final CachingFileHasher md5;
     private final CachingFileHasher sha1;

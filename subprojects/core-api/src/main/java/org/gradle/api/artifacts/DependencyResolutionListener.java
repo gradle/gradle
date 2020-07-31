@@ -21,7 +21,7 @@ import org.gradle.internal.service.scopes.Scopes;
 /**
  * A {@code DependencyResolutionListener} is notified as dependencies are resolved.
  */
-@EventScope(Scopes.Build)
+@EventScope(Scopes.Build.class)
 public interface DependencyResolutionListener {
     /**
      * This method is called immediately before a set of dependencies are resolved.

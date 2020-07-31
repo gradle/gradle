@@ -89,7 +89,7 @@ class BuildServicesProvider {
 }
 
 
-@ServiceScope(Scopes.BuildTree)
+@ServiceScope(Scopes.BuildTree::class)
 class BuildTreeListenerManager(
     val service: ListenerManager
 )

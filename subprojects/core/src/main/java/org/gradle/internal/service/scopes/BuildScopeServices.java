@@ -279,7 +279,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
     }
 
     protected ListenerManager createListenerManager(ListenerManager listenerManager) {
-        return listenerManager.createChild(Scopes.Build);
+        return listenerManager.createChild(Scopes.Build.class);
     }
 
     protected ClassPathRegistry createClassPathRegistry() {

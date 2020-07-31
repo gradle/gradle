@@ -22,7 +22,7 @@ import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 
-@ServiceScope(Scopes.BuildTree)
+@ServiceScope(Scopes.BuildTree.class)
 public class DefaultGradleEnterprisePluginRequiredServices implements GradleEnterprisePluginRequiredServices {
 
     private final UserInputHandler userInputHandler;

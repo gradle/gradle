@@ -34,7 +34,7 @@ import java.util.Set;
  * Discards hashes for all files from the {@link CachingFileHasher} which have been queried on this daemon
  * during the last build and which have a timestamp equal to the end of build timestamp.
  */
-@ServiceScope(Scopes.UserHome)
+@ServiceScope(Scopes.UserHome.class)
 public class GradleUserHomeScopeFileTimeStampInspector extends FileTimeStampInspector implements RootBuildLifecycleListener {
     private CachingFileHasher fileHasher;
     private final Object lock = new Object();

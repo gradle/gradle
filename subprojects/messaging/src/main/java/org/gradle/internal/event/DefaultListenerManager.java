@@ -22,7 +22,7 @@ import org.gradle.internal.dispatch.MethodInvocation;
 import org.gradle.internal.dispatch.ProxyDispatchAdapter;
 import org.gradle.internal.dispatch.ReflectionDispatch;
 import org.gradle.internal.service.scopes.EventScope;
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -41,14 +41,14 @@ public class DefaultListenerManager implements ListenerManager {
     private final Map<Object, ListenerDetails> allLoggers = new LinkedHashMap<Object, ListenerDetails>();
     private final Map<Class<?>, EventBroadcast<?>> broadcasters = new ConcurrentHashMap<Class<?>, EventBroadcast<?>>();
     private final Object lock = new Object();
-    private final Scopes scope;
+    private final Class<? extends Scope> scope;
     private final DefaultListenerManager parent;
 
-    public DefaultListenerManager(Scopes scope) {
+    public DefaultListenerManager(Class<? extends Scope> scope) {
         this(scope, null);
     }
 
-    private DefaultListenerManager(Scopes scope, DefaultListenerManager parent) {
+    private DefaultListenerManager(Class<? extends Scope> scope, DefaultListenerManager parent) {
         this.scope = scope;
         this.parent = parent;
     }
@@ -138,12 +138,12 @@ public class DefaultListenerManager implements ListenerManager {
             throw new IllegalArgumentException(String.format("Listener type %s is not annotated with @EventScope.", listenerClass.getName()));
         }
         if (!scope.value().equals(this.scope)) {
-            throw new IllegalArgumentException(String.format("Listener type %s with scope %s cannot be used to generate events in scope %s.", listenerClass.getName(), scope.value(), this.scope));
+            throw new IllegalArgumentException(String.format("Listener type %s with scope %s cannot be used to generate events in scope %s.", listenerClass.getName(), scope.value().getSimpleName(), this.scope.getSimpleName()));
         }
     }
 
     @Override
-    public ListenerManager createChild(Scopes scope) {
+    public ListenerManager createChild(Class<? extends Scope> scope) {
         return new DefaultListenerManager(scope, this);
     }
 

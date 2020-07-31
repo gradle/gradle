@@ -28,7 +28,7 @@ import org.gradle.internal.service.scopes.Scopes;
  * framework agnostic.  Currently this interface can support feedback
  * from JUnit and TestNG tests.
  */
-@EventScope(Scopes.Build)
+@EventScope(Scopes.Build.class)
 public interface TestListener {
     /**
      * Called before a test suite is started.

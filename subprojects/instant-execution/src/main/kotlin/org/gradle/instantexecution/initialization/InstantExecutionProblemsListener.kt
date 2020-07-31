@@ -35,7 +35,7 @@ import org.gradle.internal.service.scopes.Scopes
 import org.gradle.internal.service.scopes.ServiceScope
 
 
-@ServiceScope(Scopes.Build)
+@ServiceScope(Scopes.Build::class)
 interface InstantExecutionProblemsListener : TaskExecutionAccessListener, BuildScopeListenerRegistrationListener
 
 

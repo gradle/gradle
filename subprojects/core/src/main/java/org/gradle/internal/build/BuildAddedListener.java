@@ -22,7 +22,7 @@ import org.gradle.internal.service.scopes.Scopes;
 /**
  * Listener for changes to the {@link BuildStateRegistry}.
  */
-@EventScope(Scopes.BuildTree)
+@EventScope(Scopes.BuildTree.class)
 public interface BuildAddedListener {
     /**
      * Called every time a build is added to the {@link BuildStateRegistry}.
