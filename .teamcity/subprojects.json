@@ -93,7 +93,7 @@
   {
     "dirName": "build-operations",
     "name": "buildOperations",
-    "unitTests": false,
+    "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
   },
