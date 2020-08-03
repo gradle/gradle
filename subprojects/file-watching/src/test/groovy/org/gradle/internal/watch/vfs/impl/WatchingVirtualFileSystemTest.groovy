@@ -41,7 +41,6 @@ class WatchingVirtualFileSystemTest extends Specification {
     def watchingHandler = new WatchingVirtualFileSystem(
         watcherRegistryFactory,
         rootReference,
-        { path -> true },
         daemonDocumentationIndex,
         locationsUpdatedByCurrentBuild
     )

@@ -199,7 +199,6 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
                 .<BuildLifecycleAwareVirtualFileSystem>map(watcherRegistryFactory -> new WatchingVirtualFileSystem(
                     watcherRegistryFactory,
                     rootReference,
-                    watchFilter,
                     sectionId -> documentationRegistry.getDocumentationFor("gradle_daemon", sectionId),
                     locationsWrittenByCurrentBuild
                 ))

@@ -30,7 +30,7 @@ import org.gradle.internal.snapshot.impl.DirectorySnapshotter
 import org.gradle.internal.vfs.VirtualFileSystem
 import org.gradle.internal.vfs.impl.DefaultSnapshotHierarchy
 import org.gradle.internal.watch.registry.FileWatcherUpdater
-import org.gradle.internal.watch.vfs.impl.SnapshotCollectingDiffListener
+import org.gradle.internal.watch.registry.SnapshotCollectingDiffListener
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -58,7 +58,7 @@ abstract class AbstractFileWatcherUpdaterTest extends Specification {
 
         @Override
         void update(VirtualFileSystem.UpdateFunction updateFunction) {
-            def diffListener = new SnapshotCollectingDiffListener({ path -> true})
+            def diffListener = new SnapshotCollectingDiffListener()
             root = updateFunction.update(root, diffListener)
             diffListener.publishSnapshotDiff(updater, root)
         }

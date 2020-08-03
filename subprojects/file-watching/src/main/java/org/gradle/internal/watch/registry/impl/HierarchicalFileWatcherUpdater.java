@@ -21,10 +21,7 @@ import net.rubygrapefruit.platform.file.FileWatcher;
 import org.gradle.internal.file.DefaultFileHierarchySet;
 import org.gradle.internal.file.FileHierarchySet;
 import org.gradle.internal.file.FileMetadata;
-import org.gradle.internal.file.FileType;
-import org.gradle.internal.snapshot.CompleteDirectorySnapshot;
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
-import org.gradle.internal.snapshot.FileSystemSnapshotVisitor;
 import org.gradle.internal.snapshot.SnapshotHierarchy;
 import org.gradle.internal.watch.registry.FileWatcherUpdater;
 import org.slf4j.Logger;
@@ -99,7 +96,10 @@ public class HierarchicalFileWatcherUpdater implements FileWatcherUpdater {
 
         FileHierarchySet watchedDirectories = DefaultFileHierarchySet.of(watchedHierarchies.stream().map(Path::toFile)::iterator);
 
-        RemoveUnwatchedFiles visitor = new RemoveUnwatchedFiles(root, watchFilter, watchedDirectories);
+        RemoveUnwatchedFiles visitor = new RemoveUnwatchedFiles(
+            root, watchFilter, watchedDirectories,
+            (location, currentRoot) -> currentRoot.invalidate(location, SnapshotHierarchy.NodeDiffListener.NOOP)
+        );
         root.visitSnapshotRoots(snapshotRoot -> snapshotRoot.accept(visitor));
         SnapshotHierarchy newRoot = visitor.getRootWithUnwatchedFilesRemoved();
         determineAndUpdateDirectoriesToWatch(newRoot);
@@ -133,7 +133,18 @@ public class HierarchicalFileWatcherUpdater implements FileWatcherUpdater {
 
     @Override
     public void discoveredHierarchyToWatch(File discoveredHierarchy, SnapshotHierarchy root) {
-        knownRootProjectDirectoriesFromCurrentBuild.add(discoveredHierarchy.toPath().toAbsolutePath());
+        Path discoveredHierarchyPath = discoveredHierarchy.toPath().toAbsolutePath();
+        if (!allowedDirectoriesToWatch.contains(discoveredHierarchyPath)) {
+            root.visitSnapshotRoots(discoveredHierarchyPath.toString(), snapshotRoot -> {
+                if (!shouldWatch(snapshotRoot)) {
+                    throw new RuntimeException(String.format(
+                        "Found existing snapshot at '%s' for unwatched hierarchy '%s'",
+                        snapshotRoot.getAbsolutePath(),
+                        discoveredHierarchyPath));
+                }
+            });
+        }
+        knownRootProjectDirectoriesFromCurrentBuild.add(discoveredHierarchyPath);
         LOGGER.info("Now considering watching {} as root project directories", knownRootProjectDirectoriesFromCurrentBuild);
 
         watchedRootProjectDirectoriesFromPreviousBuild.removeAll(knownRootProjectDirectoriesFromCurrentBuild);
@@ -142,22 +153,11 @@ public class HierarchicalFileWatcherUpdater implements FileWatcherUpdater {
         allowedDirectoriesToWatch.addAll(resolveHierarchiesToWatch(Stream.concat(knownRootProjectDirectoriesFromCurrentBuild.stream(), watchedRootProjectDirectoriesFromPreviousBuild.stream())
             .collect(Collectors.toSet())));
 
-        Set<Path> nonWatchedDirs = new HashSet<>(allowedDirectoriesToWatch);
-        nonWatchedDirs.removeAll(watchedHierarchies);
-
-        nonWatchedDirs.forEach(nonWatchedDir -> root.visitSnapshotRoots(nonWatchedDir.toString(), snapshotRoot -> {
-            if (snapshotRoot.getAccessType() == FileMetadata.AccessType.DIRECT) {
-                Path snapshotRootPath = Paths.get(snapshotRoot.getAbsolutePath());
-                if (watchedHierarchies.stream().noneMatch(snapshotRootPath::startsWith)) {
-                    throw new RuntimeException(String.format(
-                        "Found existing snapshot at '%s' for unwatched hierarchy '%s'",
-                        snapshotRoot.getAbsolutePath(),
-                        nonWatchedDir));
-                }
-            }
-        }));
-
         determineAndUpdateDirectoriesToWatch(root);
+    }
+
+    private boolean shouldWatch(CompleteFileSystemLocationSnapshot snapshot) {
+        return snapshot.getAccessType() == FileMetadata.AccessType.DIRECT && watchedHierarchies.stream().noneMatch(Paths.get(snapshot.getAbsolutePath())::startsWith);
     }
 
     private void updateWatchedHierarchies(Set<Path> newHierarchiesToWatch) {
@@ -218,77 +218,5 @@ public class HierarchicalFileWatcherUpdater implements FileWatcherUpdater {
         FileSystemLocationToWatchValidator NO_VALIDATION = location -> {};
 
         void validateLocationToWatch(File location);
-    }
-
-    private static class CheckIfNonEmptySnapshotVisitor implements SnapshotHierarchy.SnapshotVisitor {
-        private boolean empty = true;
-        private boolean onlyMissing = true;
-
-        @Override
-        public void visitSnapshotRoot(CompleteFileSystemLocationSnapshot rootSnapshot) {
-            if (rootSnapshot.getAccessType() == FileMetadata.AccessType.DIRECT) {
-                empty = false;
-                if (rootSnapshot.getType() != FileType.Missing) {
-                    onlyMissing = false;
-                }
-            }
-        }
-
-        public boolean isEmpty() {
-            return empty;
-        }
-
-        public boolean containsOnlyMissingFiles() {
-            return onlyMissing;
-        }
-    }
-
-    private static class RemoveUnwatchedFiles implements FileSystemSnapshotVisitor {
-        private SnapshotHierarchy root;
-        private final Predicate<String> watchFilter;
-        private final FileHierarchySet watchedDirectories;
-
-        public RemoveUnwatchedFiles(SnapshotHierarchy root, Predicate<String> watchFilter, FileHierarchySet watchedDirectories) {
-            this.root = root;
-            this.watchFilter = watchFilter;
-            this.watchedDirectories = watchedDirectories;
-        }
-
-        @Override
-        public boolean preVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
-            if (shouldBeRemoved(directorySnapshot)) {
-                invalidateUnwatchedFile(directorySnapshot);
-                return false;
-            }
-            return true;
-        }
-
-        private boolean shouldBeRemoved(CompleteFileSystemLocationSnapshot directorySnapshot) {
-            return directorySnapshot.getAccessType() == FileMetadata.AccessType.VIA_SYMLINK
-                || (watchFilter.test(directorySnapshot.getAbsolutePath()) && !isInWatchedDir(directorySnapshot));
-        }
-
-        private boolean isInWatchedDir(CompleteFileSystemLocationSnapshot snapshot) {
-            return watchedDirectories.contains(snapshot.getAbsolutePath());
-        }
-
-        @Override
-        public void visitFile(CompleteFileSystemLocationSnapshot fileSnapshot) {
-            if (shouldBeRemoved(fileSnapshot)) {
-                invalidateUnwatchedFile(fileSnapshot);
-            }
-        }
-
-        @Override
-        public void postVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
-        }
-
-        private void invalidateUnwatchedFile(CompleteFileSystemLocationSnapshot snapshot) {
-            root = root.invalidate(snapshot.getAbsolutePath(), SnapshotHierarchy.NodeDiffListener.NOOP);
-        }
-
-        public SnapshotHierarchy getRootWithUnwatchedFilesRemoved() {
-            return root;
-        }
     }
 }

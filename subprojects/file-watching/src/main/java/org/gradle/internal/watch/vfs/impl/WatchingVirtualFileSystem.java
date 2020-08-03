@@ -29,6 +29,7 @@ import org.gradle.internal.vfs.impl.VfsRootReference;
 import org.gradle.internal.watch.WatchingNotSupportedException;
 import org.gradle.internal.watch.registry.FileWatcherRegistry;
 import org.gradle.internal.watch.registry.FileWatcherRegistryFactory;
+import org.gradle.internal.watch.registry.SnapshotCollectingDiffListener;
 import org.gradle.internal.watch.registry.impl.DaemonDocumentationIndex;
 import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem;
 import org.slf4j.Logger;
@@ -40,7 +41,6 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 public class WatchingVirtualFileSystem implements BuildLifecycleAwareVirtualFileSystem, Closeable {
@@ -50,7 +50,6 @@ public class WatchingVirtualFileSystem implements BuildLifecycleAwareVirtualFile
 
     private final FileWatcherRegistryFactory watcherRegistryFactory;
     private final VfsRootReference rootReference;
-    private final Predicate<String> watchFilter;
     private final DaemonDocumentationIndex daemonDocumentationIndex;
     private final LocationsWrittenByCurrentBuild locationsWrittenByCurrentBuild;
     private final Set<File> rootDirectoriesForWatching = new HashSet<>();
@@ -61,13 +60,11 @@ public class WatchingVirtualFileSystem implements BuildLifecycleAwareVirtualFile
     public WatchingVirtualFileSystem(
         FileWatcherRegistryFactory watcherRegistryFactory,
         VfsRootReference rootReference,
-        Predicate<String> watchFilter,
         DaemonDocumentationIndex daemonDocumentationIndex,
         LocationsWrittenByCurrentBuild locationsWrittenByCurrentBuild
     ) {
         this.watcherRegistryFactory = watcherRegistryFactory;
         this.rootReference = rootReference;
-        this.watchFilter = watchFilter;
         this.daemonDocumentationIndex = daemonDocumentationIndex;
         this.locationsWrittenByCurrentBuild = locationsWrittenByCurrentBuild;
     }
@@ -86,7 +83,7 @@ public class WatchingVirtualFileSystem implements BuildLifecycleAwareVirtualFile
         if (watchRegistry == null) {
             return updateFunction.update(currentRoot, SnapshotHierarchy.NodeDiffListener.NOOP);
         } else {
-            SnapshotCollectingDiffListener diffListener = new SnapshotCollectingDiffListener(watchFilter);
+            SnapshotCollectingDiffListener diffListener = new SnapshotCollectingDiffListener();
             SnapshotHierarchy newRoot = updateFunction.update(currentRoot, diffListener);
             return withWatcherChangeErrorHandling(newRoot, () -> diffListener.publishSnapshotDiff(watchRegistry.getFileWatcherUpdater(), newRoot));
         }

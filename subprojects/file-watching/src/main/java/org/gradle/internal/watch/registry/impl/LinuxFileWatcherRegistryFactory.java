@@ -40,6 +40,6 @@ public class LinuxFileWatcherRegistryFactory extends AbstractFileWatcherRegistry
 
     @Override
     protected FileWatcherUpdater createFileWatcherUpdater(FileWatcher watcher, Predicate<String> watchFilter) {
-        return new NonHierarchicalFileWatcherUpdater(watcher);
+        return new NonHierarchicalFileWatcherUpdater(watcher, watchFilter);
     }
 }
