@@ -36,6 +36,7 @@ import org.gradle.jvm.internal.resolve.JvmVariantSelector;
 import org.gradle.jvm.internal.resolve.VariantAxisCompatibilityFactory;
 import org.gradle.jvm.internal.resolve.VariantsMetaData;
 import org.gradle.jvm.platform.JavaPlatform;
+import org.gradle.jvm.toolchain.install.internal.AdoptOpenJdkDownloader;
 import org.gradle.jvm.toolchain.install.internal.AdoptOpenJdkRemoteBinary;
 import org.gradle.jvm.toolchain.install.internal.DefaultJavaToolchainProvisioningService;
 import org.gradle.jvm.toolchain.install.internal.JdkCacheDirectory;
@@ -85,6 +86,7 @@ public class PlatformJvmServices extends AbstractPluginServiceRegistry {
         registration.add(JavaToolchainFactory.class);
         registration.add(DefaultJavaToolchainProvisioningService.class);
         registration.add(AdoptOpenJdkRemoteBinary.class);
+        registration.add(AdoptOpenJdkDownloader.class);
         registration.add(JavaToolchainQueryService.class);
     }
 
