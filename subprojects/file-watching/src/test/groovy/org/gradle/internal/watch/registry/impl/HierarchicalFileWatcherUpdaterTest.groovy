@@ -225,8 +225,9 @@ class HierarchicalFileWatcherUpdaterTest extends AbstractFileWatcherUpdaterTest 
         when:
         discoverHierarchiesToWatch([directoryWithinFirst, secondDir])
         then:
-        // TODO: Tighten the watching here by only watch directories when necessary
-//        1 * watcher.startWatching({ equalIgnoringOrder(it, [directoryWithinFirst]) })
+        1 * watcher.stopWatching({ equalIgnoringOrder(it, [firstDir]) })
+        then:
+        1 * watcher.startWatching({ equalIgnoringOrder(it, [directoryWithinFirst]) })
         0 * _
     }
 
