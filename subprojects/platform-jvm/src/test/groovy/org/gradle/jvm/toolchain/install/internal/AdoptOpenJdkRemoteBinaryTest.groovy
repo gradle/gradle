@@ -22,15 +22,10 @@ import org.gradle.internal.SystemProperties
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.jvm.toolchain.internal.DefaultToolchainSpec
 import org.gradle.util.TestUtil
-import org.junit.Rule
-import org.junit.rules.TemporaryFolder
 import spock.lang.Specification
 import spock.lang.Unroll
 
 class AdoptOpenJdkRemoteBinaryTest extends Specification {
-
-    @Rule
-    public final TemporaryFolder temporaryFolder = new TemporaryFolder()
 
     @Unroll
     def "generates url for jdk #jdkVersion on #operatingSystemName (#architecture)"() {
@@ -39,10 +34,10 @@ class AdoptOpenJdkRemoteBinaryTest extends Specification {
         def systemInfo = Mock(SystemInfo)
         systemInfo.architecture >> architecture
         def operatingSystem = OperatingSystem.forName(operatingSystemName)
-        def binary = new AdoptOpenJdkRemoteBinary(systemInfo, operatingSystem)
+        def binary = new AdoptOpenJdkRemoteBinary(systemInfo, operatingSystem, Mock(AdoptOpenJdkDownloader))
 
         when:
-        def uri = binary.toDownloadUrl(spec)
+        def uri = binary.toDownloadUri(spec)
 
         then:
         uri.toString() == "https://api.adoptopenjdk.net/v3/binary/latest" + expectedPath
@@ -68,7 +63,7 @@ class AdoptOpenJdkRemoteBinaryTest extends Specification {
         def systemInfo = Mock(SystemInfo)
         systemInfo.architecture >> architecture
         def operatingSystem = OperatingSystem.forName(operatingSystemName)
-        def binary = new AdoptOpenJdkRemoteBinary(systemInfo, operatingSystem)
+        def binary = new AdoptOpenJdkRemoteBinary(systemInfo, operatingSystem, Mock(AdoptOpenJdkDownloader))
 
         when:
         def filename = binary.toFilename(spec)
@@ -97,13 +92,13 @@ class AdoptOpenJdkRemoteBinaryTest extends Specification {
         def systemInfo = Mock(SystemInfo)
         systemInfo.architecture >> SystemInfo.Architecture.amd64
         def operatingSystem = OperatingSystem.MAC_OS
-        def binary = new AdoptOpenJdkRemoteBinary(systemInfo, operatingSystem)
+        def binary = new AdoptOpenJdkRemoteBinary(systemInfo, operatingSystem, Mock(AdoptOpenJdkDownloader))
 
         when:
         def uri
         def properties = ["org.gradle.jvm.toolchain.install.internal.adoptopenjdk.baseUri": customBaseUrl]
         SystemProperties.getInstance().withSystemProperties(properties, {
-            uri = binary.toDownloadUrl(spec)
+            uri = binary.toDownloadUri(spec)
         })
 
         then:
@@ -113,25 +108,21 @@ class AdoptOpenJdkRemoteBinaryTest extends Specification {
         customBaseUrl << ["http://foobar", "http://foobar/"]
     }
 
-    def "can download toolchain"() {
+    def "downloads from url"() {
         given:
-        def spec = newSpec()
+        def spec = newSpec(12)
         def systemInfo = Mock(SystemInfo)
         systemInfo.architecture >> SystemInfo.Architecture.amd64
         def operatingSystem = OperatingSystem.MAC_OS
-        def binary = new AdoptOpenJdkRemoteBinary(systemInfo, operatingSystem)
-        def downloadServer = setupApiOnFilesystem()
+        def downloader = Mock(AdoptOpenJdkDownloader)
+        def binary = new AdoptOpenJdkRemoteBinary(systemInfo, operatingSystem, downloader)
 
         when:
-        def properties = ["org.gradle.jvm.toolchain.install.internal.adoptopenjdk.baseUri": "file://" + downloadServer]
-        def downloadedJdk
-        SystemProperties.getInstance().withSystemProperties(properties, {
-            downloadedJdk = binary.download(spec)
-        })
+        def downloadFile = binary.download(spec)
 
         then:
-        downloadedJdk.get().exists()
-        downloadedJdk.get().text == "binary"
+        downloadFile.get().name == "adoptopenjdk-12-x64-mac.tar.gz"
+        1 * downloader.download(URI.create("https://api.adoptopenjdk.net/v3/binary/latest/12/ga/mac/x64/jdk/hotspot/normal/adoptopenjdk"), _)
     }
 
     @Unroll
@@ -141,7 +132,7 @@ class AdoptOpenJdkRemoteBinaryTest extends Specification {
         def systemInfo = Mock(SystemInfo)
         systemInfo.architecture >> SystemInfo.Architecture.amd64
         def operatingSystem = OperatingSystem.MAC_OS
-        def binary = new AdoptOpenJdkRemoteBinary(systemInfo, operatingSystem)
+        def binary = new AdoptOpenJdkRemoteBinary(systemInfo, operatingSystem, Mock(AdoptOpenJdkDownloader))
 
         when:
         def file = binary.download(spec)
@@ -153,15 +144,6 @@ class AdoptOpenJdkRemoteBinaryTest extends Specification {
         javaVersion << [5, 6, 7]
     }
 
-    def setupApiOnFilesystem() {
-        temporaryFolder.create()
-        def downloadServer = temporaryFolder.root
-        def apiPath = new File(downloadServer, "/v3/binary/latest/11/ga/mac/x64/jdk/hotspot/normal/")
-        apiPath.mkdirs()
-        def jdk = new File(apiPath, "adoptopenjdk")
-        jdk << "binary"
-        downloadServer.absolutePath
-    }
 
     def newSpec(int jdkVersion = 11) {
         def spec = new DefaultToolchainSpec(TestUtil.objectFactory())
