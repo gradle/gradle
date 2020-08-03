@@ -79,56 +79,7 @@ class TestTaskToolchainIntegrationTest extends AbstractPluginIntegrationTest {
         'current'      | Jvm.current()
     }
 
-    // TODO: remove me, just trying somethings
-//    @Unroll
-//    @IgnoreIf({ AvailableJavaHomes.differentJdk == null })
-//    def "can manually set java exectuable on java test task #jdk"() {
-//        buildFile << """
-//            apply plugin: "java"
-//
-//            ${jcenterRepository()}
-//
-//            dependencies {
-//                testImplementation 'junit:junit:4.13'
-//            }
-//
-//            abstract class ApplyTestToolchain implements Plugin<Project> {
-//
-//                void apply(Project project) {
-//                    project.tasks.withType(JavaCompile) {
-//                        options.with {
-//                            fork = true
-//                            forkOptions.javaHome =
-//                        }
-//                    }
-//                    project.tasks.withType(Test) {
-//                        javaLauncher = toolchain.map({it.javaLauncher})
-//                    }
-//                }
-//            }
-//
-//            apply plugin: ApplyTestToolchain
-//        """
-//
-//        file('src/test/java/ToolchainTest.java') << testClass("ToolchainTest")
-//
-//        when:
-//        result = executer
-//            .withArguments("-Porg.gradle.java.installations.paths=" + jdk.javaHome.absolutePath, "--info")
-//            .withTasks("test")
-//            .run()
-//
-//        then:
-//        outputContains("Tests running with ${jdk.javaHome.absolutePath}")
-//        noExceptionThrown()
-//
-//        where:
-//        type           | jdk
-//        'differentJdk' | AvailableJavaHomes.getJdk(JavaVersion.VERSION_1_8)
-//        'current'      | Jvm.current()
-//    }
-
-
+    @IgnoreIf({ AvailableJavaHomes.differentJdk == null })
     def "Test task is configured using default toolchain"() {
         def someJdk = AvailableJavaHomes.getDifferentJdk()
         buildFile << """

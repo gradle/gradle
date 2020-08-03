@@ -77,6 +77,7 @@ public abstract class AbstractScalaCompile extends AbstractCompile implements Ha
         this.scalaCompileOptions.setIncrementalOptions(objectFactory.newInstance(IncrementalCompileOptions.class));
 
         CompilerForkUtils.doNotCacheIfForkingViaExecutable(compileOptions, getOutputs());
+        compileOptions.getForkOptions().setExecutable(Jvm.current().getJavaExecutable().getAbsolutePath());
     }
 
     /**
@@ -132,7 +133,6 @@ public abstract class AbstractScalaCompile extends AbstractCompile implements Ha
             ? ImmutableList.of()
             : ImmutableList.copyOf(compileOptions.getAnnotationProcessorPath()));
         spec.setBuildStartTimestamp(getServices().get(BuildStartedTime.class).getStartTime());
-        spec.getCompileOptions().getForkOptions().setExecutable(Jvm.current().getJavaExecutable().getAbsolutePath());
         return spec;
     }
 
