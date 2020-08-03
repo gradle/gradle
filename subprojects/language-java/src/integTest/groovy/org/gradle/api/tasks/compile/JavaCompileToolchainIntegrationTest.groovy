@@ -42,7 +42,7 @@ class JavaCompileToolchainIntegrationTest extends AbstractPluginIntegrationTest 
                     project.tasks.withType(JavaCompile) {
                         def filter = project.objects.newInstance(DefaultToolchainSpec)
                         filter.languageVersion = JavaVersion.${jdk.javaVersion.name()}
-                        javaCompiler = getQueryService().findMatchingToolchain(filter).map({it.javaCompiler.get()})
+                        javaCompiler = getQueryService().findMatchingToolchain(filter).map({it.javaCompiler})
                     }
                 }
             }
