@@ -111,32 +111,28 @@ public class WatchingVirtualFileSystem implements BuildLifecycleAwareVirtualFile
 
     @Override
     public void registerRootDirectoryForWatching(File buildRootDirectory) {
-        synchronized (rootDirectoriesForWatching) {
-            rootDirectoriesForWatching.add(buildRootDirectory);
-            rootReference.update(currentRoot -> {
-                if (watchRegistry == null) {
-                    return currentRoot;
-                }
-                return withWatcherChangeErrorHandling(
-                    currentRoot,
-                    () -> watchRegistry.getFileWatcherUpdater().updateRootProjectDirectories(rootDirectoriesForWatching, currentRoot)
-                );
-            });
-        }
+        rootReference.update(currentRoot -> {
+            if (watchRegistry == null) {
+                rootDirectoriesForWatching.add(buildRootDirectory);
+                return currentRoot;
+            }
+            return withWatcherChangeErrorHandling(
+                currentRoot,
+                () -> watchRegistry.getFileWatcherUpdater().discoveredHierarchyToWatch(buildRootDirectory, currentRoot)
+            );
+        });
     }
 
     @Override
     public void beforeBuildFinished(boolean watchingEnabled) {
-        synchronized (rootDirectoriesForWatching) {
+        rootReference.update(currentRoot -> {
             rootDirectoriesForWatching.clear();
-        }
-        if (watchingEnabled) {
-            if (reasonForNotWatchingFiles != null) {
-                // Log exception again so it doesn't get lost.
-                logWatchingError(reasonForNotWatchingFiles, FILE_WATCHING_ERROR_MESSAGE_AT_END_OF_BUILD);
-                reasonForNotWatchingFiles = null;
-            }
-            rootReference.update(currentRoot -> {
+            if (watchingEnabled) {
+                if (reasonForNotWatchingFiles != null) {
+                    // Log exception again so it doesn't get lost.
+                    logWatchingError(reasonForNotWatchingFiles, FILE_WATCHING_ERROR_MESSAGE_AT_END_OF_BUILD);
+                    reasonForNotWatchingFiles = null;
+                }
                 SnapshotHierarchy newRoot = handleWatcherRegistryEvents(currentRoot, "for current build");
                 if (watchRegistry != null) {
                     SnapshotHierarchy rootAfterEvents = newRoot;
@@ -144,10 +140,10 @@ public class WatchingVirtualFileSystem implements BuildLifecycleAwareVirtualFile
                 }
                 printStatistics(newRoot, "retains", "till next build");
                 return newRoot;
-            });
-        } else {
-            rootReference.update(SnapshotHierarchy::empty);
-        }
+            } else {
+                return currentRoot.empty();
+            }
+        });
     }
 
     /**
@@ -177,7 +173,8 @@ public class WatchingVirtualFileSystem implements BuildLifecycleAwareVirtualFile
                     stopWatchingAndInvalidateHierarchy();
                 }
             });
-            watchRegistry.getFileWatcherUpdater().updateRootProjectDirectories(rootDirectoriesForWatching, currentRoot);
+            rootDirectoriesForWatching.forEach(rootDirectoriesForWatching -> watchRegistry.getFileWatcherUpdater().discoveredHierarchyToWatch(rootDirectoriesForWatching, currentRoot));
+            rootDirectoriesForWatching.clear();
             long endTime = System.currentTimeMillis() - startTime;
             LOGGER.warn("Spent {} ms registering watches for file system events", endTime);
             // TODO: Move start watching early enough so that the root is always empty

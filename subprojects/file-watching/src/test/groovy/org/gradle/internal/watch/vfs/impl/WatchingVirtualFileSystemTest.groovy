@@ -16,7 +16,7 @@
 
 package org.gradle.internal.watch.vfs.impl
 
-import com.google.common.collect.ImmutableSet
+
 import org.gradle.internal.snapshot.CaseSensitivity
 import org.gradle.internal.snapshot.SnapshotHierarchy
 import org.gradle.internal.vfs.impl.DefaultSnapshotHierarchy
@@ -69,8 +69,6 @@ class WatchingVirtualFileSystemTest extends Specification {
         watchingHandler.afterBuildStarted(true)
         then:
         1 * watcherRegistryFactory.createFileWatcherRegistry(_) >> watcherRegistry
-        1 * watcherRegistry.fileWatcherUpdater >> fileWatcherUpdater
-        1 * fileWatcherUpdater.updateRootProjectDirectories(ImmutableSet.of(), _)
         0 * _
 
         when:
@@ -78,7 +76,7 @@ class WatchingVirtualFileSystemTest extends Specification {
         then:
         1 * watcherRegistry.getAndResetStatistics() >> Stub(FileWatcherRegistry.FileWatchingStatistics)
         1 * watcherRegistry.fileWatcherUpdater >> fileWatcherUpdater
-        1 * fileWatcherUpdater.buildFinished(_)
+        1 * fileWatcherUpdater.buildFinished(_) >> rootReference.getRoot()
         0 * _
 
         when:
@@ -96,8 +94,6 @@ class WatchingVirtualFileSystemTest extends Specification {
         watchingHandler.afterBuildStarted(true)
         then:
         1 * watcherRegistryFactory.createFileWatcherRegistry(_) >> watcherRegistry
-        1 * watcherRegistry.fileWatcherUpdater >> fileWatcherUpdater
-        1 * fileWatcherUpdater.updateRootProjectDirectories(ImmutableSet.of(), _)
         0 * _
 
         when:
@@ -105,7 +101,7 @@ class WatchingVirtualFileSystemTest extends Specification {
         then:
         1 * watcherRegistry.getAndResetStatistics() >> Stub(FileWatcherRegistry.FileWatchingStatistics)
         1 * watcherRegistry.fileWatcherUpdater >> fileWatcherUpdater
-        1 * fileWatcherUpdater.buildFinished(_)
+        1 * fileWatcherUpdater.buildFinished(_) >> rootReference.getRoot()
         0 * _
 
         when:
@@ -133,27 +129,27 @@ class WatchingVirtualFileSystemTest extends Specification {
         then:
         1 * watcherRegistryFactory.createFileWatcherRegistry(_) >> watcherRegistry
         1 * watcherRegistry.fileWatcherUpdater >> fileWatcherUpdater
-        1 * fileWatcherUpdater.updateRootProjectDirectories(ImmutableSet.of(rootDirectory), _)
+        1 * fileWatcherUpdater.discoveredHierarchyToWatch(rootDirectory, _)
         0 * _
 
         when:
         watchingHandler.registerRootDirectoryForWatching(anotherBuildRootDirectory)
         then:
         1 * watcherRegistry.fileWatcherUpdater >> fileWatcherUpdater
-        1 * fileWatcherUpdater.updateRootProjectDirectories(ImmutableSet.of(rootDirectory, anotherBuildRootDirectory), _)
+        1 * fileWatcherUpdater.discoveredHierarchyToWatch(anotherBuildRootDirectory, _)
 
         when:
         watchingHandler.beforeBuildFinished(true)
         then:
         1 * watcherRegistry.getAndResetStatistics() >> Stub(FileWatcherRegistry.FileWatchingStatistics)
         1 * watcherRegistry.fileWatcherUpdater >> fileWatcherUpdater
-        1 * fileWatcherUpdater.buildFinished(_)
+        1 * fileWatcherUpdater.buildFinished(_) >> rootReference.getRoot()
         0 * _
 
         when:
         watchingHandler.registerRootDirectoryForWatching(newRootDirectory)
         then:
         1 * watcherRegistry.fileWatcherUpdater >> fileWatcherUpdater
-        1 * fileWatcherUpdater.updateRootProjectDirectories(ImmutableSet.of(newRootDirectory), _)
+        1 * fileWatcherUpdater.discoveredHierarchyToWatch(newRootDirectory, _)
     }
 }

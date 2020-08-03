@@ -56,7 +56,7 @@ import java.util.stream.Stream;
  * The root project directories are discovered as included builds are encountered at the start of a build, and then they are removed when the build finishes.
  *
  * This is the lifecycle for the watched root project directories:
- * - During a build, there will be various calls to {@link FileWatcherUpdater#updateRootProjectDirectories(Collection, org.gradle.internal.snapshot.SnapshotHierarchy)},
+ * - During a build, there will be various calls to {@link FileWatcherUpdater#discoveredHierarchyToWatch(File, SnapshotHierarchy)},
  *   each call augmenting the collection. The watchers will be updated accordingly.
  * - When updating the watches, we watch root project directories or old root project directories instead of
  *   directories inside them.
@@ -132,16 +132,10 @@ public class HierarchicalFileWatcherUpdater implements FileWatcherUpdater {
     }
 
     @Override
-    public void updateRootProjectDirectories(Collection<File> updatedRootProjectDirectories, SnapshotHierarchy root) {
-        Set<Path> rootPaths = updatedRootProjectDirectories.stream()
-            .map(File::toPath)
-            .map(Path::toAbsolutePath)
-            .collect(Collectors.toSet());
-        Set<Path> newRootProjectDirectories = resolveHierarchiesToWatch(rootPaths);
-        LOGGER.info("Now considering watching {} as root project directories", newRootProjectDirectories);
+    public void discoveredHierarchyToWatch(File discoveredHierarchy, SnapshotHierarchy root) {
+        knownRootProjectDirectoriesFromCurrentBuild.add(discoveredHierarchy.toPath().toAbsolutePath());
+        LOGGER.info("Now considering watching {} as root project directories", knownRootProjectDirectoriesFromCurrentBuild);
 
-        knownRootProjectDirectoriesFromCurrentBuild.clear();
-        knownRootProjectDirectoriesFromCurrentBuild.addAll(newRootProjectDirectories);
         watchedRootProjectDirectoriesFromPreviousBuild.removeAll(knownRootProjectDirectoriesFromCurrentBuild);
 
         allowedDirectoriesToWatch.clear();
