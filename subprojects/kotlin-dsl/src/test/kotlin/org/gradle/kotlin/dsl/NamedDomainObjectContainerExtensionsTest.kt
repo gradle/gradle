@@ -6,22 +6,18 @@ import com.nhaarman.mockito_kotlin.eq
 import com.nhaarman.mockito_kotlin.inOrder
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.verify
-
 import org.gradle.api.Action
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.NamedDomainObjectProvider
 import org.gradle.api.PolymorphicDomainObjectContainer
 import org.gradle.api.Task
 import org.gradle.api.tasks.Delete
-import org.gradle.api.tasks.JavaExec
+import org.gradle.api.tasks.Exec
 import org.gradle.api.tasks.TaskContainer
-
 import org.gradle.kotlin.dsl.support.uncheckedCast
-
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.sameInstance
 import org.hamcrest.MatcherAssert.assertThat
-
 import org.junit.Test
 
 
@@ -273,14 +269,14 @@ class NamedDomainObjectContainerExtensionsTest {
     @Test
     fun `can get element of specific type within configuration block via delegated property`() {
 
-        val task = mock<JavaExec>()
+        val task = mock<Exec>()
         val tasks = mock<TaskContainer> {
             on { getByName("hello") } doReturn task
         }
 
         @Suppress("unused_variable")
         tasks {
-            val hello by getting(JavaExec::class)
+            val hello by getting(Exec::class)
         }
         verify(tasks).getByName("hello")
     }
