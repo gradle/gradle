@@ -40,6 +40,7 @@ import spock.lang.Specification
 import java.nio.file.Files
 import java.nio.file.attribute.BasicFileAttributes
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.function.Predicate
 
 @CleanupTestDirectory
 abstract class AbstractFileWatcherUpdaterTest extends Specification {
@@ -47,6 +48,7 @@ abstract class AbstractFileWatcherUpdaterTest extends Specification {
     TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
 
     def watcher = Mock(FileWatcher)
+    Predicate<String> watchFilter = Mock()
     def directorySnapshotter = new DirectorySnapshotter(TestFiles.fileHasher(), new StringInterner(), [])
     FileWatcherUpdater updater
     def virtualFileSystem = new VirtualFileSystem() {
@@ -65,10 +67,10 @@ abstract class AbstractFileWatcherUpdaterTest extends Specification {
     }
 
     def setup() {
-        updater = createUpdater(watcher)
+        updater = createUpdater(watcher, watchFilter)
     }
 
-    abstract FileWatcherUpdater createUpdater(FileWatcher watcher)
+    abstract FileWatcherUpdater createUpdater(FileWatcher watcher, Predicate<String> watchFilter)
 
     TestFile file(Object... path) {
         temporaryFolder.testDirectory.file(path)
@@ -104,5 +106,11 @@ abstract class AbstractFileWatcherUpdaterTest extends Specification {
         List<?> actualSorted = (actual as List).toSorted()
         List<?> expectedSorted = (expected as List).toSorted()
         return actualSorted == expectedSorted
+    }
+
+    boolean vfsHasSnapshotsAt(File location) {
+        def visitor = new CheckIfNonEmptySnapshotVisitor()
+        virtualFileSystem.root.visitSnapshotRoots(location.absolutePath, visitor)
+        return !visitor.empty
     }
 }

@@ -20,11 +20,13 @@ import net.rubygrapefruit.platform.file.FileWatcher
 import org.gradle.internal.watch.registry.FileWatcherUpdater
 import spock.lang.Ignore
 
+import java.util.function.Predicate
+
 @Ignore // FIXME wolfs: Re-write later
 class NonHierarchicalFileWatcherUpdaterTest extends AbstractFileWatcherUpdaterTest {
 
     @Override
-    FileWatcherUpdater createUpdater(FileWatcher watcher) {
+    FileWatcherUpdater createUpdater(FileWatcher watcher, Predicate<String> watchFilter) {
         new NonHierarchicalFileWatcherUpdater(watcher, watchFilter)
     }
 
