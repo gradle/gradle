@@ -42,10 +42,10 @@ val unsupportedFieldDeclaredTypes = listOf(
 internal
 fun relevantStateOf(beanType: Class<*>): List<RelevantField> =
     relevantTypeHierarchyOf(beanType)
-        .toList()
         .flatMap(Class<*>::relevantFields)
         .onEach(Field::makeAccessible)
         .map { RelevantField(it, unsupportedFieldTypeFor(it)) }
+        .toList()
 
 
 internal
@@ -107,8 +107,8 @@ val irrelevantDeclaringClasses = setOf(
 
 
 private
-val Class<*>.relevantFields: List<Field>
-    get() = declaredFields.toList()
+val Class<*>.relevantFields: Sequence<Field>
+    get() = declaredFields.asSequence()
         .filterNot { field ->
             Modifier.isStatic(field.modifiers)
                 || Modifier.isTransient(field.modifiers)
