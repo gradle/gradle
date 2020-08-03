@@ -72,6 +72,81 @@ abstract class AbstractFileWatcherUpdaterTest extends Specification {
 
     abstract FileWatcherUpdater createUpdater(FileWatcher watcher, Predicate<String> watchFilter)
 
+    def "does not watch directories outside of watched hierarchies"() {
+        def projectRootDirectories = ["first", "second", "third"].collect { file(it).createDir() }
+        def fileOutsideOfWatchedHierarchies = file("forth").file("someFile.txt")
+
+        when:
+        discoverHierarchiesToWatch(projectRootDirectories)
+        then:
+        0 * _
+
+        when:
+        fileOutsideOfWatchedHierarchies.text = "hello"
+        addSnapshot(snapshotRegularFile(fileOutsideOfWatchedHierarchies))
+        then:
+        0 * _
+        vfsHasSnapshotsAt(fileOutsideOfWatchedHierarchies)
+
+        when:
+        virtualFileSystem.update { root, diffListener ->
+            updater.buildFinished(root)
+        }
+        then:
+        _ * watchFilter.test(_) >> true
+        0 * _
+        !vfsHasSnapshotsAt(fileOutsideOfWatchedHierarchies)
+    }
+
+    def "retains files in hierarchies ignored for watching"() {
+        def projectRootDirectory = file("projectDir").createDir()
+        def fileOutsideOfWatchedHierarchies = file("outside").file("someFile.txt")
+        fileOutsideOfWatchedHierarchies.text = "hello"
+        def fileInDirectoryIgnoredForWatching = file("cache").file("some-cache/someFile.txt")
+        fileInDirectoryIgnoredForWatching.text = "cached"
+
+        when:
+        discoverHierarchiesToWatch([projectRootDirectory])
+        then:
+        0 * _
+
+        when:
+        addSnapshot(snapshotRegularFile(fileOutsideOfWatchedHierarchies))
+        addSnapshot(snapshotRegularFile(fileInDirectoryIgnoredForWatching))
+        then:
+        0 * _
+        vfsHasSnapshotsAt(fileOutsideOfWatchedHierarchies)
+        vfsHasSnapshotsAt(fileInDirectoryIgnoredForWatching)
+
+        when:
+        virtualFileSystem.update { root, diffListener ->
+            updater.buildFinished(root)
+        }
+        then:
+        1 * watchFilter.test(fileOutsideOfWatchedHierarchies.absolutePath) >> true
+        1 * watchFilter.test(fileInDirectoryIgnoredForWatching.absolutePath) >> false
+        0 * _
+        !vfsHasSnapshotsAt(fileOutsideOfWatchedHierarchies)
+        vfsHasSnapshotsAt(fileInDirectoryIgnoredForWatching)
+    }
+
+    def "fails when discovering a hierarchy to watch and there is already something in the VFS"() {
+        def projectRootDirectory = file("projectDir").createDir()
+        def fileInProjectRoot = projectRootDirectory.file("some/dir/file.txt")
+        fileInProjectRoot.text = "fileInProjectRoot"
+
+        when:
+        addSnapshot(snapshotRegularFile(fileInProjectRoot))
+        then:
+        0 * _
+
+        when:
+        discoverHierarchiesToWatch([projectRootDirectory])
+        then:
+        def exception = thrown(RuntimeException)
+        exception.message == "Found existing snapshot at '${fileInProjectRoot.absolutePath}' for unwatched hierarchy '${projectRootDirectory.absolutePath}'"
+    }
+
     TestFile file(Object... path) {
         temporaryFolder.testDirectory.file(path)
     }
