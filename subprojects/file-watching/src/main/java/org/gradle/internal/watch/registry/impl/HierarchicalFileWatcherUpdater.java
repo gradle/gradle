@@ -17,6 +17,7 @@
 package org.gradle.internal.watch.registry.impl;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableSet;
 import net.rubygrapefruit.platform.file.FileWatcher;
 import org.gradle.internal.file.DefaultFileHierarchySet;
 import org.gradle.internal.file.FileHierarchySet;
@@ -142,8 +143,12 @@ public class HierarchicalFileWatcherUpdater implements FileWatcherUpdater {
                 }
             });
         }
-        knownRootProjectDirectoriesFromCurrentBuild.add(discoveredHierarchyPath);
-        Set<Path> newKnownRootDirectoriesFromCurrentBuild = resolveHierarchiesToWatch(knownRootProjectDirectoriesFromCurrentBuild);
+        Set<Path> newKnownRootDirectoriesFromCurrentBuild = resolveHierarchiesToWatch(
+            ImmutableSet.<Path>builder()
+                .addAll(knownRootProjectDirectoriesFromCurrentBuild)
+                .add(discoveredHierarchyPath)
+                .build()
+        );
         knownRootProjectDirectoriesFromCurrentBuild.clear();
         knownRootProjectDirectoriesFromCurrentBuild.addAll(newKnownRootDirectoriesFromCurrentBuild);
         LOGGER.info("Now considering watching {} as root project directories", knownRootProjectDirectoriesFromCurrentBuild);
