@@ -21,6 +21,7 @@ import net.rubygrapefruit.platform.file.FileWatcher;
 import org.gradle.internal.file.DefaultFileHierarchySet;
 import org.gradle.internal.file.FileHierarchySet;
 import org.gradle.internal.file.FileMetadata;
+import org.gradle.internal.file.FileType;
 import org.gradle.internal.snapshot.CompleteDirectorySnapshot;
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshotVisitor;
@@ -30,6 +31,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collection;
@@ -108,13 +110,25 @@ public class HierarchicalFileWatcherUpdater implements FileWatcherUpdater {
 
     private void determineAndUpdateDirectoriesToWatch(SnapshotHierarchy root) {
         Set<Path> directoriesWithStuffInside = allowedDirectoriesToWatch.stream()
-            .filter(locationToWatch -> {
+            .flatMap(locationToWatch -> {
                 CheckIfNonEmptySnapshotVisitor checkIfNonEmptySnapshotVisitor = new CheckIfNonEmptySnapshotVisitor();
                 root.visitSnapshotRoots(locationToWatch.toString(), checkIfNonEmptySnapshotVisitor);
-                return !checkIfNonEmptySnapshotVisitor.empty;
+                if (checkIfNonEmptySnapshotVisitor.isEmpty()) {
+                    return Stream.empty();
+                }
+                return checkIfNonEmptySnapshotVisitor.containsOnlyMissingFiles()
+                    ? Stream.of(locationOrFirstExistingAncestor(locationToWatch))
+                    : Stream.of(locationToWatch);
             })
             .collect(Collectors.toSet());
         updateWatchedHierarchies(directoriesWithStuffInside);
+    }
+
+    private Path locationOrFirstExistingAncestor(Path locationToWatch) {
+        if (Files.isDirectory(locationToWatch)) {
+            return locationToWatch;
+        }
+        return locationOrFirstExistingAncestor(locationToWatch);
     }
 
     @Override
@@ -214,16 +228,24 @@ public class HierarchicalFileWatcherUpdater implements FileWatcherUpdater {
 
     private static class CheckIfNonEmptySnapshotVisitor implements SnapshotHierarchy.SnapshotVisitor {
         private boolean empty = true;
+        private boolean onlyMissing = true;
 
         @Override
         public void visitSnapshotRoot(CompleteFileSystemLocationSnapshot rootSnapshot) {
             if (rootSnapshot.getAccessType() == FileMetadata.AccessType.DIRECT) {
                 empty = false;
+                if (rootSnapshot.getType() != FileType.Missing) {
+                    onlyMissing = false;
+                }
             }
         }
 
         public boolean isEmpty() {
             return empty;
+        }
+
+        public boolean containsOnlyMissingFiles() {
+            return onlyMissing;
         }
     }
 
