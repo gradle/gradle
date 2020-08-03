@@ -387,13 +387,4 @@ class HierarchicalFileWatcherUpdaterTest extends AbstractFileWatcherUpdaterTest 
             .collect { it.toString() }
             .sort()
     }
-
-    private void discoverHierarchiesToWatch(Iterable<File> hierarchiesToWatch) {
-        hierarchiesToWatch.each { hierarchyToWatch ->
-            virtualFileSystem.update { root, diffListener ->
-                updater.discoveredHierarchyToWatch(hierarchyToWatch, root)
-                return root
-            }
-        }
-    }
 }

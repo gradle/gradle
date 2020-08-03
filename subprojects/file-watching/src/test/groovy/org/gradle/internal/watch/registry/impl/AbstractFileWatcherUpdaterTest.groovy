@@ -113,4 +113,13 @@ abstract class AbstractFileWatcherUpdaterTest extends Specification {
         virtualFileSystem.root.visitSnapshotRoots(location.absolutePath, visitor)
         return !visitor.empty
     }
+
+    void discoverHierarchiesToWatch(Iterable<File> hierarchiesToWatch) {
+        hierarchiesToWatch.each { hierarchyToWatch ->
+            virtualFileSystem.update { root, diffListener ->
+                updater.discoveredHierarchyToWatch(hierarchyToWatch, root)
+                return root
+            }
+        }
+    }
 }

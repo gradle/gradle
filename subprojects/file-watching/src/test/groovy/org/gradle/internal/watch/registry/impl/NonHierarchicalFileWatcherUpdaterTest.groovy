@@ -18,11 +18,9 @@ package org.gradle.internal.watch.registry.impl
 
 import net.rubygrapefruit.platform.file.FileWatcher
 import org.gradle.internal.watch.registry.FileWatcherUpdater
-import spock.lang.Ignore
 
 import java.util.function.Predicate
 
-@Ignore // FIXME wolfs: Re-write later
 class NonHierarchicalFileWatcherUpdaterTest extends AbstractFileWatcherUpdaterTest {
 
     @Override
@@ -30,12 +28,13 @@ class NonHierarchicalFileWatcherUpdaterTest extends AbstractFileWatcherUpdaterTe
         new NonHierarchicalFileWatcherUpdater(watcher, watchFilter)
     }
 
-    def "ignores project root directories"() {
+    def "only watches directories in discovered hierarchies"() {
         def projectRootDirectories = ["first", "second", "third"].collect { file(it).createDir() }
         def fileInProjectRootDirectory = file("first/inside/root/dir/file.txt")
+        def fileOutsideOfWatchedHierarchies = file("forth").file("someFile.txt")
 
         when:
-        updater.discoveredHierarchyToWatch(projectRootDirectories, virtualFileSystem.get())
+        discoverHierarchiesToWatch(projectRootDirectories)
         then:
         0 * _
 
@@ -47,9 +46,20 @@ class NonHierarchicalFileWatcherUpdaterTest extends AbstractFileWatcherUpdaterTe
         0 * _
 
         when:
-        updater.discoveredHierarchyToWatch([], virtualFileSystem.get())
+        fileOutsideOfWatchedHierarchies.text = "hello"
+        addSnapshot(snapshotRegularFile(fileOutsideOfWatchedHierarchies))
         then:
         0 * _
+        vfsHasSnapshotsAt(fileOutsideOfWatchedHierarchies)
+
+        when:
+        virtualFileSystem.update { root, diffListener ->
+            updater.buildFinished(root)
+        }
+        then:
+        _ * watchFilter.test(_) >> true
+        0 * _
+        !vfsHasSnapshotsAt(fileOutsideOfWatchedHierarchies)
     }
 
     def "watchers are stopped when removing the last watched snapshot"() {
@@ -58,6 +68,7 @@ class NonHierarchicalFileWatcherUpdaterTest extends AbstractFileWatcherUpdaterTe
         def rootDirSnapshot = snapshotDirectory(rootDir)
 
         when:
+        discoverHierarchiesToWatch([rootDir])
         addSnapshot(rootDirSnapshot)
         then:
         1 * watcher.startWatching({ equalIgnoringOrder(it, [rootDir.parentFile, rootDir]) })
