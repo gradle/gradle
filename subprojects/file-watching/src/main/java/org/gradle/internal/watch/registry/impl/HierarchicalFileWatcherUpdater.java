@@ -128,7 +128,7 @@ public class HierarchicalFileWatcherUpdater implements FileWatcherUpdater {
         if (Files.isDirectory(locationToWatch)) {
             return locationToWatch;
         }
-        return locationOrFirstExistingAncestor(locationToWatch);
+        return SnapshotWatchedDirectoryFinder.findFirstExistingAncestor(locationToWatch);
     }
 
     @Override
