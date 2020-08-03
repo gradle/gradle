@@ -25,6 +25,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.project.IsolatedAntBuilder;
 import org.gradle.api.specs.Spec;
+import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
@@ -109,8 +110,7 @@ public abstract class JacocoReportBase extends JacocoBase {
     /**
      * Source sets that coverage should be reported for.
      */
-    @PathSensitive(PathSensitivity.RELATIVE)
-    @InputFiles
+    @Classpath
     public ConfigurableFileCollection getClassDirectories() {
         return classDirectories;
     }
