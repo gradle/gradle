@@ -19,10 +19,12 @@ package org.gradle.api.internal.initialization.loadercache;
 import org.gradle.internal.classloader.FilteringClassLoader;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.scan.UsedByScanPlugin;
 
 import javax.annotation.Nullable;
 import java.util.function.Function;
 
+@UsedByScanPlugin("test-retry")
 public interface ClassLoaderCache {
 
     /**

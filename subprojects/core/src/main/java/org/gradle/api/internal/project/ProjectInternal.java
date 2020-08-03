@@ -45,7 +45,7 @@ import org.gradle.util.Path;
 
 import javax.annotation.Nullable;
 
-@UsedByScanPlugin
+@UsedByScanPlugin //and test-retry-plugin
 public interface ProjectInternal extends Project, ProjectIdentifier, HasScriptServices, DomainObjectContext, DependencyMetaDataProvider, ModelRegistryScope, PluginAwareInternal {
 
     // These constants are defined here and not with the rest of their kind in HelpTasksPlugin because they are referenced
@@ -85,7 +85,7 @@ public interface ProjectInternal extends Project, ProjectIdentifier, HasScriptSe
     DynamicObject getInheritedScope();
 
     @Override
-    @UsedByScanPlugin("test-distribution")
+    @UsedByScanPlugin("test-distribution, test-retry")
     GradleInternal getGradle();
 
     ProjectEvaluationListener getProjectEvaluationBroadcaster();
@@ -96,7 +96,7 @@ public interface ProjectInternal extends Project, ProjectIdentifier, HasScriptSe
 
     FileResolver getFileResolver();
 
-    @UsedByScanPlugin
+    @UsedByScanPlugin //and test-retry-plugin
     ServiceRegistry getServices();
 
     ServiceRegistryFactory getServiceRegistryFactory();

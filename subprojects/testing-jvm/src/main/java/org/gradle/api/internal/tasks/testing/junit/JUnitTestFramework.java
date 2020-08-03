@@ -30,10 +30,12 @@ import org.gradle.api.tasks.testing.Test;
 import org.gradle.api.tasks.testing.junit.JUnitOptions;
 import org.gradle.internal.actor.ActorFactory;
 import org.gradle.internal.id.IdGenerator;
+import org.gradle.internal.scan.UsedByScanPlugin;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.time.Clock;
 import org.gradle.process.internal.worker.WorkerProcessBuilder;
 
+@UsedByScanPlugin("test-retry")
 public class JUnitTestFramework implements TestFramework {
     private JUnitOptions options;
     private final JUnitDetector detector;

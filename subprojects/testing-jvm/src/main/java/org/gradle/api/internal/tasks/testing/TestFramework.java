@@ -19,10 +19,12 @@ package org.gradle.api.internal.tasks.testing;
 import org.gradle.api.Action;
 import org.gradle.api.internal.tasks.testing.detection.TestFrameworkDetector;
 import org.gradle.api.tasks.testing.TestFrameworkOptions;
+import org.gradle.internal.scan.UsedByScanPlugin;
 import org.gradle.process.internal.worker.WorkerProcessBuilder;
 
 import java.util.List;
 
+@UsedByScanPlugin("test-retry")
 public interface TestFramework {
 
     /**
