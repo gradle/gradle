@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,7 +53,7 @@ import java.util.Map;
 /**
  * Executes a Java application in a child process.
  * <p>
- * Similar to {@link org.gradle.api.tasks.Exec}, but starts a JVM with the given classpath and application class.
+ * Similar to {@link Exec}, but starts a JVM with the given classpath and application class.
  * </p>
  * <pre class='autoTested'>
  * plugins {

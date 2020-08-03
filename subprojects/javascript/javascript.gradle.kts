@@ -28,6 +28,7 @@ dependencies {
     implementation(project(":plugins"))
     implementation(project(":workers"))
     implementation(project(":dependencyManagement")) // Required by JavaScriptExtension#getGoogleApisRepository()
+    implementation(project(":languageJava")) // Required by RhinoShellExec
 
     implementation(libs.groovy)
     implementation(libs.slf4jApi)

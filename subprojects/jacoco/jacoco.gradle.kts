@@ -46,6 +46,7 @@ dependencies {
     testImplementation(project(":internalTesting"))
     testImplementation(project(":resources"))
     testImplementation(project(":internalIntegTesting"))
+    testImplementation(project(":languageJava"))
     testImplementation(testFixtures(project(":core")))
 
     testRuntimeOnly(project(":distributionsCore")) {
