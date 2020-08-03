@@ -157,7 +157,7 @@ public class HierarchicalFileWatcherUpdater implements FileWatcherUpdater {
     }
 
     private boolean shouldWatch(CompleteFileSystemLocationSnapshot snapshot) {
-        return snapshot.getAccessType() == FileMetadata.AccessType.DIRECT && watchedHierarchies.stream().noneMatch(Paths.get(snapshot.getAbsolutePath())::startsWith);
+        return snapshot.getAccessType() == FileMetadata.AccessType.DIRECT && watchedHierarchies.stream().anyMatch(Paths.get(snapshot.getAbsolutePath())::startsWith);
     }
 
     private void updateWatchedHierarchies(Set<Path> newHierarchiesToWatch) {
