@@ -41,6 +41,7 @@ val propagatedEnvironmentVariables = listOf(
 
     // Used by Gradle test infrastructure
     "REPO_MIRROR_URL",
+    "SDKMAN_CANDIDATES_DIR",
 
     // temp dir
     "TMPDIR",
