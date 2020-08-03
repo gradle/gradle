@@ -17,53 +17,51 @@
 package org.gradle.internal.watch.vfs.impl
 
 import com.google.common.collect.ImmutableSet
-import org.gradle.internal.snapshot.AtomicSnapshotHierarchyReference
 import org.gradle.internal.snapshot.CaseSensitivity
 import org.gradle.internal.snapshot.SnapshotHierarchy
 import org.gradle.internal.vfs.impl.DefaultSnapshotHierarchy
+import org.gradle.internal.vfs.impl.VfsRootReference
 import org.gradle.internal.watch.registry.FileWatcherRegistry
 import org.gradle.internal.watch.registry.FileWatcherRegistryFactory
 import org.gradle.internal.watch.registry.FileWatcherUpdater
 import org.gradle.internal.watch.registry.impl.DaemonDocumentationIndex
 import spock.lang.Specification
 
-class DefaultFileSystemWatchingHandlerTest extends Specification {
+class WatchingVirtualFileSystemTest extends Specification {
     def watcherRegistryFactory = Mock(FileWatcherRegistryFactory)
     def watcherRegistry = Mock(FileWatcherRegistry)
     def fileWatcherUpdater = Mock(FileWatcherUpdater)
-    def capturingUpdateFunctionDecorator = Mock(DelegatingDiffCapturingUpdateFunctionDecorator)
     def emptySnapshotHierarchy = DefaultSnapshotHierarchy.empty(CaseSensitivity.CASE_SENSITIVE)
     def nonEmptySnapshotHierarchy = Stub(SnapshotHierarchy) {
         empty() >> emptySnapshotHierarchy
     }
-    def root = new AtomicSnapshotHierarchyReference(nonEmptySnapshotHierarchy)
+    def rootReference = new VfsRootReference(nonEmptySnapshotHierarchy)
     def daemonDocumentationIndex = Mock(DaemonDocumentationIndex)
-    def locationsUpdatedByCurrentBuild = Mock(LocationsUpdatedByCurrentBuild)
-    def watchingHandler = new DefaultFileSystemWatchingHandler(
+    def locationsUpdatedByCurrentBuild = Mock(LocationsWrittenByCurrentBuild)
+    def watchingHandler = new WatchingVirtualFileSystem(
         watcherRegistryFactory,
-        root,
-        capturingUpdateFunctionDecorator,
-        { -> true },
+        rootReference,
+        { path -> true },
         daemonDocumentationIndex,
         locationsUpdatedByCurrentBuild
     )
 
     def "invalidates the virtual file system before and after the build when watching is disabled"() {
         when:
-        root.update { nonEmptySnapshotHierarchy }
+        rootReference.update { root -> nonEmptySnapshotHierarchy }
         watchingHandler.afterBuildStarted(false)
         then:
         0 * _
 
-        root.get() == emptySnapshotHierarchy
+        rootReference.getRoot() == emptySnapshotHierarchy
 
         when:
-        root.update { nonEmptySnapshotHierarchy }
+        rootReference.update { root -> nonEmptySnapshotHierarchy }
         watchingHandler.beforeBuildFinished(false)
         then:
         0 * _
 
-        root.get() == emptySnapshotHierarchy
+        rootReference.getRoot() == emptySnapshotHierarchy
     }
 
     def "stops the watchers before the build when watching is disabled"() {
@@ -73,7 +71,6 @@ class DefaultFileSystemWatchingHandlerTest extends Specification {
         1 * watcherRegistryFactory.createFileWatcherRegistry(_) >> watcherRegistry
         1 * watcherRegistry.fileWatcherUpdater >> fileWatcherUpdater
         1 * fileWatcherUpdater.updateRootProjectDirectories(ImmutableSet.of())
-        1 * capturingUpdateFunctionDecorator.setSnapshotDiffListener(_, _)
         0 * _
 
         when:
@@ -85,14 +82,13 @@ class DefaultFileSystemWatchingHandlerTest extends Specification {
         0 * _
 
         when:
-        root.update { nonEmptySnapshotHierarchy }
+        rootReference.update { root -> nonEmptySnapshotHierarchy }
         watchingHandler.afterBuildStarted(false)
         then:
         1 * watcherRegistry.close()
-        1 * capturingUpdateFunctionDecorator.stopListening()
         0 * _
 
-        root.get() == emptySnapshotHierarchy
+        rootReference.getRoot() == emptySnapshotHierarchy
     }
 
     def "retains the virtual file system when watching is enabled"() {
@@ -102,7 +98,6 @@ class DefaultFileSystemWatchingHandlerTest extends Specification {
         1 * watcherRegistryFactory.createFileWatcherRegistry(_) >> watcherRegistry
         1 * watcherRegistry.fileWatcherUpdater >> fileWatcherUpdater
         1 * fileWatcherUpdater.updateRootProjectDirectories(ImmutableSet.of())
-        1 * capturingUpdateFunctionDecorator.setSnapshotDiffListener(_, _)
         0 * _
 
         when:
@@ -114,13 +109,13 @@ class DefaultFileSystemWatchingHandlerTest extends Specification {
         0 * _
 
         when:
-        root.update { nonEmptySnapshotHierarchy }
+        rootReference.update { root -> nonEmptySnapshotHierarchy }
         watchingHandler.afterBuildStarted(true)
         then:
         1 * watcherRegistry.getAndResetStatistics() >> Stub(FileWatcherRegistry.FileWatchingStatistics)
         0 * _
 
-        root.get() == nonEmptySnapshotHierarchy
+        rootReference.getRoot() == nonEmptySnapshotHierarchy
     }
 
     def "collects build root directories and notifies the vfs"() {
@@ -139,7 +134,6 @@ class DefaultFileSystemWatchingHandlerTest extends Specification {
         1 * watcherRegistryFactory.createFileWatcherRegistry(_) >> watcherRegistry
         1 * watcherRegistry.fileWatcherUpdater >> fileWatcherUpdater
         1 * fileWatcherUpdater.updateRootProjectDirectories(ImmutableSet.of(rootDirectory))
-        1 * capturingUpdateFunctionDecorator.setSnapshotDiffListener(_, _)
         0 * _
 
         when:

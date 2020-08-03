@@ -184,7 +184,7 @@ import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.snapshot.ValueSnapshotter;
 import org.gradle.internal.typeconversion.NotationParser;
-import org.gradle.internal.vfs.VirtualFileSystem;
+import org.gradle.internal.vfs.FileSystemAccess;
 import org.gradle.util.internal.SimpleMapInterner;
 import org.gradle.vcs.internal.VcsMappingsStore;
 
@@ -384,7 +384,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
 
         TransformerInvocationFactory createTransformerInvocationFactory(
                 WorkExecutor<ExecutionRequestContext, CachingResult> workExecutor,
-                VirtualFileSystem virtualFileSystem,
+                FileSystemAccess fileSystemAccess,
                 ImmutableCachingTransformationWorkspaceProvider transformationWorkspaceProvider,
                 ArtifactTransformListener artifactTransformListener,
                 FileCollectionFactory fileCollectionFactory,
@@ -393,14 +393,14 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 BuildOperationExecutor buildOperationExecutor
         ) {
             return new DefaultTransformerInvocationFactory(
-                    workExecutor,
-                    virtualFileSystem,
-                    artifactTransformListener,
-                    transformationWorkspaceProvider,
-                    fileCollectionFactory,
-                    fileCollectionSnapshotter,
-                    projectStateRegistry,
-                    buildOperationExecutor
+                workExecutor,
+                fileSystemAccess,
+                artifactTransformListener,
+                transformationWorkspaceProvider,
+                fileCollectionFactory,
+                fileCollectionSnapshotter,
+                projectStateRegistry,
+                buildOperationExecutor
             );
         }
 

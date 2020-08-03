@@ -27,7 +27,7 @@ import spock.lang.Specification
 
 class DefaultSourceIncludesResolverTest extends Specification {
     @Rule final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
-    def virtualFileSystem = TestFiles.virtualFileSystem()
+    def fileSystemAccess = TestFiles.fileSystemAccess()
     def testDirectory = temporaryFolder.testDirectory
     def sourceDirectory = testDirectory.createDir("sources")
     def systemIncludeDir = testDirectory.createDir("headers")
@@ -53,7 +53,7 @@ class DefaultSourceIncludesResolverTest extends Specification {
     def resolve(Include include) {
         def macros = new CollectingMacroLookup()
         macros.append(sourceFile, included)
-        return new DefaultSourceIncludesResolver(includePaths, virtualFileSystem).resolveInclude(sourceFile, include, macros)
+        return new DefaultSourceIncludesResolver(includePaths, fileSystemAccess).resolveInclude(sourceFile, include, macros)
     }
 
     def "ignores system include file that does not exist"() {

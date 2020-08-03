@@ -38,7 +38,7 @@ import org.gradle.api.internal.tasks.compile.incremental.recomp.RecompilationSpe
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.StreamHasher;
 import org.gradle.internal.operations.BuildOperationExecutor;
-import org.gradle.internal.vfs.VirtualFileSystem;
+import org.gradle.internal.vfs.FileSystemAccess;
 import org.gradle.language.base.internal.compile.Compiler;
 
 public class IncrementalCompilerFactory {
@@ -47,16 +47,16 @@ public class IncrementalCompilerFactory {
     private final GeneralCompileCaches generalCompileCaches;
     private final BuildOperationExecutor buildOperationExecutor;
     private final StringInterner interner;
-    private final VirtualFileSystem virtualFileSystem;
+    private final FileSystemAccess fileSystemAccess;
     private final FileHasher fileHasher;
 
-    public IncrementalCompilerFactory(FileOperations fileOperations, StreamHasher streamHasher, GeneralCompileCaches generalCompileCaches, BuildOperationExecutor buildOperationExecutor, StringInterner interner, VirtualFileSystem virtualFileSystem, FileHasher fileHasher) {
+    public IncrementalCompilerFactory(FileOperations fileOperations, StreamHasher streamHasher, GeneralCompileCaches generalCompileCaches, BuildOperationExecutor buildOperationExecutor, StringInterner interner, FileSystemAccess fileSystemAccess, FileHasher fileHasher) {
         this.fileOperations = fileOperations;
         this.streamHasher = streamHasher;
         this.generalCompileCaches = generalCompileCaches;
         this.buildOperationExecutor = buildOperationExecutor;
         this.interner = interner;
-        this.virtualFileSystem = virtualFileSystem;
+        this.fileSystemAccess = fileSystemAccess;
         this.fileHasher = fileHasher;
     }
 
@@ -64,7 +64,7 @@ public class IncrementalCompilerFactory {
         TaskScopedCompileCaches compileCaches = createCompileCaches(taskPath);
         Compiler<T> rebuildAllCompiler = createRebuildAllCompiler(cleaningJavaCompiler, sources);
         ClassDependenciesAnalyzer analyzer = new CachingClassDependenciesAnalyzer(new DefaultClassDependenciesAnalyzer(interner), compileCaches.getClassAnalysisCache());
-        ClasspathEntrySnapshotter classpathEntrySnapshotter = new CachingClasspathEntrySnapshotter(fileHasher, streamHasher, virtualFileSystem, analyzer, compileCaches.getClasspathEntrySnapshotCache(), fileOperations);
+        ClasspathEntrySnapshotter classpathEntrySnapshotter = new CachingClasspathEntrySnapshotter(fileHasher, streamHasher, fileSystemAccess, analyzer, compileCaches.getClasspathEntrySnapshotCache(), fileOperations);
         ClasspathSnapshotMaker classpathSnapshotMaker = new ClasspathSnapshotMaker(new ClasspathSnapshotFactory(classpathEntrySnapshotter, buildOperationExecutor));
         PreviousCompilationOutputAnalyzer previousCompilationOutputAnalyzer = new PreviousCompilationOutputAnalyzer(fileHasher, streamHasher, analyzer, fileOperations);
         IncrementalCompilerDecorator<T> incrementalSupport = new IncrementalCompilerDecorator<>(classpathSnapshotMaker, compileCaches, cleaningJavaCompiler, rebuildAllCompiler, previousCompilationOutputAnalyzer, interner);

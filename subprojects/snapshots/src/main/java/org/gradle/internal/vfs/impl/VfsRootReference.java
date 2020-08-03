@@ -14,34 +14,32 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.snapshot;
+package org.gradle.internal.vfs.impl;
+
+import org.gradle.internal.snapshot.SnapshotHierarchy;
 
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.UnaryOperator;
 
-public class AtomicSnapshotHierarchyReference {
+public class VfsRootReference {
     private volatile SnapshotHierarchy root;
     private final ReentrantLock updateLock = new ReentrantLock();
 
-    public AtomicSnapshotHierarchyReference(SnapshotHierarchy root) {
-        this.root = root;
-    }
-
-    public SnapshotHierarchy get() {
+    public SnapshotHierarchy getRoot() {
         return root;
     }
 
-    public void update(UpdateFunction updateFunction) {
+    public VfsRootReference(SnapshotHierarchy root) {
+        this.root = root;
+    }
+
+    public void update(UnaryOperator<SnapshotHierarchy> updateFunction) {
         updateLock.lock();
         try {
-            // Store the current root in a local variable to make the call atomic
             SnapshotHierarchy currentRoot = root;
-            root = updateFunction.updateRoot(currentRoot);
+            root = updateFunction.apply(currentRoot);
         } finally {
             updateLock.unlock();
         }
-    }
-
-    public interface UpdateFunction {
-        SnapshotHierarchy updateRoot(SnapshotHierarchy root);
     }
 }

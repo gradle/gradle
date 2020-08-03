@@ -25,13 +25,11 @@ import org.gradle.internal.file.FileType
 import org.gradle.internal.file.Stat
 import org.gradle.internal.hash.FileHasher
 import org.gradle.internal.hash.HashCode
-import org.gradle.internal.snapshot.AtomicSnapshotHierarchyReference
 import org.gradle.internal.snapshot.CompleteDirectorySnapshot
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot
 import org.gradle.internal.snapshot.FileSystemSnapshotVisitor
-import org.gradle.internal.snapshot.SnapshotHierarchy
 import org.gradle.internal.snapshot.SnapshottingFilter
-import org.gradle.internal.vfs.VirtualFileSystem
+import org.gradle.internal.vfs.FileSystemAccess
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -40,22 +38,19 @@ import spock.lang.Specification
 import java.nio.file.Path
 import java.util.function.Predicate
 
-import static org.gradle.internal.snapshot.CaseSensitivity.CASE_SENSITIVE
-
 @CleanupTestDirectory
-abstract class AbstractVirtualFileSystemTest extends Specification {
+abstract class AbstractFileSystemAccessTest extends Specification {
     @Rule
     final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
 
     def fileHasher = new AllowingHasher(TestFiles.fileHasher())
     def stat = new AllowingStat(TestFiles.fileSystem())
-    def updateListener = Mock(VirtualFileSystem.UpdateListener)
-    def vfs = new DefaultVirtualFileSystem(
+    def updateListener = Mock(FileSystemAccess.WriteListener)
+    def fileSystemAccess = new DefaultFileSystemAccess(
         fileHasher,
         new StringInterner(),
         stat,
-        new AtomicSnapshotHierarchyReference(DefaultSnapshotHierarchy.empty(CASE_SENSITIVE)),
-        SnapshotHierarchy.DiffCapturingUpdateFunctionDecorator.NOOP,
+        TestFiles.virtualFileSystem(),
         updateListener
     )
 
@@ -64,13 +59,13 @@ abstract class AbstractVirtualFileSystemTest extends Specification {
         stat.allowStat(allow)
     }
 
-    CompleteFileSystemLocationSnapshot readFromVfs(File file) {
-        return vfs.read(file.absolutePath, { it })
+    CompleteFileSystemLocationSnapshot read(File file) {
+        return fileSystemAccess.read(file.absolutePath, { it })
     }
 
-    CompleteFileSystemLocationSnapshot readFromVfs(File file, SnapshottingFilter filter) {
+    CompleteFileSystemLocationSnapshot read(File file, SnapshottingFilter filter) {
         MutableReference<CompleteFileSystemLocationSnapshot> result = MutableReference.empty()
-        vfs.read(file.absolutePath, filter, result.&set)
+        fileSystemAccess.read(file.absolutePath, filter, result.&set)
         return result.get()
     }
 

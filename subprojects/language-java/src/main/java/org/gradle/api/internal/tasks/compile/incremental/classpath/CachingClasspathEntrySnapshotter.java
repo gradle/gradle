@@ -20,19 +20,19 @@ import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassDependenciesAnalyzer;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.StreamHasher;
-import org.gradle.internal.vfs.VirtualFileSystem;
+import org.gradle.internal.vfs.FileSystemAccess;
 
 import java.io.File;
 
 public class CachingClasspathEntrySnapshotter implements ClasspathEntrySnapshotter {
 
     private final DefaultClasspathEntrySnapshotter snapshotter;
-    private final VirtualFileSystem virtualFileSystem;
+    private final FileSystemAccess fileSystemAccess;
     private final ClasspathEntrySnapshotCache cache;
 
-    public CachingClasspathEntrySnapshotter(FileHasher fileHasher, StreamHasher streamHasher, VirtualFileSystem virtualFileSystem, ClassDependenciesAnalyzer analyzer, ClasspathEntrySnapshotCache cache, FileOperations fileOperations) {
+    public CachingClasspathEntrySnapshotter(FileHasher fileHasher, StreamHasher streamHasher, FileSystemAccess fileSystemAccess, ClassDependenciesAnalyzer analyzer, ClasspathEntrySnapshotCache cache, FileOperations fileOperations) {
         this.snapshotter = new DefaultClasspathEntrySnapshotter(fileHasher, streamHasher, analyzer, fileOperations);
-        this.virtualFileSystem = virtualFileSystem;
+        this.fileSystemAccess = fileSystemAccess;
         this.cache = cache;
     }
 
@@ -40,7 +40,7 @@ public class CachingClasspathEntrySnapshotter implements ClasspathEntrySnapshott
     public ClasspathEntrySnapshot createSnapshot(final File classpathEntry) {
         return cache.get(
             classpathEntry,
-            () -> virtualFileSystem.read(
+            () -> fileSystemAccess.read(
                 classpathEntry.getAbsolutePath(),
                 snapshot -> snapshotter.createSnapshot(snapshot.getHash(), classpathEntry)
             )

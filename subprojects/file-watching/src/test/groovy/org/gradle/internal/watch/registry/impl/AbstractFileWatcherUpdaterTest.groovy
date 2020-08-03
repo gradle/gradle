@@ -27,9 +27,10 @@ import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot
 import org.gradle.internal.snapshot.RegularFileSnapshot
 import org.gradle.internal.snapshot.SnapshotHierarchy
 import org.gradle.internal.snapshot.impl.DirectorySnapshotter
+import org.gradle.internal.vfs.VirtualFileSystem
 import org.gradle.internal.vfs.impl.DefaultSnapshotHierarchy
 import org.gradle.internal.watch.registry.FileWatcherUpdater
-import org.gradle.internal.watch.vfs.impl.DelegatingDiffCapturingUpdateFunctionDecorator
+import org.gradle.internal.watch.vfs.impl.SnapshotCollectingDiffListener
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -47,17 +48,24 @@ abstract class AbstractFileWatcherUpdaterTest extends Specification {
 
     def watcher = Mock(FileWatcher)
     def directorySnapshotter = new DirectorySnapshotter(TestFiles.fileHasher(), new StringInterner(), [])
-    def decorator = new DelegatingDiffCapturingUpdateFunctionDecorator({ String path -> true})
-    def root = DefaultSnapshotHierarchy.empty(CaseSensitivity.CASE_SENSITIVE)
-
     FileWatcherUpdater updater
+    def virtualFileSystem = new VirtualFileSystem() {
+        private SnapshotHierarchy root = DefaultSnapshotHierarchy.empty(CaseSensitivity.CASE_SENSITIVE)
+        @Override
+        SnapshotHierarchy getRoot() {
+            return root
+        }
+
+        @Override
+        void update(VirtualFileSystem.UpdateFunction updateFunction) {
+            def diffListener = new SnapshotCollectingDiffListener({ path -> true})
+            root = updateFunction.update(root, diffListener)
+            diffListener.publishSnapshotDiff(updater)
+        }
+    }
 
     def setup() {
         updater = createUpdater(watcher)
-        decorator.setSnapshotDiffListener(updater) { SnapshotHierarchy currentRoot, Runnable runnable ->
-            runnable.run()
-            return currentRoot
-        }
     }
 
     abstract FileWatcherUpdater createUpdater(FileWatcher watcher)
@@ -71,11 +79,11 @@ abstract class AbstractFileWatcherUpdaterTest extends Specification {
     }
 
     void addSnapshot(CompleteFileSystemLocationSnapshot snapshot) {
-        root = decorator.decorate({ currentRoot, listener -> currentRoot.store(snapshot.absolutePath, snapshot, listener) }).updateRoot(root)
+        virtualFileSystem.update({ currentRoot, listener -> currentRoot.store(snapshot.absolutePath, snapshot, listener) })
     }
 
     void invalidate(String absolutePath) {
-        root = decorator.decorate({ currentRoot, listener -> currentRoot.invalidate(absolutePath, listener) }).updateRoot(root)
+        virtualFileSystem.update({ currentRoot, listener -> currentRoot.invalidate(absolutePath, listener) })
     }
 
     void invalidate(CompleteFileSystemLocationSnapshot snapshot) {

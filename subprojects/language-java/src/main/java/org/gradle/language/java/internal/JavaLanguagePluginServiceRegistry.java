@@ -33,7 +33,7 @@ import org.gradle.internal.hash.StreamHasher;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
-import org.gradle.internal.vfs.VirtualFileSystem;
+import org.gradle.internal.vfs.FileSystemAccess;
 import org.gradle.jvm.JvmLibrary;
 import org.gradle.language.java.artifact.JavadocArtifact;
 import org.gradle.tooling.events.OperationType;
@@ -83,8 +83,8 @@ public class JavaLanguagePluginServiceRegistry extends AbstractPluginServiceRegi
     }
 
     private static class JavaProjectScopeServices {
-        public IncrementalCompilerFactory createIncrementalCompilerFactory(FileOperations fileOperations, StreamHasher streamHasher, GeneralCompileCaches compileCaches, BuildOperationExecutor buildOperationExecutor, StringInterner interner, VirtualFileSystem virtualFileSystem, FileHasher fileHasher) {
-            return new IncrementalCompilerFactory(fileOperations, streamHasher, compileCaches, buildOperationExecutor, interner, virtualFileSystem, fileHasher);
+        public IncrementalCompilerFactory createIncrementalCompilerFactory(FileOperations fileOperations, StreamHasher streamHasher, GeneralCompileCaches compileCaches, BuildOperationExecutor buildOperationExecutor, StringInterner interner, FileSystemAccess fileSystemAccess, FileHasher fileHasher) {
+            return new IncrementalCompilerFactory(fileOperations, streamHasher, compileCaches, buildOperationExecutor, interner, fileSystemAccess, fileHasher);
         }
     }
 }

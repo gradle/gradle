@@ -35,7 +35,7 @@ class SourceParseAndResolutionTest extends SerializerSpec {
     def header = includeDir.createFile("hello.h")
     def sourceDir = tmpDir.createDir("src")
     def sourceFile = sourceDir.createFile("src.cpp")
-    def resolver = new DefaultSourceIncludesResolver([includeDir], TestFiles.virtualFileSystem())
+    def resolver = new DefaultSourceIncludesResolver([includeDir], TestFiles.fileSystemAccess())
     def parser = new RegexBackedCSourceParser()
     def serializer = IncludeDirectivesSerializer.INSTANCE
 

@@ -27,7 +27,7 @@ import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.serialize.HashCodeSerializer;
 import org.gradle.internal.serialize.Serializer;
-import org.gradle.internal.vfs.VirtualFileSystem;
+import org.gradle.internal.vfs.FileSystemAccess;
 
 import javax.annotation.Nullable;
 import java.io.Closeable;
@@ -41,15 +41,15 @@ import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
 public class DefaultFileContentCacheFactory implements FileContentCacheFactory, Closeable {
     private final ListenerManager listenerManager;
-    private final VirtualFileSystem virtualFileSystem;
+    private final FileSystemAccess fileSystemAccess;
     private final InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory;
     private final PersistentCache cache;
     private final HashCodeSerializer hashCodeSerializer = new HashCodeSerializer();
     private final ConcurrentMap<String, DefaultFileContentCache<?>> caches = new ConcurrentHashMap<>();
 
-    public DefaultFileContentCacheFactory(ListenerManager listenerManager, VirtualFileSystem virtualFileSystem, CacheRepository cacheRepository, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory, @Nullable Object scope) {
+    public DefaultFileContentCacheFactory(ListenerManager listenerManager, FileSystemAccess fileSystemAccess, CacheRepository cacheRepository, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory, @Nullable Object scope) {
         this.listenerManager = listenerManager;
-        this.virtualFileSystem = virtualFileSystem;
+        this.fileSystemAccess = fileSystemAccess;
         this.inMemoryCacheDecoratorFactory = inMemoryCacheDecoratorFactory;
         cache = cacheRepository
             .cache(scope, "fileContent")
@@ -71,7 +71,7 @@ public class DefaultFileContentCacheFactory implements FileContentCacheFactory, 
 
         DefaultFileContentCache<V> cache = Cast.uncheckedCast(caches.get(name));
         if (cache == null) {
-            cache = new DefaultFileContentCache<>(name, virtualFileSystem, store, calculator);
+            cache = new DefaultFileContentCache<>(name, fileSystemAccess, store, calculator);
             DefaultFileContentCache<V> existing = Cast.uncheckedCast(caches.putIfAbsent(name, cache));
             if (existing == null) {
                 listenerManager.addListener(cache);
@@ -92,13 +92,13 @@ public class DefaultFileContentCacheFactory implements FileContentCacheFactory, 
     private static class DefaultFileContentCache<V> implements FileContentCache<V>, OutputChangeListener {
         private final Map<File, V> locationCache = new ConcurrentHashMap<>();
         private final String name;
-        private final VirtualFileSystem virtualFileSystem;
+        private final FileSystemAccess fileSystemAccess;
         private final PersistentIndexedCache<HashCode, V> contentCache;
         private final Calculator<? extends V> calculator;
 
-        DefaultFileContentCache(String name, VirtualFileSystem virtualFileSystem, PersistentIndexedCache<HashCode, V> contentCache, Calculator<? extends V> calculator) {
+        DefaultFileContentCache(String name, FileSystemAccess fileSystemAccess, PersistentIndexedCache<HashCode, V> contentCache, Calculator<? extends V> calculator) {
             this.name = name;
-            this.virtualFileSystem = virtualFileSystem;
+            this.fileSystemAccess = fileSystemAccess;
             this.contentCache = contentCache;
             this.calculator = calculator;
         }
@@ -112,7 +112,7 @@ public class DefaultFileContentCacheFactory implements FileContentCacheFactory, 
         @Override
         public V get(File file) {
             return locationCache.computeIfAbsent(file,
-                location -> virtualFileSystem.readRegularFileContentHash(
+                location -> fileSystemAccess.readRegularFileContentHash(
                     location.getAbsolutePath(),
                     contentHash -> contentCache.get(contentHash, key -> calculator.calculate(location, true))
                 ).orElseGet(

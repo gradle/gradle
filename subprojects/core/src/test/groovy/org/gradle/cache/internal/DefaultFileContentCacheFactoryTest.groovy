@@ -26,7 +26,7 @@ import org.gradle.internal.execution.OutputChangeListener
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.serialize.BaseSerializerFactory
 import org.gradle.internal.service.scopes.Scopes
-import org.gradle.internal.vfs.VirtualFileSystem
+import org.gradle.internal.vfs.FileSystemAccess
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testfixtures.internal.InMemoryCacheFactory
 import org.gradle.util.GradleVersion
@@ -39,7 +39,7 @@ class DefaultFileContentCacheFactoryTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     def listenerManager = new DefaultListenerManager(Scopes.Build)
-    def virtualFileSystem = Mock(VirtualFileSystem)
+    def fileSystemAccess = Mock(FileSystemAccess)
     def cacheRepository = new DefaultCacheRepository(new DefaultCacheScopeMapping(tmpDir.file("user-home"), tmpDir.file("build-dir"), GradleVersion.current()), new InMemoryCacheFactory())
     def inMemoryTaskArtifactCache = new DefaultInMemoryCacheDecoratorFactory(false, new TestCrossBuildInMemoryCacheFactory()) {
         @Override
@@ -52,7 +52,7 @@ class DefaultFileContentCacheFactoryTest extends Specification {
             }
         }
     }
-    def factory = new DefaultFileContentCacheFactory(listenerManager, virtualFileSystem, cacheRepository, inMemoryTaskArtifactCache, Stub(Gradle))
+    def factory = new DefaultFileContentCacheFactory(listenerManager, fileSystemAccess, cacheRepository, inMemoryTaskArtifactCache, Stub(Gradle))
     def calculator = Mock(FileContentCacheFactory.Calculator)
 
     def "calculates entry value for file when not seen before and reuses result"() {
@@ -91,7 +91,7 @@ class DefaultFileContentCacheFactoryTest extends Specification {
         result == 12
 
         and:
-        1 * virtualFileSystem.readRegularFileContentHash(file.absolutePath, _) >> Optional.empty()
+        1 * fileSystemAccess.readRegularFileContentHash(file.absolutePath, _) >> Optional.empty()
         1 * calculator.calculate(file, false) >> 12
         0 * _
 
@@ -148,7 +148,7 @@ class DefaultFileContentCacheFactoryTest extends Specification {
         0 * _
 
         when:
-        def otherFactory = new DefaultFileContentCacheFactory(listenerManager, virtualFileSystem, cacheRepository, inMemoryTaskArtifactCache, Stub(Gradle))
+        def otherFactory = new DefaultFileContentCacheFactory(listenerManager, fileSystemAccess, cacheRepository, inMemoryTaskArtifactCache, Stub(Gradle))
         result = otherFactory.newCache("cache", 12000, calculator, BaseSerializerFactory.INTEGER_SERIALIZER).get(file)
 
         then:
@@ -203,7 +203,7 @@ class DefaultFileContentCacheFactoryTest extends Specification {
         result == 12
 
         and:
-        1 * virtualFileSystem.readRegularFileContentHash(file.getAbsolutePath(), _) >> Optional.empty()
+        1 * fileSystemAccess.readRegularFileContentHash(file.getAbsolutePath(), _) >> Optional.empty()
         1 * calculator.calculate(file, false) >> 12
         0 * _
 
@@ -215,7 +215,7 @@ class DefaultFileContentCacheFactoryTest extends Specification {
         result == 10
 
         and:
-        1 * virtualFileSystem.readRegularFileContentHash(file.getAbsolutePath(), _) >> Optional.empty()
+        1 * fileSystemAccess.readRegularFileContentHash(file.getAbsolutePath(), _) >> Optional.empty()
         1 * calculator.calculate(file, false) >> 10
         0 * _
     }
@@ -253,7 +253,7 @@ class DefaultFileContentCacheFactoryTest extends Specification {
     }
 
     def snapshotRegularFile(File file, HashCode hashCode = HashCode.fromInt(123)) {
-        1 * virtualFileSystem.readRegularFileContentHash(file.getAbsolutePath(), _) >> { location, function ->
+        1 * fileSystemAccess.readRegularFileContentHash(file.getAbsolutePath(), _) >> { location, function ->
             return Optional.ofNullable(function.apply(hashCode))
         }
     }
