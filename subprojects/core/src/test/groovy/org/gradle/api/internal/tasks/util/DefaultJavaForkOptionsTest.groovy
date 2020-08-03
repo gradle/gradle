@@ -50,7 +50,6 @@ class DefaultJavaForkOptionsTest extends Specification {
 
     def "provides correct default values"() {
         expect:
-        options.executable != null
         options.jvmArgs.isEmpty()
         options.systemProperties.isEmpty()
         options.minHeapSize == null
