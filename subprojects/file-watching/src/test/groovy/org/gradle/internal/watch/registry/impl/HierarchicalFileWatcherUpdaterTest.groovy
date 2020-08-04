@@ -42,8 +42,7 @@ class HierarchicalFileWatcherUpdaterTest extends AbstractFileWatcherUpdaterTest 
         def fileInProjectRootDirectory = projectRootDirectory.file("some/path/file.txt").createFile()
 
         when:
-        updater.discoveredHierarchyToWatch(projectRootDirectory, virtualFileSystem.getRoot())
-        updater.discoveredHierarchyToWatch(secondProjectRootDirectory, virtualFileSystem.getRoot())
+        discoverHierarchiesToWatch([projectRootDirectory, secondProjectRootDirectory])
         then:
         0 * _
 
@@ -57,7 +56,7 @@ class HierarchicalFileWatcherUpdaterTest extends AbstractFileWatcherUpdaterTest 
         def projectRootDirectories = ["first", "second", "third"].collect { file(it).createDir() }
 
         when:
-        projectRootDirectories.each { updater.discoveredHierarchyToWatch(it, virtualFileSystem.getRoot()) }
+        discoverHierarchiesToWatch(projectRootDirectories)
         then:
         0 * _
 

@@ -16,7 +16,6 @@
 
 package org.gradle.internal.watch.vfs.impl
 
-
 import org.gradle.internal.snapshot.CaseSensitivity
 import org.gradle.internal.snapshot.SnapshotHierarchy
 import org.gradle.internal.vfs.impl.DefaultSnapshotHierarchy
