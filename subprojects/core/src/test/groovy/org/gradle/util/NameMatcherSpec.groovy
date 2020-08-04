@@ -24,12 +24,7 @@ import spock.lang.Specification
 import static com.google.common.collect.Iterables.concat
 import static com.google.common.collect.Lists.newArrayList
 import static java.util.Collections.singletonMap
-import static org.gradle.util.Matchers.isEmpty
 import static org.gradle.util.WrapUtil.toList
-import static org.gradle.util.WrapUtil.toSet
-import static org.hamcrest.CoreMatchers.equalTo
-import static org.hamcrest.CoreMatchers.nullValue
-import static org.hamcrest.MatcherAssert.assertThat
 
 /*TODO rename to NameMatcherSpec and remove origin */
 class NameMatcherSpec extends Specification {
@@ -147,15 +142,15 @@ class NameMatcherSpec extends Specification {
     @Test
     public void doesNotSelectItemsWhenMultipleCamelCaseMatches() {
         expect:
-        assertThat(matcher.find("sN", toList("someName", "soNa", "other")), nullValue());
-        assertThat(matcher.getMatches(), equalTo(toSet("someName", "soNa")));
+        matcher.find("sN", toList("someName", "soNa", "other")) == null
+
     }
 
     @Test
     public void doesNotSelectItemsWhenMultipleCaseInsensitiveMatches() {
         expect:
-        assertThat(matcher.find("someName", toList("somename", "SomeName", "other")), nullValue());
-        assertThat(matcher.getMatches(), equalTo(toSet("somename", "SomeName")));
+        matcher.find("someName", toList("somename", "SomeName", "other")) == null
+        matcher.getMatches() == ["somename", "SomeName"] as Set
     }
 
     @Test
@@ -173,37 +168,34 @@ class NameMatcherSpec extends Specification {
     @Test
     public void reportsPotentialMatches() {
         expect:
-        assertThat(matcher.find("name", toList("tame", "lame", "other")), nullValue());
-        assertThat(matcher.getMatches(), isEmpty());
-        assertThat(matcher.getCandidates(), equalTo(toSet("tame", "lame")));
+        matcher.find("name", toList("tame", "lame", "other")) == null;
+        matcher.getMatches().empty // TODO convert all getters to accessors
+        matcher.getCandidates() == ["tame", "lame"] as Set
     }
 
     @Test
     public void doesNotSelectMapEntryWhenNoMatches() {
         expect:
-        Integer match = matcher.find("soNa", singletonMap("does not match", 9));
-        assertThat(match, nullValue());
+        matcher.find("soNa", singletonMap("does not match", 9)) == null
     }
 
     @Test
     public void selectsMapEntryWhenExactMatch() {
         expect:
-        Integer match = matcher.find("name", singletonMap("name", 9));
-        assertThat(match, equalTo(9));
+        matcher.find("name", singletonMap("name", 9)) == 9
     }
 
     @Test
     public void selectsMapEntryWhenOnePartialMatch() {
         expect:
-        Integer match = matcher.find("soNa", singletonMap("someName", 9));
-        assertThat(match, equalTo(9));
+        matcher.find("soNa", singletonMap("someName", 9)) == 9
     }
 
     @Test
     public void doesNotSelectMapEntryWhenMultiplePartialMatches() {
+        expect:
         Map<String, Integer> items = Cast.uncheckedNonnullCast(GUtil.map("someName", 9, "soName", 10));
-        Integer match = matcher.find("soNa", items);
-        assertThat(match, nullValue());
+        matcher.find("soNa", items) == null
     }
 
     @Test
@@ -212,7 +204,7 @@ class NameMatcherSpec extends Specification {
         matcher.find("name", toList("other"));
 
         expect: // TODO remove assertThat everywhere
-        assertThat(matcher.formatErrorMessage("thing", "container"), equalTo("Thing 'name' not found in container."));
+        matcher.formatErrorMessage("thing", "container") == "Thing 'name' not found in container."
     }
 
     @Test
@@ -221,7 +213,7 @@ class NameMatcherSpec extends Specification {
         matcher.find("n", toList("number", "name", "other"));
 
         expect:
-        assertThat(matcher.formatErrorMessage("thing", "container"), equalTo("Thing 'n' is ambiguous in container. Candidates are: 'name', 'number'."));
+        matcher.formatErrorMessage("thing", "container") == "Thing 'n' is ambiguous in container. Candidates are: 'name', 'number'."
     }
 
     @Test
@@ -230,7 +222,7 @@ class NameMatcherSpec extends Specification {
         matcher.find("name", toList("other", "lame", "tame"));
 
         expect:
-        assertThat(matcher.formatErrorMessage("thing", "container"), equalTo("Thing 'name' not found in container. Some candidates are: 'lame', 'tame'."));
+        matcher.formatErrorMessage("thing", "container") == "Thing 'name' not found in container. Some candidates are: 'lame', 'tame'."
     }
 
     /*TODO rename to matches() */
