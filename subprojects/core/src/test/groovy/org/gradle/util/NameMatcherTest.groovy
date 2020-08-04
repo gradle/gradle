@@ -64,7 +64,7 @@ class NameMatcherTest extends Specification {
         matches("a9n", "abc9Name")
     }
 
-    def "selects item with matching kebab-case prefix"() {
+    def "selects item with matching kebab case prefix"() {
         expect:
         matches("sN", "some-name")
         matches("SN", "some-name")
@@ -74,7 +74,7 @@ class NameMatcherTest extends Specification {
         matches("A9N", "abc9-name")
     }
 
-    def "does not select kebab-case with upper case chars"() {
+    def "does not select kebab case with upper case chars"() {
         expect:
         doesNotMatch("sN", "some-Name")
         doesNotMatch("SN", "some-Name")
@@ -107,7 +107,7 @@ class NameMatcherTest extends Specification {
         matches("ABC", "ABC", "AaBbCc")
     }
 
-    def "prefers exact match over kebab-case match"() {
+    def "prefers exact match over kebab case match"() {
         expect:
         matches("sName", "sName", "some-name", "some-Name")
     }
@@ -148,13 +148,13 @@ class NameMatcherTest extends Specification {
         matcher.find("sN", ["someName", "soNa", "other"]) == null
     }
 
-    def "does not select items when multiple kebab-case matches"() {
+    def "does not select items when multiple kebab case matches"() {
         expect:
         matcher.find("sN", ["some-name", "some-name-with-extra", "other"]) == null
         matcher.matches == ["some-name", "some-name-with-extra"] as Set
     }
 
-    def "does not select items when multiple mixed camel and kebab-case matches"() {
+    def "does not select items when multiple mixed camel and kebab case matches"() {
         expect:
         matcher.find("sN", ["some-name", "someName", "other"]) == null
         matcher.matches == ["some-name", "someName"] as Set
