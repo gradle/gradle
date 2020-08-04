@@ -134,7 +134,7 @@ class NameMatcherSpec extends Specification {
     def "does not select items when multiple case insensitive matches"() {
         expect:
         matcher.find("someName", toList("somename", "SomeName", "other")) == null
-        matcher.getMatches() == ["somename", "SomeName"] as Set
+        matcher.matches == ["somename", "SomeName"] as Set
     }
 
     def "empty pattern does not select anything"() {
@@ -150,8 +150,8 @@ class NameMatcherSpec extends Specification {
     def "reports potential matches"() {
         expect:
         matcher.find("name", toList("tame", "lame", "other")) == null
-        matcher.getMatches().empty // TODO convert all getters to accessors
-        matcher.getCandidates() == ["tame", "lame"] as Set
+        matcher.matches.empty
+        matcher.candidates == ["tame", "lame"] as Set
     }
 
     def "does not select map entry when no matches"() {
@@ -202,7 +202,7 @@ class NameMatcherSpec extends Specification {
     }
 
     def matches(String name, String match, String... extraItems) {
-        matcher.find(name, [match] + (extraItems as List)) == match && matcher.getMatches() == [match] as Set
+        matcher.find(name, [match] + (extraItems as List)) == match && matcher.matches == [match] as Set
     }
 
     def doesNotMatch(String name, String... items) {
