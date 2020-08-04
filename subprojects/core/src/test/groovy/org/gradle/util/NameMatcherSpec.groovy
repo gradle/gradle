@@ -37,95 +37,95 @@ class NameMatcherSpec extends Specification {
 
     def "selects exact match"() {
         expect:
-        assertMatches("name", "name") /*TODO use single quotes where possible*/
-        assertMatches("name", "name", "other")
+        matches("name", "name") /*TODO use single quotes where possible*/
+        matches("name", "name", "other")
     }
 
     /*TODO convert to parameterized test */
     def "selects item with matching prefix"() {
         expect:
-        assertMatches("na", "name")
-        assertMatches("na", "name", "other")
+        matches("na", "name")
+        matches("na", "name", "other")
         // Mixed case
-        assertMatches("na", "Name")
-        assertMatches("NA", "name")
-        assertMatches("somena", "someName")
-        assertMatches("somena", "SomeName")
-        assertMatches("somena", "SomeName")
-        assertMatches("some na", "Some Name")
+        matches("na", "Name")
+        matches("NA", "name")
+        matches("somena", "someName")
+        matches("somena", "SomeName")
+        matches("somena", "SomeName")
+        matches("some na", "Some Name")
     }
 
     def "selects item with matching camel case prefix"() {
         expect:
-        assertMatches("sN", "someName")
-        assertMatches("soN", "someName")
-        assertMatches("SN", "someName")
-        assertMatches("SN", "SomeName")
-        assertMatches("SN", "SomeNameWithExtraStuff")
-        assertMatches("so_n", "some_name")
-        assertMatches("so_n", "some_Name")
-        assertMatches("so_n_wi_ext", "some_Name_with_EXTRA")
-        assertMatches("so.n", "some.name")
-        assertMatches("so n", "some name")
-        assertMatches("ABC", "ABC")
-        assertMatches("a9N", "a9Name")
-        assertMatches("a9N", "abc9Name")
-        assertMatches("a9n", "abc9Name")
+        matches("sN", "someName")
+        matches("soN", "someName")
+        matches("SN", "someName")
+        matches("SN", "SomeName")
+        matches("SN", "SomeNameWithExtraStuff")
+        matches("so_n", "some_name")
+        matches("so_n", "some_Name")
+        matches("so_n_wi_ext", "some_Name_with_EXTRA")
+        matches("so.n", "some.name")
+        matches("so n", "some name")
+        matches("ABC", "ABC")
+        matches("a9N", "a9Name")
+        matches("a9N", "abc9Name")
+        matches("a9n", "abc9Name")
     }
 
     def "prefers exact match over case insensitive match"() {
         expect:
-        assertMatches("name", "name", "Name", "NAME")
-        assertMatches("someName", "someName", "SomeName", "somename", "SOMENAME")
-        assertMatches("some Name", "some Name", "Some Name", "some name", "SOME NAME")
+        matches("name", "name", "Name", "NAME")
+        matches("someName", "someName", "SomeName", "somename", "SOMENAME")
+        matches("some Name", "some Name", "Some Name", "some name", "SOME NAME")
     }
 
     def "prefers exact match over partial match"() {
         expect:
-        assertMatches("name", "name", "nam", "n", "NAM")
+        matches("name", "name", "nam", "n", "NAM")
     }
 
     def "prefers exact match over prefix match"() {
         expect:
-        assertMatches("someName", "someName", "someNameWithExtra")
+        matches("someName", "someName", "someNameWithExtra")
     }
 
     def "prefers exact match over camel case match"() {
         expect:
-        assertMatches("sName", "sName", "someName", "sNames")
-        assertMatches("so Name", "so Name", "some Name", "so name")
-        assertMatches("ABC", "ABC", "AaBbCc")
+        matches("sName", "sName", "someName", "sNames")
+        matches("so Name", "so Name", "some Name", "so name")
+        matches("ABC", "ABC", "AaBbCc")
     }
 
     def "prefers full camel case match over camel case prefix"() {
         expect:
-        assertMatches("sN", "someName", "someNameWithExtra")
-        assertMatches("name", "names", "nameWithExtra")
-        assertMatches("s_n", "some_name", "some_name_with_extra")
+        matches("sN", "someName", "someNameWithExtra")
+        matches("name", "names", "nameWithExtra")
+        matches("s_n", "some_name", "some_name_with_extra")
     }
 
     def "prefers case sensitive camel case match over case insensitive camel case match"() {
         expect:
-        assertMatches("soNa", "someName", "somename")
-        assertMatches("SN", "SomeName", "someName")
-        assertMatches("na1", "name1", "Name1", "NAME1")
+        matches("soNa", "someName", "somename")
+        matches("SN", "SomeName", "someName")
+        matches("na1", "name1", "Name1", "NAME1")
     }
 
     def "prefers case insensitive match over camel case match"() {
         expect:
-        assertMatches("somename", "someName", "someNameWithExtra")
-        assertMatches("soNa", "sona", "someName")
+        matches("somename", "someName", "someNameWithExtra")
+        matches("soNa", "sona", "someName")
     }
 
     def "does not select items when no matches"() {
         expect:
-        assertDoesNotMatch("name")
-        assertDoesNotMatch("name", "other")
-        assertDoesNotMatch("name", "na")
-        assertDoesNotMatch("sN", "otherName")
-        assertDoesNotMatch("sA", "someThing")
-        assertDoesNotMatch("soN", "saN")
-        assertDoesNotMatch("soN", "saName")
+        doesNotMatch("name")
+        doesNotMatch("name", "other")
+        doesNotMatch("name", "na")
+        doesNotMatch("sN", "otherName")
+        doesNotMatch("sA", "someThing")
+        doesNotMatch("soN", "saN")
+        doesNotMatch("soN", "saName")
     }
 
     def "does not select items when multiple camel case matches"() {
@@ -141,19 +141,19 @@ class NameMatcherSpec extends Specification {
 
     def "empty pattern does not select anything"() {
         expect:
-        assertDoesNotMatch("", "something")
+        doesNotMatch("", "something")
     }
 
     def "escapes regexp chars"() {
         expect:
-        assertDoesNotMatch("name\\othername", "other")
+        doesNotMatch("name\\othername", "other")
     }
 
     def "reports potential matches"() {
         expect:
         matcher.find("name", toList("tame", "lame", "other")) == null
         matcher.getMatches().empty // TODO convert all getters to accessors
-        matcher.getCandidates"() == ["tame", "lame"] as Set
+        matcher.getCandidates() == ["tame", "lame"] as Set
     }
 
     def "does not select map entry when no matches"() {
@@ -202,12 +202,12 @@ class NameMatcherSpec extends Specification {
     }
 
     /*TODO rename to matches() */
-    def assertMatches(String name, String match, String... extraItems) {
+    def matches(String name, String match, String... extraItems) {
         List<String> allItems = newArrayList(concat(toList(match), toList(extraItems))) // TODO make groovier
         matcher.find(name, allItems) == match && matcher.getMatches() == [match] as Set
     }
 
-    def assertDoesNotMatch(String name, String... items) {
+    def doesNotMatch(String name, String... items) {
         matcher.find(name, toList(items)) == null && matcher.matches.empty
     }
 }
