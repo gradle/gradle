@@ -17,7 +17,6 @@
 package org.gradle.util
 
 import org.gradle.internal.Cast
-import org.junit.Test
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -36,14 +35,13 @@ class NameMatcherSpec extends Specification {
         matcher = new NameMatcher()
     }
 
-    /*TODO remove Test*/
     def /*TODO convert void to test*/ selectsExactMatch() /*TODO rename to full sentences*/ {
         expect:
         assertMatches("name", "name"); /*TODO remove semicolon*/ /*TODO use single quotes where possible*/
         assertMatches("name", "name", "other");
     }
 
-    @Test  /*TODO convert to parameterized test */
+    /*TODO convert to parameterized test */
     def selectsItemWithMatchingPrefix() {
         expect:
         assertMatches("na", "name");
@@ -57,7 +55,6 @@ class NameMatcherSpec extends Specification {
         assertMatches("some na", "Some Name");
     }
 
-    @Test
     def selectsItemWithMatchingCamelCasePrefix() {
         expect:
         assertMatches("sN", "someName");
@@ -76,7 +73,6 @@ class NameMatcherSpec extends Specification {
         assertMatches("a9n", "abc9Name");
     }
 
-    @Test
     def prefersExactMatchOverCaseInsensitiveMatch() {
         expect:
         assertMatches("name", "name", "Name", "NAME");
@@ -84,19 +80,16 @@ class NameMatcherSpec extends Specification {
         assertMatches("some Name", "some Name", "Some Name", "some name", "SOME NAME");
     }
 
-    @Test
     def prefersExactMatchOverPartialMatch() {
         expect:
         assertMatches("name", "name", "nam", "n", "NAM");
     }
 
-    @Test
     def prefersExactMatchOverPrefixMatch() {
         expect:
         assertMatches("someName", "someName", "someNameWithExtra");
     }
 
-    @Test
     def prefersExactMatchOverCamelCaseMatch() {
         expect:
         assertMatches("sName", "sName", "someName", "sNames");
@@ -104,7 +97,6 @@ class NameMatcherSpec extends Specification {
         assertMatches("ABC", "ABC", "AaBbCc");
     }
 
-    @Test
     def prefersFullCamelCaseMatchOverCamelCasePrefix() {
         expect:
         assertMatches("sN", "someName", "someNameWithExtra");
@@ -112,7 +104,6 @@ class NameMatcherSpec extends Specification {
         assertMatches("s_n", "some_name", "some_name_with_extra");
     }
 
-    @Test
     def prefersCaseSensitiveCamelCaseMatchOverCaseInsensitiveCamelCaseMatch() {
         expect:
         assertMatches("soNa", "someName", "somename");
@@ -120,14 +111,12 @@ class NameMatcherSpec extends Specification {
         assertMatches("na1", "name1", "Name1", "NAME1");
     }
 
-    @Test
     def prefersCaseInsensitiveMatchOverCamelCaseMatch() {
         expect:
         assertMatches("somename", "someName", "someNameWithExtra");
         assertMatches("soNa", "sona", "someName");
     }
 
-    @Test
     def doesNotSelectItemsWhenNoMatches() {
         expect:
         assertDoesNotMatch("name");
@@ -139,33 +128,28 @@ class NameMatcherSpec extends Specification {
         assertDoesNotMatch("soN", "saName");
     }
 
-    @Test
     def doesNotSelectItemsWhenMultipleCamelCaseMatches() {
         expect:
         matcher.find("sN", toList("someName", "soNa", "other")) == null
 
     }
 
-    @Test
     def doesNotSelectItemsWhenMultipleCaseInsensitiveMatches() {
         expect:
         matcher.find("someName", toList("somename", "SomeName", "other")) == null
         matcher.getMatches() == ["somename", "SomeName"] as Set
     }
 
-    @Test
     def emptyPatternDoesNotSelectAnything() {
         expect:
         assertDoesNotMatch("", "something");
     }
 
-    @Test
     def escapesRegexpChars() {
         expect:
         assertDoesNotMatch("name\\othername", "other");
     }
 
-    @Test
     def reportsPotentialMatches() {
         expect:
         matcher.find("name", toList("tame", "lame", "other")) == null;
@@ -173,32 +157,27 @@ class NameMatcherSpec extends Specification {
         matcher.getCandidates() == ["tame", "lame"] as Set
     }
 
-    @Test
     def doesNotSelectMapEntryWhenNoMatches() {
         expect:
         matcher.find("soNa", singletonMap("does not match", 9)) == null
     }
 
-    @Test
     def selectsMapEntryWhenExactMatch() {
         expect:
         matcher.find("name", singletonMap("name", 9)) == 9
     }
 
-    @Test
     def selectsMapEntryWhenOnePartialMatch() {
         expect:
         matcher.find("soNa", singletonMap("someName", 9)) == 9
     }
 
-    @Test
     def doesNotSelectMapEntryWhenMultiplePartialMatches() {
         expect:
         Map<String, Integer> items = Cast.uncheckedNonnullCast(GUtil.map("someName", 9, "soName", 10));
         matcher.find("soNa", items) == null
     }
 
-    @Test
     def buildsErrorMessageForNoMatches() {
         setup:
         matcher.find("name", toList("other"));
@@ -207,7 +186,6 @@ class NameMatcherSpec extends Specification {
         matcher.formatErrorMessage("thing", "container") == "Thing 'name' not found in container."
     }
 
-    @Test
     def buildsErrorMessageForMultipleMatches() {
         setup:
         matcher.find("n", toList("number", "name", "other"));
@@ -216,7 +194,6 @@ class NameMatcherSpec extends Specification {
         matcher.formatErrorMessage("thing", "container") == "Thing 'n' is ambiguous in container. Candidates are: 'name', 'number'."
     }
 
-    @Test
     def buildsErrorMessageForPotentialMatches() {
         setup:
         matcher.find("name", toList("other", "lame", "tame"));
