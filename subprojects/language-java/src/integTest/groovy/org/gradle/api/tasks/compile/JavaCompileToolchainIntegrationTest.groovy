@@ -16,7 +16,6 @@
 
 package org.gradle.api.tasks.compile
 
-
 import org.gradle.integtests.fixtures.AbstractPluginIntegrationTest
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.internal.jvm.Jvm
@@ -29,7 +28,7 @@ class JavaCompileToolchainIntegrationTest extends AbstractPluginIntegrationTest 
 
     @Unroll
     @IgnoreIf({ AvailableJavaHomes.differentJdk == null })
-    def "can manually set java compiler via  #type toolchain on java compile task"() {
+    def "can manually set java compiler via #type toolchain on java compile task"() {
         buildFile << """
             import org.gradle.jvm.toolchain.internal.JavaToolchainQueryService
             import org.gradle.jvm.toolchain.internal.DefaultToolchainSpec
@@ -55,10 +54,7 @@ class JavaCompileToolchainIntegrationTest extends AbstractPluginIntegrationTest 
         file("src/main/java/Foo.java") << "public class Foo {}"
 
         when:
-        result = executer
-            .withArguments("-Porg.gradle.java.installations.paths=" + jdk.javaHome.absolutePath, "--info")
-            .withTasks("compileJava")
-            .run()
+        runWithToolchainConfigured(jdk)
 
         then:
         outputContains("Compiling with toolchain '${jdk.javaHome.absolutePath}'.")
@@ -85,10 +81,7 @@ class JavaCompileToolchainIntegrationTest extends AbstractPluginIntegrationTest 
         file("src/main/java/Foo.java") << "public class Foo {}"
 
         when:
-        result = executer
-            .withArguments("-Porg.gradle.java.installations.paths=" + someJdk.javaHome.absolutePath, "--info")
-            .withTasks("compileJava")
-            .run()
+        runWithToolchainConfigured(someJdk)
 
         then:
         outputContains("Compiling with toolchain '${someJdk.javaHome.absolutePath}'.")
@@ -111,14 +104,20 @@ class JavaCompileToolchainIntegrationTest extends AbstractPluginIntegrationTest 
         file("src/main/java/Foo.java") << "public interface Foo { private void init() { }}"
 
         when:
-        result = executer
-            .withArguments("-Porg.gradle.java.installations.paths=" + jdk9.javaHome.absolutePath, "--info")
-            .withTasks("compileJava")
-            .run()
+        runWithToolchainConfigured(jdk9)
 
         then:
         outputContains("Compiling with toolchain '${jdk9.javaHome.absolutePath}'.")
         javaClassFile("Foo.class").exists()
+    }
+
+    def runWithToolchainConfigured(Jvm jvm) {
+        result = executer
+            .withArgument("-Porg.gradle.java.installations.auto-detect=false")
+            .withArgument("-Porg.gradle.java.installations.paths=" + jvm.javaHome.absolutePath)
+            .withArgument("--info")
+            .withTasks("compileJava")
+            .run()
     }
 
 }
