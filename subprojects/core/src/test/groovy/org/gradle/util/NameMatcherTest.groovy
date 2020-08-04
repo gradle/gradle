@@ -20,9 +20,6 @@ import org.gradle.internal.Cast
 import spock.lang.Shared
 import spock.lang.Specification
 
-import static java.util.Collections.singletonMap
-import static org.gradle.util.WrapUtil.toList
-
 /*TODO rename to NameMatcherSpec and remove origin */
 class NameMatcherTest extends Specification {
 
@@ -128,12 +125,12 @@ class NameMatcherTest extends Specification {
 
     def "does not select items when multiple camel case matches"() {
         expect:
-        matcher.find("sN", toList("someName", "soNa", "other")) == null
+        matcher.find("sN", ["someName", "soNa", "other"]) == null
     }
 
     def "does not select items when multiple case insensitive matches"() {
         expect:
-        matcher.find("someName", toList("somename", "SomeName", "other")) == null
+        matcher.find("someName", ["somename", "SomeName", "other"]) == null
         matcher.matches == ["somename", "SomeName"] as Set
     }
 
@@ -149,24 +146,24 @@ class NameMatcherTest extends Specification {
 
     def "reports potential matches"() {
         expect:
-        matcher.find("name", toList("tame", "lame", "other")) == null
+        matcher.find("name", ["tame", "lame", "other"]) == null
         matcher.matches.empty
         matcher.candidates == ["tame", "lame"] as Set
     }
 
     def "does not select map entry when no matches"() {
         expect:
-        matcher.find("soNa", singletonMap("does not match", 9)) == null
+        matcher.find("soNa", ["does not match" : 9]) == null
     }
 
     def "selects map entry when exact match"() {
         expect:
-        matcher.find("name", singletonMap("name", 9)) == 9
+        matcher.find("name", ["name" : 9]) == 9
     }
 
     def "selects map entry when one partial match"() {
         expect:
-        matcher.find("soNa", singletonMap("someName", 9)) == 9
+        matcher.find("soNa", ["someName" : 9]) == 9
     }
 
     def "does not select map entry when multiple partial matches"() {
@@ -179,7 +176,7 @@ class NameMatcherTest extends Specification {
 
     def "builds error message for no matches"() {
         setup:
-        matcher.find("name", toList("other"))
+        matcher.find("name", ["other"])
 
         expect:
         matcher.formatErrorMessage("thing", "container") == "Thing 'name' not found in container."
@@ -187,7 +184,7 @@ class NameMatcherTest extends Specification {
 
     def "builds error message for multiple matches"() {
         setup:
-        matcher.find("n", toList("number", "name", "other"))
+        matcher.find("n", ["number", "name", "other"])
 
         expect:
         matcher.formatErrorMessage("thing", "container") == "Thing 'n' is ambiguous in container. Candidates are: 'name', 'number'."
@@ -195,7 +192,7 @@ class NameMatcherTest extends Specification {
 
     def "builds error message for potential matches"() {
         setup:
-        matcher.find("name", toList("other", "lame", "tame"))
+        matcher.find("name", ["other", "lame", "tame"])
 
         expect:
         matcher.formatErrorMessage("thing", "container") == "Thing 'name' not found in container. Some candidates are: 'lame', 'tame'."
@@ -206,6 +203,6 @@ class NameMatcherTest extends Specification {
     }
 
     def doesNotMatch(String name, String... items) {
-        matcher.find(name, toList(items)) == null && matcher.matches.empty
+        matcher.find(name, items as List) == null && matcher.matches.empty
     }
 }
