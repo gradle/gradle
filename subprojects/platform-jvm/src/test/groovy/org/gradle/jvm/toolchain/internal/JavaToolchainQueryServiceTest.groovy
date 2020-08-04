@@ -53,6 +53,29 @@ class JavaToolchainQueryServiceTest extends Specification {
         JavaVersion.VERSION_12  | "/path/12"
     }
 
+    @Unroll
+    def "uses most recent version of multiple matches for version #versionToFind"() {
+        given:
+        def registry = createInstallationRegistry(["8.0", "8.0.242.hs-adpt", "7.9", "7.7", "14.0.2+12"])
+        def toolchainFactory = newToolchainFactory()
+        def queryService = new JavaToolchainQueryService(registry, toolchainFactory, Mock(JavaToolchainProvisioningService))
+
+        when:
+        def filter = new DefaultToolchainSpec(TestUtil.objectFactory())
+        filter.languageVersion.set(versionToFind)
+        def toolchain = queryService.findMatchingToolchain(filter).get()
+
+        then:
+        toolchain.javaMajorVersion == versionToFind
+        toolchain.installation.installationDirectory.asFile.absolutePath == systemSpecificAbsolutePath(expectedPath)
+
+        where:
+        versionToFind           | expectedPath
+        JavaVersion.VERSION_1_7 | "/path/7.9"
+        JavaVersion.VERSION_1_8 | "/path/8.0.242.hs-adpt"
+        JavaVersion.VERSION_14  | "/path/14.0.2+12"
+    }
+
     def "returns failing provider if no toolchain matches"() {
         given:
         def registry = createInstallationRegistry(["8", "9", "10"])
