@@ -16,7 +16,6 @@
 
 package org.gradle.util
 
-import org.gradle.internal.Cast
 import spock.lang.Specification
 
 class NameMatcherTest extends Specification {
@@ -165,7 +164,7 @@ class NameMatcherTest extends Specification {
 
     def "does not select map entry when multiple partial matches"() {
         setup:
-        Map<String, Integer> items = Cast.uncheckedNonnullCast(GUtil.map("someName", 9, "soName", 10))
+        Map items = ["someName" : 9, "soName" : 10]
 
         expect:
         matcher.find("soNa", items) == null
