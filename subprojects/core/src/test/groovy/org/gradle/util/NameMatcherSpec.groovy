@@ -35,7 +35,7 @@ class NameMatcherSpec extends Specification {
         matcher = new NameMatcher()
     }
 
-    def /*TODO convert void to test*/ selectsExactMatch() /*TODO rename to full sentences*/ {
+    def selectsExactMatch() /*TODO rename to full sentences*/ {
         expect:
         assertMatches("name", "name"); /*TODO remove semicolon*/ /*TODO use single quotes where possible*/
         assertMatches("name", "name", "other");
