@@ -20,7 +20,6 @@ import org.gradle.internal.Cast
 import spock.lang.Shared
 import spock.lang.Specification
 
-/*TODO rename to NameMatcherSpec and remove origin */
 class NameMatcherTest extends Specification {
 
     @Shared
