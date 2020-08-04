@@ -16,9 +16,9 @@
 
 package org.gradle.jvm.toolchain
 
-import org.gradle.integtests.fixtures.AbstractPluginIntegrationTest
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
-class JavaToolchainDownloadIntegrationTest extends AbstractPluginIntegrationTest {
+class JavaToolchainDownloadSoakTest extends AbstractIntegrationSpec {
 
     def "can download missing jdk automatically"() {
         buildFile << """
@@ -41,9 +41,7 @@ class JavaToolchainDownloadIntegrationTest extends AbstractPluginIntegrationTest
             .run()
 
         then:
-        outputContains("Compiling with toolchain '" +
-            executer.gradleUserHomeDir.absolutePath +
-            "/jdks/jdk-14.0.2+12/")
+        outputContains("Compiling with toolchain '${executer.gradleUserHomeDir.absolutePath}${File.separator}jdks${File.separator}jdk-14.")
         javaClassFile("Foo.class").exists()
     }
 
