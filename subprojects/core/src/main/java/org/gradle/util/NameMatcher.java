@@ -136,17 +136,18 @@ public class NameMatcher {
         StringBuilder builder = new StringBuilder();
         while (matcher.find()) {
             String prefix = name.substring(pos, matcher.start());
-            if (pos > 0) {
-                builder.append('-');
-            }
             if (prefix.length() > 0) {
                 builder.append(Pattern.quote(prefix));
+            }
+            if (pos > 0) {
+                builder.append('-');
             }
             builder.append(Pattern.quote(matcher.group().toLowerCase()));
             builder.append("[\\p{javaLowerCase}\\p{Digit}]*");
             pos = matcher.end();
         }
         builder.append(Pattern.quote(name.substring(pos)));
+        builder.append("[\\p{javaLowerCase}\\p{Digit}-]*");
         return Pattern.compile(builder.toString());
     }
 
