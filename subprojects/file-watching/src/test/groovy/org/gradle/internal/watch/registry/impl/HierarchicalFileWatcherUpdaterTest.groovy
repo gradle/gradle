@@ -76,11 +76,8 @@ class HierarchicalFileWatcherUpdaterTest extends AbstractFileWatcherUpdaterTest 
         0 * _
 
         when:
-        virtualFileSystem.update { root, nodeDiffListener ->
-            updater.buildFinished(root)
-        }
+        buildFinished()
         then:
-        _ * watchFilter.test(_) >> true
         0 * _
 
         when:
@@ -90,12 +87,9 @@ class HierarchicalFileWatcherUpdaterTest extends AbstractFileWatcherUpdaterTest 
         0 * _
 
         when:
-        virtualFileSystem.update { root, nodeDiffListener ->
-            updater.buildFinished(root)
-        }
+        buildFinished()
         then:
         !vfsHasSnapshotsAt(projectRootDirectories[0])
-        _ * watchFilter.test(_) >> true
         0 * _
     }
 
@@ -105,11 +99,7 @@ class HierarchicalFileWatcherUpdaterTest extends AbstractFileWatcherUpdaterTest 
         file("third").createDir()
 
         when:
-        virtualFileSystem.update { root, diffListener ->
-            projectRootDirectories.each { updater.discoveredHierarchyToWatch(it, root) }
-            updater.discoveredHierarchyToWatch(nonExistingProjectRootDirectory, root)
-            return root
-        }
+        discoverHierarchiesToWatch(projectRootDirectories + nonExistingProjectRootDirectory)
         then:
         0 * _
 
@@ -150,11 +140,8 @@ class HierarchicalFileWatcherUpdaterTest extends AbstractFileWatcherUpdaterTest 
         vfsHasSnapshotsAt(thirdProjectRootDirectory)
 
         when:
-        virtualFileSystem.update { root, diffListener ->
-            updater.buildFinished(root)
-        }
+        buildFinished()
         then:
-        _ * watchFilter.test(_) >> true
         0 * _
         !vfsHasSnapshotsAt(thirdProjectRootDirectory)
 
@@ -172,11 +159,8 @@ class HierarchicalFileWatcherUpdaterTest extends AbstractFileWatcherUpdaterTest 
         0 * _
 
         when:
-        virtualFileSystem.update { root, diffListener ->
-            updater.buildFinished(root)
-        }
+        buildFinished()
         then:
-        _ * watchFilter.test(_) >> true
         0 * _
 
         when:
@@ -215,11 +199,8 @@ class HierarchicalFileWatcherUpdaterTest extends AbstractFileWatcherUpdaterTest 
         0 * _
 
         when:
-        virtualFileSystem.update { root, diffListener ->
-            updater.buildFinished(root)
-        }
+        buildFinished()
         then:
-        _ * watchFilter.test(_) >> true
         0 * _
 
         when:
@@ -267,11 +248,8 @@ class HierarchicalFileWatcherUpdaterTest extends AbstractFileWatcherUpdaterTest 
         0 * _
 
         when:
-        virtualFileSystem.update { root, diffListener ->
-            updater.buildFinished(root)
-        }
+        buildFinished()
         then:
-        _ * watchFilter.test(_)
         0 * _
 
         when:

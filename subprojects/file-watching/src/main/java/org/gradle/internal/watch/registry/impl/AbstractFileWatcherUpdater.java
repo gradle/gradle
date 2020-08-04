@@ -41,6 +41,12 @@ public abstract class AbstractFileWatcherUpdater implements FileWatcherUpdater {
 
     protected void recordDiscoveredHierarchyToWatch(File discoveredHierarchy, SnapshotHierarchy root) {
         String discoveredHierarchyAbsolutePath = discoveredHierarchy.getAbsolutePath();
+        if (!watchFilter.test(discoveredHierarchyAbsolutePath)) {
+            throw new RuntimeException(String.format(
+                "Unable to watch directory '%s' since it is within Gradle's caches",
+                discoveredHierarchyAbsolutePath
+            ));
+        }
         if (!allowedDirectoriesToWatch.contains(discoveredHierarchyAbsolutePath)) {
             checkThatNothingExistsInNewHierarchyToWatch(discoveredHierarchyAbsolutePath, root);
         }

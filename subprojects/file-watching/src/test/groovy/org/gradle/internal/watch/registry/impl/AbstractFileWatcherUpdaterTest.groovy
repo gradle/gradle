@@ -90,9 +90,7 @@ abstract class AbstractFileWatcherUpdaterTest extends Specification {
         vfsHasSnapshotsAt(fileOutsideOfWatchedHierarchies)
 
         when:
-        virtualFileSystem.update { root, diffListener ->
-            updater.buildFinished(root)
-        }
+        buildFinished()
         then:
         0 * _
         !vfsHasSnapshotsAt(fileOutsideOfWatchedHierarchies)
@@ -120,9 +118,7 @@ abstract class AbstractFileWatcherUpdaterTest extends Specification {
         vfsHasSnapshotsAt(fileInDirectoryIgnoredForWatching)
 
         when:
-        virtualFileSystem.update { root, diffListener ->
-            updater.buildFinished(root)
-        }
+        buildFinished()
         then:
         0 * _
         !vfsHasSnapshotsAt(fileOutsideOfWatchedHierarchies)
@@ -144,6 +140,56 @@ abstract class AbstractFileWatcherUpdaterTest extends Specification {
         then:
         def exception = thrown(RuntimeException)
         exception.message == "Found existing snapshot at '${fileInProjectRoot.absolutePath}' for unwatched hierarchy '${projectRootDirectory.absolutePath}'"
+    }
+
+    def "does not watch symlinks and removes symlinks at the end of the build"() {
+        def projectRootDirectory = file("projectDir").createDir()
+        def symlinkInProjectDir = projectRootDirectory.file("some/dir/file.txt")
+        symlinkInProjectDir.text = "fileInProjectRoot"
+
+        when:
+        discoverHierarchiesToWatch([projectRootDirectory])
+        addSnapshot(snapshotSymlinkedFile(symlinkInProjectDir))
+        then:
+        vfsHasSnapshotsAt(symlinkInProjectDir)
+        0 * _
+
+        when:
+        buildFinished()
+        then:
+        !vfsHasSnapshotsAt(symlinkInProjectDir)
+        0 * _
+    }
+
+    def "does not watch ignored files in a hierarchy to watch"() {
+        def projectRootDirectory = file("projectDir").createDir()
+        def ignoredFileInProjectRoot = file("projectDir/caches/cacheFile").createFile()
+        ignoredForWatching.add(ignoredFileInProjectRoot.absolutePath)
+        ignoredForWatching.add(ignoredFileInProjectRoot.parentFile.absolutePath)
+
+        when:
+        discoverHierarchiesToWatch([projectRootDirectory])
+        addSnapshot(snapshotRegularFile(ignoredFileInProjectRoot))
+        then:
+        vfsHasSnapshotsAt(ignoredFileInProjectRoot)
+        0 * _
+
+        when:
+        buildFinished()
+        then:
+        vfsHasSnapshotsAt(ignoredFileInProjectRoot)
+        0 * _
+    }
+
+    def "fails when hierarchy to watch is ignored"() {
+        def projectRootDirectory = file("projectDir").createDir()
+        ignoredForWatching.add(projectRootDirectory.absolutePath)
+
+        when:
+        discoverHierarchiesToWatch([projectRootDirectory])
+        then:
+        def exception = thrown(RuntimeException)
+        exception.message == "Unable to watch directory '${projectRootDirectory.absolutePath}' since it is within Gradle's caches"
     }
 
     TestFile file(Object... path) {
@@ -176,6 +222,16 @@ abstract class AbstractFileWatcherUpdaterTest extends Specification {
         )
     }
 
+    static RegularFileSnapshot snapshotSymlinkedFile(File regularFile) {
+        def attributes = Files.readAttributes(regularFile.toPath(), BasicFileAttributes)
+        new RegularFileSnapshot(
+            regularFile.absolutePath,
+            regularFile.name,
+            TestFiles.fileHasher().hash(regularFile),
+            DefaultFileMetadata.file(attributes.lastModifiedTime().toMillis(), attributes.size(), AccessType.VIA_SYMLINK)
+        )
+    }
+
     static boolean equalIgnoringOrder(Object actual, Collection<?> expected) {
         List<?> actualSorted = (actual as List).toSorted()
         List<?> expectedSorted = (expected as List).toSorted()
@@ -194,6 +250,12 @@ abstract class AbstractFileWatcherUpdaterTest extends Specification {
                 updater.discoveredHierarchyToWatch(hierarchyToWatch, root)
                 return root
             }
+        }
+    }
+
+    void buildFinished() {
+        virtualFileSystem.update { root, diffListener ->
+            updater.buildFinished(root)
         }
     }
 
