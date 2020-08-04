@@ -17,6 +17,7 @@
 package org.gradle.plugins.ide.eclipse.model;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.artifacts.component.ComponentSelector;
 
 /**
  * A library that turned out to be unresolved.
@@ -26,7 +27,7 @@ import org.gradle.api.Incubating;
 @Incubating
 public class UnresolvedLibrary extends Library {
 
-    private String attemptedSelector;
+    private ComponentSelector attemptedSelector;
 
     public UnresolvedLibrary(FileReference library) {
         super(library);
@@ -35,11 +36,11 @@ public class UnresolvedLibrary extends Library {
     /**
      * The attempted selector reported by the related UnresolvedDependencyResult
      */
-    public String getAttemptedSelector() {
+    public ComponentSelector getAttemptedSelector() {
         return attemptedSelector;
     }
 
-    public void setAttemptedSelector(String attemptedSelector) {
+    public void setAttemptedSelector(ComponentSelector attemptedSelector) {
         this.attemptedSelector = attemptedSelector;
     }
 }

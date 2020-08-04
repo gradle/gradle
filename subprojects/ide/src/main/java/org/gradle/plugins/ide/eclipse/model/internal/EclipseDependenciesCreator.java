@@ -149,7 +149,7 @@ public class EclipseDependenciesCreator {
         public void visitUnresolvedDependency(UnresolvedDependencyResult unresolvedDependency) {
             File unresolvedFile = unresolvedIdeDependencyHandler.asFile(unresolvedDependency, project.getProjectDir());
             UnresolvedLibrary unresolvedLib = (UnresolvedLibrary) createUnresolvedLibraryEntry(unresolvedFile, classpath, pathToSourceSets, false, false);
-            unresolvedLib.setAttemptedSelector(unresolvedDependency.getAttempted().getDisplayName());
+            unresolvedLib.setAttemptedSelector(unresolvedDependency.getAttempted());
             files.add(unresolvedLib);
             unresolvedIdeDependencyHandler.log(unresolvedDependency);
         }
