@@ -17,12 +17,10 @@
 package org.gradle.util
 
 import org.gradle.internal.Cast
-import spock.lang.Shared
 import spock.lang.Specification
 
 class NameMatcherTest extends Specification {
 
-    @Shared
     NameMatcher matcher
 
     def setup() {
