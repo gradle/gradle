@@ -37,14 +37,14 @@ class NameMatcherSpec extends Specification {
     }
 
     /*TODO remove Test*/
-    def /*TODO remove public*/ /*TODO convert void to test*/ selectsExactMatch() /*TODO rename to full sentences*/ {
+    def /*TODO convert void to test*/ selectsExactMatch() /*TODO rename to full sentences*/ {
         expect:
         assertMatches("name", "name"); /*TODO remove semicolon*/ /*TODO use single quotes where possible*/
         assertMatches("name", "name", "other");
     }
 
     @Test  /*TODO convert to parameterized test */
-    public void selectsItemWithMatchingPrefix() {
+    def selectsItemWithMatchingPrefix() {
         expect:
         assertMatches("na", "name");
         assertMatches("na", "name", "other");
@@ -58,7 +58,7 @@ class NameMatcherSpec extends Specification {
     }
 
     @Test
-    public void selectsItemWithMatchingCamelCasePrefix() {
+    def selectsItemWithMatchingCamelCasePrefix() {
         expect:
         assertMatches("sN", "someName");
         assertMatches("soN", "someName");
@@ -77,7 +77,7 @@ class NameMatcherSpec extends Specification {
     }
 
     @Test
-    public void prefersExactMatchOverCaseInsensitiveMatch() {
+    def prefersExactMatchOverCaseInsensitiveMatch() {
         expect:
         assertMatches("name", "name", "Name", "NAME");
         assertMatches("someName", "someName", "SomeName", "somename", "SOMENAME");
@@ -85,19 +85,19 @@ class NameMatcherSpec extends Specification {
     }
 
     @Test
-    public void prefersExactMatchOverPartialMatch() {
+    def prefersExactMatchOverPartialMatch() {
         expect:
         assertMatches("name", "name", "nam", "n", "NAM");
     }
 
     @Test
-    public void prefersExactMatchOverPrefixMatch() {
+    def prefersExactMatchOverPrefixMatch() {
         expect:
         assertMatches("someName", "someName", "someNameWithExtra");
     }
 
     @Test
-    public void prefersExactMatchOverCamelCaseMatch() {
+    def prefersExactMatchOverCamelCaseMatch() {
         expect:
         assertMatches("sName", "sName", "someName", "sNames");
         assertMatches("so Name", "so Name", "some Name", "so name");
@@ -105,7 +105,7 @@ class NameMatcherSpec extends Specification {
     }
 
     @Test
-    public void prefersFullCamelCaseMatchOverCamelCasePrefix() {
+    def prefersFullCamelCaseMatchOverCamelCasePrefix() {
         expect:
         assertMatches("sN", "someName", "someNameWithExtra");
         assertMatches("name", "names", "nameWithExtra");
@@ -113,7 +113,7 @@ class NameMatcherSpec extends Specification {
     }
 
     @Test
-    public void prefersCaseSensitiveCamelCaseMatchOverCaseInsensitiveCamelCaseMatch() {
+    def prefersCaseSensitiveCamelCaseMatchOverCaseInsensitiveCamelCaseMatch() {
         expect:
         assertMatches("soNa", "someName", "somename");
         assertMatches("SN", "SomeName", "someName");
@@ -121,14 +121,14 @@ class NameMatcherSpec extends Specification {
     }
 
     @Test
-    public void prefersCaseInsensitiveMatchOverCamelCaseMatch() {
+    def prefersCaseInsensitiveMatchOverCamelCaseMatch() {
         expect:
         assertMatches("somename", "someName", "someNameWithExtra");
         assertMatches("soNa", "sona", "someName");
     }
 
     @Test
-    public void doesNotSelectItemsWhenNoMatches() {
+    def doesNotSelectItemsWhenNoMatches() {
         expect:
         assertDoesNotMatch("name");
         assertDoesNotMatch("name", "other");
@@ -140,33 +140,33 @@ class NameMatcherSpec extends Specification {
     }
 
     @Test
-    public void doesNotSelectItemsWhenMultipleCamelCaseMatches() {
+    def doesNotSelectItemsWhenMultipleCamelCaseMatches() {
         expect:
         matcher.find("sN", toList("someName", "soNa", "other")) == null
 
     }
 
     @Test
-    public void doesNotSelectItemsWhenMultipleCaseInsensitiveMatches() {
+    def doesNotSelectItemsWhenMultipleCaseInsensitiveMatches() {
         expect:
         matcher.find("someName", toList("somename", "SomeName", "other")) == null
         matcher.getMatches() == ["somename", "SomeName"] as Set
     }
 
     @Test
-    public void emptyPatternDoesNotSelectAnything() {
+    def emptyPatternDoesNotSelectAnything() {
         expect:
         assertDoesNotMatch("", "something");
     }
 
     @Test
-    public void escapesRegexpChars() {
+    def escapesRegexpChars() {
         expect:
         assertDoesNotMatch("name\\othername", "other");
     }
 
     @Test
-    public void reportsPotentialMatches() {
+    def reportsPotentialMatches() {
         expect:
         matcher.find("name", toList("tame", "lame", "other")) == null;
         matcher.getMatches().empty // TODO convert all getters to accessors
@@ -174,32 +174,32 @@ class NameMatcherSpec extends Specification {
     }
 
     @Test
-    public void doesNotSelectMapEntryWhenNoMatches() {
+    def doesNotSelectMapEntryWhenNoMatches() {
         expect:
         matcher.find("soNa", singletonMap("does not match", 9)) == null
     }
 
     @Test
-    public void selectsMapEntryWhenExactMatch() {
+    def selectsMapEntryWhenExactMatch() {
         expect:
         matcher.find("name", singletonMap("name", 9)) == 9
     }
 
     @Test
-    public void selectsMapEntryWhenOnePartialMatch() {
+    def selectsMapEntryWhenOnePartialMatch() {
         expect:
         matcher.find("soNa", singletonMap("someName", 9)) == 9
     }
 
     @Test
-    public void doesNotSelectMapEntryWhenMultiplePartialMatches() {
+    def doesNotSelectMapEntryWhenMultiplePartialMatches() {
         expect:
         Map<String, Integer> items = Cast.uncheckedNonnullCast(GUtil.map("someName", 9, "soName", 10));
         matcher.find("soNa", items) == null
     }
 
     @Test
-    public void buildsErrorMessageForNoMatches() {
+    def buildsErrorMessageForNoMatches() {
         setup:
         matcher.find("name", toList("other"));
 
@@ -208,7 +208,7 @@ class NameMatcherSpec extends Specification {
     }
 
     @Test
-    public void buildsErrorMessageForMultipleMatches() {
+    def buildsErrorMessageForMultipleMatches() {
         setup:
         matcher.find("n", toList("number", "name", "other"));
 
@@ -217,7 +217,7 @@ class NameMatcherSpec extends Specification {
     }
 
     @Test
-    public void buildsErrorMessageForPotentialMatches() {
+    def buildsErrorMessageForPotentialMatches() {
         setup:
         matcher.find("name", toList("other", "lame", "tame"));
 
