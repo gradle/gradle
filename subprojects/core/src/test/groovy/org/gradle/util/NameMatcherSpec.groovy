@@ -46,7 +46,8 @@ class NameMatcherSpec extends Specification {
         expect:
         matches("na", "name")
         matches("na", "name", "other")
-        // Mixed case
+
+        and: // Mixed case
         matches("na", "Name")
         matches("NA", "name")
         matches("somena", "someName")
@@ -172,8 +173,10 @@ class NameMatcherSpec extends Specification {
     }
 
     def "does not select map entry when multiple partial matches"() {
-        expect:
+        setup:
         Map<String, Integer> items = Cast.uncheckedNonnullCast(GUtil.map("someName", 9, "soName", 10))
+
+        expect:
         matcher.find("soNa", items) == null
     }
 
@@ -181,7 +184,7 @@ class NameMatcherSpec extends Specification {
         setup:
         matcher.find("name", toList("other"))
 
-        expect: // TODO remove assertThat everywhere
+        expect:
         matcher.formatErrorMessage("thing", "container") == "Thing 'name' not found in container."
     }
 
