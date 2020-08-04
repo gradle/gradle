@@ -43,6 +43,22 @@ Some plugins will break with this new version of Gradle, for example because the
 - Ant has been updated to https://downloads.apache.org/ant/RELEASE-NOTES-1.10.8.html[1.10.8].
 - Groovy has been updated to https://groovy-lang.org/changelogs/changelog-2.5.12.html[Groovy 2.5.12].
 
+==== Dependency substitutions and variant aware dependency resolution
+
+While adding support for expressing <<resolution_rules#sec:variant_aware_substitutions, variant support>> in dependency substitutions, a bug fix introduced a behaviour change that some builds may rely upon.
+Previously a substituted dependency would still use the <<variant_attributes#, attributes>> of the original selector instead of the ones from the replacement selector.
+
+With that change, existing substitutions around dependencies with richer selectors, such as for platform dependencies, will no longer work as they did.
+It becomes mandatory to define the variant aware part in the target selector.
+
+You can be affected by this change if you:
+
+* have dependencies on platforms, like `implementation platform("org:platform:1.0")`
+* _or_ if you specify attributes on dependencies,
+* _and_ you use <<resolution_rules#, resolution rules>> on these dependencies.
+
+See the <<resolution_rules#sec:variant_aware_substitutions, documentation>> for resolving issues if you are impacted.
+
 === Deprecations
 
 No deprecations were made in Gradle 6.6.
