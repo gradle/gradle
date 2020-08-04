@@ -26,7 +26,7 @@ import org.apache.commons.lang.StringUtils;
  */
 public class NameMatcher {
     private final SortedSet<String> matches = new TreeSet<>();
-    private final Set<String> candidates = new TreeSet<String>();
+    private final Set<String> candidates = new TreeSet<>();
     private String pattern;
 
     /**
@@ -66,10 +66,10 @@ public class NameMatcher {
         String normalisedPattern = pattern.toUpperCase();
         Pattern kebabCasePattern = getKebabCasePatternForName(pattern);
 
-        Set<String> caseInsensitiveMatches = new TreeSet<String>();
-        Set<String> caseSensitiveCamelCaseMatches = new TreeSet<String>();
-        Set<String> caseInsensitiveCamelCaseMatches = new TreeSet<String>();
-        Set<String> kebabCaseMatches = new TreeSet<String>();
+        Set<String> caseInsensitiveMatches = new TreeSet<>();
+        Set<String> caseSensitiveCamelCaseMatches = new TreeSet<>();
+        Set<String> caseInsensitiveCamelCaseMatches = new TreeSet<>();
+        Set<String> kebabCaseMatches = new TreeSet<>();
 
         for (String candidate : items) {
             if (candidate.equalsIgnoreCase(pattern)) {
@@ -125,7 +125,7 @@ public class NameMatcher {
             builder.append("[\\p{javaLowerCase}\\p{Digit}]*");
             pos = matcher.end();
         }
-        builder.append(Pattern.quote(name.substring(pos, name.length())));
+        builder.append(Pattern.quote(name.substring(pos)));
         return Pattern.compile(builder.toString());
     }
 
