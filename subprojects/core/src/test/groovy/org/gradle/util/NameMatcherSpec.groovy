@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,35 +13,44 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.util;
 
-import org.gradle.internal.Cast;
-import org.junit.Test;
+package org.gradle.util
 
-import java.util.List;
-import java.util.Map;
+import org.gradle.internal.Cast
+import org.junit.Test
+import spock.lang.Shared
+import spock.lang.Specification
 
-import static com.google.common.collect.Iterables.concat;
-import static com.google.common.collect.Lists.newArrayList;
-import static java.util.Collections.singletonMap;
-import static org.gradle.util.Matchers.isEmpty;
-import static org.gradle.util.WrapUtil.toList;
-import static org.gradle.util.WrapUtil.toSet;
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.nullValue;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static com.google.common.collect.Iterables.concat
+import static com.google.common.collect.Lists.newArrayList
+import static java.util.Collections.singletonMap
+import static org.gradle.util.Matchers.isEmpty
+import static org.gradle.util.WrapUtil.toList
+import static org.gradle.util.WrapUtil.toSet
+import static org.hamcrest.CoreMatchers.equalTo
+import static org.hamcrest.CoreMatchers.nullValue
+import static org.hamcrest.MatcherAssert.assertThat
 
-public class NameMatcherTest {
-    private final NameMatcher matcher = new NameMatcher();
+/*TODO rename to NameMatcherSpec and remove origin */
+class NameMatcherSpec extends Specification {
 
-    @Test
-    public void selectsExactMatch() {
-        assertMatches("name", "name");
+    @Shared
+    NameMatcher matcher
+
+    def setup() {
+        matcher = new NameMatcher()
+    }
+
+    /*TODO remove Test*/
+    def /*TODO remove public*/ /*TODO convert void to test*/ selectsExactMatch() /*TODO rename to full sentences*/ {
+        expect:
+        assertMatches("name", "name"); /*TODO remove semicolon*/ /*TODO use single quotes where possible*/
         assertMatches("name", "name", "other");
     }
 
-    @Test
+    @Test  /*TODO convert to parameterized test */
     public void selectsItemWithMatchingPrefix() {
+        expect:
         assertMatches("na", "name");
         assertMatches("na", "name", "other");
         // Mixed case
@@ -55,6 +64,7 @@ public class NameMatcherTest {
 
     @Test
     public void selectsItemWithMatchingCamelCasePrefix() {
+        expect:
         assertMatches("sN", "someName");
         assertMatches("soN", "someName");
         assertMatches("SN", "someName");
@@ -73,25 +83,27 @@ public class NameMatcherTest {
 
     @Test
     public void prefersExactMatchOverCaseInsensitiveMatch() {
+        expect:
         assertMatches("name", "name", "Name", "NAME");
         assertMatches("someName", "someName", "SomeName", "somename", "SOMENAME");
         assertMatches("some Name", "some Name", "Some Name", "some name", "SOME NAME");
     }
 
-    //---
-
     @Test
     public void prefersExactMatchOverPartialMatch() {
+        expect:
         assertMatches("name", "name", "nam", "n", "NAM");
     }
 
     @Test
     public void prefersExactMatchOverPrefixMatch() {
+        expect:
         assertMatches("someName", "someName", "someNameWithExtra");
     }
 
     @Test
     public void prefersExactMatchOverCamelCaseMatch() {
+        expect:
         assertMatches("sName", "sName", "someName", "sNames");
         assertMatches("so Name", "so Name", "some Name", "so name");
         assertMatches("ABC", "ABC", "AaBbCc");
@@ -99,15 +111,15 @@ public class NameMatcherTest {
 
     @Test
     public void prefersFullCamelCaseMatchOverCamelCasePrefix() {
+        expect:
         assertMatches("sN", "someName", "someNameWithExtra");
         assertMatches("name", "names", "nameWithExtra");
         assertMatches("s_n", "some_name", "some_name_with_extra");
     }
 
-    // ---
-
     @Test
     public void prefersCaseSensitiveCamelCaseMatchOverCaseInsensitiveCamelCaseMatch() {
+        expect:
         assertMatches("soNa", "someName", "somename");
         assertMatches("SN", "SomeName", "someName");
         assertMatches("na1", "name1", "Name1", "NAME1");
@@ -115,12 +127,14 @@ public class NameMatcherTest {
 
     @Test
     public void prefersCaseInsensitiveMatchOverCamelCaseMatch() {
+        expect:
         assertMatches("somename", "someName", "someNameWithExtra");
         assertMatches("soNa", "sona", "someName");
     }
 
     @Test
     public void doesNotSelectItemsWhenNoMatches() {
+        expect:
         assertDoesNotMatch("name");
         assertDoesNotMatch("name", "other");
         assertDoesNotMatch("name", "na");
@@ -132,49 +146,55 @@ public class NameMatcherTest {
 
     @Test
     public void doesNotSelectItemsWhenMultipleCamelCaseMatches() {
+        expect:
         assertThat(matcher.find("sN", toList("someName", "soNa", "other")), nullValue());
         assertThat(matcher.getMatches(), equalTo(toSet("someName", "soNa")));
     }
 
     @Test
     public void doesNotSelectItemsWhenMultipleCaseInsensitiveMatches() {
+        expect:
         assertThat(matcher.find("someName", toList("somename", "SomeName", "other")), nullValue());
         assertThat(matcher.getMatches(), equalTo(toSet("somename", "SomeName")));
     }
 
     @Test
     public void emptyPatternDoesNotSelectAnything() {
+        expect:
         assertDoesNotMatch("", "something");
     }
 
     @Test
     public void escapesRegexpChars() {
+        expect:
         assertDoesNotMatch("name\\othername", "other");
     }
 
     @Test
     public void reportsPotentialMatches() {
+        expect:
         assertThat(matcher.find("name", toList("tame", "lame", "other")), nullValue());
         assertThat(matcher.getMatches(), isEmpty());
         assertThat(matcher.getCandidates(), equalTo(toSet("tame", "lame")));
     }
 
-    // ---
-
     @Test
     public void doesNotSelectMapEntryWhenNoMatches() {
+        expect:
         Integer match = matcher.find("soNa", singletonMap("does not match", 9));
         assertThat(match, nullValue());
     }
 
     @Test
     public void selectsMapEntryWhenExactMatch() {
+        expect:
         Integer match = matcher.find("name", singletonMap("name", 9));
         assertThat(match, equalTo(9));
     }
 
     @Test
     public void selectsMapEntryWhenOnePartialMatch() {
+        expect:
         Integer match = matcher.find("soNa", singletonMap("someName", 9));
         assertThat(match, equalTo(9));
     }
@@ -188,30 +208,38 @@ public class NameMatcherTest {
 
     @Test
     public void buildsErrorMessageForNoMatches() {
+        setup:
         matcher.find("name", toList("other"));
+
+        expect: // TODO remove assertThat everywhere
         assertThat(matcher.formatErrorMessage("thing", "container"), equalTo("Thing 'name' not found in container."));
     }
 
     @Test
     public void buildsErrorMessageForMultipleMatches() {
+        setup:
         matcher.find("n", toList("number", "name", "other"));
+
+        expect:
         assertThat(matcher.formatErrorMessage("thing", "container"), equalTo("Thing 'n' is ambiguous in container. Candidates are: 'name', 'number'."));
     }
 
     @Test
     public void buildsErrorMessageForPotentialMatches() {
+        setup:
         matcher.find("name", toList("other", "lame", "tame"));
+
+        expect:
         assertThat(matcher.formatErrorMessage("thing", "container"), equalTo("Thing 'name' not found in container. Some candidates are: 'lame', 'tame'."));
     }
 
-    private void assertDoesNotMatch(String name, String... items) {
-        assertThat(matcher.find(name, toList(items)), nullValue());
-        assertThat(matcher.getMatches(), isEmpty());
+    /*TODO rename to matches() */
+    def assertMatches(String name, String match, String... extraItems) {
+        List<String> allItems = newArrayList(concat(toList(match), toList(extraItems))) // TODO make groovier
+        matcher.find(name, allItems) == match && matcher.getMatches() == [match] as Set
     }
 
-    private void assertMatches(String name, String match, String... extraItems) {
-        List<String> allItems = newArrayList(concat(toList(match), toList(extraItems)));
-        assertThat(matcher.find(name, allItems), equalTo(match));
-        assertThat(matcher.getMatches(), equalTo(toSet(match)));
+    def assertDoesNotMatch(String name, String... items) {
+        matcher.find(name, toList(items)) == null && matcher.matches.empty
     }
 }
