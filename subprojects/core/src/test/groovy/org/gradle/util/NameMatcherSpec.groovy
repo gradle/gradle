@@ -35,14 +35,14 @@ class NameMatcherSpec extends Specification {
         matcher = new NameMatcher()
     }
 
-    def selectsExactMatch() /*TODO rename to full sentences*/ {
+    def "selectsExactMatch"() /*TODO rename to full sentences*/ {
         expect:
         assertMatches("name", "name") /*TODO use single quotes where possible*/
         assertMatches("name", "name", "other")
     }
 
     /*TODO convert to parameterized test */
-    def selectsItemWithMatchingPrefix() {
+    def "selectsItemWithMatchingPrefix"() {
         expect:
         assertMatches("na", "name")
         assertMatches("na", "name", "other")
@@ -55,7 +55,7 @@ class NameMatcherSpec extends Specification {
         assertMatches("some na", "Some Name")
     }
 
-    def selectsItemWithMatchingCamelCasePrefix() {
+    def "selectsItemWithMatchingCamelCasePrefix"() {
         expect:
         assertMatches("sN", "someName")
         assertMatches("soN", "someName")
@@ -73,51 +73,51 @@ class NameMatcherSpec extends Specification {
         assertMatches("a9n", "abc9Name")
     }
 
-    def prefersExactMatchOverCaseInsensitiveMatch() {
+    def "prefersExactMatchOverCaseInsensitiveMatch"() {
         expect:
         assertMatches("name", "name", "Name", "NAME")
         assertMatches("someName", "someName", "SomeName", "somename", "SOMENAME")
         assertMatches("some Name", "some Name", "Some Name", "some name", "SOME NAME")
     }
 
-    def prefersExactMatchOverPartialMatch() {
+    def "prefersExactMatchOverPartialMatch"() {
         expect:
         assertMatches("name", "name", "nam", "n", "NAM")
     }
 
-    def prefersExactMatchOverPrefixMatch() {
+    def "prefersExactMatchOverPrefixMatch"() {
         expect:
         assertMatches("someName", "someName", "someNameWithExtra")
     }
 
-    def prefersExactMatchOverCamelCaseMatch() {
+    def "prefersExactMatchOverCamelCaseMatch"() {
         expect:
         assertMatches("sName", "sName", "someName", "sNames")
         assertMatches("so Name", "so Name", "some Name", "so name")
         assertMatches("ABC", "ABC", "AaBbCc")
     }
 
-    def prefersFullCamelCaseMatchOverCamelCasePrefix() {
+    def "prefersFullCamelCaseMatchOverCamelCasePrefix"() {
         expect:
         assertMatches("sN", "someName", "someNameWithExtra")
         assertMatches("name", "names", "nameWithExtra")
         assertMatches("s_n", "some_name", "some_name_with_extra")
     }
 
-    def prefersCaseSensitiveCamelCaseMatchOverCaseInsensitiveCamelCaseMatch() {
+    def "prefersCaseSensitiveCamelCaseMatchOverCaseInsensitiveCamelCaseMatch"() {
         expect:
         assertMatches("soNa", "someName", "somename")
         assertMatches("SN", "SomeName", "someName")
         assertMatches("na1", "name1", "Name1", "NAME1")
     }
 
-    def prefersCaseInsensitiveMatchOverCamelCaseMatch() {
+    def "prefersCaseInsensitiveMatchOverCamelCaseMatch"() {
         expect:
         assertMatches("somename", "someName", "someNameWithExtra")
         assertMatches("soNa", "sona", "someName")
     }
 
-    def doesNotSelectItemsWhenNoMatches() {
+    def "doesNotSelectItemsWhenNoMatches"() {
         expect:
         assertDoesNotMatch("name")
         assertDoesNotMatch("name", "other")
@@ -128,57 +128,56 @@ class NameMatcherSpec extends Specification {
         assertDoesNotMatch("soN", "saName")
     }
 
-    def doesNotSelectItemsWhenMultipleCamelCaseMatches() {
+    def "doesNotSelectItemsWhenMultipleCamelCaseMatches"() {
         expect:
         matcher.find("sN", toList("someName", "soNa", "other")) == null
-
     }
 
-    def doesNotSelectItemsWhenMultipleCaseInsensitiveMatches() {
+    def "doesNotSelectItemsWhenMultipleCaseInsensitiveMatches"() {
         expect:
         matcher.find("someName", toList("somename", "SomeName", "other")) == null
         matcher.getMatches() == ["somename", "SomeName"] as Set
     }
 
-    def emptyPatternDoesNotSelectAnything() {
+    def "emptyPatternDoesNotSelectAnything"() {
         expect:
         assertDoesNotMatch("", "something")
     }
 
-    def escapesRegexpChars() {
+    def "escapesRegexpChars"() {
         expect:
         assertDoesNotMatch("name\\othername", "other")
     }
 
-    def reportsPotentialMatches() {
+    def "reportsPotentialMatches"() {
         expect:
         matcher.find("name", toList("tame", "lame", "other")) == null
         matcher.getMatches().empty // TODO convert all getters to accessors
-        matcher.getCandidates() == ["tame", "lame"] as Set
+        matcher.getCandidates"() == ["tame", "lame"] as Set
     }
 
-    def doesNotSelectMapEntryWhenNoMatches() {
+    def "doesNotSelectMapEntryWhenNoMatches"() {
         expect:
         matcher.find("soNa", singletonMap("does not match", 9)) == null
     }
 
-    def selectsMapEntryWhenExactMatch() {
+    def "selectsMapEntryWhenExactMatch"() {
         expect:
         matcher.find("name", singletonMap("name", 9)) == 9
     }
 
-    def selectsMapEntryWhenOnePartialMatch() {
+    def "selectsMapEntryWhenOnePartialMatch"() {
         expect:
         matcher.find("soNa", singletonMap("someName", 9)) == 9
     }
 
-    def doesNotSelectMapEntryWhenMultiplePartialMatches() {
+    def "doesNotSelectMapEntryWhenMultiplePartialMatches"() {
         expect:
         Map<String, Integer> items = Cast.uncheckedNonnullCast(GUtil.map("someName", 9, "soName", 10))
         matcher.find("soNa", items) == null
     }
 
-    def buildsErrorMessageForNoMatches() {
+    def "buildsErrorMessageForNoMatches"() {
         setup:
         matcher.find("name", toList("other"))
 
@@ -186,7 +185,7 @@ class NameMatcherSpec extends Specification {
         matcher.formatErrorMessage("thing", "container") == "Thing 'name' not found in container."
     }
 
-    def buildsErrorMessageForMultipleMatches() {
+    def "buildsErrorMessageForMultipleMatches"() {
         setup:
         matcher.find("n", toList("number", "name", "other"))
 
@@ -194,7 +193,7 @@ class NameMatcherSpec extends Specification {
         matcher.formatErrorMessage("thing", "container") == "Thing 'n' is ambiguous in container. Candidates are: 'name', 'number'."
     }
 
-    def buildsErrorMessageForPotentialMatches() {
+    def "buildsErrorMessageForPotentialMatches"() {
         setup:
         matcher.find("name", toList("other", "lame", "tame"))
 
