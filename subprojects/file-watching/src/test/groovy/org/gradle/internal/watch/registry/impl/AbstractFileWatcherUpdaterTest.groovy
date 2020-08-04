@@ -48,7 +48,8 @@ abstract class AbstractFileWatcherUpdaterTest extends Specification {
     TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
 
     def watcher = Mock(FileWatcher)
-    Predicate<String> watchFilter = Mock()
+    def ignoredForWatching = [] as Set<String>
+    Predicate<String> watchFilter = { path -> !ignoredForWatching.contains(path) }
     def directorySnapshotter = new DirectorySnapshotter(TestFiles.fileHasher(), new StringInterner(), [])
     FileWatcherUpdater updater
     def virtualFileSystem = new VirtualFileSystem() {
@@ -93,7 +94,6 @@ abstract class AbstractFileWatcherUpdaterTest extends Specification {
             updater.buildFinished(root)
         }
         then:
-        _ * watchFilter.test(_) >> true
         0 * _
         !vfsHasSnapshotsAt(fileOutsideOfWatchedHierarchies)
     }
@@ -104,6 +104,7 @@ abstract class AbstractFileWatcherUpdaterTest extends Specification {
         fileOutsideOfWatchedHierarchies.text = "hello"
         def fileInDirectoryIgnoredForWatching = file("cache").file("some-cache/someFile.txt")
         fileInDirectoryIgnoredForWatching.text = "cached"
+        ignoredForWatching.add(fileInDirectoryIgnoredForWatching.absolutePath)
 
         when:
         discoverHierarchiesToWatch([projectRootDirectory])
@@ -123,8 +124,6 @@ abstract class AbstractFileWatcherUpdaterTest extends Specification {
             updater.buildFinished(root)
         }
         then:
-        1 * watchFilter.test(fileOutsideOfWatchedHierarchies.absolutePath) >> true
-        1 * watchFilter.test(fileInDirectoryIgnoredForWatching.absolutePath) >> false
         0 * _
         !vfsHasSnapshotsAt(fileOutsideOfWatchedHierarchies)
         vfsHasSnapshotsAt(fileInDirectoryIgnoredForWatching)
@@ -195,6 +194,16 @@ abstract class AbstractFileWatcherUpdaterTest extends Specification {
                 updater.discoveredHierarchyToWatch(hierarchyToWatch, root)
                 return root
             }
+        }
+    }
+
+    private static class CheckIfNonEmptySnapshotVisitor implements SnapshotHierarchy.SnapshotVisitor {
+
+        boolean empty = true
+
+        @Override
+        void visitSnapshotRoot(CompleteFileSystemLocationSnapshot snapshot) {
+            empty = false
         }
     }
 }
