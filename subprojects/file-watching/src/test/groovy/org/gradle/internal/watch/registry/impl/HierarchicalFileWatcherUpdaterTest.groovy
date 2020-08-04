@@ -36,42 +36,42 @@ class HierarchicalFileWatcherUpdaterTest extends AbstractFileWatcherUpdaterTest 
         new HierarchicalFileWatcherUpdater(watcher, NO_VALIDATION, watchFilter)
     }
 
-    def "does not watch project root directory if no snapshot is inside"() {
-        def projectRootDirectory = file("rootDir").createDir()
-        def secondProjectRootDirectory = file("rootDir2").createDir()
-        def fileInProjectRootDirectory = projectRootDirectory.file("some/path/file.txt").createFile()
+    def "does not watch hierarchy to watch if no snapshot is inside"() {
+        def hierarchyToWatch = file("rootDir").createDir()
+        def secondHierarchyToWatch = file("rootDir2").createDir()
+        def fileInHierarchyToWatch = hierarchyToWatch.file("some/path/file.txt").createFile()
 
         when:
-        discoverHierarchiesToWatch([projectRootDirectory, secondProjectRootDirectory])
+        registerHierarchiesToWatch([hierarchyToWatch, secondHierarchyToWatch])
         then:
         0 * _
 
         when:
-        addSnapshot(snapshotRegularFile(fileInProjectRootDirectory))
+        addSnapshot(snapshotRegularFile(fileInHierarchyToWatch))
         then:
-        1 * watcher.startWatching({ equalIgnoringOrder(it, [projectRootDirectory]) })
+        1 * watcher.startWatching({ equalIgnoringOrder(it, [hierarchyToWatch]) })
     }
 
-    def "starts and stops watching project root directories"() {
-        def projectRootDirectories = ["first", "second", "third"].collect { file(it).createDir() }
+    def "starts and stops watching hierarchies to watch"() {
+        def hierarchiesToWatch = ["first", "second", "third"].collect { file(it).createDir() }
 
         when:
-        discoverHierarchiesToWatch(projectRootDirectories)
+        registerHierarchiesToWatch(hierarchiesToWatch)
         then:
         0 * _
 
         when:
-        def watchedDirsInsideProjectRootDirectories = addSnapshotsInProjectRootDirectories(projectRootDirectories)
+        def snapshotsInsideHierarchiesToWatch = addSnapshotsInHierarchiesToWatch(hierarchiesToWatch)
         then:
-        projectRootDirectories.each { projectRootDirectory ->
-            1 * watcher.startWatching({ equalIgnoringOrder(it, [projectRootDirectory]) })
+        hierarchiesToWatch.each { hierarchyToWatch ->
+            1 * watcher.startWatching({ equalIgnoringOrder(it, [hierarchyToWatch]) })
         }
         0 * _
 
         when:
-        invalidate(watchedDirsInsideProjectRootDirectories[0].absolutePath)
+        invalidate(snapshotsInsideHierarchiesToWatch[0].absolutePath)
         then:
-        1 * watcher.stopWatching({ equalIgnoringOrder(it, [projectRootDirectories[0]]) })
+        1 * watcher.stopWatching({ equalIgnoringOrder(it, [hierarchiesToWatch[0]]) })
         0 * _
 
         when:
@@ -80,79 +80,78 @@ class HierarchicalFileWatcherUpdaterTest extends AbstractFileWatcherUpdaterTest 
         0 * _
 
         when:
-        addSnapshotsInProjectRootDirectories([projectRootDirectories[0]])
+        addSnapshotsInHierarchiesToWatch([hierarchiesToWatch[0]])
         then:
-        vfsHasSnapshotsAt(projectRootDirectories[0])
+        vfsHasSnapshotsAt(hierarchiesToWatch[0])
         0 * _
 
         when:
         buildFinished()
         then:
-        !vfsHasSnapshotsAt(projectRootDirectories[0])
+        !vfsHasSnapshotsAt(hierarchiesToWatch[0])
         0 * _
     }
 
-    def "does not watch non-existing project root directories"() {
-        def projectRootDirectories = ["first", "second"].collect { file(it).createDir() }
-        def nonExistingProjectRootDirectory = file("third/non-existing")
-        file("third").createDir()
+    def "does not watch non-existing hierarchies to watch"() {
+        def hierarchiesToWatch = ["first", "second"].collect { file(it).createDir() }
+        def nonExistingHierarchyToWatch = file("third").createDir().file("non-existing")
 
         when:
-        discoverHierarchiesToWatch(projectRootDirectories + nonExistingProjectRootDirectory)
+        registerHierarchiesToWatch(hierarchiesToWatch + nonExistingHierarchyToWatch)
         then:
         0 * _
 
         when:
-        addSnapshotsInProjectRootDirectories(projectRootDirectories)
+        addSnapshotsInHierarchiesToWatch(hierarchiesToWatch)
         then:
-        projectRootDirectories.each { projectDirectory ->
-            1 * watcher.startWatching({ equalIgnoringOrder(it, [projectDirectory]) })
+        hierarchiesToWatch.each { hierarchyToWatch ->
+            1 * watcher.startWatching({ equalIgnoringOrder(it, [hierarchyToWatch]) })
         }
         0 * _
 
         when:
-        addSnapshot(missingFileSnapshot(nonExistingProjectRootDirectory.file("some/missing/file.txt")))
+        addSnapshot(missingFileSnapshot(nonExistingHierarchyToWatch.file("some/missing/file.txt")))
         then:
-        1 * watcher.startWatching({ equalIgnoringOrder(it, [nonExistingProjectRootDirectory.parentFile]) })
+        1 * watcher.startWatching({ equalIgnoringOrder(it, [nonExistingHierarchyToWatch.parentFile]) })
         0 * _
     }
 
-    def "can change the project root directories"() {
-        def firstProjectRootDirectories = ["first", "second"].collect { file(it).createDir() }
-        def secondProjectRootDirectories = ["second", "third"].collect { file(it).createDir() }
-        def thirdProjectRootDirectory = file("third")
+    def "can change the hierarchies to watch"() {
+        def firstSetOfHierarchiesToWatch = ["first", "second"].collect { file(it).createDir() }
+        def secondSetOfHierarchiesToWatch = ["second", "third"].collect { file(it).createDir() }
+        def thirdHierarchyToWatch = file("third")
 
         when:
-        discoverHierarchiesToWatch(firstProjectRootDirectories)
+        registerHierarchiesToWatch(firstSetOfHierarchiesToWatch)
         then:
         0 * _
 
         when:
-        def watchedDirsInsideFirstDir = addSnapshotsInProjectRootDirectories([file("first")])
-        addSnapshotsInProjectRootDirectories([file("second")])
-        addSnapshotsInProjectRootDirectories([thirdProjectRootDirectory])
+        def snapshotsInsideFirstHierarchyToWatch = addSnapshotsInHierarchiesToWatch([file("first")])
+        addSnapshotsInHierarchiesToWatch([file("second")])
+        addSnapshotsInHierarchiesToWatch([thirdHierarchyToWatch])
         then:
-        firstProjectRootDirectories.each { projectRootDirectory ->
-            1 * watcher.startWatching({ equalIgnoringOrder(it, [projectRootDirectory]) })
+        firstSetOfHierarchiesToWatch.each { hierarchyToWatch ->
+            1 * watcher.startWatching({ equalIgnoringOrder(it, [hierarchyToWatch]) })
         }
         0 * _
-        vfsHasSnapshotsAt(thirdProjectRootDirectory)
+        vfsHasSnapshotsAt(thirdHierarchyToWatch)
 
         when:
         buildFinished()
         then:
         0 * _
-        !vfsHasSnapshotsAt(thirdProjectRootDirectory)
+        !vfsHasSnapshotsAt(thirdHierarchyToWatch)
 
         when:
-        discoverHierarchiesToWatch(secondProjectRootDirectories)
-        addSnapshotsInProjectRootDirectories([thirdProjectRootDirectory])
+        registerHierarchiesToWatch(secondSetOfHierarchiesToWatch)
+        addSnapshotsInHierarchiesToWatch([thirdHierarchyToWatch])
         then:
-        1 * watcher.startWatching({ equalIgnoringOrder(it, [thirdProjectRootDirectory]) })
+        1 * watcher.startWatching({ equalIgnoringOrder(it, [thirdHierarchyToWatch]) })
         0 * _
 
         when:
-        invalidate(watchedDirsInsideFirstDir[0].absolutePath)
+        invalidate(snapshotsInsideFirstHierarchyToWatch[0].absolutePath)
         then:
         1 * watcher.stopWatching({ equalIgnoringOrder(it, [file("first")]) })
         0 * _
@@ -163,37 +162,37 @@ class HierarchicalFileWatcherUpdaterTest extends AbstractFileWatcherUpdaterTest 
         0 * _
 
         when:
-        addSnapshotsInProjectRootDirectories([file("first")])
+        addSnapshotsInHierarchiesToWatch([file("first")])
         then:
         0 * _
     }
 
-    def "only adds watches for the roots of project root directories"() {
+    def "only adds watches for the roots of the hierarchies to watch"() {
         def firstDir = file("first").createDir()
         def secondDir = file("second").createDir()
         def directoryWithinFirst = file("first/within").createDir()
 
         when:
-        discoverHierarchiesToWatch([firstDir, directoryWithinFirst, secondDir])
-        addSnapshotsInProjectRootDirectories([secondDir, directoryWithinFirst])
+        registerHierarchiesToWatch([firstDir, directoryWithinFirst, secondDir])
+        addSnapshotsInHierarchiesToWatch([secondDir, directoryWithinFirst])
         then:
-        [firstDir, secondDir].each { directoryToWatch ->
-            1 * watcher.startWatching({ equalIgnoringOrder(it, [directoryToWatch]) })
+        [firstDir, secondDir].each { hierarchyToWatch ->
+            1 * watcher.startWatching({ equalIgnoringOrder(it, [hierarchyToWatch]) })
         }
         0 * _
     }
 
-    def "starts watching project root directory which was beneath another project root directory"() {
+    def "starts watching hierarchy to watch which was beneath another hierarchy to watch"() {
         def firstDir = file("first").createDir()
         def secondDir = file("second").createDir()
         def directoryWithinFirst = file("first/within").createDir()
 
         when:
-        discoverHierarchiesToWatch([firstDir, directoryWithinFirst, secondDir])
-        addSnapshotsInProjectRootDirectories([secondDir, directoryWithinFirst])
+        registerHierarchiesToWatch([firstDir, directoryWithinFirst, secondDir])
+        addSnapshotsInHierarchiesToWatch([secondDir, directoryWithinFirst])
         then:
-        [firstDir, secondDir].each { directoryToWatch ->
-            1 * watcher.startWatching({ equalIgnoringOrder(it, [directoryToWatch]) })
+        [firstDir, secondDir].each { hierarchyToWatch ->
+            1 * watcher.startWatching({ equalIgnoringOrder(it, [hierarchyToWatch]) })
         }
         0 * _
 
@@ -203,7 +202,7 @@ class HierarchicalFileWatcherUpdaterTest extends AbstractFileWatcherUpdaterTest 
         0 * _
 
         when:
-        discoverHierarchiesToWatch([directoryWithinFirst, secondDir])
+        registerHierarchiesToWatch([directoryWithinFirst, secondDir])
         then:
         1 * watcher.stopWatching({ equalIgnoringOrder(it, [firstDir]) })
         then:
@@ -217,16 +216,16 @@ class HierarchicalFileWatcherUpdaterTest extends AbstractFileWatcherUpdaterTest 
         def directoryWithinFirst = file("first/within").createDir()
 
         when:
-        discoverHierarchiesToWatch([directoryWithinFirst, secondDir])
-        addSnapshotsInProjectRootDirectories([secondDir, directoryWithinFirst])
+        registerHierarchiesToWatch([directoryWithinFirst, secondDir])
+        addSnapshotsInHierarchiesToWatch([secondDir, directoryWithinFirst])
         then:
-        [directoryWithinFirst, secondDir].each { directoryToWatch ->
-            1 * watcher.startWatching({ equalIgnoringOrder(it, [directoryToWatch]) })
+        [directoryWithinFirst, secondDir].each { hierarchyToWatch ->
+            1 * watcher.startWatching({ equalIgnoringOrder(it, [hierarchyToWatch]) })
         }
         0 * _
 
         when:
-        discoverHierarchiesToWatch([firstDir, secondDir])
+        registerHierarchiesToWatch([firstDir, secondDir])
         then:
         1 * watcher.stopWatching({ equalIgnoringOrder(it, [directoryWithinFirst]) })
         then:
@@ -234,16 +233,16 @@ class HierarchicalFileWatcherUpdaterTest extends AbstractFileWatcherUpdaterTest 
         0 * _
     }
 
-    def "does not watch snapshot roots in project root directories"() {
-        def rootDir = file("root").createDir()
-        discoverHierarchiesToWatch([rootDir])
-        def subDirInRootDir = rootDir.file("some/path").createDir()
+    def "does not watch snapshot roots in hierarchies to watch"() {
+        def hierarchyToWatch = file("root").createDir()
+        registerHierarchiesToWatch([hierarchyToWatch])
+        def subDirInRootDir = hierarchyToWatch.file("some/path").createDir()
         def snapshotInRootDir = snapshotDirectory(subDirInRootDir)
 
         when:
         addSnapshot(snapshotInRootDir)
         then:
-        1 * watcher.startWatching({ equalIgnoringOrder(it, [rootDir]) })
+        1 * watcher.startWatching({ equalIgnoringOrder(it, [hierarchyToWatch]) })
         0 * _
 
         when:
@@ -254,13 +253,13 @@ class HierarchicalFileWatcherUpdaterTest extends AbstractFileWatcherUpdaterTest 
         when:
         invalidate(snapshotInRootDir)
         then:
-        1 * watcher.stopWatching({ equalIgnoringOrder(it, [rootDir]) })
+        1 * watcher.stopWatching({ equalIgnoringOrder(it, [hierarchyToWatch]) })
         0 * _
 
         when:
         addSnapshot(snapshotInRootDir)
         then:
-        1 * watcher.startWatching({ equalIgnoringOrder(it, ([rootDir])) })
+        1 * watcher.startWatching({ equalIgnoringOrder(it, ([hierarchyToWatch])) })
         0 * _
     }
 
@@ -270,7 +269,7 @@ class HierarchicalFileWatcherUpdaterTest extends AbstractFileWatcherUpdaterTest 
         def rootDirSnapshot = snapshotDirectory(rootDir)
 
         when:
-        discoverHierarchiesToWatch([rootDir.parentFile])
+        registerHierarchiesToWatch([rootDir.parentFile])
         addSnapshot(rootDirSnapshot)
         then:
         1 * watcher.startWatching({ equalIgnoringOrder(it, [rootDir.parentFile]) })
@@ -291,11 +290,11 @@ class HierarchicalFileWatcherUpdaterTest extends AbstractFileWatcherUpdaterTest 
 
     def "starts watching closer parent when missing file is created"() {
         def rootDir = file("root").createDir()
-        def projectDir = rootDir.file("a/b/projectDir")
-        def missingFile = projectDir.file("c/missing.txt")
+        def hierarchyToWatch = rootDir.file("a/b/projectDir")
+        def missingFile = hierarchyToWatch.file("c/missing.txt")
 
         when:
-        updater.discoveredHierarchyToWatch(projectDir, virtualFileSystem.root)
+        registerHierarchiesToWatch([hierarchyToWatch])
         addSnapshot(missingFileSnapshot(missingFile))
         then:
         1 * watcher.startWatching({ equalIgnoringOrder(it, [rootDir]) })
@@ -307,7 +306,7 @@ class HierarchicalFileWatcherUpdaterTest extends AbstractFileWatcherUpdaterTest 
         then:
         1 * watcher.stopWatching({ equalIgnoringOrder(it, [rootDir]) })
         then:
-        1 * watcher.startWatching({ equalIgnoringOrder(it, [projectDir]) })
+        1 * watcher.startWatching({ equalIgnoringOrder(it, [hierarchyToWatch]) })
         0 * _
     }
 
@@ -351,7 +350,7 @@ class HierarchicalFileWatcherUpdaterTest extends AbstractFileWatcherUpdaterTest 
         new MissingFileSnapshot(location.getAbsolutePath(), AccessType.DIRECT)
     }
 
-    private List<TestFile> addSnapshotsInProjectRootDirectories(Collection<TestFile> projectRootDirectories) {
+    private List<TestFile> addSnapshotsInHierarchiesToWatch(Collection<TestFile> projectRootDirectories) {
         projectRootDirectories.collect { projectRootDirectory ->
             def fileInside = projectRootDirectory.file("some/subdir/file.txt").createFile()
             addSnapshot(snapshotRegularFile(fileInside))

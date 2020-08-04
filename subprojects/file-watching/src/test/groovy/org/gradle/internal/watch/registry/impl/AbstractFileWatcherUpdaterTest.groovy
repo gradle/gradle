@@ -73,123 +73,119 @@ abstract class AbstractFileWatcherUpdaterTest extends Specification {
 
     abstract FileWatcherUpdater createUpdater(FileWatcher watcher, Predicate<String> watchFilter)
 
-    def "does not watch directories outside of watched hierarchies"() {
-        def projectRootDirectories = ["first", "second", "third"].collect { file(it).createDir() }
-        def fileOutsideOfWatchedHierarchies = file("forth").file("someFile.txt")
+    def "does not watch directories outside of hierarchies to watch"() {
+        def hierarchiesToWatch = ["first", "second", "third"].collect { file(it).createDir() }
+        def fileOutsideOfHierarchiesToWatch = file("forth").file("someFile.txt")
 
         when:
-        discoverHierarchiesToWatch(projectRootDirectories)
+        registerHierarchiesToWatch(hierarchiesToWatch)
         then:
         0 * _
 
         when:
-        fileOutsideOfWatchedHierarchies.text = "hello"
-        addSnapshot(snapshotRegularFile(fileOutsideOfWatchedHierarchies))
+        fileOutsideOfHierarchiesToWatch.text = "hello"
+        addSnapshot(snapshotRegularFile(fileOutsideOfHierarchiesToWatch))
         then:
         0 * _
-        vfsHasSnapshotsAt(fileOutsideOfWatchedHierarchies)
+        vfsHasSnapshotsAt(fileOutsideOfHierarchiesToWatch)
 
         when:
         buildFinished()
         then:
         0 * _
-        !vfsHasSnapshotsAt(fileOutsideOfWatchedHierarchies)
+        !vfsHasSnapshotsAt(fileOutsideOfHierarchiesToWatch)
     }
 
     def "retains files in hierarchies ignored for watching"() {
-        def projectRootDirectory = file("projectDir").createDir()
-        def fileOutsideOfWatchedHierarchies = file("outside").file("someFile.txt")
-        fileOutsideOfWatchedHierarchies.text = "hello"
-        def fileInDirectoryIgnoredForWatching = file("cache").file("some-cache/someFile.txt")
-        fileInDirectoryIgnoredForWatching.text = "cached"
+        def hierarchyToWatch = file("toWatch").createDir()
+        def fileOutsideOfHierarchyToWatch = file("outside").file("someFile.txt").createFile()
+        def fileInDirectoryIgnoredForWatching = file("cache/some-cache/someFile.txt").createFile()
         ignoredForWatching.add(fileInDirectoryIgnoredForWatching.absolutePath)
 
         when:
-        discoverHierarchiesToWatch([projectRootDirectory])
+        registerHierarchiesToWatch([hierarchyToWatch])
         then:
         0 * _
 
         when:
-        addSnapshot(snapshotRegularFile(fileOutsideOfWatchedHierarchies))
+        addSnapshot(snapshotRegularFile(fileOutsideOfHierarchyToWatch))
         addSnapshot(snapshotRegularFile(fileInDirectoryIgnoredForWatching))
         then:
         0 * _
-        vfsHasSnapshotsAt(fileOutsideOfWatchedHierarchies)
+        vfsHasSnapshotsAt(fileOutsideOfHierarchyToWatch)
         vfsHasSnapshotsAt(fileInDirectoryIgnoredForWatching)
 
         when:
         buildFinished()
         then:
         0 * _
-        !vfsHasSnapshotsAt(fileOutsideOfWatchedHierarchies)
+        !vfsHasSnapshotsAt(fileOutsideOfHierarchyToWatch)
         vfsHasSnapshotsAt(fileInDirectoryIgnoredForWatching)
     }
 
     def "fails when discovering a hierarchy to watch and there is already something in the VFS"() {
-        def projectRootDirectory = file("projectDir").createDir()
-        def fileInProjectRoot = projectRootDirectory.file("some/dir/file.txt")
-        fileInProjectRoot.text = "fileInProjectRoot"
+        def hierarchyToWatch = file("toWatch").createDir()
+        def fileInHierarchyToWatch = hierarchyToWatch.file("some/dir/file.txt").createFile()
 
         when:
-        addSnapshot(snapshotRegularFile(fileInProjectRoot))
+        addSnapshot(snapshotRegularFile(fileInHierarchyToWatch))
         then:
         0 * _
 
         when:
-        discoverHierarchiesToWatch([projectRootDirectory])
+        registerHierarchiesToWatch([hierarchyToWatch])
         then:
         def exception = thrown(RuntimeException)
-        exception.message == "Found existing snapshot at '${fileInProjectRoot.absolutePath}' for unwatched hierarchy '${projectRootDirectory.absolutePath}'"
+        exception.message == "Found existing snapshot at '${fileInHierarchyToWatch.absolutePath}' for unwatched hierarchy '${hierarchyToWatch.absolutePath}'"
     }
 
     def "does not watch symlinks and removes symlinks at the end of the build"() {
-        def projectRootDirectory = file("projectDir").createDir()
-        def symlinkInProjectDir = projectRootDirectory.file("some/dir/file.txt")
-        symlinkInProjectDir.text = "fileInProjectRoot"
+        def hierarchyToWatch = file("toWatch").createDir()
+        def symlinkInHierarchyToWatch = hierarchyToWatch.file("some/dir/file.txt").createFile()
 
         when:
-        discoverHierarchiesToWatch([projectRootDirectory])
-        addSnapshot(snapshotSymlinkedFile(symlinkInProjectDir))
+        registerHierarchiesToWatch([hierarchyToWatch])
+        addSnapshot(snapshotSymlinkedFile(symlinkInHierarchyToWatch))
         then:
-        vfsHasSnapshotsAt(symlinkInProjectDir)
+        vfsHasSnapshotsAt(symlinkInHierarchyToWatch)
         0 * _
 
         when:
         buildFinished()
         then:
-        !vfsHasSnapshotsAt(symlinkInProjectDir)
+        !vfsHasSnapshotsAt(symlinkInHierarchyToWatch)
         0 * _
     }
 
     def "does not watch ignored files in a hierarchy to watch"() {
-        def projectRootDirectory = file("projectDir").createDir()
-        def ignoredFileInProjectRoot = file("projectDir/caches/cacheFile").createFile()
-        ignoredForWatching.add(ignoredFileInProjectRoot.absolutePath)
-        ignoredForWatching.add(ignoredFileInProjectRoot.parentFile.absolutePath)
+        def hierarchyToWatch = file("toWatch").createDir()
+        def ignoredFileInHierarchy = hierarchyToWatch.file("caches/cacheFile").createFile()
+        ignoredForWatching.add(ignoredFileInHierarchy.absolutePath)
+        ignoredForWatching.add(ignoredFileInHierarchy.parentFile.absolutePath)
 
         when:
-        discoverHierarchiesToWatch([projectRootDirectory])
-        addSnapshot(snapshotRegularFile(ignoredFileInProjectRoot))
+        registerHierarchiesToWatch([hierarchyToWatch])
+        addSnapshot(snapshotRegularFile(ignoredFileInHierarchy))
         then:
-        vfsHasSnapshotsAt(ignoredFileInProjectRoot)
+        vfsHasSnapshotsAt(ignoredFileInHierarchy)
         0 * _
 
         when:
         buildFinished()
         then:
-        vfsHasSnapshotsAt(ignoredFileInProjectRoot)
+        vfsHasSnapshotsAt(ignoredFileInHierarchy)
         0 * _
     }
 
     def "fails when hierarchy to watch is ignored"() {
-        def projectRootDirectory = file("projectDir").createDir()
-        ignoredForWatching.add(projectRootDirectory.absolutePath)
+        def hierarchyToWatch = file("toWatch").createDir()
+        ignoredForWatching.add(hierarchyToWatch.absolutePath)
 
         when:
-        discoverHierarchiesToWatch([projectRootDirectory])
+        registerHierarchiesToWatch([hierarchyToWatch])
         then:
         def exception = thrown(RuntimeException)
-        exception.message == "Unable to watch directory '${projectRootDirectory.absolutePath}' since it is within Gradle's caches"
+        exception.message == "Unable to watch directory '${hierarchyToWatch.absolutePath}' since it is within Gradle's caches"
     }
 
     TestFile file(Object... path) {
@@ -244,10 +240,10 @@ abstract class AbstractFileWatcherUpdaterTest extends Specification {
         return !visitor.empty
     }
 
-    void discoverHierarchiesToWatch(Iterable<File> hierarchiesToWatch) {
+    void registerHierarchiesToWatch(Iterable<File> hierarchiesToWatch) {
         hierarchiesToWatch.each { hierarchyToWatch ->
             virtualFileSystem.update { root, diffListener ->
-                updater.discoveredHierarchyToWatch(hierarchyToWatch, root)
+                updater.registerHierarchyToWatch(hierarchyToWatch, root)
                 return root
             }
         }

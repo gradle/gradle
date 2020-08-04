@@ -52,7 +52,7 @@ public class WatchingVirtualFileSystem implements BuildLifecycleAwareVirtualFile
     private final VfsRootReference rootReference;
     private final DaemonDocumentationIndex daemonDocumentationIndex;
     private final LocationsWrittenByCurrentBuild locationsWrittenByCurrentBuild;
-    private final Set<File> rootDirectoriesForWatching = new HashSet<>();
+    private final Set<File> hierarchiesToWatch = new HashSet<>();
 
     private FileWatcherRegistry watchRegistry;
     private Exception reasonForNotWatchingFiles;
@@ -107,15 +107,15 @@ public class WatchingVirtualFileSystem implements BuildLifecycleAwareVirtualFile
     }
 
     @Override
-    public void registerRootDirectoryForWatching(File buildRootDirectory) {
+    public void registerHierarchyToWatch(File hierarchyToWatch) {
         rootReference.update(currentRoot -> {
             if (watchRegistry == null) {
-                rootDirectoriesForWatching.add(buildRootDirectory);
+                hierarchiesToWatch.add(hierarchyToWatch);
                 return currentRoot;
             }
             return withWatcherChangeErrorHandling(
                 currentRoot,
-                () -> watchRegistry.getFileWatcherUpdater().discoveredHierarchyToWatch(buildRootDirectory, currentRoot)
+                () -> watchRegistry.getFileWatcherUpdater().registerHierarchyToWatch(hierarchyToWatch, currentRoot)
             );
         });
     }
@@ -123,7 +123,7 @@ public class WatchingVirtualFileSystem implements BuildLifecycleAwareVirtualFile
     @Override
     public void beforeBuildFinished(boolean watchingEnabled) {
         rootReference.update(currentRoot -> {
-            rootDirectoriesForWatching.clear();
+            hierarchiesToWatch.clear();
             if (watchingEnabled) {
                 if (reasonForNotWatchingFiles != null) {
                     // Log exception again so it doesn't get lost.
@@ -170,8 +170,8 @@ public class WatchingVirtualFileSystem implements BuildLifecycleAwareVirtualFile
                     stopWatchingAndInvalidateHierarchy();
                 }
             });
-            rootDirectoriesForWatching.forEach(rootDirectoriesForWatching -> watchRegistry.getFileWatcherUpdater().discoveredHierarchyToWatch(rootDirectoriesForWatching, currentRoot));
-            rootDirectoriesForWatching.clear();
+            hierarchiesToWatch.forEach(rootDirectoriesForWatching -> watchRegistry.getFileWatcherUpdater().registerHierarchyToWatch(rootDirectoriesForWatching, currentRoot));
+            hierarchiesToWatch.clear();
             long endTime = System.currentTimeMillis() - startTime;
             LOGGER.warn("Spent {} ms registering watches for file system events", endTime);
             // TODO: Move start watching early enough so that the root is always empty

@@ -112,13 +112,13 @@ class WatchingVirtualFileSystemTest extends Specification {
         rootReference.getRoot() == nonEmptySnapshotHierarchy
     }
 
-    def "collects build root directories and notifies the vfs"() {
-        def rootDirectory = new File("root")
-        def anotherBuildRootDirectory = new File("anotherRoot")
-        def newRootDirectory = new File("newRoot")
+    def "collects hierarchies to watch and notifies the vfs"() {
+        def hierarchyToWatch = new File("root")
+        def anotherHierarchyToWatch = new File("anotherRoot")
+        def newHierarchyToWatch = new File("newRoot")
 
         when:
-        watchingHandler.registerRootDirectoryForWatching(rootDirectory)
+        watchingHandler.registerHierarchyToWatch(hierarchyToWatch)
         then:
         0 * _
 
@@ -127,14 +127,14 @@ class WatchingVirtualFileSystemTest extends Specification {
         then:
         1 * watcherRegistryFactory.createFileWatcherRegistry(_) >> watcherRegistry
         1 * watcherRegistry.fileWatcherUpdater >> fileWatcherUpdater
-        1 * fileWatcherUpdater.discoveredHierarchyToWatch(rootDirectory, _)
+        1 * fileWatcherUpdater.registerHierarchyToWatch(hierarchyToWatch, _)
         0 * _
 
         when:
-        watchingHandler.registerRootDirectoryForWatching(anotherBuildRootDirectory)
+        watchingHandler.registerHierarchyToWatch(anotherHierarchyToWatch)
         then:
         1 * watcherRegistry.fileWatcherUpdater >> fileWatcherUpdater
-        1 * fileWatcherUpdater.discoveredHierarchyToWatch(anotherBuildRootDirectory, _)
+        1 * fileWatcherUpdater.registerHierarchyToWatch(anotherHierarchyToWatch, _)
 
         when:
         watchingHandler.beforeBuildFinished(true)
@@ -145,9 +145,9 @@ class WatchingVirtualFileSystemTest extends Specification {
         0 * _
 
         when:
-        watchingHandler.registerRootDirectoryForWatching(newRootDirectory)
+        watchingHandler.registerHierarchyToWatch(newHierarchyToWatch)
         then:
         1 * watcherRegistry.fileWatcherUpdater >> fileWatcherUpdater
-        1 * fileWatcherUpdater.discoveredHierarchyToWatch(newRootDirectory, _)
+        1 * fileWatcherUpdater.registerHierarchyToWatch(newHierarchyToWatch, _)
     }
 }

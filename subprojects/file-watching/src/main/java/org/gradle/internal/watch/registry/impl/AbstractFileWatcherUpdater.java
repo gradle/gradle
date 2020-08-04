@@ -33,40 +33,41 @@ import java.util.stream.Stream;
 public abstract class AbstractFileWatcherUpdater implements FileWatcherUpdater {
     private final Predicate<String> watchFilter;
 
-    private FileHierarchySet allowedDirectoriesToWatch = DefaultFileHierarchySet.of();
+    private FileHierarchySet hierarchiesToWatch = DefaultFileHierarchySet.of();
 
     public AbstractFileWatcherUpdater(Predicate<String> watchFilter) {
         this.watchFilter = watchFilter;
     }
 
-    protected void recordDiscoveredHierarchyToWatch(File discoveredHierarchy, SnapshotHierarchy root) {
-        String discoveredHierarchyAbsolutePath = discoveredHierarchy.getAbsolutePath();
-        if (!watchFilter.test(discoveredHierarchyAbsolutePath)) {
+    protected void recordRegisteredHierarchyToWatch(File hierarchyToWatch, SnapshotHierarchy root) {
+        String hierarchyToWatchAbsolutePath = hierarchyToWatch.getAbsolutePath();
+        if (!watchFilter.test(hierarchyToWatchAbsolutePath)) {
             throw new RuntimeException(String.format(
                 "Unable to watch directory '%s' since it is within Gradle's caches",
-                discoveredHierarchyAbsolutePath
+                hierarchyToWatchAbsolutePath
             ));
         }
-        if (!allowedDirectoriesToWatch.contains(discoveredHierarchyAbsolutePath)) {
-            checkThatNothingExistsInNewHierarchyToWatch(discoveredHierarchyAbsolutePath, root);
+        if (!hierarchiesToWatch.contains(hierarchyToWatchAbsolutePath)) {
+            checkThatNothingExistsInNewHierarchyToWatch(hierarchyToWatchAbsolutePath, root);
         }
-        allowedDirectoriesToWatch = allowedDirectoriesToWatch.plus(discoveredHierarchy);
+        hierarchiesToWatch = hierarchiesToWatch.plus(hierarchyToWatch);
     }
 
-    protected SnapshotHierarchy recordAllowedHierarchiesToWatchAtEndOfBuild(Stream<File> allowedDirectoriesToWatch, SnapshotHierarchy root, Invalidator invalidator) {
-        this.allowedDirectoriesToWatch = DefaultFileHierarchySet.of(allowedDirectoriesToWatch::iterator);
+    protected SnapshotHierarchy recordHierarchiesToWatchAndRemoveUnwatchedSnapshots(Stream<File> hierarchiesToWatch, SnapshotHierarchy root, Invalidator invalidator) {
+        this.hierarchiesToWatch = DefaultFileHierarchySet.of(hierarchiesToWatch::iterator);
         RemoveUnwatchedFiles removeUnwatchedFilesVisitor = new RemoveUnwatchedFiles(root, invalidator);
         root.visitSnapshotRoots(snapshotRoot -> snapshotRoot.accept(removeUnwatchedFilesVisitor));
         return removeUnwatchedFilesVisitor.getRootWithUnwatchedFilesRemoved();
     }
 
-    private void checkThatNothingExistsInNewHierarchyToWatch(String hierarchyToWatchPath, SnapshotHierarchy root) {
-        root.visitSnapshotRoots(hierarchyToWatchPath, snapshotRoot -> {
-            if (!isInAllowedHierarchyToWatch(snapshotRoot.getAbsolutePath()) && !ignoredForWatching(snapshotRoot)) {
+    private void checkThatNothingExistsInNewHierarchyToWatch(String hierarchyToWatch, SnapshotHierarchy root) {
+        root.visitSnapshotRoots(hierarchyToWatch, snapshotRoot -> {
+            if (!isInHierarchyToWatch(snapshotRoot.getAbsolutePath()) && !ignoredForWatching(snapshotRoot)) {
                 throw new RuntimeException(String.format(
                     "Found existing snapshot at '%s' for unwatched hierarchy '%s'",
                     snapshotRoot.getAbsolutePath(),
-                    hierarchyToWatchPath));
+                    hierarchyToWatch)
+                );
             }
         });
     }
@@ -75,8 +76,8 @@ public abstract class AbstractFileWatcherUpdater implements FileWatcherUpdater {
         return snapshot.getAccessType() == FileMetadata.AccessType.VIA_SYMLINK || !watchFilter.test(snapshot.getAbsolutePath());
     }
 
-    protected boolean isInAllowedHierarchyToWatch(String path) {
-        return allowedDirectoriesToWatch.contains(path);
+    protected boolean isInHierarchyToWatch(String path) {
+        return hierarchiesToWatch.contains(path);
     }
 
     protected class CheckIfNonEmptySnapshotVisitor implements SnapshotHierarchy.SnapshotVisitor {
@@ -122,11 +123,7 @@ public abstract class AbstractFileWatcherUpdater implements FileWatcherUpdater {
 
         private boolean shouldBeRemoved(CompleteFileSystemLocationSnapshot snapshot) {
             return snapshot.getAccessType() == FileMetadata.AccessType.VIA_SYMLINK ||
-                (!isInWatchedDir(snapshot) && watchFilter.test(snapshot.getAbsolutePath()));
-        }
-
-        private boolean isInWatchedDir(CompleteFileSystemLocationSnapshot snapshot) {
-            return allowedDirectoriesToWatch.contains(snapshot.getAbsolutePath());
+                (!isInHierarchyToWatch(snapshot.getAbsolutePath()) && watchFilter.test(snapshot.getAbsolutePath()));
         }
 
         @Override

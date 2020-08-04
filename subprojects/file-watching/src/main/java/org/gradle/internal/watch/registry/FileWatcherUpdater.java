@@ -25,16 +25,17 @@ import java.util.Collection;
 
 public interface FileWatcherUpdater extends SnapshotHierarchy.SnapshotDiffListener {
     /**
-     * Changes the root project directories, e.g. when the same daemon is used on a different project.
+     * Registers a hierarchy to watch.
      *
-     * The root project directories are used by hierarchical watchers to minimize the number of watched roots
-     * by watching the root projects instead of watching directories inside.
+     * The watcher registry will only watch for changes in hierarchies to watch.
      *
      * @throws WatchingNotSupportedException when the native watchers can't be updated.
      */
-    void discoveredHierarchyToWatch(File discoveredHierarchy, SnapshotHierarchy root);
+    void registerHierarchyToWatch(File hierarchyToWatch, SnapshotHierarchy root);
 
     /**
+     * Updates the watchers after changes to the root.
+     *
      * {@inheritDoc}.
      *
      * @throws WatchingNotSupportedException when the native watchers can't be updated.
@@ -43,9 +44,9 @@ public interface FileWatcherUpdater extends SnapshotHierarchy.SnapshotDiffListen
     void changed(Collection<CompleteFileSystemLocationSnapshot> removedSnapshots, Collection<CompleteFileSystemLocationSnapshot> addedSnapshots, SnapshotHierarchy root);
 
     /**
-     * Notifies the updater that the build has been finished, so it can do some internal bookkeeping updates.
+     * Remove everything from the root which can't be kept after the current build finished.
      *
-     * Used by the hierarchical watchers to avoid stop watching root project directories during a build.
+     * This is anything which is not within a watched hierarchy or in a cache directory.
      */
     SnapshotHierarchy buildFinished(SnapshotHierarchy root);
 }

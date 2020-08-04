@@ -50,7 +50,7 @@ import java.util.stream.Stream;
  * The root project directories are discovered as included builds are encountered at the start of a build, and then they are removed when the build finishes.
  *
  * This is the lifecycle for the watched root project directories:
- * - During a build, there will be various calls to {@link FileWatcherUpdater#discoveredHierarchyToWatch(File, SnapshotHierarchy)},
+ * - During a build, there will be various calls to {@link FileWatcherUpdater#registerHierarchyToWatch(File, SnapshotHierarchy)},
  *   each call augmenting the collection. The watchers will be updated accordingly.
  * - When updating the watches, we watch root project directories or old root project directories instead of
  *   directories inside them.
@@ -67,8 +67,8 @@ public class HierarchicalFileWatcherUpdater extends AbstractFileWatcherUpdater {
 
     private final FileSystemLocationToWatchValidator locationToWatchValidator;
 
-    private final Set<Path> knownRootProjectDirectoriesFromCurrentBuild = new HashSet<>();
-    private final Set<Path> watchedRootProjectDirectoriesFromPreviousBuild = new HashSet<>();
+    private final Set<Path> hierarchiesToWatchFromCurrentBuild = new HashSet<>();
+    private final Set<Path> watchedHierarchiesFromPreviousBuild = new HashSet<>();
 
     public HierarchicalFileWatcherUpdater(FileWatcher fileWatcher, FileSystemLocationToWatchValidator locationToWatchValidator, Predicate<String> watchFilter) {
         super(watchFilter);
@@ -78,61 +78,61 @@ public class HierarchicalFileWatcherUpdater extends AbstractFileWatcherUpdater {
 
     @Override
     public void changed(Collection<CompleteFileSystemLocationSnapshot> removedSnapshots, Collection<CompleteFileSystemLocationSnapshot> addedSnapshots, SnapshotHierarchy root) {
-        determineAndUpdateDirectoriesToWatch(root);
+        determineAndUpdateWatchedHierarchies(root);
     }
 
     @Override
-    public void discoveredHierarchyToWatch(File discoveredHierarchy, SnapshotHierarchy root) {
-        recordDiscoveredHierarchyToWatch(discoveredHierarchy, root);
-        Path discoveredHierarchyPath = discoveredHierarchy.toPath().toAbsolutePath();
-        Set<Path> newKnownRootDirectoriesFromCurrentBuild = resolveHierarchiesToWatch(
+    public void registerHierarchyToWatch(File hierarchyToWatch, SnapshotHierarchy root) {
+        recordRegisteredHierarchyToWatch(hierarchyToWatch, root);
+        Path hierarchyToWatchPath = hierarchyToWatch.toPath().toAbsolutePath();
+        Set<Path> updatedHierarchiesToWatchFromCurrentBuild = resolveHierarchiesToWatch(
             ImmutableSet.<Path>builder()
-                .addAll(knownRootProjectDirectoriesFromCurrentBuild)
-                .add(discoveredHierarchyPath)
+                .addAll(hierarchiesToWatchFromCurrentBuild)
+                .add(hierarchyToWatchPath)
                 .build()
         );
-        knownRootProjectDirectoriesFromCurrentBuild.clear();
-        knownRootProjectDirectoriesFromCurrentBuild.addAll(newKnownRootDirectoriesFromCurrentBuild);
-        LOGGER.info("Now considering watching {} as root project directories", knownRootProjectDirectoriesFromCurrentBuild);
+        hierarchiesToWatchFromCurrentBuild.clear();
+        hierarchiesToWatchFromCurrentBuild.addAll(updatedHierarchiesToWatchFromCurrentBuild);
+        LOGGER.info("Now considering watching {} as hierarchies to watch", hierarchiesToWatchFromCurrentBuild);
 
-        watchedRootProjectDirectoriesFromPreviousBuild.removeAll(knownRootProjectDirectoriesFromCurrentBuild);
+        watchedHierarchiesFromPreviousBuild.removeAll(hierarchiesToWatchFromCurrentBuild);
 
-        determineAndUpdateDirectoriesToWatch(root);
+        determineAndUpdateWatchedHierarchies(root);
     }
 
     @Override
     public SnapshotHierarchy buildFinished(SnapshotHierarchy root) {
-        watchedRootProjectDirectoriesFromPreviousBuild.clear();
-        watchedRootProjectDirectoriesFromPreviousBuild.addAll(watchedHierarchies);
-        knownRootProjectDirectoriesFromCurrentBuild.clear();
+        watchedHierarchiesFromPreviousBuild.clear();
+        watchedHierarchiesFromPreviousBuild.addAll(watchedHierarchies);
+        hierarchiesToWatchFromCurrentBuild.clear();
 
-        SnapshotHierarchy newRoot = recordAllowedHierarchiesToWatchAtEndOfBuild(
+        SnapshotHierarchy newRoot = recordHierarchiesToWatchAndRemoveUnwatchedSnapshots(
             watchedHierarchies.stream().map(Path::toFile),
             root,
             (location, currentRoot) -> currentRoot.invalidate(location, SnapshotHierarchy.NodeDiffListener.NOOP)
         );
 
-        determineAndUpdateDirectoriesToWatch(newRoot);
+        determineAndUpdateWatchedHierarchies(newRoot);
         LOGGER.warn("Watching {} directory hierarchies to track changes", watchedHierarchies.size());
         LOGGER.info("Watched directory hierarchies: {}", watchedHierarchies);
         return newRoot;
     }
 
-    private void determineAndUpdateDirectoriesToWatch(SnapshotHierarchy root) {
-        Set<String> snapshotsAlreadyCoveredByOtherRoots = new HashSet<>();
-        Set<Path> directoriesWithStuffInside = Stream.concat(knownRootProjectDirectoriesFromCurrentBuild.stream(), watchedRootProjectDirectoriesFromPreviousBuild.stream())
-            .flatMap(locationToWatch -> {
+    private void determineAndUpdateWatchedHierarchies(SnapshotHierarchy root) {
+        Set<String> snapshotsAlreadyCoveredByOtherHierarchies = new HashSet<>();
+        Set<Path> hierarchiesWithSnapshots = Stream.concat(hierarchiesToWatchFromCurrentBuild.stream(), watchedHierarchiesFromPreviousBuild.stream())
+            .flatMap(hierarchyToWatch -> {
                 CheckIfNonEmptySnapshotVisitor checkIfNonEmptySnapshotVisitor = new CheckIfNonEmptySnapshotVisitor();
-                root.visitSnapshotRoots(locationToWatch.toString(), new FilterAlreadyCoveredSnapshotsVisitor(checkIfNonEmptySnapshotVisitor, snapshotsAlreadyCoveredByOtherRoots));
+                root.visitSnapshotRoots(hierarchyToWatch.toString(), new FilterAlreadyCoveredSnapshotsVisitor(checkIfNonEmptySnapshotVisitor, snapshotsAlreadyCoveredByOtherHierarchies));
                 if (checkIfNonEmptySnapshotVisitor.isEmpty()) {
                     return Stream.empty();
                 }
                 return checkIfNonEmptySnapshotVisitor.containsOnlyMissingFiles()
-                    ? Stream.of(locationOrFirstExistingAncestor(locationToWatch))
-                    : Stream.of(locationToWatch);
+                    ? Stream.of(locationOrFirstExistingAncestor(hierarchyToWatch))
+                    : Stream.of(hierarchyToWatch);
             })
             .collect(Collectors.toSet());
-        updateWatchedHierarchies(resolveHierarchiesToWatch(directoriesWithStuffInside));
+        updateWatchedHierarchies(resolveHierarchiesToWatch(hierarchiesWithSnapshots));
     }
 
     private Path locationOrFirstExistingAncestor(Path locationToWatch) {
@@ -142,13 +142,13 @@ public class HierarchicalFileWatcherUpdater extends AbstractFileWatcherUpdater {
         return SnapshotWatchedDirectoryFinder.findFirstExistingAncestor(locationToWatch);
     }
 
-    private void updateWatchedHierarchies(Set<Path> newHierarchiesToWatch) {
-        if (newHierarchiesToWatch.isEmpty()) {
+    private void updateWatchedHierarchies(Set<Path> newWatchedHierarchies) {
+        if (newWatchedHierarchies.isEmpty()) {
             LOGGER.info("Not watching anything anymore");
         }
         Set<Path> hierarchiesToStopWatching = new HashSet<>(watchedHierarchies);
-        Set<Path> hierarchiesToStartWatching = new HashSet<>(newHierarchiesToWatch);
-        hierarchiesToStopWatching.removeAll(newHierarchiesToWatch);
+        Set<Path> hierarchiesToStartWatching = new HashSet<>(newWatchedHierarchies);
+        hierarchiesToStopWatching.removeAll(newWatchedHierarchies);
         hierarchiesToStartWatching.removeAll(watchedHierarchies);
         if (hierarchiesToStartWatching.isEmpty() && hierarchiesToStopWatching.isEmpty()) {
             return;

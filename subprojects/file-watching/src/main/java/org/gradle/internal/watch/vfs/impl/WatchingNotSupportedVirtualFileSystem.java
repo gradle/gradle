@@ -57,7 +57,7 @@ public class WatchingNotSupportedVirtualFileSystem implements BuildLifecycleAwar
     }
 
     @Override
-    public void registerRootDirectoryForWatching(File rootDirectoryForWatching) {
+    public void registerHierarchyToWatch(File rootDirectoryForWatching) {
     }
 
     @Override

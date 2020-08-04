@@ -349,9 +349,9 @@ class WatchedDirectoriesFileSystemWatchingIntegrationTest extends AbstractFileSy
 
     private static List<Set<File>> determineWatchedBuildRootDirectories(String output) {
         output.readLines()
-            .findAll { it.contains("] as root project directories") }
+            .findAll { it.contains("] as hierarchies to watch") }
             .collect { line ->
-                def matcher = line =~ /Now considering watching \[(.*)] as root project directories/
+                def matcher = line =~ /Now considering watching \[(.*)] as hierarchies to watch/
                 String directories = matcher[0][1]
                 return directories.split(', ').collect { new File(it) } as Set
             }
