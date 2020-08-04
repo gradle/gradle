@@ -16,6 +16,7 @@
 
 package org.gradle.util
 
+import org.junit.Test
 import spock.lang.Specification
 
 class NameMatcherTest extends Specification {
@@ -62,6 +63,10 @@ class NameMatcherTest extends Specification {
         matches("a9N", "a9Name")
         matches("a9N", "abc9Name")
         matches("a9n", "abc9Name")
+    }
+
+    def "selects item with matching kebab-case prefix"() {
+        matches("sN", "some-name");
     }
 
     def "prefers exact match over case insensitive match"() {
