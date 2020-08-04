@@ -24,7 +24,7 @@ import static java.util.Collections.singletonMap
 import static org.gradle.util.WrapUtil.toList
 
 /*TODO rename to NameMatcherSpec and remove origin */
-class NameMatcherSpec extends Specification {
+class NameMatcherTest extends Specification {
 
     @Shared
     NameMatcher matcher
