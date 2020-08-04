@@ -20,6 +20,8 @@ package org.gradle.api.tasks.compile
 import org.gradle.integtests.fixtures.AbstractPluginIntegrationTest
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.internal.jvm.Jvm
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import spock.lang.IgnoreIf
 import spock.lang.Unroll
 
@@ -90,6 +92,32 @@ class JavaCompileToolchainIntegrationTest extends AbstractPluginIntegrationTest 
 
         then:
         outputContains("Compiling with toolchain '${someJdk.javaHome.absolutePath}'.")
+        javaClassFile("Foo.class").exists()
+    }
+
+    @Requires(TestPrecondition.JDK8)
+    def "uses matching compatibility options for source and target level"() {
+        def jdk9 = AvailableJavaHomes.jdk9
+        buildFile << """
+            apply plugin: "java"
+
+            java {
+                toolchain {
+                    languageVersion = JavaVersion.VERSION_1_9
+                }
+            }
+        """
+
+        file("src/main/java/Foo.java") << "public interface Foo { private void init() { }}"
+
+        when:
+        result = executer
+            .withArguments("-Porg.gradle.java.installations.paths=" + jdk9.javaHome.absolutePath, "--info")
+            .withTasks("compileJava")
+            .run()
+
+        then:
+        outputContains("Compiling with toolchain '${jdk9.javaHome.absolutePath}'.")
         javaClassFile("Foo.class").exists()
     }
 

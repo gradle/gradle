@@ -34,6 +34,10 @@ public class DefaultToolchainJavaCompiler implements JavaCompiler {
         this.compilerFactory = compilerFactory;
     }
 
+    public JavaToolchain getJavaToolchain() {
+        return javaToolchain;
+    }
+
     @SuppressWarnings("unchecked")
     public <T extends CompileSpec> WorkResult execute(T spec) {
         LOGGER.info("Compiling with toolchain '{}'.", javaToolchain.getDisplayName());
