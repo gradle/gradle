@@ -37,7 +37,7 @@ class NameMatcherSpec extends Specification {
 
     def "selects exact match"() {
         expect:
-        matches("name", "name") /*TODO use single quotes where possible*/
+        matches("name", "name")
         matches("name", "name", "other")
     }
 
