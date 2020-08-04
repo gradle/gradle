@@ -37,95 +37,95 @@ class NameMatcherSpec extends Specification {
 
     def selectsExactMatch() /*TODO rename to full sentences*/ {
         expect:
-        assertMatches("name", "name"); /*TODO remove semicolon*/ /*TODO use single quotes where possible*/
-        assertMatches("name", "name", "other");
+        assertMatches("name", "name") /*TODO use single quotes where possible*/
+        assertMatches("name", "name", "other")
     }
 
     /*TODO convert to parameterized test */
     def selectsItemWithMatchingPrefix() {
         expect:
-        assertMatches("na", "name");
-        assertMatches("na", "name", "other");
+        assertMatches("na", "name")
+        assertMatches("na", "name", "other")
         // Mixed case
-        assertMatches("na", "Name");
-        assertMatches("NA", "name");
-        assertMatches("somena", "someName");
-        assertMatches("somena", "SomeName");
-        assertMatches("somena", "SomeName");
-        assertMatches("some na", "Some Name");
+        assertMatches("na", "Name")
+        assertMatches("NA", "name")
+        assertMatches("somena", "someName")
+        assertMatches("somena", "SomeName")
+        assertMatches("somena", "SomeName")
+        assertMatches("some na", "Some Name")
     }
 
     def selectsItemWithMatchingCamelCasePrefix() {
         expect:
-        assertMatches("sN", "someName");
-        assertMatches("soN", "someName");
-        assertMatches("SN", "someName");
-        assertMatches("SN", "SomeName");
-        assertMatches("SN", "SomeNameWithExtraStuff");
-        assertMatches("so_n", "some_name");
-        assertMatches("so_n", "some_Name");
-        assertMatches("so_n_wi_ext", "some_Name_with_EXTRA");
-        assertMatches("so.n", "some.name");
-        assertMatches("so n", "some name");
-        assertMatches("ABC", "ABC");
-        assertMatches("a9N", "a9Name");
-        assertMatches("a9N", "abc9Name");
-        assertMatches("a9n", "abc9Name");
+        assertMatches("sN", "someName")
+        assertMatches("soN", "someName")
+        assertMatches("SN", "someName")
+        assertMatches("SN", "SomeName")
+        assertMatches("SN", "SomeNameWithExtraStuff")
+        assertMatches("so_n", "some_name")
+        assertMatches("so_n", "some_Name")
+        assertMatches("so_n_wi_ext", "some_Name_with_EXTRA")
+        assertMatches("so.n", "some.name")
+        assertMatches("so n", "some name")
+        assertMatches("ABC", "ABC")
+        assertMatches("a9N", "a9Name")
+        assertMatches("a9N", "abc9Name")
+        assertMatches("a9n", "abc9Name")
     }
 
     def prefersExactMatchOverCaseInsensitiveMatch() {
         expect:
-        assertMatches("name", "name", "Name", "NAME");
-        assertMatches("someName", "someName", "SomeName", "somename", "SOMENAME");
-        assertMatches("some Name", "some Name", "Some Name", "some name", "SOME NAME");
+        assertMatches("name", "name", "Name", "NAME")
+        assertMatches("someName", "someName", "SomeName", "somename", "SOMENAME")
+        assertMatches("some Name", "some Name", "Some Name", "some name", "SOME NAME")
     }
 
     def prefersExactMatchOverPartialMatch() {
         expect:
-        assertMatches("name", "name", "nam", "n", "NAM");
+        assertMatches("name", "name", "nam", "n", "NAM")
     }
 
     def prefersExactMatchOverPrefixMatch() {
         expect:
-        assertMatches("someName", "someName", "someNameWithExtra");
+        assertMatches("someName", "someName", "someNameWithExtra")
     }
 
     def prefersExactMatchOverCamelCaseMatch() {
         expect:
-        assertMatches("sName", "sName", "someName", "sNames");
-        assertMatches("so Name", "so Name", "some Name", "so name");
-        assertMatches("ABC", "ABC", "AaBbCc");
+        assertMatches("sName", "sName", "someName", "sNames")
+        assertMatches("so Name", "so Name", "some Name", "so name")
+        assertMatches("ABC", "ABC", "AaBbCc")
     }
 
     def prefersFullCamelCaseMatchOverCamelCasePrefix() {
         expect:
-        assertMatches("sN", "someName", "someNameWithExtra");
-        assertMatches("name", "names", "nameWithExtra");
-        assertMatches("s_n", "some_name", "some_name_with_extra");
+        assertMatches("sN", "someName", "someNameWithExtra")
+        assertMatches("name", "names", "nameWithExtra")
+        assertMatches("s_n", "some_name", "some_name_with_extra")
     }
 
     def prefersCaseSensitiveCamelCaseMatchOverCaseInsensitiveCamelCaseMatch() {
         expect:
-        assertMatches("soNa", "someName", "somename");
-        assertMatches("SN", "SomeName", "someName");
-        assertMatches("na1", "name1", "Name1", "NAME1");
+        assertMatches("soNa", "someName", "somename")
+        assertMatches("SN", "SomeName", "someName")
+        assertMatches("na1", "name1", "Name1", "NAME1")
     }
 
     def prefersCaseInsensitiveMatchOverCamelCaseMatch() {
         expect:
-        assertMatches("somename", "someName", "someNameWithExtra");
-        assertMatches("soNa", "sona", "someName");
+        assertMatches("somename", "someName", "someNameWithExtra")
+        assertMatches("soNa", "sona", "someName")
     }
 
     def doesNotSelectItemsWhenNoMatches() {
         expect:
-        assertDoesNotMatch("name");
-        assertDoesNotMatch("name", "other");
-        assertDoesNotMatch("name", "na");
-        assertDoesNotMatch("sN", "otherName");
-        assertDoesNotMatch("sA", "someThing");
-        assertDoesNotMatch("soN", "saN");
-        assertDoesNotMatch("soN", "saName");
+        assertDoesNotMatch("name")
+        assertDoesNotMatch("name", "other")
+        assertDoesNotMatch("name", "na")
+        assertDoesNotMatch("sN", "otherName")
+        assertDoesNotMatch("sA", "someThing")
+        assertDoesNotMatch("soN", "saN")
+        assertDoesNotMatch("soN", "saName")
     }
 
     def doesNotSelectItemsWhenMultipleCamelCaseMatches() {
@@ -142,17 +142,17 @@ class NameMatcherSpec extends Specification {
 
     def emptyPatternDoesNotSelectAnything() {
         expect:
-        assertDoesNotMatch("", "something");
+        assertDoesNotMatch("", "something")
     }
 
     def escapesRegexpChars() {
         expect:
-        assertDoesNotMatch("name\\othername", "other");
+        assertDoesNotMatch("name\\othername", "other")
     }
 
     def reportsPotentialMatches() {
         expect:
-        matcher.find("name", toList("tame", "lame", "other")) == null;
+        matcher.find("name", toList("tame", "lame", "other")) == null
         matcher.getMatches().empty // TODO convert all getters to accessors
         matcher.getCandidates() == ["tame", "lame"] as Set
     }
@@ -174,13 +174,13 @@ class NameMatcherSpec extends Specification {
 
     def doesNotSelectMapEntryWhenMultiplePartialMatches() {
         expect:
-        Map<String, Integer> items = Cast.uncheckedNonnullCast(GUtil.map("someName", 9, "soName", 10));
+        Map<String, Integer> items = Cast.uncheckedNonnullCast(GUtil.map("someName", 9, "soName", 10))
         matcher.find("soNa", items) == null
     }
 
     def buildsErrorMessageForNoMatches() {
         setup:
-        matcher.find("name", toList("other"));
+        matcher.find("name", toList("other"))
 
         expect: // TODO remove assertThat everywhere
         matcher.formatErrorMessage("thing", "container") == "Thing 'name' not found in container."
@@ -188,7 +188,7 @@ class NameMatcherSpec extends Specification {
 
     def buildsErrorMessageForMultipleMatches() {
         setup:
-        matcher.find("n", toList("number", "name", "other"));
+        matcher.find("n", toList("number", "name", "other"))
 
         expect:
         matcher.formatErrorMessage("thing", "container") == "Thing 'n' is ambiguous in container. Candidates are: 'name', 'number'."
@@ -196,7 +196,7 @@ class NameMatcherSpec extends Specification {
 
     def buildsErrorMessageForPotentialMatches() {
         setup:
-        matcher.find("name", toList("other", "lame", "tame"));
+        matcher.find("name", toList("other", "lame", "tame"))
 
         expect:
         matcher.formatErrorMessage("thing", "container") == "Thing 'name' not found in container. Some candidates are: 'lame', 'tame'."
