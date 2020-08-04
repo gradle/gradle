@@ -41,7 +41,6 @@ class NameMatcherSpec extends Specification {
         matches("name", "name", "other")
     }
 
-    /*TODO convert to parameterized test */
     def "selects item with matching prefix"() {
         expect:
         matches("na", "name")
@@ -204,7 +203,6 @@ class NameMatcherSpec extends Specification {
         matcher.formatErrorMessage("thing", "container") == "Thing 'name' not found in container. Some candidates are: 'lame', 'tame'."
     }
 
-    /*TODO rename to matches() */
     def matches(String name, String match, String... extraItems) {
         List<String> allItems = newArrayList(concat(toList(match), toList(extraItems))) // TODO make groovier
         matcher.find(name, allItems) == match && matcher.getMatches() == [match] as Set
