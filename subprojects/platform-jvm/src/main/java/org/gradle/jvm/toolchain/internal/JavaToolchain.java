@@ -18,8 +18,6 @@ package org.gradle.jvm.toolchain.internal;
 
 import org.gradle.api.Describable;
 import org.gradle.api.JavaVersion;
-import org.gradle.api.internal.provider.Providers;
-import org.gradle.api.provider.Provider;
 import org.gradle.jvm.toolchain.JavaCompiler;
 import org.gradle.jvm.toolchain.JavaInstallation;
 
