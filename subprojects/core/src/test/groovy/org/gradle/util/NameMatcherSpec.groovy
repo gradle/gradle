@@ -20,8 +20,6 @@ import org.gradle.internal.Cast
 import spock.lang.Shared
 import spock.lang.Specification
 
-import static com.google.common.collect.Iterables.concat
-import static com.google.common.collect.Lists.newArrayList
 import static java.util.Collections.singletonMap
 import static org.gradle.util.WrapUtil.toList
 
@@ -204,8 +202,7 @@ class NameMatcherSpec extends Specification {
     }
 
     def matches(String name, String match, String... extraItems) {
-        List<String> allItems = newArrayList(concat(toList(match), toList(extraItems))) // TODO make groovier
-        matcher.find(name, allItems) == match && matcher.getMatches() == [match] as Set
+        matcher.find(name, [match] + (extraItems as List)) == match && matcher.getMatches() == [match] as Set
     }
 
     def doesNotMatch(String name, String... items) {
