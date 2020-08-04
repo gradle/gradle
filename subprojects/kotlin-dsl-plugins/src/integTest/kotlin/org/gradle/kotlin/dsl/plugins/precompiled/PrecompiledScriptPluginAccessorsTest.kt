@@ -21,6 +21,8 @@ import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.inOrder
 import com.nhaarman.mockito_kotlin.mock
 
+import org.codehaus.groovy.runtime.StringGroovyMethods
+
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.plugins.PluginManager
@@ -59,6 +61,71 @@ import java.io.File
 
 @LeaksFileHandles("Kotlin Compiler Daemon working directory")
 class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest() {
+
+    @ToBeFixedForInstantExecution
+    @Test
+    fun `can use type-safe accessors for plugin relying on gradleProperty provider`() {
+
+        withFolders {
+            "buildSrc" {
+                "gradlePropertyPlugin" {
+                    withKotlinDslPlugin()
+                    withFile("src/main/kotlin/gradlePropertyPlugin.gradle.kts", """
+                        val property = providers.gradleProperty("theGradleProperty").forUseAtConfigurationTime()
+                        if (property.isPresent) {
+                            println("property is present in plugin!")
+                        }
+                        extensions.add<Provider<String>>(
+                            "theGradleProperty",
+                            property
+                        )
+                    """)
+                }
+                "gradlePropertyPluginConsumer" {
+                    withKotlinDslPlugin().appendText("""
+                        dependencies {
+                            implementation(project(":gradlePropertyPlugin"))
+                        }
+                    """)
+                    withFile("src/main/kotlin/gradlePropertyPluginConsumer.gradle.kts", """
+                        plugins { id("gradlePropertyPlugin") }
+
+                        if (theGradleProperty.isPresent) {
+                            println("property is present in consumer!")
+                        }
+                    """)
+                }
+
+                withDefaultSettingsIn(relativePath).appendText("""
+                    include("gradlePropertyPlugin")
+                    include("gradlePropertyPluginConsumer")
+                """)
+                withBuildScriptIn(relativePath, """
+                    plugins { `java-library` }
+                    dependencies {
+                        subprojects.forEach {
+                            runtimeOnly(project(it.path))
+                        }
+                    }
+                """)
+            }
+        }
+
+        withBuildScript("""
+            plugins { gradlePropertyPluginConsumer }
+        """)
+
+        build("help", "-PtheGradleProperty=42").apply {
+            assertThat(
+                output.count("property is present in plugin!"),
+                equalTo(1) // not printed when building buildSrc
+            )
+            assertThat(
+                output.count("property is present in consumer!"),
+                equalTo(1)
+            )
+        }
+    }
 
     @ToBeFixedForInstantExecution
     @Test
@@ -653,4 +720,8 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
         }
         return Pair(project, pluginManager)
     }
+
+    private
+    fun CharSequence.count(text: CharSequence): Int =
+        StringGroovyMethods.count(this, text)
 }
