@@ -31,7 +31,7 @@ dependencies {
         api("me.champeau.gradle:japicmp-gradle-plugin:0.2.9")
         api("me.champeau.gradle:jmh-gradle-plugin:0.5.0")
         api("org.asciidoctor:asciidoctor-gradle-plugin:1.5.10")
-        api("org.gradle:test-retry-gradle-plugin:1.1.6")
+        api("org.gradle:test-retry-gradle-plugin:1.1.7")
         api("org.gradle.kotlin:gradle-kotlin-dsl-conventions:0.5.0")
 
         // Java Libraries
