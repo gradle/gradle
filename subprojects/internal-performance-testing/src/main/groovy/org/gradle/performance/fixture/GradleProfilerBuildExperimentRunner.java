@@ -142,7 +142,11 @@ public class GradleProfilerBuildExperimentRunner extends AbstractBuildExperiment
     private InvocationSettings createInvocationSettings(GradleInvocationSpec invocationSpec, GradleBuildExperimentSpec experiment) {
         File outputDir = flameGraphGenerator.getJfrOutputDirectory(experiment);
         GradleBuildInvoker daemonInvoker = invocationSpec.getUseToolingApi() ? GradleBuildInvoker.ToolingApi : GradleBuildInvoker.Cli;
-        GradleBuildInvoker invoker = invocationSpec.isUseDaemon() ? daemonInvoker : daemonInvoker.withColdDaemon();
+        GradleBuildInvoker invoker = invocationSpec.isUseDaemon()
+            ? daemonInvoker
+            : (daemonInvoker == GradleBuildInvoker.ToolingApi
+                ? daemonInvoker.withColdDaemon()
+                : GradleBuildInvoker.CliNoDaemon);
         return new InvocationSettings(
             invocationSpec.getWorkingDirectory(),
             profiler,
