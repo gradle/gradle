@@ -27,9 +27,9 @@ public class SnapshotCollectingDiffListener implements SnapshotHierarchy.NodeDif
     private final List<CompleteFileSystemLocationSnapshot> removedSnapshots = new ArrayList<>();
     private final List<CompleteFileSystemLocationSnapshot> addedSnapshots = new ArrayList<>();
 
-    public void publishSnapshotDiff(SnapshotHierarchy.SnapshotDiffListener snapshotDiffListener, SnapshotHierarchy root) {
+    public void publishSnapshotDiff(SnapshotHierarchy.SnapshotDiffListener snapshotDiffListener) {
         if (!removedSnapshots.isEmpty() || !addedSnapshots.isEmpty()) {
-            snapshotDiffListener.changed(removedSnapshots, addedSnapshots, root);
+            snapshotDiffListener.changed(removedSnapshots, addedSnapshots);
         }
     }
 

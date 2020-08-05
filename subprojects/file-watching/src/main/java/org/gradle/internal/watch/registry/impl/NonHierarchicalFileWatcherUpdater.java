@@ -59,7 +59,7 @@ public class NonHierarchicalFileWatcherUpdater implements FileWatcherUpdater {
     }
 
     @Override
-    public void changed(Collection<CompleteFileSystemLocationSnapshot> removedSnapshots, Collection<CompleteFileSystemLocationSnapshot> addedSnapshots, SnapshotHierarchy root) {
+    public void virtualFileSystemContentsChanged(Collection<CompleteFileSystemLocationSnapshot> removedSnapshots, Collection<CompleteFileSystemLocationSnapshot> addedSnapshots, SnapshotHierarchy root) {
         Map<String, Integer> changedWatchedDirectories = new HashMap<>();
 
         removedSnapshots.stream()
@@ -102,7 +102,7 @@ public class NonHierarchicalFileWatcherUpdater implements FileWatcherUpdater {
             (location, currentRoot) -> {
                 SnapshotCollectingDiffListener diffListener = new SnapshotCollectingDiffListener();
                 SnapshotHierarchy invalidatedRoot = currentRoot.invalidate(location, diffListener);
-                diffListener.publishSnapshotDiff(NonHierarchicalFileWatcherUpdater.this, invalidatedRoot);
+                diffListener.publishSnapshotDiff((removedSnapshots, addedSnapshots) -> virtualFileSystemContentsChanged(removedSnapshots, addedSnapshots, invalidatedRoot));
                 return invalidatedRoot;
             }
         );

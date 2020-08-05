@@ -63,7 +63,9 @@ abstract class AbstractFileWatcherUpdaterTest extends Specification {
         void update(VirtualFileSystem.UpdateFunction updateFunction) {
             def diffListener = new SnapshotCollectingDiffListener()
             root = updateFunction.update(root, diffListener)
-            diffListener.publishSnapshotDiff(updater, root)
+            diffListener.publishSnapshotDiff {removed, added ->
+                updater.virtualFileSystemContentsChanged(removed, added, root)
+            }
         }
     }
 

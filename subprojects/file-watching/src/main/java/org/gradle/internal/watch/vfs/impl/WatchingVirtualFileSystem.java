@@ -85,7 +85,7 @@ public class WatchingVirtualFileSystem implements BuildLifecycleAwareVirtualFile
         } else {
             SnapshotCollectingDiffListener diffListener = new SnapshotCollectingDiffListener();
             SnapshotHierarchy newRoot = updateFunction.update(currentRoot, diffListener);
-            return withWatcherChangeErrorHandling(newRoot, () -> diffListener.publishSnapshotDiff(watchRegistry.getFileWatcherUpdater(), newRoot));
+            return withWatcherChangeErrorHandling(newRoot, () -> diffListener.publishSnapshotDiff((removedSnapshots, addedSnapshots) -> watchRegistry.getFileWatcherUpdater().virtualFileSystemContentsChanged(removedSnapshots, addedSnapshots, newRoot)));
         }
     }
 

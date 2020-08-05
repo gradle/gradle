@@ -24,7 +24,7 @@ import javax.annotation.CheckReturnValue;
 import java.io.File;
 import java.util.Collection;
 
-public interface FileWatcherUpdater extends SnapshotHierarchy.SnapshotDiffListener {
+public interface FileWatcherUpdater {
     /**
      * Registers a watchable hierarchy.
      *
@@ -37,12 +37,9 @@ public interface FileWatcherUpdater extends SnapshotHierarchy.SnapshotDiffListen
     /**
      * Updates the watchers after changes to the root.
      *
-     * {@inheritDoc}.
-     *
      * @throws WatchingNotSupportedException when the native watchers can't be updated.
      */
-    @Override
-    void changed(Collection<CompleteFileSystemLocationSnapshot> removedSnapshots, Collection<CompleteFileSystemLocationSnapshot> addedSnapshots, SnapshotHierarchy root);
+    void virtualFileSystemContentsChanged(Collection<CompleteFileSystemLocationSnapshot> removedSnapshots, Collection<CompleteFileSystemLocationSnapshot> addedSnapshots, SnapshotHierarchy root);
 
     /**
      * Remove everything from the root which can't be kept after the current build finished.
