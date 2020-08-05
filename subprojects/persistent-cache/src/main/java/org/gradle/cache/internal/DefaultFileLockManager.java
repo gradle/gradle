@@ -137,7 +137,7 @@ public class DefaultFileLockManager implements FileLockManager {
             this.port = port;
             this.lockId = generator.generateId();
             if (options.getMode() == LockMode.OnDemand) {
-                throw new UnsupportedOperationException("Locking mode None is not supported.");
+                throw new UnsupportedOperationException("Locking mode OnDemand is not supported.");
             }
 
             this.target = target;
