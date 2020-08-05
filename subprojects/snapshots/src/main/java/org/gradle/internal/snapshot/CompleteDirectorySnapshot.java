@@ -82,7 +82,10 @@ public class CompleteDirectorySnapshot extends AbstractCompleteFileSystemLocatio
 
     @Override
     protected ReadOnlyFileSystemNode getChildNode(VfsRelativePath relativePath, CaseSensitivity caseSensitivity) {
-        return SnapshotUtil.getChild(children, relativePath, caseSensitivity);
+        ReadOnlyFileSystemNode childNode = SnapshotUtil.getChild(children, relativePath, caseSensitivity);
+        return childNode == ReadOnlyFileSystemNode.EMPTY
+            ? missingSnapshotForAbsolutePath(relativePath.getAbsolutePath())
+            : childNode;
     }
 
     @Override
