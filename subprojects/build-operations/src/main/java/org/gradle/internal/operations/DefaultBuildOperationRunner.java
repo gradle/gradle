@@ -72,7 +72,7 @@ public class DefaultBuildOperationRunner implements BuildOperationRunner {
                     }
                     listener.stop(operationState, context);
                     if (failure != null) {
-                        throw throwAsUncheckedException(failure);
+                        throw throwAsBuildOperationInvocationException(failure);
                     }
                     return buildOperation;
                 } finally {
@@ -219,7 +219,7 @@ public class DefaultBuildOperationRunner implements BuildOperationRunner {
         long getCurrentTime();
     }
 
-    private static RuntimeException throwAsUncheckedException(Throwable t) {
+    private static RuntimeException throwAsBuildOperationInvocationException(Throwable t) {
         if (t instanceof InterruptedException) {
             Thread.currentThread().interrupt();
         }
@@ -229,7 +229,7 @@ public class DefaultBuildOperationRunner implements BuildOperationRunner {
         if (t instanceof Error) {
             throw (Error) t;
         }
-        throw new RuntimeException(t.getMessage(), t);
+        throw new BuildOperationInvocationException(t.getMessage(), t);
     }
 
     protected long getCurrentTime() {
