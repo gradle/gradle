@@ -17,6 +17,7 @@
 package org.gradle.internal.service.scopes;
 
 import org.gradle.StartParameter;
+import org.gradle.api.Action;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.DefaultCollectionCallbackActionDecorator;
 import org.gradle.concurrent.ParallelismConfiguration;
@@ -32,13 +33,20 @@ import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.logging.sink.OutputEventListenerManager;
+import org.gradle.internal.operations.BuildOperation;
+import org.gradle.internal.operations.BuildOperationContext;
+import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationIdFactory;
 import org.gradle.internal.operations.BuildOperationListenerManager;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
+import org.gradle.internal.operations.BuildOperationQueue;
+import org.gradle.internal.operations.BuildOperationRef;
+import org.gradle.internal.operations.BuildOperationWorker;
+import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.internal.operations.DefaultBuildOperationExecutor;
 import org.gradle.internal.operations.DefaultBuildOperationQueueFactory;
-import org.gradle.internal.operations.DelegatingBuildOperationExecutor;
+import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.operations.logging.LoggingBuildOperationProgressBroadcaster;
 import org.gradle.internal.operations.notify.BuildOperationNotificationBridge;
 import org.gradle.internal.operations.notify.BuildOperationNotificationValve;
@@ -102,7 +110,38 @@ public class CrossBuildSessionScopeServices implements Closeable {
 
     BuildOperationExecutor createBuildOperationExecutor() {
         // Wrap to prevent exposing Stoppable, as we don't want to stop at this scope
-        return new DelegatingBuildOperationExecutor(services.get(BuildOperationExecutor.class));
+        BuildOperationExecutor delegate = services.get(BuildOperationExecutor.class);
+        return new BuildOperationExecutor() {
+            @Override
+            public <O extends RunnableBuildOperation> void runAll(Action<BuildOperationQueue<O>> schedulingAction) {
+                delegate.runAll(schedulingAction);
+            }
+
+            @Override
+            public <O extends BuildOperation> void runAll(BuildOperationWorker<O> worker, Action<BuildOperationQueue<O>> schedulingAction) {
+                delegate.runAll(worker, schedulingAction);
+            }
+
+            @Override
+            public void run(RunnableBuildOperation buildOperation) {
+                delegate.run(buildOperation);
+            }
+
+            @Override
+            public <T> T call(CallableBuildOperation<T> buildOperation) {
+                return delegate.call(buildOperation);
+            }
+
+            @Override
+            public BuildOperationContext start(BuildOperationDescriptor.Builder descriptor) {
+                return delegate.start(descriptor);
+            }
+
+            @Override
+            public BuildOperationRef getCurrentOperation() {
+                return delegate.getCurrentOperation();
+            }
+        };
     }
 
     ListenerBuildOperationDecorator createListenerBuildOperationDecorator() {
