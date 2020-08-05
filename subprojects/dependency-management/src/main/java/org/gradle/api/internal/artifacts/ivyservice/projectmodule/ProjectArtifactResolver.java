@@ -48,13 +48,11 @@ public class ProjectArtifactResolver implements ArtifactResolver {
     public void resolveArtifact(ComponentArtifactMetadata artifact, ModuleSources moduleSources, BuildableArtifactResolveResult result) {
         final LocalComponentArtifactMetadata projectArtifact = (LocalComponentArtifactMetadata) artifact;
         ProjectComponentIdentifier projectId = (ProjectComponentIdentifier) artifact.getComponentId();
-        projectStateRegistry.stateFor(projectId).withMutableState(() -> {
-            File localArtifactFile = projectArtifact.getFile();
-            if (localArtifactFile != null) {
-                result.resolved(localArtifactFile);
-            } else {
-                result.notFound(projectArtifact.getId());
-            }
-        });
+        File localArtifactFile = projectStateRegistry.stateFor(projectId).withMutableState(() -> projectArtifact.getFile());
+        if (localArtifactFile != null) {
+            result.resolved(localArtifactFile);
+        } else {
+            result.notFound(projectArtifact.getId());
+        }
     }
 }

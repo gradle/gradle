@@ -24,6 +24,7 @@ import org.gradle.api.internal.artifacts.transform.DefaultTransformer
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.FileLookup
+import org.gradle.api.internal.initialization.RootScriptDomainObjectContext
 import org.gradle.api.tasks.FileNormalizer
 import org.gradle.instantexecution.serialization.Codec
 import org.gradle.instantexecution.serialization.ReadContext
@@ -105,6 +106,7 @@ class DefaultTransformerCodec(
             fileLookup,
             parameterScheme.inspectionScheme.propertyWalker,
             actionScheme.instantiationScheme,
+            RootScriptDomainObjectContext.INSTANCE.model,
             isolate.owner.service(ServiceRegistry::class.java)
         )
     }

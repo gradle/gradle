@@ -90,20 +90,20 @@ task copyFiles(type:Copy) {
         mavenRepo.module('org.test', 'module2', '1.0').publish()
 
         given:
-        buildFile << """            
-            plugins { 
+        buildFile << """
+            plugins {
                 id 'java'
             }
-            
+
             repositories {
                 maven { url '${mavenRepo.uri}' }
             }
-            
+
             dependencies {
                 implementation('org.test:module1:1.0')
                 testImplementation('org.test:module2:1.0')
             }
-            
+
             configurations.all { configuration ->
                 configuration.incoming.beforeResolve { resolvableDependencies ->
                     resolvableDependencies.dependencies.each { dependency ->
@@ -111,7 +111,7 @@ task copyFiles(type:Copy) {
                     }
                 }
             }
-            
+
             task resolveDependencies {
                 doLast {
                     configurations.compileClasspath.files
@@ -181,7 +181,7 @@ task resolveDependencies {
         mavenRepo.module('org.test', 'module1', '1.0').publish()
         mavenRepo.module('org.test', 'module2', '1.0').publish()
         settingsFile << """
-           include ":lib" 
+           include ":lib"
         """
         buildFile << """
             allprojects {
@@ -195,13 +195,13 @@ task resolveDependencies {
                     incoming.beforeResolve {
                         println "resolving foo..."
                         foo.resolve()
-                        // bar should still be in an unresolved state, so we should be able to modify the 
+                        // bar should still be in an unresolved state, so we should be able to modify the
                         // things like dependency constraints here
                         bar.validateMutation(${MutationValidator.MutationType.class.name}.DEPENDENCIES)
                     }
                 }
             }
-            dependencies { 
+            dependencies {
                 foo project(path: ':lib', configuration: 'foo')
                 bar "org.test:module2:1.0"
             }
@@ -209,20 +209,20 @@ task resolveDependencies {
                 inputs.files configurations.bar
                 doLast {
                     configurations.bar.each { println it }
-                }    
+                }
             }
             task b {
                 inputs.files configurations.bar
                 doLast {
                     configurations.bar.each { println it }
-                }    
+                }
             }
         """
-        file('lib/build.gradle') << """  
+        file('lib/build.gradle') << """
             configurations {
-                foo 
+                foo
             }
-                      
+
             dependencies {
                 foo "org.test:module1:1.0"
             }
@@ -233,6 +233,6 @@ task resolveDependencies {
         succeeds "a", "b"
 
         and:
-        outputContains("resolving foo")
+        output.count("resolving foo") == 1
     }
 }

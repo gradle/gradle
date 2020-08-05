@@ -29,7 +29,7 @@ import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.util.Path
 
 class DefaultProjectStateRegistryTest extends ConcurrentSpec {
-    def workerLeaseService =  new DefaultWorkerLeaseService(new DefaultResourceLockCoordinationService(), new DefaultParallelismConfiguration(true, 4))
+    def workerLeaseService = new DefaultWorkerLeaseService(new DefaultResourceLockCoordinationService(), new DefaultParallelismConfiguration(true, 4))
     def parentLease = workerLeaseService.getWorkerLease()
     def registry = new DefaultProjectStateRegistry(workerLeaseService)
 
@@ -185,6 +185,183 @@ class DefaultProjectStateRegistryTest extends ConcurrentSpec {
 
         and:
         !registry.stateFor(project("p1")).hasMutableState()
+    }
+
+    def "thread must own project state in order to set calculated value"() {
+        given:
+        registry.registerProjects(build("p1", "p2"))
+        def project1 = registry.stateFor(project("p1"))
+        def project2 = registry.stateFor(project("p2"))
+        def calculatedValue = project1.newCalculatedValue("initial")
+
+        when:
+        calculatedValue.set("bad")
+
+        then:
+        thrown(IllegalStateException)
+        calculatedValue.get() == "initial"
+
+        when:
+        project1.withMutableState {
+            calculatedValue.set("updated")
+        }
+
+        then:
+        calculatedValue.get() == "updated"
+
+        when:
+        project1.withMutableState {
+            project2.withMutableState {
+                // Thread no longer owns the project state
+                calculatedValue.set("bad")
+            }
+        }
+
+        then:
+        thrown(IllegalStateException)
+        calculatedValue.get() == "updated"
+    }
+
+    def "thread must own project state in order to update calculated value"() {
+        given:
+        registry.registerProjects(build("p1", "p2"))
+        def project1 = registry.stateFor(project("p1"))
+        def project2 = registry.stateFor(project("p2"))
+        def calculatedValue = project1.newCalculatedValue("initial")
+
+        when:
+        calculatedValue.update { throw new RuntimeException() }
+
+        then:
+        thrown(IllegalStateException)
+        calculatedValue.get() == "initial"
+
+        when:
+        project1.withMutableState {
+            calculatedValue.update {
+                assert it == "initial"
+                "updated"
+            }
+        }
+
+        then:
+        calculatedValue.get() == "updated"
+
+        when:
+        project1.withMutableState {
+            project2.withMutableState {
+                // Thread no longer owns the project state
+                calculatedValue.update { throw new RuntimeException() }
+            }
+        }
+
+        then:
+        thrown(IllegalStateException)
+        calculatedValue.get() == "updated"
+    }
+
+    def "update thread blocks other update threads"() {
+        given:
+        registry.registerProjects(build("p1", "p2"))
+        def project1 = registry.stateFor(project("p1"))
+        def calculatedValue = project1.newCalculatedValue("initial")
+
+        when:
+        async {
+            workerThread {
+                project1.withMutableState {
+                    calculatedValue.update {
+                        assert it == "initial"
+                        instant.start
+                        thread.block()
+                        instant.thread1
+                        "updated1"
+                    }
+                }
+            }
+            workerThread {
+                thread.blockUntil.start
+                project1.withMutableState {
+                    calculatedValue.update {
+                        assert it == "updated1"
+                        instant.thread2
+                        "updated2"
+                    }
+                }
+            }
+        }
+
+        then:
+        calculatedValue.get() == "updated2"
+        instant.thread1 < instant.thread2
+    }
+
+    def "update thread does not block other read threads"() {
+        given:
+        registry.registerProjects(build("p1", "p2"))
+        def project1 = registry.stateFor(project("p1"))
+        def calculatedValue = project1.newCalculatedValue("initial")
+
+        when:
+        async {
+            workerThread {
+                project1.withMutableState {
+                    calculatedValue.update {
+                        assert it == "initial"
+                        instant.start
+                        thread.blockUntil.read
+                        "updated"
+                    }
+                }
+            }
+            workerThread {
+                thread.blockUntil.start
+                assert calculatedValue.get() == "initial"
+                instant.read
+            }
+        }
+
+        then:
+        calculatedValue.get() == "updated"
+    }
+
+    def "can have cycle in project dependencies"() {
+        given:
+        registry.registerProjects(build("p1", "p2"))
+        def project1 = registry.stateFor(project("p1"))
+        def project2 = registry.stateFor(project("p2"))
+        def calculatedValue = project1.newCalculatedValue("initial")
+
+        when:
+        async {
+            workerThread {
+                project1.withMutableState {
+                    instant.start
+                    thread.blockUntil.start2
+                    calculatedValue.update {
+                        assert it == "initial"
+                        project2.withMutableState {
+                        }
+                        "updated1"
+                    }
+                }
+            }
+            workerThread {
+                thread.blockUntil.start
+                project2.withMutableState {
+                    instant.start2
+                    project1.withMutableState {
+                        calculatedValue.update {
+                            assert it == "updated1"
+                            "updated2"
+                        }
+                    }
+                }
+            }
+        }
+
+        then:
+        calculatedValue.get() == "updated2"
     }
 
     ProjectInternal project(String name) {

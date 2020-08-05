@@ -25,6 +25,7 @@ import org.gradle.internal.Factories;
 import org.gradle.internal.Factory;
 import org.gradle.internal.Pair;
 import org.gradle.internal.build.BuildState;
+import org.gradle.internal.model.CalculatedModelValue;
 import org.gradle.internal.resources.ResourceLock;
 import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.util.Path;
@@ -35,6 +36,7 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Function;
 
 public class DefaultProjectStateRegistry implements ProjectStateRegistry {
     private final WorkerLeaseService workerLeaseService;
@@ -42,12 +44,7 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
     private final Map<Path, ProjectStateImpl> projectsByPath = Maps.newLinkedHashMap();
     private final Map<ProjectComponentIdentifier, ProjectStateImpl> projectsById = Maps.newLinkedHashMap();
     private final Map<Pair<BuildIdentifier, Path>, ProjectStateImpl> projectsByCompId = Maps.newLinkedHashMap();
-    private final static ThreadLocal<Boolean> LENIENT_MUTATION_STATE = new ThreadLocal<Boolean>() {
-        @Override
-        protected Boolean initialValue() {
-            return Boolean.FALSE;
-        }
-    };
+    private final static ThreadLocal<Boolean> LENIENT_MUTATION_STATE = ThreadLocal.withInitial(() -> Boolean.FALSE);
 
     public DefaultProjectStateRegistry(WorkerLeaseService workerLeaseService) {
         this.workerLeaseService = workerLeaseService;
@@ -135,11 +132,6 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
         } finally {
             LENIENT_MUTATION_STATE.set(originalState);
         }
-    }
-
-    @Override
-    public SafeExclusiveLock newExclusiveOperationLock() {
-        return new SafeExclusiveLockImpl();
     }
 
     private class ProjectStateImpl implements ProjectState {
@@ -275,33 +267,82 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
         public boolean hasMutableState() {
             return LENIENT_MUTATION_STATE.get() || workerLeaseService.getCurrentProjectLocks().contains(projectLock);
         }
-    }
-
-    private class SafeExclusiveLockImpl implements SafeExclusiveLock {
-        private final ReentrantLock lock = new ReentrantLock();
 
         @Override
-        public void withLock(final Runnable runnable) {
+        public <T> CalculatedModelValue<T> newCalculatedValue(@Nullable T initialValue) {
+            return new CalculatedModelValueImpl<>(this, workerLeaseService, initialValue);
+        }
+    }
+
+    private static class CalculatedModelValueImpl<T> implements CalculatedModelValue<T> {
+        private final WorkerLeaseService workerLeaseService;
+        private final ProjectStateImpl owner;
+        private final ReentrantLock lock = new ReentrantLock();
+        private volatile T value;
+
+        public CalculatedModelValueImpl(ProjectStateImpl owner, WorkerLeaseService workerLeaseService, @Nullable T initialValue) {
+            this.workerLeaseService = workerLeaseService;
+            this.value = initialValue;
+            this.owner = owner;
+        }
+
+        @Override
+        public T get() throws IllegalStateException {
+            T currentValue = getOrNull();
+            if (currentValue == null) {
+                throw new IllegalStateException("No value is available for " + owner);
+            }
+            return currentValue;
+        }
+
+        @Override
+        public T getOrNull() {
+            // Grab the current value, ignore updates that may be happening
+            return value;
+        }
+
+        @Override
+        public void set(T newValue) {
+            assertCanMutate();
+            value = newValue;
+        }
+
+        @Override
+        public T update(Function<T, T> updateFunction) {
+            acquireUpdateLock();
+            try {
+                // Do not hold any locks while applying the update
+                T newValue = updateFunction.apply(value);
+                value = newValue;
+                return newValue;
+            } finally {
+                releaseUpdateLock();
+            }
+        }
+
+        private void acquireUpdateLock() {
             // It's important that we do not block waiting for the lock while holding the project mutation lock.
             // Doing so can lead to deadlocks.
-            try {
-                if (lock.tryLock()) {
-                    runnable.run();
-                } else {
-                    // Another thread holds the lock, release the project lock and wait for the other thread to finish
-                    workerLeaseService.withoutProjectLock(new Runnable() {
-                        @Override
-                        public void run() {
-                            lock.lock();
-                        }
-                    });
-                    runnable.run();
-                }
-            } finally {
-                if (lock.isHeldByCurrentThread()) {
-                    lock.unlock();
-                }
+
+            assertCanMutate();
+
+            if (lock.tryLock()) {
+                // Update lock was not contended, can keep holding the project locks
+                return;
             }
+
+            // Another thread holds the update lock, release the project locks and wait for the other thread to finish the update
+            workerLeaseService.withoutProjectLock(lock::lock);
+        }
+
+        private void assertCanMutate() {
+            if (!owner.hasMutableState()) {
+                throw new IllegalStateException("Current thread does not hold the lock for " + owner);
+            }
+        }
+
+        private void releaseUpdateLock() {
+            lock.unlock();
         }
     }
 }

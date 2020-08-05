@@ -85,4 +85,10 @@ public class TransformationChain implements Transformation {
         first.visitTransformationSteps(action);
         second.visitTransformationSteps(action);
     }
+
+    @Override
+    public void isolateParameters() {
+        first.isolateParameters();
+        second.isolateParameters();
+    }
 }

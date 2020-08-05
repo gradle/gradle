@@ -2118,7 +2118,7 @@ Found the following transforms:
         when:
         fails "resolve"
         then:
-        Matcher<String> matchesCannotIsolate = matchesRegexp("Cannot isolate parameters Custom\\\$Parameters_Decorated@.* of artifact transform Custom")
+        Matcher<String> matchesCannotIsolate = matchesRegexp("Could not isolate parameters Custom\\\$Parameters_Decorated@.* of artifact transform Custom")
         if (scheduled) {
             failure.assertThatDescription(matchesCannotIsolate)
         } else {

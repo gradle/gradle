@@ -18,6 +18,8 @@ package org.gradle.internal.model;
 
 import org.gradle.internal.Factory;
 
+import javax.annotation.Nullable;
+
 /**
  * Encapsulates some mutable model, and provides synchronized access to the model.
  */
@@ -51,4 +53,10 @@ public interface ModelContainer {
      * Returns whether or not the current thread has access to the mutable model.
      */
     boolean hasMutableState();
+
+    /**
+     * Creates a new container for a value that is calculated from the mutable state of this container, and then
+     * reused by multiple threads.
+     */
+    <T> CalculatedModelValue<T> newCalculatedValue(@Nullable T initialValue);
 }

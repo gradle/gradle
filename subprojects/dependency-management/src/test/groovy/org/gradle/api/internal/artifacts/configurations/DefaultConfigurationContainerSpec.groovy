@@ -29,6 +29,7 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvi
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionRules
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.LocalComponentMetadataBuilder
 import org.gradle.api.internal.file.FileCollectionFactory
+import org.gradle.api.internal.initialization.RootScriptDomainObjectContext
 import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.api.internal.tasks.TaskResolver
 import org.gradle.configuration.internal.UserCodeApplicationContext
@@ -80,6 +81,7 @@ class DefaultConfigurationContainerSpec extends Specification {
     def "adds and gets"() {
         1 * domainObjectContext.identityPath("compile") >> Path.path(":build:compile")
         1 * domainObjectContext.projectPath("compile") >> Path.path(":compile")
+        1 * domainObjectContext.model >> RootScriptDomainObjectContext.INSTANCE
 
         when:
         def compile = configurationContainer.create("compile")
@@ -110,6 +112,7 @@ class DefaultConfigurationContainerSpec extends Specification {
     def "configures and finds"() {
         1 * domainObjectContext.identityPath("compile") >> Path.path(":build:compile")
         1 * domainObjectContext.projectPath("compile") >> Path.path(":compile")
+        1 * domainObjectContext.model >> RootScriptDomainObjectContext.INSTANCE
 
         when:
         def compile = configurationContainer.create("compile") {
@@ -125,6 +128,8 @@ class DefaultConfigurationContainerSpec extends Specification {
     def "creates detached"() {
         given:
         1 * domainObjectContext.projectPath("detachedConfiguration1") >> Path.path(":detachedConfiguration1")
+        1 * domainObjectContext.model >> RootScriptDomainObjectContext.INSTANCE
+
         def dependency1 = new DefaultExternalModuleDependency("group", "name", "version")
         def dependency2 = new DefaultExternalModuleDependency("group", "name2", "version")
 
