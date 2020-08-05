@@ -38,6 +38,7 @@ import org.gradle.api.tasks.AbstractConventionTaskTest
 import org.gradle.api.tasks.util.PatternSet
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.work.WorkerLeaseRegistry
+import org.gradle.jvm.toolchain.JavaLauncher
 import org.gradle.jvm.toolchain.internal.DefaultToolchainJavaLauncher
 import org.gradle.process.CommandLineArgumentProvider
 import org.gradle.process.internal.worker.WorkerProcessBuilder
@@ -121,8 +122,6 @@ class TestTest extends AbstractConventionTaskTest {
         1 * testReporter.generateReport(_ as TestResultsProvider, reportDir)
         1 * testExecuterMock.execute(_ as TestExecutionSpec, _ as TestResultProcessor)
     }
-
-    /* TODO(pepper): WTF?!? This test wasn't ever doing shit. Fuck this! */
 
     def "execute with test failures and ignore failures"() {
         given:
@@ -281,7 +280,6 @@ class TestTest extends AbstractConventionTaskTest {
     }
 
     def "java version is determined with toolchain if set"() {
-
         def launcher = new DefaultToolchainJavaLauncher(Jvm.current().javaExecutable)
 
         when:
@@ -289,6 +287,17 @@ class TestTest extends AbstractConventionTaskTest {
 
         then:
         test.getJavaVersion() == Jvm.current().javaVersion
+    }
+
+    def "cannot set executable and toolchain launcher at the same time"() {
+        when:
+        test.javaLauncher.set(Mock(JavaLauncher))
+        test.executable = "something"
+        test.createTestExecutionSpec()
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == "Must not use `executable` property on `Test` together with `javaLauncher` property"
     }
 
     private void assertIsDirectoryTree(FileTreeInternal classFiles, Set<String> includes, Set<String> excludes) {
