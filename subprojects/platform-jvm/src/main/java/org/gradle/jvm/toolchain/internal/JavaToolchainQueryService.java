@@ -70,7 +70,6 @@ public class JavaToolchainQueryService {
             new NoToolchainAvailableException(spec));
     }
 
-    // TODO: [bm] to be replaced with AttributeContainer/AttributeMatcher
     private Predicate<JavaToolchain> matchingToolchain(JavaToolchainSpec spec) {
         return toolchain -> toolchain.getJavaMajorVersion() == spec.getLanguageVersion().get();
     }

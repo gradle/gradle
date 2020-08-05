@@ -42,7 +42,6 @@ public class JdkCacheDirectory {
 
     public JdkCacheDirectory(GradleUserHomeDirProvider homeDirProvider, FileOperations operations) {
         this.operations = operations;
-        // TODO: [bm] any reason to use CacheScopeMapping instead?
         this.jdkDirectory = new File(homeDirProvider.getGradleUserHomeDirectory(), "jdks");
     }
 
@@ -80,7 +79,6 @@ public class JdkCacheDirectory {
         return installLocation;
     }
 
-    // TODO: [bm] anyway to cancel after first visit? or a better way to find the single root
     private String getRootDirectory(FileTree fileTree) {
         AtomicReference<File> rootDir = new AtomicReference<>();
         fileTree.visit(new EmptyFileVisitor() {
