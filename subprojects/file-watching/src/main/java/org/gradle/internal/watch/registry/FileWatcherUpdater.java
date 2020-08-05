@@ -20,6 +20,7 @@ import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.SnapshotHierarchy;
 import org.gradle.internal.watch.WatchingNotSupportedException;
 
+import javax.annotation.CheckReturnValue;
 import java.io.File;
 import java.util.Collection;
 
@@ -47,6 +48,9 @@ public interface FileWatcherUpdater extends SnapshotHierarchy.SnapshotDiffListen
      * Remove everything from the root which can't be kept after the current build finished.
      *
      * This is anything which is not within a watched hierarchy or in a cache directory.
+     *
+     * @return the snapshot hierarchy without snapshots which can't be kept till the next build.
      */
+    @CheckReturnValue
     SnapshotHierarchy buildFinished(SnapshotHierarchy root);
 }
