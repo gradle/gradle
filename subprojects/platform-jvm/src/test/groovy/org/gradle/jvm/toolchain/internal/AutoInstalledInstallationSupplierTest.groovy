@@ -17,9 +17,7 @@
 package org.gradle.jvm.toolchain.internal
 
 import org.gradle.api.internal.file.FileOperations
-import org.gradle.api.internal.provider.DefaultProperty
-import org.gradle.api.internal.provider.PropertyHost
-import org.gradle.api.provider.Provider
+import org.gradle.api.internal.provider.Providers
 import org.gradle.api.provider.ProviderFactory
 import org.gradle.initialization.GradleUserHomeDirProvider
 import org.gradle.jvm.toolchain.install.internal.JdkCacheDirectory
@@ -100,14 +98,8 @@ class AutoInstalledInstallationSupplierTest extends Specification {
 
     ProviderFactory createProviderFactory() {
         def providerFactory = Mock(ProviderFactory)
-        providerFactory.gradleProperty("org.gradle.java.installations.auto-detect") >> mockProvider(null)
+        providerFactory.gradleProperty("org.gradle.java.installations.auto-detect") >> Providers.ofNullable(null)
         providerFactory
-    }
-
-    Provider<String> mockProvider(String value) {
-        def provider = new DefaultProperty(PropertyHost.NO_OP, String)
-        provider.set(value)
-        provider
     }
 
 

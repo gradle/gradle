@@ -16,9 +16,8 @@
 
 package org.gradle.jvm.toolchain.internal
 
-import org.gradle.api.internal.provider.DefaultProperty
-import org.gradle.api.internal.provider.PropertyHost
-import org.gradle.api.provider.Provider
+
+import org.gradle.api.internal.provider.Providers
 import org.gradle.api.provider.ProviderFactory
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -151,15 +150,9 @@ class SdkmanInstallationSupplierTest extends Specification {
 
     ProviderFactory createProviderFactory(String propertyValue) {
         def providerFactory = Mock(ProviderFactory)
-        providerFactory.environmentVariable("SDKMAN_CANDIDATES_DIR") >> mockProvider(propertyValue)
-        providerFactory.gradleProperty("org.gradle.java.installations.auto-detect") >> mockProvider(null)
+        providerFactory.environmentVariable("SDKMAN_CANDIDATES_DIR") >> Providers.ofNullable(propertyValue)
+        providerFactory.gradleProperty("org.gradle.java.installations.auto-detect") >> Providers.ofNullable(null)
         providerFactory
-    }
-
-    Provider<String> mockProvider(String value) {
-        def provider = new DefaultProperty(PropertyHost.NO_OP, String)
-        provider.set(value)
-        provider
     }
 
 }
