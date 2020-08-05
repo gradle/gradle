@@ -4,9 +4,8 @@
 
 pulls:
   # Number of days of inactivity before a Pull Request becomes stale
-  # TODO: We'll only match very few Pull Requests to ensure the bot works as expected
-  # Once working, we're going to reduce the stale window incrementally
-  daysUntilStale: 200
+  # We're going to reduce the stale window incrementally, targeting 60
+  daysUntilStale: 100
 
   # Number of days of inactivity before a Pull Request with the stale label is closed.
   # Set to false to disable. If disabled, Pull Request still need to be closed manually, but will remain marked as stale.
@@ -27,9 +26,8 @@ pulls:
     comments have been addressed and the build is passing.
 
 issues:
-  # TODO: We'll only match very few issues to ensure the bot works as expected
-  # Once working, we're going to reduce the stale window incrementally
-  daysUntilStale: 600
+  # We're going to reduce the stale window incrementally, targeting 365
+  daysUntilStale: 500
 
   # Number of days of inactivity before an Issue with the stale label is closed.
   # Set to false to disable. If disabled, issues still need to be closed manually, but will remain marked as stale.
