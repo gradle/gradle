@@ -1,9 +1,9 @@
 dependencies {
     implementation(project(":basics"))
-    implementation(project(":binaryCompatibility"))
+    implementation(project(":binary-compatibility"))
     implementation(project(":buildquality"))
     implementation(project(":cleanup"))
-    implementation(project(":dependencyModules"))
+    implementation(project(":dependency-modules"))
     implementation(project(":jvm"))
     implementation(project(":profiling"))
     implementation(project(":publishing"))

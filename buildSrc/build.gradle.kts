@@ -24,7 +24,7 @@ plugins {
 }
 
 subprojects {
-    if (name != "buildPlatform") {
+    if (name != "build-platform") {
         apply(plugin = "java-library")
 
 
@@ -42,7 +42,7 @@ subprojects {
         }
 
         dependencies {
-            "api"(platform(project(":buildPlatform")))
+            "api"(platform(project(":build-platform")))
             implementation(gradleApi())
         }
 
@@ -109,7 +109,7 @@ allprojects {
 
 dependencies {
     subprojects.forEach {
-        if (it.name != "buildPlatform") {
+        if (it.name != "build-platform") {
             runtimeOnly(project(it.path))
         }
     }

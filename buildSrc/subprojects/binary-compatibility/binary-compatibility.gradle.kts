@@ -6,7 +6,7 @@ dependencies {
     implementation("me.champeau.gradle:japicmp-gradle-plugin")
 
     implementation(project(":basics"))
-    implementation(project(":moduleIdentity"))
+    implementation(project(":module-identity"))
 
     implementation("com.google.code.gson:gson")
     implementation("com.google.guava:guava")

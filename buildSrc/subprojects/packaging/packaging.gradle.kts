@@ -4,7 +4,7 @@ dependencies {
         because("API metadata generation is part of the DSL guide")
     }
     implementation(project(":basics"))
-    implementation(project(":moduleIdentity"))
+    implementation(project(":module-identity"))
     implementation(project(":jvm"))
 
     implementation("com.google.code.gson:gson")

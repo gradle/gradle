@@ -167,7 +167,7 @@ abstract class AbstractBinaryCompatibilityTest {
 
         val inputBuildDir = rootDir.withUniqueDirectory("input-build").apply {
 
-            withSettings("""include("v1", "v2", "binaryCompatibility")""")
+            withSettings("""include("v1", "v2", "binary-compatibility")""")
             withBuildScript("""
                     import gradlebuild.identity.extension.ModuleIdentityExtension
 
@@ -196,7 +196,7 @@ abstract class AbstractBinaryCompatibilityTest {
                 """)
             withDirectory("v1/src/main").v1()
             withDirectory("v2/src/main").v2()
-            withDirectory("binaryCompatibility").apply {
+            withDirectory("binary-compatibility").apply {
                 withBuildScript("""
                     import japicmp.model.JApiChangeStatus
                     import me.champeau.gradle.japicmp.JapicmpTask

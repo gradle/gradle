@@ -1,5 +1,5 @@
 dependencies {
-    implementation(project(":moduleIdentity"))
+    implementation(project(":module-identity"))
 
     implementation("com.gradle.publish:plugin-publish-plugin")
 }

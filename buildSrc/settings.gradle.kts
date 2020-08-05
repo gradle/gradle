@@ -34,19 +34,19 @@ fun String.toKebabCase() =
 rootProject.name = "buildSrc"
 
 // Platform: defines shared dependency versions
-include("buildPlatform")
+include("build-platform")
 
 // Utilities for updating the build itself which are not part of the usual build process
-include("buildUpdateUtils")
+include("build-update-utils")
 
 // Shared basics for all
 include("basics")
 
 // Compute the identity/version we are building and related details (like current git commit)
-include("moduleIdentity")
+include("module-identity")
 
 // Shared information about external modules
-include("dependencyModules")
+include("dependency-modules")
 
 // Special purpose build logic for root project - please preserve alphabetical order
 include("cleanup")
@@ -54,15 +54,15 @@ include("idea")
 include("lifecycle")
 
 // Special purpose build logic for subproject - please preserve alphabetical order
-include("binaryCompatibility")
+include("binary-compatibility")
 include("buildquality")
 include("documentation")
-include("integrationTesting")
+include("integration-testing")
 include("jvm")
-include("kotlinDsl")
-include("uberPlugins")
+include("kotlin-dsl")
+include("uber-plugins")
 include("packaging")
-include("performanceTesting")
+include("performance-testing")
 include("profiling")
 include("publishing")
 

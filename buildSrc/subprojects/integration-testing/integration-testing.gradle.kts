@@ -1,8 +1,8 @@
 dependencies {
     implementation(project(":basics"))
     implementation(project(":cleanup"))
-    implementation(project(":dependencyModules"))
-    implementation(project(":moduleIdentity"))
+    implementation(project(":dependency-modules"))
+    implementation(project(":module-identity"))
 
     testImplementation("junit:junit")
 }
