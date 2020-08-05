@@ -22,7 +22,7 @@ import java.io.File;
 
 public interface FileLockManager {
     /**
-     * Creates a locks for the given file with the given mode. Acquires a lock with the given mode, which is held until the lock is
+     * Creates a lock for the given file with the given mode. Acquires a lock with the given mode, which is held until the lock is
      * released by calling {@link FileLock#close()}. This method blocks until the lock can be acquired.
      *
      * @param target The file to be locked.
@@ -32,7 +32,7 @@ public interface FileLockManager {
     FileLock lock(File target, LockOptions options, String targetDisplayName) throws LockTimeoutException;
 
     /**
-     * Creates a locks for the given file with the given mode. Acquires a lock with the given mode, which is held until the lock is
+     * Creates a lock for the given file with the given mode. Acquires a lock with the given mode, which is held until the lock is
      * released by calling {@link FileLock#close()}. This method blocks until the lock can be acquired.
      *
      * @param target The file to be locked.
@@ -43,7 +43,7 @@ public interface FileLockManager {
     FileLock lock(File target, LockOptions options, String targetDisplayName, String operationDisplayName) throws LockTimeoutException;
 
     /**
-     * Creates a locks for the given file with the given mode. Acquires a lock with the given mode, which is held until the lock is
+     * Creates a lock for the given file with the given mode. Acquires a lock with the given mode, which is held until the lock is
      * released by calling {@link FileLock#close()}. This method blocks until the lock can be acquired.
      * <p>
      * Enable other processes to request access to the provided lock. Provided action runs when the lock access request is received
