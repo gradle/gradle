@@ -130,19 +130,29 @@ public class DefaultBuildOperationRunner implements BuildOperationRunner {
     }
 
     private <O> O execute(BuildOperationDescriptor.Builder descriptorBuilder, @Nullable BuildOperationState defaultParent, BuildOperationExecution<O> execution) {
-        final BuildOperationState parent = DefaultBuildOperationRunner.determineParent(descriptorBuilder, defaultParent);
-        final BuildOperationDescriptor descriptor = createDescriptor(descriptorBuilder, parent);
-
+        BuildOperationState parent = DefaultBuildOperationRunner.determineParent(descriptorBuilder, defaultParent);
+        BuildOperationDescriptor descriptor = createDescriptor(descriptorBuilder, parent);
         assertParentRunning("Cannot start operation (%s) as parent operation (%s) has already completed.", descriptor, parent);
 
-        BuildOperationState operationState = new BuildOperationState(descriptor, getCurrentTime());
-        operationState.setRunning(true);
-        final BuildOperationState parentOperation = getCurrentBuildOperation();
-        setCurrentBuildOperation(operationState);
+        return execution.execute(
+            descriptor,
+            new BuildOperationState(descriptor, getCurrentTime()),
+            new DefaultBuildOperationContext(),
+            createListener(parent, descriptor)
+        );
+    }
 
-        return execute(descriptor, operationState, execution, new BuildOperationExecutionListener() {
+    @OverridingMethodsMustInvokeSuper
+    protected BuildOperationExecutionListener createListener(@Nullable final BuildOperationState parent, final BuildOperationDescriptor descriptor) {
+        return new BuildOperationExecutionListener() {
+
+            private BuildOperationState originalCurrentBuildOperation;
+
             @Override
             public void start(BuildOperationState operationState) {
+                originalCurrentBuildOperation = getCurrentBuildOperation();
+                setCurrentBuildOperation(operationState);
+                operationState.setRunning(true);
                 listener.started(descriptor, new OperationStartEvent(operationState.getStartTime()));
                 LOGGER.debug("Build operation '{}' started", descriptor.getDisplayName());
             }
@@ -156,21 +166,11 @@ public class DefaultBuildOperationRunner implements BuildOperationRunner {
 
             @Override
             public void close(BuildOperationState operationState) {
-                setCurrentBuildOperation(parentOperation);
+                setCurrentBuildOperation(originalCurrentBuildOperation);
                 operationState.setRunning(false);
                 LOGGER.debug("Build operation '{}' completed", descriptor.getDisplayName());
             }
-        });
-    }
-
-    @OverridingMethodsMustInvokeSuper
-    protected <O> O execute(BuildOperationDescriptor descriptor, BuildOperationState operationState, BuildOperationExecution<O> execution, BuildOperationExecutionListener listener) {
-        return execution.execute(
-            descriptor,
-            operationState,
-            new DefaultBuildOperationContext(),
-            listener
-        );
+        };
     }
 
     private void assertParentRunning(String message, BuildOperationDescriptor child, @Nullable BuildOperationState parent) {
@@ -236,7 +236,7 @@ public class DefaultBuildOperationRunner implements BuildOperationRunner {
         return clock.getCurrentTime();
     }
 
-    protected interface BuildOperationExecution<O> {
+    private interface BuildOperationExecution<O> {
         O execute(BuildOperationDescriptor descriptor, BuildOperationState operationState, DefaultBuildOperationContext context, BuildOperationExecutionListener listener);
     }
 

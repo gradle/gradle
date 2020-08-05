@@ -20,7 +20,6 @@ import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.concurrent.ParallelismConfiguration;
-import org.gradle.internal.MutableReference;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.GradleThread;
@@ -117,30 +116,29 @@ public class DefaultBuildOperationExecutor extends DefaultBuildOperationRunner i
     }
 
     @Override
-    protected <O> O execute(BuildOperationDescriptor descriptor, BuildOperationState operationState, BuildOperationExecution<O> execution, BuildOperationExecutionListener listener) {
-        MutableReference<ProgressLogger> progressLoggerHolder = MutableReference.empty();
-        BuildOperationExecutionListener progressLoggingListener = new BuildOperationExecutionListener() {
+    protected BuildOperationExecutionListener createListener(@Nullable BuildOperationState parent, BuildOperationDescriptor descriptor) {
+        final BuildOperationExecutionListener delegate = super.createListener(parent, descriptor);
+        return new BuildOperationExecutionListener() {
+
+            private ProgressLogger progressLogger;
+
             @Override
             public void start(BuildOperationState operationState) {
-                listener.start(operationState);
-                progressLoggerHolder.set(createProgressLogger(operationState));
+                delegate.start(operationState);
+                progressLogger = createProgressLogger(operationState);
             }
 
             @Override
             public void stop(BuildOperationState operationState, DefaultBuildOperationContext context) {
-                ProgressLogger progressLogger = progressLoggerHolder.get();
-                assert progressLogger != null;
                 progressLogger.completed(context.status, context.failure != null);
-                listener.stop(operationState, context);
+                delegate.stop(operationState, context);
             }
 
             @Override
             public void close(BuildOperationState operationState) {
-                listener.close(operationState);
+                delegate.close(operationState);
             }
         };
-
-        return super.execute(descriptor, operationState, execution, progressLoggingListener);
     }
 
     @Override
