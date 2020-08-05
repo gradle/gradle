@@ -17,13 +17,24 @@
 package org.gradle.jvm.toolchain.install.internal;
 
 import org.gradle.api.GradleException;
+import org.gradle.internal.exceptions.Contextual;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
 
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.util.Optional;
 
 public class DefaultJavaToolchainProvisioningService implements JavaToolchainProvisioningService {
+
+    @Contextual
+    private static class MissingToolchainException extends GradleException {
+
+        public MissingToolchainException(JavaToolchainSpec spec, @Nullable Throwable cause) {
+            super("Unable to download toolchain matching these requirements: " + spec.getDisplayName(), cause);
+        }
+
+    }
 
     private final AdoptOpenJdkRemoteBinary openJdkBinary;
     private final JdkCacheDirectory cacheDirProvider;
@@ -39,7 +50,7 @@ public class DefaultJavaToolchainProvisioningService implements JavaToolchainPro
             final Optional<File> jdkArchive = openJdkBinary.download(spec);
             return jdkArchive.map(cacheDirProvider::provisionFromArchive);
         } catch (Exception e) {
-            throw new GradleException("Unable to download toolchain matching these requirements: " + spec.getDisplayName(), e);
+            throw new MissingToolchainException(spec, e);
         }
     }
 
