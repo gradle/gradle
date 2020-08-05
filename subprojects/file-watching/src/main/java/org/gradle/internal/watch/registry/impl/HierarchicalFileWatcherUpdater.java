@@ -39,8 +39,8 @@ import java.util.stream.Stream;
 /**
  * Updater for hierarchical file watchers.
  *
- * We want to keep track of root project directories for hierarchical watchers,
- * because we prefer watching the root project directory instead of directories inside.
+ * For hierarchical watchers, we can use the registered watchable hierarchies as watched directories.
+ * Root project directories are always watchable hierarchies.
  * Watching the root project directories is better since they are less likely to be deleted and
  * nearly no changes to the watched directories are necessary when running builds on the same project.
  *
@@ -49,15 +49,15 @@ import java.util.stream.Stream;
  *
  * The root project directories are discovered as included builds are encountered at the start of a build, and then they are removed when the build finishes.
  *
- * This is the lifecycle for the watched root project directories:
+ * This is the lifecycle for the watchable hierarchies:
  * - During a build, there will be various calls to {@link FileWatcherUpdater#registerWatchableHierarchy(File, SnapshotHierarchy)},
  *   each call augmenting the collection. The watchers will be updated accordingly.
- * - When updating the watches, we watch root project directories or old root project directories instead of
+ * - When updating the watches, we watch watchable hierarchies registered for this build or old watched directories from previous builds instead of
  *   directories inside them.
  * - At the end of the build
- *   - stop watching the root project directories with nothing to watch inside
- *   - remember the current watched root project directories as old root directories for the next build
- *   - remove all non-watched root project directories from the old root directories.
+ *   - stop watching the watchable directories with nothing to watch inside
+ *   - remember the currently watched directories as old watched directories for the next build
+ *   - remove everything which isn't watched from the virtual file system.
  */
 public class HierarchicalFileWatcherUpdater implements FileWatcherUpdater {
     private static final Logger LOGGER = LoggerFactory.getLogger(HierarchicalFileWatcherUpdater.class);
