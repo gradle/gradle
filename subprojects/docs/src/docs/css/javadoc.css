@@ -792,6 +792,10 @@ div.contentContainer ul.blockList li.blockList h2 {
     padding-bottom: 0px;
 }
 
+div.block p {
+    font-size: 14px;
+}
+
 /*
 IFRAME specific styles
 */
