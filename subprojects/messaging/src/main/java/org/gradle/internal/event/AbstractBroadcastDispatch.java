@@ -42,7 +42,7 @@ public abstract class AbstractBroadcastDispatch<T> implements Dispatch<MethodInv
             handler.dispatch(invocation);
         } catch (UncheckedException e) {
             throw new ListenerNotificationException(invocation, getErrorMessage(), Collections.singletonList(e.getCause()));
-        } catch (RuntimeException t) {
+        } catch (ListenerNotificationException t) {
             throw t;
         } catch (Throwable t) {
             throw new ListenerNotificationException(invocation, getErrorMessage(), Collections.singletonList(t));
