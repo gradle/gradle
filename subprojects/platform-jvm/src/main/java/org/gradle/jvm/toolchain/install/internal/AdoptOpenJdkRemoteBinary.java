@@ -109,8 +109,6 @@ public class AdoptOpenJdkRemoteBinary {
         return operatingSystem.getFamilyName();
     }
 
-    // TODO: [bm] determine using API?
-    // https://github.com/AdoptOpenJDK/openjdk-api-v3/issues/256
     private String determineReleaseState() {
         return "ga";
     }

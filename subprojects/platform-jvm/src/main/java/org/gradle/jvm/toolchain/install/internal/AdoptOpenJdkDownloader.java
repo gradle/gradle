@@ -19,6 +19,7 @@ package org.gradle.jvm.toolchain.install.internal;
 import org.apache.commons.io.IOUtils;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
+import org.gradle.api.resources.MissingResourceException;
 import org.gradle.internal.resource.ExternalResource;
 import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.ResourceExceptions;
@@ -46,6 +47,17 @@ public class AdoptOpenJdkDownloader {
 
     public void download(URI source, File tmpFile) {
         final ExternalResource resource = getTransport().getRepository().withProgressLogging().resource(new ExternalResourceName(source));
+        try {
+            downloadResource(source, tmpFile, resource);
+        } catch (MissingResourceException e) {
+            throw new MissingResourceException(source, "Unable to download toolchain. " +
+                "This might indicate that the combination " +
+                "(version, architecture, release/early access, ...) for the " +
+                "requested JDK is not available.", e);
+        }
+    }
+
+    private void downloadResource(URI source, File tmpFile, ExternalResource resource) {
         resource.withContent(inputStream -> {
             LOGGER.info("Downloading {} to {}", resource.getDisplayName(), tmpFile);
             copyIntoFile(source, inputStream, tmpFile);
