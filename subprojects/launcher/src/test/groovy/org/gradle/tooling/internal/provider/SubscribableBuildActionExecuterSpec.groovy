@@ -48,11 +48,11 @@ class SubscribableBuildActionExecuterSpec extends Specification {
 
         def listener1 = Stub(BuildOperationListener)
         def listener2 = Stub(BuildOperationListener)
-        def registration = Stub(BuildEventListenerFactory) {
+        def factory = Stub(BuildEventListenerFactory) {
             createListeners(_, consumer) >> [listener1, listener2]
         }
 
-        def runner = new SubscribableBuildActionExecuter(listenerManager, buildOperationListenerManager, [registration], delegate)
+        def runner = new SubscribableBuildActionExecuter(listenerManager, buildOperationListenerManager, factory, delegate)
 
         when:
         runner.execute(buildAction, buildRequestContext, buildActionParameters, serviceRegistry)

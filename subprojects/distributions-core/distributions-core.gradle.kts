@@ -17,6 +17,9 @@ dependencies {
     pluginsRuntimeOnly(project(":compositeBuilds")) {
         because("We always need a BuildStateRegistry service implementation for certain code in ':core' to work.")
     }
+    pluginsRuntimeOnly(project(":toolingApiBuilders")) {
+        because("We always need a BuildEventListenerFactory service implementation for ':launcher' to create global services.")
+    }
     pluginsRuntimeOnly(project(":versionControl")) {
         because("We always need a VcsMappingsStore service implementation to create 'ConfigurationContainer' in ':dependency-management'.")
     }

@@ -27,7 +27,7 @@ import org.gradle.api.internal.tasks.compile.tooling.JavaCompileTaskSuccessResul
 import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.api.logging.configuration.ShowStacktrace;
 import org.gradle.cache.internal.FileContentCacheFactory;
-import org.gradle.internal.build.event.BuildEventListenerFactory;
+import org.gradle.internal.build.event.OperationResultPostProcessorFactory;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.StreamHasher;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -60,14 +60,10 @@ public class JavaLanguagePluginServiceRegistry extends AbstractPluginServiceRegi
     }
 
     private static class JavaGlobalScopeServices {
-        BuildEventListenerFactory createJavaSubscribableBuildActionRunnerRegistration(final JavaCompileTaskSuccessResultPostProcessor factory) {
+        OperationResultPostProcessorFactory createJavaSubscribableBuildActionRunnerRegistration() {
             return (clientSubscriptions, consumer) -> clientSubscriptions.isRequested(OperationType.TASK)
-                ? Collections.singletonList(factory)
+                ? Collections.singletonList(new JavaCompileTaskSuccessResultPostProcessor())
                 : emptyList();
-        }
-
-        public JavaCompileTaskSuccessResultPostProcessor createJavaCompileTaskSuccessResultDecoratorFactory() {
-            return new JavaCompileTaskSuccessResultPostProcessor();
         }
     }
 

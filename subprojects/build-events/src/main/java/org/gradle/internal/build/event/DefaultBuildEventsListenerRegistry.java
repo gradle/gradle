@@ -61,16 +61,16 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class DefaultBuildEventsListenerRegistry implements BuildEventsListenerRegistry, BuildEventListenerRegistryInternal {
-    private final List<BuildEventListenerFactory> factories;
+    private final BuildEventListenerFactory factory;
     private final ListenerManager listenerManager;
     private final BuildOperationListenerManager buildOperationListenerManager;
     private final Map<Provider<?>, AbstractListener<?>> subscriptions = new LinkedHashMap<>();
     private final List<Object> listeners = new ArrayList<>();
     private final ExecutorFactory executorFactory;
 
-    public DefaultBuildEventsListenerRegistry(List<BuildEventListenerFactory> factories, ListenerManager listenerManager,
+    public DefaultBuildEventsListenerRegistry(BuildEventListenerFactory factory, ListenerManager listenerManager,
                                               BuildOperationListenerManager buildOperationListenerManager, ExecutorFactory executorFactory) {
-        this.factories = factories;
+        this.factory = factory;
         this.listenerManager = listenerManager;
         this.buildOperationListenerManager = buildOperationListenerManager;
         this.executorFactory = executorFactory;
@@ -114,15 +114,13 @@ public class DefaultBuildEventsListenerRegistry implements BuildEventsListenerRe
         subscriptions.put(listenerProvider, subscription);
 
         BuildEventSubscriptions eventSubscriptions = new BuildEventSubscriptions(Collections.singleton(OperationType.TASK));
-        for (BuildEventListenerFactory registration : factories) {
-            // TODO - share these listeners here and with the tooling api client, where possible
-            Iterable<Object> listeners = registration.createListeners(eventSubscriptions, subscription);
-            CollectionUtils.addAll(this.listeners, listeners);
-            for (Object listener : listeners) {
-                listenerManager.addListener(listener);
-                if (listener instanceof BuildOperationListener) {
-                    buildOperationListenerManager.addListener((BuildOperationListener) listener);
-                }
+        // TODO - share these listeners here and with the tooling api client, where possible
+        Iterable<Object> listeners = factory.createListeners(eventSubscriptions, subscription);
+        CollectionUtils.addAll(this.listeners, listeners);
+        for (Object listener : listeners) {
+            listenerManager.addListener(listener);
+            if (listener instanceof BuildOperationListener) {
+                buildOperationListenerManager.addListener((BuildOperationListener) listener);
             }
         }
     }
