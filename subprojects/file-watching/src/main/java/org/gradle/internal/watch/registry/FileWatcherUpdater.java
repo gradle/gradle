@@ -26,13 +26,13 @@ import java.util.Collection;
 
 public interface FileWatcherUpdater extends SnapshotHierarchy.SnapshotDiffListener {
     /**
-     * Registers a hierarchy to watch.
+     * Registers a watchable hierarchy.
      *
-     * The watcher registry will only watch for changes in hierarchies to watch.
+     * The watcher registry will only watch for changes in watchable hierarchies.
      *
      * @throws WatchingNotSupportedException when the native watchers can't be updated.
      */
-    void registerHierarchyToWatch(File hierarchyToWatch, SnapshotHierarchy root);
+    void registerWatchableHierarchy(File watchableHierarchy, SnapshotHierarchy root);
 
     /**
      * Updates the watchers after changes to the root.
@@ -47,7 +47,7 @@ public interface FileWatcherUpdater extends SnapshotHierarchy.SnapshotDiffListen
     /**
      * Remove everything from the root which can't be kept after the current build finished.
      *
-     * This is anything which is not within a watched hierarchy or in a cache directory.
+     * This is anything which is not within a watchable hierarchy or in a cache directory.
      *
      * @return the snapshot hierarchy without snapshots which can't be kept till the next build.
      */

@@ -26,6 +26,7 @@ import org.gradle.internal.snapshot.FileSystemSnapshotVisitor;
 import org.gradle.internal.snapshot.SnapshotHierarchy;
 import org.gradle.internal.watch.registry.FileWatcherUpdater;
 
+import javax.annotation.CheckReturnValue;
 import java.io.File;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
@@ -33,41 +34,42 @@ import java.util.stream.Stream;
 public abstract class AbstractFileWatcherUpdater implements FileWatcherUpdater {
     private final Predicate<String> watchFilter;
 
-    private FileHierarchySet hierarchiesToWatch = DefaultFileHierarchySet.of();
+    private FileHierarchySet watchableHierarchies = DefaultFileHierarchySet.of();
 
     public AbstractFileWatcherUpdater(Predicate<String> watchFilter) {
         this.watchFilter = watchFilter;
     }
 
-    protected void recordRegisteredHierarchyToWatch(File hierarchyToWatch, SnapshotHierarchy root) {
-        String hierarchyToWatchAbsolutePath = hierarchyToWatch.getAbsolutePath();
-        if (!watchFilter.test(hierarchyToWatchAbsolutePath)) {
+    protected void recordRegisteredWatchableHierarchy(File watchableHierarchy, SnapshotHierarchy root) {
+        String watchableHierarchyAbsolutePath = watchableHierarchy.getAbsolutePath();
+        if (!watchFilter.test(watchableHierarchyAbsolutePath)) {
             throw new RuntimeException(String.format(
                 "Unable to watch directory '%s' since it is within Gradle's caches",
-                hierarchyToWatchAbsolutePath
+                watchableHierarchyAbsolutePath
             ));
         }
-        if (!hierarchiesToWatch.contains(hierarchyToWatchAbsolutePath)) {
-            checkThatNothingExistsInNewHierarchyToWatch(hierarchyToWatchAbsolutePath, root);
+        if (!watchableHierarchies.contains(watchableHierarchyAbsolutePath)) {
+            checkThatNothingExistsInNewWatchableHierarchy(watchableHierarchyAbsolutePath, root);
         }
-        hierarchiesToWatch = hierarchiesToWatch.plus(hierarchyToWatch);
+        watchableHierarchies = watchableHierarchies.plus(watchableHierarchy);
     }
 
-    protected SnapshotHierarchy recordHierarchiesToWatchAndRemoveUnwatchedSnapshots(Stream<File> hierarchiesToWatch, SnapshotHierarchy root, Invalidator invalidator) {
-        this.hierarchiesToWatch = DefaultFileHierarchySet.of(hierarchiesToWatch::iterator);
+    @CheckReturnValue
+    protected SnapshotHierarchy recordWatchableHierarchiesAndRemoveUnwatchedSnapshots(Stream<File> watchableHierarchies, SnapshotHierarchy root, Invalidator invalidator) {
+        this.watchableHierarchies = DefaultFileHierarchySet.of(watchableHierarchies::iterator);
         RemoveUnwatchedFiles removeUnwatchedFilesVisitor = new RemoveUnwatchedFiles(root, invalidator);
         root.visitSnapshotRoots(snapshotRoot -> snapshotRoot.accept(removeUnwatchedFilesVisitor));
         return removeUnwatchedFilesVisitor.getRootWithUnwatchedFilesRemoved();
     }
 
-    private void checkThatNothingExistsInNewHierarchyToWatch(String hierarchyToWatch, SnapshotHierarchy root) {
-        root.visitSnapshotRoots(hierarchyToWatch, snapshotRoot -> {
-            if (!isInHierarchyToWatch(snapshotRoot.getAbsolutePath()) && !ignoredForWatching(snapshotRoot)) {
+    private void checkThatNothingExistsInNewWatchableHierarchy(String watchableHierarchy, SnapshotHierarchy root) {
+        root.visitSnapshotRoots(watchableHierarchy, snapshotRoot -> {
+            if (!isInWatchableHierarchy(snapshotRoot.getAbsolutePath()) && !ignoredForWatching(snapshotRoot)) {
                 throw new RuntimeException(String.format(
                     "Found existing snapshot at '%s' for unwatched hierarchy '%s'",
                     snapshotRoot.getAbsolutePath(),
-                    hierarchyToWatch)
-                );
+                    watchableHierarchy
+                ));
             }
         });
     }
@@ -76,8 +78,8 @@ public abstract class AbstractFileWatcherUpdater implements FileWatcherUpdater {
         return snapshot.getAccessType() == FileMetadata.AccessType.VIA_SYMLINK || !watchFilter.test(snapshot.getAbsolutePath());
     }
 
-    protected boolean isInHierarchyToWatch(String path) {
-        return hierarchiesToWatch.contains(path);
+    protected boolean isInWatchableHierarchy(String path) {
+        return watchableHierarchies.contains(path);
     }
 
     protected class CheckIfNonEmptySnapshotVisitor implements SnapshotHierarchy.SnapshotVisitor {
@@ -123,7 +125,7 @@ public abstract class AbstractFileWatcherUpdater implements FileWatcherUpdater {
 
         private boolean shouldBeRemoved(CompleteFileSystemLocationSnapshot snapshot) {
             return snapshot.getAccessType() == FileMetadata.AccessType.VIA_SYMLINK ||
-                (!isInHierarchyToWatch(snapshot.getAbsolutePath()) && watchFilter.test(snapshot.getAbsolutePath()));
+                (!isInWatchableHierarchy(snapshot.getAbsolutePath()) && watchFilter.test(snapshot.getAbsolutePath()));
         }
 
         @Override

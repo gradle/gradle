@@ -204,7 +204,7 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
                 ))
                 .orElse(new WatchingNotSupportedVirtualFileSystem(rootReference));
             listenerManager.addListener((BuildAddedListener) buildState ->
-                virtualFileSystem.registerHierarchyToWatch(buildState.getBuildRootDir())
+                virtualFileSystem.registerWatchableHierarchy(buildState.getBuildRootDir())
             );
             return virtualFileSystem;
         }

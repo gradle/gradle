@@ -351,7 +351,7 @@ class WatchedDirectoriesFileSystemWatchingIntegrationTest extends AbstractFileSy
         output.readLines()
             .findAll { it.contains("] as hierarchies to watch") }
             .collect { line ->
-                def matcher = line =~ /Now considering watching \[(.*)] as hierarchies to watch/
+                def matcher = line =~ /Now considering \[(.*)] as hierarchies to watch/
                 String directories = matcher[0][1]
                 return directories.split(', ').collect { new File(it) } as Set
             }

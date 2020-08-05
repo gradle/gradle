@@ -113,12 +113,12 @@ class WatchingVirtualFileSystemTest extends Specification {
     }
 
     def "collects hierarchies to watch and notifies the vfs"() {
-        def hierarchyToWatch = new File("root")
-        def anotherHierarchyToWatch = new File("anotherRoot")
-        def newHierarchyToWatch = new File("newRoot")
+        def watchableHierarchy = new File("watchable")
+        def anotherWatchableHierarchy = new File("anotherWatchable")
+        def newWatchableHierarchy = new File("newWatchable")
 
         when:
-        watchingHandler.registerHierarchyToWatch(hierarchyToWatch)
+        watchingHandler.registerWatchableHierarchy(watchableHierarchy)
         then:
         0 * _
 
@@ -127,14 +127,14 @@ class WatchingVirtualFileSystemTest extends Specification {
         then:
         1 * watcherRegistryFactory.createFileWatcherRegistry(_) >> watcherRegistry
         1 * watcherRegistry.fileWatcherUpdater >> fileWatcherUpdater
-        1 * fileWatcherUpdater.registerHierarchyToWatch(hierarchyToWatch, _)
+        1 * fileWatcherUpdater.registerWatchableHierarchy(watchableHierarchy, _)
         0 * _
 
         when:
-        watchingHandler.registerHierarchyToWatch(anotherHierarchyToWatch)
+        watchingHandler.registerWatchableHierarchy(anotherWatchableHierarchy)
         then:
         1 * watcherRegistry.fileWatcherUpdater >> fileWatcherUpdater
-        1 * fileWatcherUpdater.registerHierarchyToWatch(anotherHierarchyToWatch, _)
+        1 * fileWatcherUpdater.registerWatchableHierarchy(anotherWatchableHierarchy, _)
 
         when:
         watchingHandler.beforeBuildFinished(true)
@@ -145,9 +145,9 @@ class WatchingVirtualFileSystemTest extends Specification {
         0 * _
 
         when:
-        watchingHandler.registerHierarchyToWatch(newHierarchyToWatch)
+        watchingHandler.registerWatchableHierarchy(newWatchableHierarchy)
         then:
         1 * watcherRegistry.fileWatcherUpdater >> fileWatcherUpdater
-        1 * fileWatcherUpdater.registerHierarchyToWatch(newHierarchyToWatch, _)
+        1 * fileWatcherUpdater.registerWatchableHierarchy(newWatchableHierarchy, _)
     }
 }

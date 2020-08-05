@@ -31,13 +31,13 @@ public interface BuildLifecycleAwareVirtualFileSystem extends VirtualFileSystem 
     void afterBuildStarted(boolean watchingEnabled);
 
     /**
-     * Register a hierarchy to watch.
+     * Register a watchable hierarchy.
      *
-     * Only locations within hierarchies to watch will be watched for changes.
+     * Only locations within watchable hierarchies will be watched for changes.
      * This method is first called for the root directory of the root project.
      * It is also called for the root directories of included builds, and all other nested builds.
      */
-    void registerHierarchyToWatch(File rootDirectoryForWatching);
+    void registerWatchableHierarchy(File rootDirectoryForWatching);
 
     /**
      * Called when the build is finished.

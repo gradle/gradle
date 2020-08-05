@@ -48,7 +48,7 @@ public class NonHierarchicalFileWatcherUpdater extends AbstractFileWatcherUpdate
     private final Map<String, ImmutableList<String>> watchedDirectoriesForSnapshot = new HashMap<>();
     private final FileWatcher fileWatcher;
 
-    private final Set<String> hierarchiesToWatchFromCurrentBuild = new HashSet<>();
+    private final Set<String> watchableHierarchiesFromCurrentBuild = new HashSet<>();
     private final Set<String> watchedHierarchiesFromPreviousBuild = new HashSet<>();
 
     public NonHierarchicalFileWatcherUpdater(FileWatcher fileWatcher, Predicate<String> watchFilter) {
@@ -80,25 +80,25 @@ public class NonHierarchicalFileWatcherUpdater extends AbstractFileWatcherUpdate
     }
 
     private boolean shouldWatch(CompleteFileSystemLocationSnapshot snapshot) {
-        return !ignoredForWatching(snapshot) && isInHierarchyToWatch(snapshot.getAbsolutePath());
+        return !ignoredForWatching(snapshot) && isInWatchableHierarchy(snapshot.getAbsolutePath());
     }
 
     @Override
-    public void registerHierarchyToWatch(File hierarchyToWatch, SnapshotHierarchy root) {
-        recordRegisteredHierarchyToWatch(hierarchyToWatch, root);
-        hierarchiesToWatchFromCurrentBuild.add(hierarchyToWatch.getAbsolutePath());
+    public void registerWatchableHierarchy(File watchableHierarchy, SnapshotHierarchy root) {
+        recordRegisteredWatchableHierarchy(watchableHierarchy, root);
+        watchableHierarchiesFromCurrentBuild.add(watchableHierarchy.getAbsolutePath());
     }
 
     @Override
     public SnapshotHierarchy buildFinished(SnapshotHierarchy root) {
-        watchedHierarchiesFromPreviousBuild.addAll(hierarchiesToWatchFromCurrentBuild);
+        watchedHierarchiesFromPreviousBuild.addAll(watchableHierarchiesFromCurrentBuild);
         watchedHierarchiesFromPreviousBuild.removeIf(watchedHierarchy -> {
             CheckIfNonEmptySnapshotVisitor checkIfNonEmptySnapshotVisitor = new CheckIfNonEmptySnapshotVisitor();
             root.visitSnapshotRoots(watchedHierarchy, checkIfNonEmptySnapshotVisitor);
             return checkIfNonEmptySnapshotVisitor.isEmpty();
         });
 
-        SnapshotHierarchy newRoot = recordHierarchiesToWatchAndRemoveUnwatchedSnapshots(
+        SnapshotHierarchy newRoot = recordWatchableHierarchiesAndRemoveUnwatchedSnapshots(
             watchedHierarchiesFromPreviousBuild.stream().map(File::new),
             root,
             (location, currentRoot) -> {

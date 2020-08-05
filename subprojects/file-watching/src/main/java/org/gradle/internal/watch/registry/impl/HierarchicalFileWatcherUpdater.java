@@ -50,7 +50,7 @@ import java.util.stream.Stream;
  * The root project directories are discovered as included builds are encountered at the start of a build, and then they are removed when the build finishes.
  *
  * This is the lifecycle for the watched root project directories:
- * - During a build, there will be various calls to {@link FileWatcherUpdater#registerHierarchyToWatch(File, SnapshotHierarchy)},
+ * - During a build, there will be various calls to {@link FileWatcherUpdater#registerWatchableHierarchy(File, SnapshotHierarchy)},
  *   each call augmenting the collection. The watchers will be updated accordingly.
  * - When updating the watches, we watch root project directories or old root project directories instead of
  *   directories inside them.
@@ -67,7 +67,7 @@ public class HierarchicalFileWatcherUpdater extends AbstractFileWatcherUpdater {
 
     private final FileSystemLocationToWatchValidator locationToWatchValidator;
 
-    private final Set<Path> hierarchiesToWatchFromCurrentBuild = new HashSet<>();
+    private final Set<Path> watchableHierarchiesFromCurrentBuild = new HashSet<>();
     private final Set<Path> watchedHierarchiesFromPreviousBuild = new HashSet<>();
 
     public HierarchicalFileWatcherUpdater(FileWatcher fileWatcher, FileSystemLocationToWatchValidator locationToWatchValidator, Predicate<String> watchFilter) {
@@ -82,20 +82,20 @@ public class HierarchicalFileWatcherUpdater extends AbstractFileWatcherUpdater {
     }
 
     @Override
-    public void registerHierarchyToWatch(File hierarchyToWatch, SnapshotHierarchy root) {
-        recordRegisteredHierarchyToWatch(hierarchyToWatch, root);
-        Path hierarchyToWatchPath = hierarchyToWatch.toPath().toAbsolutePath();
-        Set<Path> updatedHierarchiesToWatchFromCurrentBuild = resolveHierarchiesToWatch(
+    public void registerWatchableHierarchy(File watchableHierarchy, SnapshotHierarchy root) {
+        recordRegisteredWatchableHierarchy(watchableHierarchy, root);
+        Path watchableHierarchyPath = watchableHierarchy.toPath().toAbsolutePath();
+        Set<Path> updatedWatchableHierarchiesFromCurrentBuild = resolveHierarchiesToWatch(
             ImmutableSet.<Path>builder()
-                .addAll(hierarchiesToWatchFromCurrentBuild)
-                .add(hierarchyToWatchPath)
+                .addAll(watchableHierarchiesFromCurrentBuild)
+                .add(watchableHierarchyPath)
                 .build()
         );
-        hierarchiesToWatchFromCurrentBuild.clear();
-        hierarchiesToWatchFromCurrentBuild.addAll(updatedHierarchiesToWatchFromCurrentBuild);
-        LOGGER.info("Now considering watching {} as hierarchies to watch", hierarchiesToWatchFromCurrentBuild);
+        watchableHierarchiesFromCurrentBuild.clear();
+        watchableHierarchiesFromCurrentBuild.addAll(updatedWatchableHierarchiesFromCurrentBuild);
+        LOGGER.info("Now considering {} as hierarchies to watch", watchableHierarchiesFromCurrentBuild);
 
-        watchedHierarchiesFromPreviousBuild.removeAll(hierarchiesToWatchFromCurrentBuild);
+        watchedHierarchiesFromPreviousBuild.removeAll(watchableHierarchiesFromCurrentBuild);
 
         determineAndUpdateWatchedHierarchies(root);
     }
@@ -104,9 +104,9 @@ public class HierarchicalFileWatcherUpdater extends AbstractFileWatcherUpdater {
     public SnapshotHierarchy buildFinished(SnapshotHierarchy root) {
         watchedHierarchiesFromPreviousBuild.clear();
         watchedHierarchiesFromPreviousBuild.addAll(watchedHierarchies);
-        hierarchiesToWatchFromCurrentBuild.clear();
+        watchableHierarchiesFromCurrentBuild.clear();
 
-        SnapshotHierarchy newRoot = recordHierarchiesToWatchAndRemoveUnwatchedSnapshots(
+        SnapshotHierarchy newRoot = recordWatchableHierarchiesAndRemoveUnwatchedSnapshots(
             watchedHierarchies.stream().map(Path::toFile),
             root,
             (location, currentRoot) -> currentRoot.invalidate(location, SnapshotHierarchy.NodeDiffListener.NOOP)
@@ -120,26 +120,26 @@ public class HierarchicalFileWatcherUpdater extends AbstractFileWatcherUpdater {
 
     private void determineAndUpdateWatchedHierarchies(SnapshotHierarchy root) {
         Set<String> snapshotsAlreadyCoveredByOtherHierarchies = new HashSet<>();
-        Set<Path> hierarchiesWithSnapshots = Stream.concat(hierarchiesToWatchFromCurrentBuild.stream(), watchedHierarchiesFromPreviousBuild.stream())
-            .flatMap(hierarchyToWatch -> {
+        Set<Path> hierarchiesWithSnapshots = Stream.concat(watchableHierarchiesFromCurrentBuild.stream(), watchedHierarchiesFromPreviousBuild.stream())
+            .flatMap(watchableHierarchy -> {
                 CheckIfNonEmptySnapshotVisitor checkIfNonEmptySnapshotVisitor = new CheckIfNonEmptySnapshotVisitor();
-                root.visitSnapshotRoots(hierarchyToWatch.toString(), new FilterAlreadyCoveredSnapshotsVisitor(checkIfNonEmptySnapshotVisitor, snapshotsAlreadyCoveredByOtherHierarchies));
+                root.visitSnapshotRoots(watchableHierarchy.toString(), new FilterAlreadyCoveredSnapshotsVisitor(checkIfNonEmptySnapshotVisitor, snapshotsAlreadyCoveredByOtherHierarchies));
                 if (checkIfNonEmptySnapshotVisitor.isEmpty()) {
                     return Stream.empty();
                 }
                 return checkIfNonEmptySnapshotVisitor.containsOnlyMissingFiles()
-                    ? Stream.of(locationOrFirstExistingAncestor(hierarchyToWatch))
-                    : Stream.of(hierarchyToWatch);
+                    ? Stream.of(locationOrFirstExistingAncestor(watchableHierarchy))
+                    : Stream.of(watchableHierarchy);
             })
             .collect(Collectors.toSet());
         updateWatchedHierarchies(resolveHierarchiesToWatch(hierarchiesWithSnapshots));
     }
 
-    private Path locationOrFirstExistingAncestor(Path locationToWatch) {
-        if (Files.isDirectory(locationToWatch)) {
-            return locationToWatch;
+    private Path locationOrFirstExistingAncestor(Path watchableHierarchy) {
+        if (Files.isDirectory(watchableHierarchy)) {
+            return watchableHierarchy;
         }
-        return SnapshotWatchedDirectoryFinder.findFirstExistingAncestor(locationToWatch);
+        return SnapshotWatchedDirectoryFinder.findFirstExistingAncestor(watchableHierarchy);
     }
 
     private void updateWatchedHierarchies(Set<Path> newWatchedHierarchies) {

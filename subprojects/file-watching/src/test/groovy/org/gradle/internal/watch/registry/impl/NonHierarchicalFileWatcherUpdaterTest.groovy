@@ -29,35 +29,35 @@ class NonHierarchicalFileWatcherUpdaterTest extends AbstractFileWatcherUpdaterTe
     }
 
     def "only watches directories in hierarchies to watch"() {
-        def hierarchiesToWatch = ["first", "second", "third"].collect { file(it).createDir() }
-        def fileInHierarchiesToWatch = file("first/inside/root/dir/file.txt")
-        def fileOutsideOfHierarchiesToWatch = file("forth").file("someFile.txt")
+        def watchableHierarchies = ["first", "second", "third"].collect { file(it).createDir() }
+        def fileInWatchableHierarchies = file("first/inside/root/dir/file.txt")
+        def fileOutsideOfWatchableHierarchies = file("forth").file("someFile.txt")
 
         when:
-        registerHierarchiesToWatch(hierarchiesToWatch)
+        registerWatchableHierarchies(watchableHierarchies)
         then:
         0 * _
 
         when:
-        fileInHierarchiesToWatch.createFile()
-        addSnapshot(snapshotRegularFile(fileInHierarchiesToWatch))
+        fileInWatchableHierarchies.createFile()
+        addSnapshot(snapshotRegularFile(fileInWatchableHierarchies))
         then:
-        1 * watcher.startWatching({ equalIgnoringOrder(it, [fileInHierarchiesToWatch.parentFile]) })
+        1 * watcher.startWatching({ equalIgnoringOrder(it, [fileInWatchableHierarchies.parentFile]) })
         0 * _
 
         when:
-        fileOutsideOfHierarchiesToWatch.createFile()
-        addSnapshot(snapshotRegularFile(fileOutsideOfHierarchiesToWatch))
+        fileOutsideOfWatchableHierarchies.createFile()
+        addSnapshot(snapshotRegularFile(fileOutsideOfWatchableHierarchies))
         then:
         0 * _
-        vfsHasSnapshotsAt(fileOutsideOfHierarchiesToWatch)
+        vfsHasSnapshotsAt(fileOutsideOfWatchableHierarchies)
 
         when:
         buildFinished()
         then:
         _ * watchFilter.test(_) >> true
         0 * _
-        !vfsHasSnapshotsAt(fileOutsideOfHierarchiesToWatch)
+        !vfsHasSnapshotsAt(fileOutsideOfWatchableHierarchies)
     }
 
     def "watchers are stopped when removing the last watched snapshot"() {
@@ -66,7 +66,7 @@ class NonHierarchicalFileWatcherUpdaterTest extends AbstractFileWatcherUpdaterTe
         def rootDirSnapshot = snapshotDirectory(rootDir)
 
         when:
-        registerHierarchiesToWatch([rootDir])
+        registerWatchableHierarchies([rootDir])
         addSnapshot(rootDirSnapshot)
         then:
         1 * watcher.startWatching({ equalIgnoringOrder(it, [rootDir.parentFile, rootDir]) })
