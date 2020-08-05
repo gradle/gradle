@@ -22,14 +22,12 @@ import org.gradle.internal.vfs.impl.DefaultSnapshotHierarchy
 import org.gradle.internal.vfs.impl.VfsRootReference
 import org.gradle.internal.watch.registry.FileWatcherRegistry
 import org.gradle.internal.watch.registry.FileWatcherRegistryFactory
-import org.gradle.internal.watch.registry.FileWatcherUpdater
 import org.gradle.internal.watch.registry.impl.DaemonDocumentationIndex
 import spock.lang.Specification
 
 class WatchingVirtualFileSystemTest extends Specification {
     def watcherRegistryFactory = Mock(FileWatcherRegistryFactory)
     def watcherRegistry = Mock(FileWatcherRegistry)
-    def fileWatcherUpdater = Mock(FileWatcherUpdater)
     def emptySnapshotHierarchy = DefaultSnapshotHierarchy.empty(CaseSensitivity.CASE_SENSITIVE)
     def nonEmptySnapshotHierarchy = Stub(SnapshotHierarchy) {
         empty() >> emptySnapshotHierarchy
@@ -73,8 +71,7 @@ class WatchingVirtualFileSystemTest extends Specification {
         watchingHandler.beforeBuildFinished(true)
         then:
         1 * watcherRegistry.getAndResetStatistics() >> Stub(FileWatcherRegistry.FileWatchingStatistics)
-        1 * watcherRegistry.fileWatcherUpdater >> fileWatcherUpdater
-        1 * fileWatcherUpdater.buildFinished(_) >> rootReference.getRoot()
+        1 * watcherRegistry.buildFinished(_) >> rootReference.getRoot()
         0 * _
 
         when:
@@ -98,8 +95,7 @@ class WatchingVirtualFileSystemTest extends Specification {
         watchingHandler.beforeBuildFinished(true)
         then:
         1 * watcherRegistry.getAndResetStatistics() >> Stub(FileWatcherRegistry.FileWatchingStatistics)
-        1 * watcherRegistry.fileWatcherUpdater >> fileWatcherUpdater
-        1 * fileWatcherUpdater.buildFinished(_) >> rootReference.getRoot()
+        1 * watcherRegistry.buildFinished(_) >> rootReference.getRoot()
         0 * _
 
         when:
@@ -126,28 +122,24 @@ class WatchingVirtualFileSystemTest extends Specification {
         watchingHandler.afterBuildStarted(true)
         then:
         1 * watcherRegistryFactory.createFileWatcherRegistry(_) >> watcherRegistry
-        1 * watcherRegistry.fileWatcherUpdater >> fileWatcherUpdater
-        1 * fileWatcherUpdater.registerWatchableHierarchy(watchableHierarchy, _)
+        1 * watcherRegistry.registerWatchableHierarchy(watchableHierarchy, _)
         0 * _
 
         when:
         watchingHandler.registerWatchableHierarchy(anotherWatchableHierarchy)
         then:
-        1 * watcherRegistry.fileWatcherUpdater >> fileWatcherUpdater
-        1 * fileWatcherUpdater.registerWatchableHierarchy(anotherWatchableHierarchy, _)
+        1 * watcherRegistry.registerWatchableHierarchy(anotherWatchableHierarchy, _)
 
         when:
         watchingHandler.beforeBuildFinished(true)
         then:
         1 * watcherRegistry.getAndResetStatistics() >> Stub(FileWatcherRegistry.FileWatchingStatistics)
-        1 * watcherRegistry.fileWatcherUpdater >> fileWatcherUpdater
-        1 * fileWatcherUpdater.buildFinished(_) >> rootReference.getRoot()
+        1 * watcherRegistry.buildFinished(_) >> rootReference.getRoot()
         0 * _
 
         when:
         watchingHandler.registerWatchableHierarchy(newWatchableHierarchy)
         then:
-        1 * watcherRegistry.fileWatcherUpdater >> fileWatcherUpdater
-        1 * fileWatcherUpdater.registerWatchableHierarchy(newWatchableHierarchy, _)
+        1 * watcherRegistry.registerWatchableHierarchy(newWatchableHierarchy, _)
     }
 }

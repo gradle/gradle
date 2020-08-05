@@ -18,15 +18,19 @@ package org.gradle.internal.watch.registry.impl;
 
 import net.rubygrapefruit.platform.file.FileWatchEvent;
 import net.rubygrapefruit.platform.file.FileWatcher;
+import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
+import org.gradle.internal.snapshot.SnapshotHierarchy;
 import org.gradle.internal.watch.registry.FileWatcherRegistry;
 import org.gradle.internal.watch.registry.FileWatcherUpdater;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
+import java.io.File;
 import java.io.IOException;
 import java.io.InterruptedIOException;
 import java.nio.file.Paths;
+import java.util.Collection;
 import java.util.Optional;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -110,8 +114,18 @@ public class DefaultFileWatcherRegistry implements FileWatcherRegistry {
     }
 
     @Override
-    public FileWatcherUpdater getFileWatcherUpdater() {
-        return fileWatcherUpdater;
+    public void registerWatchableHierarchy(File watchableHierarchy, SnapshotHierarchy root) {
+        fileWatcherUpdater.registerWatchableHierarchy(watchableHierarchy, root);
+    }
+
+    @Override
+    public void virtualFileSystemContentsChanged(Collection<CompleteFileSystemLocationSnapshot> removedSnapshots, Collection<CompleteFileSystemLocationSnapshot> addedSnapshots, SnapshotHierarchy root) {
+        fileWatcherUpdater.virtualFileSystemContentsChanged(removedSnapshots, addedSnapshots, root);
+    }
+
+    @Override
+    public SnapshotHierarchy buildFinished(SnapshotHierarchy root) {
+        return fileWatcherUpdater.buildFinished(root);
     }
 
     private static Type convertType(FileWatchEvent.ChangeType type) {

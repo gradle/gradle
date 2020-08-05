@@ -21,7 +21,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Optional;
 
-public interface FileWatcherRegistry extends Closeable {
+public interface FileWatcherRegistry extends FileWatcherUpdater, Closeable {
 
     interface ChangeHandler {
         void handleChange(Type type, Path path);
@@ -35,8 +35,6 @@ public interface FileWatcherRegistry extends Closeable {
         REMOVED,
         INVALIDATED
     }
-
-    FileWatcherUpdater getFileWatcherUpdater();
 
     /**
      * Get statistics about the received changes.

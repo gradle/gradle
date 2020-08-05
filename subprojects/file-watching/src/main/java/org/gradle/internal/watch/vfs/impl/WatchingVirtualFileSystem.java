@@ -85,7 +85,9 @@ public class WatchingVirtualFileSystem implements BuildLifecycleAwareVirtualFile
         } else {
             SnapshotCollectingDiffListener diffListener = new SnapshotCollectingDiffListener();
             SnapshotHierarchy newRoot = updateFunction.update(currentRoot, diffListener);
-            return withWatcherChangeErrorHandling(newRoot, () -> diffListener.publishSnapshotDiff((removedSnapshots, addedSnapshots) -> watchRegistry.getFileWatcherUpdater().virtualFileSystemContentsChanged(removedSnapshots, addedSnapshots, newRoot)));
+            return withWatcherChangeErrorHandling(newRoot, () -> diffListener.publishSnapshotDiff((removedSnapshots, addedSnapshots) ->
+                watchRegistry.virtualFileSystemContentsChanged(removedSnapshots, addedSnapshots, newRoot)
+            ));
         }
     }
 
@@ -115,7 +117,7 @@ public class WatchingVirtualFileSystem implements BuildLifecycleAwareVirtualFile
             }
             return withWatcherChangeErrorHandling(
                 currentRoot,
-                () -> watchRegistry.getFileWatcherUpdater().registerWatchableHierarchy(watchableHierarchy, currentRoot)
+                () -> watchRegistry.registerWatchableHierarchy(watchableHierarchy, currentRoot)
             );
         });
     }
@@ -133,7 +135,7 @@ public class WatchingVirtualFileSystem implements BuildLifecycleAwareVirtualFile
                 SnapshotHierarchy newRoot = handleWatcherRegistryEvents(currentRoot, "for current build");
                 if (watchRegistry != null) {
                     SnapshotHierarchy rootAfterEvents = newRoot;
-                    newRoot = withWatcherChangeErrorHandling(newRoot, () -> watchRegistry.getFileWatcherUpdater().buildFinished(rootAfterEvents));
+                    newRoot = withWatcherChangeErrorHandling(newRoot, () -> watchRegistry.buildFinished(rootAfterEvents));
                 }
                 printStatistics(newRoot, "retains", "till next build");
                 return newRoot;
@@ -170,7 +172,7 @@ public class WatchingVirtualFileSystem implements BuildLifecycleAwareVirtualFile
                     stopWatchingAndInvalidateHierarchy();
                 }
             });
-            watchableHierarchies.forEach(watchableHierarchy -> watchRegistry.getFileWatcherUpdater().registerWatchableHierarchy(watchableHierarchy, currentRoot));
+            watchableHierarchies.forEach(watchableHierarchy -> watchRegistry.registerWatchableHierarchy(watchableHierarchy, currentRoot));
             watchableHierarchies.clear();
             long endTime = System.currentTimeMillis() - startTime;
             LOGGER.warn("Spent {} ms registering watches for file system events", endTime);
