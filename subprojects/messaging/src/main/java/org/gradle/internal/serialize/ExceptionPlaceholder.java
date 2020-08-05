@@ -263,7 +263,7 @@ class ExceptionPlaceholder implements Serializable {
                 placeholder = new ContextualPlaceholderException(type, message, getMessageExec, toString, toStringRuntimeExec, causes.isEmpty() ? null : causes.get(0));
             } else {
                 if (assertionError) {
-                    placeholder = new PlaceholderAssertionError(type, message, getMessageExec, toString, toStringRuntimeExec);
+                    placeholder = new PlaceholderAssertionError(type, message, getMessageExec, toString, toStringRuntimeExec, causes.isEmpty() ? null : causes.get(0));
                 } else {
                     placeholder = new PlaceholderException(type, message, getMessageExec, toString, toStringRuntimeExec, causes.isEmpty() ? null : causes.get(0));
                 }

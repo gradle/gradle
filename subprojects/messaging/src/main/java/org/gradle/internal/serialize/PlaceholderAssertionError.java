@@ -33,12 +33,14 @@ public class PlaceholderAssertionError extends AssertionError implements Placeho
                                      @Nullable String message,
                                      @Nullable Throwable getMessageException,
                                      @Nullable String toString,
-                                     @Nullable Throwable toStringException) {
+                                     @Nullable Throwable toStringException,
+                                     @Nullable Throwable cause) {
         super(message);
         this.exceptionClassName = exceptionClassName;
         this.getMessageException = getMessageException;
         this.toString = toString;
         this.toStringRuntimeEx = toStringException;
+        initCause(cause);
     }
 
     @Override

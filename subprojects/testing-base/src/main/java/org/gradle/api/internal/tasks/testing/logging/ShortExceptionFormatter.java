@@ -19,7 +19,7 @@ package org.gradle.api.internal.tasks.testing.logging;
 import com.google.common.base.Strings;
 import org.gradle.api.tasks.testing.TestDescriptor;
 import org.gradle.api.tasks.testing.logging.TestLogging;
-import org.gradle.internal.serialize.PlaceholderException;
+import org.gradle.internal.serialize.PlaceholderExceptionSupport;
 
 import java.util.List;
 
@@ -47,8 +47,8 @@ public class ShortExceptionFormatter implements TestExceptionFormatter {
         if (cause) {
             builder.append("Caused by: ");
         }
-        String className = exception instanceof PlaceholderException
-                ? ((PlaceholderException) exception).getExceptionClassName() : exception.getClass().getName();
+        String className = exception instanceof PlaceholderExceptionSupport
+                ? ((PlaceholderExceptionSupport) exception).getExceptionClassName() : exception.getClass().getName();
         builder.append(className);
 
         StackTraceFilter filter = new StackTraceFilter(new ClassMethodNameStackTraceSpec(descriptor.getClassName(), null));
