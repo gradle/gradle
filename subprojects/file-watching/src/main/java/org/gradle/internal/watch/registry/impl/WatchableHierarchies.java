@@ -19,28 +19,26 @@ package org.gradle.internal.watch.registry.impl;
 import org.gradle.internal.file.DefaultFileHierarchySet;
 import org.gradle.internal.file.FileHierarchySet;
 import org.gradle.internal.file.FileMetadata;
-import org.gradle.internal.file.FileType;
 import org.gradle.internal.snapshot.CompleteDirectorySnapshot;
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshotVisitor;
 import org.gradle.internal.snapshot.SnapshotHierarchy;
-import org.gradle.internal.watch.registry.FileWatcherUpdater;
 
 import javax.annotation.CheckReturnValue;
 import java.io.File;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
-public abstract class AbstractFileWatcherUpdater implements FileWatcherUpdater {
+public class WatchableHierarchies {
     private final Predicate<String> watchFilter;
 
     private FileHierarchySet watchableHierarchies = DefaultFileHierarchySet.of();
 
-    public AbstractFileWatcherUpdater(Predicate<String> watchFilter) {
+    public WatchableHierarchies(Predicate<String> watchFilter) {
         this.watchFilter = watchFilter;
     }
 
-    protected void recordRegisteredWatchableHierarchy(File watchableHierarchy, SnapshotHierarchy root) {
+    public void registerWatchableHierarchy(File watchableHierarchy, SnapshotHierarchy root) {
         String watchableHierarchyAbsolutePath = watchableHierarchy.getAbsolutePath();
         if (!watchFilter.test(watchableHierarchyAbsolutePath)) {
             throw new RuntimeException(String.format(
@@ -55,8 +53,8 @@ public abstract class AbstractFileWatcherUpdater implements FileWatcherUpdater {
     }
 
     @CheckReturnValue
-    protected SnapshotHierarchy recordWatchableHierarchiesAndRemoveUnwatchedSnapshots(Stream<File> watchableHierarchies, SnapshotHierarchy root, Invalidator invalidator) {
-        this.watchableHierarchies = DefaultFileHierarchySet.of(watchableHierarchies::iterator);
+    public SnapshotHierarchy removeUnwatchedSnapshots(Stream<File> watchedHierarchies, SnapshotHierarchy root, Invalidator invalidator) {
+        this.watchableHierarchies = DefaultFileHierarchySet.of(watchedHierarchies::iterator);
         RemoveUnwatchedFiles removeUnwatchedFilesVisitor = new RemoveUnwatchedFiles(root, invalidator);
         root.visitSnapshotRoots(snapshotRoot -> snapshotRoot.accept(removeUnwatchedFilesVisitor));
         return removeUnwatchedFilesVisitor.getRootWithUnwatchedFilesRemoved();
@@ -74,38 +72,19 @@ public abstract class AbstractFileWatcherUpdater implements FileWatcherUpdater {
         });
     }
 
-    protected boolean ignoredForWatching(CompleteFileSystemLocationSnapshot snapshot) {
+    public boolean ignoredForWatching(CompleteFileSystemLocationSnapshot snapshot) {
         return snapshot.getAccessType() == FileMetadata.AccessType.VIA_SYMLINK || !watchFilter.test(snapshot.getAbsolutePath());
     }
 
-    protected boolean isInWatchableHierarchy(String path) {
+    public boolean isInWatchableHierarchy(String path) {
         return watchableHierarchies.contains(path);
     }
 
-    protected class CheckIfNonEmptySnapshotVisitor implements SnapshotHierarchy.SnapshotVisitor {
-        private boolean empty = true;
-        private boolean onlyMissing = true;
-
-        @Override
-        public void visitSnapshotRoot(CompleteFileSystemLocationSnapshot rootSnapshot) {
-            if (!ignoredForWatching(rootSnapshot)) {
-                empty = false;
-                if (rootSnapshot.getType() != FileType.Missing) {
-                    onlyMissing = false;
-                }
-            }
-        }
-
-        public boolean isEmpty() {
-            return empty;
-        }
-
-        public boolean containsOnlyMissingFiles() {
-            return onlyMissing;
-        }
+    public boolean shouldWatch(CompleteFileSystemLocationSnapshot snapshot) {
+        return !ignoredForWatching(snapshot) && isInWatchableHierarchy(snapshot.getAbsolutePath());
     }
 
-    protected class RemoveUnwatchedFiles implements FileSystemSnapshotVisitor {
+    private class RemoveUnwatchedFiles implements FileSystemSnapshotVisitor {
         private SnapshotHierarchy root;
         private final Invalidator invalidator;
 

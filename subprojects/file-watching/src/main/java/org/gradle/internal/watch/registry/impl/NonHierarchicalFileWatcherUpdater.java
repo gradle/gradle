@@ -26,6 +26,7 @@ import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshotVisitor;
 import org.gradle.internal.snapshot.SnapshotHierarchy;
 import org.gradle.internal.watch.WatchingNotSupportedException;
+import org.gradle.internal.watch.registry.FileWatcherUpdater;
 import org.gradle.internal.watch.registry.SnapshotCollectingDiffListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,7 +42,7 @@ import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-public class NonHierarchicalFileWatcherUpdater extends AbstractFileWatcherUpdater {
+public class NonHierarchicalFileWatcherUpdater implements FileWatcherUpdater {
     private static final Logger LOGGER = LoggerFactory.getLogger(NonHierarchicalFileWatcherUpdater.class);
 
     private final Multiset<String> watchedDirectories = HashMultiset.create();
@@ -50,10 +51,11 @@ public class NonHierarchicalFileWatcherUpdater extends AbstractFileWatcherUpdate
 
     private final Set<String> watchableHierarchiesFromCurrentBuild = new HashSet<>();
     private final Set<String> watchedHierarchiesFromPreviousBuild = new HashSet<>();
+    private final WatchableHierarchies watchableHierarchies;
 
     public NonHierarchicalFileWatcherUpdater(FileWatcher fileWatcher, Predicate<String> watchFilter) {
-        super(watchFilter);
         this.fileWatcher = fileWatcher;
+        this.watchableHierarchies = new WatchableHierarchies(watchFilter);
     }
 
     @Override
@@ -61,14 +63,14 @@ public class NonHierarchicalFileWatcherUpdater extends AbstractFileWatcherUpdate
         Map<String, Integer> changedWatchedDirectories = new HashMap<>();
 
         removedSnapshots.stream()
-            .filter(this::shouldWatch)
+            .filter(watchableHierarchies::shouldWatch)
             .forEach(snapshot -> {
                 ImmutableList<String> previousWatchedRoots = watchedDirectoriesForSnapshot.remove(snapshot.getAbsolutePath());
                 previousWatchedRoots.forEach(path -> decrement(path, changedWatchedDirectories));
                 snapshot.accept(new SubdirectoriesToWatchVisitor(path -> decrement(path, changedWatchedDirectories)));
             });
         addedSnapshots.stream()
-            .filter(this::shouldWatch)
+            .filter(watchableHierarchies::shouldWatch)
             .forEach(snapshot -> {
                 ImmutableList<String> directoriesToWatchForRoot = ImmutableList.copyOf(SnapshotWatchedDirectoryFinder.getDirectoriesToWatch(snapshot).stream()
                     .map(Path::toString).collect(Collectors.toList()));
@@ -79,13 +81,9 @@ public class NonHierarchicalFileWatcherUpdater extends AbstractFileWatcherUpdate
         updateWatchedDirectories(changedWatchedDirectories);
     }
 
-    private boolean shouldWatch(CompleteFileSystemLocationSnapshot snapshot) {
-        return !ignoredForWatching(snapshot) && isInWatchableHierarchy(snapshot.getAbsolutePath());
-    }
-
     @Override
     public void registerWatchableHierarchy(File watchableHierarchy, SnapshotHierarchy root) {
-        recordRegisteredWatchableHierarchy(watchableHierarchy, root);
+        watchableHierarchies.registerWatchableHierarchy(watchableHierarchy, root);
         watchableHierarchiesFromCurrentBuild.add(watchableHierarchy.getAbsolutePath());
     }
 
@@ -93,12 +91,12 @@ public class NonHierarchicalFileWatcherUpdater extends AbstractFileWatcherUpdate
     public SnapshotHierarchy buildFinished(SnapshotHierarchy root) {
         watchedHierarchiesFromPreviousBuild.addAll(watchableHierarchiesFromCurrentBuild);
         watchedHierarchiesFromPreviousBuild.removeIf(watchedHierarchy -> {
-            CheckIfNonEmptySnapshotVisitor checkIfNonEmptySnapshotVisitor = new CheckIfNonEmptySnapshotVisitor();
+            CheckIfNonEmptySnapshotVisitor checkIfNonEmptySnapshotVisitor = new CheckIfNonEmptySnapshotVisitor(watchableHierarchies);
             root.visitSnapshotRoots(watchedHierarchy, checkIfNonEmptySnapshotVisitor);
             return checkIfNonEmptySnapshotVisitor.isEmpty();
         });
 
-        SnapshotHierarchy newRoot = recordWatchableHierarchiesAndRemoveUnwatchedSnapshots(
+        SnapshotHierarchy newRoot = watchableHierarchies.removeUnwatchedSnapshots(
             watchedHierarchiesFromPreviousBuild.stream().map(File::new),
             root,
             (location, currentRoot) -> {
@@ -175,7 +173,7 @@ public class NonHierarchicalFileWatcherUpdater extends AbstractFileWatcherUpdate
                 root = false;
                 return true;
             }
-            if (ignoredForWatching(directorySnapshot)) {
+            if (watchableHierarchies.ignoredForWatching(directorySnapshot)) {
                 return false;
             } else {
                 subDirectoryToWatchConsumer.accept(directorySnapshot.getAbsolutePath());

@@ -59,21 +59,22 @@ import java.util.stream.Stream;
  *   - remember the current watched root project directories as old root directories for the next build
  *   - remove all non-watched root project directories from the old root directories.
  */
-public class HierarchicalFileWatcherUpdater extends AbstractFileWatcherUpdater {
+public class HierarchicalFileWatcherUpdater implements FileWatcherUpdater {
     private static final Logger LOGGER = LoggerFactory.getLogger(HierarchicalFileWatcherUpdater.class);
 
     private final Set<Path> watchedHierarchies = new HashSet<>();
     private final FileWatcher fileWatcher;
 
     private final FileSystemLocationToWatchValidator locationToWatchValidator;
+    private final WatchableHierarchies watchableHierarchies;
 
     private final Set<Path> watchableHierarchiesFromCurrentBuild = new HashSet<>();
     private final Set<Path> watchedHierarchiesFromPreviousBuild = new HashSet<>();
 
     public HierarchicalFileWatcherUpdater(FileWatcher fileWatcher, FileSystemLocationToWatchValidator locationToWatchValidator, Predicate<String> watchFilter) {
-        super(watchFilter);
         this.fileWatcher = fileWatcher;
         this.locationToWatchValidator = locationToWatchValidator;
+        this.watchableHierarchies = new WatchableHierarchies(watchFilter);
     }
 
     @Override
@@ -83,7 +84,7 @@ public class HierarchicalFileWatcherUpdater extends AbstractFileWatcherUpdater {
 
     @Override
     public void registerWatchableHierarchy(File watchableHierarchy, SnapshotHierarchy root) {
-        recordRegisteredWatchableHierarchy(watchableHierarchy, root);
+        watchableHierarchies.registerWatchableHierarchy(watchableHierarchy, root);
         Path watchableHierarchyPath = watchableHierarchy.toPath().toAbsolutePath();
         Set<Path> updatedWatchableHierarchiesFromCurrentBuild = resolveHierarchiesToWatch(
             ImmutableSet.<Path>builder()
@@ -106,7 +107,7 @@ public class HierarchicalFileWatcherUpdater extends AbstractFileWatcherUpdater {
         watchedHierarchiesFromPreviousBuild.addAll(watchedHierarchies);
         watchableHierarchiesFromCurrentBuild.clear();
 
-        SnapshotHierarchy newRoot = recordWatchableHierarchiesAndRemoveUnwatchedSnapshots(
+        SnapshotHierarchy newRoot = watchableHierarchies.removeUnwatchedSnapshots(
             watchedHierarchies.stream().map(Path::toFile),
             root,
             (location, currentRoot) -> currentRoot.invalidate(location, SnapshotHierarchy.NodeDiffListener.NOOP)
@@ -122,7 +123,7 @@ public class HierarchicalFileWatcherUpdater extends AbstractFileWatcherUpdater {
         Set<String> snapshotsAlreadyCoveredByOtherHierarchies = new HashSet<>();
         Set<Path> hierarchiesWithSnapshots = Stream.concat(watchableHierarchiesFromCurrentBuild.stream(), watchedHierarchiesFromPreviousBuild.stream())
             .flatMap(watchableHierarchy -> {
-                CheckIfNonEmptySnapshotVisitor checkIfNonEmptySnapshotVisitor = new CheckIfNonEmptySnapshotVisitor();
+                CheckIfNonEmptySnapshotVisitor checkIfNonEmptySnapshotVisitor = new CheckIfNonEmptySnapshotVisitor(watchableHierarchies);
                 root.visitSnapshotRoots(watchableHierarchy.toString(), new FilterAlreadyCoveredSnapshotsVisitor(checkIfNonEmptySnapshotVisitor, snapshotsAlreadyCoveredByOtherHierarchies));
                 if (checkIfNonEmptySnapshotVisitor.isEmpty()) {
                     return Stream.empty();
