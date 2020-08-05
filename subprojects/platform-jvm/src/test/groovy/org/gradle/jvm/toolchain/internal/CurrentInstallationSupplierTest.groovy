@@ -16,6 +16,8 @@
 
 package org.gradle.jvm.toolchain.internal
 
+import org.gradle.api.internal.provider.Providers
+import org.gradle.api.provider.ProviderFactory
 import org.gradle.internal.jvm.Jvm
 import spock.lang.Specification
 
@@ -23,7 +25,7 @@ class CurrentInstallationSupplierTest extends Specification {
 
     def "supplies java home as installation"() {
         given:
-        def supplier = new CurrentInstallationSupplier()
+        def supplier = new CurrentInstallationSupplier(createProviderFactory())
 
         when:
         def directories = supplier.get()
@@ -33,5 +35,21 @@ class CurrentInstallationSupplierTest extends Specification {
         directories*.source == ["current jvm"]
     }
 
+    def "skips current jre as installation if auto-detection is disabled"() {
+        given:
+        def supplier = new CurrentInstallationSupplier(createProviderFactory("false"))
+
+        when:
+        def directories = supplier.get()
+
+        then:
+        directories.isEmpty()
+    }
+
+    ProviderFactory createProviderFactory(String autoDetect = null) {
+        def providerFactory = Mock(ProviderFactory)
+        providerFactory.gradleProperty("org.gradle.java.installations.auto-detect") >> Providers.ofNullable(autoDetect)
+        providerFactory
+    }
 
 }

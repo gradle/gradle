@@ -16,16 +16,23 @@
 
 package org.gradle.jvm.toolchain.internal;
 
+import org.gradle.api.provider.ProviderFactory;
 import org.gradle.internal.jvm.Jvm;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.util.Collections;
 import java.util.Set;
 
-public class CurrentInstallationSupplier implements InstallationSupplier {
+public class CurrentInstallationSupplier extends AutoDetectingInstallationSupplier {
+
+    @Inject
+    public CurrentInstallationSupplier(ProviderFactory factory) {
+        super(factory);
+    }
 
     @Override
-    public Set<InstallationLocation> get() {
+    protected Set<InstallationLocation> findCandidates() {
         return Collections.singleton(asInstallation(Jvm.current().getJavaHome()));
     }
 
