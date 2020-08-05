@@ -21,6 +21,22 @@ class KotlinBuildScriptIntegrationTest : AbstractKotlinIntegrationTest() {
 
     @Test
     @ToBeFixedForConfigurationCache
+    fun `gradlec rocks`() {
+
+        withBuildScript("""
+            plugins {
+                id("base")
+                id("java")
+            }
+        """)
+
+        build("help", "--info").apply {
+            assertOutputContains("gradlec just rocked your world!")
+        }
+    }
+
+    @Test
+    @ToBeFixedForConfigurationCache
     fun `can apply plugin using ObjectConfigurationAction syntax`() {
 
         withSettings("""

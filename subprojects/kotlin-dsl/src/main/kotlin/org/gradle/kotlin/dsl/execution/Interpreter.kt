@@ -267,33 +267,40 @@ class Interpreter(val host: Host) {
                     val outputDir =
                         stage1SubDirOf(cachedDir).apply { mkdir() }
 
+                    scriptSource.resource?.file?.let { sourceFile ->
+                        if (programKind == ProgramKind.TopLevel && programTarget == ProgramTarget.Project) {
+                            try {
+                                val result =
+                                    scriptHost.processOperations.exec { spec ->
+                                        spec.apply {
+                                            executable("gradlec")
+                                            args(sourceFile, outputDir)
+                                        }
+                                    }
+                                if (result.exitValue == 0) {
+                                    interpreterLogger.info("gradlec just rocked your world!")
+                                    return@cachedDirFor
+                                }
+                            } catch (e: Exception) {
+                                e.printStackTrace()
+                            }
+                        }
+                    }
+
                     val sourceText =
                         scriptSource.resource!!.text
 
-                    val programSource =
-                        ProgramSource(scriptPath, sourceText)
-
-                    val program =
-                        ProgramParser.parse(programSource, programKind, programTarget)
-
-                    val residualProgram = program.map(
-                        PartialEvaluator(programKind, programTarget)::reduce
+                    vanillaCompiler(
+                        scriptPath,
+                        sourceText,
+                        programKind,
+                        programTarget,
+                        scriptSource,
+                        outputDir,
+                        targetScope,
+                        sourceHash,
+                        pluginAccessorsClassPath
                     )
-
-                    scriptSource.withLocationAwareExceptionHandling {
-                        ResidualProgramCompiler(
-                            outputDir = outputDir,
-                            classPath = host.compilationClassPathOf(targetScope.parent),
-                            originalSourceHash = sourceHash,
-                            programKind = programKind,
-                            programTarget = programTarget,
-                            implicitImports = host.implicitImports,
-                            logger = interpreterLogger,
-                            compileBuildOperationRunner = host::runCompileBuildOperation,
-                            pluginAccessorsClassPath = pluginAccessorsClassPath ?: ClassPath.EMPTY,
-                            packageName = residualProgram.packageName
-                        ).compile(residualProgram.document)
-                    }
                 }
             }
 
@@ -308,6 +315,34 @@ class Interpreter(val host: Host) {
             pluginAccessorsClassPath,
             scriptSource
         )
+    }
+
+    private
+    fun vanillaCompiler(scriptPath: String, sourceText: String, programKind: ProgramKind, programTarget: ProgramTarget, scriptSource: ScriptSource, outputDir: File, targetScope: ClassLoaderScope, sourceHash: HashCode, pluginAccessorsClassPath: ClassPath?) {
+        val programSource =
+            ProgramSource(scriptPath, sourceText)
+
+        val program =
+            ProgramParser.parse(programSource, programKind, programTarget)
+
+        val residualProgram = program.map(
+            PartialEvaluator(programKind, programTarget)::reduce
+        )
+
+        scriptSource.withLocationAwareExceptionHandling {
+            ResidualProgramCompiler(
+                outputDir = outputDir,
+                classPath = host.compilationClassPathOf(targetScope.parent),
+                originalSourceHash = sourceHash,
+                programKind = programKind,
+                programTarget = programTarget,
+                implicitImports = host.implicitImports,
+                logger = interpreterLogger,
+                compileBuildOperationRunner = host::runCompileBuildOperation,
+                pluginAccessorsClassPath = pluginAccessorsClassPath ?: ClassPath.EMPTY,
+                packageName = residualProgram.packageName
+            ).compile(residualProgram.document)
+        }
     }
 
     private
