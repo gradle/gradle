@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,12 @@ import org.gradle.initialization.BuildEventConsumer;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
+import java.util.List;
+
 @ServiceScope(Scope.Global.class)
-public interface BuildEventListenerFactory {
-    Iterable<Object> createListeners(BuildEventSubscriptions subscriptions, BuildEventConsumer consumer);
+public interface OperationResultPostProcessorFactory {
+    /**
+     * Creates the post processors relevant for the given subscriptions. The processors are also registered as listeners.
+     */
+    List<OperationResultPostProcessor> createProcessors(BuildEventSubscriptions subscriptions, BuildEventConsumer consumer);
 }

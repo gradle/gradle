@@ -47,7 +47,7 @@ class DefaultBuildEventsListenerRegistryTest extends ConcurrentSpec {
     def listenerManager = new DefaultListenerManager(Scopes.Build)
     def buildOperationListenerManager = new DefaultBuildOperationListenerManager()
     def buildResult = new BuildResult(Mock(GradleInternal), null)
-    def registry = new DefaultBuildEventsListenerRegistry([factory], listenerManager, buildOperationListenerManager, executorFactory)
+    def registry = new DefaultBuildEventsListenerRegistry(factory, listenerManager, buildOperationListenerManager, executorFactory)
 
     def cleanup() {
         // Signal the end of the build, to stop everything

@@ -17,8 +17,10 @@
 package org.gradle.tooling.internal.provider.runner;
 
 import org.gradle.initialization.BuildEventConsumer;
-import org.gradle.internal.build.event.BuildEventSubscriptions;
 import org.gradle.internal.build.event.BuildEventListenerFactory;
+import org.gradle.internal.build.event.BuildEventSubscriptions;
+import org.gradle.internal.build.event.OperationResultPostProcessor;
+import org.gradle.internal.build.event.OperationResultPostProcessorFactory;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationIdFactory;
 import org.gradle.internal.operations.BuildOperationListener;
@@ -27,7 +29,6 @@ import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.internal.operations.OperationProgressEvent;
 import org.gradle.internal.operations.OperationStartEvent;
 import org.gradle.tooling.events.OperationType;
-import org.gradle.internal.build.event.OperationResultPostProcessor;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,13 +36,12 @@ import java.util.List;
 import static java.util.Collections.emptyList;
 
 public class ToolingApiBuildEventListenerFactory implements BuildEventListenerFactory {
-
-    private final OperationResultPostProcessor operationResultPostProcessor;
     private final BuildOperationIdFactory idFactory;
+    private final List<OperationResultPostProcessorFactory> postProcessorFactories;
 
-    ToolingApiBuildEventListenerFactory(BuildOperationIdFactory idFactory, CompositeOperationResultPostProcessor compositeOperationResultPostProcessor) {
+    ToolingApiBuildEventListenerFactory(BuildOperationIdFactory idFactory, List<OperationResultPostProcessorFactory> postProcessorFactories) {
         this.idFactory = idFactory;
-        this.operationResultPostProcessor = compositeOperationResultPostProcessor;
+        this.postProcessorFactories = postProcessorFactories;
     }
 
     @Override
@@ -83,7 +83,15 @@ public class ToolingApiBuildEventListenerFactory implements BuildEventListenerFa
                 if (subscriptions.isAnyRequested(OperationType.TASK)) {
                     listeners.add(taskOriginTracker);
                 }
-                ClientForwardingTaskOperationListener taskOperationListener = new ClientForwardingTaskOperationListener(progressEventConsumer, subscriptions, buildListener, operationResultPostProcessor, taskOriginTracker, operationDependenciesResolver);
+
+                List<OperationResultPostProcessor> postProcessors = new ArrayList<>(postProcessorFactories.size());
+                for (OperationResultPostProcessorFactory postProcessorFactory : postProcessorFactories) {
+                    postProcessors.addAll(postProcessorFactory.createProcessors(subscriptions, consumer));
+                }
+                listeners.addAll(postProcessors);
+                OperationResultPostProcessor postProcessor = new CompositeOperationResultPostProcessor(postProcessors);
+
+                ClientForwardingTaskOperationListener taskOperationListener = new ClientForwardingTaskOperationListener(progressEventConsumer, subscriptions, buildListener, postProcessor, taskOriginTracker, operationDependenciesResolver);
                 operationDependenciesResolver.addLookup(taskOperationListener);
                 buildListener = taskOperationListener;
             }

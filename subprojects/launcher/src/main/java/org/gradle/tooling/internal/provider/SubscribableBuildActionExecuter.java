@@ -40,12 +40,12 @@ public class SubscribableBuildActionExecuter implements BuildActionExecuter<Buil
     private final ListenerManager listenerManager;
     private final BuildOperationListenerManager buildOperationListenerManager;
     private final List<Object> listeners = new ArrayList<>();
-    private final List<? extends BuildEventListenerFactory> registrations;
+    private final BuildEventListenerFactory factory;
 
-    public SubscribableBuildActionExecuter(ListenerManager listenerManager, BuildOperationListenerManager buildOperationListenerManager, List<? extends BuildEventListenerFactory> registrations, BuildActionExecuter<BuildActionParameters> delegate) {
+    public SubscribableBuildActionExecuter(ListenerManager listenerManager, BuildOperationListenerManager buildOperationListenerManager, BuildEventListenerFactory factory, BuildActionExecuter<BuildActionParameters> delegate) {
         this.listenerManager = listenerManager;
         this.buildOperationListenerManager = buildOperationListenerManager;
-        this.registrations = registrations;
+        this.factory = factory;
         this.delegate = delegate;
     }
 
@@ -70,10 +70,8 @@ public class SubscribableBuildActionExecuter implements BuildActionExecuter<Buil
     }
 
     private void registerListenersForClientSubscriptions(BuildEventSubscriptions clientSubscriptions, BuildEventConsumer eventConsumer) {
-        for (BuildEventListenerFactory registration : registrations) {
-            for (Object listener : registration.createListeners(clientSubscriptions, eventConsumer)) {
-                registerListener(listener);
-            }
+        for (Object listener : factory.createListeners(clientSubscriptions, eventConsumer)) {
+            registerListener(listener);
         }
     }
 

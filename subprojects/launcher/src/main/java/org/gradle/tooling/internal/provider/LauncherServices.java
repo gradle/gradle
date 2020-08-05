@@ -62,7 +62,7 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
 
     static class ToolingGlobalScopeServices {
         BuildExecuter createBuildExecuter(List<BuildActionRunner> buildActionRunners,
-                                          List<BuildEventListenerFactory> registrations,
+                                          BuildEventListenerFactory listenerFactory,
                                           ListenerManager listenerManager,
                                           BuildOperationListenerManager buildOperationListenerManager,
                                           TaskInputsListeners inputsListeners,
@@ -79,7 +79,7 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
                 new StartParamsValidatingActionExecuter(
                 new GradleThreadBuildActionExecuter(
                 new SessionScopeBuildActionExecuter(userHomeServiceRegistry,
-                new SubscribableBuildActionExecuter(listenerManager, buildOperationListenerManager, registrations,
+                new SubscribableBuildActionExecuter(listenerManager, buildOperationListenerManager, listenerFactory,
                 new ContinuousBuildActionExecuter(fileSystemChangeWaiterFactory, inputsListeners, styledTextOutputFactory, executorFactory,
                 new BuildTreeScopeBuildActionExecuter(
                 new InProcessBuildActionExecuter(
