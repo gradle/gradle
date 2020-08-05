@@ -77,7 +77,7 @@ class ShortExceptionFormatterTest extends Specification {
         where:
         exception << [
             new PlaceholderException(Exception.class.name, "oops", null, "java.lang.Exception: oops", null, null),
-            new PlaceholderAssertionError(Exception.class.name, "oops", null, "java.lang.Exception: oops", null)
+            new PlaceholderAssertionError(Exception.class.name, "oops", null, "java.lang.Exception: oops", null, null)
         ]
     }
 
