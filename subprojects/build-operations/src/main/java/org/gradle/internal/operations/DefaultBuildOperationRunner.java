@@ -130,8 +130,11 @@ public class DefaultBuildOperationRunner implements BuildOperationRunner {
     }
 
     private <O> O execute(BuildOperationDescriptor.Builder descriptorBuilder, @Nullable BuildOperationState defaultParent, BuildOperationExecution<O> execution) {
-        BuildOperationState parent = DefaultBuildOperationRunner.determineParent(descriptorBuilder, defaultParent);
-        BuildOperationDescriptor descriptor = createDescriptor(descriptorBuilder, parent);
+        BuildOperationState parent = determineParent(descriptorBuilder, defaultParent);
+        OperationIdentifier id = new OperationIdentifier(buildOperationIdFactory.nextId());
+        BuildOperationDescriptor descriptor = descriptorBuilder.build(id, parent == null
+            ? null
+            : parent.getDescription().getId());
         assertParentRunning("Cannot start operation (%s) as parent operation (%s) has already completed.", descriptor, parent);
 
         return execution.execute(
@@ -199,20 +202,10 @@ public class DefaultBuildOperationRunner implements BuildOperationRunner {
     }
 
     @Nullable
-    private static BuildOperationState determineParent(BuildOperationDescriptor.Builder descriptorBuilder, @Nullable BuildOperationState defaultParent) {
-        BuildOperationState parent = (BuildOperationState) descriptorBuilder.getParentState();
-        if (parent == null) {
-            parent = defaultParent;
-        }
-        return parent;
-    }
-
     @OverridingMethodsMustInvokeSuper
-    protected BuildOperationDescriptor createDescriptor(BuildOperationDescriptor.Builder descriptorBuilder, @Nullable BuildOperationState parent) {
-        OperationIdentifier id = new OperationIdentifier(buildOperationIdFactory.nextId());
-        return descriptorBuilder.build(id, parent == null
-            ? null
-            : parent.getDescription().getId());
+    protected BuildOperationState determineParent(BuildOperationDescriptor.Builder descriptorBuilder, @Nullable BuildOperationState defaultParent) {
+        BuildOperationState parent = (BuildOperationState) descriptorBuilder.getParentState();
+        return parent == null ? defaultParent : parent;
     }
 
     public interface TimeSupplier {

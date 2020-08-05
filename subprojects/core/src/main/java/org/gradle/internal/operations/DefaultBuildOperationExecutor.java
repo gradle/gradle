@@ -141,9 +141,10 @@ public class DefaultBuildOperationExecutor extends DefaultBuildOperationRunner i
         };
     }
 
+    @Nullable
     @Override
-    protected BuildOperationDescriptor createDescriptor(BuildOperationDescriptor.Builder descriptorBuilder, @Nullable BuildOperationState parent) {
-        return super.createDescriptor(descriptorBuilder, maybeStartUnmanagedThreadOperation(parent));
+    protected BuildOperationState determineParent(BuildOperationDescriptor.Builder descriptorBuilder, @Nullable DefaultBuildOperationRunner.BuildOperationState defaultParent) {
+        return maybeStartUnmanagedThreadOperation(super.determineParent(descriptorBuilder, defaultParent));
     }
 
     private ProgressLogger createProgressLogger(BuildOperationState currentOperation) {
