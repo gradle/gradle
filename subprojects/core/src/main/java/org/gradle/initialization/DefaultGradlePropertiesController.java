@@ -42,6 +42,10 @@ public class DefaultGradlePropertiesController implements GradlePropertiesContro
         state = state.loadGradlePropertiesFrom(settingsDir);
     }
 
+    public void overrideWith(GradleProperties gradleProperties) {
+        state = state.overrideWith(gradleProperties);
+    }
+
     private class SharedGradleProperties implements GradleProperties {
 
         @Nullable
@@ -65,6 +69,8 @@ public class DefaultGradlePropertiesController implements GradlePropertiesContro
         GradleProperties gradleProperties();
 
         State loadGradlePropertiesFrom(File settingsDir);
+
+        State overrideWith(GradleProperties gradleProperties);
     }
 
     private class NotLoaded implements State {
@@ -80,6 +86,11 @@ public class DefaultGradlePropertiesController implements GradlePropertiesContro
                 propertiesLoader.loadGradleProperties(settingsDir),
                 settingsDir
             );
+        }
+
+        @Override
+        public State overrideWith(GradleProperties gradleProperties) {
+            return new Overridden(gradleProperties);
         }
     }
 
@@ -109,6 +120,35 @@ public class DefaultGradlePropertiesController implements GradlePropertiesContro
                 );
             }
             return this;
+        }
+
+        @Override
+        public State overrideWith(GradleProperties gradleProperties) {
+            throw new IllegalStateException("GradleProperties has already been loaded and cannot be overridden.");
+        }
+    }
+
+    private static class Overridden implements State {
+
+        private final GradleProperties gradleProperties;
+
+        public Overridden(GradleProperties gradleProperties) {
+            this.gradleProperties = gradleProperties;
+        }
+
+        @Override
+        public GradleProperties gradleProperties() {
+            return gradleProperties;
+        }
+
+        @Override
+        public State loadGradlePropertiesFrom(File settingsDir) {
+            throw new IllegalStateException();
+        }
+
+        @Override
+        public State overrideWith(GradleProperties gradleProperties) {
+            return new Overridden(gradleProperties);
         }
     }
 }
