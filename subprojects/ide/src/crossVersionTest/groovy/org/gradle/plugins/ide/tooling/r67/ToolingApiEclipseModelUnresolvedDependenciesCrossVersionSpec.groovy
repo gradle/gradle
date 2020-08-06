@@ -48,8 +48,7 @@ class ToolingApiEclipseModelUnresolvedDependenciesCrossVersionSpec extends Tooli
         """
     }
 
-
-    @TargetGradleVersion("<6.7")
+    @TargetGradleVersion(">=2.6 <6.7")
     def "Older Gradle versions mark all dependencies as resolved"() {
         when:
         def project = loadToolingModel(EclipseProject)
