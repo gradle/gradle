@@ -216,11 +216,14 @@ For incremental builds, there are typically only a few changes between builds.
 Therefore, incremental builds can re-use most of the Virtual File System from the last build and benefit the most from watching the file system.
 
 Gradle uses operating system features for watching the file system.
-It supports the feature on these operating systems:
+It supports the feature on these operating systems and file systems:
 
-- Windows 10,
-- Linux (Ubuntu 16.04 or later, CentOS 8 or later, Red Hat Enterprise Linux 8 or later, Amazon Linux 2),
-- macOS 10.14 (Mojave) or later.
+- Windows 10 with NTFS,
+- Linux (Ubuntu 16.04 or later, CentOS 8 or later, Red Hat Enterprise Linux 8 or later, Amazon Linux 2) using ext3 and ext4,
+- macOS 10.14 (Mojave) or later on APFS and HFS+.
+
+Network file systems like NFS and SMB are not supported.
+FAT file systems are not supported.
 
 Watching the file system is an experimental feature and is disabled by default.
 You can enable the feature in a couple of ways:
