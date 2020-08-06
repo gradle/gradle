@@ -27,7 +27,9 @@ public interface BuildOperationRunner {
     /**
      * Runs the given build operation synchronously. Invokes the given operation from the current thread.
      *
-     * <p>Rethrows any exception thrown by the action.</p>
+     * <p>Rethrows any exception thrown by the action.
+     * Runtime exceptions are rethrown as is.
+     * Checked exceptions are wrapped in {@link BuildOperationInvocationException}.</p>
      */
     void run(RunnableBuildOperation buildOperation);
 
@@ -35,7 +37,9 @@ public interface BuildOperationRunner {
      * Calls the given build operation synchronously. Invokes the given operation from the current thread.
      * Returns the result.
      *
-     * <p>Rethrows any exception thrown by the action.</p>
+     * <p>Rethrows any exception thrown by the action.
+     * Runtime exceptions are rethrown as is.
+     * Checked exceptions are wrapped in {@link BuildOperationInvocationException}.</p>
      */
     <T> T call(CallableBuildOperation<T> buildOperation);
 
