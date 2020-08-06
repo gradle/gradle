@@ -15,7 +15,11 @@
  */
 package org.gradle.tooling.model.eclipse;
 
+import org.gradle.api.Incubating;
+import org.gradle.tooling.model.ComponentSelector;
 import org.gradle.tooling.model.ExternalDependency;
+
+import javax.annotation.Nullable;
 
 /**
  * Represents an Eclipse-specific external artifact dependency.
@@ -24,4 +28,26 @@ import org.gradle.tooling.model.ExternalDependency;
  */
 public interface EclipseExternalDependency extends ExternalDependency, EclipseClasspathEntry {
 
+    /**
+     * Returns {@code true} if the current instance represents a resolved dependency.
+     * <p>
+     * If the target Gradle version is older than 6.7 then this method will always return {@code true}.
+     *
+     * @since 6.7
+     */
+    @Incubating
+    boolean isResolved();
+
+    /**
+     * Returns the coordinates of the artifact that Gradle was not able to resolve.
+     * <p>
+     * Returns {@code null} for resolved dependencies (i.e. when {@link #isResolved()} returns true).
+     * <p>
+     * If the target Gradle version is older than 6.7 then this method will always return {@code null}.
+     *
+     * @since 6.7
+     */
+    @Nullable
+    @Incubating
+    ComponentSelector getAttemptedSelector();
 }
