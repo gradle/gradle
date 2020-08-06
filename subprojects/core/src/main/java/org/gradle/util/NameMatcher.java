@@ -22,7 +22,7 @@ import java.util.regex.Pattern;
 import org.apache.commons.lang.StringUtils;
 
 /**
- * Selects a single item from a list of candidates based on a camel-case pattern.
+ * Selects a single item from a collection based on a camel case pattern.
  */
 public class NameMatcher {
     private final SortedSet<String> matches = new TreeSet<>();
@@ -30,9 +30,10 @@ public class NameMatcher {
     private String pattern;
 
     /**
-     * Locates the best match for the given pattern in the given set of candidate items.
+     * Locates the best match for a camel case pattern in a key set of a map and returns the corresponding value.
      *
      * @return The matching item if exactly 1 match found, null if no matches or multiple matches.
+     * @see #find(String, Collection)
      */
     public <T> T find(String pattern, Map<String, ? extends T> items) {
         String name = find(pattern, items.keySet());
@@ -43,7 +44,14 @@ public class NameMatcher {
     }
 
     /**
-     * Locates the best match for the given pattern in the given set of candidate items.
+     * Locates the best match for a camel case pattern in a collection.
+     * <p>
+     * The pattern is expanded to match on camel-case and on kebab-case strings. For example, the pattern {@code gBD}
+     * matches to {@code gradleBinaryDistribution} and {@code gradle-binary-distribution}.
+     * <p>
+     * The method will return {@code null} if the pattern is an empty string.
+     * <p>
+     * If the target collection contains the pattern string then the method omits the pattern matching and returns the pattern.
      *
      * @return The match if exactly 1 match found, null if no matches or multiple matches.
      */
@@ -169,6 +177,11 @@ public class NameMatcher {
         return candidates;
     }
 
+    /**
+     * Returns a formatted error message describing why the pattern matching failed.
+     *
+     * @return The error message.
+     */
     public String formatErrorMessage(String singularItemDescription, Object container) {
         String capItem = StringUtils.capitalize(singularItemDescription);
         if (!matches.isEmpty()) {
