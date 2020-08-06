@@ -30,11 +30,33 @@ For Java, Groovy, Kotlin and Android compatibility, see the [full compatibility 
 
 TBD - load from cache performance improvements and reduced memory consumption for Android builds
 
-## Improved name matching
+## Support kebab case formatting when launching a Gradle build with abbreviated names
 
-Previously, if you wanted to execute a task with abbreviated names, you needed to use camel case naming. For example, the command `./gradlew mAP:help` worked if the target project name was `myAweSomeProject`. Now, the name matching works with kamel-case names: the command above works even if you name your project `my-awesome-project`.
+When running Gradle builds, you can abbreviate project and task names. For example, you can execute the `compileTest` task by running `gradle cT`.
 
-Please note, that the name matching both works for project and task names. At the same time, camel case is still the recommended formatting for task names.  
+Until this release, the name abbreviation only worked for camel case names (e.g. `compileTest`). This format is recommended for tasks, but it is unusual for projects. In the Java world the folder names are lower case by convention. On top of that, camel case directory names could cause problems on case-insensitive filesystems.
+
+Many projects - including Gradle - overcome that by using kebab case project directories (e.g. `my-awesome-lib`) and by defining different, camel case project names in the build scripts. This difference means unnecessary extra complexity in the build.
+
+This fixes the issue by adding support for kebab case names in the name matching. Now, you can have following project structure:
+```
+my-awesome-project
+├── my-awesome-api
+│   └── build.gradle
+├── my-awesome-lib
+│   └── build.gradle
+├── gradle
+├── build.gradle
+└── settings.gradle
+```
+and you can execute the `compileTest` task in the `my-awesome-lib` subproject with the following command:
+```
+gradle mAL:cT
+```
+
+Note, that even though the kebab case name matching works wit tasks too, the recommendation is still to use camel case for them. 
+
+To learn more about name abbreviation, check out the [user guide](userguide/command_line_interface.html#task_name_abbreviation).  
 
 ## Promoted features
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
