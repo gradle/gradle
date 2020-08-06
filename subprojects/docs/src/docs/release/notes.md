@@ -30,6 +30,12 @@ For Java, Groovy, Kotlin and Android compatibility, see the [full compatibility 
 
 TBD - load from cache performance improvements and reduced memory consumption for Android builds
 
+## Improved name matching
+
+Previously, if you wanted to execute a task with abbreviated names, you needed to use camel case naming. For example, the command `./gradlew mAP:help` worked if the target project name was `myAweSomeProject`. Now, the name matching works with kamel-case names: the command above works even if you name your project `my-awesome-project`.
+
+Please note, that the name matching both works for project and task names. At the same time, camel case is still the recommended formatting for task names.  
+
 ## Promoted features
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
 See the User Manual section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
