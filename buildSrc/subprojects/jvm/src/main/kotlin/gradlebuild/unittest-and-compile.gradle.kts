@@ -210,7 +210,7 @@ fun configureTests() {
 
         if (BuildEnvironment.isCiServer) {
             retry {
-                maxRetries.set(1)
+                maxRetries.convention(1)
                 maxFailures.set(10)
             }
             doFirst {
