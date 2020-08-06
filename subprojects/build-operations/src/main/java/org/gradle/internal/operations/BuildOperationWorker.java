@@ -27,5 +27,5 @@ public interface BuildOperationWorker<O extends BuildOperation> {
      */
     String getDisplayName();
 
-    void execute(O buildOperation, BuildOperationContext context);
+    void execute(O buildOperation, BuildOperationContext context) throws Exception;
 }
