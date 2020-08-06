@@ -51,11 +51,6 @@ public class DefaultBuildOperationRunner implements BuildOperationRunner {
         return worker.getReturnValue();
     }
 
-    @Override
-    public BuildOperationContext start(BuildOperationDescriptor.Builder descriptor) {
-        return start(descriptor, getCurrentBuildOperation());
-    }
-
     protected <O extends BuildOperation> void execute(final O buildOperation, final BuildOperationWorker<O> worker, @Nullable BuildOperationState defaultParent) {
         BuildOperationDescriptor.Builder descriptorBuilder = buildOperation.description();
         execute(descriptorBuilder, defaultParent, new BuildOperationExecution<O>() {
@@ -82,8 +77,9 @@ public class DefaultBuildOperationRunner implements BuildOperationRunner {
         });
     }
 
-    private BuildOperationContext start(BuildOperationDescriptor.Builder descriptorBuilder, @Nullable BuildOperationState defaultParent) {
-        return execute(descriptorBuilder, defaultParent, new BuildOperationExecution<BuildOperationContext>() {
+    @Override
+    public BuildOperationContext start(BuildOperationDescriptor.Builder descriptorBuilder) {
+        return execute(descriptorBuilder, getCurrentBuildOperation(), new BuildOperationExecution<BuildOperationContext>() {
             @Override
             public BuildOperationContext execute(final BuildOperationDescriptor descriptor, final BuildOperationState operationState, final DefaultBuildOperationContext context, final BuildOperationExecutionListener listener) {
                 listener.start(operationState);
