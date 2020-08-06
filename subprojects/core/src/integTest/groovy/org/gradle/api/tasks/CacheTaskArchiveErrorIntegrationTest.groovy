@@ -151,7 +151,7 @@ class CacheTaskArchiveErrorIntegrationTest extends AbstractIntegrationSpec {
         then:
         fails("clean", "customTask")
         failureHasCause("Failed to load cache entry for task ':customTask'")
-        errorOutput.contains("Caused by: java.io.UncheckedIOException: java.io.EOFException: Unexpected end of ZLIB input stream")
+        errorOutput.contains("Caused by: java.io.EOFException: Unexpected end of ZLIB input stream")
         localCache.listCacheFailedFiles().size() == 1
 
         and:
