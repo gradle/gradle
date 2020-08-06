@@ -18,9 +18,9 @@ package org.gradle.api.internal.artifacts.ivyservice.moduleconverter
 
 import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.artifacts.PublishArtifactSet
+import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
-import org.gradle.api.internal.artifacts.configurations.OutgoingVariant
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.LocalConfigurationMetadataBuilder
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.ImmutableCapabilities
@@ -38,34 +38,34 @@ class DefaultLocalComponentMetadataBuilderTest extends Specification {
         def metaData = Mock(BuildableLocalComponentMetadata)
         def config1 = Stub(ConfigurationInternal)
         def config2 = Stub(ConfigurationInternal)
-        def variant1 = Stub(OutgoingVariant)
-        def variant2 = Stub(OutgoingVariant)
-        def childVariant1 = Stub(OutgoingVariant)
-        def childVariant2 = Stub(OutgoingVariant)
         def artifacts1 = [Stub(PublishArtifact)] as Set
         def artifacts2 = [Stub(PublishArtifactSet)] as Set
 
         given:
         config1.name >> "config1"
-        config1.convertToOutgoingVariant() >> variant1
-        variant1.artifacts >> artifacts1
-        variant1.children >> [childVariant1, childVariant2]
+        config1.collectVariants(_) >> { ConfigurationInternal.VariantVisitor visitor ->
+            visitor.visitArtifacts(artifacts1)
+            visitor.visitChildVariant("child1", null, null, null)
+            visitor.visitChildVariant("child2", null, null, null)
+        }
         config2.name >> "config2"
-        config2.convertToOutgoingVariant() >> variant2
-        variant2.artifacts >> artifacts2
+        config2.collectVariants(_) >> { ConfigurationInternal.VariantVisitor visitor ->
+            visitor.visitArtifacts(artifacts2)
+        }
 
         when:
         converter.addConfiguration(metaData, config1)
         converter.addConfiguration(metaData, config2)
 
         then:
+        _ * metaData.id >> Stub(ComponentIdentifier)
         1 * metaData.addConfiguration("config1", '', emptySet, emptySet, false, false, _, false, _, false, ImmutableCapabilities.EMPTY)
         1 * metaData.addDependenciesAndExcludesForConfiguration(config1, configurationMetadataBuilder)
         1 * metaData.addConfiguration("config2", '', emptySet, emptySet, false, false, _, false, _, false, ImmutableCapabilities.EMPTY)
         1 * metaData.addDependenciesAndExcludesForConfiguration(config2, configurationMetadataBuilder)
         1 * metaData.addArtifacts("config1", artifacts1)
-        1 * metaData.addVariant("config1", childVariant1)
-        1 * metaData.addVariant("config1", childVariant2)
+        1 * metaData.addVariant("config1", "config1-child1", _, _, _, _)
+        1 * metaData.addVariant("config1", "config1-child2", _, _, _, _)
         1 * metaData.addArtifacts("config2", artifacts2)
         0 * metaData._
     }

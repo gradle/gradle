@@ -47,8 +47,8 @@ import org.gradle.api.specs.Specs;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
+import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
-import org.gradle.internal.component.model.VariantResolveMetadata;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.language.base.internal.resolve.LibraryResolveException;
@@ -149,8 +149,8 @@ public class DependencyResolvingClasspath extends AbstractOpaqueFileCollection {
             }
 
             @Override
-            public ImmutableAttributes mapAttributesFor(VariantResolveMetadata variant) {
-                return variant.getAttributes().asImmutable();
+            public ImmutableAttributes mapAttributesFor(ImmutableAttributes attributes, Iterable<? extends ComponentArtifactMetadata> artifacts) {
+                return attributes;
             }
 
             @Override

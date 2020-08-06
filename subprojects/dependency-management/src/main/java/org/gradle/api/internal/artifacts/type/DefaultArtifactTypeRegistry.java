@@ -25,7 +25,6 @@ import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
-import org.gradle.internal.component.model.VariantResolveMetadata;
 import org.gradle.internal.reflect.Instantiator;
 
 import java.io.File;
@@ -68,13 +67,11 @@ public class DefaultArtifactTypeRegistry implements ArtifactTypeRegistry {
     }
 
     @Override
-    public ImmutableAttributes mapAttributesFor(VariantResolveMetadata variant) {
-        ImmutableAttributes attributes = variant.getAttributes().asImmutable();
-
+    public ImmutableAttributes mapAttributesFor(ImmutableAttributes attributes, Iterable<? extends ComponentArtifactMetadata> artifacts) {
         // Add attributes to be applied given the extension
         if (artifactTypeDefinitions != null) {
             String extension = null;
-            for (ComponentArtifactMetadata artifact : variant.getArtifacts()) {
+            for (ComponentArtifactMetadata artifact : artifacts) {
                 String candidateExtension = artifact.getName().getExtension();
                 if (extension == null) {
                     extension = candidateExtension;
@@ -91,7 +88,7 @@ public class DefaultArtifactTypeRegistry implements ArtifactTypeRegistry {
         // Add artifact format as an implicit attribute when all artifacts have the same format
         if (!attributes.contains(ArtifactAttributes.ARTIFACT_FORMAT)) {
             String format = null;
-            for (ComponentArtifactMetadata artifact : variant.getArtifacts()) {
+            for (ComponentArtifactMetadata artifact : artifacts) {
                 String candidateFormat = artifact.getName().getType();
                 if (format == null) {
                     format = candidateFormat;

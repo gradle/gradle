@@ -27,6 +27,7 @@ import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.internal.DisplayName;
+import org.gradle.internal.component.model.VariantResolveMetadata;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationQueue;
@@ -41,19 +42,19 @@ import java.util.List;
 import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet.EMPTY;
 
 public class ArtifactBackedResolvedVariant implements ResolvedVariant {
-    private final Identifier identifier;
+    private final VariantResolveMetadata.Identifier identifier;
     private final DisplayName displayName;
     private final AttributeContainerInternal attributes;
     private final ResolvedArtifactSet artifacts;
 
-    private ArtifactBackedResolvedVariant(@Nullable ResolvedVariant.Identifier identifier, DisplayName displayName, AttributeContainerInternal attributes, ResolvedArtifactSet artifacts) {
+    private ArtifactBackedResolvedVariant(@Nullable VariantResolveMetadata.Identifier identifier, DisplayName displayName, AttributeContainerInternal attributes, ResolvedArtifactSet artifacts) {
         this.identifier = identifier;
         this.displayName = displayName;
         this.attributes = attributes;
         this.artifacts = artifacts;
     }
 
-    public static ResolvedVariant create(@Nullable ResolvedVariant.Identifier identifier, DisplayName displayName, AttributeContainerInternal attributes, Collection<? extends ResolvableArtifact> artifacts) {
+    public static ResolvedVariant create(@Nullable VariantResolveMetadata.Identifier identifier, DisplayName displayName, AttributeContainerInternal attributes, Collection<? extends ResolvableArtifact> artifacts) {
         if (artifacts.isEmpty()) {
             return new ArtifactBackedResolvedVariant(identifier, displayName, attributes, EMPTY);
         }
@@ -68,7 +69,7 @@ public class ArtifactBackedResolvedVariant implements ResolvedVariant {
     }
 
     @Override
-    public Identifier getIdentifier() {
+    public VariantResolveMetadata.Identifier getIdentifier() {
         return identifier;
     }
 

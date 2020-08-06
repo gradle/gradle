@@ -929,6 +929,11 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     @Override
+    public void collectVariants(VariantVisitor visitor) {
+        outgoing.collectVariants(visitor);
+    }
+
+    @Override
     public void beforeLocking(Action<? super ConfigurationInternal> action) {
         if (canBeMutated) {
             if (beforeLocking != null) {

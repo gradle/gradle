@@ -79,6 +79,11 @@ class LazyVariantBackedConfigurationMetadata extends AbstractVariantBackedConfig
         }
 
         @Override
+        public Identifier getIdentifier() {
+            return delegate.getIdentifier();
+        }
+
+        @Override
         public DisplayName asDescribable() {
             return delegate.asDescribable();
         }

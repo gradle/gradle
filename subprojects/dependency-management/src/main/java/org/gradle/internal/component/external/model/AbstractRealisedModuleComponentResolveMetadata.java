@@ -114,6 +114,11 @@ public abstract class AbstractRealisedModuleComponentResolveMetadata extends Abs
         }
 
         @Override
+        public Identifier getIdentifier() {
+            return null;
+        }
+
+        @Override
         public DisplayName asDescribable() {
             throw new UnsupportedOperationException("NameOnlyVariantResolveMetadata cannot be used that way");
         }
@@ -145,9 +150,9 @@ public abstract class AbstractRealisedModuleComponentResolveMetadata extends Abs
         private final ImmutableList<GradleDependencyMetadata> dependencyMetadata;
 
         public ImmutableRealisedVariantImpl(ModuleComponentIdentifier componentId, String name, ImmutableAttributes attributes,
-                                     ImmutableList<? extends Dependency> dependencies, ImmutableList<? extends DependencyConstraint> dependencyConstraints,
-                                     ImmutableList<? extends File> files, ImmutableCapabilities capabilities,
-                                     List<GradleDependencyMetadata> dependencyMetadata) {
+                                            ImmutableList<? extends Dependency> dependencies, ImmutableList<? extends DependencyConstraint> dependencyConstraints,
+                                            ImmutableList<? extends File> files, ImmutableCapabilities capabilities,
+                                            List<GradleDependencyMetadata> dependencyMetadata) {
             this.componentId = componentId;
             this.name = name;
             this.attributes = attributes;
@@ -161,6 +166,11 @@ public abstract class AbstractRealisedModuleComponentResolveMetadata extends Abs
         @Override
         public String getName() {
             return name;
+        }
+
+        @Override
+        public Identifier getIdentifier() {
+            return null;
         }
 
         @Override

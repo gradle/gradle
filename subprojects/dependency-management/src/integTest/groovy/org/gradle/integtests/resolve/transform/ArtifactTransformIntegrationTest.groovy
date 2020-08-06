@@ -276,6 +276,105 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
         output.count("Transforming") == 0
     }
 
+    def "can map artifact extension to implicit attributes"() {
+        given:
+        settingsFile << """
+            include 'app2'
+        """
+        taskTypeWithOutputFileProperty()
+        taskTypeLogsArtifactCollectionDetails()
+        buildFile << """
+            def contents = Attribute.of('contents', String)
+
+            project(':lib') {
+                task blueThing(type: FileProducer) {
+                    output = layout.buildDir.file('lib.blue')
+                }
+
+                artifacts {
+                    compile blueThing.output
+                }
+            }
+
+            project(':app') {
+
+                dependencies {
+                    compile project(':lib')
+                }
+
+                dependencies {
+                    artifactTypes {
+                        blue {
+                            attributes.attribute(contents, 'size')
+                        }
+                    }
+                }
+
+                task resolve(type: ShowArtifactCollection) {
+                    collection = configurations.compile.incoming.artifactView {
+                        attributes { it.attribute(contents, 'size') }
+                    }.artifacts
+                }
+            }
+            project(':app2') {
+
+                dependencies {
+                    compile project(':lib')
+                }
+
+                dependencies {
+                    artifactTypes {
+                        blue {
+                            attributes.attribute(contents, 'bin')
+                        }
+                    }
+                    registerTransform(FileSizer) {
+                        from.attribute(contents, 'bin')
+                        to.attribute(contents, 'size')
+                    }
+                }
+
+                task resolve(type: ShowArtifactCollection) {
+                    collection = configurations.compile.incoming.artifactView {
+                        attributes { it.attribute(contents, 'size') }
+                    }.artifacts
+                }
+            }
+        """
+
+        when:
+        run "resolve"
+
+        then:
+        executed(":lib:blueThing", ":app:resolve", ":app2:resolve")
+
+        and:
+        def appOutput = result.groupedOutput.task(':app:resolve')
+        appOutput.assertOutputContains("variants = [{artifactType=blue, contents=size, usage=api}]")
+        appOutput.assertOutputContains("components = [project :lib]")
+        appOutput.assertOutputContains("artifacts = [lib.blue (project :lib)]")
+        appOutput.assertOutputContains("files = [lib.blue]")
+
+        def app2Output = result.groupedOutput.task(':app2:resolve')
+        app2Output.assertOutputContains("variants = [{artifactType=blue, contents=size, usage=api}]")
+        app2Output.assertOutputContains("components = [project :lib]")
+        app2Output.assertOutputContains("artifacts = [lib.blue.txt (project :lib)]")
+        app2Output.assertOutputContains("files = [lib.blue.txt]")
+
+        and:
+        output.count("Transforming") == 1
+        output.count("Transforming lib.blue to lib.blue.txt") == 1
+
+        when:
+        run "resolve"
+
+        then:
+        executed(":lib:blueThing", ":app:resolve", ":app2:resolve")
+
+        and:
+        output.count("Transforming") == 0
+    }
+
     def "applies transforms to artifacts from local projects, files and external dependencies"() {
         def dependency = mavenRepo.module("test", "test-dependency", "1.3").publish()
         dependency.artifactFile.text = "dependency"
@@ -2079,7 +2178,7 @@ Found the following transforms:
         outputContains("ids: [out-foo.txt (test:test:1.3), out-bar.txt (test:test:1.3)]")
     }
 
-    def "artifact excludes on different graphs are honored"() {
+    def "artifact excludes applied to external dependency on different graphs are honored"() {
         def m1 = ivyRepo.module("test", "test", "1.3")
         m1.artifact(name: "test-one", conf: "*")
         m1.artifact(name: "test-two", conf: "*")

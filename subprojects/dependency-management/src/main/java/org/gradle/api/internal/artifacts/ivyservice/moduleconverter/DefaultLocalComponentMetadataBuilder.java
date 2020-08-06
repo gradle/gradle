@@ -18,17 +18,21 @@ package org.gradle.api.internal.artifacts.ivyservice.moduleconverter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
+import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.configurations.Configurations;
-import org.gradle.api.internal.artifacts.configurations.OutgoingVariant;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.LocalConfigurationMetadataBuilder;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.external.model.CapabilityInternal;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
 import org.gradle.internal.component.external.model.ImmutableCapability;
 import org.gradle.internal.component.external.model.ShadowedCapability;
 import org.gradle.internal.component.local.model.BuildableLocalComponentMetadata;
 import org.gradle.internal.component.local.model.BuildableLocalConfigurationMetadata;
+import org.gradle.internal.component.model.ComponentConfigurationIdentifier;
+import org.gradle.internal.component.model.VariantResolveMetadata;
 
 import java.util.Collection;
 
@@ -44,12 +48,24 @@ public class DefaultLocalComponentMetadataBuilder implements LocalComponentMetad
         BuildableLocalConfigurationMetadata configurationMetadata = createConfiguration(metaData, configuration);
 
         metaData.addDependenciesAndExcludesForConfiguration(configuration, configurationMetadataBuilder);
+        ComponentConfigurationIdentifier configurationIdentifier = new ComponentConfigurationIdentifier(metaData.getId(), configuration.getName());
 
-        OutgoingVariant outgoingVariant = configuration.convertToOutgoingVariant();
-        metaData.addArtifacts(configuration.getName(), outgoingVariant.getArtifacts());
-        for (OutgoingVariant variant : outgoingVariant.getChildren()) {
-            metaData.addVariant(configuration.getName(), variant);
-        }
+        configuration.collectVariants(new ConfigurationInternal.VariantVisitor() {
+            @Override
+            public void visitArtifacts(Collection<? extends PublishArtifact> artifacts) {
+                metaData.addArtifacts(configuration.getName(), artifacts);
+            }
+
+            @Override
+            public void visitOwnVariant(DisplayName displayName, ImmutableAttributes attributes, Collection<? extends PublishArtifact> artifacts) {
+                metaData.addVariant(configuration.getName(), configuration.getName(), configurationIdentifier, displayName, attributes, artifacts);
+            }
+
+            @Override
+            public void visitChildVariant(String name, DisplayName displayName, ImmutableAttributes attributes, Collection<? extends PublishArtifact> artifacts) {
+                metaData.addVariant(configuration.getName(), configuration.getName() + "-" + name, new NestedVariantIdentifier(configurationIdentifier, name), displayName, attributes, artifacts);
+            }
+        });
         return configurationMetadata;
     }
 
@@ -91,5 +107,32 @@ public class DefaultLocalComponentMetadataBuilder implements LocalComponentMetad
             }
         }
         return ImmutableCapabilities.of(builder.build());
+    }
+
+    private static class NestedVariantIdentifier implements VariantResolveMetadata.Identifier {
+        private final VariantResolveMetadata.Identifier parent;
+        private final String name;
+
+        public NestedVariantIdentifier(VariantResolveMetadata.Identifier parent, String name) {
+            this.parent = parent;
+            this.name = name;
+        }
+
+        @Override
+        public int hashCode() {
+            return parent.hashCode() ^ name.hashCode();
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (obj == this) {
+                return true;
+            }
+            if (obj == null || getClass() != obj.getClass()) {
+                return false;
+            }
+            NestedVariantIdentifier other = (NestedVariantIdentifier) obj;
+            return parent.equals(other.parent) && name.equals(other.name);
+        }
     }
 }

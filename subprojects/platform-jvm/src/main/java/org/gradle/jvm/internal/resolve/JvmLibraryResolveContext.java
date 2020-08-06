@@ -16,23 +16,18 @@
 
 package org.gradle.jvm.internal.resolve;
 
-import com.google.common.collect.ImmutableSet;
-import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ResolveContext;
-import org.gradle.api.internal.artifacts.configurations.OutgoingVariant;
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
 import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParserFactory;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionRules;
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultCapabilitiesResolution;
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultResolutionStrategy;
-import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.notations.ComponentIdentifierParserFactory;
 import org.gradle.internal.Describables;
-import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.locking.NoOpDependencyLockingProvider;
 import org.gradle.internal.reflect.DirectInstantiator;
@@ -40,7 +35,7 @@ import org.gradle.language.base.internal.model.DefaultLibraryLocalComponentMetad
 import org.gradle.platform.base.DependencySpec;
 import org.gradle.vcs.internal.VcsMappingsStore;
 
-import java.util.Set;
+import java.util.Collections;
 
 import static org.gradle.language.base.internal.model.DefaultLibraryLocalComponentMetadata.newResolvingLocalComponentMetadata;
 
@@ -90,27 +85,7 @@ public class JvmLibraryResolveContext implements ResolveContext {
     public ComponentResolveMetadata toRootComponentMetaData() {
         final DefaultLibraryLocalComponentMetadata componentMetadata = newResolvingLocalComponentMetadata(libraryBinaryIdentifier, usage.getConfigurationName(), dependencies);
         for (UsageKind usageKind : UsageKind.values()) {
-            componentMetadata.addVariant(usageKind.getConfigurationName(), new OutgoingVariant() {
-                @Override
-                public DisplayName asDescribable() {
-                    return Describables.of(componentMetadata.getId());
-                }
-
-                @Override
-                public AttributeContainerInternal getAttributes() {
-                    return ImmutableAttributes.EMPTY;
-                }
-
-                @Override
-                public Set<? extends PublishArtifact> getArtifacts() {
-                    return ImmutableSet.of();
-                }
-
-                @Override
-                public Set<? extends OutgoingVariant> getChildren() {
-                    return ImmutableSet.of();
-                }
-            });
+            componentMetadata.addVariant(usageKind.getConfigurationName(), usageKind.getConfigurationName(), null, Describables.of(componentMetadata.getId()), ImmutableAttributes.EMPTY, Collections.emptyList());
         }
         return componentMetadata;
     }
