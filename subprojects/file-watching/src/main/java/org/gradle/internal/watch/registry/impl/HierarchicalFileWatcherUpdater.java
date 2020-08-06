@@ -57,7 +57,7 @@ import java.util.stream.Stream;
  * - At the end of the build
  *   - stop watching the watchable directories with nothing to watch inside
  *   - remember the currently watched directories as old watched directories for the next build
- *   - remove everything which isn't watched from the virtual file system.
+ *   - remove everything that isn't watched from the virtual file system.
  */
 public class HierarchicalFileWatcherUpdater implements FileWatcherUpdater {
     private static final Logger LOGGER = LoggerFactory.getLogger(HierarchicalFileWatcherUpdater.class);
