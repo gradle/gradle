@@ -42,6 +42,7 @@ open class IncubatingApiAggregateReportTask
     val reportFiles
         get() = reports?.mapValues { IncubatingApiReportFile(it.value) }
 
+
     @OutputFile
     val htmlReportFile = project.objects.fileProperty().also {
         it.set(project.layout.buildDirectory.file("reports/incubation/all-incubating.html"))
@@ -49,8 +50,7 @@ open class IncubatingApiAggregateReportTask
 
     @TaskAction
     fun generateReport() {
-        workerExecutor.submit(GenerateReport::class.java) {
-            isolationMode = IsolationMode.NONE
+        workerExecutor.noIsolation().submit(GenerateReport::class.java) {
             params(reports, htmlReportFile.asFile.get())
         }
     }

@@ -81,8 +81,7 @@ open class IncubatingApiReportTask @Inject constructor(
 
     @TaskAction
     @Suppress("unused")
-    fun analyze() = workerExecutor.submit(Analyzer::class.java) {
-        isolationMode = IsolationMode.NONE
+    fun analyze() = workerExecutor.noIsolation().submit(Analyzer::class.java) {
         params(
             sources.files,
             htmlReportFile.asFile.get(),
