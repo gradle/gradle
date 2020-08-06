@@ -81,6 +81,6 @@ class ToolingApiEclipseModelUnresolvedDependenciesCrossVersionSpec extends Tooli
         and:
         unresolvedDependencies.size() == 1
         !unresolvedDependencies[0].resolved
-        unresolvedDependencies[0].attemptedSelector == 'org.example:does not exist:1.0'
+        unresolvedDependencies[0].attemptedSelector.displayName == 'org.example:does not exist:1.0'
     }
 }

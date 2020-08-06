@@ -14,24 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.consumer.converters;
+package org.gradle.plugins.ide.internal.tooling.eclipse;
 
-import org.gradle.tooling.model.ComponentSelector;
-import org.gradle.tooling.model.eclipse.EclipseExternalDependency;
+import java.io.Serializable;
 
-/**
- * This is used for compatibility with clients <6.7
- */
-public class EclipseExternalDependencyUnresolvedMixin {
+public class DefaultEclipseComponentSelector implements Serializable {
 
-    public EclipseExternalDependencyUnresolvedMixin(EclipseExternalDependency dependency) {
+    private final String displayName;
+
+    DefaultEclipseComponentSelector(String displayName) {
+        this.displayName = displayName;
     }
 
-    public boolean isResolved() {
-        return true;
-    }
-
-    public ComponentSelector getAttemptedSelector() {
-        return null;
+    public String getDisplayName() {
+        return displayName;
     }
 }

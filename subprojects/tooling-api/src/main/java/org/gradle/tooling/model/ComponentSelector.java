@@ -14,24 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.consumer.converters;
+package org.gradle.tooling.model;
 
-import org.gradle.tooling.model.ComponentSelector;
-import org.gradle.tooling.model.eclipse.EclipseExternalDependency;
+import org.gradle.api.Incubating;
 
 /**
- * This is used for compatibility with clients <6.7
+ * Represents a component selector. Used for displaying unresolved dependency warnings in the IDE.
+ *
+ * @since 6.7
  */
-public class EclipseExternalDependencyUnresolvedMixin {
+@Incubating
+public interface ComponentSelector {
 
-    public EclipseExternalDependencyUnresolvedMixin(EclipseExternalDependency dependency) {
-    }
-
-    public boolean isResolved() {
-        return true;
-    }
-
-    public ComponentSelector getAttemptedSelector() {
-        return null;
-    }
+    /**
+     * Returns a human-readable display name for this selector.
+     */
+    String getDisplayName();
 }

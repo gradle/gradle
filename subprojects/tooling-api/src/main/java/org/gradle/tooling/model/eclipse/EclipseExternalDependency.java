@@ -16,6 +16,7 @@
 package org.gradle.tooling.model.eclipse;
 
 import org.gradle.api.Incubating;
+import org.gradle.tooling.model.ComponentSelector;
 import org.gradle.tooling.model.ExternalDependency;
 
 import javax.annotation.Nullable;
@@ -48,5 +49,5 @@ public interface EclipseExternalDependency extends ExternalDependency, EclipseCl
      */
     @Nullable
     @Incubating
-    String getAttemptedSelector();
+    ComponentSelector getAttemptedSelector();
 }
