@@ -20,7 +20,6 @@ import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.concurrent.ParallelismConfiguration;
-import org.gradle.internal.MutableReference;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.GradleThread;
@@ -45,12 +44,22 @@ public class DefaultBuildOperationExecutor extends DefaultBuildOperationRunner i
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultBuildOperationExecutor.class);
     private static final String LINE_SEPARATOR = SystemProperties.getInstance().getLineSeparator();
 
+    private final Clock clock;
     private final ProgressLoggerFactory progressLoggerFactory;
     private final BuildOperationQueueFactory buildOperationQueueFactory;
     private final ManagedExecutor fixedSizePool;
 
-    public DefaultBuildOperationExecutor(BuildOperationListener listener, Clock clock, ProgressLoggerFactory progressLoggerFactory, BuildOperationQueueFactory buildOperationQueueFactory, ExecutorFactory executorFactory, ParallelismConfiguration parallelismConfiguration, BuildOperationIdFactory buildOperationIdFactory) {
+    public DefaultBuildOperationExecutor(
+        BuildOperationListener listener,
+        Clock clock,
+        ProgressLoggerFactory progressLoggerFactory,
+        BuildOperationQueueFactory buildOperationQueueFactory,
+        ExecutorFactory executorFactory,
+        ParallelismConfiguration parallelismConfiguration,
+        BuildOperationIdFactory buildOperationIdFactory
+    ) {
         super(listener, clock::getCurrentTime, buildOperationIdFactory);
+        this.clock = clock;
         this.progressLoggerFactory = progressLoggerFactory;
         this.buildOperationQueueFactory = buildOperationQueueFactory;
         this.fixedSizePool = executorFactory.create("Build operations", parallelismConfiguration.getMaxWorkerCount());
@@ -117,35 +126,35 @@ public class DefaultBuildOperationExecutor extends DefaultBuildOperationRunner i
     }
 
     @Override
-    protected <O> O execute(BuildOperationDescriptor descriptor, BuildOperationState operationState, BuildOperationExecution<O> execution, BuildOperationExecutionListener listener) {
-        MutableReference<ProgressLogger> progressLoggerHolder = MutableReference.empty();
-        BuildOperationExecutionListener progressLoggingListener = new BuildOperationExecutionListener() {
+    protected BuildOperationExecutionListener createListener(@Nullable BuildOperationState parent, BuildOperationDescriptor descriptor) {
+        final BuildOperationExecutionListener delegate = super.createListener(parent, descriptor);
+        return new BuildOperationExecutionListener() {
+
+            private ProgressLogger progressLogger;
+
             @Override
             public void start(BuildOperationState operationState) {
-                listener.start(operationState);
-                progressLoggerHolder.set(createProgressLogger(operationState));
+                delegate.start(operationState);
+                progressLogger = createProgressLogger(operationState);
             }
 
             @Override
             public void stop(BuildOperationState operationState, DefaultBuildOperationContext context) {
-                ProgressLogger progressLogger = progressLoggerHolder.get();
-                assert progressLogger != null;
                 progressLogger.completed(context.status, context.failure != null);
-                listener.stop(operationState, context);
+                delegate.stop(operationState, context);
             }
 
             @Override
             public void close(BuildOperationState operationState) {
-                listener.close(operationState);
+                delegate.close(operationState);
             }
         };
-
-        return super.execute(descriptor, operationState, execution, progressLoggingListener);
     }
 
+    @Nullable
     @Override
-    protected BuildOperationDescriptor createDescriptor(BuildOperationDescriptor.Builder descriptorBuilder, @Nullable BuildOperationState parent) {
-        return super.createDescriptor(descriptorBuilder, maybeStartUnmanagedThreadOperation(parent));
+    protected BuildOperationState determineParent(BuildOperationDescriptor.Builder descriptorBuilder, @Nullable DefaultBuildOperationRunner.BuildOperationState defaultParent) {
+        return maybeStartUnmanagedThreadOperation(super.determineParent(descriptorBuilder, defaultParent));
     }
 
     private ProgressLogger createProgressLogger(BuildOperationState currentOperation) {
@@ -157,7 +166,7 @@ public class DefaultBuildOperationExecutor extends DefaultBuildOperationRunner i
     @Nullable
     private BuildOperationState maybeStartUnmanagedThreadOperation(@Nullable BuildOperationState parentState) {
         if (parentState == null && !GradleThread.isManaged()) {
-            parentState = UnmanagedThreadOperation.create(getCurrentTime());
+            parentState = UnmanagedThreadOperation.create(clock.getCurrentTime());
             parentState.setRunning(true);
             setCurrentBuildOperation(parentState);
             listener.started(parentState.getDescription(), new OperationStartEvent(parentState.getStartTime()));
@@ -169,7 +178,7 @@ public class DefaultBuildOperationExecutor extends DefaultBuildOperationRunner i
         BuildOperationState current = getCurrentBuildOperation();
         if (current instanceof UnmanagedThreadOperation) {
             try {
-                listener.finished(current.getDescription(), new OperationFinishEvent(current.getStartTime(), getCurrentTime(), null, null));
+                listener.finished(current.getDescription(), new OperationFinishEvent(current.getStartTime(), clock.getCurrentTime(), null, null));
             } finally {
                 setCurrentBuildOperation(null);
                 current.setRunning(false);
@@ -184,7 +193,7 @@ public class DefaultBuildOperationExecutor extends DefaultBuildOperationRunner i
     protected void createRunningRootOperation(String displayName) {
         assert getCurrentBuildOperation() == null;
         OperationIdentifier rootBuildOpId = new OperationIdentifier(DefaultBuildOperationIdFactory.ROOT_BUILD_OPERATION_ID_VALUE);
-        BuildOperationState operation = new BuildOperationState(BuildOperationDescriptor.displayName(displayName).build(rootBuildOpId, null), getCurrentTime());
+        BuildOperationState operation = new BuildOperationState(BuildOperationDescriptor.displayName(displayName).build(rootBuildOpId, null), clock.getCurrentTime());
         operation.setRunning(true);
         setCurrentBuildOperation(operation);
     }
