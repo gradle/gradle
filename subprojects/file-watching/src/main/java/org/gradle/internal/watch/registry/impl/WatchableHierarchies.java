@@ -60,8 +60,8 @@ public class WatchableHierarchies {
         return removeUnwatchedFilesVisitor.getRootWithUnwatchedFilesRemoved();
     }
 
-    private void checkThatNothingExistsInNewWatchableHierarchy(String watchableHierarchy, SnapshotHierarchy root) {
-        root.visitSnapshotRoots(watchableHierarchy, snapshotRoot -> {
+    private void checkThatNothingExistsInNewWatchableHierarchy(String watchableHierarchy, SnapshotHierarchy vfsRoot) {
+        vfsRoot.visitSnapshotRoots(watchableHierarchy, snapshotRoot -> {
             if (!isInWatchableHierarchy(snapshotRoot.getAbsolutePath()) && !ignoredForWatching(snapshotRoot)) {
                 throw new RuntimeException(String.format(
                     "Found existing snapshot at '%s' for unwatched hierarchy '%s'",

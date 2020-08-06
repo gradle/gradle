@@ -40,14 +40,14 @@ import java.util.stream.Stream;
  * Updater for hierarchical file watchers.
  *
  * For hierarchical watchers, we can use the registered watchable hierarchies as watched directories.
- * Root project directories are always watchable hierarchies.
- * Watching the root project directories is better since they are less likely to be deleted and
+ * Build root directories are always watchable hierarchies.
+ * Watching the build root directories is better since they are less likely to be deleted and
  * nearly no changes to the watched directories are necessary when running builds on the same project.
  *
- * To allow deleting the root project directories, we need to stop watching a root project directory if there are no more snapshots in the VFS inside,
+ * To allow deleting the build root directories, we need to stop watching a build root directory if there are no more snapshots in the VFS inside,
  * since watched directories can't be deleted on Windows.
  *
- * The root project directories are discovered as included builds are encountered at the start of a build, and then they are removed when the build finishes.
+ * The build root directories are discovered as included builds are encountered at the start of a build, and then they are removed when the build finishes.
  *
  * This is the lifecycle for the watchable hierarchies:
  * - During a build, there will be various calls to {@link FileWatcherUpdater#registerWatchableHierarchy(File, SnapshotHierarchy)},

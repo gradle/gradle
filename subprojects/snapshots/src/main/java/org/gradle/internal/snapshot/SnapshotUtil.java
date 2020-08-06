@@ -110,7 +110,7 @@ public class SnapshotUtil {
     }
 
     public static Optional<ReadOnlyFileSystemNode> getNodeFromChild(FileSystemNode child, VfsRelativePath relativePath, CaseSensitivity caseSensitivity) {
-        return handlePrefix(child.getPathToParent(), relativePath, caseSensitivity, new DescendantHandler<Optional<ReadOnlyFileSystemNode>>() {
+        return handlePathRelationship(child.getPathToParent(), relativePath, caseSensitivity, new PathRelationshipHandler<Optional<ReadOnlyFileSystemNode>>() {
             @Override
             public Optional<ReadOnlyFileSystemNode> handleDescendant() {
                 return Optional.of(child.getNode(relativePath.fromChild(child.getPathToParent()), caseSensitivity));
@@ -134,7 +134,7 @@ public class SnapshotUtil {
     }
 
     public static FileSystemNode storeSingleChild(FileSystemNode child, VfsRelativePath relativePath, CaseSensitivity caseSensitivity, MetadataSnapshot snapshot, SnapshotHierarchy.NodeDiffListener diffListener) {
-        return handlePrefix(child.getPathToParent(), relativePath, caseSensitivity, new DescendantHandler<FileSystemNode>() {
+        return handlePathRelationship(child.getPathToParent(), relativePath, caseSensitivity, new PathRelationshipHandler<FileSystemNode>() {
             @Override
             public FileSystemNode handleDescendant() {
                 return child.store(
@@ -191,7 +191,7 @@ public class SnapshotUtil {
     }
 
     public static Optional<FileSystemNode> invalidateSingleChild(FileSystemNode child, VfsRelativePath relativePath, CaseSensitivity caseSensitivity, SnapshotHierarchy.NodeDiffListener diffListener) {
-        return handlePrefix(child.getPathToParent(), relativePath, caseSensitivity, new DescendantHandler<Optional<FileSystemNode>>() {
+        return handlePathRelationship(child.getPathToParent(), relativePath, caseSensitivity, new PathRelationshipHandler<Optional<FileSystemNode>>() {
             @Override
             public Optional<FileSystemNode> handleDescendant() {
                 return child.invalidate(relativePath.fromChild(child.getPathToParent()), caseSensitivity, diffListener);
@@ -232,38 +232,45 @@ public class SnapshotUtil {
         T handleChildOfExisting(int childIndex);
     }
 
-    private static <T> T handlePrefix(String prefix, VfsRelativePath relativePath, CaseSensitivity caseSensitivity, DescendantHandler<T> descendantHandler) {
-        int prefixLength = prefix.length();
-        int pathLength = relativePath.length();
-        int maxPos = Math.min(prefixLength, pathLength);
-        int commonPrefixLength = relativePath.lengthOfCommonPrefix(prefix, caseSensitivity);
+    /**
+     * Handles the relationship between two relative paths, pathToParent and relativePath.
+     *
+     * Typically, pathToParent is the path from the current node to one of its children,
+     * and relativePath is the path we are trying to look up in the children.
+     */
+    private static <T> T handlePathRelationship(String pathToParent, VfsRelativePath relativePath, CaseSensitivity caseSensitivity, PathRelationshipHandler<T> pathRelationshipHandler) {
+        int pathToParentLength = pathToParent.length();
+        int relativePathLength = relativePath.length();
+        int maxPos = Math.min(pathToParentLength, relativePathLength);
+        int commonPrefixLength = relativePath.lengthOfCommonPrefix(pathToParent, caseSensitivity);
         if (commonPrefixLength == maxPos) {
-            if (prefixLength > pathLength) {
-                return descendantHandler.handleParent();
+            if (pathToParentLength > relativePathLength) {
+                return pathRelationshipHandler.handleParent();
             }
-            if (prefixLength == pathLength) {
-                return descendantHandler.handleSame();
+            if (pathToParentLength == relativePathLength) {
+                return pathRelationshipHandler.handleSame();
             }
-            return descendantHandler.handleDescendant();
+            return pathRelationshipHandler.handleDescendant();
         }
-        return descendantHandler.handleDifferent(commonPrefixLength);
+        return pathRelationshipHandler.handleDifferent(commonPrefixLength);
     }
 
-    private interface DescendantHandler<T> {
+    private interface PathRelationshipHandler<T> {
         /**
-         * relativePath is a descendant of prefix.
+         * relativePath is a descendant of pathToParent.
          */
         T handleDescendant();
         /**
-         * relativePath is a parent of prefix.
+         * relativePath is a parent of pathToParent.
          */
         T handleParent();
         /**
-         * relativePath is the same as prefix.
+         * relativePath is the same as pathToParent.
          */
         T handleSame();
         /**
-         * relativePath has a common prefix with prefix, but is different.
+         * relativePath may have a common prefix with pathToParent,
+         * but the common prefix is different to both pathToParent and relativePath.
          */
         T handleDifferent(int commonPrefixLength);
     }
