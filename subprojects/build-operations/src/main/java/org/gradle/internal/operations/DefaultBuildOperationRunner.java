@@ -325,7 +325,7 @@ public class DefaultBuildOperationRunner implements BuildOperationRunner {
         }
 
         @Override
-        public void execute(RunnableBuildOperation buildOperation, BuildOperationContext context) {
+        public void execute(RunnableBuildOperation buildOperation, BuildOperationContext context) throws Exception {
             buildOperation.run(context);
         }
     }
@@ -339,7 +339,7 @@ public class DefaultBuildOperationRunner implements BuildOperationRunner {
         }
 
         @Override
-        public void execute(CallableBuildOperation<T> buildOperation, BuildOperationContext context) {
+        public void execute(CallableBuildOperation<T> buildOperation, BuildOperationContext context) throws Exception {
             returnValue = buildOperation.call(context);
         }
 
