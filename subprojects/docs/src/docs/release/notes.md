@@ -7,7 +7,8 @@ We would like to thank the following community contributors to this release of G
 [Christian Edward Gruber](https://github.com/cgruber),
 [Rene Groeschke](https://github.com/breskeby),
 [Louis CAD](https://github.com/LouisCAD),
-and [Campbell Jones](https://github.com/serebit).
+[Campbell Jones](https://github.com/serebit),
+and [Leonardo Bezerra Silva Júnior](https://github.com/leonardobsjr).
 
 <!--
 Include only their name, impactful features should be called out separately below.
