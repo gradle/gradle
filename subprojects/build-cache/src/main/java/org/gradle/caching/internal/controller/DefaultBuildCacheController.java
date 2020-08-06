@@ -146,10 +146,10 @@ public class DefaultBuildCacheController implements BuildCacheController {
                 public void run(BuildOperationContext context) throws IOException {
                     try (InputStream input = new FileInputStream(file)) {
                         result = command.load(input);
+                        context.setResult(new UnpackOperationResult(
+                            result.getArtifactEntryCount()
+                        ));
                     }
-                    context.setResult(new UnpackOperationResult(
-                        result.getArtifactEntryCount()
-                    ));
                 }
 
                 @Override
