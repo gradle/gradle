@@ -44,12 +44,22 @@ public class DefaultBuildOperationExecutor extends DefaultBuildOperationRunner i
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultBuildOperationExecutor.class);
     private static final String LINE_SEPARATOR = SystemProperties.getInstance().getLineSeparator();
 
+    private final Clock clock;
     private final ProgressLoggerFactory progressLoggerFactory;
     private final BuildOperationQueueFactory buildOperationQueueFactory;
     private final ManagedExecutor fixedSizePool;
 
-    public DefaultBuildOperationExecutor(BuildOperationListener listener, Clock clock, ProgressLoggerFactory progressLoggerFactory, BuildOperationQueueFactory buildOperationQueueFactory, ExecutorFactory executorFactory, ParallelismConfiguration parallelismConfiguration, BuildOperationIdFactory buildOperationIdFactory) {
+    public DefaultBuildOperationExecutor(
+        BuildOperationListener listener,
+        Clock clock,
+        ProgressLoggerFactory progressLoggerFactory,
+        BuildOperationQueueFactory buildOperationQueueFactory,
+        ExecutorFactory executorFactory,
+        ParallelismConfiguration parallelismConfiguration,
+        BuildOperationIdFactory buildOperationIdFactory
+    ) {
         super(listener, clock::getCurrentTime, buildOperationIdFactory);
+        this.clock = clock;
         this.progressLoggerFactory = progressLoggerFactory;
         this.buildOperationQueueFactory = buildOperationQueueFactory;
         this.fixedSizePool = executorFactory.create("Build operations", parallelismConfiguration.getMaxWorkerCount());
@@ -156,7 +166,7 @@ public class DefaultBuildOperationExecutor extends DefaultBuildOperationRunner i
     @Nullable
     private BuildOperationState maybeStartUnmanagedThreadOperation(@Nullable BuildOperationState parentState) {
         if (parentState == null && !GradleThread.isManaged()) {
-            parentState = UnmanagedThreadOperation.create(getCurrentTime());
+            parentState = UnmanagedThreadOperation.create(clock.getCurrentTime());
             parentState.setRunning(true);
             setCurrentBuildOperation(parentState);
             listener.started(parentState.getDescription(), new OperationStartEvent(parentState.getStartTime()));
@@ -168,7 +178,7 @@ public class DefaultBuildOperationExecutor extends DefaultBuildOperationRunner i
         BuildOperationState current = getCurrentBuildOperation();
         if (current instanceof UnmanagedThreadOperation) {
             try {
-                listener.finished(current.getDescription(), new OperationFinishEvent(current.getStartTime(), getCurrentTime(), null, null));
+                listener.finished(current.getDescription(), new OperationFinishEvent(current.getStartTime(), clock.getCurrentTime(), null, null));
             } finally {
                 setCurrentBuildOperation(null);
                 current.setRunning(false);
@@ -183,7 +193,7 @@ public class DefaultBuildOperationExecutor extends DefaultBuildOperationRunner i
     protected void createRunningRootOperation(String displayName) {
         assert getCurrentBuildOperation() == null;
         OperationIdentifier rootBuildOpId = new OperationIdentifier(DefaultBuildOperationIdFactory.ROOT_BUILD_OPERATION_ID_VALUE);
-        BuildOperationState operation = new BuildOperationState(BuildOperationDescriptor.displayName(displayName).build(rootBuildOpId, null), getCurrentTime());
+        BuildOperationState operation = new BuildOperationState(BuildOperationDescriptor.displayName(displayName).build(rootBuildOpId, null), clock.getCurrentTime());
         operation.setRunning(true);
         setCurrentBuildOperation(operation);
     }
