@@ -117,7 +117,7 @@ public class SnapshotUtil {
             }
 
             @Override
-            public Optional<ReadOnlyFileSystemNode> handleParent() {
+            public Optional<ReadOnlyFileSystemNode> handleAncestor() {
                 return Optional.of(child.withPathToParent(child.getPathToParent().substring(relativePath.length() + 1)));
             }
 
@@ -146,7 +146,7 @@ public class SnapshotUtil {
             }
 
             @Override
-            public FileSystemNode handleParent() {
+            public FileSystemNode handleAncestor() {
                 return replacedNode();
             }
 
@@ -198,7 +198,7 @@ public class SnapshotUtil {
             }
 
             @Override
-            public Optional<FileSystemNode> handleParent() {
+            public Optional<FileSystemNode> handleAncestor() {
                 diffListener.nodeRemoved(child);
                 return Optional.empty();
             }
@@ -245,7 +245,7 @@ public class SnapshotUtil {
         int commonPrefixLength = relativePath.lengthOfCommonPrefix(pathToParent, caseSensitivity);
         if (commonPrefixLength == maxPos) {
             if (pathToParentLength > relativePathLength) {
-                return pathRelationshipHandler.handleParent();
+                return pathRelationshipHandler.handleAncestor();
             }
             if (pathToParentLength == relativePathLength) {
                 return pathRelationshipHandler.handleSame();
@@ -261,9 +261,9 @@ public class SnapshotUtil {
          */
         T handleDescendant();
         /**
-         * relativePath is a parent of pathToParent.
+         * relativePath is an ancestor of pathToParent.
          */
-        T handleParent();
+        T handleAncestor();
         /**
          * relativePath is the same as pathToParent.
          */
