@@ -34,7 +34,7 @@ TBD - load from cache performance improvements and reduced memory consumption fo
 
 When running Gradle builds, you can abbreviate project and task names. For example, you can execute the `compileTest` task by running `gradle cT`.
 
-Until this release, the name abbreviation only worked for camel case names (e.g. `compileTest`). This format is recommended for tasks, but it is unusual for projects. In the Java world the folder names are lower case by convention. On top of that, camel case directory names could cause problems on case-insensitive filesystems.
+Until this release, the name abbreviation only worked for camel case names (e.g. `compileTest`). This format is recommended for task names, but it is unusual for project names. In the Java world the folder names are lower case by convention. 
 
 Many projects - including Gradle - overcome that by using kebab case project directories (e.g. `my-awesome-lib`) and by defining different, camel case project names in the build scripts. This difference leads to unnecessary extra complexity in the build.
 
