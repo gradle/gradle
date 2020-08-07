@@ -38,18 +38,7 @@ Until this release, the name abbreviation only worked for camel case names (e.g.
 
 Many projects - including Gradle - overcome that by using kebab case project directories (e.g. `my-awesome-lib`) and by defining different, camel case project names in the build scripts. This difference means unnecessary extra complexity in the build.
 
-This fixes the issue by adding support for kebab case names in the name matching. Now, you can have following project structure:
-```
-my-awesome-project
-├── my-awesome-api
-│   └── build.gradle
-├── my-awesome-lib
-│   └── build.gradle
-├── gradle
-├── build.gradle
-└── settings.gradle
-```
-and you can execute the `compileTest` task in the `my-awesome-lib` subproject with the following command:
+This fixes the issue by adding support for kebab case names in the name matching. Now, you can execute the `compileTest` task in the `my-awesome-lib` subproject with the following command:
 ```
 gradle mAL:cT
 ```
