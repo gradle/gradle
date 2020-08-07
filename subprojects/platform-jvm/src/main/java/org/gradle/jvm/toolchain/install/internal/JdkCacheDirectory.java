@@ -21,6 +21,9 @@ import org.gradle.api.file.EmptyFileVisitor;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.internal.file.FileOperations;
+import org.gradle.cache.FileLock;
+import org.gradle.cache.FileLockManager;
+import org.gradle.cache.internal.filelock.LockOptionsBuilder;
 import org.gradle.initialization.GradleUserHomeDirProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,18 +42,26 @@ public class JdkCacheDirectory {
 
     private final FileOperations operations;
     private final File jdkDirectory;
+    private final FileLockManager lockManager;
 
-    public JdkCacheDirectory(GradleUserHomeDirProvider homeDirProvider, FileOperations operations) {
+    public JdkCacheDirectory(GradleUserHomeDirProvider homeDirProvider, FileOperations operations, FileLockManager lockManager) {
         this.operations = operations;
         this.jdkDirectory = new File(homeDirProvider.getGradleUserHomeDirectory(), "jdks");
+        this.lockManager = lockManager;
+        jdkDirectory.mkdir();
     }
 
     public Set<File> listJavaHomes() {
-        final File[] files = jdkDirectory.listFiles();
-        if (files != null) {
-            return Arrays.stream(files).filter(File::isDirectory).map(this::findJavaHome).collect(Collectors.toSet());
+        final FileLock lock = acquireReadLock();
+        try {
+            final File[] files = jdkDirectory.listFiles();
+            if (files != null) {
+                return Arrays.stream(files).filter(File::isDirectory).map(this::findJavaHome).collect(Collectors.toSet());
+            }
+            return Collections.emptySet();
+        } finally {
+            lock.close();
         }
-        return Collections.emptySet();
     }
 
     private File findJavaHome(File potentialHome) {
@@ -96,6 +107,18 @@ public class JdkCacheDirectory {
             return operations.zipTree(jdkArchive);
         }
         return operations.tarTree(operations.getResources().gzip(jdkArchive));
+    }
+
+    public FileLock acquireWriteLock(String destinationFilename) {
+        return lockManager.lock(jdkDirectory, LockOptionsBuilder.mode(FileLockManager.LockMode.Exclusive), destinationFilename);
+    }
+
+    private FileLock acquireReadLock() {
+        return lockManager.lock(jdkDirectory, LockOptionsBuilder.mode(FileLockManager.LockMode.Shared), "");
+    }
+
+    public File getDownloadLocation(String filename) {
+        return new File(jdkDirectory, filename);
     }
 
 }
