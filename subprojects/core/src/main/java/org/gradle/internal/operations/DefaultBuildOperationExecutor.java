@@ -40,10 +40,11 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
 @ServiceScope(Scopes.BuildSession.class)
-public class DefaultBuildOperationExecutor extends DefaultBuildOperationRunner implements BuildOperationExecutor, Stoppable {
+public class DefaultBuildOperationExecutor implements BuildOperationExecutor, Stoppable {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultBuildOperationExecutor.class);
     private static final String LINE_SEPARATOR = SystemProperties.getInstance().getLineSeparator();
 
+    private final DefaultBuildOperationRunner runner;
     private final BuildOperationListener listener;
     private final Clock clock;
     private final BuildOperationQueueFactory buildOperationQueueFactory;
@@ -59,7 +60,7 @@ public class DefaultBuildOperationExecutor extends DefaultBuildOperationRunner i
         ParallelismConfiguration parallelismConfiguration,
         BuildOperationIdFactory buildOperationIdFactory
     ) {
-        super(clock::getCurrentTime, buildOperationIdFactory, new ListenerAdapter(listener, progressLoggerFactory, clock));
+        this.runner = new DefaultBuildOperationRunner(clock::getCurrentTime, buildOperationIdFactory, new ListenerAdapter(listener, progressLoggerFactory, clock));
         this.listener = listener;
         this.clock = clock;
         this.buildOperationQueueFactory = buildOperationQueueFactory;
@@ -70,7 +71,7 @@ public class DefaultBuildOperationExecutor extends DefaultBuildOperationRunner i
     public void run(RunnableBuildOperation buildOperation) {
         BuildOperationState parent = maybeStartUnmanagedThreadOperation();
         try {
-            super.run(buildOperation);
+            runner.run(buildOperation);
         } finally {
             maybeStopUnmanagedThreadOperation(parent);
         }
@@ -80,10 +81,20 @@ public class DefaultBuildOperationExecutor extends DefaultBuildOperationRunner i
     public <T> T call(CallableBuildOperation<T> buildOperation) {
         BuildOperationState parent = maybeStartUnmanagedThreadOperation();
         try {
-            return super.call(buildOperation);
+            return runner.call(buildOperation);
         } finally {
             maybeStopUnmanagedThreadOperation(parent);
         }
+    }
+
+    @Override
+    public BuildOperationContext start(BuildOperationDescriptor.Builder descriptor) {
+        return runner.start(descriptor);
+    }
+
+    @Override
+    public BuildOperationRef getCurrentOperation() {
+        return runner.getCurrentOperation();
     }
 
     @Override
@@ -233,7 +244,7 @@ public class DefaultBuildOperationExecutor extends DefaultBuildOperationRunner i
 
         @Override
         public void execute(O buildOperation) {
-            DefaultBuildOperationExecutor.this.execute(buildOperation, worker, parent);
+            runner.execute(buildOperation, worker, parent);
         }
     }
 
