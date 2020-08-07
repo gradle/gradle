@@ -221,11 +221,6 @@ public class DefaultBuildOperationRunner implements BuildOperationRunner {
         private RunnableBuildOperationWorker() {}
 
         @Override
-        public String getDisplayName() {
-            return "runnable build operation";
-        }
-
-        @Override
         public void execute(RunnableBuildOperation buildOperation, BuildOperationContext context) throws Exception {
             buildOperation.run(context);
         }
@@ -233,11 +228,6 @@ public class DefaultBuildOperationRunner implements BuildOperationRunner {
 
     private static class CallableBuildOperationWorker<T> implements BuildOperationWorker<CallableBuildOperation<T>> {
         private T returnValue;
-
-        @Override
-        public String getDisplayName() {
-            return "callable build operation";
-        }
 
         @Override
         public void execute(CallableBuildOperation<T> buildOperation, BuildOperationContext context) throws Exception {
