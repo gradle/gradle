@@ -46,7 +46,6 @@ public class DefaultBuildOperationExecutor extends DefaultBuildOperationRunner i
 
     private final BuildOperationListener listener;
     private final Clock clock;
-    private final ProgressLoggerFactory progressLoggerFactory;
     private final BuildOperationQueueFactory buildOperationQueueFactory;
     private final ManagedExecutor fixedSizePool;
     private final CurrentBuildOperationRef currentBuildOperationRef = CurrentBuildOperationRef.instance();
@@ -60,10 +59,9 @@ public class DefaultBuildOperationExecutor extends DefaultBuildOperationRunner i
         ParallelismConfiguration parallelismConfiguration,
         BuildOperationIdFactory buildOperationIdFactory
     ) {
-        super(listener, clock::getCurrentTime, buildOperationIdFactory);
+        super(clock::getCurrentTime, buildOperationIdFactory, new ListenerAdapter(listener, progressLoggerFactory, clock));
         this.listener = listener;
         this.clock = clock;
-        this.progressLoggerFactory = progressLoggerFactory;
         this.buildOperationQueueFactory = buildOperationQueueFactory;
         this.fixedSizePool = executorFactory.create("Build operations", parallelismConfiguration.getMaxWorkerCount());
     }
@@ -141,38 +139,6 @@ public class DefaultBuildOperationExecutor extends DefaultBuildOperationRunner i
         }
     }
 
-    @Override
-    protected BuildOperationExecutionListener createListener() {
-        final BuildOperationExecutionListener delegate = super.createListener();
-        return new BuildOperationExecutionListener() {
-
-            private ProgressLogger progressLogger;
-
-            @Override
-            public void start(BuildOperationDescriptor descriptor, BuildOperationState operationState) {
-                delegate.start(descriptor, operationState);
-                progressLogger = createProgressLogger(operationState);
-            }
-
-            @Override
-            public void stop(BuildOperationDescriptor descriptor, BuildOperationState operationState, @Nullable BuildOperationState parent, DefaultBuildOperationContext context) {
-                progressLogger.completed(context.status, context.failure != null);
-                delegate.stop(descriptor, operationState, parent, context);
-            }
-
-            @Override
-            public void close(BuildOperationDescriptor descriptor, BuildOperationState operationState) {
-                delegate.close(descriptor, operationState);
-            }
-        };
-    }
-
-    private ProgressLogger createProgressLogger(BuildOperationState currentOperation) {
-        BuildOperationDescriptor descriptor = currentOperation.getDescription();
-        ProgressLogger progressLogger = progressLoggerFactory.newOperation(DefaultBuildOperationExecutor.class, descriptor);
-        return progressLogger.start(descriptor.getDisplayName(), descriptor.getProgressDisplayName());
-    }
-
     @Nullable
     private BuildOperationState maybeStartUnmanagedThreadOperation() {
         BuildOperationState current = getCurrentBuildOperation();
@@ -219,6 +185,36 @@ public class DefaultBuildOperationExecutor extends DefaultBuildOperationRunner i
     @Override
     public void stop() {
         fixedSizePool.stop();
+    }
+
+    private static class ListenerAdapter implements BuildOperationExecutionListener {
+        private final BuildOperationListener buildOperationListener;
+        private final ProgressLoggerFactory progressLoggerFactory;
+        private final Clock clock;
+        private ProgressLogger progressLogger;
+
+        public ListenerAdapter(BuildOperationListener buildOperationListener, ProgressLoggerFactory progressLoggerFactory, Clock clock) {
+            this.buildOperationListener = buildOperationListener;
+            this.progressLoggerFactory = progressLoggerFactory;
+            this.clock = clock;
+        }
+
+        @Override
+        public void start(BuildOperationDescriptor descriptor, BuildOperationState operationState) {
+            buildOperationListener.started(descriptor, new OperationStartEvent(operationState.getStartTime()));
+            ProgressLogger progressLogger = progressLoggerFactory.newOperation(DefaultBuildOperationExecutor.class, descriptor);
+            this.progressLogger = progressLogger.start(descriptor.getDisplayName(), descriptor.getProgressDisplayName());
+        }
+
+        @Override
+        public void stop(BuildOperationDescriptor descriptor, BuildOperationState operationState, @Nullable BuildOperationState parent, DefaultBuildOperationContext context) {
+            progressLogger.completed(context.status, context.failure != null);
+            buildOperationListener.finished(descriptor, new OperationFinishEvent(operationState.getStartTime(), clock.getCurrentTime(), context.failure, context.result));
+        }
+
+        @Override
+        public void close(BuildOperationDescriptor descriptor, BuildOperationState operationState) {
+        }
     }
 
     private class QueueWorker<O extends BuildOperation> implements BuildOperationQueue.QueueWorker<O> {
