@@ -223,7 +223,7 @@ samples {
             readmeFile = file("src/snippets/default-readme.adoc")
             sampleDirectory = snippetDir
             promoted = false
-        }            
+        }
     }
 
     publishedSamples {
