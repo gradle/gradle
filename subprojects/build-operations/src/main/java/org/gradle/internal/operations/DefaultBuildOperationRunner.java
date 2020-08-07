@@ -20,10 +20,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
-import java.io.ObjectStreamException;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 public class DefaultBuildOperationRunner implements BuildOperationRunner {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultBuildOperationRunner.class);
@@ -216,47 +214,6 @@ public class DefaultBuildOperationRunner implements BuildOperationRunner {
         @Override
         public void setStatus(String status) {
             this.status = status;
-        }
-    }
-
-    protected static class BuildOperationState implements BuildOperationRef {
-        private final BuildOperationDescriptor description;
-        private final AtomicBoolean running = new AtomicBoolean();
-        private final long startTime;
-
-        public BuildOperationState(BuildOperationDescriptor descriptor, long startTime) {
-            this.startTime = startTime;
-            this.description = descriptor;
-        }
-
-        public BuildOperationDescriptor getDescription() {
-            return description;
-        }
-
-        public boolean isRunning() {
-            return running.get();
-        }
-
-        public void setRunning(boolean running) {
-            this.running.set(running);
-        }
-
-        public long getStartTime() {
-            return startTime;
-        }
-
-        @Override
-        public OperationIdentifier getId() {
-            return description.getId();
-        }
-
-        @Override
-        public OperationIdentifier getParentId() {
-            return description.getParentId();
-        }
-
-        private Object writeReplace() throws ObjectStreamException {
-            return new DefaultBuildOperationRef(description.getId(), description.getParentId());
         }
     }
 
