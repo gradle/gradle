@@ -161,6 +161,18 @@ samples {
         groovyApplication
         groovyListLibrary
         groovyUtilitiesLibrary
+        groovyApplicationInApp {
+            sourceDirectory = groovyApplication.sourceDirectory
+            target = "app"
+        }
+        groovyListLibraryInApp {
+            sourceDirectory = groovyListLibrary.sourceDirectory
+            target = "app"
+        }
+        groovyUtilitiesLibraryInApp {
+            sourceDirectory = groovyUtilitiesLibrary.sourceDirectory
+            target = "app"
+        }
         groovyApplicationAsSubproject {
             sourceDirectory = groovyApplication.sourceDirectory
             target = "application"
@@ -223,7 +235,7 @@ samples {
             readmeFile = file("src/snippets/default-readme.adoc")
             sampleDirectory = snippetDir
             promoted = false
-        }            
+        }
     }
 
     publishedSamples {
@@ -399,9 +411,9 @@ samples {
             description = "Build a Groovy application."
             category = "Groovy"
             common {
-                from(templates.groovyApplication)
-                from(templates.groovyListLibrary)
-                from(templates.groovyUtilitiesLibrary)
+                from(templates.groovyApplicationInApp)
+                from(templates.groovyListLibraryInApp)
+                from(templates.groovyUtilitiesLibraryInApp)
             }
         }
         groovyLibrary {

@@ -14,7 +14,7 @@ To build and run the application:
 ----
 $ ./gradlew run
 
-> Task :run
+> Task :app:run
 Hello, World!
 
 BUILD SUCCESSFUL
