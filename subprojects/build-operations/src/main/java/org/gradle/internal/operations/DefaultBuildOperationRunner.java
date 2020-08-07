@@ -189,11 +189,11 @@ public class DefaultBuildOperationRunner implements BuildOperationRunner {
     }
 
     @Nullable
-    protected BuildOperationState getCurrentBuildOperation() {
+    private BuildOperationState getCurrentBuildOperation() {
         return (BuildOperationState) currentBuildOperationRef.get();
     }
 
-    protected void setCurrentBuildOperation(@Nullable BuildOperationState parentState) {
+    private void setCurrentBuildOperation(@Nullable BuildOperationState parentState) {
         currentBuildOperationRef.set(parentState);
     }
 

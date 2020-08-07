@@ -48,6 +48,7 @@ public class DefaultBuildOperationExecutor extends DefaultBuildOperationRunner i
     private final ProgressLoggerFactory progressLoggerFactory;
     private final BuildOperationQueueFactory buildOperationQueueFactory;
     private final ManagedExecutor fixedSizePool;
+    private final CurrentBuildOperationRef currentBuildOperationRef = CurrentBuildOperationRef.instance();
 
     public DefaultBuildOperationExecutor(
         BuildOperationListener listener,
@@ -99,6 +100,15 @@ public class DefaultBuildOperationExecutor extends DefaultBuildOperationRunner i
         } finally {
             maybeStopUnmanagedThreadOperation();
         }
+    }
+
+    @Nullable
+    private BuildOperationState getCurrentBuildOperation() {
+        return (BuildOperationState) currentBuildOperationRef.get();
+    }
+
+    private void setCurrentBuildOperation(@Nullable BuildOperationState parentState) {
+        currentBuildOperationRef.set(parentState);
     }
 
     private <O extends BuildOperation> void executeInParallel(BuildOperationQueue.QueueWorker<O> worker, Action<BuildOperationQueue<O>> queueAction) {
