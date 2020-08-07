@@ -348,6 +348,7 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
             parent = operationExecutor.currentOperation
             async {
                 start {
+                    GradleThread.setManaged()
                     operationExecutor.run(new RunnableBuildOperation() {
                         void run(BuildOperationContext context) {
                             instant.action1Started
@@ -360,6 +361,7 @@ class DefaultBuildOperationExecutorTest extends ConcurrentSpec {
                     })
                 }
                 start {
+                    GradleThread.setManaged()
                     thread.blockUntil.action1Started
                     operationExecutor.run(new RunnableBuildOperation() {
                         void run(BuildOperationContext context) {

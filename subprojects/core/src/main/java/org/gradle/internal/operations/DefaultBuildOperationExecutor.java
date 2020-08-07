@@ -70,37 +70,41 @@ public class DefaultBuildOperationExecutor extends DefaultBuildOperationRunner i
 
     @Override
     public void run(RunnableBuildOperation buildOperation) {
+        BuildOperationState parent = maybeStartUnmanagedThreadOperation();
         try {
             super.run(buildOperation);
         } finally {
-            maybeStopUnmanagedThreadOperation();
+            maybeStopUnmanagedThreadOperation(parent);
         }
     }
 
     @Override
     public <T> T call(CallableBuildOperation<T> buildOperation) {
+        BuildOperationState parent = maybeStartUnmanagedThreadOperation();
         try {
             return super.call(buildOperation);
         } finally {
-            maybeStopUnmanagedThreadOperation();
+            maybeStopUnmanagedThreadOperation(parent);
         }
     }
 
     @Override
     public <O extends RunnableBuildOperation> void runAll(Action<BuildOperationQueue<O>> schedulingAction) {
+        BuildOperationState parent = maybeStartUnmanagedThreadOperation();
         try {
-            executeInParallel(new ParentPreservingQueueWorker<>(RUNNABLE_BUILD_OPERATION_WORKER), schedulingAction);
+            executeInParallel(new QueueWorker<>(parent, RUNNABLE_BUILD_OPERATION_WORKER), schedulingAction);
         } finally {
-            maybeStopUnmanagedThreadOperation();
+            maybeStopUnmanagedThreadOperation(parent);
         }
     }
 
     @Override
     public <O extends BuildOperation> void runAll(BuildOperationWorker<O> worker, Action<BuildOperationQueue<O>> schedulingAction) {
+        BuildOperationState parent = maybeStartUnmanagedThreadOperation();
         try {
-            executeInParallel(new ParentPreservingQueueWorker<>(worker), schedulingAction);
+            executeInParallel(new QueueWorker<>(parent, worker), schedulingAction);
         } finally {
-            maybeStopUnmanagedThreadOperation();
+            maybeStopUnmanagedThreadOperation(parent);
         }
     }
 
@@ -163,12 +167,6 @@ public class DefaultBuildOperationExecutor extends DefaultBuildOperationRunner i
         };
     }
 
-    @Nullable
-    @Override
-    protected BuildOperationState determineParent(BuildOperationDescriptor.Builder descriptorBuilder, @Nullable DefaultBuildOperationRunner.BuildOperationState defaultParent) {
-        return maybeStartUnmanagedThreadOperation(super.determineParent(descriptorBuilder, defaultParent));
-    }
-
     private ProgressLogger createProgressLogger(BuildOperationState currentOperation) {
         BuildOperationDescriptor descriptor = currentOperation.getDescription();
         ProgressLogger progressLogger = progressLoggerFactory.newOperation(DefaultBuildOperationExecutor.class, descriptor);
@@ -176,18 +174,20 @@ public class DefaultBuildOperationExecutor extends DefaultBuildOperationRunner i
     }
 
     @Nullable
-    private BuildOperationState maybeStartUnmanagedThreadOperation(@Nullable BuildOperationState parentState) {
-        if (parentState == null && !GradleThread.isManaged()) {
-            parentState = UnmanagedThreadOperation.create(clock.getCurrentTime());
-            parentState.setRunning(true);
-            setCurrentBuildOperation(parentState);
-            listener.started(parentState.getDescription(), new OperationStartEvent(parentState.getStartTime()));
+    private BuildOperationState maybeStartUnmanagedThreadOperation() {
+        BuildOperationState current = getCurrentBuildOperation();
+        if (current == null && !GradleThread.isManaged()) {
+            BuildOperationState unmanaged = UnmanagedThreadOperation.create(clock.getCurrentTime());
+            unmanaged.setRunning(true);
+            setCurrentBuildOperation(unmanaged);
+            listener.started(unmanaged.getDescription(), new OperationStartEvent(unmanaged.getStartTime()));
+            return unmanaged;
+        } else {
+            return current;
         }
-        return parentState;
     }
 
-    private void maybeStopUnmanagedThreadOperation() {
-        BuildOperationState current = getCurrentBuildOperation();
+    private void maybeStopUnmanagedThreadOperation(@Nullable BuildOperationState current) {
         if (current instanceof UnmanagedThreadOperation) {
             try {
                 listener.finished(current.getDescription(), new OperationFinishEvent(current.getStartTime(), clock.getCurrentTime(), null, null));
@@ -221,16 +221,12 @@ public class DefaultBuildOperationExecutor extends DefaultBuildOperationRunner i
         fixedSizePool.stop();
     }
 
-    /**
-     * Remembers the operation running on the executing thread at creation time to use
-     * it during execution on other threads.
-     */
-    private class ParentPreservingQueueWorker<O extends BuildOperation> implements BuildOperationQueue.QueueWorker<O> {
+    private class QueueWorker<O extends BuildOperation> implements BuildOperationQueue.QueueWorker<O> {
         private final BuildOperationState parent;
         private final BuildOperationWorker<? super O> worker;
 
-        private ParentPreservingQueueWorker(BuildOperationWorker<? super O> worker) {
-            this.parent = maybeStartUnmanagedThreadOperation(getCurrentBuildOperation());
+        private QueueWorker(@Nullable BuildOperationState parent, BuildOperationWorker<? super O> worker) {
+            this.parent = parent;
             this.worker = worker;
         }
 

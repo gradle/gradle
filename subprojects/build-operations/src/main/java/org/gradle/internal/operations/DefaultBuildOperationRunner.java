@@ -126,7 +126,8 @@ public class DefaultBuildOperationRunner implements BuildOperationRunner {
     }
 
     private <O> O execute(BuildOperationDescriptor.Builder descriptorBuilder, @Nullable BuildOperationState defaultParent, BuildOperationExecution<O> execution) {
-        BuildOperationState parent = determineParent(descriptorBuilder, defaultParent);
+        BuildOperationState descriptorParent = (BuildOperationState) descriptorBuilder.getParentState();
+        BuildOperationState parent = descriptorParent == null ? defaultParent : descriptorParent;
         OperationIdentifier id = new OperationIdentifier(buildOperationIdFactory.nextId());
         BuildOperationDescriptor descriptor = descriptorBuilder.build(id, parent == null
             ? null
@@ -195,13 +196,6 @@ public class DefaultBuildOperationRunner implements BuildOperationRunner {
 
     private void setCurrentBuildOperation(@Nullable BuildOperationState parentState) {
         currentBuildOperationRef.set(parentState);
-    }
-
-    @Nullable
-    @OverridingMethodsMustInvokeSuper
-    protected BuildOperationState determineParent(BuildOperationDescriptor.Builder descriptorBuilder, @Nullable BuildOperationState defaultParent) {
-        BuildOperationState parent = (BuildOperationState) descriptorBuilder.getParentState();
-        return parent == null ? defaultParent : parent;
     }
 
     public interface TimeSupplier {
