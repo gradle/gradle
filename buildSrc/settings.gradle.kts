@@ -28,9 +28,6 @@ apply(from = "../gradle/shared-with-buildSrc/mirrors.settings.gradle.kts")
 
 val upperCaseLetters = "\\p{Upper}".toRegex()
 
-fun String.toKebabCase() =
-    replace(upperCaseLetters) { "-${it.value.toLowerCase()}" }
-
 rootProject.name = "buildSrc"
 
 // Platform: defines shared dependency versions
@@ -66,13 +63,9 @@ include("performance-testing")
 include("profiling")
 include("publishing")
 
-fun buildFileNameFor(projectDirName: String) =
-    "$projectDirName.gradle.kts"
-
 for (project in rootProject.children) {
-    val projectDirName = project.name.toKebabCase()
-    project.projectDir = file("subprojects/$projectDirName")
-    project.buildFileName = buildFileNameFor(projectDirName)
+    project.projectDir = file("subprojects/${project.name}")
+    project.buildFileName = "${project.name}.gradle.kts"
     assert(project.projectDir.isDirectory)
     assert(project.buildFile.isFile)
 }

@@ -42,6 +42,7 @@ abstract class GenerateSubprojectsInfo : DefaultTask() {
 
     private
     fun generateSubproject(subprojectDir: File): GradleSubproject {
+        // TODO (donat) we should probably change this one as well
         return GradleSubproject(subprojectDir.name,
             subprojectDir.name.kebabToCamel(),
             subprojectDir.hasDescendantDir("src/test"),
