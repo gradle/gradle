@@ -26,22 +26,18 @@ gradlePlugin {
 }
 // end::plugin[]
 
-// Add a source set for the functional test suite
-sourceSets {
-    functionalTest {
-    }
+// Add a source set and a task for a functional test suite
+def functionalTest = sourceSets.create("functionalTest")
+gradlePlugin.testSourceSets(functionalTest)
+
+configurations[functionalTest.implementationConfigurationName].extendsFrom(configurations.testImplementation)
+
+def functionalTestTask = tasks.register("functionalTest", Test) {
+    testClassesDirs = functionalTest.output.classesDirs
+    classpath = configurations[functionalTest.runtimeClasspathConfigurationName] + functionalTest.output
 }
 
-gradlePlugin.testSourceSets(sourceSets.functionalTest)
-configurations.functionalTestImplementation.extendsFrom(configurations.testImplementation)
-
-// Add a task to run the functional tests
-task functionalTest(type: Test) {
-    testClassesDirs = sourceSets.functionalTest.output.classesDirs
-    classpath = sourceSets.functionalTest.runtimeClasspath
-}
-
-check {
+tasks.check.configure {
     // Run the functional tests as part of `check`
-    dependsOn(tasks.functionalTest)
+    dependsOn(functionalTestTask)
 }

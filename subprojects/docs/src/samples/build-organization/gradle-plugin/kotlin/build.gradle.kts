@@ -5,8 +5,7 @@ plugins {
 }
 
 repositories {
-    // Use jcenter for resolving dependencies.
-    // You can declare any Maven/Ivy/file repository here.
+    // Use jcenter for resolving dependencies
     jcenter()
 }
 
@@ -24,20 +23,18 @@ gradlePlugin {
 }
 // end::plugin[]
 
-// Add a source set for the functional test suite
-val functionalTestSourceSet = sourceSets.create("functionalTest") {
+// Add a source set and a task for a functional test suite
+val functionalTest by sourceSets.creating
+gradlePlugin.testSourceSets(functionalTest)
+
+configurations[functionalTest.implementationConfigurationName].extendsFrom(configurations.testImplementation.get())
+
+val functionalTestTask = tasks.register<Test>("functionalTest") {
+    testClassesDirs = functionalTest.output.classesDirs
+    classpath = configurations[functionalTest.runtimeClasspathConfigurationName] + functionalTest.output
 }
 
-gradlePlugin.testSourceSets(functionalTestSourceSet)
-configurations.getByName("functionalTestImplementation").extendsFrom(configurations.getByName("testImplementation"))
-
-// Add a task to run the functional tests
-val functionalTest by tasks.creating(Test::class) {
-    testClassesDirs = functionalTestSourceSet.output.classesDirs
-    classpath = functionalTestSourceSet.runtimeClasspath
-}
-
-val check by tasks.getting(Task::class) {
+tasks.check.configure {
     // Run the functional tests as part of `check`
-    dependsOn(functionalTest)
+    dependsOn(functionalTestTask)
 }
