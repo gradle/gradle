@@ -1,0 +1,48 @@
+    google()  // Google's Maven repository
+    classpath 'com.google.gms:google-services:4.3.3'
+    google()  // Google's Maven repository
+apply plugin: 'com.android.application'
+apply plugin: 'com.google.gms.google-services'
+
+  implementation 'com.google.firebase:firebase-analytics:17.4.1'
+{
+  "project_info": {
+    "project_number": "842362218620",
+    "firebase_url": "https://pel-cula-y-mas.firebaseio.com",
+    "project_id": "pel-cula-y-mas",
+    "storage_bucket": "pel-cula-y-mas.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:842362218620:android:59e8de76e621b2b5c841f9",
+        "android_client_info": {
+          "package_name": "pelicula.ymas2"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "842362218620-69i7kv6gqpljf18dp2bkd701f18nseod.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB3zls7OOcZLpmvyTr2mIP1xk8Nx8HCOgA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "842362218620-00igminspvnoe4ql1p2hpe17jhsr4kgb.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      },
+      "admob_app_id": "ca-app-pub-5227689397481254~4861856621"
+    }
+  ],
+  "configuration_version": "1"
+}
