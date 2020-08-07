@@ -64,6 +64,25 @@ class NameMatcherTest extends Specification {
         matches("a9n", "abc9Name")
     }
 
+    def "selects item with matching kebab case prefix"() {
+        expect:
+        matches("sN", "some-name")
+        matches("SN", "some-name")
+        matches("SN", "some-name-with-extra-stuff")
+        matches("a9N", "a9-name")
+        matches("a9N", "abc9-name")
+        matches("A9N", "abc9-name")
+    }
+
+    def "does not select kebab case with upper case chars"() {
+        expect:
+        doesNotMatch("sN", "some-Name")
+        doesNotMatch("SN", "some-Name")
+        doesNotMatch("a9N", "a9-Name")
+        doesNotMatch("a9N", "abc9-Name")
+        doesNotMatch("A9N", "abc9-Name")
+    }
+
     def "prefers exact match over case insensitive match"() {
         expect:
         matches("name", "name", "Name", "NAME")
@@ -86,6 +105,11 @@ class NameMatcherTest extends Specification {
         matches("sName", "sName", "someName", "sNames")
         matches("so Name", "so Name", "some Name", "so name")
         matches("ABC", "ABC", "AaBbCc")
+    }
+
+    def "prefers exact match over kebab case match"() {
+        expect:
+        matches("sName", "sName", "some-name", "some-Name")
     }
 
     def "prefers full camel case match over camel case prefix"() {
@@ -122,6 +146,18 @@ class NameMatcherTest extends Specification {
     def "does not select items when multiple camel case matches"() {
         expect:
         matcher.find("sN", ["someName", "soNa", "other"]) == null
+    }
+
+    def "does not select items when multiple kebab case matches"() {
+        expect:
+        matcher.find("sN", ["some-name", "some-name-with-extra", "other"]) == null
+        matcher.matches == ["some-name", "some-name-with-extra"] as Set
+    }
+
+    def "does not select items when multiple mixed camel and kebab case matches"() {
+        expect:
+        matcher.find("sN", ["some-name", "someName", "other"]) == null
+        matcher.matches == ["some-name", "someName"] as Set
     }
 
     def "does not select items when multiple case insensitive matches"() {
