@@ -41,7 +41,7 @@ public class WatchableHierarchies {
     public void registerWatchableHierarchy(File watchableHierarchy, SnapshotHierarchy root) {
         String watchableHierarchyAbsolutePath = watchableHierarchy.getAbsolutePath();
         if (!watchFilter.test(watchableHierarchyAbsolutePath)) {
-            throw new RuntimeException(String.format(
+            throw new IllegalStateException(String.format(
                 "Unable to watch directory '%s' since it is within Gradle's caches",
                 watchableHierarchyAbsolutePath
             ));
@@ -63,7 +63,7 @@ public class WatchableHierarchies {
     private void checkThatNothingExistsInNewWatchableHierarchy(String watchableHierarchy, SnapshotHierarchy vfsRoot) {
         vfsRoot.visitSnapshotRoots(watchableHierarchy, snapshotRoot -> {
             if (!isInWatchableHierarchy(snapshotRoot.getAbsolutePath()) && !ignoredForWatching(snapshotRoot)) {
-                throw new RuntimeException(String.format(
+                throw new IllegalStateException(String.format(
                     "Found existing snapshot at '%s' for unwatched hierarchy '%s'",
                     snapshotRoot.getAbsolutePath(),
                     watchableHierarchy

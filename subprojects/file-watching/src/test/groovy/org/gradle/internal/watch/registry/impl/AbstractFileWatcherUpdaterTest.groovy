@@ -137,7 +137,7 @@ abstract class AbstractFileWatcherUpdaterTest extends Specification {
         when:
         registerWatchableHierarchies([watchableHierarchy])
         then:
-        def exception = thrown(RuntimeException)
+        def exception = thrown(IllegalStateException)
         exception.message == "Found existing snapshot at '${fileInWatchableHierarchy.absolutePath}' for unwatched hierarchy '${watchableHierarchy.absolutePath}'"
     }
 
@@ -186,7 +186,7 @@ abstract class AbstractFileWatcherUpdaterTest extends Specification {
         when:
         registerWatchableHierarchies([watchableHierarchy])
         then:
-        def exception = thrown(RuntimeException)
+        def exception = thrown(IllegalStateException)
         exception.message == "Unable to watch directory '${watchableHierarchy.absolutePath}' since it is within Gradle's caches"
     }
 
