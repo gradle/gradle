@@ -53,7 +53,10 @@ val propagatedEnvironmentVariables = listOf(
     // Seems important on Windows
     "ALLUSERSPROFILE",
     "PUBLIC",
-    "windir"
+    "windir",
+
+    // Used by performance test to recognize TeamCity buildId
+    "BUILD_ID"
 )
 
 
