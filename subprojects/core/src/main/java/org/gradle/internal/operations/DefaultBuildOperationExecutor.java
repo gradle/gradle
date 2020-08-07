@@ -44,6 +44,7 @@ public class DefaultBuildOperationExecutor extends DefaultBuildOperationRunner i
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultBuildOperationExecutor.class);
     private static final String LINE_SEPARATOR = SystemProperties.getInstance().getLineSeparator();
 
+    private final BuildOperationListener listener;
     private final Clock clock;
     private final ProgressLoggerFactory progressLoggerFactory;
     private final BuildOperationQueueFactory buildOperationQueueFactory;
@@ -60,6 +61,7 @@ public class DefaultBuildOperationExecutor extends DefaultBuildOperationRunner i
         BuildOperationIdFactory buildOperationIdFactory
     ) {
         super(listener, clock::getCurrentTime, buildOperationIdFactory);
+        this.listener = listener;
         this.clock = clock;
         this.progressLoggerFactory = progressLoggerFactory;
         this.buildOperationQueueFactory = buildOperationQueueFactory;
