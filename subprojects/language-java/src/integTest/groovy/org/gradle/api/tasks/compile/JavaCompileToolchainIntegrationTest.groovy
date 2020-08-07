@@ -90,13 +90,13 @@ class JavaCompileToolchainIntegrationTest extends AbstractPluginIntegrationTest 
 
     @Requires(TestPrecondition.JDK8)
     def "uses matching compatibility options for source and target level"() {
-        def jdk9 = AvailableJavaHomes.jdk9
+        def jdk11 = AvailableJavaHomes.jdk11
         buildFile << """
             apply plugin: "java"
 
             java {
                 toolchain {
-                    languageVersion = JavaVersion.VERSION_1_9
+                    languageVersion = JavaVersion.VERSION_11
                 }
             }
         """
@@ -104,10 +104,10 @@ class JavaCompileToolchainIntegrationTest extends AbstractPluginIntegrationTest 
         file("src/main/java/Foo.java") << "public interface Foo { private void init() { }}"
 
         when:
-        runWithToolchainConfigured(jdk9)
+        runWithToolchainConfigured(jdk11)
 
         then:
-        outputContains("Compiling with toolchain '${jdk9.javaHome.absolutePath}'.")
+        outputContains("Compiling with toolchain '${jdk11.javaHome.absolutePath}'.")
         javaClassFile("Foo.class").exists()
     }
 

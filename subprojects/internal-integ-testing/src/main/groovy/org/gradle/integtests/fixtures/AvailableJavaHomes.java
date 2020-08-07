@@ -15,9 +15,7 @@
  */
 package org.gradle.integtests.fixtures;
 
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import net.rubygrapefruit.platform.SystemInfo;
 import net.rubygrapefruit.platform.WindowsRegistry;
@@ -27,7 +25,6 @@ import org.gradle.integtests.fixtures.executer.GradleDistribution;
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution;
 import org.gradle.integtests.fixtures.jvm.InstalledJvmLocator;
 import org.gradle.integtests.fixtures.jvm.JvmInstallation;
-import org.gradle.integtests.fixtures.jvm.JvmInstallation.Arch;
 import org.gradle.integtests.fixtures.jvm.SdkManJvmLocator;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.jvm.Jre;
@@ -53,7 +50,6 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static org.gradle.integtests.fixtures.jvm.JvmInstallation.Arch.Unknown;
-import static org.gradle.integtests.fixtures.jvm.JvmInstallation.Arch.i386;
 import static org.gradle.integtests.fixtures.jvm.JvmInstallation.Arch.x86_64;
 
 /**
@@ -84,8 +80,8 @@ public abstract class AvailableJavaHomes {
     }
 
     @Nullable
-    public static Jvm getJdk9() {
-        return getJdk(JavaVersion.VERSION_1_9);
+    public static Jvm getJdk11() {
+        return getJdk(JavaVersion.VERSION_11);
     }
 
     @Nullable
@@ -97,7 +93,7 @@ public abstract class AvailableJavaHomes {
      * Returns a JDK for each of the given java versions, if available.
      */
     public static List<Jvm> getJdks(final String... versions) {
-        List<JavaVersion> javaVersions = Lists.transform(Arrays.asList(versions), version -> JavaVersion.toVersion(version));
+        List<JavaVersion> javaVersions = Arrays.stream(versions).map(JavaVersion::toVersion).collect(Collectors.toList());
         return getJdks(Iterables.toArray(javaVersions, JavaVersion.class));
     }
 
@@ -117,14 +113,16 @@ public abstract class AvailableJavaHomes {
     }
 
     public static List<Jvm> getAvailableJvms() {
-        return FluentIterable.from(getJvms())
-            .transform(input -> Jvm.discovered(input.getJavaHome(), input.getVersion().toString(), input.getJavaVersion())).toList();
+        return getJvms().stream()
+            .map(input -> Jvm.discovered(input.getJavaHome(), input.getVersion().toString(), input.getJavaVersion()))
+            .collect(Collectors.toList());
     }
 
     public static List<Jvm> getAvailableJdks(final Spec<? super JvmInstallation> filter) {
-        return FluentIterable.from(getJvms())
+        return getJvms().stream()
             .filter(input -> input.isJdk() && filter.isSatisfiedBy(input))
-            .transform(input -> Jvm.discovered(input.getJavaHome(), input.getVersion().toString(), input.getJavaVersion())).toList();
+            .map(input -> Jvm.discovered(input.getJavaHome(), input.getVersion().toString(), input.getJavaVersion()))
+            .collect(Collectors.toList());
     }
 
     public static Map<Jvm, JavaVersion> getAvailableJdksWithVersion() {
@@ -243,21 +241,23 @@ public abstract class AvailableJavaHomes {
         public List<JvmInstallation> findJvms() {
             List<JvmInstallation> jvms = new ArrayList<>();
             if (OperatingSystem.current().isLinux()) {
-                jvms = addJvm(jvms, JavaVersion.VERSION_1_5, "1.5.0", new File("/opt/jdk/sun-jdk-5"), true, i386);
-                jvms = addJvm(jvms, JavaVersion.VERSION_1_6, "1.6.0", new File("/opt/jdk/sun-jdk-6"), true, x86_64);
-                jvms = addJvm(jvms, JavaVersion.VERSION_1_6, "1.6.0", new File("/opt/jdk/ibm-jdk-6"), true, x86_64);
-                jvms = addJvm(jvms, JavaVersion.VERSION_1_7, "1.7.0", new File("/opt/jdk/oracle-jdk-7"), true, x86_64);
-                jvms = addJvm(jvms, JavaVersion.VERSION_1_8, "1.8.0", new File("/opt/jdk/oracle-jdk-8"), true, x86_64);
-                jvms = addJvm(jvms, JavaVersion.VERSION_1_9, "1.9.0", new File("/opt/jdk/oracle-jdk-9"), true, x86_64);
+                addJvm(jvms, JavaVersion.VERSION_1_6, "1.6.0", new File("/opt/jdk/sun-jdk-6"));
+                addJvm(jvms, JavaVersion.VERSION_1_6, "1.6.0", new File("/opt/jdk/ibm-jdk-6"));
+                addJvm(jvms, JavaVersion.VERSION_1_7, "1.7.0", new File("/opt/jdk/oracle-jdk-7"));
+                addJvm(jvms, JavaVersion.VERSION_1_8, "1.8.0", new File("/opt/jdk/oracle-jdk-8"));
+                addJvm(jvms, JavaVersion.VERSION_1_9, "1.9.0", new File("/opt/jdk/oracle-jdk-9"));
+            } else if(OperatingSystem.current().isWindows()) {
+                addJvm(jvms, JavaVersion.VERSION_11, "1.8", new File("C:\\Program Files\\Java\\jdk1.8"));
+                addJvm(jvms, JavaVersion.VERSION_11, "11", new File("C:\\Program Files\\Java\\jdk-11"));
+                addJvm(jvms, JavaVersion.VERSION_11, "14", new File("C:\\Program Files\\Java\\jdk-14"));
             }
             return CollectionUtils.filter(jvms, element -> element.getJavaHome().isDirectory());
         }
 
-        private List<JvmInstallation> addJvm(List<JvmInstallation> jvms, JavaVersion javaVersion, String versionString, File javaHome, boolean jdk, Arch arch) {
+        private void addJvm(List<JvmInstallation> jvms, JavaVersion javaVersion, String versionString, File javaHome) {
             if (javaHome.exists()) {
-                jvms.add(new JvmInstallation(javaVersion, versionString, fileCanonicalizer.canonicalize(javaHome), jdk, arch));
+                jvms.add(new JvmInstallation(javaVersion, versionString, fileCanonicalizer.canonicalize(javaHome), true, x86_64));
             }
-            return jvms;
         }
     }
 
