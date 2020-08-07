@@ -473,6 +473,10 @@ class PerformanceTestPlugin : Plugin<Project> {
                 this@apply.mustRunAfter(this)
             }
             configureGitInfo()
+
+            retry {
+                maxRetries.set(0)
+            }
         }
     }
 
