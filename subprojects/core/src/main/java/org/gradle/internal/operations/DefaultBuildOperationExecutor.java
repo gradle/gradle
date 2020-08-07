@@ -90,7 +90,7 @@ public class DefaultBuildOperationExecutor extends DefaultBuildOperationRunner i
     public <O extends RunnableBuildOperation> void runAll(Action<BuildOperationQueue<O>> schedulingAction) {
         BuildOperationState parent = maybeStartUnmanagedThreadOperation();
         try {
-            executeInParallel(new QueueWorker<>(parent, RUNNABLE_BUILD_OPERATION_WORKER), schedulingAction);
+            executeInParallel(new QueueWorker<>(parent, RunnableBuildOperation::run), schedulingAction);
         } finally {
             maybeStopUnmanagedThreadOperation(parent);
         }

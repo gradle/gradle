@@ -25,7 +25,12 @@ import java.util.List;
 
 public class DefaultBuildOperationRunner implements BuildOperationRunner {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultBuildOperationRunner.class);
-    protected static final BuildOperationWorker<RunnableBuildOperation> RUNNABLE_BUILD_OPERATION_WORKER = new RunnableBuildOperationWorker();
+    private static final BuildOperationWorker<RunnableBuildOperation> RUNNABLE_BUILD_OPERATION_WORKER = new BuildOperationWorker<RunnableBuildOperation>() {
+        @Override
+        public void execute(RunnableBuildOperation buildOperation, BuildOperationContext context) throws Exception {
+            buildOperation.run(context);
+        }
+    };
 
     private final TimeSupplier clock;
     private final BuildOperationIdFactory buildOperationIdFactory;
@@ -214,15 +219,6 @@ public class DefaultBuildOperationRunner implements BuildOperationRunner {
         @Override
         public void setStatus(String status) {
             this.status = status;
-        }
-    }
-
-    private static class RunnableBuildOperationWorker implements BuildOperationWorker<RunnableBuildOperation> {
-        private RunnableBuildOperationWorker() {}
-
-        @Override
-        public void execute(RunnableBuildOperation buildOperation, BuildOperationContext context) throws Exception {
-            buildOperation.run(context);
         }
     }
 
