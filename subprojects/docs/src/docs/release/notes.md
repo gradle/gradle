@@ -36,7 +36,7 @@ When running Gradle builds, you can abbreviate project and task names. For examp
 
 Until this release, the name abbreviation only worked for camel case names (e.g. `compileTest`). This format is recommended for tasks, but it is unusual for projects. In the Java world the folder names are lower case by convention. On top of that, camel case directory names could cause problems on case-insensitive filesystems.
 
-Many projects - including Gradle - overcome that by using kebab case project directories (e.g. `my-awesome-lib`) and by defining different, camel case project names in the build scripts. This difference means unnecessary extra complexity in the build.
+Many projects - including Gradle - overcome that by using kebab case project directories (e.g. `my-awesome-lib`) and by defining different, camel case project names in the build scripts. This difference leads to unnecessary extra complexity in the build.
 
 This fixes the issue by adding support for kebab case names in the name matching. Now, you can execute the `compileTest` task in the `my-awesome-lib` subproject with the following command:
 ```
