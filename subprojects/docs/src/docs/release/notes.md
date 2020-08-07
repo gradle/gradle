@@ -8,7 +8,8 @@ We would like to thank the following community contributors to this release of G
 [Rene Groeschke](https://github.com/breskeby),
 [Louis CAD](https://github.com/LouisCAD),
 [Campbell Jones](https://github.com/serebit),
-and [Leonardo Bezerra Silva Júnior](https://github.com/leonardobsjr).
+[Leonardo Bezerra Silva Júnior](https://github.com/leonardobsjr),
+and [Christoph Dreis](https://github.com/dreis2211).
 
 <!--
 Include only their name, impactful features should be called out separately below.
