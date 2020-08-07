@@ -43,7 +43,7 @@ This fixes the issue by adding support for kebab case names in the name matching
 gradle mAL:cT
 ```
 
-Note, that even though the kebab case name matching works wit tasks too, the recommendation is still to use camel case for them. 
+Note, that even though the kebab case name matching works with tasks too, the recommendation is still to use camel case for them. 
 
 To learn more about name abbreviation, check out the [user guide](userguide/command_line_interface.html#task_name_abbreviation).  
 
