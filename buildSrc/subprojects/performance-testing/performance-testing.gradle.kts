@@ -16,7 +16,6 @@ dependencies {
     implementation("commons-io:commons-io")
     implementation("javax.activation:activation")
     implementation("javax.xml.bind:jaxb-api")
-    implementation("org.gradle:test-retry-gradle-plugin")
 
     testImplementation("org.junit.jupiter:junit-jupiter-params")
     testImplementation("junit:junit")

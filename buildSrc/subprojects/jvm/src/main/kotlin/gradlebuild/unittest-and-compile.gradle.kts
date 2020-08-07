@@ -208,9 +208,9 @@ fun configureTests() {
 
         val testName = name
 
-        if (BuildEnvironment.isCiServer) {
+        if (BuildEnvironment.isCiServer && !this.javaClass.simpleName.endsWith("PerformanceTest")) {
             retry {
-                maxRetries.convention(1)
+                maxRetries.set(1)
                 maxFailures.set(10)
             }
             doFirst {

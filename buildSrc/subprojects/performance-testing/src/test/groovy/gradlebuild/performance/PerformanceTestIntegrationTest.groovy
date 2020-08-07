@@ -7,7 +7,6 @@ class PerformanceTestIntegrationTest extends AbstractIntegrationTest {
                 id 'java-library'
                 id 'gradlebuild.module-identity'
                 id 'gradlebuild.dependency-modules'
-                id 'org.gradle.test-retry'
             }
             ext {
                 libraries = ['junit5Vintage': [coordinates: 'org.junit.vintage:junit-vintage-engine', version: '5.6.2']]
