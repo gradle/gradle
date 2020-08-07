@@ -142,8 +142,8 @@ public class DefaultBuildOperationExecutor extends DefaultBuildOperationRunner i
     }
 
     @Override
-    protected BuildOperationExecutionListener createListener(@Nullable BuildOperationState parent) {
-        final BuildOperationExecutionListener delegate = super.createListener(parent);
+    protected BuildOperationExecutionListener createListener() {
+        final BuildOperationExecutionListener delegate = super.createListener();
         return new BuildOperationExecutionListener() {
 
             private ProgressLogger progressLogger;
@@ -155,9 +155,9 @@ public class DefaultBuildOperationExecutor extends DefaultBuildOperationRunner i
             }
 
             @Override
-            public void stop(BuildOperationDescriptor descriptor, BuildOperationState operationState, DefaultBuildOperationContext context) {
+            public void stop(BuildOperationDescriptor descriptor, BuildOperationState operationState, @Nullable BuildOperationState parent, DefaultBuildOperationContext context) {
                 progressLogger.completed(context.status, context.failure != null);
-                delegate.stop(descriptor, operationState, context);
+                delegate.stop(descriptor, operationState, parent, context);
             }
 
             @Override

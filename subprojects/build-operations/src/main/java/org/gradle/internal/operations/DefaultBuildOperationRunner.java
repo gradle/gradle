@@ -55,7 +55,7 @@ public class DefaultBuildOperationRunner implements BuildOperationRunner {
         BuildOperationDescriptor.Builder descriptorBuilder = buildOperation.description();
         execute(descriptorBuilder, defaultParent, new BuildOperationExecution<O>() {
             @Override
-            public O execute(BuildOperationDescriptor descriptor, BuildOperationState operationState, DefaultBuildOperationContext context, BuildOperationExecutionListener listener) {
+            public O execute(BuildOperationDescriptor descriptor, BuildOperationState operationState, @Nullable BuildOperationState parent, DefaultBuildOperationContext context, BuildOperationExecutionListener listener) {
                 Throwable failure = null;
                 try {
                     listener.start(descriptor, operationState);
@@ -65,7 +65,7 @@ public class DefaultBuildOperationRunner implements BuildOperationRunner {
                         context.thrown(t);
                         failure = t;
                     }
-                    listener.stop(descriptor, operationState, context);
+                    listener.stop(descriptor, operationState, parent, context);
                     if (failure != null) {
                         throw throwAsBuildOperationInvocationException(failure);
                     }
@@ -81,7 +81,7 @@ public class DefaultBuildOperationRunner implements BuildOperationRunner {
     public BuildOperationContext start(BuildOperationDescriptor.Builder descriptorBuilder) {
         return execute(descriptorBuilder, getCurrentBuildOperation(), new BuildOperationExecution<BuildOperationContext>() {
             @Override
-            public BuildOperationContext execute(final BuildOperationDescriptor descriptor, final BuildOperationState operationState, final DefaultBuildOperationContext context, final BuildOperationExecutionListener listener) {
+            public BuildOperationContext execute(final BuildOperationDescriptor descriptor, final BuildOperationState operationState, @Nullable final BuildOperationState parent, final DefaultBuildOperationContext context, final BuildOperationExecutionListener listener) {
                 listener.start(descriptor, operationState);
                 return new BuildOperationContext() {
                     private boolean finished;
@@ -109,7 +109,7 @@ public class DefaultBuildOperationRunner implements BuildOperationRunner {
                     private void finish() {
                         finished = true;
                         try {
-                            listener.stop(descriptor, operationState, context);
+                            listener.stop(descriptor, operationState, parent, context);
                         } finally {
                             listener.close(descriptor, operationState);
                         }
@@ -134,16 +134,14 @@ public class DefaultBuildOperationRunner implements BuildOperationRunner {
             : parent.getDescription().getId());
         assertParentRunning("Cannot start operation (%s) as parent operation (%s) has already completed.", descriptor, parent);
 
-        return execution.execute(
-            descriptor,
-            new BuildOperationState(descriptor, clock.getCurrentTime()),
-            new DefaultBuildOperationContext(),
-            createListener(parent)
-        );
+        BuildOperationState operationState = new BuildOperationState(descriptor, clock.getCurrentTime());
+        DefaultBuildOperationContext context = new DefaultBuildOperationContext();
+        BuildOperationExecutionListener listener = createListener();
+        return execution.execute(descriptor, operationState, parent, context, listener);
     }
 
     @OverridingMethodsMustInvokeSuper
-    protected BuildOperationExecutionListener createListener(@Nullable final BuildOperationState parent) {
+    protected BuildOperationExecutionListener createListener() {
         return new BuildOperationExecutionListener() {
 
             private BuildOperationState originalCurrentBuildOperation;
@@ -158,7 +156,7 @@ public class DefaultBuildOperationRunner implements BuildOperationRunner {
             }
 
             @Override
-            public void stop(BuildOperationDescriptor descriptor, BuildOperationState operationState, DefaultBuildOperationContext context) {
+            public void stop(BuildOperationDescriptor descriptor, BuildOperationState operationState, @Nullable BuildOperationState parent, DefaultBuildOperationContext context) {
                 LOGGER.debug("Completing Build operation '{}'", descriptor.getDisplayName());
                 listener.finished(descriptor, new OperationFinishEvent(operationState.getStartTime(), clock.getCurrentTime(), context.failure, context.result));
                 assertParentRunning("Parent operation (%2$s) completed before this operation (%1$s).", descriptor, parent);
@@ -216,13 +214,13 @@ public class DefaultBuildOperationRunner implements BuildOperationRunner {
     }
 
     private interface BuildOperationExecution<O> {
-        O execute(BuildOperationDescriptor descriptor, BuildOperationState operationState, DefaultBuildOperationContext context, BuildOperationExecutionListener listener);
+        O execute(BuildOperationDescriptor descriptor, BuildOperationState operationState, @Nullable BuildOperationState parent, DefaultBuildOperationContext context, BuildOperationExecutionListener listener);
     }
 
     protected interface BuildOperationExecutionListener {
         void start(BuildOperationDescriptor descriptor, BuildOperationState operationState);
 
-        void stop(BuildOperationDescriptor descriptor, BuildOperationState operationState, DefaultBuildOperationContext context);
+        void stop(BuildOperationDescriptor descriptor, BuildOperationState operationState, @Nullable BuildOperationState parent, DefaultBuildOperationContext context);
 
         void close(BuildOperationDescriptor descriptor, BuildOperationState operationState);
     }
