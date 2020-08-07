@@ -173,6 +173,14 @@ samples {
             sourceDirectory = groovyUtilitiesLibrary.sourceDirectory
             target = "app"
         }
+        groovyListLibraryInLib {
+            sourceDirectory = groovyListLibrary.sourceDirectory
+            target = "lib"
+        }
+        groovyUtilitiesLibraryInLib {
+            sourceDirectory = groovyUtilitiesLibrary.sourceDirectory
+            target = "lib"
+        }
         groovyApplicationAsSubproject {
             sourceDirectory = groovyApplication.sourceDirectory
             target = "application"
@@ -421,8 +429,8 @@ samples {
             description = "Build a Groovy library."
             category = "Groovy"
             common {
-                from(templates.groovyListLibrary)
-                from(templates.groovyUtilitiesLibrary)
+                from(templates.groovyListLibraryInLib)
+                from(templates.groovyUtilitiesLibraryInLib)
             }
         }
         groovyMultiProjectWithSpockTests {

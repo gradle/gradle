@@ -1,8 +1,8 @@
-> Task :compileJava NO-SOURCE
-> Task :compileGroovy
-> Task :processResources NO-SOURCE
-> Task :classes
-> Task :jar
+> Task :lib:compileJava NO-SOURCE
+> Task :lib:compileGroovy
+> Task :lib:processResources NO-SOURCE
+> Task :lib:classes
+> Task :lib:jar
 
 BUILD SUCCESSFUL in 0s
 2 actionable tasks: 2 executed
