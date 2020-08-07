@@ -46,7 +46,7 @@ public class NameMatcher {
     /**
      * Locates the best match for a camel case pattern in a collection.
      * <p>
-     * The pattern is expanded to match on camel-case and on kebab-case strings. For example, the pattern {@code gBD}
+     * The pattern is expanded to match on camel case and on kebab case strings. For example, the pattern {@code gBD}
      * matches to {@code gradleBinaryDistribution} and {@code gradle-binary-distribution}.
      * <p>
      * The method will return {@code null} if the pattern is an empty string.
