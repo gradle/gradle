@@ -17,6 +17,7 @@
 package org.gradle.jvm.toolchain.install.internal;
 
 import org.gradle.api.GradleException;
+import org.gradle.cache.FileLock;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
 
@@ -46,12 +47,18 @@ public class DefaultJavaToolchainProvisioningService implements JavaToolchainPro
     }
 
     public Optional<File> tryInstall(JavaToolchainSpec spec) {
+        String destinationFilename = openJdkBinary.toFilename(spec);
+        final FileLock fileLock = cacheDirProvider.acquireWriteLock(destinationFilename);
         try {
-            final Optional<File> jdkArchive = openJdkBinary.download(spec);
+            File destinationFile = cacheDirProvider.getDownloadLocation(destinationFilename);
+            final Optional<File> jdkArchive = openJdkBinary.download(spec, destinationFile);
             return jdkArchive.map(cacheDirProvider::provisionFromArchive);
         } catch (Exception e) {
             throw new MissingToolchainException(spec, e);
+        } finally {
+            fileLock.close();
         }
+
     }
 
 }

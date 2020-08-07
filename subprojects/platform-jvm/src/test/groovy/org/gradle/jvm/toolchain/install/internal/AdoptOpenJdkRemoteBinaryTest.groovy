@@ -22,10 +22,15 @@ import org.gradle.internal.SystemProperties
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.jvm.toolchain.internal.DefaultToolchainSpec
 import org.gradle.util.TestUtil
+import org.junit.Rule
+import org.junit.rules.TemporaryFolder
 import spock.lang.Specification
 import spock.lang.Unroll
 
 class AdoptOpenJdkRemoteBinaryTest extends Specification {
+
+    @Rule
+    public final TemporaryFolder temporaryFolder = new TemporaryFolder()
 
     @Unroll
     def "generates url for jdk #jdkVersion on #operatingSystemName (#architecture)"() {
@@ -118,10 +123,10 @@ class AdoptOpenJdkRemoteBinaryTest extends Specification {
         def binary = new AdoptOpenJdkRemoteBinary(systemInfo, operatingSystem, downloader)
 
         when:
-        def downloadFile = binary.download(spec)
+        def targetFile = temporaryFolder.newFile("jdk")
+        def downloadFile = binary.download(spec, targetFile)
 
         then:
-        downloadFile.get().name == "adoptopenjdk-12-x64-mac.tar.gz"
         1 * downloader.download(URI.create("https://api.adoptopenjdk.net/v3/binary/latest/12/ga/mac/x64/jdk/hotspot/normal/adoptopenjdk"), _)
     }
 
@@ -135,7 +140,7 @@ class AdoptOpenJdkRemoteBinaryTest extends Specification {
         def binary = new AdoptOpenJdkRemoteBinary(systemInfo, operatingSystem, Mock(AdoptOpenJdkDownloader))
 
         when:
-        def file = binary.download(spec)
+        def file = binary.download(spec, Mock(File))
 
         then:
         !file.present

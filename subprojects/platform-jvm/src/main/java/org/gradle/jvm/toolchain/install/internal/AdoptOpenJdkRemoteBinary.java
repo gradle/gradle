@@ -16,7 +16,6 @@
 
 package org.gradle.jvm.toolchain.install.internal;
 
-import com.google.common.io.Files;
 import net.rubygrapefruit.platform.SystemInfo;
 import org.gradle.api.JavaVersion;
 import org.gradle.internal.os.OperatingSystem;
@@ -40,15 +39,13 @@ public class AdoptOpenJdkRemoteBinary {
         this.downloader = downloader;
     }
 
-    // TODO: [bm] this might be downloading the same jdk multiple times in parallel builds
-    public Optional<File> download(JavaToolchainSpec spec) {
+    public Optional<File> download(JavaToolchainSpec spec, File destinationFile) {
         if (!canProvidesMatchingJdk(spec)) {
             return Optional.empty();
         }
-        File tmpFile = new File(Files.createTempDir(), toFilename(spec));
         URI source = toDownloadUri(spec);
-        downloader.download(source, tmpFile);
-        return Optional.of(tmpFile);
+        downloader.download(source, destinationFile);
+        return Optional.of(destinationFile);
     }
 
     private boolean canProvidesMatchingJdk(JavaToolchainSpec spec) {
@@ -71,7 +68,7 @@ public class AdoptOpenJdkRemoteBinary {
             "/jdk/hotspot/normal/adoptopenjdk");
     }
 
-    String toFilename(JavaToolchainSpec spec) {
+    public String toFilename(JavaToolchainSpec spec) {
         return String.format("adoptopenjdk-%s-%s-%s.%s", getLanguageVersion(spec), determineArch(), determineOs(), determineFileExtension());
     }
 
