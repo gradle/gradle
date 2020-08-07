@@ -187,41 +187,6 @@ public class DefaultBuildOperationRunner implements BuildOperationRunner {
         O execute(BuildOperationDescriptor descriptor, BuildOperationState operationState, @Nullable BuildOperationState parent, DefaultBuildOperationContext context, BuildOperationExecutionListener listener);
     }
 
-    protected interface BuildOperationExecutionListener {
-        void start(BuildOperationDescriptor descriptor, BuildOperationState operationState);
-
-        void stop(BuildOperationDescriptor descriptor, BuildOperationState operationState, @Nullable BuildOperationState parent, DefaultBuildOperationContext context);
-
-        void close(BuildOperationDescriptor descriptor, BuildOperationState operationState);
-    }
-
-    protected static class DefaultBuildOperationContext implements BuildOperationContext {
-        Throwable failure;
-        Object result;
-        protected String status;
-
-        @Override
-        public void failed(@Nullable Throwable t) {
-            failure = t;
-        }
-
-        public void thrown(Throwable t) {
-            if (failure == null) {
-                failure = t;
-            }
-        }
-
-        @Override
-        public void setResult(Object result) {
-            this.result = result;
-        }
-
-        @Override
-        public void setStatus(String status) {
-            this.status = status;
-        }
-    }
-
     private static class CallableBuildOperationWorker<T> implements BuildOperationWorker<CallableBuildOperation<T>> {
         private T returnValue;
 
