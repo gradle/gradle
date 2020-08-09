@@ -201,7 +201,9 @@ public class DefaultExecActionFactory implements ExecFactory {
 
         @Override
         public JavaExecAction newDecoratedJavaExecAction() {
-            return instantiator.newInstance(DefaultJavaExecAction.class, fileResolver, fileCollectionFactory, objectFactory, executor, buildCancellationToken, javaModuleDetector, newDecoratedJavaForkOptions());
+            final JavaForkOptionsInternal forkOptions = newDecoratedJavaForkOptions();
+            forkOptions.setExecutable(Jvm.current().getJavaExecutable());
+            return instantiator.newInstance(DefaultJavaExecAction.class, fileResolver, fileCollectionFactory, objectFactory, executor, buildCancellationToken, javaModuleDetector, forkOptions);
         }
 
         @Override
