@@ -54,11 +54,15 @@ public class GroovyJarFile {
     }
 
     public String getDependencyNotation() {
-        String result = "org.codehaus.groovy:" + getBaseName() + ":" + getVersion();
+        String result = getGroupId() + ":" + getBaseName() + ":" + getVersion();
         if (isIndy()) {
             result += ":indy";
         }
         return result;
+    }
+
+    private String getGroupId() {
+        return getVersion().getMajor() < 4 ? "org.codehaus.groovy" : "org.apache.groovy";
     }
 
     @Nullable
