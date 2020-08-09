@@ -48,7 +48,7 @@ public class DefaultJavaToolchainProvisioningService implements JavaToolchainPro
 
     public Optional<File> tryInstall(JavaToolchainSpec spec) {
         String destinationFilename = openJdkBinary.toFilename(spec);
-        final FileLock fileLock = cacheDirProvider.acquireWriteLock(destinationFilename);
+        final FileLock fileLock = cacheDirProvider.acquireWriteLock(destinationFilename, "Downloading toolchain");
         try {
             File destinationFile = cacheDirProvider.getDownloadLocation(destinationFilename);
             final Optional<File> jdkArchive = openJdkBinary.download(spec, destinationFile);

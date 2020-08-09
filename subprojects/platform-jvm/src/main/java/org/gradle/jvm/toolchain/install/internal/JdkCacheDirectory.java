@@ -109,12 +109,12 @@ public class JdkCacheDirectory {
         return operations.tarTree(operations.getResources().gzip(jdkArchive));
     }
 
-    public FileLock acquireWriteLock(String destinationFilename) {
-        return lockManager.lock(jdkDirectory, LockOptionsBuilder.mode(FileLockManager.LockMode.Exclusive), destinationFilename);
+    public FileLock acquireWriteLock(String destinationFilename, String operationName) {
+        return lockManager.lock(jdkDirectory, LockOptionsBuilder.mode(FileLockManager.LockMode.Exclusive), destinationFilename, operationName);
     }
 
     private FileLock acquireReadLock() {
-        return lockManager.lock(jdkDirectory, LockOptionsBuilder.mode(FileLockManager.LockMode.Shared), "");
+        return lockManager.lock(jdkDirectory, LockOptionsBuilder.mode(FileLockManager.LockMode.Shared), "", "Locating installed toolchains");
     }
 
     public File getDownloadLocation(String filename) {
