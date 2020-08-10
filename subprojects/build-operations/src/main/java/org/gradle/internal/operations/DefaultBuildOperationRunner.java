@@ -20,8 +20,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
-import java.util.Arrays;
-import java.util.List;
 
 public class DefaultBuildOperationRunner implements BuildOperationRunner {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultBuildOperationRunner.class);
@@ -35,15 +33,12 @@ public class DefaultBuildOperationRunner implements BuildOperationRunner {
     private final TimeSupplier clock;
     private final BuildOperationIdFactory buildOperationIdFactory;
     private final CurrentBuildOperationRef currentBuildOperationRef = CurrentBuildOperationRef.instance();
-    private final BuildOperationExecutionListener listener;
+    private final BuildOperationExecutionListenerDecorator listenerDecorator;
 
-    public DefaultBuildOperationRunner(TimeSupplier clock, BuildOperationIdFactory buildOperationIdFactory, BuildOperationExecutionListener listener) {
+    public DefaultBuildOperationRunner(TimeSupplier clock, BuildOperationIdFactory buildOperationIdFactory, BuildOperationExecutionListenerDecorator listenerDecorator) {
         this.clock = clock;
         this.buildOperationIdFactory = buildOperationIdFactory;
-        this.listener = new CompositeBuildOperationExecutionListener(Arrays.asList(
-            new BuildOperationTrackingListener(currentBuildOperationRef),
-            listener
-        ));
+        this.listenerDecorator = listenerDecorator;
     }
 
     @Override
@@ -142,7 +137,13 @@ public class DefaultBuildOperationRunner implements BuildOperationRunner {
 
         BuildOperationState operationState = new BuildOperationState(descriptor, clock.getCurrentTime());
         DefaultBuildOperationContext context = new DefaultBuildOperationContext();
-        return execution.execute(descriptor, operationState, parent, context, listener);
+        return execution.execute(
+            descriptor,
+            operationState,
+            parent,
+            context,
+            listenerDecorator.decorateListener(new BuildOperationTrackingListener(currentBuildOperationRef))
+        );
     }
 
     private static void assertParentRunning(String message, BuildOperationDescriptor child, @Nullable BuildOperationState parent) {
@@ -200,35 +201,6 @@ public class DefaultBuildOperationRunner implements BuildOperationRunner {
         }
     }
 
-    private static class CompositeBuildOperationExecutionListener implements BuildOperationExecutionListener {
-        private final List<BuildOperationExecutionListener> listeners;
-
-        public CompositeBuildOperationExecutionListener(List<BuildOperationExecutionListener> listeners) {
-            this.listeners = listeners;
-        }
-
-        @Override
-        public void start(BuildOperationDescriptor descriptor, BuildOperationState operationState) {
-            for (BuildOperationExecutionListener listener : listeners) {
-                listener.start(descriptor, operationState);
-            }
-        }
-
-        @Override
-        public void stop(BuildOperationDescriptor descriptor, BuildOperationState operationState, @Nullable BuildOperationState parent, DefaultBuildOperationContext context) {
-            for (BuildOperationExecutionListener listener : listeners) {
-                listener.stop(descriptor, operationState, parent, context);
-            }
-        }
-
-        @Override
-        public void close(BuildOperationDescriptor descriptor, BuildOperationState operationState) {
-            for (BuildOperationExecutionListener listener : listeners) {
-                listener.close(descriptor, operationState);
-            }
-        }
-    }
-
     private static class BuildOperationTrackingListener implements BuildOperationExecutionListener {
         private final CurrentBuildOperationRef currentBuildOperationRef;
         private BuildOperationState originalCurrentBuildOperation;
@@ -257,5 +229,9 @@ public class DefaultBuildOperationRunner implements BuildOperationRunner {
             operationState.setRunning(false);
             LOGGER.debug("Build operation '{}' completed", descriptor.getDisplayName());
         }
+    }
+
+    protected interface BuildOperationExecutionListenerDecorator {
+        BuildOperationExecutionListener decorateListener(BuildOperationExecutionListener listener);
     }
 }

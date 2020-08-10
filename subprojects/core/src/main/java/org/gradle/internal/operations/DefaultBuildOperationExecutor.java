@@ -60,7 +60,11 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
         ParallelismConfiguration parallelismConfiguration,
         BuildOperationIdFactory buildOperationIdFactory
     ) {
-        this.runner = new DefaultBuildOperationRunner(clock::getCurrentTime, buildOperationIdFactory, new ListenerAdapter(listener, progressLoggerFactory, clock));
+        this.runner = new DefaultBuildOperationRunner(
+            clock::getCurrentTime,
+            buildOperationIdFactory,
+            (delegate) -> new ListenerAdapter(listener, progressLoggerFactory, clock, delegate)
+        );
         this.listener = listener;
         this.clock = clock;
         this.buildOperationQueueFactory = buildOperationQueueFactory;
@@ -202,16 +206,19 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
         private final BuildOperationListener buildOperationListener;
         private final ProgressLoggerFactory progressLoggerFactory;
         private final Clock clock;
+        private final BuildOperationExecutionListener delegate;
         private ProgressLogger progressLogger;
 
-        public ListenerAdapter(BuildOperationListener buildOperationListener, ProgressLoggerFactory progressLoggerFactory, Clock clock) {
+        public ListenerAdapter(BuildOperationListener buildOperationListener, ProgressLoggerFactory progressLoggerFactory, Clock clock, BuildOperationExecutionListener delegate) {
             this.buildOperationListener = buildOperationListener;
             this.progressLoggerFactory = progressLoggerFactory;
             this.clock = clock;
+            this.delegate = delegate;
         }
 
         @Override
         public void start(BuildOperationDescriptor descriptor, BuildOperationState operationState) {
+            delegate.start(descriptor, operationState);
             buildOperationListener.started(descriptor, new OperationStartEvent(operationState.getStartTime()));
             ProgressLogger progressLogger = progressLoggerFactory.newOperation(DefaultBuildOperationExecutor.class, descriptor);
             this.progressLogger = progressLogger.start(descriptor.getDisplayName(), descriptor.getProgressDisplayName());
@@ -221,10 +228,12 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
         public void stop(BuildOperationDescriptor descriptor, BuildOperationState operationState, @Nullable BuildOperationState parent, DefaultBuildOperationContext context) {
             progressLogger.completed(context.status, context.failure != null);
             buildOperationListener.finished(descriptor, new OperationFinishEvent(operationState.getStartTime(), clock.getCurrentTime(), context.failure, context.result));
+            delegate.stop(descriptor, operationState, parent, context);
         }
 
         @Override
         public void close(BuildOperationDescriptor descriptor, BuildOperationState operationState) {
+            delegate.close(descriptor, operationState);
         }
     }
 
