@@ -110,6 +110,18 @@ samples {
         javaApplication
         javaListLibrary
         javaUtilitiesLibrary
+        javaApplicationInApp {
+            sourceDirectory = javaApplication.sourceDirectory
+            target = "app"
+        }
+        javaListLibraryInApp {
+            sourceDirectory = javaListLibrary.sourceDirectory
+            target = "app"
+        }
+        javaUtilitiesLibraryInApp {
+            sourceDirectory = javaUtilitiesLibrary.sourceDirectory
+            target = "app"
+        }
         javaApplicationAsSubproject {
             sourceDirectory = javaApplication.sourceDirectory
             target = "application"
@@ -293,9 +305,9 @@ samples {
             description = "Build a Java application."
             category = "Java"
             common {
-                from(templates.javaApplication)
-                from(templates.javaListLibrary)
-                from(templates.javaUtilitiesLibrary)
+                from(templates.javaApplicationInApp)
+                from(templates.javaListLibraryInApp)
+                from(templates.javaUtilitiesLibraryInApp)
             }
         }
         javaLibrary {

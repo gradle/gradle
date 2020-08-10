@@ -1,8 +1,8 @@
-> Task :compileJava
-> Task :processResources NO-SOURCE
-> Task :classes
+> Task :app:compileJava
+> Task :app:processResources NO-SOURCE
+> Task :app:classes
 
-> Task :run
+> Task :app:run
 Hello, World!
 
 BUILD SUCCESSFUL in 0s
