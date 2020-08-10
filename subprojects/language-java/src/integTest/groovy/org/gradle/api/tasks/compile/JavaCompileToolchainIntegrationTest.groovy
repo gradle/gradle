@@ -88,7 +88,7 @@ class JavaCompileToolchainIntegrationTest extends AbstractPluginIntegrationTest 
         javaClassFile("Foo.class").exists()
     }
 
-    @Requires(TestPrecondition.JDK8)
+    @Requires(adhoc = { TestPrecondition.JDK8.fulfilled && TestPrecondition.NOT_MAC_OS_X.fulfilled })
     def "uses matching compatibility options for source and target level"() {
         def jdk9 = AvailableJavaHomes.jdk9
         buildFile << """
