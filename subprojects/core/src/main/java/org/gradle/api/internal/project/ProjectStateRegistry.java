@@ -65,12 +65,16 @@ public interface ProjectStateRegistry {
     void registerProject(BuildState owner, DefaultProjectDescriptor projectDescriptor);
 
     /**
-     * Allows a section of code to run with all of the projects locked. Any attempt to lock a project by some other thread will fail while the given action is running.
+     * Allows a section of code to run against the mutable state of all projects. No other thread will be able to access the state of any project while the given action is running.
+     *
+     * <p>Any attempt to lock a project by some other thread will fail while the given action is running. This includes calls to {@link ProjectState#withMutableState(Runnable)}.
      */
     void withMutableStateOfAllProjects(Runnable runnable);
 
     /**
-     * Allows a section of code to run with all of the projects locked. Any attempt to lock a project by some other thread will fail while the given action is running.
+     * Allows a section of code to run against the mutable state of all projects. No other thread will be able to access the state of any project while the given action is running.
+     *
+     * <p>Any attempt to lock a project by some other thread will fail while the given action is running. This includes calls to {@link ProjectState#withMutableState(Runnable)}.
      */
     <T> T withMutableStateOfAllProjects(Factory<T> factory);
 }

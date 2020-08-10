@@ -51,5 +51,8 @@ public interface Transformation extends Describable {
      */
     void visitTransformationSteps(Action<? super TransformationStep> action);
 
+    /**
+     * Isolates the parameters of this transformation, if not already.
+     */
     void isolateParameters();
 }

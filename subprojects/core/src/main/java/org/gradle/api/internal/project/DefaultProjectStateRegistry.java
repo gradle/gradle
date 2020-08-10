@@ -293,7 +293,7 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
         public T get() throws IllegalStateException {
             T currentValue = getOrNull();
             if (currentValue == null) {
-                throw new IllegalStateException("No value is available for " + owner);
+                throw new IllegalStateException("No calculated value is available for " + owner);
             }
             return currentValue;
         }
