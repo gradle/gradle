@@ -21,36 +21,39 @@ import org.gradle.integtests.fixtures.BuildOperationsFixture
 class BuildOperationsFileSystemWatchingIntegrationTest extends AbstractFileSystemWatchingIntegrationTest {
 
     def operations = new BuildOperationsFixture(executer, temporaryFolder)
+    def projectDir = file("project")
+    def inputFile = projectDir.file("input.txt")
 
-    def "emits build operations when start watching"() {
-        def projectDir = file("project")
+    def setup() {
         projectDir.file("build.gradle") << """
             task myTask {
                 outputs.file("build/output.txt")
-                inputs.file("input.txt")
+                inputs.file("${inputFile.name}")
                 doLast {
-                    file("build/output.txt").text = file("input.txt").text
+                    file("build/output.txt").text = file("${inputFile.name}").text
                 }
             }
         """
 
-        def inputFile = projectDir.file("input.txt")
         inputFile.text = "input"
         executer.beforeExecute {
             inDirectory(projectDir)
         }
+    }
 
-
+    def "emits build operations when watching is enabled"() {
         when:
         withWatchFs().run "myTask"
         then:
         executedAndNotSkipped(":myTask")
         def startedResult = buildStartedResult()
+        startedResult.watchingEnabled
         startedResult.startedWatching
         startedResult.fileWatchingStatistics == null
         !retainedFiles(startedResult)
 
         def finishedResult = buildFinishedResult()
+        finishedResult.watchingEnabled
         !finishedResult.stoppedWatchingDuringTheBuild
         finishedResult.fileWatchingStatistics
         retainedFiles(finishedResult)
@@ -62,13 +65,35 @@ class BuildOperationsFileSystemWatchingIntegrationTest extends AbstractFileSyste
         startedResult = buildStartedResult()
         finishedResult = buildFinishedResult()
         then:
+        startedResult.watchingEnabled
         !startedResult.startedWatching
         startedResult.fileWatchingStatistics.numberOfReceivedEvents > 0
         retainedFiles(startedResult)
 
+        finishedResult.watchingEnabled
         !finishedResult.stoppedWatchingDuringTheBuild
         retainedFiles(finishedResult)
         finishedResult.fileWatchingStatistics.numberOfReceivedEvents > 0
+    }
+
+    def "emits build operations when watching is disabled"() {
+        when:
+        withoutWatchFs().run "myTask"
+        then:
+        executedAndNotSkipped(":myTask")
+        def startedResult = buildStartedResult()
+        watchingDisabled(startedResult)
+        !startedResult.startedWatching
+
+        def finishedResult = buildFinishedResult()
+        watchingDisabled(finishedResult)
+        !finishedResult.stoppedWatchingDuringTheBuild
+    }
+
+    private static void watchingDisabled(Map<String, ?> result) {
+        !result.watchingEnabled
+        result.fileWatchingStatistics == null
+        !retainedFiles(result)
     }
 
     private Map<String, ?> buildFinishedResult() {
