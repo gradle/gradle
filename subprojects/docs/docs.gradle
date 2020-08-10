@@ -189,15 +189,15 @@ samples {
             sourceDirectory = groovyUtilitiesLibrary.sourceDirectory
             target = "my-library"
         }
-        groovyApplicationAsSubproject {
+        groovyApplicationInApplication {
             sourceDirectory = groovyApplication.sourceDirectory
             target = "application"
         }
-        groovyListLibraryAsSubproject {
+        groovyListLibraryInList {
             sourceDirectory = groovyListLibrary.sourceDirectory
             target = "list"
         }
-        groovyUtilitiesLibraryAsSubproject {
+        groovyUtilitiesLibraryInUtilities {
             sourceDirectory = groovyUtilitiesLibrary.sourceDirectory
             target = "utilities"
         }
@@ -447,9 +447,9 @@ samples {
             description = "Test a Groovy application and library with link:https://github.com/spockframework/spock[Spock]."
             category = "Groovy"
             common {
-                from(templates.groovyApplicationAsSubproject)
-                from(templates.groovyListLibraryAsSubproject)
-                from(templates.groovyUtilitiesLibraryAsSubproject)
+                from(templates.groovyApplicationInApplication)
+                from(templates.groovyListLibraryInList)
+                from(templates.groovyUtilitiesLibraryInUtilities)
                 from(templates.groovySpockTestForApplication)
                 from(templates.groovySpockTestForListLibrary)
             }
