@@ -4,8 +4,8 @@ This sample shows how to publish a Java library to a repository.
 The library has no dependencies and the build has minimal configuration.
 
 ====
-include::sample[dir="groovy",files="build.gradle[]"]
-include::sample[dir="kotlin",files="build.gradle.kts[]"]
+include::sample[dir="groovy",files="my-library/build.gradle[]"]
+include::sample[dir="kotlin",files="my-library/build.gradle.kts[]"]
 ====
 
 To publish the library:
@@ -21,23 +21,23 @@ build/publishing-repository
 └── org
     └── gradle
         └── sample
-            └── library-publishing
+            └── my-library
                 ├── 1.0.2
-                │   ├── library-publishing-1.0.2.jar
-                │   ├── library-publishing-1.0.2.jar.md5
-                │   ├── library-publishing-1.0.2.jar.sha1
-                │   ├── library-publishing-1.0.2.jar.sha256
-                │   ├── library-publishing-1.0.2.jar.sha512
-                │   ├── library-publishing-1.0.2.module
-                │   ├── library-publishing-1.0.2.module.md5
-                │   ├── library-publishing-1.0.2.module.sha1
-                │   ├── library-publishing-1.0.2.module.sha256
-                │   ├── library-publishing-1.0.2.module.sha512
-                │   ├── library-publishing-1.0.2.pom
-                │   ├── library-publishing-1.0.2.pom.md5
-                │   ├── library-publishing-1.0.2.pom.sha1
-                │   ├── library-publishing-1.0.2.pom.sha256
-                │   └── library-publishing-1.0.2.pom.sha512
+                │   ├── my-library-1.0.2.jar
+                │   ├── my-library-1.0.2.jar.md5
+                │   ├── my-library-1.0.2.jar.sha1
+                │   ├── my-library-1.0.2.jar.sha256
+                │   ├── my-library-1.0.2.jar.sha512
+                │   ├── my-library-1.0.2.module
+                │   ├── my-library-1.0.2.module.md5
+                │   ├── my-library-1.0.2.module.sha1
+                │   ├── my-library-1.0.2.module.sha256
+                │   ├── my-library-1.0.2.module.sha512
+                │   ├── my-library-1.0.2.pom
+                │   ├── my-library-1.0.2.pom.md5
+                │   ├── my-library-1.0.2.pom.sha1
+                │   ├── my-library-1.0.2.pom.sha256
+                │   └── my-library-1.0.2.pom.sha512
                 ├── maven-metadata.xml
                 ├── maven-metadata.xml.md5
                 ├── maven-metadata.xml.sha1

@@ -9,7 +9,7 @@ group = "org.gradle.sample"
 publishing {
     publications {
         create<MavenPublication>("library") {
-            from(components.getByName("java"))
+            from(components["java"])
         }
     }
     repositories {

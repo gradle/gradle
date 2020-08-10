@@ -130,6 +130,14 @@ samples {
             sourceDirectory = javaUtilitiesLibrary.sourceDirectory
             target = "lib"
         }
+        javaListLibraryInMyLibrary {
+            sourceDirectory = javaListLibrary.sourceDirectory
+            target = "my-library"
+        }
+        javaUtilitiesLibraryInMyLibrary {
+            sourceDirectory = javaUtilitiesLibrary.sourceDirectory
+            target = "my-library"
+        }
         javaApplicationAsSubproject {
             sourceDirectory = javaApplication.sourceDirectory
             target = "application"
@@ -417,8 +425,8 @@ samples {
             description = "Publish a Java library to a binary repository."
             category = "Java"
             common {
-                from(templates.javaListLibrary)
-                from(templates.javaUtilitiesLibrary)
+                from(templates.javaListLibraryInMyLibrary)
+                from(templates.javaUtilitiesLibraryInMyLibrary)
             }
         }
 
