@@ -188,8 +188,6 @@ class ChangesDuringTheBuildFileSystemWatchingIntegrationTest extends AbstractFil
             import ${WatchingVirtualFileSystem.name}
             import ${RunBuildBuildOperationType.name}
 
-            def operationListenerManager = gradle.services.get(BuildOperationListenerManager)
-
             class FileSystemWatchingLogger implements BuildOperationListener {
                 private final BuildOperationListenerManager operationListenerManager
 
@@ -213,6 +211,8 @@ class ChangesDuringTheBuildFileSystemWatchingIntegrationTest extends AbstractFil
                     }
                 }
             }
+
+            def operationListenerManager = gradle.services.get(BuildOperationListenerManager)
             operationListenerManager.addListener(new FileSystemWatchingLogger(operationListenerManager))
         """
     }

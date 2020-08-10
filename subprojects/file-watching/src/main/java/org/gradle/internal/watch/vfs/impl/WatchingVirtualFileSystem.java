@@ -45,7 +45,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.HashSet;
-import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
 
@@ -168,7 +167,7 @@ public class WatchingVirtualFileSystem implements BuildLifecycleAwareVirtualFile
                             SnapshotHierarchy rootAfterEvents = newRoot;
                             newRoot = withWatcherChangeErrorHandling(newRoot, () -> watchRegistry.buildFinished(rootAfterEvents));
                         }
-                        context.setResult(new BuildFinishedWithFileSystemWatchingEnabled(watchRegistry != null, statistics, newRoot));
+                        context.setResult(new BuildFinishedWithFileSystemWatchingEnabled(watchRegistry == null, statistics, newRoot));
                         return newRoot;
                     }
 
@@ -387,8 +386,9 @@ public class WatchingVirtualFileSystem implements BuildLifecycleAwareVirtualFile
             this.vfsStatistics = getStatistics(vfsRoot);
         }
 
-        public Optional<FileWatcherRegistry.FileWatchingStatistics> getFileWatchingStatistics() {
-            return Optional.ofNullable(fileWatchingStatistics);
+        @Nullable
+        public FileWatcherRegistry.FileWatchingStatistics getFileWatchingStatistics() {
+            return fileWatchingStatistics;
         }
 
         public int getRetainedRegularFiles() {
