@@ -181,6 +181,14 @@ samples {
             sourceDirectory = groovyUtilitiesLibrary.sourceDirectory
             target = "lib"
         }
+        groovyListLibraryInMyLibrary {
+            sourceDirectory = groovyListLibrary.sourceDirectory
+            target = "my-library"
+        }
+        groovyUtilitiesLibraryInMyLibrary {
+            sourceDirectory = groovyUtilitiesLibrary.sourceDirectory
+            target = "my-library"
+        }
         groovyApplicationAsSubproject {
             sourceDirectory = groovyApplication.sourceDirectory
             target = "application"
@@ -451,8 +459,8 @@ samples {
             description = "Publish a Groovy library to a binary repository."
             category = "Groovy"
             common {
-                from(templates.groovyListLibrary)
-                from(templates.groovyUtilitiesLibrary)
+                from(templates.groovyListLibraryInMyLibrary)
+                from(templates.groovyUtilitiesLibraryInMyLibrary)
             }
         }
 
