@@ -16,11 +16,11 @@
 
 package org.gradle.api.tasks.compile
 
+import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractPluginIntegrationTest
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.internal.jvm.Jvm
 import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 import spock.lang.IgnoreIf
 import spock.lang.Unroll
 
@@ -88,26 +88,32 @@ class JavaCompileToolchainIntegrationTest extends AbstractPluginIntegrationTest 
         javaClassFile("Foo.class").exists()
     }
 
-    @Requires(adhoc = { TestPrecondition.JDK8.fulfilled && TestPrecondition.NOT_MAC_OS_X.fulfilled })
+    @Requires(adhoc = { AvailableJavaHomes.getJdk(JavaVersion.VERSION_11) != null })
     def "uses matching compatibility options for source and target level"() {
-        def jdk9 = AvailableJavaHomes.jdk9
+        def jdk11 = AvailableJavaHomes.getJdk(JavaVersion.VERSION_11)
         buildFile << """
             apply plugin: "java"
 
             java {
                 toolchain {
-                    languageVersion = JavaVersion.VERSION_1_9
+                    languageVersion = JavaVersion.VERSION_11
                 }
             }
         """
 
-        file("src/main/java/Foo.java") << "public interface Foo { private void init() { }}"
+        file("src/main/java/Foo.java") << """
+public class Foo {
+    public void foo() {
+        java.util.function.Function<String, String> append = (var string) -> string + " ";
+    }
+}
+"""
 
         when:
-        runWithToolchainConfigured(jdk9)
+        runWithToolchainConfigured(jdk11)
 
         then:
-        outputContains("Compiling with toolchain '${jdk9.javaHome.absolutePath}'.")
+        outputContains("Compiling with toolchain '${jdk11.javaHome.absolutePath}'.")
         javaClassFile("Foo.class").exists()
     }
 
