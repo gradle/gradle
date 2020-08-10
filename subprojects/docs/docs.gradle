@@ -103,7 +103,9 @@ tasks.named("stageDocs") {
 samples {
     templates {
         javaAndroidApplication
-        springBootWebApplication
+        springBootWebApplication {
+            target = "app"
+        }
         gradlePluginInJava
         buildSrcPluginJavaModuleTransform
 

@@ -1,6 +1,5 @@
 plugins {
     id("org.springframework.boot") version("2.2.1.RELEASE")
-    id("io.spring.dependency-management") version("1.0.8.RELEASE")
     java
 }
 
@@ -16,12 +15,14 @@ repositories {
 }
 
 dependencies {
+    implementation(platform("org.springframework.boot:spring-boot-dependencies:2.2.1.RELEASE"))
+
     implementation("org.springframework.boot:spring-boot-starter")
     testImplementation("org.springframework.boot:spring-boot-starter-test") {
         exclude(mapOf("group" to "org.junit.vintage", "module" to "junit-vintage-engine"))
     }
 }
 
-tasks.named<Test>("test") {
+tasks.test {
     useJUnitPlatform()
 }
