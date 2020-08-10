@@ -1,3 +1,12 @@
+> Task :buildSrc:pluginUnderTestMetadata
+> Task :buildSrc:compileTestJava NO-SOURCE
+> Task :buildSrc:compileTestGroovy NO-SOURCE
+> Task :buildSrc:processTestResources NO-SOURCE
+> Task :buildSrc:testClasses UP-TO-DATE
+> Task :buildSrc:test NO-SOURCE
+> Task :buildSrc:validatePlugins
+> Task :buildSrc:check
+> Task :buildSrc:build
 > Task :list:compileJava
 > Task :utilities:compileJava
 > Task :application:compileJava
@@ -13,6 +22,7 @@
 > Task :utilities:classes
 > Task :utilities:jar
 > Task :application:test
+> Task :application:jar
 > Task :application:compileIntegrationTestJava
 > Task :application:processIntegrationTestResources NO-SOURCE
 > Task :application:integrationTestClasses
@@ -22,6 +32,10 @@
 > Task :list:processTestResources NO-SOURCE
 > Task :list:testClasses
 > Task :list:test
+> Task :list:compileIntegrationTestJava NO-SOURCE
+> Task :list:processIntegrationTestResources NO-SOURCE
+> Task :list:integrationTestClasses UP-TO-DATE
+> Task :list:integrationTest NO-SOURCE
 > Task :list:check
 > Task :utilities:compileTestJava NO-SOURCE
 > Task :utilities:processTestResources NO-SOURCE
@@ -34,4 +48,4 @@
 > Task :utilities:check
 
 BUILD SUCCESSFUL in 0s
-13 actionable tasks: 13 executed
+14 actionable tasks: 14 executed
