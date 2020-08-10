@@ -14,7 +14,7 @@ def integrationTest = sourceSets.create('integrationTest')
 configurations[integrationTest.implementationConfigurationName].extendsFrom(configurations.testImplementation)
 configurations[integrationTest.runtimeOnlyConfigurationName].extendsFrom(configurations.testRuntimeOnly)
 
-tasks.test.configure {
+tasks.named("test") {
     useJUnitPlatform()
 }
 
@@ -29,7 +29,7 @@ def integrationTestTask = tasks.register('integrationTest', Test) {
     shouldRunAfter(tasks.test)
 }
 
-tasks.check.configure {
+tasks.named("check") {
     dependsOn(integrationTestTask)
 }
 

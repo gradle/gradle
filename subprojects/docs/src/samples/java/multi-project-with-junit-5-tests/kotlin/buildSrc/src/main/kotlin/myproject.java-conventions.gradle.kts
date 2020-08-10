@@ -9,7 +9,7 @@ repositories {
     jcenter()
 }
 
-tasks.test.configure {
+tasks.test {
     useJUnitPlatform()
 }
 

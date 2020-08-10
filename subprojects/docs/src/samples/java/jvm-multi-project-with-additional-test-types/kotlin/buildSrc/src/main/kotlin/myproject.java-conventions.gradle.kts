@@ -14,7 +14,7 @@ val integrationTest by sourceSets.creating
 configurations[integrationTest.implementationConfigurationName].extendsFrom(configurations.testImplementation.get())
 configurations[integrationTest.runtimeOnlyConfigurationName].extendsFrom(configurations.testRuntimeOnly.get())
 
-tasks.test.configure {
+tasks.test {
     useJUnitPlatform()
 }
 
@@ -29,7 +29,7 @@ val integrationTestTask = tasks.register<Test>("integrationTest") {
     shouldRunAfter(tasks.test)
 }
 
-tasks.check.configure {
+tasks.check {
     dependsOn(integrationTestTask)
 }
 
