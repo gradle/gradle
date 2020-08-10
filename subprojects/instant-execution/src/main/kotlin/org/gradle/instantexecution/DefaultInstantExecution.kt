@@ -378,7 +378,7 @@ class DefaultInstantExecution internal constructor(
     // Skip instant execution for buildSrc for now.
     private
     val isInstantExecutionEnabled: Boolean by unsafeLazy {
-        startParameter.isEnabled && !host.currentBuild.buildSrc
+        startParameter.isEnabled && host.currentBuild.gradle.isRootBuild && !host.currentBuild.buildSrc
     }
 
     private
