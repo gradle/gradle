@@ -32,7 +32,7 @@ import static org.gradle.performance.generator.JavaTestProject.LARGE_MONOLITHIC_
 class JavaFirstUsePerformanceTest extends AbstractCrossVersionGradleProfilerPerformanceTest {
 
     def setup() {
-        runner.targetVersions = ["6.7-20200803220112+0000"]
+        runner.targetVersions = ["6.7-20200809220033+0000"]
     }
 
     @Unroll
