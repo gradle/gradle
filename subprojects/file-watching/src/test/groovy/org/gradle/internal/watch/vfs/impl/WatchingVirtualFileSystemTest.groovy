@@ -16,6 +16,7 @@
 
 package org.gradle.internal.watch.vfs.impl
 
+import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.internal.snapshot.CaseSensitivity
 import org.gradle.internal.snapshot.SnapshotHierarchy
 import org.gradle.internal.vfs.impl.DefaultSnapshotHierarchy
@@ -35,7 +36,8 @@ class WatchingVirtualFileSystemTest extends Specification {
     def rootReference = new VfsRootReference(nonEmptySnapshotHierarchy)
     def daemonDocumentationIndex = Mock(DaemonDocumentationIndex)
     def locationsUpdatedByCurrentBuild = Mock(LocationsWrittenByCurrentBuild)
-    def watchingHandler = new WatchingVirtualFileSystem(
+    def buildOperationRunner = new TestBuildOperationExecutor()
+    def watchingVirtualFileSystem = new WatchingVirtualFileSystem(
         watcherRegistryFactory,
         rootReference,
         daemonDocumentationIndex,
@@ -45,7 +47,7 @@ class WatchingVirtualFileSystemTest extends Specification {
     def "invalidates the virtual file system before and after the build when watching is disabled"() {
         when:
         rootReference.update { root -> nonEmptySnapshotHierarchy }
-        watchingHandler.afterBuildStarted(false)
+        watchingVirtualFileSystem.afterBuildStarted(false, buildOperationRunner)
         then:
         0 * _
 
@@ -53,7 +55,7 @@ class WatchingVirtualFileSystemTest extends Specification {
 
         when:
         rootReference.update { root -> nonEmptySnapshotHierarchy }
-        watchingHandler.beforeBuildFinished(false)
+        watchingVirtualFileSystem.beforeBuildFinished(false, buildOperationRunner)
         then:
         0 * _
 
@@ -62,13 +64,13 @@ class WatchingVirtualFileSystemTest extends Specification {
 
     def "stops the watchers before the build when watching is disabled"() {
         when:
-        watchingHandler.afterBuildStarted(true)
+        watchingVirtualFileSystem.afterBuildStarted(true, buildOperationRunner)
         then:
         1 * watcherRegistryFactory.createFileWatcherRegistry(_) >> watcherRegistry
         0 * _
 
         when:
-        watchingHandler.beforeBuildFinished(true)
+        watchingVirtualFileSystem.beforeBuildFinished(true, buildOperationRunner)
         then:
         1 * watcherRegistry.getAndResetStatistics() >> Stub(FileWatcherRegistry.FileWatchingStatistics)
         1 * watcherRegistry.buildFinished(_) >> rootReference.getRoot()
@@ -76,7 +78,7 @@ class WatchingVirtualFileSystemTest extends Specification {
 
         when:
         rootReference.update { root -> nonEmptySnapshotHierarchy }
-        watchingHandler.afterBuildStarted(false)
+        watchingVirtualFileSystem.afterBuildStarted(false, buildOperationRunner)
         then:
         1 * watcherRegistry.close()
         0 * _
@@ -86,13 +88,13 @@ class WatchingVirtualFileSystemTest extends Specification {
 
     def "retains the virtual file system when watching is enabled"() {
         when:
-        watchingHandler.afterBuildStarted(true)
+        watchingVirtualFileSystem.afterBuildStarted(true, buildOperationRunner)
         then:
         1 * watcherRegistryFactory.createFileWatcherRegistry(_) >> watcherRegistry
         0 * _
 
         when:
-        watchingHandler.beforeBuildFinished(true)
+        watchingVirtualFileSystem.beforeBuildFinished(true, buildOperationRunner)
         then:
         1 * watcherRegistry.getAndResetStatistics() >> Stub(FileWatcherRegistry.FileWatchingStatistics)
         1 * watcherRegistry.buildFinished(_) >> rootReference.getRoot()
@@ -100,7 +102,7 @@ class WatchingVirtualFileSystemTest extends Specification {
 
         when:
         rootReference.update { root -> nonEmptySnapshotHierarchy }
-        watchingHandler.afterBuildStarted(true)
+        watchingVirtualFileSystem.afterBuildStarted(true, buildOperationRunner)
         then:
         1 * watcherRegistry.getAndResetStatistics() >> Stub(FileWatcherRegistry.FileWatchingStatistics)
         0 * _
@@ -114,31 +116,31 @@ class WatchingVirtualFileSystemTest extends Specification {
         def newWatchableHierarchy = new File("newWatchable")
 
         when:
-        watchingHandler.registerWatchableHierarchy(watchableHierarchy)
+        watchingVirtualFileSystem.registerWatchableHierarchy(watchableHierarchy)
         then:
         0 * _
 
         when:
-        watchingHandler.afterBuildStarted(true)
+        watchingVirtualFileSystem.afterBuildStarted(true, buildOperationRunner)
         then:
         1 * watcherRegistryFactory.createFileWatcherRegistry(_) >> watcherRegistry
         1 * watcherRegistry.registerWatchableHierarchy(watchableHierarchy, _)
         0 * _
 
         when:
-        watchingHandler.registerWatchableHierarchy(anotherWatchableHierarchy)
+        watchingVirtualFileSystem.registerWatchableHierarchy(anotherWatchableHierarchy)
         then:
         1 * watcherRegistry.registerWatchableHierarchy(anotherWatchableHierarchy, _)
 
         when:
-        watchingHandler.beforeBuildFinished(true)
+        watchingVirtualFileSystem.beforeBuildFinished(true, buildOperationRunner)
         then:
         1 * watcherRegistry.getAndResetStatistics() >> Stub(FileWatcherRegistry.FileWatchingStatistics)
         1 * watcherRegistry.buildFinished(_) >> rootReference.getRoot()
         0 * _
 
         when:
-        watchingHandler.registerWatchableHierarchy(newWatchableHierarchy)
+        watchingVirtualFileSystem.registerWatchableHierarchy(newWatchableHierarchy)
         then:
         1 * watcherRegistry.registerWatchableHierarchy(newWatchableHierarchy, _)
     }

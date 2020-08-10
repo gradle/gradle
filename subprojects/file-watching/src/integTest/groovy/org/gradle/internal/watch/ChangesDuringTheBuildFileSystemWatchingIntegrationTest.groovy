@@ -17,6 +17,15 @@
 package org.gradle.internal.watch
 
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.internal.operations.BuildOperationDescriptor
+import org.gradle.internal.operations.BuildOperationListener
+import org.gradle.internal.operations.BuildOperationListenerManager
+import org.gradle.internal.operations.OperationFinishEvent
+import org.gradle.internal.operations.OperationIdentifier
+import org.gradle.internal.operations.OperationProgressEvent
+import org.gradle.internal.operations.OperationStartEvent
+import org.gradle.internal.watch.vfs.impl.WatchingVirtualFileSystem
+import org.gradle.launcher.exec.RunBuildBuildOperationType
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
 
@@ -27,6 +36,7 @@ class ChangesDuringTheBuildFileSystemWatchingIntegrationTest extends AbstractFil
     def setup() {
         executer.requireDaemon()
         server.start()
+        setupFileEventsLogging()
         buildFile << """
             import org.gradle.internal.file.FileType
             import org.gradle.internal.snapshot.*
@@ -164,5 +174,46 @@ class ChangesDuringTheBuildFileSystemWatchingIntegrationTest extends AbstractFil
         def numberMatcher = retainedInformation =~ /Project files in VFS: (\d+)/
         return numberMatcher[0][1] as int
 
+    }
+
+    void setupFileEventsLogging() {
+        settingsFile << """
+            import ${BuildOperationListener.name}
+            import ${BuildOperationDescriptor.name}
+            import ${OperationFinishEvent.name}
+            import ${OperationIdentifier.name}
+            import ${OperationProgressEvent.name}
+            import ${OperationStartEvent.name}
+            import ${BuildOperationListenerManager.name}
+            import ${WatchingVirtualFileSystem.name}
+            import ${RunBuildBuildOperationType.name}
+
+            def operationListenerManager = gradle.services.get(BuildOperationListenerManager)
+
+            class FileSystemWatchingLogger implements BuildOperationListener {
+                private final BuildOperationListenerManager operationListenerManager
+
+                FileSystemWatchingLogger(BuildOperationListenerManager operationListenerManager) {
+                    this.operationListenerManager = operationListenerManager
+                }
+
+                void started(BuildOperationDescriptor descriptor, OperationStartEvent startEvent) {}
+
+                @Override
+                void progress(OperationIdentifier operationIdentifier, OperationProgressEvent progressEvent) {}
+
+                @Override
+                void finished(BuildOperationDescriptor buildOperation, OperationFinishEvent finishEvent) {
+                    if (finishEvent.result instanceof RunBuildBuildOperationType.Result) {
+                        operationListenerManager.removeListener(this)
+                    }
+                    if (finishEvent.result instanceof WatchingVirtualFileSystem.BuildFinishedWithFileSystemWatchingEnabled) {
+                        def result = finishEvent.result
+                        result.fileWatchingStatistics.ifPresent { statistics -> println "Received \${statistics.numberOfReceivedEvents} file system events for current build" }
+                    }
+                }
+            }
+            operationListenerManager.addListener(new FileSystemWatchingLogger(operationListenerManager))
+        """
     }
 }

@@ -16,6 +16,7 @@
 
 package org.gradle.internal.watch.vfs.impl;
 
+import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.snapshot.SnapshotHierarchy;
 import org.gradle.internal.vfs.VirtualFileSystem;
 import org.gradle.internal.vfs.impl.VfsRootReference;
@@ -49,7 +50,7 @@ public class WatchingNotSupportedVirtualFileSystem implements BuildLifecycleAwar
     }
 
     @Override
-    public void afterBuildStarted(boolean watchingEnabled) {
+    public void afterBuildStarted(boolean watchingEnabled, BuildOperationRunner buildOperationRunner) {
         if (watchingEnabled) {
             LOGGER.warn("Watching the file system is not supported on this operating system.");
         }
@@ -61,7 +62,7 @@ public class WatchingNotSupportedVirtualFileSystem implements BuildLifecycleAwar
     }
 
     @Override
-    public void beforeBuildFinished(boolean watchingEnabled) {
+    public void beforeBuildFinished(boolean watchingEnabled, BuildOperationRunner buildOperationRunner) {
         rootReference.update(SnapshotHierarchy::empty);
     }
 }

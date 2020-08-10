@@ -21,6 +21,10 @@ import com.google.common.collect.Multiset;
 import net.rubygrapefruit.platform.internal.jni.InotifyInstanceLimitTooLowException;
 import net.rubygrapefruit.platform.internal.jni.InotifyWatchesLimitTooLowException;
 import org.gradle.internal.file.FileType;
+import org.gradle.internal.operations.BuildOperationContext;
+import org.gradle.internal.operations.BuildOperationDescriptor;
+import org.gradle.internal.operations.BuildOperationRunner;
+import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.internal.snapshot.CompleteDirectorySnapshot;
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshotVisitor;
@@ -35,11 +39,13 @@ import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
 
@@ -92,16 +98,34 @@ public class WatchingVirtualFileSystem implements BuildLifecycleAwareVirtualFile
     }
 
     @Override
-    public void afterBuildStarted(boolean watchingEnabled) {
+    public void afterBuildStarted(boolean watchingEnabled, BuildOperationRunner buildOperationRunner) {
         reasonForNotWatchingFiles = null;
         rootReference.update(currentRoot -> {
             if (watchingEnabled) {
-                SnapshotHierarchy newRoot = handleWatcherRegistryEvents(currentRoot, "since last build");
-                if (watchRegistry == null) {
-                    newRoot = startWatching(newRoot);
-                }
-                printStatistics(newRoot, "retained", "since last build");
-                return newRoot;
+                return buildOperationRunner.call(new CallableBuildOperation<SnapshotHierarchy>() {
+                    @Override
+                    public SnapshotHierarchy call(BuildOperationContext context) {
+                        SnapshotHierarchy newRoot = currentRoot;
+                        boolean startedWatching = false;
+                        FileWatcherRegistry.FileWatchingStatistics statistics = watchRegistry == null
+                            ? null
+                            : watchRegistry.getAndResetStatistics();
+
+                        newRoot = handleWatcherRegistryEvents(newRoot, "since last build", statistics);
+                        if (watchRegistry == null) {
+                            startedWatching = true;
+                            context.setStatus("Starting file system watching");
+                            newRoot = startWatching(newRoot);
+                        }
+                        context.setResult(new BuildStartedWithFileSystemWatchingEnabled(startedWatching, statistics, newRoot));
+                        return newRoot;
+                    }
+
+                    @Override
+                    public BuildOperationDescriptor.Builder description() {
+                        return BuildOperationDescriptor.displayName("Build started with file system watching");
+                    }
+                });
             } else {
                 return stopWatchingAndInvalidateHierarchy(currentRoot);
             }
@@ -123,22 +147,36 @@ public class WatchingVirtualFileSystem implements BuildLifecycleAwareVirtualFile
     }
 
     @Override
-    public void beforeBuildFinished(boolean watchingEnabled) {
+    public void beforeBuildFinished(boolean watchingEnabled, BuildOperationRunner buildOperationRunner) {
         rootReference.update(currentRoot -> {
             watchableHierarchies.clear();
             if (watchingEnabled) {
-                if (reasonForNotWatchingFiles != null) {
-                    // Log exception again so it doesn't get lost.
-                    logWatchingError(reasonForNotWatchingFiles, FILE_WATCHING_ERROR_MESSAGE_AT_END_OF_BUILD);
-                    reasonForNotWatchingFiles = null;
-                }
-                SnapshotHierarchy newRoot = handleWatcherRegistryEvents(currentRoot, "for current build");
-                if (watchRegistry != null) {
-                    SnapshotHierarchy rootAfterEvents = newRoot;
-                    newRoot = withWatcherChangeErrorHandling(newRoot, () -> watchRegistry.buildFinished(rootAfterEvents));
-                }
-                printStatistics(newRoot, "retains", "till next build");
-                return newRoot;
+                return buildOperationRunner.call(new CallableBuildOperation<SnapshotHierarchy>() {
+                    @Override
+                    public SnapshotHierarchy call(BuildOperationContext context) {
+                        if (reasonForNotWatchingFiles != null) {
+                            // Log exception again so it doesn't get lost.
+                            logWatchingError(reasonForNotWatchingFiles, FILE_WATCHING_ERROR_MESSAGE_AT_END_OF_BUILD);
+                            reasonForNotWatchingFiles = null;
+                        }
+
+                        FileWatcherRegistry.FileWatchingStatistics statistics = watchRegistry == null
+                            ? null
+                            : watchRegistry.getAndResetStatistics();
+                        SnapshotHierarchy newRoot = handleWatcherRegistryEvents(currentRoot, "for current build", statistics);
+                        if (watchRegistry != null) {
+                            SnapshotHierarchy rootAfterEvents = newRoot;
+                            newRoot = withWatcherChangeErrorHandling(newRoot, () -> watchRegistry.buildFinished(rootAfterEvents));
+                        }
+                        context.setResult(new BuildFinishedWithFileSystemWatchingEnabled(watchRegistry != null, statistics, newRoot));
+                        return newRoot;
+                    }
+
+                    @Override
+                    public BuildOperationDescriptor.Builder description() {
+                        return BuildOperationDescriptor.displayName("Build finished with file system watching");
+                    }
+                });
             } else {
                 return currentRoot.empty();
             }
@@ -150,7 +188,6 @@ public class WatchingVirtualFileSystem implements BuildLifecycleAwareVirtualFile
      */
     private SnapshotHierarchy startWatching(SnapshotHierarchy currentRoot) {
         try {
-            long startTime = System.currentTimeMillis();
             watchRegistry = watcherRegistryFactory.createFileWatcherRegistry(new FileWatcherRegistry.ChangeHandler() {
                 @Override
                 public void handleChange(FileWatcherRegistry.Type type, Path path) {
@@ -174,9 +211,6 @@ public class WatchingVirtualFileSystem implements BuildLifecycleAwareVirtualFile
             });
             watchableHierarchies.forEach(watchableHierarchy -> watchRegistry.registerWatchableHierarchy(watchableHierarchy, currentRoot));
             watchableHierarchies.clear();
-            long endTime = System.currentTimeMillis() - startTime;
-            LOGGER.warn("Spent {} ms registering watches for file system events", endTime);
-            // TODO: Move start watching early enough so that the root is always empty
             return currentRoot.empty();
         } catch (Exception ex) {
             logWatchingError(ex, FILE_WATCHING_ERROR_MESSAGE_DURING_BUILD);
@@ -239,12 +273,10 @@ public class WatchingVirtualFileSystem implements BuildLifecycleAwareVirtualFile
         return currentRoot.empty();
     }
 
-    private SnapshotHierarchy handleWatcherRegistryEvents(SnapshotHierarchy currentRoot, String eventsFor) {
-        if (watchRegistry == null) {
+    private SnapshotHierarchy handleWatcherRegistryEvents(SnapshotHierarchy currentRoot, String eventsFor, @Nullable FileWatcherRegistry.FileWatchingStatistics statistics) {
+        if (statistics == null) {
             return currentRoot.empty();
         }
-        FileWatcherRegistry.FileWatchingStatistics statistics = watchRegistry.getAndResetStatistics();
-        LOGGER.warn("Received {} file system events {}", statistics.getNumberOfReceivedEvents(), eventsFor);
         if (statistics.isUnknownEventEncountered()) {
             LOGGER.warn("Dropped VFS state due to lost state");
             return stopWatchingAndInvalidateHierarchy(currentRoot);
@@ -254,18 +286,6 @@ public class WatchingVirtualFileSystem implements BuildLifecycleAwareVirtualFile
             return stopWatchingAndInvalidateHierarchy(currentRoot);
         }
         return currentRoot;
-    }
-
-    private static void printStatistics(SnapshotHierarchy root, String verb, String statisticsFor) {
-        VirtualFileSystemStatistics statistics = getStatistics(root);
-        LOGGER.warn(
-            "Virtual file system {} information about {} files, {} directories and {} missing files {}",
-            verb,
-            statistics.getRetained(FileType.RegularFile),
-            statistics.getRetained(FileType.Directory),
-            statistics.getRetained(FileType.Missing),
-            statisticsFor
-        );
     }
 
     private static VirtualFileSystemStatistics getStatistics(SnapshotHierarchy root) {
@@ -318,6 +338,69 @@ public class WatchingVirtualFileSystem implements BuildLifecycleAwareVirtualFile
             } finally {
                 watchRegistry = null;
             }
+        }
+    }
+
+    public static class BuildStartedWithFileSystemWatchingEnabled extends WatchingBookkeepingResult {
+        private final boolean startedWatching;
+
+        public BuildStartedWithFileSystemWatchingEnabled(
+            boolean startedWatching,
+            @Nullable FileWatcherRegistry.FileWatchingStatistics fileWatchingStatistics,
+            SnapshotHierarchy vfsRoot
+        ) {
+            super(fileWatchingStatistics, vfsRoot);
+            this.startedWatching = startedWatching;
+        }
+
+        public boolean isStartedWatching() {
+            return startedWatching;
+        }
+    }
+
+    public static class BuildFinishedWithFileSystemWatchingEnabled extends WatchingBookkeepingResult {
+        private final boolean stoppedWatchingDuringTheBuild;
+
+        public BuildFinishedWithFileSystemWatchingEnabled(
+            boolean stoppedWatchingDuringTheBuild,
+            @Nullable FileWatcherRegistry.FileWatchingStatistics fileWatchingStatistics,
+            SnapshotHierarchy vfsRoot
+        ) {
+            super(fileWatchingStatistics, vfsRoot);
+            this.stoppedWatchingDuringTheBuild = stoppedWatchingDuringTheBuild;
+        }
+
+        public boolean isStoppedWatchingDuringTheBuild() {
+            return stoppedWatchingDuringTheBuild;
+        }
+    }
+
+    public static class WatchingBookkeepingResult {
+        private final FileWatcherRegistry.FileWatchingStatistics fileWatchingStatistics;
+        private final VirtualFileSystemStatistics vfsStatistics;
+
+        public WatchingBookkeepingResult(
+            @Nullable FileWatcherRegistry.FileWatchingStatistics fileWatchingStatistics,
+            SnapshotHierarchy vfsRoot
+        ) {
+            this.fileWatchingStatistics = fileWatchingStatistics;
+            this.vfsStatistics = getStatistics(vfsRoot);
+        }
+
+        public Optional<FileWatcherRegistry.FileWatchingStatistics> getFileWatchingStatistics() {
+            return Optional.ofNullable(fileWatchingStatistics);
+        }
+
+        public int getRetainedRegularFiles() {
+            return vfsStatistics.getRetained(FileType.RegularFile);
+        }
+
+        public int getRetainedDirectories() {
+            return vfsStatistics.getRetained(FileType.Directory);
+        }
+
+        public int getRetainedMissingFiles() {
+            return vfsStatistics.getRetained(FileType.Missing);
         }
     }
 }
