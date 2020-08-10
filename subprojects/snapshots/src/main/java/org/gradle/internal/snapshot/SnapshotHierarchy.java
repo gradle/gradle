@@ -61,6 +61,8 @@ public interface SnapshotHierarchy {
 
     void visitSnapshotRoots(SnapshotVisitor snapshotVisitor);
 
+    void visitSnapshotRoots(String absolutePath, SnapshotVisitor snapshotVisitor);
+
     interface SnapshotVisitor {
         void visitSnapshotRoot(CompleteFileSystemLocationSnapshot snapshot);
     }

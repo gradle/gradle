@@ -58,7 +58,7 @@ public class SnapshotWatchedDirectoryFinder {
         }
     }
 
-    private static Path findFirstExistingAncestor(Path path) {
+    public static Path findFirstExistingAncestor(Path path) {
         Path candidate = path;
         while (true) {
             candidate = candidate.getParent();

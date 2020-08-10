@@ -252,6 +252,35 @@ abstract class AbstractIncompleteSnapshotWithChildrenTest<T extends FileSystemNo
         vfsSpec << (NO_COMMON_PREFIX + COMMON_PREFIX + IS_PREFIX_OF_CHILD).findAll { allowEmptyChildren || !it.childPaths.empty}
     }
 
+    def "querying for non-existing child #vfsSpec.searchedPath finds nothings (#vfsSpec)"() {
+        setupTest(vfsSpec)
+
+        when:
+        def resultRoot = initialRoot.getNode(searchedPath, CASE_SENSITIVE)
+        then:
+        resultRoot == ReadOnlyFileSystemNode.EMPTY
+        interaction { noMoreInteractions() }
+
+        where:
+        vfsSpec << (NO_COMMON_PREFIX + COMMON_PREFIX).findAll { allowEmptyChildren || !it.childPaths.empty}
+    }
+
+    def "querying for parent of child #vfsSpec.searchedPath finds adapted child (#vfsSpec)"() {
+        setupTest(vfsSpec)
+
+        when:
+        def resultRoot = initialRoot.getNode(searchedPath, CASE_SENSITIVE)
+        then:
+        resultRoot == selectedChild
+        interaction {
+            1 * selectedChild.withPathToParent(selectedChildPathFromCommonPrefix) >> selectedChild
+            noMoreInteractions()
+        }
+
+        where:
+        vfsSpec << IS_PREFIX_OF_CHILD
+    }
+
     def "querying the snapshot for existing child #vfsSpec.searchedPath returns the snapshot for the child (#vfsSpec)"() {
         setupTest(vfsSpec)
         def existingSnapshot = Mock(MetadataSnapshot)
@@ -286,6 +315,22 @@ abstract class AbstractIncompleteSnapshotWithChildrenTest<T extends FileSystemNo
         vfsSpec << SAME_PATH
     }
 
+    def "querying for existing child #vfsSpec.searchedPath returns the child (#vfsSpec)"() {
+        setupTest(vfsSpec)
+
+        when:
+        def resultRoot = initialRoot.getNode(searchedPath, CASE_SENSITIVE)
+        then:
+        resultRoot == selectedChild
+
+        interaction {
+            noMoreInteractions()
+        }
+
+        where:
+        vfsSpec << SAME_PATH
+    }
+
     def "querying the snapshot for descendant of child #vfsSpec.selectedChildPath queries the child (#vfsSpec)"() {
         setupTest(vfsSpec)
         def descendantSnapshot = Mock(MetadataSnapshot)
@@ -312,6 +357,23 @@ abstract class AbstractIncompleteSnapshotWithChildrenTest<T extends FileSystemNo
         !resultRoot.present
         interaction {
             getDescendantSnapshotOfSelectedChild(null)
+            noMoreInteractions()
+        }
+
+        where:
+        vfsSpec << CHILD_IS_PREFIX
+    }
+
+    def "querying for descendant of child #vfsSpec.selectedChildPath queries the child (#vfsSpec)"() {
+        setupTest(vfsSpec)
+        def descendantNode = Mock(ReadOnlyFileSystemNode)
+
+        when:
+        def resultRoot = initialRoot.getNode(searchedPath, CASE_SENSITIVE)
+        then:
+        resultRoot == descendantNode
+        interaction {
+            getDescendantNodeOfSelectedChild(descendantNode)
             noMoreInteractions()
         }
 

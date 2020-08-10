@@ -73,6 +73,16 @@ abstract class AbstractCompleteSnapshotWithoutChildrenTest<T extends CompleteFil
         childSnapshot.absolutePath == childAbsolutePath.absolutePath
     }
 
+    def "getNode at child is missing"() {
+        def childAbsolutePath = childAbsolutePath("some/child")
+
+        when:
+        CompleteFileSystemLocationSnapshot childSnapshot = initialRoot.getNode(childAbsolutePath, CASE_SENSITIVE) as CompleteFileSystemLocationSnapshot
+        then:
+        childSnapshot.type == FileType.Missing
+        childSnapshot.absolutePath == childAbsolutePath.absolutePath
+    }
+
     private VfsRelativePath childAbsolutePath(String relativePath) {
         VfsRelativePath.of("${initialRoot.absolutePath}/${relativePath}", initialRoot.absolutePath.length() + 1)
     }

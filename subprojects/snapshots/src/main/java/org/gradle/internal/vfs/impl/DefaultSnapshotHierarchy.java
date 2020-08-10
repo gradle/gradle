@@ -20,7 +20,9 @@ import com.google.common.annotations.VisibleForTesting;
 import org.gradle.internal.snapshot.CaseSensitivity;
 import org.gradle.internal.snapshot.FileSystemNode;
 import org.gradle.internal.snapshot.MetadataSnapshot;
+import org.gradle.internal.snapshot.ReadOnlyFileSystemNode;
 import org.gradle.internal.snapshot.SnapshotHierarchy;
+import org.gradle.internal.snapshot.SnapshotUtil;
 import org.gradle.internal.snapshot.VfsRelativePath;
 
 import java.util.Optional;
@@ -89,6 +91,11 @@ public class DefaultSnapshotHierarchy implements SnapshotHierarchy {
         rootNode.accept(snapshotVisitor);
     }
 
+    @Override
+    public void visitSnapshotRoots(String absolutePath, SnapshotVisitor snapshotVisitor) {
+        SnapshotUtil.getNodeFromChild(rootNode, VfsRelativePath.of(absolutePath), caseSensitivity).orElse(ReadOnlyFileSystemNode.EMPTY).accept(snapshotVisitor);
+    }
+
     private enum EmptySnapshotHierarchy implements SnapshotHierarchy {
         CASE_SENSITIVE(CaseSensitivity.CASE_SENSITIVE),
         CASE_INSENSITIVE(CaseSensitivity.CASE_INSENSITIVE);
@@ -124,5 +131,8 @@ public class DefaultSnapshotHierarchy implements SnapshotHierarchy {
 
         @Override
         public void visitSnapshotRoots(SnapshotVisitor snapshotVisitor) {}
+
+        @Override
+        public void visitSnapshotRoots(String absolutePath, SnapshotVisitor snapshotVisitor) {}
     }
 }

@@ -30,7 +30,7 @@ import org.gradle.internal.snapshot.impl.DirectorySnapshotter
 import org.gradle.internal.vfs.VirtualFileSystem
 import org.gradle.internal.vfs.impl.DefaultSnapshotHierarchy
 import org.gradle.internal.watch.registry.FileWatcherUpdater
-import org.gradle.internal.watch.vfs.impl.SnapshotCollectingDiffListener
+import org.gradle.internal.watch.registry.SnapshotCollectingDiffListener
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -40,6 +40,7 @@ import spock.lang.Specification
 import java.nio.file.Files
 import java.nio.file.attribute.BasicFileAttributes
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.function.Predicate
 
 @CleanupTestDirectory
 abstract class AbstractFileWatcherUpdaterTest extends Specification {
@@ -47,6 +48,8 @@ abstract class AbstractFileWatcherUpdaterTest extends Specification {
     TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
 
     def watcher = Mock(FileWatcher)
+    def ignoredForWatching = [] as Set<String>
+    Predicate<String> watchFilter = { path -> !ignoredForWatching.contains(path) }
     def directorySnapshotter = new DirectorySnapshotter(TestFiles.fileHasher(), new StringInterner(), [])
     FileWatcherUpdater updater
     def virtualFileSystem = new VirtualFileSystem() {
@@ -58,17 +61,134 @@ abstract class AbstractFileWatcherUpdaterTest extends Specification {
 
         @Override
         void update(VirtualFileSystem.UpdateFunction updateFunction) {
-            def diffListener = new SnapshotCollectingDiffListener({ path -> true})
+            def diffListener = new SnapshotCollectingDiffListener()
             root = updateFunction.update(root, diffListener)
-            diffListener.publishSnapshotDiff(updater)
+            diffListener.publishSnapshotDiff {removed, added ->
+                updater.virtualFileSystemContentsChanged(removed, added, root)
+            }
         }
     }
 
     def setup() {
-        updater = createUpdater(watcher)
+        updater = createUpdater(watcher, watchFilter)
     }
 
-    abstract FileWatcherUpdater createUpdater(FileWatcher watcher)
+    abstract FileWatcherUpdater createUpdater(FileWatcher watcher, Predicate<String> watchFilter)
+
+    def "does not watch directories outside of hierarchies to watch"() {
+        def watchableHierarchies = ["first", "second", "third"].collect { file(it).createDir() }
+        def fileOutsideOfWatchableHierarchies = file("forth").file("someFile.txt")
+
+        when:
+        registerWatchableHierarchies(watchableHierarchies)
+        then:
+        0 * _
+
+        when:
+        fileOutsideOfWatchableHierarchies.text = "hello"
+        addSnapshot(snapshotRegularFile(fileOutsideOfWatchableHierarchies))
+        then:
+        0 * _
+        vfsHasSnapshotsAt(fileOutsideOfWatchableHierarchies)
+
+        when:
+        buildFinished()
+        then:
+        0 * _
+        !vfsHasSnapshotsAt(fileOutsideOfWatchableHierarchies)
+    }
+
+    def "retains files in hierarchies ignored for watching"() {
+        def watchableHierarchy = file("watchable").createDir()
+        def fileOutsideOfWatchableHierarchy = file("outside").file("someFile.txt").createFile()
+        def fileInDirectoryIgnoredForWatching = file("cache/some-cache/someFile.txt").createFile()
+        ignoredForWatching.add(fileInDirectoryIgnoredForWatching.absolutePath)
+
+        when:
+        registerWatchableHierarchies([watchableHierarchy])
+        then:
+        0 * _
+
+        when:
+        addSnapshot(snapshotRegularFile(fileOutsideOfWatchableHierarchy))
+        addSnapshot(snapshotRegularFile(fileInDirectoryIgnoredForWatching))
+        then:
+        0 * _
+        vfsHasSnapshotsAt(fileOutsideOfWatchableHierarchy)
+        vfsHasSnapshotsAt(fileInDirectoryIgnoredForWatching)
+
+        when:
+        buildFinished()
+        then:
+        0 * _
+        !vfsHasSnapshotsAt(fileOutsideOfWatchableHierarchy)
+        vfsHasSnapshotsAt(fileInDirectoryIgnoredForWatching)
+    }
+
+    def "fails when discovering a hierarchy to watch and there is already something in the VFS"() {
+        def watchableHierarchy = file("watchable").createDir()
+        def fileInWatchableHierarchy = watchableHierarchy.file("some/dir/file.txt").createFile()
+
+        when:
+        addSnapshot(snapshotRegularFile(fileInWatchableHierarchy))
+        then:
+        0 * _
+
+        when:
+        registerWatchableHierarchies([watchableHierarchy])
+        then:
+        def exception = thrown(IllegalStateException)
+        exception.message == "Found existing snapshot at '${fileInWatchableHierarchy.absolutePath}' for unwatched hierarchy '${watchableHierarchy.absolutePath}'"
+    }
+
+    def "does not watch symlinks and removes symlinks at the end of the build"() {
+        def watchableHierarchy = file("watchable").createDir()
+        def symlinkInWatchableHierarchy = watchableHierarchy.file("some/dir/file.txt").createFile()
+
+        when:
+        registerWatchableHierarchies([watchableHierarchy])
+        addSnapshot(snapshotSymlinkedFile(symlinkInWatchableHierarchy))
+        then:
+        vfsHasSnapshotsAt(symlinkInWatchableHierarchy)
+        0 * _
+
+        when:
+        buildFinished()
+        then:
+        !vfsHasSnapshotsAt(symlinkInWatchableHierarchy)
+        0 * _
+    }
+
+    def "does not watch ignored files in a hierarchy to watch"() {
+        def watchableHierarchy = file("watchable").createDir()
+        def ignoredFileInHierarchy = watchableHierarchy.file("caches/cacheFile").createFile()
+        ignoredForWatching.add(ignoredFileInHierarchy.absolutePath)
+        ignoredForWatching.add(ignoredFileInHierarchy.parentFile.absolutePath)
+
+        when:
+        registerWatchableHierarchies([watchableHierarchy])
+        addSnapshot(snapshotRegularFile(ignoredFileInHierarchy))
+        then:
+        vfsHasSnapshotsAt(ignoredFileInHierarchy)
+        0 * _
+
+        when:
+        buildFinished()
+        then:
+        vfsHasSnapshotsAt(ignoredFileInHierarchy)
+        0 * _
+    }
+
+    def "fails when hierarchy to watch is ignored"() {
+        def watchableHierarchy = file("watchable").createDir()
+        ignoredForWatching.add(watchableHierarchy.absolutePath)
+
+        when:
+        registerWatchableHierarchies([watchableHierarchy])
+        then:
+        def exception = thrown(IllegalStateException)
+        exception.message == "Unable to watch directory '${watchableHierarchy.absolutePath}' since it is within Gradle's caches"
+    }
 
     TestFile file(Object... path) {
         temporaryFolder.testDirectory.file(path)
@@ -100,9 +220,50 @@ abstract class AbstractFileWatcherUpdaterTest extends Specification {
         )
     }
 
+    static RegularFileSnapshot snapshotSymlinkedFile(File regularFile) {
+        def attributes = Files.readAttributes(regularFile.toPath(), BasicFileAttributes)
+        new RegularFileSnapshot(
+            regularFile.absolutePath,
+            regularFile.name,
+            TestFiles.fileHasher().hash(regularFile),
+            DefaultFileMetadata.file(attributes.lastModifiedTime().toMillis(), attributes.size(), AccessType.VIA_SYMLINK)
+        )
+    }
+
     static boolean equalIgnoringOrder(Object actual, Collection<?> expected) {
         List<?> actualSorted = (actual as List).toSorted()
         List<?> expectedSorted = (expected as List).toSorted()
         return actualSorted == expectedSorted
+    }
+
+    boolean vfsHasSnapshotsAt(File location) {
+        def visitor = new CheckIfNonEmptySnapshotVisitor()
+        virtualFileSystem.root.visitSnapshotRoots(location.absolutePath, visitor)
+        return !visitor.empty
+    }
+
+    void registerWatchableHierarchies(Iterable<File> watchableHierarchies) {
+        watchableHierarchies.each { watchableHierarchy ->
+            virtualFileSystem.update { root, diffListener ->
+                updater.registerWatchableHierarchy(watchableHierarchy, root)
+                return root
+            }
+        }
+    }
+
+    void buildFinished() {
+        virtualFileSystem.update { root, diffListener ->
+            updater.buildFinished(root)
+        }
+    }
+
+    private static class CheckIfNonEmptySnapshotVisitor implements SnapshotHierarchy.SnapshotVisitor {
+
+        boolean empty = true
+
+        @Override
+        void visitSnapshotRoot(CompleteFileSystemLocationSnapshot snapshot) {
+            empty = false
+        }
     }
 }

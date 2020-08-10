@@ -16,9 +16,9 @@
 
 package org.gradle.internal.watch
 
-import org.gradle.internal.os.OperatingSystem
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import spock.lang.Ignore
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -143,6 +143,7 @@ class SymlinkFileSystemWatchingIntegrationTest extends AbstractFileSystemWatchin
         executedAndNotSkipped ":myTask"
     }
 
+    @Ignore("We are only watching project directories, and those are canonicalized")
     def "disable file system watching when trying to watch symlinked directory"() {
         def actualDir = file("parent/inputDir")
         def symlink = file("symlinkedParent")

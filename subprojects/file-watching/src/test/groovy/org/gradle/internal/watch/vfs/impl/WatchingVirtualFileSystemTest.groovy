@@ -16,21 +16,18 @@
 
 package org.gradle.internal.watch.vfs.impl
 
-import com.google.common.collect.ImmutableSet
 import org.gradle.internal.snapshot.CaseSensitivity
 import org.gradle.internal.snapshot.SnapshotHierarchy
 import org.gradle.internal.vfs.impl.DefaultSnapshotHierarchy
 import org.gradle.internal.vfs.impl.VfsRootReference
 import org.gradle.internal.watch.registry.FileWatcherRegistry
 import org.gradle.internal.watch.registry.FileWatcherRegistryFactory
-import org.gradle.internal.watch.registry.FileWatcherUpdater
 import org.gradle.internal.watch.registry.impl.DaemonDocumentationIndex
 import spock.lang.Specification
 
 class WatchingVirtualFileSystemTest extends Specification {
     def watcherRegistryFactory = Mock(FileWatcherRegistryFactory)
     def watcherRegistry = Mock(FileWatcherRegistry)
-    def fileWatcherUpdater = Mock(FileWatcherUpdater)
     def emptySnapshotHierarchy = DefaultSnapshotHierarchy.empty(CaseSensitivity.CASE_SENSITIVE)
     def nonEmptySnapshotHierarchy = Stub(SnapshotHierarchy) {
         empty() >> emptySnapshotHierarchy
@@ -41,7 +38,6 @@ class WatchingVirtualFileSystemTest extends Specification {
     def watchingHandler = new WatchingVirtualFileSystem(
         watcherRegistryFactory,
         rootReference,
-        { path -> true },
         daemonDocumentationIndex,
         locationsUpdatedByCurrentBuild
     )
@@ -69,16 +65,13 @@ class WatchingVirtualFileSystemTest extends Specification {
         watchingHandler.afterBuildStarted(true)
         then:
         1 * watcherRegistryFactory.createFileWatcherRegistry(_) >> watcherRegistry
-        1 * watcherRegistry.fileWatcherUpdater >> fileWatcherUpdater
-        1 * fileWatcherUpdater.updateRootProjectDirectories(ImmutableSet.of())
         0 * _
 
         when:
         watchingHandler.beforeBuildFinished(true)
         then:
         1 * watcherRegistry.getAndResetStatistics() >> Stub(FileWatcherRegistry.FileWatchingStatistics)
-        1 * watcherRegistry.fileWatcherUpdater >> fileWatcherUpdater
-        1 * fileWatcherUpdater.buildFinished()
+        1 * watcherRegistry.buildFinished(_) >> rootReference.getRoot()
         0 * _
 
         when:
@@ -96,16 +89,13 @@ class WatchingVirtualFileSystemTest extends Specification {
         watchingHandler.afterBuildStarted(true)
         then:
         1 * watcherRegistryFactory.createFileWatcherRegistry(_) >> watcherRegistry
-        1 * watcherRegistry.fileWatcherUpdater >> fileWatcherUpdater
-        1 * fileWatcherUpdater.updateRootProjectDirectories(ImmutableSet.of())
         0 * _
 
         when:
         watchingHandler.beforeBuildFinished(true)
         then:
         1 * watcherRegistry.getAndResetStatistics() >> Stub(FileWatcherRegistry.FileWatchingStatistics)
-        1 * watcherRegistry.fileWatcherUpdater >> fileWatcherUpdater
-        1 * fileWatcherUpdater.buildFinished()
+        1 * watcherRegistry.buildFinished(_) >> rootReference.getRoot()
         0 * _
 
         when:
@@ -118,13 +108,13 @@ class WatchingVirtualFileSystemTest extends Specification {
         rootReference.getRoot() == nonEmptySnapshotHierarchy
     }
 
-    def "collects build root directories and notifies the vfs"() {
-        def rootDirectory = new File("root")
-        def anotherBuildRootDirectory = new File("anotherRoot")
-        def newRootDirectory = new File("newRoot")
+    def "collects hierarchies to watch and notifies the vfs"() {
+        def watchableHierarchy = new File("watchable")
+        def anotherWatchableHierarchy = new File("anotherWatchable")
+        def newWatchableHierarchy = new File("newWatchable")
 
         when:
-        watchingHandler.buildRootDirectoryAdded(rootDirectory)
+        watchingHandler.registerWatchableHierarchy(watchableHierarchy)
         then:
         0 * _
 
@@ -132,28 +122,24 @@ class WatchingVirtualFileSystemTest extends Specification {
         watchingHandler.afterBuildStarted(true)
         then:
         1 * watcherRegistryFactory.createFileWatcherRegistry(_) >> watcherRegistry
-        1 * watcherRegistry.fileWatcherUpdater >> fileWatcherUpdater
-        1 * fileWatcherUpdater.updateRootProjectDirectories(ImmutableSet.of(rootDirectory))
+        1 * watcherRegistry.registerWatchableHierarchy(watchableHierarchy, _)
         0 * _
 
         when:
-        watchingHandler.buildRootDirectoryAdded(anotherBuildRootDirectory)
+        watchingHandler.registerWatchableHierarchy(anotherWatchableHierarchy)
         then:
-        1 * watcherRegistry.fileWatcherUpdater >> fileWatcherUpdater
-        1 * fileWatcherUpdater.updateRootProjectDirectories(ImmutableSet.of(rootDirectory, anotherBuildRootDirectory))
+        1 * watcherRegistry.registerWatchableHierarchy(anotherWatchableHierarchy, _)
 
         when:
         watchingHandler.beforeBuildFinished(true)
         then:
         1 * watcherRegistry.getAndResetStatistics() >> Stub(FileWatcherRegistry.FileWatchingStatistics)
-        1 * watcherRegistry.fileWatcherUpdater >> fileWatcherUpdater
-        1 * fileWatcherUpdater.buildFinished()
+        1 * watcherRegistry.buildFinished(_) >> rootReference.getRoot()
         0 * _
 
         when:
-        watchingHandler.buildRootDirectoryAdded(newRootDirectory)
+        watchingHandler.registerWatchableHierarchy(newWatchableHierarchy)
         then:
-        1 * watcherRegistry.fileWatcherUpdater >> fileWatcherUpdater
-        1 * fileWatcherUpdater.updateRootProjectDirectories(ImmutableSet.of(newRootDirectory))
+        1 * watcherRegistry.registerWatchableHierarchy(newWatchableHierarchy, _)
     }
 }

@@ -81,6 +81,14 @@ public class CompleteDirectorySnapshot extends AbstractCompleteFileSystemLocatio
     }
 
     @Override
+    protected ReadOnlyFileSystemNode getChildNode(VfsRelativePath relativePath, CaseSensitivity caseSensitivity) {
+        ReadOnlyFileSystemNode childNode = SnapshotUtil.getChild(children, relativePath, caseSensitivity);
+        return childNode == ReadOnlyFileSystemNode.EMPTY
+            ? missingSnapshotForAbsolutePath(relativePath.getAbsolutePath())
+            : childNode;
+    }
+
+    @Override
     public Optional<FileSystemNode> invalidate(VfsRelativePath relativePath, CaseSensitivity caseSensitivity, SnapshotHierarchy.NodeDiffListener diffListener) {
         return SnapshotUtil.handleChildren(children, relativePath, caseSensitivity, new SnapshotUtil.ChildHandler<Optional<FileSystemNode>>() {
             @Override

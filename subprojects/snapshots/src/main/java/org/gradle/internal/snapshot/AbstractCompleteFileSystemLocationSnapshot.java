@@ -93,6 +93,15 @@ public abstract class AbstractCompleteFileSystemLocationSnapshot implements Comp
         return Optional.of(missingSnapshotForAbsolutePath(relativePath.getAbsolutePath()));
     }
 
+    @Override
+    public ReadOnlyFileSystemNode getNode(VfsRelativePath relativePath, CaseSensitivity caseSensitivity) {
+        return getChildNode(relativePath, caseSensitivity);
+    }
+
+    protected ReadOnlyFileSystemNode getChildNode(VfsRelativePath relativePath, CaseSensitivity caseSensitivity) {
+        return missingSnapshotForAbsolutePath(relativePath.getAbsolutePath());
+    }
+
     /**
      * A wrapper that changes the relative path of the snapshot to something different.
      *
@@ -124,6 +133,11 @@ public abstract class AbstractCompleteFileSystemLocationSnapshot implements Comp
         @Override
         public Optional<MetadataSnapshot> getSnapshot(VfsRelativePath relativePath, CaseSensitivity caseSensitivity) {
             return delegate.getSnapshot(relativePath, caseSensitivity);
+        }
+
+        @Override
+        public ReadOnlyFileSystemNode getNode(VfsRelativePath relativePath, CaseSensitivity caseSensitivity) {
+            return delegate.getNode(relativePath, caseSensitivity);
         }
 
         @Override
