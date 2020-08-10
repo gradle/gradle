@@ -73,7 +73,7 @@ class BuildOperationsFileSystemWatchingIntegrationTest extends AbstractFileSyste
 
         finishedResult.watchingEnabled
         !finishedResult.stoppedWatchingDuringTheBuild
-        finishedResult.statistics.fileWatchingStatistics.numberOfReceivedEvents > 0
+        finishedResult.statistics
         retainedFiles(finishedResult)
     }
 
