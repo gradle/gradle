@@ -31,6 +31,8 @@ import org.gradle.api.tasks.options.Option;
 import org.gradle.internal.jvm.DefaultModularitySpec;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
+import org.gradle.jvm.toolchain.JavaLauncher;
+import org.gradle.jvm.toolchain.internal.DefaultToolchainJavaLauncher;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.ExecResult;
 import org.gradle.process.JavaDebugOptions;
@@ -113,6 +115,7 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
     private final Property<String> mainClass;
     private final ModularitySpec modularity;
     private final Property<ExecResult> execResult;
+    private Property<JavaLauncher> javaLauncher;
 
     public JavaExec() {
         ObjectFactory objectFactory = getObjectFactory();
@@ -125,6 +128,7 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
         javaExecSpec.getMainClass().convention(getProviderFactory().provider(this::getMain)); // go through 'main' to keep this compatible with existing convention mappings
         javaExecSpec.getMainModule().convention(mainModule);
         javaExecSpec.getModularity().getInferModulePath().convention(modularity.getInferModulePath());
+        javaLauncher = objectFactory.property(JavaLauncher.class);
     }
 
     @Inject
@@ -742,10 +746,28 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
         return execResult;
     }
 
+
+    /**
+     * Configures the java exectuable to be used to run the tests.
+     *
+     * @since 6.7
+     */
+    @Incubating
+    @Internal // getJavaVersion() is used as @Input
+    public Property<JavaLauncher> getJavaLauncher() {
+        return javaLauncher;
+    }
+
     @Nullable
     private String getEffectiveExecutable() {
+        if (javaLauncher.isPresent()) {
+            return ((DefaultToolchainJavaLauncher) javaLauncher.get()).getExecutable();
+        }
         final String executable = getExecutable();
-        return executable == null ? Jvm.current().getJavaExecutable().getAbsolutePath() : executable;
+        if (executable != null) {
+            return executable;
+        }
+        return Jvm.current().getJavaExecutable().getAbsolutePath();
     }
 
 }
