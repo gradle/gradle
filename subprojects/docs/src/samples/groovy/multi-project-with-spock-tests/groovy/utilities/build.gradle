@@ -1,5 +1,6 @@
 plugins {
     id 'myproject.groovy-conventions'
+    id 'java-library'
 }
 
 dependencies {
