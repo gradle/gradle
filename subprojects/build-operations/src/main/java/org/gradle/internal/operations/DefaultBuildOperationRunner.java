@@ -33,12 +33,12 @@ public class DefaultBuildOperationRunner implements BuildOperationRunner {
     private final TimeSupplier clock;
     private final BuildOperationIdFactory buildOperationIdFactory;
     private final CurrentBuildOperationRef currentBuildOperationRef = CurrentBuildOperationRef.instance();
-    private final BuildOperationExecutionListenerDecorator listenerDecorator;
+    private final BuildOperationExecutionListenerFactory listenerFactory;
 
-    public DefaultBuildOperationRunner(TimeSupplier clock, BuildOperationIdFactory buildOperationIdFactory, BuildOperationExecutionListenerDecorator listenerDecorator) {
+    public DefaultBuildOperationRunner(TimeSupplier clock, BuildOperationIdFactory buildOperationIdFactory, BuildOperationExecutionListenerFactory listenerFactory) {
         this.clock = clock;
         this.buildOperationIdFactory = buildOperationIdFactory;
-        this.listenerDecorator = listenerDecorator;
+        this.listenerFactory = listenerFactory;
     }
 
     @Override
@@ -143,7 +143,7 @@ public class DefaultBuildOperationRunner implements BuildOperationRunner {
             operationState,
             parent,
             context,
-            listenerDecorator.decorateListener(new BuildOperationTrackingListener(currentBuildOperationRef))
+            new BuildOperationTrackingListener(currentBuildOperationRef, listenerFactory.createListener())
         );
     }
 
@@ -195,10 +195,12 @@ public class DefaultBuildOperationRunner implements BuildOperationRunner {
 
     private static class BuildOperationTrackingListener implements BuildOperationExecutionListener {
         private final CurrentBuildOperationRef currentBuildOperationRef;
+        private final BuildOperationExecutionListener delegate;
         private BuildOperationState originalCurrentBuildOperation;
 
-        private BuildOperationTrackingListener(CurrentBuildOperationRef currentBuildOperationRef) {
+        private BuildOperationTrackingListener(CurrentBuildOperationRef currentBuildOperationRef, BuildOperationExecutionListener delegate) {
             this.currentBuildOperationRef = currentBuildOperationRef;
+            this.delegate = delegate;
         }
 
         @Override
@@ -207,23 +209,26 @@ public class DefaultBuildOperationRunner implements BuildOperationRunner {
             currentBuildOperationRef.set(operationState);
             operationState.setRunning(true);
             LOGGER.debug("Build operation '{}' started", descriptor.getDisplayName());
+            delegate.start(descriptor, operationState);
         }
 
         @Override
         public void stop(BuildOperationDescriptor descriptor, BuildOperationState operationState, @Nullable BuildOperationState parent, DefaultBuildOperationContext context) {
+            delegate.stop(descriptor, operationState, parent, context);
             LOGGER.debug("Completing Build operation '{}'", descriptor.getDisplayName());
             assertParentRunning("Parent operation (%2$s) completed before this operation (%1$s).", descriptor, parent);
         }
 
         @Override
         public void close(BuildOperationDescriptor descriptor, BuildOperationState operationState) {
+            delegate.close(descriptor, operationState);
             currentBuildOperationRef.set(originalCurrentBuildOperation);
             operationState.setRunning(false);
             LOGGER.debug("Build operation '{}' completed", descriptor.getDisplayName());
         }
     }
 
-    protected interface BuildOperationExecutionListenerDecorator {
-        BuildOperationExecutionListener decorateListener(BuildOperationExecutionListener listener);
+    protected interface BuildOperationExecutionListenerFactory {
+        BuildOperationExecutionListener createListener();
     }
 }
