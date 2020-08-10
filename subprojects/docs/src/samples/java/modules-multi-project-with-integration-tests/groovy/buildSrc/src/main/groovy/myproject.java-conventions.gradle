@@ -9,13 +9,24 @@ repositories {
     jcenter()
 }
 
+// tag::inferModulePath[]
+java {
+    modularity.inferModulePath = true
+}
+// end::inferModulePath[]
+
 def integrationTest = sourceSets.create('integrationTest')
 
 configurations[integrationTest.implementationConfigurationName].extendsFrom(configurations.testImplementation)
 configurations[integrationTest.runtimeOnlyConfigurationName].extendsFrom(configurations.testRuntimeOnly)
 
-tasks.named('test') {
+tasks.named("test") {
     useJUnitPlatform()
+}
+
+def integrationTestJarTask = tasks.register(sourceSets.integrationTest.jarTaskName, Jar) {
+    archiveClassifier = 'integration-tests'
+    from integrationTest.output
 }
 
 def integrationTestTask = tasks.register('integrationTest', Test) {
@@ -24,7 +35,8 @@ def integrationTestTask = tasks.register('integrationTest', Test) {
     useJUnitPlatform()
 
     testClassesDirs = integrationTest.output.classesDirs
-    classpath = configurations[integrationTest.runtimeClasspathConfigurationName] + integrationTest.output
+    // Make sure we run the 'Jar' containing the tests (and not just the 'classes' folder) so that test resources are also part of the test module
+    classpath = configurations[integrationTest.runtimeClasspathConfigurationName] + files(integrationTestJarTask)
 
     shouldRunAfter(tasks.named('test'))
 }
