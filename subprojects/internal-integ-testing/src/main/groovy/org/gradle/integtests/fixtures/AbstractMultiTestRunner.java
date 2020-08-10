@@ -296,17 +296,14 @@ public abstract class AbstractMultiTestRunner extends Runner implements Filterab
         }
 
         @Override
-        public void filter(Filter filter) {
-            filters.add(new Filter() {
-                @Override
-                public boolean shouldRun(Description description) {
-                    return filter.shouldRun(description) || filter.shouldRun(translateDescription(description));
+        public void filter(Filter filter) throws NoTestsRemainException {
+            filters.add(filter);
+            for (Map.Entry<Description, Description> entry : descriptionTranslations.entrySet()) {
+                if (!filter.shouldRun(entry.getKey())) {
+                    enabledTests.remove(entry.getValue());
+                    disabledTests.remove(entry.getValue());
                 }
-                @Override
-                public String describe() {
-                    return filter.describe();
-                }
-            });
+            }
         }
 
         protected void before() {
