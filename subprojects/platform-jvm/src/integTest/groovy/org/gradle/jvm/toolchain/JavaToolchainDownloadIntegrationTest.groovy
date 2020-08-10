@@ -17,6 +17,7 @@
 package org.gradle.jvm.toolchain
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.hamcrest.CoreMatchers
 
 class JavaToolchainDownloadIntegrationTest extends AbstractIntegrationSpec {
 
@@ -46,7 +47,7 @@ class JavaToolchainDownloadIntegrationTest extends AbstractIntegrationSpec {
             .assertHasCause("Failed to calculate the value of task ':compileJava' property 'javaCompiler'")
             .assertHasCause("Unable to download toolchain matching these requirements: {languageVersion=17}")
             .assertHasCause("Unable to download toolchain. This might indicate that the combination (version, architecture, release/early access, ...) for the requested JDK is not available.")
-            .assertHasCause("Could not read 'https://api.adoptopenjdk.net/v3/binary/latest/17/ga/mac/x64/jdk/hotspot/normal/adoptopenjdk' as it does not exist.")
+            .assertThatCause(CoreMatchers.startsWith("Could not read 'https://api.adoptopenjdk.net/v3/binary/latest/17/ga/"))
     }
 
 }
