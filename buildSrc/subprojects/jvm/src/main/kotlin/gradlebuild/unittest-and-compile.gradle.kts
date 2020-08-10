@@ -208,26 +208,20 @@ fun configureTests() {
 
         val testName = name
 
-        //if (BuildEnvironment.isCiServer) {
-
-        testLogging {
-            events("PASSED", "FAILED", "SKIPPED")
-            displayGranularity = 1
+        if (BuildEnvironment.isCiServer) {
+            retry {
+                maxRetries.convention(1)
+                maxFailures.set(10)
+            }
+            doFirst {
+                logger.lifecycle("maxParallelForks for '$path' is $maxParallelForks")
+            }
         }
-
-        retry {
-            maxRetries.set(1)
-            maxFailures.set(10)
-        }
-        doFirst {
-            logger.lifecycle("maxParallelForks for '$path' is $maxParallelForks")
-        }
-        //}
 
         if (project.testDistributionEnabled()) {
             distribution {
-                maxLocalExecutors.set(1)
-                maxRemoteExecutors.set(0)
+                maxLocalExecutors.set(0)
+                maxRemoteExecutors.set(if ("test" == testName) 5 else 20)
                 enabled.set(true)
                 when {
                     OperatingSystem.current().isLinux -> requirements.set(listOf("os=linux"))
