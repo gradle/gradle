@@ -5,14 +5,14 @@ plugins {
 }
 
 dependencies {
-    integTestImplementation(project(":baseServices"))
+    integTestImplementation(project(":base-services"))
     integTestImplementation(project(":native"))
     integTestImplementation(project(":logging"))
-    integTestImplementation(project(":processServices"))
+    integTestImplementation(project(":process-services"))
     integTestImplementation(project(":coreApi"))
     integTestImplementation(project(":resources"))
     integTestImplementation(project(":persistentCache"))
-    integTestImplementation(project(":dependencyManagement"))
+    integTestImplementation(project(":dependency-management"))
     integTestImplementation(project(":bootstrap"))
     integTestImplementation(project(":launcher"))
     integTestImplementation(libs.groovy)
@@ -26,7 +26,7 @@ dependencies {
         exclude(module = "slf4j-simple")
     }
 
-    crossVersionTestImplementation(project(":baseServices"))
+    crossVersionTestImplementation(project(":base-services"))
     crossVersionTestImplementation(project(":core"))
     crossVersionTestImplementation(project(":plugins"))
     crossVersionTestImplementation(project(":platformJvm"))
@@ -36,7 +36,7 @@ dependencies {
     crossVersionTestImplementation(project(":ear"))
     crossVersionTestImplementation(project(":testingJvm"))
     crossVersionTestImplementation(project(":ide"))
-    crossVersionTestImplementation(project(":codeQuality"))
+    crossVersionTestImplementation(project(":code-quality"))
     crossVersionTestImplementation(project(":signing"))
 
     integTestImplementation(testFixtures(project(":core")))
@@ -44,8 +44,8 @@ dependencies {
     integTestImplementation(testFixtures(project(":platformNative")))
     integTestImplementation(libs.jgit)
 
-    integTestDistributionRuntimeOnly(project(":distributionsFull"))
-    crossVersionTestDistributionRuntimeOnly(project(":distributionsFull"))
+    integTestDistributionRuntimeOnly(project(":distributions-full"))
+    crossVersionTestDistributionRuntimeOnly(project(":distributions-full"))
 }
 
 testFilesCleanup {

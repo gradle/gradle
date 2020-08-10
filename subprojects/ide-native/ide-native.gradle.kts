@@ -20,13 +20,13 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":baseServices"))
+    implementation(project(":base-services"))
     implementation(project(":logging"))
     implementation(project(":coreApi"))
     implementation(project(":modelCore"))
     implementation(project(":core"))
     implementation(project(":fileCollections"))
-    implementation(project(":dependencyManagement"))
+    implementation(project(":dependency-management"))
     implementation(project(":ide"))
     implementation(project(":platformBase"))
     implementation(project(":platformNative"))
@@ -55,10 +55,10 @@ dependencies {
     testFixturesImplementation(libs.guava)
     testFixturesImplementation(testFixtures(project(":ide")))
 
-    testRuntimeOnly(project(":distributionsCore")) {
+    testRuntimeOnly(project(":distributions-core")) {
         because("Tests instantiate DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")
     }
-    integTestDistributionRuntimeOnly(project(":distributionsNative"))
+    integTestDistributionRuntimeOnly(project(":distributions-native"))
 }
 
 integrationTestUsesSampleDir("subprojects/ide-native/src/main")

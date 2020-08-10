@@ -4,10 +4,10 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":baseServices"))
+    implementation(project(":base-services"))
     implementation(project(":files"))
     implementation(project(":logging"))
-    implementation(project(":processServices"))
+    implementation(project(":process-services"))
     implementation(project(":fileCollections"))
     implementation(project(":coreApi"))
     implementation(project(":modelCore"))
@@ -30,8 +30,8 @@ dependencies {
     testFixturesImplementation(project(":internalIntegTesting"))
     testFixturesImplementation(testFixtures(project(":core")))
 
-    testRuntimeOnly(project(":distributionsCore")) {
+    testRuntimeOnly(project(":distributions-core")) {
         because("AbstractOptionsTest instantiates DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")
     }
-    integTestDistributionRuntimeOnly(project(":distributionsCore"))
+    integTestDistributionRuntimeOnly(project(":distributions-core"))
 }

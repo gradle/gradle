@@ -6,9 +6,9 @@ plugins {
 }
 
 dependencies {
-    integTestImplementation(project(":baseServices"))
+    integTestImplementation(project(":base-services"))
     integTestImplementation(project(":coreApi"))
-    integTestImplementation(project(":processServices"))
+    integTestImplementation(project(":process-services"))
     integTestImplementation(project(":persistentCache"))
     integTestImplementation(libs.groovy)
     integTestImplementation(libs.slf4jApi)
@@ -20,7 +20,7 @@ dependencies {
     }
     integTestImplementation(testFixtures(project(":core")))
 
-    integTestDistributionRuntimeOnly(project(":distributionsFull"))
+    integTestDistributionRuntimeOnly(project(":distributions-full"))
 }
 
 testFilesCleanup {

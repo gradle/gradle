@@ -47,7 +47,7 @@ configurations {
 
 dependencies {
     // generate Javadoc for the full Gradle distribution
-    runtimeOnly project(":distributionsFull")
+    runtimeOnly project(":distributions-full")
 
     asciidoctor "org.gradle:docs-asciidoctor-extensions:0.4.0"
     // TODO: Why isn't this using the output instead?
@@ -64,7 +64,7 @@ dependencies {
     jquery "jquery:jquery.min:3.4.1@js"
     jquery "com.drewwilson.code:jquery.tipTip:1.3:minified@js"
 
-    testImplementation project(":baseServices")
+    testImplementation project(":base-services")
     testImplementation project(":core")
     testImplementation libs.jsoup
     testImplementation "org.gebish:geb-spock:2.2"
@@ -72,13 +72,13 @@ dependencies {
     testImplementation libs.commonsHttpclient
     testImplementation libs.httpmime
 
-    docsTestImplementation platform(project(":distributionsDependencies"))
+    docsTestImplementation platform(project(":distributions-dependencies"))
     docsTestImplementation project(":internalIntegTesting")
     docsTestImplementation project(":testKit")
     docsTestImplementation libs.junit5Vintage
     docsTestImplementation libs.junit
 
-    integTestDistributionRuntimeOnly project(":distributionsFull")
+    integTestDistributionRuntimeOnly project(":distributions-full")
 }
 
 asciidoctorj {
@@ -223,7 +223,7 @@ samples {
             readmeFile = file("src/snippets/default-readme.adoc")
             sampleDirectory = snippetDir
             promoted = false
-        }            
+        }
     }
 
     publishedSamples {

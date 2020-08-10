@@ -28,7 +28,7 @@ dependencies {
     testFixturesImplementation(libs.guava)
     testImplementation(testFixtures(project(":core")))
 
-    integTestDistributionRuntimeOnly(project(":distributionsCore"))
+    integTestDistributionRuntimeOnly(project(":distributions-core"))
 
     jmh(libs.bouncycastleProvider)
     jmh(libs.guava)

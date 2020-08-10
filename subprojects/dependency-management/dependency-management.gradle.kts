@@ -21,7 +21,7 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":baseServices"))
+    implementation(project(":base-services"))
     implementation(project(":messaging"))
     implementation(project(":native"))
     implementation(project(":logging"))
@@ -30,11 +30,11 @@ dependencies {
     implementation(project(":persistentCache"))
     implementation(project(":coreApi"))
     implementation(project(":modelCore"))
-    implementation(project(":baseServicesGroovy"))
+    implementation(project(":base-services-groovy"))
     implementation(project(":buildCache"))
     implementation(project(":core"))
     implementation(project(":resources"))
-    implementation(project(":resourcesHttp"))
+    implementation(project(":resources-http"))
     implementation(project(":snapshots"))
     implementation(project(":execution"))
     implementation(project(":security"))
@@ -54,7 +54,7 @@ dependencies {
     implementation(libs.ivy)
     implementation(libs.maven3)
 
-    testImplementation(project(":processServices"))
+    testImplementation(project(":process-services"))
     testImplementation(project(":diagnostics"))
     testImplementation(project(":buildCachePackaging"))
     testImplementation(libs.nekohtml)
@@ -62,8 +62,8 @@ dependencies {
     testImplementation(testFixtures(project(":messaging")))
     testImplementation(testFixtures(project(":coreApi")))
     testImplementation(testFixtures(project(":versionControl")))
-    testImplementation(testFixtures(project(":resourcesHttp")))
-    testImplementation(testFixtures(project(":baseServices")))
+    testImplementation(testFixtures(project(":resources-http")))
+    testImplementation(testFixtures(project(":base-services")))
     testImplementation(testFixtures(project(":snapshots")))
     testImplementation(testFixtures(project(":execution")))
 
@@ -75,7 +75,7 @@ dependencies {
     }
     integTestImplementation(testFixtures(project(":security")))
 
-    testFixturesApi(project(":baseServices")) {
+    testFixturesApi(project(":base-services")) {
         because("Test fixtures export the Action class")
     }
     testFixturesApi(project(":persistentCache")) {
@@ -85,7 +85,7 @@ dependencies {
     testFixturesApi(libs.jetty)
     testFixturesImplementation(project(":core"))
     testFixturesImplementation(testFixtures(project(":core")))
-    testFixturesImplementation(testFixtures(project(":resourcesHttp")))
+    testFixturesImplementation(testFixtures(project(":resources-http")))
     testFixturesImplementation(project(":coreApi"))
     testFixturesImplementation(project(":messaging"))
     testFixturesImplementation(project(":internalIntegTesting"))
@@ -98,15 +98,15 @@ dependencies {
     testFixturesApi(libs.testcontainersSpock) {
         because("API because of Groovy compiler bug leaking internals")
     }
-    testFixturesImplementation(project(":jvmServices")) {
+    testFixturesImplementation(project(":jvm-services")) {
         because("Groovy compiler bug leaks internals")
     }
 
-    testRuntimeOnly(project(":distributionsCore")) {
+    testRuntimeOnly(project(":distributions-core")) {
         because("ProjectBuilder tests load services from a Gradle distribution.")
     }
-    integTestDistributionRuntimeOnly(project(":distributionsBasics"))
-    crossVersionTestDistributionRuntimeOnly(project(":distributionsCore"))
+    integTestDistributionRuntimeOnly(project(":distributions-basics"))
+    crossVersionTestDistributionRuntimeOnly(project(":distributions-core"))
 }
 
 classycle {

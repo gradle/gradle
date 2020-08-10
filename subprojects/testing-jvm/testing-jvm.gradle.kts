@@ -22,17 +22,17 @@ plugins {
 gradlebuildJava.usedInWorkers()
 
 dependencies {
-    implementation(project(":baseServices"))
+    implementation(project(":base-services"))
     implementation(project(":messaging"))
     implementation(project(":native"))
     implementation(project(":logging"))
-    implementation(project(":processServices"))
+    implementation(project(":process-services"))
     implementation(project(":fileCollections"))
-    implementation(project(":jvmServices"))
+    implementation(project(":jvm-services"))
     implementation(project(":coreApi"))
     implementation(project(":modelCore"))
     implementation(project(":core"))
-    implementation(project(":dependencyManagement"))
+    implementation(project(":dependency-management"))
     implementation(project(":reporting"))
     implementation(project(":diagnostics"))
     implementation(project(":platformBase"))
@@ -51,7 +51,7 @@ dependencies {
     implementation(libs.inject)
     implementation(libs.bsh)
 
-    testImplementation(project(":baseServicesGroovy"))
+    testImplementation(project(":base-services-groovy"))
     testImplementation(libs.guice) {
         because("This is for TestNG")
     }
@@ -59,13 +59,13 @@ dependencies {
     testImplementation(testFixtures(project(":testingBase")))
     testImplementation(testFixtures(project(":diagnostics")))
     testImplementation(testFixtures(project(":messaging")))
-    testImplementation(testFixtures(project(":baseServices")))
+    testImplementation(testFixtures(project(":base-services")))
     testImplementation(testFixtures(project(":platformNative")))
 
-    testRuntimeOnly(project(":distributionsCore")) {
+    testRuntimeOnly(project(":distributions-core")) {
         because("Tests instantiate DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")
     }
-    integTestDistributionRuntimeOnly(project(":distributionsJvm"))
+    integTestDistributionRuntimeOnly(project(":distributions-jvm"))
 }
 
 strictCompile {

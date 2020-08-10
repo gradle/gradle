@@ -3,10 +3,10 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":baseServices"))
+    implementation(project(":base-services"))
     implementation(project(":logging"))
     implementation(project(":resources"))
-    implementation(project(":resourcesHttp"))
+    implementation(project(":resources-http"))
     implementation(project(":core"))
 
     implementation(libs.slf4jApi)
@@ -21,7 +21,7 @@ dependencies {
 
     testImplementation(libs.groovy)
     testImplementation(testFixtures(project(":core")))
-    testImplementation(testFixtures(project(":dependencyManagement")))
+    testImplementation(testFixtures(project(":dependency-management")))
     testImplementation(testFixtures(project(":ivy")))
     testImplementation(testFixtures(project(":maven")))
 
@@ -30,5 +30,5 @@ dependencies {
     integTestImplementation(libs.commonsIo)
     integTestImplementation(libs.jetty)
 
-    integTestDistributionRuntimeOnly(project(":distributionsBasics"))
+    integTestDistributionRuntimeOnly(project(":distributions-basics"))
 }

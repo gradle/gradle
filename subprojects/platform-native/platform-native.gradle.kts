@@ -20,10 +20,10 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":baseServices"))
+    implementation(project(":base-services"))
     implementation(project(":logging"))
     implementation(project(":native"))
-    implementation(project(":processServices"))
+    implementation(project(":process-services"))
     implementation(project(":fileCollections"))
     implementation(project(":coreApi"))
     implementation(project(":modelCore"))
@@ -49,7 +49,7 @@ dependencies {
     testFixturesImplementation(project(":native"))
     testFixturesImplementation(project(":platformBase"))
     testFixturesImplementation(project(":fileCollections"))
-    testFixturesImplementation(project(":processServices"))
+    testFixturesImplementation(project(":process-services"))
     testFixturesImplementation(project(":snapshots"))
     testFixturesImplementation(libs.guava)
     testFixturesImplementation(libs.nativePlatform)
@@ -61,13 +61,13 @@ dependencies {
     testImplementation(testFixtures(project(":platformBase")))
     testImplementation(testFixtures(project(":modelCore")))
     testImplementation(testFixtures(project(":diagnostics")))
-    testImplementation(testFixtures(project(":baseServices")))
+    testImplementation(testFixtures(project(":base-services")))
     testImplementation(testFixtures(project(":snapshots")))
 
-    testRuntimeOnly(project(":distributionsCore")) {
+    testRuntimeOnly(project(":distributions-core")) {
         because("ProjectBuilder tests load services from a Gradle distribution.")
     }
-    integTestDistributionRuntimeOnly(project(":distributionsNative")) {
+    integTestDistributionRuntimeOnly(project(":distributions-native")) {
         because("Required 'ideNative' to test visual studio project file generation for generated sources")
     }
 }

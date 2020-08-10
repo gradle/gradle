@@ -20,7 +20,7 @@ plugins {
 description = "Execution engine that takes a unit of work and makes it happen"
 
 dependencies {
-    implementation(project(":baseServices"))
+    implementation(project(":base-services"))
     implementation(project(":messaging"))
     implementation(project(":coreApi"))
     implementation(project(":files"))
@@ -38,21 +38,21 @@ dependencies {
 
     testImplementation(project(":native"))
     testImplementation(project(":logging"))
-    testImplementation(project(":processServices"))
+    testImplementation(project(":process-services"))
     testImplementation(project(":modelCore"))
-    testImplementation(project(":baseServicesGroovy"))
+    testImplementation(project(":base-services-groovy"))
     testImplementation(project(":resources"))
-    testImplementation(testFixtures(project(":baseServices")))
+    testImplementation(testFixtures(project(":base-services")))
     testImplementation(testFixtures(project(":fileCollections")))
     testImplementation(testFixtures(project(":messaging")))
     testImplementation(testFixtures(project(":snapshots")))
     testImplementation(testFixtures(project(":core")))
 
     testFixturesImplementation(libs.guava)
-    testFixturesImplementation(project(":baseServices"))
+    testFixturesImplementation(project(":base-services"))
     testFixturesImplementation(project(":buildCache"))
     testFixturesImplementation(project(":snapshots"))
     testFixturesImplementation(project(":modelCore"))
 
-    integTestDistributionRuntimeOnly(project(":distributionsCore"))
+    integTestDistributionRuntimeOnly(project(":distributions-core"))
 }

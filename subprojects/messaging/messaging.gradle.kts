@@ -5,7 +5,7 @@ plugins {
 gradlebuildJava.usedInWorkers()
 
 dependencies {
-    implementation(project(":baseServices"))
+    implementation(project(":base-services"))
 
     implementation(libs.fastutil)
     implementation(libs.slf4jApi)
@@ -14,8 +14,8 @@ dependencies {
 
     testImplementation(testFixtures(project(":core")))
 
-    testFixturesImplementation(project(":baseServices"))
+    testFixturesImplementation(project(":base-services"))
     testFixturesImplementation(libs.slf4jApi)
 
-    integTestDistributionRuntimeOnly(project(":distributionsCore"))
+    integTestDistributionRuntimeOnly(project(":distributions-core"))
 }

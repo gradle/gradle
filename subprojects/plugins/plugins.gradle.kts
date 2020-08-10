@@ -21,16 +21,16 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":baseServices"))
+    implementation(project(":base-services"))
     implementation(project(":logging"))
-    implementation(project(":processServices"))
+    implementation(project(":process-services"))
     implementation(project(":fileCollections"))
     implementation(project(":persistentCache"))
     implementation(project(":coreApi"))
     implementation(project(":modelCore"))
     implementation(project(":core"))
     implementation(project(":workers"))
-    implementation(project(":dependencyManagement"))
+    implementation(project(":dependency-management"))
     implementation(project(":reporting"))
     implementation(project(":platformBase"))
     implementation(project(":platformJvm"))
@@ -59,8 +59,8 @@ dependencies {
     }
     testImplementation(libs.jsoup)
     testImplementation(testFixtures(project(":core")))
-    testImplementation(testFixtures(project(":dependencyManagement")))
-    testImplementation(testFixtures(project(":resourcesHttp")))
+    testImplementation(testFixtures(project(":dependency-management")))
+    testImplementation(testFixtures(project(":resources-http")))
     testImplementation(testFixtures(project(":platformNative")))
     testImplementation(testFixtures(project(":languageJvm")))
     testImplementation(testFixtures(project(":languageJava")))
@@ -68,18 +68,18 @@ dependencies {
     testImplementation(testFixtures(project(":diagnostics")))
 
     testFixturesImplementation(testFixtures(project(":core")))
-    testFixturesImplementation(project(":baseServicesGroovy"))
+    testFixturesImplementation(project(":base-services-groovy"))
     testFixturesImplementation(project(":fileCollections"))
     testFixturesImplementation(project(":languageJvm"))
     testFixturesImplementation(project(":internalIntegTesting"))
-    testFixturesImplementation(project(":processServices"))
+    testFixturesImplementation(project(":process-services"))
     testFixturesImplementation(project(":resources"))
     testFixturesImplementation(libs.guava)
 
-    testRuntimeOnly(project(":distributionsCore")) {
+    testRuntimeOnly(project(":distributions-core")) {
         because("ProjectBuilder tests load services from a Gradle distribution.")
     }
-    integTestDistributionRuntimeOnly(project(":distributionsJvm"))
+    integTestDistributionRuntimeOnly(project(":distributions-jvm"))
 }
 
 strictCompile {

@@ -95,13 +95,14 @@ fun createConfigurationToShade() = configurations.create("jarsToShade") {
         isCanBeConsumed = false
         withDependencies {
             this.add(project.dependencies.create(project))
-            this.add(project.dependencies.create(project.dependencies.platform(project(":distributionsDependencies"))))
+            this.add(project.dependencies.create(project.dependencies.platform(project(":distributions-dependencies"))))
         }
     }
 
 fun addShadedJarTask(shadedJarExtension: ShadedJarExtension): TaskProvider<ShadedJar> {
     val configurationToShade = shadedJarExtension.shadedConfiguration
 
+    // TODO (donat) convert project name to kebab-case before prepending it to the task name
     return tasks.register("${project.name}ShadedJar", ShadedJar::class) {
         jarFile.set(layout.buildDirectory.file(provider { "shaded-jar/${moduleIdentity.baseName.get()}-shaded-${moduleIdentity.version.get().baseVersion.version}.jar" }))
         classTreesConfiguration.from(configurationToShade.artifactViewForType(classTreesType))
@@ -113,6 +114,7 @@ fun addShadedJarTask(shadedJarExtension: ShadedJarExtension): TaskProvider<Shade
 }
 
 fun addInstallShadedJarTask(shadedJarTask: TaskProvider<ShadedJar>) {
+    // TODO (donat) convert project name to kebab-case before prepending it to the task name
     val installPathProperty = "${project.name}ShadedJarInstallPath"
     fun targetFile(): File {
         val file = findProperty(installPathProperty)?.let { File(findProperty(installPathProperty) as String) }
@@ -123,6 +125,7 @@ fun addInstallShadedJarTask(shadedJarTask: TaskProvider<ShadedJar>) {
             throw IllegalArgumentException("Property $installPathProperty is required and must be absolute!")
         }
     }
+    // TODO (donat) convert project name to kebab-case before prepending it to the task name
     tasks.register<Copy>("install${project.name.capitalize()}ShadedJar") {
         from(shadedJarTask.map { it.jarFile })
         into(provider { targetFile().parentFile })

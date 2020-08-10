@@ -23,7 +23,7 @@ description = "Kotlin DSL Provider Plugins"
 dependencies {
     implementation(project(":kotlinDsl"))
 
-    implementation(project(":baseServices"))
+    implementation(project(":base-services"))
     implementation(project(":logging"))
     implementation(project(":coreApi"))
     implementation(project(":modelCore"))
@@ -32,7 +32,7 @@ dependencies {
     implementation(project(":resources"))
     implementation(project(":plugins"))
     implementation(project(":pluginDevelopment"))
-    implementation(project(":toolingApi"))
+    implementation(project(":tooling-api"))
 
     implementation(libs.futureKotlin("scripting-compiler-impl-embeddable")) {
         isTransitive = false

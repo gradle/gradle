@@ -21,7 +21,7 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":baseServices"))
+    implementation(project(":base-services"))
     implementation(project(":coreApi"))
     implementation(project(":resources"))
     implementation(project(":core"))
@@ -32,7 +32,7 @@ dependencies {
     implementation(libs.commonsIo)
 
     testImplementation(testFixtures(project(":core")))
-    testImplementation(testFixtures(project(":dependencyManagement")))
+    testImplementation(testFixtures(project(":dependency-management")))
     testImplementation(testFixtures(project(":ivy")))
     testImplementation(testFixtures(project(":maven")))
 
@@ -42,7 +42,7 @@ dependencies {
     integTestImplementation(libs.sshdScp)
     integTestImplementation(libs.sshdSftp)
 
-    integTestDistributionRuntimeOnly(project(":distributionsBasics"))
+    integTestDistributionRuntimeOnly(project(":distributions-basics"))
 }
 
 testFilesCleanup {

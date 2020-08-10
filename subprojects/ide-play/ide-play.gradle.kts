@@ -36,7 +36,7 @@ val integTestRuntimeResourcesClasspath by configurations.creating {
 }
 
 dependencies {
-    implementation(project(":baseServices"))
+    implementation(project(":base-services"))
     implementation(project(":logging"))
     implementation(project(":coreApi"))
     implementation(project(":modelCore"))
@@ -56,7 +56,7 @@ dependencies {
 
     integTestRuntimeResources(testFixtures(project(":platformPlay")))
 
-    integTestDistributionRuntimeOnly(project(":distributionsFull"))
+    integTestDistributionRuntimeOnly(project(":distributions-full"))
 }
 
 strictCompile {

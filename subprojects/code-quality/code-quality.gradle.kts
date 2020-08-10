@@ -18,10 +18,10 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":baseServices"))
+    implementation(project(":base-services"))
     implementation(project(":logging"))
     implementation(project(":native"))
-    implementation(project(":processServices"))
+    implementation(project(":process-services"))
     implementation(project(":coreApi"))
     implementation(project(":modelCore"))
     implementation(project(":core"))
@@ -39,12 +39,12 @@ dependencies {
 
     testFixturesImplementation(project(":core"))
     testFixturesImplementation(project(":coreApi"))
-    testFixturesImplementation(project(":baseServices"))
+    testFixturesImplementation(project(":base-services"))
 
-    testRuntimeOnly(project(":distributionsCore")) {
+    testRuntimeOnly(project(":distributions-core")) {
         because("ProjectBuilder tests load services from a Gradle distribution.")
     }
-    integTestDistributionRuntimeOnly(project(":distributionsFull"))
+    integTestDistributionRuntimeOnly(project(":distributions-full"))
 }
 
 classycle {

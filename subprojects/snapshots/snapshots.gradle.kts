@@ -30,22 +30,22 @@ dependencies {
     implementation(libs.guava)
     implementation(libs.slf4jApi)
 
-    testImplementation(project(":processServices"))
+    testImplementation(project(":process-services"))
     testImplementation(project(":resources"))
     testImplementation(project(":native"))
     testImplementation(project(":persistentCache"))
     testImplementation(libs.ant)
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":coreApi")))
-    testImplementation(testFixtures(project(":baseServices")))
+    testImplementation(testFixtures(project(":base-services")))
     testImplementation(testFixtures(project(":fileCollections")))
     testImplementation(testFixtures(project(":messaging")))
 
-    testFixturesImplementation(project(":baseServices"))
+    testFixturesImplementation(project(":base-services"))
     testFixturesImplementation(project(":coreApi"))
     testFixturesImplementation(project(":fileCollections"))
 
-    integTestDistributionRuntimeOnly(project(":distributionsCore"))
+    integTestDistributionRuntimeOnly(project(":distributions-core"))
 }
 
 afterEvaluate {

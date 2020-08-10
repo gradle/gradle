@@ -21,15 +21,15 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":baseServices"))
+    implementation(project(":base-services"))
     implementation(project(":logging"))
     implementation(project(":coreApi"))
     implementation(project(":modelCore"))
     implementation(project(":core"))
     implementation(project(":fileCollections"))
     implementation(project(":resources"))
-    implementation(project(":baseServicesGroovy"))
-    implementation(project(":dependencyManagement"))
+    implementation(project(":base-services-groovy"))
+    implementation(project(":dependency-management"))
     implementation(project(":plugins"))
     implementation(project(":pluginUse"))
     implementation(project(":publish"))
@@ -50,29 +50,29 @@ dependencies {
     implementation(libs.aetherConnector)
 
     testImplementation(project(":native"))
-    testImplementation(project(":processServices"))
+    testImplementation(project(":process-services"))
     testImplementation(project(":snapshots"))
-    testImplementation(project(":resourcesHttp"))
+    testImplementation(project(":resources-http"))
     testImplementation(libs.xmlunit)
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":modelCore")))
-    testImplementation(testFixtures(project(":dependencyManagement")))
+    testImplementation(testFixtures(project(":dependency-management")))
 
     integTestImplementation(project(":ear"))
     integTestImplementation(libs.jetty)
 
-    testFixturesApi(project(":baseServices")) {
+    testFixturesApi(project(":base-services")) {
         because("Test fixtures export the Action class")
     }
     testFixturesImplementation(project(":coreApi"))
     testFixturesImplementation(project(":internalIntegTesting"))
-    testFixturesImplementation(project(":dependencyManagement"))
+    testFixturesImplementation(project(":dependency-management"))
 
-    testRuntimeOnly(project(":distributionsCore")) {
+    testRuntimeOnly(project(":distributions-core")) {
         because("ProjectBuilder tests load services from a Gradle distribution.")
     }
-    integTestDistributionRuntimeOnly(project(":distributionsJvm"))
-    crossVersionTestDistributionRuntimeOnly(project(":distributionsCore"))
+    integTestDistributionRuntimeOnly(project(":distributions-jvm"))
+    crossVersionTestDistributionRuntimeOnly(project(":distributions-core"))
 }
 
 strictCompile {

@@ -23,25 +23,25 @@ plugins {
 description = "Kotlin DSL Provider"
 
 dependencies {
-    api(project(":kotlinDslToolingModels"))
-    api(project(":kotlinCompilerEmbeddable"))
+    api(project(":kotlin-dsl-tooling-models"))
+    api(project(":kotlin-compiler-embeddable"))
     api(libs.futureKotlin("stdlib-jdk8"))
 
-    implementation(project(":baseServices"))
+    implementation(project(":base-services"))
     implementation(project(":messaging"))
     implementation(project(":native"))
     implementation(project(":logging"))
-    implementation(project(":processServices"))
+    implementation(project(":process-services"))
     implementation(project(":persistentCache"))
     implementation(project(":coreApi"))
     implementation(project(":modelCore"))
     implementation(project(":core"))
-    implementation(project(":baseServicesGroovy")) // for 'Specs'
+    implementation(project(":base-services-groovy")) // for 'Specs'
     implementation(project(":fileCollections"))
     implementation(project(":files"))
     implementation(project(":resources"))
     implementation(project(":buildCache"))
-    implementation(project(":toolingApi"))
+    implementation(project(":tooling-api"))
     implementation(project(":execution"))
 
     implementation(libs.groovy)
@@ -71,7 +71,7 @@ dependencies {
         isTransitive = false
     }
 
-    testImplementation(project(":buildCacheHttp"))
+    testImplementation(project(":build-cache-http"))
     testImplementation(project(":buildInit"))
     testImplementation(project(":jacoco"))
     testImplementation(project(":platformNative")) {
@@ -95,15 +95,15 @@ dependencies {
     integTestImplementation(project(":internalTesting"))
     integTestImplementation(libs.mockitoKotlin)
 
-    testRuntimeOnly(project(":distributionsJvm")) {
+    testRuntimeOnly(project(":distributions-native")) {
         because("SimplifiedKotlinScriptEvaluator reads default imports from the distribution (default-imports.txt) and BuildType from platform-native is used in ProjectAccessorsClassPathTest.")
     }
 
-    testFixturesImplementation(project(":baseServices"))
+    testFixturesImplementation(project(":base-services"))
     testFixturesImplementation(project(":coreApi"))
     testFixturesImplementation(project(":core"))
     testFixturesImplementation(project(":resources"))
-    testFixturesImplementation(project(":kotlinDslToolingBuilders"))
+    testFixturesImplementation(project(":kotlin-dsl-tooling-builders"))
     testFixturesImplementation(project(":testKit"))
     testFixturesImplementation(project(":internalTesting"))
     testFixturesImplementation(project(":internalIntegTesting"))
@@ -113,7 +113,7 @@ dependencies {
     testFixturesImplementation(libs.jacksonKotlin)
     testFixturesImplementation(libs.asm)
 
-    integTestDistributionRuntimeOnly(project(":distributionsBasics"))
+    integTestDistributionRuntimeOnly(project(":distributions-basics"))
 }
 
 classycle {

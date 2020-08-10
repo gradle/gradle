@@ -20,7 +20,7 @@ plugins {
 description = "Provides high-level insights into a Gradle build (--profile)"
 
 dependencies {
-    implementation(project(":baseServices"))
+    implementation(project(":base-services"))
     implementation(project(":messaging"))
     implementation(project(":logging"))
     implementation(project(":coreApi"))
@@ -33,5 +33,5 @@ dependencies {
 
     integTestImplementation(libs.jsoup)
 
-    integTestDistributionRuntimeOnly(project(":distributionsFull"))
+    integTestDistributionRuntimeOnly(project(":distributions-full"))
 }

@@ -22,15 +22,15 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":baseServices"))
+    implementation(project(":base-services"))
     implementation(project(":logging"))
-    implementation(project(":processServices"))
+    implementation(project(":process-services"))
     implementation(project(":files"))
     implementation(project(":coreApi"))
     implementation(project(":modelCore"))
     implementation(project(":execution"))
     implementation(project(":core"))
-    implementation(project(":dependencyManagement"))
+    implementation(project(":dependency-management"))
     implementation(project(":maven"))
     implementation(project(":ivy"))
     implementation(project(":platformJvm"))
@@ -56,18 +56,18 @@ dependencies {
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":logging")))
 
-    integTestImplementation(project(":baseServicesGroovy"))
+    integTestImplementation(project(":base-services-groovy"))
     integTestImplementation(libs.jetbrainsAnnotations)
 
-    integTestLocalRepository(project(":toolingApi")) {
+    integTestLocalRepository(project(":tooling-api")) {
         because("Required by GradleImplDepsCompatibilityIntegrationTest")
     }
 
-    testRuntimeOnly(project(":distributionsBasics")) {
+    testRuntimeOnly(project(":distributions-basics")) {
         because("ProjectBuilder tests load services from a Gradle distribution.")
     }
-    integTestDistributionRuntimeOnly(project(":distributionsBasics"))
-    crossVersionTestDistributionRuntimeOnly(project(":distributionsBasics"))
+    integTestDistributionRuntimeOnly(project(":distributions-basics"))
+    crossVersionTestDistributionRuntimeOnly(project(":distributions-basics"))
 }
 
 testFilesCleanup {

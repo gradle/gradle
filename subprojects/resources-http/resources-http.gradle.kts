@@ -19,7 +19,7 @@ plugins {
 
 dependencies {
     api(project(":resources"))
-    implementation(project(":baseServices"))
+    implementation(project(":base-services"))
     implementation(project(":coreApi"))
     implementation(project(":core"))
     implementation(project(":modelCore"))
@@ -40,10 +40,10 @@ dependencies {
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":logging")))
 
-    testFixturesImplementation(project(":baseServices"))
+    testFixturesImplementation(project(":base-services"))
     testFixturesImplementation(project(":logging"))
     testFixturesImplementation(project(":internalIntegTesting"))
     testFixturesImplementation(libs.slf4jApi)
 
-    integTestDistributionRuntimeOnly(project(":distributionsCore"))
+    integTestDistributionRuntimeOnly(project(":distributions-core"))
 }

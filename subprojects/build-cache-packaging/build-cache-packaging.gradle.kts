@@ -32,11 +32,11 @@ dependencies {
     implementation(libs.commonsCompress)
     implementation(libs.commonsIo)
 
-    testImplementation(project(":processServices"))
+    testImplementation(project(":process-services"))
     testImplementation(project(":fileCollections"))
     testImplementation(project(":resources"))
 
-    testImplementation(testFixtures(project(":baseServices")))
+    testImplementation(testFixtures(project(":base-services")))
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":snapshots")))
     testImplementation(testFixtures(project(":coreApi")))

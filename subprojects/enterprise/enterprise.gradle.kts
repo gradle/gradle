@@ -19,7 +19,7 @@ plugins {
 }
 
 dependencies {
-    api(project(":baseServices")) // leaks BuildOperationNotificationListener on API
+    api(project(":base-services")) // leaks BuildOperationNotificationListener on API
 
     implementation(libs.jsr305)
     implementation(libs.inject)
@@ -38,5 +38,5 @@ dependencies {
     integTestImplementation(project(":native"))
     integTestImplementation(libs.guava)
 
-    integTestDistributionRuntimeOnly(project(":distributionsFull"))
+    integTestDistributionRuntimeOnly(project(":distributions-full"))
 }

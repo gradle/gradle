@@ -18,7 +18,7 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":baseServices"))
+    implementation(project(":base-services"))
     implementation(project(":coreApi"))
     implementation(project(":modelCore"))
     implementation(project(":core"))
@@ -27,7 +27,7 @@ dependencies {
     implementation(project(":platformNative"))
     implementation(project(":languageNative"))
     implementation(project(":testingNative"))
-    implementation(project(":toolingApi"))
+    implementation(project(":tooling-api"))
     implementation(project(":ide")) {
         because("To pick up various builders (which should live somewhere else)")
     }
@@ -36,5 +36,5 @@ dependencies {
 
     testImplementation(testFixtures(project(":platformNative")))
 
-    crossVersionTestDistributionRuntimeOnly(project(":distributionsNative"))
+    crossVersionTestDistributionRuntimeOnly(project(":distributions-native"))
 }

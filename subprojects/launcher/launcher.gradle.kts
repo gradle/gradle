@@ -6,13 +6,13 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":baseServices"))
+    implementation(project(":base-services"))
     implementation(project(":cli"))
     implementation(project(":messaging"))
     implementation(project(":buildOption"))
     implementation(project(":native"))
     implementation(project(":logging"))
-    implementation(project(":processServices"))
+    implementation(project(":process-services"))
     implementation(project(":files"))
     implementation(project(":fileCollections"))
     implementation(project(":snapshots"))
@@ -20,9 +20,9 @@ dependencies {
     implementation(project(":coreApi"))
     implementation(project(":core"))
     implementation(project(":bootstrap"))
-    implementation(project(":jvmServices"))
-    implementation(project(":buildEvents"))
-    implementation(project(":toolingApi"))
+    implementation(project(":jvm-services"))
+    implementation(project(":build-events"))
+    implementation(project(":tooling-api"))
     implementation(project(":fileWatching"))
 
     implementation(libs.groovy) // for 'ReleaseInfo.getVersion()'
@@ -39,7 +39,7 @@ dependencies {
     runtimeOnly(libs.slf4jApi)
 
     manifestClasspath(project(":bootstrap"))
-    manifestClasspath(project(":baseServices"))
+    manifestClasspath(project(":base-services"))
     manifestClasspath(project(":coreApi"))
     manifestClasspath(project(":core"))
     manifestClasspath(project(":persistentCache"))
@@ -47,18 +47,18 @@ dependencies {
     testImplementation(project(":internalIntegTesting"))
     testImplementation(project(":native"))
     testImplementation(project(":cli"))
-    testImplementation(project(":processServices"))
+    testImplementation(project(":process-services"))
     testImplementation(project(":coreApi"))
     testImplementation(project(":modelCore"))
     testImplementation(project(":resources"))
     testImplementation(project(":snapshots"))
-    testImplementation(project(":baseServicesGroovy")) // for 'Specs'
+    testImplementation(project(":base-services-groovy")) // for 'Specs'
 
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":languageJava")))
     testImplementation(testFixtures(project(":messaging")))
     testImplementation(testFixtures(project(":logging")))
-    testImplementation(testFixtures(project(":toolingApi")))
+    testImplementation(testFixtures(project(":tooling-api")))
 
     integTestImplementation(project(":persistentCache"))
     integTestImplementation(libs.slf4jApi)
@@ -66,10 +66,10 @@ dependencies {
     integTestImplementation(libs.commonsLang)
     integTestImplementation(libs.commonsIo)
 
-    testRuntimeOnly(project(":distributionsCore")) {
+    testRuntimeOnly(project(":distributions-core")) {
         because("Tests instantiate DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")
     }
-    integTestDistributionRuntimeOnly(project(":distributionsNative")) {
+    integTestDistributionRuntimeOnly(project(":distributions-native")) {
         because("'native' distribution requried for 'ProcessCrashHandlingIntegrationTest.session id of daemon is different from daemon client'")
     }
 }

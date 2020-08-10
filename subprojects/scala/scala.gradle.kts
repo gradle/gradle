@@ -20,7 +20,7 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":baseServices"))
+    implementation(project(":base-services"))
     implementation(project(":logging"))
     implementation(project(":workerProcesses"))
     implementation(project(":fileCollections"))
@@ -35,14 +35,14 @@ dependencies {
     implementation(project(":languageScala"))
     implementation(project(":plugins"))
     implementation(project(":reporting"))
-    implementation(project(":dependencyManagement"))
-    implementation(project(":processServices"))
+    implementation(project(":dependency-management"))
+    implementation(project(":process-services"))
 
     implementation(libs.groovy)
     implementation(libs.guava)
     implementation(libs.inject)
 
-    testImplementation(project(":baseServicesGroovy"))
+    testImplementation(project(":base-services-groovy"))
     testImplementation(project(":files"))
     testImplementation(project(":resources"))
     testImplementation(libs.slf4jApi)
@@ -52,13 +52,13 @@ dependencies {
     testImplementation(testFixtures(project(":languageJvm")))
     testImplementation(testFixtures(project(":languageJava")))
 
-    integTestImplementation(project(":jvmServices"))
+    integTestImplementation(project(":jvm-services"))
     integTestImplementation(testFixtures(project(":languageScala")))
 
-    testRuntimeOnly(project(":distributionsCore")) {
+    testRuntimeOnly(project(":distributions-core")) {
         because("ProjectBuilder tests load services from a Gradle distribution.")
     }
-    integTestDistributionRuntimeOnly(project(":distributionsJvm"))
+    integTestDistributionRuntimeOnly(project(":distributions-jvm"))
 }
 
 classycle {

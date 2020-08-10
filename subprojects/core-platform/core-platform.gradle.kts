@@ -7,7 +7,7 @@ javaPlatform.allowDependencies()
 
 dependencies {
     runtime(project(":installationBeacon"))
-    runtime(project(":apiMetadata"))
+    runtime(project(":api-metadata"))
     runtime(project(":launcher")) {
         because("This is the entry point of Gradle core which transitively depends on all other core projects.")
     }

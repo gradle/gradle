@@ -3,10 +3,10 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":baseServices"))
+    implementation(project(":base-services"))
     implementation(project(":files"))
     implementation(project(":logging"))
-    implementation(project(":processServices"))
+    implementation(project(":process-services"))
     implementation(project(":workerProcesses"))
     implementation(project(":persistentCache"))
     implementation(project(":coreApi"))
@@ -34,7 +34,7 @@ dependencies {
     integTestImplementation(libs.ant)
 
     testFixturesApi(testFixtures(project(":languageJvm")))
-    testFixturesImplementation(project(":baseServices"))
+    testFixturesImplementation(project(":base-services"))
     testFixturesImplementation(project(":coreApi"))
     testFixturesImplementation(project(":modelCore"))
     testFixturesImplementation(project(":platformBase"))
@@ -42,10 +42,10 @@ dependencies {
 
     compileOnly("org.scala-sbt:zinc_2.12:1.3.5")
 
-    testRuntimeOnly(project(":distributionsJvm")) {
+    testRuntimeOnly(project(":distributions-jvm")) {
         because("ProjectBuilder tests load services from a Gradle distribution.")
     }
-    integTestDistributionRuntimeOnly(project(":distributionsJvm"))
+    integTestDistributionRuntimeOnly(project(":distributions-jvm"))
 }
 
 strictCompile {

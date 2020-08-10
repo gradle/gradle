@@ -21,26 +21,26 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":baseServices"))
+    implementation(project(":base-services"))
     implementation(project(":messaging"))
     implementation(project(":native"))
     implementation(project(":logging"))
     implementation(project(":cli"))
-    implementation(project(":processServices"))
+    implementation(project(":process-services"))
     implementation(project(":coreApi"))
     implementation(project(":modelCore"))
-    implementation(project(":baseServicesGroovy"))
+    implementation(project(":base-services-groovy"))
     implementation(project(":files"))
     implementation(project(":fileCollections"))
     implementation(project(":resources"))
     implementation(project(":buildCache"))
     implementation(project(":persistentCache"))
-    implementation(project(":dependencyManagement"))
-    implementation(project(":instantExecution"))
-    implementation(project(":jvmServices"))
+    implementation(project(":dependency-management"))
+    implementation(project(":instant-execution"))
+    implementation(project(":jvm-services"))
     implementation(project(":launcher"))
     implementation(project(":internalTesting"))
-    implementation(project(":buildEvents"))
+    implementation(project(":build-events"))
     implementation(project(":buildOption"))
 
     implementation(libs.groovy)
@@ -85,10 +85,10 @@ dependencies {
     }
     implementation(testFixtures(project(":core")))
 
-    testRuntimeOnly(project(":distributionsCore")) {
+    testRuntimeOnly(project(":distributions-core")) {
         because("Tests instantiate DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")
     }
-    integTestDistributionRuntimeOnly(project(":distributionsCore"))
+    integTestDistributionRuntimeOnly(project(":distributions-core"))
 }
 
 classycle {

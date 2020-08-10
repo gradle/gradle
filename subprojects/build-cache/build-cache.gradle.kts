@@ -22,7 +22,7 @@ dependencies {
     api(project(":buildCacheBase"))
     api(project(":snapshots"))
 
-    implementation(project(":baseServices"))
+    implementation(project(":base-services"))
     implementation(project(":coreApi"))
     implementation(project(":files"))
     implementation(project(":native"))
@@ -35,7 +35,7 @@ dependencies {
     implementation(libs.commonsIo)
     implementation(libs.inject)
 
-    jmhImplementation(platform(project(":distributionsDependencies")))
+    jmhImplementation(platform(project(":distributions-dependencies")))
     jmhImplementation(libs.ant)
     jmhImplementation(libs.commonsCompress)
     jmhImplementation(libs.aircompressor)
@@ -45,7 +45,7 @@ dependencies {
     testImplementation(project(":modelCore"))
     testImplementation(project(":fileCollections"))
     testImplementation(testFixtures(project(":core")))
-    testImplementation(testFixtures(project(":baseServices")))
+    testImplementation(testFixtures(project(":base-services")))
 
-    integTestDistributionRuntimeOnly(project(":distributionsCore"))
+    integTestDistributionRuntimeOnly(project(":distributions-core"))
 }

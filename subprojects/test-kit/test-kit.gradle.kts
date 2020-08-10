@@ -22,11 +22,11 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":baseServices"))
+    implementation(project(":base-services"))
     implementation(project(":coreApi"))
     implementation(project(":core"))
     implementation(project(":wrapper"))
-    implementation(project(":toolingApi"))
+    implementation(project(":tooling-api"))
     implementation(libs.commonsIo)
 
     testImplementation(libs.guava)
@@ -36,13 +36,13 @@ dependencies {
     integTestImplementation(project(":logging"))
     integTestImplementation(project(":launcher"))
     integTestImplementation(project(":buildOption"))
-    integTestImplementation(project(":jvmServices"))
+    integTestImplementation(project(":jvm-services"))
     integTestImplementation(libs.slf4jApi)
 
-    testRuntimeOnly(project(":distributionsCore")) {
+    testRuntimeOnly(project(":distributions-core")) {
         because("Tests instantiate DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")
     }
-    integTestDistributionRuntimeOnly(project(":distributionsBasics"))
+    integTestDistributionRuntimeOnly(project(":distributions-basics"))
 }
 
 val generateTestKitPackageList by tasks.registering(PackageListGenerator::class) {

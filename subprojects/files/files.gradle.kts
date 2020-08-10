@@ -28,7 +28,7 @@ dependencies {
     implementation(libs.slf4jApi)
 
     testImplementation(project(":native"))
-    testImplementation(project(":baseServices")) {
+    testImplementation(project(":base-services")) {
         because("TextUtil is needed")
     }
     testImplementation(testFixtures(project(":native")))

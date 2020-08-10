@@ -32,8 +32,8 @@ tasks.classpathManifest {
 }
 
 dependencies {
-    implementation(project(":baseServices"))
-    implementation(project(":baseServicesGroovy"))
+    implementation(project(":base-services"))
+    implementation(project(":base-services-groovy"))
     implementation(project(":messaging"))
     implementation(project(":logging"))
     implementation(project(":resources"))
@@ -47,8 +47,8 @@ dependencies {
     implementation(project(":coreApi"))
     implementation(project(":files"))
     implementation(project(":fileCollections"))
-    implementation(project(":processServices"))
-    implementation(project(":jvmServices"))
+    implementation(project(":process-services"))
+    implementation(project(":jvm-services"))
     implementation(project(":modelGroovy"))
     implementation(project(":snapshots"))
     implementation(project(":fileWatching"))
@@ -76,10 +76,10 @@ dependencies {
     testImplementation(libs.log4jToSlf4j)
     testImplementation(libs.jclToSlf4j)
 
-    testFixturesApi(project(":baseServices")) {
+    testFixturesApi(project(":base-services")) {
         because("test fixtures expose Action")
     }
-    testFixturesApi(project(":baseServicesGroovy")) {
+    testFixturesApi(project(":base-services-groovy")) {
         because("test fixtures expose AndSpec")
     }
     testFixturesApi(project(":coreApi")) {
@@ -103,7 +103,7 @@ dependencies {
     testFixturesImplementation(project(":fileCollections"))
     testFixturesImplementation(project(":native"))
     testFixturesImplementation(project(":resources"))
-    testFixturesImplementation(project(":processServices"))
+    testFixturesImplementation(project(":process-services"))
     testFixturesImplementation(project(":messaging"))
     testFixturesImplementation(project(":persistentCache"))
     testFixturesImplementation(project(":snapshots"))
@@ -116,7 +116,7 @@ dependencies {
     testFixturesRuntimeOnly(project(":pluginUse")) {
         because("This is a core extension module (see DynamicModulesClassPathProvider.GRADLE_EXTENSION_MODULES)")
     }
-    testFixturesRuntimeOnly(project(":dependencyManagement")) {
+    testFixturesRuntimeOnly(project(":dependency-management")) {
         because("This is a core extension module (see DynamicModulesClassPathProvider.GRADLE_EXTENSION_MODULES)")
     }
     testFixturesRuntimeOnly(project(":workers")) {
@@ -126,17 +126,17 @@ dependencies {
         because("We always need a BuildStateRegistry service implementation")
     }
 
-    testImplementation(project(":dependencyManagement"))
+    testImplementation(project(":dependency-management"))
 
     testImplementation(testFixtures(project(":coreApi")))
     testImplementation(testFixtures(project(":messaging")))
     testImplementation(testFixtures(project(":modelCore")))
     testImplementation(testFixtures(project(":logging")))
-    testImplementation(testFixtures(project(":baseServices")))
+    testImplementation(testFixtures(project(":base-services")))
     testImplementation(testFixtures(project(":diagnostics")))
 
     integTestImplementation(project(":workers"))
-    integTestImplementation(project(":dependencyManagement"))
+    integTestImplementation(project(":dependency-management"))
     integTestImplementation(project(":launcher"))
     integTestImplementation(project(":plugins"))
     integTestImplementation(libs.jansi)
@@ -145,13 +145,13 @@ dependencies {
     integTestImplementation(libs.littleproxy)
     integTestImplementation(testFixtures(project(":native")))
 
-    testRuntimeOnly(project(":distributionsCore")) {
+    testRuntimeOnly(project(":distributions-core")) {
         because("ProjectBuilder tests load services from a Gradle distribution.")
     }
-    integTestDistributionRuntimeOnly(project(":distributionsBasics")) {
+    integTestDistributionRuntimeOnly(project(":distributions-basics")) {
         because("Some tests utilise the 'java-gradle-plugin' and with that TestKit")
     }
-    crossVersionTestDistributionRuntimeOnly(project(":distributionsCore"))
+    crossVersionTestDistributionRuntimeOnly(project(":distributions-core"))
 }
 
 strictCompile {

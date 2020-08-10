@@ -29,7 +29,7 @@ version = "1.3.7"
 base.archivesBaseName = "plugins"
 
 dependencies {
-    compileOnly(project(":baseServices"))
+    compileOnly(project(":base-services"))
     compileOnly(project(":logging"))
     compileOnly(project(":coreApi"))
     compileOnly(project(":modelCore"))
@@ -47,7 +47,7 @@ dependencies {
     implementation(libs.futureKotlin("gradle-plugin"))
     implementation(libs.futureKotlin("sam-with-receiver"))
 
-    integTestImplementation(project(":baseServices"))
+    integTestImplementation(project(":base-services"))
     integTestImplementation(project(":logging"))
     integTestImplementation(project(":coreApi"))
     integTestImplementation(project(":modelCore"))
@@ -60,7 +60,7 @@ dependencies {
     integTestImplementation(libs.slf4jApi)
     integTestImplementation(libs.mockitoKotlin)
 
-    integTestDistributionRuntimeOnly(project(":distributionsBasics")) {
+    integTestDistributionRuntimeOnly(project(":distributions-basics")) {
         because("KotlinDslPluginTest tests against TestKit")
     }
     integTestLocalRepository(project)

@@ -10,7 +10,7 @@ gradlebuildJava.usedInWorkers()
 dependencies {
     api(project(":files"))
 
-    implementation(project(":baseServices"))
+    implementation(project(":base-services"))
 
     implementation(libs.nativePlatform)
     implementation(libs.slf4jApi)

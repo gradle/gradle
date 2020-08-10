@@ -21,10 +21,10 @@ plugins {
 dependencies {
     api(project(":coreApi"))
 
-    implementation(project(":baseServices"))
+    implementation(project(":base-services"))
     implementation(project(":logging"))
     implementation(project(":persistentCache"))
-    implementation(project(":baseServicesGroovy"))
+    implementation(project(":base-services-groovy"))
     implementation(project(":messaging"))
     implementation(project(":snapshots"))
 
@@ -41,7 +41,7 @@ dependencies {
     testFixturesImplementation(project(":internalIntegTesting"))
     testFixturesImplementation(libs.guava)
 
-    testImplementation(project(":processServices"))
+    testImplementation(project(":process-services"))
     testImplementation(project(":fileCollections"))
     testImplementation(project(":native"))
     testImplementation(project(":resources"))
@@ -49,10 +49,10 @@ dependencies {
 
     integTestImplementation(project(":platformBase"))
 
-    testRuntimeOnly(project(":distributionsCore")) {
+    testRuntimeOnly(project(":distributions-core")) {
         because("Tests instantiate DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")
     }
-    integTestDistributionRuntimeOnly(project(":distributionsCore"))
+    integTestDistributionRuntimeOnly(project(":distributions-core"))
 }
 
 strictCompile {

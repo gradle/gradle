@@ -18,7 +18,7 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":baseServices"))
+    implementation(project(":base-services"))
     implementation(project(":messaging"))
     implementation(project(":logging"))
     implementation(project(":files"))
@@ -27,7 +27,7 @@ dependencies {
     implementation(project(":coreApi"))
     implementation(project(":core"))
     implementation(project(":resources"))
-    implementation(project(":dependencyManagement"))
+    implementation(project(":dependency-management"))
 
     implementation(libs.guava)
     implementation(libs.inject)
@@ -37,10 +37,10 @@ dependencies {
 
     testImplementation(project(":native"))
     testImplementation(project(":snapshots"))
-    testImplementation(project(":processServices"))
+    testImplementation(project(":process-services"))
     testImplementation(testFixtures(project(":core")))
 
-    testFixturesImplementation(project(":baseServices"))
+    testFixturesImplementation(project(":base-services"))
     testFixturesImplementation(project(":internalIntegTesting"))
 
     testFixturesImplementation(libs.jgit)
@@ -50,5 +50,5 @@ dependencies {
     testFixturesImplementation(libs.guava)
 
     integTestImplementation(project(":launcher"))
-    integTestDistributionRuntimeOnly(project(":distributionsBasics"))
+    integTestDistributionRuntimeOnly(project(":distributions-basics"))
 }

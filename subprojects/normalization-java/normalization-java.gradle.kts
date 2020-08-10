@@ -31,6 +31,6 @@ dependencies {
     implementation(libs.slf4jApi)
     implementation(libs.commonsIo)
 
-    testImplementation(project(":baseServices"))
+    testImplementation(project(":base-services"))
     testImplementation(project(":internalTesting"))
 }

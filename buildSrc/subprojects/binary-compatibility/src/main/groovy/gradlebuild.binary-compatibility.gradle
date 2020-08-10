@@ -87,7 +87,7 @@ dependencies {
 
     // TODO update this to use a dependency on :distributionFull instead of 'rootProject.subprojects { }'
     rootProject.subprojects { subproject ->
-        if (subproject.name == 'distributionsDependencies') {
+        if (subproject.name == 'distributions-dependencies') {
             currentClasspath platform(subproject)
         }
         plugins.withId('gradlebuild.distribution.api') {

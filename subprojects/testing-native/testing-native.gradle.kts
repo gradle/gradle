@@ -18,10 +18,10 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":baseServices"))
+    implementation(project(":base-services"))
     implementation(project(":native"))
     implementation(project(":logging"))
-    implementation(project(":processServices"))
+    implementation(project(":process-services"))
     implementation(project(":coreApi"))
     implementation(project(":modelCore"))
     implementation(project(":core"))
@@ -48,8 +48,8 @@ dependencies {
     testImplementation(testFixtures(project(":languageNative")))
     testImplementation(testFixtures(project(":ide")))
 
-    testRuntimeOnly(project(":distributionsCore")) {
+    testRuntimeOnly(project(":distributions-core")) {
         because("ProjectBuilder tests load services from a Gradle distribution.")
     }
-    integTestDistributionRuntimeOnly(project(":distributionsNative"))
+    integTestDistributionRuntimeOnly(project(":distributions-native"))
 }

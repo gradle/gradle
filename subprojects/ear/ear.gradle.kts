@@ -18,14 +18,14 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":baseServices"))
+    implementation(project(":base-services"))
     implementation(project(":logging"))
     implementation(project(":fileCollections"))
     implementation(project(":execution"))
     implementation(project(":coreApi"))
     implementation(project(":modelCore"))
     implementation(project(":core"))
-    implementation(project(":dependencyManagement"))
+    implementation(project(":dependency-management"))
     implementation(project(":plugins"))
     implementation(project(":platformJvm"))
 
@@ -35,14 +35,14 @@ dependencies {
     implementation(libs.inject)
 
     testImplementation(project(":native"))
-    testImplementation(project(":baseServicesGroovy"))
+    testImplementation(project(":base-services-groovy"))
     testImplementation(libs.ant)
     testImplementation(testFixtures(project(":core")))
 
-    testRuntimeOnly(project(":distributionsJvm")) {
+    testRuntimeOnly(project(":distributions-jvm")) {
         because("ProjectBuilder tests load services from a Gradle distribution.")
     }
-    integTestDistributionRuntimeOnly(project(":distributionsJvm"))
+    integTestDistributionRuntimeOnly(project(":distributions-jvm"))
 }
 
 strictCompile {

@@ -34,11 +34,11 @@ afterEvaluate {
 }
 
 dependencies {
-    implementation(project(":baseServices"))
-    implementation(project(":baseServicesGroovy"))
+    implementation(project(":base-services"))
+    implementation(project(":base-services-groovy"))
     implementation(project(":core"))
     implementation(project(":coreApi"))
-    implementation(project(":dependencyManagement"))
+    implementation(project(":dependency-management"))
     implementation(project(":execution"))
     implementation(project(":fileCollections"))
     implementation(project(":kotlinDsl"))
@@ -57,8 +57,8 @@ dependencies {
     implementation(project(":workers"))
 
     // TODO - it might be good to allow projects to contribute state to save and restore, rather than have this project know about everything
-    implementation(project(":toolingApi"))
-    implementation(project(":buildEvents"))
+    implementation(project(":tooling-api"))
+    implementation(project(":build-events"))
     implementation(project(":native"))
     implementation(project(":buildOption"))
     implementation(project(":platformJvm"))
@@ -74,8 +74,8 @@ dependencies {
     testImplementation(libs.mockitoKotlin2)
     testImplementation(libs.kotlinCoroutinesDebug)
 
-    integTestImplementation(project(":jvmServices"))
-    integTestImplementation(project(":toolingApi"))
+    integTestImplementation(project(":jvm-services"))
+    integTestImplementation(project(":tooling-api"))
     integTestImplementation(project(":platformJvm"))
     integTestImplementation(project(":testKit"))
     integTestImplementation(project(":launcher"))
@@ -83,18 +83,18 @@ dependencies {
     integTestImplementation(libs.guava)
     integTestImplementation(libs.ant)
     integTestImplementation(libs.inject)
-    integTestImplementation(testFixtures(project(":dependencyManagement")))
+    integTestImplementation(testFixtures(project(":dependency-management")))
     integTestImplementation(testFixtures(project(":jacoco")))
 
     crossVersionTestImplementation(project(":cli"))
 
-    testRuntimeOnly(project(":distributionsCore")) {
+    testRuntimeOnly(project(":distributions-core")) {
         because("Tests instantiate DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")
     }
-    integTestDistributionRuntimeOnly(project(":distributionsJvm")) {
+    integTestDistributionRuntimeOnly(project(":distributions-jvm")) {
         because("Includes tests for builds with TestKit involved; InstantExecutionJacocoIntegrationTest requires JVM distribution")
     }
-    crossVersionTestDistributionRuntimeOnly(project(":distributionsCore"))
+    crossVersionTestDistributionRuntimeOnly(project(":distributions-core"))
 }
 
 classycle {

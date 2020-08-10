@@ -5,8 +5,8 @@ plugins {
 description = "JVM invocation and inspection abstractions"
 
 dependencies {
-    implementation(project(":baseServices"))
-    implementation(project(":processServices"))
+    implementation(project(":base-services"))
+    implementation(project(":process-services"))
 
     testImplementation(project(":native"))
     testImplementation(project(":coreApi"))

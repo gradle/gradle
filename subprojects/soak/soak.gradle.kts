@@ -19,7 +19,7 @@ plugins {
 }
 
 dependencies {
-    testFixturesImplementation(project(":baseServices"))
+    testFixturesImplementation(project(":base-services"))
     testFixturesImplementation(project(":core"))
     testFixturesImplementation(project(":internalIntegTesting"))
 
@@ -33,5 +33,5 @@ dependencies {
     integTestImplementation(libs.slf4jApi)
     integTestImplementation(libs.jetty)
 
-    integTestDistributionRuntimeOnly(project(":distributionsFull"))
+    integTestDistributionRuntimeOnly(project(":distributions-full"))
 }

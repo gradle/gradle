@@ -5,13 +5,13 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":baseServices"))
+    implementation(project(":base-services"))
     implementation(project(":logging"))
     implementation(project(":coreApi"))
     implementation(project(":files"))
     implementation(project(":modelCore"))
     implementation(project(":core"))
-    implementation(project(":dependencyManagement"))
+    implementation(project(":dependency-management"))
     implementation(project(":workers"))
     implementation(project(":execution"))
 
@@ -23,7 +23,7 @@ dependencies {
     testImplementation(testFixtures(project(":coreApi")))
     testImplementation(project(":native"))
     testImplementation(project(":snapshots"))
-    testImplementation(project(":processServices"))
+    testImplementation(project(":process-services"))
 
     testFixturesApi(project(":core"))
     testFixturesApi(project(":fileCollections"))
@@ -32,10 +32,10 @@ dependencies {
     testFixturesApi(testFixtures(project(":modelCore")))
     testFixturesApi(testFixtures(project(":diagnostics")))
 
-    testRuntimeOnly(project(":distributionsCore")) {
+    testRuntimeOnly(project(":distributions-core")) {
         because("RuntimeShadedJarCreatorTest requires a distribution to access the ...-relocated.txt metadata")
     }
-    integTestDistributionRuntimeOnly(project(":distributionsCore"))
+    integTestDistributionRuntimeOnly(project(":distributions-core"))
 }
 
 classycle {

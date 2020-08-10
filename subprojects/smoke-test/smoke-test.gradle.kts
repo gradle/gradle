@@ -34,12 +34,12 @@ val smokeTestImplementation: Configuration by configurations.getting
 val smokeTestDistributionRuntimeOnly: Configuration by configurations.getting
 
 dependencies {
-    smokeTestImplementation(project(":baseServices"))
+    smokeTestImplementation(project(":base-services"))
     smokeTestImplementation(project(":coreApi"))
     smokeTestImplementation(project(":testKit"))
     smokeTestImplementation(project(":launcher"))
     smokeTestImplementation(project(":persistentCache"))
-    smokeTestImplementation(project(":jvmServices"))
+    smokeTestImplementation(project(":jvm-services"))
     smokeTestImplementation(project(":buildOption"))
     smokeTestImplementation(libs.commonsIo)
     smokeTestImplementation(libs.jgit)
@@ -51,7 +51,7 @@ dependencies {
     smokeTestImplementation(testFixtures(project(":core")))
     smokeTestImplementation(testFixtures(project(":versionControl")))
 
-    smokeTestDistributionRuntimeOnly(project(":distributionsFull"))
+    smokeTestDistributionRuntimeOnly(project(":distributions-full"))
 }
 
 fun SmokeTest.configureForSmokeTest() {

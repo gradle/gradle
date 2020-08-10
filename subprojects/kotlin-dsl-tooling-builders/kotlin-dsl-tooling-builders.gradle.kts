@@ -26,7 +26,7 @@ description = "Kotlin DSL Tooling Builders for IDEs"
 dependencies {
     implementation(project(":kotlinDsl"))
 
-    implementation(project(":baseServices"))
+    implementation(project(":base-services"))
     implementation(project(":coreApi"))
     implementation(project(":modelCore"))
     implementation(project(":core"))
@@ -34,7 +34,7 @@ dependencies {
     implementation(project(":platformBase"))
     implementation(project(":platformJvm"))
     implementation(project(":plugins"))
-    implementation(project(":toolingApi"))
+    implementation(project(":tooling-api"))
 
     testImplementation(testFixtures(project(":kotlinDsl")))
     integTestImplementation(project(":internalTesting"))
@@ -44,8 +44,8 @@ dependencies {
     crossVersionTestImplementation(libs.guava)
     crossVersionTestImplementation(libs.ant)
 
-    integTestDistributionRuntimeOnly(project(":distributionsBasics"))
-    crossVersionTestDistributionRuntimeOnly(project(":distributionsBasics"))
+    integTestDistributionRuntimeOnly(project(":distributions-basics"))
+    crossVersionTestDistributionRuntimeOnly(project(":distributions-basics"))
 }
 
 testFilesCleanup {

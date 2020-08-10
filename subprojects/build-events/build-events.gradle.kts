@@ -18,12 +18,12 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":baseServices"))
+    implementation(project(":base-services"))
     implementation(project(":messaging"))
     implementation(project(":coreApi"))
     implementation(project(":core"))
     implementation(project(":modelCore"))
-    implementation(project(":toolingApi"))
+    implementation(project(":tooling-api"))
 
     implementation(libs.jsr305)
     implementation(libs.guava)
@@ -36,7 +36,7 @@ dependencies {
     }
     integTestImplementation(project(":buildOption"))
 
-    integTestDistributionRuntimeOnly(project(":distributionsBasics"))  {
+    integTestDistributionRuntimeOnly(project(":distributions-basics"))  {
         because("Requires ':toolingApiBuilders': Event handlers are in the wrong place, and should live in this project")
     }
 }

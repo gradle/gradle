@@ -23,10 +23,10 @@ val integTestRuntimeResourcesClasspath: Configuration by configurations.creating
 }
 
 dependencies {
-    implementation(project(":baseServices"))
+    implementation(project(":base-services"))
     implementation(project(":files"))
     implementation(project(":messaging"))
-    implementation(project(":processServices"))
+    implementation(project(":process-services"))
     implementation(project(":logging"))
     implementation(project(":workerProcesses"))
     implementation(project(":coreApi"))
@@ -34,7 +34,7 @@ dependencies {
     implementation(project(":core"))
     implementation(project(":fileCollections"))
     implementation(project(":snapshots"))
-    implementation(project(":dependencyManagement"))
+    implementation(project(":dependency-management"))
     implementation(project(":workers"))
     implementation(project(":plugins"))
     implementation(project(":platformBase"))
@@ -56,12 +56,12 @@ dependencies {
 
     testImplementation(project(":native"))
     testImplementation(project(":resources"))
-    testImplementation(project(":baseServicesGroovy"))
+    testImplementation(project(":base-services-groovy"))
 
     integTestImplementation(libs.ant)
     integTestRuntimeOnly(project(":compositeBuilds"))
-    integTestRuntimeOnly(project(":idePlay"))
-    integTestRuntimeOnly(project(":testingJunitPlatform"))
+    integTestRuntimeOnly(project(":ide-play"))
+    integTestRuntimeOnly(project(":testing-junit-platform"))
 
     testFixturesApi(project(":platformBase")) {
         because("Test fixtures export the Platform class")
@@ -70,20 +70,20 @@ dependencies {
     testFixturesApi(testFixtures(project(":platformNative")))
     testFixturesApi(testFixtures(project(":languageJvm")))
     testFixturesApi(project(":internalIntegTesting"))
-    testFixturesImplementation(project(":processServices"))
+    testFixturesImplementation(project(":process-services"))
     testFixturesImplementation(libs.commonsIo)
     testFixturesImplementation(libs.commonsHttpclient)
     testFixturesImplementation(libs.slf4jApi)
     testFixturesApi(testFixtures(project(":languageScala")))
     testFixturesApi(testFixtures(project(":languageJava")))
 
-    testImplementation(testFixtures(project(":dependencyManagement")))
+    testImplementation(testFixtures(project(":dependency-management")))
     testImplementation(testFixtures(project(":diagnostics")))
     testImplementation(testFixtures(project(":platformBase")))
 
-    integTestDistributionRuntimeOnly(project(":distributionsFull"))
+    integTestDistributionRuntimeOnly(project(":distributions-full"))
 
-    testRuntimeOnly(project(":distributionsCore")) {
+    testRuntimeOnly(project(":distributions-core")) {
         because("Tests instantiate DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")
     }
     integTestRuntimeResources(testFixtures(project(":platformPlay")))

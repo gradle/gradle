@@ -4,23 +4,23 @@ plugins {
 
 dependencies {
     implementation(project(":launcher"))
-    implementation(project(":baseServices"))
+    implementation(project(":base-services"))
     implementation(project(":messaging"))
     implementation(project(":native"))
     implementation(project(":logging"))
-    implementation(project(":processServices"))
+    implementation(project(":process-services"))
     implementation(project(":coreApi"))
     implementation(project(":modelCore"))
     implementation(project(":core"))
-    implementation(project(":baseServicesGroovy")) // for 'Specs'
+    implementation(project(":base-services-groovy")) // for 'Specs'
     implementation(project(":testingBase"))
     implementation(project(":testingJvm"))
-    implementation(project(":dependencyManagement"))
+    implementation(project(":dependency-management"))
     implementation(project(":reporting"))
     implementation(project(":workers"))
     implementation(project(":compositeBuilds"))
-    implementation(project(":toolingApi"))
-    implementation(project(":buildEvents"))
+    implementation(project(":tooling-api"))
+    implementation(project(":build-events"))
 
     implementation(libs.groovy) // for 'Closure'
     implementation(libs.guava)

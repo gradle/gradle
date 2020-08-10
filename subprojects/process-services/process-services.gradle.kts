@@ -8,7 +8,7 @@ plugins {
 gradlebuildJava.usedInWorkers()
 
 dependencies {
-    implementation(project(":baseServices"))
+    implementation(project(":base-services"))
 
     implementation(project(":messaging"))
     implementation(project(":native"))
@@ -19,7 +19,7 @@ dependencies {
 
     testImplementation(testFixtures(project(":core")))
 
-    integTestDistributionRuntimeOnly(project(":distributionsCore"))
+    integTestDistributionRuntimeOnly(project(":distributions-core"))
 }
 
 classycle {

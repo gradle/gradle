@@ -6,16 +6,16 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":baseServices"))
+    implementation(project(":base-services"))
     implementation(project(":logging"))
     implementation(project(":fileCollections"))
     implementation(project(":execution"))
-    implementation(project(":processServices"))
+    implementation(project(":process-services"))
     implementation(project(":coreApi"))
     implementation(project(":modelCore"))
     implementation(project(":core"))
-    implementation(project(":baseServicesGroovy"))
-    implementation(project(":dependencyManagement"))
+    implementation(project(":base-services-groovy"))
+    implementation(project(":dependency-management"))
     implementation(project(":platformBase"))
     implementation(project(":diagnostics"))
     implementation(project(":normalizationJava"))
@@ -40,10 +40,10 @@ dependencies {
 
     integTestImplementation(libs.slf4jApi)
 
-    testRuntimeOnly(project(":distributionsCore")) {
+    testRuntimeOnly(project(":distributions-core")) {
         because("Tests instantiate DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")
     }
-    integTestDistributionRuntimeOnly(project(":distributionsCore"))
+    integTestDistributionRuntimeOnly(project(":distributions-core"))
 }
 
 strictCompile {

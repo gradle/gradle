@@ -18,7 +18,7 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":baseServices"))
+    implementation(project(":base-services"))
     implementation(project(":messaging"))
     implementation(project(":platformJvm"))
     implementation(project(":languageJava"))

@@ -9,7 +9,7 @@ gradlebuildJava.usedInWorkers()
 dependencies {
     api(libs.slf4jApi)
 
-    implementation(project(":baseServices"))
+    implementation(project(":base-services"))
     implementation(project(":messaging"))
     implementation(project(":cli"))
     implementation(project(":buildOption"))
@@ -28,11 +28,11 @@ dependencies {
 
     integTestImplementation(libs.ansiControlSequenceUtil)
 
-    testFixturesImplementation(project(":baseServices"))
+    testFixturesImplementation(project(":base-services"))
     testFixturesImplementation(testFixtures(project(":core")))
     testFixturesImplementation(libs.slf4jApi)
 
-    integTestDistributionRuntimeOnly(project(":distributionsCore"))
+    integTestDistributionRuntimeOnly(project(":distributions-core"))
 }
 
 classycle {

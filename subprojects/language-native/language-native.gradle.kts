@@ -20,10 +20,10 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":baseServices"))
+    implementation(project(":base-services"))
     implementation(project(":messaging"))
     implementation(project(":logging"))
-    implementation(project(":processServices"))
+    implementation(project(":process-services"))
     implementation(project(":coreApi"))
     implementation(project(":modelCore"))
     implementation(project(":core"))
@@ -31,14 +31,14 @@ dependencies {
     implementation(project(":fileCollections"))
     implementation(project(":persistentCache"))
     implementation(project(":snapshots"))
-    implementation(project(":dependencyManagement"))
+    implementation(project(":dependency-management"))
     implementation(project(":platformBase"))
     implementation(project(":platformNative"))
     implementation(project(":plugins"))
     implementation(project(":publish"))
     implementation(project(":maven"))
     implementation(project(":ivy"))
-    implementation(project(":toolingApi"))
+    implementation(project(":tooling-api"))
     implementation(project(":versionControl"))
 
     implementation(libs.groovy)
@@ -48,7 +48,7 @@ dependencies {
     implementation(libs.commonsIo)
     implementation(libs.inject)
 
-    testFixturesApi(project(":baseServices")) {
+    testFixturesApi(project(":base-services")) {
         because("Test fixtures export the Named class")
     }
     testFixturesApi(project(":platformBase")) {
@@ -60,7 +60,7 @@ dependencies {
 
     testImplementation(project(":native"))
     testImplementation(project(":resources"))
-    testImplementation(project(":baseServicesGroovy"))
+    testImplementation(project(":base-services-groovy"))
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":versionControl")))
     testImplementation(testFixtures(project(":platformNative")))
@@ -74,10 +74,10 @@ dependencies {
     integTestImplementation(libs.ant)
     integTestImplementation(libs.jgit)
 
-    testRuntimeOnly(project(":distributionsCore")) {
+    testRuntimeOnly(project(":distributions-core")) {
         because("ProjectBuilder tests load services from a Gradle distribution.")
     }
-    integTestDistributionRuntimeOnly(project(":distributionsNative"))
+    integTestDistributionRuntimeOnly(project(":distributions-native"))
 }
 
 classycle {

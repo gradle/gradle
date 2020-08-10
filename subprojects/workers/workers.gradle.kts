@@ -3,10 +3,10 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":baseServices"))
+    implementation(project(":base-services"))
     implementation(project(":messaging"))
     implementation(project(":logging"))
-    implementation(project(":processServices"))
+    implementation(project(":process-services"))
     implementation(project(":workerProcesses"))
     implementation(project(":persistentCache"))
     implementation(project(":coreApi"))
@@ -30,17 +30,17 @@ dependencies {
     testImplementation(testFixtures(project(":logging")))
 
     integTestRuntimeOnly(project(":kotlinDsl"))
-    integTestRuntimeOnly(project(":kotlinDslProviderPlugins"))
-    integTestRuntimeOnly(project(":apiMetadata"))
+    integTestRuntimeOnly(project(":kotlin-dsl-provider-plugins"))
+    integTestRuntimeOnly(project(":api-metadata"))
     integTestRuntimeOnly(project(":testKit"))
 
-    integTestImplementation(project(":jvmServices"))
+    integTestImplementation(project(":jvm-services"))
 
     testFixturesImplementation(libs.inject)
-    testFixturesImplementation(project(":baseServices"))
+    testFixturesImplementation(project(":base-services"))
 
-    testRuntimeOnly(project(":distributionsCore")) {
+    testRuntimeOnly(project(":distributions-core")) {
         because("Tests instantiate DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")
     }
-    integTestDistributionRuntimeOnly(project(":distributionsCore"))
+    integTestDistributionRuntimeOnly(project(":distributions-core"))
 }
