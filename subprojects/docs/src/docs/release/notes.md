@@ -209,7 +209,7 @@ println(helloWorld.get()) // prints “Bonjour, le monde!”
 
 Refer to the [API documentation](javadoc/org/gradle/api/provider/Provider.html#zip-org.gradle.api.provider.Provider-java.util.function.BiFunction-) for details.
 
-## Security 
+## Security improvements
 
 ### Removed debug logging of environment variables
 
