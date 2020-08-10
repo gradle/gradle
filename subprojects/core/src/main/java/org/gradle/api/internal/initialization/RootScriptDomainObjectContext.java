@@ -75,11 +75,6 @@ public class RootScriptDomainObjectContext implements DomainObjectContext, Model
     }
 
     @Override
-    public void withLenientState(Runnable runnable) {
-        runnable.run();
-    }
-
-    @Override
     public Path getBuildPath() {
         return Path.ROOT;
     }

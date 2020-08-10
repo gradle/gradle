@@ -112,17 +112,27 @@ class DefaultProjectStateRegistryTest extends ConcurrentSpec {
         when:
         async {
             workerThread {
+                assert !state.hasMutableState()
                 state.withMutableState {
+                    assert state.hasMutableState()
                     instant.start
                     thread.block()
+                    state.withMutableState {
+                        // nested
+                    }
+                    assert state.hasMutableState()
                     instant.thread1
                 }
+                assert !state.hasMutableState()
             }
             workerThread {
                 thread.blockUntil.start
+                assert !state.hasMutableState()
                 state.withMutableState {
+                    assert state.hasMutableState()
                     instant.thread2
                 }
+                assert !state.hasMutableState()
             }
         }
 
@@ -172,19 +182,74 @@ class DefaultProjectStateRegistryTest extends ConcurrentSpec {
         }
     }
 
-    def "can access projects with lenient state"() {
+    def "can access projects with all projects locked"() {
+        given:
+        def build = build("p1", "p2")
+        registry.registerProjects(build)
+        def state = registry.stateFor(project("p1"))
+
+        expect:
+        !state.hasMutableState()
+
+        and:
+        registry.withMutableStateOfAllProjects {
+            assert state.hasMutableState()
+            registry.withMutableStateOfAllProjects {
+                assert state.hasMutableState()
+            }
+            assert state.hasMutableState()
+        }
+
+        and:
+        !state.hasMutableState()
+    }
+
+    def "cannot lock projects state while another thread has locked all projects"() {
         given:
         def build = build("p1", "p2")
         registry.registerProjects(build)
 
-        expect:
-        !registry.stateFor(project("p1")).hasMutableState()
+        when:
+        async {
+            start {
+                registry.withMutableStateOfAllProjects {
+                    instant.start
+                    thread.block()
+                }
+            }
+            start {
+                thread.blockUntil.start
+                registry.withMutableStateOfAllProjects {
+                }
+            }
+        }
 
-        and:
-        registry.withLenientState({ assert registry.stateFor(project("p1")).hasMutableState() })
+        then:
+        thrown(IllegalStateException)
+    }
 
-        and:
-        !registry.stateFor(project("p1")).hasMutableState()
+    def "cannot lock project state while another thread has locked all projects"() {
+        given:
+        def build = build("p1", "p2")
+        registry.registerProjects(build)
+
+        when:
+        async {
+            start {
+                registry.withMutableStateOfAllProjects {
+                    instant.start
+                    thread.block()
+                }
+            }
+            start {
+                thread.blockUntil.start
+                registry.stateFor(project("p1")).withMutableState {
+                }
+            }
+        }
+
+        then:
+        thrown(IllegalStateException)
     }
 
     def "thread must own project state in order to set calculated value"() {

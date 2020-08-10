@@ -36,13 +36,10 @@ public class DefaultBuildConfigurationActionExecuter implements BuildConfigurati
 
     @Override
     public void select(final GradleInternal gradle) {
-        // We know that we're running single-threaded here, so we can use lenient project locking
-        projectStateRegistry.withLenientState(new Runnable() {
-            @Override
-            public void run() {
-                List<BuildConfigurationAction> processingBuildActions = CollectionUtils.flattenCollections(BuildConfigurationAction.class, configurationActions, taskSelectors);
-                configure(processingBuildActions, gradle, 0);
-            }
+        // We know that we're running single-threaded here, so we can use coarse grained locks
+        projectStateRegistry.withMutableStateOfAllProjects(() -> {
+            List<BuildConfigurationAction> processingBuildActions = CollectionUtils.flattenCollections(BuildConfigurationAction.class, configurationActions, taskSelectors);
+            configure(processingBuildActions, gradle, 0);
         });
     }
 

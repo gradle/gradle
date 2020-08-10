@@ -35,6 +35,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Function;
 
@@ -44,7 +45,7 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
     private final Map<Path, ProjectStateImpl> projectsByPath = Maps.newLinkedHashMap();
     private final Map<ProjectComponentIdentifier, ProjectStateImpl> projectsById = Maps.newLinkedHashMap();
     private final Map<Pair<BuildIdentifier, Path>, ProjectStateImpl> projectsByCompId = Maps.newLinkedHashMap();
-    private final static ThreadLocal<Boolean> LENIENT_MUTATION_STATE = ThreadLocal.withInitial(() -> Boolean.FALSE);
+    private final AtomicReference<Thread> ownerOfAllProjects = new AtomicReference<>();
 
     public DefaultProjectStateRegistry(WorkerLeaseService workerLeaseService) {
         this.workerLeaseService = workerLeaseService;
@@ -119,18 +120,22 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
     }
 
     @Override
-    public void withLenientState(Runnable runnable) {
-        withLenientState(Factories.toFactory(runnable));
+    public void withMutableStateOfAllProjects(Runnable runnable) {
+        withMutableStateOfAllProjects(Factories.toFactory(runnable));
     }
 
     @Override
-    public <T> T withLenientState(Factory<T> factory) {
-        Boolean originalState = LENIENT_MUTATION_STATE.get();
-        LENIENT_MUTATION_STATE.set(true);
+    public <T> T withMutableStateOfAllProjects(Factory<T> factory) {
+        if (!ownerOfAllProjects.compareAndSet(null, Thread.currentThread())) {
+            if (ownerOfAllProjects.get() == Thread.currentThread()) {
+                return factory.create();
+            }
+            throw new IllegalStateException(String.format("Another thread (%s) currently holds the state lock for all projects.", ownerOfAllProjects));
+        }
         try {
             return factory.create();
         } finally {
-            LENIENT_MUTATION_STATE.set(originalState);
+            ownerOfAllProjects.set(null);
         }
     }
 
@@ -219,14 +224,13 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
         }
 
         @Override
-        public void withLenientState(Runnable runnable) {
-            DefaultProjectStateRegistry.this.withLenientState(runnable);
-        }
-
-        @Override
         public <T> T withMutableState(final Factory<? extends T> factory) {
-            if (LENIENT_MUTATION_STATE.get()) {
-                return factory.create();
+            Thread currentOwner = ownerOfAllProjects.get();
+            if (currentOwner != null) {
+                if (currentOwner == Thread.currentThread()) {
+                    return factory.create();
+                }
+                throw new IllegalStateException(String.format("Cannot acquire state lock for %s as another thread (%s) currently holds the state lock for all projects.", project, currentOwner));
             }
 
             Collection<? extends ResourceLock> currentLocks = workerLeaseService.getCurrentProjectLocks();
@@ -246,7 +250,6 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
                 if (!currentLocks.isEmpty()) {
                     // we hold other project locks that we should release first
                     return workerLeaseService.withoutLocks(currentLocks, new Factory<T>() {
-                        @Nullable
                         @Override
                         public T create() {
                             return withProjectLock(projectLock, factory);
@@ -265,7 +268,7 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
 
         @Override
         public boolean hasMutableState() {
-            return LENIENT_MUTATION_STATE.get() || workerLeaseService.getCurrentProjectLocks().contains(projectLock);
+            return ownerOfAllProjects.get() == Thread.currentThread() || workerLeaseService.getCurrentProjectLocks().contains(projectLock);
         }
 
         @Override
@@ -337,7 +340,7 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
 
         private void assertCanMutate() {
             if (!owner.hasMutableState()) {
-                throw new IllegalStateException("Current thread does not hold the lock for " + owner);
+                throw new IllegalStateException("Current thread does not hold the state lock for " + owner);
             }
         }
 

@@ -65,14 +65,12 @@ public interface ProjectStateRegistry {
     void registerProject(BuildState owner, DefaultProjectDescriptor projectDescriptor);
 
     /**
-     * Allows a section of code to be run with state locking disabled.  This should be used to allow
-     * deprecated practices that we eventually want to retire.
+     * Allows a section of code to run with all of the projects locked. Any attempt to lock a project by some other thread will fail while the given action is running.
      */
-    void withLenientState(Runnable runnable);
+    void withMutableStateOfAllProjects(Runnable runnable);
 
     /**
-     * Creates the object with state locking disabled.  This should be used to allow
-     * deprecated practices that we eventually want to retire.
+     * Allows a section of code to run with all of the projects locked. Any attempt to lock a project by some other thread will fail while the given action is running.
      */
-    <T> T withLenientState(Factory<T> factory);
+    <T> T withMutableStateOfAllProjects(Factory<T> factory);
 }
