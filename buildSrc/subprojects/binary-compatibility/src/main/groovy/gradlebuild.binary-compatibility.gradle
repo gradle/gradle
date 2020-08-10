@@ -85,11 +85,8 @@ dependencies {
         to.attribute(ARTIFACT_TYPE, 'gradle-classpath')
     }
 
-    // TODO update this to use a dependency on :distributionFull instead of 'rootProject.subprojects { }'
+    currentClasspath platform(project(":distributionsDependencies"))
     rootProject.subprojects { subproject ->
-        if (subproject.name == 'distributionsDependencies') {
-            currentClasspath platform(subproject)
-        }
         plugins.withId('gradlebuild.distribution.api') {
             apiSourceFolders.from(subproject.sourceSets.main.allJava.sourceDirectories)
             if (subproject.plugins.hasPlugin("kotlin")) {
