@@ -233,6 +233,26 @@ samples {
         kotlinApplication
         kotlinListLibrary
         kotlinUtilitiesLibrary
+        kotlinApplicationInApp {
+            sourceDirectory = kotlinApplication.sourceDirectory
+            target = "app"
+        }
+        kotlinListLibraryInApp {
+            sourceDirectory = kotlinListLibrary.sourceDirectory
+            target = "app"
+        }
+        kotlinUtilitiesLibraryInApp {
+            sourceDirectory = kotlinUtilitiesLibrary.sourceDirectory
+            target = "app"
+        }
+        kotlinListLibraryInLib {
+            sourceDirectory = kotlinListLibrary.sourceDirectory
+            target = "lib"
+        }
+        kotlinUtilitiesLibraryInLib {
+            sourceDirectory = kotlinUtilitiesLibrary.sourceDirectory
+            target = "lib"
+        }
 
         projectInfoPlugin
 
@@ -435,9 +455,9 @@ samples {
             description = "Build a Kotlin application."
             category = "Kotlin"
             common {
-                from(templates.kotlinApplication)
-                from(templates.kotlinListLibrary)
-                from(templates.kotlinUtilitiesLibrary)
+                from(templates.kotlinApplicationInApp)
+                from(templates.kotlinListLibraryInApp)
+                from(templates.kotlinUtilitiesLibraryInApp)
             }
         }
         kotlinLibrary {
@@ -445,8 +465,8 @@ samples {
             description = "Build a Kotlin library."
             category = "Kotlin"
             common {
-                from(templates.kotlinListLibrary)
-                from(templates.kotlinUtilitiesLibrary)
+                from(templates.kotlinListLibraryInLib)
+                from(templates.kotlinUtilitiesLibraryInLib)
             }
         }
 
