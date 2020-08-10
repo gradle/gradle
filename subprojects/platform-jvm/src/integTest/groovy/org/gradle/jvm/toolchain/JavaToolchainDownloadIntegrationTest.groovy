@@ -34,21 +34,19 @@ class JavaToolchainDownloadIntegrationTest extends AbstractIntegrationSpec {
         file("src/main/java/Foo.java") << "public class Foo {}"
 
         when:
-        result = executer
-            .withArguments("-Porg.gradle.java.installations.auto-detect=false", "--info")
+        failure = executer
+            .withArguments("-Porg.gradle.java.installations.auto-detect=false")
             .withTasks("compileJava")
             .requireOwnGradleUserHomeDir()
-            .run()
+            .runWithFailure()
+        result = failure
 
         then:
-        outputContains("""
-* What went wrong:
-Execution failed for task ':compileJava'.
-> Failed to calculate the value of task ':compileJava' property 'javaCompiler'.
-   > Unable to download toolchain matching these requirements: {languageVersion=17}
-      > Unable to download toolchain. This might indicate that the combination (version, architecture, release/early access, ...) for the requested JDK is not available.
-         > Could not read 'https://api.adoptopenjdk.net/v3/binary/latest/17/ga/mac/x64/jdk/hotspot/normal/adoptopenjdk' as it does not exist.
-""")
+        failure.assertHasDescription("Execution failed for task ':compileJava'.")
+            .assertHasCause("Failed to calculate the value of task ':compileJava' property 'javaCompiler'")
+            .assertHasCause("Unable to download toolchain matching these requirements: {languageVersion=17}")
+            .assertHasCause("Unable to download toolchain. This might indicate that the combination (version, architecture, release/early access, ...) for the requested JDK is not available.")
+            .assertHasCause("Could not read 'https://api.adoptopenjdk.net/v3/binary/latest/17/ga/mac/x64/jdk/hotspot/normal/adoptopenjdk' as it does not exist.")
     }
 
 }

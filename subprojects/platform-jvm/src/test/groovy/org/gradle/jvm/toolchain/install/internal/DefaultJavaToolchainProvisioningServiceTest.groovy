@@ -38,7 +38,7 @@ class DefaultJavaToolchainProvisioningServiceTest extends Specification {
         provisioningService.tryInstall(spec)
 
         then:
-        1 * cache.acquireWriteLock("jdk-123.zip") >> lock
+        1 * cache.acquireWriteLock("jdk-123.zip", _) >> lock
 
         then:
         1 * binary.download(_, _) >> Optional.empty()

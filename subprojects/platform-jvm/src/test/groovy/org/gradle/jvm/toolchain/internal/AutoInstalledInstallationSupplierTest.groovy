@@ -19,6 +19,7 @@ package org.gradle.jvm.toolchain.internal
 import org.gradle.api.internal.file.FileOperations
 import org.gradle.api.internal.provider.Providers
 import org.gradle.api.provider.ProviderFactory
+import org.gradle.cache.FileLockManager
 import org.gradle.initialization.GradleUserHomeDirProvider
 import org.gradle.jvm.toolchain.install.internal.JdkCacheDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -87,7 +88,7 @@ class AutoInstalledInstallationSupplierTest extends Specification {
     }
 
     def createSupplier(Set<File> javaHomes) {
-        def cacheDir = new JdkCacheDirectory(Mock(GradleUserHomeDirProvider), Mock(FileOperations)) {
+        def cacheDir = new JdkCacheDirectory(Mock(GradleUserHomeDirProvider), Mock(FileOperations), Mock(FileLockManager)) {
             @Override
             Set<File> listJavaHomes() {
                 return javaHomes
