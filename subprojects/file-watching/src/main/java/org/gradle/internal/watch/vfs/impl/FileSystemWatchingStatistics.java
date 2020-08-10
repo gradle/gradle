@@ -25,28 +25,18 @@ import org.gradle.internal.snapshot.FileSystemSnapshotVisitor;
 import org.gradle.internal.snapshot.SnapshotHierarchy;
 import org.gradle.internal.watch.registry.FileWatcherRegistry;
 
-import javax.annotation.Nullable;
-
-public class FileSystemWatchingLifecycleResult {
-    private final boolean watchingEnabled;
+public class FileSystemWatchingStatistics {
     private final FileWatcherRegistry.FileWatchingStatistics fileWatchingStatistics;
     private final VirtualFileSystemStatistics vfsStatistics;
 
-    public FileSystemWatchingLifecycleResult(
-        boolean watchingEnabled,
-        @Nullable FileWatcherRegistry.FileWatchingStatistics fileWatchingStatistics,
+    public FileSystemWatchingStatistics(
+        FileWatcherRegistry.FileWatchingStatistics fileWatchingStatistics,
         SnapshotHierarchy vfsRoot
     ) {
-        this.watchingEnabled = watchingEnabled;
         this.fileWatchingStatistics = fileWatchingStatistics;
         this.vfsStatistics = getStatistics(vfsRoot);
     }
 
-    public boolean isWatchingEnabled() {
-        return watchingEnabled;
-    }
-
-    @Nullable
     public FileWatcherRegistry.FileWatchingStatistics getFileWatchingStatistics() {
         return fileWatchingStatistics;
     }

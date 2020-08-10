@@ -51,13 +51,12 @@ class BuildOperationsFileSystemWatchingIntegrationTest extends AbstractFileSyste
         def startedResult = buildStartedResult()
         startedResult.watchingEnabled
         startedResult.startedWatching
-        startedResult.fileWatchingStatistics == null
-        !retainedFiles(startedResult)
+        startedResult.statistics == null
 
         def finishedResult = buildFinishedResult()
         finishedResult.watchingEnabled
         !finishedResult.stoppedWatchingDuringTheBuild
-        finishedResult.fileWatchingStatistics
+        finishedResult.statistics
         retainedFiles(finishedResult)
 
         when:
@@ -69,13 +68,13 @@ class BuildOperationsFileSystemWatchingIntegrationTest extends AbstractFileSyste
         then:
         startedResult.watchingEnabled
         !startedResult.startedWatching
-        startedResult.fileWatchingStatistics.numberOfReceivedEvents > 0
+        startedResult.statistics.fileWatchingStatistics.numberOfReceivedEvents > 0
         retainedFiles(startedResult)
 
         finishedResult.watchingEnabled
         !finishedResult.stoppedWatchingDuringTheBuild
+        finishedResult.statistics.fileWatchingStatistics.numberOfReceivedEvents > 0
         retainedFiles(finishedResult)
-        finishedResult.fileWatchingStatistics.numberOfReceivedEvents > 0
     }
 
     def "emits build operations when watching is disabled"() {
@@ -94,8 +93,7 @@ class BuildOperationsFileSystemWatchingIntegrationTest extends AbstractFileSyste
 
     private static void watchingDisabled(Map<String, ?> result) {
         !result.watchingEnabled
-        result.fileWatchingStatistics == null
-        !retainedFiles(result)
+        result.statistics == null
     }
 
     private Map<String, ?> buildStartedResult() {
@@ -107,8 +105,9 @@ class BuildOperationsFileSystemWatchingIntegrationTest extends AbstractFileSyste
     }
 
     private static boolean retainedFiles(Map<String, ?> result) {
-        result.retainedRegularFiles > 0 ||
-            result.retainedDirectories > 0 ||
-            result.retainedMissingFiles > 0
+        def statistics = result.statistics
+        statistics.retainedRegularFiles > 0 ||
+            statistics.retainedDirectories > 0 ||
+            statistics.retainedMissingFiles > 0
     }
 }

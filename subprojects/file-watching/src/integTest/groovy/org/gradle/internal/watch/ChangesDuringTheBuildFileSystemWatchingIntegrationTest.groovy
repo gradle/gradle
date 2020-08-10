@@ -207,8 +207,8 @@ class ChangesDuringTheBuildFileSystemWatchingIntegrationTest extends AbstractFil
                     }
                     if (finishEvent.result instanceof BuildFinishedFileSystemWatchingResult) {
                         def result = finishEvent.result
-                        if (result.fileWatchingStatistics != null) {
-                            println "Received \${result.fileWatchingStatistics.numberOfReceivedEvents} file system events for current build"
+                        if (result.statistics != null) {
+                            println "Received \${result.statistics.fileWatchingStatistics.numberOfReceivedEvents} file system events for current build"
                         }
                     }
                 }

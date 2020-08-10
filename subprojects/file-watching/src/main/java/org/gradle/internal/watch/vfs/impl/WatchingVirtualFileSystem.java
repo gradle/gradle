@@ -109,12 +109,15 @@ public class WatchingVirtualFileSystem implements BuildLifecycleAwareVirtualFile
                         context.setStatus("Starting file system watching");
                         newRoot = startWatching(newRoot);
                     }
-                    context.setResult(new BuildStartedFileSystemWatchingResult(true, startedWatching, statistics, newRoot));
+                    context.setResult(new BuildStartedFileSystemWatchingResult(
+                        true,
+                        startedWatching,
+                        statistics == null ? null : new FileSystemWatchingStatistics(statistics, newRoot))
+                    );
                     return newRoot;
                 } else {
-                    SnapshotHierarchy newRoot = stopWatchingAndInvalidateHierarchy(currentRoot);
-                    context.setResult(new BuildStartedFileSystemWatchingResult(false, false, null, newRoot));
-                    return newRoot;
+                    context.setResult(new BuildStartedFileSystemWatchingResult(false, false, null));
+                    return stopWatchingAndInvalidateHierarchy(currentRoot);
                 }
 
             }
@@ -161,11 +164,14 @@ public class WatchingVirtualFileSystem implements BuildLifecycleAwareVirtualFile
                         SnapshotHierarchy rootAfterEvents = newRoot;
                         newRoot = withWatcherChangeErrorHandling(newRoot, () -> watchRegistry.buildFinished(rootAfterEvents));
                     }
-                    context.setResult(new BuildFinishedFileSystemWatchingResult(true, watchRegistry == null, statistics, newRoot));
+                    context.setResult(new BuildFinishedFileSystemWatchingResult(
+                        true,
+                        watchRegistry == null,
+                        statistics == null ? null : new FileSystemWatchingStatistics(statistics, newRoot)));
                     return newRoot;
                 } else {
                     SnapshotHierarchy newRoot = currentRoot.empty();
-                    context.setResult(new BuildFinishedFileSystemWatchingResult(false, false, null, newRoot));
+                    context.setResult(new BuildFinishedFileSystemWatchingResult(false, false, null));
                     return newRoot;
                 }
 

@@ -60,7 +60,7 @@ public class WatchingNotSupportedVirtualFileSystem implements BuildLifecycleAwar
         rootReference.update(vfsRoot -> buildOperationRunner.call(new CallableBuildOperation<SnapshotHierarchy>() {
             @Override
             public SnapshotHierarchy call(BuildOperationContext context) {
-                context.setResult(new BuildStartedFileSystemWatchingResult(false, false, null, vfsRoot.empty()));
+                context.setResult(new BuildStartedFileSystemWatchingResult(false, false, null));
                 return vfsRoot.empty();
             }
 
@@ -80,7 +80,7 @@ public class WatchingNotSupportedVirtualFileSystem implements BuildLifecycleAwar
         rootReference.update(vfsRoot -> buildOperationRunner.call(new CallableBuildOperation<SnapshotHierarchy>() {
             @Override
             public SnapshotHierarchy call(BuildOperationContext context) {
-                context.setResult(new BuildFinishedFileSystemWatchingResult(false, false, null, vfsRoot.empty()));
+                context.setResult(new BuildFinishedFileSystemWatchingResult(false, false, null));
                 return vfsRoot.empty();
             }
 

@@ -16,26 +16,35 @@
 
 package org.gradle.internal.watch.vfs.impl;
 
-import org.gradle.internal.snapshot.SnapshotHierarchy;
-import org.gradle.internal.watch.registry.FileWatcherRegistry;
-
 import javax.annotation.Nullable;
 
-public class BuildFinishedFileSystemWatchingResult extends FileSystemWatchingLifecycleResult {
+public class BuildFinishedFileSystemWatchingResult {
     public static final String DISPLAY_NAME = "Build finished for file system watching";
 
+    private final boolean watchingEnabled;
     private final boolean stoppedWatchingDuringTheBuild;
+    private final FileSystemWatchingStatistics statistics;
 
     public BuildFinishedFileSystemWatchingResult(
-        boolean watchingEnabled, boolean stoppedWatchingDuringTheBuild,
-        @Nullable FileWatcherRegistry.FileWatchingStatistics fileWatchingStatistics,
-        SnapshotHierarchy vfsRoot
+        boolean watchingEnabled,
+        boolean stoppedWatchingDuringTheBuild,
+        @Nullable FileSystemWatchingStatistics statistics
     ) {
-        super(watchingEnabled, fileWatchingStatistics, vfsRoot);
+        this.watchingEnabled = watchingEnabled;
         this.stoppedWatchingDuringTheBuild = stoppedWatchingDuringTheBuild;
+        this.statistics = statistics;
+    }
+
+    public boolean isWatchingEnabled() {
+        return watchingEnabled;
     }
 
     public boolean isStoppedWatchingDuringTheBuild() {
         return stoppedWatchingDuringTheBuild;
+    }
+
+    @Nullable
+    public FileSystemWatchingStatistics getStatistics() {
+        return statistics;
     }
 }
