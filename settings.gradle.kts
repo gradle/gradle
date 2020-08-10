@@ -156,6 +156,7 @@ include("smokeTest")
 include("performance")
 include("buildScanPerformance")
 include("instantExecutionReport")
+include("buildOperations")
 
 val upperCaseLetters = "\\p{Upper}".toRegex()
 
