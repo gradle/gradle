@@ -58,7 +58,7 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
         this.runner = new DefaultBuildOperationRunner(
             clock::getCurrentTime,
             buildOperationIdFactory,
-            (delegate) -> new ListenerAdapter(listener, progressLoggerFactory, clock, delegate)
+            delegate -> new ListenerAdapter(listener, progressLoggerFactory, clock, delegate)
         );
         this.wrapper = new UnmanagedBuildOperationWrapper(
             listener,
@@ -72,12 +72,12 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
 
     @Override
     public void run(RunnableBuildOperation buildOperation) {
-        wrapper.runWithUnmanagedSupport((parent) -> runner.run(buildOperation));
+        wrapper.runWithUnmanagedSupport(parent -> runner.run(buildOperation));
     }
 
     @Override
     public <T> T call(CallableBuildOperation<T> buildOperation) {
-        return wrapper.callWithUnmanagedSupport((parent) -> runner.call(buildOperation));
+        return wrapper.callWithUnmanagedSupport(parent -> runner.call(buildOperation));
     }
 
     @Override
@@ -92,12 +92,12 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
 
     @Override
     public <O extends RunnableBuildOperation> void runAll(Action<BuildOperationQueue<O>> schedulingAction) {
-        wrapper.runWithUnmanagedSupport((parent) -> executeInParallel(new QueueWorker<>(parent, RunnableBuildOperation::run), schedulingAction));
+        wrapper.runWithUnmanagedSupport(parent -> executeInParallel(new QueueWorker<>(parent, RunnableBuildOperation::run), schedulingAction));
     }
 
     @Override
     public <O extends BuildOperation> void runAll(BuildOperationWorker<O> worker, Action<BuildOperationQueue<O>> schedulingAction) {
-        wrapper.runWithUnmanagedSupport((parent) -> executeInParallel(new QueueWorker<>(parent, worker), schedulingAction));
+        wrapper.runWithUnmanagedSupport(parent -> executeInParallel(new QueueWorker<>(parent, worker), schedulingAction));
     }
 
     @Nullable
