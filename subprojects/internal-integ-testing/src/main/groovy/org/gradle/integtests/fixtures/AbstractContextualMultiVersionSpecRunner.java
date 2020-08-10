@@ -115,7 +115,7 @@ public abstract class AbstractContextualMultiVersionSpecRunner<T extends Abstrac
 
     @Override
     protected void createExecutions() {
-        String versions = System.getProperty(VERSIONS_SYSPROP_NAME, CoverageContext.DEFAULT.selector);
+        String versions = System.getProperty(VERSIONS_SYSPROP_NAME, CoverageContext.FULL.selector);
         CoverageContext coverageContext = CoverageContext.from(versions);
         if (coverageContext == CoverageContext.UNKNOWN) {
             List<String> selectionCriteria = Lists.newArrayList(versions.split(","));
