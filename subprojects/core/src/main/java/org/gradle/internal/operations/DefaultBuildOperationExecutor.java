@@ -22,7 +22,6 @@ import org.gradle.api.GradleException;
 import org.gradle.concurrent.ParallelismConfiguration;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.concurrent.ExecutorFactory;
-import org.gradle.internal.concurrent.GradleThread;
 import org.gradle.internal.concurrent.ManagedExecutor;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
@@ -31,25 +30,21 @@ import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.time.Clock;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
 @ServiceScope(Scopes.BuildSession.class)
 public class DefaultBuildOperationExecutor implements BuildOperationExecutor, Stoppable {
-    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultBuildOperationExecutor.class);
     private static final String LINE_SEPARATOR = SystemProperties.getInstance().getLineSeparator();
 
     private final DefaultBuildOperationRunner runner;
-    private final BuildOperationListener listener;
     private final Clock clock;
     private final BuildOperationQueueFactory buildOperationQueueFactory;
     private final ManagedExecutor fixedSizePool;
     private final CurrentBuildOperationRef currentBuildOperationRef = CurrentBuildOperationRef.instance();
+    private final UnmanagedBuildOperationWrapper wrapper;
 
     public DefaultBuildOperationExecutor(
         BuildOperationListener listener,
@@ -65,7 +60,11 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
             buildOperationIdFactory,
             (delegate) -> new ListenerAdapter(listener, progressLoggerFactory, clock, delegate)
         );
-        this.listener = listener;
+        this.wrapper = new UnmanagedBuildOperationWrapper(
+            listener,
+            clock,
+            currentBuildOperationRef
+        );
         this.clock = clock;
         this.buildOperationQueueFactory = buildOperationQueueFactory;
         this.fixedSizePool = executorFactory.create("Build operations", parallelismConfiguration.getMaxWorkerCount());
@@ -73,22 +72,12 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
 
     @Override
     public void run(RunnableBuildOperation buildOperation) {
-        BuildOperationState parent = maybeStartUnmanagedThreadOperation();
-        try {
-            runner.run(buildOperation);
-        } finally {
-            maybeStopUnmanagedThreadOperation(parent);
-        }
+        wrapper.runWithUnmanagedSupport((parent) -> runner.run(buildOperation));
     }
 
     @Override
     public <T> T call(CallableBuildOperation<T> buildOperation) {
-        BuildOperationState parent = maybeStartUnmanagedThreadOperation();
-        try {
-            return runner.call(buildOperation);
-        } finally {
-            maybeStopUnmanagedThreadOperation(parent);
-        }
+        return wrapper.callWithUnmanagedSupport((parent) -> runner.call(buildOperation));
     }
 
     @Override
@@ -103,22 +92,12 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
 
     @Override
     public <O extends RunnableBuildOperation> void runAll(Action<BuildOperationQueue<O>> schedulingAction) {
-        BuildOperationState parent = maybeStartUnmanagedThreadOperation();
-        try {
-            executeInParallel(new QueueWorker<>(parent, RunnableBuildOperation::run), schedulingAction);
-        } finally {
-            maybeStopUnmanagedThreadOperation(parent);
-        }
+        wrapper.runWithUnmanagedSupport((parent) -> executeInParallel(new QueueWorker<>(parent, RunnableBuildOperation::run), schedulingAction));
     }
 
     @Override
     public <O extends BuildOperation> void runAll(BuildOperationWorker<O> worker, Action<BuildOperationQueue<O>> schedulingAction) {
-        BuildOperationState parent = maybeStartUnmanagedThreadOperation();
-        try {
-            executeInParallel(new QueueWorker<>(parent, worker), schedulingAction);
-        } finally {
-            maybeStopUnmanagedThreadOperation(parent);
-        }
+        wrapper.runWithUnmanagedSupport((parent) -> executeInParallel(new QueueWorker<>(parent, worker), schedulingAction));
     }
 
     @Nullable
@@ -151,31 +130,6 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
             throw failures.get(0);
         } else if (failures.size() > 1) {
             throw new DefaultMultiCauseException(formatMultipleFailureMessage(failures), failures);
-        }
-    }
-
-    @Nullable
-    private BuildOperationState maybeStartUnmanagedThreadOperation() {
-        BuildOperationState current = getCurrentBuildOperation();
-        if (current == null && !GradleThread.isManaged()) {
-            BuildOperationState unmanaged = UnmanagedThreadOperation.create(clock.getCurrentTime());
-            unmanaged.setRunning(true);
-            setCurrentBuildOperation(unmanaged);
-            listener.started(unmanaged.getDescription(), new OperationStartEvent(unmanaged.getStartTime()));
-            return unmanaged;
-        } else {
-            return current;
-        }
-    }
-
-    private void maybeStopUnmanagedThreadOperation(@Nullable BuildOperationState current) {
-        if (current instanceof UnmanagedThreadOperation) {
-            try {
-                listener.finished(current.getDescription(), new OperationFinishEvent(current.getStartTime(), clock.getCurrentTime(), null, null));
-            } finally {
-                setCurrentBuildOperation(null);
-                current.setRunning(false);
-            }
         }
     }
 
@@ -254,23 +208,6 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
         @Override
         public void execute(O buildOperation) {
             runner.execute(buildOperation, worker, parent);
-        }
-    }
-
-    private static class UnmanagedThreadOperation extends BuildOperationState {
-
-        private static final AtomicLong UNMANAGED_THREAD_OPERATION_COUNTER = new AtomicLong(-1);
-
-        private static UnmanagedThreadOperation create(long currentTime) {
-            // TODO:pm Move this to WARN level once we fixed maven-publish, see gradle/gradle#1662
-            LOGGER.debug("WARNING No operation is currently running in unmanaged thread: {}", Thread.currentThread().getName());
-            OperationIdentifier id = new OperationIdentifier(UNMANAGED_THREAD_OPERATION_COUNTER.getAndDecrement());
-            String displayName = "Unmanaged thread operation #" + id + " (" + Thread.currentThread().getName() + ')';
-            return new UnmanagedThreadOperation(BuildOperationDescriptor.displayName(displayName).build(id, null), currentTime);
-        }
-
-        private UnmanagedThreadOperation(BuildOperationDescriptor descriptor, long startTime) {
-            super(descriptor, startTime);
         }
     }
 }
