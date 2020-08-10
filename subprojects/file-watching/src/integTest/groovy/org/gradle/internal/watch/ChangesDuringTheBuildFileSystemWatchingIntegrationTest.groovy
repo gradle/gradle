@@ -24,7 +24,7 @@ import org.gradle.internal.operations.OperationFinishEvent
 import org.gradle.internal.operations.OperationIdentifier
 import org.gradle.internal.operations.OperationProgressEvent
 import org.gradle.internal.operations.OperationStartEvent
-import org.gradle.internal.watch.vfs.impl.WatchingVirtualFileSystem
+import org.gradle.internal.watch.vfs.impl.BuildFinishedFileSystemWatchingResult
 import org.gradle.launcher.exec.RunBuildBuildOperationType
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
@@ -185,7 +185,7 @@ class ChangesDuringTheBuildFileSystemWatchingIntegrationTest extends AbstractFil
             import ${OperationProgressEvent.name}
             import ${OperationStartEvent.name}
             import ${BuildOperationListenerManager.name}
-            import ${WatchingVirtualFileSystem.name}
+            import ${BuildFinishedFileSystemWatchingResult.name}
             import ${RunBuildBuildOperationType.name}
 
             class FileSystemWatchingLogger implements BuildOperationListener {
@@ -205,9 +205,11 @@ class ChangesDuringTheBuildFileSystemWatchingIntegrationTest extends AbstractFil
                     if (finishEvent.result instanceof RunBuildBuildOperationType.Result) {
                         operationListenerManager.removeListener(this)
                     }
-                    if (finishEvent.result instanceof WatchingVirtualFileSystem.BuildFinishedWithFileSystemWatchingEnabled) {
+                    if (finishEvent.result instanceof BuildFinishedFileSystemWatchingResult) {
                         def result = finishEvent.result
-                        result.fileWatchingStatistics.ifPresent { statistics -> println "Received \${statistics.numberOfReceivedEvents} file system events for current build" }
+                        if (result.fileWatchingStatistics != null) {
+                            println "Received \${result.fileWatchingStatistics.numberOfReceivedEvents} file system events for current build"
+                        }
                     }
                 }
             }

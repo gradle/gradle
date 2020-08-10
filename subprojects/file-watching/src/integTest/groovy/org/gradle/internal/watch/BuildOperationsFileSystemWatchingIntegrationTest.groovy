@@ -17,6 +17,8 @@
 package org.gradle.internal.watch
 
 import org.gradle.integtests.fixtures.BuildOperationsFixture
+import org.gradle.internal.watch.vfs.impl.BuildFinishedFileSystemWatchingResult
+import org.gradle.internal.watch.vfs.impl.BuildStartedFileSystemWatchingResult
 
 class BuildOperationsFileSystemWatchingIntegrationTest extends AbstractFileSystemWatchingIntegrationTest {
 
@@ -96,12 +98,12 @@ class BuildOperationsFileSystemWatchingIntegrationTest extends AbstractFileSyste
         !retainedFiles(result)
     }
 
-    private Map<String, ?> buildFinishedResult() {
-        operations.result("Build finished with file system watching")
+    private Map<String, ?> buildStartedResult() {
+        operations.result(BuildStartedFileSystemWatchingResult.DISPLAY_NAME)
     }
 
-    private Map<String, ?> buildStartedResult() {
-        operations.result("Build started with file system watching")
+    private Map<String, ?> buildFinishedResult() {
+        operations.result(BuildFinishedFileSystemWatchingResult.DISPLAY_NAME)
     }
 
     private static boolean retainedFiles(Map<String, ?> result) {
