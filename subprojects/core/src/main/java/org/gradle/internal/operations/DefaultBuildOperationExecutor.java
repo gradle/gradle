@@ -39,7 +39,7 @@ import java.util.stream.Collectors;
 public class DefaultBuildOperationExecutor implements BuildOperationExecutor, Stoppable {
     private static final String LINE_SEPARATOR = SystemProperties.getInstance().getLineSeparator();
 
-    private final DefaultBuildOperationRunner runner;
+    private final BuildOperationRunner runner;
     private final Clock clock;
     private final BuildOperationQueueFactory buildOperationQueueFactory;
     private final ManagedExecutor fixedSizePool;
@@ -87,7 +87,11 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
 
     @Override
     public BuildOperationRef getCurrentOperation() {
-        return runner.getCurrentOperation();
+        BuildOperationRef current = getCurrentBuildOperation();
+        if (current == null) {
+            throw new IllegalStateException("No operation is currently running.");
+        }
+        return current;
     }
 
     @Override

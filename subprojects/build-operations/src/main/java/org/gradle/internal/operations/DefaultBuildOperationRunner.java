@@ -53,7 +53,8 @@ public class DefaultBuildOperationRunner implements BuildOperationRunner {
         return worker.getReturnValue();
     }
 
-    protected <O extends BuildOperation> void execute(final O buildOperation, final BuildOperationWorker<O> worker, @Nullable BuildOperationState defaultParent) {
+    @Override
+    public <O extends BuildOperation> void execute(final O buildOperation, final BuildOperationWorker<O> worker, @Nullable BuildOperationState defaultParent) {
         execute(buildOperation.description(), defaultParent, new BuildOperationExecution<O>() {
             @Override
             public O execute(BuildOperationDescriptor descriptor, BuildOperationState operationState, @Nullable BuildOperationState parent, DefaultBuildOperationContext context, BuildOperationExecutionListener listener) {
@@ -151,15 +152,6 @@ public class DefaultBuildOperationRunner implements BuildOperationRunner {
             String parentName = parent.getDescription().getDisplayName();
             throw new IllegalStateException(String.format(message, child.getDisplayName(), parentName));
         }
-    }
-
-    @Override
-    public BuildOperationRef getCurrentOperation() {
-        BuildOperationRef current = getCurrentBuildOperation();
-        if (current == null) {
-            throw new IllegalStateException("No operation is currently running.");
-        }
-        return current;
     }
 
     @Nullable

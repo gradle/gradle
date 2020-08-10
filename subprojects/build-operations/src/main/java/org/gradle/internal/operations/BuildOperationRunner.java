@@ -16,16 +16,15 @@
 
 package org.gradle.internal.operations;
 
-import javax.annotation.concurrent.ThreadSafe;
+import javax.annotation.Nullable;
 
 /**
  * Runs build operations: the pieces of work that make up a build.
  * Build operations can be nested inside other build operations.
  */
-@ThreadSafe
 public interface BuildOperationRunner {
     /**
-     * Runs the given build operation synchronously. Invokes the given operation from the current thread.
+     * Runs the given build operation.
      *
      * <p>Rethrows any exception thrown by the action.
      * Runtime exceptions are rethrown as is.
@@ -34,8 +33,7 @@ public interface BuildOperationRunner {
     void run(RunnableBuildOperation buildOperation);
 
     /**
-     * Calls the given build operation synchronously. Invokes the given operation from the current thread.
-     * Returns the result.
+     * Calls the given build operation, returns the result.
      *
      * <p>Rethrows any exception thrown by the action.
      * Runtime exceptions are rethrown as is.
@@ -51,10 +49,7 @@ public interface BuildOperationRunner {
     BuildOperationContext start(BuildOperationDescriptor.Builder descriptor);
 
     /**
-     * Returns the state of the build operation currently running on this thread. Can be used as parent of a new build operation
-     * started in a different thread (or process). See {@link BuildOperationDescriptor.Builder#parent(BuildOperationRef)}
-     *
-     * @throws IllegalStateException When the current thread is not executing an operation.
+     * Executes the given build operation with the given worker, returns the result.
      */
-    BuildOperationRef getCurrentOperation();
+    <O extends BuildOperation> void execute(final O buildOperation, final BuildOperationWorker<O> worker, @Nullable BuildOperationState defaultParent);
 }
