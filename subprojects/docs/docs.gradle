@@ -122,6 +122,14 @@ samples {
             sourceDirectory = javaUtilitiesLibrary.sourceDirectory
             target = "app"
         }
+        javaListLibraryInLib {
+            sourceDirectory = javaListLibrary.sourceDirectory
+            target = "lib"
+        }
+        javaUtilitiesLibraryInLib {
+            sourceDirectory = javaUtilitiesLibrary.sourceDirectory
+            target = "lib"
+        }
         javaApplicationAsSubproject {
             sourceDirectory = javaApplication.sourceDirectory
             target = "application"
@@ -315,8 +323,8 @@ samples {
             description = "Build a Java library."
             category = "Java"
             common {
-                from(templates.javaListLibrary)
-                from(templates.javaUtilitiesLibrary)
+                from(templates.javaListLibraryInLib)
+                from(templates.javaUtilitiesLibraryInLib)
             }
         }
         javaMultiProjectWithSpockTests {

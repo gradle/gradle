@@ -1,7 +1,7 @@
-> Task :compileJava
-> Task :processResources NO-SOURCE
-> Task :classes
-> Task :jar
+> Task :lib:compileJava
+> Task :lib:processResources NO-SOURCE
+> Task :lib:classes
+> Task :lib:jar
 
 BUILD SUCCESSFUL in 0s
 2 actionable tasks: 2 executed
