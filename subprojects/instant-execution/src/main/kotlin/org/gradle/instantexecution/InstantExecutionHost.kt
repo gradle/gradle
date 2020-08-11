@@ -22,7 +22,6 @@ import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.SettingsInternal
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.initialization.ScriptHandlerFactory
-import org.gradle.api.internal.project.DefaultProjectRegistry
 import org.gradle.api.internal.project.IProjectFactory
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectStateRegistry
@@ -76,8 +75,6 @@ class InstantExecutionHost internal constructor(
         gradle.services.getFactory(serviceType)
 
     inner class DefaultVintageGradleBuild : VintageGradleBuild {
-        override val buildSrc: Boolean
-            get() = gradle.parent != null && gradle.publicBuildPath.buildPath.name == SettingsInternal.BUILD_SRC
 
         override val gradle: GradleInternal
             get() = this@InstantExecutionHost.gradle
@@ -161,7 +158,9 @@ class InstantExecutionHost internal constructor(
         fun createProject(descriptor: ProjectDescriptor, parent: ProjectInternal?): ProjectInternal {
             val project = projectFactory.createProject(gradle, descriptor, parent, coreAndPluginsScope, coreAndPluginsScope)
             // Build dir is restored in order to use the correct workspace directory for transforms of project dependencies when the build dir has been customized
-            buildDirs.get(project.identityPath)?.let { project.setBuildDir(it) }
+            buildDirs[project.identityPath]?.let {
+                project.buildDir = it
+            }
             for (child in descriptor.children) {
                 createProject(child, project)
             }
@@ -236,10 +235,6 @@ class InstantExecutionHost internal constructor(
     private
     val coreAndPluginsScope: ClassLoaderScope
         get() = classLoaderScopeRegistry.coreAndPluginsScope
-
-    private
-    fun getProject(parentPath: Path?) =
-        parentPath?.let { service<DefaultProjectRegistry<ProjectInternal>>().getProject(it.path) }
 
     private
     fun getProjectDescriptor(parentPath: Path?): DefaultProjectDescriptor? =

@@ -88,7 +88,6 @@ class CompositeBuildTaskFailureIntegrationTest extends AbstractCompositeBuildInt
         failure.assertHasDescription("Execution failed for task ':buildB:broken'.")
     }
 
-    @ToBeFixedForInstantExecution(because = "composite builds")
     def "does not compile build script when build script classpath cannot be built"() {
         given:
         buildB.file("src/main/java/B.java") << """
@@ -120,9 +119,9 @@ class CompositeBuildTaskFailureIntegrationTest extends AbstractCompositeBuildInt
 
         buildA.buildFile << """
             task broken {
-                doLast { 
+                doLast {
                     ${server.callFromBuild('buildA')}
-                    throw new RuntimeException("broken") 
+                    throw new RuntimeException("broken")
                 }
             }
             processResources.dependsOn(broken)
@@ -130,9 +129,9 @@ class CompositeBuildTaskFailureIntegrationTest extends AbstractCompositeBuildInt
         dependency("org.test:buildB:1.0")
         buildB.buildFile << """
             task broken {
-                doLast { 
+                doLast {
                     ${server.callFromBuild('buildB')}
-                    throw new RuntimeException("broken") 
+                    throw new RuntimeException("broken")
                 }
             }
             processResources.dependsOn(broken)

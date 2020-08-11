@@ -16,6 +16,7 @@
 
 package org.gradle.instantexecution
 
+
 import org.gradle.api.provider.ValueSource
 import org.gradle.api.provider.ValueSourceParameters
 import org.gradle.instantexecution.fixtures.BuildLogicChangeFixture
@@ -23,66 +24,62 @@ import spock.lang.Unroll
 
 import static org.junit.Assume.assumeFalse
 
-class InstantExecutionBuildSrcChangesIntegrationTest extends AbstractInstantExecutionIntegrationTest {
+class InstantExecutionIncludedBuildChangesIntegrationTest extends AbstractInstantExecutionIntegrationTest {
 
     @Unroll
-    def "invalidates cache upon change to buildSrc #changeFixtureSpec"() {
+    def "invalidates cache upon change to included #fixtureSpec"() {
         given:
         def instant = newInstantExecutionFixture()
-        def changeFixture = changeFixtureSpec.fixtureForProjectDir(file('buildSrc'))
-        changeFixture.setup()
+        def fixture = fixtureSpec.fixtureForProjectDir(file('build-logic'))
+        fixture.setup()
+        settingsFile << """
+            includeBuild 'build-logic'
+        """
         buildFile << """
-            plugins { id('$changeFixture.pluginId') }
+            plugins { id('$fixture.pluginId') }
         """
 
         when:
-        if (isKotlinBuildSrc) {
-            instantRunLenient changeFixture.task
-        } else {
-            instantRun changeFixture.task
-        }
+        instantRunLenient fixture.task
 
         then:
-        outputContains changeFixture.expectedOutputBeforeChange
+        outputContains fixture.expectedOutputBeforeChange
         instant.assertStateStored()
 
         when:
-        changeFixture.applyChange()
-        if (isKotlinBuildSrc) {
-            instantRunLenient changeFixture.task
-        } else {
-            instantRun changeFixture.task
-        }
+        fixture.applyChange()
+        instantRunLenient fixture.task
 
         then:
-        outputContains changeFixture.expectedOutputAfterChange
+        outputContains fixture.expectedOutputAfterChange
         instant.assertStateStored()
 
         when:
-        instantRun changeFixture.task
+        instantRunLenient fixture.task
 
         then:
-        outputContains changeFixture.expectedOutputAfterChange
+        outputContains fixture.expectedOutputAfterChange
         instant.assertStateLoaded()
 
         where:
-        changeFixtureSpec << BuildLogicChangeFixture.specs()
-        isKotlinBuildSrc = changeFixtureSpec.language == BuildLogicChangeFixture.Language.KOTLIN
+        fixtureSpec << BuildLogicChangeFixture.specs()
     }
 
     @Unroll
-    def "invalidates cache upon change to #inputName used by buildSrc"() {
+    def "invalidates cache upon change to #inputName used by included build"() {
 
         assumeFalse(
-            'property from gradle.properties is not available to buildSrc',
+            'property from gradle.properties is not available to included build',
             inputName == 'gradle.properties'
         )
 
         given:
         def instant = newInstantExecutionFixture()
-        file("buildSrc/build.gradle.kts").text = """
+        def fixture = new BuildLogicChangeFixture(file('build-logic'))
+        fixture.setup()
+        fixture.buildFile << """
 
-            interface Params: $ValueSourceParameters.name {
+            interface Params : $ValueSourceParameters.name {
                 val value: Property<String>
             }
 
@@ -96,44 +93,42 @@ class InstantExecutionBuildSrcChangesIntegrationTest extends AbstractInstantExec
 
             val isCi = ${inputExpression}.forUseAtConfigurationTime()
             tasks {
-                if (isCi.isPresent) {
-                    register("run") {
+                named("jar") {
+                    if (isCi.isPresent) {
                         doLast { println("ON CI") }
-                    }
-                } else {
-                    register("run") {
+                    } else {
                         doLast { println("NOT CI") }
                     }
                 }
-                assemble {
-                    dependsOn("run")
-                }
             }
         """
+        settingsFile << """
+            includeBuild 'build-logic'
+        """
         buildFile << """
-            task assemble
+            plugins { id('$fixture.pluginId') }
         """
 
         when:
-        instantRun "assemble"
+        instantRunLenient fixture.task
 
         then:
         output.count("NOT CI") == 1
         instant.assertStateStored()
 
         when:
-        instantRun "assemble"
+        instantRunLenient fixture.task
 
-        then: "buildSrc doesn't build"
+        then: "included build doesn't build"
         output.count("CI") == 0
         instant.assertStateLoaded()
 
         when:
         if (inputName == 'gradle.properties') {
             file('gradle.properties').text = 'test_is_ci=true'
-            instantRun "assemble"
+            instantRunLenient fixture.task
         } else {
-            instantRun "assemble", inputArgument
+            instantRunLenient fixture.task, inputArgument
         }
 
         then:
