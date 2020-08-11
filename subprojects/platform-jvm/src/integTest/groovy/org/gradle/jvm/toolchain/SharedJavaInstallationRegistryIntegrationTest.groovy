@@ -66,7 +66,7 @@ class SharedJavaInstallationRegistryIntegrationTest extends AbstractIntegrationS
 
                 void apply(Project project) {
                     project.tasks.register("show") {
-                        println registry.listInstallations()
+                       registry.listInstallations().each { println it }
                     }
                 }
             }
@@ -79,6 +79,7 @@ class SharedJavaInstallationRegistryIntegrationTest extends AbstractIntegrationS
             .withEnvironmentVars([JDK1: "/unknown/env", JDK2: firstJavaHome])
             .withArgument("-Porg.gradle.java.installations.paths=/unknown/path," + secondJavaHome)
             .withArgument("-Porg.gradle.java.installations.fromEnv=JDK1,JDK2")
+            .withArgument("--info")
             .withTasks("show")
             .run()
         then:
