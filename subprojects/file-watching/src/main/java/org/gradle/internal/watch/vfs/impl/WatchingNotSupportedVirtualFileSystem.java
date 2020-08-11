@@ -23,7 +23,9 @@ import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.internal.snapshot.SnapshotHierarchy;
 import org.gradle.internal.vfs.VirtualFileSystem;
 import org.gradle.internal.vfs.impl.VfsRootReference;
+import org.gradle.internal.watch.vfs.BuildFinishedFileSystemWatchingBuildOperationType;
 import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem;
+import org.gradle.internal.watch.vfs.BuildStartedFileSystemWatchingBuildOperationType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -60,13 +62,14 @@ public class WatchingNotSupportedVirtualFileSystem implements BuildLifecycleAwar
         rootReference.update(vfsRoot -> buildOperationRunner.call(new CallableBuildOperation<SnapshotHierarchy>() {
             @Override
             public SnapshotHierarchy call(BuildOperationContext context) {
-                context.setResult(new BuildStartedFileSystemWatchingResult(false, false, null));
+                context.setResult(BuildStartedFileSystemWatchingBuildOperationType.Result.WATCHING_DISABLED);
                 return vfsRoot.empty();
             }
 
             @Override
             public BuildOperationDescriptor.Builder description() {
-                return BuildOperationDescriptor.displayName(BuildStartedFileSystemWatchingResult.DISPLAY_NAME);
+                return BuildOperationDescriptor.displayName(BuildStartedFileSystemWatchingBuildOperationType.DISPLAY_NAME)
+                    .details(BuildStartedFileSystemWatchingBuildOperationType.Details.INSTANCE);
             }
         }));
     }
@@ -80,13 +83,14 @@ public class WatchingNotSupportedVirtualFileSystem implements BuildLifecycleAwar
         rootReference.update(vfsRoot -> buildOperationRunner.call(new CallableBuildOperation<SnapshotHierarchy>() {
             @Override
             public SnapshotHierarchy call(BuildOperationContext context) {
-                context.setResult(new BuildFinishedFileSystemWatchingResult(false, false, null));
+                context.setResult(BuildFinishedFileSystemWatchingBuildOperationType.Result.WATCHING_DISABLED);
                 return vfsRoot.empty();
             }
 
             @Override
             public BuildOperationDescriptor.Builder description() {
-                return BuildOperationDescriptor.displayName(BuildFinishedFileSystemWatchingResult.DISPLAY_NAME);
+                return BuildOperationDescriptor.displayName(BuildFinishedFileSystemWatchingBuildOperationType.DISPLAY_NAME)
+                    .details(BuildFinishedFileSystemWatchingBuildOperationType.Details.INSTANCE);
             }
         }));
     }

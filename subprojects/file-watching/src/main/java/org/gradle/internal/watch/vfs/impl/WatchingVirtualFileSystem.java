@@ -29,7 +29,10 @@ import org.gradle.internal.watch.registry.FileWatcherRegistry;
 import org.gradle.internal.watch.registry.FileWatcherRegistryFactory;
 import org.gradle.internal.watch.registry.SnapshotCollectingDiffListener;
 import org.gradle.internal.watch.registry.impl.DaemonDocumentationIndex;
+import org.gradle.internal.watch.vfs.BuildFinishedFileSystemWatchingBuildOperationType;
 import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem;
+import org.gradle.internal.watch.vfs.BuildStartedFileSystemWatchingBuildOperationType;
+import org.gradle.internal.watch.vfs.FileSystemWatchingStatistics;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -112,11 +115,11 @@ public class WatchingVirtualFileSystem implements BuildLifecycleAwareVirtualFile
                     context.setResult(new BuildStartedFileSystemWatchingResult(
                         true,
                         startedWatching,
-                        statistics == null ? null : new FileSystemWatchingStatistics(statistics, newRoot))
+                        statistics == null ? null : new DefaultFileSystemWatchingStatistics(statistics, newRoot))
                     );
                     return newRoot;
                 } else {
-                    context.setResult(new BuildStartedFileSystemWatchingResult(false, false, null));
+                    context.setResult(BuildStartedFileSystemWatchingBuildOperationType.Result.WATCHING_DISABLED);
                     return stopWatchingAndInvalidateHierarchy(currentRoot);
                 }
 
@@ -124,7 +127,8 @@ public class WatchingVirtualFileSystem implements BuildLifecycleAwareVirtualFile
 
             @Override
             public BuildOperationDescriptor.Builder description() {
-                return BuildOperationDescriptor.displayName(BuildStartedFileSystemWatchingResult.DISPLAY_NAME);
+                return BuildOperationDescriptor.displayName(BuildStartedFileSystemWatchingBuildOperationType.DISPLAY_NAME)
+                    .details(BuildStartedFileSystemWatchingBuildOperationType.Details.INSTANCE);
             }
         }));
     }
@@ -167,11 +171,11 @@ public class WatchingVirtualFileSystem implements BuildLifecycleAwareVirtualFile
                     context.setResult(new BuildFinishedFileSystemWatchingResult(
                         true,
                         watchRegistry == null,
-                        statistics == null ? null : new FileSystemWatchingStatistics(statistics, newRoot)));
+                        statistics == null ? null : new DefaultFileSystemWatchingStatistics(statistics, newRoot)));
                     return newRoot;
                 } else {
                     SnapshotHierarchy newRoot = currentRoot.empty();
-                    context.setResult(new BuildFinishedFileSystemWatchingResult(false, false, null));
+                    context.setResult(BuildFinishedFileSystemWatchingBuildOperationType.Result.WATCHING_DISABLED);
                     return newRoot;
                 }
 
@@ -179,7 +183,8 @@ public class WatchingVirtualFileSystem implements BuildLifecycleAwareVirtualFile
 
             @Override
             public BuildOperationDescriptor.Builder description() {
-                return BuildOperationDescriptor.displayName(BuildFinishedFileSystemWatchingResult.DISPLAY_NAME);
+                return BuildOperationDescriptor.displayName(BuildFinishedFileSystemWatchingBuildOperationType.DISPLAY_NAME)
+                    .details(BuildFinishedFileSystemWatchingBuildOperationType.Details.INSTANCE);
             }
         }));
     }
@@ -309,4 +314,65 @@ public class WatchingVirtualFileSystem implements BuildLifecycleAwareVirtualFile
         }
     }
 
+    private static class BuildStartedFileSystemWatchingResult implements BuildStartedFileSystemWatchingBuildOperationType.Result {
+        private final boolean watchingEnabled;
+        private final boolean startedWatching;
+        private final FileSystemWatchingStatistics statistics;
+
+        public BuildStartedFileSystemWatchingResult(
+            boolean watchingEnabled,
+            boolean startedWatching,
+            @Nullable FileSystemWatchingStatistics statistics
+        ) {
+            this.watchingEnabled = watchingEnabled;
+            this.startedWatching = startedWatching;
+            this.statistics = statistics;
+        }
+
+        @Override
+        public boolean isWatchingEnabled() {
+            return watchingEnabled;
+        }
+
+        @Override
+        public boolean isStartedWatching() {
+            return startedWatching;
+        }
+
+        @Override
+        public FileSystemWatchingStatistics getStatistics() {
+            return statistics;
+        }
+    }
+
+    public static class BuildFinishedFileSystemWatchingResult implements BuildFinishedFileSystemWatchingBuildOperationType.Result {
+        private final boolean watchingEnabled;
+        private final boolean stoppedWatchingDuringTheBuild;
+        private final FileSystemWatchingStatistics statistics;
+
+        public BuildFinishedFileSystemWatchingResult(
+            boolean watchingEnabled,
+            boolean stoppedWatchingDuringTheBuild,
+            @Nullable FileSystemWatchingStatistics statistics
+        ) {
+            this.watchingEnabled = watchingEnabled;
+            this.stoppedWatchingDuringTheBuild = stoppedWatchingDuringTheBuild;
+            this.statistics = statistics;
+        }
+
+        @Override
+        public boolean isWatchingEnabled() {
+            return watchingEnabled;
+        }
+
+        @Override
+        public boolean isStoppedWatchingDuringTheBuild() {
+            return stoppedWatchingDuringTheBuild;
+        }
+
+        @Override
+        public FileSystemWatchingStatistics getStatistics() {
+            return statistics;
+        }
+    }
 }

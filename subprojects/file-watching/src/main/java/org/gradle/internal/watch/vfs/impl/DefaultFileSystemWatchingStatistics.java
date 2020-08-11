@@ -24,12 +24,13 @@ import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshotVisitor;
 import org.gradle.internal.snapshot.SnapshotHierarchy;
 import org.gradle.internal.watch.registry.FileWatcherRegistry;
+import org.gradle.internal.watch.vfs.FileSystemWatchingStatistics;
 
-public class FileSystemWatchingStatistics {
+public class DefaultFileSystemWatchingStatistics implements FileSystemWatchingStatistics {
     private final FileWatcherRegistry.FileWatchingStatistics fileWatchingStatistics;
     private final VirtualFileSystemStatistics vfsStatistics;
 
-    public FileSystemWatchingStatistics(
+    public DefaultFileSystemWatchingStatistics(
         FileWatcherRegistry.FileWatchingStatistics fileWatchingStatistics,
         SnapshotHierarchy vfsRoot
     ) {
@@ -37,18 +38,22 @@ public class FileSystemWatchingStatistics {
         this.vfsStatistics = getStatistics(vfsRoot);
     }
 
-    public FileWatcherRegistry.FileWatchingStatistics getFileWatchingStatistics() {
-        return fileWatchingStatistics;
+    @Override
+    public int getNumberOfReceivedEvents() {
+        return fileWatchingStatistics.getNumberOfReceivedEvents();
     }
 
+    @Override
     public int getRetainedRegularFiles() {
         return vfsStatistics.getRetained(FileType.RegularFile);
     }
 
+    @Override
     public int getRetainedDirectories() {
         return vfsStatistics.getRetained(FileType.Directory);
     }
 
+    @Override
     public int getRetainedMissingFiles() {
         return vfsStatistics.getRetained(FileType.Missing);
     }

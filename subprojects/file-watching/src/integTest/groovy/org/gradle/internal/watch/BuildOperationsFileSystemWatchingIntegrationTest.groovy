@@ -17,8 +17,8 @@
 package org.gradle.internal.watch
 
 import org.gradle.integtests.fixtures.BuildOperationsFixture
-import org.gradle.internal.watch.vfs.impl.BuildFinishedFileSystemWatchingResult
-import org.gradle.internal.watch.vfs.impl.BuildStartedFileSystemWatchingResult
+import org.gradle.internal.watch.vfs.BuildFinishedFileSystemWatchingBuildOperationType
+import org.gradle.internal.watch.vfs.BuildStartedFileSystemWatchingBuildOperationType
 
 class BuildOperationsFileSystemWatchingIntegrationTest extends AbstractFileSystemWatchingIntegrationTest {
 
@@ -41,6 +41,7 @@ class BuildOperationsFileSystemWatchingIntegrationTest extends AbstractFileSyste
         executer.beforeExecute {
             inDirectory(projectDir)
         }
+        executer.requireDaemon()
     }
 
     def "emits build operations when watching is enabled"() {
@@ -68,7 +69,7 @@ class BuildOperationsFileSystemWatchingIntegrationTest extends AbstractFileSyste
         then:
         startedResult.watchingEnabled
         !startedResult.startedWatching
-        startedResult.statistics.fileWatchingStatistics.numberOfReceivedEvents > 0
+        startedResult.statistics.numberOfReceivedEvents > 0
         retainedFiles(startedResult)
 
         finishedResult.watchingEnabled
@@ -97,11 +98,11 @@ class BuildOperationsFileSystemWatchingIntegrationTest extends AbstractFileSyste
     }
 
     private Map<String, ?> buildStartedResult() {
-        operations.result(BuildStartedFileSystemWatchingResult.DISPLAY_NAME)
+        operations.first(BuildStartedFileSystemWatchingBuildOperationType).result
     }
 
     private Map<String, ?> buildFinishedResult() {
-        operations.result(BuildFinishedFileSystemWatchingResult.DISPLAY_NAME)
+        operations.first(BuildFinishedFileSystemWatchingBuildOperationType).result
     }
 
     private static boolean retainedFiles(Map<String, ?> result) {
