@@ -16,15 +16,54 @@
 
 package org.gradle.instantexecution
 
-
 import org.gradle.api.provider.ValueSource
 import org.gradle.api.provider.ValueSourceParameters
 import org.gradle.instantexecution.fixtures.BuildLogicChangeFixture
+import org.gradle.instantexecution.fixtures.ScriptChangeFixture
+import org.junit.Test
 import spock.lang.Unroll
 
 import static org.junit.Assume.assumeFalse
 
 class InstantExecutionIncludedBuildChangesIntegrationTest extends AbstractInstantExecutionIntegrationTest {
+
+    @Unroll
+    @Test
+    def "invalidates cache upon change to #scriptChangeSpec of included build"() {
+        given:
+        def instant = newInstantExecutionFixture()
+        def fixture = scriptChangeSpec.fixtureForProjectDir(file('build-logic'))
+        fixture.setup()
+        def build = { instantRunLenient(*fixture.buildArguments) }
+        settingsFile << """
+            includeBuild 'build-logic'
+        """
+
+        when:
+        build()
+
+        then:
+        outputContains fixture.expectedOutputBeforeChange
+
+        when:
+        fixture.applyChange()
+        build()
+
+        then:
+        outputContains fixture.expectedOutputAfterChange
+        instant.assertStateStored()
+
+        when:
+        build()
+
+        then:
+        outputDoesNotContain fixture.expectedOutputBeforeChange
+        outputDoesNotContain fixture.expectedOutputAfterChange
+        instant.assertStateLoaded()
+
+        where:
+        scriptChangeSpec << ScriptChangeFixture.specs()
+    }
 
     @Unroll
     def "invalidates cache upon change to included #fixtureSpec"() {
