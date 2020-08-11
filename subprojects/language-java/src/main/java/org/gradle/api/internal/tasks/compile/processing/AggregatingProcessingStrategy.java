@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.compile.processing;
 
+import com.sun.tools.javac.code.Symbol;
 import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessorResult;
 import org.gradle.api.internal.tasks.compile.incremental.processing.GeneratedResource;
 
@@ -25,7 +26,9 @@ import javax.lang.model.element.TypeElement;
 import javax.tools.JavaFileManager;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
+import java.util.Collections;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static org.gradle.api.internal.tasks.compile.incremental.processing.IncrementalAnnotationProcessorType.AGGREGATING;
 
@@ -57,12 +60,25 @@ class AggregatingProcessingStrategy extends IncrementalProcessingStrategy {
 
     private void recordAggregatedTypes(Set<String> supportedAnnotationTypes, Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
         if (supportedAnnotationTypes.contains("*")) {
-            result.getAggregatedTypes().addAll(ElementUtils.getTopLevelTypeNames(roundEnv.getRootElements()));
+            result.getAggregatedTypes().addAll(namesOfElementsWithSource(roundEnv.getRootElements()));
         } else {
             for (TypeElement annotation : annotations) {
-                result.getAggregatedTypes().addAll(ElementUtils.getTopLevelTypeNames(roundEnv.getElementsAnnotatedWith(annotation)));
+                result.getAggregatedTypes().addAll(namesOfElementsWithSource(roundEnv.getElementsAnnotatedWith(annotation)));
             }
         }
+    }
+
+    // We need to filter classes which actually _have_ sources
+    // see https://github.com/gradle/gradle/issues/13767
+    private static Set<String> namesOfElementsWithSource(Set<? extends Element> orig) {
+        if (orig == null || orig.isEmpty()) {
+            return Collections.emptySet();
+        }
+        return ElementUtils.getTopLevelTypeNames(orig.stream()
+            .filter(Symbol.ClassSymbol.class::isInstance)
+            .map(Symbol.ClassSymbol.class::cast)
+            .filter(e -> e.sourcefile != null)
+            .collect(Collectors.toSet()));
     }
 
     @Override

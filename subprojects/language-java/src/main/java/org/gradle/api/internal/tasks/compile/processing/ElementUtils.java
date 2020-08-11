@@ -69,7 +69,8 @@ public class ElementUtils {
             }
         }
         if (current instanceof TypeElement) {
-            return ((TypeElement) current).getQualifiedName().toString();
+            TypeElement typeElement = (TypeElement) current;
+            return typeElement.getQualifiedName().toString();
         }
         throw new IllegalArgumentException("Unexpected element " + originatingElement);
     }
