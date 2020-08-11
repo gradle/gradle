@@ -45,7 +45,7 @@ public class WindowsFileWatcherRegistryFactory extends AbstractFileWatcherRegist
     }
 
     @Override
-    protected FileWatcherUpdater createFileWatcherUpdater(FileWatcher watcher, Predicate<String> watchFilter) {
-        return new HierarchicalFileWatcherUpdater(watcher, NO_VALIDATION, watchFilter);
+    protected FileWatcherUpdater createFileWatcherUpdater(FileWatcher watcher, Predicate<String> watchFilter, int maxHierarchiesToWatch) {
+        return new HierarchicalFileWatcherUpdater(watcher, NO_VALIDATION, watchFilter, maxHierarchiesToWatch);
     }
 }

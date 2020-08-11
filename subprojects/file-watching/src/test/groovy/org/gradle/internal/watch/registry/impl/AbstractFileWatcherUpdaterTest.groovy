@@ -70,10 +70,10 @@ abstract class AbstractFileWatcherUpdaterTest extends Specification {
     }
 
     def setup() {
-        updater = createUpdater(watcher, watchFilter)
+        updater = createUpdater(watcher, watchFilter, Integer.MAX_VALUE)
     }
 
-    abstract FileWatcherUpdater createUpdater(FileWatcher watcher, Predicate<String> watchFilter)
+    abstract FileWatcherUpdater createUpdater(FileWatcher watcher, Predicate<String> watchFilter, int maxHierarchiesToWatch)
 
     def "does not watch directories outside of hierarchies to watch"() {
         def watchableHierarchies = ["first", "second", "third"].collect { file(it).createDir() }
@@ -188,6 +188,41 @@ abstract class AbstractFileWatcherUpdaterTest extends Specification {
         then:
         def exception = thrown(IllegalStateException)
         exception.message == "Unable to watch directory '${watchableHierarchy.absolutePath}' since it is within Gradle's caches"
+    }
+
+    def "stops watching hierarchies when maximum number of hierarchies to watch has been reached"() {
+        int maxHierarchiesToWatch = 4
+        updater = createUpdater(watcher, watchFilter, maxHierarchiesToWatch)
+        def oldestRegisteredWatchableHierarchy = file("oldestWatchable").createDir()
+        def watchableHierarchies = (1..maxHierarchiesToWatch - 1).collect { index -> file("watchable${index}").createDir() }
+        def newestRegisteredWatchableHierarchy = file("newestWatchable").createDir()
+
+        when:
+        registerWatchableHierarchies([oldestRegisteredWatchableHierarchy] + watchableHierarchies)
+        then:
+        0 * _
+
+        when:
+        ([oldestRegisteredWatchableHierarchy] + watchableHierarchies).each {
+            addSnapshot(snapshotRegularFile(it.file("watched.txt").createFile()))
+        }
+        then:
+        ([oldestRegisteredWatchableHierarchy] + watchableHierarchies).each { watchableHierarchy ->
+            1 * watcher.startWatching({ equalIgnoringOrder(it, [watchableHierarchy]) })
+        }
+        when:
+        registerWatchableHierarchies([newestRegisteredWatchableHierarchy])
+        addSnapshot(snapshotRegularFile(newestRegisteredWatchableHierarchy.file("watched.txt").createFile()))
+        then:
+        1 * watcher.startWatching({ equalIgnoringOrder(it, [newestRegisteredWatchableHierarchy]) })
+
+        when:
+        buildFinished()
+        then:
+        1 * watcher.stopWatching({ equalIgnoringOrder(it, [oldestRegisteredWatchableHierarchy]) })
+
+        !vfsHasSnapshotsAt(oldestRegisteredWatchableHierarchy)
+        vfsHasSnapshotsAt(newestRegisteredWatchableHierarchy)
     }
 
     TestFile file(Object... path) {

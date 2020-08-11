@@ -37,12 +37,14 @@ public class WatchableHierarchies {
     private static final Logger LOGGER = LoggerFactory.getLogger(WatchableHierarchies.class);
 
     private final Predicate<String> watchFilter;
+    private final int maxHierarchiesToWatch;
 
     private FileHierarchySet watchableHierarchies = DefaultFileHierarchySet.of();
     private final Deque<File> recentlyUsedHierarchies = new ArrayDeque<>();
 
-    public WatchableHierarchies(Predicate<String> watchFilter) {
+    public WatchableHierarchies(Predicate<String> watchFilter, int maxHierarchiesToWatch) {
         this.watchFilter = watchFilter;
+        this.maxHierarchiesToWatch = maxHierarchiesToWatch;
     }
 
     public void registerWatchableHierarchy(File watchableHierarchy, SnapshotHierarchy root) {
@@ -67,10 +69,25 @@ public class WatchableHierarchies {
     @CheckReturnValue
     public SnapshotHierarchy removeUnwatchedSnapshots(Predicate<File> isWatchedHierarchy, SnapshotHierarchy root, Invalidator invalidator) {
         recentlyUsedHierarchies.removeIf(hierarchy -> !isWatchedHierarchy.test(hierarchy));
+        SnapshotHierarchy currentRoot = stopWatchingHierarchiesOverLimit(invalidator, root);
+
         this.watchableHierarchies = DefaultFileHierarchySet.of(recentlyUsedHierarchies);
-        RemoveUnwatchedFiles removeUnwatchedFilesVisitor = new RemoveUnwatchedFiles(root, invalidator);
-        root.visitSnapshotRoots(snapshotRoot -> snapshotRoot.accept(removeUnwatchedFilesVisitor));
+        RemoveUnwatchedFiles removeUnwatchedFilesVisitor = new RemoveUnwatchedFiles(currentRoot, invalidator);
+        currentRoot.visitSnapshotRoots(snapshotRoot -> snapshotRoot.accept(removeUnwatchedFilesVisitor));
         return removeUnwatchedFilesVisitor.getRootWithUnwatchedFilesRemoved();
+    }
+
+    private SnapshotHierarchy stopWatchingHierarchiesOverLimit(Invalidator invalidator, SnapshotHierarchy root) {
+        SnapshotHierarchy result = root;
+        int toRemove = recentlyUsedHierarchies.size() - maxHierarchiesToWatch;
+        if (toRemove > 0) {
+            LOGGER.warn("Watching {} hierarchies, removing {} to limit the number of watched directories", recentlyUsedHierarchies.size(), toRemove);
+            for (int i = 0; i < toRemove; i++) {
+                File locationToRemove = recentlyUsedHierarchies.removeLast();
+                result = invalidator.invalidate(locationToRemove.getAbsolutePath(), result);
+            }
+        }
+        return result;
     }
 
     public Collection<File> getWatchableHierarchies() {

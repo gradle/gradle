@@ -45,8 +45,8 @@ public class DarwinFileWatcherRegistryFactory extends AbstractFileWatcherRegistr
     }
 
     @Override
-    protected FileWatcherUpdater createFileWatcherUpdater(FileWatcher watcher, Predicate<String> watchFilter) {
-        return new HierarchicalFileWatcherUpdater(watcher, DarwinFileWatcherRegistryFactory::validateLocationToWatch, watchFilter);
+    protected FileWatcherUpdater createFileWatcherUpdater(FileWatcher watcher, Predicate<String> watchFilter, int maxHierarchiesToWatch) {
+        return new HierarchicalFileWatcherUpdater(watcher, DarwinFileWatcherRegistryFactory::validateLocationToWatch, watchFilter, maxHierarchiesToWatch);
     }
 
     private static void validateLocationToWatch(File location) {

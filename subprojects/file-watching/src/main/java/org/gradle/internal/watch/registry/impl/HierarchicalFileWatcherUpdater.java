@@ -67,10 +67,10 @@ public class HierarchicalFileWatcherUpdater implements FileWatcherUpdater {
     private final FileSystemLocationToWatchValidator locationToWatchValidator;
     private final WatchableHierarchies watchableHierarchies;
 
-    public HierarchicalFileWatcherUpdater(FileWatcher fileWatcher, FileSystemLocationToWatchValidator locationToWatchValidator, Predicate<String> watchFilter) {
+    public HierarchicalFileWatcherUpdater(FileWatcher fileWatcher, FileSystemLocationToWatchValidator locationToWatchValidator, Predicate<String> watchFilter, int maxHierarchiesToWatch) {
         this.fileWatcher = fileWatcher;
         this.locationToWatchValidator = locationToWatchValidator;
-        this.watchableHierarchies = new WatchableHierarchies(watchFilter);
+        this.watchableHierarchies = new WatchableHierarchies(watchFilter, maxHierarchiesToWatch);
     }
 
     @Override
