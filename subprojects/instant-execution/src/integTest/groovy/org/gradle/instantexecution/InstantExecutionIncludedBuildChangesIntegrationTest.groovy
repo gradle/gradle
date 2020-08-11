@@ -16,9 +16,12 @@
 
 package org.gradle.instantexecution
 
+import groovy.transform.Immutable
 import org.gradle.api.DefaultTask
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.provider.ValueSource
+import org.gradle.api.provider.ValueSourceParameters
 import org.gradle.api.tasks.TaskAction
 import org.gradle.integtests.fixtures.KotlinDslTestUtil
 import org.gradle.test.fixtures.file.TestFile
@@ -29,47 +32,42 @@ import static org.junit.Assume.assumeFalse
 class InstantExecutionIncludedBuildChangesIntegrationTest extends AbstractInstantExecutionIntegrationTest {
 
     @Unroll
-    def "invalidates cache upon change to included #language project (#change)"() {
+    def "invalidates cache upon change to included #fixtureSpec"() {
         given:
         def instant = newInstantExecutionFixture()
-        def fixture = new BuildLogicChangeFixture(file('build-logic'), language, change)
+        def fixture = fixtureSpec.fixtureForProjectDir(file('build-logic'))
         fixture.setup()
-
         settingsFile << """
             includeBuild 'build-logic'
         """
         buildFile << """
-            plugins { id('${BuildLogicChangeFixture.PLUGIN_ID}') }
+            plugins { id('${fixture.pluginId}') }
         """
+
         when:
-        instantRunLenient()
+        instantRunLenient fixture.task
 
         then:
         outputContains fixture.expectedOutputBeforeChange
+        instant.assertStateStored()
 
         when:
         fixture.applyChange()
-        instantRunLenient()
+        instantRunLenient fixture.task
 
         then:
         outputContains fixture.expectedOutputAfterChange
         instant.assertStateStored()
 
         when:
-        instantRunLenient()
+        instantRunLenient fixture.task
 
         then:
         outputContains fixture.expectedOutputAfterChange
         instant.assertStateLoaded()
 
         where:
-        [language_, change_] << [BuildLogicLanguage.values(), BuildLogicChange.values()].combinations()
-        language = language_ as BuildLogicLanguage
-        change = change_ as BuildLogicChange
-    }
-
-    private void instantRunLenient() {
-        instantRunLenient BuildLogicChangeFixture.TASK_NAME
+        fixtureSpec << BuildLogicChangeFixture.specs()
     }
 
     @Unroll
@@ -82,20 +80,18 @@ class InstantExecutionIncludedBuildChangesIntegrationTest extends AbstractInstan
 
         given:
         def instant = newInstantExecutionFixture()
-        def fixture = new BuildLogicChangeFixture(file('build-logic'), BuildLogicLanguage.JAVA, BuildLogicChange.CHANGE_SOURCE)
-        file("build-logic/build.gradle.kts") << """
-            import org.gradle.api.provider.*
-        """
+        def fixture = new BuildLogicChangeFixture(file('build-logic'))
         fixture.setup()
-        file("build-logic/build.gradle.kts") << """
+        fixture.buildFile << """
 
-            interface Params: ValueSourceParameters {
+            interface Params : ${ValueSourceParameters.name} {
                 val value: Property<String>
             }
 
-            abstract class IsCi : ValueSource<String, Params> {
+            abstract class IsCi : ${ValueSource.name}<String, Params> {
                 override fun obtain(): String? = parameters.value.orNull
             }
+
             val ciProvider = providers.of(IsCi::class.java) {
                 parameters.value.set(providers.systemProperty("test_is_ci").forUseAtConfigurationTime())
             }
@@ -115,18 +111,18 @@ class InstantExecutionIncludedBuildChangesIntegrationTest extends AbstractInstan
             includeBuild 'build-logic'
         """
         buildFile << """
-            plugins { id('${BuildLogicChangeFixture.PLUGIN_ID}') }
+            plugins { id('${fixture.pluginId}') }
         """
 
         when:
-        instantRunLenient BuildLogicChangeFixture.TASK_NAME
+        instantRunLenient fixture.task
 
         then:
         output.count("NOT CI") == 1
         instant.assertStateStored()
 
         when:
-        instantRunLenient BuildLogicChangeFixture.TASK_NAME
+        instantRunLenient fixture.task
 
         then: "included build doesn't build"
         output.count("CI") == 0
@@ -135,9 +131,9 @@ class InstantExecutionIncludedBuildChangesIntegrationTest extends AbstractInstan
         when:
         if (inputName == 'gradle.properties') {
             file('gradle.properties').text = 'test_is_ci=true'
-            instantRunLenient BuildLogicChangeFixture.TASK_NAME
+            instantRunLenient fixture.task
         } else {
-            instantRunLenient BuildLogicChangeFixture.TASK_NAME, inputArgument
+            instantRunLenient fixture.task, inputArgument
         }
 
         then:
@@ -154,79 +150,135 @@ class InstantExecutionIncludedBuildChangesIntegrationTest extends AbstractInstan
 
     static class BuildLogicChangeFixture {
 
-        static final String PLUGIN_ID = 'build-logic'
-        static final String TASK_NAME = 'greet'
-        static final String ORIGINAL_GREETING = 'Hello!'
-        static final String CHANGED_GREETING = "G'day!"
+        static List<Spec> specs() {
+            [Kind.values(), Language.values()].combinations().collect { Kind kind, Language language ->
+                new Spec(language, kind)
+            }
+        }
+
+        @Immutable
+        static class Spec {
+            Language language
+            Kind kind
+
+            @Override
+            String toString() {
+                "$language project ($kind)"
+            }
+
+            BuildLogicChangeFixture fixtureForProjectDir(TestFile projectDir) {
+                new BuildLogicChangeFixture(projectDir, language, kind)
+            }
+        }
+
+        enum Kind {
+            CHANGE_SOURCE,
+            ADD_SOURCE,
+            CHANGE_RESOURCE,
+            ADD_RESOURCE
+
+            @Override
+            String toString() {
+                name().toLowerCase().replace('_', ' ')
+            }
+        }
+
+        enum Language {
+            JAVA,
+            GROOVY,
+            KOTLIN
+
+            String getFileExtension() {
+                switch (this) {
+                    case JAVA:
+                        return 'java'
+                    case GROOVY:
+                        return 'groovy'
+                    case KOTLIN:
+                        return 'kt'
+                }
+            }
+
+            @Override
+            String toString() {
+                name().toLowerCase().capitalize()
+            }
+        }
+
+        static final String pluginId = 'build-logic'
+        static final String task = 'greet'
+        static final String originalGreeting = 'Hello!'
+        static final String changedGreeting = "G'day!"
 
         private final TestFile projectDir
-        private final BuildLogicLanguage language
-        private final BuildLogicChange change
+        private final Language language
+        private final Kind kind
+        private final TestFile buildFile
 
-        BuildLogicChangeFixture(TestFile projectDir, BuildLogicLanguage language, BuildLogicChange change) {
+        BuildLogicChangeFixture(TestFile projectDir, Language language = Language.JAVA, Kind kind = Kind.CHANGE_SOURCE) {
             this.projectDir = projectDir
             this.language = language
-            this.change = change
+            this.kind = kind
+            this.buildFile = file("build.gradle.kts")
         }
 
         void setup() {
-            final buildFile = file("build.gradle.kts")
-            buildFile << kotlinDslBuildSrcScript
+            buildFile << kotlinDslScriptForLanguage
             buildFile << """
                 gradlePlugin {
                     plugins {
-                        register("$PLUGIN_ID") {
-                            id = "$PLUGIN_ID"
+                        register("$pluginId") {
+                            id = "$pluginId"
                             implementationClass = "BuildLogicPlugin"
                         }
                     }
                 }
             """
             writeBuildLogicPlugin()
-            writeGreetTask "GreetTask", ORIGINAL_GREETING
-            switch (change) {
-                case BuildLogicChange.CHANGE_RESOURCE:
+            writeGreetTask "GreetTask", originalGreeting
+            switch (kind) {
+                case Kind.CHANGE_RESOURCE:
                     writeResource ""
                     break
             }
         }
 
         void applyChange() {
-            switch (change) {
-                case BuildLogicChange.CHANGE_SOURCE:
-                    writeGreetTask "GreetTask", CHANGED_GREETING
+            switch (kind) {
+                case Kind.CHANGE_SOURCE:
+                    writeGreetTask "GreetTask", changedGreeting
                     break
-                case BuildLogicChange.ADD_SOURCE:
-                    writeGreetTask "AnotherTask", CHANGED_GREETING
+                case Kind.ADD_SOURCE:
+                    writeGreetTask "AnotherTask", changedGreeting
                     break
-                case BuildLogicChange.CHANGE_RESOURCE:
-                case BuildLogicChange.ADD_RESOURCE:
+                case Kind.CHANGE_RESOURCE:
+                case Kind.ADD_RESOURCE:
                     writeResource "42"
                     break
             }
         }
 
         String getExpectedOutputBeforeChange() {
-            ORIGINAL_GREETING
+            originalGreeting
         }
 
         String getExpectedOutputAfterChange() {
-            switch (change) {
-                case BuildLogicChange.CHANGE_SOURCE:
-                    return CHANGED_GREETING
+            switch (kind) {
+                case Kind.CHANGE_SOURCE:
+                    return changedGreeting
                 default:
-                    return ORIGINAL_GREETING
+                    return originalGreeting
             }
         }
 
-        private String getKotlinDslBuildSrcScript() {
+        private String getKotlinDslScriptForLanguage() {
             """
                 plugins {
                     $languagePlugin
                     `java-gradle-plugin`
                 }
 
-                ${language == BuildLogicLanguage.KOTLIN
+                ${language == Language.KOTLIN
                 ? KotlinDslTestUtil.kotlinDslBuildSrcConfig
                 : ''}
             """
@@ -234,32 +286,32 @@ class InstantExecutionIncludedBuildChangesIntegrationTest extends AbstractInstan
 
         private String getLanguagePlugin() {
             switch (language) {
-                case BuildLogicLanguage.JAVA:
+                case Language.JAVA:
                     return "`java-library`"
-                case BuildLogicLanguage.GROOVY:
+                case Language.GROOVY:
                     return "groovy"
-                case BuildLogicLanguage.KOTLIN:
+                case Language.KOTLIN:
                     return "`kotlin-dsl-base`"
             }
         }
 
         private void writeBuildLogicPlugin() {
             switch (language) {
-                case BuildLogicLanguage.JAVA:
-                case BuildLogicLanguage.GROOVY:
+                case Language.JAVA:
+                case Language.GROOVY:
                     writeSourceFile language.fileExtension, "BuildLogicPlugin.${language.fileExtension}", """
                         public class BuildLogicPlugin implements ${Plugin.name}<${Project.name}> {
                             public void apply(${Project.name} project) {
-                                project.getTasks().register("$TASK_NAME", GreetTask.class);
+                                project.getTasks().register("$task", GreetTask.class);
                             }
                         }
                     """
                     break
-                case BuildLogicLanguage.KOTLIN:
+                case Language.KOTLIN:
                     writeSourceFile "kotlin", "BuildLogicPlugin.kt", """
                         class BuildLogicPlugin : ${Plugin.name}<${Project.name}> {
                             override fun apply(project: ${Project.name}) {
-                                project.tasks.register("$TASK_NAME", GreetTask::class.java);
+                                project.tasks.register("$task", GreetTask::class.java);
                             }
                         }
                     """
@@ -269,40 +321,22 @@ class InstantExecutionIncludedBuildChangesIntegrationTest extends AbstractInstan
 
         private void writeGreetTask(String className, String greeting) {
             switch (language) {
-                case BuildLogicLanguage.JAVA:
-                    writeJavaTask(className, greeting)
+                case Language.GROOVY:
+                case Language.JAVA:
+                    writeSourceFile language.fileExtension, "${className}.${language.fileExtension}", """
+                        public class ${className} extends ${DefaultTask.name} {
+                            @${TaskAction.name} void greet() { System.out.println("${greeting}"); }
+                        }
+                    """
                     break
-                case BuildLogicLanguage.GROOVY:
-                    writeGroovyTask(className, greeting)
-                    break
-                case BuildLogicLanguage.KOTLIN:
-                    writeKotlinTask(className, greeting)
+                case Language.KOTLIN:
+                    writeSourceFile "kotlin", "${className}.kt", """
+                        open class ${className} : ${DefaultTask.name}() {
+                            @${TaskAction.name} fun greet() { println("${greeting}") }
+                        }
+                    """
                     break
             }
-        }
-
-        private void writeJavaTask(String className, String greeting) {
-            writeSourceFile "java", "${className}.java", """
-                public class $className extends ${DefaultTask.name} {
-                    @${TaskAction.name} void greet() { System.out.println("$greeting"); }
-                }
-            """
-        }
-
-        private void writeGroovyTask(String className, String greeting) {
-            writeSourceFile "groovy", "${className}.groovy", """
-                public class $className extends ${DefaultTask.name} {
-                    @${TaskAction.name} void greet() { System.out.println("$greeting"); }
-                }
-            """
-        }
-
-        private void writeKotlinTask(String className, String greeting) {
-            writeSourceFile "kotlin", "${className}.kt", """
-                open class $className : ${DefaultTask.name}() {
-                    @${TaskAction.name} fun greet() { println("$greeting") }
-                }
-            """
         }
 
         private void writeResource(String text) {
@@ -315,40 +349,6 @@ class InstantExecutionIncludedBuildChangesIntegrationTest extends AbstractInstan
 
         private TestFile file(String path) {
             projectDir.file(path)
-        }
-    }
-
-    enum BuildLogicChange {
-        CHANGE_SOURCE,
-        ADD_SOURCE,
-        CHANGE_RESOURCE,
-        ADD_RESOURCE
-
-        @Override
-        String toString() {
-            name().toLowerCase().replace('_', ' ')
-        }
-    }
-
-    enum BuildLogicLanguage {
-        JAVA,
-        GROOVY,
-        KOTLIN
-
-        String getFileExtension() {
-            switch (this) {
-                case JAVA:
-                    return 'java'
-                case GROOVY:
-                    return 'groovy'
-                case KOTLIN:
-                    return 'kt'
-            }
-        }
-
-        @Override
-        String toString() {
-            name().toLowerCase().capitalize()
         }
     }
 }
