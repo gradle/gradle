@@ -23,6 +23,7 @@ import org.gradle.platform.base.Platform;
 /**
  * Defines and configures a Java SE runtime environment, consisting of a JVM runtime and a set of class libraries.
  */
+@Deprecated
 public interface JavaPlatform extends Platform {
     @Internal
     JavaVersion getTargetCompatibility();
