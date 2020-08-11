@@ -29,10 +29,12 @@ class BuildOperationsFileSystemWatchingIntegrationTest extends AbstractFileSyste
     def setup() {
         projectDir.file("build.gradle") << """
             task myTask {
-                outputs.file("build/output.txt")
-                inputs.file("${inputFile.name}")
+                def inputFile = file("${inputFile.name}")
+                def outputFile = file("build/output.txt")
+                outputs.file(outputFile)
+                inputs.file(inputFile)
                 doLast {
-                    file("build/output.txt").text = file("${inputFile.name}").text
+                    outputFile.text = inputFile.text
                 }
             }
         """
