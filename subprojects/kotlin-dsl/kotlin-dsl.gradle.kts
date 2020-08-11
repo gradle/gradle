@@ -95,7 +95,7 @@ dependencies {
     integTestImplementation(project(":internalTesting"))
     integTestImplementation(libs.mockitoKotlin)
 
-    testRuntimeOnly(project(":distributionsNative")) {
+    testRuntimeOnly(project(":distributionsJvm")) {
         because("SimplifiedKotlinScriptEvaluator reads default imports from the distribution (default-imports.txt) and BuildType from platform-native is used in ProjectAccessorsClassPathTest.")
     }
 
