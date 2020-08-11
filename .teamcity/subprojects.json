@@ -91,6 +91,13 @@
     "crossVersionTests": false
   },
   {
+    "dirName": "build-operations",
+    "name": "buildOperations",
+    "unitTests": true,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "dirName": "build-option",
     "name": "buildOption",
     "unitTests": true,
@@ -233,13 +240,6 @@
   {
     "dirName": "ear",
     "name": "ear",
-    "unitTests": true,
-    "functionalTests": true,
-    "crossVersionTests": false
-  },
-  {
-    "dirName": "enterprise",
-    "name": "enterprise",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
