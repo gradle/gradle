@@ -441,13 +441,6 @@
     "crossVersionTests": false
   },
   {
-    "dirName": "kotlin-dsl-test-fixtures",
-    "name": "kotlinDslTestFixtures",
-    "unitTests": true,
-    "functionalTests": false,
-    "crossVersionTests": false
-  },
-  {
     "dirName": "kotlin-dsl-tooling-builders",
     "name": "kotlinDslToolingBuilders",
     "unitTests": true,
