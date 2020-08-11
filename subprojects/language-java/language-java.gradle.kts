@@ -60,6 +60,11 @@ dependencies {
     }
     integTestDistributionRuntimeOnly(project(":distributionsCore"))
     crossVersionTestDistributionRuntimeOnly(project(":distributionsBasics"))
+
+    buildJvms.whenTestingWithEarlierThan(JavaVersion.VERSION_1_9) {
+        val tools = it.jdk.get().toolsClasspath
+        testRuntimeOnly(tools)
+    }
 }
 
 strictCompile {
