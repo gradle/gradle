@@ -128,7 +128,7 @@ It can also be enabled persistently in a `gradle.properties` file:
 
 [source,properties]
 ----
-org.gradle.unsafe.configuration-cache=true
+org.gradle.unsafe.configuration-cache=on
 ----
 
 If it is enabled in a `gradle.properties` file, it can be disabled on the command line for one build invocation:
@@ -215,7 +215,7 @@ Select `Templates > Gradle` and add the necessary system properties to the `VM o
 For example to enable the configuration cache, turning problems into warnings, add the following:
 
 ----
--Dorg.gradle.unsafe.configuration-cache=true -Dorg.gradle.unsafe.configuration-cache-problems=warn
+-Dorg.gradle.unsafe.configuration-cache=on -Dorg.gradle.unsafe.configuration-cache-problems=warn
 ----
 
 You can also choose to only enable it for a given run configuration.
@@ -238,7 +238,7 @@ To enable it globally, go to `Preferences > Gradle`.
 You can use the properties described above as system properties.
 For example to enable the configuration cache, turning problems into warnings, add the following JVM arguments:
 
-* `-Dorg.gradle.unsafe.configuration-cache=true`
+* `-Dorg.gradle.unsafe.configuration-cache=on`
 * `-Dorg.gradle.unsafe.configuration-cache-problems=warn`
 
 To enable it for a given run configuration, go to `Run configurations...`, find the one you want to change, go to `Project Settings`, tick the `Override project settings` checkbox and add the same system properties as a `JVM argument`.
