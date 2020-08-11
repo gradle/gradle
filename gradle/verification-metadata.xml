@@ -5,7 +5,7 @@
       <verify-signatures>true</verify-signatures>
       <trusted-artifacts>
          <trust group="gradle" name="gradle"/>
-         <trust group="net[.]rubygrapefruit" name="native-platform.*" version=".*snapshot.*" regex="true"/>
+         <trust group="net[.]rubygrapefruit" name="(native-platform|file-events).*" version=".*snapshot.*" regex="true"/>
          <trust file=".*-javadoc[.]jar" regex="true"/>
          <trust file=".*-sources[.]jar" regex="true"/>
       </trusted-artifacts>

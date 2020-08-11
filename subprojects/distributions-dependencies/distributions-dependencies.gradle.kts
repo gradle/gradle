@@ -37,6 +37,7 @@ val googleApiVersion = "1.25.0"
 val jacksonVersion = "2.10.2"
 val mavenVersion = "3.0.5"
 val mavenWagonVersion = "3.0.0"
+val nativePlatformVersion = "0.22-snapshot-20200811064807+0000"
 val pmavenVersion = "0.8-20100325"
 val slf4jVersion = "1.7.28"
 val sshdVersion = "2.0.0"
@@ -118,7 +119,8 @@ dependencies {
         api(libs.maven3WagonHttpShared) { version { strictly(mavenWagonVersion) }}
         api(libs.maven3WagonProviderApi) { version { strictly(mavenWagonVersion) }}
         api(libs.minlog)                { version { strictly("1.2") }}
-        api(libs.nativePlatform)        { version { strictly("0.22-milestone-6") }}
+        api(libs.nativePlatform)        { version { strictly(nativePlatformVersion) }}
+        api(libs.nativePlatformFileEvents) { version { strictly(nativePlatformVersion) }}
         api(libs.nekohtml)              { version { strictly("1.9.22") }}
         api(libs.objenesis)             { version { strictly("2.6") }}
         api(libs.plexusCipher)          { version { strictly("1.7") }}
