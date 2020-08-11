@@ -296,14 +296,17 @@ public abstract class AbstractMultiTestRunner extends Runner implements Filterab
         }
 
         @Override
-        public void filter(Filter filter) throws NoTestsRemainException {
-            filters.add(filter);
-            for (Map.Entry<Description, Description> entry : descriptionTranslations.entrySet()) {
-                if (!filter.shouldRun(entry.getKey())) {
-                    enabledTests.remove(entry.getValue());
-                    disabledTests.remove(entry.getValue());
+        public void filter(Filter filter) {
+            filters.add(new Filter() {
+                @Override
+                public boolean shouldRun(Description description) {
+                    return filter.shouldRun(description) || filter.shouldRun(translateDescription(description));
                 }
-            }
+                @Override
+                public String describe() {
+                    return filter.describe();
+                }
+            });
         }
 
         protected void before() {
@@ -316,7 +319,7 @@ public abstract class AbstractMultiTestRunner extends Runner implements Filterab
             for (Description child : source.getChildren()) {
                 Description mappedChild;
                 if (child.getMethodName() != null) {
-                    mappedChild = Description.createSuiteDescription(String.format("%s <%s>(%s)", child.getMethodName(), getDisplayName(), child.getClassName()));
+                    mappedChild = Description.createSuiteDescription(String.format("%s [%s](%s)", child.getMethodName(), getDisplayName(), child.getClassName()));
                     parent.addChild(mappedChild);
                     if (!isTestEnabled(new TestDescriptionBackedTestDetails(source, child))) {
                         disabledTests.add(child);
