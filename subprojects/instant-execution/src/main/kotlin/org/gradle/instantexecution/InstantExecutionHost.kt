@@ -22,7 +22,6 @@ import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.SettingsInternal
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.initialization.ScriptHandlerFactory
-import org.gradle.api.internal.project.DefaultProjectRegistry
 import org.gradle.api.internal.project.IProjectFactory
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectStateRegistry
@@ -76,8 +75,6 @@ class InstantExecutionHost internal constructor(
         gradle.services.getFactory(serviceType)
 
     inner class DefaultVintageGradleBuild : VintageGradleBuild {
-        override val buildSrc: Boolean
-            get() = gradle.parent != null && gradle.publicBuildPath.buildPath.name == SettingsInternal.BUILD_SRC
 
         override val gradle: GradleInternal
             get() = this@InstantExecutionHost.gradle
