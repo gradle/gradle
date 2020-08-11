@@ -23,13 +23,13 @@ dependencies {
     implementation(project(":base-services"))
     implementation(project(":messaging"))
     implementation(project(":logging"))
-    implementation(project(":coreApi"))
+    implementation(project(":core-api"))
     implementation(project(":core"))
-    implementation(project(":buildOption"))
+    implementation(project(":build-option"))
 
     implementation(libs.guava)
 
-    testImplementation(project(":internalTesting"))
+    testImplementation(project(":internal-testing"))
 
     integTestImplementation(libs.jsoup)
 

@@ -22,11 +22,11 @@ plugins {
 }
 
 dependencies {
-    testFixturesApi(project(":internalPerformanceTesting"))
+    testFixturesApi(project(":internal-performance-testing"))
     testFixturesApi(libs.commonsIo)
     testFixturesApi(project(":base-services"))
-    testFixturesImplementation(project(":internalTesting"))
-    testFixturesImplementation(project(":internalIntegTesting"))
+    testFixturesImplementation(project(":internal-testing"))
+    testFixturesImplementation(project(":internal-integ-testing"))
 
     performanceTestDistributionRuntimeOnly(project(":distributions-full")) {
         because("so that all Gradle features are available")

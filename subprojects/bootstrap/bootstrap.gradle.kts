@@ -7,6 +7,6 @@ gradlebuildJava.usedForStartup()
 dependencies {
     implementation(project(":base-services"))
     implementation(project(":core"))
-    implementation(project(":coreApi"))
+    implementation(project(":core-api"))
     implementation(project(":logging"))
 }

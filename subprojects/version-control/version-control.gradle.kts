@@ -22,9 +22,9 @@ dependencies {
     implementation(project(":messaging"))
     implementation(project(":logging"))
     implementation(project(":files"))
-    implementation(project(":fileCollections"))
-    implementation(project(":persistentCache"))
-    implementation(project(":coreApi"))
+    implementation(project(":file-collections"))
+    implementation(project(":persistent-cache"))
+    implementation(project(":core-api"))
     implementation(project(":core"))
     implementation(project(":resources"))
     implementation(project(":dependency-management"))
@@ -41,7 +41,7 @@ dependencies {
     testImplementation(testFixtures(project(":core")))
 
     testFixturesImplementation(project(":base-services"))
-    testFixturesImplementation(project(":internalIntegTesting"))
+    testFixturesImplementation(project(":internal-integ-testing"))
 
     testFixturesImplementation(libs.jgit)
     testFixturesImplementation(libs.commonsIo)

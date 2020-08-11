@@ -21,16 +21,16 @@ plugins {
 dependencies {
     implementation(project(":base-services"))
     implementation(project(":logging"))
-    implementation(project(":fileCollections"))
-    implementation(project(":coreApi"))
-    implementation(project(":modelCore"))
+    implementation(project(":file-collections"))
+    implementation(project(":core-api"))
+    implementation(project(":model-core"))
     implementation(project(":core"))
     implementation(project(":reporting"))
-    implementation(project(":platformBase"))
+    implementation(project(":platform-base"))
     implementation(project(":snapshots"))
     implementation(project(":dependency-management"))
     implementation(project(":base-services-groovy"))
-    implementation(project(":buildOption"))
+    implementation(project(":build-option"))
 
     implementation(libs.slf4jApi)
     implementation(libs.groovy)
@@ -47,9 +47,9 @@ dependencies {
     integTestImplementation(libs.jsoup)
     integTestImplementation(libs.jetty)
 
-    testFixturesApi(testFixtures(project(":platformNative")))
+    testFixturesApi(testFixtures(project(":platform-native")))
     testFixturesImplementation(project(":base-services"))
-    testFixturesImplementation(project(":internalIntegTesting"))
+    testFixturesImplementation(project(":internal-integ-testing"))
     testFixturesImplementation(libs.guava)
 
     testRuntimeOnly(project(":distributions-core")) {

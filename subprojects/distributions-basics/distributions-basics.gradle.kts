@@ -17,5 +17,5 @@ dependencies {
     pluginsRuntimeOnly(project(":tooling-api-builders"))
     pluginsRuntimeOnly(project(":kotlin-dsl-tooling-builders"))
 
-    pluginsRuntimeOnly(project(":testKit"))
+    pluginsRuntimeOnly(project(":test-kit"))
 }

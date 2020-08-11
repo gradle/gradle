@@ -22,8 +22,8 @@ dependencies {
     implementation(project(":logging"))
     implementation(project(":native"))
     implementation(project(":process-services"))
-    implementation(project(":coreApi"))
-    implementation(project(":modelCore"))
+    implementation(project(":core-api"))
+    implementation(project(":model-core"))
     implementation(project(":core"))
     implementation(project(":plugins"))
     implementation(project(":workers"))
@@ -34,11 +34,11 @@ dependencies {
     implementation(libs.inject)
     implementation(libs.ant)
 
-    testImplementation(project(":fileCollections"))
+    testImplementation(project(":file-collections"))
     testImplementation(testFixtures(project(":core")))
 
     testFixturesImplementation(project(":core"))
-    testFixturesImplementation(project(":coreApi"))
+    testFixturesImplementation(project(":core-api"))
     testFixturesImplementation(project(":base-services"))
 
     testRuntimeOnly(project(":distributions-core")) {

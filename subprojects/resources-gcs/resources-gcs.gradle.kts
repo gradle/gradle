@@ -25,8 +25,8 @@ dependencies {
     testImplementation(testFixtures(project(":ivy")))
     testImplementation(testFixtures(project(":maven")))
 
-    integTestImplementation(project(":coreApi"))
-    integTestImplementation(project(":modelCore"))
+    integTestImplementation(project(":core-api"))
+    integTestImplementation(project(":model-core"))
     integTestImplementation(libs.commonsIo)
     integTestImplementation(libs.jetty)
 

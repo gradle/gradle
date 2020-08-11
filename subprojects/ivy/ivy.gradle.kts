@@ -24,15 +24,15 @@ plugins {
 dependencies {
     implementation(project(":base-services"))
     implementation(project(":logging"))
-    implementation(project(":coreApi"))
-    implementation(project(":modelCore"))
+    implementation(project(":core-api"))
+    implementation(project(":model-core"))
     implementation(project(":core"))
     implementation(project(":base-services-groovy")) // for 'Specs'
-    implementation(project(":fileCollections"))
+    implementation(project(":file-collections"))
     implementation(project(":resources"))
     implementation(project(":publish"))
     implementation(project(":plugins")) // for base plugin to get archives conf
-    implementation(project(":pluginUse"))
+    implementation(project(":plugin-use"))
     implementation(project(":dependency-management"))
 
     implementation(libs.groovy) // for 'Closure' and 'Task.property(String propertyName) throws groovy.lang.MissingPropertyException'
@@ -46,8 +46,8 @@ dependencies {
     testImplementation(project(":snapshots"))
 
     testImplementation(testFixtures(project(":core")))
-    testImplementation(testFixtures(project(":modelCore")))
-    testImplementation(testFixtures(project(":platformBase")))
+    testImplementation(testFixtures(project(":model-core")))
+    testImplementation(testFixtures(project(":platform-base")))
     testImplementation(testFixtures(project(":dependency-management")))
 
     integTestImplementation(project(":ear"))
@@ -61,12 +61,12 @@ dependencies {
     testFixturesApi(project(":base-services")) {
         because("Test fixtures export the Action class")
     }
-    testFixturesApi(project(":coreApi")) {
+    testFixturesApi(project(":core-api")) {
         because("Test fixtures export the RepositoryHandler class")
     }
     testFixturesImplementation(project(":logging"))
     testFixturesImplementation(project(":dependency-management"))
-    testFixturesImplementation(project(":internalIntegTesting"))
+    testFixturesImplementation(project(":internal-integ-testing"))
     testFixturesImplementation(libs.slf4jApi)
     testFixturesImplementation(libs.sshdCore)
     testFixturesImplementation(libs.sshdScp)

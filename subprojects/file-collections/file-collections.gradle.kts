@@ -20,9 +20,9 @@ plugins {
 dependencies {
     implementation(project(":base-services"))
     implementation(project(":base-services-groovy"))
-    implementation(project(":coreApi"))
+    implementation(project(":core-api"))
     implementation(project(":files"))
-    implementation(project(":modelCore"))
+    implementation(project(":model-core"))
     implementation(project(":logging"))
     implementation(project(":native"))
 
@@ -37,11 +37,11 @@ dependencies {
     testImplementation(project(":resources"))
     testImplementation(project(":snapshots"))
     testImplementation(testFixtures(project(":core")))
-    testImplementation(testFixtures(project(":coreApi")))
-    testImplementation(testFixtures(project(":modelCore")))
+    testImplementation(testFixtures(project(":core-api")))
+    testImplementation(testFixtures(project(":model-core")))
 
     testFixturesImplementation(project(":base-services"))
-    testFixturesImplementation(project(":coreApi"))
+    testFixturesImplementation(project(":core-api"))
     testFixturesImplementation(project(":native"))
 
     testFixturesImplementation(libs.guava)

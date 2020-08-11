@@ -6,7 +6,7 @@ plugins {
 
 dependencies {
     implementation(project(":base-services"))
-    implementation(project(":coreApi"))
+    implementation(project(":core-api"))
     implementation(project(":core"))
     implementation(project(":resources"))
     implementation(project(":resources-http"))

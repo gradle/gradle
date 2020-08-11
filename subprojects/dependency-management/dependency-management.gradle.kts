@@ -26,12 +26,12 @@ dependencies {
     implementation(project(":native"))
     implementation(project(":logging"))
     implementation(project(":files"))
-    implementation(project(":fileCollections"))
-    implementation(project(":persistentCache"))
-    implementation(project(":coreApi"))
-    implementation(project(":modelCore"))
+    implementation(project(":file-collections"))
+    implementation(project(":persistent-cache"))
+    implementation(project(":core-api"))
+    implementation(project(":model-core"))
     implementation(project(":base-services-groovy"))
-    implementation(project(":buildCache"))
+    implementation(project(":build-cache"))
     implementation(project(":core"))
     implementation(project(":resources"))
     implementation(project(":resources-http"))
@@ -56,18 +56,18 @@ dependencies {
 
     testImplementation(project(":process-services"))
     testImplementation(project(":diagnostics"))
-    testImplementation(project(":buildCachePackaging"))
+    testImplementation(project(":build-cache-packaging"))
     testImplementation(libs.nekohtml)
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":messaging")))
-    testImplementation(testFixtures(project(":coreApi")))
-    testImplementation(testFixtures(project(":versionControl")))
+    testImplementation(testFixtures(project(":core-api")))
+    testImplementation(testFixtures(project(":version-control")))
     testImplementation(testFixtures(project(":resources-http")))
     testImplementation(testFixtures(project(":base-services")))
     testImplementation(testFixtures(project(":snapshots")))
     testImplementation(testFixtures(project(":execution")))
 
-    integTestImplementation(project(":buildOption"))
+    integTestImplementation(project(":build-option"))
     integTestImplementation(libs.jansi)
     integTestImplementation(libs.ansiControlSequenceUtil)
     integTestImplementation(libs.jetty) {
@@ -78,7 +78,7 @@ dependencies {
     testFixturesApi(project(":base-services")) {
         because("Test fixtures export the Action class")
     }
-    testFixturesApi(project(":persistentCache")) {
+    testFixturesApi(project(":persistent-cache")) {
         because("Test fixtures export the CacheAccess class")
     }
 
@@ -86,9 +86,9 @@ dependencies {
     testFixturesImplementation(project(":core"))
     testFixturesImplementation(testFixtures(project(":core")))
     testFixturesImplementation(testFixtures(project(":resources-http")))
-    testFixturesImplementation(project(":coreApi"))
+    testFixturesImplementation(project(":core-api"))
     testFixturesImplementation(project(":messaging"))
-    testFixturesImplementation(project(":internalIntegTesting"))
+    testFixturesImplementation(project(":internal-integ-testing"))
     testFixturesImplementation(libs.slf4jApi)
     testFixturesImplementation(libs.inject)
     testFixturesImplementation(libs.guava) {

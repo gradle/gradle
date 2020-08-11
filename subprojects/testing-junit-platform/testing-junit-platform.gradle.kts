@@ -20,10 +20,10 @@ plugins {
 dependencies {
     implementation(project(":base-services"))
     implementation(project(":messaging"))
-    implementation(project(":platformJvm"))
-    implementation(project(":languageJava"))
-    implementation(project(":testingBase"))
-    implementation(project(":testingJvm"))
+    implementation(project(":platform-jvm"))
+    implementation(project(":language-java"))
+    implementation(project(":testing-base"))
+    implementation(project(":testing-jvm"))
 
     implementation(libs.junit)
     implementation(libs.junitPlatform)

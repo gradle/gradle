@@ -23,15 +23,15 @@ plugins {
 dependencies {
     implementation(project(":base-services"))
     implementation(project(":logging"))
-    implementation(project(":coreApi"))
-    implementation(project(":modelCore"))
+    implementation(project(":core-api"))
+    implementation(project(":model-core"))
     implementation(project(":core"))
-    implementation(project(":fileCollections"))
+    implementation(project(":file-collections"))
     implementation(project(":resources"))
     implementation(project(":base-services-groovy"))
     implementation(project(":dependency-management"))
     implementation(project(":plugins"))
-    implementation(project(":pluginUse"))
+    implementation(project(":plugin-use"))
     implementation(project(":publish"))
 
     implementation(libs.slf4jApi)
@@ -55,7 +55,7 @@ dependencies {
     testImplementation(project(":resources-http"))
     testImplementation(libs.xmlunit)
     testImplementation(testFixtures(project(":core")))
-    testImplementation(testFixtures(project(":modelCore")))
+    testImplementation(testFixtures(project(":model-core")))
     testImplementation(testFixtures(project(":dependency-management")))
 
     integTestImplementation(project(":ear"))
@@ -64,8 +64,8 @@ dependencies {
     testFixturesApi(project(":base-services")) {
         because("Test fixtures export the Action class")
     }
-    testFixturesImplementation(project(":coreApi"))
-    testFixturesImplementation(project(":internalIntegTesting"))
+    testFixturesImplementation(project(":core-api"))
+    testFixturesImplementation(project(":internal-integ-testing"))
     testFixturesImplementation(project(":dependency-management"))
 
     testRuntimeOnly(project(":distributions-core")) {

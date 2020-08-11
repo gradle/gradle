@@ -23,7 +23,7 @@ description = "Base tools to work with files"
 gradlebuildJava.usedInWorkers()
 
 dependencies {
-    implementation(project(":baseAnnotations"))
+    implementation(project(":base-annotations"))
     implementation(libs.guava)
     implementation(libs.slf4jApi)
 

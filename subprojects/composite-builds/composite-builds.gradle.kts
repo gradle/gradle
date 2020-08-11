@@ -23,18 +23,18 @@ dependencies {
     implementation(project(":base-services"))
     implementation(project(":messaging"))
     implementation(project(":logging"))
-    implementation(project(":coreApi"))
-    implementation(project(":modelCore"))
+    implementation(project(":core-api"))
+    implementation(project(":model-core"))
     implementation(project(":core"))
     implementation(project(":dependency-management"))
-    implementation(project(":pluginUse"))
+    implementation(project(":plugin-use"))
 
     implementation(libs.slf4jApi)
     implementation(libs.guava)
 
     testImplementation(testFixtures(project(":dependency-management")))
 
-    integTestImplementation(project(":buildOption"))
+    integTestImplementation(project(":build-option"))
     integTestImplementation(project(":launcher"))
 
     integTestDistributionRuntimeOnly(project(":distributions-basics")) {

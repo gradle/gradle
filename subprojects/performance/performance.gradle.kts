@@ -7,9 +7,9 @@ plugins {
 dependencies {
     performanceTestImplementation(project(":base-services"))
     performanceTestImplementation(project(":core"))
-    performanceTestImplementation(project(":modelCore"))
-    performanceTestImplementation(project(":coreApi"))
-    performanceTestImplementation(project(":buildOption"))
+    performanceTestImplementation(project(":model-core"))
+    performanceTestImplementation(project(":core-api"))
+    performanceTestImplementation(project(":build-option"))
     performanceTestImplementation(libs.slf4jApi)
     performanceTestImplementation(libs.commonsIo)
     performanceTestImplementation(libs.commonsCompress)

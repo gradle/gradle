@@ -24,6 +24,6 @@ description = "Tools for creating secure hashes for files and other content"
 gradlebuildJava.usedInWorkers()
 
 dependencies {
-    implementation(project(":baseAnnotations"))
+    implementation(project(":base-annotations"))
     implementation(libs.guava)
 }

@@ -22,7 +22,7 @@ plugins {
 
 dependencies {
     implementation(project(":base-services"))
-    implementation(project(":coreApi"))
+    implementation(project(":core-api"))
     implementation(project(":resources"))
     implementation(project(":core"))
 

@@ -30,13 +30,13 @@ dependencies {
     testImplementation(testFixtures(project(":core")))
 
     integTestImplementation(project(":logging"))
-    integTestImplementation(project(":coreApi"))
+    integTestImplementation(project(":core-api"))
     integTestImplementation(libs.commonsIo)
     integTestImplementation(libs.littleproxy)
     integTestImplementation(libs.jetty)
 
     crossVersionTestImplementation(project(":logging"))
-    crossVersionTestImplementation(project(":persistentCache"))
+    crossVersionTestImplementation(project(":persistent-cache"))
     crossVersionTestImplementation(project(":launcher"))
 
     integTestNormalizedDistribution(project(":distributions-full"))

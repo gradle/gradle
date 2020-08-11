@@ -13,14 +13,14 @@ dependencies {
     pluginsRuntimeOnly(platform(project(":distributions-jvm")))
     pluginsRuntimeOnly(platform(project(":distributions-native")))
 
-    pluginsRuntimeOnly(project(":buildInit"))
-    pluginsRuntimeOnly(project(":buildProfile"))
+    pluginsRuntimeOnly(project(":build-init"))
+    pluginsRuntimeOnly(project(":build-profile"))
     pluginsRuntimeOnly(project(":antlr"))
     pluginsRuntimeOnly(project(":enterprise"))
 
     // The following are scheduled to be removed from the distribution completely in Gradle 7.0
     pluginsRuntimeOnly(project(":javascript"))
-    pluginsRuntimeOnly(project(":platformPlay"))
+    pluginsRuntimeOnly(project(":platform-play"))
     pluginsRuntimeOnly(project(":ide-play"))
 }
 

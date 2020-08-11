@@ -141,7 +141,7 @@ class PerformanceTestPlugin : Plugin<Project> {
 
         val junit by configurations.creating
         dependencies {
-            "performanceTestImplementation"(project(":internalPerformanceTesting"))
+            "performanceTestImplementation"(project(":internal-performance-testing"))
             junit("junit:junit:4.13")
         }
     }
@@ -189,7 +189,7 @@ class PerformanceTestPlugin : Plugin<Project> {
         }
 
         tasks.withType<TemplateProjectGeneratorTask>().configureEach {
-            sharedTemplateDirectory = project(":internalPerformanceTesting").file("src/templates")
+            sharedTemplateDirectory = project(":internal-performance-testing").file("src/templates")
         }
     }
 

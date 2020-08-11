@@ -22,8 +22,8 @@ dependencies {
     implementation(project(":base-services"))
     implementation(project(":logging"))
     implementation(project(":process-services"))
-    implementation(project(":coreApi"))
-    implementation(project(":modelCore"))
+    implementation(project(":core-api"))
+    implementation(project(":model-core"))
     implementation(project(":core"))
     implementation(project(":plugins"))
     implementation(project(":workers"))
@@ -39,7 +39,7 @@ dependencies {
     }
 
     testImplementation(project(":base-services-groovy"))
-    testImplementation(project(":fileCollections"))
+    testImplementation(project(":file-collections"))
     testImplementation(testFixtures(project(":core")))
 
     testRuntimeOnly(project(":distributions-core")) {

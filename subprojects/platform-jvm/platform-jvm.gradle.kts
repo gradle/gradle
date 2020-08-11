@@ -8,17 +8,17 @@ plugins {
 dependencies {
     implementation(project(":base-services"))
     implementation(project(":logging"))
-    implementation(project(":fileCollections"))
+    implementation(project(":file-collections"))
     implementation(project(":execution"))
     implementation(project(":process-services"))
-    implementation(project(":coreApi"))
-    implementation(project(":modelCore"))
+    implementation(project(":core-api"))
+    implementation(project(":model-core"))
     implementation(project(":core"))
     implementation(project(":base-services-groovy"))
     implementation(project(":dependency-management"))
-    implementation(project(":platformBase"))
+    implementation(project(":platform-base"))
     implementation(project(":diagnostics"))
-    implementation(project(":normalizationJava"))
+    implementation(project(":normalization-java"))
     implementation(project(":resources"))
 
     implementation(libs.groovy)
@@ -35,8 +35,8 @@ dependencies {
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":diagnostics")))
     testImplementation(testFixtures(project(":logging")))
-    testImplementation(testFixtures(project(":platformBase")))
-    testImplementation(testFixtures(project(":platformNative")))
+    testImplementation(testFixtures(project(":platform-base")))
+    testImplementation(testFixtures(project(":platform-native")))
 
     integTestImplementation(libs.slf4jApi)
 

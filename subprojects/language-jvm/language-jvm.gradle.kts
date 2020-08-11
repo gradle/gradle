@@ -8,13 +8,13 @@ dependencies {
     implementation(project(":files"))
     implementation(project(":logging"))
     implementation(project(":process-services"))
-    implementation(project(":fileCollections"))
-    implementation(project(":coreApi"))
-    implementation(project(":modelCore"))
+    implementation(project(":file-collections"))
+    implementation(project(":core-api"))
+    implementation(project(":model-core"))
     implementation(project(":core"))
     implementation(project(":workers"))
-    implementation(project(":platformBase"))
-    implementation(project(":platformJvm"))
+    implementation(project(":platform-base"))
+    implementation(project(":platform-jvm"))
 
     implementation(libs.groovy) // for 'Task.property(String propertyName) throws groovy.lang.MissingPropertyException'
     implementation(libs.guava)
@@ -27,7 +27,7 @@ dependencies {
 
     testFixturesImplementation(libs.commonsLang)
     testFixturesImplementation(libs.guava)
-    testFixturesImplementation(project(":internalIntegTesting"))
+    testFixturesImplementation(project(":internal-integ-testing"))
     testFixturesImplementation(testFixtures(project(":core")))
 
     testRuntimeOnly(project(":distributions-core")) {

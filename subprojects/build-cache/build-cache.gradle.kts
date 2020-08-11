@@ -19,14 +19,14 @@ plugins {
 }
 
 dependencies {
-    api(project(":buildCacheBase"))
+    api(project(":build-cache-base"))
     api(project(":snapshots"))
 
     implementation(project(":base-services"))
-    implementation(project(":coreApi"))
+    implementation(project(":core-api"))
     implementation(project(":files"))
     implementation(project(":native"))
-    implementation(project(":persistentCache"))
+    implementation(project(":persistent-cache"))
     implementation(project(":resources"))
     implementation(project(":logging"))
 
@@ -42,8 +42,8 @@ dependencies {
     jmhImplementation(libs.snappy)
     jmhImplementation(libs.jtar)
 
-    testImplementation(project(":modelCore"))
-    testImplementation(project(":fileCollections"))
+    testImplementation(project(":model-core"))
+    testImplementation(project(":file-collections"))
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":base-services")))
 

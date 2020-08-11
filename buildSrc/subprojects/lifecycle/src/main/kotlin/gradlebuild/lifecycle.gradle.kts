@@ -156,9 +156,9 @@ fun TaskContainer.registerEarlyFeedbackLifecycleTasks() {
         description = "Run all basic checks (without tests) - to be run locally and on CI for early feedback"
         group = "verification"
         dependsOn(
-            "compileAll", ":docs:checkstyleApi", "codeQuality", ":internalBuildReports:allIncubationReportsZip",
-            ":architectureTest:checkBinaryCompatibility", ":docs:javadocAll",
-            ":architectureTest:test", ":tooling-api:tooling-apiShadedJar")
+            "compileAll", ":docs:checkstyleApi", "codeQuality", ":internal-build-reports:allIncubationReportsZip",
+            ":architecture-test:checkBinaryCompatibility", ":docs:javadocAll",
+            ":architecture-test:test", ":tooling-api:tooling-apiShadedJar")
     }
 }
 
@@ -169,8 +169,8 @@ fun TaskContainer.registerDistributionsPromotionTasks() {
     register("packageBuild") {
         description = "Build production distros and smoke test them"
         group = "build"
-        dependsOn(":distributionsFull:verifyIsProductionBuildEnvironment", ":distributionsFull:buildDists",
-            ":distributionsIntegTests:forkingIntegTest", ":docs:releaseNotes", ":docs:incubationReport", ":docs:checkDeadInternalLinks")
+        dependsOn(":distributions-full:verifyIsProductionBuildEnvironment", ":distributions-full:buildDists",
+            ":distributions-integ-tests:forkingIntegTest", ":docs:releaseNotes", ":docs:incubationReport", ":docs:checkDeadInternalLinks")
     }
 }
 

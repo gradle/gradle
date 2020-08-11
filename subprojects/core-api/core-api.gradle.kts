@@ -9,7 +9,7 @@ dependencies {
     implementation(project(":base-services-groovy"))
     implementation(project(":files"))
     implementation(project(":logging"))
-    implementation(project(":persistentCache"))
+    implementation(project(":persistent-cache"))
     implementation(project(":process-services"))
     implementation(project(":resources"))
 

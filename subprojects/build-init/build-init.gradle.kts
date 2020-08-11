@@ -24,13 +24,13 @@ plugins {
 dependencies {
     implementation(project(":base-services"))
     implementation(project(":logging"))
-    implementation(project(":coreApi"))
-    implementation(project(":modelCore"))
+    implementation(project(":core-api"))
+    implementation(project(":model-core"))
     implementation(project(":core"))
-    implementation(project(":fileCollections"))
+    implementation(project(":file-collections"))
     implementation(project(":dependency-management"))
-    implementation(project(":platformBase"))
-    implementation(project(":platformNative"))
+    implementation(project(":platform-base"))
+    implementation(project(":platform-native"))
     implementation(project(":plugins"))
     implementation(project(":wrapper"))
 
@@ -49,7 +49,7 @@ dependencies {
     testImplementation(project(":snapshots"))
     testImplementation(project(":process-services"))
     testImplementation(testFixtures(project(":core")))
-    testImplementation(testFixtures(project(":platformNative")))
+    testImplementation(testFixtures(project(":platform-native")))
 
     testFixturesImplementation(project(":base-services"))
 

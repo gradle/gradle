@@ -12,7 +12,7 @@ dependencies {
     implementation(project(":base-services"))
     implementation(project(":messaging"))
     implementation(project(":cli"))
-    implementation(project(":buildOption"))
+    implementation(project(":build-option"))
 
     implementation(project(":native"))
     implementation(libs.julToSlf4j)

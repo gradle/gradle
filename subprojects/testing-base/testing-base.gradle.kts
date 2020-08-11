@@ -27,13 +27,13 @@ dependencies {
     implementation(project(":native"))
     implementation(project(":logging"))
     implementation(project(":process-services"))
-    implementation(project(":workerProcesses"))
-    implementation(project(":coreApi"))
-    implementation(project(":modelCore"))
+    implementation(project(":worker-processes"))
+    implementation(project(":core-api"))
+    implementation(project(":model-core"))
     implementation(project(":core"))
     implementation(project(":base-services-groovy"))
     implementation(project(":reporting"))
-    implementation(project(":platformBase"))
+    implementation(project(":platform-base"))
 
     implementation(libs.slf4jApi)
     implementation(libs.groovy)
@@ -44,16 +44,16 @@ dependencies {
     implementation(libs.inject)
     implementation(libs.ant) // only used for DateUtils
 
-    testImplementation(project(":fileCollections"))
+    testImplementation(project(":file-collections"))
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":messaging")))
-    testImplementation(testFixtures(project(":platformBase")))
+    testImplementation(testFixtures(project(":platform-base")))
     testImplementation(testFixtures(project(":logging")))
     testImplementation(testFixtures(project(":base-services")))
 
     testFixturesImplementation(project(":base-services"))
-    testFixturesImplementation(project(":modelCore"))
-    testFixturesImplementation(project(":internalIntegTesting"))
+    testFixturesImplementation(project(":model-core"))
+    testFixturesImplementation(project(":internal-integ-testing"))
     testFixturesImplementation(libs.guava)
     testFixturesImplementation(libs.jsoup)
 

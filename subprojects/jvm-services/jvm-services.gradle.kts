@@ -9,8 +9,8 @@ dependencies {
     implementation(project(":process-services"))
 
     testImplementation(project(":native"))
-    testImplementation(project(":coreApi"))
-    testImplementation(project(":fileCollections"))
+    testImplementation(project(":core-api"))
+    testImplementation(project(":file-collections"))
     testImplementation(project(":snapshots"))
     testImplementation(project(":resources"))
     testImplementation(libs.slf4jApi)

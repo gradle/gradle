@@ -23,7 +23,7 @@ plugins {
 
 dependencies {
     implementation(project(":base-services"))
-    implementation(project(":coreApi"))
+    implementation(project(":core-api"))
     implementation(project(":core"))
     implementation(project(":wrapper"))
     implementation(project(":tooling-api"))
@@ -35,7 +35,7 @@ dependencies {
     integTestImplementation(project(":native"))
     integTestImplementation(project(":logging"))
     integTestImplementation(project(":launcher"))
-    integTestImplementation(project(":buildOption"))
+    integTestImplementation(project(":build-option"))
     integTestImplementation(project(":jvm-services"))
     integTestImplementation(libs.slf4jApi)
 

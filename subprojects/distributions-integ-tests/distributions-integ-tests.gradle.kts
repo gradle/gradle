@@ -3,10 +3,10 @@ plugins {
 }
 
 dependencies {
-    integTestImplementation(project(":internalTesting"))
+    integTestImplementation(project(":internal-testing"))
     integTestImplementation(project(":base-services"))
     integTestImplementation(project(":logging"))
-    integTestImplementation(project(":coreApi"))
+    integTestImplementation(project(":core-api"))
     integTestImplementation(libs.guava)
     integTestImplementation(libs.commonsIo)
     integTestImplementation(libs.ant)

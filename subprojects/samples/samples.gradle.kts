@@ -7,9 +7,9 @@ plugins {
 
 dependencies {
     integTestImplementation(project(":base-services"))
-    integTestImplementation(project(":coreApi"))
+    integTestImplementation(project(":core-api"))
     integTestImplementation(project(":process-services"))
-    integTestImplementation(project(":persistentCache"))
+    integTestImplementation(project(":persistent-cache"))
     integTestImplementation(libs.groovy)
     integTestImplementation(libs.slf4jApi)
     integTestImplementation(libs.guava)

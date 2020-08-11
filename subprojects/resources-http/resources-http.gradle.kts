@@ -20,9 +20,9 @@ plugins {
 dependencies {
     api(project(":resources"))
     implementation(project(":base-services"))
-    implementation(project(":coreApi"))
+    implementation(project(":core-api"))
     implementation(project(":core"))
-    implementation(project(":modelCore"))
+    implementation(project(":model-core"))
     implementation(project(":logging"))
 
     implementation(libs.commonsHttpclient)
@@ -35,14 +35,14 @@ dependencies {
     implementation(libs.xerces)
     implementation(libs.nekohtml)
 
-    testImplementation(project(":internalIntegTesting"))
+    testImplementation(project(":internal-integ-testing"))
     testImplementation(libs.jetty)
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":logging")))
 
     testFixturesImplementation(project(":base-services"))
     testFixturesImplementation(project(":logging"))
-    testFixturesImplementation(project(":internalIntegTesting"))
+    testFixturesImplementation(project(":internal-integ-testing"))
     testFixturesImplementation(libs.slf4jApi)
 
     integTestDistributionRuntimeOnly(project(":distributions-core"))

@@ -20,14 +20,14 @@ plugins {
 dependencies {
     implementation(project(":base-services"))
     implementation(project(":logging"))
-    implementation(project(":fileCollections"))
+    implementation(project(":file-collections"))
     implementation(project(":execution"))
-    implementation(project(":coreApi"))
-    implementation(project(":modelCore"))
+    implementation(project(":core-api"))
+    implementation(project(":model-core"))
     implementation(project(":core"))
     implementation(project(":dependency-management"))
     implementation(project(":plugins"))
-    implementation(project(":platformJvm"))
+    implementation(project(":platform-jvm"))
 
     implementation(libs.groovy)
     implementation(libs.guava)

@@ -30,7 +30,7 @@ dependencies {
     implementation(libs.commonsIo)
     implementation(libs.commonsLang)
 
-    testImplementation(project(":coreApi"))
+    testImplementation(project(":core-api"))
     testImplementation(testFixtures(project(":core")))
 
     testRuntimeOnly(project(":distributions-core")) {

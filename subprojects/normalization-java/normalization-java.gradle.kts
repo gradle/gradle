@@ -21,7 +21,7 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":baseAnnotations"))
+    implementation(project(":base-annotations"))
     implementation(project(":hashing"))
     implementation(project(":files"))
     implementation(project(":snapshots"))
@@ -32,5 +32,5 @@ dependencies {
     implementation(libs.commonsIo)
 
     testImplementation(project(":base-services"))
-    testImplementation(project(":internalTesting"))
+    testImplementation(project(":internal-testing"))
 }

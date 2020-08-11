@@ -19,8 +19,8 @@ plugins {
 
 dependencies {
     implementation(project(":base-services"))
-    implementation(project(":buildCache"))
-    implementation(project(":coreApi"))
+    implementation(project(":build-cache"))
+    implementation(project(":core-api"))
     implementation(project(":core"))
     implementation(project(":logging"))
     implementation(project(":resources"))

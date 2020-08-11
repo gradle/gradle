@@ -12,8 +12,8 @@ dependencies {
         because("configuring publishing is part of the 'language native' support")
     }
 
-    pluginsRuntimeOnly(project(":languageNative"))
-    pluginsRuntimeOnly(project(":toolingNative"))
+    pluginsRuntimeOnly(project(":language-native"))
+    pluginsRuntimeOnly(project(":tooling-native"))
     pluginsRuntimeOnly(project(":ide-native"))
-    pluginsRuntimeOnly(project(":testingNative"))
+    pluginsRuntimeOnly(project(":testing-native"))
 }

@@ -15,7 +15,7 @@ tasks {
     }
 
     processResources {
-        from({ project(":instantExecutionReport").tasks.named("assembleReport") }) {
+        from({ project(":instant-execution-report").tasks.named("assembleReport") }) {
             into("org/gradle/instantexecution")
         }
     }
@@ -37,21 +37,21 @@ dependencies {
     implementation(project(":base-services"))
     implementation(project(":base-services-groovy"))
     implementation(project(":core"))
-    implementation(project(":coreApi"))
+    implementation(project(":core-api"))
     implementation(project(":dependency-management"))
     implementation(project(":execution"))
-    implementation(project(":fileCollections"))
-    implementation(project(":kotlinDsl"))
+    implementation(project(":file-collections"))
+    implementation(project(":kotlin-dsl"))
     implementation(project(":logging"))
     implementation(project(":messaging"))
-    implementation(project(":modelCore"))
+    implementation(project(":model-core"))
     implementation(project(":native"))
-    implementation(project(":persistentCache"))
+    implementation(project(":persistent-cache"))
     implementation(project(":plugins"))
     implementation(project(":publish"))
     implementation(project(":resources"))
     implementation(project(":snapshots"))
-    implementation(project(":pluginUse"))
+    implementation(project(":plugin-use"))
 
     // TODO - move the isolatable serializer to model-core to live with the isolatable infrastructure
     implementation(project(":workers"))
@@ -60,8 +60,8 @@ dependencies {
     implementation(project(":tooling-api"))
     implementation(project(":build-events"))
     implementation(project(":native"))
-    implementation(project(":buildOption"))
-    implementation(project(":platformJvm"))
+    implementation(project(":build-option"))
+    implementation(project(":platform-jvm"))
 
     implementation(libs.groovy)
     implementation(libs.slf4jApi)
@@ -76,8 +76,8 @@ dependencies {
 
     integTestImplementation(project(":jvm-services"))
     integTestImplementation(project(":tooling-api"))
-    integTestImplementation(project(":platformJvm"))
-    integTestImplementation(project(":testKit"))
+    integTestImplementation(project(":platform-jvm"))
+    integTestImplementation(project(":test-kit"))
     integTestImplementation(project(":launcher"))
 
     integTestImplementation(libs.guava)

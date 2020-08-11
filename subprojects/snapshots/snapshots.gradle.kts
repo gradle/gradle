@@ -25,7 +25,7 @@ dependencies {
     api(project(":files"))
     api(project(":hashing"))
 
-    implementation(project(":baseAnnotations"))
+    implementation(project(":base-annotations"))
 
     implementation(libs.guava)
     implementation(libs.slf4jApi)
@@ -33,17 +33,17 @@ dependencies {
     testImplementation(project(":process-services"))
     testImplementation(project(":resources"))
     testImplementation(project(":native"))
-    testImplementation(project(":persistentCache"))
+    testImplementation(project(":persistent-cache"))
     testImplementation(libs.ant)
     testImplementation(testFixtures(project(":core")))
-    testImplementation(testFixtures(project(":coreApi")))
+    testImplementation(testFixtures(project(":core-api")))
     testImplementation(testFixtures(project(":base-services")))
-    testImplementation(testFixtures(project(":fileCollections")))
+    testImplementation(testFixtures(project(":file-collections")))
     testImplementation(testFixtures(project(":messaging")))
 
     testFixturesImplementation(project(":base-services"))
-    testFixturesImplementation(project(":coreApi"))
-    testFixturesImplementation(project(":fileCollections"))
+    testFixturesImplementation(project(":core-api"))
+    testFixturesImplementation(project(":file-collections"))
 
     integTestDistributionRuntimeOnly(project(":distributions-core"))
 }

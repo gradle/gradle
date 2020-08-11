@@ -38,23 +38,23 @@ dependencies {
     implementation(project(":logging"))
     implementation(project(":resources"))
     implementation(project(":cli"))
-    implementation(project(":buildOption"))
+    implementation(project(":build-option"))
     implementation(project(":native"))
-    implementation(project(":modelCore"))
-    implementation(project(":persistentCache"))
-    implementation(project(":buildCache"))
-    implementation(project(":buildCachePackaging"))
-    implementation(project(":coreApi"))
+    implementation(project(":model-core"))
+    implementation(project(":persistent-cache"))
+    implementation(project(":build-cache"))
+    implementation(project(":build-cache-packaging"))
+    implementation(project(":core-api"))
     implementation(project(":files"))
-    implementation(project(":fileCollections"))
+    implementation(project(":file-collections"))
     implementation(project(":process-services"))
     implementation(project(":jvm-services"))
-    implementation(project(":modelGroovy"))
+    implementation(project(":model-groovy"))
     implementation(project(":snapshots"))
-    implementation(project(":fileWatching"))
+    implementation(project(":file-watching"))
     implementation(project(":execution"))
-    implementation(project(":workerProcesses"))
-    implementation(project(":normalizationJava"))
+    implementation(project(":worker-processes"))
+    implementation(project(":normalization-java"))
 
     implementation(libs.groovy)
     implementation(libs.ant)
@@ -70,8 +70,8 @@ dependencies {
     implementation(libs.xmlApis)
 
     testImplementation(project(":plugins"))
-    testImplementation(project(":testingBase"))
-    testImplementation(project(":platformNative"))
+    testImplementation(project(":testing-base"))
+    testImplementation(project(":platform-native"))
     testImplementation(libs.jsoup)
     testImplementation(libs.log4jToSlf4j)
     testImplementation(libs.jclToSlf4j)
@@ -82,16 +82,16 @@ dependencies {
     testFixturesApi(project(":base-services-groovy")) {
         because("test fixtures expose AndSpec")
     }
-    testFixturesApi(project(":coreApi")) {
+    testFixturesApi(project(":core-api")) {
         because("test fixtures expose Task")
     }
     testFixturesApi(project(":logging")) {
         because("test fixtures expose Logger")
     }
-    testFixturesApi(project(":modelCore")) {
+    testFixturesApi(project(":model-core")) {
         because("test fixtures expose IConventionAware")
     }
-    testFixturesApi(project(":buildCache")) {
+    testFixturesApi(project(":build-cache")) {
         because("test fixtures expose BuildCacheController")
     }
     testFixturesApi(project(":execution")) {
@@ -100,20 +100,20 @@ dependencies {
     testFixturesApi(project(":native")) {
         because("test fixtures expose FileSystem")
     }
-    testFixturesImplementation(project(":fileCollections"))
+    testFixturesImplementation(project(":file-collections"))
     testFixturesImplementation(project(":native"))
     testFixturesImplementation(project(":resources"))
     testFixturesImplementation(project(":process-services"))
     testFixturesImplementation(project(":messaging"))
-    testFixturesImplementation(project(":persistentCache"))
+    testFixturesImplementation(project(":persistent-cache"))
     testFixturesImplementation(project(":snapshots"))
-    testFixturesImplementation(project(":normalizationJava"))
+    testFixturesImplementation(project(":normalization-java"))
     testFixturesImplementation(libs.ivy)
     testFixturesImplementation(libs.slf4jApi)
     testFixturesImplementation(libs.guava)
     testFixturesImplementation(libs.ant)
 
-    testFixturesRuntimeOnly(project(":pluginUse")) {
+    testFixturesRuntimeOnly(project(":plugin-use")) {
         because("This is a core extension module (see DynamicModulesClassPathProvider.GRADLE_EXTENSION_MODULES)")
     }
     testFixturesRuntimeOnly(project(":dependency-management")) {
@@ -122,15 +122,15 @@ dependencies {
     testFixturesRuntimeOnly(project(":workers")) {
         because("This is a core extension module (see DynamicModulesClassPathProvider.GRADLE_EXTENSION_MODULES)")
     }
-    testFixturesRuntimeOnly(project(":compositeBuilds")) {
+    testFixturesRuntimeOnly(project(":composite-builds")) {
         because("We always need a BuildStateRegistry service implementation")
     }
 
     testImplementation(project(":dependency-management"))
 
-    testImplementation(testFixtures(project(":coreApi")))
+    testImplementation(testFixtures(project(":core-api")))
     testImplementation(testFixtures(project(":messaging")))
-    testImplementation(testFixtures(project(":modelCore")))
+    testImplementation(testFixtures(project(":model-core")))
     testImplementation(testFixtures(project(":logging")))
     testImplementation(testFixtures(project(":base-services")))
     testImplementation(testFixtures(project(":diagnostics")))

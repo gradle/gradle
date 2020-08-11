@@ -5,7 +5,7 @@ plugins {
 dependencies {
     coreRuntimeOnly(platform(project(":core-platform")))
 
-    pluginsRuntimeOnly(project(":pluginUse")) {
+    pluginsRuntimeOnly(project(":plugin-use")) {
         because("This is a core extension module (see DynamicModulesClassPathProvider.GRADLE_EXTENSION_MODULES)")
     }
     pluginsRuntimeOnly(project(":dependency-management")) {
@@ -14,13 +14,13 @@ dependencies {
     pluginsRuntimeOnly(project(":workers")) {
         because("This is a core extension module (see DynamicModulesClassPathProvider.GRADLE_EXTENSION_MODULES)")
     }
-    pluginsRuntimeOnly(project(":compositeBuilds")) {
+    pluginsRuntimeOnly(project(":composite-builds")) {
         because("We always need a BuildStateRegistry service implementation for certain code in ':core' to work.")
     }
     pluginsRuntimeOnly(project(":tooling-api-builders")) {
         because("We always need a BuildEventListenerFactory service implementation for ':launcher' to create global services.")
     }
-    pluginsRuntimeOnly(project(":versionControl")) {
+    pluginsRuntimeOnly(project(":version-control")) {
         because("We always need a VcsMappingsStore service implementation to create 'ConfigurationContainer' in ':dependency-management'.")
     }
     pluginsRuntimeOnly(project(":instant-execution")) {

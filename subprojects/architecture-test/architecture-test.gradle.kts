@@ -7,7 +7,7 @@ plugins {
 
 dependencies {
     testImplementation(project(":base-services"))
-    testImplementation(project(":modelCore"))
+    testImplementation(project(":model-core"))
 
     testImplementation(libs.archunitJunit4)
     testImplementation(libs.guava)
