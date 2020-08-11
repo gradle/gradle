@@ -23,7 +23,9 @@ import it.unimi.dsi.fastutil.ints.IntSet;
 import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessingData;
 import org.gradle.api.internal.tasks.compile.incremental.processing.GeneratedResource;
 
+import java.util.ArrayDeque;
 import java.util.Collections;
+import java.util.Deque;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -131,27 +133,46 @@ public class ClassSetAnalysis {
      * further dependents, while resources are just data accumulated along the way. Recurses for classes that
      * are "publicly accessbile", i.e. classes that are not just used privately in a class.
      */
-    private void processDependentClasses(Set<String> visitedClasses, Set<String> privateResultClasses, Set<String> accessibleResultClasses, Set<GeneratedResource> resultResources, Iterable<String> privateDependentClasses, Iterable<String> accessibleDependentClasses) {
-        for (String d : privateDependentClasses) {
-            if (!visitedClasses.add(d)) {
+    private void processDependentClasses(Set<String> visitedClasses,
+                                         Set<String> privateResultClasses,
+                                         Set<String> accessibleResultClasses,
+                                         Set<GeneratedResource> resultResources,
+                                         Iterable<String> privateDependentClasses,
+                                         Iterable<String> accessibleDependentClasses) {
+
+        for (String privateDependentClass : privateDependentClasses) {
+            if (!visitedClasses.add(privateDependentClass)) {
                 continue;
             }
-            privateResultClasses.add(d);
-            DependentsSet currentDependents = getDependents(d);
+            privateResultClasses.add(privateDependentClass);
+            DependentsSet currentDependents = getDependents(privateDependentClass);
             if (!currentDependents.isDependencyToAll()) {
                 resultResources.addAll(currentDependents.getDependentResources());
             }
         }
 
-        for (String d : accessibleDependentClasses) {
-            if (!visitedClasses.add(d)) {
+        processTransitiveDependentClasses(visitedClasses, accessibleResultClasses, resultResources, accessibleDependentClasses);
+    }
+
+    private void processTransitiveDependentClasses(Set<String> visitedClasses,
+                                                   Set<String> accessibleResultClasses,
+                                                   Set<GeneratedResource> resultResources,
+                                                   Iterable<String> accessibleDependentClasses) {
+        Deque<String> remainingAccessibleDependentClasses = new ArrayDeque<>();
+        for (String accessibleDependentClass : accessibleDependentClasses) {
+            remainingAccessibleDependentClasses.add(accessibleDependentClass);
+        }
+
+        while (!remainingAccessibleDependentClasses.isEmpty()) {
+            String accessibleDependentClass = remainingAccessibleDependentClasses.pop();
+            if (!visitedClasses.add(accessibleDependentClass)) {
                 continue;
             }
-            accessibleResultClasses.add(d);
-            DependentsSet currentDependents = getDependents(d);
+            accessibleResultClasses.add(accessibleDependentClass);
+            DependentsSet currentDependents = getDependents(accessibleDependentClass);
             if (!currentDependents.isDependencyToAll()) {
                 resultResources.addAll(currentDependents.getDependentResources());
-                processDependentClasses(visitedClasses, privateResultClasses, accessibleResultClasses, resultResources, Collections.emptySet(), currentDependents.getAccessibleDependentClasses());
+                remainingAccessibleDependentClasses.addAll(currentDependents.getAccessibleDependentClasses());
             }
         }
     }

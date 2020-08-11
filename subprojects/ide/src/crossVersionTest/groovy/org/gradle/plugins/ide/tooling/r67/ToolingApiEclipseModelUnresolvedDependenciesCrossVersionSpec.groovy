@@ -21,9 +21,7 @@ import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.tooling.model.eclipse.EclipseProject
-import spock.lang.Ignore
 
-@Ignore
 @ToolingApiVersion('>=6.7')
 @TargetGradleVersion(">=6.7")
 class ToolingApiEclipseModelUnresolvedDependenciesCrossVersionSpec extends ToolingApiSpecification {
@@ -50,7 +48,7 @@ class ToolingApiEclipseModelUnresolvedDependenciesCrossVersionSpec extends Tooli
         """
     }
 
-    @TargetGradleVersion(">=2.6 <6.7")
+    @TargetGradleVersion("=6.6")
     def "Older Gradle versions mark all dependencies as resolved"() {
         when:
         def project = loadToolingModel(EclipseProject)

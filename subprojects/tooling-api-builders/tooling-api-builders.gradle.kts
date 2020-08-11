@@ -27,6 +27,7 @@ dependencies {
     implementation(libs.commonsIo)
 
     testImplementation(project(":fileCollections"))
+    testImplementation(project(":platformJvm"))
 }
 
 strictCompile {

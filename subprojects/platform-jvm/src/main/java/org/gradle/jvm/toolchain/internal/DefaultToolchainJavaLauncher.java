@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,13 +14,24 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.properties;
+package org.gradle.jvm.toolchain.internal;
 
-import org.gradle.internal.reflect.TypeValidationContext;
+import org.gradle.api.tasks.Internal;
+import org.gradle.jvm.toolchain.JavaLauncher;
 
-/**
- * Walks properties declared by the type.
- */
-public interface PropertyWalker {
-    void visitProperties(Object instance, TypeValidationContext validationContext, PropertyVisitor visitor);
+import java.io.File;
+
+public class DefaultToolchainJavaLauncher implements JavaLauncher {
+
+    private final String javaExecutable;
+
+    public DefaultToolchainJavaLauncher(File javaExecutable) {
+        this.javaExecutable = javaExecutable.getAbsolutePath();
+    }
+
+    @Internal
+    public String getExecutable() {
+        return javaExecutable;
+    }
+
 }

@@ -29,7 +29,9 @@ import java.util.function.Predicate;
 import static org.gradle.internal.watch.registry.impl.HierarchicalFileWatcherUpdater.FileSystemLocationToWatchValidator.NO_VALIDATION;
 
 public class WindowsFileWatcherRegistryFactory extends AbstractFileWatcherRegistryFactory<WindowsFileEventFunctions> {
-    private static final int BUFFER_SIZE = 128 * 1024;
+    // 64 kB is the limit for SMB drives
+    // See https://docs.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-readdirectorychangesw#remarks:~:text=ERROR_INVALID_PARAMETER
+    private static final int BUFFER_SIZE = 64 * 1024;
 
     public WindowsFileWatcherRegistryFactory(Predicate<String> watchFilter) throws NativeIntegrationUnavailableException {
         super(Native.get(WindowsFileEventFunctions.class), watchFilter);

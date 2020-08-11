@@ -20,6 +20,7 @@ import org.gradle.api.Describable;
 import org.gradle.api.JavaVersion;
 import org.gradle.jvm.toolchain.JavaCompiler;
 import org.gradle.jvm.toolchain.JavaInstallation;
+import org.gradle.jvm.toolchain.JavaLauncher;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -37,6 +38,10 @@ public class JavaToolchain implements Describable {
 
     public JavaCompiler getJavaCompiler() {
         return new DefaultToolchainJavaCompiler(this, compilerFactory);
+    }
+
+    public JavaLauncher getJavaLauncher() {
+        return new DefaultToolchainJavaLauncher(installation.getJavaExecutable().getAsFile());
     }
 
     public JavaVersion getJavaMajorVersion() {
