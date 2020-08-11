@@ -18,6 +18,7 @@ package org.gradle.internal.service.scopes;
 
 import com.google.common.annotations.VisibleForTesting;
 import net.rubygrapefruit.platform.NativeIntegrationUnavailableException;
+import net.rubygrapefruit.platform.file.FileEvents;
 import org.apache.tools.ant.DirectoryScanner;
 import org.gradle.BuildAdapter;
 import org.gradle.StartParameter;
@@ -45,6 +46,7 @@ import org.gradle.cache.PersistentIndexedCacheParameters;
 import org.gradle.cache.internal.CacheScopeMapping;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.internal.VersionStrategy;
+import org.gradle.initialization.GradleUserHomeDirProvider;
 import org.gradle.initialization.RootBuildLifecycleListener;
 import org.gradle.initialization.layout.ProjectCacheDir;
 import org.gradle.internal.build.BuildAddedListener;
@@ -74,6 +76,7 @@ import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.StreamHasher;
 import org.gradle.internal.nativeintegration.NativeCapabilities;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
+import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.serialize.HashCodeSerializer;
 import org.gradle.internal.service.ServiceRegistration;
@@ -187,7 +190,8 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
             NativeCapabilities nativeCapabilities,
             ListenerManager listenerManager,
             FileSystem fileSystem,
-            GlobalCacheLocations globalCacheLocations
+            GlobalCacheLocations globalCacheLocations,
+            GradleUserHomeDirProvider gradleUserHomeDirProvider
         ) {
             CaseSensitivity caseSensitivity = fileSystem.isCaseSensitive() ? CASE_SENSITIVE : CASE_INSENSITIVE;
             VfsRootReference rootReference = new VfsRootReference(DefaultSnapshotHierarchy.empty(caseSensitivity));
@@ -195,7 +199,7 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
             // to minimize the number of watches we don't watch anything within the global caches.
             Predicate<String> watchFilter = path -> !globalCacheLocations.isInsideGlobalCache(path);
 
-            BuildLifecycleAwareVirtualFileSystem virtualFileSystem = determineWatcherRegistryFactory(OperatingSystem.current(), nativeCapabilities, watchFilter)
+            BuildLifecycleAwareVirtualFileSystem virtualFileSystem = determineWatcherRegistryFactory(OperatingSystem.current(), nativeCapabilities, watchFilter, gradleUserHomeDirProvider)
                 .<BuildLifecycleAwareVirtualFileSystem>map(watcherRegistryFactory -> new WatchingVirtualFileSystem(
                     watcherRegistryFactory,
                     rootReference,
@@ -252,9 +256,10 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
             return fileSystemAccess;
         }
 
-        private Optional<FileWatcherRegistryFactory> determineWatcherRegistryFactory(OperatingSystem operatingSystem, NativeCapabilities nativeCapabilities, Predicate<String> watchFilter) {
+        private Optional<FileWatcherRegistryFactory> determineWatcherRegistryFactory(OperatingSystem operatingSystem, NativeCapabilities nativeCapabilities, Predicate<String> watchFilter, GradleUserHomeDirProvider gradleUserHomeDirProvider) {
             if (nativeCapabilities.isNativeIntegrationAvailable()) {
                 try {
+                    FileEvents.init(NativeServices.getNativeServicesDir(gradleUserHomeDirProvider.getGradleUserHomeDirectory()));
                     if (operatingSystem.isMacOsX()) {
                         return Optional.of(new DarwinFileWatcherRegistryFactory(watchFilter));
                     } else if (operatingSystem.isWindows()) {
