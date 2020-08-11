@@ -23,16 +23,23 @@ import org.gradle.internal.snapshot.CompleteDirectorySnapshot;
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshotVisitor;
 import org.gradle.internal.snapshot.SnapshotHierarchy;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.CheckReturnValue;
 import java.io.File;
+import java.util.ArrayDeque;
+import java.util.Collection;
+import java.util.Deque;
 import java.util.function.Predicate;
-import java.util.stream.Stream;
 
 public class WatchableHierarchies {
+    private static final Logger LOGGER = LoggerFactory.getLogger(WatchableHierarchies.class);
+
     private final Predicate<String> watchFilter;
 
     private FileHierarchySet watchableHierarchies = DefaultFileHierarchySet.of();
+    private final Deque<File> recentlyUsedHierarchies = new ArrayDeque<>();
 
     public WatchableHierarchies(Predicate<String> watchFilter) {
         this.watchFilter = watchFilter;
@@ -48,16 +55,26 @@ public class WatchableHierarchies {
         }
         if (!watchableHierarchies.contains(watchableHierarchyAbsolutePath)) {
             checkThatNothingExistsInNewWatchableHierarchy(watchableHierarchyAbsolutePath, root);
+            recentlyUsedHierarchies.addFirst(watchableHierarchy);
+            watchableHierarchies = watchableHierarchies.plus(watchableHierarchy);
+        } else {
+            recentlyUsedHierarchies.remove(watchableHierarchy);
+            recentlyUsedHierarchies.addFirst(watchableHierarchy);
         }
-        watchableHierarchies = watchableHierarchies.plus(watchableHierarchy);
+        LOGGER.info("Now considering {} as hierarchies to watch", recentlyUsedHierarchies);
     }
 
     @CheckReturnValue
-    public SnapshotHierarchy removeUnwatchedSnapshots(Stream<File> watchedHierarchies, SnapshotHierarchy root, Invalidator invalidator) {
-        this.watchableHierarchies = DefaultFileHierarchySet.of(watchedHierarchies::iterator);
+    public SnapshotHierarchy removeUnwatchedSnapshots(Predicate<File> isWatchedHierarchy, SnapshotHierarchy root, Invalidator invalidator) {
+        recentlyUsedHierarchies.removeIf(hierarchy -> !isWatchedHierarchy.test(hierarchy));
+        this.watchableHierarchies = DefaultFileHierarchySet.of(recentlyUsedHierarchies);
         RemoveUnwatchedFiles removeUnwatchedFilesVisitor = new RemoveUnwatchedFiles(root, invalidator);
         root.visitSnapshotRoots(snapshotRoot -> snapshotRoot.accept(removeUnwatchedFilesVisitor));
         return removeUnwatchedFilesVisitor.getRootWithUnwatchedFilesRemoved();
+    }
+
+    public Collection<File> getWatchableHierarchies() {
+        return recentlyUsedHierarchies;
     }
 
     private void checkThatNothingExistsInNewWatchableHierarchy(String watchableHierarchy, SnapshotHierarchy vfsRoot) {

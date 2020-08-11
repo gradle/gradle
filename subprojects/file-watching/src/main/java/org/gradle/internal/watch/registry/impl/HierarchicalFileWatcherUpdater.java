@@ -17,7 +17,6 @@
 package org.gradle.internal.watch.registry.impl;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.ImmutableSet;
 import net.rubygrapefruit.platform.file.FileWatcher;
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.SnapshotHierarchy;
@@ -68,9 +67,6 @@ public class HierarchicalFileWatcherUpdater implements FileWatcherUpdater {
     private final FileSystemLocationToWatchValidator locationToWatchValidator;
     private final WatchableHierarchies watchableHierarchies;
 
-    private final Set<Path> watchableHierarchiesFromCurrentBuild = new HashSet<>();
-    private final Set<Path> watchedHierarchiesFromPreviousBuild = new HashSet<>();
-
     public HierarchicalFileWatcherUpdater(FileWatcher fileWatcher, FileSystemLocationToWatchValidator locationToWatchValidator, Predicate<String> watchFilter) {
         this.fileWatcher = fileWatcher;
         this.locationToWatchValidator = locationToWatchValidator;
@@ -85,30 +81,14 @@ public class HierarchicalFileWatcherUpdater implements FileWatcherUpdater {
     @Override
     public void registerWatchableHierarchy(File watchableHierarchy, SnapshotHierarchy root) {
         watchableHierarchies.registerWatchableHierarchy(watchableHierarchy, root);
-        Path watchableHierarchyPath = watchableHierarchy.toPath().toAbsolutePath();
-        Set<Path> updatedWatchableHierarchiesFromCurrentBuild = resolveHierarchiesToWatch(
-            ImmutableSet.<Path>builder()
-                .addAll(watchableHierarchiesFromCurrentBuild)
-                .add(watchableHierarchyPath)
-                .build()
-        );
-        watchableHierarchiesFromCurrentBuild.clear();
-        watchableHierarchiesFromCurrentBuild.addAll(updatedWatchableHierarchiesFromCurrentBuild);
-        LOGGER.info("Now considering {} as hierarchies to watch", watchableHierarchiesFromCurrentBuild);
-
-        watchedHierarchiesFromPreviousBuild.removeAll(watchableHierarchiesFromCurrentBuild);
-
         determineAndUpdateWatchedHierarchies(root);
     }
 
     @Override
     public SnapshotHierarchy buildFinished(SnapshotHierarchy root) {
-        watchedHierarchiesFromPreviousBuild.clear();
-        watchedHierarchiesFromPreviousBuild.addAll(watchedHierarchies);
-        watchableHierarchiesFromCurrentBuild.clear();
-
+        Set<File> watchedFiles = watchedHierarchies.stream().map(Path::toFile).collect(Collectors.toSet());
         SnapshotHierarchy newRoot = watchableHierarchies.removeUnwatchedSnapshots(
-            watchedHierarchies.stream().map(Path::toFile),
+            watchedFiles::contains,
             root,
             (location, currentRoot) -> currentRoot.invalidate(location, SnapshotHierarchy.NodeDiffListener.NOOP)
         );
@@ -121,16 +101,16 @@ public class HierarchicalFileWatcherUpdater implements FileWatcherUpdater {
 
     private void determineAndUpdateWatchedHierarchies(SnapshotHierarchy root) {
         Set<String> snapshotsAlreadyCoveredByOtherHierarchies = new HashSet<>();
-        Set<Path> hierarchiesWithSnapshots = Stream.concat(watchableHierarchiesFromCurrentBuild.stream(), watchedHierarchiesFromPreviousBuild.stream())
+        Set<Path> hierarchiesWithSnapshots = watchableHierarchies.getWatchableHierarchies().stream()
             .flatMap(watchableHierarchy -> {
                 CheckIfNonEmptySnapshotVisitor checkIfNonEmptySnapshotVisitor = new CheckIfNonEmptySnapshotVisitor(watchableHierarchies);
-                root.visitSnapshotRoots(watchableHierarchy.toString(), new FilterAlreadyCoveredSnapshotsVisitor(checkIfNonEmptySnapshotVisitor, snapshotsAlreadyCoveredByOtherHierarchies));
+                root.visitSnapshotRoots(watchableHierarchy.getAbsolutePath(), new FilterAlreadyCoveredSnapshotsVisitor(checkIfNonEmptySnapshotVisitor, snapshotsAlreadyCoveredByOtherHierarchies));
                 if (checkIfNonEmptySnapshotVisitor.isEmpty()) {
                     return Stream.empty();
                 }
                 return checkIfNonEmptySnapshotVisitor.containsOnlyMissingFiles()
-                    ? Stream.of(locationOrFirstExistingAncestor(watchableHierarchy))
-                    : Stream.of(watchableHierarchy);
+                    ? Stream.of(locationOrFirstExistingAncestor(watchableHierarchy.toPath()))
+                    : Stream.of(watchableHierarchy.toPath());
             })
             .collect(Collectors.toSet());
         updateWatchedHierarchies(resolveHierarchiesToWatch(hierarchiesWithSnapshots));

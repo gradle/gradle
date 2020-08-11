@@ -49,8 +49,6 @@ public class NonHierarchicalFileWatcherUpdater implements FileWatcherUpdater {
     private final Map<String, ImmutableList<String>> watchedDirectoriesForSnapshot = new HashMap<>();
     private final FileWatcher fileWatcher;
 
-    private final Set<String> watchableHierarchiesFromCurrentBuild = new HashSet<>();
-    private final Set<String> watchedHierarchiesFromPreviousBuild = new HashSet<>();
     private final WatchableHierarchies watchableHierarchies;
 
     public NonHierarchicalFileWatcherUpdater(FileWatcher fileWatcher, Predicate<String> watchFilter) {
@@ -84,20 +82,12 @@ public class NonHierarchicalFileWatcherUpdater implements FileWatcherUpdater {
     @Override
     public void registerWatchableHierarchy(File watchableHierarchy, SnapshotHierarchy root) {
         watchableHierarchies.registerWatchableHierarchy(watchableHierarchy, root);
-        watchableHierarchiesFromCurrentBuild.add(watchableHierarchy.getAbsolutePath());
     }
 
     @Override
     public SnapshotHierarchy buildFinished(SnapshotHierarchy root) {
-        watchedHierarchiesFromPreviousBuild.addAll(watchableHierarchiesFromCurrentBuild);
-        watchedHierarchiesFromPreviousBuild.removeIf(watchedHierarchy -> {
-            CheckIfNonEmptySnapshotVisitor checkIfNonEmptySnapshotVisitor = new CheckIfNonEmptySnapshotVisitor(watchableHierarchies);
-            root.visitSnapshotRoots(watchedHierarchy, checkIfNonEmptySnapshotVisitor);
-            return checkIfNonEmptySnapshotVisitor.isEmpty();
-        });
-
         SnapshotHierarchy newRoot = watchableHierarchies.removeUnwatchedSnapshots(
-            watchedHierarchiesFromPreviousBuild.stream().map(File::new),
+            hierarchy -> containsSnapshots(hierarchy, root),
             root,
             (location, currentRoot) -> {
                 SnapshotCollectingDiffListener diffListener = new SnapshotCollectingDiffListener();
@@ -108,6 +98,12 @@ public class NonHierarchicalFileWatcherUpdater implements FileWatcherUpdater {
         );
         LOGGER.warn("Watching {} directories to track changes", watchedDirectories.entrySet().size());
         return newRoot;
+    }
+
+    private boolean containsSnapshots(File location, SnapshotHierarchy root) {
+        CheckIfNonEmptySnapshotVisitor checkIfNonEmptySnapshotVisitor = new CheckIfNonEmptySnapshotVisitor(watchableHierarchies);
+        root.visitSnapshotRoots(location.getAbsolutePath(), checkIfNonEmptySnapshotVisitor);
+        return checkIfNonEmptySnapshotVisitor.isEmpty();
     }
 
     private void updateWatchedDirectories(Map<String, Integer> changedWatchDirectories) {
