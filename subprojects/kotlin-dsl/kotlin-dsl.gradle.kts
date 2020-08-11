@@ -71,7 +71,6 @@ dependencies {
         isTransitive = false
     }
 
-    // TODO (donat) delete kotlinDslTestFixture project
     testImplementation(project(":buildCacheHttp"))
     testImplementation(project(":buildInit"))
     testImplementation(project(":jacoco"))
