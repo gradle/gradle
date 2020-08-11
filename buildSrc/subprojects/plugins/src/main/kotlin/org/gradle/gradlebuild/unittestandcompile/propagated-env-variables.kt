@@ -42,6 +42,9 @@ val propagatedEnvironmentVariables = listOf(
     // Used by Gradle test infrastructure
     "REPO_MIRROR_URL",
 
+    // performance test depends on coordinator buildId
+    "BUILD_ID",
+
     // temp dir
     "TMPDIR",
     "TMP",
