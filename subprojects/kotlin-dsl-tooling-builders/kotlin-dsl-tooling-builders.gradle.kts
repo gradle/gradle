@@ -36,8 +36,8 @@ dependencies {
     implementation(project(":plugins"))
     implementation(project(":toolingApi"))
 
-    testImplementation(project(":kotlinDslTestFixtures"))
-    integTestImplementation(project(":kotlinDslTestFixtures"))
+    testImplementation(testFixtures(project(":kotlinDsl")))
+    integTestImplementation(testFixtures(project(":kotlinDsl")))
     integTestImplementation(project(":internalTesting"))
 
     crossVersionTestImplementation(project(":persistentCache"))

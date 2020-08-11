@@ -71,7 +71,7 @@ dependencies {
         isTransitive = false
     }
 
-    testImplementation(project(":kotlinDslTestFixtures"))
+    // TODO (donat) delete kotlinDslTestFixture project
     testImplementation(project(":buildCacheHttp"))
     testImplementation(project(":buildInit"))
     testImplementation(project(":jacoco"))
@@ -96,9 +96,24 @@ dependencies {
     integTestImplementation(project(":internalTesting"))
     integTestImplementation(libs.mockitoKotlin)
 
-    testRuntimeOnly(project(":distributionsNative")) {
-        because("SimplifiedKotlinScriptEvaluator reads default imports from the distribution (default-imports.txt) and BuildType from platform-native is used in ProjectAccessorsClassPathTest.")
+    testRuntimeOnly(project(":distributionsJvm")) {
+        because("SimplifiedKotlinScriptEvaluator reads default imports from the distribution (default-imports.txt).")
     }
+
+    testFixturesImplementation(project(":baseServices"))
+    testFixturesImplementation(project(":coreApi"))
+    testFixturesImplementation(project(":core"))
+    testFixturesImplementation(project(":resources"))
+    testFixturesImplementation(project(":kotlinDslToolingBuilders"))
+    testFixturesImplementation(project(":testKit"))
+    testFixturesImplementation(project(":internalTesting"))
+    testFixturesImplementation(project(":internalIntegTesting"))
+
+    testFixturesImplementation(libs.junit)
+    testFixturesImplementation(libs.mockitoKotlin)
+    testFixturesImplementation(libs.jacksonKotlin)
+    testFixturesImplementation(libs.asm)
+
     integTestDistributionRuntimeOnly(project(":distributionsBasics"))
 }
 

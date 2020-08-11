@@ -56,7 +56,7 @@ dependencies {
     integTestImplementation(project(":platformJvm"))
     integTestImplementation(project(":kotlinDsl"))
     integTestImplementation(project(":internalTesting"))
-    integTestImplementation(project(":kotlinDslTestFixtures"))
+    integTestImplementation(testFixtures(project(":kotlinDsl")))
     integTestImplementation(libs.slf4jApi)
     integTestImplementation(libs.mockitoKotlin)
 
