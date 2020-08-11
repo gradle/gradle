@@ -25,6 +25,7 @@ import org.gradle.api.internal.tasks.compile.processing.DynamicProcessor;
 import org.gradle.api.internal.tasks.compile.processing.IsolatingProcessor;
 import org.gradle.api.internal.tasks.compile.processing.NonIncrementalProcessor;
 import org.gradle.api.internal.tasks.compile.processing.SupportedOptionsCollectingProcessor;
+import org.gradle.api.internal.tasks.compile.processing.TimeTrackingProcessor;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.concurrent.CompositeStoppable;
 
@@ -161,8 +162,7 @@ class AnnotationProcessingCompileTask implements JavaCompiler.CompilationTask {
     }
 
     private Processor decorateForTimeTracking(Processor processor, AnnotationProcessorResult processorResult) {
-        return processor;
-        //return new TimeTrackingProcessor(processor, processorResult);
+        return new TimeTrackingProcessor(processor, processorResult);
     }
 
     private void cleanupProcessors() {
