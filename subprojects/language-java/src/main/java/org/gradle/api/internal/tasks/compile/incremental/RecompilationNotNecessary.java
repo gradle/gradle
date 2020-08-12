@@ -24,4 +24,9 @@ public class RecompilationNotNecessary implements WorkResult, IncrementalCompila
     public boolean getDidWork() {
         return false;
     }
+
+    @Override
+    public WorkResult getCompilerResult() {
+        return this;
+    }
 }
