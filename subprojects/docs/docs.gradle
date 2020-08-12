@@ -106,7 +106,9 @@ samples {
         springBootWebApplication {
             target = "app"
         }
-        gradlePluginInJava
+        gradlePluginInJava {
+            target = "greeting-plugin"
+        }
         buildSrcPluginJavaModuleTransform
 
         javaApplication
