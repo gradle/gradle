@@ -248,7 +248,7 @@ abstract class AbstractBinaryCompatibilityTest {
         val runner = GradleRunner.create()
             .withProjectDir(inputBuildDir)
             .withPluginClasspath()
-            .withArguments(":binaryCompatibility:checkBinaryCompatibility", "-s")
+            .withArguments(":binary-compatibility:checkBinaryCompatibility", "-s")
 
         val (buildResult, failure) = try {
             runner.build()!! to null
@@ -258,7 +258,7 @@ abstract class AbstractBinaryCompatibilityTest {
 
         println(buildResult.output)
 
-        val richReportFile = inputBuildDir.resolve("binaryCompatibility/build/japi/japi.html").apply {
+        val richReportFile = inputBuildDir.resolve("binary-compatibility/build/japi/japi.html").apply {
             assertTrue("Rich report file exists", isFile)
         }
 

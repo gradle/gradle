@@ -32,7 +32,7 @@ class PerformanceTestIntegrationTest extends AbstractIntegrationTest {
 
         file("version.txt") << '6.5'
         settingsFile << """
-            include 'internalIntegTesting', 'internalPerformanceTesting', 'docs', 'launcher', 'apiMetadata', 'distributionsFull'
+            include 'internal-integ-testing', 'internal-performance-testing', 'docs', 'launcher', 'api-metadata', 'distributions-full'
         """
         expect:
         build("assertChannel")
