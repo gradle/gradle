@@ -2,11 +2,11 @@
 FAILURE: Build failed with an exception.
 
 * What went wrong:
-Could not determine the dependencies of task ':run'.
-> Could not resolve all task dependencies for configuration ':runtimeClasspath'.
+Could not determine the dependencies of task ':app:run'.
+> Could not resolve all task dependencies for configuration ':app:runtimeClasspath'.
    > Cannot resolve external dependency org.sample:number-utils:1.0 because no repositories are defined.
      Required by:
-         project :
+         project :app
 
 * Try:
 Run with --stacktrace option to get the stack trace. Run with --info or --debug option to get more log output. Run with --scan to get full insights.
