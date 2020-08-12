@@ -75,7 +75,7 @@ abstract class BuildCommitDistribution : DefaultTask() {
         val buildCommands = mutableListOf(
             "./gradlew",
             "clean",
-            ":distributionsFull:install",
+            ":distributions-full:install",
             "-Pgradle_installPath=" + commitDistributionHome.get().asFile.absolutePath,
             ":toolingApi:installToolingApiShadedJar",
             "-PtoolingApiShadedJarInstallPath=" + commitDistributionToolingApiJar.get().asFile.absolutePath)

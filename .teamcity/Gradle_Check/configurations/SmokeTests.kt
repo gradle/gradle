@@ -23,7 +23,7 @@ class SmokeTests(model: CIBuildModel, stage: Stage, testJava: JvmCategory, task:
     applyTestDefaults(
         model,
         this,
-        ":smokeTest:$task",
+        ":smoke-test:$task",
         notQuick = true,
         extraParameters = buildScanTag("SmokeTests") + " -PtestJavaHome=%linux.${testJava.version.name}.${testJava.vendor.name}.64bit%"
     )

@@ -17,5 +17,5 @@
 package common
 
 enum class Os(val agentRequirement: String, val ignoredSubprojects: List<String> = emptyList()) {
-    linux("Linux"), windows("Windows"), macos("Mac", listOf("integTest", "native", "plugins", "resources", "scala", "workers", "wrapper", "platformPlay", "toolingNative"))
+    linux("Linux"), windows("Windows"), macos("Mac", listOf("integ-test", "native", "plugins", "resources", "scala", "workers", "wrapper", "platform-play", "tooling-native"))
 }

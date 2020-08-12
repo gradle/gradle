@@ -64,7 +64,7 @@ strictCompile {
 }
 
 tasks.withType<IntegrationTest>().configureEach {
-    dependsOn(":platformPlay:integTestPrepare")
+    dependsOn(":platform-play:integTestPrepare")
     // this is a workaround for which we need a better fix:
     // it sets the platform play test fixtures resources directory in front
     // of the classpath, so that we can find them when executing tests in
