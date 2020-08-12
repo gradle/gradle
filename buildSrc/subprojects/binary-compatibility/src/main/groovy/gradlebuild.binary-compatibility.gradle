@@ -52,6 +52,9 @@ def acceptedViolations = AcceptedApiChanges.parse(apiChangesJsonFile.text)
 def compatibilityBaselineVersion = moduleIdentity.releasedVersions.get().mostRecentRelease.version
 
 def ARTIFACT_TYPE = Attribute.of('artifactType', String)
+def RUNTIME_ATTRIBUTE = objects.named(Usage, Usage.JAVA_RUNTIME)
+def DOCUMENTATION_ATTRIBUTE = objects.named(Category, Category.DOCUMENTATION)
+def SOURCES_ATTRIBUTE = objects.named(DocsType, "gradle-source-folders")
 
 configurations {
     baseline
@@ -61,9 +64,25 @@ configurations {
     }
     currentClasspath {
         canBeConsumed = false
+        canBeResolved = false
+        visible = false
+    }
+    currentApiClasspath {
+        canBeConsumed = false
         canBeResolved = true
         description = "Classpath to check binary compatibility against"
         attributes.attribute(GradleModuleApiAttribute.attribute as Attribute<GradleModuleApiAttribute>, GradleModuleApiAttribute.API)
+        extendsFrom(currentClasspath)
+    }
+    currentSources {
+        canBeConsumed = false
+        canBeResolved = true
+        description = "Sources to check binary compatibility against"
+        attributes.attribute(GradleModuleApiAttribute.attribute as Attribute<GradleModuleApiAttribute>, GradleModuleApiAttribute.API)
+        attributes.attribute(Usage.USAGE_ATTRIBUTE as Attribute<Usage>, RUNTIME_ATTRIBUTE)
+        attributes.attribute(Category.CATEGORY_ATTRIBUTE as Attribute<Category>, DOCUMENTATION_ATTRIBUTE)
+        attributes.attribute(DocsType.DOCS_TYPE_ATTRIBUTE as Attribute<DocsType>, SOURCES_ATTRIBUTE)
+        extendsFrom(currentClasspath)
     }
 }
 
@@ -84,7 +103,6 @@ dependencies {
 
     rootProject.subprojects { subproject ->
         plugins.withId('gradlebuild.distribution.api') {
-            apiSourceFolders.from(subproject.sourceSets.main.allJava.sourceDirectories)
             if (subproject.plugins.hasPlugin("kotlin")) {
                 apiSourceFolders.from(subproject.sourceSets.main.kotlin.sourceDirectories)
             }
@@ -97,13 +115,15 @@ def checkBinaryCompatibility = tasks.register("checkBinaryCompatibility", Japicm
     def newArchivesFiles = objects.fileCollection()
     def baseVersion = moduleIdentity.version.map { it.baseVersion.version }
     def isSnapshot = moduleIdentity.snapshot
-    def currentClasspath = configurations.currentClasspath.incoming.artifactView { lenient(true) }.files
-    newArchivesFiles.from(currentClasspath.files)
+    def currentClasspath = configurations.currentApiClasspath.incoming.artifactView { lenient(true) }.files
+    newArchivesFiles.from(currentClasspath)
 
     inputs.files(newArchivesFiles)
     inputs.property('acceptedViolations', acceptedViolations.toAcceptedChangesMap())
     inputs.property("baseline.version", compatibilityBaselineVersion)
     inputs.property("currentVersion", baseVersion)
+    def sourceFiles = configurations.currentSources.incoming.artifactView { lenient(true) }.files
+    apiSourceFolders.from(sourceFiles)
     inputs.files("apiSourceFolders", apiSourceFolders)
 
     oldClasspath = configurations.baselineClasspath
