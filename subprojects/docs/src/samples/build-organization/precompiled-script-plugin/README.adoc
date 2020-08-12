@@ -17,8 +17,8 @@ We've put the plugins in the `plugins` directory in the sample. All plugins crea
 
 The root of this sample contains a consumer project that demonstrates how the plugins can be consumed using a link:{userManualPath}/composite_builds.html[composite build]:
 ====
-include::sample[dir="groovy",files="settings.gradle[];build.gradle[]"]
-include::sample[dir="kotlin",files="settings.gradle.kts[];build.gradle.kts[]"]
+include::sample[dir="groovy",files="settings.gradle[];consumer-service/build.gradle[]"]
+include::sample[dir="kotlin",files="settings.gradle.kts[];consumer-service/build.gradle.kts[]"]
 ====
 
 == Things to note

@@ -8,7 +8,7 @@ Concretely, we add a _convention plugin_ in `buildSrc` to share the integration 
 
 ====
 include::sample[dir="groovy",files="buildSrc/src/main/groovy/myproject.java-conventions.gradle[]"]
-include::sample[dir="kotlin",files="buildSrc/src/main/groovy/myproject.java-conventions.gradle.kts[]"]
+include::sample[dir="kotlin",files="buildSrc/src/main/kotlin/myproject.java-conventions.gradle.kts[]"]
 ====
 
 And apply it in an application project:
