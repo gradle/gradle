@@ -569,10 +569,10 @@ samples {
         }
 
         taskWithArguments {
-            sampleDirectory = samplesRoot.dir("build-organization/task-with-arguments")
+            sampleDirectory = samplesRoot.dir("writing-tasks/task-with-arguments")
             displayName = "Task with command-line arguments"
             description = "Pass arguments to a custom task."
-            category = "Build organization"
+            category = "Writing Custom Tasks"
         }
 
         publishingCredentials {
