@@ -94,9 +94,13 @@ public class HierarchicalFileWatcherUpdater implements FileWatcherUpdater {
         );
 
         determineAndUpdateWatchedHierarchies(newRoot);
-        LOGGER.warn("Watching {} directory hierarchies to track changes", watchedHierarchies.size());
         LOGGER.info("Watched directory hierarchies: {}", watchedHierarchies);
         return newRoot;
+    }
+
+    @Override
+    public int getNumberOfWatchedHierarchies() {
+        return watchedHierarchies.size();
     }
 
     private void determineAndUpdateWatchedHierarchies(SnapshotHierarchy root) {

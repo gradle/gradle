@@ -433,8 +433,7 @@ class LoggingBuildOperationProgressIntegTest extends AbstractIntegrationSpec {
             .with { it as List<BuildOperationRecord.Progress> }
             .findAll { OutputEvent.isAssignableFrom(it.detailsType) }
         // Watching the file system is an incubating feature.
-        // Watching 20 directories to track changes
-        def watchFsExtraEvents = GradleContextualExecuter.watchFs ? 2 : 0
+        def watchFsExtraEvents = GradleContextualExecuter.watchFs ? 1 : 0
         assert progressOutputEvents
             .size() == 14 + watchFsExtraEvents // 11 tasks + "\n" + "BUILD SUCCESSFUL" + "2 actionable tasks: 2 executed" +
     }
