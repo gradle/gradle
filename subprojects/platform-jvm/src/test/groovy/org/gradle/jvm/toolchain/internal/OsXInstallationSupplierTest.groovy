@@ -92,7 +92,7 @@ Matching Java Virtual Machines (3):
         new OsXInstallationSupplier(Mock(ExecHandleFactory), createProviderFactory(), os) {
             @Override
             def void executeCommand(ByteArrayOutputStream outputStream) {
-                outputStream.writeBytes(output.bytes)
+                outputStream.write(output.bytes, 0, output.bytes.size())
             }
         }
     }
