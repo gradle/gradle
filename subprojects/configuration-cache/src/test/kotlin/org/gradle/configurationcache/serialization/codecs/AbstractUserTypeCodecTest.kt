@@ -155,7 +155,6 @@ abstract class AbstractUserTypeCodecTest {
         fileResolver = mock(),
         instantiator = mock(),
         listenerManager = mock(),
-        projectStateRegistry = mock(),
         taskNodeFactory = mock(),
         fingerprinterRegistry = mock(),
         buildOperationExecutor = mock(),

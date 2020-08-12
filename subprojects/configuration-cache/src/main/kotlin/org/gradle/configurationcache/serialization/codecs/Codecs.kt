@@ -32,7 +32,6 @@ import org.gradle.api.internal.file.FilePropertyFactory
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.TemporaryFileProvider
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
-import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.api.internal.provider.PropertyFactory
 import org.gradle.api.internal.provider.ValueSourceProviderFactory
 import org.gradle.api.model.ObjectFactory
@@ -217,7 +216,7 @@ class Codecs(
         providerTypes(propertyFactory, filePropertyFactory, buildServiceRegistry, valueSourceProviderFactory)
         fileCollectionTypes(directoryFileTreeFactory, fileCollectionFactory, fileOperations, fileSystem, fileFactory, patternSetFactory)
 
-        bind(TaskNodeCodec(projectStateRegistry, userTypesCodec, taskNodeFactory))
+        bind(TaskNodeCodec(userTypesCodec, taskNodeFactory))
         bind(InitialTransformationNodeCodec(userTypesCodec, buildOperationExecutor, transformListener))
         bind(ChainedTransformationNodeCodec(userTypesCodec, buildOperationExecutor, transformListener))
         bind(IsolateTransformerParametersNodeCodec(userTypesCodec))
