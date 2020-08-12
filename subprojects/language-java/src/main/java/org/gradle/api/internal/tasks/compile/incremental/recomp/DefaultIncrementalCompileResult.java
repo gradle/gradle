@@ -23,8 +23,11 @@ import org.gradle.workers.internal.DefaultWorkResult;
  * Marks compilation as beeing performed incrementally.
  */
 public class DefaultIncrementalCompileResult extends DefaultWorkResult implements IncrementalCompilationResult {
-    public DefaultIncrementalCompileResult(WorkResult workResult) {
-        super(workResult.getDidWork(), maybeException(workResult));
+    private final WorkResult compilerResult;
+
+    public DefaultIncrementalCompileResult(WorkResult compilerResult) {
+        super(compilerResult.getDidWork(), maybeException(compilerResult));
+        this.compilerResult = compilerResult;
     }
 
     private static Throwable maybeException(WorkResult workResult) {
@@ -32,5 +35,10 @@ public class DefaultIncrementalCompileResult extends DefaultWorkResult implement
             return ((DefaultWorkResult) workResult).getException();
         }
         return null;
+    }
+
+    @Override
+    public WorkResult getCompilerResult() {
+        return compilerResult;
     }
 }

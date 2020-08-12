@@ -29,6 +29,7 @@ import org.gradle.api.internal.tasks.compile.incremental.classpath.ClasspathSnap
 import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessingData;
 import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessingResult;
 import org.gradle.api.internal.tasks.compile.incremental.processing.GeneratedResource;
+import org.gradle.api.internal.tasks.compile.incremental.recomp.IncrementalCompilationResult;
 import org.gradle.api.internal.tasks.compile.incremental.recomp.PreviousCompilationData;
 import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorDeclaration;
 import org.gradle.api.tasks.WorkResult;
@@ -76,6 +77,9 @@ class IncrementalResultStoringCompiler<T extends JavaCompileSpec> implements Com
         Set<AnnotationProcessorDeclaration> processors = spec.getEffectiveAnnotationProcessors();
         if (processors == null || processors.isEmpty()) {
             return new AnnotationProcessingData();
+        }
+        if (result instanceof IncrementalCompilationResult) {
+            result = ((IncrementalCompilationResult) result).getCompilerResult();
         }
         if (result instanceof JdkJavaCompilerResult) {
             AnnotationProcessingResult processingResult = ((JdkJavaCompilerResult) result).getAnnotationProcessingResult();
