@@ -29,25 +29,23 @@ public interface CalculatedModelValue<T> {
     /**
      * Returns the current value, failing if not present.
      *
-     * <p>May be called by any thread, except any thread currently inside {@link #update(Function)}.
-     * This method does not block to wait for any currently running or pending calls to {@link #update(Function)} to complete.
+     * <p>May be called by any thread. This method returns immediately and does not block to wait for any currently running or pending calls to {@link #update(Function)} to complete.
      */
     T get() throws IllegalStateException;
 
     /**
-     * Returns the current value, failing if not present.
+     * Returns the current value, returning {@code null} if not present.
      *
-     * <p>May be called by any thread, except any thread currently inside {@link #update(Function)}.
-     * This method does not block to wait for any currently running or pending calls to {@link #update(Function)} to complete.
+     * <p>May be called by any thread. This method returns immediately and does not block to wait for any currently running or pending calls to {@link #update(Function)} to complete.
      */
     @Nullable
     T getOrNull();
 
     /**
-     * Updates the current value. The function is passed the current value or null if there is no value and the return value is
+     * Updates the current value. The function is passed the current value or {@code null} if there is no value, and the function's return value is
      * used as the new value.
      *
-     * <p>The current thread must hold the lock for the mutable state from which the value is calculated. At most a single thread
+     * <p>The calling thread must own the mutable state from which the value is calculated (via {@link ModelContainer#withMutableState(Runnable)}). At most a single thread
      * will run the update function at a given time. This additional guarantee is because the mutable state lock may be released
      * while the function is running or while waiting to access the value.
      */
@@ -55,6 +53,8 @@ public interface CalculatedModelValue<T> {
 
     /**
      * Sets the current value.
+     *
+     * <p>The calling thread< must own the mutable state from which the value is calculated.</p>
      */
     void set(T newValue);
 }
