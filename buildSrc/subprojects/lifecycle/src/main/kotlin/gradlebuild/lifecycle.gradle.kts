@@ -51,8 +51,8 @@ val soakTest = "soakTest"
 
 val ignoredSubprojects = listOf(
     "soak", // soak test
-    "distributionsIntegTests", // test build distributions
-    "architectureTest" // sanity check
+    "distributions-integ-tests", // test build distributions
+    "architecture-test" // sanity check
 )
 
 val forceRealizeDependencyManagementTest = "forceRealizeDependencyManagementTest"
@@ -149,7 +149,7 @@ fun TaskContainer.registerEarlyFeedbackLifecycleTasks() {
     register(compileAllBuild) {
         description = "Initialize CI Pipeline by priming the cache before fanning out"
         group = ciGroup
-        dependsOn(":baseServices:createBuildReceipt", "compileAll")
+        dependsOn(":base-services:createBuildReceipt", "compileAll")
     }
 
     register(sanityCheck) {
@@ -181,8 +181,8 @@ fun TaskContainer.registerPublishLibrariesPromotionTasks() {
     register("promotionBuild") {
         description = "Build production distros, smoke test them and publish"
         group = "publishing"
-        dependsOn(":distributionsFull:verifyIsProductionBuildEnvironment", ":distributionsFull:buildDists", ":distributionsFull:copyDistributionsToRootBuild",
-            ":distributionsIntegTests:forkingIntegTest", ":docs:releaseNotes", "publish", ":docs:incubationReport", ":docs:checkDeadInternalLinks")
+        dependsOn(":distributions-full:verifyIsProductionBuildEnvironment", ":distributions-full:buildDists", ":distributions-full:copyDistributionsToRootBuild",
+            ":distributions-integ-tests:forkingIntegTest", ":docs:releaseNotes", "publish", ":docs:incubationReport", ":docs:checkDeadInternalLinks")
     }
 }
 
