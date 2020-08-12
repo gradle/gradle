@@ -567,7 +567,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                     .willBeRemovedInGradle7()
                     .withUserManual("viewing_debugging_dependencies", "sub:resolving-unsafe-configuration-resolution-errors")
                     .nagUser();
-                return owner.getModel().withMutableState(() -> resolveExclusively(requestedState));
+                return owner.getModel().fromMutableState(p -> resolveExclusively(requestedState));
             }
         }
         return resolveExclusively(requestedState);

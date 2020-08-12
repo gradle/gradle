@@ -99,7 +99,6 @@ class Codecs(
     fileResolver: FileResolver,
     instantiator: Instantiator,
     listenerManager: ListenerManager,
-    projectStateRegistry: ProjectStateRegistry,
     taskNodeFactory: TaskNodeFactory,
     fingerprinterRegistry: FileCollectionFingerprinterRegistry,
     buildOperationExecutor: BuildOperationExecutor,

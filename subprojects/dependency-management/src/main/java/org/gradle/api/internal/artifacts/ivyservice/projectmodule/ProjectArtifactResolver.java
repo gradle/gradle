@@ -46,9 +46,9 @@ public class ProjectArtifactResolver implements ArtifactResolver {
 
     @Override
     public void resolveArtifact(ComponentArtifactMetadata artifact, ModuleSources moduleSources, BuildableArtifactResolveResult result) {
-        final LocalComponentArtifactMetadata projectArtifact = (LocalComponentArtifactMetadata) artifact;
+        LocalComponentArtifactMetadata projectArtifact = (LocalComponentArtifactMetadata) artifact;
         ProjectComponentIdentifier projectId = (ProjectComponentIdentifier) artifact.getComponentId();
-        File localArtifactFile = projectStateRegistry.stateFor(projectId).withMutableState(() -> projectArtifact.getFile());
+        File localArtifactFile = projectStateRegistry.stateFor(projectId).fromMutableState(p -> projectArtifact.getFile());
         if (localArtifactFile != null) {
             result.resolved(localArtifactFile);
         } else {

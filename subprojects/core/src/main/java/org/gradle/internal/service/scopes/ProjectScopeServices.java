@@ -195,7 +195,6 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
 
     protected TaskContainerInternal createTaskContainerInternal(TaskStatistics taskStatistics, BuildOperationExecutor buildOperationExecutor, CrossProjectConfigurator crossProjectConfigurator, CollectionCallbackActionDecorator decorator) {
         return new DefaultTaskContainerFactory(
-            get(ModelRegistry.class),
             get(Instantiator.class),
             get(ITaskFactory.class),
             project,
@@ -217,9 +216,7 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
     }
 
     protected ModelRegistry createModelRegistry(ModelRuleExtractor ruleExtractor) {
-        return new DefaultModelRegistry(ruleExtractor, project.getPath(), run -> {
-            project.getMutationState().withMutableState(run);
-        });
+        return new DefaultModelRegistry(ruleExtractor, project.getPath(), run -> project.getMutationState().applyToMutableState(p -> run.run()));
     }
 
     protected ScriptHandlerInternal createScriptHandler(DependencyManagementServices dependencyManagementServices, FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, DependencyMetaDataProvider dependencyMetaDataProvider, ScriptClassPathResolver scriptClassPathResolver, NamedObjectInstantiator instantiator) {
@@ -266,7 +263,7 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
         }
 
         @Override
-        public ModelContainer getModel() {
+        public ModelContainer<?> getModel() {
             return delegate.getModel();
         }
 

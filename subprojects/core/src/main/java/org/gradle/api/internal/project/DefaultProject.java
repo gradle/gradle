@@ -615,7 +615,7 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
     }
 
     @Override
-    public ModelContainer getModel() {
+    public ModelContainer<ProjectInternal> getModel() {
         return getMutationState();
     }
 

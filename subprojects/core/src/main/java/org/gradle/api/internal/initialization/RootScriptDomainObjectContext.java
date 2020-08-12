@@ -18,16 +18,16 @@ package org.gradle.api.internal.initialization;
 
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.internal.Factory;
 import org.gradle.internal.model.CalculatedModelValue;
 import org.gradle.internal.model.ModelContainer;
 import org.gradle.util.Path;
 
 import javax.annotation.Nullable;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
-public class RootScriptDomainObjectContext implements DomainObjectContext, ModelContainer {
-
+public class RootScriptDomainObjectContext implements DomainObjectContext, ModelContainer<Object> {
+    private static final Object MODEL = new Object();
     public static final DomainObjectContext INSTANCE = new RootScriptDomainObjectContext();
 
     private RootScriptDomainObjectContext() {
@@ -55,7 +55,7 @@ public class RootScriptDomainObjectContext implements DomainObjectContext, Model
     }
 
     @Override
-    public ModelContainer getModel() {
+    public ModelContainer<Object> getModel() {
         return this;
     }
 
@@ -65,13 +65,13 @@ public class RootScriptDomainObjectContext implements DomainObjectContext, Model
     }
 
     @Override
-    public <T> T withMutableState(Factory<? extends T> factory) {
-        return factory.create();
+    public <S> S fromMutableState(Function<? super Object, ? extends S> factory) {
+        return factory.apply(MODEL);
     }
 
     @Override
-    public void withMutableState(Runnable runnable) {
-        runnable.run();
+    public void applyToMutableState(Consumer<? super Object> action) {
+        action.accept(MODEL);
     }
 
     @Override

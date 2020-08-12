@@ -16,7 +16,6 @@
 
 package org.gradle.initialization.buildsrc
 
-
 import org.gradle.api.Action
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.GradleInternal
@@ -28,13 +27,13 @@ import org.gradle.api.internal.project.ProjectState
 import org.gradle.internal.service.ServiceRegistry
 import spock.lang.Specification
 
+import java.util.function.Function
+
 class BuildSrcBuildListenerFactoryTest extends Specification {
 
     def startParameter = Mock(StartParameterInternal)
     def projectState = Mock(ProjectState) {
-        withMutableState(_) >> { args ->
-            args[0].create()
-        }
+        fromMutableState(_) >> { Function function -> function.apply(project) }
     }
     def component = Stub(BuildableJavaComponent) {
         getRuntimeClasspath() >> Stub(FileCollection)

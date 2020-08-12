@@ -450,8 +450,8 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
         }
     }
 
-    private static void resolveAllConfigurationsAndForceDownload(Project p) {
-        ((ProjectInternal) p).getMutationState().withMutableState(() ->
+    private static void resolveAllConfigurationsAndForceDownload(Project project) {
+        ((ProjectInternal) project).getMutationState().applyToMutableState(p ->
             p.getConfigurations().all(cnf -> {
                 if (((DeprecatableConfiguration) cnf).canSafelyBeResolved()) {
                     try {

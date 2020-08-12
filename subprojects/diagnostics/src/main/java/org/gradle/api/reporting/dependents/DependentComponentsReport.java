@@ -22,12 +22,11 @@ import com.google.common.collect.Sets;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.Project;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.tasks.options.Option;
 import org.gradle.api.reporting.dependents.internal.TextDependentComponentsReportRenderer;
 import org.gradle.api.tasks.Console;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.api.tasks.options.Option;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.work.WorkerLeaseService;
@@ -138,8 +137,7 @@ public class DependentComponentsReport extends DefaultTask {
             // Output reports per execution, not mixed.
             // Cross-project ModelRegistry operations do not happen concurrently.
             synchronized (DependentComponentsReport.class) {
-                ((ProjectInternal) getProject()).getMutationState().withMutableState(() -> {
-                    Project project = getProject();
+                ((ProjectInternal) getProject()).getMutationState().applyToMutableState(project -> {
                     ModelRegistry modelRegistry = getModelRegistry();
 
                     DependentBinariesResolver dependentBinariesResolver = modelRegistry.find("dependentBinariesResolver", DependentBinariesResolver.class);

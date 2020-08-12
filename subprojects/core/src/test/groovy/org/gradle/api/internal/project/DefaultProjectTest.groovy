@@ -98,6 +98,7 @@ import spock.lang.Specification
 import java.awt.Point
 import java.lang.reflect.Type
 import java.text.FieldPosition
+import java.util.function.Consumer
 
 class DefaultProjectTest extends Specification {
 
@@ -254,8 +255,9 @@ class DefaultProjectTest extends Specification {
         def container = Stub(ProjectState)
         _ * container.identityPath >> (parent == null ? Path.ROOT : parent.identityPath.child(name))
         _ * container.projectPath >> (parent == null ? Path.ROOT : parent.projectPath.child(name))
-        _ * container.withMutableState(_) >> { Runnable runnable -> runnable.run() }
-        TestUtil.instantiatorFactory().decorateLenient().newInstance(DefaultProject, name, parent, rootDir, new File(rootDir, 'build.gradle'), script, build, container, projectServiceRegistryFactoryMock, scope, baseClassLoaderScope)
+        def project = TestUtil.instantiatorFactory().decorateLenient().newInstance(DefaultProject, name, parent, rootDir, new File(rootDir, 'build.gradle'), script, build, container, projectServiceRegistryFactoryMock, scope, baseClassLoaderScope)
+        _ * container.applyToMutableState(_) >> { Consumer action -> action.accept(project) }
+        return project
     }
 
     Type getProjectRegistryType() {
