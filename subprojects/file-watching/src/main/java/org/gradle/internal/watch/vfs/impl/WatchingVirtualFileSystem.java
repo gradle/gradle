@@ -101,21 +101,34 @@ public class WatchingVirtualFileSystem implements BuildLifecycleAwareVirtualFile
             public SnapshotHierarchy call(BuildOperationContext context) {
                 if (watchingEnabled) {
                     SnapshotHierarchy newRoot = currentRoot;
-                    boolean startedWatching = false;
+                    boolean alreadyWatching = watchRegistry != null;
                     FileWatcherRegistry.FileWatchingStatistics statistics = watchRegistry == null
                         ? null
                         : watchRegistry.getAndResetStatistics();
 
                     newRoot = stopWatchingIfProblemsWhenReceivingFileChanges(newRoot, statistics);
                     if (watchRegistry == null) {
-                        startedWatching = true;
                         context.setStatus("Starting file system watching");
                         newRoot = startWatching(newRoot);
                     }
-                    context.setResult(new BuildStartedFileSystemWatchingResult(
-                        true,
-                        startedWatching,
-                        statistics == null ? null : new DefaultFileSystemWatchingStatistics(statistics, newRoot))
+                    boolean startedWatching = !alreadyWatching && watchRegistry != null;
+                    FileSystemWatchingStatistics fileSystemWatchingStatistics = statistics == null ? null : new DefaultFileSystemWatchingStatistics(statistics, newRoot);
+                    context.setResult(new BuildStartedFileSystemWatchingBuildOperationType.Result() {
+                                          @Override
+                                          public boolean isWatchingEnabled() {
+                                              return true;
+                                          }
+
+                                          @Override
+                                          public boolean isStartedWatching() {
+                                              return startedWatching;
+                                          }
+
+                                          @Override
+                                          public FileSystemWatchingStatistics getStatistics() {
+                                              return fileSystemWatchingStatistics;
+                                          }
+                                      }
                     );
                     return newRoot;
                 } else {
@@ -168,10 +181,24 @@ public class WatchingVirtualFileSystem implements BuildLifecycleAwareVirtualFile
                         SnapshotHierarchy rootAfterEvents = newRoot;
                         newRoot = withWatcherChangeErrorHandling(newRoot, () -> watchRegistry.buildFinished(rootAfterEvents));
                     }
-                    context.setResult(new BuildFinishedFileSystemWatchingResult(
-                        true,
-                        watchRegistry == null,
-                        statistics == null ? null : new DefaultFileSystemWatchingStatistics(statistics, newRoot)));
+                    boolean stoppedWatchingDuringTheBuild = watchRegistry == null;
+                    FileSystemWatchingStatistics fileSystemWatchingStatistics = statistics == null ? null : new DefaultFileSystemWatchingStatistics(statistics, newRoot);
+                    context.setResult(new BuildFinishedFileSystemWatchingBuildOperationType.Result() {
+                        @Override
+                        public boolean isWatchingEnabled() {
+                            return true;
+                        }
+
+                        @Override
+                        public boolean isStoppedWatchingDuringTheBuild() {
+                            return stoppedWatchingDuringTheBuild;
+                        }
+
+                        @Override
+                        public FileSystemWatchingStatistics getStatistics() {
+                            return fileSystemWatchingStatistics;
+                        }
+                    });
                     return newRoot;
                 } else {
                     SnapshotHierarchy newRoot = currentRoot.empty();
@@ -311,68 +338,6 @@ public class WatchingVirtualFileSystem implements BuildLifecycleAwareVirtualFile
             } finally {
                 watchRegistry = null;
             }
-        }
-    }
-
-    private static class BuildStartedFileSystemWatchingResult implements BuildStartedFileSystemWatchingBuildOperationType.Result {
-        private final boolean watchingEnabled;
-        private final boolean startedWatching;
-        private final FileSystemWatchingStatistics statistics;
-
-        public BuildStartedFileSystemWatchingResult(
-            boolean watchingEnabled,
-            boolean startedWatching,
-            @Nullable FileSystemWatchingStatistics statistics
-        ) {
-            this.watchingEnabled = watchingEnabled;
-            this.startedWatching = startedWatching;
-            this.statistics = statistics;
-        }
-
-        @Override
-        public boolean isWatchingEnabled() {
-            return watchingEnabled;
-        }
-
-        @Override
-        public boolean isStartedWatching() {
-            return startedWatching;
-        }
-
-        @Override
-        public FileSystemWatchingStatistics getStatistics() {
-            return statistics;
-        }
-    }
-
-    public static class BuildFinishedFileSystemWatchingResult implements BuildFinishedFileSystemWatchingBuildOperationType.Result {
-        private final boolean watchingEnabled;
-        private final boolean stoppedWatchingDuringTheBuild;
-        private final FileSystemWatchingStatistics statistics;
-
-        public BuildFinishedFileSystemWatchingResult(
-            boolean watchingEnabled,
-            boolean stoppedWatchingDuringTheBuild,
-            @Nullable FileSystemWatchingStatistics statistics
-        ) {
-            this.watchingEnabled = watchingEnabled;
-            this.stoppedWatchingDuringTheBuild = stoppedWatchingDuringTheBuild;
-            this.statistics = statistics;
-        }
-
-        @Override
-        public boolean isWatchingEnabled() {
-            return watchingEnabled;
-        }
-
-        @Override
-        public boolean isStoppedWatchingDuringTheBuild() {
-            return stoppedWatchingDuringTheBuild;
-        }
-
-        @Override
-        public FileSystemWatchingStatistics getStatistics() {
-            return statistics;
         }
     }
 }
