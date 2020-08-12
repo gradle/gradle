@@ -109,7 +109,7 @@ def checkBinaryCompatibility = tasks.register("checkBinaryCompatibility", Japicm
     oldClasspath = configurations.baselineClasspath
     newClasspath = files(newArchivesFiles)
 
-    def distributionArchives = newArchivesFiles.filter { it.name.startsWith('gradle-') && it.name.endsWith('.jar') }
+    def distributionArchives = newArchivesFiles.filter { it.name.startsWith('gradle-') && it.name.endsWith('.jar') && !it.name.startsWith('gradle-runtime-api-info-') }
     distributionArchives.files.each {
         def currentVersion = baseVersion.get()
         def projectName = it.name - "-${currentVersion}.jar"
