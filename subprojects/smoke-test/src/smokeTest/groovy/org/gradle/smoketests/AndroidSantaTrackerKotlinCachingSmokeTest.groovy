@@ -27,6 +27,9 @@ import static org.gradle.testkit.runner.TaskOutcome.FROM_CACHE
 import static org.gradle.testkit.runner.TaskOutcome.NO_SOURCE
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 import static org.gradle.testkit.runner.TaskOutcome.UP_TO_DATE
+import static org.hamcrest.CoreMatchers.equalTo
+import static org.hamcrest.CoreMatchers.not
+import static org.junit.Assume.assumeThat
 
 
 @Requires(TestPrecondition.JDK11_OR_EARLIER)
@@ -36,6 +39,9 @@ class AndroidSantaTrackerKotlinCachingSmokeTest extends AbstractAndroidSantaTrac
     @UnsupportedWithInstantExecution(iterationMatchers = [AGP_3_ITERATION_MATCHER, AGP_4_0_ITERATION_MATCHER])
     @ToBeFixedForInstantExecution(iterationMatchers = [AGP_4_1_ITERATION_MATCHER, AGP_4_2_ITERATION_MATCHER])
     def "can cache Santa Tracker Kotlin Android application (agp=#agpVersion)"() {
+
+        // TODO remove once next 4.2 is available
+        assumeThat(agpVersion, not(equalTo("4.2.0-alpha07")))
 
         given:
         def originalDir = temporaryFolder.createDir("original")
@@ -130,6 +136,7 @@ class AndroidSantaTrackerKotlinCachingSmokeTest extends AbstractAndroidSantaTrac
         ':common:bundleDebugAar': SUCCESS,
         ':common:bundleLibCompileToJarDebug': FROM_CACHE,
         ':common:bundleLibResDebug': FROM_CACHE,
+        ':common:bundleLibRuntimeToDirDebug': FROM_CACHE,
         ':common:bundleLibRuntimeToJarDebug': FROM_CACHE,
         ':common:compileDebugAidl': NO_SOURCE,
         ':common:compileDebugJavaWithJavac': FROM_CACHE,
@@ -212,6 +219,7 @@ class AndroidSantaTrackerKotlinCachingSmokeTest extends AbstractAndroidSantaTrac
         ':doodles-lib:bundleDebugAar': SUCCESS,
         ':doodles-lib:bundleLibCompileToJarDebug': FROM_CACHE,
         ':doodles-lib:bundleLibResDebug': NO_SOURCE,
+        ':doodles-lib:bundleLibRuntimeToDirDebug': FROM_CACHE,
         ':doodles-lib:bundleLibRuntimeToJarDebug': FROM_CACHE,
         ':doodles-lib:compileDebugAidl': NO_SOURCE,
         ':doodles-lib:compileDebugJavaWithJavac': FROM_CACHE,
@@ -413,6 +421,7 @@ class AndroidSantaTrackerKotlinCachingSmokeTest extends AbstractAndroidSantaTrac
         ':playgames:bundleDebugAar': SUCCESS,
         ':playgames:bundleLibCompileToJarDebug': FROM_CACHE,
         ':playgames:bundleLibResDebug': NO_SOURCE,
+        ':playgames:bundleLibRuntimeToDirDebug': FROM_CACHE,
         ':playgames:bundleLibRuntimeToJarDebug': FROM_CACHE,
         ':playgames:compileDebugAidl': NO_SOURCE,
         ':playgames:compileDebugJavaWithJavac': FROM_CACHE,
@@ -621,6 +630,7 @@ class AndroidSantaTrackerKotlinCachingSmokeTest extends AbstractAndroidSantaTrac
         ':tracker:bundleDebugAar': SUCCESS,
         ':tracker:bundleLibCompileToJarDebug': FROM_CACHE,
         ':tracker:bundleLibResDebug': FROM_CACHE,
+        ':tracker:bundleLibRuntimeToDirDebug': FROM_CACHE,
         ':tracker:bundleLibRuntimeToJarDebug': FROM_CACHE,
         ':tracker:compileDebugAidl': NO_SOURCE,
         ':tracker:compileDebugJavaWithJavac': SUCCESS,
