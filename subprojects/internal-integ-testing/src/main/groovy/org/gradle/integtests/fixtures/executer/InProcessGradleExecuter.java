@@ -153,6 +153,9 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
             return createGradleHandle().waitForFinish();
         }
 
+        if (!isSharedDaemons() && !isDaemonExplicitlyRequired()) {
+            throw new UnsupportedOperationException("Cannot use isolated daemons with the in-process executer without requiring a daemon.");
+        }
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         ByteArrayOutputStream errorStream = new ByteArrayOutputStream();
         BuildListenerImpl buildListener = new BuildListenerImpl();
