@@ -36,6 +36,9 @@ abstract class FindGradleJar implements TransformAction<Parameters> {
         @Input
         String getTarget()
         void setTarget(String target)
+        @Input
+        String getVersion()
+        void setVersion(String version)
     }
 
     @PathSensitive(PathSensitivity.NAME_ONLY)
@@ -47,7 +50,7 @@ abstract class FindGradleJar implements TransformAction<Parameters> {
         File artifactFile = artifact.get().asFile
         if (artifactFile.name == 'gradle-jars') {
             (artifactFile.listFiles().findAll {
-                it.name.startsWith("gradle-${parameters.target}-")
+                it.name == "${parameters.target}-${parameters.version}.jar"
             } as List<File>).sort { it.name }.each {
                 outputs.file(it)
             }
