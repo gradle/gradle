@@ -7,7 +7,6 @@ plugins {
 
 dependencies {
     currentClasspath(project(":distributionsFull"))
-    currentClasspath(project(":pluginDevelopment"))
 
     testImplementation(project(":baseServices"))
     testImplementation(project(":modelCore"))
