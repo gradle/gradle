@@ -17,13 +17,9 @@
 package org.gradle.vfs
 
 import org.gradle.integtests.fixtures.FileSystemWatchingFixture
-import org.gradle.integtests.fixtures.daemon.DaemonFixture
 import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
 import org.gradle.internal.os.OperatingSystem
-import org.gradle.internal.watch.registry.FileWatcherRegistry
 import org.gradle.test.fixtures.file.TestFile
-
-import java.nio.file.Files
 
 class FileSystemWatchingSoakTest extends DaemonIntegrationSpec implements FileSystemWatchingFixture {
 
@@ -70,12 +66,10 @@ class FileSystemWatchingSoakTest extends DaemonIntegrationSpec implements FileSy
         // Assemble twice, so everything is up-to-date and nothing is invalidated
         succeeds("assemble")
         def daemon = daemons.daemon
-        def retainedFilesInLastBuild = retainedFilesInCurrentBuild
         then:
         daemon.assertIdle()
 
         expect:
-        long endOfDaemonLog = getLinesInDaemonLog(daemon)
         50.times { iteration ->
             // when:
             changeSourceFiles(iteration, numberOfChangesBetweenBuilds)
@@ -86,16 +80,6 @@ class FileSystemWatchingSoakTest extends DaemonIntegrationSpec implements FileSy
             assert daemons.daemon.logFile == daemon.logFile
             daemon.assertIdle()
             assertWatchingSucceeded()
-            boolean overflowDetected = detectOverflow(daemon, endOfDaemonLog)
-            if (!overflowDetected) {
-                int expectedNumberOfRetainedFiles = retainedFilesInLastBuild - numberOfChangesBetweenBuilds
-                int retainedFilesAtTheBeginningOfTheCurrentBuild = retainedFilesSinceLastBuild
-                assert retainedFilesAtTheBeginningOfTheCurrentBuild <= expectedNumberOfRetainedFiles
-                assert expectedNumberOfRetainedFiles - 100 <= retainedFilesAtTheBeginningOfTheCurrentBuild
-            }
-            assert receivedFileSystemEventsSinceLastBuild >= minimumExpectedFileSystemEvents(numberOfChangesBetweenBuilds, 1)
-            retainedFilesInLastBuild = retainedFilesInCurrentBuild
-            endOfDaemonLog = getLinesInDaemonLog(daemon)
         }
     }
 
@@ -118,18 +102,11 @@ class FileSystemWatchingSoakTest extends DaemonIntegrationSpec implements FileSy
             changeSourceFiles(iteration, numberOfChangedSourcesFilesPerBatch)
             waitBetweenChangesToAvoidOverflow()
         }
-        boolean overflowDetected = detectOverflow(daemon, 0)
-        // This needs to happen here, since retainedFilesInCurrentBuild looks at the log of the last executed build.
-        int expectedNumberOfRetainedFiles = retainedFilesInCurrentBuild - numberOfChangedSourcesFilesPerBatch
         then:
         succeeds("assemble")
         daemons.daemon.logFile == daemon.logFile
         daemon.assertIdle()
         assertWatchingSucceeded()
-        receivedFileSystemEventsSinceLastBuild >= minimumExpectedFileSystemEvents(numberOfChangedSourcesFilesPerBatch, numberOfChangeBatches)
-        if (!overflowDetected) {
-            assert retainedFilesSinceLastBuild == expectedNumberOfRetainedFiles
-        }
     }
 
     private static getMaxFileChangesWithoutOverflow() {
@@ -138,34 +115,8 @@ class FileSystemWatchingSoakTest extends DaemonIntegrationSpec implements FileSy
             : 1000
     }
 
-    private static boolean detectOverflow(DaemonFixture daemon, long fromLine) {
-        boolean overflowDetected = daemon.logContains(fromLine, FileWatcherRegistry.Type.INVALIDATED.toString())
-        if (overflowDetected) {
-            println "Detected overflow in watcher, no files will be retained for the next build"
-        }
-        overflowDetected
-    }
-
-    private static long getLinesInDaemonLog(DaemonFixture daemon) {
-        Files.lines(daemon.logFile.toPath()).withCloseable { lines -> lines.count() }
-    }
-
     private static void waitBetweenChangesToAvoidOverflow() {
             Thread.sleep(150)
-    }
-
-    private static int minimumExpectedFileSystemEvents(int numberOfChangedFiles, int numberOfChangesPerFile) {
-        def currentOs = OperatingSystem.current()
-        if (currentOs.macOsX) {
-            // macOS coalesces the changes if the are in short succession
-            return numberOfChangedFiles * numberOfChangesPerFile * LOST_EVENTS_RATIO_MAC_OS
-        } else if (currentOs.linux) {
-            // the JDK watchers only capture one event per watched path
-            return numberOfChangedFiles
-        } else if (currentOs.windows) {
-            return numberOfChangedFiles * numberOfChangesPerFile * LOST_EVENTS_RATIO_WINDOWS
-        }
-        throw new AssertionError("Test not supported on OS ${currentOs}")
     }
 
     private void changeSourceFiles(int iteration, int number) {

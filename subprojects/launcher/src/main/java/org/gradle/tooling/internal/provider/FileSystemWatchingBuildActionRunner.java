@@ -23,6 +23,7 @@ import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.invocation.BuildActionRunner;
 import org.gradle.internal.invocation.BuildController;
+import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.service.scopes.VirtualFileSystemServices;
 import org.gradle.internal.vfs.VirtualFileSystem;
 import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem;
@@ -40,6 +41,7 @@ public class FileSystemWatchingBuildActionRunner implements BuildActionRunner {
         GradleInternal gradle = buildController.getGradle();
         StartParameterInternal startParameter = gradle.getStartParameter();
         BuildLifecycleAwareVirtualFileSystem virtualFileSystem = gradle.getServices().get(BuildLifecycleAwareVirtualFileSystem.class);
+        BuildOperationRunner buildOperationRunner = gradle.getServices().get(BuildOperationRunner.class);
 
         boolean watchFileSystem = startParameter.isWatchFileSystem();
 
@@ -48,11 +50,11 @@ public class FileSystemWatchingBuildActionRunner implements BuildActionRunner {
             IncubationLogger.incubatingFeatureUsed("Watching the file system");
             dropVirtualFileSystemIfRequested(startParameter, virtualFileSystem);
         }
-        virtualFileSystem.afterBuildStarted(watchFileSystem);
+        virtualFileSystem.afterBuildStarted(watchFileSystem, buildOperationRunner);
         try {
             return delegate.run(action, buildController);
         } finally {
-            virtualFileSystem.beforeBuildFinished(watchFileSystem);
+            virtualFileSystem.beforeBuildFinished(watchFileSystem, buildOperationRunner);
         }
     }
 
