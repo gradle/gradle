@@ -86,7 +86,6 @@ configurations {
     }
 }
 
-def apiSourceFolders = objects.fileCollection()
 dependencies {
     baseline "gradle:gradle:${compatibilityBaselineVersion}@zip"
 
@@ -99,14 +98,6 @@ dependencies {
     registerTransform(FindGradleClasspath) {
         from.attribute(ARTIFACT_TYPE, 'gradle-libs-dir')
         to.attribute(ARTIFACT_TYPE, 'gradle-classpath')
-    }
-
-    rootProject.subprojects { subproject ->
-        plugins.withId('gradlebuild.distribution.api') {
-            if (subproject.plugins.hasPlugin("kotlin")) {
-                apiSourceFolders.from(subproject.sourceSets.main.kotlin.sourceDirectories)
-            }
-        }
     }
 }
 
@@ -122,8 +113,7 @@ def checkBinaryCompatibility = tasks.register("checkBinaryCompatibility", Japicm
     inputs.property('acceptedViolations', acceptedViolations.toAcceptedChangesMap())
     inputs.property("baseline.version", compatibilityBaselineVersion)
     inputs.property("currentVersion", baseVersion)
-    def sourceFiles = configurations.currentSources.incoming.artifactView { lenient(true) }.files
-    apiSourceFolders.from(sourceFiles)
+    def apiSourceFolders = configurations.currentSources.incoming.artifactView { lenient(true) }.files
     inputs.files("apiSourceFolders", apiSourceFolders)
 
     oldClasspath = configurations.baselineClasspath
