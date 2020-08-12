@@ -97,7 +97,7 @@ def checkBinaryCompatibility = tasks.register("checkBinaryCompatibility", Japicm
     def newArchivesFiles = objects.fileCollection()
     def baseVersion = moduleIdentity.version.map { it.baseVersion.version }
     def isSnapshot = moduleIdentity.snapshot
-    def currentClasspath = configurations.currentClasspath.resolvedConfiguration.lenientConfiguration
+    def currentClasspath = configurations.currentClasspath.incoming.artifactView { lenient(true) }.files
     newArchivesFiles.from(currentClasspath.files)
 
     inputs.files(newArchivesFiles)
