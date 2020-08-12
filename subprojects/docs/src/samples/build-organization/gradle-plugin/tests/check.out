@@ -10,11 +10,3 @@
 > Task :greeting-plugin:compileTestJava
 > Task :greeting-plugin:processTestResources NO-SOURCE
 > Task :greeting-plugin:testClasses
-
-> Task :greeting-plugin:test
-
-> Task :greeting-plugin:validatePlugins
-> Task :greeting-plugin:check
-
-BUILD SUCCESSFUL in 0s
-9 actionable tasks: 9 executed
