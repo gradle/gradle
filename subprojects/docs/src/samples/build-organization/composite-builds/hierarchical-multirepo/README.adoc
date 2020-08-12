@@ -51,8 +51,8 @@ gradle :publishDeps
 The `publishDeps` creates and uploads the artifacts for each included build. It is defined in `multirepo-app` as follows:
 
 ====
-include::sample[dir="groovy",files="build.gradle[tags=publishDeps]"]
-include::sample[dir="kotlin",files="build.gradle.kts[tags=publishDeps]"]
+include::sample[dir="groovy",files="build.gradle]
+include::sample[dir="kotlin",files="build.gradle.kts"]
 ====
 
 === Removing the local module source
