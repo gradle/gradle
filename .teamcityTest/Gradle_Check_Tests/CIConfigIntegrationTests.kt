@@ -262,7 +262,7 @@ class CIConfigIntegrationTests {
         val projectsWithUnitTests = model.subprojects.subprojects.filter { it.unitTests }
         val projectFoldersWithUnitTests = subProjectFolderList().filter {
             File(it, "src/test").exists() &&
-                it.name != "architecture-test" // architectureTest:test is part of Sanity Check
+                it.name != "architecture-test" // architecture-test:test is part of Sanity Check
         }
         assertFalse(projectFoldersWithUnitTests.isEmpty())
         projectFoldersWithUnitTests.forEach {
