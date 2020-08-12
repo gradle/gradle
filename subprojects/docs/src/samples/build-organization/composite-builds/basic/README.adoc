@@ -7,8 +7,8 @@ This sample shows how 2 Gradle builds that are normally developed separately and
 Note that the `my-app` build does not have direct dependencies on `my-utils`. Instead, it declares module dependencies on the libraries produced by `my-utils`:
 
 ====
-include::sample[dir="groovy",files="my-app/build.gradle[tags=app_dependencies]"]
-include::sample[dir="kotlin",files="my-app/build.gradle.kts[tags=app_dependencies]"]
+include::sample[dir="groovy",files="my-app/app/build.gradle[tags=app_dependencies]"]
+include::sample[dir="kotlin",files="my-app/app/build.gradle.kts[tags=app_dependencies]"]
 ====
 
 == Using command-line composite build

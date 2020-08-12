@@ -1,7 +1,5 @@
 plugins {
-    java
     application
-    idea
 }
 
 group = "org.sample"
