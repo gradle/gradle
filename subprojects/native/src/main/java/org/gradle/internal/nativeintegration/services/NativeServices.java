@@ -22,6 +22,7 @@ import net.rubygrapefruit.platform.Process;
 import net.rubygrapefruit.platform.ProcessLauncher;
 import net.rubygrapefruit.platform.SystemInfo;
 import net.rubygrapefruit.platform.WindowsRegistry;
+import net.rubygrapefruit.platform.file.FileEvents;
 import net.rubygrapefruit.platform.file.Files;
 import net.rubygrapefruit.platform.file.PosixFiles;
 import net.rubygrapefruit.platform.internal.DefaultProcessLauncher;
@@ -69,6 +70,7 @@ import static org.gradle.internal.nativeintegration.filesystem.services.JdkFallb
 public class NativeServices extends DefaultServiceRegistry implements ServiceRegistry {
     private static final Logger LOGGER = LoggerFactory.getLogger(NativeServices.class);
     private static boolean useNativeIntegrations;
+    private static boolean useFileSystemWatching;
     private static final NativeServices INSTANCE = new NativeServices();
     private static final JansiBootPathConfigurer JANSI_BOOT_PATH_CONFIGURER = new JansiBootPathConfigurer();
     private static boolean initialized;
@@ -84,8 +86,10 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
 
     /**
      * Initializes the native services to use the given user home directory to store native libs and other resources. Does nothing if already initialized.
+     *
+     * @param initializeAdditionalNativeLibraries Whether to initialize additional native libraries like jansi and file-events.
      */
-    public static synchronized void initialize(File userHomeDir, boolean initializeJansi) {
+    public static synchronized void initialize(File userHomeDir, boolean initializeAdditionalNativeLibraries) {
         try {
             if (!initialized) {
                 useNativeIntegrations = "true".equalsIgnoreCase(System.getProperty("org.gradle.native", "true"));
@@ -109,7 +113,16 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
                             throw ex;
                         }
                     }
-                    if (initializeJansi) {
+                    if (useNativeIntegrations && initializeAdditionalNativeLibraries) {
+                        useFileSystemWatching = true;
+                        try {
+                            FileEvents.init(nativeBaseDir);
+                        } catch (NativeIntegrationUnavailableException ex) {
+                            LOGGER.info("Native file system watching is not available for this operating system.", ex);
+                            useFileSystemWatching = false;
+                        }
+                    }
+                    if (initializeAdditionalNativeLibraries) {
                         JANSI_BOOT_PATH_CONFIGURER.configure(nativeBaseDir);
                     }
                     LOGGER.info("Initialized native services in: " + nativeBaseDir);
@@ -296,6 +309,11 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
             @Override
             public boolean isNativeIntegrationAvailable() {
                 return useNativeIntegrations;
+            }
+
+            @Override
+            public boolean isFileSystemWatchingAvailable() {
+                return useFileSystemWatching;
             }
         };
     }
