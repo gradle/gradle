@@ -23,7 +23,7 @@ dependencies {
     testFixturesImplementation(project(":core"))
     testFixturesImplementation(project(":internalIntegTesting"))
 
-    testImplementation(project(":kotlinDslTestFixtures"))
+    testImplementation(testFixtures(project(":kotlinDsl")))
     testImplementation(testFixtures(project(":core")))
 
     integTestImplementation(project(":logging"))
