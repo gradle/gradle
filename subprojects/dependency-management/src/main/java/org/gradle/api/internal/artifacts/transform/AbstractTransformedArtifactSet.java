@@ -73,6 +73,10 @@ public abstract class AbstractTransformedArtifactSet implements ResolvedArtifact
         if (visitType == FileCollectionStructureVisitor.VisitType.NoContents) {
             return visitor -> visitor.endVisitCollection(this);
         }
+
+        // Isolate the transformation parameters, if not already done
+        transformation.isolateParameters();
+
         Map<ComponentArtifactIdentifier, TransformationResult> artifactResults = Maps.newConcurrentMap();
         Completion result = delegate.startVisit(actions, new TransformingAsyncArtifactListener(transformation, actions, artifactResults, dependenciesResolver, transformationNodeRegistry));
         return new TransformCompletion(result, targetVariantAttributes, artifactResults);

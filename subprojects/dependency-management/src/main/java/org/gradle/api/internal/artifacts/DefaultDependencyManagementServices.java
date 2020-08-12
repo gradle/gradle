@@ -410,7 +410,6 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
                 TransformerInvocationFactory transformerInvocationFactory,
                 ValueSnapshotter valueSnapshotter,
-                ProjectStateRegistry projectStateRegistry,
                 DomainObjectContext domainObjectContext,
                 ArtifactTransformParameterScheme parameterScheme,
                 ArtifactTransformActionScheme actionScheme,
@@ -429,7 +428,6 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                     fileLookup,
                     fileCollectionFingerprinterRegistry,
                     domainObjectContext,
-                    projectStateRegistry,
                     parameterScheme,
                     actionScheme,
                     internalServices

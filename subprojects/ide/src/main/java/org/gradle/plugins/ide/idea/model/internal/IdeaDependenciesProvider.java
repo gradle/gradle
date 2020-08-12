@@ -43,7 +43,6 @@ import org.gradle.plugins.ide.internal.resolver.IdeDependencySet;
 import org.gradle.plugins.ide.internal.resolver.IdeDependencyVisitor;
 import org.gradle.plugins.ide.internal.resolver.UnresolvedIdeDependencyHandler;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
@@ -112,7 +111,6 @@ public class IdeaDependenciesProvider {
 
         final IdeaDependenciesVisitor visitor = new IdeaDependenciesVisitor(ideaModule, scope.name());
         return projectInternal.getMutationState().withMutableState(new Factory<IdeaDependenciesVisitor>() {
-            @Nullable
             @Override
             public IdeaDependenciesVisitor create() {
                 new IdeDependencySet(handler, javaModuleDetector, plusConfigurations, minusConfigurations, false, gradleApiSourcesResolver).visit(visitor);

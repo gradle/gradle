@@ -63,6 +63,9 @@ public interface ProjectState extends ModelContainer {
      */
     ProjectComponentIdentifier getComponentIdentifier();
 
+    /**
+     * This state object should own the project instantiation. This method is currently here to allow transition towards that.
+     */
     void attachMutableModel(ProjectInternal project);
 
     /**

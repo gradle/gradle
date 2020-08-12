@@ -197,7 +197,7 @@ class DefaultInstantExecution internal constructor(
 
     private
     fun writeInstantExecutionState(stateFile: File) {
-        service<ProjectStateRegistry>().withLenientState {
+        service<ProjectStateRegistry>().withMutableStateOfAllProjects {
             withWriteContextFor(stateFile) {
                 instantExecutionState().run {
                     writeState()

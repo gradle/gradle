@@ -91,7 +91,7 @@ class DefaultTaskExecutionGraphSpec extends AbstractExecutionPlanSpec {
                 return false
             }
         }
-        _ * projectStateRegistry.withLenientState(_) >> { Runnable r -> r.run() }
+        _ * projectStateRegistry.withMutableStateOfAllProjects(_) >> { Runnable r -> r.run() }
     }
 
     def cleanup() {

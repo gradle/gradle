@@ -54,6 +54,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Visit
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedLocalComponentsResult
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
 import org.gradle.api.internal.file.TestFiles
+import org.gradle.api.internal.initialization.RootScriptDomainObjectContext
 import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.api.specs.Spec
@@ -63,7 +64,6 @@ import org.gradle.initialization.ProjectAccessListener
 import org.gradle.internal.Factories
 import org.gradle.internal.event.AnonymousListenerBroadcast
 import org.gradle.internal.event.ListenerManager
-import org.gradle.internal.model.ModelContainer
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.typeconversion.NotationParser
@@ -93,15 +93,12 @@ class DefaultConfigurationSpec extends Specification {
     def immutableAttributesFactory = AttributeTestUtil.attributesFactory()
     def rootComponentMetadataBuilder = Mock(RootComponentMetadataBuilder)
     def projectStateRegistry = Mock(ProjectStateRegistry)
-    def safeLock = Mock(ProjectStateRegistry.SafeExclusiveLock)
     def domainObjectCollectioncallbackActionDecorator = Mock(CollectionCallbackActionDecorator)
     def userCodeApplicationContext = Mock(UserCodeApplicationContext)
 
     def setup() {
         _ * listenerManager.createAnonymousBroadcaster(DependencyResolutionListener) >> { new AnonymousListenerBroadcast<DependencyResolutionListener>(DependencyResolutionListener) }
         _ * resolver.getRepositories() >> []
-        _ * projectStateRegistry.newExclusiveOperationLock() >> safeLock
-        _ * safeLock.withLock(_) >> { args -> args[0].run() }
         _ * domainObjectCollectioncallbackActionDecorator.decorate(_) >> { args -> args[0] }
         _ * userCodeApplicationContext.reapplyCurrentLater(_) >> { args -> args[0] }
     }
@@ -1743,15 +1740,11 @@ All Artifacts:
 
     private DefaultConfiguration conf(String confName = "conf", String projectPath = ":", String buildPath = ":") {
         def domainObjectContext = Stub(DomainObjectContext)
-        def modelContainer = Stub(ModelContainer)
         def build = Path.path(buildPath)
         _ * domainObjectContext.identityPath(_) >> { String p -> build.append(Path.path(projectPath)).child(p) }
         _ * domainObjectContext.projectPath(_) >> { String p -> Path.path(projectPath).child(p) }
         _ * domainObjectContext.buildPath >> Path.path(buildPath)
-        _ * domainObjectContext.model >> modelContainer
-        _ * modelContainer.hasMutableState() >> true
-        _ * modelContainer.withMutableState(_) >> { throw new RuntimeException() }
-        _ * modelContainer.withLenientState(_) >> { throw new RuntimeException() }
+        _ * domainObjectContext.model >> RootScriptDomainObjectContext.INSTANCE
 
         def publishArtifactNotationParser = NotationParserBuilder.toType(ConfigurablePublishArtifact).toComposite()
         new DefaultConfiguration(domainObjectContext, confName, configurationsProvider, resolver, listenerManager, metaDataProvider,

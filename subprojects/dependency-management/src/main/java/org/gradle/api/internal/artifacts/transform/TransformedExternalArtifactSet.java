@@ -56,6 +56,8 @@ public class TransformedExternalArtifactSet extends AbstractTransformedArtifactS
     }
 
     public List<File> calculateResult() {
+        getTransformation().isolateParameters();
+
         List<File> files = new ArrayList<>();
         delegate.visitExternalArtifacts(artifact -> {
             TransformationSubject subject = TransformationSubject.initial(artifact.getId(), artifact.getFile());

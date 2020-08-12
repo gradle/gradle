@@ -20,7 +20,6 @@ import org.gradle.api.internal.DomainObjectContext
 import org.gradle.api.internal.artifacts.transform.TransformationStep
 import org.gradle.api.internal.artifacts.transform.Transformer
 import org.gradle.api.internal.artifacts.transform.TransformerInvocationFactory
-import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.instantexecution.serialization.Codec
 import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.WriteContext
@@ -32,7 +31,6 @@ import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry
 
 internal
 class TransformationStepCodec(
-    private val projectStateRegistry: ProjectStateRegistry,
     private val fingerprinterRegistry: FileCollectionFingerprinterRegistry
 ) : Codec<TransformationStep> {
 
@@ -54,7 +52,6 @@ class TransformationStepCodec(
                 transformer,
                 services[TransformerInvocationFactory::class.java],
                 services[DomainObjectContext::class.java],
-                projectStateRegistry,
                 fingerprinterRegistry
             )
         }

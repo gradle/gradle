@@ -18,6 +18,8 @@ package org.gradle.internal.model;
 
 import org.gradle.internal.Factory;
 
+import javax.annotation.Nullable;
+
 /**
  * Encapsulates some mutable model, and provides synchronized access to the model.
  */
@@ -27,7 +29,9 @@ public interface ModelContainer {
      * Runs the given action against the public mutable model. Applies best effort synchronization to prevent concurrent access to a particular project from multiple threads.
      * However, it is currently easy for state to leak from one project to another so this is not a strong guarantee.
      *
-     * Note also that the mutable state should be passed to the action, but is not yet. This is to help with migration.
+     * <p>It is usually a better option to use {@link #newCalculatedValue(Object)} instead of this method.</p>
+     *
+     * <p>Note also that the mutable state should be passed to the action, but is not yet. This is to help with migration.
      */
     <T> T withMutableState(Factory<? extends T> factory);
 
@@ -35,20 +39,17 @@ public interface ModelContainer {
      * Runs the given action against the public mutable model. Applies best effort synchronization to prevent concurrent access to a particular project from multiple threads.
      * However, it is currently easy for state to leak from one project to another so this is not a strong guarantee.
      *
-     * Note also that the mutable state should be passed to the action, but is not yet. This is to help with migration.
+     * <p>Note also that the mutable state should be passed to the action, but is not yet. This is to help with migration.
      */
     void withMutableState(Runnable runnable);
-
-    /**
-     * Accesses the public mutable model without any synchronization. Please do not use this method, except for backwards compatibility (and deprecate the behaviour that requires this).
-     * Use {@link #withMutableState(Runnable)} instead.
-     *
-     * Note also that the mutable state should be passed to the action, but is not yet. This is to help with migration.
-     */
-    void withLenientState(Runnable runnable);
 
     /**
      * Returns whether or not the current thread has access to the mutable model.
      */
     boolean hasMutableState();
+
+    /**
+     * Creates a new container for a value that is calculated from the mutable state of this container, and then reused by multiple threads.
+     */
+    <T> CalculatedModelValue<T> newCalculatedValue(@Nullable T initialValue);
 }

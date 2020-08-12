@@ -19,10 +19,12 @@ package org.gradle.api.internal.initialization;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.internal.Factory;
+import org.gradle.internal.model.CalculatedModelValue;
 import org.gradle.internal.model.ModelContainer;
 import org.gradle.util.Path;
 
 import javax.annotation.Nullable;
+import java.util.function.Function;
 
 public class RootScriptDomainObjectContext implements DomainObjectContext, ModelContainer {
 
@@ -73,11 +75,6 @@ public class RootScriptDomainObjectContext implements DomainObjectContext, Model
     }
 
     @Override
-    public void withLenientState(Runnable runnable) {
-        runnable.run();
-    }
-
-    @Override
     public Path getBuildPath() {
         return Path.ROOT;
     }
@@ -85,5 +82,44 @@ public class RootScriptDomainObjectContext implements DomainObjectContext, Model
     @Override
     public boolean isScript() {
         return true;
+    }
+
+    @Override
+    public <T> CalculatedModelValue<T> newCalculatedValue(@Nullable T initialValue) {
+        return new CalculatedModelValueImpl<>(initialValue);
+    }
+
+    private static class CalculatedModelValueImpl<T> implements CalculatedModelValue<T> {
+        private T value;
+
+        CalculatedModelValueImpl(@Nullable T initialValue) {
+            value = initialValue;
+        }
+
+        @Override
+        public T get() throws IllegalStateException {
+            T currentValue = getOrNull();
+            if (currentValue == null) {
+                throw new IllegalStateException("No value is available.");
+            }
+            return currentValue;
+        }
+
+        @Override
+        public T getOrNull() {
+            return value;
+        }
+
+        @Override
+        public void set(T newValue) {
+            value = newValue;
+        }
+
+        @Override
+        public T update(Function<T, T> updateFunction) {
+            T newValue = updateFunction.apply(value);
+            value = newValue;
+            return newValue;
+        }
     }
 }

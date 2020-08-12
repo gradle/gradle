@@ -28,7 +28,6 @@ class TransformationNodeSpec extends Specification {
 
     def artifact = Mock(ResolvedArtifactSet.LocalArtifactSet)
     def dependencyResolver = Mock(TaskDependencyResolver)
-    def transformerDependencies = Mock(TaskDependencyContainer)
     def hardSuccessor = Mock(Action)
     def transformationStep = Mock(TransformationStep)
     def graphDependenciesResolver = Mock(ExecutionGraphDependenciesResolver)
@@ -55,10 +54,10 @@ class TransformationNodeSpec extends Specification {
         1 * graphDependenciesResolver.computeDependencyNodes(transformationStep) >> artifactDependencyDependencies
         1 * dependencyResolver.resolveDependenciesFor(null, artifactDependencyDependencies) >> [additionalNode]
         1 * hardSuccessor.execute(additionalNode)
-        1 * transformationStep.dependencies >> transformerDependencies
-        1 * dependencyResolver.resolveDependenciesFor(null, transformerDependencies) >> [isolationNode]
+        1 * dependencyResolver.resolveDependenciesFor(null, transformationStep) >> [isolationNode]
         1 * hardSuccessor.execute(isolationNode)
         0 * hardSuccessor._
+        0 * dependencyResolver._
     }
 
     def "chained node with empty extra resolver only adds dependency on previous step and dependencies"() {
@@ -74,14 +73,14 @@ class TransformationNodeSpec extends Specification {
         node.resolveDependencies(dependencyResolver, hardSuccessor)
 
         then:
-        1 * transformationStep.dependencies >> transformerDependencies
-        1 * dependencyResolver.resolveDependenciesFor(null, transformerDependencies) >> [isolationNode]
+        1 * dependencyResolver.resolveDependenciesFor(null, transformationStep) >> [isolationNode]
         1 * hardSuccessor.execute(isolationNode)
         1 * graphDependenciesResolver.computeDependencyNodes(transformationStep) >> container
         1 * dependencyResolver.resolveDependenciesFor(null, container) >> [additionalNode]
         1 * hardSuccessor.execute(additionalNode)
         1 * hardSuccessor.execute(initialNode)
         0 * hardSuccessor._
+        0 * dependencyResolver._
     }
 
     private Node node() {
