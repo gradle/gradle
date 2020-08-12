@@ -159,9 +159,6 @@ include("instant-execution-report")
 
 val upperCaseLetters = "\\p{Upper}".toRegex()
 
-fun String.toKebabCase() =
-    replace(upperCaseLetters) { "-${it.value.toLowerCase()}" }
-
 rootProject.name = "gradle"
 
 // List of sub-projects that have a Groovy DSL build script.
@@ -177,9 +174,8 @@ fun buildFileExtensionFor(projectDirName: String) =
     if (projectDirName in groovyBuildScriptProjects) ".gradle" else ".gradle.kts"
 
 for (project in rootProject.children) {
-    val projectDirName = project.name.toKebabCase()
-    project.projectDir = file("subprojects/$projectDirName")
-    project.buildFileName = buildFileNameFor(projectDirName)
+    project.projectDir = file("subprojects/${project.name}")
+    project.buildFileName = buildFileNameFor(project.name)
     require(project.projectDir.isDirectory) {
         "Project directory ${project.projectDir} for project ${project.name} does not exist."
     }
