@@ -102,12 +102,9 @@ dependencies {
 }
 
 def checkBinaryCompatibility = tasks.register("checkBinaryCompatibility", JapicmpTask) {
-    def oldArchivesFiles = objects.fileCollection()
-    def newArchivesFiles = objects.fileCollection()
     def baseVersion = moduleIdentity.version.map { it.baseVersion.version }
     def isSnapshot = moduleIdentity.snapshot
-    def currentClasspath = configurations.currentApiClasspath.incoming.artifactView { lenient(true) }.files
-    newArchivesFiles.from(currentClasspath)
+    def newArchivesFiles = configurations.currentApiClasspath.incoming.artifactView { lenient(true) }.files
 
     inputs.files(newArchivesFiles)
     inputs.property('acceptedViolations', acceptedViolations.toAcceptedChangesMap())
@@ -117,8 +114,9 @@ def checkBinaryCompatibility = tasks.register("checkBinaryCompatibility", Japicm
     inputs.files("apiSourceFolders", apiSourceFolders)
 
     oldClasspath = configurations.baselineClasspath
-    newClasspath = files(newArchivesFiles)
+    newClasspath = newArchivesFiles
 
+    def oldArchivesFiles = objects.fileCollection()
     def distributionArchives = newArchivesFiles.filter { it.name.startsWith('gradle-') && it.name.endsWith('.jar') && !it.name.startsWith('gradle-runtime-api-info-') }
     distributionArchives.files.each {
         def currentVersion = baseVersion.get()
