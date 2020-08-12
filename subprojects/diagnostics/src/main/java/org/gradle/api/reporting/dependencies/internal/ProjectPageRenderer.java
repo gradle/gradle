@@ -37,7 +37,7 @@ public class ProjectPageRenderer extends ReportRenderer<Project, HtmlPageBuilder
     public void render(final Project project, final HtmlPageBuilder<Writer> builder) {
         final String baseCssLink = requireClassResource("/org/gradle/reporting/base-style.css", builder);
         final String cssLink = requireReportResource("style.css", builder);
-        final String jqueryLink = requireClassResource("/org/gradle/reporting/jquery.min-3.4.1.js", builder);
+        final String jqueryLink = requireClassResource("/org/gradle/reporting/jquery.min-3.5.1.js", builder);
         final String jtreeLink = requireReportResource("jquery.jstree.js", builder);
         final String scriptLink = requireReportResource("script.js", builder);
         requireReportResource("tree.css", builder);
