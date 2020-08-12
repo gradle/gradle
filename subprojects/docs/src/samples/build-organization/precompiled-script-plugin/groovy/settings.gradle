@@ -1,3 +1,5 @@
 rootProject.name = 'consumer-service'
 
-includeBuild('plugin')
+include 'consumer-service'
+
+includeBuild 'plugin'
