@@ -84,7 +84,7 @@ fun configureSourcesVariant() {
         main.groovy.srcDirs.forEach {
             outgoing.artifact(it)
         }
-        main.allSource.srcDirs.filter{ it.name == "kotlin" }.forEach {
+        main.allSource.srcDirs.filter { it.name == "kotlin" }.forEach {
             outgoing.artifact(it)
         }
     }
