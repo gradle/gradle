@@ -57,6 +57,9 @@ class ChainedTransformerTest extends Specification {
         void visitTransformationSteps(Action<? super TransformationStep> action) {
         }
 
+        @Override
+        void isolateParameters() {
+        }
 
         @Override
         boolean endsWith(Transformation otherTransform) {

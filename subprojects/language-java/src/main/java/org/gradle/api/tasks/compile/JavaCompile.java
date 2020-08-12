@@ -145,6 +145,7 @@ public class JavaCompile extends AbstractCompile implements HasCompileOptions {
      * @return The tool chain.
      */
     @Nested
+    @Deprecated
     public JavaToolChain getToolChain() {
         if (toolChain != null) {
             return toolChain;
@@ -157,6 +158,7 @@ public class JavaCompile extends AbstractCompile implements HasCompileOptions {
      *
      * @param toolChain The tool chain.
      */
+    @Deprecated
     public void setToolChain(JavaToolChain toolChain) {
         this.toolChain = toolChain;
     }
@@ -313,6 +315,7 @@ public class JavaCompile extends AbstractCompile implements HasCompileOptions {
     }
 
     @Nested
+    @Deprecated
     protected JavaPlatform getPlatform() {
         return new DefaultJavaPlatform(JavaVersion.toVersion(getTargetCompatibility()));
     }

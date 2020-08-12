@@ -197,7 +197,7 @@ class DefaultInstantExecution internal constructor(
 
     private
     fun writeInstantExecutionState(stateFile: File) {
-        service<ProjectStateRegistry>().withLenientState {
+        service<ProjectStateRegistry>().withMutableStateOfAllProjects {
             withWriteContextFor(stateFile) {
                 instantExecutionState().run {
                     writeState()
@@ -378,7 +378,7 @@ class DefaultInstantExecution internal constructor(
     // Skip instant execution for buildSrc for now.
     private
     val isInstantExecutionEnabled: Boolean by unsafeLazy {
-        startParameter.isEnabled && !host.currentBuild.buildSrc
+        startParameter.isEnabled && host.currentBuild.gradle.isRootBuild
     }
 
     private

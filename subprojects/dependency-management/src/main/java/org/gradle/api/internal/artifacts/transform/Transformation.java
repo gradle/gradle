@@ -42,7 +42,7 @@ public interface Transformation extends Describable {
     CacheableInvocation<TransformationSubject> createInvocation(TransformationSubject subjectToTransform, ExecutionGraphDependenciesResolver dependenciesResolver, @Nullable NodeExecutionContext context);
 
     /**
-     * Whether the transformation requires dependencies of the transformed artifact to be injected.
+     * Whether the transformation requires upstream dependencies of the transformed artifact to be injected.
      */
     boolean requiresDependencies();
 
@@ -50,4 +50,9 @@ public interface Transformation extends Describable {
      * Extract the transformation steps from this transformation.
      */
     void visitTransformationSteps(Action<? super TransformationStep> action);
+
+    /**
+     * Isolates the parameters of this transformation, if not already.
+     */
+    void isolateParameters();
 }

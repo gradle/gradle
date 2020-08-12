@@ -98,7 +98,7 @@ public class DefaultToolingModelBuilderRegistry implements ToolingModelBuilderRe
             return buildOperationExecutor.call(new CallableBuildOperation<Object>() {
                 @Override
                 public Object call(BuildOperationContext context) {
-                    return projectStateRegistry.withLenientState(new Factory<Object>() {
+                    return projectStateRegistry.withMutableStateOfAllProjects(new Factory<Object>() {
                         @Nullable
                         @Override
                         public Object create() {
@@ -134,7 +134,7 @@ public class DefaultToolingModelBuilderRegistry implements ToolingModelBuilderRe
             return buildOperationExecutor.call(new CallableBuildOperation<Object>() {
                 @Override
                 public Object call(BuildOperationContext context) {
-                    return projectStateRegistry.withLenientState(new Factory<Object>() {
+                    return projectStateRegistry.withMutableStateOfAllProjects(new Factory<Object>() {
                         @Nullable
                         @Override
                         public Object create() {

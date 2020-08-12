@@ -76,6 +76,7 @@ class ArtifactCollectionCodec(private val fileCollectionFactory: FileCollectionF
                     element.nodes.flatMap { it.transformedSubject.get().files }
                 }
                 is TransformedLocalArtifactSpec -> Callable {
+                    element.transformation.isolateParameters()
                     element.transformation.createInvocation(TransformationSubject.initial(element.origin), FixedDependenciesResolver(DefaultArtifactTransformDependencies(fileCollectionFactory.empty())), null).invoke().get().files
                 }
                 is TransformedExternalArtifactSet -> Callable {

@@ -16,6 +16,7 @@
 
 package org.gradle.internal.watch.vfs;
 
+import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.vfs.VirtualFileSystem;
 
 import java.io.File;
@@ -28,7 +29,7 @@ public interface BuildLifecycleAwareVirtualFileSystem extends VirtualFileSystem 
     /**
      * Called when the build is started.
      */
-    void afterBuildStarted(boolean watchingEnabled);
+    void afterBuildStarted(boolean watchingEnabled, BuildOperationRunner buildOperationRunner);
 
     /**
      * Register a watchable hierarchy.
@@ -42,5 +43,5 @@ public interface BuildLifecycleAwareVirtualFileSystem extends VirtualFileSystem 
     /**
      * Called when the build is finished.
      */
-    void beforeBuildFinished(boolean watchingEnabled);
+    void beforeBuildFinished(boolean watchingEnabled, BuildOperationRunner buildOperationRunner);
 }

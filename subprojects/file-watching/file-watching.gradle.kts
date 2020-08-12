@@ -24,6 +24,7 @@ dependencies {
     api(project(":snapshots"))
 
     implementation(project(":baseAnnotations"))
+    implementation(project(":buildOperations"))
 
     implementation(libs.guava)
     implementation(libs.nativePlatform)
@@ -35,6 +36,8 @@ dependencies {
     testImplementation(project(":buildOption"))
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":fileCollections")))
+    testImplementation(testFixtures(project(":toolingApi")))
+    testImplementation(testFixtures(project(":launcher")))
     testImplementation(libs.commonsIo)
 
     integTestImplementation(libs.jetty)

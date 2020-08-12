@@ -207,6 +207,7 @@ public class Javadoc extends SourceTask {
      * Returns the tool chain that will be used to generate the Javadoc.
      */
     @Inject
+    @Deprecated
     public JavaToolChain getToolChain() {
         // Implementation is generated
         throw new UnsupportedOperationException();
@@ -215,6 +216,7 @@ public class Javadoc extends SourceTask {
     /**
      * Sets the tool chain to use to generate the Javadoc.
      */
+    @Deprecated
     public void setToolChain(@SuppressWarnings("unused") JavaToolChain toolChain) {
         // Implementation is generated
         throw new UnsupportedOperationException();

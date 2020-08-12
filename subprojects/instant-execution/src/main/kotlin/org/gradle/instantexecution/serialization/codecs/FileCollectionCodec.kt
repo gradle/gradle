@@ -91,6 +91,7 @@ class FileCollectionCodec(
                             element.calculateResult()
                         }
                         is TransformedLocalFileSpec -> Callable {
+                            element.transformation.isolateParameters()
                             element.transformation.createInvocation(TransformationSubject.initial(element.origin), noDependencies, null).invoke().get().files
                         }
                         else -> throw IllegalArgumentException("Unexpected item $element in file collection contents")

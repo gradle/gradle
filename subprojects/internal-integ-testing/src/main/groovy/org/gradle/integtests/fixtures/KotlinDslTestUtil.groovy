@@ -26,10 +26,15 @@ class KotlinDslTestUtil {
     static String getKotlinDslBuildSrcScript() {
         """
             plugins { `kotlin-dsl-base` }
+            $kotlinDslBuildSrcConfig
+        """
+    }
 
+    static String getKotlinDslBuildSrcConfig() {
+        """
             allprojects {
                 repositories {
-                    //TODO:kotlin-dsl remove once we're no longer on a kotlin eap 
+                    //TODO:kotlin-dsl remove once we're no longer on a kotlin eap
                     ${kotlinEapRepositoryDefinition(GradleDsl.KOTLIN)}
                     ${jcenterRepositoryDefinition(GradleDsl.KOTLIN)}
                 }

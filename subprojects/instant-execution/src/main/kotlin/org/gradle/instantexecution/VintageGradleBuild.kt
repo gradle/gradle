@@ -24,8 +24,6 @@ import org.gradle.execution.plan.Node
 interface VintageGradleBuild {
     val gradle: GradleInternal
 
-    val buildSrc: Boolean
-
     val rootProject: ProjectInternal
 
     val scheduledWork: List<Node>

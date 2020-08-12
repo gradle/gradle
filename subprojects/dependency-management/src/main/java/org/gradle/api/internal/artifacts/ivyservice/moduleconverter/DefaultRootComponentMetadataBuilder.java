@@ -78,6 +78,9 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
         ProjectComponentIdentifier projectId = module.getProjectId();
         if (projectId != null) {
             ProjectState projectState = projectStateRegistry.stateFor(projectId);
+            if (!projectState.hasMutableState()) {
+                throw new IllegalStateException("Thread should hold project lock for " + projectId);
+            }
             return projectState.withMutableState(new Factory<DefaultLocalComponentMetadata>() {
                 @Override
                 public DefaultLocalComponentMetadata create() {

@@ -30,6 +30,8 @@ public interface WorkNodeAction {
     @Nullable
     Project getProject();
 
+    void visitDependencies(TaskDependencyResolveContext context);
+
     /**
      * Run the action, throwing any failure.
      */

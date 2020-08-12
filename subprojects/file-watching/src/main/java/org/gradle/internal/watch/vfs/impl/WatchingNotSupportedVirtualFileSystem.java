@@ -16,10 +16,16 @@
 
 package org.gradle.internal.watch.vfs.impl;
 
+import org.gradle.internal.operations.BuildOperationContext;
+import org.gradle.internal.operations.BuildOperationDescriptor;
+import org.gradle.internal.operations.BuildOperationRunner;
+import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.internal.snapshot.SnapshotHierarchy;
 import org.gradle.internal.vfs.VirtualFileSystem;
 import org.gradle.internal.vfs.impl.VfsRootReference;
+import org.gradle.internal.watch.vfs.BuildFinishedFileSystemWatchingBuildOperationType;
 import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem;
+import org.gradle.internal.watch.vfs.BuildStartedFileSystemWatchingBuildOperationType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,11 +55,23 @@ public class WatchingNotSupportedVirtualFileSystem implements BuildLifecycleAwar
     }
 
     @Override
-    public void afterBuildStarted(boolean watchingEnabled) {
+    public void afterBuildStarted(boolean watchingEnabled, BuildOperationRunner buildOperationRunner) {
         if (watchingEnabled) {
             LOGGER.warn("Watching the file system is not supported on this operating system.");
         }
-        rootReference.update(SnapshotHierarchy::empty);
+        rootReference.update(vfsRoot -> buildOperationRunner.call(new CallableBuildOperation<SnapshotHierarchy>() {
+            @Override
+            public SnapshotHierarchy call(BuildOperationContext context) {
+                context.setResult(BuildStartedFileSystemWatchingBuildOperationType.Result.WATCHING_DISABLED);
+                return vfsRoot.empty();
+            }
+
+            @Override
+            public BuildOperationDescriptor.Builder description() {
+                return BuildOperationDescriptor.displayName(BuildStartedFileSystemWatchingBuildOperationType.DISPLAY_NAME)
+                    .details(BuildStartedFileSystemWatchingBuildOperationType.Details.INSTANCE);
+            }
+        }));
     }
 
     @Override
@@ -61,7 +79,19 @@ public class WatchingNotSupportedVirtualFileSystem implements BuildLifecycleAwar
     }
 
     @Override
-    public void beforeBuildFinished(boolean watchingEnabled) {
-        rootReference.update(SnapshotHierarchy::empty);
+    public void beforeBuildFinished(boolean watchingEnabled, BuildOperationRunner buildOperationRunner) {
+        rootReference.update(vfsRoot -> buildOperationRunner.call(new CallableBuildOperation<SnapshotHierarchy>() {
+            @Override
+            public SnapshotHierarchy call(BuildOperationContext context) {
+                context.setResult(BuildFinishedFileSystemWatchingBuildOperationType.Result.WATCHING_DISABLED);
+                return vfsRoot.empty();
+            }
+
+            @Override
+            public BuildOperationDescriptor.Builder description() {
+                return BuildOperationDescriptor.displayName(BuildFinishedFileSystemWatchingBuildOperationType.DISPLAY_NAME)
+                    .details(BuildFinishedFileSystemWatchingBuildOperationType.Details.INSTANCE);
+            }
+        }));
     }
 }

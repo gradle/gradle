@@ -157,7 +157,7 @@ public abstract class TransformationNode extends Node implements SelfExecutingNo
 
     @Override
     public void resolveDependencies(TaskDependencyResolver dependencyResolver, Action<Node> processHardSuccessor) {
-        processDependencies(processHardSuccessor, dependencyResolver.resolveDependenciesFor(null, transformationStep.getDependencies()));
+        processDependencies(processHardSuccessor, dependencyResolver.resolveDependenciesFor(null, transformationStep));
         processDependencies(processHardSuccessor, dependencyResolver.resolveDependenciesFor(null, dependenciesResolver.computeDependencyNodes(transformationStep)));
     }
 

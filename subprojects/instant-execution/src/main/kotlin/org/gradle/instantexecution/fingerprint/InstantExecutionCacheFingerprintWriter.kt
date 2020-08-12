@@ -176,9 +176,7 @@ class InstantExecutionCacheFingerprintWriter(
     }
 
     override fun onExecute(task: TaskInternal, fileSystemInputs: FileCollectionInternal) {
-        if (isBuildSrcTask(task)) {
-            captureTaskInputs(task, fileSystemInputs)
-        }
+        captureTaskInputs(task, fileSystemInputs)
     }
 
     private

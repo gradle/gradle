@@ -47,6 +47,7 @@ import org.gradle.instantexecution.serialization.codecs.jos.JavaObjectSerializat
 import org.gradle.instantexecution.serialization.codecs.transform.ChainedTransformationNodeCodec
 import org.gradle.instantexecution.serialization.codecs.transform.DefaultTransformerCodec
 import org.gradle.instantexecution.serialization.codecs.transform.InitialTransformationNodeCodec
+import org.gradle.instantexecution.serialization.codecs.transform.IsolateTransformerParametersNodeCodec
 import org.gradle.instantexecution.serialization.codecs.transform.LegacyTransformerCodec
 import org.gradle.instantexecution.serialization.codecs.transform.TransformDependenciesCodec
 import org.gradle.instantexecution.serialization.codecs.transform.TransformationChainCodec
@@ -146,7 +147,7 @@ class Codecs(
         bind(ImmutableAttributesCodec(attributesFactory, managedFactoryRegistry))
         bind(AttributeContainerCodec(attributesFactory, managedFactoryRegistry))
         bind(TransformationNodeReferenceCodec)
-        bind(TransformationStepCodec(projectStateRegistry, fingerprinterRegistry))
+        bind(TransformationStepCodec(fingerprinterRegistry))
         bind(TransformationChainCodec())
         bind(DefaultTransformerCodec(buildOperationExecutor, classLoaderHierarchyHasher, isolatableFactory, valueSnapshotter, fileCollectionFactory, fileLookup, parameterScheme, actionScheme))
         bind(LegacyTransformerCodec(actionScheme))
@@ -219,6 +220,8 @@ class Codecs(
         bind(TaskNodeCodec(projectStateRegistry, userTypesCodec, taskNodeFactory))
         bind(InitialTransformationNodeCodec(userTypesCodec, buildOperationExecutor, transformListener))
         bind(ChainedTransformationNodeCodec(userTypesCodec, buildOperationExecutor, transformListener))
+        bind(IsolateTransformerParametersNodeCodec(userTypesCodec))
+        bind(WorkNodeActionCodec)
         bind(ActionNodeCodec)
 
         bind(ResolvableArtifactCodec)

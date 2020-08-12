@@ -16,8 +16,7 @@
 
 package org.gradle.instantexecution
 
-import groovy.transform.Canonical
-import org.gradle.test.fixtures.file.TestFile
+import org.gradle.instantexecution.fixtures.ScriptChangeFixture
 import org.junit.Test
 import spock.lang.Unroll
 
@@ -25,104 +24,36 @@ class InstantExecutionScriptChangesIntegrationTest extends AbstractInstantExecut
 
     @Unroll
     @Test
-    def "invalidates cache upon changes to #testLabel"() {
+    def "invalidates cache upon change to #scriptChangeSpec"() {
         given:
         def instant = newInstantExecutionFixture()
-        def fixture = scriptChangeFixtureFor(language, scriptType, scriptDiscovery)
-        def scriptFile = fixture.scriptFile
-        def build = { instantRun('help', *fixture.buildArguments) }
+        def fixture = scriptChangeSpec.fixtureForProjectDir(testDirectory)
+        fixture.setup()
+        def build = { instantRun(*fixture.buildArguments) }
 
         when:
-        scriptFile.text = 'println("Hello!")'
         build()
 
         then:
-        outputContains 'Hello!'
+        outputContains fixture.expectedOutputBeforeChange
 
         when:
-        scriptFile.text = 'println("Hi!")'
+        fixture.applyChange()
         build()
 
         then:
-        outputContains 'Hi!'
+        outputContains fixture.expectedOutputAfterChange
         instant.assertStateStored()
 
         when:
         build()
 
         then:
-        outputDoesNotContain 'Hi'
+        outputDoesNotContain fixture.expectedOutputBeforeChange
+        outputDoesNotContain fixture.expectedOutputAfterChange
         instant.assertStateLoaded()
 
         where:
-        [scriptDiscovery_, language_, scriptType_] << [
-            ScriptDiscovery.values(),
-            ScriptLanguage.values(),
-            ScriptType.values()
-        ].combinations()
-        language = language_ as ScriptLanguage
-        scriptType = scriptType_ as ScriptType
-        scriptDiscovery = scriptDiscovery_ as ScriptDiscovery
-        testLabel = "$scriptDiscovery $language $scriptType script".toLowerCase()
-    }
-
-    @Canonical
-    static class ScriptChangeFixture {
-        TestFile scriptFile
-        List<String> buildArguments
-    }
-
-    private ScriptChangeFixture scriptChangeFixtureFor(
-        ScriptLanguage language, ScriptType scriptType, ScriptDiscovery scriptDiscovery
-    ) {
-        def scriptFileExtension = language == ScriptLanguage.GROOVY ? ".gradle" : ".gradle.kts"
-        def defaultScriptFile = file("${baseScriptFileNameFor(scriptType)}$scriptFileExtension")
-        def buildArguments = scriptType == ScriptType.INIT
-            ? ["-I", defaultScriptFile.absolutePath]
-            : []
-        switch (scriptDiscovery) {
-            case ScriptDiscovery.DEFAULT:
-                return new ScriptChangeFixture(defaultScriptFile, buildArguments)
-            case ScriptDiscovery.APPLIED:
-                String appliedScriptName = "applied${scriptFileExtension}"
-                TestFile appliedScriptFile = new TestFile(defaultScriptFile.parentFile, appliedScriptName)
-                defaultScriptFile.text = language == ScriptLanguage.GROOVY
-                    ? "apply from: './$appliedScriptName'"
-                    : "apply(from = \"./$appliedScriptName\")"
-                return new ScriptChangeFixture(appliedScriptFile, buildArguments)
-        }
-    }
-
-    private static String baseScriptFileNameFor(ScriptType type) {
-        switch (type) {
-            case ScriptType.PROJECT:
-                return "build"
-            case ScriptType.SETTINGS:
-                return "settings"
-            case ScriptType.BUILDSRC_PROJECT:
-                return "buildSrc/build"
-            case ScriptType.BUILDSRC_SETTINGS:
-                return "buildSrc/settings"
-            case ScriptType.INIT:
-                return "gradle/my.init"
-        }
-    }
-
-    enum ScriptDiscovery {
-        DEFAULT,
-        APPLIED
-    }
-
-    enum ScriptLanguage {
-        GROOVY,
-        KOTLIN
-    }
-
-    enum ScriptType {
-        PROJECT,
-        SETTINGS,
-        INIT,
-        BUILDSRC_PROJECT,
-        BUILDSRC_SETTINGS,
+        scriptChangeSpec << ScriptChangeFixture.specs()
     }
 }
