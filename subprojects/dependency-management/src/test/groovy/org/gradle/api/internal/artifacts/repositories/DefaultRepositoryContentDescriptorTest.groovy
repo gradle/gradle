@@ -344,13 +344,22 @@ class DefaultRepositoryContentDescriptorTest extends Specification {
         }
 
         where:
-        method           | expr    | group | module | version | excluded
-        'Version'        | '1.0'   | 'org' | 'foo'  | '1.0'   | true
-        'Version'        | '1.1'   | 'org' | 'bar'  | '1.0'   | false
-        'VersionByRegex' | '1\\.0' | 'org' | 'foo'  | '1.0'   | true
-        'VersionByRegex' | '1\\.1' | 'org' | 'bar'  | '1.0'   | false
-        'VersionByRegex' | '2.+'   | 'org' | 'foo'  | '1.0'   | false
-        'VersionByRegex' | '1.+'   | 'org' | 'foo'  | '1.0'   | true
+        method           | expr        | group | module | version | excluded
+        'Version'        | '1.0'       | 'org' | 'foo'  | '1.0'   | true
+        'Version'        | '1.1'       | 'org' | 'bar'  | '1.0'   | false
+        'Version'        | '[1.0,)'    | 'org' | 'bar'  | '1.1'   | true
+        'Version'        | '[1.1,)'    | 'org' | 'bar'  | '1.1'   | true
+        'Version'        | '[1.0,1.2]' | 'org' | 'bar'  | '1.1'   | true
+        'Version'        | '[1.0,1.1]' | 'org' | 'bar'  | '1.1'   | true
+        'Version'        | '[1.0,1.2)' | 'org' | 'bar'  | '1.1'   | true
+        'Version'        | '[1.0,1.2]' | 'org' | 'bar'  | '1.3'   | false
+        'Version'        | '(,1.2]'    | 'org' | 'bar'  | '1.1'   | true
+        'Version'        | '(,1.1]'    | 'org' | 'bar'  | '1.1'   | true
+        'Version'        | '(,1.0]'    | 'org' | 'bar'  | '1.1'   | false
+        'VersionByRegex' | '1\\.0'     | 'org' | 'foo'  | '1.0'   | true
+        'VersionByRegex' | '1\\.1'     | 'org' | 'bar'  | '1.0'   | false
+        'VersionByRegex' | '2.+'       | 'org' | 'foo'  | '1.0'   | false
+        'VersionByRegex' | '1.+'       | 'org' | 'foo'  | '1.0'   | true
     }
 
     def "cannot update repository content filter after resolution happens"() {

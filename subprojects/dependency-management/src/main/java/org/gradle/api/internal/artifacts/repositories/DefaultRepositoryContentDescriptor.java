@@ -25,6 +25,11 @@ import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionComparator;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionSelectorScheme;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
 
@@ -32,6 +37,7 @@ import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
 
@@ -45,6 +51,8 @@ class DefaultRepositoryContentDescriptor implements RepositoryContentDescriptorI
 
     private Action<? super ArtifactResolutionDetails> cachedAction;
     private final Supplier<String> repositoryNameSupplier;
+    private final VersionSelectorScheme versionSelectorScheme = new DefaultVersionSelectorScheme(new DefaultVersionComparator(), new VersionParser());
+    private final ConcurrentHashMap<String, VersionSelector> versionSelectors = new ConcurrentHashMap<>();
 
     public DefaultRepositoryContentDescriptor(Supplier<String> repositoryNameSupplier) {
         this.repositoryNameSupplier = repositoryNameSupplier;
@@ -142,7 +150,7 @@ class DefaultRepositoryContentDescriptor implements RepositoryContentDescriptorI
         if (includeSpecs == null) {
             includeSpecs = Sets.newHashSet();
         }
-        includeSpecs.add(new ContentSpec(regex, group, moduleName, version));
+        includeSpecs.add(new ContentSpec(regex, group, moduleName, version, versionSelectorScheme, versionSelectors));
     }
 
     @Override
@@ -192,7 +200,7 @@ class DefaultRepositoryContentDescriptor implements RepositoryContentDescriptorI
         if (excludeSpecs == null) {
             excludeSpecs = Sets.newHashSet();
         }
-        excludeSpecs.add(new ContentSpec(regex, group, moduleName, version));
+        excludeSpecs.add(new ContentSpec(regex, group, moduleName, version, versionSelectorScheme, versionSelectors));
     }
 
     @Override
@@ -225,13 +233,17 @@ class DefaultRepositoryContentDescriptor implements RepositoryContentDescriptorI
         private final String group;
         private final String module;
         private final String version;
+        private final VersionSelectorScheme versionSelectorScheme;
+        private final ConcurrentHashMap<String, VersionSelector> versionSelectors;
         private final int hashCode;
 
-        private ContentSpec(boolean regex, String group, @Nullable String module, @Nullable String version) {
+        private ContentSpec(boolean regex, String group, @Nullable String module, @Nullable String version, VersionSelectorScheme versionSelectorScheme, ConcurrentHashMap<String, VersionSelector> versionSelectors) {
             this.regex = regex;
             this.group = group;
             this.module = module;
             this.version = version;
+            this.versionSelectorScheme = versionSelectorScheme;
+            this.versionSelectors = versionSelectors;
             this.hashCode = Objects.hashCode(regex, group, module, version);
         }
 
@@ -260,7 +272,7 @@ class DefaultRepositoryContentDescriptor implements RepositoryContentDescriptorI
             if (regex) {
                 return new PatternSpecMatcher(group, module, version);
             }
-            return new SimpleSpecMatcher(group, module, version);
+            return new SimpleSpecMatcher(group, module, version, versionSelectorScheme, versionSelectors);
         }
     }
 
@@ -274,11 +286,13 @@ class DefaultRepositoryContentDescriptor implements RepositoryContentDescriptorI
         private final String group;
         private final String module;
         private final String version;
+        private final VersionSelector versionSelector;
 
-        private SimpleSpecMatcher(String group, @Nullable String module, @Nullable String version) {
+        private SimpleSpecMatcher(String group, @Nullable String module, @Nullable String version, VersionSelectorScheme versionSelectorScheme, ConcurrentHashMap<String, VersionSelector> versionSelectors) {
             this.group = group;
             this.module = module;
             this.version = version;
+            this.versionSelector = getVersionSelector(versionSelectors, versionSelectorScheme, version);
         }
 
         @Override
@@ -291,7 +305,12 @@ class DefaultRepositoryContentDescriptor implements RepositoryContentDescriptorI
         public boolean matches(ModuleComponentIdentifier id) {
             return group.equals(id.getGroup())
                     && (module == null || module.equals(id.getModule()))
-                    && (version == null || version.equals(id.getVersion()));
+                    && (version == null || version.equals(id.getVersion()) || versionSelector.accept(id.getVersion()));
+        }
+
+        @Nullable
+        private VersionSelector getVersionSelector(ConcurrentHashMap<String, VersionSelector> versionSelectors, VersionSelectorScheme versionSelectorScheme, @Nullable String version) {
+            return version != null ? versionSelectors.computeIfAbsent(version, s -> versionSelectorScheme.parseSelector(version)) : null;
         }
     }
 
