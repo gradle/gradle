@@ -142,7 +142,7 @@ When you specify tasks on the command-line, you don’t have to provide the full
 
 The same applies for project names. You can execute the `check` task in the `library` subproject with the `gradle lib:che` command.
 
-You can use https://en.wikipedia.org/wiki/Camel_case[camel case] patterns for more complex abbreviations. These patterns are expanded to match to camel case and https://en.wikipedia.org/wiki/Kebab_case[kebab case] names. For example the pattern `foBa` (or even `fB`) matches to `fooBar` and to `foo-bar`.
+You can use https://en.wikipedia.org/wiki/Camel_case[camel case] patterns for more complex abbreviations. These patterns are expanded to match camel case and https://en.wikipedia.org/wiki/Kebab_case[kebab case] names. For example the pattern `foBa` (or even `fB`) matches `fooBar` and `foo-bar`.
 
 More concretely, you can run the `compileTest` task in the `my-awesome-library` subproject with the `gradle  mAL:cT` command.
 
