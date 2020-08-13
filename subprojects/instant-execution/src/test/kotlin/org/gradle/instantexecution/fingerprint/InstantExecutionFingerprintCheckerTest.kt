@@ -269,6 +269,12 @@ class InstantExecutionFingerprintCheckerTest {
             values.add(value)
         }
 
+        override val category: WriteContext.Category
+            get() = undefined()
+
+        override val writePosition: Long
+            get() = undefined()
+
         override val sharedIdentities: WriteIdentities
             get() = undefined()
 

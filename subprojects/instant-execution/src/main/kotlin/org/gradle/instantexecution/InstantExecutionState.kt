@@ -19,7 +19,6 @@ package org.gradle.instantexecution
 import org.gradle.api.Project
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.GradleInternal
-import org.gradle.api.invocation.Gradle
 import org.gradle.api.provider.Provider
 import org.gradle.caching.configuration.BuildCache
 import org.gradle.execution.plan.Node
@@ -27,15 +26,14 @@ import org.gradle.instantexecution.problems.DocumentationSection.NotYetImplement
 import org.gradle.instantexecution.problems.DocumentationSection.NotYetImplementedSourceDependencies
 import org.gradle.instantexecution.serialization.DefaultReadContext
 import org.gradle.instantexecution.serialization.DefaultWriteContext
-import org.gradle.instantexecution.serialization.IsolateOwner
-import org.gradle.instantexecution.serialization.MutableIsolateContext
 import org.gradle.instantexecution.serialization.codecs.Codecs
 import org.gradle.instantexecution.serialization.codecs.WorkNodeCodec
 import org.gradle.instantexecution.serialization.logNotImplemented
 import org.gradle.instantexecution.serialization.readCollection
 import org.gradle.instantexecution.serialization.readFile
 import org.gradle.instantexecution.serialization.readNonNull
-import org.gradle.instantexecution.serialization.withIsolate
+import org.gradle.instantexecution.serialization.withDebugFrame
+import org.gradle.instantexecution.serialization.withGradleIsolate
 import org.gradle.instantexecution.serialization.writeCollection
 import org.gradle.instantexecution.serialization.writeFile
 import org.gradle.internal.build.event.BuildEventListenerRegistryInternal
@@ -78,7 +76,7 @@ class InstantExecutionState(
         val scheduledNodes = build.scheduledWork
         writeRelevantProjectsFor(scheduledNodes, relevantProjectsRegistry)
 
-        WorkNodeCodec(build.gradle, codecs.internalTypesCodec).run {
+        WorkNodeCodec(build.gradle, internalTypesCodec).run {
             writeWork(scheduledNodes)
         }
     }
@@ -97,7 +95,7 @@ class InstantExecutionState(
 
         initProjectProvider(build::getProject)
 
-        val scheduledNodes = WorkNodeCodec(build.gradle, codecs.internalTypesCodec).run {
+        val scheduledNodes = WorkNodeCodec(build.gradle, internalTypesCodec).run {
             readWork()
         }
         build.scheduleNodes(scheduledNodes)
@@ -105,18 +103,20 @@ class InstantExecutionState(
 
     private
     suspend fun DefaultWriteContext.writeGradleState(gradle: GradleInternal) {
-        withGradleIsolate(gradle) {
-            writeChildBuilds(gradle)
-            writeBuildCacheConfiguration(gradle)
-            writeBuildEventListenerSubscriptions()
-            writeBuildOutputCleanupRegistrations()
-            writeGradleEnterprisePluginManager()
+        withDebugFrame({ "Gradle" }) {
+            withGradleIsolate(gradle, userTypesCodec) {
+                writeChildBuilds(gradle)
+                writeBuildCacheConfiguration(gradle)
+                writeBuildEventListenerSubscriptions()
+                writeBuildOutputCleanupRegistrations()
+                writeGradleEnterprisePluginManager()
+            }
         }
     }
 
     private
     suspend fun DefaultReadContext.readGradleState(gradle: GradleInternal) {
-        withGradleIsolate(gradle) {
+        withGradleIsolate(gradle, userTypesCodec) {
             readChildBuilds()
             readBuildCacheConfiguration(gradle)
             readBuildEventListenerSubscriptions()
@@ -126,10 +126,12 @@ class InstantExecutionState(
     }
 
     private
-    inline fun <T : MutableIsolateContext, R> T.withGradleIsolate(gradle: Gradle, block: T.() -> R): R =
-        withIsolate(IsolateOwner.OwnerGradle(gradle), codecs.userTypesCodec) {
-            block()
-        }
+    val internalTypesCodec
+        get() = codecs.internalTypesCodec
+
+    private
+    val userTypesCodec
+        get() = codecs.userTypesCodec
 
     private
     fun DefaultWriteContext.writeChildBuilds(gradle: GradleInternal) {

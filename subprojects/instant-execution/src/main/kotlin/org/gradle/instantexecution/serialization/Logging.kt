@@ -112,3 +112,19 @@ fun IsolateContext.logPropertyProblem(action: String, problem: PropertyProblem) 
     logger.debug("configuration-cache > failed to {} {} because {}", action, problem.trace, problem.message)
     onProblem(problem)
 }
+
+
+internal
+inline fun <T : WriteContext, R> T.withDebugFrame(name: () -> String, writeAction: T.() -> R): R {
+    val frameName: String? = if (logger.isDebugEnabled) name() else null
+    try {
+        frameName?.let {
+            logger.debug("[{}] {\"type\":\"O\",\"frame\":\"{}\",\"at\":{}}", category, it, writePosition)
+        }
+        return writeAction()
+    } finally {
+        frameName?.let {
+            logger.debug("[{}] {\"type\":\"C\",\"frame\":\"{}\",\"at\":{}}", category, it, writePosition)
+        }
+    }
+}

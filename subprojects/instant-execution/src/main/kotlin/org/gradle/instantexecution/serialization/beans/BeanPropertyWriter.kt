@@ -27,7 +27,9 @@ import org.gradle.instantexecution.serialization.Codec
 import org.gradle.instantexecution.serialization.IsolateContext
 import org.gradle.instantexecution.serialization.WriteContext
 import org.gradle.instantexecution.serialization.logPropertyInfo
+import org.gradle.instantexecution.serialization.withDebugFrame
 import java.io.IOException
+import java.lang.reflect.Field
 
 
 class BeanPropertyWriter(
@@ -41,15 +43,19 @@ class BeanPropertyWriter(
      * Serializes a bean by serializing the value of each of its fields.
      */
     override suspend fun WriteContext.writeStateOf(bean: Any) {
-        for (relevantField in relevantFields) {
-            val field = relevantField.field
-            val fieldName = field.name
-            val originalFieldValue = field.get(bean)
-            val fieldValue = originalFieldValue ?: conventionalValueOf(bean, fieldName)
-            relevantField.unsupportedFieldType?.let {
-                reportUnsupportedFieldType(it, "serialize", field.name, fieldValue)
+        withDebugFrame({ GeneratedSubclasses.unpackType(bean).name }) {
+            for (relevantField in relevantFields) {
+                val field = relevantField.field
+                val fieldName = field.name
+                val originalFieldValue = field.get(bean)
+                val fieldValue = originalFieldValue ?: conventionalValueOf(bean, fieldName)
+                relevantField.unsupportedFieldType?.let {
+                    reportUnsupportedFieldType(it, "serialize", field.name, fieldValue)
+                }
+                withDebugFrame({ field.debugFrameName() }) {
+                    writeNextProperty(fieldName, fieldValue, PropertyKind.Field)
+                }
             }
-            writeNextProperty(fieldName, fieldValue, PropertyKind.Field)
         }
     }
 
@@ -57,6 +63,10 @@ class BeanPropertyWriter(
     fun conventionalValueOf(bean: Any, fieldName: String): Any? = (bean as? IConventionAware)?.run {
         conventionMapping.getConventionValue<Any?>(null, fieldName, false)
     }
+
+    private
+    fun Field.debugFrameName() =
+        "${declaringClass.typeName}.$name"
 }
 
 

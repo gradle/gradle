@@ -55,6 +55,7 @@ import org.gradle.instantexecution.serialization.readCollectionInto
 import org.gradle.instantexecution.serialization.readEnum
 import org.gradle.instantexecution.serialization.readNonNull
 import org.gradle.instantexecution.serialization.runWriteOperation
+import org.gradle.instantexecution.serialization.withDebugFrame
 import org.gradle.instantexecution.serialization.withIsolate
 import org.gradle.instantexecution.serialization.withPropertyTrace
 import org.gradle.instantexecution.serialization.writeCollection
@@ -85,21 +86,25 @@ class TaskNodeCodec(
     private
     suspend fun WriteContext.writeTask(task: TaskInternal) {
         val taskType = GeneratedSubclasses.unpackType(task)
+        val projectPath = task.project.path
+        val taskName = task.name
         writeClass(taskType)
-        writeString(task.project.path)
-        writeString(task.name)
+        writeString(projectPath)
+        writeString(taskName)
 
-        withTaskOf(taskType, task, userTypesCodec) {
-            writeUpToDateSpec(task)
-            writeCollection(task.outputs.cacheIfSpecs)
-            writeCollection(task.outputs.doNotCacheIfSpecs)
-            beanStateWriterFor(task.javaClass).run {
-                writeStateOf(task)
-                writeRegisteredPropertiesOf(task, this as BeanPropertyWriter)
-                writeDestroyablesOf(task)
-                writeLocalStateOf(task)
+        withDebugFrame({ "$projectPath${task.name}" }) {
+            withTaskOf(taskType, task, userTypesCodec) {
+                writeUpToDateSpec(task)
+                writeCollection(task.outputs.cacheIfSpecs)
+                writeCollection(task.outputs.doNotCacheIfSpecs)
+                beanStateWriterFor(task.javaClass).run {
+                    writeStateOf(task)
+                    writeRegisteredPropertiesOf(task, this as BeanPropertyWriter)
+                    writeDestroyablesOf(task)
+                    writeLocalStateOf(task)
+                }
+                writeRegisteredServicesOf(task)
             }
-            writeRegisteredServicesOf(task)
         }
     }
 

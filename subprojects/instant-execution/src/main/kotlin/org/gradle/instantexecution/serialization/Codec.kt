@@ -39,6 +39,17 @@ interface Codec<T> : EncodingProvider<T>, DecodingProvider<T>
 
 interface WriteContext : IsolateContext, MutableIsolateContext, Encoder {
 
+    enum class Category(val id: String) {
+        State("configuration cache state"),
+        Fingerprint("configuration cache fingerprint");
+
+        override fun toString(): String = id
+    }
+
+    val category: Category
+
+    val writePosition: Long
+
     val sharedIdentities: WriteIdentities
 
     override val isolate: WriteIsolate
@@ -151,6 +162,17 @@ inline fun <T : ReadContext, R> T.withImmediateMode(block: T.() -> R): R {
         this.immediateMode = immediateMode
     }
 }
+
+
+internal
+inline fun <T : MutableIsolateContext, R> T.withGradleIsolate(
+    gradle: Gradle,
+    codec: Codec<Any?>,
+    block: T.() -> R
+): R =
+    withIsolate(IsolateOwner.OwnerGradle(gradle), codec) {
+        block()
+    }
 
 
 internal

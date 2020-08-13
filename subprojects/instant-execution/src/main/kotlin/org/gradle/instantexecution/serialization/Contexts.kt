@@ -47,6 +47,11 @@ class DefaultWriteContext(
 
     override val logger: Logger,
 
+    override val category: WriteContext.Category,
+
+    private
+    val writePositionProvider: () -> Long,
+
     private
     val problemsListener: ProblemsListener
 
@@ -142,6 +147,9 @@ class DefaultWriteContext(
     override fun onProblem(problem: PropertyProblem) {
         problemsListener.onProblem(problem)
     }
+
+    override val writePosition: Long
+        get() = writePositionProvider()
 }
 
 
