@@ -25,7 +25,7 @@ import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.testing.fixture.JUnitMultiVersionIntegrationSpec
 import org.junit.Rule
 import spock.lang.Issue
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_4_LATEST
 import static org.gradle.testing.fixture.JUnitCoverage.JUPITER
@@ -266,7 +266,7 @@ public class SubClassTests extends SuperClassTests {
         skipped(":testReport")
     }
 
-    @Unroll
+    @SafeUnroll
     "#type report files are considered outputs"() {
         given:
         buildScript """

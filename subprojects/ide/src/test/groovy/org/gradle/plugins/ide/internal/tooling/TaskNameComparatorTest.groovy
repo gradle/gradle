@@ -18,10 +18,10 @@ package org.gradle.plugins.ide.internal.tooling
 
 import org.gradle.plugins.ide.internal.tooling.model.TaskNameComparator
 import spock.lang.Specification
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class TaskNameComparatorTest extends Specification {
-    @Unroll('compares task names #first and #second')
+    @SafeUnroll('compares task names #first and #second')
     def compare() {
         def comparator = new TaskNameComparator()
 

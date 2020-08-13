@@ -22,7 +22,7 @@ import org.gradle.performance.fixture.BuildExperimentListenerAdapter
 import org.gradle.util.GradleVersion
 import org.junit.experimental.categories.Category
 import spock.lang.Issue
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.createMirrorInitScript
 import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.gradlePluginRepositoryMirrorUrl
@@ -59,7 +59,7 @@ class GradleInceptionPerformanceTest extends AbstractCrossVersionGradleInternalP
         runner.minimumBaseVersion = GradleVersion.version(targetVersion).baseVersion.version
     }
 
-    @Unroll
+    @SafeUnroll
     def "buildSrc api change in #testProject comparing gradle"() {
         given:
         runner.testProject = testProject

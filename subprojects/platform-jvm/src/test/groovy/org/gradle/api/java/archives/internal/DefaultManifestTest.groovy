@@ -27,7 +27,7 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class DefaultManifestTest extends Specification {
     def static final MANIFEST_VERSION_MAP = ['Manifest-Version': '1.0']
@@ -194,7 +194,7 @@ class DefaultManifestTest extends Specification {
         fileManifest.equals(expectedManifest)
     }
 
-    @Unroll
+    @SafeUnroll
     def "can read manifest section starting with #nameAttribute"() {
         given:
         TestFile manifestFile = tmpDir.file('someManifestFile')

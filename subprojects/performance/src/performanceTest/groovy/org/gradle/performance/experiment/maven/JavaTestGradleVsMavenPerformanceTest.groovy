@@ -18,7 +18,7 @@ package org.gradle.performance.experiment.maven
 
 import org.gradle.performance.AbstractGradleVsMavenPerformanceTest
 import org.gradle.performance.mutator.ApplyNonAbiChangeToJavaSourceFileMutator
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 import static org.gradle.performance.generator.JavaTestProject.MEDIUM_JAVA_MULTI_PROJECT
 import static org.gradle.performance.generator.JavaTestProject.MEDIUM_MONOLITHIC_JAVA_PROJECT
@@ -29,7 +29,7 @@ import static org.gradle.performance.generator.JavaTestProject.MEDIUM_MONOLITHIC
  */
 class JavaTestGradleVsMavenPerformanceTest extends AbstractGradleVsMavenPerformanceTest {
 
-    @Unroll
+    @SafeUnroll
     def "clean #gradleTask on #testProject (Gradle vs Maven)"() {
         given:
         runner.testGroup = "Gradle vs Maven test build using Java plugin"
@@ -64,7 +64,7 @@ class JavaTestGradleVsMavenPerformanceTest extends AbstractGradleVsMavenPerforma
         MEDIUM_JAVA_MULTI_PROJECT      | 'test'     | 'test'
     }
 
-    @Unroll
+    @SafeUnroll
     def "#gradleTask for non-abi change on #testProject (Gradle vs Maven)"() {
         given:
         runner.testGroup = "Gradle vs Maven test build using Java plugin"

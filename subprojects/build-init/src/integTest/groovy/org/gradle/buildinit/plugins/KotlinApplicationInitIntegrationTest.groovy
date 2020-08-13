@@ -19,7 +19,7 @@ package org.gradle.buildinit.plugins
 import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.test.fixtures.file.LeaksFileHandles
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl.KOTLIN
 
@@ -37,7 +37,7 @@ class KotlinApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
         dslFixtureFor(KOTLIN).assertGradleFilesGenerated()
     }
 
-    @Unroll
+    @SafeUnroll
     @ToBeFixedForInstantExecution(because = "Kotlin Gradle Plugin")
     def "creates sample source if no source present with #scriptDsl build scripts"() {
         when:
@@ -66,7 +66,7 @@ class KotlinApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
-    @Unroll
+    @SafeUnroll
     @ToBeFixedForInstantExecution(because = "Kotlin Gradle Plugin")
     def "creates sample source with package and #scriptDsl build scripts"() {
         when:
@@ -95,7 +95,7 @@ class KotlinApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
-    @Unroll
+    @SafeUnroll
     @ToBeFixedForInstantExecution(because = "Kotlin Gradle Plugin")
     def "setupProjectLayout is skipped when kotlin sources detected with #scriptDsl build scripts"() {
         setup:

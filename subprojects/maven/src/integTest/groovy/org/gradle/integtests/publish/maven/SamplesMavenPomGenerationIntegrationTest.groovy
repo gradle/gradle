@@ -27,7 +27,7 @@ import org.gradle.util.Resources
 import org.hamcrest.CoreMatchers
 import org.junit.Assert
 import org.junit.Rule
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 @UnsupportedWithInstantExecution(because = "legacy maven plugin")
 class SamplesMavenPomGenerationIntegrationTest extends AbstractSampleIntegrationTest {
@@ -44,7 +44,7 @@ class SamplesMavenPomGenerationIntegrationTest extends AbstractSampleIntegration
         using m2 //uploadArchives leaks into local ~/.m2
     }
 
-    @Unroll
+    @SafeUnroll
     def "can deploy to local repository with #dsl dsl"() {
         given:
         def pomProjectDir = sample.dir.file(dsl)
@@ -68,7 +68,7 @@ class SamplesMavenPomGenerationIntegrationTest extends AbstractSampleIntegration
         dsl << ['groovy', 'kotlin']
     }
 
-    @Unroll
+    @SafeUnroll
     def "can install to local repository with #dsl dsl"() {
         given:
         def pomProjectDir = sample.dir.file(dsl)
@@ -102,7 +102,7 @@ class SamplesMavenPomGenerationIntegrationTest extends AbstractSampleIntegration
         dsl << ['groovy', 'kotlin']
     }
 
-    @Unroll
+    @SafeUnroll
     def "write new pom with #dsl dsl"() {
         given:
         def pomProjectDir = sample.dir.file(dsl)
@@ -117,7 +117,7 @@ class SamplesMavenPomGenerationIntegrationTest extends AbstractSampleIntegration
         dsl << ['groovy', 'kotlin']
     }
 
-    @Unroll
+    @SafeUnroll
     def "write deployer pom with #dsl dsl"() {
         given:
         def pomProjectDir = sample.dir.file(dsl)

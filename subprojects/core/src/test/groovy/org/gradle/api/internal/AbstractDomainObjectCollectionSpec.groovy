@@ -34,7 +34,7 @@ import org.gradle.util.ConfigureUtil
 import org.gradle.util.TestUtil
 import org.hamcrest.CoreMatchers
 import spock.lang.Specification
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 import static org.gradle.util.Matchers.hasMessage
 import static org.gradle.util.WrapUtil.toList
@@ -1608,7 +1608,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
 
     void setupContainerDefaults() {}
 
-    @Unroll
+    @SafeUnroll
     def "disallow mutating from common methods when #mutatingMethods.key"() {
         setupContainerDefaults()
         addToContainer(a)
@@ -1678,7 +1678,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         assertThat(causes, CoreMatchers.hasItem(hasMessage(startsWith(message))))
     }
 
-    @Unroll
+    @SafeUnroll
     def "allow common querying methods when #queryMethods.key"() {
         setupContainerDefaults()
         addToContainer(a)
@@ -1703,7 +1703,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         queryMethods << getQueryMethods()
     }
 
-    @Unroll
+    @SafeUnroll
     def "allow common querying and mutating methods when #methods.key"() {
         setupContainerDefaults()
         addToContainer(a)
@@ -1718,7 +1718,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         methods << getQueryMethods() + getMutatingMethods()
     }
 
-    @Unroll
+    @SafeUnroll
     def "allow common querying and mutating methods when #methods.key on filtered container by type"() {
         setupContainerDefaults()
         addToContainer(a)
@@ -1733,7 +1733,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         methods << getQueryMethods() + getMutatingMethods()
     }
 
-    @Unroll
+    @SafeUnroll
     def "allow common querying and mutating methods when #methods.key on filtered container by spec"() {
         setupContainerDefaults()
         addToContainer(a)

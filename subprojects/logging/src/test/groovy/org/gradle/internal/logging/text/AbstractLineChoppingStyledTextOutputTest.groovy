@@ -20,7 +20,7 @@ import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 import spock.lang.Issue
 import spock.lang.Specification
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class AbstractLineChoppingStyledTextOutputTest extends Specification {
     private static final String NIX_EOL = "\n"
@@ -45,7 +45,7 @@ class AbstractLineChoppingStyledTextOutputTest extends Specification {
         result.toString() == "[some text]"
     }
 
-    @Unroll
+    @SafeUnroll
     def "append empty lines [#type]"() {
         def output = output()
 
@@ -61,7 +61,7 @@ class AbstractLineChoppingStyledTextOutputTest extends Specification {
         [type, eol] << EOLS
     }
 
-    @Unroll
+    @SafeUnroll
     def "appends eol to current line [#type]"() {
         def output = output()
 
@@ -76,7 +76,7 @@ class AbstractLineChoppingStyledTextOutputTest extends Specification {
         [type, eol] << EOLS
     }
 
-    @Unroll
+    @SafeUnroll
     def "append text that contains multiple lines [#type]"() {
         def output = output()
 
@@ -90,7 +90,7 @@ class AbstractLineChoppingStyledTextOutputTest extends Specification {
         [type, eol] << EOLS
     }
 
-    @Unroll
+    @SafeUnroll
     def "append text that ends with eol [#type]"() {
         def output = output()
 
@@ -221,7 +221,7 @@ class AbstractLineChoppingStyledTextOutputTest extends Specification {
         result.toString() == "{eol}"
     }
 
-    @Unroll
+    @SafeUnroll
     def "Mac OS 9 eol aren't detected as new line [#type]"() {
         System.setProperty("line.separator", eol)
         def output = output()

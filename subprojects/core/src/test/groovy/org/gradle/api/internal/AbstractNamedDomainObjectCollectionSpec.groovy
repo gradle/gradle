@@ -18,7 +18,7 @@ package org.gradle.api.internal
 
 import org.gradle.api.NamedDomainObjectCollection
 import org.gradle.internal.Actions
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 abstract class AbstractNamedDomainObjectCollectionSpec<T> extends AbstractDomainObjectCollectionSpec<T> {
     abstract NamedDomainObjectCollection<T> getContainer()
@@ -37,7 +37,7 @@ abstract class AbstractNamedDomainObjectCollectionSpec<T> extends AbstractDomain
         ]
     }
 
-    @Unroll
+    @SafeUnroll
     def "disallow mutating from named actions using #mutatingMethods.key"() {
         setupContainerDefaults()
         addToContainer(a)
@@ -102,7 +102,7 @@ abstract class AbstractNamedDomainObjectCollectionSpec<T> extends AbstractDomain
         mutatingMethods << getMutatingMethods()
     }
 
-    @Unroll
+    @SafeUnroll
     def "allow query methods from named using #queryMethods.key"() {
         setupContainerDefaults()
         addToContainer(a)
@@ -158,7 +158,7 @@ abstract class AbstractNamedDomainObjectCollectionSpec<T> extends AbstractDomain
         queryMethods << getQueryMethods()
     }
 
-    @Unroll
+    @SafeUnroll
     def "allow common querying and mutating methods when #methods.key within getByName configuration action"() {
         setupContainerDefaults()
         addToContainer(a)
@@ -173,7 +173,7 @@ abstract class AbstractNamedDomainObjectCollectionSpec<T> extends AbstractDomain
         methods << getQueryMethods() + getMutatingMethods()
     }
 
-    @Unroll
+    @SafeUnroll
     def "allow common querying and mutating methods when #methods.key within getByName configuration action on filtered container by type"() {
         setupContainerDefaults()
         addToContainer(a)
@@ -188,7 +188,7 @@ abstract class AbstractNamedDomainObjectCollectionSpec<T> extends AbstractDomain
         methods << getQueryMethods() + getMutatingMethods()
     }
 
-    @Unroll
+    @SafeUnroll
     def "allow common querying and mutating methods when #methods.key within getByName configuration action on filtered container by spec"() {
         setupContainerDefaults()
         addToContainer(a)

@@ -29,7 +29,7 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import org.gradle.util.TextUtil
 import spock.lang.Ignore
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.VISUALCPP
 import static org.gradle.util.Matchers.containsText
@@ -39,7 +39,7 @@ class WindowsResourcesIntegrationTest extends AbstractNativeLanguageIntegrationT
     static final List<WindowsSdkInstall> NON_DEFAULT_SDKS = getNonDefaultSdks()
     HelloWorldApp helloWorldApp = new WindowsResourceHelloWorldApp()
 
-    @Unroll
+    @SafeUnroll
     def "compile and link executable with #sdk.name (#sdk.version.toString()) [#tc.displayName]"() {
         given:
         buildFile << """
@@ -47,7 +47,7 @@ class WindowsResourcesIntegrationTest extends AbstractNativeLanguageIntegrationT
                 components {
                     main(NativeExecutableSpec)
                 }
-            
+
                 toolChains {
                     ${toolChain.id} {
                         windowsSdkDir "${TextUtil.normaliseFileSeparators(sdk.getBaseDir().absolutePath)}"

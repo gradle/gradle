@@ -17,14 +17,14 @@
 package org.gradle.buildinit.plugins
 
 import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class GroovyLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
 
     public static final String SAMPLE_LIBRARY_CLASS = "some/thing/Library.groovy"
     public static final String SAMPLE_LIBRARY_TEST_CLASS = "some/thing/LibraryTest.groovy"
 
-    @Unroll
+    @SafeUnroll
     def "creates sample source if no source present with #scriptDsl build scripts"() {
         when:
         run('init', '--type', 'groovy-library', '--dsl', scriptDsl.id)
@@ -46,7 +46,7 @@ class GroovyLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
-    @Unroll
+    @SafeUnroll
     def "supports the Spock test framework with #scriptDsl build scripts"() {
         when:
         run('init', '--type', 'groovy-library', '--test-framework', 'spock', '--dsl', scriptDsl.id)
@@ -68,7 +68,7 @@ class GroovyLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
-    @Unroll
+    @SafeUnroll
     def "creates sample source with package and #scriptDsl build scripts"() {
         when:
         run('init', '--type', 'groovy-library', '--package', 'my.lib', '--dsl', scriptDsl.id)
@@ -90,7 +90,7 @@ class GroovyLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
-    @Unroll
+    @SafeUnroll
     def "source generation is skipped when groovy sources detected with #scriptDsl build scripts"() {
         setup:
         targetDir.file("src/main/groovy/org/acme/SampleMain.groovy") << """

@@ -31,7 +31,7 @@ import org.gradle.util.TextUtil
 import org.gradle.util.VersionNumber
 import org.junit.Rule
 import spock.lang.Specification
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 import static org.gradle.nativeplatform.toolchain.internal.msvcpp.ArchitectureDescriptorBuilder.*
 
@@ -425,7 +425,7 @@ class DefaultVisualStudioLocatorTest extends Specification {
         result.component.visualCpp.version == VersionNumber.parse("12.0")
     }
 
-    @Unroll
+    @SafeUnroll
     def "finds correct legacy paths for #targetPlatform on #os operating system (64-bit install: #is64BitInstall)"() {
         def vsDir = fullVsDir("vs", is64BitInstall)
         def vcDir = new File(vsDir, "VC")
@@ -465,7 +465,7 @@ class DefaultVisualStudioLocatorTest extends Specification {
         "64-bit" | SystemInfo.Architecture.amd64 | "arm"          | false          | LEGACY_ARM_ON_X86
     }
 
-    @Unroll
+    @SafeUnroll
     def "finds correct VS2017 paths for #targetPlatform on #os operating system (64-bit install: #is64BitInstall)"() {
         def vsDir = fullVs2017Dir("vs", is64BitInstall)
         def vcDir = new File(vsDir, "VC/Tools/MSVC/1.2.3.4")

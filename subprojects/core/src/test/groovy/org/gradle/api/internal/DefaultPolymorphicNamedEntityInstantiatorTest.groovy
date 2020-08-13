@@ -20,7 +20,7 @@ import org.gradle.api.GradleException
 import org.gradle.api.InvalidUserDataException
 import spock.lang.Specification
 import spock.lang.Subject
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class DefaultPolymorphicNamedEntityInstantiatorTest extends Specification {
 
@@ -48,7 +48,7 @@ class DefaultPolymorphicNamedEntityInstantiatorTest extends Specification {
         e.cause instanceof NoFactoryRegisteredForTypeException
     }
 
-    @Unroll
+    @SafeUnroll
     def "can retrieve all creatable types and supported type names"() {
         when:
         types.each { instantiator.registerFactory(it, {}) }

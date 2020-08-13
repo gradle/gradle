@@ -20,7 +20,7 @@ import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 /**
  * Tests for resolving dependency graph with substitution within a composite build.
  */
@@ -475,7 +475,7 @@ include ':b1:b11'
         }
     }
 
-    @Unroll
+    @SafeUnroll
     @ToBeFixedForInstantExecution(because = "composite builds")
     def "evaluates subprojects when substituting external dependencies with #name"() {
         given:

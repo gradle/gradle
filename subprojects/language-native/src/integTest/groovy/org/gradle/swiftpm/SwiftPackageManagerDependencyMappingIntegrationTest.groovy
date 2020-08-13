@@ -18,7 +18,7 @@ package org.gradle.swiftpm
 
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.vcs.fixtures.GitFileRepository
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 
 class SwiftPackageManagerDependencyMappingIntegrationTest extends AbstractSwiftPackageManagerExportIntegrationTest {
@@ -332,7 +332,7 @@ let package = Package(
         lib2Repo?.close()
     }
 
-    @Unroll
+    @SafeUnroll
     @ToBeFixedForInstantExecution(because = "Task.getProject() during execution")
     def "maps dependency on #src to #mapped"() {
         given:
@@ -406,7 +406,7 @@ let package = Package(
     }
 
     @ToBeFixedForInstantExecution
-    @Unroll
+    @SafeUnroll
     def "cannot map dependency #src"() {
         given:
         settingsFile << """

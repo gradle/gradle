@@ -23,7 +23,7 @@ import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Issue
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class JacocoPluginSpec extends AbstractProjectBuilderSpec {
     def setup() {
@@ -47,7 +47,7 @@ class JacocoPluginSpec extends AbstractProjectBuilderSpec {
     }
 
     @Requires(TestPrecondition.ONLINE)
-    @Unroll
+    @SafeUnroll
     @Issue("GRADLE-3498")
     def 'jacoco task extension can be configured. includeNoLocationClasses: #includeNoLocationClassesValue'() {
         given:

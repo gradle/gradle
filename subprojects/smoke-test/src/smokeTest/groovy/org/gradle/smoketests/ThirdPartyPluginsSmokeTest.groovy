@@ -25,7 +25,7 @@ import org.gradle.util.ports.ReleasingPortAllocator
 import org.gradle.vcs.fixtures.GitFileRepository
 import org.junit.Rule
 import spock.lang.Issue
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 import static org.gradle.testkit.runner.TaskOutcome.UP_TO_DATE
@@ -35,7 +35,7 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
     @Rule
     final ReleasingPortAllocator portAllocator = new ReleasingPortAllocator()
 
-    @Unroll
+    @SafeUnroll
     @Issue('https://plugins.gradle.org/plugin/com.github.johnrengelman.shadow')
     @ToBeFixedForInstantExecution
     def 'shadow plugin #version'() {
@@ -124,7 +124,7 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
     }
 
     @Issue('https://github.com/asciidoctor/asciidoctor-gradle-plugin/releases')
-    @Unroll
+    @SafeUnroll
     @ToBeFixedForInstantExecution(because = "Task.getProject() during execution")
     def 'asciidoctor plugin #version'() {
         given:

@@ -24,7 +24,7 @@ import org.gradle.internal.jvm.Jvm
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.TextUtil
 import spock.lang.IgnoreIf
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture {
     public static final String ORIGINAL_HELLO_WORLD = """
@@ -87,7 +87,7 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
         skipped ":compileJava"
     }
 
-    @Unroll
+    @SafeUnroll
     def "cached tasks are executed with #rerunMethod"() {
         expect:
         cacheDir.listFiles() as List == []

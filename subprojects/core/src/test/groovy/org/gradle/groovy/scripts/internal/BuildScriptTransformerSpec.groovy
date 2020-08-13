@@ -29,7 +29,7 @@ import org.gradle.internal.resource.StringTextResource
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class BuildScriptTransformerSpec extends Specification {
 
@@ -234,7 +234,7 @@ return 12
 """         | _
     }
 
-    @Unroll
+    @SafeUnroll
     def "imperative code is detected in #script"() {
         expect:
         def scriptData = parse(script)

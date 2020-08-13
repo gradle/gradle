@@ -31,7 +31,7 @@ import org.gradle.internal.operations.BuildOperationCategory
 import org.gradle.internal.time.Time
 import org.gradle.util.RedirectStdOutAndErr
 import org.junit.Rule
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class OutputEventRendererTest extends OutputSpecification {
     @Rule
@@ -188,7 +188,7 @@ class OutputEventRendererTest extends OutputSpecification {
         0 * listener._
     }
 
-    @Unroll("forward progress events to listener for #logLevel log level")
+    @SafeUnroll("forward progress events to listener for #logLevel log level")
     def forwardsProgressEventsToListenerRegardlessOfTheLogLevel() {
         OutputEventListener listener = Mock()
         def start = start('start')

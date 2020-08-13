@@ -22,7 +22,7 @@ import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.test.fixtures.keystore.TestKeyStore
 import org.gradle.test.fixtures.server.http.AuthScheme
 import org.junit.Rule
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 import static org.gradle.util.Matchers.containsText
 
@@ -34,7 +34,7 @@ abstract class AbstractHttpsRepoResolveIntegrationTest extends AbstractHttpDepen
 
     abstract protected String getRepoType()
 
-    @Unroll
+    @SafeUnroll
     def "resolve with server certificate and #authSchemeName authentication"() {
         keyStore = TestKeyStore.init(resources.dir)
         keyStore.enableSslWithServerCert(server)

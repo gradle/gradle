@@ -22,7 +22,7 @@ import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.test.fixtures.server.http.MavenHttpPluginRepository
 import org.junit.Rule
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class UsingLockingOnNonProjectConfigurationsIntegrationTest extends AbstractDependencyResolutionTest {
 
@@ -33,7 +33,7 @@ class UsingLockingOnNonProjectConfigurationsIntegrationTest extends AbstractDepe
     MavenHttpPluginRepository pluginRepo = MavenHttpPluginRepository.asGradlePluginPortal(executer, mavenRepo)
 
     @ToBeFixedForInstantExecution(because = ":buildEnvironment")
-    @Unroll
+    @SafeUnroll
     def 'locks build script classpath configuration (unique: #unique)'() {
         given:
         mavenRepo.module('org.foo', 'foo-plugin', '1.0').publish()
@@ -117,7 +117,7 @@ buildscript {
         LockfileFixture.verifyCustomLockfile(lockFile, 'classpath', ['org.foo:foo-plugin:1.1'])
     }
 
-    @Unroll
+    @SafeUnroll
     def 'strict locks on buildscript classpath does not mean strict locks on project (unique: #unique)'() {
         given:
         mavenRepo.module('org.foo', 'foo-plugin', '1.0').publish()
@@ -181,7 +181,7 @@ task resolve {
         unique << [true, false]
     }
 
-    @Unroll
+    @SafeUnroll
     def 'strict lock on build script classpath configuration causes build to fail when no lockfile present (unique: #unique)'() {
         given:
         settingsFile << """
@@ -217,7 +217,7 @@ buildscript {
     }
 
     @ToBeFixedForInstantExecution
-    @Unroll
+    @SafeUnroll
     def 'locks build script classpath combined with plugins (unique: #unique)'() {
         given:
         addPlugin()
@@ -270,7 +270,7 @@ plugins {
     }
 
     @ToBeFixedForInstantExecution
-    @Unroll
+    @SafeUnroll
     def 'creates lock file for build script classpath (unique: #unique)'() {
         given:
         addPlugin()
@@ -320,7 +320,7 @@ plugins {
         unique << [true, false]
     }
 
-    @Unroll
+    @SafeUnroll
     def 'fails to resolve if lock state present but no dependencies remain (unique: #unique)'() {
         given:
 
@@ -351,7 +351,7 @@ buildscript {
     }
 
     @ToBeFixedForInstantExecution
-    @Unroll
+    @SafeUnroll
     def 'same name buildscript and project configurations result in different lock files (unique: #unique)'() {
         given:
         mavenRepo.module('org.foo', 'foo-plugin', '1.0').publish()

@@ -17,11 +17,11 @@
 package org.gradle.caching.http.internal
 
 import spock.lang.Specification
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 import static org.gradle.caching.http.internal.DefaultHttpBuildCacheServiceFactory.extractCredentialsFromUserInfo
 
-@Unroll
+@SafeUnroll
 class DefaultHttpBuildCacheServiceFactoryTest extends Specification {
 
     def "extract username and password from userinfo #userinfo"() {

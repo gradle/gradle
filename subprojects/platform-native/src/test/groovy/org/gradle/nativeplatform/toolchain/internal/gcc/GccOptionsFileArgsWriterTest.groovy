@@ -20,7 +20,7 @@ import org.gradle.nativeplatform.toolchain.internal.OptionsFileArgsWriter
 import org.gradle.nativeplatform.toolchain.internal.OptionsFileArgsWriterTest
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class GccOptionsFileArgsWriterTest extends OptionsFileArgsWriterTest {
     @Rule final TestNameTestDirectoryProvider tmpDirProvider = new TestNameTestDirectoryProvider(getClass())
@@ -29,7 +29,7 @@ class GccOptionsFileArgsWriterTest extends OptionsFileArgsWriterTest {
         new GccOptionsFileArgsWriter(tmpDirProvider.getTestDirectory())
     }
 
-    @Unroll
+    @SafeUnroll
     def "args keep #arg in command line options"() {
         given:
         def argsWriter = getArgsWriter()

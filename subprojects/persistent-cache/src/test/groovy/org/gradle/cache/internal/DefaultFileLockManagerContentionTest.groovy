@@ -30,7 +30,7 @@ import org.gradle.internal.remote.internal.inet.InetAddressFactory
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 import static org.gradle.cache.FileLockManager.LockMode.Exclusive
 import static org.gradle.cache.FileLockManager.LockMode.Shared
@@ -49,7 +49,7 @@ class DefaultFileLockManagerContentionTest extends ConcurrentSpec {
         CompositeStoppable.stoppable(openedLocks).add(contentionHandler, contentionHandler2).stop()
     }
 
-    @Unroll
+    @SafeUnroll
     def "lock manager is notified while holding an exclusive lock when another lock manager in same process requires lock with mode #lockMode"() {
         given:
         def file = tmpDir.file("lock-file.bin")
@@ -71,7 +71,7 @@ class DefaultFileLockManagerContentionTest extends ConcurrentSpec {
         lockMode << [Exclusive, Shared]
     }
 
-    @Unroll
+    @SafeUnroll
     def "cannot acquire lock with mode #lockMode while another lock manager in same process is holding shared lock"() {
         given:
         def file = tmpDir.file("lock-file.bin")

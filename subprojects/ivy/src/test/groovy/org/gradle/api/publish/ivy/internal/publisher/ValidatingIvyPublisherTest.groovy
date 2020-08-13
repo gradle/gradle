@@ -32,7 +32,7 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 import javax.xml.namespace.QName
 
@@ -201,7 +201,7 @@ class ValidatingIvyPublisherTest extends Specification {
         "org"        | "module"     | "version-mod" | "supplied revision does not match ivy descriptor (cannot edit revision directly in the ivy descriptor file)."
     }
 
-    @Unroll
+    @SafeUnroll
     def "reports and fails with invalid descriptor file (marker = #marker)"() {
         given:
         def identity = new DefaultIvyPublicationIdentity("the-group", "the-artifact", "the-version")
@@ -257,7 +257,7 @@ class ValidatingIvyPublisherTest extends Specification {
         "name"  | "type"  | "ext"     | "class\\y"   | "classifier cannot contain '\\'"
     }
 
-    @Unroll
+    @SafeUnroll
     def "cannot publish with file that is a directory"() {
         def ivyArtifact = Mock(IvyArtifact)
         def publication = new IvyNormalizedPublication("pub-name", mainArtifacts, projectIdentity("group", "artifact", "version"), ivyFile("group", "artifact", "version"), toSet([ivyArtifact]))

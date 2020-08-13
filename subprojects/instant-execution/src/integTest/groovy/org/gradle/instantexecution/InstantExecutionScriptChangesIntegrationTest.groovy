@@ -18,11 +18,11 @@ package org.gradle.instantexecution
 
 import org.gradle.instantexecution.fixtures.ScriptChangeFixture
 import org.junit.Test
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class InstantExecutionScriptChangesIntegrationTest extends AbstractInstantExecutionIntegrationTest {
 
-    @Unroll
+    @SafeUnroll
     @Test
     def "invalidates cache upon change to #scriptChangeSpec"() {
         given:

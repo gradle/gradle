@@ -20,7 +20,7 @@ import org.gradle.integtests.fixtures.publish.RemoteRepositorySpec
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.test.fixtures.HttpRepository
 import org.gradle.test.fixtures.ivy.IvyModule
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class RepositoryInteractionDependencyResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
     private static final REPO_TYPES = ['maven', 'ivy', 'maven-gradle', 'ivy-gradle']
@@ -83,8 +83,8 @@ class RepositoryInteractionDependencyResolveIntegrationTest extends AbstractHttp
 
         repos += [(repoType): repo]
         """
-        repositories { 
-            ${isMaven ? 'maven' : 'ivy'} { 
+        repositories {
+            ${isMaven ? 'maven' : 'ivy'} {
                 url "${repo.uri}"
                 metadataSources { ${gradleMetadata ? 'gradleMetadata()' : isMaven ? 'mavenPom()' : 'ivyDescriptor()'} }
             }
@@ -200,7 +200,7 @@ class RepositoryInteractionDependencyResolveIntegrationTest extends AbstractHttp
         }
     }
 
-    @Unroll
+    @SafeUnroll
     def "selects #testVariant variant of each dependency in every repo supporting it #chain"() {
         given:
         setupRepositories(REPO_TYPES)
@@ -309,7 +309,7 @@ class RepositoryInteractionDependencyResolveIntegrationTest extends AbstractHttp
         }
     }
 
-    @Unroll
+    @SafeUnroll
     def "explicit #conf configuration selection still works for maven dependencies"() {
         given:
         def modules = ['maven', 'mavenCompile1', 'maven-gradle', 'mavenCompile2']
@@ -350,7 +350,7 @@ class RepositoryInteractionDependencyResolveIntegrationTest extends AbstractHttp
         conf << ['runtime', 'test']
     }
 
-    @Unroll
+    @SafeUnroll
     def "explicit configuration selection in ivy modules is supported=#supported if targeting a #target module"() {
         given:
         String targetRepoName = supported? "$target-select" : target //use a different name if selection is supported to not follow the default expectations defined in leaksRuntime()

@@ -20,14 +20,14 @@ import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample
 import org.junit.Rule
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class SamplesCopyIntegrationTest extends AbstractSampleIntegrationTest {
 
     @Rule
     Sample sample = new Sample(testDirectoryProvider)
 
-    @Unroll
+    @SafeUnroll
     @UsesSample("files/copy")
     def "can copy a single file with #dsl dsl"() {
         given:
@@ -46,7 +46,7 @@ class SamplesCopyIntegrationTest extends AbstractSampleIntegrationTest {
         dsl << ['groovy', 'kotlin']
     }
 
-    @Unroll
+    @SafeUnroll
     @UsesSample("files/copy")
     def "can copy a single file using task properties for the paths with #dsl dsl"() {
         given:
@@ -65,7 +65,7 @@ class SamplesCopyIntegrationTest extends AbstractSampleIntegrationTest {
         dsl << ['groovy', 'kotlin']
     }
 
-    @Unroll
+    @SafeUnroll
     @UsesSample("files/copy")
     def "can copy a single file using the file method with #dsl dsl"() {
         given:
@@ -84,7 +84,7 @@ class SamplesCopyIntegrationTest extends AbstractSampleIntegrationTest {
         dsl << ['groovy', 'kotlin']
     }
 
-    @Unroll
+    @SafeUnroll
     @UsesSample("files/copy")
     def "can specify multiple files in a from with #dsl dsl"() {
         given:
@@ -104,7 +104,7 @@ class SamplesCopyIntegrationTest extends AbstractSampleIntegrationTest {
         dsl << ['groovy', 'kotlin']
     }
 
-    @Unroll
+    @SafeUnroll
     @UsesSample("files/copy")
     def "can filter files to a specific type with #dsl dsl"() {
         given:
@@ -130,7 +130,7 @@ class SamplesCopyIntegrationTest extends AbstractSampleIntegrationTest {
         dsl << ['groovy', 'kotlin']
     }
 
-    @Unroll
+    @SafeUnroll
     @UsesSample("files/copy")
     def "can filter files to a specific type including in subdirectories with #dsl dsl"() {
         given:
@@ -156,7 +156,7 @@ class SamplesCopyIntegrationTest extends AbstractSampleIntegrationTest {
         dsl << ['groovy', 'kotlin']
     }
 
-    @Unroll
+    @SafeUnroll
     @UsesSample("files/copy")
     def "can copy a directory with #dsl dsl"() {
         given:
@@ -181,7 +181,7 @@ class SamplesCopyIntegrationTest extends AbstractSampleIntegrationTest {
         dsl << ['groovy', 'kotlin']
     }
 
-    @Unroll
+    @SafeUnroll
     @UsesSample("files/copy")
     def "can copy a directory, including itself with #dsl dsl"() {
         given:
@@ -206,7 +206,7 @@ class SamplesCopyIntegrationTest extends AbstractSampleIntegrationTest {
         dsl << ['groovy', 'kotlin']
     }
 
-    @Unroll
+    @SafeUnroll
     @UsesSample("files/copy")
     def "can rename files as they are copied with #dsl dsl"() {
         given:
@@ -226,7 +226,7 @@ class SamplesCopyIntegrationTest extends AbstractSampleIntegrationTest {
         dsl << ['groovy', 'kotlin']
     }
 
-    @Unroll
+    @SafeUnroll
     @UsesSample("files/copy")
     def "can truncate filenames as they are copied with #dsl dsl"() {
         given:
@@ -251,7 +251,7 @@ class SamplesCopyIntegrationTest extends AbstractSampleIntegrationTest {
         dsl << ['groovy', 'kotlin']
     }
 
-    @Unroll
+    @SafeUnroll
     @UsesSample("files/sampleJavaProject")
     def "can nest child specifications with #dsl dsl"() {
         given:
@@ -275,7 +275,7 @@ class SamplesCopyIntegrationTest extends AbstractSampleIntegrationTest {
         dsl << ['groovy', 'kotlin']
     }
 
-    @Unroll
+    @SafeUnroll
     @UsesSample("files/copy")
     def "can use a standalone copyspec within a copy with #dsl dsl"() {
         given:
@@ -299,7 +299,7 @@ class SamplesCopyIntegrationTest extends AbstractSampleIntegrationTest {
         dsl << ['groovy', 'kotlin']
     }
 
-    @Unroll
+    @SafeUnroll
     @UsesSample("files/copy")
     def "can use a standalone copyspec within an archiving task with #dsl dsl"() {
         given:
@@ -325,7 +325,7 @@ class SamplesCopyIntegrationTest extends AbstractSampleIntegrationTest {
         dsl << ['groovy', 'kotlin']
     }
 
-    @Unroll
+    @SafeUnroll
     @UsesSample("files/copy")
     def "can share a configuration closure with copy patterns no. 1 with #dsl dsl"() {
         given:
@@ -347,7 +347,7 @@ class SamplesCopyIntegrationTest extends AbstractSampleIntegrationTest {
         dsl << ['groovy', 'kotlin']
     }
 
-    @Unroll
+    @SafeUnroll
     @UsesSample("files/copy")
     def "can share a configuration closure with copy patterns no. 2 with #dsl dsl"() {
         given:
@@ -378,7 +378,7 @@ class SamplesCopyIntegrationTest extends AbstractSampleIntegrationTest {
      * the way the tests are run doesn't interact with ant.defaultexcludes()
      * well.
      *
-    @Unroll
+    @SafeUnroll
     @UsesSample("files/copy")
     def "can change Ant default excludes with #dsl dsl"() {
         given:

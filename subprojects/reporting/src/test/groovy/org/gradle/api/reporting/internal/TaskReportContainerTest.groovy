@@ -26,7 +26,7 @@ import org.gradle.api.tasks.TaskPropertyTestUtils
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.testfixtures.ProjectBuilder
 import spock.lang.Specification
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class TaskReportContainerTest extends Specification {
 
@@ -84,7 +84,7 @@ class TaskReportContainerTest extends Specification {
         }.unique().sort()
     }
 
-    @Unroll("tasks inputs and outputs are wired correctly A: #aEnabled, B: #bEnabled")
+    @SafeUnroll("tasks inputs and outputs are wired correctly A: #aEnabled, B: #bEnabled")
     def "tasks inputs and outputs are wired correctly"() {
         when:
         container.a.enabled = aEnabled

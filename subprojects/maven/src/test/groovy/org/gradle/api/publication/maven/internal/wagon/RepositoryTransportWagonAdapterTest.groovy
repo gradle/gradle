@@ -21,13 +21,13 @@ import org.gradle.internal.resource.ExternalResource
 import org.gradle.internal.resource.ExternalResourceReadResult
 import org.gradle.internal.resource.ExternalResourceRepository
 import spock.lang.Specification
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class RepositoryTransportWagonAdapterTest extends Specification {
 
     public static final URI S3_URI = new URI("s3://somewhere/maven")
 
-    @Unroll
+    @SafeUnroll
     def "should determine the correct remote resource uri"() {
         given:
         RepositoryTransport repositoryTransport = Mock()

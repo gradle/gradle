@@ -17,11 +17,11 @@
 package org.gradle.internal.snapshot
 
 import org.gradle.internal.file.FileType
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 import static org.gradle.internal.snapshot.CaseSensitivity.CASE_SENSITIVE
 
-@Unroll
+@SafeUnroll
 class PartialDirectorySnapshotTest extends AbstractIncompleteSnapshotWithChildrenTest<PartialDirectorySnapshot> {
 
     @Override

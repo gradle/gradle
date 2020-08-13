@@ -47,7 +47,7 @@ import org.gradle.internal.resolve.result.DefaultBuildableModuleComponentMetaDat
 import org.gradle.internal.resolve.result.DefaultBuildableModuleVersionListingResolveResult
 import org.gradle.util.BuildCommencedTimeProvider
 import spock.lang.Specification
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 import java.time.Duration
 
@@ -69,7 +69,7 @@ class CachingModuleComponentRepositoryTest extends Specification {
     def caches = new ModuleRepositoryCaches(moduleResolutionCache, moduleDescriptorCache, moduleArtifactsCache, artifactAtRepositoryCache)
     def repo = new CachingModuleComponentRepository(realRepo, caches, cachePolicy, Stub(BuildCommencedTimeProvider), metadataProcessor, listener)
 
-    @Unroll
+    @SafeUnroll
     def "artifact last modified date is cached - lastModified = #lastModified"() {
         given:
         def artifactId = Stub(ModuleComponentArtifactIdentifier)
@@ -160,7 +160,7 @@ class CachingModuleComponentRepositoryTest extends Specification {
         0 * _
     }
 
-    @Unroll
+    @SafeUnroll
     def "delegates estimates for fetching metadata to remote when not found in cache (remote says #remoteAnswer)"() {
         def module = Mock(ModuleComponentIdentifier)
         def localAccess = repo.localAccess
@@ -176,7 +176,7 @@ class CachingModuleComponentRepositoryTest extends Specification {
         remoteAnswer << MetadataFetchingCost.values()
     }
 
-    @Unroll
+    @SafeUnroll
     def "estimates cost for missing metadata is correct (remote says #remoteAnswer, must refresh = #mustRefreshMissingModule)"() {
         def module = Mock(ModuleComponentIdentifier)
         def localAccess = repo.localAccess
@@ -205,7 +205,7 @@ class CachingModuleComponentRepositoryTest extends Specification {
         true                     | MetadataFetchingCost.EXPENSIVE | MetadataFetchingCost.EXPENSIVE
     }
 
-    @Unroll
+    @SafeUnroll
     def "estimates cost for changing metadata is correct (remote says #remoteAnswer, must refresh = #mustRefreshChangingModule)"() {
         def module = Mock(ModuleComponentIdentifier)
         def localAccess = repo.localAccess
@@ -236,7 +236,7 @@ class CachingModuleComponentRepositoryTest extends Specification {
         true                      | MetadataFetchingCost.EXPENSIVE | MetadataFetchingCost.EXPENSIVE
     }
 
-    @Unroll
+    @SafeUnroll
     def "estimates cost for stable metadata is correct (remote says #remoteAnswer, must refresh = #mustRefreshModule)"() {
         def module = Mock(ModuleComponentIdentifier)
         def localAccess = repo.localAccess

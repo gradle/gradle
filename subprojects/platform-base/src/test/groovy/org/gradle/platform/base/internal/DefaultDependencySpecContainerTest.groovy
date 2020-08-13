@@ -18,7 +18,7 @@ package org.gradle.platform.base.internal
 import org.gradle.api.IllegalDependencyNotation
 import spock.lang.Specification
 import spock.lang.Subject
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class DefaultDependencySpecContainerTest extends Specification {
 
@@ -113,7 +113,7 @@ class DefaultDependencySpecContainerTest extends Specification {
         container.dependencies*.displayName == ["library 'someLib'", "project 'otherProject' library 'someLib'", "project 'otherProject'"]
     }
 
-    @Unroll
+    @SafeUnroll
     def "can build module dependency spec given a module id shorthand notation (#id)"() {
         given:
         container.module(id)
@@ -130,7 +130,7 @@ class DefaultDependencySpecContainerTest extends Specification {
         "g1:m1"     | "g1"  | "m1" | null    // version is optional
     }
 
-    @Unroll
+    @SafeUnroll
     def "throws IllegalDependencyNotation when given shorthand notation containing #description"() {
         when:
         container.module(notation)
@@ -146,7 +146,7 @@ class DefaultDependencySpecContainerTest extends Specification {
         'too many components' | 'foo:bar:baz:gazonk'
     }
 
-    @Unroll
+    @SafeUnroll
     def "throws IllegalDependencyNotation for incomplete module notation (#group:#name:#version)"() {
         when:
         container.group(group).module(name).version(version)

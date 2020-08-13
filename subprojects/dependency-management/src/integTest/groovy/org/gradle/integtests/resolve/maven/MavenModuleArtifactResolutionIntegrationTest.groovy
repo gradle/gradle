@@ -22,7 +22,7 @@ import org.gradle.integtests.resolve.MetadataArtifactResolveTestFixture
 import org.gradle.internal.resolve.ArtifactResolveException
 import org.gradle.test.fixtures.maven.MavenRepository
 import org.gradle.test.fixtures.server.http.MavenHttpModule
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class MavenModuleArtifactResolutionIntegrationTest extends AbstractHttpDependencyResolutionTest {
     private MetadataArtifactResolveTestFixture fixture
@@ -58,7 +58,7 @@ repositories {
         checkArtifactsResolvedAndCached()
     }
 
-    @Unroll
+    @SafeUnroll
     @ToBeFixedForInstantExecution
     def "invalid component type and artifact type (#reason)"() {
         given:
@@ -125,7 +125,7 @@ repositories {
         checkArtifactsResolvedAndCached()
     }
 
-    @Unroll
+    @SafeUnroll
     @ToBeFixedForInstantExecution
     def "updates artifacts for module #condition"() {
         given:

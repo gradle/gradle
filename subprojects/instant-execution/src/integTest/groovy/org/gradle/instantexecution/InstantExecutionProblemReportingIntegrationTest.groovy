@@ -23,7 +23,7 @@ import org.gradle.api.invocation.Gradle
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.invocation.DefaultGradle
 import spock.lang.IgnoreIf
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 import static org.gradle.integtests.fixtures.instantexecution.InstantExecutionProblemsFixture.resolveInstantExecutionReportDirectory
 
@@ -635,7 +635,7 @@ class InstantExecutionProblemReportingIntegrationTest extends AbstractInstantExe
         }
     }
 
-    @Unroll
+    @SafeUnroll
     def "reports #invocation access during execution"() {
 
         def instantExecution = newInstantExecutionFixture()
@@ -718,7 +718,7 @@ class InstantExecutionProblemReportingIntegrationTest extends AbstractInstantExe
         'Task.taskDependencies' | 'taskDependencies'
     }
 
-    @Unroll
+    @SafeUnroll
     def "report build listener registration on #registrationPoint"() {
 
         given:
@@ -745,7 +745,7 @@ class InstantExecutionProblemReportingIntegrationTest extends AbstractInstantExe
         "TaskExecutionGraph.afterTask"                | "gradle.taskGraph.afterTask {}"
     }
 
-    @Unroll
+    @SafeUnroll
     def "does not report problems on configuration listener registration on #registrationPoint"() {
 
         given:

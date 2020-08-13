@@ -19,7 +19,7 @@ package org.gradle.integtests.composite
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import spock.lang.Issue
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 /**
  * Tests for plugin development scenarios within a composite build.
@@ -39,7 +39,7 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
         pluginBuild = pluginProjectBuild("pluginBuild")
     }
 
-    @Unroll
+    @SafeUnroll
     @ToBeFixedForInstantExecution
     def "can co-develop plugin and consumer with plugin as included build"() {
         given:

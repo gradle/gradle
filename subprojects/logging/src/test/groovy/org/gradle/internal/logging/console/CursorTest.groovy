@@ -17,7 +17,7 @@
 package org.gradle.internal.logging.console
 
 import spock.lang.Specification
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class CursorTest extends Specification {
     private static final def ROWS = [0, 2, 42, -1, -5]
@@ -32,7 +32,7 @@ class CursorTest extends Specification {
         cursor.col == 0
     }
 
-    @Unroll
+    @SafeUnroll
     def "create a cursor at (#row, #col) when using factory method 'at'"() {
         when:
         Cursor cursor = Cursor.at(row, col)
@@ -46,7 +46,7 @@ class CursorTest extends Specification {
         col << COLS
     }
 
-    @Unroll
+    @SafeUnroll
     def "create a copy of a cursor when using factory method 'from'"() {
         given:
         Cursor cursor = Cursor.at(row, col)
@@ -64,7 +64,7 @@ class CursorTest extends Specification {
         col << COLS
     }
 
-    @Unroll
+    @SafeUnroll
     def "move cursor to (0,0) when calling bottomLeft"() {
         given:
         Cursor cursor = Cursor.at(row, col)
@@ -81,7 +81,7 @@ class CursorTest extends Specification {
         col << COLS
     }
 
-    @Unroll
+    @SafeUnroll
     def "move cursor to (#row,#col) when calling copyFrom on another cursor"() {
         given:
         Cursor cursor = Cursor.at(row, col)

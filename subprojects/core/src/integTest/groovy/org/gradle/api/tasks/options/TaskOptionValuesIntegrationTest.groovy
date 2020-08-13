@@ -17,11 +17,11 @@
 package org.gradle.api.tasks.options
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class TaskOptionValuesIntegrationTest extends AbstractIntegrationSpec {
 
-    @Unroll
+    @SafeUnroll
     def "can accept valid option value '#optionValue'"() {
         given:
         file('buildSrc/src/main/java/SampleTask.java') << taskWithSingleOptionAndPredefinedValues()
@@ -82,27 +82,27 @@ Options
 
             import java.util.List;
             import java.util.ArrayList;
-            
+
             public class SampleTask extends DefaultTask {
                 private final static List<String> MY_PROP_VALUES = new ArrayList<String>();
                 private String myProp;
-                
+
                 public SampleTask() {
                     MY_PROP_VALUES.add("test");
                     MY_PROP_VALUES.add("hello");
                     MY_PROP_VALUES.add("world");
                 }
-                
+
                 @Option(option = "myProp", description = "Configures command line option 'myProp'")
                 public void setMyProp(String myProp) {
                     this.myProp = myProp;
                 }
-                
+
                 @OptionValues("myProp")
                 public List<String> getAvailableMyPropValues() {
                     return MY_PROP_VALUES;
                 }
-                
+
                 @TaskAction
                 public void renderOptionValue() {
                     System.out.println("Value of myProp: " + myProp);

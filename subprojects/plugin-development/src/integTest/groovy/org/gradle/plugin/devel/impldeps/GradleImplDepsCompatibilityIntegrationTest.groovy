@@ -23,7 +23,7 @@ import org.gradle.internal.ErroringAction
 import org.gradle.internal.IoActions
 import org.gradle.util.TextUtil
 import spock.lang.IgnoreIf
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
@@ -103,7 +103,7 @@ class GradleImplDepsCompatibilityIntegrationTest extends BaseGradleImplDepsInteg
         verifyNoDuplicateEntries(testKitClassNamesTextFile, gradleApiClassNamesTextFile)
     }
 
-    @Unroll
+    @SafeUnroll
     def "Gradle API and TestKit are compatible regardless of order #dependencyPermutations"() {
         when:
         buildFile << applyGroovyPlugin()

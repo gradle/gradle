@@ -23,7 +23,7 @@ import org.gradle.nativeplatform.fixtures.app.HelloWorldApp
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Issue
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 import static org.gradle.util.Matchers.containsText
 
@@ -129,7 +129,7 @@ model {
     }
 
     @Issue("GRADLE-2943")
-    @Unroll
+    @SafeUnroll
     @ToBeFixedForInstantExecution
     def "can define macro #output"() {
         given:

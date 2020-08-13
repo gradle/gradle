@@ -17,7 +17,7 @@
 package org.gradle.internal.buildoption
 
 import spock.lang.Specification
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class CommandLineOptionConfigurationTest extends Specification {
 
@@ -69,7 +69,7 @@ class CommandLineOptionConfigurationTest extends Specification {
         configuration.deprecated
     }
 
-    @Unroll
+    @SafeUnroll
     def "is instantiated with null constructor parameter values (#longOption, #shortOption, #description)"() {
         when:
         CommandLineOptionConfiguration.create(longOption, shortOption, description)

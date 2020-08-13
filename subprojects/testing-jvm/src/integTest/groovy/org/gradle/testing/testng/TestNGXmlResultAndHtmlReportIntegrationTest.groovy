@@ -19,13 +19,13 @@ package org.gradle.testing.testng
 
 import org.gradle.integtests.fixtures.*
 import spock.lang.Shared
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 import static org.gradle.integtests.fixtures.TestResultOutputAssociation.WITH_SUITE
 import static org.gradle.integtests.fixtures.TestResultOutputAssociation.WITH_TESTCASE
 import static org.hamcrest.CoreMatchers.*
 
-@Unroll
+@SafeUnroll
 public class TestNGXmlResultAndHtmlReportIntegrationTest extends
         AbstractIntegrationSpec {
 

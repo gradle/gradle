@@ -20,11 +20,11 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import spock.lang.Specification
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class LockEntryFilterFactoryTest extends Specification {
 
-    @Unroll
+    @SafeUnroll
     def "filters #filteredValues and accept #acceptedValues for filter with #filters"() {
         when:
         def filter = LockEntryFilterFactory.forParameter(filters)
@@ -58,7 +58,7 @@ class LockEntryFilterFactoryTest extends Specification {
         DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId(parts[0], parts[1]), parts[2])
     }
 
-    @Unroll
+    @SafeUnroll
     def "fails for invalid filter #filters"() {
         when:
         LockEntryFilterFactory.forParameter(filters)

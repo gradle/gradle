@@ -24,7 +24,7 @@ import org.gradle.model.internal.manage.schema.ModelSchema
 import org.gradle.model.internal.type.ModelType
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 import java.beans.Introspector
 import java.util.concurrent.CopyOnWriteArraySet
@@ -58,7 +58,7 @@ class DefaultModelSchemaStoreTest extends ConcurrentSpec {
         seen.size() == 1
     }
 
-    @Unroll
+    @SafeUnroll
     def "does not hold strong reference"() {
         given:
         def cl = new GroovyClassLoader(getClass().classLoader)
@@ -86,7 +86,7 @@ class DefaultModelSchemaStoreTest extends ConcurrentSpec {
         ]
     }
 
-    @Unroll
+    @SafeUnroll
     def "does not hold strong reference to a managed #type type"() {
         given:
         def cl = new GroovyClassLoader(getClass().classLoader)

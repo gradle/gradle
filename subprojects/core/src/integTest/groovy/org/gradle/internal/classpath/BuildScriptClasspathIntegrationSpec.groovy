@@ -25,7 +25,7 @@ import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.junit.Rule
 import spock.lang.Issue
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implements FileAccessTimeJournalFixture {
     static final long MAX_CACHE_AGE_IN_DAYS = LeastRecentlyUsedCacheCleanup.DEFAULT_MAX_AGE_IN_DAYS_FOR_RECREATABLE_CACHE_ENTRIES
@@ -43,7 +43,7 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
         server.start()
     }
 
-    @Unroll("jars on buildscript classpath can change (loopNumber: #loopNumber)")
+    @SafeUnroll("jars on buildscript classpath can change (loopNumber: #loopNumber)")
     def "jars on buildscript classpath can change"() {
         given:
         buildFile << '''

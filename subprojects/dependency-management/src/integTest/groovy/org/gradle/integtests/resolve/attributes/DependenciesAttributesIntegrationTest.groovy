@@ -21,7 +21,7 @@ import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 import spock.lang.Issue
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class DependenciesAttributesIntegrationTest extends AbstractModuleDependencyResolveTest {
 
@@ -108,7 +108,7 @@ class DependenciesAttributesIntegrationTest extends AbstractModuleDependencyReso
 
 
     @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
-    @Unroll("Selects variant #expectedVariant using custom attribute value #attributeValue")
+    @SafeUnroll("Selects variant #expectedVariant using custom attribute value #attributeValue")
     def "attribute value is used during selection"() {
         given:
         repository {
@@ -201,7 +201,7 @@ class DependenciesAttributesIntegrationTest extends AbstractModuleDependencyReso
     }
 
     @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
-    @Unroll("Selects variant #expectedVariant using typed attribute value #attributeValue")
+    @SafeUnroll("Selects variant #expectedVariant using typed attribute value #attributeValue")
     @Issue("gradle/gradle#5232")
     def "can declare typed attributes without failing serialization"() {
         given:
@@ -398,7 +398,7 @@ class DependenciesAttributesIntegrationTest extends AbstractModuleDependencyReso
     }
 
     @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
-    @Unroll("Selects variant #expectedVariant using custom attribute value #dependencyValue overriding configuration attribute #configurationValue")
+    @SafeUnroll("Selects variant #expectedVariant using custom attribute value #dependencyValue overriding configuration attribute #configurationValue")
     def "dependency attribute value overrides configuration attribute"() {
         given:
         repository {
@@ -449,7 +449,7 @@ class DependenciesAttributesIntegrationTest extends AbstractModuleDependencyReso
     }
 
     @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
-    @Unroll("Selects variant #expectedVariant using custom attribute value #dependencyValue overriding configuration attribute #configurationValue using dependency constraint")
+    @SafeUnroll("Selects variant #expectedVariant using custom attribute value #dependencyValue overriding configuration attribute #configurationValue using dependency constraint")
     def "dependency attribute value overrides configuration attribute using dependency constraint"() {
         given:
         repository {
@@ -553,7 +553,7 @@ class DependenciesAttributesIntegrationTest extends AbstractModuleDependencyReso
     }
 
     @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
-    @Unroll("Selects variant #expectedVariant using dependency attribute value #attributeValue set in a metadata rule")
+    @SafeUnroll("Selects variant #expectedVariant using dependency attribute value #attributeValue set in a metadata rule")
     def "attribute value set by metadata rule is used during selection"() {
         given:
         repository {
@@ -683,7 +683,7 @@ class DependenciesAttributesIntegrationTest extends AbstractModuleDependencyReso
 
 
     @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
-    @Unroll("Selects variant #expectedVariant using transitive dependency attribute value #attributeValue set in a metadata rule")
+    @SafeUnroll("Selects variant #expectedVariant using transitive dependency attribute value #attributeValue set in a metadata rule")
     def "attribute value set by metadata rule on transitive dependency is used during selection"() {
         given:
         repository {
@@ -830,7 +830,7 @@ class DependenciesAttributesIntegrationTest extends AbstractModuleDependencyReso
     }
 
     @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
-    @Unroll("Selects direct=#expectedDirectVariant, transitive=[#expectedTransitiveVariantA, #expectedTransitiveVariantB], leaf=#expectedLeafVariant making sure dependency attribute value doesn't leak to transitives")
+    @SafeUnroll("Selects direct=#expectedDirectVariant, transitive=[#expectedTransitiveVariantA, #expectedTransitiveVariantB], leaf=#expectedLeafVariant making sure dependency attribute value doesn't leak to transitives")
     def "Attribute value on dependency only affects selection of this dependency (using component metadata rules)"() {
         given:
         repository {
@@ -952,7 +952,7 @@ class DependenciesAttributesIntegrationTest extends AbstractModuleDependencyReso
     }
 
     @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
-    @Unroll("Selects direct=#expectedDirectVariant, transitive=[#expectedTransitiveVariantA, #expectedTransitiveVariantB], leaf=#expectedLeafVariant making sure dependency attribute value doesn't leak to transitives (using published metadata)")
+    @SafeUnroll("Selects direct=#expectedDirectVariant, transitive=[#expectedTransitiveVariantA, #expectedTransitiveVariantB], leaf=#expectedLeafVariant making sure dependency attribute value doesn't leak to transitives (using published metadata)")
     def "Attribute value on dependency only affects selection of this dependency (using published metadata)"() {
         given:
         repository {

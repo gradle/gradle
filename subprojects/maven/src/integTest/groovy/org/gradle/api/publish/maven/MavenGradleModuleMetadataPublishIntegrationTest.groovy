@@ -17,7 +17,7 @@
 package org.gradle.api.publish.maven
 
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class MavenGradleModuleMetadataPublishIntegrationTest extends AbstractMavenPublishIntegTest {
     def setup() {
@@ -328,7 +328,7 @@ class TestCapability implements Capability {
   - Publication only contains dependencies and/or constraints without a version. You need to"""
     }
 
-    @Unroll
+    @SafeUnroll
     def "publishes Gradle metadata redirection marker when Gradle metadata task is enabled (enabled=#enabled)"() {
         given:
         settingsFile.text = """

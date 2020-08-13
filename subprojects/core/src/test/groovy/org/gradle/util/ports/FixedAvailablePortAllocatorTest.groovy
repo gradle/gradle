@@ -16,11 +16,11 @@
 
 package org.gradle.util.ports
 
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class FixedAvailablePortAllocatorTest extends AbstractPortAllocatorTest {
 
-    @Unroll
+    @SafeUnroll
     def "assigns a unique fixed port range based on worker id (maxForks: #maxForks, totalAgents: #totalAgents)" () {
         int rangeSize = FixedAvailablePortAllocator.DEFAULT_RANGE_SIZE - 1
         def portAllocators = (1..totalAgents).collect { agentNum ->
@@ -57,7 +57,7 @@ class FixedAvailablePortAllocatorTest extends AbstractPortAllocatorTest {
         8            | 4
     }
 
-    @Unroll
+    @SafeUnroll
     def "port range allocation wraps around when workerId exceeds buckets per agent (overMax: #overMax, agentNum: #agentNum, totalAgents: #totalAgents)" () {
         int bucketsPerAgent = (PortAllocator.MAX_PRIVATE_PORT - PortAllocator.MIN_PRIVATE_PORT) / (FixedAvailablePortAllocator.DEFAULT_RANGE_SIZE * totalAgents)
         int workerId = bucketsPerAgent + overMax

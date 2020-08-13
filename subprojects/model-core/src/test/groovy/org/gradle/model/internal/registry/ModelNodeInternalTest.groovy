@@ -18,7 +18,7 @@ package org.gradle.model.internal.registry
 
 import org.gradle.model.internal.core.ModelRegistration
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class ModelNodeInternalTest extends RegistrySpec {
     def registration = Mock(ModelRegistration)
@@ -28,7 +28,7 @@ class ModelNodeInternalTest extends RegistrySpec {
         new TestNode(registration).getExecutedRules().size() == 0
     }
 
-    @Unroll
+    @SafeUnroll
     def "should record executed rules when notify fired #fireCount time(s)"() {
         def descriptor = Mock(ModelRuleDescriptor)
         ModelNodeInternal modelNode = new TestNode(registration)

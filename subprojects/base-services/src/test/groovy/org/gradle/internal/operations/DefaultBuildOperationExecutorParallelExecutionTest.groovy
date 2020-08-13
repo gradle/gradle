@@ -27,7 +27,7 @@ import org.gradle.internal.time.Clock
 import org.gradle.internal.work.DefaultWorkerLeaseService
 import org.gradle.internal.work.WorkerLeaseRegistry
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class DefaultBuildOperationExecutorParallelExecutionTest extends ConcurrentSpec {
 
@@ -61,7 +61,7 @@ class DefaultBuildOperationExecutorParallelExecutionTest extends ConcurrentSpec 
         }
     }
 
-    @Unroll
+    @SafeUnroll
     def "all #operations operations run to completion when using #maxThreads threads"() {
         given:
         setupBuildOperationExecutor(maxThreads)
@@ -89,7 +89,7 @@ class DefaultBuildOperationExecutorParallelExecutionTest extends ConcurrentSpec 
         20         | 4
     }
 
-    @Unroll
+    @SafeUnroll
     def "all work run to completion for multiple queues when using multiple threads #maxThreads"() {
         given:
         def amountOfWork = 10

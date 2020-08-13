@@ -23,7 +23,7 @@ import org.gradle.api.provider.ProviderFactory
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.execution.WorkExecutor
 import org.gradle.process.ExecOperations
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 import javax.inject.Inject
 
@@ -125,7 +125,7 @@ class ObjectExtensionServiceInjectionIntegrationTest extends AbstractIntegration
         succeeds()
     }
 
-    @Unroll
+    @SafeUnroll
     def "service of type #serviceType is available for injection into project extension"() {
         buildFile << """
             class Thing {
@@ -154,7 +154,7 @@ class ObjectExtensionServiceInjectionIntegrationTest extends AbstractIntegration
         ].collect { it.name }
     }
 
-    @Unroll
+    @SafeUnroll
     def "service of type #serviceType is available for injection into settings extension"() {
         settingsFile << """
             class Thing {
@@ -181,7 +181,7 @@ class ObjectExtensionServiceInjectionIntegrationTest extends AbstractIntegration
         ].collect { it.name }
     }
 
-    @Unroll
+    @SafeUnroll
     def "service of type #serviceType is available for injection into gradle object extension"() {
         settingsFile << """
             class Thing {

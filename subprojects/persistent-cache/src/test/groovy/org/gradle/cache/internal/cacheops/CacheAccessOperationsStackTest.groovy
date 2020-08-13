@@ -17,13 +17,13 @@
 package org.gradle.cache.internal.cacheops
 
 import org.gradle.util.ConcurrentSpecification
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class CacheAccessOperationsStackTest extends ConcurrentSpecification {
 
     def stack = new CacheAccessOperationsStack()
 
-    @Unroll
+    @SafeUnroll
     def "maintains operations per thread #count"() {
         expect:
         start {

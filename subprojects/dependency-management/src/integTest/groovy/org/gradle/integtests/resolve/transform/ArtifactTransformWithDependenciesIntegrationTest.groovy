@@ -28,7 +28,7 @@ import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.hamcrest.CoreMatchers
 import spock.lang.IgnoreIf
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 import javax.annotation.Nonnull
 import java.util.regex.Pattern
@@ -495,7 +495,7 @@ abstract class NoneTransform implements TransformAction<TransformParameters.None
         assertTransformationsExecuted()
     }
 
-    @Unroll
+    @SafeUnroll
     def "can attach @#classpathAnnotation.simpleName to dependencies property"() {
         given:
         setupBuildWithNoSteps {

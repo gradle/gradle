@@ -18,7 +18,7 @@ package org.gradle.performance.regression.corefeature
 
 import org.gradle.performance.AbstractCrossVersionGradleProfilerPerformanceTest
 import spock.lang.Ignore
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 @Ignore('https://github.com/gradle/gradle-private/issues/2971')
 class WorkerApiPerformanceTest extends AbstractCrossVersionGradleProfilerPerformanceTest {
@@ -28,7 +28,7 @@ class WorkerApiPerformanceTest extends AbstractCrossVersionGradleProfilerPerform
         runner.testProject = "workerApiProject"
     }
 
-    @Unroll
+    @SafeUnroll
     def "executing tasks with no isolation with work=#workItems / workers=#workers"() {
         given:
         runner.tasksToRun = ['clean', 'noIsolation', "-PoutputSize=$workItems"]
@@ -52,7 +52,7 @@ class WorkerApiPerformanceTest extends AbstractCrossVersionGradleProfilerPerform
         12      | 120
     }
 
-    @Unroll
+    @SafeUnroll
     def "executing tasks with classloader isolation work=#workItems / workers=#workers"() {
         given:
         runner.tasksToRun = ['clean', 'classloaderIsolation', "-PoutputSize=$workItems"]
@@ -76,7 +76,7 @@ class WorkerApiPerformanceTest extends AbstractCrossVersionGradleProfilerPerform
         12      | 120
     }
 
-    @Unroll
+    @SafeUnroll
     def "executing tasks with process isolation work=#workItems / workers=#workers"() {
         given:
         runner.tasksToRun = ['clean', 'classloaderIsolation', "-PoutputSize=$workItems"]

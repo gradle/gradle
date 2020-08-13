@@ -20,7 +20,7 @@ import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 // we only need to check without Gradle metadata, it doesn't matter
 @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "false")
@@ -126,7 +126,7 @@ class CustomVersionListerIntegrationTest extends AbstractModuleDependencyResolve
         succeeds 'checkDeps'
     }
 
-    @Unroll
+    @SafeUnroll
     @ToBeFixedForInstantExecution
     void "caches version listing using #lister lister"() {
         ListerInteractions listerInteractions

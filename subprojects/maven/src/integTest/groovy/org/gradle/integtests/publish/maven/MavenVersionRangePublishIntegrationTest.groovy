@@ -19,7 +19,7 @@ package org.gradle.integtests.publish.maven
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
 import spock.lang.Issue
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 @UnsupportedWithInstantExecution(because = "legacy maven plugin")
 class MavenVersionRangePublishIntegrationTest extends AbstractIntegrationSpec {
@@ -74,7 +74,7 @@ uploadArchives {
     }
 
     @Issue("GRADLE-3233")
-    @Unroll
+    @SafeUnroll
     def "publishes POM dependency with #versionType version for Gradle dependency with null version"() {
         given:
         file("settings.gradle") << "rootProject.name = 'publishTest' "

@@ -19,7 +19,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.fact
 
 import spock.lang.Specification
 import spock.lang.Subject
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class IntersectionsTest extends Specification implements ExcludeTestSupport {
 
@@ -41,7 +41,7 @@ class IntersectionsTest extends Specification implements ExcludeTestSupport {
         ]
     }
 
-    @Unroll
+    @SafeUnroll
     def "intersection of #one with #other = #expected"() {
         expect:
         ops.tryIntersect(one, other) == expected
@@ -102,7 +102,7 @@ class IntersectionsTest extends Specification implements ExcludeTestSupport {
         anyOf(group("g1"), moduleIdSet(["a", "b"], ["a", "c"]))                                                        | anyOf(group("g1"), moduleIdSet(["a", "b"], ["a", "d"]))                                                               | anyOf(group("g1"), allOf(moduleIdSet(["a", "b"], ["a", "c"]), moduleIdSet(["a", "b"], ["a", "d"])))
     }
 
-    @Unroll("intersection of #one with #other = #expected using normalizing factory")
+    @SafeUnroll("intersection of #one with #other = #expected using normalizing factory")
     def "further simplifications are performed by the normalizing factory"() {
         given:
         factory = new NormalizingExcludeFactory(factory)

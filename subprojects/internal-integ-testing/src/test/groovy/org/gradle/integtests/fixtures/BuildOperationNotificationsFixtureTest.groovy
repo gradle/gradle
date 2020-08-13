@@ -23,9 +23,9 @@ import org.gradle.internal.operations.notify.BuildOperationProgressNotification
 import org.gradle.internal.operations.notify.BuildOperationStartedNotification
 import org.gradle.internal.reflect.JavaReflectionUtil
 import spock.lang.Specification
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
-@Unroll
+@SafeUnroll
 class BuildOperationNotificationsFixtureTest extends Specification {
 
     def "listener evaluates build op #notificationMethod notifications (#testedIf.simpleName)"() {

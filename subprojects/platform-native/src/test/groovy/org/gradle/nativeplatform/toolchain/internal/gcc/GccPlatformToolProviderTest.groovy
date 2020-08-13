@@ -33,7 +33,7 @@ import org.gradle.platform.base.internal.toolchain.ComponentFound
 import org.gradle.platform.base.internal.toolchain.SearchResult
 import org.gradle.process.internal.ExecActionFactory
 import spock.lang.Specification
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class GccPlatformToolProviderTest extends Specification {
 
@@ -48,7 +48,7 @@ class GccPlatformToolProviderTest extends Specification {
     def targetPlatform = Mock(NativePlatformInternal)
     def platformToolProvider = new GccPlatformToolProvider(buildOperationExecuter, operatingSystem, toolSearchPath, toolRegistry, execActionFactory, namingSchemeFactory, true, workerLeaseService, metaDataProvider)
 
-    @Unroll
+    @SafeUnroll
     def "arguments #args are passed to metadata provider for #toolType.toolName"() {
         def metaData = Stub(GccMetadata)
         def libs = Stub(SystemLibraries)
@@ -75,7 +75,7 @@ class GccPlatformToolProviderTest extends Specification {
         ToolType.ASSEMBLER             | []
     }
 
-    @Unroll
+    @SafeUnroll
     def "gets compiler metadata from the provider for #toolType.toolName"() {
         when:
         platformToolProvider.getCompilerMetadata(toolType)

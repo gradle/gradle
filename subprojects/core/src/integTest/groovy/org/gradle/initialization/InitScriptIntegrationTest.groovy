@@ -24,7 +24,7 @@ import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import spock.lang.Issue
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 @LeaksFileHandles
 class InitScriptIntegrationTest extends AbstractIntegrationSpec {
@@ -170,7 +170,7 @@ class InitScriptIntegrationTest extends AbstractIntegrationSpec {
         output.contains("subprojects: :sub1 - :sub2")
     }
 
-    @Unroll
+    @SafeUnroll
     def "shows deprecation warning when accessing #displayName from init script"() {
         given:
         createProject()

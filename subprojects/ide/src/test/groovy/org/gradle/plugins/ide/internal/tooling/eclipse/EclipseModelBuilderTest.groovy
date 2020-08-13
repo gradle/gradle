@@ -42,7 +42,7 @@ import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.testfixtures.ProjectBuilder
 import org.gradle.util.TestUtil
 import org.gradle.util.UsesNativeServices
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 @UsesNativeServices
 @CleanupTestDirectory
@@ -135,7 +135,7 @@ class EclipseModelBuilderTest extends AbstractProjectBuilderSpec {
         eclipseModel.javaSourceSettings == null
     }
 
-    @Unroll
+    @SafeUnroll
     def "default #type language level are set for #projectType projects if compatibility setting not specified"() {
         given:
         def modelBuilder = createEclipseModelBuilder()
@@ -175,7 +175,7 @@ class EclipseModelBuilderTest extends AbstractProjectBuilderSpec {
         pluginType << [JavaPlugin, GroovyPlugin, ScalaPlugin]
     }
 
-    @Unroll
+    @SafeUnroll
     def "custom #type language level derived Java plugin convention"() {
         given:
         def modelBuilder = createEclipseModelBuilder()
@@ -194,7 +194,7 @@ class EclipseModelBuilderTest extends AbstractProjectBuilderSpec {
         "target" | "targetCompatibility" | "targetBytecodeVersion"
     }
 
-    @Unroll
+    @SafeUnroll
     def "#type language level derived from eclipse jdt overrules java plugin convention configuration"() {
         given:
         def modelBuilder = createEclipseModelBuilder()
@@ -215,7 +215,7 @@ class EclipseModelBuilderTest extends AbstractProjectBuilderSpec {
         "target" | "targetCompatibility" | "targetBytecodeVersion"
     }
 
-    @Unroll
+    @SafeUnroll
     def "multi-project build can have different #type language level per project"() {
         given:
         def modelBuilder = createEclipseModelBuilder()

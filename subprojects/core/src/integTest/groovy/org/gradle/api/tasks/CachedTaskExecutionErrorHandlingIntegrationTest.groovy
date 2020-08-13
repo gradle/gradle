@@ -22,7 +22,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.test.fixtures.file.TestFile
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class CachedTaskExecutionErrorHandlingIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture {
 
@@ -31,20 +31,20 @@ class CachedTaskExecutionErrorHandlingIntegrationTest extends AbstractIntegratio
             class FailingBuildCache extends AbstractBuildCache {
                 String shouldFail
             }
-            
+
             class FailingBuildCacheServiceFactory implements BuildCacheServiceFactory<FailingBuildCache> {
                 FailingBuildCacheService createBuildCacheService(FailingBuildCache configuration, Describer describer) {
                     return new FailingBuildCacheService(configuration.shouldFail)
                 }
             }
-            
+
             class FailingBuildCacheService implements BuildCacheService {
                 String shouldFail
-                
+
                 FailingBuildCacheService(String shouldFail) {
                     this.shouldFail = shouldFail
                 }
-                
+
                 @Override
                 boolean load(BuildCacheKey key, BuildCacheEntryReader reader) throws BuildCacheException {
                     println "> Attempting load for \$key"
@@ -55,7 +55,7 @@ class CachedTaskExecutionErrorHandlingIntegrationTest extends AbstractIntegratio
                         return false
                     }
                 }
-    
+
                 @Override
                 void store(BuildCacheKey key, BuildCacheEntryWriter writer) throws BuildCacheException {
                     println "> Attempting store for \$key"
@@ -64,19 +64,19 @@ class CachedTaskExecutionErrorHandlingIntegrationTest extends AbstractIntegratio
                         throw new BuildCacheException("Unable to write " + key)
                     }
                 }
-    
+
                 @Override
                 void close() throws IOException {
                 }
             }
-            
+
             buildCache {
                 registerBuildCacheService(FailingBuildCache, FailingBuildCacheServiceFactory)
-                
+
                 local {
                     enabled = false
                 }
-                
+
                 remote(FailingBuildCache) {
                     shouldFail = gradle.startParameter.systemPropertiesArgs.get("failOn")
                     push = true
@@ -89,7 +89,7 @@ class CachedTaskExecutionErrorHandlingIntegrationTest extends AbstractIntegratio
         }
     }
 
-    @Unroll
+    @SafeUnroll
     def "remote cache #failEvent error stack trace is printed when requested (#showStacktrace)"() {
         // Need to do it like this because stacktraces are always enabled for integration tests
         settingsFile << """
@@ -130,7 +130,7 @@ class CachedTaskExecutionErrorHandlingIntegrationTest extends AbstractIntegratio
         "store"   | ShowStacktrace.ALWAYS_FULL         | true
     }
 
-    @Unroll
+    @SafeUnroll
     @ToBeFixedForInstantExecution(because = "FailingBuildCache has not been registered.")
     def "remote cache is disabled after first #failEvent error for the current build"() {
         // Need to do it like this because stacktraces are always enabled for integration tests

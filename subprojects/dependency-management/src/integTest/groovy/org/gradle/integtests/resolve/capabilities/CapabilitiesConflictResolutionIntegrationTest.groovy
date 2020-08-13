@@ -21,13 +21,13 @@ import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class CapabilitiesConflictResolutionIntegrationTest extends AbstractModuleDependencyResolveTest {
 
     @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
     @ToBeFixedForInstantExecution
-    @Unroll
+    @SafeUnroll
     def "reasonable error message when a user rule throws an exception (#rule)"() {
         given:
         repository {
@@ -85,7 +85,7 @@ class CapabilitiesConflictResolutionIntegrationTest extends AbstractModuleDepend
     }
 
     @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
-    @Unroll
+    @SafeUnroll
     def "can express preference for capabilities declared in published modules (#rule)"() {
         given:
         repository {

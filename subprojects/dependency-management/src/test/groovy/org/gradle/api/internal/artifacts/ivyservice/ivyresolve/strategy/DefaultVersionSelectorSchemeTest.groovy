@@ -19,7 +19,7 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy
 import org.gradle.api.internal.FeaturePreviews
 import spock.lang.Issue
 import spock.lang.Specification
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class DefaultVersionSelectorSchemeTest extends Specification {
     def previews = new FeaturePreviews()
@@ -81,7 +81,7 @@ class DefaultVersionSelectorSchemeTest extends Specification {
         ]
     }
 
-    @Unroll
+    @SafeUnroll
     @Issue("https://github.com/gradle/gradle/issues/11185")
     def "single version range should be considered as exact version selector"() {
         when:
@@ -95,7 +95,7 @@ class DefaultVersionSelectorSchemeTest extends Specification {
         version << ["[1.0]", "[1.0, 1.0]"]
     }
 
-    @Unroll
+    @SafeUnroll
     def "computes rejection selector for strict dependency version #selector"() {
         given:
         def normal = matcher.parseSelector(selector)

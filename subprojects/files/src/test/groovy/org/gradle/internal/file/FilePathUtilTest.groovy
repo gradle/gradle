@@ -17,13 +17,13 @@
 package org.gradle.internal.file
 
 import spock.lang.Specification
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 import static org.gradle.internal.file.FilePathUtil.sizeOfCommonPrefix
 
 class FilePathUtilTest extends Specification {
 
-    @Unroll
+    @SafeUnroll
     def "common prefix for #commonPrefix/{#firstPostFix,#secondPostFix}"() {
         expect:
         sizeOfCommonPrefix(commonPrefix + "/" + firstPostFix, commonPrefix + "/" + secondPostFix, 0, '/' as char) == commonPrefix.length()

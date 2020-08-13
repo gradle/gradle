@@ -18,7 +18,7 @@ package org.gradle.api.internal
 
 import spock.lang.Specification
 import spock.lang.Subject
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class FeaturePreviewsTest extends Specification {
 
@@ -32,7 +32,7 @@ class FeaturePreviewsTest extends Specification {
         feature << FeaturePreviews.Feature.values()
     }
 
-    @Unroll
+    @SafeUnroll
     def "can enable #feature feature"() {
         when:
         previews.enableFeature(feature)
@@ -42,7 +42,7 @@ class FeaturePreviewsTest extends Specification {
         feature << FeaturePreviewsActivationFixture.activeFeatures()
     }
 
-    @Unroll
+    @SafeUnroll
     def "ignores activation of inactive #feature feature"() {
         when:
         previews.enableFeature(feature)

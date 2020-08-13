@@ -18,11 +18,11 @@ package org.gradle.internal.deprecation
 
 import org.gradle.util.GradleVersion
 import spock.lang.Specification
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class DeprecatedFeatureUsageTest extends Specification {
 
-    @Unroll
+    @SafeUnroll
     def "formats messages"() {
         given:
         def featureUsage = new DeprecatedFeatureUsage(summary, removalDetails, advice, contextualAdvice, documentationReference, DeprecatedFeatureUsage.Type.USER_CODE_DIRECT, getClass())

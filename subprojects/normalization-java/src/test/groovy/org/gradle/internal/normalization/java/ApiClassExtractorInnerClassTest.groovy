@@ -17,7 +17,7 @@
 package org.gradle.internal.normalization.java
 
 import org.objectweb.asm.Opcodes
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 import java.lang.reflect.Modifier
 
@@ -26,7 +26,7 @@ class ApiClassExtractorInnerClassTest extends ApiClassExtractorTestSupport {
     private final static int ACC_PUBLICSTATIC = Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC
     private final static int ACC_PROTECTEDSTATIC = Opcodes.ACC_PROTECTED | Opcodes.ACC_STATIC
 
-    @Unroll
+    @SafeUnroll
     def "should not remove #modifier inner class if no API is declared"() {
         given:
         def api = toApi 'A': """
@@ -66,7 +66,7 @@ class ApiClassExtractorInnerClassTest extends ApiClassExtractorTestSupport {
         'static'           | Opcodes.ACC_STATIC
     }
 
-    @Unroll
+    @SafeUnroll
     def "should not keep private #modifier inner class"() {
         given:
         def api = toApi 'A': """
@@ -92,7 +92,7 @@ class ApiClassExtractorInnerClassTest extends ApiClassExtractorTestSupport {
         'static' | _
     }
 
-    @Unroll
+    @SafeUnroll
     def "should not keep #modifier inner class if API is declared"() {
         given:
         def api = toApi ([''], [ 'A': """

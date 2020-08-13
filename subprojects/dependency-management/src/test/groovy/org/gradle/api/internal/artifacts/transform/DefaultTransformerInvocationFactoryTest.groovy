@@ -49,7 +49,7 @@ import org.gradle.internal.snapshot.impl.DefaultValueSnapshotter
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.util.Path
 import org.gradle.work.InputChanges
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 import java.util.function.BiFunction
 
@@ -189,7 +189,7 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
         }
     }
 
-    @Unroll
+    @SafeUnroll
     def "executes transformations in workspace (#transformationType)"(TransformationType transformationType) {
         def inputArtifact = temporaryFolder.file("input")
         inputArtifact.text = "my input"
@@ -299,7 +299,7 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
         transformerInvocations == 2
     }
 
-    @Unroll
+    @SafeUnroll
     def "different workspace for different secondary inputs (#transformationType)"(TransformationType transformationType) {
         def inputArtifact = temporaryFolder.file("input")
         inputArtifact.text = "my input"
@@ -325,7 +325,7 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
         transformationType << TransformationType.values()
     }
 
-    @Unroll
+    @SafeUnroll
     def "different workspace for different input artifact paths (#transformationType)"(TransformationType transformationType) {
         def inputArtifact1 = temporaryFolder.file("input1")
         inputArtifact1.text = "my input"

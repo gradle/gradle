@@ -18,11 +18,11 @@ package org.gradle.internal.execution.history.changes
 
 import com.google.common.collect.ImmutableSortedMap
 import spock.lang.Specification
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class SortedMapDiffUtilTest extends Specification {
 
-    @Unroll
+    @SafeUnroll
     def "diff #previous and #current"() {
         expect:
         diff(previous, current) == [removed: removed, updated: updated, added: added]

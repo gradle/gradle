@@ -18,7 +18,7 @@ package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class TaskDependencyInferenceIntegrationTest extends AbstractIntegrationSpec implements TasksWithInputsAndOutputs {
     def "dependency declared using task provider implies dependency on task"() {
@@ -294,7 +294,7 @@ class TaskDependencyInferenceIntegrationTest extends AbstractIntegrationSpec imp
         result.assertTasksExecuted(":a", ":b")
     }
 
-    @Unroll
+    @SafeUnroll
     def "dependency declared using #value fails"() {
         buildFile << """
             tasks.register("b") {
@@ -327,7 +327,7 @@ The following types/formats are supported:
         "[false]" | "false"
     }
 
-    @Unroll
+    @SafeUnroll
     def "dependency declared using file #value fails"() {
         buildFile << """
             tasks.register("b") {
@@ -368,7 +368,7 @@ The following types/formats are supported:
         "layout.buildDirectory.dir('123')"                | 'build/123'
     }
 
-    @Unroll
+    @SafeUnroll
     def "dependency declared using provider that returns #value fails"() {
         buildFile << """
             def provider = provider { $value }
@@ -402,7 +402,7 @@ The following types/formats are supported:
         "[false]" | "false"
     }
 
-    @Unroll
+    @SafeUnroll
     def "dependency declared using file provider with value #value fails"() {
         buildFile << """
             def provider = provider { $value }
@@ -840,7 +840,7 @@ The following types/formats are supported:
         file("out.txt").text == "content"
     }
 
-    @Unroll
+    @SafeUnroll
     def "input file collection containing provider that returns #value does not imply task dependency"() {
         taskTypeWithInputFileCollection()
         buildFile << """

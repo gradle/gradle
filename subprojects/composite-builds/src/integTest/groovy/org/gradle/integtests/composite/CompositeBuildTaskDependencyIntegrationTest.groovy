@@ -18,7 +18,7 @@ package org.gradle.integtests.composite
 
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.build.BuildTestFile
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 /**
  * Tests for composite build delegating to tasks in an included build.
@@ -294,7 +294,7 @@ class CompositeBuildTaskDependencyIntegrationTest extends AbstractCompositeBuild
         failure.assertHasCause("Included build 'does-not-exist' not found in build 'buildB'.")
     }
 
-    @Unroll
+    @SafeUnroll
     def "included build cannot reference tasks in #scenario"() {
         when:
         BuildTestFile buildC = singleProjectBuild("buildC") {

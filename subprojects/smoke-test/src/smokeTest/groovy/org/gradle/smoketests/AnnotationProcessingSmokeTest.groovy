@@ -16,11 +16,11 @@
 
 package org.gradle.smoketests
 
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class AnnotationProcessingSmokeTest extends AbstractSmokeTest {
 
-    @Unroll
+    @SafeUnroll
     def 'project lombok works when options.fork=#fork'() {
         given:
         buildFile << """
@@ -36,7 +36,7 @@ class AnnotationProcessingSmokeTest extends AbstractSmokeTest {
             import java.util.ArrayList;
             import java.util.HashMap;
             import lombok.val;
-            
+
             public class ValExample {
               public String example() {
                 val example = new ArrayList<String>();
@@ -44,7 +44,7 @@ class AnnotationProcessingSmokeTest extends AbstractSmokeTest {
                 val foo = example.get(0);
                 return foo.toLowerCase();
               }
-              
+
               public void example2() {
                 val map = new HashMap<Integer, String>();
                 map.put(0, "zero");

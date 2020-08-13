@@ -23,7 +23,7 @@ import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.internal.Describables
 import org.gradle.util.TextUtil
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 abstract class CollectionPropertySpec<C extends Collection<String>> extends PropertySpec<C> {
     @Override
@@ -247,7 +247,7 @@ abstract class CollectionPropertySpec<C extends Collection<String>> extends Prop
         assertValueIs(["abc", "1"])
     }
 
-    @Unroll
+    @SafeUnroll
     def "appends zero or more values from array #value using addAll"() {
         given:
         property.addAll(value as String[])
@@ -271,7 +271,7 @@ abstract class CollectionPropertySpec<C extends Collection<String>> extends Prop
         assertValueIs(["abc", "1"])
     }
 
-    @Unroll
+    @SafeUnroll
     def "appends zero or more values from provider #value using addAll"() {
         given:
         property.addAll(Providers.of(value))
@@ -306,7 +306,7 @@ abstract class CollectionPropertySpec<C extends Collection<String>> extends Prop
         assertValueIs(["abc", "1"])
     }
 
-    @Unroll
+    @SafeUnroll
     def "appends zero or more values from collection #value using addAll"() {
         given:
         property.addAll(value)
@@ -919,7 +919,7 @@ The value of this property is derived from: <source>""")
         e3.message == 'The value for this property cannot be changed any further.'
     }
 
-    @Unroll
+    @SafeUnroll
     def "finalizes upstream properties when value read using #method and disallow unsafe reads"() {
         def a = property()
         def b = property()

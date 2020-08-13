@@ -19,7 +19,7 @@ package org.gradle.language.java
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
 import org.gradle.util.TextUtil
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 import static org.gradle.language.java.JavaIntegrationTesting.applyJavaPlugin
 import static org.gradle.language.java.JavaIntegrationTesting.expectJavaLangPluginDeprecationWarnings
@@ -75,7 +75,7 @@ model {
         executedAndNotSkipped ':tasks', ':zdepApiJar', ':mainJar'
     }
 
-    @Unroll
+    @SafeUnroll
     def "can depend on a custom component producing a JVM library in another project with dependency {#dependency}"() {
         given:
         applyJavaPlugin(buildFile, executer)

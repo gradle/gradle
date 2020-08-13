@@ -27,13 +27,13 @@ import org.gradle.util.AttributeTestUtil
 import org.gradle.util.SnapshotTestUtil
 import org.gradle.util.TestUtil
 import spock.lang.Specification
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class DefaultAttributesSchemaTest extends Specification {
     def schema = new DefaultAttributesSchema(new ComponentAttributeMatcher(), TestUtil.instantiatorFactory(), SnapshotTestUtil.valueSnapshotter())
     def factory = AttributeTestUtil.attributesFactory()
 
-    @Unroll
+    @SafeUnroll
     def "can create an attribute of scalar type #type"() {
         when:
         Attribute.of('foo', type)
@@ -50,7 +50,7 @@ class DefaultAttributesSchemaTest extends Specification {
         ]
     }
 
-    @Unroll
+    @SafeUnroll
     def "can create an attribute of scalar type #type.name[]"() {
         when:
         Attribute.of('foo', Eval.me("${type.name}[]"))

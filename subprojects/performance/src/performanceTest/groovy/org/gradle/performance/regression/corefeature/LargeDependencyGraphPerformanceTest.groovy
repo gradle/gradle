@@ -19,7 +19,7 @@ package org.gradle.performance.regression.corefeature
 import org.gradle.performance.AbstractCrossVersionGradleProfilerPerformanceTest
 import org.gradle.performance.WithExternalRepository
 import spock.lang.Ignore
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class LargeDependencyGraphPerformanceTest extends AbstractCrossVersionGradleProfilerPerformanceTest implements WithExternalRepository {
 
@@ -47,7 +47,7 @@ class LargeDependencyGraphPerformanceTest extends AbstractCrossVersionGradleProf
         result.assertCurrentVersionHasNotRegressed()
     }
 
-    @Unroll
+    @SafeUnroll
     def "resolve large dependency graph (parallel = #parallel, locking = #locking)"() {
         runner.testProject = TEST_PROJECT_NAME
         startServer()

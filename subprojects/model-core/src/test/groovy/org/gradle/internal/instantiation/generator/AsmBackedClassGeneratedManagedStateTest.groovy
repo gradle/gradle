@@ -24,7 +24,7 @@ import org.gradle.internal.state.Managed
 import org.gradle.internal.state.ManagedFactory
 import org.gradle.internal.state.ManagedFactoryRegistry
 import org.gradle.util.TestUtil
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.AbstractBean
 import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.AbstractBeanWithInheritedFields
@@ -274,7 +274,7 @@ class AsmBackedClassGeneratedManagedStateTest extends AbstractClassGeneratorSpec
         beanWithDisplayName.mutableProperty.toString().startsWith("${InterfacePropertyBean.name}_Decorated@")
     }
 
-    @Unroll
+    @SafeUnroll
     def "canConstructInstanceOfInterfaceWithGetterOfFilePropertyType #type.simpleName"() {
         def projectDir = tmpDir.testDirectory
         def bean = create(type)
@@ -289,7 +289,7 @@ class AsmBackedClassGeneratedManagedStateTest extends AbstractClassGeneratorSpec
         type << [InterfaceFilePropertyBean, InterfaceDirectoryPropertyBean]
     }
 
-    @Unroll
+    @SafeUnroll
     def "canConstructInstanceOfInterfaceWithGetterOfMutableType #type.simpleName"() {
         def bean = create(type)
         def beanWithDisplayName = create(type, Describables.of("<display-name>"))
@@ -312,7 +312,7 @@ class AsmBackedClassGeneratedManagedStateTest extends AbstractClassGeneratorSpec
         InterfaceMapPropertyBean           | [:]          | [a: 1, b: 12]
     }
 
-    @Unroll
+    @SafeUnroll
     def "canUnpackAndRecreateInterfaceWithGetterOfMutableType #type.simpleName"() {
         def bean = create(type)
 

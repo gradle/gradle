@@ -22,14 +22,14 @@ import org.gradle.performance.categories.SlowPerformanceRegressionTest
 import org.gradle.performance.results.BaselineVersion
 import org.gradle.performance.results.CrossBuildPerformanceResults
 import org.junit.experimental.categories.Category
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 import static org.gradle.performance.generator.JavaTestProject.LARGE_JAVA_MULTI_PROJECT
 
 @Category(SlowPerformanceRegressionTest)
 class JavaLibraryPluginPerformanceTest extends AbstractCrossBuildPerformanceTest {
 
-    @Unroll
+    @SafeUnroll
     def "java-library vs java on #testProject"() {
         def javaLibraryRuns = "java-library-plugin"
         def javaRuns = "java-plugin"

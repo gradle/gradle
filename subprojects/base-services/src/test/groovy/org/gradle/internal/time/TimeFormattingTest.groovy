@@ -17,7 +17,7 @@
 package org.gradle.internal.time
 
 import spock.lang.Specification
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class TimeFormattingTest extends Specification {
 
@@ -53,7 +53,7 @@ class TimeFormattingTest extends Specification {
         TimeFormatting.formatDurationVeryTerse(60 * 1000 + 12 * 1000 + 309) == '1m12.31s'
     }
 
-    @Unroll
+    @SafeUnroll
     def "shows #output when elapsed time is greater or equals than #lowerBoundInclusive but lower than #upperBoundExclusive"() {
         when:
         def result = TimeFormatting.formatDurationTerse(input)

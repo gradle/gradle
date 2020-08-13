@@ -21,7 +21,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import spock.lang.IgnoreIf
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class NativeDependentComponentsReportIntegrationTest extends AbstractIntegrationSpec {
 
@@ -43,7 +43,7 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
         outputContains simpleCppMainDependents()
     }
 
-    @Unroll
+    @SafeUnroll
     @ToBeFixedForInstantExecution(because = ":dependentComponents")
     def "displays dependents of targeted '#component' component"() {
         given:
@@ -100,7 +100,7 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
         !output.contains(simpleCppUtilDependents())
     }
 
-    @Unroll
+    @SafeUnroll
     @ToBeFixedForInstantExecution(because = ":dependentComponents")
     def "hide non-buildable dependents by default #nonBuildables"() {
         given:
@@ -139,7 +139,7 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
         ['util', 'lib', 'main'] | _
     }
 
-    @Unroll
+    @SafeUnroll
     @ToBeFixedForInstantExecution(because = ":dependentComponents")
     def "displays non-buildable dependents when using #option"() {
         given:
@@ -335,7 +335,7 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
         output.contains 'Some test suites were not shown, use --test-suites or --all to show them.'
     }
 
-    @Unroll
+    @SafeUnroll
     @ToBeFixedForInstantExecution(because = ":dependentComponents")
     def "displays dependent test suites when using #option"() {
         given:
@@ -544,7 +544,7 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
         output.contains emptyDependents()
     }
 
-    @Unroll
+    @SafeUnroll
     @ToBeFixedForInstantExecution(because = ":dependentComponents")
     def "report for empty build displays no component with task option #option"() {
         given:

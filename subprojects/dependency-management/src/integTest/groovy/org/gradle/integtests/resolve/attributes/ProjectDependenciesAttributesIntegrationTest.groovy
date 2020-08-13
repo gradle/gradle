@@ -18,7 +18,7 @@ package org.gradle.integtests.resolve.attributes
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class ProjectDependenciesAttributesIntegrationTest extends AbstractIntegrationSpec {
 
@@ -36,7 +36,7 @@ class ProjectDependenciesAttributesIntegrationTest extends AbstractIntegrationSp
         resolve.prepare()
     }
 
-    @Unroll
+    @SafeUnroll
     def "uses dependency attributes to select the right configuration on the target project (color=#color)"() {
         given:
         settingsFile << "include 'dep'"

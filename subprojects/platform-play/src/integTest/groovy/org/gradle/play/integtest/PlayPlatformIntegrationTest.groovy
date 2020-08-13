@@ -24,7 +24,7 @@ import org.gradle.test.fixtures.archive.ZipTestFixture
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.gradle.util.VersionNumber
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class PlayPlatformIntegrationTest extends AbstractIntegrationSpec {
     @ToBeFixedForInstantExecution
@@ -43,7 +43,7 @@ class PlayPlatformIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Requires(TestPrecondition.JDK8)
-    @Unroll
+    @SafeUnroll
     @ToBeFixedForInstantExecution
     def "can build play app binary for specified platform on JDK8 [#platform]"() {
         given:
@@ -75,7 +75,7 @@ model {
         "play: '2.5.18', scala: '2.11'" | '2.5.18'    | '2.11'
     }
 
-    @Unroll
+    @SafeUnroll
     def "fails when trying to build a Play #playVersion application with Scala #scalaVersion"() {
         given:
         executer.noDeprecationChecks()

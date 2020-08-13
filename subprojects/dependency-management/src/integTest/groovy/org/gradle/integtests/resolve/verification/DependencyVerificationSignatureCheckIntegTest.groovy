@@ -22,7 +22,7 @@ import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
 import org.gradle.security.fixtures.KeyServer
 import org.gradle.security.fixtures.SigningFixtures
 import org.gradle.security.internal.Fingerprint
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 import static org.gradle.security.fixtures.SigningFixtures.getValidPublicKeyLongIdHexString
 import static org.gradle.security.fixtures.SigningFixtures.signAsciiArmored
@@ -89,7 +89,7 @@ class DependencyVerificationSignatureCheckIntegTest extends AbstractSignatureVer
         outputContains("Dependency verification is an incubating feature.")
     }
 
-    @Unroll
+    @SafeUnroll
     def "if signature is verified and checksum is declared in configuration, verify checksum (terse output=#terse)"() {
         createMetadataFile {
             keyServer(keyServerFixture.uri)
@@ -134,7 +134,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
         terse << [true, false]
     }
 
-    @Unroll
+    @SafeUnroll
     def "fails verification is key is  (terse output=#terse)"() {
         createMetadataFile {
             keyServer(keyServerFixture.uri)
@@ -180,7 +180,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
     }
 
     @ToBeFixedForInstantExecution
-    @Unroll
+    @SafeUnroll
     def "can verify signature for artifacts downloaded in a previous build (stop in between = #stopInBetween)"() {
         given:
         terseConsoleOutput(false)
@@ -226,7 +226,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
     }
 
     @ToBeFixedForInstantExecution
-    @Unroll
+    @SafeUnroll
     def "can verify classified artifacts downloaded in previous builds (stop in between = #stopInBetween)"() {
         def keyring = newKeyRing()
         keyServerFixture.registerPublicKey(keyring.publicKey)
@@ -276,7 +276,7 @@ If the artifacts are trustworthy, you will need to update the gradle/verificatio
         stopInBetween << [false, true]
     }
 
-    @Unroll
+    @SafeUnroll
     def "fails verification is signature is incorrect (terse output=#terse)"() {
         createMetadataFile {
             noMetadataVerification()
@@ -323,7 +323,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
         terse << [true, false]
     }
 
-    @Unroll
+    @SafeUnroll
     def "doesn't check the same artifact multiple times during a build (terse output=#terse)"() {
         createMetadataFile {
             noMetadataVerification()
@@ -375,7 +375,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
         terse << [true, false]
     }
 
-    @Unroll
+    @SafeUnroll
     def "doesn't check the same parent POM file multiple times during a build  (terse output=#terse)"() {
         createMetadataFile {
             keyServer(keyServerFixture.uri)
@@ -433,7 +433,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
         terse << [true, false]
     }
 
-    @Unroll
+    @SafeUnroll
     def "fails verification is signature is not trusted (terse output=#terse)"() {
         def keyring = newKeyRing()
         keyServerFixture.registerPublicKey(keyring.publicKey)
@@ -481,7 +481,7 @@ If the artifacts are trustworthy, you will need to update the gradle/verificatio
         terse << [true, false]
     }
 
-    @Unroll
+    @SafeUnroll
     def "can verify classified artifacts trusting key #trustedKey"() {
         def keyring = newKeyRing()
         keyServerFixture.registerPublicKey(keyring.publicKey)
@@ -526,7 +526,7 @@ If the artifacts are trustworthy, you will need to update the gradle/verificatio
         ]
     }
 
-    @Unroll
+    @SafeUnroll
     def "reasonable error message if key server fails to answer (terse output=#terse)"() {
         createMetadataFile {
             keyServer(keyServerFixture.uri)
@@ -608,7 +608,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
         secondServer.stop()
     }
 
-    @Unroll
+    @SafeUnroll
     def "must verify all signatures (terse output=#terse)"() {
         def keyring = newKeyRing()
         keyServerFixture.withDefaultSigningKey()
@@ -657,7 +657,7 @@ If the artifacts are trustworthy, you will need to update the gradle/verificatio
         terse << [true, false]
     }
 
-    @Unroll
+    @SafeUnroll
     def "caches missing keys (terse output=#terse)"() {
         createMetadataFile {
             keyServer(keyServerFixture.uri)
@@ -802,7 +802,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
 
     // This test exercises the fact that the signature cache is aware
     // of changes of the artifact
-    @Unroll
+    @SafeUnroll
     @ToBeFixedForInstantExecution
     def "can detect tampered file between builds (terse output=#terse)"() {
         createMetadataFile {
@@ -857,7 +857,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
     }
 
     @ToBeFixedForInstantExecution
-    @Unroll
+    @SafeUnroll
     def "caching takes trusted keys into account (terse output=#terse)"() {
         createMetadataFile {
             keyServer(keyServerFixture.uri)
@@ -911,7 +911,7 @@ If the artifacts are trustworthy, you will need to update the gradle/verificatio
         terse << [true, false]
     }
 
-    @Unroll
+    @SafeUnroll
     def "unsigned artifacts require checksum verification (terse output=#terse)"() {
         createMetadataFile {
             keyServer(keyServerFixture.uri)
@@ -956,7 +956,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
         terse << [true, false]
     }
 
-    @Unroll
+    @SafeUnroll
     def "can ignore a key and fallback to checksum verification (terse output=#terse)"() {
         createMetadataFile {
             keyServer(keyServerFixture.uri)
@@ -996,7 +996,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
         terse << [true, false]
     }
 
-    @Unroll
+    @SafeUnroll
     def "can ignore a key using full fingerprint and fallback to checksum verification (terse output=#terse)"() {
         createMetadataFile {
             keyServer(keyServerFixture.uri)
@@ -1038,7 +1038,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
         terse << [true, false]
     }
 
-    @Unroll
+    @SafeUnroll
     def "can ignore a key for a specific artifact and fallback to checksum verification"() {
         // we tamper the jar, so the verification of the jar would fail, but not the POM
         keyServerFixture.withDefaultSigningKey()
@@ -1090,7 +1090,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
 
     }
 
-    @Unroll
+    @SafeUnroll
     def "can ignore a key by long id for a specific artifact and fallback to checksum verification (terse output=#terse)"() {
         // we tamper the jar, so the verification of the jar would fail, but not the POM
         keyServerFixture.withDefaultSigningKey()
@@ -1175,7 +1175,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
         noExceptionThrown()
     }
 
-    @Unroll
+    @SafeUnroll
     def "can collect multiple errors for single dependency (terse output=#terse)"() {
         def keyring = newKeyRing()
         keyServerFixture.registerPublicKey(keyring.publicKey)
@@ -1255,7 +1255,7 @@ If the artifacts are trustworthy, you will need to update the gradle/verificatio
         outputContains("Dependency verification is an incubating feature.")
     }
 
-    @Unroll
+    @SafeUnroll
     def "can mix globally trusted keys and artifact specific keys (trust artifact key = #addLocalKey)"() {
         def keyring = newKeyRing()
         keyServerFixture.registerPublicKey(keyring.publicKey)
@@ -1342,7 +1342,7 @@ If the artifacts are trustworthy, you will need to update the gradle/verificatio
 
     }
 
-    @Unroll
+    @SafeUnroll
     @UnsupportedWithInstantExecution
     def "can verify dependencies in a buildFinished hook (terse output=#terse)"() {
         createMetadataFile {

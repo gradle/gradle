@@ -24,7 +24,7 @@ import org.gradle.internal.state.ManagedFactory
 import org.gradle.util.TestUtil
 import org.gradle.util.TextUtil
 import org.spockframework.util.Assert
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class MapPropertySpec extends PropertySpec<Map<String, String>> {
 
@@ -995,7 +995,7 @@ The value of this property is derived from: <source>""")
         result2 == [k1: "value"]
     }
 
-    @Unroll
+    @SafeUnroll
     def "finalizes upstream properties when value read using #method and disallow unsafe reads"() {
         def a = property()
         def b = property()

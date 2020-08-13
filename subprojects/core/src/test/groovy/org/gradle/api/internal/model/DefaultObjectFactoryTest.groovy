@@ -25,7 +25,7 @@ import org.gradle.api.internal.provider.DefaultPropertyFactory
 import org.gradle.api.internal.provider.PropertyHost
 import org.gradle.internal.reflect.Instantiator
 import spock.lang.Specification
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class DefaultObjectFactoryTest extends Specification {
     def propertyFactory = new DefaultPropertyFactory(Stub(PropertyHost))
@@ -54,7 +54,7 @@ class DefaultObjectFactoryTest extends Specification {
         t.message == 'Class cannot be null'
     }
 
-    @Unroll
+    @SafeUnroll
     def "can create property with primitive type"() {
         given:
         def property = factory.property(type)
@@ -87,7 +87,7 @@ class DefaultObjectFactoryTest extends Specification {
         property.get().empty
     }
 
-    @Unroll
+    @SafeUnroll
     def "can create list property with primitive type"() {
         given:
         def property = factory.listProperty(type)
@@ -114,7 +114,7 @@ class DefaultObjectFactoryTest extends Specification {
         property.get().empty
     }
 
-    @Unroll
+    @SafeUnroll
     def "can create set property with primitive type"() {
         given:
         def property = factory.setProperty(type)
@@ -141,7 +141,7 @@ class DefaultObjectFactoryTest extends Specification {
         property.get().isEmpty()
     }
 
-    @Unroll
+    @SafeUnroll
     def "can create map property with primitive type"() {
         given:
         def property = factory.mapProperty(type, type)

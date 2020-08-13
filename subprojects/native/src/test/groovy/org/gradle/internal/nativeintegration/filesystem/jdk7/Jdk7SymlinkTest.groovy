@@ -22,7 +22,7 @@ import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
 import spock.lang.Specification
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 import static org.gradle.util.WindowsSymbolicLinkUtil.createWindowsHardLinks
 import static org.gradle.util.WindowsSymbolicLinkUtil.createWindowsJunction
@@ -44,7 +44,7 @@ class Jdk7SymlinkTest extends Specification {
         !new WindowsJdk7Symlink().isSymlinkCreationSupported()
     }
 
-    @Unroll
+    @SafeUnroll
     def 'deletes test files after symlink support test with #implementationClass'() {
         expect:
         listSymlinkTestFiles().findAll { !it.delete() }.empty

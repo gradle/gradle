@@ -26,7 +26,7 @@ import org.gradle.performance.fixture.BuildExperimentSpec
 import org.gradle.performance.measure.MeasuredOperation
 import org.gradle.test.fixtures.file.TestFile
 import org.junit.experimental.categories.Category
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 @Category(PerformanceRegressionTest)
 class BuildScanPluginPerformanceTest extends AbstractBuildScanPluginPerformanceTest {
@@ -38,7 +38,7 @@ class BuildScanPluginPerformanceTest extends AbstractBuildScanPluginPerformanceT
     public static final int WARMUPS = 10
     public static final int INVOCATIONS = 20
 
-    @Unroll
+    @SafeUnroll
     def "large java project with and without plugin application (#scenario)"() {
         given:
         def sourceProject = "javaProject"

@@ -18,7 +18,7 @@ package org.gradle.internal.featurelifecycle
 
 import spock.lang.Specification
 import spock.lang.Subject
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 import static SimulatedSingleMessageLogger.DIRECT_CALL
 import static SimulatedSingleMessageLogger.INDIRECT_CALL
@@ -27,7 +27,7 @@ import static SimulatedSingleMessageLogger.INDIRECT_CALL_2
 @Subject(FeatureUsage)
 class FeatureUsageTest extends Specification {
 
-    @Unroll
+    @SafeUnroll
     def "stack is evaluated correctly for #callLocationClass.simpleName and #expectedMessage."() {
         expect:
         !usage.stack.empty

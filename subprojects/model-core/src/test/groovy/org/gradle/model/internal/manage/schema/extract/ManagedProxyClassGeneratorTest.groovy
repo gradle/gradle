@@ -32,7 +32,7 @@ import org.gradle.model.internal.manage.instance.ModelElementState
 import org.gradle.model.internal.manage.schema.StructSchema
 import org.gradle.model.internal.type.ModelType
 import org.gradle.util.Matchers
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class ManagedProxyClassGeneratorTest extends ProjectRegistrySpec {
     static def generator = new ManagedProxyClassGenerator()
@@ -105,7 +105,7 @@ class ManagedProxyClassGeneratorTest extends ProjectRegistrySpec {
         !(impl instanceof ManagedInstance)
     }
 
-    @Unroll
+    @SafeUnroll
     def "only generates the requested boolean getter methods for type #type.simpleName"() {
         given:
         def impl = newNodeBackedInstance(type)
@@ -198,7 +198,7 @@ class ManagedProxyClassGeneratorTest extends ProjectRegistrySpec {
         !impl1.equals(impl2)
     }
 
-    @Unroll
+    @SafeUnroll
     def "mixes in unmanaged delegate from #managedType.simpleName"() {
         def node = Stub(MutableModelNode)
         def state = Mock(ModelElementState) {
@@ -660,7 +660,7 @@ class ManagedProxyClassGeneratorTest extends ProjectRegistrySpec {
         1 * state.get("value") >> Stub(SomeType)
     }
 
-    @Unroll
+    @SafeUnroll
     def "can read and write #value to managed property of type #primitiveType"() {
         def loader = new GroovyClassLoader(getClass().classLoader)
         when:
@@ -705,7 +705,7 @@ class ManagedProxyClassGeneratorTest extends ProjectRegistrySpec {
         double        | "123.456d"
     }
 
-    @Unroll
+    @SafeUnroll
     def "can read and write #value to managed property of type List<#scalarType>"() {
         def loader = new GroovyClassLoader(getClass().classLoader)
         when:

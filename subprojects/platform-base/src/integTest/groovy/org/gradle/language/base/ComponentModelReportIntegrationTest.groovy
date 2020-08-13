@@ -18,7 +18,7 @@ package org.gradle.language.base
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 @UnsupportedWithInstantExecution(because = "software model")
 class ComponentModelReportIntegrationTest extends AbstractIntegrationSpec {
@@ -167,7 +167,7 @@ class ComponentModelReportIntegrationTest extends AbstractIntegrationSpec {
             """.stripIndent().trim()
     }
 
-    @Unroll
+    @SafeUnroll
     def "components report for #componentType / #binaryType / #sourceType show all software components"() {
         given:
         buildFile << """

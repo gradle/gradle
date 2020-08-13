@@ -26,7 +26,7 @@ import org.gradle.test.fixtures.server.http.MavenHttpModule
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.junit.Rule
 import spock.lang.Issue
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
 
@@ -52,7 +52,7 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
         settingsFile << "rootProject.name = '$name'"
     }
 
-    @Unroll
+    @SafeUnroll
     @ToBeFixedForInstantExecution
     def "can publish to an unauthenticated http repo (with extra checksums = #extraChecksums)"() {
         given:
@@ -120,7 +120,7 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
     }
 
 
-    @Unroll
+    @SafeUnroll
     @ToBeFixedForInstantExecution
     def "can publish to authenticated repository using #authScheme auth"() {
         given:
@@ -151,7 +151,7 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
         authScheme << [AuthScheme.BASIC, AuthScheme.DIGEST, AuthScheme.NTLM]
     }
 
-    @Unroll
+    @SafeUnroll
     @ToBeFixedForInstantExecution
     def "reports failure publishing with wrong credentials using #authScheme"() {
         given:
@@ -173,7 +173,7 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
         authScheme << [AuthScheme.BASIC, AuthScheme.DIGEST, AuthScheme.NTLM]
     }
 
-    @Unroll
+    @SafeUnroll
     @ToBeFixedForInstantExecution
     def "reports failure when required credentials are not provided #authScheme"() {
         given:

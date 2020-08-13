@@ -18,14 +18,14 @@ package org.gradle.internal.reflect
 
 import spock.lang.Shared
 import spock.lang.Specification
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class DirectInstantiatorCacheTest extends Specification {
 
     @Shared
     def cache = new DirectInstantiator.ConstructorCache()
 
-    @Unroll("constructor cache returns the same constructors as 'getConstructors' for #clazz")
+    @SafeUnroll("constructor cache returns the same constructors as 'getConstructors' for #clazz")
     def "constructor cache returns the same constructors as 'getConstructors'"() {
         given:
         def constructor = null

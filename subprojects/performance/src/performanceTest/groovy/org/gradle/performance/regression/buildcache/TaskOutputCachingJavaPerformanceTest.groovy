@@ -28,7 +28,7 @@ import org.gradle.performance.generator.JavaTestProject
 import org.gradle.performance.mutator.ApplyAbiChangeToJavaSourceFileMutator
 import org.gradle.performance.mutator.ApplyNonAbiChangeToJavaSourceFileMutator
 import org.gradle.test.fixtures.keystore.TestKeyStore
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 import java.util.zip.GZIPInputStream
 import java.util.zip.GZIPOutputStream
@@ -36,7 +36,7 @@ import java.util.zip.GZIPOutputStream
 import static org.gradle.performance.generator.JavaTestProject.LARGE_JAVA_MULTI_PROJECT
 import static org.gradle.performance.generator.JavaTestProject.LARGE_MONOLITHIC_JAVA_PROJECT
 
-@Unroll
+@SafeUnroll
 class TaskOutputCachingJavaPerformanceTest extends AbstractTaskOutputCachingPerformanceTest {
 
     def setup() {

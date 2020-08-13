@@ -19,14 +19,14 @@ package org.gradle.model.dsl.internal.transform
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
 import org.gradle.model.dsl.internal.NonTransformedModelDslBacking
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 import static org.hamcrest.CoreMatchers.containsString
 
 @UnsupportedWithInstantExecution(because = "software model")
 class NestedModelDslUsageIntegrationSpec extends AbstractIntegrationSpec {
 
-    @Unroll
+    @SafeUnroll
     def "model block can be used in nested context in build script - #code"() {
         given:
         settingsFile << "include 'a', 'b'"
@@ -81,7 +81,7 @@ class NestedModelDslUsageIntegrationSpec extends AbstractIntegrationSpec {
         output.contains "strings: [foo]"
     }
 
-    @Unroll
+    @SafeUnroll
     def "model block rules in nested context cannot reference inputs using dollar method expressions - #code"() {
         given:
         settingsFile << "include 'a', 'b'"
@@ -114,7 +114,7 @@ class NestedModelDslUsageIntegrationSpec extends AbstractIntegrationSpec {
         ]
     }
 
-    @Unroll
+    @SafeUnroll
     def "model block rules in nested context cannot reference inputs using dollar path expressions - #code"() {
         given:
         settingsFile << "include 'a', 'b'"

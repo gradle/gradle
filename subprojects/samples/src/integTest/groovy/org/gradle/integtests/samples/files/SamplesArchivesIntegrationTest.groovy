@@ -20,14 +20,14 @@ import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample
 import org.junit.Rule
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class SamplesArchivesIntegrationTest extends AbstractSampleIntegrationTest {
 
     @Rule
     Sample sample = new Sample(testDirectoryProvider)
 
-    @Unroll
+    @SafeUnroll
     @UsesSample("files/copy")
     def "can archive a directory with #dsl dsl"() {
         given:
@@ -56,7 +56,7 @@ class SamplesArchivesIntegrationTest extends AbstractSampleIntegrationTest {
         dsl << ['groovy', 'kotlin']
     }
 
-    @Unroll
+    @SafeUnroll
     @UsesSample("files/archivesWithBasePlugin")
     def "can create an archive with a convention-based name with #dsl dsl"() {
         given:
@@ -85,7 +85,7 @@ class SamplesArchivesIntegrationTest extends AbstractSampleIntegrationTest {
         dsl << ['groovy', 'kotlin']
     }
 
-    @Unroll
+    @SafeUnroll
     @UsesSample("files/archives")
     def "can unpack a ZIP file with #dsl dsl"() {
         given:
@@ -105,7 +105,7 @@ class SamplesArchivesIntegrationTest extends AbstractSampleIntegrationTest {
         dsl << ['groovy', 'kotlin']
     }
 
-    @Unroll
+    @SafeUnroll
     @UsesSample("files/archivesWithJavaPlugin")
     def "can create an uber JAR with #dsl dsl"() {
         given:
@@ -128,7 +128,7 @@ class SamplesArchivesIntegrationTest extends AbstractSampleIntegrationTest {
         dsl << ['groovy', 'kotlin']
     }
 
-    @Unroll
+    @SafeUnroll
     @UsesSample("files/sampleJavaProject")
     def "can link tasks via their properties with #dsl dsl"() {
         given:

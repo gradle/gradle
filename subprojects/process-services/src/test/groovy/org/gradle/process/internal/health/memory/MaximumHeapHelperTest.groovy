@@ -17,11 +17,11 @@
 package org.gradle.process.internal.health.memory
 
 import spock.lang.Specification
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class MaximumHeapHelperTest extends Specification {
 
-    @Unroll
+    @SafeUnroll
     def "default max heap on IBM #testCase is #expected"() {
         expect:
         maximumHeapHelper.getDefaultMaximumHeapSize(osTotalMemory.bytes) == expected.bytes
@@ -37,7 +37,7 @@ class MaximumHeapHelperTest extends Specification {
         testCase = "JVM with ${osTotalMemory} OS total memory"
     }
 
-    @Unroll
+    @SafeUnroll
     def "default max heap on #testCase is #expected"() {
         expect:
         maximumHeapHelper.getDefaultMaximumHeapSize(osTotalMemory.bytes) == expected.bytes

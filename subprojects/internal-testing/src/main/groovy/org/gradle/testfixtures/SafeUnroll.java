@@ -25,6 +25,8 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
+ * Same functionality as {@code @Unroll}, but forbids duplicate test ids.
+ *
  * The intention of this annotation is to get rid of https://github.com/gradle/gradle/issues/8787
  */
 @Retention(RetentionPolicy.RUNTIME)

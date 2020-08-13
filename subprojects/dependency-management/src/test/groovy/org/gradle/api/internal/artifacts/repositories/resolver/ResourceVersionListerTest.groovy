@@ -25,7 +25,7 @@ import org.gradle.internal.resource.ExternalResource
 import org.gradle.internal.resource.ExternalResourceName
 import org.gradle.internal.resource.ExternalResourceRepository
 import spock.lang.Specification
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class ResourceVersionListerTest extends Specification {
 
@@ -87,7 +87,7 @@ class ResourceVersionListerTest extends Specification {
         !result.hasResult()
     }
 
-    @Unroll
+    @SafeUnroll
     def "resolves versions from pattern with '#testPattern'"() {
         def resource = Mock(ExternalResource)
 

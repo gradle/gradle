@@ -24,7 +24,7 @@ import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType
 import org.gradle.launcher.exec.RunBuildBuildOperationType
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 import java.util.regex.Pattern
 
@@ -43,7 +43,7 @@ class CompositeBuildBuildSrcBuildOperationsIntegrationTest extends AbstractCompo
         includedBuilds << buildB
     }
 
-    @Unroll
+    @SafeUnroll
     @ToBeFixedForInstantExecution
     def "generates configure, task graph and run tasks operations for buildSrc of included builds with #display"() {
         given:
@@ -131,7 +131,7 @@ class CompositeBuildBuildSrcBuildOperationsIntegrationTest extends AbstractCompo
         "rootProject.name='someLib'" | "configured root project name"
     }
 
-    @Unroll
+    @SafeUnroll
     @ToBeFixedForInstantExecution
     def "generates configure, task graph and run tasks operations when all builds have buildSrc with #display"() {
         given:

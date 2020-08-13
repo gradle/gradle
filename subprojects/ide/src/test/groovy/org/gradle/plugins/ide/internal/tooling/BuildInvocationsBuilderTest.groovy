@@ -27,7 +27,7 @@ import org.gradle.util.UsesNativeServices
 import org.junit.ClassRule
 import spock.lang.Shared
 import spock.lang.Specification
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 @UsesNativeServices
 @CleanupTestDirectory
@@ -94,7 +94,7 @@ class BuildInvocationsBuilderTest extends Specification {
         canBuild
     }
 
-    @Unroll("tasks and selectors for #startProject")
+    @SafeUnroll("tasks and selectors for #startProject")
     def "BuildInvocations model is created from tasks and task selectors for given project and its subprojects"() {
         given:
         def builder = new BuildInvocationsBuilder(new DefaultProjectTaskLister())

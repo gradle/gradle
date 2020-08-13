@@ -21,13 +21,13 @@ import com.amazonaws.regions.Regions
 import com.amazonaws.services.s3.model.Region
 import com.google.common.base.Optional
 import spock.lang.Specification
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 import static com.amazonaws.regions.Region.getRegion
 
 class S3RegionalResourceTest extends Specification {
 
-    @Unroll
+    @SafeUnroll
     def "should determine the aws region from virtual hosted urls"() {
         expect:
         S3RegionalResource regionalResource = new S3RegionalResource(uri)

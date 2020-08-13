@@ -24,7 +24,7 @@ import org.gradle.nativeplatform.fixtures.AvailableToolChains.InstalledToolChain
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.SharedLibraryFixture
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC)
 class SwiftLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
@@ -43,7 +43,7 @@ class SwiftLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
         swiftcToolChain.resetEnvironment()
     }
 
-    @Unroll
+    @SafeUnroll
     @ToBeFixedForInstantExecution(because = "swift-library plugin")
     def "creates sample source if no source present with #scriptDsl build scripts"() {
         when:
@@ -70,7 +70,7 @@ class SwiftLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
-    @Unroll
+    @SafeUnroll
     @ToBeFixedForInstantExecution(because = "swift-library plugin")
     def "creates sample source if project name is specified with #scriptDsl build scripts"() {
         when:
@@ -98,7 +98,7 @@ class SwiftLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
     }
 
 
-    @Unroll
+    @SafeUnroll
     @ToBeFixedForInstantExecution(because = "swift-library plugin")
     def "source generation is skipped when cpp sources detected with #scriptDsl build scripts"() {
         setup:
@@ -110,12 +110,12 @@ class SwiftLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
         targetDir.file("src/test/swift/HolaTests.swift") << """
             import XCTest
             @testable import Hello
-            
+
             class HolaTests: XCTestCase {
                 public static var allTests = [
                     ("testGreeting", testGreeting),
                 ]
-            
+
                 func testGreeting() {
                     XCTAssertEqual("Hola, Mundo!", hola())
                 }

@@ -17,12 +17,12 @@
 package org.gradle.instantexecution
 
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheOption
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 
 class InstantExecutionEnablingIntegrationTest extends AbstractInstantExecutionIntegrationTest {
 
-    @Unroll
+    @SafeUnroll
     def "can enable with a command line #origin"() {
 
         given:
@@ -99,7 +99,7 @@ class InstantExecutionEnablingIntegrationTest extends AbstractInstantExecutionIn
         fixture.assertStateLoaded()
     }
 
-    @Unroll
+    @SafeUnroll
     def "can disable with a command line #cliOrigin when enabled in gradle.properties"() {
 
         given:

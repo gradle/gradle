@@ -21,7 +21,7 @@ import org.gradle.api.logging.configuration.WarningMode
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler
 import org.gradle.util.GradleVersion
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
     public static final String PLUGIN_DEPRECATION_MESSAGE = 'The DeprecatedPlugin plugin has been deprecated'
@@ -70,7 +70,7 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
         """.stripIndent()
     }
 
-    @Unroll
+    @SafeUnroll
     def 'DeprecatedPlugin and DeprecatedTask - #scenario'() {
         given:
         buildFile << """
@@ -185,7 +185,7 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
         output.count('(Run with --stacktrace to get the full stack trace of this deprecation warning.)') == 1
     }
 
-    @Unroll
+    @SafeUnroll
     def 'DeprecatedPlugin from applied script - #scenario'() {
         given:
         file("project.gradle") << """
@@ -219,7 +219,7 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
         'with full stacktrace'    | true
     }
 
-    @Unroll
+    @SafeUnroll
     def 'DeprecatedPlugin from applied kotlin script - #scenario'() {
         given:
         file("project.gradle.kts") << """

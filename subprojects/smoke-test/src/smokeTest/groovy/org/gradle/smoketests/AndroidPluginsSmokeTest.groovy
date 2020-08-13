@@ -22,7 +22,7 @@ import org.gradle.testkit.runner.TaskOutcome
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.gradle.util.VersionNumber
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 
 /**
@@ -48,7 +48,7 @@ class AndroidPluginsSmokeTest extends AbstractSmokeTest {
         return 100
     }
 
-    @Unroll
+    @SafeUnroll
     @UnsupportedWithInstantExecution(iterationMatchers = [AGP_3_ITERATION_MATCHER, AGP_4_0_ITERATION_MATCHER])
     def "android library and application APK assembly (agp=#agpVersion, ide=#ide)"(
         String agpVersion, boolean ide

@@ -18,7 +18,7 @@ package org.gradle.plugin.use
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.util.GradleVersion
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 import static org.gradle.plugin.use.internal.DefaultPluginId.*
 import static org.gradle.plugin.use.internal.PluginRequestCollector.EMPTY_VALUE
@@ -167,7 +167,7 @@ class PluginUseDslIntegrationSpec extends AbstractIntegrationSpec {
         includesLinkToUserguide()
     }
 
-    @Unroll
+    @SafeUnroll
     def "illegal syntax in plugins block - #code"() {
         when:
         buildScript("""plugins {\n$code\n}""")
@@ -208,7 +208,7 @@ class PluginUseDslIntegrationSpec extends AbstractIntegrationSpec {
         2          | "getVersion()" /* script target api */ | BASE_MESSAGE
     }
 
-    @Unroll
+    @SafeUnroll
     def "allowed syntax in plugins block - #code"() {
         given:
         when:
@@ -236,7 +236,7 @@ class PluginUseDslIntegrationSpec extends AbstractIntegrationSpec {
         ]
     }
 
-    @Unroll
+    @SafeUnroll
     def "illegal value in plugins block - #code"() {
         when:
         buildScript("""plugins {\n$code\n}""")

@@ -23,7 +23,7 @@ import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
 import spock.lang.Issue
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 import static org.hamcrest.CoreMatchers.startsWith
 
@@ -31,7 +31,7 @@ class JUnitCategoriesIntegrationSpec extends AbstractSampleIntegrationTest {
 
     @Rule TestResources resources = new TestResources(temporaryFolder)
 
-    @Unroll
+    @SafeUnroll
     def 'reports unloadable #type'() {
         given:
         resources.maybeCopy("JUnitCategoriesIntegrationSpec/reportsUnloadableCategories")
@@ -116,7 +116,7 @@ public class MyTest {
         outputContains('MyTest > testMyMethod FAILED')
     }
 
-    @Unroll
+    @SafeUnroll
     @Issue('https://github.com/gradle/gradle/issues/4924')
     def "re-executes test when #type is changed"() {
         given:

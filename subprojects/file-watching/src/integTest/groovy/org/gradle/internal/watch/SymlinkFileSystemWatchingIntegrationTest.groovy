@@ -20,9 +20,9 @@ import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Ignore
 import spock.lang.Issue
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
-@Unroll
+@SafeUnroll
 @Requires(TestPrecondition.SYMLINKS)
 class SymlinkFileSystemWatchingIntegrationTest extends AbstractFileSystemWatchingIntegrationTest {
     private static final String UNABLE_TO_WATCH_MESSAGE = "Unable to watch the file system for changes."

@@ -22,7 +22,7 @@ import org.gradle.integtests.fixtures.cache.CachingIntegrationFixture
 import org.gradle.test.fixtures.maven.MavenFileModule
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import spock.lang.Issue
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificationIntegTest implements CachingIntegrationFixture {
 
@@ -45,7 +45,7 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
         output.contains("Dependency verification is an incubating feature.")
     }
 
-    @Unroll
+    @SafeUnroll
     def "warns if trying to generate with an unknown checksum type (#checksums)"() {
         when:
         writeVerificationMetadata(checksums)
@@ -63,7 +63,7 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
         ]
     }
 
-    @Unroll
+    @SafeUnroll
     def "warns if trying to generate only insecure #checksums checksums"() {
         when:
         writeVerificationMetadata(checksums)
@@ -113,7 +113,7 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
     }
 
     @ToBeFixedForInstantExecution
-    @Unroll
+    @SafeUnroll
     def "generates verification file for dependencies downloaded in previous build (stop in between = #stop)"() {
         given:
         javaLibrary()
@@ -753,7 +753,7 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
         }
     }
 
-    @Unroll
+    @SafeUnroll
     def "writes checksums for parent POMs downloaded in previous build (stop in between = #stop)"() {
         given:
         uncheckedModule("org", "foo", "1.0") {
@@ -807,7 +807,7 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
         stop << [true, false]
     }
 
-    @Unroll
+    @SafeUnroll
     def "doesn't write artifact metadata when metadata verification is disabled (gmm=#gmm)"() {
         createMetadataFile {
             noMetadataVerification()
@@ -1279,7 +1279,7 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
     }
 
     @Issue("https://github.com/gradle/gradle/issues/12260")
-    @Unroll
+    @SafeUnroll
     def "doesn't fail writing verification file if a #artifact file is missing from local store"() {
         javaLibrary()
         uncheckedModule("org", "foo")

@@ -44,7 +44,7 @@ import org.gradle.util.AttributeTestUtil
 import org.gradle.util.SnapshotTestUtil
 import org.gradle.util.TestUtil
 import spock.lang.Specification
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 import static com.google.common.collect.ImmutableList.copyOf
 import static org.gradle.util.TextUtil.toPlatformLineSeparators
@@ -86,7 +86,7 @@ class LocalComponentDependencyMetadataTest extends Specification {
         dep.selectConfigurations(attributes([:]), toComponent, attributesSchema, [] as Set) == [toConfig]
     }
 
-    @Unroll("selects configuration '#expected' from target component (#scenario)")
+    @SafeUnroll("selects configuration '#expected' from target component (#scenario)")
     def "selects the target configuration from target component which matches the attributes"() {
         def dep = new LocalComponentDependencyMetadata(componentId, Stub(ComponentSelector), "from", null, ImmutableAttributes.EMPTY, null, [] as List, [], false, false, true, false, false, null)
         def defaultConfig = defaultConfiguration()
@@ -190,7 +190,7 @@ Configuration 'bar':
   - Incompatible because this component declares attribute 'key' with value 'something else' and the consumer needed attribute 'key' with value 'something'""")
     }
 
-    @Unroll("selects configuration '#expected' from target component with Java proximity matching strategy (#scenario)")
+    @SafeUnroll("selects configuration '#expected' from target component with Java proximity matching strategy (#scenario)")
     def "selects the target configuration from target component with Java proximity matching strategy"() {
         def dep = new LocalComponentDependencyMetadata(componentId, Stub(ComponentSelector), "from", null, ImmutableAttributes.EMPTY, null, [] as List, [], false, false, true, false, false, null)
         def defaultConfig = defaultConfiguration()
@@ -260,7 +260,7 @@ Configuration 'bar':
 
     }
 
-    @Unroll("selects configuration '#expected' from target component with Java proximity matching strategy using short-hand notation (#scenario)")
+    @SafeUnroll("selects configuration '#expected' from target component with Java proximity matching strategy using short-hand notation (#scenario)")
     def "selects the target configuration from target component with Java proximity matching strategy using short-hand notation"() {
         def dep = new LocalComponentDependencyMetadata(componentId, Stub(ComponentSelector), "from", null, ImmutableAttributes.EMPTY, null, [] as List, [], false, false, true, false, false, null)
         def defaultConfig = defaultConfiguration()
@@ -390,7 +390,7 @@ Configuration 'bar':
         }
     }
 
-    @Unroll("can select a compatible attribute value (#scenario)")
+    @SafeUnroll("can select a compatible attribute value (#scenario)")
     def "can select a compatible attribute value"() {
         def dep = new LocalComponentDependencyMetadata(componentId, Stub(ComponentSelector), "from", null, ImmutableAttributes.EMPTY, null, [] as List, [], false, false, true, false, false, null)
         def defaultConfig = defaultConfiguration()

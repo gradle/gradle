@@ -20,13 +20,13 @@ import org.gradle.api.attributes.Usage
 import org.gradle.api.internal.attributes.MultipleCandidatesResult
 import org.gradle.util.TestUtil
 import spock.lang.Specification
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class PreferJavaRuntimeVariantTest extends Specification {
 
     final PreferJavaRuntimeVariant schema = new PreferJavaRuntimeVariant(TestUtil.objectInstantiator())
 
-    @Unroll
+    @SafeUnroll
     def "should prefer the runtime variant if the consumer doesn't express any preference and that runtime is in the candidates"() {
         given:
         def rule = schema.disambiguationRules(Usage.USAGE_ATTRIBUTE)

@@ -32,7 +32,7 @@ import org.gradle.util.AttributeTestUtil
 import org.gradle.util.TestUtil
 import org.junit.Rule
 import spock.lang.Specification
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 import static org.gradle.util.AttributeTestUtil.attributes
 
@@ -723,7 +723,7 @@ class GradleModuleMetadataParserTest extends Specification {
         0 * metadata._
     }
 
-    @Unroll
+    @SafeUnroll
     def "fails for missing #label"() {
         def metadata = Mock(MutableModuleComponentResolveMetadata)
 
@@ -828,7 +828,7 @@ class GradleModuleMetadataParserTest extends Specification {
         e.cause.message == "Expected BEGIN_ARRAY but was BEGIN_OBJECT at line 1 column 42 path \$.variants"
     }
 
-    @Unroll
+    @SafeUnroll
     def "is lenient with version checks if we manage to parse content (#label, version = #version)"() {
         def metadata = Mock(MutableModuleComponentResolveMetadata) {
             addVariant(_, _) >> Stub(MutableComponentVariant)

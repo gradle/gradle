@@ -35,7 +35,7 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.test.fixtures.work.TestWorkerLeaseService
 import org.junit.Rule
 import spock.lang.Specification
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 import java.util.concurrent.Executor
 
@@ -90,7 +90,7 @@ abstract class NativeCompilerTest extends Specification {
         args == [sourceFile.absoluteFile.toString()]
     }
 
-    @Unroll
+    @SafeUnroll
     def "output file directory honors output extension '#extension' and directory"() {
         given:
         def compiler = getCompiler()
@@ -140,7 +140,7 @@ abstract class NativeCompilerTest extends Specification {
         actualArgs == expectedArgs
     }
 
-    @Unroll("Compiles source files (options.txt=#withOptionsFile) with #description")
+    @SafeUnroll("Compiles source files (options.txt=#withOptionsFile) with #description")
     def "compiles all source files in separate executions"() {
         given:
         GradleThread.setManaged()

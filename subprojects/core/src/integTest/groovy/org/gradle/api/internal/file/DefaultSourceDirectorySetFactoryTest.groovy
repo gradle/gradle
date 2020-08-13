@@ -17,11 +17,11 @@
 package org.gradle.api.internal.file
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class DefaultSourceDirectorySetFactoryTest extends AbstractIntegrationSpec {
 
-    @Unroll
+    @SafeUnroll
     def "shows deprecation warning when #deprecatedMethodCall is called"() {
         given:
         settingsFile << "rootProject.name = 'parent'"

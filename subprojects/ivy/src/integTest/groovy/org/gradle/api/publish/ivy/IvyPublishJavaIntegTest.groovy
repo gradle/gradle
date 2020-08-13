@@ -21,7 +21,7 @@ import org.gradle.api.publish.ivy.internal.publication.DefaultIvyPublication
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.test.fixtures.ivy.IvyJavaModule
 import spock.lang.Issue
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
     IvyJavaModule javaLibrary = javaLibrary(ivyRepo.module("org.gradle.test", "publishTest", "1.9"))
@@ -74,7 +74,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         }
     }
 
-    @Unroll("'#gradleConfiguration' dependencies end up in '#ivyConfiguration' configuration with '#plugin' plugin")
+    @SafeUnroll("'#gradleConfiguration' dependencies end up in '#ivyConfiguration' configuration with '#plugin' plugin")
     @ToBeFixedForInstantExecution
     void "maps dependencies in the correct Ivy configuration"() {
         if (deprecatedConfiguration) {
@@ -743,7 +743,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         }
     }
 
-    @Unroll("'#requestedVersion' end up in '#expectedVersion' resolved version and '#requestedVersion' revConstraint")
+    @SafeUnroll("'#requestedVersion' end up in '#expectedVersion' resolved version and '#requestedVersion' revConstraint")
     @ToBeFixedForInstantExecution
     def "can publish java-library with revConstraint"() {
         requiresExternalDependencies = true
@@ -1175,7 +1175,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         outputContains "Ivy publication 'java' isn't attached to a component. Gradle metadata only supports publications with software components (e.g. from component.java)"
     }
 
-    @Unroll
+    @SafeUnroll
     @ToBeFixedForInstantExecution
     def "publishes Gradle metadata redirection marker when Gradle metadata task is enabled (enabled=#enabled)"() {
         given:
@@ -1205,7 +1205,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         true    | true
     }
 
-    @Unroll
+    @SafeUnroll
     @ToBeFixedForInstantExecution
     def "can publish feature variants (optional: #optional)"() {
         given:

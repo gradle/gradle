@@ -19,7 +19,7 @@ package org.gradle.caching
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestBuildCache
 import org.gradle.integtests.fixtures.executer.ExecutionResult
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class BuildCacheLocalCacheIntegrationTest extends AbstractIntegrationSpec {
 
@@ -102,7 +102,7 @@ class BuildCacheLocalCacheIntegrationTest extends AbstractIntegrationSpec {
         cached()
     }
 
-    @Unroll
+    @SafeUnroll
     def "remote loads are not cached locally if local cache is #state"() {
         given:
         settingsFile << """

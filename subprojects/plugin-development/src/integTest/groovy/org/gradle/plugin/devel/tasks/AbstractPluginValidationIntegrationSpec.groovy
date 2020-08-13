@@ -39,7 +39,7 @@ import org.gradle.api.tasks.options.OptionValues
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.reflect.TypeValidationContext
 import org.gradle.test.fixtures.file.TestFile
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 import javax.inject.Inject
 
@@ -133,7 +133,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         )
     }
 
-    @Unroll
+    @SafeUnroll
     def "task can have property with annotation @#annotation.simpleName"() {
         file("input.txt").text = "input"
         file("input").createDir()
@@ -179,7 +179,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         Nested            | '@Nested'                                                  | List           | "new ArrayList()"
     }
 
-    @Unroll
+    @SafeUnroll
     def "detects optional primitive type #type"() {
         javaTaskSource << """
             import org.gradle.api.*;
@@ -362,7 +362,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         assertValidationSucceeds()
     }
 
-    @Unroll
+    @SafeUnroll
     def "reports setters for property of mutable type #type"() {
         file("input.txt").text = "input"
 

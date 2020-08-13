@@ -19,7 +19,7 @@ package org.gradle.performance.regression.nativeplatform
 import org.gradle.initialization.ParallelismBuildOptions
 import org.gradle.performance.AbstractCrossVersionGradleInternalPerformanceTest
 import org.gradle.performance.mutator.AbstractFileChangeMutator
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class SwiftBuildPerformanceTest extends AbstractCrossVersionGradleInternalPerformanceTest {
 
@@ -29,7 +29,7 @@ class SwiftBuildPerformanceTest extends AbstractCrossVersionGradleInternalPerfor
         runner.args += ["--parallel", "--${ParallelismBuildOptions.MaxWorkersOption.LONG_OPTION}=6"]
     }
 
-    @Unroll
+    @SafeUnroll
     def "up-to-date assemble on #testProject"() {
         given:
         runner.testProject = testProject
@@ -48,7 +48,7 @@ class SwiftBuildPerformanceTest extends AbstractCrossVersionGradleInternalPerfor
         'bigSwiftApp'      | '1G'
     }
 
-    @Unroll
+    @SafeUnroll
     def "incremental compile on #testProject"() {
         given:
         runner.testProject = testProject

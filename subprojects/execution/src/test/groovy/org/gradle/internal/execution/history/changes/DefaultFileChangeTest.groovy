@@ -19,9 +19,9 @@ package org.gradle.internal.execution.history.changes
 
 import org.gradle.internal.file.FileType
 import spock.lang.Specification
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
-@Unroll
+@SafeUnroll
 class DefaultFileChangeTest extends Specification {
 
     def "change message for ChangeType MODIFIED from #previous to #current is '#message'"() {

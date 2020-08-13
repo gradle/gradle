@@ -42,7 +42,7 @@ import org.gradle.internal.resource.transport.http.HttpErrorStatusCodeException
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class ErrorHandlingModuleComponentRepositoryTest extends Specification {
 
@@ -83,7 +83,7 @@ class ErrorHandlingModuleComponentRepositoryTest extends Specification {
         }
     }
 
-    @Unroll("can list module versions (max retries = #maxRetries, exception=#exception)")
+    @SafeUnroll("can list module versions (max retries = #maxRetries, exception=#exception)")
     def "can list module versions"() {
         access = createAccess(maxRetries)
 
@@ -119,7 +119,7 @@ class ErrorHandlingModuleComponentRepositoryTest extends Specification {
         [maxRetries, exception, effectiveRetries] << retryCombinations()
     }
 
-    @Unroll("can resolve component meta data (max retries = #maxRetries, exception=#exception)")
+    @SafeUnroll("can resolve component meta data (max retries = #maxRetries, exception=#exception)")
     def "can resolve component meta data"() {
         access = createAccess(maxRetries)
 
@@ -155,7 +155,7 @@ class ErrorHandlingModuleComponentRepositoryTest extends Specification {
         [maxRetries, exception, effectiveRetries] << retryCombinations()
     }
 
-    @Unroll("can resolve artifacts with type (max retries = #maxRetries, exception=#exception)")
+    @SafeUnroll("can resolve artifacts with type (max retries = #maxRetries, exception=#exception)")
     def "can resolve artifacts with type"() {
         access = createAccess(maxRetries)
 
@@ -193,7 +193,7 @@ class ErrorHandlingModuleComponentRepositoryTest extends Specification {
         [maxRetries, exception, effectiveRetries] << retryCombinations()
     }
 
-    @Unroll("can resolve artifacts (max retries = #maxRetries, exception=#exception)")
+    @SafeUnroll("can resolve artifacts (max retries = #maxRetries, exception=#exception)")
     def "can resolve artifacts"() {
         access = createAccess(maxRetries)
 
@@ -231,7 +231,7 @@ class ErrorHandlingModuleComponentRepositoryTest extends Specification {
         [maxRetries, exception, effectiveRetries] << retryCombinations()
     }
 
-    @Unroll("can resolve artifact (max retries = #maxRetries, exception=#exception)")
+    @SafeUnroll("can resolve artifact (max retries = #maxRetries, exception=#exception)")
     def "can resolve artifact"() {
         access = createAccess(maxRetries)
 

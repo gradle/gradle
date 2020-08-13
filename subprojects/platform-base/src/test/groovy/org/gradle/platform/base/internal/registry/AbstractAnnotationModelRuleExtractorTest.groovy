@@ -38,7 +38,7 @@ import org.gradle.model.internal.inspect.MethodRuleDefinition
 import org.gradle.model.internal.method.WeaklyTypeReferencingMethod
 import org.gradle.model.internal.registry.ModelRegistry
 import org.gradle.model.internal.type.ModelType
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 import java.lang.annotation.Annotation
 import java.lang.reflect.Method
@@ -52,7 +52,7 @@ public abstract class AbstractAnnotationModelRuleExtractorTest extends ProjectRe
 
     abstract Class<?> getRuleClass();
 
-    @Unroll
+    @SafeUnroll
     def "handles methods annotated with @#annotationName"() {
         when:
         1 * ruleDefinition.isAnnotationPresent(annotation) >> false

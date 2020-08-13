@@ -100,15 +100,15 @@ dependencies {
     }
 
     @ToBeFixedForInstantExecution(because = "gradle/instant-execution#270")
-    def 'can run spock with @Unroll'() {
+    def 'can run spock with @SafeUnroll'() {
         given:
         writeSpockDependencies()
         file('src/test/groovy/UnrollTest.groovy') << '''
 import spock.lang.Specification
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class UnrollTest extends Specification {
-    @Unroll
+    @SafeUnroll
     def "can test #type"() {
         expect: type
 

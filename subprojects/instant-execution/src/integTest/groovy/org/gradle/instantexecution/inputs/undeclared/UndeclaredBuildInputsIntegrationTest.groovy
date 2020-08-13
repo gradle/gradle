@@ -20,12 +20,12 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.instantexecution.AbstractInstantExecutionIntegrationTest
 import spock.lang.Issue
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 import java.util.function.Supplier
 
 class UndeclaredBuildInputsIntegrationTest extends AbstractInstantExecutionIntegrationTest {
-    @Unroll
+    @SafeUnroll
     def "reports build logic reading a system property set #mechanism.description via the Java API"() {
         buildFile << """
             // not declared
@@ -49,7 +49,7 @@ class UndeclaredBuildInputsIntegrationTest extends AbstractInstantExecutionInteg
     }
 
     @Issue("https://github.com/gradle/gradle/issues/13569")
-    @Unroll
+    @SafeUnroll
     def "reports build logic reading system properties using GString parameters - #expression"() {
         buildFile << """
             def ci = "ci"
@@ -86,7 +86,7 @@ class UndeclaredBuildInputsIntegrationTest extends AbstractInstantExecutionInteg
     }
 
     @Issue("https://github.com/gradle/gradle/issues/13652")
-    @Unroll
+    @SafeUnroll
     def "reports build logic reading system properties with null defaults - #expression"() {
         buildFile << """
             println "CI1 = " + $expression
@@ -118,7 +118,7 @@ class UndeclaredBuildInputsIntegrationTest extends AbstractInstantExecutionInteg
         'Long.getLong("CI1", null)'       | "123"     | "123"
     }
 
-    @Unroll
+    @SafeUnroll
     def "reports buildSrc build logic and tasks reading a system property set #mechanism.description via the Java API"() {
         def buildSrcBuildFile = file("buildSrc/build.gradle")
         buildSrcBuildFile << """
@@ -146,7 +146,7 @@ class UndeclaredBuildInputsIntegrationTest extends AbstractInstantExecutionInteg
         mechanism << SystemPropertyInjection.all("CI", "false")
     }
 
-    @Unroll
+    @SafeUnroll
     def "build logic can read system property with no value without declaring access and loading fails when value set using #mechanism.description"() {
         file("buildSrc/src/main/java/SneakyPlugin.java") << """
             import ${Project.name};
@@ -189,7 +189,7 @@ class UndeclaredBuildInputsIntegrationTest extends AbstractInstantExecutionInteg
         mechanism << SystemPropertyInjection.all("CI", "false")
     }
 
-    @Unroll
+    @SafeUnroll
     def "build logic can read system property with a default using #read.javaExpression without declaring access"() {
         file("buildSrc/src/main/java/SneakyPlugin.java") << """
             import ${Project.name};
@@ -245,7 +245,7 @@ class UndeclaredBuildInputsIntegrationTest extends AbstractInstantExecutionInteg
         SystemPropertyRead.longGetLongWithLongDefault("CI", 123)                    | "123"        | "456"
     }
 
-    @Unroll
+    @SafeUnroll
     def "build logic can read standard system property #prop without declaring access"() {
         file("buildSrc/src/main/java/SneakyPlugin.java") << """
             import ${Project.name};

@@ -17,7 +17,7 @@
 package org.gradle.api.publish.ivy
 
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class IvyPublishFeaturesJavaIntegTest extends AbstractIvyPublishFeaturesJavaIntegTest {
 
@@ -40,11 +40,11 @@ class IvyPublishFeaturesJavaIntegTest extends AbstractIvyPublishFeaturesJavaInte
                 }
                 compileClasspath.extendsFrom(optionalFeatureImplementation)
             }
-            
+
             dependencies {
                 optionalFeatureImplementation 'org:optionaldep:1.0'
             }
-            
+
             components.java.addVariantsFromConfiguration(configurations.optionalFeatureRuntimeElements) {
                 mapToOptional()
             }
@@ -104,7 +104,7 @@ class IvyPublishFeaturesJavaIntegTest extends AbstractIvyPublishFeaturesJavaInte
                     outgoing.capability("org:optional-feature1:\${version}")
                 }
                 compileClasspath.extendsFrom(optionalFeature1Implementation)
-                
+
                 optionalFeature2Implementation
                 optionalFeature2RuntimeElements {
                     extendsFrom optionalFeature2Implementation
@@ -117,13 +117,13 @@ class IvyPublishFeaturesJavaIntegTest extends AbstractIvyPublishFeaturesJavaInte
                 }
                 compileClasspath.extendsFrom(optionalFeature2Implementation)
             }
-            
+
             dependencies {
                 optionalFeature1Implementation 'org:optionaldep-g1:1.0'
                 optionalFeature2Implementation 'org:optionaldep1-g2:1.0'
                 optionalFeature2Implementation 'org:optionaldep2-g2:1.0'
             }
-            
+
             components.java.addVariantsFromConfiguration(configurations.optionalFeature1RuntimeElements) {
                 mapToOptional()
             }
@@ -162,7 +162,7 @@ class IvyPublishFeaturesJavaIntegTest extends AbstractIvyPublishFeaturesJavaInte
         resolveRuntimeArtifacts(javaLibrary) { expectFiles "publishTest-1.9.jar" }
     }
 
-    @Unroll("publish java-library with feature with additional artifact #id (#optionalFeatureFileName)")
+    @SafeUnroll("publish java-library with feature with additional artifact #id (#optionalFeatureFileName)")
     @ToBeFixedForInstantExecution
     def "publish java-library with feature with additional artifact"() {
         ivyRepo.module('org', 'optionaldep', '1.0').withModuleMetadata().publish()
@@ -182,23 +182,23 @@ class IvyPublishFeaturesJavaIntegTest extends AbstractIvyPublishFeaturesJavaInte
                 }
                 compileClasspath.extendsFrom(optionalFeatureImplementation)
             }
-            
+
             dependencies {
                 optionalFeatureImplementation 'org:optionaldep:1.0'
             }
-            
+
             components.java.addVariantsFromConfiguration(configurations.optionalFeatureRuntimeElements) {
                 mapToOptional()
             }
-            
-            artifacts {     
+
+            artifacts {
                 if ('$classifier' == 'null') {
                     optionalFeatureRuntimeElements file:file("\$buildDir/$optionalFeatureFileName"), builtBy:'touchFile'
                 } else {
                     optionalFeatureRuntimeElements file:file("\$buildDir/$optionalFeatureFileName"), builtBy:'touchFile', classifier: '$classifier'
                 }
             }
-            
+
             task touchFile {
                 doLast {
                     file("\$buildDir/$optionalFeatureFileName") << "test"
@@ -278,15 +278,15 @@ class IvyPublishFeaturesJavaIntegTest extends AbstractIvyPublishFeaturesJavaInte
                 }
                 compileClasspath.extendsFrom(optionalFeatureImplementation)
             }
-            
+
             dependencies {
                 optionalFeatureImplementation 'org:optionaldep:1.0'
             }
-            
+
             components.java.addVariantsFromConfiguration(configurations.optionalFeatureRuntimeElements) {
                 mapToOptional()
             }
-            
+
             def alt = configurations.optionalFeatureRuntimeElements.outgoing.variants.create("alternate")
             alt.attributes {
                 attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, 'java-runtime-alt'))
@@ -294,7 +294,7 @@ class IvyPublishFeaturesJavaIntegTest extends AbstractIvyPublishFeaturesJavaInte
             def altFile = file("\${buildDir}/\${name}-\${version}-alt.jar")
             task createFile { doFirst { altFile.parentFile.mkdirs(); altFile.text = "test file" } }
             alt.artifact(file:altFile, builtBy: 'createFile')
-            
+
         """
 
         when:
@@ -354,19 +354,19 @@ class IvyPublishFeaturesJavaIntegTest extends AbstractIvyPublishFeaturesJavaInte
                 }
                 compileClasspath.extendsFrom(optionalFeatureImplementation)
             }
-            
+
             dependencies {
                 optionalFeatureImplementation 'org:optionaldep:1.0'
             }
-            
+
             components.java.addVariantsFromConfiguration(configurations.optionalFeatureRuntimeElements) {
                 if (it.configurationVariant.name != 'alternate') {
                     skip()
                 } else {
                     mapToOptional()
-                } 
+                }
             }
-            
+
             def alt = configurations.optionalFeatureRuntimeElements.outgoing.variants.create("alternate")
             alt.attributes {
                 attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, 'java-runtime'))
@@ -374,7 +374,7 @@ class IvyPublishFeaturesJavaIntegTest extends AbstractIvyPublishFeaturesJavaInte
             def altFile = file("\${buildDir}/\${name}-\${version}-alt.jar")
             task createFile { doFirst { altFile.parentFile.mkdirs(); altFile.text = "test file" } }
             alt.artifact(file:altFile, builtBy: 'createFile')
-            
+
         """
 
         when:

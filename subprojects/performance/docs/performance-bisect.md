@@ -42,12 +42,12 @@ For our example, let's assume we want to track down a performance regression for
 We modify `RealWorldNativePluginPerformanceTest` to only include the test we are interested in:
 ```java
     @Ignore
-    @Unroll("Project '#testProject' measuring incremental build speed")
+    @SafeUnroll("Project '#testProject' measuring incremental build speed")
     def "build real world native project"() {
 ...
 }
 
-    @Unroll('Project #buildSize native build #changeType')
+    @SafeUnroll('Project #buildSize native build #changeType')
     def "build with changes"(String buildSize, String changeType, Amount<Duration> maxExecutionTimeRegression, String changedFile, Closure changeClosure) {
 ...
         runner.maxExecutionTimeRegression = maxExecutionTimeRegression

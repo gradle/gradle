@@ -35,7 +35,7 @@ import org.gradle.nativeplatform.internal.DefaultFlavorContainer
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 @Subject(NameValidator)
 class NameValidatorTest extends Specification {
@@ -55,7 +55,7 @@ class NameValidatorTest extends Specification {
         IncubationLogger.reset()
     }
 
-    @Unroll
+    @SafeUnroll
     def "tasks are not allowed to be named '#name'"() {
         when:
         def project = Mock(ProjectInternal) {
@@ -75,7 +75,7 @@ class NameValidatorTest extends Specification {
         name << invalidNames
     }
 
-    @Unroll
+    @SafeUnroll
     def "#objectType are not allowed to be named '#name'"() {
         when:
         domainObjectContainer.create(name)

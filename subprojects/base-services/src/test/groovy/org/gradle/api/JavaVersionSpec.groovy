@@ -19,7 +19,7 @@ package org.gradle.api
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 import spock.lang.Specification
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class JavaVersionSpec extends Specification {
     private static final BigInteger TOO_BIG = (BigInteger.valueOf(Integer.MAX_VALUE)).add(BigInteger.ONE)
@@ -172,7 +172,7 @@ class JavaVersionSpec extends Specification {
         }
     }
 
-    @Unroll
+    @SafeUnroll
     def "uses system property to determine if compatible with Java #versionString"() {
         System.properties['java.version'] = versionString
 

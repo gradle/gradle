@@ -22,7 +22,7 @@ import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class GradleBuildTaskIntegrationTest extends AbstractIntegrationSpec {
 
@@ -90,7 +90,7 @@ class GradleBuildTaskIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause("Included build $testDirectory has build path :bp which is the same as included build $testDirectory")
     }
 
-    @Unroll
+    @SafeUnroll
     @ToBeFixedForInstantExecution(because = "GradleBuild task")
     def "shows deprecation warning when accessing #displayName when configuring GradleBuild task"() {
         given:

@@ -19,7 +19,7 @@ import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.resolve.JvmLibraryArtifactResolveTestFixture
 import org.gradle.test.fixtures.maven.MavenRepository
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class MavenJvmLibraryArtifactResolutionIntegrationTest extends AbstractHttpDependencyResolutionTest {
     def repo = mavenHttpRepo
@@ -92,7 +92,7 @@ repositories {
         checkArtifactsResolvedAndCached()
     }
 
-    @Unroll
+    @SafeUnroll
     @ToBeFixedForInstantExecution
     def "fetches missing snapshot artifacts #condition"() {
         buildFile << """
@@ -147,7 +147,7 @@ if (project.hasProperty('nocache')) {
         "when snapshot pom changes" | "-Pnocache"
     }
 
-    @Unroll
+    @SafeUnroll
     @ToBeFixedForInstantExecution
     def "updates snapshot artifacts #condition"() {
         buildFile << """

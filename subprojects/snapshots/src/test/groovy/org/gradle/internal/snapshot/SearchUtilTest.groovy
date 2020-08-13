@@ -17,9 +17,9 @@
 package org.gradle.internal.snapshot
 
 import spock.lang.Specification
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
-@Unroll
+@SafeUnroll
 class SearchUtilTest extends Specification {
 
     def "search for #searchedChild in #sortedChildren is #expectedResult"() {

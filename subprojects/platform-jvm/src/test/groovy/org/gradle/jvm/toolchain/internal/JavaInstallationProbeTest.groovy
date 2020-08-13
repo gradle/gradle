@@ -24,7 +24,7 @@ import org.gradle.process.internal.JavaExecAction
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import spock.lang.Specification
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 import static org.gradle.jvm.toolchain.internal.JavaInstallationProbe.InstallType.*
 
@@ -32,7 +32,7 @@ class JavaInstallationProbeTest extends Specification {
     @Rule
     TemporaryFolder temporaryFolder
 
-    @Unroll("Can probe version of #jdk is #displayName")
+    @SafeUnroll("Can probe version of #jdk is #displayName")
     def "probes java installation"() {
         given:
         def execFactory = Mock(ExecActionFactory)

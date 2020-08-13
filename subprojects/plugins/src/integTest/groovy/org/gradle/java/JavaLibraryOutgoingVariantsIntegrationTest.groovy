@@ -18,7 +18,7 @@ package org.gradle.java
 
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class JavaLibraryOutgoingVariantsIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
@@ -148,7 +148,7 @@ project(':consumer') {
         outputContains("main (project :java) {artifactType=java-classes-directory, org.gradle.category=library, org.gradle.dependency.bundling=external, ${defaultTargetPlatform()}, org.gradle.libraryelements=classes, org.gradle.usage=java-api}")
     }
 
-    @Unroll
+    @SafeUnroll
     def "provides runtime variant - format: #format"() {
         buildFile << """
             project(':consumer') {

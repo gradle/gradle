@@ -23,11 +23,11 @@ import org.gradle.api.internal.tasks.properties.PropertyWalker
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import spock.lang.Issue
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class TaskInputFilePropertiesIntegrationTest extends AbstractIntegrationSpec {
 
-    @Unroll
+    @SafeUnroll
     def "allows optional @#annotation.simpleName to have null value"() {
         buildFile << """
             import ${GetInputFilesVisitor.name}
@@ -59,7 +59,7 @@ class TaskInputFilePropertiesIntegrationTest extends AbstractIntegrationSpec {
         annotation << [ InputFile, InputDirectory, InputFiles ]
     }
 
-    @Unroll
+    @SafeUnroll
     @Issue("https://github.com/gradle/gradle/issues/3193")
     @ToBeFixedForInstantExecution(because = "multiple build failures")
     def "TaskInputs.#method shows error message when used with complex input"() {
@@ -86,7 +86,7 @@ class TaskInputFilePropertiesIntegrationTest extends AbstractIntegrationSpec {
         "file" | "file"
     }
 
-    @Unroll
+    @SafeUnroll
     @ToBeFixedForInstantExecution(because = "multiple build failures")
     def "#annotation.simpleName shows error message when used with complex input"() {
         buildFile << """
@@ -178,7 +178,7 @@ class TaskInputFilePropertiesIntegrationTest extends AbstractIntegrationSpec {
             class FooTask extends DefaultTask {
                @InputFiles
                FileCollection bar
-               
+
                @TaskAction
                def go() {
                }

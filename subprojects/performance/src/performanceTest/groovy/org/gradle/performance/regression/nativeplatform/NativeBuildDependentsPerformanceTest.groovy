@@ -17,7 +17,7 @@
 package org.gradle.performance.regression.nativeplatform
 
 import org.gradle.performance.AbstractCrossVersionGradleProfilerPerformanceTest
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class NativeBuildDependentsPerformanceTest extends AbstractCrossVersionGradleProfilerPerformanceTest {
 
@@ -26,7 +26,7 @@ class NativeBuildDependentsPerformanceTest extends AbstractCrossVersionGradlePro
         runner.minimumBaseVersion = "4.0"
     }
 
-    @Unroll
+    @SafeUnroll
     def "#task on #testProject"() {
         given:
         runner.testProject = testProject
@@ -50,7 +50,7 @@ class NativeBuildDependentsPerformanceTest extends AbstractCrossVersionGradlePro
         // 'nativeDependentsDeep' | 'libA0:buildDependentsLibA0'
     }
 
-    @Unroll
+    @SafeUnroll
     def "#subprojectPath:dependentComponents on #testProject"() {
         given:
         runner.testProject = testProject

@@ -16,7 +16,8 @@
 
 package org.gradle.plugins.signing.signatory.pgp
 
-import spock.lang.*
+import org.gradle.testfixtures.SafeUnroll
+import spock.lang.Specification
 
 class PgpKeyIdSpec extends Specification  {
 
@@ -29,8 +30,8 @@ class PgpKeyIdSpec extends Specification  {
         key("ABCDABCD").asHex == "ABCDABCD"
     }
 
-    @Unroll
-    def "conversion"() {
+    @SafeUnroll
+    def "conversion #hex"() {
         expect:
         key(hex).asLong == decimal
         key(decimal).asHex == hex

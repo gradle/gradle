@@ -17,7 +17,7 @@
 package org.gradle.testing.junitplatform
 
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 import static org.hamcrest.CoreMatchers.containsString
 import static org.gradle.testing.fixture.JUnitCoverage.LATEST_JUPITER_VERSION
@@ -118,7 +118,7 @@ public class LifecycleTest {
         'annotations' | ''                                                         | '@TestInstance(Lifecycle.PER_CLASS)'
     }
 
-    @Unroll
+    @SafeUnroll
     def 'can perform nested tests with #maxParallelForks'() {
         given:
         buildFile << """

@@ -17,11 +17,11 @@
 package org.gradle.internal.util
 
 import spock.lang.Specification
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 import static org.gradle.internal.util.Alignment.Kind.identical
 
-@Unroll
+@SafeUnroll
 class AlignmentTest extends Specification {
     def "sequences #left and #right are identical"() {
         given:

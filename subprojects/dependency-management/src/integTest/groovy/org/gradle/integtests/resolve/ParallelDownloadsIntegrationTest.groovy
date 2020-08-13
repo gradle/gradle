@@ -20,7 +20,7 @@ import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
 import spock.lang.Issue
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class ParallelDownloadsIntegrationTest extends AbstractHttpDependencyResolutionTest {
     @Rule
@@ -32,7 +32,7 @@ class ParallelDownloadsIntegrationTest extends AbstractHttpDependencyResolutionT
 
     String getAuthConfig() { '' }
 
-    @Unroll
+    @SafeUnroll
     def "downloads artifacts in parallel from a Maven repo - #expression"() {
         def m1 = mavenRepo.module('test', 'test1', '1.0').publish()
         def m2 = mavenRepo.module('test', 'test2', '1.0').publish()
@@ -41,7 +41,7 @@ class ParallelDownloadsIntegrationTest extends AbstractHttpDependencyResolutionT
 
         buildFile << """
             repositories {
-                maven { 
+                maven {
                     url = uri('$server.uri')
                     $authConfig
                 }
@@ -94,7 +94,7 @@ class ParallelDownloadsIntegrationTest extends AbstractHttpDependencyResolutionT
 
         buildFile << """
             repositories {
-                ivy { 
+                ivy {
                     url = uri('$server.uri')
                     $authConfig
                 }
@@ -139,7 +139,7 @@ class ParallelDownloadsIntegrationTest extends AbstractHttpDependencyResolutionT
 
         buildFile << """
             repositories {
-                maven { 
+                maven {
                     url = uri('$server.uri')
                     $authConfig
                 }
@@ -198,21 +198,21 @@ class ParallelDownloadsIntegrationTest extends AbstractHttpDependencyResolutionT
 
         buildFile << """
             repositories {
-                ivy { 
+                ivy {
                     url = uri('$server.uri')
                     $authConfig
                 }
             }
-            
+
             configurations { compile }
             def lock = new java.util.concurrent.locks.ReentrantLock()
-            
+
             dependencies {
                 compile 'test:test1:1.0'
                 compile 'test:test2:1.0'
                 compile 'test:test3:1.0'
                 compile 'test:test4:1.0'
-                
+
                 components {
                     all { ComponentMetadataDetails details ->
                         if (!lock.tryLock()) {
@@ -276,18 +276,18 @@ class ParallelDownloadsIntegrationTest extends AbstractHttpDependencyResolutionT
 
         buildFile << """
             repositories {
-                maven { 
+                maven {
                     url = uri('$server.uri')
                     $authConfig
                 }
             }
 
             configurations { compile }
-            dependencies { 
-                compile 'org:child1:1.0' 
-                compile 'org:child2:1.0'    
+            dependencies {
+                compile 'org:child1:1.0'
+                compile 'org:child2:1.0'
             }
-            
+
             task resolve {
                inputs.files configurations.compile
                   doLast {

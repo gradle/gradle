@@ -17,7 +17,7 @@
 package org.gradle.caching.internal.packaging.impl
 
 import org.gradle.internal.file.Deleter
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 import static org.gradle.internal.file.TreeType.FILE
 
@@ -32,7 +32,7 @@ class TarBuildCacheEntryPackerPermissionTest extends AbstractTarBuildCacheEntryP
         Mock(Deleter)
     }
 
-    @Unroll
+    @SafeUnroll
     def "can pack single file with file mode #mode"() {
         def sourceOutputFile = Spy(File, constructorArgs: [temporaryFolder.file("source.txt").absolutePath]) as File
         sourceOutputFile << "output"

@@ -19,7 +19,7 @@ package org.gradle.api
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import spock.lang.IgnoreIf
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 // Ignored for file system watching since the test
 //  - takes very long
@@ -70,7 +70,7 @@ abstract class AbstractDomainObjectContainerIntegrationTest extends AbstractInte
         ]
     }
 
-    @Unroll
+    @SafeUnroll
     def "can execute query method #queryMethod.key from configureEach"() {
         buildFile << """
             testContainer.configureEach {
@@ -86,7 +86,7 @@ abstract class AbstractDomainObjectContainerIntegrationTest extends AbstractInte
         queryMethod << getQueryMethods()
     }
 
-    @Unroll
+    @SafeUnroll
     def "can execute query method #queryMethod.key from withType.configureEach"() {
         buildFile << """
             testContainer.withType(testContainer.type).configureEach {
@@ -102,7 +102,7 @@ abstract class AbstractDomainObjectContainerIntegrationTest extends AbstractInte
         queryMethod << getQueryMethods()
     }
 
-    @Unroll
+    @SafeUnroll
     def "can execute query method #queryMethod.key from matching.configureEach"() {
         buildFile << """
             testContainer.matching({ it in testContainer.type }).configureEach {
@@ -118,7 +118,7 @@ abstract class AbstractDomainObjectContainerIntegrationTest extends AbstractInte
         queryMethod << getQueryMethods()
     }
 
-    @Unroll
+    @SafeUnroll
     def "can execute query method #queryMethod.key from Provider.configure"() {
         buildFile << """
             toBeRealized.configure {
@@ -134,7 +134,7 @@ abstract class AbstractDomainObjectContainerIntegrationTest extends AbstractInte
         queryMethod << getQueryMethods()
     }
 
-    @Unroll
+    @SafeUnroll
     def "can execute query method #queryMethod.key from Provider.configure (realized)"() {
         buildFile << """
             realized.configure {
@@ -184,7 +184,7 @@ abstract class AbstractDomainObjectContainerIntegrationTest extends AbstractInte
         ]
     }
 
-    @Unroll
+    @SafeUnroll
     def "cannot execute mutation method #mutationMethod.key from configureEach"() {
         buildFile << """
             testContainer.configureEach {
@@ -201,7 +201,7 @@ abstract class AbstractDomainObjectContainerIntegrationTest extends AbstractInte
         mutationMethod << getMutationMethods()
     }
 
-    @Unroll
+    @SafeUnroll
     def "cannot execute mutation method #mutationMethod.key from withType.configureEach"() {
         buildFile << """
             testContainer.withType(testContainer.type).configureEach {
@@ -218,7 +218,7 @@ abstract class AbstractDomainObjectContainerIntegrationTest extends AbstractInte
         mutationMethod << getMutationMethods()
     }
 
-    @Unroll
+    @SafeUnroll
     def "cannot execute mutation method #mutationMethod.key from matching.configureEach"() {
         buildFile << """
             testContainer.matching({ it in testContainer.type }).configureEach {
@@ -235,7 +235,7 @@ abstract class AbstractDomainObjectContainerIntegrationTest extends AbstractInte
         mutationMethod << getMutationMethods()
     }
 
-    @Unroll
+    @SafeUnroll
     def "cannot execute mutation method #mutationMethod.key from Provider.configure"() {
         buildFile << """
             toBeRealized.configure {
@@ -252,7 +252,7 @@ abstract class AbstractDomainObjectContainerIntegrationTest extends AbstractInte
         mutationMethod << getMutationMethods()
     }
 
-    @Unroll
+    @SafeUnroll
     def "cannot execute mutation method #mutationMethod.key from Provider.configure (realized)"() {
         buildFile << """
             realized.configure {
@@ -269,7 +269,7 @@ abstract class AbstractDomainObjectContainerIntegrationTest extends AbstractInte
         mutationMethod << getMutationMethods()
     }
 
-    @Unroll
+    @SafeUnroll
     def "cannot execute mutation method #mutationMethod.key from register"() {
         buildFile << """
             testContainer.register("a") {
@@ -285,7 +285,7 @@ abstract class AbstractDomainObjectContainerIntegrationTest extends AbstractInte
         mutationMethod << getMutationMethods()
     }
 
-    @Unroll
+    @SafeUnroll
     def "can execute query and mutating methods #method.key from all"() {
         buildFile << """
             testContainer.all {
@@ -302,7 +302,7 @@ abstract class AbstractDomainObjectContainerIntegrationTest extends AbstractInte
         method << getQueryMethods() + getMutationMethods()
     }
 
-    @Unroll
+    @SafeUnroll
     def "can execute query and mutating methods #method.key from withType.all"() {
         buildFile << """
             testContainer.withType(testContainer.type).all {
@@ -319,7 +319,7 @@ abstract class AbstractDomainObjectContainerIntegrationTest extends AbstractInte
         method << getQueryMethods() + getMutationMethods()
     }
 
-    @Unroll
+    @SafeUnroll
     def "can execute query and mutation methods #method.key from getByName"() {
         buildFile << """
             testContainer.getByName("realized") {
@@ -334,7 +334,7 @@ abstract class AbstractDomainObjectContainerIntegrationTest extends AbstractInte
         method << getQueryMethods() + getMutationMethods()
     }
 
-    @Unroll
+    @SafeUnroll
     def "can execute query and mutation methods #method.key from withType.getByName"() {
         buildFile << """
             testContainer.withType(testContainer.type).getByName("realized") {
@@ -349,7 +349,7 @@ abstract class AbstractDomainObjectContainerIntegrationTest extends AbstractInte
         method << getQueryMethods() + getMutationMethods()
     }
 
-    @Unroll
+    @SafeUnroll
     def "can execute query and mutating methods #method.key from create(String)"() {
         buildFile << """
             testContainer.create("a") {

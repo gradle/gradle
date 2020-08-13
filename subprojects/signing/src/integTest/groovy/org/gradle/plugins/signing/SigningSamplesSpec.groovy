@@ -23,7 +23,7 @@ import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.util.Requires
 import org.junit.Rule
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class SigningSamplesSpec extends AbstractSampleIntegrationTest {
     @Rule
@@ -33,7 +33,7 @@ class SigningSamplesSpec extends AbstractSampleIntegrationTest {
         using m2
     }
 
-    @Unroll
+    @SafeUnroll
     @UsesSample('signing/maven')
     @ToBeFixedForInstantExecution
     def "upload attaches signatures with dsl #dsl"() {
@@ -54,7 +54,7 @@ class SigningSamplesSpec extends AbstractSampleIntegrationTest {
         dsl << ['groovy', 'kotlin']
     }
 
-    @Unroll
+    @SafeUnroll
     @UsesSample('signing/conditional')
     @ToBeFixedForInstantExecution
     def "conditional signing with dsl #dsl"() {
@@ -75,7 +75,7 @@ class SigningSamplesSpec extends AbstractSampleIntegrationTest {
         dsl << ['groovy', 'kotlin']
     }
 
-    @Unroll
+    @SafeUnroll
     @UsesSample('signing/gnupg-signatory')
     @Requires(adhoc = { GpgCmdFixture.getAvailableGpg() != null })
     @ToBeFixedForInstantExecution
@@ -100,7 +100,7 @@ class SigningSamplesSpec extends AbstractSampleIntegrationTest {
         dsl << ['groovy', 'kotlin']
     }
 
-    @Unroll
+    @SafeUnroll
     @UsesSample('signing/maven-publish')
     @ToBeFixedForInstantExecution
     def "publish attaches signatures with dsl #dsl"() {
@@ -138,7 +138,7 @@ class SigningSamplesSpec extends AbstractSampleIntegrationTest {
         dsl << ['groovy', 'kotlin']
     }
 
-    @Unroll
+    @SafeUnroll
     @UsesSample('signing/in-memory')
     @ToBeFixedForInstantExecution
     def "uses in-memory PGP keys with dsl #dsl"() {
@@ -160,7 +160,7 @@ class SigningSamplesSpec extends AbstractSampleIntegrationTest {
         dsl << ['groovy', 'kotlin']
     }
 
-    @Unroll
+    @SafeUnroll
     @UsesSample('signing/in-memory-subkey')
     @ToBeFixedForInstantExecution
     def "uses in-memory PGP subkeys with dsl #dsl"() {

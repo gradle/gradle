@@ -24,7 +24,7 @@ import org.gradle.test.matchers.UserAgentMatcher
 import org.gradle.util.GUtil
 import org.gradle.util.GradleVersion
 import spock.lang.Issue
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class HttpScriptPluginIntegrationSpec extends AbstractIntegrationSpec {
     @org.junit.Rule
@@ -273,7 +273,7 @@ task check {
         succeeds 'check'
     }
 
-    @Unroll
+    @SafeUnroll
     def "will not download cached #source resource when run with --offline"() {
         given:
         def scriptName = "script-offline.gradle"
@@ -312,7 +312,7 @@ task check {
         "initscript"  | "init.gradle"
     }
 
-    @Unroll
+    @SafeUnroll
     @ToBeFixedForInstantExecution(because = "remote scripts skipped")
     def "can recover from failure to download cached #source resource by running with --offline"() {
         given:

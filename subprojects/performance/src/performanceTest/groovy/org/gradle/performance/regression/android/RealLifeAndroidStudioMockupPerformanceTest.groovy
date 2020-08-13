@@ -17,11 +17,11 @@
 package org.gradle.performance.regression.android
 
 import org.gradle.performance.AbstractAndroidStudioMockupCrossVersionPerformanceTest
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class RealLifeAndroidStudioMockupPerformanceTest extends AbstractAndroidStudioMockupCrossVersionPerformanceTest {
 
-    @Unroll
+    @SafeUnroll
     def "get IDE model on #testProject for Android Studio"() {
         given:
 

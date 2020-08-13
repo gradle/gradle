@@ -19,7 +19,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.fact
 import org.gradle.internal.component.model.DefaultIvyArtifactName
 import spock.lang.Shared
 import spock.lang.Specification
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class NormalizingExcludeFactoryTest extends Specification implements ExcludeTestSupport {
 
@@ -30,7 +30,7 @@ class NormalizingExcludeFactoryTest extends Specification implements ExcludeTest
     @Shared
     private DefaultIvyArtifactName artifactName = new DefaultIvyArtifactName("a", "b", "c")
 
-    @Unroll("#left ∪ #right = #expected")
+    @SafeUnroll("#left ∪ #right = #expected")
     def "union of two elements"() {
         expect:
         factory.anyOf(left, right) == expected
@@ -80,7 +80,7 @@ class NormalizingExcludeFactoryTest extends Specification implements ExcludeTest
 
     }
 
-    @Unroll("#one ∪ #two ∪ #three = #expected")
+    @SafeUnroll("#one ∪ #two ∪ #three = #expected")
     def "union of three elements"() {
         expect:
         [one, two, three].combinations().each { list ->
@@ -96,7 +96,7 @@ class NormalizingExcludeFactoryTest extends Specification implements ExcludeTest
         group("foo") | group("bar") | group("baz") | groupSet("foo", "bar", "baz")
     }
 
-    @Unroll("#left ∩ #right = #expected")
+    @SafeUnroll("#left ∩ #right = #expected")
     def "intersection of two elements"() {
         expect:
         factory.allOf(left, right) == expected
@@ -117,7 +117,7 @@ class NormalizingExcludeFactoryTest extends Specification implements ExcludeTest
         moduleSet("m1", "m2", "m3")        | moduleSet("m1", "m3") | moduleSet("m1", "m3")
     }
 
-    @Unroll("#one ∩ #two ∩ #three = #expected")
+    @SafeUnroll("#one ∩ #two ∩ #three = #expected")
     def "intersection of three elements"() {
         expect:
         [one, two, three].combinations().each { list ->

@@ -20,7 +20,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 import static org.gradle.language.java.JavaIntegrationTesting.applyJavaPlugin
 import static org.gradle.language.java.JavaIntegrationTesting.expectJavaLangPluginDeprecationWarnings
@@ -29,7 +29,7 @@ import static org.gradle.util.TextUtil.normaliseLineSeparators
 @UnsupportedWithInstantExecution(because = "software model")
 class JavaLanguageDependencyResolutionIntegrationTest extends AbstractIntegrationSpec {
 
-    @Unroll
+    @SafeUnroll
     def "can resolve #scope level dependency on local library"() {
         given:
         applyJavaPlugin(buildFile, executer)
@@ -130,7 +130,7 @@ model {
         failure.assertHasDescription('Circular dependency between the following tasks')
     }
 
-    @Unroll
+    @SafeUnroll
     def "should fail if library doesn't exist (#scope)"() {
         given:
         applyJavaPlugin(buildFile, executer)
@@ -164,7 +164,7 @@ model {
         scope << DependencyScope.values()
     }
 
-    @Unroll
+    @SafeUnroll
     def "can resolve #scope level dependency on a different project library"() {
         given:
         applyJavaPlugin(buildFile, executer)
@@ -261,7 +261,7 @@ model {
         failure.assertHasCause("Project ':sub' not found.")
     }
 
-    @Unroll
+    @SafeUnroll
     def "should fail if project exists but not library (#scope)"() {
         given:
         applyJavaPlugin(buildFile, executer)
@@ -312,7 +312,7 @@ model {
         scope << DependencyScope.values()
     }
 
-    @Unroll
+    @SafeUnroll
     def "should display the list of candidate libraries in case a library is not found (#scope)"() {
         given:
         applyJavaPlugin(buildFile, executer)
@@ -364,7 +364,7 @@ model {
         scope << DependencyScope.values()
     }
 
-    @Unroll
+    @SafeUnroll
     def "can resolve #scope level dependencies on a different projects"() {
         given:
         applyJavaPlugin(buildFile, executer)
@@ -423,7 +423,7 @@ model {
         scope << DependencyScope.values()
     }
 
-    @Unroll
+    @SafeUnroll
     def "should fail and display the list of candidate libraries in case a library is required but multiple candidates available (#scope)"() {
         given:
         applyJavaPlugin(buildFile, executer)
@@ -555,7 +555,7 @@ model {
         failure.assertHasCause("Project ':dep' doesn't define any library.")
     }
 
-    @Unroll
+    @SafeUnroll
     def "compile classpath for #mainScope dependency #excludesOrIncludes transitive #libScope dependency"() {
         given:
         applyJavaPlugin(buildFile, executer)
@@ -909,7 +909,7 @@ model {
         executedAndNotSkipped(':b:mainApiJar')
     }
 
-    @Unroll
+    @SafeUnroll
     def "should choose appropriate Java variants for #scope level dependency"() {
         given:
         applyJavaPlugin(buildFile, executer)
@@ -1103,7 +1103,7 @@ model {
         ))
     }
 
-    @Unroll
+    @SafeUnroll
     def "should choose matching variants from #scope level dependency"() {
         given:
         applyJavaPlugin(buildFile, executer)
@@ -1306,7 +1306,7 @@ model {
         """
     }
 
-    @Unroll
+    @SafeUnroll
     def "collects all errors if there's more than one resolution failure for #scope level dependencies"() {
         given:
         applyJavaPlugin(buildFile, executer)

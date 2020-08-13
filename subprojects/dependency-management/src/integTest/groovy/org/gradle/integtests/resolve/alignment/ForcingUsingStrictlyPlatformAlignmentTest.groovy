@@ -22,7 +22,7 @@ import org.gradle.integtests.fixtures.publish.RemoteRepositorySpec
 import org.gradle.test.fixtures.server.http.MavenHttpModule
 import spock.lang.IgnoreIf
 import spock.lang.Issue
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 @IgnoreIf({
     // This test is very expensive due to the permutation testing.
@@ -84,7 +84,7 @@ class ForcingUsingStrictlyPlatformAlignmentTest extends AbstractAlignmentSpec {
         }
     }
 
-    @Unroll
+    @SafeUnroll
     def "fails if forcing a virtual platform version by forcing multiple leaves with different versions"() {
         repository {
             ['2.7.9', '2.9.4', '2.9.4.1'].each {

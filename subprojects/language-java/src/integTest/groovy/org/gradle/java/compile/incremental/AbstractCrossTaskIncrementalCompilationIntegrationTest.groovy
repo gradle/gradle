@@ -22,7 +22,7 @@ import org.gradle.integtests.fixtures.CompilationOutputsFixture
 import org.gradle.integtests.fixtures.CompiledLanguage
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import spock.lang.Issue
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 abstract class AbstractCrossTaskIncrementalCompilationIntegrationTest extends AbstractJavaGroovyIncrementalCompilationSupport {
     CompilationOutputsFixture impl
@@ -309,7 +309,7 @@ abstract class AbstractCrossTaskIncrementalCompilationIntegrationTest extends Ab
     }
 
 
-    @Unroll
+    @SafeUnroll
     @NotYetImplemented
     //  Can re-enable with compiler plugins. See gradle/gradle#1474
     def "change in an upstream class with non-private constant causes rebuild only if same constant is used and no direct dependency (#constantType)"() {
@@ -336,7 +336,7 @@ abstract class AbstractCrossTaskIncrementalCompilationIntegrationTest extends Ab
         'String'     | '"foo" + "bar"'
     }
 
-    @Unroll
+    @SafeUnroll
     @NotYetImplemented
     //  Can re-enable with compiler plugins. See gradle/gradle#1474
     def "constant value change in an upstream class causes rebuild if previous constant value was used in previous build (#constantType)"() {
@@ -740,7 +740,7 @@ abstract class AbstractCrossTaskIncrementalCompilationIntegrationTest extends Ab
         impl.recompiledClasses("A")
     }
 
-    @Unroll
+    @SafeUnroll
     def "recompiles outermost class when #visibility inner class contains constant reference"() {
         source api: [
             "class A { public static final int EVIL = 666; }",
@@ -794,7 +794,7 @@ abstract class AbstractCrossTaskIncrementalCompilationIntegrationTest extends Ab
         impl.recompiledClasses("OnClass", "OnMethod", "OnParameter", "OnField")
     }
 
-    @Unroll
+    @SafeUnroll
     @ToBeFixedForInstantExecution(
         bottomSpecs = [
             "CrossTaskIncrementalGroovyCompilationUsingClassDirectoryIntegrationTest",
@@ -833,7 +833,7 @@ abstract class AbstractCrossTaskIncrementalCompilationIntegrationTest extends Ab
         impl.recompiledClasses("OnClass", "OnMethod", "OnParameter", "OnField")
     }
 
-    @Unroll
+    @SafeUnroll
     @ToBeFixedForInstantExecution(
         bottomSpecs = [
             "CrossTaskIncrementalGroovyCompilationUsingClassDirectoryIntegrationTest",

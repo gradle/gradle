@@ -21,7 +21,7 @@ import org.gradle.internal.logging.text.TestStyledTextOutputFactory
 import org.gradle.util.TextUtil
 import spock.lang.Specification
 import spock.lang.Subject
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 @Subject(TaskExecutionStatisticsReporter)
 class TaskExecutionStatisticsReporterTest extends Specification {
@@ -53,7 +53,7 @@ class TaskExecutionStatisticsReporterTest extends Specification {
         TextUtil.normaliseLineSeparators(textOutputFactory as String) == "{org.gradle.internal.buildevents.TaskExecutionStatisticsReporter}{LIFECYCLE}1 actionable task: 1 executed\n"
     }
 
-    @Unroll
+    @SafeUnroll
     def "reports only task counts > 0 (exec: #executed, from cache: #fromCache, up-to-date #upToDate)"() {
         when:
         reporter.buildFinished(new TaskExecutionStatistics(executed, fromCache, upToDate))

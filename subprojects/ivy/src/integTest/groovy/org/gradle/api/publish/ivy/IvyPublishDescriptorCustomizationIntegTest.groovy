@@ -18,7 +18,7 @@ package org.gradle.api.publish.ivy
 
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.test.fixtures.ivy.IvyDescriptor
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 import javax.xml.namespace.QName
 
@@ -184,7 +184,7 @@ class IvyPublishDescriptorCustomizationIntegTest extends AbstractIvyPublishInteg
         failure.assertHasCause("Invalid publication 'ivy': supplied revision does not match ivy descriptor (cannot edit revision directly in the ivy descriptor file).")
     }
 
-    @Unroll
+    @SafeUnroll
     def "produces sensible error with invalid extra info elements" () {
         buildFile << """
             publishing {
@@ -213,7 +213,7 @@ class IvyPublishDescriptorCustomizationIntegTest extends AbstractIvyPublishInteg
         '1foo'      | _
      }
 
-    @Unroll
+    @SafeUnroll
     def "produces sensible error with extra info containing null values" () {
         buildFile << """
             publishing {

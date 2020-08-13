@@ -22,7 +22,7 @@ import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 import spock.lang.IgnoreIf
 import spock.lang.Issue
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class PropertiesLoaderIntegrationTest extends AbstractIntegrationSpec {
     @Rule SetSystemProperties systemProperties = new SetSystemProperties()
@@ -199,7 +199,7 @@ task printSystemProp {
         executer.withArguments("--stop", "--info").run()
     }
 
-    @Unroll
+    @SafeUnroll
     @Issue("https://github.com/gradle/gradle/issues/12122")
     def "build property with invalid property name ('#property') does not fail the build"() {
         given:

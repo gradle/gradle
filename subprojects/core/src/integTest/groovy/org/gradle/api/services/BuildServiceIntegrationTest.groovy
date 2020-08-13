@@ -37,7 +37,7 @@ import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.process.ExecOperations
 import org.junit.runner.RunWith
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 import javax.inject.Inject
 
@@ -533,7 +533,7 @@ class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
         outputContains("service: closed with value 12")
     }
 
-    @Unroll
+    @SafeUnroll
     def "can inject Gradle provided service #serviceType into build service"() {
         serviceWithInjectedService(serviceType)
         buildFile << """
@@ -561,7 +561,7 @@ class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
         ].collect { it.name }
     }
 
-    @Unroll
+    @SafeUnroll
     def "cannot inject Gradle provided service #serviceType into build service"() {
         serviceWithInjectedService(serviceType.name)
         buildFile << """
@@ -613,7 +613,7 @@ class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
         dest.file
     }
 
-    @Unroll
+    @SafeUnroll
     def "task cannot use build service for #annotationType property"() {
         serviceImplementation()
         buildFile << """

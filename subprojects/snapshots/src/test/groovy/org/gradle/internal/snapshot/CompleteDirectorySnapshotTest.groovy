@@ -19,11 +19,11 @@ package org.gradle.internal.snapshot
 import org.gradle.internal.file.FileMetadata.AccessType
 import org.gradle.internal.file.FileType
 import org.gradle.internal.hash.HashCode
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 import static org.gradle.internal.snapshot.CaseSensitivity.CASE_SENSITIVE
 
-@Unroll
+@SafeUnroll
 class CompleteDirectorySnapshotTest extends AbstractSnapshotWithChildrenTest<FileSystemNode, CompleteFileSystemLocationSnapshot> {
     @Override
     protected FileSystemNode createInitialRootNode(String pathToParent, List<CompleteFileSystemLocationSnapshot> children) {

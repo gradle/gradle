@@ -18,7 +18,7 @@ package org.gradle.performance.regression.nativeplatform
 
 import org.gradle.performance.AbstractCrossVersionGradleProfilerPerformanceTest
 import org.gradle.profiler.mutations.ApplyChangeToNativeSourceFileMutator
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class NativeBuildPerformanceTest extends AbstractCrossVersionGradleProfilerPerformanceTest {
     def setup() {
@@ -26,7 +26,7 @@ class NativeBuildPerformanceTest extends AbstractCrossVersionGradleProfilerPerfo
         runner.targetVersions = ["6.7-20200806220106+0000"]
     }
 
-    @Unroll
+    @SafeUnroll
     def "up-to-date assemble on #testProject"() {
         given:
         runner.testProject = testProject
@@ -45,7 +45,7 @@ class NativeBuildPerformanceTest extends AbstractCrossVersionGradleProfilerPerfo
         "bigCppMulti"      | '1g'
     }
 
-    @Unroll
+    @SafeUnroll
     def "assemble with #changeType file change on #testProject"() {
         given:
         runner.testProject = testProject

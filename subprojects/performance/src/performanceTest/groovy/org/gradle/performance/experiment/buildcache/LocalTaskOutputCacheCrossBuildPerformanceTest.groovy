@@ -22,7 +22,7 @@ import org.gradle.profiler.InvocationSettings
 import org.gradle.profiler.mutations.AbstractCleanupMutator
 import org.gradle.profiler.mutations.ClearBuildCacheMutator
 import org.junit.experimental.categories.Category
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 import static org.gradle.integtests.tooling.fixture.TextUtil.escapeString
 import static org.gradle.performance.generator.JavaTestProject.LARGE_JAVA_MULTI_PROJECT
@@ -31,7 +31,7 @@ import static org.gradle.performance.generator.JavaTestProject.LARGE_MONOLITHIC_
 @Category(PerformanceExperiment)
 class LocalTaskOutputCacheCrossBuildPerformanceTest extends AbstractCrossBuildPerformanceTest {
 
-    @Unroll
+    @SafeUnroll
     def "#tasks on #testProject with local cache (build comparison)"() {
         def noPushInitScript = temporaryFolder.file("no-push.gradle")
         noPushInitScript << """

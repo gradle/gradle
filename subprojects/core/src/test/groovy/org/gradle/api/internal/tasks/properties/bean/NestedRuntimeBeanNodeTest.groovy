@@ -20,10 +20,10 @@ import org.gradle.api.Action
 import org.gradle.util.ClosureBackedAction
 import org.gradle.util.ConfigureUtil
 import spock.lang.Specification
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class NestedRuntimeBeanNodeTest extends Specification {
-    @Unroll
+    @SafeUnroll
     def "correct implementation for #type coerced to Action is tracked"() {
         expect:
         NestedRuntimeBeanNode.getImplementationClass(implementation as Action) == implementation.getClass()

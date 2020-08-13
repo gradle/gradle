@@ -20,7 +20,7 @@ package org.gradle.api.tasks
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Ignore
 import spock.lang.Issue
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
     private static final String CUSTOM_TASK_WITH_CONSTRUCTOR_ARGS = """
@@ -697,7 +697,7 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause("Unable to determine constructor argument #1: missing parameter of type String, or no service of type String")
     }
 
-    @Unroll
+    @SafeUnroll
     def "fails when #description constructor argument is wrong type"() {
         given:
         buildFile << CUSTOM_TASK_WITH_CONSTRUCTOR_ARGS
@@ -716,7 +716,7 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         'last'      | '"abc", "123"'  | 2              | 'int'
     }
 
-    @Unroll
+    @SafeUnroll
     def "fails to create when null passed as a constructor argument value at #position"() {
         given:
         buildFile << CUSTOM_TASK_WITH_CONSTRUCTOR_ARGS
@@ -877,7 +877,7 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         return "$description on ${target} cannot be executed in the current context."
     }
 
-    @Unroll
+    @SafeUnroll
     def "cannot execute #description during lazy task creation action execution"() {
         settingsFile << "include 'nested'"
         buildFile << """
@@ -895,7 +895,7 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         [description, code] << INVALID_CALL_FROM_LAZY_CONFIGURATION
     }
 
-    @Unroll
+    @SafeUnroll
     def "can execute #description during task creation action execution"() {
         settingsFile << "include 'nested'"
         buildFile << """
@@ -911,7 +911,7 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         [description, code] << INVALID_CALL_FROM_LAZY_CONFIGURATION
     }
 
-    @Unroll
+    @SafeUnroll
     def "cannot execute #description during lazy task configuration action execution"() {
         settingsFile << "include 'nested'"
         buildFile << """
@@ -929,7 +929,7 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         [description, code] << INVALID_CALL_FROM_LAZY_CONFIGURATION
     }
 
-    @Unroll
+    @SafeUnroll
     def "can execute #description during task configuration action execution"() {
         settingsFile << "include 'nested'"
         buildFile << """
@@ -946,7 +946,7 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         [description, code] << INVALID_CALL_FROM_LAZY_CONFIGURATION
     }
 
-    @Unroll
+    @SafeUnroll
     def "cannot execute #description on another project during lazy task creation action execution"() {
         settingsFile << "include 'nested', 'other'"
         buildFile << """
@@ -966,7 +966,7 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         [description, code] << INVALID_CALL_FROM_LAZY_CONFIGURATION
     }
 
-    @Unroll
+    @SafeUnroll
     def "can execute #description on another project during task creation action execution"() {
         settingsFile << "include 'nested', 'other'"
         buildFile << """
@@ -984,7 +984,7 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         [description, code] << INVALID_CALL_FROM_LAZY_CONFIGURATION
     }
 
-    @Unroll
+    @SafeUnroll
     def "cannot execute #description on another project during lazy task configuration action execution"() {
         settingsFile << "include 'nested', 'other'"
         buildFile << """
@@ -1004,7 +1004,7 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         [description, code] << INVALID_CALL_FROM_LAZY_CONFIGURATION
     }
 
-    @Unroll
+    @SafeUnroll
     def "can execute #description on another project during task configuration action execution"() {
         settingsFile << "include 'nested', 'other'"
         buildFile << """
@@ -1023,7 +1023,7 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         [description, code] << INVALID_CALL_FROM_LAZY_CONFIGURATION
     }
 
-    @Unroll
+    @SafeUnroll
     def "can execute #description during eager configuration action with registered task"() {
         buildFile << """
             tasks.withType(SomeTask) {
@@ -1184,7 +1184,7 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         outputContains("bar named(String, Class, Action) 12345")
     }
 
-    @Unroll
+    @SafeUnroll
     def "gets useful message when using improper type for named using #api"() {
         buildFile << """
             class CustomTask extends DefaultTask {

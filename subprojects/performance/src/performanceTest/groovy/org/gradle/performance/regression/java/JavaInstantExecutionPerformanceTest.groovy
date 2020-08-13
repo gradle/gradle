@@ -24,7 +24,7 @@ import org.gradle.performance.fixture.BuildExperimentListener
 import org.gradle.performance.fixture.BuildExperimentListenerAdapter
 import org.gradle.performance.measure.MeasuredOperation
 import org.junit.experimental.categories.Category
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 import java.nio.file.Files
 
@@ -41,7 +41,7 @@ class JavaInstantExecutionPerformanceTest extends AbstractCrossVersionGradleInte
         stateDirectory = temporaryFolder.file(".gradle/configuration-cache")
     }
 
-    @Unroll
+    @SafeUnroll
     def "assemble on #testProject #action instant execution state with #daemon daemon"() {
 
         given:

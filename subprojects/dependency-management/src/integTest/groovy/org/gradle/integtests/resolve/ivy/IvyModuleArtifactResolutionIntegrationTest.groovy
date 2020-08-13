@@ -22,7 +22,7 @@ import org.gradle.integtests.resolve.MetadataArtifactResolveTestFixture
 import org.gradle.internal.resolve.ArtifactResolveException
 import org.gradle.test.fixtures.ivy.IvyRepository
 import org.gradle.test.fixtures.server.http.IvyHttpModule
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class IvyModuleArtifactResolutionIntegrationTest extends AbstractHttpDependencyResolutionTest {
     private MetadataArtifactResolveTestFixture fixture
@@ -58,7 +58,7 @@ repositories {
         checkArtifactsResolvedAndCached()
     }
 
-    @Unroll
+    @SafeUnroll
     @ToBeFixedForInstantExecution
     def "invalid component type and artifact type (#reason)"() {
         given:
@@ -157,7 +157,7 @@ repositories {
         checkArtifactsResolvedAndCached()
     }
 
-    @Unroll
+    @SafeUnroll
     @ToBeFixedForInstantExecution
     def "updates artifacts for module #condition"() {
         given:

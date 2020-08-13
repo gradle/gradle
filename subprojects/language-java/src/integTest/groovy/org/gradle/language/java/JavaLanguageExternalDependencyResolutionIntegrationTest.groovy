@@ -18,7 +18,7 @@ package org.gradle.language.java
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 import static org.gradle.language.java.JavaIntegrationTesting.applyJavaPlugin
 
@@ -39,7 +39,7 @@ class JavaLanguageExternalDependencyResolutionIntegrationTest extends AbstractIn
         file('src/main/java/TestApp.java') << 'public class TestApp {}'
     }
 
-    @Unroll
+    @SafeUnroll
     def "can resolve dependency on library in maven repository using #description"() {
         given:
         def module = mavenRepo.module("org.gradle", "test").publish()

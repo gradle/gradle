@@ -39,7 +39,7 @@ class ReproducibleArchivesTestExtension extends AbstractAnnotationDrivenExtensio
     void visitSpec(SpecInfo spec) {
         spec.features.each { FeatureInfo feature ->
             feature.interceptors.find { it instanceof ReproducibleArchivesInterceptor }.each { ReproducibleArchivesInterceptor interceptor ->
-                // Add the name provider as late as possible to capture name providers from other extensions (e.g. @Unroll)
+                // Add the name provider as late as possible to capture name providers from other extensions (e.g. @SafeUnroll)
                 feature.iterationNameProvider = interceptor.nameProvider(feature.iterationNameProvider)
             }
         }

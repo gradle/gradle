@@ -20,7 +20,7 @@ import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.test.fixtures.file.TestFile
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 import java.nio.file.Files
 
@@ -45,7 +45,7 @@ class UndefinedBuildExecutionIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    @Unroll
+    @SafeUnroll
     @ToBeFixedForInstantExecution(iterationMatchers = ".*tasks task.*")
     def "shows deprecation warning when executing #task task in undefined build"() {
         expect:
@@ -68,7 +68,7 @@ class UndefinedBuildExecutionIntegrationTest extends AbstractIntegrationSpec {
         result.assertTaskExecuted(":buildSrc:jar")
     }
 
-    @Unroll
+    @SafeUnroll
     def "does not shows deprecation warning when executing #flag in undefined build"() {
         when:
         executer.requireDaemon().requireIsolatedDaemons()

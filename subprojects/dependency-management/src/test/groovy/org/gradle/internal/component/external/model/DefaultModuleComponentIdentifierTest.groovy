@@ -19,7 +19,7 @@ package org.gradle.internal.component.external.model
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import spock.lang.Specification
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 import static org.gradle.util.Matchers.strictlyEquals
 
@@ -36,7 +36,7 @@ class DefaultModuleComponentIdentifierTest extends Specification {
         defaultModuleComponentIdentifier.toString() == 'some-group:some-name:1.0'
     }
 
-    @Unroll
+    @SafeUnroll
     def "is instantiated with null constructor parameter values (#group, #name, #version)"() {
         when:
         new DefaultModuleComponentIdentifier(DefaultModuleIdentifier.newId(group, name), version)
@@ -51,7 +51,7 @@ class DefaultModuleComponentIdentifierTest extends Specification {
         'some-group' | 'some-name' | null
     }
 
-    @Unroll
+    @SafeUnroll
     def "can compare with other instance (#group, #name, #version)"() {
         expect:
         ModuleComponentIdentifier defaultModuleComponentIdentifier1 = new DefaultModuleComponentIdentifier(DefaultModuleIdentifier.newId('some-group', 'some-name'), '1.0')

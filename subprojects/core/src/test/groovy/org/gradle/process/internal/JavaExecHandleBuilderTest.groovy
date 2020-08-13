@@ -24,7 +24,7 @@ import org.gradle.internal.jvm.Jvm
 import org.gradle.util.TestUtil
 import spock.lang.Issue
 import spock.lang.Specification
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 import java.nio.charset.Charset
 import java.util.concurrent.Executor
@@ -44,7 +44,7 @@ class JavaExecHandleBuilderTest extends Specification {
         thrown(UnsupportedOperationException)
     }
 
-    @Unroll
+    @SafeUnroll
     def "builds commandLine for Java process - input encoding #inputEncoding"() {
         File jar1 = new File("file1.jar").canonicalFile
         File jar2 = new File("file2.jar").canonicalFile

@@ -21,7 +21,7 @@ import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.resolve.scenarios.VersionRangeResolveTestScenarios
 import spock.lang.IgnoreIf
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 /**
  * A comprehensive test of dependency resolution of a single module version, given a set of input selectors.
@@ -58,7 +58,7 @@ class VersionRangeResolveIntegrationTest extends AbstractDependencyResolutionTes
         baseSettings = settingsFile.text
     }
 
-    @Unroll
+    @SafeUnroll
     def "resolve pair #permutation"() {
         given:
         def candidates = permutation.candidates
@@ -72,7 +72,7 @@ class VersionRangeResolveIntegrationTest extends AbstractDependencyResolutionTes
         permutation << VersionRangeResolveTestScenarios.SCENARIOS_TWO_DEPENDENCIES
     }
 
-    @Unroll
+    @SafeUnroll
     def "resolve prefer pair #permutation"() {
         given:
         def candidates = permutation.candidates
@@ -86,7 +86,7 @@ class VersionRangeResolveIntegrationTest extends AbstractDependencyResolutionTes
         permutation << VersionRangeResolveTestScenarios.SCENARIOS_PREFER
     }
 
-    @Unroll
+    @SafeUnroll
     def "resolve reject pair #permutation"() {
         given:
         def candidates = permutation.candidates
@@ -118,7 +118,7 @@ class VersionRangeResolveIntegrationTest extends AbstractDependencyResolutionTes
             allprojects {
                 configurations { conf }
             }
-            
+
             configurations {
                 ${singleProjectConfs.join('\n')}
                 single {
@@ -131,12 +131,12 @@ class VersionRangeResolveIntegrationTest extends AbstractDependencyResolutionTes
                 conf project(path: ':p1', configuration: 'conf')
                 ${singleProjectDeps.join('\n')}
             }
-            
+
             task resolveMultiProject(type: Sync) {
                 from configurations.conf
                 into 'libs-multi'
             }
-            
+
             task resolveSingleProject(type: Sync) {
                 from configurations.single
                 into 'libs-single'

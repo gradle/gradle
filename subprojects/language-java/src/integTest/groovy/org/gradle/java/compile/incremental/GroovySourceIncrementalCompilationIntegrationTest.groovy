@@ -19,7 +19,7 @@ package org.gradle.java.compile.incremental
 import org.gradle.integtests.fixtures.CompiledLanguage
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 import spock.lang.Issue
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class GroovySourceIncrementalCompilationIntegrationTest extends AbstractSourceIncrementalCompilationIntegrationTest implements DirectoryBuildCacheFixture {
     CompiledLanguage language = CompiledLanguage.GROOVY
@@ -95,7 +95,7 @@ class A2{}
         outputs.deletedClasses('Com')
     }
 
-    @Unroll
+    @SafeUnroll
     def 'recompiles when #action class to source file'() {
         given:
         File src = source(oldFile)

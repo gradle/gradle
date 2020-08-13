@@ -18,7 +18,7 @@ package org.gradle.integtests.resolve.maven
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class MavenBrokenRemoteResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
     @ToBeFixedForInstantExecution
@@ -265,7 +265,7 @@ task showBroken { doLast { println configurations.broken.files } }
         succeeds("showBroken")
     }
 
-    @Unroll("recovers from initial failed POM download (max retries = #retries)")
+    @SafeUnroll("recovers from initial failed POM download (max retries = #retries)")
     void "recovers from initial failed POM download"() {
         withMaxHttpRetryCount(retries)
 
@@ -299,7 +299,7 @@ task showBroken { doLast { println configurations.broken.files } }
         retries << (1..3)
     }
 
-    @Unroll("recovers from initial failed artifact download (max retries = #retries)")
+    @SafeUnroll("recovers from initial failed artifact download (max retries = #retries)")
     void "recovers from initial failed artifact download"() {
         withMaxHttpRetryCount(retries)
 
@@ -333,7 +333,7 @@ task showBroken { doLast { println configurations.broken.files } }
         retries << (1..3)
     }
 
-    @Unroll("doesn't attempt to retry downloading missing POM file (max retries = #retries)")
+    @SafeUnroll("doesn't attempt to retry downloading missing POM file (max retries = #retries)")
     void "doesn't attempt to retry downloading missing POM file"() {
         withMaxHttpRetryCount(retries)
 
@@ -369,7 +369,7 @@ task showBroken { doLast { println configurations.broken.files } }
         retries << (1..3)
     }
 
-    @Unroll("doesn't attempt to retry downloading missing artifact file (max retries = #retries)")
+    @SafeUnroll("doesn't attempt to retry downloading missing artifact file (max retries = #retries)")
     void "doesn't attempt to retry downloading missing artifact file"() {
         withMaxHttpRetryCount(retries)
 

@@ -18,13 +18,13 @@ package org.gradle.invocation
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 @UnsupportedWithInstantExecution
 class BuildStartedDeprecatedIntegrationTest extends AbstractIntegrationSpec {
     private static final String INIT_FILE_NAME = "init.gradle"
 
-    @Unroll
+    @SafeUnroll
     def "shows deprecation warning when adding build listener through Gradle.addBuildListener that override the BuildAdapter.buildStarted after the build was started (#fromScript)"() {
         def initScriptFile = file(INIT_FILE_NAME).touch()
         file(scriptFile) << """
@@ -49,7 +49,7 @@ class BuildStartedDeprecatedIntegrationTest extends AbstractIntegrationSpec {
         "build script"   | "build.gradle"
     }
 
-    @Unroll
+    @SafeUnroll
     def "shows deprecation warning when adding build listener through Gradle.addListener that override the BuildAdapter.buildStarted after the build was started (#fromScript)"() {
         def initScriptFile = file(INIT_FILE_NAME).touch()
         file(scriptFile) << """
@@ -74,7 +74,7 @@ class BuildStartedDeprecatedIntegrationTest extends AbstractIntegrationSpec {
         "build script"   | "build.gradle"
     }
 
-    @Unroll
+    @SafeUnroll
     def "shows deprecation warning when adding build listener through Gradle.buildStarted after the build was started (#fromScript)"() {
         def initScriptFile = file(INIT_FILE_NAME).touch()
         file(scriptFile) << """
@@ -102,7 +102,7 @@ class BuildStartedDeprecatedIntegrationTest extends AbstractIntegrationSpec {
         "build script"   | "build.gradle"
     }
 
-    @Unroll
+    @SafeUnroll
     def "does not show deprecation warning when adding build listener through Gradle.addBuildListener that does not override the BuildAdapter.buildStarted after the build was started (#fromScript)"() {
         def initScriptFile = file(INIT_FILE_NAME).touch()
         file(scriptFile) << """
@@ -125,7 +125,7 @@ class BuildStartedDeprecatedIntegrationTest extends AbstractIntegrationSpec {
         "build script"   | "build.gradle"
     }
 
-    @Unroll
+    @SafeUnroll
     def "does not shows deprecation warning when adding build listener through Gradle.addListener that does not override the BuildAdapter.buildStarted after the build was started (#fromScript)"() {
         def initScriptFile = file(INIT_FILE_NAME).touch()
         file(scriptFile) << """

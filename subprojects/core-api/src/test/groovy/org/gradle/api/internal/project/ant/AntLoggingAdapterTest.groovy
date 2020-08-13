@@ -26,7 +26,7 @@ import org.gradle.internal.logging.events.CategorisedOutputEvent
 import org.gradle.internal.logging.events.OutputEvent
 import org.gradle.internal.logging.events.OutputEventListener
 import spock.lang.Specification
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 
 class AntLoggingAdapterTest extends Specification {
@@ -42,7 +42,7 @@ class AntLoggingAdapterTest extends Specification {
         logging.resetLogging()
     }
 
-    @Unroll
+    @SafeUnroll
     def "ant message priority #antPriority is mapped to #gradleLogLevel when lifecycle logging is set to #lifecyLevel"() {
         when:
         antLoggingAdapter.setLifecycleLogLevel(lifecyLevel)

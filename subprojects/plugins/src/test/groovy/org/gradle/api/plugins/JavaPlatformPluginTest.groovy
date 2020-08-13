@@ -23,7 +23,7 @@ import org.gradle.api.attributes.LibraryElements
 import org.gradle.api.attributes.Usage
 import org.gradle.api.internal.component.UsageContext
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class JavaPlatformPluginTest extends AbstractProjectBuilderSpec {
     def "applies base plugin"() {
@@ -136,7 +136,7 @@ class JavaPlatformPluginTest extends AbstractProjectBuilderSpec {
         apiUsage.attributes.getAttribute(Category.CATEGORY_ATTRIBUTE).name == Category.REGULAR_PLATFORM
     }
 
-    @Unroll("cannot add a dependency to the #configuration configuration by default")
+    @SafeUnroll("cannot add a dependency to the #configuration configuration by default")
     def "adding a dependency is not allowed by default"() {
         given:
         project.pluginManager.apply(JavaPlatformPlugin)
@@ -160,7 +160,7 @@ class JavaPlatformPluginTest extends AbstractProjectBuilderSpec {
     }
 
 
-    @Unroll("can add a dependency to the #configuration configuration when extension configured")
+    @SafeUnroll("can add a dependency to the #configuration configuration when extension configured")
     def "adding a dependency is allowed when activated on the project extension"() {
         given:
         project.pluginManager.apply(JavaPlatformPlugin)

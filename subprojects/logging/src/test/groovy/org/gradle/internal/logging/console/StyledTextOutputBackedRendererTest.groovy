@@ -25,7 +25,7 @@ import org.gradle.internal.logging.text.StyledTextOutput
 import org.gradle.internal.logging.text.TestLineChoppingStyledTextOutput
 import org.gradle.internal.logging.text.TestStyledTextOutput
 import spock.lang.Issue
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class StyledTextOutputBackedRendererTest extends OutputSpecification {
     def rendersOutputEvent() {
@@ -113,7 +113,7 @@ class StyledTextOutputBackedRendererTest extends OutputSpecification {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/1566")
-    @Unroll
+    @SafeUnroll
     def renderMultiNonNativeNewLineTextCorrectly() {
         StyledTextOutput output = new TestLineChoppingStyledTextOutput()
         StyledTextOutputBackedRenderer renderer = new StyledTextOutputBackedRenderer(output)

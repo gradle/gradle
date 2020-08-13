@@ -23,14 +23,14 @@ import org.gradle.nativeplatform.fixtures.app.Swift3
 import org.gradle.nativeplatform.fixtures.app.Swift4
 import org.gradle.nativeplatform.fixtures.app.Swift5
 import org.gradle.nativeplatform.fixtures.app.SwiftSourceElement
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 abstract class AbstractXcodeSwiftProjectIntegrationTest extends AbstractXcodeNativeProjectIntegrationTest {
     def setup() {
         requireSwiftToolChain()
     }
 
-    @Unroll
+    @SafeUnroll
     @ToBeFixedForInstantExecution
     def "detect Swift source compatibility from selected Swift #sourceCompatibility compiler"() {
         assumeSwiftCompilerVersion(sourceCompatibility)
@@ -55,7 +55,7 @@ abstract class AbstractXcodeSwiftProjectIntegrationTest extends AbstractXcodeNat
         swift5Component | SwiftVersion.SWIFT5
     }
 
-    @Unroll
+    @SafeUnroll
     @ToBeFixedForInstantExecution
     def "take specified Swift source compatibility (#sourceCompatibility) regardless of the selected Swift compiler"() {
         given:
@@ -82,7 +82,7 @@ abstract class AbstractXcodeSwiftProjectIntegrationTest extends AbstractXcodeNat
         swift5Component | SwiftVersion.SWIFT5
     }
 
-    @Unroll
+    @SafeUnroll
     @ToBeFixedForInstantExecution
     def "can create xcode project for unbuildable swift component with #sourceCompatibility source compatibility"() {
         given:

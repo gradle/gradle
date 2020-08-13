@@ -17,7 +17,7 @@
 package org.gradle.internal.snapshot
 
 import spock.lang.Specification
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 import static org.gradle.internal.snapshot.CaseSensitivity.CASE_SENSITIVE
 import static org.gradle.internal.snapshot.PathUtil.compareChars
@@ -25,7 +25,7 @@ import static org.gradle.internal.snapshot.PathUtil.compareCharsIgnoringCase
 import static org.gradle.internal.snapshot.PathUtil.equalChars
 import static org.gradle.internal.snapshot.PathUtil.getPathComparator
 
-@Unroll
+@SafeUnroll
 abstract class AbstractCaseVfsRelativePathTest extends Specification {
 
     abstract CaseSensitivity getCaseSensitivity()

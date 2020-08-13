@@ -26,7 +26,7 @@ import org.gradle.internal.component.external.model.DefaultModuleComponentIdenti
 import org.gradle.internal.component.external.model.ImmutableCapabilities
 import org.gradle.internal.component.model.DependencyMetadata
 import org.gradle.internal.locking.DefaultDependencyLockingState
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class RootLocalComponentMetadataTest extends DefaultLocalComponentMetadataTest {
     def dependencyLockingHandler = Mock(DependencyLockingProvider)
@@ -66,7 +66,7 @@ class RootLocalComponentMetadataTest extends DefaultLocalComponentMetadataTest {
         }
     }
 
-    @Unroll
+    @SafeUnroll
     def 'provides useful reason for locking constraints (#strict)'() {
         given:
         def constraint = DefaultModuleComponentIdentifier.newId(mid, '1.1')

@@ -23,9 +23,9 @@ import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.util.PatternSet
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
-@Unroll
+@SafeUnroll
 class DirectoryFileTreeTest extends AbstractProjectBuilderSpec {
     def "visits structure"() {
         given:

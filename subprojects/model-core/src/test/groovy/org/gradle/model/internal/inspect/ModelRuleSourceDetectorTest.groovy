@@ -19,7 +19,7 @@ package org.gradle.model.internal.inspect
 import org.gradle.model.RuleSource
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import spock.lang.Specification
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class ModelRuleSourceDetectorTest extends Specification {
 
@@ -48,7 +48,7 @@ class ModelRuleSourceDetectorTest extends Specification {
         static class A extends RuleSource {}
     }
 
-    @Unroll
+    @SafeUnroll
     def "find model rule sources - #clazz"() {
         expect:
         detector.getDeclaredSources(clazz).toList() == expected
@@ -61,7 +61,7 @@ class ModelRuleSourceDetectorTest extends Specification {
         IsASource     | [IsASource]
     }
 
-    @Unroll
+    @SafeUnroll
     def "has model sources - #clazz"() {
         expect:
         detector.hasRules(clazz) == expected
@@ -73,7 +73,7 @@ class ModelRuleSourceDetectorTest extends Specification {
         IsASource    | true
     }
 
-    @Unroll
+    @SafeUnroll
     def "does not hold strong reference"() {
         given:
         def cl = new GroovyClassLoader(getClass().classLoader)

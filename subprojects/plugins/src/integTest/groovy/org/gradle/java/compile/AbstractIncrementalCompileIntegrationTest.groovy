@@ -19,7 +19,7 @@ package org.gradle.java.compile
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.CompiledLanguage
 import org.gradle.integtests.fixtures.FeaturePreviewsFixture
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 abstract class AbstractIncrementalCompileIntegrationTest extends AbstractIntegrationSpec implements IncrementalCompileMultiProjectTestFixture {
     abstract CompiledLanguage getLanguage()
@@ -141,7 +141,7 @@ abstract class AbstractIncrementalCompileIntegrationTest extends AbstractIntegra
         executedAndNotSkipped(getLibraryCompileTask(language))
     }
 
-    @Unroll
+    @SafeUnroll
     def "does not recompile when only compileOptions.incremental property changes from #from to #to"() {
         given:
         libraryAppProjectWithIncrementalCompilation(language)

@@ -18,7 +18,7 @@ package org.gradle.model.internal.manage.schema.extract
 import org.gradle.api.artifacts.Configuration
 import org.gradle.model.internal.core.ModelRuleExecutionException
 import org.gradle.model.internal.fixture.ProjectRegistrySpec
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 import java.util.regex.Pattern
 
@@ -28,7 +28,7 @@ class ScalarTypesInManagedModelTest extends ProjectRegistrySpec {
 
     def classLoader = new GroovyClassLoader(this.class.classLoader)
 
-    @Unroll
+    @SafeUnroll
     def "cannot have read only property of scalar type #someType.simpleName"() {
 
         when:
@@ -63,7 +63,7 @@ class ScalarTypesInManagedModelTest extends ProjectRegistrySpec {
             File]
     }
 
-    @Unroll
+    @SafeUnroll
     def "can have a #type as an @Unmanaged property"() {
         when:
         def clazz = classLoader.parseClass """

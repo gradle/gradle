@@ -18,7 +18,7 @@ package org.gradle.internal.util
 
 import com.google.common.base.Charsets
 import spock.lang.Specification
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 import java.nio.charset.Charset
 
@@ -45,7 +45,7 @@ class PropertiesUtilsTest extends Specification {
             """)
     }
 
-    @Unroll
+    @SafeUnroll
     def "unicode characters are escaped when #description"() {
         expect:
         write([név: "Rezső"], "Eső leső", Charsets.ISO_8859_1) == normalize("""

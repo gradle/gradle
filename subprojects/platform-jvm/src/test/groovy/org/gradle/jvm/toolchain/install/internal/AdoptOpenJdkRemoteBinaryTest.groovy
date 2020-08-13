@@ -23,11 +23,11 @@ import org.gradle.internal.os.OperatingSystem
 import org.gradle.jvm.toolchain.internal.DefaultToolchainSpec
 import org.gradle.util.TestUtil
 import spock.lang.Specification
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class AdoptOpenJdkRemoteBinaryTest extends Specification {
 
-    @Unroll
+    @SafeUnroll
     def "generates url for jdk #jdkVersion on #operatingSystemName (#architecture)"() {
         given:
         def spec = newSpec(jdkVersion)
@@ -56,7 +56,7 @@ class AdoptOpenJdkRemoteBinaryTest extends Specification {
         13         | "Solaris"           | SystemInfo.Architecture.i386    | "/13/ga/solaris/x32/jdk/hotspot/normal/adoptopenjdk"
     }
 
-    @Unroll
+    @SafeUnroll
     def "generates filename for jdk #jdkVersion on #operatingSystemName (#architecture)"() {
         given:
         def spec = newSpec(jdkVersion)
@@ -85,7 +85,7 @@ class AdoptOpenJdkRemoteBinaryTest extends Specification {
         13         | "Solaris"           | SystemInfo.Architecture.i386    | "adoptopenjdk-13-x32-solaris.tar.gz"
     }
 
-    @Unroll
+    @SafeUnroll
     def "uses configured base uri #customBaseUrl if available"() {
         given:
         def spec = newSpec()
@@ -125,7 +125,7 @@ class AdoptOpenJdkRemoteBinaryTest extends Specification {
         1 * downloader.download(URI.create("https://api.adoptopenjdk.net/v3/binary/latest/12/ga/mac/x64/jdk/hotspot/normal/adoptopenjdk"), _)
     }
 
-    @Unroll
+    @SafeUnroll
     def "skips downloading unsupported java version #javaVersion"() {
         given:
         def spec = newSpec(javaVersion)

@@ -20,7 +20,7 @@ import org.gradle.performance.AbstractToolingApiCrossVersionPerformanceTest
 import org.gradle.tooling.model.ExternalDependency
 import org.gradle.tooling.model.eclipse.EclipseProject
 import org.gradle.tooling.model.idea.IdeaProject
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 import static org.gradle.performance.generator.JavaTestProject.LARGE_JAVA_MULTI_PROJECT
 import static org.gradle.performance.generator.JavaTestProject.LARGE_MONOLITHIC_JAVA_PROJECT
@@ -29,7 +29,7 @@ class JavaIDEModelPerformanceTest extends AbstractToolingApiCrossVersionPerforma
 
     private static final BASELINE_VERSION = "6.7-20200721220031+0000"
 
-    @Unroll
+    @SafeUnroll
     def "get IDE model on #testProject for Eclipse"() {
         given:
         experiment(testProject.projectName) {
@@ -89,7 +89,7 @@ class JavaIDEModelPerformanceTest extends AbstractToolingApiCrossVersionPerforma
         LARGE_JAVA_MULTI_PROJECT      | 40
     }
 
-    @Unroll
+    @SafeUnroll
     def "get IDE model on #testProject for IDEA"() {
         given:
         experiment(testProject.projectName) {

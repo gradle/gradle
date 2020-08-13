@@ -21,13 +21,13 @@ import org.gradle.api.provider.ValueSourceParameters
 import org.gradle.instantexecution.fixtures.BuildLogicChangeFixture
 import org.gradle.instantexecution.fixtures.ScriptChangeFixture
 import org.junit.Test
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 import static org.junit.Assume.assumeFalse
 
 class InstantExecutionIncludedBuildChangesIntegrationTest extends AbstractInstantExecutionIntegrationTest {
 
-    @Unroll
+    @SafeUnroll
     @Test
     def "invalidates cache upon change to #scriptChangeSpec of included build"() {
         given:
@@ -65,7 +65,7 @@ class InstantExecutionIncludedBuildChangesIntegrationTest extends AbstractInstan
         scriptChangeSpec << ScriptChangeFixture.specs()
     }
 
-    @Unroll
+    @SafeUnroll
     def "invalidates cache upon change to included #fixtureSpec"() {
         given:
         def instant = newInstantExecutionFixture()
@@ -104,7 +104,7 @@ class InstantExecutionIncludedBuildChangesIntegrationTest extends AbstractInstan
         fixtureSpec << BuildLogicChangeFixture.specs()
     }
 
-    @Unroll
+    @SafeUnroll
     def "invalidates cache upon change to #inputName used by included build"() {
 
         assumeFalse(

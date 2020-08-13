@@ -18,11 +18,11 @@ package org.gradle.model
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 @UnsupportedWithInstantExecution(because = "software model")
 class ScalarCollectionIntegrationTest extends AbstractIntegrationSpec {
-    @Unroll
+    @SafeUnroll
     def "can create instance of #{type.name}"() {
         given:
         buildFile << """
@@ -54,7 +54,7 @@ apply plugin: Rules
         type << [Set, List]
     }
 
-    @Unroll
+    @SafeUnroll
     def "can view #{type.name} as ModelElement"() {
         given:
         buildFile << """

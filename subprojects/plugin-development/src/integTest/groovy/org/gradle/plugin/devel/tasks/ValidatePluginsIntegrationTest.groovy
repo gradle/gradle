@@ -21,7 +21,7 @@ import org.gradle.api.artifacts.transform.InputArtifactDependencies
 import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
 import org.gradle.internal.reflect.TypeValidationContext
 import org.gradle.test.fixtures.file.TestFile
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 import static org.gradle.internal.reflect.TypeValidationContext.Severity.ERROR
 import static org.gradle.internal.reflect.TypeValidationContext.Severity.WARNING
@@ -100,7 +100,7 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
         )
     }
 
-    @Unroll
+    @SafeUnroll
     def "task cannot have property with annotation @#annotation.simpleName"() {
         javaTaskSource << """
             import org.gradle.api.*;

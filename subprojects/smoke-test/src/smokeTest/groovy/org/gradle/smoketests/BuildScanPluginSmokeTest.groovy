@@ -22,7 +22,7 @@ import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.GradleRunner
 import org.gradle.util.VersionNumber
 import org.junit.Assume
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 
 class BuildScanPluginSmokeTest extends AbstractSmokeTest {
@@ -59,7 +59,7 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
 
     private static final VersionNumber FIRST_VERSION_SUPPORTING_CONFIGURATION_CACHE = VersionNumber.parse("3.4")
 
-    @Unroll
+    @SafeUnroll
     "can use plugin #version"() {
         given:
         def versionNumber = VersionNumber.parse(version)
@@ -75,7 +75,7 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
         version << SUPPORTED
     }
 
-    @Unroll
+    @SafeUnroll
     "cannot use plugin #version"() {
         when:
         usePluginVersion version

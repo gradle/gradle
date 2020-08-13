@@ -17,11 +17,11 @@
 package org.gradle.integtests.resolve.attributes
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 
 class AttributeValuesIntegrationTest extends AbstractIntegrationSpec {
-    @Unroll
+    @SafeUnroll
     def "cannot use an attribute value that cannot be made isolated - #type"() {
         given:
         buildFile << """
@@ -50,7 +50,7 @@ class AttributeValuesIntegrationTest extends AbstractIntegrationSpec {
         "List"    | "[{}]"
     }
 
-    @Unroll
+    @SafeUnroll
     def "can use attribute value that can be made isolated - #type"() {
         given:
         buildFile << """

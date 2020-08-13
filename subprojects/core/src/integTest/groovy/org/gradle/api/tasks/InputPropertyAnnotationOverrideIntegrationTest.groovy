@@ -17,7 +17,7 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class InputPropertyAnnotationOverrideIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
@@ -36,7 +36,7 @@ class InputPropertyAnnotationOverrideIntegrationTest extends AbstractIntegration
         file("inputs/input").text = "initial"
     }
 
-    @Unroll
+    @SafeUnroll
     def "can override @Internal with @#inputType.simpleName"() {
         buildFile << """
             class InternalBaseTask extends BaseTask {
@@ -70,7 +70,7 @@ class InputPropertyAnnotationOverrideIntegrationTest extends AbstractIntegration
     }
 
 
-    @Unroll
+    @SafeUnroll
     def "can override @#inputType.simpleName with @Internal"() {
         buildFile << """
             class InputBaseTask extends BaseTask {

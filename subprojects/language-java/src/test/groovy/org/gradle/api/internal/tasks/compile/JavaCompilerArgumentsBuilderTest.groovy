@@ -24,7 +24,7 @@ import org.gradle.util.GUtil
 import org.gradle.util.TestUtil
 import org.junit.Rule
 import spock.lang.Specification
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 import static org.gradle.api.internal.tasks.compile.JavaCompilerArgumentsBuilder.USE_UNSHARED_COMPILER_TABLE_OPTION
 
@@ -347,7 +347,7 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
         builder.noEmptySourcePath().build() == expected
     }
 
-    @Unroll
+    @SafeUnroll
     def "prohibits setting #option as compiler argument"() {
         given:
         def userProvidedPath = ['/libs/lib3.jar', '/libs/lib4.jar'].join(File.pathSeparator)

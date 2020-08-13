@@ -21,7 +21,7 @@ import org.gradle.internal.component.external.model.ModuleComponentResolveMetada
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult
 import spock.lang.Specification
 import spock.lang.Subject
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class CachedMetadataProviderTest extends Specification {
 
@@ -41,7 +41,7 @@ class CachedMetadataProviderTest extends Specification {
         provider.componentMetadata
     }
 
-    @Unroll
+    @SafeUnroll
     def 'verifies that metadata was not provided when state is #state'() {
         given:
         cachedResult.state >> state

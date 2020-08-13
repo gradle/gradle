@@ -22,7 +22,7 @@ import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
 import org.gradle.test.fixtures.file.TestFile
 import org.junit.Rule
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 import java.util.jar.Manifest
 
@@ -40,7 +40,7 @@ class SamplesJavaQuickstartIntegrationTest extends AbstractIntegrationSpec {
         executer.expectDeprecationWarning()
     }
 
-    @Unroll
+    @SafeUnroll
     def "can build and upload jar with #dsl dsl"() {
         given:
         TestFile javaprojectDir = sample.dir.file(dsl)

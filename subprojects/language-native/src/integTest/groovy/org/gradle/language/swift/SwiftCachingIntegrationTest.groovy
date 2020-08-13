@@ -22,7 +22,7 @@ import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.SwiftAppWithLibraries
 import org.gradle.test.fixtures.file.TestFile
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC)
 class SwiftCachingIntegrationTest extends AbstractInstalledToolChainIntegrationSpec implements DirectoryBuildCacheFixture {
@@ -77,7 +77,7 @@ class SwiftCachingIntegrationTest extends AbstractInstalledToolChainIntegrationS
         buildType << ['Debug', 'Release']
     }
 
-    @Unroll
+    @SafeUnroll
     def "compilation task is relocatable (#buildType)"() {
         def originalLocation = file('original-location')
         def newLocation = file('new-location')
@@ -109,7 +109,7 @@ class SwiftCachingIntegrationTest extends AbstractInstalledToolChainIntegrationS
         buildType << ['Debug', 'Release']
     }
 
-    @Unroll
+    @SafeUnroll
     def "downstream compilation can use cached artifacts (#buildType)"() {
         def originalLocation = file('original-location')
         def newLocation = file('new-location')

@@ -17,7 +17,7 @@
 package org.gradle.api.provider
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class CollectionPropertyIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
@@ -42,7 +42,7 @@ class CollectionPropertyIntegrationTest extends AbstractIntegrationSpec {
         """
     }
 
-    @Unroll
+    @SafeUnroll
     def "can define task with abstract ListProperty<#type> getter"() {
         given:
         buildFile << """
@@ -218,7 +218,7 @@ task thing {
         output.contains("prop = null")
     }
 
-    @Unroll
+    @SafeUnroll
     def "can set value for list property from DSL"() {
         buildFile << """
             verify {
@@ -236,7 +236,7 @@ task thing {
         "providers.provider { [ 'a', 'b', 'c' ] }" | _
     }
 
-    @Unroll
+    @SafeUnroll
     def "can set value for string list property using GString values"() {
         buildFile << """
             def str = "aBc"
@@ -270,7 +270,7 @@ task thing {
         succeeds("verify")
     }
 
-    @Unroll
+    @SafeUnroll
     def "can add element to string list property using GString value"() {
         buildFile << """
             def str = "aBc"
@@ -289,7 +289,7 @@ task thing {
         'providers.provider { "${str.toLowerCase().substring(1, 2)}" }' | _
     }
 
-    @Unroll
+    @SafeUnroll
     def "can add elements to string list property using GString value"() {
         buildFile << """
             def str = "aBc"

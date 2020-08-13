@@ -22,7 +22,7 @@ import org.gradle.profiler.mutations.AbstractCleanupMutator
 import org.gradle.profiler.mutations.ClearGradleUserHomeMutator
 import org.gradle.profiler.mutations.ClearProjectCacheMutator
 import org.junit.experimental.categories.Category
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 import static org.gradle.performance.generator.JavaTestProject.LARGE_JAVA_MULTI_PROJECT
 import static org.gradle.performance.generator.JavaTestProject.LARGE_JAVA_MULTI_PROJECT_KOTLIN_DSL
@@ -35,7 +35,7 @@ class JavaFirstUsePerformanceTest extends AbstractCrossVersionGradleProfilerPerf
         runner.targetVersions = ["6.7-20200809220033+0000"]
     }
 
-    @Unroll
+    @SafeUnroll
     def "first use of #testProject"() {
         given:
         runner.testProject = testProject
@@ -63,7 +63,7 @@ class JavaFirstUsePerformanceTest extends AbstractCrossVersionGradleProfilerPerf
         LARGE_JAVA_MULTI_PROJECT_KOTLIN_DSL | 5
     }
 
-    @Unroll
+    @SafeUnroll
     def "clean checkout of #testProject"() {
         given:
         runner.testProject = testProject
@@ -87,7 +87,7 @@ class JavaFirstUsePerformanceTest extends AbstractCrossVersionGradleProfilerPerf
         LARGE_JAVA_MULTI_PROJECT_KOTLIN_DSL      | _
     }
 
-    @Unroll
+    @SafeUnroll
     def "cold daemon on #testProject"() {
         given:
         runner.testProject = testProject

@@ -17,7 +17,7 @@
 package org.gradle.api.publish.ivy
 
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class IvyPublishFeaturesJavaPluginIntegTest extends AbstractIvyPublishFeaturesJavaIntegTest {
     @ToBeFixedForInstantExecution
@@ -26,13 +26,13 @@ class IvyPublishFeaturesJavaPluginIntegTest extends AbstractIvyPublishFeaturesJa
 
         given:
         buildFile << """
-            
+
             java {
                 registerFeature("feature") {
                     usingSourceSet(sourceSets.main)
                 }
             }
-            
+
             dependencies {
                 featureImplementation 'org:optionaldep:1.0'
             }
@@ -76,24 +76,24 @@ class IvyPublishFeaturesJavaPluginIntegTest extends AbstractIvyPublishFeaturesJa
         }
     }
 
-    @Unroll
+    @SafeUnroll
     @ToBeFixedForInstantExecution
     def "can update #prop after feature has been registered"() {
         ivyRepo.module('org', 'optionaldep', '1.0').withModuleMetadata().publish()
 
         given:
         buildFile << """
-            
+
             java {
                 registerFeature("feature") {
                     usingSourceSet(sourceSets.main)
                 }
             }
-            
+
             dependencies {
                 featureImplementation 'org:optionaldep:1.0'
             }
-            
+
             $prop = "$newValue"
         """
 

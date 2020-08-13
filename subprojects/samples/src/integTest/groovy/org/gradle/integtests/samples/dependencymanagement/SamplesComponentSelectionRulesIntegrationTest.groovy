@@ -20,14 +20,14 @@ import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.UsesSample
 import org.junit.Rule
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class SamplesComponentSelectionRulesIntegrationTest extends AbstractSampleIntegrationTest {
 
     @Rule
     Sample sample = new Sample(testDirectoryProvider)
 
-    @Unroll
+    @SafeUnroll
     @UsesSample("dependencyManagement/customizingResolution-selectionRule")
     @ToBeFixedForInstantExecution(iterationMatchers = ".*kotlin dsl")
     def "can run resolveConfiguration sample with #dsl dsl"() {
@@ -45,7 +45,7 @@ class SamplesComponentSelectionRulesIntegrationTest extends AbstractSampleIntegr
         dsl << ['groovy', 'kotlin']
     }
 
-    @Unroll
+    @SafeUnroll
     @UsesSample("dependencyManagement/customizingResolution-selectionRule")
     @ToBeFixedForInstantExecution(iterationMatchers = ".*kotlin dsl")
     def "can run reject sample with #dsl dsl"() {
@@ -61,7 +61,7 @@ class SamplesComponentSelectionRulesIntegrationTest extends AbstractSampleIntegr
         dsl << ['groovy', 'kotlin']
     }
 
-    @Unroll
+    @SafeUnroll
     @UsesSample("dependencyManagement/customizingResolution-selectionRule")
     @ToBeFixedForInstantExecution(iterationMatchers = ".*kotlin dsl")
     def "can run metadata rules sample with #dsl dsl"() {
@@ -78,7 +78,7 @@ class SamplesComponentSelectionRulesIntegrationTest extends AbstractSampleIntegr
         dsl << ['groovy', 'kotlin']
     }
 
-    @Unroll
+    @SafeUnroll
     @UsesSample("dependencyManagement/customizingResolution-selectionRule")
     @ToBeFixedForInstantExecution(iterationMatchers = ".*kotlin dsl")
     def "can run targeted rule sample with #dsl dsl"() {

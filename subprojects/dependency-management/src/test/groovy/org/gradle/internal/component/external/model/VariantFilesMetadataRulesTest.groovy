@@ -42,7 +42,7 @@ import org.gradle.util.SnapshotTestUtil
 import org.gradle.util.TestUtil
 import spock.lang.Shared
 import spock.lang.Specification
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 import static org.gradle.internal.component.external.model.DefaultModuleComponentSelector.newSelector
 
@@ -93,7 +93,7 @@ class VariantFilesMetadataRulesTest extends Specification {
         metadata
     }
 
-    @Unroll
+    @SafeUnroll
     def "variant file metadata rules are evaluated once and lazily for #metadataType metadata"() {
         given:
         def rule = Mock(Action)
@@ -125,7 +125,7 @@ class VariantFilesMetadataRulesTest extends Specification {
         "gradle"     | gradleComponentMetadata()
     }
 
-    @Unroll
+    @SafeUnroll
     def "variant file metadata rules are not evaluated if their variant is not selected for #metadataType metadata"() {
         given:
         def rule = Mock(Action)
@@ -144,7 +144,7 @@ class VariantFilesMetadataRulesTest extends Specification {
         "gradle"     | gradleComponentMetadata()
     }
 
-    @Unroll
+    @SafeUnroll
     def "new variant can be added to #metadataType metadata"() {
         when:
         metadata.getVariantMetadataRules().addVariant("new-variant", "runtime", false)
@@ -172,7 +172,7 @@ class VariantFilesMetadataRulesTest extends Specification {
         "gradle"     | gradleComponentMetadata('dep') | 1 // 'runtime' added in test setup
     }
 
-    @Unroll
+    @SafeUnroll
     def "new variant can be added to #metadataType metadata without base"() {
         when:
         metadata.getVariantMetadataRules().addVariant("new-variant")
@@ -194,7 +194,7 @@ class VariantFilesMetadataRulesTest extends Specification {
         "gradle"     | gradleComponentMetadata('dep') | 1 // 'runtime' added in test setup
     }
 
-    @Unroll
+    @SafeUnroll
     def "base variant metadata rules are not evaluated if the new variant is not selected for #metadataType metadata"() {
         given:
         def rule = Mock(Action)
@@ -227,7 +227,7 @@ class VariantFilesMetadataRulesTest extends Specification {
         "gradle"     | gradleComponentMetadata()
     }
 
-    @Unroll
+    @SafeUnroll
     def "throws error for non-existing base in #metadataType metadata"() {
         when:
         metadata.getVariantMetadataRules().addVariant("new-variant", "not-exist", false)
@@ -245,7 +245,7 @@ class VariantFilesMetadataRulesTest extends Specification {
         "gradle"     | gradleComponentMetadata('dep') | 'Variant'
     }
 
-    @Unroll
+    @SafeUnroll
     def "does not add a variant for non-existing base in #metadataType metadata if lenient"() {
         given:
         def rule = Mock(Action)
@@ -269,7 +269,7 @@ class VariantFilesMetadataRulesTest extends Specification {
         "gradle"     | gradleComponentMetadata('dep') | 1 // 'runtime' added in test setup
     }
 
-    @Unroll
+    @SafeUnroll
     def "variant file metadata rules can add files to #metadataType metadata"() {
         given:
         def rule = { MutableVariantFilesMetadata files ->
@@ -302,7 +302,7 @@ class VariantFilesMetadataRulesTest extends Specification {
         "gradle"     | gradleComponentMetadata()
     }
 
-    @Unroll
+    @SafeUnroll
     def "variant file metadata rules can remove files from #metadataType metadata"() {
         given:
         def rule = { MutableVariantFilesMetadata files ->

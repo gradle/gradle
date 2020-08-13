@@ -21,7 +21,7 @@ import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.BuildOperationNotificationsFixture
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.test.fixtures.plugin.PluginBuilder
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends AbstractHttpDependencyResolutionTest {
 
@@ -30,7 +30,7 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
     @SuppressWarnings("GroovyUnusedDeclaration")
     def operationNotificationsFixture = new BuildOperationNotificationsFixture(executer, temporaryFolder)
 
-    @Unroll
+    @SafeUnroll
     def "repositories used when resolving project configurations are exposed via build operation (repo: #repo)"() {
         setup:
         disablePluginRepoMirror()

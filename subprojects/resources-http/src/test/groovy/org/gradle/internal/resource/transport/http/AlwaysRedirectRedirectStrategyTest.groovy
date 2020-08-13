@@ -23,7 +23,7 @@ import org.apache.http.message.BasicHeader
 import org.apache.http.params.HttpParams
 import org.apache.http.protocol.HttpContext
 import spock.lang.Specification
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class AlwaysRedirectRedirectStrategyTest extends Specification {
 
@@ -38,7 +38,7 @@ class AlwaysRedirectRedirectStrategyTest extends Specification {
     }
 
 
-    @Unroll
+    @SafeUnroll
     def "should get redirect for http method [#httpMethod]"() {
         setup:
         HttpRequest request = Mock()

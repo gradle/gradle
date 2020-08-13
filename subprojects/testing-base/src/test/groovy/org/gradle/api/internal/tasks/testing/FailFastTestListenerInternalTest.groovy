@@ -23,7 +23,7 @@ import org.gradle.api.tasks.testing.TestOutputEvent
 import org.gradle.api.tasks.testing.TestResult
 import spock.lang.Specification
 import spock.lang.Subject
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class FailFastTestListenerInternalTest extends Specification {
     TestExecuter testExecuter = Mock()
@@ -68,7 +68,7 @@ class FailFastTestListenerInternalTest extends Specification {
         1 * testExecuter.stopNow()
     }
 
-    @Unroll
+    @SafeUnroll
     def "completed invokes delegate with result #result"() {
         testResult.resultType = result
 
@@ -82,7 +82,7 @@ class FailFastTestListenerInternalTest extends Specification {
         result << TestResult.ResultType.values()
     }
 
-    @Unroll
+    @SafeUnroll
     def "after failure completed indicates failure on composite for result #result"() {
         TestResult failedResult = new SimpleTestResult()
         failedResult.resultType = TestResult.ResultType.FAILURE
@@ -102,7 +102,7 @@ class FailFastTestListenerInternalTest extends Specification {
         result << TestResult.ResultType.values()
     }
 
-    @Unroll
+    @SafeUnroll
     def "after failure completed indicates skipped on non-composite for result #result"() {
         TestResult failedResult = new SimpleTestResult()
         failedResult.resultType = TestResult.ResultType.FAILURE

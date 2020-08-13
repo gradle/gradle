@@ -25,7 +25,7 @@ import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.api.internal.tasks.execution.ExecuteTaskBuildOperationType
 import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType
 import org.gradle.launcher.exec.RunBuildBuildOperationType
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 import java.util.regex.Pattern
 
@@ -36,7 +36,7 @@ class BuildSrcBuildOperationsIntegrationTest extends AbstractIntegrationSpec {
         file("buildSrc/src/main/java/Thing.java") << "class Thing { }"
     }
 
-    @Unroll
+    @SafeUnroll
     def "includes build identifier in build operations with #display"() {
         when:
         file("buildSrc/settings.gradle") << settings << "\n"
@@ -106,7 +106,7 @@ class BuildSrcBuildOperationsIntegrationTest extends AbstractIntegrationSpec {
         "rootProject.name='someLib'" | "configured root project name"
     }
 
-    @Unroll
+    @SafeUnroll
     def "does not resolve configurations when configuring buildSrc build"() {
         when:
         succeeds()

@@ -17,11 +17,11 @@
 package org.gradle.internal.snapshot
 
 import spock.lang.Specification
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 import static org.gradle.internal.snapshot.CaseSensitivity.CASE_SENSITIVE
 
-@Unroll
+@SafeUnroll
 class SnapshotUtilTest extends Specification {
 
     SnapshotHierarchy.NodeDiffListener diffListener = new SnapshotHierarchy.NodeDiffListener() {

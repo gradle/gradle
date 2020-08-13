@@ -21,7 +21,7 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class SingleDepthFileAccessTrackerTest extends Specification {
     @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
@@ -39,7 +39,7 @@ class SingleDepthFileAccessTrackerTest extends Specification {
         0 * journal.setLastAccessTime(_, _)
     }
 
-    @Unroll
+    @SafeUnroll
     def "touches all subdirectories for depth #depth"() {
         given:
         def file1 = baseDir.file("a/aa/aaa/1")

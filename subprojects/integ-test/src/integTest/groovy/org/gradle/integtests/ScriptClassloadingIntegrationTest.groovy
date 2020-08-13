@@ -19,7 +19,7 @@ package org.gradle.integtests
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import spock.lang.Issue
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 import static org.gradle.integtests.ScriptClassloadingIntegrationTest.SharedScriptFileType.SHARED_BUILDFILE
 import static org.gradle.integtests.ScriptClassloadingIntegrationTest.SharedScriptFileType.SHARED_SCRIPTPLUGIN
@@ -35,7 +35,7 @@ class ScriptClassloadingIntegrationTest extends AbstractIntegrationSpec {
 
     @Issue(['GRADLE-3526', 'GRADLE-3553'])
     @LeaksFileHandles
-    @Unroll
+    @SafeUnroll
     def 'apply the same script file causing different buildscript classpaths in different projects #sharedScriptFileType'(SharedScriptFileType sharedScriptFileType) {
         given:
         def subprojectNames = ['project1', 'project2']

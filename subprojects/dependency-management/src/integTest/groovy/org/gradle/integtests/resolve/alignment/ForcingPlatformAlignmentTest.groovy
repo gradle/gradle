@@ -21,7 +21,7 @@ import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.publish.RemoteRepositorySpec
 import spock.lang.IgnoreIf
 import spock.lang.Issue
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 @IgnoreIf({
     // This test is very expensive due to the permutation testing.
@@ -194,7 +194,7 @@ class ForcingPlatformAlignmentTest extends AbstractAlignmentSpec {
         }
     }
 
-    @Unroll
+    @SafeUnroll
     def "fails if forcing a virtual platform version by forcing multiple leaves with different versions"() {
         repository {
             ['2.7.9', '2.9.4', '2.9.4.1'].each {
@@ -646,7 +646,7 @@ include 'other'
 
     }
 
-    @Unroll("can force a virtual platform version by forcing the platform itself via a dependency")
+    @SafeUnroll("can force a virtual platform version by forcing the platform itself via a dependency")
     def "can force a virtual platform version by forcing the platform itself via a dependency"() {
         repository {
             ['2.7.9', '2.9.4', '2.9.4.1'].each {
@@ -698,7 +698,7 @@ include 'other'
         ].permutations()*.join("\n")
     }
 
-    @Unroll("can force a virtual platform version by forcing the platform itself via a constraint")
+    @SafeUnroll("can force a virtual platform version by forcing the platform itself via a constraint")
     def "can force a virtual platform version by forcing the platform itself via a constraint"() {
         repository {
             ['2.7.9', '2.9.4', '2.9.4.1'].each {
@@ -751,7 +751,7 @@ include 'other'
         ].permutations()*.join("\n")
     }
 
-    @Unroll("can force a virtual platform version by forcing the platform itself via a constraint using a strict version")
+    @SafeUnroll("can force a virtual platform version by forcing the platform itself via a constraint using a strict version")
     def "can force a virtual platform version by forcing the platform itself via a constraint using a strict version"() {
         repository {
             ['2.7.9', '2.9.4', '2.9.4.1'].each {
@@ -807,7 +807,7 @@ include 'other'
 
 
     @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
-    @Unroll("can constrain a virtual platforms components by adding the platform itself via a constraint")
+    @SafeUnroll("can constrain a virtual platforms components by adding the platform itself via a constraint")
     def "can constrain a virtual platforms components by adding the platform itself via a constraint"() {
         repository {
             ['2.7.9', '2.9.4', '2.9.4.1'].each {
@@ -852,7 +852,7 @@ include 'other'
         ].permutations()*.join("\n")
     }
 
-    @Unroll("can force a published platform version by forcing the platform itself via a dependency")
+    @SafeUnroll("can force a published platform version by forcing the platform itself via a dependency")
     @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
     def "can force a published platform version by forcing the platform itself via a dependency"() {
         repository {
@@ -970,7 +970,7 @@ include 'other'
 
     @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
     @Issue("nebula-plugins/gradle-nebula-integration#51")
-    @Unroll("force to higher patch version should bring the rest of aligned group up (notation=#forceNotation)")
+    @SafeUnroll("force to higher patch version should bring the rest of aligned group up (notation=#forceNotation)")
     def "force to higher patch version should bring the rest of aligned group up"() {
         given:
         "repository simulating Jackson situation" {
@@ -1026,7 +1026,7 @@ include 'other'
 
     @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
     @Issue("nebula-plugins/gradle-nebula-integration#51")
-    @Unroll("force to lower patch version should bring the rest of aligned group up (notation=#forceNotation)")
+    @SafeUnroll("force to lower patch version should bring the rest of aligned group up (notation=#forceNotation)")
     def "force to lower patch version should bring the rest of aligned group up"() {
         given:
         "repository simulating Jackson situation" {

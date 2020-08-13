@@ -30,7 +30,7 @@ import org.gradle.util.GradleVersion
 import org.hamcrest.CoreMatchers
 import org.junit.Rule
 import org.mortbay.jetty.HttpStatus
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 import static org.gradle.test.matchers.UserAgentMatcher.matchesNameAndVersion
 import static org.gradle.util.Matchers.matchesRegexp
@@ -58,7 +58,7 @@ credentials {
         settingsFile << 'rootProject.name = "publish"'
     }
 
-    @Unroll
+    @SafeUnroll
     @ToBeFixedForInstantExecution
     def "can publish to unauthenticated HTTP repository (extra checksums = #extraChecksums)"() {
         given:
@@ -167,7 +167,7 @@ credentials {
         outputContains("Remote repository doesn't support sha-512")
     }
 
-    @Unroll
+    @SafeUnroll
     @ToBeFixedForInstantExecution
     def "can publish to authenticated repository using #authScheme auth"() {
         given:
@@ -227,7 +227,7 @@ credentials {
         authScheme << [AuthScheme.BASIC, AuthScheme.DIGEST, AuthScheme.NTLM]
     }
 
-    @Unroll
+    @SafeUnroll
     @ToBeFixedForInstantExecution
     def "reports failure publishing with #credsName credentials to authenticated repository using #authScheme auth"() {
         given:
@@ -509,7 +509,7 @@ credentials {
     }
 
     @ToBeFixedForInstantExecution
-    @Unroll
+    @SafeUnroll
     def "doesn't publish Gradle metadata if custom pattern is used"() {
         given:
         buildFile << """

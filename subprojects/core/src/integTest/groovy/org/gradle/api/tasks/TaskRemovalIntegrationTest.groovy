@@ -17,10 +17,10 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class TaskRemovalIntegrationTest extends AbstractIntegrationSpec {
-    @Unroll
+    @SafeUnroll
     def "throws exception when removing a task with #description"() {
         given:
         buildFile << """

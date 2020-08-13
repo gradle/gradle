@@ -20,7 +20,7 @@ import org.gradle.api.artifacts.component.LibraryComponentSelector
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import spock.lang.Specification
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 import static org.gradle.util.Matchers.strictlyEquals
 
@@ -76,7 +76,7 @@ class DefaultLibraryComponentSelectorTest extends Specification {
         t.message == 'project path cannot be null or empty'
     }
 
-    @Unroll
+    @SafeUnroll
     def "can compare (#projectPath1,#libraryName1,#variant1) with other instance (#projectPath2,#libraryName2, #variant2)"() {
         expect:
         LibraryComponentSelector defaultBuildComponentSelector1 = new DefaultLibraryComponentSelector(projectPath1, libraryName1)
@@ -117,7 +117,7 @@ class DefaultLibraryComponentSelectorTest extends Specification {
         assert !matches
     }
 
-    @Unroll
+    @SafeUnroll
     def "matches id (#projectPath1,#libraryName1, #variant1) with (#projectPath2,#libraryName2, #variant2)"() {
         expect:
         LibraryComponentSelector defaultBuildComponentSelector = new DefaultLibraryComponentSelector(projectPath1, libraryName1, variant1)

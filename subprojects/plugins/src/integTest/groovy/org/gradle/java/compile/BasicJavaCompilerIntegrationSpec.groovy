@@ -22,7 +22,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.ClassFile
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 abstract class BasicJavaCompilerIntegrationSpec extends AbstractIntegrationSpec {
     def setup() {
@@ -142,7 +142,7 @@ public class FxApp extends Application {
     }
 
     @Requires(TestPrecondition.JDK9_OR_LATER)
-    @Unroll
+    @SafeUnroll
     def "compile with release flag"() {
         given:
         goodCode()

@@ -23,10 +23,10 @@ import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.test.fixtures.archive.JarTestFixture
 import org.gradle.test.fixtures.file.ClassFile
 import org.junit.Assume
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class CrossCompilationIntegrationTest extends AbstractIntegrationSpec {
-    @Unroll
+    @SafeUnroll
     def "can configure the Java plugin to compile and run tests against Java #version JDK"() {
         def jvm = AvailableJavaHomes.getJdk(version)
         Assume.assumeTrue(jvm != null)

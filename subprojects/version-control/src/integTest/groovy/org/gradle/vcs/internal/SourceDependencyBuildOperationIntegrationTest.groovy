@@ -27,7 +27,7 @@ import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType
 import org.gradle.launcher.exec.RunBuildBuildOperationType
 import org.gradle.vcs.fixtures.GitFileRepository
 import org.junit.Rule
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 import java.util.regex.Pattern
 
@@ -36,7 +36,7 @@ class SourceDependencyBuildOperationIntegrationTest extends AbstractIntegrationS
     GitFileRepository repo = new GitFileRepository('buildB', temporaryFolder.getTestDirectory())
     def operations = new BuildOperationsFixture(executer, temporaryFolder)
 
-    @Unroll
+    @SafeUnroll
     @ToBeFixedForInstantExecution
     def "generates configure, task graph and run tasks operations for source dependency build with #display"() {
         given:

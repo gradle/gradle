@@ -16,7 +16,7 @@
 package org.gradle.plugins.ide.eclipse
 
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class EclipseProjectIntegrationTest extends AbstractEclipseIntegrationSpec {
 
@@ -682,7 +682,7 @@ eclipseJdt.doLast() {
         assert jdt.contains('dummy=testValue')
     }
 
-    @Unroll
+    @SafeUnroll
     @ToBeFixedForInstantExecution
     void "setting project name within #hook is disallowed"(){
         given:

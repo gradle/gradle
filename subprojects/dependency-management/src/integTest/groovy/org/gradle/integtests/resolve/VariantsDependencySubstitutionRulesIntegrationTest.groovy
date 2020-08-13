@@ -21,7 +21,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import spock.lang.Issue
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class VariantsDependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec {
     def resolve = new ResolveTestFixture(buildFile, "conf").expectDefaultConfiguration("runtime")
@@ -32,7 +32,7 @@ class VariantsDependencySubstitutionRulesIntegrationTest extends AbstractIntegra
         resolve.addDefaultVariantDerivationStrategy()
     }
 
-    @Unroll
+    @SafeUnroll
     @Issue("https://github.com/gradle/gradle/issues/13204")
     def "can substitute a normal dependency with a platform dependency"() {
 
@@ -90,7 +90,7 @@ class VariantsDependencySubstitutionRulesIntegrationTest extends AbstractIntegra
 
     }
 
-    @Unroll
+    @SafeUnroll
     @Issue("https://github.com/gradle/gradle/issues/13204")
     def "can substitute a platform dependency with a regular dependency"() {
         mavenRepo.module("org", "lib", "1.0").publish()

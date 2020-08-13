@@ -21,7 +21,7 @@ import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 import spock.lang.IgnoreIf
 import spock.lang.Issue
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -394,7 +394,7 @@ project(":project2") {
         }
     }
 
-    @Unroll
+    @SafeUnroll
     @ToBeFixedForInstantExecution
     def "publish and resolve java-library with dependency on java-platform (named #platformName)"() {
         given:

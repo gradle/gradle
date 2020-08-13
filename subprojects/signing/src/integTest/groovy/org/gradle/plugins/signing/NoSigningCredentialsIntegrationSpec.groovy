@@ -17,7 +17,7 @@ package org.gradle.plugins.signing
 
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import spock.lang.Issue
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class NoSigningCredentialsIntegrationSpec extends SigningIntegrationSpec {
 
@@ -84,7 +84,7 @@ class NoSigningCredentialsIntegrationSpec extends SigningIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/2267")
-    @Unroll
+    @SafeUnroll
     @ToBeFixedForInstantExecution
     def "trying to perform a signing operation for null signing properties when not required does not error"() {
         when:

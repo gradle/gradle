@@ -22,7 +22,7 @@ import static org.gradle.testkit.runner.TaskOutcome.*
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import spock.lang.Specification
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class BuildLogicFunctionalTest extends Specification {
     @Rule final TemporaryFolder testProjectDir = new TemporaryFolder()
@@ -34,7 +34,7 @@ class BuildLogicFunctionalTest extends Specification {
         buildFile = testProjectDir.newFile('build.gradle')
     }
 
-    @Unroll
+    @SafeUnroll
     def "can execute hello world task with Gradle version #gradleVersion"() {
         given:
         buildFile << """

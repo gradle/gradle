@@ -28,7 +28,7 @@ import org.gradle.platform.base.*
 import org.gradle.platform.base.binary.BaseBinarySpec
 import org.gradle.platform.base.component.internal.ComponentSpecFactory
 import org.gradle.platform.base.plugins.BinaryBasePlugin
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 import java.lang.annotation.Annotation
 
@@ -64,7 +64,7 @@ class BinaryTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExtrac
         0 * _
     }
 
-    @Unroll
+    @SafeUnroll
     def "decent error message for rule declaration problem - #descr"() {
         def ruleMethod = ruleDefinitionForMethod(methodName)
         def ruleDescription = getStringDescription(ruleMethod.method)
@@ -88,7 +88,7 @@ class BinaryTypeModelRuleExtractorTest extends AbstractAnnotationModelRuleExtrac
         "superType"      | "Type '? super ${BinarySpec.getName()}' cannot be a wildcard type (i.e. cannot use ? super, ? extends etc.)."   | "super type parameter"
     }
 
-    @Unroll
+    @SafeUnroll
     def "decent error message for rule behaviour problem - #descr"() {
         def ruleMethod = ruleDefinitionForMethod(methodName)
         def ruleDescription = getStringDescription(ruleMethod)

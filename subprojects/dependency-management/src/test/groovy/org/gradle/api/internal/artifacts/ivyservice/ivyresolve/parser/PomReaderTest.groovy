@@ -21,7 +21,7 @@ import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.data.MavenDependencyKey
 import org.xml.sax.SAXParseException
 import spock.lang.Issue
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class PomReaderTest extends AbstractPomReaderTest {
     final ImmutableModuleIdentifierFactory moduleIdentifierFactory = Mock()
@@ -796,7 +796,7 @@ class PomReaderTest extends AbstractPomReaderTest {
     }
 
     @Issue("GRADLE-3074")
-    @Unroll
+    @SafeUnroll
     def "can define #packaging packaging with custom property"() {
         when:
         pomFile << """

@@ -19,7 +19,7 @@ package org.gradle.integtests.resolve.transform
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyResolutionTest implements ArtifactTransformTestFixture {
     /**
@@ -460,7 +460,7 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
         failure.assertHasCause("broken")
     }
 
-    @Unroll
+    @SafeUnroll
     @ToBeFixedForInstantExecution(because = "file collection containing a String provider is not serialized correctly")
     def "can use input path sensitivity #pathSensitivity for parameter object"() {
         settingsFile << """

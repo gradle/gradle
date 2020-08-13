@@ -47,7 +47,7 @@ import org.gradle.util.BuildCommencedTimeProvider
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 import spock.lang.Subject
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 import javax.inject.Inject
 import java.time.Duration
@@ -95,7 +95,7 @@ class ComponentMetadataSupplierRuleExecutorTest extends Specification {
     }
 
     // Tests --refresh-dependencies behavior
-    @Unroll("Cache expiry check expired=#expired, refresh = #mustRefresh - #scenario - #ruleClass.simpleName")
+    @SafeUnroll("Cache expiry check expired=#expired, refresh = #mustRefresh - #scenario - #ruleClass.simpleName")
     def "expires entry when cache policy tells us to"() {
         def id = DefaultModuleVersionIdentifier.newId('org', 'foo', '1.0')
         def inputsSnapshot = new StringValueSnapshot("1")

@@ -25,7 +25,7 @@ import org.gradle.util.Path
 import org.junit.Rule
 import org.junit.rules.TestName
 import spock.lang.Specification
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 import static org.hamcrest.CoreMatchers.equalTo
 import static org.hamcrest.CoreMatchers.is
@@ -105,7 +105,7 @@ class DefaultProjectDescriptorTest extends Specification {
         descriptor != otherDescriptor
     }
 
-    @Unroll
+    @SafeUnroll
     def "build file name is resolved by given ScriptFileResolver"() {
         given:
         def scriptFileResolver = Mock(ScriptFileResolver)

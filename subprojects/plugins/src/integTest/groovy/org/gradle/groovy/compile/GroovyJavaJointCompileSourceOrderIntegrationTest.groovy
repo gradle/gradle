@@ -18,7 +18,7 @@ package org.gradle.groovy.compile
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Issue
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class GroovyJavaJointCompileSourceOrderIntegrationTest extends AbstractIntegrationSpec {
 
@@ -55,7 +55,7 @@ class GroovyJavaJointCompileSourceOrderIntegrationTest extends AbstractIntegrati
         reversedAgainBytes == originalBytes
     }
 
-    @Unroll
+    @SafeUnroll
     def "groovy and java source directory compilation order can be reversed (task configuration #configurationStyle)"() {
         given:
         file("src/main/groovy/Groovy.groovy") << "class Groovy { }"

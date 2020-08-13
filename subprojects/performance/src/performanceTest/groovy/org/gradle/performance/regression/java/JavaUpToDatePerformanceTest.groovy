@@ -20,14 +20,14 @@ import org.gradle.initialization.StartParameterBuildOptions
 import org.gradle.performance.AbstractCrossVersionGradleProfilerPerformanceTest
 import org.gradle.profiler.mutations.AbstractCleanupMutator
 import org.gradle.profiler.mutations.ClearBuildCacheMutator
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 import static org.gradle.performance.generator.JavaTestProject.LARGE_JAVA_MULTI_PROJECT
 import static org.gradle.performance.generator.JavaTestProject.LARGE_MONOLITHIC_JAVA_PROJECT
 
 class JavaUpToDatePerformanceTest extends AbstractCrossVersionGradleProfilerPerformanceTest {
 
-    @Unroll
+    @SafeUnroll
     def "up-to-date assemble on #testProject (parallel #parallel)"() {
         given:
         runner.testProject = testProject
@@ -49,7 +49,7 @@ class JavaUpToDatePerformanceTest extends AbstractCrossVersionGradleProfilerPerf
         LARGE_JAVA_MULTI_PROJECT      | false
     }
 
-    @Unroll
+    @SafeUnroll
     def "up-to-date assemble on #testProject with local build cache enabled (parallel #parallel)"() {
         given:
         runner.testProject = testProject

@@ -32,7 +32,7 @@ import org.gradle.internal.serialize.Serializer
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 import static org.gradle.cache.FileLockManager.LockMode.*
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode
@@ -102,7 +102,7 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
         0 * _._
     }
 
-    @Unroll
+    @SafeUnroll
     def "cleans up when cleanup action is required with access #accessType"() {
         def access = newAccess(accessType)
         when:
@@ -271,7 +271,7 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
         !access.owner
     }
 
-    @Unroll
+    @SafeUnroll
     def "cannot be opened more than once for mode #lockMode"() {
         if (lockMode == Shared) {
             lockManager.lock(lockFile, _, "<display-name>") >> lock

@@ -18,7 +18,7 @@ package org.gradle.integtests.composite
 
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.build.BuildTestFile
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class CompositeBuildBuildSrcIdentityIntegrationTest extends AbstractCompositeBuildIntegrationTest {
     BuildTestFile buildB
@@ -35,7 +35,7 @@ class CompositeBuildBuildSrcIdentityIntegrationTest extends AbstractCompositeBui
         includedBuilds << buildB
     }
 
-    @Unroll
+    @SafeUnroll
     @ToBeFixedForInstantExecution
     def "includes build identifier in logging output with #display"() {
         dependency "org.test:buildB:1.0"
@@ -61,7 +61,7 @@ class CompositeBuildBuildSrcIdentityIntegrationTest extends AbstractCompositeBui
         "rootProject.name='someLib'" | "configured root project name"
     }
 
-    @Unroll
+    @SafeUnroll
     @ToBeFixedForInstantExecution
     def "includes build identifier in dependency report with #display"() {
         dependency "org.test:buildB:1.0"
@@ -93,7 +93,7 @@ runtimeClasspath - Runtime classpath of source set 'main'.
         "rootProject.name='someLib'" | "configured root project name"
     }
 
-    @Unroll
+    @SafeUnroll
     def "includes build identifier in error message on failure to resolve dependencies of build with #display"() {
         dependency "org.test:buildB:1.0"
 
@@ -117,7 +117,7 @@ Required by:
         "rootProject.name='someLib'" | "configured root project name"
     }
 
-    @Unroll
+    @SafeUnroll
     def "includes build identifier in task failure error message with #display"() {
         dependency "org.test:buildB:1.0"
 
@@ -141,7 +141,7 @@ Required by:
         "rootProject.name='someLib'" | "configured root project name"
     }
 
-    @Unroll
+    @SafeUnroll
     @ToBeFixedForInstantExecution
     def "includes build identifier in dependency resolution results with #display"() {
         dependency "org.test:buildB:1.0"

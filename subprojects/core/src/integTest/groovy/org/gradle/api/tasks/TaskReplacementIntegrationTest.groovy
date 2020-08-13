@@ -18,7 +18,7 @@ package org.gradle.api.tasks
 
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class TaskReplacementIntegrationTest extends AbstractIntegrationSpec {
 
@@ -34,7 +34,7 @@ class TaskReplacementIntegrationTest extends AbstractIntegrationSpec {
         """
     }
 
-    @Unroll
+    @SafeUnroll
     def "can replace an unrealized task when #description"() {
         buildFile << """
             tasks.register("foo", First)
@@ -52,7 +52,7 @@ class TaskReplacementIntegrationTest extends AbstractIntegrationSpec {
         "using create(overwrite)" | 'create(name: "foo", type: Second, overwrite: true)'
     }
 
-    @Unroll
+    @SafeUnroll
     def "throws exception when replacing an unrealized task a second time when #description"() {
         buildFile << """
             tasks.register("foo", First)
@@ -70,7 +70,7 @@ class TaskReplacementIntegrationTest extends AbstractIntegrationSpec {
         "using create(overwrite)" | 'create(name: "foo", type: Third, overwrite: true)'
     }
 
-    @Unroll
+    @SafeUnroll
     def "throws exception when replacing an eagerly created task when #description"() {
         buildFile << """
             tasks.create("foo", First)
@@ -98,7 +98,7 @@ class TaskReplacementIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause("Replacing an existing task that may have already been used by other plugins is not supported.  Use a different name for this task ('foo').")
     }
 
-    @Unroll
+    @SafeUnroll
     def "throws exception when replacing a task with an unrelated type when #description"() {
         buildFile << """
             class CustomTask extends DefaultTask {}
@@ -118,7 +118,7 @@ class TaskReplacementIntegrationTest extends AbstractIntegrationSpec {
         "using create(overwrite)" | 'create(name: "foo", type: UnrelatedCustomTask, overwrite: true)'
     }
 
-    @Unroll
+    @SafeUnroll
     def "throws exception when replacing a task with more restrictive type when #description"() {
         buildFile << """
             class CustomTask extends DefaultTask {}
@@ -144,21 +144,21 @@ class TaskReplacementIntegrationTest extends AbstractIntegrationSpec {
                 String prop
             }
 
-            def taskProvider = tasks.register("foo", CustomTask) { 
-                it.prop = "value" 
+            def taskProvider = tasks.register("foo", CustomTask) {
+                it.prop = "value"
             }
-            tasks.withType(CustomTask).configureEach { 
+            tasks.withType(CustomTask).configureEach {
                 assert it.prop == "value"
-                it.prop = "value 2" 
+                it.prop = "value 2"
             }
-            taskProvider.configure { 
-                assert it.prop == "value 2" 
-                it.prop = "value 3" 
+            taskProvider.configure {
+                assert it.prop == "value 2"
+                it.prop = "value 3"
             }
             tasks.replace("foo", CustomTask)
-            tasks.withType(CustomTask).all { 
-                assert it.prop == "value 3" 
-                it.prop = "value 4" 
+            tasks.withType(CustomTask).all {
+                assert it.prop == "value 3"
+                it.prop = "value 4"
             }
 
             assert foo.prop == "value 4"
@@ -169,7 +169,7 @@ class TaskReplacementIntegrationTest extends AbstractIntegrationSpec {
         succeeds 'help'
     }
 
-    @Unroll
+    @SafeUnroll
     def "throws exception when replacing non-existent task when #description"() {
         buildFile << """
             tasks.${api}
@@ -190,7 +190,7 @@ class TaskReplacementIntegrationTest extends AbstractIntegrationSpec {
             def p1 = tasks.register("foo")
             def p2 = tasks.named("foo")
             def p3 = tasks.replace("foo")
-            
+
             assert p1.get() == p2.get()
             assert p1.get() == tasks.getByName("foo")
             assert p1.get() == p3

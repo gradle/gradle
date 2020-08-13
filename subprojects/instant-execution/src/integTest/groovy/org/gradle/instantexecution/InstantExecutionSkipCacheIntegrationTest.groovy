@@ -16,12 +16,12 @@
 
 package org.gradle.instantexecution
 
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 
 class InstantExecutionSkipCacheIntegrationTest extends AbstractInstantExecutionIntegrationTest {
 
-    @Unroll
+    @SafeUnroll
     def "skip reading cached state on #commandLine"() {
 
         def instantExecution = newInstantExecutionFixture()

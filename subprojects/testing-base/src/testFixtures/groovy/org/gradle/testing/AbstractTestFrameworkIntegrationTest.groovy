@@ -22,7 +22,7 @@ import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.hamcrest.CoreMatchers
 import org.junit.Assume
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 import static org.gradle.integtests.fixtures.DefaultTestExecutionResult.removeParentheses
 
@@ -250,7 +250,7 @@ abstract class AbstractTestFrameworkIntegrationTest extends AbstractIntegrationS
         testResult.testClass("SomeTest").assertTestsExecuted(passingTestCaseName)
     }
 
-    @Unroll
+    @SafeUnroll
     @ToBeFixedForInstantExecution(bottomSpecs = "XCTestTestFrameworkIntegrationTest")
     def "can select multiple tests from command line #scenario"() {
         given:
@@ -284,7 +284,7 @@ abstract class AbstractTestFrameworkIntegrationTest extends AbstractIntegrationS
         return command.toArray()
     }
 
-    @Unroll
+    @SafeUnroll
     @ToBeFixedForInstantExecution(bottomSpecs = "XCTestTestFrameworkIntegrationTest")
     def "can deduplicate test filters when #scenario"() {
         given:

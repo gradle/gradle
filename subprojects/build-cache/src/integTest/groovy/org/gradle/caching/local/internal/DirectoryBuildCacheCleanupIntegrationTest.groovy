@@ -24,7 +24,7 @@ import org.gradle.integtests.fixtures.cache.FileAccessTimeJournalFixture
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.internal.hash.Hashing
 import spock.lang.Ignore
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 import java.util.concurrent.TimeUnit
 
@@ -100,7 +100,7 @@ class DirectoryBuildCacheCleanupIntegrationTest extends AbstractIntegrationSpec 
         assertCacheWasCleanedUpSince(lastCleanupCheck)
     }
 
-    @Unroll
+    @SafeUnroll
     def "produces reasonable message when cache retention is too short (#days days)"() {
         settingsFile << """
             buildCache {

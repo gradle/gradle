@@ -20,14 +20,14 @@ import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.nativeplatform.fixtures.AvailableToolChains
 import org.gradle.nativeplatform.fixtures.SharedLibraryFixture
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class CppLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
 
     public static final String SAMPLE_LIB_CLASS = "hello.cpp"
     public static final String SAMPLE_LIB_TEST_CLASS = "hello_test.cpp"
 
-    @Unroll
+    @SafeUnroll
     @ToBeFixedForInstantExecution(because = "cpp-library plugin")
     def "creates sample source if no source present with #scriptDsl build scripts"() {
         when:
@@ -58,7 +58,7 @@ class CppLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
-    @Unroll
+    @SafeUnroll
     @ToBeFixedForInstantExecution(because = "cpp-library plugin")
     def "creates sample source if project name is specified with #scriptDsl build scripts"() {
         when:
@@ -90,7 +90,7 @@ class CppLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
     }
 
 
-    @Unroll
+    @SafeUnroll
     @ToBeFixedForInstantExecution(because = "cpp-library plugin")
     def "source generation is skipped when cpp sources detected with #scriptDsl build scripts"() {
         setup:
@@ -98,20 +98,20 @@ class CppLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
             #include <iostream>
             #include <stdlib.h>
             #include "hola.h"
-            
+
             std::string hola() {
                 return std::string("Hola, Mundo!");
             }
         """
         targetDir.file("src/main/public/hola.h") << """
             #include <string>
-            
+
             #ifdef _WIN32
             #define EXPORT_FUNC __declspec(dllexport)
             #else
             #define EXPORT_FUNC
             #endif
-            
+
             extern std::string EXPORT_FUNC hola();
         """
         targetDir.file("src/test/cpp/hola_test.cpp") << """

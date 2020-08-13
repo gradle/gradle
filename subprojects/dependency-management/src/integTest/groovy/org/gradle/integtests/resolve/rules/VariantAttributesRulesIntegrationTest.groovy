@@ -18,7 +18,7 @@ package org.gradle.integtests.resolve.rules
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class VariantAttributesRulesIntegrationTest extends AbstractModuleDependencyResolveTest {
     @Override
@@ -356,7 +356,7 @@ class VariantAttributesRulesIntegrationTest extends AbstractModuleDependencyReso
         }
     }
 
-    @Unroll
+    @SafeUnroll
     def "can disambiguate variants to select #selectedVariant"() {
         given:
         withDefaultVariantToTest()
@@ -405,7 +405,7 @@ class VariantAttributesRulesIntegrationTest extends AbstractModuleDependencyReso
         }
 
         when:
-        // @RequiredFeatures not compatible with @Unroll at method level
+        // @RequiredFeatures not compatible with @SafeUnroll at method level
         if (GradleMetadataResolveRunner.isGradleMetadataPublished()) {
             repositoryInteractions {
                 'org.test:moduleA:1.0' {
@@ -420,7 +420,7 @@ class VariantAttributesRulesIntegrationTest extends AbstractModuleDependencyReso
         }
 
         then:
-        // @RequiredFeatures not compatible with @Unroll at method level
+        // @RequiredFeatures not compatible with @SafeUnroll at method level
         if (GradleMetadataResolveRunner.isGradleMetadataPublished()) {
             succeeds 'checkDep'
 

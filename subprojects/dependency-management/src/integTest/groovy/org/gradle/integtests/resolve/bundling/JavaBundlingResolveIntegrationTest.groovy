@@ -24,7 +24,7 @@ import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 import spock.lang.Ignore
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
 class JavaBundlingResolveIntegrationTest extends AbstractModuleDependencyResolveTest {
@@ -46,7 +46,7 @@ class JavaBundlingResolveIntegrationTest extends AbstractModuleDependencyResolve
         true
     }
 
-    @Unroll
+    @SafeUnroll
     def "defaults to the external dependencies variant (#bundling)"() {
         given:
         repository {
@@ -111,7 +111,7 @@ class JavaBundlingResolveIntegrationTest extends AbstractModuleDependencyResolve
     }
 
     @ToBeFixedForInstantExecution(iterationMatchers = [".*selected=null.*"])
-    @Unroll
+    @SafeUnroll
     def "selects the appropriate variant (producer=#bundling, requested=#requested, selected=#selected)"() {
         given:
         repository {

@@ -20,7 +20,7 @@ import org.gradle.internal.resource.metadata.ExternalResourceMetaData
 import org.gradle.internal.logging.progress.ProgressLogger
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
 import spock.lang.Specification
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class ProgressLoggingExternalResourceAccessorTest extends Specification {
 
@@ -35,7 +35,7 @@ class ProgressLoggingExternalResourceAccessorTest extends Specification {
         externalResource.metaData >> metaData
     }
 
-    @Unroll
+    @SafeUnroll
     def "delegates #method to delegate resource accessor"() {
         when:
         progressLoggerAccessor."$method"(new URI("location"), false)

@@ -39,7 +39,7 @@ import org.gradle.internal.resource.local.LocallyAvailableResourceFinder
 import org.gradle.internal.resource.transfer.CacheAwareExternalResourceAccessor
 import org.gradle.util.TestUtil
 import spock.lang.Specification
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 import static org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier.newId
 import static org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult.State.Missing
@@ -72,7 +72,7 @@ class IvyResolverTest extends Specification {
         resolver1.id != resolver2.id
     }
 
-    @Unroll
+    @SafeUnroll
     def "remote access fails directly for module id #moduleId with layout #layoutPattern"() {
         given:
         def overrideMetadata = DefaultComponentOverrideMetadata.EMPTY
@@ -102,7 +102,7 @@ class IvyResolverTest extends Specification {
         newId(mid("", "name"), "")      | "([organization])/[module]-[revision]"
     }
 
-    @Unroll
+    @SafeUnroll
     def "remote access attempts to access metadata for id #moduleId with layout #layoutPattern"() {
         given:
         def overrideMetadata = DefaultComponentOverrideMetadata.EMPTY

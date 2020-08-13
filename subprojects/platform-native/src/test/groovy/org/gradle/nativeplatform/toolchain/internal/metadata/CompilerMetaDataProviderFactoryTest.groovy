@@ -20,7 +20,7 @@ import org.gradle.process.ExecResult
 import org.gradle.process.internal.ExecAction
 import org.gradle.process.internal.ExecActionFactory
 import spock.lang.Specification
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class CompilerMetaDataProviderFactoryTest extends Specification {
 
@@ -29,7 +29,7 @@ class CompilerMetaDataProviderFactoryTest extends Specification {
     def execResult = Mock(ExecResult)
     def factory = new CompilerMetaDataProviderFactory(execActionFactory)
 
-    @Unroll
+    @SafeUnroll
     def "caches result of actual #compiler metadata provider"() {
         def binary = new File("any")
         when:
@@ -49,7 +49,7 @@ class CompilerMetaDataProviderFactoryTest extends Specification {
         compiler << ['gcc', 'clang', 'swiftc']
     }
 
-    @Unroll
+    @SafeUnroll
     def "different #compiler executables are probed and cached"() {
         def firstBinary = new File("first")
         def secondBinary = new File("second")
@@ -77,7 +77,7 @@ class CompilerMetaDataProviderFactoryTest extends Specification {
         compiler << ['gcc', 'clang', 'swiftc']
     }
 
-    @Unroll
+    @SafeUnroll
     def "different #compiler arguments are probed and cached"() {
         def binary = new File("any")
         def firstArgs = ["-m32"]
@@ -106,7 +106,7 @@ class CompilerMetaDataProviderFactoryTest extends Specification {
         compiler << ['gcc', 'clang', 'swiftc']
     }
 
-    @Unroll
+    @SafeUnroll
     def "different #compiler paths are probed and cached"() {
         def binary = new File("any")
         def firstPath = []

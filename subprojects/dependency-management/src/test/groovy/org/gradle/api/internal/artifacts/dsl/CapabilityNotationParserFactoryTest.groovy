@@ -22,7 +22,7 @@ import org.gradle.internal.typeconversion.NotationParser
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class CapabilityNotationParserFactoryTest extends Specification {
     @Subject
@@ -32,7 +32,7 @@ class CapabilityNotationParserFactoryTest extends Specification {
     @Shared
     private NotationParser<Object, Capability> lenientParser = new CapabilityNotationParserFactory(false).create()
 
-    @Unroll
+    @SafeUnroll
     def "can parse string notation"() {
         when:
         def capability = parser.parseNotation("foo:bar:1.0")
@@ -56,7 +56,7 @@ class CapabilityNotationParserFactoryTest extends Specification {
         capability.version == null
     }
 
-    @Unroll
+    @SafeUnroll
     def "invalid string notation #notation is reported for strict parser"() {
         when:
         strictParser.parseNotation(notation)
@@ -74,7 +74,7 @@ class CapabilityNotationParserFactoryTest extends Specification {
         ]
     }
 
-    @Unroll
+    @SafeUnroll
     def "invalid string notation #notation is reported for lenient parser"() {
         when:
         lenientParser.parseNotation(notation)
@@ -92,7 +92,7 @@ class CapabilityNotationParserFactoryTest extends Specification {
         ]
     }
 
-    @Unroll
+    @SafeUnroll
     def "can parse map notation"() {
         when:
         def capability = parser.parseNotation(group: 'foo', name: "bar", version: "1.0")
@@ -116,7 +116,7 @@ class CapabilityNotationParserFactoryTest extends Specification {
         capability.version == null
     }
 
-    @Unroll
+    @SafeUnroll
     def "invalid map notation #notation is reported for strict parser"() {
         when:
         strictParser.parseNotation(notation)
@@ -133,7 +133,7 @@ class CapabilityNotationParserFactoryTest extends Specification {
         [name: null]                 | "Required keys [group, name, version] are missing from map {name=null}."
     }
 
-    @Unroll
+    @SafeUnroll
     def "invalid map notation #notation is reported for lenient parser"() {
         when:
         lenientParser.parseNotation(notation)

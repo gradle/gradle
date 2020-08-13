@@ -17,7 +17,7 @@ package org.gradle.integtests.resolve.maven
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import spock.lang.Issue
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class BadPomFileResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
     @Issue("https://issues.gradle.org/browse/GRADLE-1005")
@@ -162,7 +162,7 @@ task showBroken { doLast { println configurations.compile.files } }
             .assertHasCause("Missing required attribute: groupId")
     }
 
-    @Unroll
+    @SafeUnroll
     def "reports failure to parse POM due to missing dependency #attribute attribute"() {
         given:
         buildFile << """

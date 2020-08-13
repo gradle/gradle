@@ -22,7 +22,7 @@ import org.gradle.internal.Actions
 import org.spockframework.runtime.UnallowedExceptionThrownError
 import spock.lang.Specification
 import spock.lang.Subject
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 @Subject(DefaultMutationGuard)
 class DefaultMutationGuardTest extends Specification {
@@ -30,7 +30,7 @@ class DefaultMutationGuardTest extends Specification {
 
     def target = new Object()
 
-    @Unroll
+    @SafeUnroll
     def "does not throw exception when calling a disallowed method when allowed using #methodUnderTest(#callableClass.type)"() {
         def callable = callableClass.newInstance(this)
 
@@ -46,7 +46,7 @@ class DefaultMutationGuardTest extends Specification {
         "withMutationEnabled"  | ActionCallingDisallowedMethod
     }
 
-    @Unroll
+    @SafeUnroll
     def "throws IllegalStateException when calling a disallowed method when disallowed using #methodUnderTest(#callableClass.type)"() {
         def callable = callableClass.newInstance(this)
 
@@ -70,7 +70,7 @@ class DefaultMutationGuardTest extends Specification {
         noExceptionThrown()
     }
 
-    @Unroll
+    @SafeUnroll
     def "call to #methodUnderTest(#callableType) inside withMutationDisabled(Action) does not disable disallow check"() {
         def aMethodUnderTest = methodUnderTest
         def aCallable = callable
@@ -94,7 +94,7 @@ class DefaultMutationGuardTest extends Specification {
         "withMutationEnabled"   | "Action"     | Actions.doNothing()
     }
 
-    @Unroll
+    @SafeUnroll
     def "call to #methodUnderTest(#callableType) inside withMutationEnabled(Action) does enable disallow check outside scope"() {
         def aMethodUnderTest = methodUnderTest
         def aCallable = callable

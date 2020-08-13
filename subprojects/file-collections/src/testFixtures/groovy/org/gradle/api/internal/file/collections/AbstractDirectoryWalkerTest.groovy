@@ -29,7 +29,7 @@ import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 import spock.lang.Issue
 import spock.lang.Specification
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 import java.nio.charset.Charset
 import java.util.concurrent.atomic.AtomicInteger
@@ -48,7 +48,7 @@ abstract class AbstractDirectoryWalkerTest<T> extends Specification {
         Charset.defaultCharset = null // clear cache
     }
 
-    @Unroll
+    @SafeUnroll
     def "basic directory walking works - walker: #walkerInstance.class.simpleName"() {
         given:
         def rootDir = tmpDir.createDir("root")
@@ -94,7 +94,7 @@ abstract class AbstractDirectoryWalkerTest<T> extends Specification {
     }
 
     @Requires(TestPrecondition.SYMLINKS)
-    @Unroll
+    @SafeUnroll
     def "symbolic links for directories are handled properly - walker: #walkerInstance.class.simpleName"() {
         given:
         def rootDir = tmpDir.createDir("root")
@@ -120,7 +120,7 @@ abstract class AbstractDirectoryWalkerTest<T> extends Specification {
     }
 
     @Requires(TestPrecondition.SYMLINKS)
-    @Unroll
+    @SafeUnroll
     def "symbolic links for files are handled properly - walker: #walkerInstance.class.simpleName"() {
         given:
         def rootDir = tmpDir.createDir("root")
@@ -147,7 +147,7 @@ abstract class AbstractDirectoryWalkerTest<T> extends Specification {
 
     @Issue("GRADLE-3400")
     @Requires(TestPrecondition.SYMLINKS)
-    @Unroll
+    @SafeUnroll
     def "missing symbolic link that gets filtered doesn't cause an exception - walker: #walkerInstance.class.simpleName"() {
         given:
         def rootDir = tmpDir.createDir("root")

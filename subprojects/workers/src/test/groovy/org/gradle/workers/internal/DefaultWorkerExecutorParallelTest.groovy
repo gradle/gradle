@@ -36,7 +36,7 @@ import org.gradle.workers.WorkParameters
 import org.gradle.workers.WorkerExecutionException
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 import static org.gradle.internal.work.AsyncWorkTracker.ProjectLockRetention.RETAIN_PROJECT_LOCKS
 
@@ -74,7 +74,7 @@ class DefaultWorkerExecutorParallelTest extends ConcurrentSpec {
         _ * actionExecutionSpecFactory.newIsolatedSpec(_, _, _, _, _) >> Mock(IsolatedParametersActionExecutionSpec)
     }
 
-    @Unroll
+    @SafeUnroll
     def "work can be submitted concurrently using #isolationMode"() {
         when:
         async {

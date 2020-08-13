@@ -35,7 +35,7 @@ import org.gradle.internal.serialize.SerializerSpec
 import org.gradle.util.AttributeTestUtil
 import org.gradle.util.Path
 import org.gradle.util.TestUtil
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 import static org.gradle.util.Path.path
 
@@ -121,7 +121,7 @@ class ComponentSelectorSerializerTest extends SerializerSpec {
         result.requestedCapabilities == selector.requestedCapabilities
     }
 
-    @Unroll
+    @SafeUnroll
     def "serializes ProjectComponentSelector with attributes"() {
         given:
         def selector = new DefaultProjectComponentSelector(new DefaultBuildIdentifier(buildId), identityPath, projectPath, projectName, AttributeTestUtil.attributes(foo: 'x', bar: 'y'), capabilities())
@@ -175,7 +175,7 @@ class ComponentSelectorSerializerTest extends SerializerSpec {
         result.projectPath == ':myPath'
     }
 
-    @Unroll
+    @SafeUnroll
     def "serializes LibraryComponentSelector project #projectPath library #libraryName variant #variant"() {
         given:
         LibraryComponentSelector selection = new DefaultLibraryComponentSelector(projectPath, libraryName)

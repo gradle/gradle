@@ -21,7 +21,7 @@ import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.test.fixtures.file.TestFile
 import org.junit.Rule
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 
 class SamplesAntlrIntegrationSpec extends AbstractSampleIntegrationTest {
@@ -29,7 +29,7 @@ class SamplesAntlrIntegrationSpec extends AbstractSampleIntegrationTest {
     @Rule
     Sample sample = new Sample(testDirectoryProvider)
 
-    @Unroll
+    @SafeUnroll
     @UsesSample("antlr/useAntlrPlugin")
     def "can build with dsl #dsl"() {
         given:

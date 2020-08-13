@@ -25,7 +25,7 @@ import org.gradle.util.UsesNativeServices
 import org.junit.ClassRule
 import spock.lang.Shared
 import spock.lang.Specification
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 @Requires(TestPrecondition.SYMLINKS)
 @UsesNativeServices
@@ -43,7 +43,7 @@ class FileCollectionSymlinkTest extends Specification {
         symlink.createLink(symlinked)
     }
 
-    @Unroll
+    @SafeUnroll
     def "#desc can handle symlinks"() {
         expect:
         fileCollection.contains(file)

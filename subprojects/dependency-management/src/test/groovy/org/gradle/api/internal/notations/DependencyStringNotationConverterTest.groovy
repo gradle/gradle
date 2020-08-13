@@ -26,7 +26,7 @@ import org.gradle.internal.typeconversion.NotationParserBuilder
 import org.gradle.util.TestUtil
 import org.gradle.util.internal.SimpleMapInterner
 import spock.lang.Specification
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class DependencyStringNotationConverterTest extends Specification {
     def parser = new DependencyStringNotationConverter(TestUtil.instantiatorFactory().decorateLenient(), DefaultExternalModuleDependency.class, SimpleMapInterner.notThreadSafe());
@@ -212,7 +212,7 @@ class DependencyStringNotationConverterTest extends Specification {
         d.artifacts.size() == 0
     }
 
-    @Unroll
+    @SafeUnroll
     def "parses short hand-notation #notation for strict dependencies"() {
         def parser = new DependencyStringNotationConverter(TestUtil.instantiatorFactory().decorateLenient(), DefaultClientModule, SimpleMapInterner.notThreadSafe());
 

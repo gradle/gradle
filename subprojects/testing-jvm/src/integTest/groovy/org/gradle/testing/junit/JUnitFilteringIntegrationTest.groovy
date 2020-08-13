@@ -21,7 +21,7 @@ import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.testing.fixture.AbstractTestFilteringIntegrationTest
 import org.junit.Assume
 import spock.lang.Issue
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 import static org.gradle.testing.fixture.JUnitCoverage.*
 import static org.gradle.testing.fixture.JUnitMultiVersionIntegrationSpec.*
@@ -190,7 +190,7 @@ class JUnitFilteringIntegrationTest extends AbstractTestFilteringIntegrationTest
         result.testClass("FooServerTest").assertTestsExecuted("testFooServer")
     }
 
-    @Unroll
+    @SafeUnroll
     def 'filter as many classes as possible before sending to worker process'() {
         given:
         // We can know which class is sent to TestClassProcessor via afterSuite() hook method

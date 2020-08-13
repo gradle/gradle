@@ -19,7 +19,7 @@ package org.gradle.internal.resource.metadata
 import org.gradle.internal.Factory
 import spock.lang.Shared
 import spock.lang.Specification
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class ExternalResourceMetaDataCompareTest extends Specification {
 
@@ -40,7 +40,7 @@ class ExternalResourceMetaDataCompareTest extends Specification {
         0 * factory.create()
     }
 
-    @Unroll
+    @SafeUnroll
     "always unchanged with incomplete local metadata"() {
         given:
         configureMetadata(local, etag, lastModified, contentLength)
@@ -59,7 +59,7 @@ class ExternalResourceMetaDataCompareTest extends Specification {
         null | null         | -1
     }
 
-    @Unroll
+    @SafeUnroll
     "always unchanged with incomplete remote metadata"() {
         given:
         configureMetadata(local)

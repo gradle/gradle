@@ -17,7 +17,7 @@
 package org.gradle.api.publish.maven
 
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class MavenPublishFeaturesJavaPluginIntegTest extends AbstractMavenPublishFeaturesJavaIntegTest {
     @ToBeFixedForInstantExecution
@@ -26,13 +26,13 @@ class MavenPublishFeaturesJavaPluginIntegTest extends AbstractMavenPublishFeatur
 
         given:
         buildFile << """
-            
+
             java {
                 registerFeature("feature") {
                     usingSourceSet(sourceSets.main)
                 }
             }
-            
+
             dependencies {
                 featureImplementation 'org:optionaldep:1.0'
             }
@@ -80,24 +80,24 @@ class MavenPublishFeaturesJavaPluginIntegTest extends AbstractMavenPublishFeatur
         }
     }
 
-    @Unroll
+    @SafeUnroll
     @ToBeFixedForInstantExecution
     def "can update #prop after feature has been registered"() {
         mavenRepo.module('org', 'optionaldep', '1.0').withModuleMetadata().publish()
 
         given:
         buildFile << """
-            
+
             java {
                 registerFeature("feature") {
                     usingSourceSet(sourceSets.main)
                 }
             }
-            
+
             dependencies {
                 featureImplementation 'org:optionaldep:1.0'
             }
-            
+
             $prop = "$newValue"
         """
 

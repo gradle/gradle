@@ -20,7 +20,7 @@ import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.hamcrest.Matcher
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl.GROOVY
 import static org.hamcrest.CoreMatchers.allOf
@@ -41,7 +41,7 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
         outputContains "init - Initializes a new Gradle build."
     }
 
-    @Unroll
+    @SafeUnroll
     def "creates a simple project with #scriptDsl build scripts when no pom file present and no type specified"() {
         given:
         def dslFixture = dslFixtureFor(scriptDsl)
@@ -66,7 +66,7 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
-    @Unroll
+    @SafeUnroll
     def "#targetScriptDsl build file generation is skipped when #existingScriptDsl build file already exists"() {
         given:
         def existingDslFixture = dslFixtureFor(existingScriptDsl)
@@ -90,7 +90,7 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
         [existingScriptDsl, targetScriptDsl] << ScriptDslFixture.scriptDslCombinationsFor(2)
     }
 
-    @Unroll
+    @SafeUnroll
     def "#targetScriptDsl build file generation is skipped when #existingScriptDsl settings file already exists"() {
         given:
         def existingDslFixture = dslFixtureFor(existingScriptDsl)
@@ -114,7 +114,7 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
         [existingScriptDsl, targetScriptDsl] << ScriptDslFixture.scriptDslCombinationsFor(2)
     }
 
-    @Unroll
+    @SafeUnroll
     def "#targetScriptDsl build file generation is skipped when custom #existingScriptDsl build file exists"() {
         given:
         def existingDslFixture = dslFixtureFor(existingScriptDsl)
@@ -140,7 +140,7 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
         [existingScriptDsl, targetScriptDsl] << ScriptDslFixture.scriptDslCombinationsFor(2)
     }
 
-    @Unroll
+    @SafeUnroll
     def "#targetScriptDsl build file generation is skipped when part of a multi-project build with non-standard #existingScriptDsl settings file location"() {
         given:
         def existingDslFixture = dslFixtureFor(existingScriptDsl)
@@ -180,7 +180,7 @@ include("child")
         pomValuesUsed(dslFixtureFor(GROOVY))
     }
 
-    @Unroll
+    @SafeUnroll
     def "pom conversion to #scriptDsl build scripts not triggered when build type is specified"() {
         given:
         pom()

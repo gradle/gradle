@@ -19,7 +19,7 @@ package org.gradle.language.base
 import org.gradle.api.reporting.model.ModelReportOutput
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 @UnsupportedWithInstantExecution(because = "software model")
 class CustomComponentBinariesIntegrationTest extends AbstractIntegrationSpec {
@@ -172,7 +172,7 @@ Binaries
         succeeds "checkSourceSets"
     }
 
-    @Unroll
+    @SafeUnroll
     def "can execute #taskdescr to build binary"() {
         given:
         buildFile << withSimpleComponentBinaries()

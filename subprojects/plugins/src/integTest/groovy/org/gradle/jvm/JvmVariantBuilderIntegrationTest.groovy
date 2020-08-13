@@ -19,7 +19,7 @@ package org.gradle.jvm
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.maven.AbstractMavenModule
 import org.gradle.test.fixtures.maven.MavenFileRepository
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class JvmVariantBuilderIntegrationTest extends AbstractIntegrationSpec {
     MavenFileRepository publishRepo
@@ -82,7 +82,7 @@ class JvmVariantBuilderIntegrationTest extends AbstractIntegrationSpec {
      * similar to "test fixtures" but where the fixtures are only
      * available to integration tests
      */
-    @Unroll("can register integration test fixtures (exposeApi=#exposeApi, published=#published, javadocs=#javadocs, sources=#sources)")
+    @SafeUnroll("can register integration test fixtures (exposeApi=#exposeApi, published=#published, javadocs=#javadocs, sources=#sources)")
     def "can register integration test fixtures"() {
         buildFile << """
             sourceSets {

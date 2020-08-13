@@ -26,7 +26,7 @@ import org.gradle.util.GradleVersion
 import org.gradle.util.Requires
 import org.junit.Assume
 import spock.lang.IgnoreIf
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 @SuppressWarnings("IntegrationTestFixtures")
 class WrapperCrossVersionIntegrationTest extends CrossVersionIntegrationSpec {
@@ -57,7 +57,7 @@ class WrapperCrossVersionIntegrationTest extends CrossVersionIntegrationSpec {
         cleanupDaemons(executer, previous)
     }
 
-    @Unroll
+    @SafeUnroll
     @Requires(adhoc = { AvailableJavaHomes.getJdks("1.6", "1.7") })
     def 'provides reasonable failure message when attempting to run current Version with previous wrapper under java #jdk.javaVersion'() {
         when:
@@ -71,7 +71,7 @@ class WrapperCrossVersionIntegrationTest extends CrossVersionIntegrationSpec {
         jdk << AvailableJavaHomes.getJdks("1.6", "1.7")
     }
 
-    @Unroll
+    @SafeUnroll
     @Requires(adhoc = { AvailableJavaHomes.getJdks("1.6", "1.7") })
     def 'provides reasonable failure message when attempting to run with previous wrapper and the build is configured to use Java #jdk.javaVersion'() {
         when:

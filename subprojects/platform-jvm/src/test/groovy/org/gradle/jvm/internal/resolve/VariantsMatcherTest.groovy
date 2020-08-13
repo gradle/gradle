@@ -25,12 +25,12 @@ import org.gradle.platform.base.Variant
 import org.gradle.platform.base.internal.BinarySpecInternal
 import org.gradle.platform.base.internal.VariantAspectExtractionStrategy
 import spock.lang.Specification
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class VariantsMatcherTest extends Specification {
     def schemaStore = new DefaultModelSchemaStore(DefaultModelSchemaExtractor.withDefaultStrategies([], new ModelSchemaAspectExtractor([new VariantAspectExtractionStrategy()])))
 
-    @Unroll
+    @SafeUnroll
     def "should filter binaries based on requirements"() {
         given: "a library binary with some requirements"
 
@@ -76,7 +76,7 @@ class VariantsMatcherTest extends Specification {
         customSpec2('1.6', 'paid', 'debug') | [customSpec3('1.6', 'paid', 'debug', 'foo'), customSpec3('1.6', 'paid', 'debug', 'bar')]                                                      | [customSpec3('1.6', 'paid', 'debug', 'foo'), customSpec3('1.6', 'paid', 'debug', 'bar')]
     }
 
-    @Unroll
+    @SafeUnroll
     def "can use a custom variant comparator"() {
         def factories = [
             DefaultVariantAxisCompatibilityFactory.of(MyPlatform, new MySelector()),

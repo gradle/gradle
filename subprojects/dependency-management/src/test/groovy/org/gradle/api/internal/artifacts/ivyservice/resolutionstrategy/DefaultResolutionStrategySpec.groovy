@@ -38,7 +38,7 @@ import org.gradle.internal.rules.NoInputsRuleAction
 import org.gradle.vcs.internal.VcsResolver
 import spock.lang.Shared
 import spock.lang.Specification
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 import java.util.concurrent.TimeUnit
 
@@ -288,7 +288,7 @@ class DefaultResolutionStrategySpec extends Specification {
         then: 0 * validator.validateMutation(_)
     }
 
-    @Unroll
+    @SafeUnroll
     def 'provides the expected DependencyLockingProvider (#activateLocking)'() {
         when:
         if (activateLocking) {

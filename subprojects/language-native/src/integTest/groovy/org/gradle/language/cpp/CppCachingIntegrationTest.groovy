@@ -22,7 +22,7 @@ import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.CppAppWithLibraries
 import org.gradle.test.fixtures.file.TestFile
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class CppCachingIntegrationTest extends AbstractInstalledToolChainIntegrationSpec implements DirectoryBuildCacheFixture, CppTaskNames {
     CppAppWithLibraries app = new CppAppWithLibraries()
@@ -51,7 +51,7 @@ class CppCachingIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
         app.main.writeToProject(project)
     }
 
-    @Unroll
+    @SafeUnroll
     @ToBeFixedForInstantExecution
     def 'compilation can be cached (#buildType)'() {
         setupProject()

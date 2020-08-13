@@ -26,7 +26,7 @@ import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.hamcrest.CoreMatchers
 import org.junit.Rule
 import spock.lang.IgnoreIf
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 import static org.gradle.testing.fixture.JvmBlockingTestClassGenerator.*
 
@@ -40,7 +40,7 @@ abstract class AbstractJvmFailFastIntegrationSpec extends AbstractIntegrationSpe
         generator = new JvmBlockingTestClassGenerator(testDirectory, server, testAnnotationClass(), testDependency(), testFrameworkConfiguration())
     }
 
-    @Unroll
+    @SafeUnroll
     def "all tests run with #description"() {
         given:
         buildFile.text = generator.initBuildFile()
@@ -67,7 +67,7 @@ abstract class AbstractJvmFailFastIntegrationSpec extends AbstractIntegrationSpe
         'failFast = false' | ['test']                   | 'test { failFast = false }'
     }
 
-    @Unroll
+    @SafeUnroll
     def "stop test execution with #description"() {
         given:
         buildFile.text = generator.initBuildFile()
@@ -93,7 +93,7 @@ abstract class AbstractJvmFailFastIntegrationSpec extends AbstractIntegrationSpe
         '--fail-fast'     | ['test', '--fail-fast']    | ''
     }
 
-    @Unroll
+    @SafeUnroll
     def "ensure fail fast with forkEvery #forkEvery, maxWorkers #maxWorkers, omittedTests #testOmitted"() {
         given:
         buildFile.text = generator.initBuildFile(maxWorkers, forkEvery)

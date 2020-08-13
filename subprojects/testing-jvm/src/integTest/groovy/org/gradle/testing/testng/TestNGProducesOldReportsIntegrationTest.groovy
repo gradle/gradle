@@ -18,7 +18,7 @@ package org.gradle.testing.testng
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
 import org.gradle.integtests.fixtures.TestNGExecutionResult
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 public class TestNGProducesOldReportsIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
@@ -59,7 +59,7 @@ test {
         new JUnitXmlTestExecutionResult(file(".")).hasJUnitXmlResults()
     }
 
-    @Unroll
+    @SafeUnroll
     "can generate the old xml reports"() {
         given:
         file("src/test/java/org/SomeTest.java") << """package org;

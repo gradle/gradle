@@ -17,7 +17,7 @@
 package org.gradle.internal.execution.steps
 
 import org.gradle.internal.execution.Result
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class CatchExceptionStepTest extends ContextInsensitiveStepSpec {
     def step = new CatchExceptionStep<>(delegate)
@@ -35,7 +35,7 @@ class CatchExceptionStepTest extends ContextInsensitiveStepSpec {
         0 * _
     }
 
-    @Unroll
+    @SafeUnroll
     def "failure #failure.class.simpleName is caught"() {
         when:
         def result = step.execute(context)

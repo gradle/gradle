@@ -33,7 +33,7 @@ import org.junit.Rule
 import spock.lang.Issue
 import spock.lang.Shared
 import spock.lang.Timeout
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 import java.nio.channels.SocketChannel
 
@@ -201,7 +201,7 @@ class TcpConnectorTest extends ConcurrentSpec {
         connection?.stop()
     }
 
-    @Unroll
+    @SafeUnroll
     def "can receive message from peer after peer has closed connection"() {
         // This is a test to simulate the messaging that the daemon does on build completion, in order to validate some assumptions
 

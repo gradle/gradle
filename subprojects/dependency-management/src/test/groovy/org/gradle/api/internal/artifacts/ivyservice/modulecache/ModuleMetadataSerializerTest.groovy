@@ -51,7 +51,7 @@ import org.gradle.internal.serialize.OutputStreamBackedEncoder
 import org.gradle.util.AttributeTestUtil
 import org.gradle.util.TestUtil
 import spock.lang.Specification
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class ModuleMetadataSerializerTest extends Specification {
 
@@ -79,7 +79,7 @@ class ModuleMetadataSerializerTest extends Specification {
         unique.size() == metadata.size()
     }
 
-    @Unroll
+    @SafeUnroll
     def "can write and re-read sample #sample.parentFile.name metadata file #sample.name"() {
         given:
         def metadata = parse(sample)

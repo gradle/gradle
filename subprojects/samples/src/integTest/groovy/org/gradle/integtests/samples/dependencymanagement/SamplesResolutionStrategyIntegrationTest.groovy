@@ -22,14 +22,14 @@ import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.test.fixtures.file.TestFile
 import org.junit.Rule
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class SamplesResolutionStrategyIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule
     Sample sample = new Sample(testDirectoryProvider)
 
-    @Unroll
+    @SafeUnroll
     @UsesSample("dependencyManagement/customizingResolution-resolutionStrategy")
     @ToBeFixedForInstantExecution(iterationMatchers = ".*kotlin dsl")
     def "can resolve dependencies in #dsl dsl"() {

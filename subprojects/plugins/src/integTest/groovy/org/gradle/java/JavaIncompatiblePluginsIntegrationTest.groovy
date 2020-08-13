@@ -17,11 +17,11 @@
 package org.gradle.java
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class JavaIncompatiblePluginsIntegrationTest  extends AbstractIntegrationSpec {
 
-    @Unroll
+    @SafeUnroll
     def "cannot apply both the java-platform and #plugin"() {
         given:
         buildFile << """
@@ -40,7 +40,7 @@ plugins {
         plugin << ['java', 'java-library']
     }
 
-    @Unroll
+    @SafeUnroll
     def "cannot apply both #plugin and java-platform"() {
         given:
         buildFile << """

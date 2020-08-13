@@ -21,13 +21,13 @@ import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.test.fixtures.file.TestFile
 import org.junit.Rule
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class SamplesCustomExternalTaskIntegrationTest extends AbstractSampleIntegrationTest {
     @Rule
     public final Sample sample = new Sample(temporaryFolder)
 
-    @Unroll
+    @SafeUnroll
     @UsesSample("base/customExternalTask")
     def "can test task implementation with #dsl dsl"() {
         when:
@@ -42,7 +42,7 @@ class SamplesCustomExternalTaskIntegrationTest extends AbstractSampleIntegration
         dsl << ['groovy', 'kotlin']
     }
 
-    @Unroll
+    @SafeUnroll
     @UsesSample("base/customExternalTask")
     def "can publish and use task implementations for #dsl dsl"() {
         given:

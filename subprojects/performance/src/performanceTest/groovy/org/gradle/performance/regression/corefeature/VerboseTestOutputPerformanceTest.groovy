@@ -17,11 +17,11 @@
 package org.gradle.performance.regression.corefeature
 
 import org.gradle.performance.AbstractCrossVersionGradleProfilerPerformanceTest
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class VerboseTestOutputPerformanceTest extends AbstractCrossVersionGradleProfilerPerformanceTest {
 
-    @Unroll
+    @SafeUnroll
     def "cleanTest test on #testProject with verbose test output"() {
         given:
         runner.testProject = testProject

@@ -21,7 +21,7 @@ import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.internal.component.model.Exclude
 import spock.lang.Issue
 import spock.lang.Specification
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class DefaultExcludeRuleConverterTest extends Specification {
 
@@ -34,7 +34,7 @@ class DefaultExcludeRuleConverterTest extends Specification {
         }
     }
 
-    @Unroll
+    @SafeUnroll
     @Issue("gradle/gradle#951")
     def "can create exclude rule for configuration name '#configurationName'"() {
         given:

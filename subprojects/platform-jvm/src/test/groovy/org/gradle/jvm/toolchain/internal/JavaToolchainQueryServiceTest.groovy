@@ -25,13 +25,13 @@ import org.gradle.jvm.toolchain.JavaToolchainSpec
 import org.gradle.jvm.toolchain.install.internal.JavaToolchainProvisioningService
 import org.gradle.util.TestUtil
 import spock.lang.Specification
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 import static org.gradle.api.internal.file.TestFiles.systemSpecificAbsolutePath
 
 class JavaToolchainQueryServiceTest extends Specification {
 
-    @Unroll
+    @SafeUnroll
     def "can query for matching toolchain using version #versionToFind"() {
         given:
         def registry = createInstallationRegistry()
@@ -53,7 +53,7 @@ class JavaToolchainQueryServiceTest extends Specification {
         JavaVersion.VERSION_12  | "/path/12"
     }
 
-    @Unroll
+    @SafeUnroll
     def "uses most recent version of multiple matches for version #versionToFind"() {
         given:
         def registry = createInstallationRegistry(["8.0", "8.0.242.hs-adpt", "7.9", "7.7", "14.0.2+12"])

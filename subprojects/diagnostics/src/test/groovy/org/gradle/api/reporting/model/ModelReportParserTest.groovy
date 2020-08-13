@@ -17,11 +17,11 @@
 package org.gradle.api.reporting.model
 
 import spock.lang.Specification
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class ModelReportParserTest extends Specification {
 
-    @Unroll
+    @SafeUnroll
     def "fails with invalid text"() {
         when:
         ModelReportParser.parse(text)
@@ -151,7 +151,7 @@ BUILD SUCCESSFUL
         modelReport.reportNode.lss.@creator[0] == 'Rules#lss'
     }
 
-    @Unroll
+    @SafeUnroll
     def "should identify node lines"() {
         expect:
         boolean result = ModelReportParser.lineIsANode(line)

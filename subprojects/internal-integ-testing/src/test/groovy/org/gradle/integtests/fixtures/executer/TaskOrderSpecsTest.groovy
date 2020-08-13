@@ -17,12 +17,12 @@
 package org.gradle.integtests.fixtures.executer
 
 import spock.lang.Specification
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 import static org.gradle.integtests.fixtures.executer.TaskOrderSpecs.*
 
 class TaskOrderSpecsTest extends Specification {
-    @Unroll
+    @SafeUnroll
     def "can match order exactly (#executedTasks)"() {
         def spec = exact(':a', ':b', ':c')
 
@@ -42,7 +42,7 @@ class TaskOrderSpecsTest extends Specification {
         ]
     }
 
-    @Unroll
+    @SafeUnroll
     def "can mismatch order exactly (#executedTasks)"() {
         def spec = exact(':a', ':b', ':c')
 
@@ -64,7 +64,7 @@ class TaskOrderSpecsTest extends Specification {
         ]
     }
 
-    @Unroll
+    @SafeUnroll
     def "can match any order (#executedTasks)"() {
         def spec = any(':a', ':b', ':c')
 
@@ -83,7 +83,7 @@ class TaskOrderSpecsTest extends Specification {
         ]
     }
 
-    @Unroll
+    @SafeUnroll
     def "can mismatch any order (#executedTasks)"() {
         def spec = any(':a', ':b', ':c')
 
@@ -105,7 +105,7 @@ class TaskOrderSpecsTest extends Specification {
         ]
     }
 
-    @Unroll
+    @SafeUnroll
     def "can match on 'any' rule nested inside 'exact' rule (#executedTasks)"() {
         def spec = exact(any(':a', ':b'), ':c')
 
@@ -125,7 +125,7 @@ class TaskOrderSpecsTest extends Specification {
         ]
     }
 
-    @Unroll
+    @SafeUnroll
     def "can mismatch on 'any' rule nested inside 'exact' rule (#executedTasks)"() {
         def spec = exact(any(':a', ':b'), ':c')
 
@@ -148,7 +148,7 @@ class TaskOrderSpecsTest extends Specification {
         ]
     }
 
-    @Unroll
+    @SafeUnroll
     def "can match on 'exact' rule nested inside 'any' rule (#executedTasks)"() {
         def spec = any(exact(':a', ':b'), ':c')
 
@@ -168,7 +168,7 @@ class TaskOrderSpecsTest extends Specification {
         ]
     }
 
-    @Unroll
+    @SafeUnroll
     def "can mismatch on 'exact' rule nested inside 'any' rule (#executedTasks)"() {
         def spec = any(exact(':a', ':b'), ':c')
 
@@ -193,7 +193,7 @@ class TaskOrderSpecsTest extends Specification {
         ]
     }
 
-    @Unroll
+    @SafeUnroll
     def "can match on complex rule (#executedTasks)"() {
         def spec = exact(any(':a', ':b'), any(':c', exact(':d', ':e', ':f')))
 
@@ -212,7 +212,7 @@ class TaskOrderSpecsTest extends Specification {
         ]
     }
 
-    @Unroll
+    @SafeUnroll
     def "can mismatch on complex rule (#executedTasks)"() {
         def spec = exact(any(':a', ':b'), any(':c', exact(':d', ':e', ':f')))
 

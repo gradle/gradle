@@ -17,10 +17,10 @@
 package org.gradle.infra
 
 import spock.lang.Specification
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class EnvironmentVariablesPropagationTest extends Specification {
-    @Unroll
+    @SafeUnroll
     def "no sensitive env variables #value propagated to test JVMs"() {
         expect:
         System.getenv().each { k, v ->

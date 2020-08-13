@@ -23,6 +23,7 @@ import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.internal.classloader.ClasspathUtil
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.util.GradleVersion
+import org.gradle.testfixtures.SafeUnroll
 import spock.lang.Unroll
 
 class ToolingApiExecution extends AbstractMultiTestRunner.Execution implements ToolingApiClasspathProvider {
@@ -55,10 +56,11 @@ class ToolingApiExecution extends AbstractMultiTestRunner.Execution implements T
 
     @Override
     protected boolean isTestEnabled(AbstractMultiTestRunner.TestDetails testDetails) {
-        // Trying to use @Unroll with a tooling api runner causes NPEs in the test fixtures
+        // Trying to use @SafeUnroll with a tooling api runner causes NPEs in the test fixtures
         // Fail early with a message until we can fix this properly.
         Unroll unroll = testDetails.getAnnotation(Unroll)
-        if (unroll != null) {
+        SafeUnroll safeUnroll = testDetails.getAnnotation(SafeUnroll)
+        if (unroll != null || safeUnroll) {
             throw new IllegalArgumentException("Cannot use @Unroll with Tooling Api tests")
         }
 

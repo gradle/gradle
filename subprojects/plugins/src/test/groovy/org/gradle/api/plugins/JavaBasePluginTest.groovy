@@ -45,7 +45,7 @@ import org.gradle.util.SetSystemProperties
 import org.gradle.util.TestUtil
 import org.junit.Rule
 import spock.lang.Issue
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 import static org.gradle.api.file.FileCollectionMatchers.sameCollection
 import static org.gradle.api.reflect.TypeOf.typeOf
@@ -464,7 +464,7 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         binary.tasks.contains(project.tasks.findByName("processCustomResources"))
     }
 
-    @Unroll
+    @SafeUnroll
     void "check Java usage compatibility rules (consumer value=#consumer, producer value=#producer, compatible=#compatible)"() {
         given:
         JavaEcosystemSupport.UsageCompatibilityRules rules = new JavaEcosystemSupport.UsageCompatibilityRules()
@@ -500,7 +500,7 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
     }
 
     @Issue("gradle/gradle#8700")
-    @Unroll
+    @SafeUnroll
     def "check default disambiguation rules (consumer=#consumer, candidates=#candidates, selected=#preferred)"() {
         given:
         JavaEcosystemSupport.UsageDisambiguationRules rules = new JavaEcosystemSupport.UsageDisambiguationRules(

@@ -18,7 +18,7 @@ package org.gradle.api.plugins
 
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class HelpTasksPluginIntegrationTest extends WellBehavedPluginTest {
 
@@ -27,7 +27,7 @@ class HelpTasksPluginIntegrationTest extends WellBehavedPluginTest {
         "tasks"
     }
 
-    @Unroll
+    @SafeUnroll
     @ToBeFixedForInstantExecution
     def "can fetch tasks during configuration - #task"() {
         when:

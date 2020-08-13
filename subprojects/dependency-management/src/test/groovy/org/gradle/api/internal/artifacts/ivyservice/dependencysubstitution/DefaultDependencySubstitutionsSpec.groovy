@@ -36,7 +36,7 @@ import org.gradle.internal.typeconversion.NotationParserBuilder
 import org.gradle.util.AttributeTestUtil
 import org.gradle.util.TestUtil
 import spock.lang.Specification
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 import static org.gradle.api.internal.artifacts.configurations.MutationValidator.MutationType.STRATEGY
 import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons.SELECTED_BY_RULE
@@ -129,7 +129,7 @@ class DefaultDependencySubstitutionsSpec extends Specification {
         0 * _
     }
 
-    @Unroll
+    @SafeUnroll
     def "substitute module() matches only given module: #matchingModule"() {
         def mid = DefaultModuleIdentifier.newId("org.utils", "api")
 
@@ -176,7 +176,7 @@ class DefaultDependencySubstitutionsSpec extends Specification {
         t.message == "Must specify version for target of dependency substitution"
     }
 
-    @Unroll
+    @SafeUnroll
     def "substitute project() matches only given project: #matchingProject"() {
         given:
         def matchingSubstitute = Mock(ComponentSelector)
@@ -281,7 +281,7 @@ class DefaultDependencySubstitutionsSpec extends Specification {
         substitutions.hasRules()
     }
 
-    @Unroll
+    @SafeUnroll
     def "registering a substitute rule with (#from, #to) causes hasRule #result"() {
         given:
         componentIdentifierFactory.createProjectComponentSelector(_) >> Mock(ProjectComponentSelector)

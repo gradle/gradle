@@ -19,7 +19,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import spock.lang.Issue
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class ForcedModulesIntegrationTest extends AbstractIntegrationSpec {
 
@@ -371,7 +371,7 @@ task checkDeps {
     }
 
     @Issue("gradle/gradle#5364")
-    @Unroll
+    @SafeUnroll
     void "if one module is forced, all same versions should be forced (forced = #forced)"() {
         mavenRepo.module('org', 'foo', '1.0').publish()
         mavenRepo.module('org', 'foo', '1.1').publish()

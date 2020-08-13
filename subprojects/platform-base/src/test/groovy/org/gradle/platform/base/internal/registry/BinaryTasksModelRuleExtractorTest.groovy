@@ -27,7 +27,7 @@ import org.gradle.platform.base.BinaryContainer
 import org.gradle.platform.base.BinarySpec
 import org.gradle.platform.base.BinaryTasks
 import org.gradle.platform.base.plugins.BinaryBasePlugin
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 import java.lang.annotation.Annotation
 
@@ -44,7 +44,7 @@ class BinaryTasksModelRuleExtractorTest extends AbstractAnnotationModelRuleExtra
 
     Class<?> ruleClass = Rules.class
 
-    @Unroll
+    @SafeUnroll
     def "decent error message for #descr"() {
         def ruleMethod = ruleDefinitionForMethod(methodName)
         def ruleDescription = getStringDescription(ruleMethod.method)

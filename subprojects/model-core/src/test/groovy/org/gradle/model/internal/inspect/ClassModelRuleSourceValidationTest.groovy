@@ -19,12 +19,12 @@ package org.gradle.model.internal.inspect
 import org.gradle.model.InvalidModelRuleDeclarationException
 import org.gradle.model.RuleSource
 import org.gradle.model.internal.fixture.ProjectRegistrySpec
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class ClassModelRuleSourceValidationTest extends ProjectRegistrySpec {
     def extractor = new ModelRuleExtractor([], proxyFactory, schemaStore, structBindingsStore)
 
-    @Unroll
+    @SafeUnroll
     def "invalid #type - #reason"() {
         when:
         extractor.extract(type)
@@ -47,7 +47,7 @@ class ClassModelRuleSourceValidationTest extends ProjectRegistrySpec {
         OuterClass.HasSuperclass           | "Rule source classes must directly extend org.gradle.model.RuleSource"
     }
 
-    @Unroll
+    @SafeUnroll
     def "valid #type"() {
         when:
         extractor.extract(type)

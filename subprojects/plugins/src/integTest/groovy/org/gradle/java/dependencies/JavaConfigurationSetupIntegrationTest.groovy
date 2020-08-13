@@ -17,7 +17,7 @@
 package org.gradle.java.dependencies
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class JavaConfigurationSetupIntegrationTest extends AbstractIntegrationSpec {
 
@@ -36,7 +36,7 @@ class JavaConfigurationSetupIntegrationTest extends AbstractIntegrationSpec {
         !(alternatives in [VALID, FORBIDDEN])
     }
 
-    @Unroll
+    @SafeUnroll
     def "the #configuration configuration is setup correctly for dependency declaration in the #plugin plugin"() {
         given:
         buildFile << """
@@ -86,7 +86,7 @@ class JavaConfigurationSetupIntegrationTest extends AbstractIntegrationSpec {
         'java-library' | 'api'                          | VALID
     }
 
-    @Unroll
+    @SafeUnroll
     def "the #configuration configuration is setup correctly for consumption in the #plugin plugin"() {
         when:
         settingsFile.text = "include 'sub'"
@@ -143,7 +143,7 @@ class JavaConfigurationSetupIntegrationTest extends AbstractIntegrationSpec {
         'java-library' | 'api'                          | FORBIDDEN
     }
 
-    @Unroll
+    @SafeUnroll
     def "the #configuration configuration is setup correctly for resolution in the #plugin plugin"() {
         given:
         buildFile << """

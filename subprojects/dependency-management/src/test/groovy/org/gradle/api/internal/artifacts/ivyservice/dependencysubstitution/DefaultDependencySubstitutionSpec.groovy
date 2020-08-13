@@ -28,7 +28,7 @@ import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.typeconversion.UnsupportedNotationException
 import org.gradle.util.Path
 import spock.lang.Specification
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons.FORCED
 import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons.SELECTED_BY_RULE
@@ -113,7 +113,7 @@ class DefaultDependencySubstitutionSpec extends Specification {
         details.ruleDescriptors == [SELECTED_BY_RULE]
     }
 
-    @Unroll
+    @SafeUnroll
     def "can substitute with a different artifact"() {
         when:
         details.artifactSelection {

@@ -20,7 +20,7 @@ package org.gradle.buildinit.plugins
 import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 import static org.gradle.buildinit.plugins.SwiftApplicationInitIntegrationTest.LINUX_MAIN_DOT_SWIFT
 import static org.gradle.buildinit.plugins.SwiftApplicationInitIntegrationTest.SAMPLE_APPLICATION_CLASS
@@ -30,7 +30,7 @@ import static org.gradle.buildinit.plugins.SwiftLibraryInitIntegrationTest.SAMPL
 
 @Requires(TestPrecondition.WINDOWS)
 class WindowsSwiftInitIntegrationTest extends AbstractInitIntegrationSpec {
-    @Unroll
+    @SafeUnroll
     def "creates sample application source if no source present with #scriptDsl build scripts"() {
         when:
         run('init', '--type', 'swift-application', '--dsl', scriptDsl.id)
@@ -61,7 +61,7 @@ class WindowsSwiftInitIntegrationTest extends AbstractInitIntegrationSpec {
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
-    @Unroll
+    @SafeUnroll
     def "creates sample library source if no source present with #scriptDsl build scripts"() {
         when:
         run('init', '--type', 'swift-library', '--dsl', scriptDsl.id)

@@ -21,14 +21,14 @@ import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.test.fixtures.file.TestFile
 import org.junit.Rule
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class SamplesMultiProjectBuildsIntegrationTest extends AbstractSampleIntegrationTest {
 
     @Rule
     Sample sample = new Sample(testDirectoryProvider)
 
-    @Unroll
+    @SafeUnroll
     @UsesSample("multiproject/dependencies-outgoingArtifact")
     def "can produce outgoing artifact and depend on it from other project with #dsl dsl"() {
         TestFile dslDir = sample.dir.file(dsl)

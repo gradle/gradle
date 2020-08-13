@@ -19,12 +19,12 @@ package org.gradle.internal.reflect
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import spock.lang.Specification
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 import java.beans.Introspector
 
 class PropertyAccessorTypeTest extends Specification {
-    @Unroll
+    @SafeUnroll
     def "method names #getGetterName, #isGetterName and #setterName extract to property name '#propertyName' following the JavaBeans spec"() {
         expect:
         PropertyAccessorType.isGetGetterName(getGetterName)

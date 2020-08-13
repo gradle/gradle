@@ -17,9 +17,9 @@
 package org.gradle.internal.hash
 
 import spock.lang.Specification
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
-@Unroll
+@SafeUnroll
 class HashCodeTest extends Specification {
     def "can parse hex string #input"() {
         def hash = HashCode.fromString(input)

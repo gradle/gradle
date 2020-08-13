@@ -27,7 +27,7 @@ import org.gradle.test.fixtures.server.http.HttpResource
 import org.gradle.test.fixtures.server.http.MavenHttpModule
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import spock.lang.Ignore
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 import static org.gradle.internal.resource.transport.http.JavaSystemPropertiesHttpTimeoutSettings.SOCKET_TIMEOUT_SYSTEM_PROPERTY
 
@@ -60,7 +60,7 @@ class DependencyUnresolvedModuleIntegrationTest extends AbstractHttpDependencyRe
         }
     }
 
-    @Unroll
+    @SafeUnroll
     def "fails single build script dependency resolution if #protocol connection exceeds timeout"() {
         given:
         blockingForProtocol(protocol, moduleA.pom)
@@ -84,7 +84,7 @@ class DependencyUnresolvedModuleIntegrationTest extends AbstractHttpDependencyRe
         protocol << ['http', 'https']
     }
 
-    @Unroll
+    @SafeUnroll
     @ToBeFixedForInstantExecution
     def "fails single application dependency resolution if #protocol connection exceeds timeout (retries = #maxRetries)"() {
         maxHttpRetries = maxRetries
@@ -114,7 +114,7 @@ class DependencyUnresolvedModuleIntegrationTest extends AbstractHttpDependencyRe
         'https'  | 2
     }
 
-    @Unroll
+    @SafeUnroll
     @ToBeFixedForInstantExecution
     def "fails concurrent application dependency resolution if #protocol connection exceeds timeout"() {
         given:
@@ -232,7 +232,7 @@ class DependencyUnresolvedModuleIntegrationTest extends AbstractHttpDependencyRe
         !downloadedLibsDir.isDirectory()
     }
 
-    @Unroll
+    @SafeUnroll
     @ToBeFixedForInstantExecution
     def "fails build and #abortDescriptor repository search if HTTP connection #reason when resolving metadata"() {
         given:
@@ -266,7 +266,7 @@ class DependencyUnresolvedModuleIntegrationTest extends AbstractHttpDependencyRe
         abortDescriptor = abort ? 'aborts' : 'does not abort'
     }
 
-    @Unroll
+    @SafeUnroll
     @ToBeFixedForInstantExecution
     def "fails build and aborts repository search if HTTP connection #reason when resolving artifact for found module"() {
         given:
@@ -296,7 +296,7 @@ class DependencyUnresolvedModuleIntegrationTest extends AbstractHttpDependencyRe
         'returns uncritical error'      | 'expectGetUnauthorized' | 'assertDependencyArtifactUnauthorizedError'
     }
 
-    @Unroll
+    @SafeUnroll
     @ToBeFixedForInstantExecution
     def "fails build and #abortDescriptor repository search if HTTP connection #reason when resolving dynamic version"() {
         given:

@@ -21,7 +21,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.junit.Rule
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 import java.util.concurrent.TimeUnit
 
@@ -294,7 +294,7 @@ class InstantExecutionDependencyResolutionFeaturesIntegrationTest extends Abstra
     }
 
     // This documents current behaviour, rather than desired behaviour. The contents of the artifact does not affect the contents of the task graph and so should not be treated as an input
-    @Unroll
+    @SafeUnroll
     def "reports changes to artifact in #repo.displayName"() {
         repo.setup(this)
         taskTypeLogsInputFileCollectionContent()
@@ -354,7 +354,7 @@ class InstantExecutionDependencyResolutionFeaturesIntegrationTest extends Abstra
         new MavenLocalRepo() | _
     }
 
-    @Unroll
+    @SafeUnroll
     def "reports changes to metadata in #repo.displayName"() {
         repo.setup(this)
         taskTypeLogsInputFileCollectionContent()
@@ -414,7 +414,7 @@ class InstantExecutionDependencyResolutionFeaturesIntegrationTest extends Abstra
         new MavenLocalRepo() | _
     }
 
-    @Unroll
+    @SafeUnroll
     def "reports changes to matching versions in #repo.displayName"() {
         repo.setup(this)
         taskTypeLogsInputFileCollectionContent()
@@ -474,7 +474,7 @@ class InstantExecutionDependencyResolutionFeaturesIntegrationTest extends Abstra
         // Maven local does not support dynamic versions
     }
 
-    @Unroll
+    @SafeUnroll
     def "invalidates configuration cache when dependency lock file changes"() {
         server.start()
         def v3 = remoteRepo.module("thing", "lib", "1.3").publish()

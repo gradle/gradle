@@ -24,7 +24,7 @@ import org.gradle.api.tasks.testing.logging.TestLogging
 import org.gradle.api.tasks.testing.logging.TestStackTraceFilter
 import org.gradle.util.TestUtil
 import spock.lang.Specification
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class DefaultTestLoggingContainerTest extends Specification {
     DefaultTestLoggingContainer container = new DefaultTestLoggingContainer(TestUtil.instantiatorFactory().decorateLenient())
@@ -94,7 +94,7 @@ class DefaultTestLoggingContainerTest extends Specification {
         !logging.showExceptions
     }
 
-    @Unroll
+    @SafeUnroll
     def "allows to explicitly configure level #level"(LogLevel level) {
         def logging = container.get(level)
         def configMethod = level.toString().toLowerCase()

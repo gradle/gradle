@@ -20,10 +20,10 @@ import org.gradle.api.JavaVersion
 import org.gradle.jvm.platform.JavaPlatform
 import org.gradle.jvm.platform.internal.DefaultJavaPlatform
 import spock.lang.Specification
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class DefaultJavaPlatformVariantAxisCompatibilityTest extends Specification {
-    @Unroll("Java #requirement is compatible with #value : #expected")
+    @SafeUnroll("Java #requirement is compatible with #value : #expected")
     def "should check that Java platform is compatible"() {
         given:
         VariantAxisCompatibility<JavaPlatform> selector = new DefaultJavaPlatformVariantAxisCompatibility()
@@ -47,7 +47,7 @@ class DefaultJavaPlatformVariantAxisCompatibilityTest extends Specification {
         value = new DefaultJavaPlatform(JavaVersion.toVersion(found))
     }
 
-    @Unroll("Java #newValue is a better fit than #oldValue : #expected")
+    @SafeUnroll("Java #newValue is a better fit than #oldValue : #expected")
     def "should check that Java platform is a better fit than one other"() {
         given:
         VariantAxisCompatibility<JavaPlatform> selector = new DefaultJavaPlatformVariantAxisCompatibility()

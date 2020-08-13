@@ -21,7 +21,7 @@ import org.gradle.integtests.fixtures.android.AndroidHome
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.GradleRunner
 import org.gradle.util.GradleVersion
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 import static org.gradle.testkit.runner.TaskOutcome.UP_TO_DATE
@@ -36,7 +36,7 @@ class KotlinPluginSmokeTest extends AbstractSmokeTest {
         return 200
     }
 
-    @Unroll
+    @SafeUnroll
     @UnsupportedWithInstantExecution(iterationMatchers = NO_INSTANT_EXECUTION_ITERATION_MATCHER)
     def 'kotlin jvm (kotlin=#version, workers=#workers)'() {
         given:
@@ -68,7 +68,7 @@ class KotlinPluginSmokeTest extends AbstractSmokeTest {
         ].combinations()
     }
 
-    @Unroll
+    @SafeUnroll
     @UnsupportedWithInstantExecution(iterationMatchers = [NO_INSTANT_EXECUTION_ITERATION_MATCHER, AGP_3_ITERATION_MATCHER, AGP_4_0_ITERATION_MATCHER])
     def "kotlin android on sample '#sampleName' (kotlin=#kotlinPluginVersion, agp=#androidPluginVersion, workers=#workers)"() {
         given:
@@ -113,7 +113,7 @@ class KotlinPluginSmokeTest extends AbstractSmokeTest {
         ].combinations()
     }
 
-    @Unroll
+    @SafeUnroll
     @UnsupportedWithInstantExecution(iterationMatchers = NO_INSTANT_EXECUTION_ITERATION_MATCHER)
     def 'kotlin javascript (kotlin=#version, workers=#workers)'() {
         given:
@@ -142,7 +142,7 @@ class KotlinPluginSmokeTest extends AbstractSmokeTest {
         ].combinations()
     }
 
-    @Unroll
+    @SafeUnroll
     @UnsupportedWithInstantExecution(iterationMatchers = NO_INSTANT_EXECUTION_ITERATION_MATCHER)
     def 'kotlin jvm and groovy plugins combined (kotlin=#kotlinVersion)'() {
         given:

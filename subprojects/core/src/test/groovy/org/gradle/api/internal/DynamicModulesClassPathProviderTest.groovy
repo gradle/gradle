@@ -22,7 +22,7 @@ import org.gradle.api.internal.classpath.PluginModuleRegistry
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
 import spock.lang.Specification
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class DynamicModulesClassPathProviderTest extends Specification {
 
@@ -56,7 +56,7 @@ class DynamicModulesClassPathProviderTest extends Specification {
         1 * pluginModuleRegistry.getImplementationModules() >> ([module("extension1"), module("extension2")] as LinkedHashSet)
     }
 
-    @Unroll
+    @SafeUnroll
     def "removes JAXB from classpath on Java #javaVersion"() {
         given:
         pluginModuleRegistry.getApiModules() >> ([module("gradle-resources-s3", ["jaxb-impl-2.3.1.jar"])] as Set)
@@ -71,7 +71,7 @@ class DynamicModulesClassPathProviderTest extends Specification {
         javaVersion << JavaVersion.values().findAll { it < JavaVersion.VERSION_1_9 }
     }
 
-    @Unroll
+    @SafeUnroll
     def "keeps JAXB on classpath on Java #javaVersion"() {
         given:
         pluginModuleRegistry.getApiModules() >> ([module("gradle-resources-s3", ["jaxb-impl-2.3.1.jar"])] as Set)

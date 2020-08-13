@@ -20,7 +20,7 @@ import org.gradle.api.tasks.testing.logging.TestLogging
 import org.gradle.internal.serialize.PlaceholderAssertionError
 import org.gradle.internal.serialize.PlaceholderException
 import spock.lang.Specification
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class ShortExceptionFormatterTest extends Specification {
     def testDescriptor = new SimpleTestDescriptor()
@@ -66,7 +66,7 @@ class ShortExceptionFormatterTest extends Specification {
 """
     }
 
-    @Unroll
+    @SafeUnroll
     def "formats placeholder exceptions correctly"() {
         given:
         testDescriptor.className = getClass().name

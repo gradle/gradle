@@ -18,7 +18,7 @@ package org.gradle.internal.reflect
 
 
 import spock.lang.Specification
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 import java.lang.annotation.Inherited
 import java.lang.annotation.Retention
@@ -265,7 +265,7 @@ class JavaPropertyReflectionUtilTest extends Specification {
         !hasDefaultToString(new ClassWithToString())
     }
 
-    @Unroll
+    @SafeUnroll
     def "#type has type variable: #hasTypeVariable"() {
         expect:
         JavaPropertyReflectionUtil.hasTypeVariable(type) == hasTypeVariable
@@ -276,7 +276,7 @@ class JavaPropertyReflectionUtilTest extends Specification {
         hasTypeVariable = testType.second
     }
 
-    @Unroll
+    @SafeUnroll
     def "#method.genericReturnType resolves to #expectedResolvedReturnType"() {
         def resolvedReturnType = JavaPropertyReflectionUtil.resolveMethodReturnType(JavaPropertyReflectionUtilTestMethods.InterfaceRealizingTypeParameter, method)
         expect:
@@ -287,7 +287,7 @@ class JavaPropertyReflectionUtilTest extends Specification {
         expectedResolvedReturnType = method.genericReturnType.toString().replace("T", "java.util.List<java.lang.Integer>")
     }
 
-    @Unroll
+    @SafeUnroll
     def "#method.genericReturnType is not resolved if declared on same class"() {
         def resolvedReturnType = JavaPropertyReflectionUtil.resolveMethodReturnType(JavaPropertyReflectionUtilTestMethods, method)
         expect:

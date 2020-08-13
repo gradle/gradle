@@ -22,11 +22,11 @@ import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.internal.jvm.Jvm
 import org.gradle.util.Requires
 import spock.lang.IgnoreIf
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class JavaCompileToolchainIntegrationTest extends AbstractPluginIntegrationTest {
 
-    @Unroll
+    @SafeUnroll
     @IgnoreIf({ AvailableJavaHomes.differentJdk == null })
     def "can manually set java compiler via #type toolchain on java compile task"() {
         buildFile << """

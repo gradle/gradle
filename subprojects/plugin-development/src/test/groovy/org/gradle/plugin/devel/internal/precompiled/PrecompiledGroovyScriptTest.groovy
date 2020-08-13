@@ -20,7 +20,7 @@ package org.gradle.plugin.devel.internal.precompiled
 import org.gradle.internal.resource.TextFileResourceLoader
 import org.gradle.plugin.internal.InvalidPluginIdException
 import spock.lang.Specification
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class PrecompiledGroovyScriptTest extends Specification {
     private TextFileResourceLoader loader = Mock()
@@ -33,7 +33,7 @@ class PrecompiledGroovyScriptTest extends Specification {
         thrown InvalidPluginIdException
     }
 
-    @Unroll
+    @SafeUnroll
     def "creates valid java classname '#javaClass' from script filename based plugin id: #filename"() {
         expect:
         def script = new PrecompiledGroovyScript(new File("/foo/bar/$filename"), loader)

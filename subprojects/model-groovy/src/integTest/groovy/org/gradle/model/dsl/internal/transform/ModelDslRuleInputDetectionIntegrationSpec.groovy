@@ -18,14 +18,14 @@ package org.gradle.model.dsl.internal.transform
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 import static org.hamcrest.CoreMatchers.containsString
 
 @UnsupportedWithInstantExecution(because = "software model")
 class ModelDslRuleInputDetectionIntegrationSpec extends AbstractIntegrationSpec {
 
-    @Unroll
+    @SafeUnroll
     def "can reference input using dollar method expression - #syntax"() {
         when:
         buildScript """
@@ -69,7 +69,7 @@ class ModelDslRuleInputDetectionIntegrationSpec extends AbstractIntegrationSpec 
         ]
     }
 
-    @Unroll
+    @SafeUnroll
     def "can reference input using dollar var expression - #syntax"() {
         when:
         buildScript """
@@ -109,7 +109,7 @@ class ModelDslRuleInputDetectionIntegrationSpec extends AbstractIntegrationSpec 
         ]
     }
 
-    @Unroll
+    @SafeUnroll
     def "can inject input as parameter of rule closure - #syntax"() {
         when:
         buildScript """
@@ -145,7 +145,7 @@ class ModelDslRuleInputDetectionIntegrationSpec extends AbstractIntegrationSpec 
         ]
     }
 
-    @Unroll
+    @SafeUnroll
     def "input reference can be used as expression statement - #syntax"() {
         when:
         buildScript """
@@ -178,7 +178,7 @@ tasks configured
         ]
     }
 
-    @Unroll
+    @SafeUnroll
     def "dollar var must be followed by property expression - #code"() {
         when:
         buildScript """
@@ -234,7 +234,7 @@ tasks configured
         outputContains "values: [true, false, false]"
     }
 
-    @Unroll
+    @SafeUnroll
     def "only literal strings can be given to dollar method - #code"() {
         when:
         buildScript """
@@ -264,7 +264,7 @@ tasks configured
         ]
     }
 
-    @Unroll
+    @SafeUnroll
     def "dollar method is only detected with no explicit receiver - #code"() {
         when:
         buildScript """
@@ -297,7 +297,7 @@ tasks configured
         ]
     }
 
-    @Unroll
+    @SafeUnroll
     def "dollar var is only detected with no explicit receiver - #code"() {
         when:
         buildScript """
@@ -330,7 +330,7 @@ tasks configured
         ]
     }
 
-    @Unroll
+    @SafeUnroll
     def "input references are found in nested code - #code"() {
         when:
         buildScript """

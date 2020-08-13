@@ -21,7 +21,7 @@ import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.test.fixtures.archive.ZipTestFixture
 import org.junit.Rule
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class SamplesOrganizingGradleProjectsIntegrationTest extends AbstractSampleIntegrationTest {
 
@@ -42,7 +42,7 @@ class SamplesOrganizingGradleProjectsIntegrationTest extends AbstractSampleInteg
     }
 
     @UsesSample("organizingGradleProjects/separatedTestTypes")
-    @Unroll
+    @SafeUnroll
     def "can execute different types of tests with #dsl dsl"() {
         executer.inDirectory(sample.dir.file(dsl))
 

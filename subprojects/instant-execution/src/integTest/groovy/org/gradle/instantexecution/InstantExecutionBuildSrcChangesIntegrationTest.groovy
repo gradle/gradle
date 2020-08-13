@@ -19,13 +19,13 @@ package org.gradle.instantexecution
 import org.gradle.api.provider.ValueSource
 import org.gradle.api.provider.ValueSourceParameters
 import org.gradle.instantexecution.fixtures.BuildLogicChangeFixture
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 import static org.junit.Assume.assumeFalse
 
 class InstantExecutionBuildSrcChangesIntegrationTest extends AbstractInstantExecutionIntegrationTest {
 
-    @Unroll
+    @SafeUnroll
     def "invalidates cache upon change to buildSrc #changeFixtureSpec"() {
         given:
         def instant = newInstantExecutionFixture()
@@ -70,7 +70,7 @@ class InstantExecutionBuildSrcChangesIntegrationTest extends AbstractInstantExec
         isKotlinBuildSrc = changeFixtureSpec.language == BuildLogicChangeFixture.Language.KOTLIN
     }
 
-    @Unroll
+    @SafeUnroll
     def "invalidates cache upon change to #inputName used by buildSrc"() {
 
         assumeFalse(

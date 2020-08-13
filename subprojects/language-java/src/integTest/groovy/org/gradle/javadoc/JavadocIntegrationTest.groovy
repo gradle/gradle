@@ -22,7 +22,7 @@ import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
 import spock.lang.Issue
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class JavadocIntegrationTest extends AbstractIntegrationSpec {
     @Rule TestResources testResources = new TestResources(temporaryFolder)
@@ -65,7 +65,7 @@ class JavadocIntegrationTest extends AbstractIntegrationSpec {
         file("build/docs/javadoc/Foo.html").text.contains("""Hey Joe!""")
     }
 
-    @Unroll
+    @SafeUnroll
     @Issue("gradle/gradle#1090")
     def "can use single quote character in #option"() {
         buildFile << """
@@ -183,10 +183,10 @@ Joe!""")
         buildFile << """
             apply plugin: 'java'
             import org.gradle.external.javadoc.internal.JavadocOptionFileWriterContext;
-            
+
             class CustomJavadocOptionFileOption implements JavadocOptionFileOption<String> {
                 private String value = "foo"
-                
+
                 public String getValue() {
                     return value
                 }
@@ -205,7 +205,7 @@ Joe!""")
                     writerContext.newLine()
                 }
             }
-            
+
             javadoc {
                 options {
                     addOption(new CustomJavadocOptionFileOption())
@@ -222,7 +222,7 @@ Joe!""")
     def "can use various multi-value options"() {
         buildFile << """
             apply plugin: 'java'
-            
+
             javadoc {
                 options {
                     addMultilineStringsOption("addMultilineStringsOption").setValue([
@@ -253,9 +253,9 @@ Joe!""")
 
         file("build/tmp/javadoc/javadoc.options").assertContents(containsNormalizedString("""-addStringsOption 'a b c'"""))
 
-        file("build/tmp/javadoc/javadoc.options").assertContents(containsNormalizedString("""-addMultilineMultiValueOption 
-'a' 
--addMultilineMultiValueOption 
+        file("build/tmp/javadoc/javadoc.options").assertContents(containsNormalizedString("""-addMultilineMultiValueOption
+'a'
+-addMultilineMultiValueOption
 'b' 'c' """))
     }
 
@@ -275,7 +275,7 @@ Joe!""")
     def "can pass offline links"() {
         buildFile << """
             apply plugin: 'java'
-            
+
             javadoc {
                 options {
                     linksOffline 'https://docs.oracle.com/javase/8/docs/api/', 'gradle/javadocs/jdk'
