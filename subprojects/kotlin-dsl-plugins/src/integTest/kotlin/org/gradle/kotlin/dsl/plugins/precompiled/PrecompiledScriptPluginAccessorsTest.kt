@@ -84,7 +84,7 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
                 "gradlePropertyPluginConsumer" {
                     withKotlinDslPlugin().appendText("""
                         dependencies {
-                            implementation(project(":gradle-property-plugin"))
+                            implementation(project(":gradlePropertyPlugin"))
                         }
                     """)
                     withFile("src/main/kotlin/gradlePropertyPluginConsumer.gradle.kts", """
