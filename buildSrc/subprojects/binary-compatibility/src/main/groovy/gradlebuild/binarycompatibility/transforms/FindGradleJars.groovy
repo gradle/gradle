@@ -29,16 +29,24 @@ import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 
 @CompileStatic
-abstract class FindGradleJar implements TransformAction<Parameters> {
+abstract class FindGradleJars implements TransformAction<Parameters> {
 
     @CompileStatic
     interface Parameters extends TransformParameters {
         @Input
-        String getTarget()
-        void setTarget(String target)
+        Set<File> getTarget()
+
+        void setTarget(Set<File> target)
+
         @Input
-        String getVersion()
-        void setVersion(String version)
+        String getBaselineVersion()
+
+        void setBaselineVersion(String version)
+
+        @Input
+        String getCurrentVersion()
+
+        void setCurrentVersion(String version)
     }
 
     @PathSensitive(PathSensitivity.NAME_ONLY)
@@ -49,9 +57,10 @@ abstract class FindGradleJar implements TransformAction<Parameters> {
     void transform(TransformOutputs outputs) {
         File artifactFile = artifact.get().asFile
         if (artifactFile.name == 'gradle-jars') {
-            (artifactFile.listFiles().findAll {
-                it.name == "${parameters.target}-${parameters.version}.jar"
-            } as List<File>).sort { it.name }.each {
+            def jarNames = parameters.target.collect { it.name.replace(parameters.currentVersion, parameters.baselineVersion) }
+            artifactFile.listFiles().findAll {
+                jarNames.contains(it.name)
+            }.each {
                 outputs.file(it)
             }
         }

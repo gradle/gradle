@@ -52,7 +52,7 @@ plugins.withId("java-base") {
     afterEvaluate {
         configurations.all {
             // everywhere where we resolve, prefer the minified version
-            if (isCanBeResolved && !isCanBeConsumed && name != "currentApiClasspath") {
+            if (isCanBeResolved && !isCanBeConsumed && name != "currentJars") {
                 attributes.attribute(minified, true)
             }
             // local projects are already minified

@@ -23,7 +23,7 @@ import gradlebuild.binarycompatibility.BinaryCompatibilityHelper
 import gradlebuild.binarycompatibility.CleanAcceptedApiChanges
 import gradlebuild.binarycompatibility.transforms.ExplodeZipAndFindJars
 import gradlebuild.binarycompatibility.transforms.FindGradleClasspath
-import gradlebuild.binarycompatibility.transforms.FindGradleJar
+import gradlebuild.binarycompatibility.transforms.FindGradleJars
 
 plugins {
     id("gradlebuild.module-identity")
@@ -62,12 +62,16 @@ configurations {
         extendsFrom baseline
         attributes.attribute(ARTIFACT_TYPE, 'gradle-classpath')
     }
+    baselineJars {
+        extendsFrom baseline
+        attributes.attribute(ARTIFACT_TYPE, 'gradle-baseline-jars')
+    }
     currentClasspath {
         canBeConsumed = false
         canBeResolved = false
         visible = false
     }
-    currentApiClasspath {
+    currentJars {
         canBeConsumed = false
         canBeResolved = true
         description = "Classpath to check binary compatibility against"
@@ -87,7 +91,7 @@ configurations {
 }
 
 dependencies {
-    baseline "gradle:gradle:${compatibilityBaselineVersion}@zip"
+    baseline("gradle:gradle:${compatibilityBaselineVersion}@zip")
 
     // This transform takes the Gradle zip distribution,
     // and unzips the Gradle jar files that it contains in a directory
@@ -104,7 +108,7 @@ dependencies {
 def checkBinaryCompatibility = tasks.register("checkBinaryCompatibility", JapicmpTask) {
     def baseVersion = moduleIdentity.version.map { it.baseVersion.version }
     def isSnapshot = moduleIdentity.snapshot
-    def newArchivesFiles = configurations.currentApiClasspath.incoming.artifactView { lenient(true) }.files
+    def newArchivesFiles = configurations.currentJars.incoming.artifactView { lenient(true) }.files
 
     inputs.files(newArchivesFiles)
     inputs.property('acceptedViolations', acceptedViolations.toAcceptedChangesMap())
@@ -116,30 +120,19 @@ def checkBinaryCompatibility = tasks.register("checkBinaryCompatibility", Japicm
     oldClasspath = configurations.baselineClasspath
     newClasspath = newArchivesFiles
 
-    def oldArchivesFiles = objects.fileCollection()
+    oldArchives = configurations.baselineJars
     def distributionArchives = newArchivesFiles.filter { it.name.startsWith('gradle-') && it.name.endsWith('.jar') }
-    distributionArchives.files.each {
-        def currentVersion = baseVersion.get()
-        def projectName = it.name - "-${currentVersion}.jar"
-        // This transform uses the result of the exploded zip extraction
-        // and returns a single jar file based on the lookup project name
-        dependencies.registerTransform(FindGradleJar) {
-            from.attribute(ARTIFACT_TYPE, 'gradle-libs-dir')
-            to.attribute(ARTIFACT_TYPE, projectName)
-            parameters {
-                target = projectName
-                version = compatibilityBaselineVersion
-            }
-        }
-        def appendixName = projectName.split('-')*.capitalize().join('')
-        def baselineConf = configurations.create("japicmp-baseline-${appendixName}") {
-            extendsFrom configurations.baseline
-            attributes.attribute(ARTIFACT_TYPE, projectName)
-        }
-        oldArchivesFiles.from(baselineConf)
-    }
-    oldArchives = oldArchivesFiles
     newArchives = distributionArchives
+
+    dependencies.registerTransform(FindGradleJars) {
+        from.attribute(ARTIFACT_TYPE, 'gradle-libs-dir')
+        to.attribute(ARTIFACT_TYPE, 'gradle-baseline-jars')
+        parameters {
+            target = distributionArchives.files
+            baselineVersion = compatibilityBaselineVersion
+            currentVersion = baseVersion.get()
+        }
+    }
 
     // binary breaking change checking setup
     onlyModified = false
