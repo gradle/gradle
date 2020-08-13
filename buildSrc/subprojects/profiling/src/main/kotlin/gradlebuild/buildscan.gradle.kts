@@ -22,6 +22,8 @@ import gradlebuild.basics.BuildEnvironment.isJenkins
 import gradlebuild.basics.BuildEnvironment.isTravis
 import gradlebuild.basics.kotlindsl.execAndGetStdout
 import gradlebuild.basics.tasks.ClasspathManifest
+import org.gradle.api.internal.BuildType
+import org.gradle.api.internal.GradleInternal
 import org.jsoup.Jsoup
 import org.jsoup.parser.Parser
 import java.net.URLEncoder
@@ -49,10 +51,9 @@ if (isCiServer) {
 
 extractCheckstyleAndCodenarcData()
 
-// TODO LD - adapt after changes merged and master updated to build with them
-// if ((project.gradle as GradleInternal).buildType != GradleInternal.BuildType.TASKS) {
-//     buildScan.tag("SYNC")
-// }
+if ((project.gradle as GradleInternal).services.get(BuildType::class.java) != BuildType.TASKS) {
+    buildScan.tag("SYNC")
+}
 
 fun monitorUnexpectedCacheMisses() {
     gradle.taskGraph.afterTask {
