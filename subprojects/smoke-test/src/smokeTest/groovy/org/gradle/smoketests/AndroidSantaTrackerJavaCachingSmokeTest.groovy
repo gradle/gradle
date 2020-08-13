@@ -26,6 +26,9 @@ import static org.gradle.testkit.runner.TaskOutcome.FROM_CACHE
 import static org.gradle.testkit.runner.TaskOutcome.NO_SOURCE
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 import static org.gradle.testkit.runner.TaskOutcome.UP_TO_DATE
+import static org.hamcrest.CoreMatchers.equalTo
+import static org.hamcrest.CoreMatchers.not
+import static org.junit.Assume.assumeThat
 
 
 @Requires(TestPrecondition.JDK11_OR_EARLIER)
@@ -40,6 +43,9 @@ class AndroidSantaTrackerJavaCachingSmokeTest extends AbstractAndroidSantaTracke
     @Unroll
     @UnsupportedWithInstantExecution(iterationMatchers = [AGP_3_ITERATION_MATCHER, AGP_4_0_ITERATION_MATCHER])
     def "can cache Santa Tracker Java Android application (agp=#agpVersion)"() {
+
+        // TODO remove once next 4.2 is available
+        assumeThat(agpVersion, not(equalTo("4.2.0-alpha07")))
 
         given:
         def originalDir = temporaryFolder.createDir("original")
@@ -93,7 +99,7 @@ class AndroidSantaTrackerJavaCachingSmokeTest extends AbstractAndroidSantaTracke
         ':common:bundleDebugAar': SUCCESS,
         ':common:bundleLibCompileToJarDebug': FROM_CACHE,
         ':common:bundleLibResDebug': NO_SOURCE,
-        ':common:bundleLibRuntimeToJarDebug': FROM_CACHE,
+        ':common:bundleLibRuntimeToDirDebug': FROM_CACHE,
         ':common:compileDebugAidl': NO_SOURCE,
         ':common:compileDebugJavaWithJavac': FROM_CACHE,
         ':common:compileDebugLibraryResources': SUCCESS,
@@ -132,7 +138,7 @@ class AndroidSantaTrackerJavaCachingSmokeTest extends AbstractAndroidSantaTracke
         ':dasherdancer:bundleDebugAar': SUCCESS,
         ':dasherdancer:bundleLibCompileToJarDebug': FROM_CACHE,
         ':dasherdancer:bundleLibResDebug': NO_SOURCE,
-        ':dasherdancer:bundleLibRuntimeToJarDebug': FROM_CACHE,
+        ':dasherdancer:bundleLibRuntimeToDirDebug': FROM_CACHE,
         ':dasherdancer:compileDebugAidl': NO_SOURCE,
         ':dasherdancer:compileDebugJavaWithJavac': FROM_CACHE,
         ':dasherdancer:compileDebugLibraryResources': SUCCESS,
@@ -171,7 +177,7 @@ class AndroidSantaTrackerJavaCachingSmokeTest extends AbstractAndroidSantaTracke
         ':doodles:bundleDebugAar': SUCCESS,
         ':doodles:bundleLibCompileToJarDebug': FROM_CACHE,
         ':doodles:bundleLibResDebug': NO_SOURCE,
-        ':doodles:bundleLibRuntimeToJarDebug': FROM_CACHE,
+        ':doodles:bundleLibRuntimeToDirDebug': FROM_CACHE,
         ':doodles:compileDebugAidl': NO_SOURCE,
         ':doodles:compileDebugJavaWithJavac': FROM_CACHE,
         ':doodles:compileDebugLibraryResources': SUCCESS,
@@ -210,7 +216,7 @@ class AndroidSantaTrackerJavaCachingSmokeTest extends AbstractAndroidSantaTracke
         ':presentquest:bundleDebugAar': SUCCESS,
         ':presentquest:bundleLibCompileToJarDebug': FROM_CACHE,
         ':presentquest:bundleLibResDebug': NO_SOURCE,
-        ':presentquest:bundleLibRuntimeToJarDebug': FROM_CACHE,
+        ':presentquest:bundleLibRuntimeToDirDebug': FROM_CACHE,
         ':presentquest:compileDebugAidl': NO_SOURCE,
         ':presentquest:compileDebugJavaWithJavac': FROM_CACHE,
         ':presentquest:compileDebugLibraryResources': SUCCESS,
@@ -249,7 +255,7 @@ class AndroidSantaTrackerJavaCachingSmokeTest extends AbstractAndroidSantaTracke
         ':rocketsleigh:bundleDebugAar': SUCCESS,
         ':rocketsleigh:bundleLibCompileToJarDebug': FROM_CACHE,
         ':rocketsleigh:bundleLibResDebug': NO_SOURCE,
-        ':rocketsleigh:bundleLibRuntimeToJarDebug': FROM_CACHE,
+        ':rocketsleigh:bundleLibRuntimeToDirDebug': FROM_CACHE,
         ':rocketsleigh:compileDebugAidl': NO_SOURCE,
         ':rocketsleigh:compileDebugJavaWithJavac': FROM_CACHE,
         ':rocketsleigh:compileDebugLibraryResources': SUCCESS,
@@ -327,7 +333,7 @@ class AndroidSantaTrackerJavaCachingSmokeTest extends AbstractAndroidSantaTracke
         ':village:bundleDebugAar': SUCCESS,
         ':village:bundleLibCompileToJarDebug': FROM_CACHE,
         ':village:bundleLibResDebug': NO_SOURCE,
-        ':village:bundleLibRuntimeToJarDebug': FROM_CACHE,
+        ':village:bundleLibRuntimeToDirDebug': FROM_CACHE,
         ':village:compileDebugAidl': NO_SOURCE,
         ':village:compileDebugJavaWithJavac': FROM_CACHE,
         ':village:compileDebugLibraryResources': SUCCESS,

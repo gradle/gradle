@@ -154,7 +154,7 @@ public class DefaultFileWatcherRegistry implements FileWatcherRegistry {
         try {
             watcher.shutdown();
             if (!watcher.awaitTermination(5, TimeUnit.SECONDS)) {
-                throw new RuntimeException("Watcher did not terminate withing 5 seconds");
+                throw new RuntimeException("Watcher did not terminate within 5 seconds");
             }
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();

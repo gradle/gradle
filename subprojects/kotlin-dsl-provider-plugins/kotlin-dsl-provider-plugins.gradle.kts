@@ -41,7 +41,7 @@ dependencies {
     implementation(libs.slf4jApi)
     implementation(libs.inject)
 
-    testImplementation(project(":kotlinDslTestFixtures"))
+    testImplementation(testFixtures(project(":kotlinDsl")))
     testImplementation(libs.mockitoKotlin2)
 }
 

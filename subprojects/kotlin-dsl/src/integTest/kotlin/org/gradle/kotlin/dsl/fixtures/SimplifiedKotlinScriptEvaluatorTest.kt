@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -74,6 +74,6 @@ class SimplifiedKotlinScriptEvaluatorTest : TestWithTempFiles() {
     }
 
     private
-    fun eval(script: String, target: Any) =
+    fun eval(script: String, target: Any): Any =
         eval(script, target, baseCacheDir = file("cache"))
 }

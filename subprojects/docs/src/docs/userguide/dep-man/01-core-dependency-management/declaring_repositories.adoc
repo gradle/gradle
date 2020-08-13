@@ -751,6 +751,6 @@ publishing credentials to be present. On the other hand, if the build needs to e
 at some point, Gradle will check for credential presence first thing and will not start running any of the tasks
 if it knows that the build will fail at a later point because of missing credentials.
 
-Here is a link:{samplesPath}/sample_publishing_credentials.html[downloadable sample] that demonstrates the concept in more detail.
+Here is a link:../samples/sample_publishing_credentials.html[downloadable sample] that demonstrates the concept in more detail.
 
 The same rules apply for supplying link:{javadocPath}/org/gradle/api/credentials/AwsCredentials.html[AwsCredentials].

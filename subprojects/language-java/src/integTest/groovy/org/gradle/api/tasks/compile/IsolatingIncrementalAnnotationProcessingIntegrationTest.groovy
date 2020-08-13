@@ -63,6 +63,22 @@ class IsolatingIncrementalAnnotationProcessingIntegrationTest extends AbstractIn
         outputs.recompiledFiles("A", "AHelper", "AHelperResource.txt")
     }
 
+    def "incremental processing works on subsequent incremental compilations"() {
+        given:
+        def a = java "@Helper class A {}"
+        java "class Unrelated {}"
+        run "compileJava"
+        a.text = "@Helper class A { public void foo() {} }"
+        outputs.snapshot { run "compileJava" }
+
+        when:
+        a.text = "@Helper class A { public void bar() {} }"
+        run "compileJava"
+
+        then:
+        outputs.recompiledFiles("A", "AHelper", "AHelperResource.txt")
+    }
+
     def "annotated files are not recompiled on unrelated changes"() {
         given:
         java "@Helper class A {}"

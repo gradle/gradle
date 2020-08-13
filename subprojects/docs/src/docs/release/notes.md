@@ -9,7 +9,8 @@ We would like to thank the following community contributors to this release of G
 [Louis CAD](https://github.com/LouisCAD),
 [Campbell Jones](https://github.com/serebit),
 [Leonardo Bezerra Silva Júnior](https://github.com/leonardobsjr),
-and [Christoph Dreis](https://github.com/dreis2211).
+[Christoph Dreis](https://github.com/dreis2211),
+and [Stefan Oehme](https://github.com/oehme).
 
 <!--
 Include only their name, impactful features should be called out separately below.

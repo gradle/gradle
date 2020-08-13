@@ -23,7 +23,7 @@ plugins {
 description = "Kotlin DSL Integration Tests"
 
 dependencies {
-    testImplementation(project(":kotlinDslTestFixtures"))
+    testImplementation(testFixtures(project(":kotlinDsl")))
 
     integTestImplementation(project(":baseServices"))
     integTestImplementation(project(":coreApi"))
