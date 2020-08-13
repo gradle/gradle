@@ -22,7 +22,8 @@ import spock.lang.Specification
 import javax.annotation.Nullable
 import java.util.concurrent.TimeUnit
 
-import static org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus.*
+import static org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus.DO_NOT_EXPIRE
+import static org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus.QUIET_EXPIRE
 
 class DaemonIdleTimeoutExpirationStrategyTest extends Specification {
     final Daemon daemon = Mock(Daemon)

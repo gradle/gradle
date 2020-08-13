@@ -16,13 +16,15 @@
 
 package org.gradle.launcher.daemon.registry
 
+import org.gradle.internal.remote.Address
 import org.gradle.launcher.daemon.context.DaemonContext
 import org.gradle.launcher.daemon.registry.DaemonRegistry.EmptyRegistryException
 import org.gradle.launcher.daemon.server.DaemonRegistryUpdater
-import org.gradle.internal.remote.Address
 import spock.lang.Specification
 
-import static org.gradle.launcher.daemon.server.api.DaemonStateControl.State.*
+import static org.gradle.launcher.daemon.server.api.DaemonStateControl.State.Busy
+import static org.gradle.launcher.daemon.server.api.DaemonStateControl.State.Canceled
+import static org.gradle.launcher.daemon.server.api.DaemonStateControl.State.Idle
 
 public class DaemonRegistryUpdaterTest extends Specification {
 

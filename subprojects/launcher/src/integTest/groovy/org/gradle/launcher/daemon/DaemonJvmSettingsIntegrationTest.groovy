@@ -19,8 +19,8 @@ package org.gradle.launcher.daemon
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.testfixtures.SafeUnroll
 import spock.lang.IgnoreIf
-import spock.lang.Unroll
 
 class DaemonJvmSettingsIntegrationTest extends DaemonIntegrationSpec {
     def "uses current JVM and default JVM args when none specified"() {
@@ -57,7 +57,7 @@ assert java.lang.management.ManagementFactory.runtimeMXBean.inputArguments.conta
         stopDaemonsNow()
     }
 
-    @Unroll
+    @SafeUnroll
     def "uses defaults for max/min heap size when JAVA_TOOL_OPTIONS is set (#javaToolOptions)"() {
         setup:
         executer.requireDaemon().requireIsolatedDaemons()

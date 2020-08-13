@@ -22,9 +22,9 @@ import org.gradle.launcher.configuration.BuildLayoutResult
 import org.gradle.launcher.daemon.configuration.DaemonBuildOptions
 import org.gradle.launcher.daemon.configuration.DaemonParameters
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.testfixtures.SafeUnroll
 import org.junit.Rule
 import spock.lang.Specification
-import spock.lang.Unroll
 
 class PropertiesToDaemonParametersConverterTest extends Specification {
     @Rule
@@ -125,7 +125,7 @@ class PropertiesToDaemonParametersConverterTest extends Specification {
         ex.message.contains 'bogus'
     }
 
-    @Unroll
+    @SafeUnroll
     def "explicitly sets daemon usage if daemon system property is specified"() {
         when:
         converter.convert((DaemonBuildOptions.DaemonOption.GRADLE_PROPERTY): enabled.toString(), params)

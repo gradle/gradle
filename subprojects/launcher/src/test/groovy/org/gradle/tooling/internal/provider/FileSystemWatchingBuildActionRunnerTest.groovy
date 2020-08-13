@@ -24,10 +24,10 @@ import org.gradle.internal.invocation.BuildController
 import org.gradle.internal.operations.BuildOperationRunner
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem
+import org.gradle.testfixtures.SafeUnroll
 import spock.lang.Specification
-import spock.lang.Unroll
 
-@Unroll
+@SafeUnroll
 class FileSystemWatchingBuildActionRunnerTest extends Specification {
 
     def watchingHandler = Mock(BuildLifecycleAwareVirtualFileSystem)

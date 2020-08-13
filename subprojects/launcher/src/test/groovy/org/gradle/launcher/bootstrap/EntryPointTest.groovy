@@ -16,8 +16,8 @@
 
 package org.gradle.launcher.bootstrap
 
-import spock.lang.Specification
 import org.gradle.api.Action
+import spock.lang.Specification
 
 class EntryPointTest extends Specification {
     final Action<ExecutionListener> action = Mock()

@@ -15,10 +15,10 @@
  */
 package org.gradle.launcher.daemon.testing
 
-import org.gradle.launcher.daemon.registry.DaemonRegistry
 import org.gradle.internal.concurrent.DefaultExecutorFactory
 import org.gradle.internal.concurrent.ManagedExecutor
 import org.gradle.internal.concurrent.Stoppable
+import org.gradle.launcher.daemon.registry.DaemonRegistry
 
 import java.util.concurrent.LinkedBlockingQueue
 

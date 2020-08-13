@@ -26,8 +26,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static org.gradle.launcher.daemon.server.api.DaemonStateControl.*;
-import static org.gradle.launcher.daemon.server.api.DaemonStateControl.State.*;
+import static org.gradle.launcher.daemon.server.api.DaemonStateControl.State;
+import static org.gradle.launcher.daemon.server.api.DaemonStateControl.State.Canceled;
+import static org.gradle.launcher.daemon.server.api.DaemonStateControl.State.Idle;
 
 /**
  * A daemon registry for daemons running in the same JVM.

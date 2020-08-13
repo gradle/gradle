@@ -17,11 +17,11 @@
 package org.gradle.launcher.cli
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import spock.lang.Unroll
+import org.gradle.testfixtures.SafeUnroll
 
 class CommandLineIntegrationLoggingSpec extends AbstractIntegrationSpec {
 
-    @Unroll
+    @SafeUnroll
     def "Set logging level using org.gradle.logging.level=#logLevel"() {
         def message = 'Expected message in the output'
         buildFile << """
@@ -51,7 +51,7 @@ class CommandLineIntegrationLoggingSpec extends AbstractIntegrationSpec {
         'debug'     | ''          | ['-Dorg.gradle.logging.level=debug']
     }
 
-    @Unroll
+    @SafeUnroll
     def "Set log level using org.gradle.logging.level in GRADLE_OPTS to #logLevel"() {
         setup:
         executer.requireIsolatedDaemons()
@@ -86,7 +86,7 @@ class CommandLineIntegrationLoggingSpec extends AbstractIntegrationSpec {
     }
 
 
-    @Unroll
+    @SafeUnroll
     def "Command line switches override properly: #flags #options"() {
         setup:
         executer.requireIsolatedDaemons()

@@ -15,9 +15,9 @@
  */
 package org.gradle.launcher.daemon.client
 
+import org.gradle.internal.dispatch.Dispatch
 import org.gradle.launcher.daemon.protocol.CloseInput
 import org.gradle.launcher.daemon.protocol.ForwardInput
-import org.gradle.internal.dispatch.Dispatch
 import org.gradle.util.ConcurrentSpecification
 
 import java.util.concurrent.LinkedBlockingQueue

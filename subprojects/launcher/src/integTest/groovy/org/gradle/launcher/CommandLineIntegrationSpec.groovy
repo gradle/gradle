@@ -20,16 +20,16 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.jvm.JDWPUtil
 import org.gradle.test.fixtures.ConcurrentTestUtil
+import org.gradle.testfixtures.SafeUnroll
 import org.junit.Rule
 import spock.lang.IgnoreIf
-import spock.lang.Unroll
 
 class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
     @Rule
     JDWPUtil jdwpClient = new JDWPUtil(5005)
 
     @IgnoreIf({ GradleContextualExecuter.parallel })
-    @Unroll
+    @SafeUnroll
     def "reasonable failure message when --max-workers=#value"() {
         given:
         executer.requireDaemon().requireIsolatedDaemons()  // otherwise exception gets thrown in testing infrastructure
@@ -47,7 +47,7 @@ class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
         value << ["-1", "0", "foo", " 1"]
     }
 
-    @Unroll
+    @SafeUnroll
     def "reasonable failure message when org.gradle.workers.max=#value"() {
         given:
         executer.requireDaemon().requireIsolatedDaemons() // otherwise exception gets thrown in testing infrastructure

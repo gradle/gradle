@@ -19,7 +19,10 @@ package org.gradle.launcher.daemon.server.expiry
 
 import spock.lang.Specification
 
-import static org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus.*
+import static org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus.DO_NOT_EXPIRE
+import static org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus.GRACEFUL_EXPIRE
+import static org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus.IMMEDIATE_EXPIRE
+import static org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus.QUIET_EXPIRE
 
 class AllDaemonExpirationStrategyTest extends Specification {
     private DaemonExpirationStrategy c1;

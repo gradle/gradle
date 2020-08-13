@@ -15,11 +15,12 @@
  */
 package org.gradle.launcher.daemon.registry
 
-import org.gradle.launcher.daemon.context.DaemonContext
 import org.gradle.internal.remote.Address
+import org.gradle.launcher.daemon.context.DaemonContext
 import spock.lang.Specification
 
-import static org.gradle.launcher.daemon.server.api.DaemonStateControl.State.*
+import static org.gradle.launcher.daemon.server.api.DaemonStateControl.State.Busy
+import static org.gradle.launcher.daemon.server.api.DaemonStateControl.State.Idle
 
 class EmbeddedDaemonRegistrySpec extends Specification {
 

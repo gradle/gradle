@@ -17,9 +17,9 @@
 package org.gradle.tooling.internal.provider
 
 import org.gradle.internal.event.ListenerNotificationException
-import spock.lang.Specification
 import org.gradle.tooling.internal.protocol.PhasedActionResult
 import org.gradle.tooling.internal.protocol.PhasedActionResultListener
+import spock.lang.Specification
 
 class FailsafePhasedActionResultListenerTest extends Specification {
     def delegateListener = Mock(PhasedActionResultListener)

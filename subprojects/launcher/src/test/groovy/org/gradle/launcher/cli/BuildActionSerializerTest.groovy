@@ -21,15 +21,15 @@ import org.gradle.internal.build.event.BuildEventSubscriptions
 import org.gradle.internal.serialize.SerializerSpec
 import org.gradle.launcher.cli.action.BuildActionSerializer
 import org.gradle.launcher.cli.action.ExecuteBuildAction
+import org.gradle.testfixtures.SafeUnroll
 import org.gradle.tooling.events.OperationType
 import org.gradle.tooling.events.test.internal.DefaultDebugOptions
 import org.gradle.tooling.internal.provider.BuildModelAction
 import org.gradle.tooling.internal.provider.ClientProvidedBuildAction
 import org.gradle.tooling.internal.provider.TestExecutionRequestAction
 import org.gradle.tooling.internal.provider.serialization.SerializedPayload
-import spock.lang.Unroll
 
-@Unroll
+@SafeUnroll
 class BuildActionSerializerTest extends SerializerSpec {
     def "serializes ExecuteBuildAction with all defaults"() {
         def action = new ExecuteBuildAction(new StartParameterInternal())

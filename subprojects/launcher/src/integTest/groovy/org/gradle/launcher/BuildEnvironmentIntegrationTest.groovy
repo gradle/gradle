@@ -20,15 +20,15 @@ import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.testfixtures.SafeUnroll
 import spock.lang.IgnoreIf
 import spock.lang.Issue
-import spock.lang.Unroll
 
 import java.nio.charset.Charset
 
 class BuildEnvironmentIntegrationTest extends AbstractIntegrationSpec {
 
-    @Unroll("default locale for gradle build switched to #locale")
+    @SafeUnroll("default locale for gradle build switched to #locale")
     def "builds can be executed with different default locales"() {
         given:
         executer.withDefaultLocale(locale)
@@ -143,7 +143,7 @@ task check {
         }
     }
 
-    @Unroll("build default encoding matches specified - input = #inputEncoding, expectedEncoding: #expectedEncoding")
+    @SafeUnroll("build default encoding matches specified - input = #inputEncoding, expectedEncoding: #expectedEncoding")
     def "build default encoding matches specified"(String inputEncoding, String expectedEncoding) {
         given:
         executerEncoding inputEncoding
@@ -170,7 +170,7 @@ task check {
         null          | Charset.defaultCharset().name()
     }
 
-    @Unroll("forked java processes inherit default encoding - input = #inputEncoding, expectedEncoding: #expectedEncoding")
+    @SafeUnroll("forked java processes inherit default encoding - input = #inputEncoding, expectedEncoding: #expectedEncoding")
     def "forked java processes inherit default encoding"() {
         given:
         executerEncoding inputEncoding

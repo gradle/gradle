@@ -20,9 +20,9 @@ import org.gradle.integtests.fixtures.AbstractContinuousIntegrationTest
 import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
 import org.gradle.integtests.fixtures.archives.TestReproducibleArchives
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.testfixtures.SafeUnroll
 import org.gradle.util.TestPrecondition
 import spock.lang.Retry
-import spock.lang.Unroll
 
 import static org.gradle.integtests.fixtures.RetryConditions.cleanProjectDir
 import static spock.lang.Retry.Mode.SETUP_FEATURE_CLEANUP
@@ -180,7 +180,7 @@ jar.dependsOn postCompile
         changingInput << ['a', 'b', 'c', 'd']
     }
 
-    @Unroll
+    @SafeUnroll
     def "check build executing and failing in task :c - change in :#changingInput"(changingInput, shouldTrigger) {
         given:
         ['a', 'b', 'c', 'd'].each { file(it).createDir() }
