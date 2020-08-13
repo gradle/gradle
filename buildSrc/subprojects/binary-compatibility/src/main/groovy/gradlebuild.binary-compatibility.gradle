@@ -71,7 +71,7 @@ configurations {
         canBeResolved = false
         visible = false
     }
-    currentJars {
+    currentApiClasspath {
         canBeConsumed = false
         canBeResolved = true
         description = "Classpath to check binary compatibility against"
@@ -108,29 +108,28 @@ dependencies {
 def checkBinaryCompatibility = tasks.register("checkBinaryCompatibility", JapicmpTask) {
     def baseVersion = moduleIdentity.version.map { it.baseVersion.version }
     def isSnapshot = moduleIdentity.snapshot
-    def newArchivesFiles = configurations.currentJars.incoming.artifactView { lenient(true) }.files
-
-    inputs.files(newArchivesFiles)
     inputs.property('acceptedViolations', acceptedViolations.toAcceptedChangesMap())
     inputs.property("baseline.version", compatibilityBaselineVersion)
     inputs.property("currentVersion", baseVersion)
     def apiSourceFolders = configurations.currentSources.incoming.artifactView { lenient(true) }.files
     inputs.files("apiSourceFolders", apiSourceFolders)
+    def currentClasspath = configurations.currentApiClasspath.incoming.artifactView { lenient(true) }.files
+    inputs.files(currentClasspath)
 
+    newClasspath = currentClasspath
     oldClasspath = configurations.baselineClasspath
-    newClasspath = newArchivesFiles
 
+    def currentDistributionJars = currentClasspath.filter { it.name.startsWith('gradle-') && it.name.endsWith('.jar') }
+    newArchives = currentDistributionJars
     oldArchives = configurations.baselineJars
-    def distributionArchives = newArchivesFiles.filter { it.name.startsWith('gradle-') && it.name.endsWith('.jar') }
-    newArchives = distributionArchives
 
     dependencies.registerTransform(FindGradleJars) {
         from.attribute(ARTIFACT_TYPE, 'gradle-libs-dir')
         to.attribute(ARTIFACT_TYPE, 'gradle-baseline-jars')
         parameters {
-            target = distributionArchives.files
-            baselineVersion = compatibilityBaselineVersion
-            currentVersion = baseVersion.get()
+            currentJars.from(currentDistributionJars)
+            baselineVersion.set(compatibilityBaselineVersion)
+            currentVersion.set(baseVersion)
         }
     }
 
