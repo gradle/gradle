@@ -140,7 +140,7 @@ If a task fails, any subsequent tasks that were depending on it will not be exec
 
 When you specify tasks on the command-line, you don’t have to provide the full name of the task. You only need to provide enough of the task name to uniquely identify the task. For example, it's likely `gradle che` is enough for Gradle to identify the `check` task.
 
-The same applies for project names. You can execute the run the `check` task in the `library` subproject with the `gradle lib:che` command.
+The same applies for project names. You can execute the `check` task in the `library` subproject with the `gradle lib:che` command.
 
 You can use https://en.wikipedia.org/wiki/Camel_case[camel case] patterns for more complex abbreviations. These patterns are expanded to match to camel case and https://en.wikipedia.org/wiki/Kebab_case[kebab case] names. For example the pattern `foBa` (or even `fB`) matches to `fooBar` and to `foo-bar`.
 
