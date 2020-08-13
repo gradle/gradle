@@ -25,7 +25,7 @@ import japicmp.util.Optional
 import javassist.CtClass
 import me.champeau.gradle.japicmp.report.Violation
 import org.gradle.api.Incubating
-import org.gradle.testfixtures.SafeUnroll
+import spock.lang.Unroll
 
 class IncubatingInternalInterfaceAddedRuleTest extends AbstractContextAwareRuleSpecification {
     IncubatingInternalInterfaceAddedRule rule = new IncubatingInternalInterfaceAddedRule(getInitializationParams())
@@ -79,7 +79,7 @@ class IncubatingInternalInterfaceAddedRuleTest extends AbstractContextAwareRuleS
                       'incubating': incubatingInterface]
     }
 
-    @SafeUnroll
+    @Unroll
     def "#member change should not be reported"() {
         expect:
         noViolation(rule)
