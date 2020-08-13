@@ -1,7 +1,6 @@
 plugins {
     id 'java'
-    id 'idea'
-    id 'ivy-publish'
+    id 'maven-publish'
 }
 
 group "org.sample"
@@ -12,7 +11,7 @@ dependencies {
 }
 
 repositories {
-    ivy {
+    maven {
         name 'localrepo'
         url file("../../../local-repo")
     }
@@ -21,11 +20,11 @@ repositories {
 
 publishing {
     repositories {
-        ivy {
+        maven {
             url file("../../../local-repo")
         }
     }
     publications {
-        ivy(IvyPublication) { from components.java }
+        maven(MavenPublication) { from components.java }
     }
 }

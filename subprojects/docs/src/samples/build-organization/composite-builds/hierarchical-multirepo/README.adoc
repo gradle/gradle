@@ -1,6 +1,6 @@
 NOTE: You can open this sample inside an IDE using the https://www.jetbrains.com/help/idea/gradle.html#gradle_import_project_start[IntelliJ native importer] or https://projects.eclipse.org/projects/tools.buildship[Eclipse Buildship].
 
-= Using composite builds in a hierarchical multirepo project
+== Using composite builds in a hierarchical multirepo project
 
 This sample demonstrates how composite builds can be used to develop a hierarchical project that is composed from different Git repositories. Instead of Gradle subprojects in a multiproject build, this example uses separate Gradle builds included into a composite.
 
@@ -51,8 +51,8 @@ gradle :publishDeps
 The `publishDeps` creates and uploads the artifacts for each included build. It is defined in `multirepo-app` as follows:
 
 ====
-include::sample[dir="groovy",files="build.gradle[tags=publishDeps]"]
-include::sample[dir="kotlin",files="build.gradle.kts[tags=publishDeps]"]
+include::sample[dir="groovy",files="build.gradle"]
+include::sample[dir="kotlin",files="build.gradle.kts"]
 ====
 
 === Removing the local module source

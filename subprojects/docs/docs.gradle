@@ -103,13 +103,45 @@ tasks.named("stageDocs") {
 samples {
     templates {
         javaAndroidApplication
-        springBootWebApplication
-        gradlePluginInJava
+        springBootWebApplication {
+            target = "app"
+        }
+        gradlePluginInJava {
+            target = "greeting-plugin"
+        }
         buildSrcPluginJavaModuleTransform
 
         javaApplication
         javaListLibrary
         javaUtilitiesLibrary
+        javaApplicationInApp {
+            sourceDirectory = javaApplication.sourceDirectory
+            target = "app"
+        }
+        javaListLibraryInApp {
+            sourceDirectory = javaListLibrary.sourceDirectory
+            target = "app"
+        }
+        javaUtilitiesLibraryInApp {
+            sourceDirectory = javaUtilitiesLibrary.sourceDirectory
+            target = "app"
+        }
+        javaListLibraryInLib {
+            sourceDirectory = javaListLibrary.sourceDirectory
+            target = "lib"
+        }
+        javaUtilitiesLibraryInLib {
+            sourceDirectory = javaUtilitiesLibrary.sourceDirectory
+            target = "lib"
+        }
+        javaListLibraryInMyLibrary {
+            sourceDirectory = javaListLibrary.sourceDirectory
+            target = "my-library"
+        }
+        javaUtilitiesLibraryInMyLibrary {
+            sourceDirectory = javaUtilitiesLibrary.sourceDirectory
+            target = "my-library"
+        }
         javaApplicationAsSubproject {
             sourceDirectory = javaApplication.sourceDirectory
             target = "application"
@@ -161,15 +193,43 @@ samples {
         groovyApplication
         groovyListLibrary
         groovyUtilitiesLibrary
-        groovyApplicationAsSubproject {
+        groovyApplicationInApp {
+            sourceDirectory = groovyApplication.sourceDirectory
+            target = "app"
+        }
+        groovyListLibraryInApp {
+            sourceDirectory = groovyListLibrary.sourceDirectory
+            target = "app"
+        }
+        groovyUtilitiesLibraryInApp {
+            sourceDirectory = groovyUtilitiesLibrary.sourceDirectory
+            target = "app"
+        }
+        groovyListLibraryInLib {
+            sourceDirectory = groovyListLibrary.sourceDirectory
+            target = "lib"
+        }
+        groovyUtilitiesLibraryInLib {
+            sourceDirectory = groovyUtilitiesLibrary.sourceDirectory
+            target = "lib"
+        }
+        groovyListLibraryInMyLibrary {
+            sourceDirectory = groovyListLibrary.sourceDirectory
+            target = "my-library"
+        }
+        groovyUtilitiesLibraryInMyLibrary {
+            sourceDirectory = groovyUtilitiesLibrary.sourceDirectory
+            target = "my-library"
+        }
+        groovyApplicationInApplication {
             sourceDirectory = groovyApplication.sourceDirectory
             target = "application"
         }
-        groovyListLibraryAsSubproject {
+        groovyListLibraryInList {
             sourceDirectory = groovyListLibrary.sourceDirectory
             target = "list"
         }
-        groovyUtilitiesLibraryAsSubproject {
+        groovyUtilitiesLibraryInUtilities {
             sourceDirectory = groovyUtilitiesLibrary.sourceDirectory
             target = "utilities"
         }
@@ -177,6 +237,26 @@ samples {
         kotlinApplication
         kotlinListLibrary
         kotlinUtilitiesLibrary
+        kotlinApplicationInApp {
+            sourceDirectory = kotlinApplication.sourceDirectory
+            target = "app"
+        }
+        kotlinListLibraryInApp {
+            sourceDirectory = kotlinListLibrary.sourceDirectory
+            target = "app"
+        }
+        kotlinUtilitiesLibraryInApp {
+            sourceDirectory = kotlinUtilitiesLibrary.sourceDirectory
+            target = "app"
+        }
+        kotlinListLibraryInLib {
+            sourceDirectory = kotlinListLibrary.sourceDirectory
+            target = "lib"
+        }
+        kotlinUtilitiesLibraryInLib {
+            sourceDirectory = kotlinUtilitiesLibrary.sourceDirectory
+            target = "lib"
+        }
 
         projectInfoPlugin
 
@@ -223,7 +303,7 @@ samples {
             readmeFile = file("src/snippets/default-readme.adoc")
             sampleDirectory = snippetDir
             promoted = false
-        }            
+        }
     }
 
     publishedSamples {
@@ -265,9 +345,9 @@ samples {
             description = "Build a Java application."
             category = "Java"
             common {
-                from(templates.javaApplication)
-                from(templates.javaListLibrary)
-                from(templates.javaUtilitiesLibrary)
+                from(templates.javaApplicationInApp)
+                from(templates.javaListLibraryInApp)
+                from(templates.javaUtilitiesLibraryInApp)
             }
         }
         javaLibrary {
@@ -275,8 +355,8 @@ samples {
             description = "Build a Java library."
             category = "Java"
             common {
-                from(templates.javaListLibrary)
-                from(templates.javaUtilitiesLibrary)
+                from(templates.javaListLibraryInLib)
+                from(templates.javaUtilitiesLibraryInLib)
             }
         }
         javaMultiProjectWithSpockTests {
@@ -369,8 +449,8 @@ samples {
             description = "Publish a Java library to a binary repository."
             category = "Java"
             common {
-                from(templates.javaListLibrary)
-                from(templates.javaUtilitiesLibrary)
+                from(templates.javaListLibraryInMyLibrary)
+                from(templates.javaUtilitiesLibraryInMyLibrary)
             }
         }
 
@@ -379,9 +459,9 @@ samples {
             description = "Build a Kotlin application."
             category = "Kotlin"
             common {
-                from(templates.kotlinApplication)
-                from(templates.kotlinListLibrary)
-                from(templates.kotlinUtilitiesLibrary)
+                from(templates.kotlinApplicationInApp)
+                from(templates.kotlinListLibraryInApp)
+                from(templates.kotlinUtilitiesLibraryInApp)
             }
         }
         kotlinLibrary {
@@ -389,8 +469,8 @@ samples {
             description = "Build a Kotlin library."
             category = "Kotlin"
             common {
-                from(templates.kotlinListLibrary)
-                from(templates.kotlinUtilitiesLibrary)
+                from(templates.kotlinListLibraryInLib)
+                from(templates.kotlinUtilitiesLibraryInLib)
             }
         }
 
@@ -399,9 +479,9 @@ samples {
             description = "Build a Groovy application."
             category = "Groovy"
             common {
-                from(templates.groovyApplication)
-                from(templates.groovyListLibrary)
-                from(templates.groovyUtilitiesLibrary)
+                from(templates.groovyApplicationInApp)
+                from(templates.groovyListLibraryInApp)
+                from(templates.groovyUtilitiesLibraryInApp)
             }
         }
         groovyLibrary {
@@ -409,8 +489,8 @@ samples {
             description = "Build a Groovy library."
             category = "Groovy"
             common {
-                from(templates.groovyListLibrary)
-                from(templates.groovyUtilitiesLibrary)
+                from(templates.groovyListLibraryInLib)
+                from(templates.groovyUtilitiesLibraryInLib)
             }
         }
         groovyMultiProjectWithSpockTests {
@@ -419,9 +499,9 @@ samples {
             description = "Test a Groovy application and library with link:https://github.com/spockframework/spock[Spock]."
             category = "Groovy"
             common {
-                from(templates.groovyApplicationAsSubproject)
-                from(templates.groovyListLibraryAsSubproject)
-                from(templates.groovyUtilitiesLibraryAsSubproject)
+                from(templates.groovyApplicationInApplication)
+                from(templates.groovyListLibraryInList)
+                from(templates.groovyUtilitiesLibraryInUtilities)
                 from(templates.groovySpockTestForApplication)
                 from(templates.groovySpockTestForListLibrary)
             }
@@ -431,8 +511,8 @@ samples {
             description = "Publish a Groovy library to a binary repository."
             category = "Groovy"
             common {
-                from(templates.groovyListLibrary)
-                from(templates.groovyUtilitiesLibrary)
+                from(templates.groovyListLibraryInMyLibrary)
+                from(templates.groovyUtilitiesLibraryInMyLibrary)
             }
         }
 
@@ -489,10 +569,10 @@ samples {
         }
 
         taskWithArguments {
-            sampleDirectory = samplesRoot.dir("build-organization/task-with-arguments")
+            sampleDirectory = samplesRoot.dir("writing-tasks/task-with-arguments")
             displayName = "Task with command-line arguments"
             description = "Pass arguments to a custom task."
-            category = "Build organization"
+            category = "Writing Custom Tasks"
         }
 
         publishingCredentials {
@@ -524,7 +604,7 @@ samples {
             category = "Build organization"
         }
 
-        compositeBuildsHierarchicalMultiRepo {
+        compositeBuildsHierarchicalMultirepo {
             sampleDirectory = samplesRoot.dir("build-organization/composite-builds/hierarchical-multirepo")
             description = "Defining and using a composite build to combine multiple independent builds."
             category = "Build organization"
@@ -587,7 +667,6 @@ tasks.named("docsTest") { task ->
             excludeTestsMatching 'org.gradle.docs.samples.ExemplarExternalSamplesFunctionalTest.snippet-testing-jacoco-application_*_jacocoApp.sample'
         }
 
-        excludeTestsMatching 'org.gradle.docs.samples.ExemplarExternalSamplesFunctionalTest.android-application_*.sample' // has build deprecations
         excludeTestsMatching 'org.gradle.docs.samples.ExemplarExternalSamplesFunctionalTest.snippet-best-practices-logic-during-configuration-dont_*.sample' // negative sanity check fails (= build succeeds) for Kotlin variant
         excludeTestsMatching 'org.gradle.docs.samples.ExemplarExternalSamplesFunctionalTest.snippet-scala-cross-compilation_groovy_sanityCheck.sample' // There is no java executable in /Library/Java/JavaVirtualMachines/1.6.0.jdk/Contents/Home/bin. Expression: executable.exists()
         excludeTestsMatching 'org.gradle.docs.samples.ExemplarExternalSamplesFunctionalTest.snippet-composite-builds*.sample' // emits deprecation warning

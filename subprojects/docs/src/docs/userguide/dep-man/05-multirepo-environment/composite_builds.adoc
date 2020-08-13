@@ -34,8 +34,8 @@ Instead, it declares binary dependencies on the libraries produced by `my-utils`
 
 .Dependencies of my-app
 ====
-include::sample[dir="samples/build-organization/composite-builds/basic/groovy",files="my-app/build.gradle[]"]
-include::sample[dir="samples/build-organization/composite-builds/basic/kotlin",files="my-app/build.gradle.kts[]"]
+include::sample[dir="samples/build-organization/composite-builds/basic/groovy",files="my-app/app/build.gradle[]"]
+include::sample[dir="samples/build-organization/composite-builds/basic/kotlin",files="my-app/app/build.gradle.kts[]"]
 ====
 
 

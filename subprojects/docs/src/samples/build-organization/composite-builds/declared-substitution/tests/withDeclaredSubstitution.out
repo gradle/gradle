@@ -1,12 +1,12 @@
-> Task :processResources NO-SOURCE
+> Task :app:processResources NO-SOURCE
 > Task :anonymous-library:compileJava
 > Task :anonymous-library:processResources NO-SOURCE
 > Task :anonymous-library:classes
 > Task :anonymous-library:jar
-> Task :compileJava
-> Task :classes
+> Task :app:compileJava
+> Task :app:classes
 
-> Task :run
+> Task :app:run
  The answer is 42
 
 BUILD SUCCESSFUL in 0s
