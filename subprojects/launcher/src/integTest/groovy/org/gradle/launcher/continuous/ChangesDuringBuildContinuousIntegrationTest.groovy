@@ -181,7 +181,7 @@ jar.dependsOn postCompile
     }
 
     @SafeUnroll
-    def "check build executing and failing in task :c - change in :#changingInput"(changingInput, shouldTrigger) {
+    def "check build executing and failing in task :c - change in :#changingInput #shouldTrigger"(changingInput, shouldTrigger) {
         given:
         ['a', 'b', 'c', 'd'].each { file(it).createDir() }
 
