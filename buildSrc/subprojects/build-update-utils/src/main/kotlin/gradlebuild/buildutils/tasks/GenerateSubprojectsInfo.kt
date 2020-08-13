@@ -42,9 +42,8 @@ abstract class GenerateSubprojectsInfo : DefaultTask() {
 
     private
     fun generateSubproject(subprojectDir: File): GradleSubproject {
-        // TODO (donat) we should probably change this one as well
         return GradleSubproject(subprojectDir.name,
-            subprojectDir.name.kebabToCamel(),
+            subprojectDir.name,
             subprojectDir.hasDescendantDir("src/test"),
             if (subprojectDir.name == "docs") true else subprojectDir.hasDescendantDir("src/integTest"),
             subprojectDir.hasDescendantDir("src/crossVersionTest"))
@@ -52,7 +51,4 @@ abstract class GenerateSubprojectsInfo : DefaultTask() {
 
     private
     fun File.hasDescendantDir(descendant: String) = resolve(descendant).isDirectory
-
-    private
-    fun String.kebabToCamel() = split("-").map { it.capitalize() }.joinToString("").decapitalize()
 }
