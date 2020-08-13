@@ -270,7 +270,6 @@ public class GradleUserManualPlugin implements Plugin<Project> {
             attributes.put("toc-title", "Contents");
             attributes.put("groovyDslPath", "../dsl");
             attributes.put("javadocPath", "../javadoc");
-            attributes.put("samplesPath", "../samples");
             attributes.put("kotlinDslPath", "https://gradle.github.io/kotlin-dsl-docs/api");
             // Used by SampleIncludeProcessor from `gradle/dotorg-docs`
             // TODO: This breaks the provider
