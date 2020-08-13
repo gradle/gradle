@@ -1170,7 +1170,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
      * @since 6.7
      */
     @Incubating
-    @Internal // getJavaVersion() is used as @Input
+    @Internal("getJavaVersion() is used as @Input")
     public Property<JavaLauncher> getJavaLauncher() {
         return javaLauncher;
     }
