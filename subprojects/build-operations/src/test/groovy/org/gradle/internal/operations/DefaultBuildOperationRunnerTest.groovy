@@ -216,9 +216,36 @@ class DefaultBuildOperationRunnerTest extends Specification {
         }
     }
 
+
+    def "fails when non-wrap-around operation finishes after parent"() {
+        BuildOperationContext operationContext = null
+        operationRunner.run(runnableBuildOperation("parent") {
+            operationContext = operationRunner.start(displayName("child"))
+        })
+
+        when:
+        operationContext.result = "result"
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == 'Parent operation (parent) completed before this operation (child).'
+    }
+
     private static BuildOperationState operation(String description) {
         def operation = new BuildOperationState(displayName(description).build(), 100L)
         operation.running = true
         return operation
+    }
+
+    private static runnableBuildOperation(String name, Runnable action) {
+        new RunnableBuildOperation() {
+            void run(BuildOperationContext context) {
+                action.run()
+            }
+
+            BuildOperationDescriptor.Builder description() {
+                return displayName(name)
+            }
+        }
     }
 }
