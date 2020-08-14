@@ -92,7 +92,7 @@ class TaskNodeCodec(
         writeString(projectPath)
         writeString(taskName)
 
-        withDebugFrame({ "$projectPath${task.name}" }) {
+        withDebugFrame({ task.path }) {
             withTaskOf(taskType, task, userTypesCodec) {
                 writeUpToDateSpec(task)
                 writeCollection(task.outputs.cacheIfSpecs)

@@ -24,8 +24,13 @@ class InstantExecutionDebugLogIntegrationTest extends AbstractInstantExecutionIn
 
     def "logs categorized open/close frame events for state and fingerprint files"() {
         given:
+        settingsFile << """
+            include 'sub'
+        """
         buildFile << """
-            task ok { doLast { println('ok!') } }
+            allprojects {
+                task ok { doLast { println('ok!') } }
+            }
         """
 
         when:
@@ -41,5 +46,7 @@ class InstantExecutionDebugLogIntegrationTest extends AbstractInstantExecutionIn
         outputContains '[configuration cache state] {"type":"O","frame":"' + DefaultTask.name + '","at":'
         outputContains '[configuration cache state] {"type":"C","frame":"' + DefaultTask.name + '","at":'
         outputContains '[configuration cache state] {"type":"C","frame":":ok","at":'
+        outputContains '[configuration cache state] {"type":"O","frame":":sub:ok","at":'
+        outputContains '[configuration cache state] {"type":"C","frame":":sub:ok","at":'
     }
 }
