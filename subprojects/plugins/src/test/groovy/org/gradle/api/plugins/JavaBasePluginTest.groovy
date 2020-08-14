@@ -209,10 +209,7 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
     void "wires toolchain for sourceset if toolchain is configured"() {
         given:
         def someJdk = Jvm.current()
-        project.pluginManager.apply(JavaBasePlugin)
-        project.java.toolchain.languageVersion = someJdk.javaVersion
-        // workaround for https://github.com/gradle/gradle/issues/13122
-        ((DefaultProject) project).getServices().get(GradlePropertiesController.class).loadGradlePropertiesFrom(project.projectDir);
+        setupProjectWithToolchain(someJdk)
 
         when:
         project.sourceSets.create('custom')
@@ -226,18 +223,34 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
     void "wires toolchain for test if toolchain is configured"() {
         given:
         def someJdk = Jvm.current()
-        project.pluginManager.apply(JavaPlugin)
-        project.java.toolchain.languageVersion = someJdk.javaVersion
-        // workaround for https://github.com/gradle/gradle/issues/13122
-        ((DefaultProject) project).getServices().get(GradlePropertiesController.class).loadGradlePropertiesFrom(project.projectDir)
+        setupProjectWithToolchain(someJdk)
 
         when:
-        project.tasks.all { println it }
         def testTask = project.tasks.named("test", Test).get()
         def configuredJavaLauncher = testTask.javaLauncher.get()
 
         then:
         configuredJavaLauncher.javaExecutable.contains(someJdk.javaVersion.getMajorVersion())
+    }
+
+    void "wires toolchain for javadoc if toolchain is configured"() {
+        given:
+        def someJdk = Jvm.current()
+        setupProjectWithToolchain(someJdk)
+
+        when:
+        def javadocTask = project.tasks.named("javadoc", Javadoc).get()
+        def configuredJavadocTool = javadocTask.javadocTool
+
+        then:
+        configuredJavadocTool.isPresent()
+    }
+
+    private void setupProjectWithToolchain(Jvm someJdk) {
+        project.pluginManager.apply(JavaPlugin)
+        project.java.toolchain.languageVersion = someJdk.javaVersion
+        // workaround for https://github.com/gradle/gradle/issues/13122
+        ((DefaultProject) project).getServices().get(GradlePropertiesController.class).loadGradlePropertiesFrom(project.projectDir)
     }
 
     void tasksReflectChangesToSourceSetConfiguration() {

@@ -23,6 +23,7 @@ import org.gradle.api.tasks.Internal;
 import org.gradle.jvm.toolchain.JavaCompiler;
 import org.gradle.jvm.toolchain.JavaInstallation;
 import org.gradle.jvm.toolchain.JavaLauncher;
+import org.gradle.jvm.toolchain.JavadocTool;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -31,11 +32,13 @@ public class JavaToolchain implements Describable {
 
     private final JavaInstallation installation;
     private JavaCompilerFactory compilerFactory;
+    private final ToolchainToolFactory toolFactory;
 
     @Inject
-    public JavaToolchain(JavaInstallation installation, JavaCompilerFactory compilerFactory) {
+    public JavaToolchain(JavaInstallation installation, JavaCompilerFactory compilerFactory, ToolchainToolFactory toolFactory) {
         this.installation = installation;
         this.compilerFactory = compilerFactory;
+        this.toolFactory = toolFactory;
     }
 
     @Internal
@@ -46,6 +49,10 @@ public class JavaToolchain implements Describable {
     @Internal
     public JavaLauncher getJavaLauncher() {
         return new DefaultToolchainJavaLauncher(installation.getJavaExecutable().getAsFile());
+    }
+
+    public JavadocTool getJavadocTool() {
+        return toolFactory.create(JavadocTool.class, this);
     }
 
     @Input
@@ -64,4 +71,7 @@ public class JavaToolchain implements Describable {
         return getJavaHome().getAbsolutePath();
     }
 
+    public String findExecutable(String toolname) {
+        return new File(getJavaHome(), "bin/javadoc").getAbsolutePath();
+    }
 }
