@@ -1,7 +1,6 @@
 plugins {
-    java
-    idea
-    `ivy-publish`
+    `java-library`
+    `maven-publish`
 }
 
 group = "org.sample"
@@ -12,7 +11,7 @@ dependencies {
 }
 
 repositories {
-    ivy {
+    maven {
         name = "localrepo"
         url = uri(file("../../../local-repo"))
     }
@@ -22,11 +21,11 @@ repositories {
 
 publishing {
     repositories {
-        ivy {
+        maven {
             setUrl(file("../../../local-repo"))
         }
     }
     publications {
-        create<IvyPublication>("ivy") { from(components["java"]) }
+        create<MavenPublication>("maven") { from(components["java"]) }
     }
 }

@@ -1,8 +1,10 @@
 plugins {
+    id 'myproject.java-conventions'
     id 'java-library'
-    id 'groovy-base'
 }
 
 dependencies {
     api project(':list')
+    testImplementation 'org.codehaus.groovy:groovy-all:3.0.5'
+    testImplementation 'org.spockframework:spock-core:2.0-M3-groovy-3.0'
 }

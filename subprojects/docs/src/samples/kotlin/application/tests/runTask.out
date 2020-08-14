@@ -1,9 +1,9 @@
-> Task :compileKotlin
-> Task :compileJava NO-SOURCE
-> Task :processResources NO-SOURCE
-> Task :classes UP-TO-DATE
+> Task :app:compileKotlin
+> Task :app:compileJava NO-SOURCE
+> Task :app:processResources NO-SOURCE
+> Task :app:classes UP-TO-DATE
 
-> Task :run
+> Task :app:run
 Hello, World!
 
 BUILD SUCCESSFUL in 0s

@@ -1,11 +1,11 @@
-> Task :compileJava
-> Task :processResources NO-SOURCE
-> Task :classes
-> Task :jar
-> Task :generateMetadataFileForLibraryPublication
-> Task :generatePomFileForLibraryPublication
-> Task :publishLibraryPublicationToMavenRepository
-> Task :publish
+> Task :my-library:compileJava
+> Task :my-library:processResources NO-SOURCE
+> Task :my-library:classes
+> Task :my-library:jar
+> Task :my-library:generateMetadataFileForLibraryPublication
+> Task :my-library:generatePomFileForLibraryPublication
+> Task :my-library:publishLibraryPublicationToMavenRepository
+> Task :my-library:publish
 
 BUILD SUCCESSFUL in 0s
 5 actionable tasks: 5 executed

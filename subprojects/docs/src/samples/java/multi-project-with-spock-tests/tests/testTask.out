@@ -1,8 +1,22 @@
-> Task :library:compileJava
-> Task :library:compileGroovy NO-SOURCE
-> Task :library:processResources NO-SOURCE
-> Task :library:classes
-> Task :library:jar
+> Task :buildSrc:pluginUnderTestMetadata
+> Task :buildSrc:compileTestJava NO-SOURCE
+> Task :buildSrc:compileTestGroovy NO-SOURCE
+> Task :buildSrc:processTestResources NO-SOURCE
+> Task :buildSrc:testClasses UP-TO-DATE
+> Task :buildSrc:test NO-SOURCE
+> Task :buildSrc:validatePlugins
+> Task :buildSrc:check
+> Task :buildSrc:build
+> Task :list:compileJava
+> Task :list:compileGroovy NO-SOURCE
+> Task :list:processResources NO-SOURCE
+> Task :list:classes
+> Task :list:jar
+> Task :utilities:compileJava
+> Task :utilities:compileGroovy NO-SOURCE
+> Task :utilities:processResources NO-SOURCE
+> Task :utilities:classes
+> Task :utilities:jar
 > Task :application:compileJava
 > Task :application:compileGroovy NO-SOURCE
 > Task :application:processResources NO-SOURCE
@@ -11,25 +25,17 @@
 > Task :application:compileTestGroovy
 > Task :application:processTestResources NO-SOURCE
 > Task :application:testClasses
-
 > Task :application:test
-WARNING: An illegal reflective access operation has occurred
-WARNING: Illegal reflective access by org.codehaus.groovy.vmplugin.v7.Java7$1 (file:/private/var/folders/rg/y7myh0qj1sd58f02v_tgypvh0000gn/T/.gradle-test-kit-daniel/caches/modules-2/files-2.1/org.codehaus.groovy/groovy/2.5.7/99907efe4b69f800c42584386f5d668e4d952bd5/groovy-2.5.7.jar) to constructor java.lang.invoke.MethodHandles$Lookup(java.lang.Class,int)
-WARNING: Please consider reporting this to the maintainers of org.codehaus.groovy.vmplugin.v7.Java7$1
-WARNING: Use --illegal-access=warn to enable warnings of further illegal reflective access operations
-WARNING: All illegal access operations will be denied in a future release
-
-> Task :library:compileTestJava NO-SOURCE
-> Task :library:compileTestGroovy
-> Task :library:processTestResources NO-SOURCE
-> Task :library:testClasses
-
-> Task :library:test
-WARNING: An illegal reflective access operation has occurred
-WARNING: Illegal reflective access by org.codehaus.groovy.vmplugin.v7.Java7$1 (file:/private/var/folders/rg/y7myh0qj1sd58f02v_tgypvh0000gn/T/.gradle-test-kit-daniel/caches/modules-2/files-2.1/org.codehaus.groovy/groovy/2.5.7/99907efe4b69f800c42584386f5d668e4d952bd5/groovy-2.5.7.jar) to constructor java.lang.invoke.MethodHandles$Lookup(java.lang.Class,int)
-WARNING: Please consider reporting this to the maintainers of org.codehaus.groovy.vmplugin.v7.Java7$1
-WARNING: Use --illegal-access=warn to enable warnings of further illegal reflective access operations
-WARNING: All illegal access operations will be denied in a future release
+> Task :list:compileTestJava NO-SOURCE
+> Task :list:compileTestGroovy
+> Task :list:processTestResources NO-SOURCE
+> Task :list:testClasses
+> Task :list:test
+> Task :utilities:compileTestJava NO-SOURCE
+> Task :utilities:compileTestGroovy NO-SOURCE
+> Task :utilities:processTestResources NO-SOURCE
+> Task :utilities:testClasses UP-TO-DATE
+> Task :utilities:test NO-SOURCE
 
 BUILD SUCCESSFUL in 0s
-7 actionable tasks: 7 executed
+9 actionable tasks: 9 executed

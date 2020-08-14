@@ -1,6 +1,6 @@
 NOTE: You can open this sample inside an IDE using the https://www.jetbrains.com/help/idea/gradle.html#gradle_import_project_start[IntelliJ native importer] or https://projects.eclipse.org/projects/tools.buildship[Eclipse Buildship].
 
-= Declaring the dependencies substituted by an included build
+== Declaring the dependencies substituted by an included build
 
 By default, Gradle will configure each included build in order to determine the dependencies it can provide. The algorithm for doing this is very simple: Gradle will inspect the `group` and `name` for the projects in the included build, and substitute project dependencies for any matching external dependency.
 

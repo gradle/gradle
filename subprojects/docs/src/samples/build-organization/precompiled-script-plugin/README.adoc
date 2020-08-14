@@ -15,10 +15,10 @@ This is achieved by layering three separate plugins:
 
 We've put the plugins in the `plugins` directory in the sample. All plugins created in this sample contain functional tests that use link:{userManualPath}/test_kit.html[TestKit] to verify their behavior.
 
-This root of this sample contains a consumer project that demonstrates how the plugins can be consumed using a link:{userManualPath}/composite_builds.html[composite build]:
+The root of this sample contains a consumer project that demonstrates how the plugins can be consumed using a link:{userManualPath}/composite_builds.html[composite build]:
 ====
-include::sample[dir="groovy",files="settings.gradle[];build.gradle[]"]
-include::sample[dir="kotlin",files="settings.gradle.kts[];build.gradle.kts[]"]
+include::sample[dir="groovy",files="settings.gradle[];consumer-service/build.gradle[]"]
+include::sample[dir="kotlin",files="settings.gradle.kts[];consumer-service/build.gradle.kts[]"]
 ====
 
 == Things to note
@@ -45,7 +45,7 @@ include::sample[dir="kotlin",files="plugin/src/main/kotlin/com.example.java-conv
 
 === Applying other precompiled script plugins
 
-Precompiled script plugins can apply other precompiled script plugins. 
+Precompiled script plugins can apply other precompiled script plugins.
 
 The `com.example.library` and `com.example.service` plugins both apply the `com.example.java-convention` plugin:
 ====

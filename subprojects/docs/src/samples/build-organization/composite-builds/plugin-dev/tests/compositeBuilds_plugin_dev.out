@@ -4,7 +4,7 @@
 > Task :greeting-plugin:classes
 > Task :greeting-plugin:jar
 
-> Task :greeting
+> Task :my-greeting-app:greeting
 Hi Bob!!!
 
 BUILD SUCCESSFUL in 0s

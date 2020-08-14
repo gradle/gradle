@@ -16,6 +16,13 @@ include::sample[dir="groovy",files="utilities/build.gradle[]"]
 include::sample[dir="kotlin",files="utilities/build.gradle.kts[]"]
 ====
 
+Common configuration for all projects are performed in a _convention plugin_:
+
+====
+include::sample[dir="groovy",files="buildSrc/src/main/groovy/myproject.jvm-conventions.gradle[]"]
+include::sample[dir="kotlin",files="buildSrc/src/main/kotlin/myproject.jvm-conventions.gradle.kts[]"]
+====
+
 To build the projects, you simply need to build the application:
 
 [listing.terminal.sample-command]

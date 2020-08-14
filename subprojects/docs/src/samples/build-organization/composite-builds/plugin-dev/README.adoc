@@ -1,6 +1,6 @@
 NOTE: You can open this sample inside an IDE using the https://www.jetbrains.com/help/idea/gradle.html#gradle_import_project_start[IntelliJ native importer] or https://projects.eclipse.org/projects/tools.buildship[Eclipse Buildship].
 
-= Composite build to develop a Gradle plugin
+== Composite build to develop a Gradle plugin
 
 This sample demonstrates a composite build used to develop a Gradle plugin in conjunction with a consuming build.
 
@@ -23,7 +23,7 @@ Without ever publishing the `greeting-plugin` project to a repository, it is pos
 :greeting-plugin:processResources
 :greeting-plugin:classes
 :greeting-plugin:jar
-:greeting
+:my-greeting-app:greeting
 Hi Bob!!!
 ----
 
@@ -40,7 +40,7 @@ This sample can be used to demonstrate the development lifecycle of a Gradle plu
 :greeting-plugin:processResources
 :greeting-plugin:classes
 :greeting-plugin:jar
-:greeting
+:my-greeting-app:greeting
 G'day Bob!!!
 ----
 

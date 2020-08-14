@@ -1,0 +1,41 @@
+> Task :buildSrc:pluginUnderTestMetadata
+> Task :buildSrc:compileTestJava NO-SOURCE
+> Task :buildSrc:compileTestGroovy NO-SOURCE
+> Task :buildSrc:processTestResources NO-SOURCE
+> Task :buildSrc:testClasses UP-TO-DATE
+> Task :buildSrc:test NO-SOURCE
+> Task :buildSrc:validatePlugins
+> Task :buildSrc:check
+> Task :buildSrc:build
+> Task :list:compileJava NO-SOURCE
+> Task :list:compileGroovy
+> Task :list:processResources NO-SOURCE
+> Task :list:classes
+> Task :list:jar
+> Task :utilities:compileJava NO-SOURCE
+> Task :utilities:compileGroovy
+> Task :utilities:processResources NO-SOURCE
+> Task :utilities:classes
+> Task :utilities:jar
+> Task :application:compileJava NO-SOURCE
+> Task :application:compileGroovy
+> Task :application:processResources NO-SOURCE
+> Task :application:classes
+> Task :application:compileTestJava NO-SOURCE
+> Task :application:compileTestGroovy
+> Task :application:processTestResources NO-SOURCE
+> Task :application:testClasses
+> Task :application:test
+> Task :list:compileTestJava NO-SOURCE
+> Task :list:compileTestGroovy
+> Task :list:processTestResources NO-SOURCE
+> Task :list:testClasses
+> Task :list:test
+> Task :utilities:compileTestJava NO-SOURCE
+> Task :utilities:compileTestGroovy NO-SOURCE
+> Task :utilities:processTestResources NO-SOURCE
+> Task :utilities:testClasses UP-TO-DATE
+> Task :utilities:test NO-SOURCE
+
+BUILD SUCCESSFUL in 0s
+9 actionable tasks: 9 executed

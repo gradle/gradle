@@ -1,6 +1,21 @@
 plugins {
     application
-    `extra-java-module-info` // apply my own plugin written in buildSrc
+    id("extra-java-module-info") // apply my own plugin written in buildSrc
+}
+
+version = "1.0.2"
+group = "org.gradle.sample"
+
+repositories {
+    mavenCentral()
+}
+
+java {
+    modularity.inferModulePath.set(true)
+}
+
+tasks.compileJava {
+    options.javaModuleVersion.set(provider({ project.version as String }))
 }
 
 // tag::extraModuleInfo[]
@@ -22,14 +37,6 @@ extraJavaModuleInfo {
 }
 // end::extraModuleInfo[]
 
-java {
-    modularity.inferModulePath.set(true)
-}
-
-tasks.named<JavaCompile>("compileJava") {
-    options.javaModuleVersion.set(provider({ project.version as String }))
-}
-
 dependencies {
     implementation("com.google.code.gson:gson:2.8.6")           // real module
     implementation("org.apache.commons:commons-lang3:3.10")     // automatic module
@@ -41,5 +48,3 @@ application {
     mainModule.set("org.gradle.sample.app")
     mainClass.set("org.gradle.sample.app.Main")
 }
-
-
