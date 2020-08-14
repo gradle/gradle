@@ -23,7 +23,7 @@ dependencies {
     implementation(libs.inject)
     implementation(libs.jatl)
 
-    implementationResources("jquery:jquery.min:3.4.1@js")
+    implementationResources("jquery:jquery.min:3.5.1@js")
 
     testImplementation(project(":process-services"))
     testImplementation(project(":base-services-groovy"))
