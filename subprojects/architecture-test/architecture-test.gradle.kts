@@ -6,6 +6,8 @@ plugins {
 }
 
 dependencies {
+    currentClasspath(project(":distributionsFull"))
+
     testImplementation(project(":baseServices"))
     testImplementation(project(":modelCore"))
 

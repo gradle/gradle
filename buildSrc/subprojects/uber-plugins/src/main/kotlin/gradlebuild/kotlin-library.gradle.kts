@@ -22,11 +22,20 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.jlleitschuh.gradle.ktlint.KtlintCheckTask
 import org.jlleitschuh.gradle.ktlint.KtlintFormatTask
 
+import gradlebuild.basics.accessors.kotlin
+
 
 plugins {
     kotlin("jvm")
     id("gradlebuild.java-library")
     id("org.gradle.kotlin-dsl.ktlint-convention")
+}
+
+val transitiveSourcesElements by configurations.getting {
+    val main = sourceSets.main.get()
+    main.kotlin.srcDirs.forEach {
+        outgoing.artifact(it)
+    }
 }
 
 tasks {

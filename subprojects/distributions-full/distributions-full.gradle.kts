@@ -13,6 +13,7 @@ dependencies {
     pluginsRuntimeOnly(platform(project(":distributionsJvm")))
     pluginsRuntimeOnly(platform(project(":distributionsNative")))
 
+    pluginsRuntimeOnly(project(":pluginDevelopment"))
     pluginsRuntimeOnly(project(":buildInit"))
     pluginsRuntimeOnly(project(":buildProfile"))
     pluginsRuntimeOnly(project(":antlr"))

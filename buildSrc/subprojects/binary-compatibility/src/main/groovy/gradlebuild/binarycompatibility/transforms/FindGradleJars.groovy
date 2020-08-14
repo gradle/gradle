@@ -22,20 +22,28 @@ import org.gradle.api.artifacts.transform.InputArtifact
 import org.gradle.api.artifacts.transform.TransformAction
 import org.gradle.api.artifacts.transform.TransformOutputs
 import org.gradle.api.artifacts.transform.TransformParameters
+import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.FileSystemLocation
+import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 
 @CompileStatic
-abstract class FindGradleJar implements TransformAction<Parameters> {
+abstract class FindGradleJars implements TransformAction<Parameters> {
 
     @CompileStatic
     interface Parameters extends TransformParameters {
+        @InputFiles
+        ConfigurableFileCollection getCurrentJars()
+
         @Input
-        String getTarget()
-        void setTarget(String target)
+        Property<String> getBaselineVersion()
+
+        @Input
+        Property<String> getCurrentVersion()
     }
 
     @PathSensitive(PathSensitivity.NAME_ONLY)
@@ -46,9 +54,10 @@ abstract class FindGradleJar implements TransformAction<Parameters> {
     void transform(TransformOutputs outputs) {
         File artifactFile = artifact.get().asFile
         if (artifactFile.name == 'gradle-jars') {
-            (artifactFile.listFiles().findAll {
-                it.name.startsWith("gradle-${parameters.target}-")
-            } as List<File>).sort { it.name }.each {
+            def jarNames = parameters.currentJars.collect { it.name.replace(parameters.currentVersion.get(), parameters.baselineVersion.get()) }
+            artifactFile.listFiles().findAll {
+                jarNames.contains(it.name)
+            }.each {
                 outputs.file(it)
             }
         }
