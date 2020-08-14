@@ -25,6 +25,7 @@ import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionComparator;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionSelectorScheme;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
@@ -51,10 +52,11 @@ class DefaultRepositoryContentDescriptor implements RepositoryContentDescriptorI
 
     private Action<? super ArtifactResolutionDetails> cachedAction;
     private final Supplier<String> repositoryNameSupplier;
-    private final VersionSelectorScheme versionSelectorScheme = new DefaultVersionSelectorScheme(new DefaultVersionComparator(), new VersionParser());
+    private final VersionSelectorScheme versionSelectorScheme;
     private final ConcurrentHashMap<String, VersionSelector> versionSelectors = new ConcurrentHashMap<>();
 
-    public DefaultRepositoryContentDescriptor(Supplier<String> repositoryNameSupplier) {
+    public DefaultRepositoryContentDescriptor(Supplier<String> repositoryNameSupplier, FeaturePreviews featurePreviews) {
+        this.versionSelectorScheme = new DefaultVersionSelectorScheme(new DefaultVersionComparator(featurePreviews), new VersionParser());
         this.repositoryNameSupplier = repositoryNameSupplier;
     }
 
