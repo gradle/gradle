@@ -55,6 +55,11 @@ class BuildOperationState implements BuildOperationRef {
         return description.getParentId();
     }
 
+    @Override
+    public String toString() {
+        return getDescription().getDisplayName();
+    }
+
     private Object writeReplace() throws ObjectStreamException {
         return new DefaultBuildOperationRef(description.getId(), description.getParentId());
     }
