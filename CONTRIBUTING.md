@@ -164,3 +164,66 @@ If you run into any trouble, please reach out to us on the issue you are working
 We deeply appreciate your effort toward improving Gradle. For any contribution, large or small, you will be immortalized in the release notes for the version you've contributed to.
 
 If you enjoyed this process, perhaps you should consider getting [paid to develop Gradle](https://gradle.com/careers)?
+// Top-level build file where you can add configuration options common to all
+// sub-projects/modules.
+
+buildscript {
+
+   repositories {
+       google()
+       jcenter()
+   }
+   dependencies {
+       classpath 'com.android.tools.build:gradle:3.2.1'
+
+       // NOTE: Do not place your application dependencies here; they belong
+       // in the individual module build.gradle files
+   }
+}
+
+allprojects {
+   repositories {
+       google()
+       jcenter()
+   }
+}MediationTestSuite.launch(MainActivity.this);{
+  "project_info": {
+    "project_number": "842362218620",
+    "firebase_url": "https://pel-cula-y-mas.firebaseio.com",
+    "project_id": "pel-cula-y-mas",
+    "storage_bucket": "pel-cula-y-mas.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:842362218620:android:59e8de76e621b2b5c841f9",
+        "android_client_info": {
+          "package_name": "pelicula.ymas2"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "842362218620-69i7kv6gqpljf18dp2bkd701f18nseod.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB3zls7OOcZLpmvyTr2mIP1xk8Nx8HCOgA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "842362218620-00igminspvnoe4ql1p2hpe17jhsr4kgb.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      },
+      "admob_app_id": "ca-app-pub-5227689397481254~4861856621"
+    }
+  ],
+  "configuration_version": "1"
+}
