@@ -146,6 +146,10 @@ abstract class AbstractSmokeTest extends Specification {
             versions.last()
         }
 
+        String latestStartsWith(String prefix) {
+            return versions.reverse().find { it.startsWith(prefix) }
+        }
+
         private Versions(String... given) {
             versions = Arrays.asList(given)
         }
