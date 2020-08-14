@@ -94,7 +94,8 @@ class KotlinPluginSmokeTest extends AbstractSmokeTest {
 
         if (kotlinPluginVersion == TestedVersions.kotlin.latest()
             && androidPluginVersion == TestedVersions.androidGradle.latest()) {
-            expectNoDeprecationWarnings(result)
+            // TODO: re-enable once the Kotlin plugin fixes how it extends configurations
+            // expectNoDeprecationWarnings(result)
         }
 
         where:
