@@ -56,6 +56,7 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
         BuildOperationIdFactory buildOperationIdFactory
     ) {
         this.runner = new DefaultBuildOperationRunner(
+            currentBuildOperationRef,
             clock::getCurrentTime,
             buildOperationIdFactory,
             () -> new ListenerAdapter(listener, progressLoggerFactory, clock)

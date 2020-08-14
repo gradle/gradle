@@ -32,10 +32,11 @@ public class DefaultBuildOperationRunner implements BuildOperationRunner {
 
     private final TimeSupplier clock;
     private final BuildOperationIdFactory buildOperationIdFactory;
-    private final CurrentBuildOperationRef currentBuildOperationRef = CurrentBuildOperationRef.instance();
+    private final CurrentBuildOperationRef currentBuildOperationRef;
     private final BuildOperationExecutionListenerFactory listenerFactory;
 
-    public DefaultBuildOperationRunner(TimeSupplier clock, BuildOperationIdFactory buildOperationIdFactory, BuildOperationExecutionListenerFactory listenerFactory) {
+    public DefaultBuildOperationRunner(CurrentBuildOperationRef currentBuildOperationRef, TimeSupplier clock, BuildOperationIdFactory buildOperationIdFactory, BuildOperationExecutionListenerFactory listenerFactory) {
+        this.currentBuildOperationRef = currentBuildOperationRef;
         this.clock = clock;
         this.buildOperationIdFactory = buildOperationIdFactory;
         this.listenerFactory = listenerFactory;

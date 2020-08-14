@@ -28,7 +28,8 @@ class DefaultBuildOperationRunnerTest extends Specification {
 
     def timeProvider = Mock(DefaultBuildOperationRunner.TimeSupplier)
     def listener = Mock(BuildOperationExecutionListener)
-    def operationRunner = new DefaultBuildOperationRunner(timeProvider, new DefaultBuildOperationIdFactory(), { listener })
+    def currentBuildOperationRef = CurrentBuildOperationRef.instance()
+    def operationRunner = new DefaultBuildOperationRunner(currentBuildOperationRef, timeProvider, new DefaultBuildOperationIdFactory(), { listener })
 
     def "fires events when wrap-around operation starts and finishes successfully with '#defaultParent' parent"() {
         setup:
