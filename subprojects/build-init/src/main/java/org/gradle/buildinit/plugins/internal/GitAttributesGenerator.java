@@ -35,16 +35,13 @@ public class GitAttributesGenerator implements BuildContentGenerator {
     public void generate(InitSettings settings) {
         File file = fileResolver.resolve(".gitattributes");
         try {
-            PrintWriter writer = new PrintWriter(new FileWriter(file));
-            try {
+            try (PrintWriter writer = new PrintWriter(new FileWriter(file))) {
                 writer.println("#");
                 writer.println("# https://help.github.com/articles/dealing-with-line-endings/");
                 writer.println("#");
                 writer.println("# These are explicitly windows files and should use crlf");
                 writer.println("*.bat           text eol=crlf");
                 writer.println();
-            } finally {
-                writer.close();
             }
         } catch (IOException e) {
             throw new UncheckedIOException(e);
