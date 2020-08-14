@@ -26,7 +26,6 @@ import org.gradle.instantexecution.problems.propertyDescriptionFor
 import org.gradle.instantexecution.serialization.Codec
 import org.gradle.instantexecution.serialization.IsolateContext
 import org.gradle.instantexecution.serialization.WriteContext
-import org.gradle.instantexecution.serialization.logPropertyInfo
 import org.gradle.instantexecution.serialization.withDebugFrame
 import java.io.IOException
 import java.lang.reflect.Field
@@ -87,7 +86,6 @@ suspend fun WriteContext.writeNextProperty(name: String, value: Any?, kind: Prop
                 error.maybeUnwrapInvocationTargetException()
             )
         }
-        logPropertyInfo("serialize", value)
     }
 }
 

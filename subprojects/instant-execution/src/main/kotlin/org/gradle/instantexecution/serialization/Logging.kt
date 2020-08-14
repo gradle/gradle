@@ -41,11 +41,6 @@ fun IsolateContext.logPropertyProblem(
 }
 
 
-fun IsolateContext.logPropertyInfo(action: String, value: Any?) {
-    logger.debug("configuration-cache > {}d {} with value {}", action, trace, value)
-}
-
-
 internal
 fun IsolateContext.logUnsupported(
     action: String,
