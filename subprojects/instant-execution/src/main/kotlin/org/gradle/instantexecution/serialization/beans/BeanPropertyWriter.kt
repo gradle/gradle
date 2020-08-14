@@ -43,18 +43,16 @@ class BeanPropertyWriter(
      * Serializes a bean by serializing the value of each of its fields.
      */
     override suspend fun WriteContext.writeStateOf(bean: Any) {
-        withDebugFrame({ GeneratedSubclasses.unpackType(bean).name }) {
-            for (relevantField in relevantFields) {
-                val field = relevantField.field
-                val fieldName = field.name
-                val originalFieldValue = field.get(bean)
-                val fieldValue = originalFieldValue ?: conventionalValueOf(bean, fieldName)
-                relevantField.unsupportedFieldType?.let {
-                    reportUnsupportedFieldType(it, "serialize", field.name, fieldValue)
-                }
-                withDebugFrame({ field.debugFrameName() }) {
-                    writeNextProperty(fieldName, fieldValue, PropertyKind.Field)
-                }
+        for (relevantField in relevantFields) {
+            val field = relevantField.field
+            val fieldName = field.name
+            val originalFieldValue = field.get(bean)
+            val fieldValue = originalFieldValue ?: conventionalValueOf(bean, fieldName)
+            relevantField.unsupportedFieldType?.let {
+                reportUnsupportedFieldType(it, "serialize", field.name, fieldValue)
+            }
+            withDebugFrame({ field.debugFrameName() }) {
+                writeNextProperty(fieldName, fieldValue, PropertyKind.Field)
             }
         }
     }
