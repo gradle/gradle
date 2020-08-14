@@ -17,6 +17,7 @@
 package org.gradle.instantexecution
 
 import org.gradle.api.DefaultTask
+import org.gradle.execution.plan.LocalTaskNode
 
 import static org.gradle.instantexecution.fingerprint.InstantExecutionCacheFingerprint.GradleEnvironment
 
@@ -38,15 +39,32 @@ class InstantExecutionDebugLogIntegrationTest extends AbstractInstantExecutionIn
         instantRun 'ok'
 
         then: "fingerprint frame events are logged"
-        outputContains '[configuration cache fingerprint] {"type":"O","frame":"' + GradleEnvironment.name + '","at":'
-        outputContains '[configuration cache fingerprint] {"type":"C","frame":"' + GradleEnvironment.name + '","at":'
+        def events = collectOutputEvents()
+        events.contains([category: "fingerprint", type: "O", "frame": GradleEnvironment.name])
+        events.contains([category: "fingerprint", type: "C", "frame": GradleEnvironment.name])
 
         and: "state frame events are logged"
-        outputContains '[configuration cache state] {"type":"O","frame":":ok","at":'
-        outputContains '[configuration cache state] {"type":"O","frame":"' + DefaultTask.name + '","at":'
-        outputContains '[configuration cache state] {"type":"C","frame":"' + DefaultTask.name + '","at":'
-        outputContains '[configuration cache state] {"type":"C","frame":":ok","at":'
-        outputContains '[configuration cache state] {"type":"O","frame":":sub:ok","at":'
-        outputContains '[configuration cache state] {"type":"C","frame":":sub:ok","at":'
+        events.contains([category: "state", type: "O", frame: ":ok"])
+        events.contains([category: "state", type: "C", frame: ":ok"])
+        events.contains([category: "state", type: "O", frame: ":sub:ok"])
+        events.contains([category: "state", type: "C", frame: ":sub:ok"])
+
+        and: "task type frame follows task path frame follows LocalTaskNode frame"
+        def firstTaskNodeIndex = events.findIndexOf { it.frame == LocalTaskNode.name }
+        firstTaskNodeIndex > 0
+        events[firstTaskNodeIndex] == [category: "state", type: "O", frame: LocalTaskNode.name]
+        events[firstTaskNodeIndex + 1] == [category: "state", type: "O", frame: ":ok"]
+        events[firstTaskNodeIndex + 2] == [category: "state", type: "O", frame: DefaultTask.name]
+    }
+
+    private Collection<Map<String, Object>> collectOutputEvents() {
+        def pattern = /[0-9:T.\-]+ \[DEBUG\] \[org.gradle.instantexecution.DefaultInstantExecution\] \[configuration cache (state|fingerprint)\] \{"type":"(O|C)","frame":"(.*?)","at":\d+\}/
+        (output =~ pattern)
+            .findAll()
+            .collect { matchResult ->
+                //noinspection GroovyUnusedAssignment
+                def (ignored, category, type, frame) = matchResult
+                [category: category, type: type, frame: frame]
+            }
     }
 }
