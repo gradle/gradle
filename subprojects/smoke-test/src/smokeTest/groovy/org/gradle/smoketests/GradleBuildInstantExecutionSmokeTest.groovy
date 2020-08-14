@@ -65,9 +65,9 @@ class GradleBuildInstantExecutionSmokeTest extends AbstractSmokeTest {
 
         and:
         def supportedTasks = [
-            ":distributionsFull:binDistributionZip",
+            ":distributions-full:binDistributionZip",
             ":core:embeddedIntegTest", "--tests=NameValidationIntegrationTest",
-            ":toolingApi:publishLocalPublicationToLocalRepository"
+            ":tooling-api:publishLocalPublicationToLocalRepository"
         ]
 
         when:
@@ -81,9 +81,9 @@ class GradleBuildInstantExecutionSmokeTest extends AbstractSmokeTest {
 
         then:
         result.output.count("Reusing configuration cache") == 1
-        result.task(":distributionsFull:binDistributionZip").outcome == TaskOutcome.UP_TO_DATE
+        result.task(":distributions-full:binDistributionZip").outcome == TaskOutcome.UP_TO_DATE
         result.task(":core:embeddedIntegTest").outcome == TaskOutcome.UP_TO_DATE
-        result.task(":toolingApi:publishLocalPublicationToLocalRepository").outcome == TaskOutcome.SUCCESS
+        result.task(":tooling-api:publishLocalPublicationToLocalRepository").outcome == TaskOutcome.SUCCESS
 
         when:
         run("clean")

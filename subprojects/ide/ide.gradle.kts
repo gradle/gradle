@@ -21,24 +21,24 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":baseServices"))
+    implementation(project(":base-services"))
     implementation(project(":logging"))
-    implementation(project(":processServices"))
-    implementation(project(":fileCollections"))
-    implementation(project(":coreApi"))
-    implementation(project(":modelCore"))
+    implementation(project(":process-services"))
+    implementation(project(":file-collections"))
+    implementation(project(":core-api"))
+    implementation(project(":model-core"))
     implementation(project(":core"))
-    implementation(project(":baseServicesGroovy"))
-    implementation(project(":dependencyManagement"))
+    implementation(project(":base-services-groovy"))
+    implementation(project(":dependency-management"))
     implementation(project(":plugins"))
-    implementation(project(":platformBase"))
-    implementation(project(":platformJvm"))
-    implementation(project(":languageJvm"))
-    implementation(project(":languageJava"))
-    implementation(project(":languageScala"))
+    implementation(project(":platform-base"))
+    implementation(project(":platform-jvm"))
+    implementation(project(":language-jvm"))
+    implementation(project(":language-java"))
+    implementation(project(":language-scala"))
     implementation(project(":scala"))
     implementation(project(":ear"))
-    implementation(project(":toolingApi"))
+    implementation(project(":tooling-api"))
 
     implementation(libs.groovy)
     implementation(libs.slf4jApi)
@@ -47,27 +47,27 @@ dependencies {
     implementation(libs.commonsIo)
     implementation(libs.inject)
 
-    testFixturesApi(project(":baseServices")) {
+    testFixturesApi(project(":base-services")) {
         because("test fixtures export the Action class")
     }
     testFixturesApi(project(":logging")) {
         because("test fixtures export the ConsoleOutput class")
     }
-    testFixturesImplementation(project(":internalIntegTesting"))
+    testFixturesImplementation(project(":internal-integ-testing"))
 
-    testImplementation(project(":dependencyManagement"))
+    testImplementation(project(":dependency-management"))
     testImplementation(libs.xmlunit)
     testImplementation(libs.equalsverifier)
     testImplementation(testFixtures(project(":core")))
-    testImplementation(testFixtures(project(":dependencyManagement")))
+    testImplementation(testFixtures(project(":dependency-management")))
 
     integTestImplementation(libs.jetty)
 
-    testRuntimeOnly(project(":distributionsCore")) {
+    testRuntimeOnly(project(":distributions-core")) {
         because("ProjectBuilder tests load services from a Gradle distribution.")
     }
-    integTestDistributionRuntimeOnly(project(":distributionsJvm"))
-    crossVersionTestDistributionRuntimeOnly(project(":distributionsJvm"))
+    integTestDistributionRuntimeOnly(project(":distributions-jvm"))
+    crossVersionTestDistributionRuntimeOnly(project(":distributions-jvm"))
 }
 
 strictCompile {

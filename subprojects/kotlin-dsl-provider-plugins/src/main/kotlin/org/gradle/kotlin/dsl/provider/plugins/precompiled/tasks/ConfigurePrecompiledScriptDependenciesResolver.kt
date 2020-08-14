@@ -47,7 +47,6 @@ abstract class ConfigurePrecompiledScriptDependenciesResolver @Inject constructo
 
     @TaskAction
     fun configureImports() {
-
         val precompiledScriptPluginImports = precompiledScriptPluginImports()
 
         val resolverEnvironment = resolverEnvironmentStringFor(

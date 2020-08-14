@@ -69,7 +69,7 @@ val writeEmbeddedKotlinDependencies by tasks.registering {
     outputs.file(outputFile)
     val values = embeddedKotlinBaseDependencies
     inputs.files(values)
-    val skippedModules = setOf(project.name, "distributionsDependencies", "kotlinCompilerEmbeddable")
+    val skippedModules = setOf(project.name, "distributions-dependencies", "kotlin-compiler-embeddable")
     // https://github.com/gradle/instant-execution/issues/183
     val modules = provider { embeddedKotlinBaseDependencies.incoming.resolutionResult.allComponents
         .asSequence()

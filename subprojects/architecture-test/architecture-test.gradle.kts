@@ -6,15 +6,14 @@ plugins {
 }
 
 dependencies {
-    currentClasspath(project(":distributionsFull"))
-
-    testImplementation(project(":baseServices"))
-    testImplementation(project(":modelCore"))
+    currentClasspath(project(":distributions-full"))
+    testImplementation(project(":base-services"))
+    testImplementation(project(":model-core"))
 
     testImplementation(libs.archunitJunit4)
     testImplementation(libs.guava)
 
-    testRuntimeOnly(project(":distributionsFull"))
+    testRuntimeOnly(project(":distributions-full"))
 }
 
 tasks.withType<Test>().configureEach {

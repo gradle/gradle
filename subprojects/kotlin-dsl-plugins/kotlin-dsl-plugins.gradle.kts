@@ -29,16 +29,16 @@ version = "1.3.7"
 base.archivesBaseName = "plugins"
 
 dependencies {
-    compileOnly(project(":baseServices"))
+    compileOnly(project(":base-services"))
     compileOnly(project(":logging"))
-    compileOnly(project(":coreApi"))
-    compileOnly(project(":modelCore"))
+    compileOnly(project(":core-api"))
+    compileOnly(project(":model-core"))
     compileOnly(project(":core"))
-    compileOnly(project(":languageJvm"))
-    compileOnly(project(":languageJava"))
+    compileOnly(project(":language-jvm"))
+    compileOnly(project(":language-java"))
     compileOnly(project(":plugins"))
-    compileOnly(project(":pluginDevelopment"))
-    compileOnly(project(":kotlinDsl"))
+    compileOnly(project(":plugin-development"))
+    compileOnly(project(":kotlin-dsl"))
 
     compileOnly(libs.slf4jApi)
     compileOnly(libs.inject)
@@ -47,20 +47,22 @@ dependencies {
     implementation(libs.futureKotlin("gradle-plugin"))
     implementation(libs.futureKotlin("sam-with-receiver"))
 
-    integTestImplementation(project(":baseServices"))
+    integTestImplementation(project(":base-services"))
     integTestImplementation(project(":logging"))
-    integTestImplementation(project(":coreApi"))
-    integTestImplementation(project(":modelCore"))
+    integTestImplementation(project(":core-api"))
+    integTestImplementation(project(":model-core"))
     integTestImplementation(project(":core"))
     integTestImplementation(project(":plugins"))
-    integTestImplementation(project(":platformJvm"))
-    integTestImplementation(project(":kotlinDsl"))
-    integTestImplementation(project(":internalTesting"))
-    integTestImplementation(testFixtures(project(":kotlinDsl")))
+
+    integTestImplementation(project(":platform-jvm"))
+    integTestImplementation(project(":kotlin-dsl"))
+    integTestImplementation(project(":internal-testing"))
+    integTestImplementation(testFixtures(project(":kotlin-dsl")))
+
     integTestImplementation(libs.slf4jApi)
     integTestImplementation(libs.mockitoKotlin)
 
-    integTestDistributionRuntimeOnly(project(":distributionsBasics")) {
+    integTestDistributionRuntimeOnly(project(":distributions-basics")) {
         because("KotlinDslPluginTest tests against TestKit")
     }
     integTestLocalRepository(project)

@@ -51,8 +51,8 @@ val soakTest = "soakTest"
 
 val ignoredSubprojects = listOf(
     "soak", // soak test
-    "distributionsIntegTests", // test build distributions
-    "architectureTest" // sanity check
+    "distributions-integ-tests", // test build distributions
+    "architecture-test" // sanity check
 )
 
 val forceRealizeDependencyManagementTest = "forceRealizeDependencyManagementTest"
@@ -149,16 +149,16 @@ fun TaskContainer.registerEarlyFeedbackLifecycleTasks() {
     register(compileAllBuild) {
         description = "Initialize CI Pipeline by priming the cache before fanning out"
         group = ciGroup
-        dependsOn(":baseServices:createBuildReceipt", "compileAll")
+        dependsOn(":base-services:createBuildReceipt", "compileAll")
     }
 
     register(sanityCheck) {
         description = "Run all basic checks (without tests) - to be run locally and on CI for early feedback"
         group = "verification"
         dependsOn(
-            "compileAll", ":docs:checkstyleApi", "codeQuality", ":internalBuildReports:allIncubationReportsZip",
-            ":architectureTest:checkBinaryCompatibility", ":docs:javadocAll",
-            ":architectureTest:test", ":toolingApi:toolingApiShadedJar")
+            "compileAll", ":docs:checkstyleApi", "codeQuality", ":internal-build-reports:allIncubationReportsZip",
+            ":architecture-test:checkBinaryCompatibility", ":docs:javadocAll",
+            ":architecture-test:test", ":tooling-api:toolingApiShadedJar")
     }
 }
 
@@ -169,8 +169,8 @@ fun TaskContainer.registerDistributionsPromotionTasks() {
     register("packageBuild") {
         description = "Build production distros and smoke test them"
         group = "build"
-        dependsOn(":distributionsFull:verifyIsProductionBuildEnvironment", ":distributionsFull:buildDists",
-            ":distributionsIntegTests:forkingIntegTest", ":docs:releaseNotes", ":docs:incubationReport", ":docs:checkDeadInternalLinks")
+        dependsOn(":distributions-full:verifyIsProductionBuildEnvironment", ":distributions-full:buildDists",
+            ":distributions-integ-tests:forkingIntegTest", ":docs:releaseNotes", ":docs:incubationReport", ":docs:checkDeadInternalLinks")
     }
 }
 
@@ -181,8 +181,8 @@ fun TaskContainer.registerPublishLibrariesPromotionTasks() {
     register("promotionBuild") {
         description = "Build production distros, smoke test them and publish"
         group = "publishing"
-        dependsOn(":distributionsFull:verifyIsProductionBuildEnvironment", ":distributionsFull:buildDists", ":distributionsFull:copyDistributionsToRootBuild",
-            ":distributionsIntegTests:forkingIntegTest", ":docs:releaseNotes", "publish", ":docs:incubationReport", ":docs:checkDeadInternalLinks")
+        dependsOn(":distributions-full:verifyIsProductionBuildEnvironment", ":distributions-full:buildDists", ":distributions-full:copyDistributionsToRootBuild",
+            ":distributions-integ-tests:forkingIntegTest", ":docs:releaseNotes", "publish", ":docs:incubationReport", ":docs:checkDeadInternalLinks")
     }
 }
 

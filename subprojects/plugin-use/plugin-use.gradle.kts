@@ -20,24 +20,24 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":baseServices"))
+    implementation(project(":base-services"))
     implementation(project(":logging"))
     implementation(project(":messaging"))
-    implementation(project(":fileCollections"))
-    implementation(project(":coreApi"))
+    implementation(project(":file-collections"))
+    implementation(project(":core-api"))
     implementation(project(":core"))
-    implementation(project(":dependencyManagement"))
-    implementation(project(":buildOption"))
+    implementation(project(":dependency-management"))
+    implementation(project(":build-option"))
 
     implementation(libs.groovy)
     implementation(libs.guava)
 
-    testImplementation(testFixtures(project(":resourcesHttp")))
+    testImplementation(testFixtures(project(":resources-http")))
 
-    integTestImplementation(project(":baseServicesGroovy"))
+    integTestImplementation(project(":base-services-groovy"))
     integTestImplementation(libs.jetbrainsAnnotations)
 
-    integTestDistributionRuntimeOnly(project(":distributionsBasics")) {
+    integTestDistributionRuntimeOnly(project(":distributions-basics")) {
         because("Requires test-kit: 'java-gradle-plugin' is used in integration tests which always adds the test-kit dependency.")
     }
 }

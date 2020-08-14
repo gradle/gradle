@@ -77,7 +77,7 @@ class StagePasses(model: CIBuildModel, stage: Stage, prevStage: Stage?, stagePro
     steps {
         gradleWrapper {
             name = "GRADLE_RUNNER"
-            tasks = ":baseServices:createBuildReceipt" + if (stage.stageName == StageNames.READY_FOR_NIGHTLY) " updateBranchStatus -PgithubToken=%github.bot-teamcity.token%" else ""
+            tasks = ":base-services:createBuildReceipt" + if (stage.stageName == StageNames.READY_FOR_NIGHTLY) " updateBranchStatus -PgithubToken=%github.bot-teamcity.token%" else ""
             gradleParams = defaultGradleParameters
         }
         script {

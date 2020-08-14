@@ -19,7 +19,7 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":baseAnnotations"))
+    implementation(project(":base-annotations"))
     implementation(project(":files"))
     implementation(libs.slf4jApi)
 }

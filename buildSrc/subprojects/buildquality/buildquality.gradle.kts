@@ -1,10 +1,10 @@
 dependencies {
     implementation(project(":basics"))
-    implementation(project(":binaryCompatibility"))
+    implementation(project(":binary-compatibility"))
     implementation(project(":cleanup"))
     implementation(project(":documentation"))
-    implementation(project(":integrationTesting"))
-    implementation(project(":performanceTesting"))
+    implementation(project(":integration-testing"))
+    implementation(project(":performance-testing"))
     implementation(project(":profiling"))
 
     implementation("me.champeau.gradle:japicmp-gradle-plugin")

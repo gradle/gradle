@@ -28,25 +28,22 @@ apply(from = "../gradle/shared-with-buildSrc/mirrors.settings.gradle.kts")
 
 val upperCaseLetters = "\\p{Upper}".toRegex()
 
-fun String.toKebabCase() =
-    replace(upperCaseLetters) { "-${it.value.toLowerCase()}" }
-
 rootProject.name = "buildSrc"
 
 // Platform: defines shared dependency versions
-include("buildPlatform")
+include("build-platform")
 
 // Utilities for updating the build itself which are not part of the usual build process
-include("buildUpdateUtils")
+include("build-update-utils")
 
 // Shared basics for all
 include("basics")
 
 // Compute the identity/version we are building and related details (like current git commit)
-include("moduleIdentity")
+include("module-identity")
 
 // Shared information about external modules
-include("dependencyModules")
+include("dependency-modules")
 
 // Special purpose build logic for root project - please preserve alphabetical order
 include("cleanup")
@@ -54,25 +51,21 @@ include("idea")
 include("lifecycle")
 
 // Special purpose build logic for subproject - please preserve alphabetical order
-include("binaryCompatibility")
+include("binary-compatibility")
 include("buildquality")
 include("documentation")
-include("integrationTesting")
+include("integration-testing")
 include("jvm")
-include("kotlinDsl")
-include("uberPlugins")
+include("kotlin-dsl")
+include("uber-plugins")
 include("packaging")
-include("performanceTesting")
+include("performance-testing")
 include("profiling")
 include("publishing")
 
-fun buildFileNameFor(projectDirName: String) =
-    "$projectDirName.gradle.kts"
-
 for (project in rootProject.children) {
-    val projectDirName = project.name.toKebabCase()
-    project.projectDir = file("subprojects/$projectDirName")
-    project.buildFileName = buildFileNameFor(projectDirName)
+    project.projectDir = file("subprojects/${project.name}")
+    project.buildFileName = "${project.name}.gradle.kts"
     assert(project.projectDir.isDirectory)
     assert(project.buildFile.isFile)
 }

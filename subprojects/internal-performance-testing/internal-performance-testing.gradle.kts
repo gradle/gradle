@@ -35,20 +35,20 @@ dependencies {
         because("Consumers need to instantiate BuildMutators")
     }
 
-    implementation(project(":baseServices"))
+    implementation(project(":base-services"))
     implementation(project(":native"))
     implementation(project(":cli"))
     implementation(project(":logging"))
-    implementation(project(":processServices"))
-    implementation(project(":coreApi"))
-    implementation(project(":buildOption"))
-    implementation(project(":fileCollections"))
+    implementation(project(":process-services"))
+    implementation(project(":core-api"))
+    implementation(project(":build-option"))
+    implementation(project(":file-collections"))
     implementation(project(":snapshots"))
     implementation(project(":resources"))
-    implementation(project(":persistentCache"))
-    implementation(project(":jvmServices"))
+    implementation(project(":persistent-cache"))
+    implementation(project(":jvm-services"))
     implementation(project(":wrapper"))
-    implementation(project(":internalIntegTesting"))
+    implementation(project(":internal-integ-testing"))
 
     implementation(libs.junit)
     implementation(libs.spock)
@@ -70,11 +70,11 @@ dependencies {
     implementation(libs.mina)
     implementation(libs.jetty)
     implementation(testFixtures(project(":core")))
-    implementation(testFixtures(project(":toolingApi")))
+    implementation(testFixtures(project(":tooling-api")))
 
     runtimeOnly("mysql:mysql-connector-java:8.0.17")
 
-    integTestDistributionRuntimeOnly(project(":distributionsCore"))
+    integTestDistributionRuntimeOnly(project(":distributions-core"))
 }
 
 val reportResources = tasks.register<Copy>("reportResources") {

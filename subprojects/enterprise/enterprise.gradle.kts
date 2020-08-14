@@ -19,24 +19,24 @@ plugins {
 }
 
 dependencies {
-    api(project(":baseServices")) // leaks BuildOperationNotificationListener on API
+    api(project(":base-services")) // leaks BuildOperationNotificationListener on API
 
     implementation(libs.jsr305)
     implementation(libs.inject)
     implementation(project(":logging"))
-    implementation(project(":coreApi"))
+    implementation(project(":core-api"))
     implementation(project(":core"))
     implementation(project(":launcher"))
 
-    integTestImplementation(project(":internalTesting"))
-    integTestImplementation(project(":internalIntegTesting"))
+    integTestImplementation(project(":internal-testing"))
+    integTestImplementation(project(":internal-integ-testing"))
 
     // Dependencies of the integ test fixtures
-    integTestImplementation(project(":buildOption"))
+    integTestImplementation(project(":build-option"))
     integTestImplementation(project(":messaging"))
-    integTestImplementation(project(":persistentCache"))
+    integTestImplementation(project(":persistent-cache"))
     integTestImplementation(project(":native"))
     integTestImplementation(libs.guava)
 
-    integTestDistributionRuntimeOnly(project(":distributionsFull"))
+    integTestDistributionRuntimeOnly(project(":distributions-full"))
 }

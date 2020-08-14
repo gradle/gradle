@@ -18,13 +18,13 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":baseServices"))
-    implementation(project(":buildCache"))
-    implementation(project(":coreApi"))
+    implementation(project(":base-services"))
+    implementation(project(":build-cache"))
+    implementation(project(":core-api"))
     implementation(project(":core"))
     implementation(project(":logging"))
     implementation(project(":resources"))
-    implementation(project(":resourcesHttp"))
+    implementation(project(":resources-http"))
 
     implementation(libs.slf4jApi)
     implementation(libs.guava)
@@ -36,5 +36,5 @@ dependencies {
 
     integTestImplementation(libs.jetty)
 
-    integTestDistributionRuntimeOnly(project(":distributionsBasics"))
+    integTestDistributionRuntimeOnly(project(":distributions-basics"))
 }

@@ -4,8 +4,8 @@ plugins {
 
 dependencies {
     implementation(project(":basics"))
-    implementation(project(":moduleIdentity"))
-    implementation(project(":integrationTesting"))
+    implementation(project(":module-identity"))
+    implementation(project(":integration-testing"))
     implementation(project(":cleanup"))
 
     implementation("org.codehaus.groovy.modules.http-builder:http-builder")

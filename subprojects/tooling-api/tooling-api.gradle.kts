@@ -32,29 +32,29 @@ shadedJar {
 dependencies {
     shadedImplementation(libs.slf4jApi)
 
-    implementation(project(":baseServices"))
+    implementation(project(":base-services"))
     implementation(project(":messaging"))
     implementation(project(":logging"))
-    implementation(project(":coreApi"))
+    implementation(project(":core-api"))
     implementation(project(":core"))
     implementation(project(":wrapper"))
-    implementation(project(":persistentCache"))
+    implementation(project(":persistent-cache"))
 
     implementation(libs.guava)
 
-    testFixturesImplementation(project(":coreApi"))
+    testFixturesImplementation(project(":core-api"))
     testFixturesImplementation(project(":core"))
-    testFixturesImplementation(project(":modelCore"))
-    testFixturesImplementation(project(":baseServices"))
-    testFixturesImplementation(project(":baseServicesGroovy"))
-    testFixturesImplementation(project(":internalIntegTesting"))
+    testFixturesImplementation(project(":model-core"))
+    testFixturesImplementation(project(":base-services"))
+    testFixturesImplementation(project(":base-services-groovy"))
+    testFixturesImplementation(project(":internal-integ-testing"))
     testFixturesImplementation(libs.commonsIo)
     testFixturesImplementation(libs.slf4jApi)
 
-    integTestImplementation(project(":jvmServices"))
-    integTestImplementation(project(":persistentCache"))
+    integTestImplementation(project(":jvm-services"))
+    integTestImplementation(project(":persistent-cache"))
 
-    crossVersionTestImplementation(project(":jvmServices"))
+    crossVersionTestImplementation(project(":jvm-services"))
     crossVersionTestImplementation(libs.jetty)
     crossVersionTestImplementation(libs.commonsIo)
     crossVersionTestRuntimeOnly(libs.cglib) {
@@ -63,20 +63,20 @@ dependencies {
 
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":logging")))
-    testImplementation(testFixtures(project(":dependencyManagement")))
+    testImplementation(testFixtures(project(":dependency-management")))
     testImplementation(testFixtures(project(":ide")))
     testImplementation(testFixtures(project(":workers")))
 
-    integTestNormalizedDistribution(project(":distributionsFull")) {
+    integTestNormalizedDistribution(project(":distributions-full")) {
         because("Used by ToolingApiRemoteIntegrationTest")
     }
 
-    integTestDistributionRuntimeOnly(project(":distributionsFull"))
+    integTestDistributionRuntimeOnly(project(":distributions-full"))
     integTestLocalRepository(project(path)) {
         because("ToolingApiResolveIntegrationTest and ToolingApiClasspathIntegrationTest use the Tooling API Jar")
     }
 
-    crossVersionTestDistributionRuntimeOnly(project(":distributionsFull"))
+    crossVersionTestDistributionRuntimeOnly(project(":distributions-full"))
     crossVersionTestLocalRepository(project(path)) {
         because("ToolingApiVersionSpecification uses the Tooling API Jar")
     }

@@ -5,21 +5,21 @@ plugins {
 }
 
 dependencies {
-    performanceTestImplementation(project(":baseServices"))
+    performanceTestImplementation(project(":base-services"))
     performanceTestImplementation(project(":core"))
-    performanceTestImplementation(project(":modelCore"))
-    performanceTestImplementation(project(":coreApi"))
-    performanceTestImplementation(project(":buildOption"))
+    performanceTestImplementation(project(":model-core"))
+    performanceTestImplementation(project(":core-api"))
+    performanceTestImplementation(project(":build-option"))
     performanceTestImplementation(libs.slf4jApi)
     performanceTestImplementation(libs.commonsIo)
     performanceTestImplementation(libs.commonsCompress)
     performanceTestImplementation(libs.jetty)
-    performanceTestImplementation(testFixtures(project(":toolingApi")))
+    performanceTestImplementation(testFixtures(project(":tooling-api")))
 
-    performanceTestDistributionRuntimeOnly(project(":distributionsFull")) {
+    performanceTestDistributionRuntimeOnly(project(":distributions-full")) {
         because("All Gradle features have to be available.")
     }
-    performanceTestLocalRepository(project(":toolingApi")) {
+    performanceTestLocalRepository(project(":tooling-api")) {
         because("IDE tests use the Tooling API.")
     }
 }

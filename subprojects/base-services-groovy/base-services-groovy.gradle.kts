@@ -18,7 +18,7 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":baseServices"))
+    implementation(project(":base-services"))
 
     implementation(libs.groovy)
     implementation(libs.guava)

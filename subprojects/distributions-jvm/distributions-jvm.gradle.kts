@@ -3,13 +3,13 @@ plugins {
 }
 
 dependencies {
-    coreRuntimeOnly(platform(project(":corePlatform")))
+    coreRuntimeOnly(platform(project(":core-platform")))
 
-    pluginsRuntimeOnly(platform(project(":distributionsBasics")))
+    pluginsRuntimeOnly(platform(project(":distributions-basics")))
 
     pluginsRuntimeOnly(project(":scala"))
     pluginsRuntimeOnly(project(":ear"))
-    pluginsRuntimeOnly(project(":codeQuality"))
+    pluginsRuntimeOnly(project(":code-quality"))
     pluginsRuntimeOnly(project(":jacoco"))
     pluginsRuntimeOnly(project(":ide"))
 }

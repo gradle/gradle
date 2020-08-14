@@ -22,23 +22,23 @@ plugins {
 gradlebuildJava.usedInWorkers()
 
 dependencies {
-    implementation(project(":baseServices"))
+    implementation(project(":base-services"))
     implementation(project(":messaging"))
     implementation(project(":native"))
     implementation(project(":logging"))
-    implementation(project(":processServices"))
-    implementation(project(":fileCollections"))
-    implementation(project(":jvmServices"))
-    implementation(project(":coreApi"))
-    implementation(project(":modelCore"))
+    implementation(project(":process-services"))
+    implementation(project(":file-collections"))
+    implementation(project(":jvm-services"))
+    implementation(project(":core-api"))
+    implementation(project(":model-core"))
     implementation(project(":core"))
-    implementation(project(":dependencyManagement"))
+    implementation(project(":dependency-management"))
     implementation(project(":reporting"))
     implementation(project(":diagnostics"))
-    implementation(project(":platformBase"))
-    implementation(project(":platformJvm"))
-    implementation(project(":languageJava"))
-    implementation(project(":testingBase"))
+    implementation(project(":platform-base"))
+    implementation(project(":platform-jvm"))
+    implementation(project(":language-java"))
+    implementation(project(":testing-base"))
 
     implementation(libs.slf4jApi)
     implementation(libs.groovy)
@@ -51,21 +51,21 @@ dependencies {
     implementation(libs.inject)
     implementation(libs.bsh)
 
-    testImplementation(project(":baseServicesGroovy"))
+    testImplementation(project(":base-services-groovy"))
     testImplementation(libs.guice) {
         because("This is for TestNG")
     }
     testImplementation(testFixtures(project(":core")))
-    testImplementation(testFixtures(project(":testingBase")))
+    testImplementation(testFixtures(project(":testing-base")))
     testImplementation(testFixtures(project(":diagnostics")))
     testImplementation(testFixtures(project(":messaging")))
-    testImplementation(testFixtures(project(":baseServices")))
-    testImplementation(testFixtures(project(":platformNative")))
+    testImplementation(testFixtures(project(":base-services")))
+    testImplementation(testFixtures(project(":platform-native")))
 
-    testRuntimeOnly(project(":distributionsCore")) {
+    testRuntimeOnly(project(":distributions-core")) {
         because("Tests instantiate DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")
     }
-    integTestDistributionRuntimeOnly(project(":distributionsJvm"))
+    integTestDistributionRuntimeOnly(project(":distributions-jvm"))
 }
 
 strictCompile {

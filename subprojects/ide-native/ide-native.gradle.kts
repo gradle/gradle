@@ -20,19 +20,19 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":baseServices"))
+    implementation(project(":base-services"))
     implementation(project(":logging"))
-    implementation(project(":coreApi"))
-    implementation(project(":modelCore"))
+    implementation(project(":core-api"))
+    implementation(project(":model-core"))
     implementation(project(":core"))
-    implementation(project(":fileCollections"))
-    implementation(project(":dependencyManagement"))
+    implementation(project(":file-collections"))
+    implementation(project(":dependency-management"))
     implementation(project(":ide"))
-    implementation(project(":platformBase"))
-    implementation(project(":platformNative"))
-    implementation(project(":languageNative"))
-    implementation(project(":testingBase"))
-    implementation(project(":testingNative"))
+    implementation(project(":platform-base"))
+    implementation(project(":platform-native"))
+    implementation(project(":language-native"))
+    implementation(project(":testing-base"))
+    implementation(project(":testing-native"))
 
     implementation(libs.groovy)
     implementation(libs.slf4jApi)
@@ -42,9 +42,9 @@ dependencies {
     implementation(libs.plist)
 
     testImplementation(testFixtures(project(":core")))
-    testImplementation(testFixtures(project(":platformNative")))
-    testImplementation(testFixtures(project(":languageNative")))
-    testImplementation(testFixtures(project(":versionControl")))
+    testImplementation(testFixtures(project(":platform-native")))
+    testImplementation(testFixtures(project(":language-native")))
+    testImplementation(testFixtures(project(":version-control")))
 
     integTestImplementation(project(":native"))
     integTestImplementation(libs.commonsIo)
@@ -55,10 +55,10 @@ dependencies {
     testFixturesImplementation(libs.guava)
     testFixturesImplementation(testFixtures(project(":ide")))
 
-    testRuntimeOnly(project(":distributionsCore")) {
+    testRuntimeOnly(project(":distributions-core")) {
         because("Tests instantiate DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")
     }
-    integTestDistributionRuntimeOnly(project(":distributionsNative"))
+    integTestDistributionRuntimeOnly(project(":distributions-native"))
 }
 
 integrationTestUsesSampleDir("subprojects/ide-native/src/main")

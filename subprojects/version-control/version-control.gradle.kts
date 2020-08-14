@@ -18,16 +18,16 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":baseServices"))
+    implementation(project(":base-services"))
     implementation(project(":messaging"))
     implementation(project(":logging"))
     implementation(project(":files"))
-    implementation(project(":fileCollections"))
-    implementation(project(":persistentCache"))
-    implementation(project(":coreApi"))
+    implementation(project(":file-collections"))
+    implementation(project(":persistent-cache"))
+    implementation(project(":core-api"))
     implementation(project(":core"))
     implementation(project(":resources"))
-    implementation(project(":dependencyManagement"))
+    implementation(project(":dependency-management"))
 
     implementation(libs.guava)
     implementation(libs.inject)
@@ -37,11 +37,11 @@ dependencies {
 
     testImplementation(project(":native"))
     testImplementation(project(":snapshots"))
-    testImplementation(project(":processServices"))
+    testImplementation(project(":process-services"))
     testImplementation(testFixtures(project(":core")))
 
-    testFixturesImplementation(project(":baseServices"))
-    testFixturesImplementation(project(":internalIntegTesting"))
+    testFixturesImplementation(project(":base-services"))
+    testFixturesImplementation(project(":internal-integ-testing"))
 
     testFixturesImplementation(libs.jgit)
     testFixturesImplementation(libs.commonsIo)
@@ -50,5 +50,5 @@ dependencies {
     testFixturesImplementation(libs.guava)
 
     integTestImplementation(project(":launcher"))
-    integTestDistributionRuntimeOnly(project(":distributionsBasics"))
+    integTestDistributionRuntimeOnly(project(":distributions-basics"))
 }

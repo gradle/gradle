@@ -1,4 +1,4 @@
 dependencies {
     implementation(project(":basics"))
-    implementation(project(":moduleIdentity"))
+    implementation(project(":module-identity"))
 }

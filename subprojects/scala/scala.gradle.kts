@@ -20,45 +20,45 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":baseServices"))
+    implementation(project(":base-services"))
     implementation(project(":logging"))
-    implementation(project(":workerProcesses"))
-    implementation(project(":fileCollections"))
-    implementation(project(":coreApi"))
-    implementation(project(":modelCore"))
+    implementation(project(":worker-processes"))
+    implementation(project(":file-collections"))
+    implementation(project(":core-api"))
+    implementation(project(":model-core"))
     implementation(project(":core"))
     implementation(project(":workers"))
-    implementation(project(":platformBase"))
-    implementation(project(":platformJvm"))
-    implementation(project(":languageJvm"))
-    implementation(project(":languageJava"))
-    implementation(project(":languageScala"))
+    implementation(project(":platform-base"))
+    implementation(project(":platform-jvm"))
+    implementation(project(":language-jvm"))
+    implementation(project(":language-java"))
+    implementation(project(":language-scala"))
     implementation(project(":plugins"))
     implementation(project(":reporting"))
-    implementation(project(":dependencyManagement"))
-    implementation(project(":processServices"))
+    implementation(project(":dependency-management"))
+    implementation(project(":process-services"))
 
     implementation(libs.groovy)
     implementation(libs.guava)
     implementation(libs.inject)
 
-    testImplementation(project(":baseServicesGroovy"))
+    testImplementation(project(":base-services-groovy"))
     testImplementation(project(":files"))
     testImplementation(project(":resources"))
     testImplementation(libs.slf4jApi)
     testImplementation(libs.commonsIo)
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":plugins")))
-    testImplementation(testFixtures(project(":languageJvm")))
-    testImplementation(testFixtures(project(":languageJava")))
+    testImplementation(testFixtures(project(":language-jvm")))
+    testImplementation(testFixtures(project(":language-java")))
 
-    integTestImplementation(project(":jvmServices"))
-    integTestImplementation(testFixtures(project(":languageScala")))
+    integTestImplementation(project(":jvm-services"))
+    integTestImplementation(testFixtures(project(":language-scala")))
 
-    testRuntimeOnly(project(":distributionsCore")) {
+    testRuntimeOnly(project(":distributions-core")) {
         because("ProjectBuilder tests load services from a Gradle distribution.")
     }
-    integTestDistributionRuntimeOnly(project(":distributionsJvm"))
+    integTestDistributionRuntimeOnly(project(":distributions-jvm"))
 }
 
 classycle {

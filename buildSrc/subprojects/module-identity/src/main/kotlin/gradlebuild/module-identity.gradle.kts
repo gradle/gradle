@@ -39,7 +39,7 @@ group = "org.gradle"
 version = collectVersionDetails(moduleIdentity)
 
 fun Project.collectVersionDetails(moduleIdentity: ModuleIdentityExtension): String {
-    moduleIdentity.baseName.convention("gradle-${name.replace(Regex("\\p{Upper}")) { "-${it.value.toLowerCase()}" }}")
+    moduleIdentity.baseName.convention("gradle-$name")
 
     val baseVersion = rootProject.trimmedContentsOfFile("version.txt")
         ?: return "" // Need to handle the case where the file does not exist and wheere 'gradleProperty' is not yet accesible for script compilation
@@ -184,7 +184,7 @@ fun Project.buildTimestampFromBuildReceipt(): Provider<String> =
 
 fun isRunningInstallTask() =
     listOf("install", "installAll")
-        .flatMap { listOf(":distributionsFull:$it", "distributionsFull:$it", it) }
+        .flatMap { listOf(":distributions-full:$it", "distributions-full:$it", it) }
         .any(gradle.startParameter.taskNames::contains)
 
 /**

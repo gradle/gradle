@@ -21,27 +21,27 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":baseServices"))
+    implementation(project(":base-services"))
     implementation(project(":messaging"))
     implementation(project(":native"))
     implementation(project(":logging"))
     implementation(project(":cli"))
-    implementation(project(":processServices"))
-    implementation(project(":coreApi"))
-    implementation(project(":modelCore"))
-    implementation(project(":baseServicesGroovy"))
+    implementation(project(":process-services"))
+    implementation(project(":core-api"))
+    implementation(project(":model-core"))
+    implementation(project(":base-services-groovy"))
     implementation(project(":files"))
-    implementation(project(":fileCollections"))
+    implementation(project(":file-collections"))
     implementation(project(":resources"))
-    implementation(project(":buildCache"))
-    implementation(project(":persistentCache"))
-    implementation(project(":dependencyManagement"))
-    implementation(project(":instantExecution"))
-    implementation(project(":jvmServices"))
+    implementation(project(":build-cache"))
+    implementation(project(":persistent-cache"))
+    implementation(project(":dependency-management"))
+    implementation(project(":instant-execution"))
+    implementation(project(":jvm-services"))
     implementation(project(":launcher"))
-    implementation(project(":internalTesting"))
-    implementation(project(":buildEvents"))
-    implementation(project(":buildOption"))
+    implementation(project(":internal-testing"))
+    implementation(project(":build-events"))
+    implementation(project(":build-option"))
 
     implementation(libs.groovy)
     implementation(libs.junit)
@@ -85,10 +85,10 @@ dependencies {
     }
     implementation(testFixtures(project(":core")))
 
-    testRuntimeOnly(project(":distributionsCore")) {
+    testRuntimeOnly(project(":distributions-core")) {
         because("Tests instantiate DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")
     }
-    integTestDistributionRuntimeOnly(project(":distributionsCore"))
+    integTestDistributionRuntimeOnly(project(":distributions-core"))
 }
 
 classycle {

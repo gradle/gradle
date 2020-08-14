@@ -23,24 +23,25 @@ description = "File system watchers for keeping the VFS up-to-date"
 dependencies {
     api(project(":snapshots"))
 
-    implementation(project(":baseAnnotations"))
-    implementation(project(":buildOperations"))
+    implementation(project(":base-annotations"))
+    implementation(project(":build-operations"))
 
     implementation(libs.guava)
     implementation(libs.nativePlatform)
     implementation(libs.slf4jApi)
 
-    testImplementation(project(":processServices"))
+    testImplementation(project(":process-services"))
     testImplementation(project(":resources"))
-    testImplementation(project(":persistentCache"))
-    testImplementation(project(":buildOption"))
+    testImplementation(project(":persistent-cache"))
+    testImplementation(project(":build-option"))
     testImplementation(testFixtures(project(":core")))
-    testImplementation(testFixtures(project(":fileCollections")))
-    testImplementation(testFixtures(project(":toolingApi")))
+    testImplementation(testFixtures(project(":file-collections")))
+    testImplementation(testFixtures(project(":tooling-api")))
     testImplementation(testFixtures(project(":launcher")))
+
     testImplementation(libs.commonsIo)
 
     integTestImplementation(libs.jetty)
 
-    integTestDistributionRuntimeOnly(project(":distributionsCore"))
+    integTestDistributionRuntimeOnly(project(":distributions-core"))
 }

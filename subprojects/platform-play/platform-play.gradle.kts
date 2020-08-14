@@ -23,27 +23,27 @@ val integTestRuntimeResourcesClasspath: Configuration by configurations.creating
 }
 
 dependencies {
-    implementation(project(":baseServices"))
+    implementation(project(":base-services"))
     implementation(project(":files"))
     implementation(project(":messaging"))
-    implementation(project(":processServices"))
+    implementation(project(":process-services"))
     implementation(project(":logging"))
-    implementation(project(":workerProcesses"))
-    implementation(project(":coreApi"))
-    implementation(project(":modelCore"))
+    implementation(project(":worker-processes"))
+    implementation(project(":core-api"))
+    implementation(project(":model-core"))
     implementation(project(":core"))
-    implementation(project(":fileCollections"))
+    implementation(project(":file-collections"))
     implementation(project(":snapshots"))
-    implementation(project(":dependencyManagement"))
+    implementation(project(":dependency-management"))
     implementation(project(":workers"))
     implementation(project(":plugins"))
-    implementation(project(":platformBase"))
-    implementation(project(":platformJvm"))
-    implementation(project(":languageJvm"))
-    implementation(project(":languageJava"))
-    implementation(project(":languageScala"))
-    implementation(project(":testingBase"))
-    implementation(project(":testingJvm"))
+    implementation(project(":platform-base"))
+    implementation(project(":platform-jvm"))
+    implementation(project(":language-jvm"))
+    implementation(project(":language-java"))
+    implementation(project(":language-scala"))
+    implementation(project(":testing-base"))
+    implementation(project(":testing-jvm"))
     implementation(project(":javascript"))
     implementation(project(":diagnostics"))
     implementation(project(":reporting"))
@@ -56,37 +56,37 @@ dependencies {
 
     testImplementation(project(":native"))
     testImplementation(project(":resources"))
-    testImplementation(project(":baseServicesGroovy"))
+    testImplementation(project(":base-services-groovy"))
 
     integTestImplementation(libs.ant)
-    integTestRuntimeOnly(project(":compositeBuilds"))
-    integTestRuntimeOnly(project(":idePlay"))
-    integTestRuntimeOnly(project(":testingJunitPlatform"))
+    integTestRuntimeOnly(project(":composite-builds"))
+    integTestRuntimeOnly(project(":ide-play"))
+    integTestRuntimeOnly(project(":testing-junit-platform"))
 
-    testFixturesApi(project(":platformBase")) {
+    testFixturesApi(project(":platform-base")) {
         because("Test fixtures export the Platform class")
     }
     testFixturesApi(testFixtures(project(":core")))
-    testFixturesApi(testFixtures(project(":platformNative")))
-    testFixturesApi(testFixtures(project(":languageJvm")))
-    testFixturesApi(project(":internalIntegTesting"))
-    testFixturesImplementation(project(":processServices"))
+    testFixturesApi(testFixtures(project(":platform-native")))
+    testFixturesApi(testFixtures(project(":language-jvm")))
+    testFixturesApi(project(":internal-integ-testing"))
+    testFixturesImplementation(project(":process-services"))
     testFixturesImplementation(libs.commonsIo)
     testFixturesImplementation(libs.commonsHttpclient)
     testFixturesImplementation(libs.slf4jApi)
-    testFixturesApi(testFixtures(project(":languageScala")))
-    testFixturesApi(testFixtures(project(":languageJava")))
+    testFixturesApi(testFixtures(project(":language-scala")))
+    testFixturesApi(testFixtures(project(":language-java")))
 
-    testImplementation(testFixtures(project(":dependencyManagement")))
+    testImplementation(testFixtures(project(":dependency-management")))
     testImplementation(testFixtures(project(":diagnostics")))
-    testImplementation(testFixtures(project(":platformBase")))
+    testImplementation(testFixtures(project(":platform-base")))
 
-    integTestDistributionRuntimeOnly(project(":distributionsFull"))
+    integTestDistributionRuntimeOnly(project(":distributions-full"))
 
-    testRuntimeOnly(project(":distributionsCore")) {
+    testRuntimeOnly(project(":distributions-core")) {
         because("Tests instantiate DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")
     }
-    integTestRuntimeResources(testFixtures(project(":platformPlay")))
+    integTestRuntimeResources(testFixtures(project(":platform-play")))
 }
 
 strictCompile {

@@ -15,7 +15,7 @@ tasks {
     }
 
     processResources {
-        from({ project(":instantExecutionReport").tasks.named("assembleReport") }) {
+        from({ project(":instant-execution-report").tasks.named("assembleReport") }) {
             into("org/gradle/instantexecution")
         }
     }
@@ -34,34 +34,34 @@ afterEvaluate {
 }
 
 dependencies {
-    implementation(project(":baseServices"))
-    implementation(project(":baseServicesGroovy"))
+    implementation(project(":base-services"))
+    implementation(project(":base-services-groovy"))
     implementation(project(":core"))
-    implementation(project(":coreApi"))
-    implementation(project(":dependencyManagement"))
+    implementation(project(":core-api"))
+    implementation(project(":dependency-management"))
     implementation(project(":execution"))
-    implementation(project(":fileCollections"))
-    implementation(project(":kotlinDsl"))
+    implementation(project(":file-collections"))
+    implementation(project(":kotlin-dsl"))
     implementation(project(":logging"))
     implementation(project(":messaging"))
-    implementation(project(":modelCore"))
+    implementation(project(":model-core"))
     implementation(project(":native"))
-    implementation(project(":persistentCache"))
+    implementation(project(":persistent-cache"))
     implementation(project(":plugins"))
     implementation(project(":publish"))
     implementation(project(":resources"))
     implementation(project(":snapshots"))
-    implementation(project(":pluginUse"))
+    implementation(project(":plugin-use"))
 
     // TODO - move the isolatable serializer to model-core to live with the isolatable infrastructure
     implementation(project(":workers"))
 
     // TODO - it might be good to allow projects to contribute state to save and restore, rather than have this project know about everything
-    implementation(project(":toolingApi"))
-    implementation(project(":buildEvents"))
+    implementation(project(":tooling-api"))
+    implementation(project(":build-events"))
     implementation(project(":native"))
-    implementation(project(":buildOption"))
-    implementation(project(":platformJvm"))
+    implementation(project(":build-option"))
+    implementation(project(":platform-jvm"))
 
     implementation(libs.groovy)
     implementation(libs.slf4jApi)
@@ -74,27 +74,27 @@ dependencies {
     testImplementation(libs.mockitoKotlin2)
     testImplementation(libs.kotlinCoroutinesDebug)
 
-    integTestImplementation(project(":jvmServices"))
-    integTestImplementation(project(":toolingApi"))
-    integTestImplementation(project(":platformJvm"))
-    integTestImplementation(project(":testKit"))
+    integTestImplementation(project(":jvm-services"))
+    integTestImplementation(project(":tooling-api"))
+    integTestImplementation(project(":platform-jvm"))
+    integTestImplementation(project(":test-kit"))
     integTestImplementation(project(":launcher"))
 
     integTestImplementation(libs.guava)
     integTestImplementation(libs.ant)
     integTestImplementation(libs.inject)
-    integTestImplementation(testFixtures(project(":dependencyManagement")))
+    integTestImplementation(testFixtures(project(":dependency-management")))
     integTestImplementation(testFixtures(project(":jacoco")))
 
     crossVersionTestImplementation(project(":cli"))
 
-    testRuntimeOnly(project(":distributionsCore")) {
+    testRuntimeOnly(project(":distributions-core")) {
         because("Tests instantiate DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")
     }
-    integTestDistributionRuntimeOnly(project(":distributionsJvm")) {
+    integTestDistributionRuntimeOnly(project(":distributions-jvm")) {
         because("Includes tests for builds with TestKit involved; InstantExecutionJacocoIntegrationTest requires JVM distribution")
     }
-    crossVersionTestDistributionRuntimeOnly(project(":distributionsCore"))
+    crossVersionTestDistributionRuntimeOnly(project(":distributions-core"))
 }
 
 classycle {

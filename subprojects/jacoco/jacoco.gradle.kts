@@ -18,18 +18,18 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":baseServices"))
+    implementation(project(":base-services"))
     implementation(project(":logging"))
-    implementation(project(":processServices"))
-    implementation(project(":coreApi"))
-    implementation(project(":modelCore"))
+    implementation(project(":process-services"))
+    implementation(project(":core-api"))
+    implementation(project(":model-core"))
     implementation(project(":core"))
-    implementation(project(":platformBase"))
-    implementation(project(":testingBase"))
-    implementation(project(":testingJvm"))
+    implementation(project(":platform-base"))
+    implementation(project(":testing-base"))
+    implementation(project(":testing-jvm"))
     implementation(project(":plugins"))
     implementation(project(":reporting"))
-    implementation(project(":fileCollections"))
+    implementation(project(":file-collections"))
 
     implementation(libs.groovy)
     implementation(libs.slf4jApi)
@@ -37,22 +37,22 @@ dependencies {
     implementation(libs.commonsLang)
     implementation(libs.inject)
 
-    testFixturesImplementation(project(":baseServices"))
-    testFixturesImplementation(project(":coreApi"))
+    testFixturesImplementation(project(":base-services"))
+    testFixturesImplementation(project(":core-api"))
     testFixturesImplementation(project(":core"))
-    testFixturesImplementation(project(":internalIntegTesting"))
+    testFixturesImplementation(project(":internal-integ-testing"))
     testFixturesImplementation(libs.jsoup)
 
-    testImplementation(project(":internalTesting"))
+    testImplementation(project(":internal-testing"))
     testImplementation(project(":resources"))
-    testImplementation(project(":internalIntegTesting"))
-    testImplementation(project(":languageJava"))
+    testImplementation(project(":internal-integ-testing"))
+    testImplementation(project(":language-java"))
     testImplementation(testFixtures(project(":core")))
 
-    testRuntimeOnly(project(":distributionsCore")) {
+    testRuntimeOnly(project(":distributions-core")) {
         because("ProjectBuilder tests load services from a Gradle distribution.")
     }
-    integTestDistributionRuntimeOnly(project(":distributionsJvm"))
+    integTestDistributionRuntimeOnly(project(":distributions-jvm"))
 }
 
 strictCompile {

@@ -11,11 +11,11 @@ repositories {
 }
 
 dependencies {
-    implementation(project(":baseServices"))
+    implementation(project(":base-services"))
     implementation(project(":logging"))
-    implementation(project(":fileCollections"))
-    implementation(project(":coreApi"))
-    implementation(project(":modelCore"))
+    implementation(project(":file-collections"))
+    implementation(project(":core-api"))
+    implementation(project(":model-core"))
     implementation(project(":core"))
 
     implementation(libs.groovy)
@@ -25,15 +25,15 @@ dependencies {
 
     implementationResources("jquery:jquery.min:3.4.1@js")
 
-    testImplementation(project(":processServices"))
-    testImplementation(project(":baseServicesGroovy"))
+    testImplementation(project(":process-services"))
+    testImplementation(project(":base-services-groovy"))
     testImplementation(libs.jsoup)
     testImplementation(testFixtures(project(":core")))
 
-    testRuntimeOnly(project(":distributionsCore")) {
+    testRuntimeOnly(project(":distributions-core")) {
         because("ProjectBuilder tests load services from a Gradle distribution.")
     }
-    integTestDistributionRuntimeOnly(project(":distributionsJvm")) {
+    integTestDistributionRuntimeOnly(project(":distributions-jvm")) {
         because("BuildDashboard has specific support for JVM plugins (CodeNarc, JaCoCo)")
     }
 }

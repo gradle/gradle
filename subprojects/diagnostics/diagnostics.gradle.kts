@@ -19,18 +19,18 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":baseServices"))
+    implementation(project(":base-services"))
     implementation(project(":logging"))
-    implementation(project(":fileCollections"))
-    implementation(project(":coreApi"))
-    implementation(project(":modelCore"))
+    implementation(project(":file-collections"))
+    implementation(project(":core-api"))
+    implementation(project(":model-core"))
     implementation(project(":core"))
     implementation(project(":reporting"))
-    implementation(project(":platformBase"))
+    implementation(project(":platform-base"))
     implementation(project(":snapshots"))
-    implementation(project(":dependencyManagement"))
-    implementation(project(":baseServicesGroovy"))
-    implementation(project(":buildOption"))
+    implementation(project(":dependency-management"))
+    implementation(project(":base-services-groovy"))
+    implementation(project(":build-option"))
 
     implementation(libs.slf4jApi)
     implementation(libs.groovy)
@@ -39,23 +39,23 @@ dependencies {
     implementation(libs.inject)
     implementation(libs.jatl)
 
-    testImplementation(project(":processServices"))
+    testImplementation(project(":process-services"))
     testImplementation(testFixtures(project(":core")))
-    testImplementation(testFixtures(project(":dependencyManagement")))
+    testImplementation(testFixtures(project(":dependency-management")))
     testImplementation(testFixtures(project(":logging")))
 
     integTestImplementation(libs.jsoup)
     integTestImplementation(libs.jetty)
 
-    testFixturesApi(testFixtures(project(":platformNative")))
-    testFixturesImplementation(project(":baseServices"))
-    testFixturesImplementation(project(":internalIntegTesting"))
+    testFixturesApi(testFixtures(project(":platform-native")))
+    testFixturesImplementation(project(":base-services"))
+    testFixturesImplementation(project(":internal-integ-testing"))
     testFixturesImplementation(libs.guava)
 
-    testRuntimeOnly(project(":distributionsCore")) {
+    testRuntimeOnly(project(":distributions-core")) {
         because("ProjectBuilder tests load services from a Gradle distribution.")
     }
-    integTestDistributionRuntimeOnly(project(":distributionsFull"))  {
+    integTestDistributionRuntimeOnly(project(":distributions-full"))  {
         because("There are integration tests that assert that all the tasks of a full distribution are reported (these should probably move to ':integTests').")
     }
 }

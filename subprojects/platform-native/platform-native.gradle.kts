@@ -20,16 +20,16 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":baseServices"))
+    implementation(project(":base-services"))
     implementation(project(":logging"))
     implementation(project(":native"))
-    implementation(project(":processServices"))
-    implementation(project(":fileCollections"))
-    implementation(project(":coreApi"))
-    implementation(project(":modelCore"))
+    implementation(project(":process-services"))
+    implementation(project(":file-collections"))
+    implementation(project(":core-api"))
+    implementation(project(":model-core"))
     implementation(project(":core"))
     implementation(project(":workers"))
-    implementation(project(":platformBase"))
+    implementation(project(":platform-base"))
     implementation(project(":diagnostics"))
 
     implementation(libs.nativePlatform)
@@ -45,11 +45,11 @@ dependencies {
     testFixturesApi(project(":resources"))
     testFixturesApi(testFixtures(project(":ide")))
     testFixturesImplementation(testFixtures(project(":core")))
-    testFixturesImplementation(project(":internalIntegTesting"))
+    testFixturesImplementation(project(":internal-integ-testing"))
     testFixturesImplementation(project(":native"))
-    testFixturesImplementation(project(":platformBase"))
-    testFixturesImplementation(project(":fileCollections"))
-    testFixturesImplementation(project(":processServices"))
+    testFixturesImplementation(project(":platform-base"))
+    testFixturesImplementation(project(":file-collections"))
+    testFixturesImplementation(project(":process-services"))
     testFixturesImplementation(project(":snapshots"))
     testFixturesImplementation(libs.guava)
     testFixturesImplementation(libs.nativePlatform)
@@ -58,16 +58,16 @@ dependencies {
 
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":messaging")))
-    testImplementation(testFixtures(project(":platformBase")))
-    testImplementation(testFixtures(project(":modelCore")))
+    testImplementation(testFixtures(project(":platform-base")))
+    testImplementation(testFixtures(project(":model-core")))
     testImplementation(testFixtures(project(":diagnostics")))
-    testImplementation(testFixtures(project(":baseServices")))
+    testImplementation(testFixtures(project(":base-services")))
     testImplementation(testFixtures(project(":snapshots")))
 
-    testRuntimeOnly(project(":distributionsCore")) {
+    testRuntimeOnly(project(":distributions-core")) {
         because("ProjectBuilder tests load services from a Gradle distribution.")
     }
-    integTestDistributionRuntimeOnly(project(":distributionsNative")) {
+    integTestDistributionRuntimeOnly(project(":distributions-native")) {
         because("Required 'ideNative' to test visual studio project file generation for generated sources")
     }
 }

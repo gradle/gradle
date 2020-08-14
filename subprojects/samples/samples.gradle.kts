@@ -6,10 +6,10 @@ plugins {
 }
 
 dependencies {
-    integTestImplementation(project(":baseServices"))
-    integTestImplementation(project(":coreApi"))
-    integTestImplementation(project(":processServices"))
-    integTestImplementation(project(":persistentCache"))
+    integTestImplementation(project(":base-services"))
+    integTestImplementation(project(":core-api"))
+    integTestImplementation(project(":process-services"))
+    integTestImplementation(project(":persistent-cache"))
     integTestImplementation(libs.groovy)
     integTestImplementation(libs.slf4jApi)
     integTestImplementation(libs.guava)
@@ -20,7 +20,7 @@ dependencies {
     }
     integTestImplementation(testFixtures(project(":core")))
 
-    integTestDistributionRuntimeOnly(project(":distributionsFull"))
+    integTestDistributionRuntimeOnly(project(":distributions-full"))
 }
 
 testFilesCleanup {

@@ -20,12 +20,12 @@ plugins {
 description = "Shared classes for projects requiring GPG support"
 
 dependencies {
-    api(project(":coreApi"))
+    api(project(":core-api"))
     api(project(":resources"))
-    implementation(project(":baseServices"))
+    implementation(project(":base-services"))
     implementation(project(":logging"))
-    implementation(project(":processServices"))
-    implementation(project(":resourcesHttp"))
+    implementation(project(":process-services"))
+    implementation(project(":resources-http"))
     implementation(libs.guava)
 
     api(libs.bouncycastlePgp)
@@ -36,13 +36,13 @@ dependencies {
 
     testImplementation(testFixtures(project(":core")))
 
-    testFixturesImplementation(project(":baseServices"))
+    testFixturesImplementation(project(":base-services"))
     testFixturesImplementation(libs.slf4jApi)
     testFixturesImplementation(libs.jetty)
     testFixturesImplementation(testFixtures(project(":core")))
-    testFixturesImplementation(project(":internalIntegTesting"))
+    testFixturesImplementation(project(":internal-integ-testing"))
 
-    testRuntimeOnly(project(":distributionsCore")) {
+    testRuntimeOnly(project(":distributions-core")) {
         because("Tests instantiate DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")
     }
 }

@@ -7,22 +7,22 @@ plugins {
 }
 
 dependencies {
-    coreRuntimeOnly(platform(project(":corePlatform")))
+    coreRuntimeOnly(platform(project(":core-platform")))
 
-    pluginsRuntimeOnly(platform(project(":distributionsPublishing")))
-    pluginsRuntimeOnly(platform(project(":distributionsJvm")))
-    pluginsRuntimeOnly(platform(project(":distributionsNative")))
+    pluginsRuntimeOnly(platform(project(":distributions-publishing")))
+    pluginsRuntimeOnly(platform(project(":distributions-jvm")))
+    pluginsRuntimeOnly(platform(project(":distributions-native")))
 
-    pluginsRuntimeOnly(project(":pluginDevelopment"))
-    pluginsRuntimeOnly(project(":buildInit"))
-    pluginsRuntimeOnly(project(":buildProfile"))
+    pluginsRuntimeOnly(project(":plugin-development"))
+    pluginsRuntimeOnly(project(":build-init"))
+    pluginsRuntimeOnly(project(":build-profile"))
     pluginsRuntimeOnly(project(":antlr"))
     pluginsRuntimeOnly(project(":enterprise"))
 
     // The following are scheduled to be removed from the distribution completely in Gradle 7.0
     pluginsRuntimeOnly(project(":javascript"))
-    pluginsRuntimeOnly(project(":platformPlay"))
-    pluginsRuntimeOnly(project(":idePlay"))
+    pluginsRuntimeOnly(project(":platform-play"))
+    pluginsRuntimeOnly(project(":ide-play"))
 }
 
 tasks.register<RunEmbeddedGradle>("runDevGradle") {

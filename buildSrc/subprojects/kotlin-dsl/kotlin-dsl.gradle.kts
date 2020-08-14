@@ -1,7 +1,7 @@
 
 dependencies {
     implementation(project(":basics"))
-    implementation(project(":dependencyModules"))
+    implementation(project(":dependency-modules"))
     implementation(project(":jvm"))
 
     implementation("org.gradle.kotlin:gradle-kotlin-dsl-conventions")

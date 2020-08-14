@@ -4,30 +4,30 @@ plugins {
 
 dependencies {
     implementation(project(":launcher"))
-    implementation(project(":baseServices"))
+    implementation(project(":base-services"))
     implementation(project(":messaging"))
     implementation(project(":native"))
     implementation(project(":logging"))
-    implementation(project(":processServices"))
-    implementation(project(":coreApi"))
-    implementation(project(":modelCore"))
+    implementation(project(":process-services"))
+    implementation(project(":core-api"))
+    implementation(project(":model-core"))
     implementation(project(":core"))
-    implementation(project(":baseServicesGroovy")) // for 'Specs'
-    implementation(project(":testingBase"))
-    implementation(project(":testingJvm"))
-    implementation(project(":dependencyManagement"))
+    implementation(project(":base-services-groovy")) // for 'Specs'
+    implementation(project(":testing-base"))
+    implementation(project(":testing-jvm"))
+    implementation(project(":dependency-management"))
     implementation(project(":reporting"))
     implementation(project(":workers"))
-    implementation(project(":compositeBuilds"))
-    implementation(project(":toolingApi"))
-    implementation(project(":buildEvents"))
+    implementation(project(":composite-builds"))
+    implementation(project(":tooling-api"))
+    implementation(project(":build-events"))
 
     implementation(libs.groovy) // for 'Closure'
     implementation(libs.guava)
     implementation(libs.commonsIo)
 
-    testImplementation(project(":fileCollections"))
-    testImplementation(project(":platformJvm"))
+    testImplementation(project(":file-collections"))
+    testImplementation(project(":platform-jvm"))
 }
 
 strictCompile {

@@ -1,7 +1,7 @@
 dependencies {
     implementation(project(":basics"))
-    implementation(project(":dependencyModules"))
-    implementation(project(":moduleIdentity"))
+    implementation(project(":dependency-modules"))
+    implementation(project(":module-identity"))
 
     implementation("org.eclipse.jgit:org.eclipse.jgit")
     implementation("org.jsoup:jsoup")

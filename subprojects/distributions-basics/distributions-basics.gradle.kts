@@ -3,19 +3,19 @@ plugins {
 }
 
 dependencies {
-    coreRuntimeOnly(platform(project(":corePlatform")))
+    coreRuntimeOnly(platform(project(":core-platform")))
 
-    pluginsRuntimeOnly(platform(project(":distributionsCore")))
+    pluginsRuntimeOnly(platform(project(":distributions-core")))
 
-    pluginsRuntimeOnly(project(":resourcesHttp"))
-    pluginsRuntimeOnly(project(":resourcesSftp"))
-    pluginsRuntimeOnly(project(":resourcesS3"))
-    pluginsRuntimeOnly(project(":resourcesGcs"))
-    pluginsRuntimeOnly(project(":resourcesHttp"))
-    pluginsRuntimeOnly(project(":buildCacheHttp"))
+    pluginsRuntimeOnly(project(":resources-http"))
+    pluginsRuntimeOnly(project(":resources-sftp"))
+    pluginsRuntimeOnly(project(":resources-s3"))
+    pluginsRuntimeOnly(project(":resources-gcs"))
+    pluginsRuntimeOnly(project(":resources-http"))
+    pluginsRuntimeOnly(project(":build-cache-http"))
 
-    pluginsRuntimeOnly(project(":toolingApiBuilders"))
-    pluginsRuntimeOnly(project(":kotlinDslToolingBuilders"))
+    pluginsRuntimeOnly(project(":tooling-api-builders"))
+    pluginsRuntimeOnly(project(":kotlin-dsl-tooling-builders"))
 
-    pluginsRuntimeOnly(project(":testKit"))
+    pluginsRuntimeOnly(project(":test-kit"))
 }

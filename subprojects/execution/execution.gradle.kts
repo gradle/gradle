@@ -20,15 +20,15 @@ plugins {
 description = "Execution engine that takes a unit of work and makes it happen"
 
 dependencies {
-    implementation(project(":baseServices"))
+    implementation(project(":base-services"))
     implementation(project(":messaging"))
-    implementation(project(":coreApi"))
+    implementation(project(":core-api"))
     implementation(project(":files"))
     implementation(project(":snapshots"))
-    implementation(project(":modelCore"))
-    implementation(project(":persistentCache"))
-    implementation(project(":buildCache"))
-    implementation(project(":buildCachePackaging"))
+    implementation(project(":model-core"))
+    implementation(project(":persistent-cache"))
+    implementation(project(":build-cache"))
+    implementation(project(":build-cache-packaging"))
 
     implementation(libs.slf4jApi)
     implementation(libs.guava)
@@ -38,21 +38,21 @@ dependencies {
 
     testImplementation(project(":native"))
     testImplementation(project(":logging"))
-    testImplementation(project(":processServices"))
-    testImplementation(project(":modelCore"))
-    testImplementation(project(":baseServicesGroovy"))
+    testImplementation(project(":process-services"))
+    testImplementation(project(":model-core"))
+    testImplementation(project(":base-services-groovy"))
     testImplementation(project(":resources"))
-    testImplementation(testFixtures(project(":baseServices")))
-    testImplementation(testFixtures(project(":fileCollections")))
+    testImplementation(testFixtures(project(":base-services")))
+    testImplementation(testFixtures(project(":file-collections")))
     testImplementation(testFixtures(project(":messaging")))
     testImplementation(testFixtures(project(":snapshots")))
     testImplementation(testFixtures(project(":core")))
 
     testFixturesImplementation(libs.guava)
-    testFixturesImplementation(project(":baseServices"))
-    testFixturesImplementation(project(":buildCache"))
+    testFixturesImplementation(project(":base-services"))
+    testFixturesImplementation(project(":build-cache"))
     testFixturesImplementation(project(":snapshots"))
-    testFixturesImplementation(project(":modelCore"))
+    testFixturesImplementation(project(":model-core"))
 
-    integTestDistributionRuntimeOnly(project(":distributionsCore"))
+    integTestDistributionRuntimeOnly(project(":distributions-core"))
 }

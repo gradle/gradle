@@ -21,7 +21,7 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":baseAnnotations"))
+    implementation(project(":base-annotations"))
     implementation(project(":hashing"))
     implementation(project(":files"))
     implementation(project(":snapshots"))
@@ -31,6 +31,6 @@ dependencies {
     implementation(libs.slf4jApi)
     implementation(libs.commonsIo)
 
-    testImplementation(project(":baseServices"))
-    testImplementation(project(":internalTesting"))
+    testImplementation(project(":base-services"))
+    testImplementation(project(":internal-testing"))
 }

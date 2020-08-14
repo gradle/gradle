@@ -56,9 +56,9 @@ testFixturesRuntimeElements.extendsFrom(testFixturesRuntimeOnly)
 
 dependencies {
     if (project.name != "test") { // do not attempt to find projects during script compilation
-        testFixturesApi(project(":internalTesting"))
+        testFixturesApi(project(":internal-testing"))
         // platform
-        testFixturesImplementation(platform(project(":distributionsDependencies")))
+        testFixturesImplementation(platform(project(":distributions-dependencies")))
     }
 
     // add a set of default dependencies for fixture implementation

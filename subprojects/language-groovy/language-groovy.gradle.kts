@@ -3,20 +3,20 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":baseServices"))
+    implementation(project(":base-services"))
     implementation(project(":logging"))
-    implementation(project(":processServices"))
-    implementation(project(":workerProcesses"))
-    implementation(project(":fileCollections"))
-    implementation(project(":coreApi"))
-    implementation(project(":modelCore"))
+    implementation(project(":process-services"))
+    implementation(project(":worker-processes"))
+    implementation(project(":file-collections"))
+    implementation(project(":core-api"))
+    implementation(project(":model-core"))
     implementation(project(":core"))
-    implementation(project(":jvmServices"))
+    implementation(project(":jvm-services"))
     implementation(project(":workers"))
-    implementation(project(":platformBase"))
-    implementation(project(":platformJvm"))
-    implementation(project(":languageJvm"))
-    implementation(project(":languageJava"))
+    implementation(project(":platform-base"))
+    implementation(project(":platform-jvm"))
+    implementation(project(":language-jvm"))
+    implementation(project(":language-java"))
     implementation(project(":files"))
 
     implementation(libs.slf4jApi)
@@ -25,21 +25,21 @@ dependencies {
     implementation(libs.asm)
     implementation(libs.inject)
 
-    testImplementation(project(":baseServicesGroovy"))
-    testImplementation(project(":internalTesting"))
+    testImplementation(project(":base-services-groovy"))
+    testImplementation(project(":internal-testing"))
     testImplementation(project(":resources"))
     testImplementation(testFixtures(project(":core")))
 
-    testFixturesApi(testFixtures(project(":languageJvm")))
+    testFixturesApi(testFixtures(project(":language-jvm")))
     testFixturesImplementation(project(":core"))
-    testFixturesImplementation(project(":baseServices"))
+    testFixturesImplementation(project(":base-services"))
 
     integTestImplementation(libs.commonsLang)
 
-    testRuntimeOnly(project(":distributionsCore")) {
+    testRuntimeOnly(project(":distributions-core")) {
         because("Tests instantiate DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")
     }
-    integTestDistributionRuntimeOnly(project(":distributionsCore"))
+    integTestDistributionRuntimeOnly(project(":distributions-core"))
 }
 
 classycle {

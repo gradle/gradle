@@ -5,7 +5,7 @@ plugins {
 description = "A set of general-purpose resource abstractions"
 
 dependencies {
-    implementation(project(":baseServices"))
+    implementation(project(":base-services"))
     implementation(project(":files"))
     implementation(project(":messaging"))
     implementation(project(":native"))
@@ -14,12 +14,12 @@ dependencies {
     implementation(libs.guava)
     implementation(libs.commonsIo)
 
-    testImplementation(project(":processServices"))
-    testImplementation(project(":coreApi"))
-    testImplementation(project(":fileCollections"))
+    testImplementation(project(":process-services"))
+    testImplementation(project(":core-api"))
+    testImplementation(project(":file-collections"))
     testImplementation(project(":snapshots"))
 
     testImplementation(testFixtures(project(":core")))
 
-    integTestDistributionRuntimeOnly(project(":distributionsCore"))
+    integTestDistributionRuntimeOnly(project(":distributions-core"))
 }

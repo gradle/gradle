@@ -23,6 +23,6 @@ description = "Build operations are our way to inspect the process of executing 
 gradlebuildJava.usedInWorkers()
 
 dependencies {
-    implementation(project(":baseAnnotations"))
+    implementation(project(":base-annotations"))
     implementation(libs.slf4jApi)
 }

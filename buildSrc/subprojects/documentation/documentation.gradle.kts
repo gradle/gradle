@@ -1,6 +1,6 @@
 dependencies {
     implementation(project(":basics"))
-    implementation(project(":moduleIdentity"))
+    implementation(project(":module-identity"))
 
     implementation("com.github.javaparser:javaparser-core")
     implementation("com.google.guava:guava")

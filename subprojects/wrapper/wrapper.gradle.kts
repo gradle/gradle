@@ -24,26 +24,26 @@ gradlebuildJava.usedInWorkers()
 dependencies {
     implementation(project(":cli"))
 
-    testImplementation(project(":baseServices"))
+    testImplementation(project(":base-services"))
     testImplementation(project(":native"))
     testImplementation(libs.ant)
     testImplementation(testFixtures(project(":core")))
 
     integTestImplementation(project(":logging"))
-    integTestImplementation(project(":coreApi"))
+    integTestImplementation(project(":core-api"))
     integTestImplementation(libs.commonsIo)
     integTestImplementation(libs.littleproxy)
     integTestImplementation(libs.jetty)
 
     crossVersionTestImplementation(project(":logging"))
-    crossVersionTestImplementation(project(":persistentCache"))
+    crossVersionTestImplementation(project(":persistent-cache"))
     crossVersionTestImplementation(project(":launcher"))
 
-    integTestNormalizedDistribution(project(":distributionsFull"))
-    crossVersionTestNormalizedDistribution(project(":distributionsFull"))
+    integTestNormalizedDistribution(project(":distributions-full"))
+    crossVersionTestNormalizedDistribution(project(":distributions-full"))
 
-    integTestDistributionRuntimeOnly(project(":distributionsFull"))
-    crossVersionTestDistributionRuntimeOnly(project(":distributionsFull"))
+    integTestDistributionRuntimeOnly(project(":distributions-full"))
+    crossVersionTestDistributionRuntimeOnly(project(":distributions-full"))
 }
 
 val executableJar by tasks.registering(Jar::class) {
