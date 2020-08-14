@@ -24,6 +24,7 @@ import org.gradle.instantexecution.problems.DocumentationSection.RequirementsDis
 import org.gradle.instantexecution.problems.PropertyProblem
 import org.gradle.instantexecution.problems.StructuredMessage
 import org.gradle.instantexecution.problems.StructuredMessage.Companion.build
+import org.gradle.instantexecution.problems.propertyDescriptionFor
 
 import kotlin.reflect.KClass
 
@@ -104,7 +105,7 @@ fun IsolateContext.logPropertyProblem(documentationSection: DocumentationSection
 
 private
 fun IsolateContext.logPropertyProblem(action: String, problem: PropertyProblem) {
-    logger.debug("configuration-cache > failed to {} {} because {}", action, problem.trace, problem.message)
+    logger.debug("configuration-cache > failed to {} {} because {}", action, propertyDescriptionFor(problem.trace), problem.message)
     onProblem(problem)
 }
 
