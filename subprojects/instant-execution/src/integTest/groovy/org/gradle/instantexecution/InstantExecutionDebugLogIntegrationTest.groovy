@@ -43,6 +43,10 @@ class InstantExecutionDebugLogIntegrationTest extends AbstractInstantExecutionIn
         events.contains([category: "fingerprint", type: "O", "frame": GradleEnvironment.name])
         events.contains([category: "fingerprint", type: "C", "frame": GradleEnvironment.name])
 
+        and: "Gradle and Work Graph events are logged"
+        events.contains([category: "state", type: "O", frame: "Gradle"])
+        events.contains([category: "state", type: "O", frame: "Work Graph"])
+
         and: "state frame events are logged"
         events.contains([category: "state", type: "O", frame: ":ok"])
         events.contains([category: "state", type: "C", frame: ":ok"])

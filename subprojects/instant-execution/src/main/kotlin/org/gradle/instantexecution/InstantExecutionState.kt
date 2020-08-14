@@ -69,15 +69,19 @@ class InstantExecutionState(
     private
     suspend fun DefaultWriteContext.encodeScheduledWork() {
         val build = host.currentBuild
-        writeString(build.rootProject.name)
 
-        writeGradleState(build.gradle)
+        withDebugFrame({ "Gradle" }) {
+            writeString(build.rootProject.name)
+            writeGradleState(build.gradle)
+        }
 
-        val scheduledNodes = build.scheduledWork
-        writeRelevantProjectsFor(scheduledNodes, relevantProjectsRegistry)
+        withDebugFrame({ "Work Graph" }) {
+            val scheduledNodes = build.scheduledWork
+            writeRelevantProjectsFor(scheduledNodes, relevantProjectsRegistry)
 
-        WorkNodeCodec(build.gradle, internalTypesCodec).run {
-            writeWork(scheduledNodes)
+            WorkNodeCodec(build.gradle, internalTypesCodec).run {
+                writeWork(scheduledNodes)
+            }
         }
     }
 
@@ -103,14 +107,20 @@ class InstantExecutionState(
 
     private
     suspend fun DefaultWriteContext.writeGradleState(gradle: GradleInternal) {
-        withDebugFrame({ "Gradle" }) {
-            withGradleIsolate(gradle, userTypesCodec) {
+        withGradleIsolate(gradle, userTypesCodec) {
+            withDebugFrame({ "included builds" }) {
                 writeChildBuilds(gradle)
-                writeBuildCacheConfiguration(gradle)
-                writeBuildEventListenerSubscriptions()
-                writeBuildOutputCleanupRegistrations()
-                writeGradleEnterprisePluginManager()
             }
+            withDebugFrame({ "build cache" }) {
+                writeBuildCacheConfiguration(gradle)
+            }
+            withDebugFrame({ "listener subscriptions" }) {
+                writeBuildEventListenerSubscriptions()
+            }
+            withDebugFrame({ "cleanup registrations" }) {
+                writeBuildOutputCleanupRegistrations()
+            }
+            writeGradleEnterprisePluginManager()
         }
     }
 
