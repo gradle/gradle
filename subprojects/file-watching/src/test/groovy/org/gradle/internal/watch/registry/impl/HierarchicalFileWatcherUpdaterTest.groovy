@@ -23,6 +23,7 @@ import org.gradle.internal.watch.registry.FileWatcherUpdater
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import spock.lang.Ignore
 
 import java.nio.file.Paths
 import java.util.function.Predicate
@@ -182,6 +183,7 @@ class HierarchicalFileWatcherUpdaterTest extends AbstractFileWatcherUpdaterTest 
         0 * _
     }
 
+    @Ignore
     def "starts watching hierarchy to watch which was beneath another hierarchy to watch"() {
         def firstDir = file("first").createDir()
         def secondDir = file("second").createDir()
