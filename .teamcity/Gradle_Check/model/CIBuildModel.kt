@@ -180,7 +180,7 @@ interface BuildTypeBucket {
 
 data class GradleSubproject(val name: String, val unitTests: Boolean = true, val functionalTests: Boolean = true, val crossVersionTests: Boolean = false, val containsSlowTests: Boolean = false) : BuildTypeBucket {
     override fun createFunctionalTestsFor(model: CIBuildModel, stage: Stage, testCoverage: TestCoverage, bucketIndex: Int): FunctionalTest {
-        val uuid = if (containsSlowTests) testCoverage.asConfigurationId(model, name).kebabCaseToCamelCase() else getUuid(model, testCoverage, bucketIndex)
+        val uuid = if (containsSlowTests) testCoverage.asConfigurationId(model, name.kebabCaseToCamelCase()) else getUuid(model, testCoverage, bucketIndex)
         return FunctionalTest(model,
             uuid,
             getName(testCoverage),
