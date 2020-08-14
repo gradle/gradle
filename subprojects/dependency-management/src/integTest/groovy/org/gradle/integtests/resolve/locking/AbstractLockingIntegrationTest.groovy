@@ -682,4 +682,99 @@ dependencies {
         'failOnChangingVersions'          | 'changing'
         'failOnNonReproducibleResolution' | 'dynamic'
     }
+
+    @ToBeFixedForConfigurationCache
+    @Unroll
+    def "does not write ignored dependencies to lock file (notation #notation, unique #unique)"() {
+        mavenRepo.module('org', 'foo', '1.0').publish()
+        mavenRepo.module('org', 'bar', '1.0').publish()
+
+        if (unique) {
+            FeaturePreviewsFixture.enableOneLockfilePerProject(settingsFile)
+        }
+        buildFile << """
+dependencyLocking {
+    lockAllConfigurations()
+    lockMode = LockMode.${lockMode()}
+    ignoredDependencies.add('$notation')
+}
+
+repositories {
+    maven {
+        name 'repo'
+        url '${mavenRepo.uri}'
+    }
+}
+configurations {
+    lockedConf
+}
+
+dependencies {
+    lockedConf 'org:foo:1.+'
+    lockedConf 'org:bar:1.+'
+}
+"""
+
+        when:
+        succeeds'dependencies', '--write-locks', '--refresh-dependencies'
+
+        then:
+        lockfileFixture.verifyLockfile('lockedConf', ['org:bar:1.0'], unique)
+
+        where:
+        unique  | notation
+        true    | 'org:foo'
+        false   | '*:foo'
+        true    | 'or*:f*'
+    }
+
+    @ToBeFixedForConfigurationCache
+    @Unroll
+    def 'updates part of the lockfile, with ignored dependencies (unique: #unique)'() {
+        mavenRepo.module('org', 'foo', '1.0').publish()
+        mavenRepo.module('org', 'foo', '1.1').publish()
+        mavenRepo.module('org', 'bar', '1.0').publish()
+        mavenRepo.module('org', 'bar', '1.1').publish()
+        mavenRepo.module('org', 'baz', '1.0').publish()
+        mavenRepo.module('org', 'baz', '1.1').publish()
+
+        lockfileFixture.createLockfile('lockedConf', ['org:foo:1.0', 'org:bar:1.0'], unique)
+
+        if (unique) {
+            FeaturePreviewsFixture.enableOneLockfilePerProject(settingsFile)
+        }
+        buildFile << """
+dependencyLocking {
+    lockAllConfigurations()
+    lockMode = LockMode.${lockMode()}
+    ignoredDependencies.add('org:baz')
+}
+
+repositories {
+    maven {
+        name 'repo'
+        url '${mavenRepo.uri}'
+    }
+}
+configurations {
+    lockedConf
+}
+
+dependencies {
+    lockedConf 'org:foo:[1.0,2.0)'
+    lockedConf 'org:bar:[1.0,2.0)'
+    lockedConf 'org:baz:[1.0,2.0)'
+}
+"""
+
+        when:
+        succeeds 'dependencies', '--update-locks', 'org:foo'
+
+        then:
+        lockfileFixture.verifyLockfile('lockedConf', ['org:foo:1.1', 'org:bar:1.0'], unique)
+
+        where:
+        unique << [true, false]
+    }
+
 }
