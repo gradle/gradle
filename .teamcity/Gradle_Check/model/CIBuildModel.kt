@@ -180,7 +180,7 @@ interface BuildTypeBucket {
 
 data class GradleSubproject(val name: String, val unitTests: Boolean = true, val functionalTests: Boolean = true, val crossVersionTests: Boolean = false, val containsSlowTests: Boolean = false) : BuildTypeBucket {
     override fun createFunctionalTestsFor(model: CIBuildModel, stage: Stage, testCoverage: TestCoverage, bucketIndex: Int): FunctionalTest {
-        val uuid = if (containsSlowTests) testCoverage.asConfigurationId(model, name) else getUuid(model, testCoverage, bucketIndex)
+        val uuid = if (containsSlowTests) testCoverage.asConfigurationId(model, name).kebabCaseToCamelCase() else getUuid(model, testCoverage, bucketIndex)
         return FunctionalTest(model,
             uuid,
             getName(testCoverage),
@@ -191,6 +191,13 @@ data class GradleSubproject(val name: String, val unitTests: Boolean = true, val
             listOf(name)
         )
     }
+
+    // Build Template or Configuration "Gradle_Check_Platform_4_platform-play" is invalid: contains unsupported character '-'. ID should start with a latin letter
+    // and contain only latin letters, digits and underscores (at most 225 characters).
+    private fun String.kebabCaseToCamelCase() = split('-')
+        .map { it.capitalize() }
+        .joinToString("")
+        .decapitalize()
 
     override fun getName(testCoverage: TestCoverage): String = "${testCoverage.asName()} ($name)"
 
