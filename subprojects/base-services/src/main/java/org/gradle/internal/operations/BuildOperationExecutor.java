@@ -32,7 +32,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * </ul>
  */
 @ThreadSafe
-public interface BuildOperationExecutor {
+public interface BuildOperationExecutor extends BuildOperationRunner {
     /**
      * Runs the given build operation synchronously. Invokes the given operation from the current thread.
      *

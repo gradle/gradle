@@ -51,5 +51,5 @@ public interface BuildOperationRunner {
     /**
      * Executes the given build operation with the given worker, returns the result.
      */
-    <O extends BuildOperation> void execute(final O buildOperation, final BuildOperationWorker<O> worker, @Nullable BuildOperationState defaultParent);
+    <O extends BuildOperation> void execute(O buildOperation, BuildOperationWorker<O> worker, @Nullable BuildOperationState defaultParent);
 }

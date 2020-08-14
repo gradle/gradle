@@ -39,8 +39,8 @@ public class UnmanagedBuildOperationWrapper {
         this.currentBuildOperationRef = currentBuildOperationRef;
     }
 
-    public void runWithUnmanagedSupport(Consumer<BuildOperationState> work) {
-        BuildOperationState parent = maybeStartUnmanagedThreadOperation();
+    public void runWithUnmanagedSupport(@Nullable BuildOperationState defaultParent, Consumer<BuildOperationState> work) {
+        BuildOperationState parent = maybeStartUnmanagedThreadOperation(defaultParent);
         try {
             work.accept(parent);
         } finally {
@@ -48,8 +48,8 @@ public class UnmanagedBuildOperationWrapper {
         }
     }
 
-    public <T> T callWithUnmanagedSupport(Function<BuildOperationState, T> work) {
-        BuildOperationState parent = maybeStartUnmanagedThreadOperation();
+    public <T> T callWithUnmanagedSupport(@Nullable BuildOperationState defaultParent, Function<BuildOperationState, T> work) {
+        BuildOperationState parent = maybeStartUnmanagedThreadOperation(defaultParent);
         try {
             return work.apply(parent);
         } finally {
@@ -58,16 +58,15 @@ public class UnmanagedBuildOperationWrapper {
     }
 
     @Nullable
-    private BuildOperationState maybeStartUnmanagedThreadOperation() {
-        BuildOperationState current = (BuildOperationState) currentBuildOperationRef.get();
-        if (current == null && !GradleThread.isManaged()) {
+    private BuildOperationState maybeStartUnmanagedThreadOperation(@Nullable BuildOperationState parent) {
+        if (parent == null && !GradleThread.isManaged()) {
             BuildOperationState unmanaged = UnmanagedThreadOperation.create(clock.getCurrentTime());
             unmanaged.setRunning(true);
             currentBuildOperationRef.set(unmanaged);
             listener.started(unmanaged.getDescription(), new OperationStartEvent(unmanaged.getStartTime()));
             return unmanaged;
         } else {
-            return current;
+            return parent;
         }
     }
 

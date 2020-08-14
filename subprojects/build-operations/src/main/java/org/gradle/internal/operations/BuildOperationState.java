@@ -19,7 +19,7 @@ package org.gradle.internal.operations;
 import java.io.ObjectStreamException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-class BuildOperationState implements BuildOperationRef {
+public class BuildOperationState implements BuildOperationRef {
     private final BuildOperationDescriptor description;
     private final AtomicBoolean running = new AtomicBoolean();
     private final long startTime;

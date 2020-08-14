@@ -73,12 +73,17 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
 
     @Override
     public void run(RunnableBuildOperation buildOperation) {
-        wrapper.runWithUnmanagedSupport(parent -> runner.run(buildOperation));
+        wrapper.runWithUnmanagedSupport(getCurrentBuildOperation(), parent -> runner.run(buildOperation));
     }
 
     @Override
     public <T> T call(CallableBuildOperation<T> buildOperation) {
-        return wrapper.callWithUnmanagedSupport(parent -> runner.call(buildOperation));
+        return wrapper.callWithUnmanagedSupport(getCurrentBuildOperation(), parent -> runner.call(buildOperation));
+    }
+
+    @Override
+    public <O extends BuildOperation> void execute(O buildOperation, BuildOperationWorker<O> worker, @Nullable BuildOperationState defaultParent) {
+        wrapper.runWithUnmanagedSupport(defaultParent, parent -> runner.execute(buildOperation, worker, parent));
     }
 
     @Override
@@ -97,12 +102,12 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
 
     @Override
     public <O extends RunnableBuildOperation> void runAll(Action<BuildOperationQueue<O>> schedulingAction) {
-        wrapper.runWithUnmanagedSupport(parent -> executeInParallel(new QueueWorker<>(parent, RunnableBuildOperation::run), schedulingAction));
+        wrapper.runWithUnmanagedSupport(getCurrentBuildOperation(), parent -> executeInParallel(new QueueWorker<>(parent, RunnableBuildOperation::run), schedulingAction));
     }
 
     @Override
     public <O extends BuildOperation> void runAll(BuildOperationWorker<O> worker, Action<BuildOperationQueue<O>> schedulingAction) {
-        wrapper.runWithUnmanagedSupport(parent -> executeInParallel(new QueueWorker<>(parent, worker), schedulingAction));
+        wrapper.runWithUnmanagedSupport(getCurrentBuildOperation(), parent -> executeInParallel(new QueueWorker<>(parent, worker), schedulingAction));
     }
 
     @Nullable
