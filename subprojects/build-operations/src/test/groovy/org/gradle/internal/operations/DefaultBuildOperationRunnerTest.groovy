@@ -16,6 +16,7 @@
 
 package org.gradle.internal.operations
 
+
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -232,13 +233,33 @@ class DefaultBuildOperationRunnerTest extends Specification {
         e.message == 'Parent operation (parent) completed before this operation (child).'
     }
 
+    def "can query operation id from inside operation"() {
+        expect:
+        operationRunner.run(runnableBuildOperation("parent") {
+            assert currentOperation.id != null
+            assert currentOperation.parentId == null
+            assert currentOperation.description.displayName == "parent"
+            def parentId = currentOperation.id
+
+            operationRunner.run(runnableBuildOperation("child") {
+                assert currentOperation.id != null
+                assert currentOperation.parentId == parentId
+                assert currentOperation.description.displayName == "child"
+            })
+        })
+    }
+
+    private BuildOperationState getCurrentOperation() {
+        currentBuildOperationRef.get() as BuildOperationState
+    }
+
     private static BuildOperationState operation(String description) {
         def operation = new BuildOperationState(displayName(description).build(), 100L)
         operation.running = true
         return operation
     }
 
-    private static runnableBuildOperation(String name, Runnable action) {
+    private static runnableBuildOperation(String name, Runnable action = {}) {
         new RunnableBuildOperation() {
             void run(BuildOperationContext context) {
                 action.run()
