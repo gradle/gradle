@@ -20,6 +20,7 @@ dependencies {
     implementation(project(":diagnostics"))
     implementation(project(":normalization-java"))
     implementation(project(":resources"))
+    implementation(project(":jvm-services"))
     implementation(project(":persistent-cache"))
     implementation(project(":native"))
 
