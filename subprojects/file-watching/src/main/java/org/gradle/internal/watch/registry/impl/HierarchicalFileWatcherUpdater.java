@@ -120,11 +120,10 @@ public class HierarchicalFileWatcherUpdater implements FileWatcherUpdater {
     }
 
     private void determineAndUpdateWatchedHierarchies(SnapshotHierarchy root) {
-        Set<String> snapshotsAlreadyCoveredByOtherHierarchies = new HashSet<>();
         Set<Path> hierarchiesWithSnapshots = Stream.concat(watchableHierarchiesFromCurrentBuild.stream(), watchedHierarchiesFromPreviousBuild.stream())
             .flatMap(watchableHierarchy -> {
                 CheckIfNonEmptySnapshotVisitor checkIfNonEmptySnapshotVisitor = new CheckIfNonEmptySnapshotVisitor(watchableHierarchies);
-                root.visitSnapshotRoots(watchableHierarchy.toString(), new FilterAlreadyCoveredSnapshotsVisitor(checkIfNonEmptySnapshotVisitor, snapshotsAlreadyCoveredByOtherHierarchies));
+                root.visitSnapshotRoots(watchableHierarchy.toString(), checkIfNonEmptySnapshotVisitor);
                 if (checkIfNonEmptySnapshotVisitor.isEmpty()) {
                     return Stream.empty();
                 }
@@ -201,22 +200,5 @@ public class HierarchicalFileWatcherUpdater implements FileWatcherUpdater {
         FileSystemLocationToWatchValidator NO_VALIDATION = location -> {};
 
         void validateLocationToWatch(File location);
-    }
-
-    private static class FilterAlreadyCoveredSnapshotsVisitor implements SnapshotHierarchy.SnapshotVisitor {
-        private final SnapshotHierarchy.SnapshotVisitor delegate;
-        private final Set<String> alreadyCoveredSnapshots;
-
-        public FilterAlreadyCoveredSnapshotsVisitor(SnapshotHierarchy.SnapshotVisitor delegate, Set<String> alreadyCoveredSnapshots) {
-            this.delegate = delegate;
-            this.alreadyCoveredSnapshots = alreadyCoveredSnapshots;
-        }
-
-        @Override
-        public void visitSnapshotRoot(CompleteFileSystemLocationSnapshot snapshot) {
-            if (alreadyCoveredSnapshots.add(snapshot.getAbsolutePath())) {
-                delegate.visitSnapshotRoot(snapshot);
-            }
-        }
     }
 }
