@@ -25,20 +25,22 @@ import java.io.File;
 
 public class JavaToolchainFactory {
 
-    private FileFactory fileFactory;
-    private JavaInstallationRegistry installationRegistry;
-    private JavaCompilerFactory compilerFactory;
+    private final FileFactory fileFactory;
+    private final JavaInstallationRegistry installationRegistry;
+    private final JavaCompilerFactory compilerFactory;
+    private final ToolchainToolFactory toolFactory;
 
     @Inject
-    public JavaToolchainFactory(FileFactory fileFactory, JavaInstallationRegistry installationRegistry, JavaCompilerFactory compilerFactory) {
+    public JavaToolchainFactory(FileFactory fileFactory, JavaInstallationRegistry installationRegistry, JavaCompilerFactory compilerFactory, ToolchainToolFactory toolFactory) {
         this.fileFactory = fileFactory;
         this.installationRegistry = installationRegistry;
         this.compilerFactory = compilerFactory;
+        this.toolFactory = toolFactory;
     }
 
     public JavaToolchain newInstance(File javaHome) {
         final JavaInstallation installation = installationRegistry.installationForDirectory(fileFactory.dir(javaHome)).get();
-        return new JavaToolchain(installation, compilerFactory);
+        return new JavaToolchain(installation, compilerFactory, toolFactory);
     }
 
 }

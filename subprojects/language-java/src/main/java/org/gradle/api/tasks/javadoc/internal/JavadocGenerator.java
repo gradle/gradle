@@ -20,7 +20,6 @@ import org.gradle.api.GradleException;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.WorkResults;
 import org.gradle.external.javadoc.internal.JavadocExecHandleBuilder;
-import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.process.internal.ExecAction;
 import org.gradle.process.internal.ExecActionFactory;
 import org.gradle.process.internal.ExecException;
@@ -28,7 +27,7 @@ import org.gradle.util.GFileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class JavadocGenerator implements Compiler<JavadocSpec> {
+public class JavadocGenerator {
 
     private final static Logger LOG = LoggerFactory.getLogger(JavadocGenerator.class);
 
@@ -38,7 +37,6 @@ public class JavadocGenerator implements Compiler<JavadocSpec> {
         this.execActionFactory = execActionFactory;
     }
 
-    @Override
     public WorkResult execute(JavadocSpec spec) {
         JavadocExecHandleBuilder javadocExecHandleBuilder = new JavadocExecHandleBuilder(execActionFactory);
         javadocExecHandleBuilder.setExecutable(spec.getExecutable());

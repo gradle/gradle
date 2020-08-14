@@ -26,6 +26,7 @@ import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorDetec
 import org.gradle.api.internal.tasks.compile.tooling.JavaCompileTaskSuccessResultPostProcessor;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.api.logging.configuration.ShowStacktrace;
+import org.gradle.api.tasks.javadoc.internal.JavadocToolAdapter;
 import org.gradle.cache.internal.FileContentCacheFactory;
 import org.gradle.internal.build.event.OperationResultPostProcessorFactory;
 import org.gradle.internal.hash.FileHasher;
@@ -35,7 +36,11 @@ import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
 import org.gradle.internal.vfs.FileSystemAccess;
 import org.gradle.jvm.JvmLibrary;
+import org.gradle.jvm.toolchain.JavadocTool;
+import org.gradle.jvm.toolchain.internal.JavaToolchain;
+import org.gradle.jvm.toolchain.internal.ToolchainToolFactory;
 import org.gradle.language.java.artifact.JavadocArtifact;
+import org.gradle.process.internal.ExecActionFactory;
 import org.gradle.tooling.events.OperationType;
 import org.slf4j.LoggerFactory;
 
@@ -81,6 +86,18 @@ public class JavaLanguagePluginServiceRegistry extends AbstractPluginServiceRegi
     private static class JavaProjectScopeServices {
         public IncrementalCompilerFactory createIncrementalCompilerFactory(FileOperations fileOperations, StreamHasher streamHasher, GeneralCompileCaches compileCaches, BuildOperationExecutor buildOperationExecutor, StringInterner interner, FileSystemAccess fileSystemAccess, FileHasher fileHasher) {
             return new IncrementalCompilerFactory(fileOperations, streamHasher, compileCaches, buildOperationExecutor, interner, fileSystemAccess, fileHasher);
+        }
+
+        public ToolchainToolFactory createToolFactory(ExecActionFactory generator) {
+            return new ToolchainToolFactory() {
+                @Override
+                public <T> T create(Class<T> toolType, JavaToolchain toolchain) {
+                    if (toolType == JavadocTool.class) {
+                        return toolType.cast(new JavadocToolAdapter(generator, toolchain));
+                    }
+                    return null;
+                }
+            };
         }
     }
 }
