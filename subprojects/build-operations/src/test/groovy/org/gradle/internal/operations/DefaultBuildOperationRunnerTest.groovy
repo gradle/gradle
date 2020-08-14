@@ -32,6 +32,10 @@ class DefaultBuildOperationRunnerTest extends Specification {
     def currentBuildOperationRef = CurrentBuildOperationRef.instance()
     def operationRunner = new DefaultBuildOperationRunner(currentBuildOperationRef, timeProvider, new DefaultBuildOperationIdFactory(), { listener })
 
+    def setup() {
+        currentBuildOperationRef.clear()
+    }
+
     def "fires events when wrap-around operation starts and finishes successfully with '#defaultParent' parent"() {
         setup:
         def buildOperation = Mock(BuildOperation)
@@ -59,7 +63,7 @@ class DefaultBuildOperationRunnerTest extends Specification {
         }
 
         then:
-        1 * worker.execute(buildOperation, _) >> { BuildOperation _, BuildOperationContext context ->
+        1 * worker.execute(buildOperation, _) >> { BuildOperation operation, BuildOperationContext context ->
             context.result = "result"
             context.status = "status"
         }
@@ -154,7 +158,7 @@ class DefaultBuildOperationRunnerTest extends Specification {
         }
 
         then:
-        1 * worker.execute(buildOperation, _) >> { BuildOperation _, BuildOperationContext context ->
+        1 * worker.execute(buildOperation, _) >> { BuildOperation operation, BuildOperationContext context ->
             context.status = "status"
             fail.call(context, expectedException)
         }
