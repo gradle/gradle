@@ -16,49 +16,18 @@
 package gradlebuild
 
 import gradlebuild.basics.BuildEnvironment
-import gradlebuild.cleanup.extension.CleanupExtension
-import gradlebuild.cleanup.services.DaemonTracker
-import gradlebuild.cleanup.tasks.CleanUpCaches
-import gradlebuild.cleanup.tasks.CleanUpDaemons
-import gradlebuild.cleanup.tasks.KillLeakingJavaProcesses
 
 plugins {
     base
-    id("gradlebuild.module-identity") // Would be good to avoid this in the root project, and instead apply a 'clean' Plugin to each subproject
 }
 
-tasks.register<CleanUpCaches>("cleanUpCaches") {
-    version.set(moduleIdentity.version)
-    homeDir.set(layout.projectDirectory.dir("intTestHomeDir"))
-}
-val trackerService = gradle.sharedServices.registerIfAbsent("daemonTracker", DaemonTracker::class) {
-    parameters.gradleHomeDir.fileValue(gradle.gradleHomeDir)
-    parameters.rootProjectDir.set(rootProject.layout.projectDirectory)
-}
-extensions.create<CleanupExtension>("cleanup", trackerService)
-tasks.register<CleanUpDaemons>("cleanUpDaemons") {
-    this.tracker.set(trackerService)
-}
-
-val killExistingProcessesStartedByGradle by tasks.registering(KillLeakingJavaProcesses::class) {
-    tracker.set(trackerService)
-}
-
-// TODO find another solution here to avoid reaching into another project. Maybe the CI job should do 'killExistingProcessesStartedByGradle' first directly.
 if (BuildEnvironment.isCiServer) {
-    tasks {
-        val cleanTask = named("clean") {
-            dependsOn(killExistingProcessesStartedByGradle)
-        }
-        subprojects {
-            this.tasks.configureEach {
-                mustRunAfter(killExistingProcessesStartedByGradle)
+    val rootCleanTask = rootProject.tasks.named("clean")
 
-                // Workaround for https://github.com/gradle/gradle/issues/2488
-                if (name != "clean") {
-                    mustRunAfter(cleanTask)
-                }
-            }
+    tasks.configureEach {
+        // Workaround for https://github.com/gradle/gradle/issues/2488
+        if (name != "clean") {
+            mustRunAfter(rootCleanTask)
         }
     }
 }
