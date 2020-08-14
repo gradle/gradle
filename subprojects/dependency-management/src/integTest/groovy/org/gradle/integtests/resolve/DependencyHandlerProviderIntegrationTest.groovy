@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import spock.lang.Ignore
+import spock.lang.Issue
 
 /**
  * Tests covering the use of {@link org.gradle.api.provider.Provider} as an argument in the
@@ -202,5 +203,29 @@ class DependencyHandlerProviderIntegrationTest extends AbstractHttpDependencyRes
         then:
         failure.assertHasCause """Cannot convert the provided notation to an object of type Dependency: 42.
 The following types/formats are supported:"""
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/13977")
+    def "fails with reasonable error message if a Configuration is provided"() {
+        buildFile << """
+        configurations {
+           conf
+           other
+        }
+
+        def lazyDep = provider {
+            configurations.other
+        }
+
+        dependencies {
+            conf lazyDep
+        }
+        """
+
+        when:
+        fails ":checkDeps"
+
+        then:
+        failure.assertHasCause "Adding a configuration as a dependency using a provider isn't supported. You should call conf.extendsFrom(other) instead"
     }
 }

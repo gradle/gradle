@@ -18,6 +18,8 @@ package org.gradle.api.internal.artifacts.dsl.dependencies;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
+import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Dependency;
@@ -40,13 +42,13 @@ import org.gradle.api.internal.artifacts.VariantTransformRegistry;
 import org.gradle.api.internal.artifacts.query.ArtifactResolutionQueryFactory;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.api.provider.Provider;
-import org.gradle.internal.component.external.model.ProjectTestFixtures;
 import org.gradle.internal.Factory;
 import org.gradle.internal.component.external.model.ImmutableCapability;
+import org.gradle.internal.component.external.model.ProjectTestFixtures;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.metaobject.MethodAccess;
 import org.gradle.internal.metaobject.MethodMixIn;
 import org.gradle.util.ConfigureUtil;
-import org.gradle.internal.deprecation.DeprecationLogger;
 
 import javax.annotation.Nullable;
 import java.util.Map;
@@ -123,6 +125,11 @@ public abstract class DefaultDependencyHandler implements DependencyHandler, Met
     @SuppressWarnings("rawtypes")
     private Dependency doAdd(Configuration configuration, Object dependencyNotation, @Nullable Closure configureClosure) {
         if (dependencyNotation instanceof Configuration) {
+            DeprecationLogger.deprecateBehaviour("Adding a Configuration as a dependency is a confusing behavior which isn't recommended.")
+                .withAdvice("You should use Configuration#extendsFrom instead.")
+                .willBeRemovedInGradle8()
+                .withDslReference(Configuration.class, "extendsFrom(org.gradle.api.artifacts.Configuration[])")
+                .nagUser();
             return doAddConfiguration(configuration, (Configuration) dependencyNotation);
         }
         if (dependencyNotation instanceof Provider<?>) {
@@ -139,10 +146,19 @@ public abstract class DefaultDependencyHandler implements DependencyHandler, Met
     }
 
     private Dependency doAddProvider(Configuration configuration, Provider<?> dependencyNotation, Closure<?> configureClosure) {
-        Provider<Dependency> lazyDependency = dependencyNotation.map(lazyNotation -> create(lazyNotation, configureClosure));
+        Provider<Dependency> lazyDependency = dependencyNotation.map(mapDependencyProvider(configuration, configureClosure));
         configuration.getDependencies().addLater(lazyDependency);
         // Return null here because we don't want to prematurely realize the dependency
         return null;
+    }
+
+    private <T> Transformer<Dependency, T> mapDependencyProvider(Configuration configuration, Closure<?> configureClosure) {
+        return lazyNotation -> {
+            if (lazyNotation instanceof Configuration) {
+                throw new InvalidUserDataException("Adding a configuration as a dependency using a provider isn't supported. You should call " + configuration.getName() + ".extendsFrom(" + ((Configuration) lazyNotation).getName() + ") instead");
+            }
+            return create(lazyNotation, configureClosure);
+        };
     }
 
     private Dependency doAddConfiguration(Configuration configuration, Configuration dependencyNotation) {
