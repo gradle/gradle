@@ -39,16 +39,7 @@ interface Codec<T> : EncodingProvider<T>, DecodingProvider<T>
 
 interface WriteContext : IsolateContext, MutableIsolateContext, Encoder {
 
-    enum class Category(val id: String) {
-        State("configuration cache state"),
-        Fingerprint("configuration cache fingerprint");
-
-        override fun toString(): String = id
-    }
-
-    val category: Category
-
-    val writePosition: Long
+    val tracer: Tracer?
 
     val sharedIdentities: WriteIdentities
 
@@ -59,6 +50,14 @@ interface WriteContext : IsolateContext, MutableIsolateContext, Encoder {
     suspend fun write(value: Any?)
 
     fun writeClass(type: Class<*>)
+}
+
+
+interface Tracer {
+
+    fun open(frame: String)
+
+    fun close(frame: String)
 }
 
 

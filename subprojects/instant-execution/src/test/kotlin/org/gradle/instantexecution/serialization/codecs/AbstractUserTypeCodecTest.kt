@@ -26,7 +26,6 @@ import org.gradle.instantexecution.serialization.DefaultReadContext
 import org.gradle.instantexecution.serialization.DefaultWriteContext
 import org.gradle.instantexecution.serialization.IsolateOwner
 import org.gradle.instantexecution.serialization.MutableIsolateContext
-import org.gradle.instantexecution.serialization.WriteContext
 import org.gradle.instantexecution.serialization.beans.BeanConstructors
 import org.gradle.instantexecution.serialization.runReadOperation
 import org.gradle.instantexecution.serialization.runWriteOperation
@@ -128,8 +127,7 @@ abstract class AbstractUserTypeCodecTest {
             encoder = encoder,
             scopeLookup = mock(),
             logger = mock(),
-            category = WriteContext.Category.State,
-            writePositionProvider = mock(),
+            tracer = null,
             problemsListener = problemHandler
         )
 

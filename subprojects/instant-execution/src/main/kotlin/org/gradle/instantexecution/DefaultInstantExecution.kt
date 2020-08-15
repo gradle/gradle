@@ -31,7 +31,8 @@ import org.gradle.instantexecution.serialization.DefaultReadContext
 import org.gradle.instantexecution.serialization.DefaultWriteContext
 import org.gradle.instantexecution.serialization.IsolateOwner
 import org.gradle.instantexecution.serialization.MutableIsolateContext
-import org.gradle.instantexecution.serialization.WriteContext
+import org.gradle.instantexecution.serialization.LoggingTracer
+import org.gradle.instantexecution.serialization.Tracer
 import org.gradle.instantexecution.serialization.beans.BeanConstructors
 import org.gradle.instantexecution.serialization.codecs.Codecs
 import org.gradle.instantexecution.serialization.runReadOperation
@@ -199,7 +200,7 @@ class DefaultInstantExecution internal constructor(
     private
     fun writeInstantExecutionState(stateFile: File) {
         service<ProjectStateRegistry>().withMutableStateOfAllProjects {
-            withWriteContextFor(stateFile, WriteContext.Category.State) {
+            withWriteContextFor(stateFile, "state") {
                 instantExecutionState().run {
                     writeState()
                 }
@@ -238,7 +239,7 @@ class DefaultInstantExecution internal constructor(
 
     private
     fun cacheFingerprintWriterContextFor(outputStream: OutputStream) =
-        writerContextFor(outputStream, WriteContext.Category.Fingerprint).apply {
+        writerContextFor(outputStream, "fingerprint").apply {
             push(IsolateOwner.OwnerHost(host), codecs().userTypesCodec)
         }
 
@@ -271,16 +272,20 @@ class DefaultInstantExecution internal constructor(
     }
 
     private
-    fun withWriteContextFor(file: File, category: WriteContext.Category, writeOperation: suspend DefaultWriteContext.() -> Unit) {
-        writerContextFor(file.outputStream(), category).useToRun {
+    fun withWriteContextFor(file: File, profile: String, writeOperation: suspend DefaultWriteContext.() -> Unit) {
+        writerContextFor(file.outputStream(), profile).useToRun {
             runWriteOperation(writeOperation)
         }
     }
 
     private
-    fun writerContextFor(outputStream: OutputStream, category: WriteContext.Category) =
+    fun writerContextFor(outputStream: OutputStream, profile: String) =
         KryoBackedEncoder(outputStream).let { encoder ->
-            writeContextFor(encoder, category, encoder::getWritePosition)
+            writeContextFor(
+                encoder,
+                if (logger.isDebugEnabled) LoggingTracer(profile, encoder::getWritePosition, logger)
+                else null
+            )
         }
 
     private
@@ -295,15 +300,13 @@ class DefaultInstantExecution internal constructor(
     private
     fun writeContextFor(
         encoder: Encoder,
-        category: WriteContext.Category,
-        writePositionProvider: () -> Long
+        tracer: Tracer?
     ) = DefaultWriteContext(
         codecs().userTypesCodec,
         encoder,
         scopeRegistryListener,
         logger,
-        category,
-        writePositionProvider,
+        tracer,
         problems
     )
 

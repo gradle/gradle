@@ -47,10 +47,7 @@ class DefaultWriteContext(
 
     override val logger: Logger,
 
-    override val category: WriteContext.Category,
-
-    private
-    val writePositionProvider: () -> Long,
+    override val tracer: Tracer?,
 
     private
     val problemsListener: ProblemsListener
@@ -147,9 +144,28 @@ class DefaultWriteContext(
     override fun onProblem(problem: PropertyProblem) {
         problemsListener.onProblem(problem)
     }
+}
 
-    override val writePosition: Long
-        get() = writePositionProvider()
+
+internal
+class LoggingTracer(
+    private val profile: String,
+    private val writePosition: () -> Long,
+    private val logger: Logger
+) : Tracer {
+
+    override fun open(frame: String) {
+        log(frame, 'O')
+    }
+
+    override fun close(frame: String) {
+        log(frame, 'C')
+    }
+
+    private
+    fun log(frame: String, openOrClose: Char) {
+        logger.debug("""{"profile":"$profile","type":"$openOrClose","frame":"$frame","at":${writePosition()}}""")
+    }
 }
 
 
