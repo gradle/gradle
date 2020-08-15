@@ -154,6 +154,10 @@ class LoggingTracer(
     private val logger: Logger
 ) : Tracer {
 
+    // Include a sequence number in the events so the order of events can be preserved in face of log output reordering
+    private
+    var nextSequenceNumber = 0L
+
     override fun open(frame: String) {
         log(frame, 'O')
     }
@@ -164,7 +168,14 @@ class LoggingTracer(
 
     private
     fun log(frame: String, openOrClose: Char) {
-        logger.debug("""{"profile":"$profile","type":"$openOrClose","frame":"$frame","at":${writePosition()}}""")
+        logger.debug(
+            """{"profile":"$profile","type":"$openOrClose","frame":"$frame","at":${writePosition()},"sn":${nextSequenceNumber()}}"""
+        )
+    }
+
+    private
+    fun nextSequenceNumber() = nextSequenceNumber.also {
+        nextSequenceNumber += 1
     }
 }
 

@@ -62,7 +62,7 @@ class InstantExecutionDebugLogIntegrationTest extends AbstractInstantExecutionIn
     }
 
     private Collection<Map<String, Object>> collectOutputEvents() {
-        def pattern = /[0-9:T.\-]+ \[DEBUG\] \[org.gradle.instantexecution.DefaultInstantExecution\] \{"profile":"(.*?)","type":"(O|C)","frame":"(.*?)","at":\d+\}/
+        def pattern = /[0-9:T.\-]+ \[DEBUG\] \[org.gradle.instantexecution.DefaultInstantExecution\] \{"profile":"(.*?)","type":"(O|C)","frame":"(.*?)","at":\d+\,"sn":\d+\}/
         (output =~ pattern)
             .findAll()
             .collect { matchResult ->
