@@ -21,10 +21,12 @@ plugins {
     base
 }
 
-if (BuildEnvironment.isCiServer) {
+if (BuildEnvironment.isCiServer && rootProject.name != "test") {
+    val killExistingProcessesStartedByGradle by rootProject.tasks.getting
     val rootCleanTask = rootProject.tasks.named("clean")
 
     tasks.configureEach {
+        mustRunAfter(killExistingProcessesStartedByGradle)
         // Workaround for https://github.com/gradle/gradle/issues/2488
         if (name != "clean") {
             mustRunAfter(rootCleanTask)
