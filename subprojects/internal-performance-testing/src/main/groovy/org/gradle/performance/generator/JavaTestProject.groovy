@@ -46,8 +46,8 @@ enum JavaTestProject {
         .assembleChangeFile()
         .testChangeFile(450, 2250, 45000).create()),
     VERY_LARGE_JAVA_MULTI_PROJECT(new TestProjectGeneratorConfigurationBuilder("veryLargeJavaMultiProject")
-        .withSourceFiles(200)
-        .withSubProjects(1000)
+        .withSourceFiles(300)
+        .withSubProjects(2000)
         .withDaemonMemory('4096m')
         .withCompilerMemory('512m')
         .assembleChangeFile()
