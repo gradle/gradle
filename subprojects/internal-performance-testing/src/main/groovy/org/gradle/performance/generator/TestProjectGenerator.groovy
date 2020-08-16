@@ -31,8 +31,10 @@ class TestProjectGenerator {
     def generate(File outputBaseDir) {
         def dependencyTree = new DependencyTree()
 
+        println "> Populating dependency tree with ${config.subProjects} subprojects"
         populateDependencyTree(dependencyTree)
 
+        println "> Generating projects in ${outputBaseDir.absolutePath}"
         generateProjects(outputBaseDir, dependencyTree)
     }
 

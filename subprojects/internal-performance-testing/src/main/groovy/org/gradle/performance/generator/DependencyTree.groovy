@@ -16,6 +16,7 @@
 
 package org.gradle.performance.generator
 
+import groovy.transform.CompileStatic
 import org.gradle.internal.Pair
 
 /**
@@ -25,24 +26,25 @@ import org.gradle.internal.Pair
  * Reflects project dependencies in class dependencies and respects 'api' dependencies.
  * See DependencyTreeTest for details of the tree construction.
  */
+@CompileStatic
 class DependencyTree {
 
     /**
      * Index of project dependency (declaration order) that is treated as 'api' dependency
      */
-    static final API_DEPENDENCY_INDEX = 0
+    static final int API_DEPENDENCY_INDEX = 0
     /**
      * Classes on which 'level' are used for cross-project dependencies
      */
-    static final CROSS_PROJECT_CLASS_DEPENDENCY_LEVEL = 2
+    static final int CROSS_PROJECT_CLASS_DEPENDENCY_LEVEL = 2
     /**
      * How many sibling classes are put onto one 'level' in the class dependency tree
      */
-    static final CLASSES_ON_LEVEL = 3
+    static final int CLASSES_ON_LEVEL = 3
     /**
      * How many sibling project are put onto one 'level' in the project dependency tree
      */
-    static final PROJECTS_ON_LEVEL = 3
+    static final int PROJECTS_ON_LEVEL = 3
 
     private List<Pair<Integer, Integer>> projectClassIdRanges = []
 
@@ -89,8 +91,8 @@ class DependencyTree {
     def getTransitiveChildClassIds(int parentClassId) {
         List<Integer> result = []
         result.addAll(parentToChildClassIds.get(parentClassId))
-        parentToChildClassIds.get(parentClassId).each {
-            allVisibleChildClassIds(it, result)
+        parentToChildClassIds.get(parentClassId).forEach { int childId ->
+            allVisibleChildClassIds(childId, result)
         }
         return result
     }
@@ -98,10 +100,10 @@ class DependencyTree {
     private allVisibleChildClassIds(int parentClassId, List<Integer> result) {
         def directChildrenIds = parentToChildClassIds.get(parentClassId)
         if (directChildrenIds && !directChildrenIds.isEmpty()) {
-            directChildrenIds.each {
-                if (transitiveClassIds.contains(it)) {
-                    result.add(it)
-                    allVisibleChildClassIds(it, result)
+            directChildrenIds.forEach { int classId ->
+                if (transitiveClassIds.contains(classId)) {
+                    result.add(classId)
+                    allVisibleChildClassIds(classId, result)
                 }
             }
         }
@@ -109,15 +111,15 @@ class DependencyTree {
 
     DependencyTree calculateClassDependencies(int first, int last) {
         projectClassIdRanges.add(Pair.of(first, last))
-        (first..last).each {
-            placeOnLevel(it, 0, first, last, CLASSES_ON_LEVEL, classLevelToClassIds, parentToChildClassIds)
+        (first..last).forEach { int node ->
+            placeOnLevel(node, 0, first, last, CLASSES_ON_LEVEL, classLevelToClassIds, parentToChildClassIds)
         }
         this
     }
 
     DependencyTree calculateProjectDependencies() {
-        (0..projectClassIdRanges.size() - 1).each {
-            placeOnLevel(it, 0, 0, Integer.MAX_VALUE, PROJECTS_ON_LEVEL, projectLevelToProjectIds, parentToChildProjectIds)
+        (0..projectClassIdRanges.size() - 1).forEach { int node ->
+            placeOnLevel(node, 0, 0, Integer.MAX_VALUE, PROJECTS_ON_LEVEL, projectLevelToProjectIds, parentToChildProjectIds)
         }
 
         //for each class on CROSS_PROJECT_CLASS_DEPENDENCY_LEVEL of the parent project, add a dependency to a class on the same level of each child project
@@ -151,7 +153,7 @@ class DependencyTree {
         this
     }
 
-    private placeOnLevel(int node, int level, int firstInRange, int lastInRange, nodesPerGroup, List<List<Integer>> levelList, Map<Integer, List<Integer>> parentMap) {
+    private static void placeOnLevel(int node, int level, int firstInRange, int lastInRange, int nodesPerGroup, List<List<Integer>> levelList, Map<Integer, List<Integer>> parentMap) {
         if (levelAboveHasFreeSpot(level, firstInRange, lastInRange, nodesPerGroup, levelList)) {
             //a free spot on one of the level above
             placeOnLevel(node, level + 1, firstInRange, lastInRange, nodesPerGroup, levelList, parentMap)
@@ -168,32 +170,46 @@ class DependencyTree {
         }
     }
 
-    private levelAboveHasFreeSpot(int level, int firstInRange, int lastInRange, nodesPerGroup, List<List<Integer>> levelList) {
-        int nodesOnCurrentLevel = getFromLevel(levelList, firstInRange, lastInRange, level).size()
+    private static boolean levelAboveHasFreeSpot(int level, int firstInRange, int lastInRange, int nodesPerGroup, List<List<Integer>> levelList) {
+        int nodesOnCurrentLevel = countFromLevel(levelList, firstInRange, lastInRange, level)
         int fullGroupsOnCurrentLevel = (int) (nodesOnCurrentLevel / nodesPerGroup)
-        int nodesOnLevelAbove = getFromLevel(levelList, firstInRange, lastInRange, level + 1).size()
+        int nodesOnLevelAbove = countFromLevel(levelList, firstInRange, lastInRange, level + 1)
         if (nodesOnCurrentLevel == 0 && nodesOnLevelAbove == 0) {
             return false
         }
         nodesOnLevelAbove < fullGroupsOnCurrentLevel || levelAboveHasFreeSpot(level + 1, firstInRange, lastInRange, nodesPerGroup, levelList)
     }
 
-    private getFromLevel(List<List<Integer>> list, int firstNodeInSet, int lastNodeInSet, int level) {
+    private static List<Integer> getFromLevel(List<List<Integer>> list, int firstNodeInSet, int lastNodeInSet, int level) {
         if (list.size() <= level) {
             return []
         }
         filterBySet(list.get(level), firstNodeInSet, lastNodeInSet)
     }
 
-    private addToLevel(List<List<Integer>> list, int level, int node) {
+    private static int countFromLevel(List<List<Integer>> list, int firstNodeInSet, int lastNodeInSet, int level) {
+        if (list.size() <= level) {
+            return 0
+        }
+        def nodesOnLevel = list.get(level)
+        int count = 0
+        for (Integer node : (nodesOnLevel)) {
+            if (isInRange(node, firstNodeInSet, lastNodeInSet)) {
+                count++
+            }
+        }
+        return count
+    }
+
+    private static void addToLevel(List<List<Integer>> list, int level, int node) {
         if (list.size() == level) {
             list.add([])
         }
         list.get(level).add(node)
     }
 
-    private filterBySet(List<Integer> list, int firstNodeInSet, int lastNodeInSet) {
-        def filtered = []
+    private static List<Integer> filterBySet(List<Integer> list, int firstNodeInSet, int lastNodeInSet) {
+        def filtered = new ArrayList<Integer>(list.size())
         for (Integer node : list) {
             if (isInRange(node, firstNodeInSet, lastNodeInSet)) {
                 filtered.add(node)
@@ -202,7 +218,7 @@ class DependencyTree {
         return filtered
     }
 
-    private isInRange(int id, int first, int last) {
+    private static boolean isInRange(int id, int first, int last) {
         first <= id && id <= last
     }
 
