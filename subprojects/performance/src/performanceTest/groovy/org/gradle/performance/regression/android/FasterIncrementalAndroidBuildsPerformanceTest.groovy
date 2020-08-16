@@ -34,6 +34,7 @@ import org.gradle.profiler.mutations.ClearProjectCacheMutator
 import org.junit.experimental.categories.Category
 import spock.lang.Unroll
 
+import static org.gradle.performance.regression.android.IncrementalAndroidTestProject.LARGE_JAVA_MULTI_PROJECT
 import static org.gradle.performance.regression.android.IncrementalAndroidTestProject.SANTA_TRACKER_JAVA
 import static org.gradle.performance.regression.android.IncrementalAndroidTestProject.SANTA_TRACKER_KOTLIN
 
@@ -58,7 +59,7 @@ class FasterIncrementalAndroidBuildsPerformanceTest extends AbstractCrossBuildPe
         results
 
         where:
-        testProject << [SANTA_TRACKER_KOTLIN, SANTA_TRACKER_JAVA]
+        testProject << [SANTA_TRACKER_KOTLIN, SANTA_TRACKER_JAVA, LARGE_JAVA_MULTI_PROJECT]
     }
 
     @Unroll
@@ -74,7 +75,7 @@ class FasterIncrementalAndroidBuildsPerformanceTest extends AbstractCrossBuildPe
         results
 
         where:
-        testProject << [SANTA_TRACKER_KOTLIN, SANTA_TRACKER_JAVA]
+        testProject << [SANTA_TRACKER_KOTLIN, SANTA_TRACKER_JAVA, LARGE_JAVA_MULTI_PROJECT]
     }
 
     private void buildSpecForSupportedOptimizations(IncrementalAndroidTestProject testProject, @DelegatesTo(GradleBuildExperimentSpec.GradleBuilder) Closure scenarioConfiguration) {

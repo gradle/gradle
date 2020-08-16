@@ -19,6 +19,7 @@ package org.gradle.performance.regression.android
 import org.gradle.integtests.fixtures.versions.AndroidGradlePluginVersions
 import org.gradle.performance.fixture.GradleBuildExperimentSpec
 import org.gradle.performance.fixture.GradleProfilerCrossVersionPerformanceTestRunner
+import org.gradle.performance.generator.JavaTestProject
 import org.gradle.profiler.InvocationSettings
 import org.gradle.profiler.mutations.ApplyAbiChangeToJavaSourceFileMutator
 import org.gradle.profiler.mutations.ApplyNonAbiChangeToJavaSourceFileMutator
@@ -73,6 +74,13 @@ class IncrementalAndroidTestProject extends AndroidTestProject {
         memory: '1g',
         pathToChange: 'village/src/main/java/com/google/android/apps/santatracker/village/SnowFlake.java',
         taskToRunForChange: ':santa-tracker:assembleDebug'
+    )
+
+    static final LARGE_JAVA_MULTI_PROJECT = new IncrementalAndroidTestProject(
+        templateName: 'largeJavaMultiProject',
+        memory: JavaTestProject.LARGE_JAVA_MULTI_PROJECT.daemonMemory,
+        pathToChange: 'project116/src/main/java/org/gradle/test/performance/largejavamultiproject/project116/p583/Production11668.java',
+        taskToRunForChange: 'classes'
     )
 
     String pathToChange
