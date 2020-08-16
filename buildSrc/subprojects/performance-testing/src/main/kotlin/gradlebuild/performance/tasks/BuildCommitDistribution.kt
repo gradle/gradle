@@ -75,9 +75,9 @@ abstract class BuildCommitDistribution : DefaultTask() {
         val buildCommands = mutableListOf(
             "./gradlew",
             "clean",
-            ":distributionsFull:install", // TODO (donat) replace with `:distributions-full:install` once https://github.com/gradle/gradle/pull/14100 is merged to master and release
+            ":distributions-full:install",
             "-Pgradle_installPath=" + commitDistributionHome.get().asFile.absolutePath,
-            ":toolingApi:installToolingApiShadedJar",
+            ":tooling-api:installToolingApiShadedJar",
             "-PtoolingApiShadedJarInstallPath=" + commitDistributionToolingApiJar.get().asFile.absolutePath)
 
         if (project.gradle.startParameter.isBuildCacheEnabled) {

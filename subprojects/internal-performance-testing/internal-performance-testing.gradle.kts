@@ -28,7 +28,7 @@ repositories {
 }
 
 dependencies {
-    reports("jquery:jquery.min:3.4.1@js")
+    reports("jquery:jquery.min:3.5.1@js")
     reports("flot:flot:0.8.1:min@js")
 
     api(libs.gradleProfiler) {
