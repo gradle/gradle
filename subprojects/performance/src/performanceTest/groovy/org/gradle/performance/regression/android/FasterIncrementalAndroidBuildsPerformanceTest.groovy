@@ -34,7 +34,7 @@ import org.gradle.profiler.mutations.ClearProjectCacheMutator
 import org.junit.experimental.categories.Category
 import spock.lang.Unroll
 
-import static org.gradle.performance.regression.android.IncrementalAndroidTestProject.LARGE_JAVA_MULTI_PROJECT
+import static org.gradle.performance.regression.android.IncrementalAndroidTestProject.VERY_LARGE_JAVA_MULTI_PROJECT
 import static org.gradle.performance.regression.android.IncrementalAndroidTestProject.SANTA_TRACKER_JAVA
 import static org.gradle.performance.regression.android.IncrementalAndroidTestProject.SANTA_TRACKER_KOTLIN
 
@@ -59,7 +59,7 @@ class FasterIncrementalAndroidBuildsPerformanceTest extends AbstractCrossBuildPe
         results
 
         where:
-        testProject << [SANTA_TRACKER_KOTLIN, SANTA_TRACKER_JAVA, LARGE_JAVA_MULTI_PROJECT]
+        testProject << [SANTA_TRACKER_KOTLIN, SANTA_TRACKER_JAVA, VERY_LARGE_JAVA_MULTI_PROJECT]
     }
 
     @Unroll
@@ -75,7 +75,7 @@ class FasterIncrementalAndroidBuildsPerformanceTest extends AbstractCrossBuildPe
         results
 
         where:
-        testProject << [SANTA_TRACKER_KOTLIN, SANTA_TRACKER_JAVA, LARGE_JAVA_MULTI_PROJECT]
+        testProject << [SANTA_TRACKER_KOTLIN, SANTA_TRACKER_JAVA, VERY_LARGE_JAVA_MULTI_PROJECT]
     }
 
     private void buildSpecForSupportedOptimizations(IncrementalAndroidTestProject testProject, @DelegatesTo(GradleBuildExperimentSpec.GradleBuilder) Closure scenarioConfiguration) {
@@ -95,7 +95,7 @@ class FasterIncrementalAndroidBuildsPerformanceTest extends AbstractCrossBuildPe
 
     private static Map<String, Set<Optimization>> supportedOptimizations(IncrementalAndroidTestProject testProject) {
         // Kotlin is not supported for configuration caching
-        return testProject in [SANTA_TRACKER_KOTLIN, LARGE_JAVA_MULTI_PROJECT]
+        return testProject in [SANTA_TRACKER_KOTLIN, VERY_LARGE_JAVA_MULTI_PROJECT]
             ? [
             "no-optimizations": EnumSet.noneOf(Optimization),
             "FS-watching": EnumSet.of(Optimization.WATCH_FS)

@@ -76,10 +76,10 @@ class IncrementalAndroidTestProject extends AndroidTestProject {
         taskToRunForChange: ':santa-tracker:assembleDebug'
     )
 
-    static final LARGE_JAVA_MULTI_PROJECT = new IncrementalAndroidTestProject(
-        templateName: 'largeJavaMultiProject',
-        memory: JavaTestProject.LARGE_JAVA_MULTI_PROJECT.daemonMemory,
-        pathToChange: 'project116/src/main/java/org/gradle/test/performance/largejavamultiproject/project116/p583/Production11668.java',
+    static final VERY_LARGE_JAVA_MULTI_PROJECT = new IncrementalAndroidTestProject(
+        templateName: 'veryLargeJavaMultiProject',
+        memory: JavaTestProject.VERY_LARGE_JAVA_MULTI_PROJECT.daemonMemory,
+        pathToChange: JavaTestProject.VERY_LARGE_JAVA_MULTI_PROJECT.config.fileToChangeByScenario['assemble'],
         taskToRunForChange: 'classes'
     )
 
