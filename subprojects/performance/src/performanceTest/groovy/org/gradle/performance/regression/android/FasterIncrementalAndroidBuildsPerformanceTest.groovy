@@ -95,7 +95,7 @@ class FasterIncrementalAndroidBuildsPerformanceTest extends AbstractCrossBuildPe
 
     private static Map<String, Set<Optimization>> supportedOptimizations(IncrementalAndroidTestProject testProject) {
         // Kotlin is not supported for configuration caching
-        return testProject == SANTA_TRACKER_KOTLIN
+        return testProject in [SANTA_TRACKER_KOTLIN, LARGE_JAVA_MULTI_PROJECT]
             ? [
             "no optimizations": EnumSet.noneOf(Optimization),
             "FS watching": EnumSet.of(Optimization.WATCH_FS)
