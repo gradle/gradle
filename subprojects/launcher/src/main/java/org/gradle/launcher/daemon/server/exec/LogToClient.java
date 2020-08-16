@@ -30,9 +30,11 @@ import org.gradle.launcher.daemon.protocol.Build;
 import org.gradle.launcher.daemon.server.api.DaemonCommandExecution;
 import org.gradle.launcher.daemon.server.api.DaemonConnection;
 
-import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class LogToClient extends BuildCommandOnly {
 
@@ -67,10 +69,12 @@ public class LogToClient extends BuildCommandOnly {
     }
 
     private class AsynchronousLogDispatcher extends Thread {
+        private static final int QUEUE_SIZE = 1024;
         private final CountDownLatch completionLock = new CountDownLatch(1);
-        private final Queue<OutputEvent> eventQueue = new ConcurrentLinkedQueue<OutputEvent>();
+        private final BlockingQueue<OutputEvent> eventQueue = new ArrayBlockingQueue<>(QUEUE_SIZE);
         private final DaemonConnection connection;
         private final OutputEventListener listener;
+        private final Lock dispatchLock = new ReentrantLock();
         private volatile boolean shouldStop;
         private boolean unableToSend;
 
@@ -98,28 +102,50 @@ public class LogToClient extends BuildCommandOnly {
         }
 
         public void submit(OutputEvent event) {
-            eventQueue.add(event);
+            try {
+                eventQueue.put(event);
+            } catch (InterruptedException e) {
+                // Ignore: the processing thread has already quit
+            }
         }
 
         @Override
         public void run() {
-            try {
-                while (!shouldStop) {
-                    OutputEvent event = eventQueue.poll();
-                    if (event == null) {
-                        Thread.sleep(10);
-                    } else {
-                        dispatchAsync(event);
-                    }
+            while (!shouldStop) {
+                OutputEvent event;
+                try {
+                    event = eventQueue.take();
+                } catch (InterruptedException ex) {
+                    break;
                 }
-            } catch (InterruptedException ex) {
-                // we must not use interrupt() because it would automatically
-                // close the connection (sending data from an interrupted thread
-                // automatically closes the connection)
-                shouldStop = true;
+
+                dispatchLock.lock();
+                try {
+                    // We might have been interrupted before we acquired the lock, so handle that
+                    if (interrupted()) {
+                        break;
+                    }
+                    dispatchAsync(event);
+                } finally {
+                    dispatchLock.unlock();
+                }
             }
             sendRemainingEvents();
             completionLock.countDown();
+        }
+
+        /**
+         * We must not use interrupt() during dispatching because it would automatically close the connection
+         * (sending data from an interrupted thread automatically closes the connection).
+         */
+        private void stopWithoutInterruptingDispatch() {
+            dispatchLock.lock();
+            try {
+                shouldStop = true;
+                Thread.currentThread().interrupt();
+            } finally {
+                dispatchLock.unlock();
+            }
         }
 
         private void sendRemainingEvents() {
@@ -145,7 +171,7 @@ public class LogToClient extends BuildCommandOnly {
 
         public void waitForCompletion() {
             loggingOutput.removeOutputEventListener(listener);
-            shouldStop = true;
+            stopWithoutInterruptingDispatch();
             try {
                 completionLock.await();
             } catch (InterruptedException e) {
