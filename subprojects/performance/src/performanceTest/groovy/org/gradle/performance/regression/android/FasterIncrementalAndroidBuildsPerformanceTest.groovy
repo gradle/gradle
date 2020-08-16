@@ -97,14 +97,14 @@ class FasterIncrementalAndroidBuildsPerformanceTest extends AbstractCrossBuildPe
         // Kotlin is not supported for configuration caching
         return testProject in [SANTA_TRACKER_KOTLIN, LARGE_JAVA_MULTI_PROJECT]
             ? [
-            "no optimizations": EnumSet.noneOf(Optimization),
-            "FS watching": EnumSet.of(Optimization.WATCH_FS)
+            "no-optimizations": EnumSet.noneOf(Optimization),
+            "FS-watching": EnumSet.of(Optimization.WATCH_FS)
         ]
             : [
-            "no optimizations": EnumSet.noneOf(Optimization),
-            "FS watching": EnumSet.of(Optimization.WATCH_FS),
-            "configuration caching": EnumSet.of(Optimization.CONFIGURATION_CACHING),
-            "all optimizations": EnumSet.allOf(Optimization)
+            "no-optimizations": EnumSet.noneOf(Optimization),
+            "FS-watching": EnumSet.of(Optimization.WATCH_FS),
+            "configuration-caching": EnumSet.of(Optimization.CONFIGURATION_CACHING),
+            "all-optimizations": EnumSet.allOf(Optimization)
         ]
     }
 
