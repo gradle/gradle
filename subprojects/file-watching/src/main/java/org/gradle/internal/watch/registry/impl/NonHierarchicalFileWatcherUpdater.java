@@ -49,13 +49,11 @@ public class NonHierarchicalFileWatcherUpdater implements FileWatcherUpdater {
     private final Map<String, ImmutableList<String>> watchedDirectoriesForSnapshot = new HashMap<>();
     private final FileWatcher fileWatcher;
 
-    private final Set<String> watchableHierarchiesFromCurrentBuild = new HashSet<>();
-    private final Set<String> watchedHierarchiesFromPreviousBuild = new HashSet<>();
     private final WatchableHierarchies watchableHierarchies;
 
-    public NonHierarchicalFileWatcherUpdater(FileWatcher fileWatcher, Predicate<String> watchFilter) {
+    public NonHierarchicalFileWatcherUpdater(FileWatcher fileWatcher, Predicate<String> watchFilter, int maxHierarchiesToWatch) {
         this.fileWatcher = fileWatcher;
-        this.watchableHierarchies = new WatchableHierarchies(watchFilter);
+        this.watchableHierarchies = new WatchableHierarchies(watchFilter, maxHierarchiesToWatch);
     }
 
     @Override
@@ -84,30 +82,36 @@ public class NonHierarchicalFileWatcherUpdater implements FileWatcherUpdater {
     @Override
     public void registerWatchableHierarchy(File watchableHierarchy, SnapshotHierarchy root) {
         watchableHierarchies.registerWatchableHierarchy(watchableHierarchy, root);
-        watchableHierarchiesFromCurrentBuild.add(watchableHierarchy.getAbsolutePath());
     }
 
     @Override
     public SnapshotHierarchy buildFinished(SnapshotHierarchy root) {
-        watchedHierarchiesFromPreviousBuild.addAll(watchableHierarchiesFromCurrentBuild);
-        watchedHierarchiesFromPreviousBuild.removeIf(watchedHierarchy -> {
-            CheckIfNonEmptySnapshotVisitor checkIfNonEmptySnapshotVisitor = new CheckIfNonEmptySnapshotVisitor(watchableHierarchies);
-            root.visitSnapshotRoots(watchedHierarchy, checkIfNonEmptySnapshotVisitor);
-            return checkIfNonEmptySnapshotVisitor.isEmpty();
-        });
-
-        SnapshotHierarchy newRoot = watchableHierarchies.removeUnwatchedSnapshots(
-            watchedHierarchiesFromPreviousBuild.stream().map(File::new),
-            root,
-            (location, currentRoot) -> {
-                SnapshotCollectingDiffListener diffListener = new SnapshotCollectingDiffListener();
-                SnapshotHierarchy invalidatedRoot = currentRoot.invalidate(location, diffListener);
-                diffListener.publishSnapshotDiff((removedSnapshots, addedSnapshots) -> virtualFileSystemContentsChanged(removedSnapshots, addedSnapshots, invalidatedRoot));
-                return invalidatedRoot;
-            }
+        WatchableHierarchies.Invalidator invalidator = (location, currentRoot) -> {
+            SnapshotCollectingDiffListener diffListener = new SnapshotCollectingDiffListener();
+            SnapshotHierarchy invalidatedRoot = currentRoot.invalidate(location, diffListener);
+            diffListener.publishSnapshotDiff((removedSnapshots, addedSnapshots) -> virtualFileSystemContentsChanged(removedSnapshots, addedSnapshots, invalidatedRoot));
+            return invalidatedRoot;
+        };
+        SnapshotHierarchy newRoot = watchableHierarchies.removeWatchedHierarchiesOverLimit(
+            root, hierarchy -> containsSnapshots(hierarchy, root), invalidator
+        );
+        newRoot = watchableHierarchies.removeUnwatchedSnapshots(
+            newRoot,
+            invalidator
         );
         LOGGER.warn("Watching {} directories to track changes", watchedDirectories.entrySet().size());
         return newRoot;
+    }
+
+    @Override
+    public int getNumberOfWatchedHierarchies() {
+        return watchableHierarchies.getWatchableHierarchies().size();
+    }
+
+    private boolean containsSnapshots(Path location, SnapshotHierarchy root) {
+        CheckIfNonEmptySnapshotVisitor checkIfNonEmptySnapshotVisitor = new CheckIfNonEmptySnapshotVisitor(watchableHierarchies);
+        root.visitSnapshotRoots(location.toString(), checkIfNonEmptySnapshotVisitor);
+        return !checkIfNonEmptySnapshotVisitor.isEmpty();
     }
 
     private void updateWatchedDirectories(Map<String, Integer> changedWatchDirectories) {

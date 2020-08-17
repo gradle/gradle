@@ -145,7 +145,29 @@ public class DefaultFileWatcherRegistry implements FileWatcherRegistry {
 
     @Override
     public FileWatchingStatistics getAndResetStatistics() {
-        return fileWatchingStatistics.getAndSet(new MutableFileWatchingStatistics());
+        MutableFileWatchingStatistics currentStatistics = fileWatchingStatistics.getAndSet(new MutableFileWatchingStatistics());
+        int numberOfWatchedHierarchies = fileWatcherUpdater.getNumberOfWatchedHierarchies();
+        return new FileWatchingStatistics() {
+            @Override
+            public Optional<Throwable> getErrorWhileReceivingFileChanges() {
+                return currentStatistics.getErrorWhileReceivingFileChanges();
+            }
+
+            @Override
+            public boolean isUnknownEventEncountered() {
+                return currentStatistics.isUnknownEventEncountered();
+            }
+
+            @Override
+            public int getNumberOfReceivedEvents() {
+                return currentStatistics.getNumberOfReceivedEvents();
+            }
+
+            @Override
+            public int getNumberOfWatchedHierarchies() {
+                return numberOfWatchedHierarchies;
+            }
+        };
     }
 
     @Override
@@ -165,22 +187,19 @@ public class DefaultFileWatcherRegistry implements FileWatcherRegistry {
         }
     }
 
-    private static class MutableFileWatchingStatistics implements FileWatchingStatistics {
+    private static class MutableFileWatchingStatistics {
         private boolean unknownEventEncountered;
         private int numberOfReceivedEvents;
         private Throwable errorWhileReceivingFileChanges;
 
-        @Override
         public Optional<Throwable> getErrorWhileReceivingFileChanges() {
             return Optional.ofNullable(errorWhileReceivingFileChanges);
         }
 
-        @Override
         public boolean isUnknownEventEncountered() {
             return unknownEventEncountered;
         }
 
-        @Override
         public int getNumberOfReceivedEvents() {
             return numberOfReceivedEvents;
         }
