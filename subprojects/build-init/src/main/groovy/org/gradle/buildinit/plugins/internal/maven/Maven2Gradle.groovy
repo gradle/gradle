@@ -17,15 +17,24 @@
 
 package org.gradle.buildinit.plugins.internal.maven
 
-import groovy.util.slurpersupport.GPathResult
+import groovy.transform.CompileStatic
+import org.apache.maven.model.Plugin
+import org.apache.maven.model.PluginExecution
 import org.apache.maven.project.MavenProject
+import org.codehaus.plexus.util.xml.Xpp3Dom
+import org.gradle.api.Action
 import org.gradle.api.artifacts.ModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
-import org.gradle.api.logging.Logger
-import org.gradle.api.logging.Logging
+import org.gradle.buildinit.plugins.internal.BuildScriptBuilder
 import org.gradle.buildinit.plugins.internal.BuildScriptBuilderFactory
+import org.gradle.buildinit.plugins.internal.CrossConfigurationScriptBlockBuilder
+import org.gradle.buildinit.plugins.internal.DependenciesBuilder
+import org.gradle.buildinit.plugins.internal.RepositoriesBuilder
+import org.gradle.buildinit.plugins.internal.ScriptBlockBuilder
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl
 import org.gradle.util.RelativePathUtil
+
+import javax.annotation.Nullable
 
 /**
  * This script obtains the effective POM of the current project, reads its dependencies
@@ -33,44 +42,34 @@ import org.gradle.util.RelativePathUtil
  *
  * It currently supports both single-module and multi-module POMs, inheritance, dependency management and properties.
  */
+@CompileStatic
 class Maven2Gradle {
     private final BuildScriptBuilderFactory scriptBuilderFactory
 
-    def dependentWars = []
-    File workingDir
-    GPathResult effectivePom
+    private Set<MavenProject> allProjects
+    private MavenProject rootProject
 
-    Logger logger = Logging.getLogger(getClass())
-    private Set<MavenProject> mavenProjects
+    private List<MavenProject> dependentWars = new ArrayList<>();
+    private File workingDir
 
     Maven2Gradle(Set<MavenProject> mavenProjects, File workingDir, BuildScriptBuilderFactory scriptBuilderFactory) {
         assert !mavenProjects.empty: "No Maven projects provided."
-        this.mavenProjects = mavenProjects
+        this.allProjects = mavenProjects
+        this.rootProject = mavenProjects.iterator().next()
         this.workingDir = workingDir.canonicalFile
         this.scriptBuilderFactory = scriptBuilderFactory
     }
 
     void convert() {
-        //For now we're building the effective POM XML from the model
-        //and then we parse the XML using slurper.
-        //This way we don't have to rewrite the Maven2Gradle just yet.
-        //Maven2Gradle should be rewritten (with coverage) so that feeds of the maven object model, not XML.
-        def effectivePom = new MavenProjectXmlWriter().toXml(mavenProjects)
-        //use the Groovy XmlSlurper library to parse the text string
-        this.effectivePom = new XmlSlurper().parseText(effectivePom)
-
         def scriptBuilder = scriptBuilderFactory.script(BuildInitDsl.GROOVY, "build")
-
-        def multimodule = this.effectivePom.name() == "projects"
+        def multimodule = !rootProject.getModules().isEmpty()
 
         if (multimodule) {
-            def allProjects = this.effectivePom.project
-            def rootProject = allProjects[0]
-            generateSettings(rootProject.artifactId, allProjects)
+            generateSettings(rootProject.getArtifactId(), allProjects)
 
-            def dependencies = [:];
+            Map<String, List<Dependency>> dependencies = new LinkedHashMap<>();
             allProjects.each { project ->
-                dependencies[project.artifactId.text()] = getDependencies(project, allProjects)
+                dependencies[project.artifactId] = getDependencies(project, allProjects)
             }
 
             def allprojectsBuilder = scriptBuilder.allprojects()
@@ -84,34 +83,34 @@ class Maven2Gradle {
             repositoriesForProjects(allProjects, subprojectsBuilder)
             globalExclusions(rootProject, subprojectsBuilder)
 
-            def commonDeps = dependencies.get(rootProject.artifactId.text())
+            def commonDeps = dependencies.get(rootProject.artifactId)
             declareDependencies(commonDeps, subprojectsBuilder)
             testNg(commonDeps, subprojectsBuilder)
             configurePublishing(subprojectsBuilder, packagesSources(rootProject))
 
             modules(allProjects, false).each { module ->
-                def id = module.artifactId.text()
+                def id = module.artifactId
                 def moduleDependencies = dependencies.get(id)
-                def warPack = module.packaging.text().equals("war")
+                def warPack = module.packaging.equals("war")
                 def moduleScriptBuilder = scriptBuilderFactory.script(BuildInitDsl.GROOVY, projectDir(module).path + "/build")
 
-                if (module.groupId.text() != rootProject.groupId.text()) {
-                    moduleScriptBuilder.propertyAssignment(null, "group", module.groupId.text())
+                if (module.groupId != rootProject.groupId) {
+                    moduleScriptBuilder.propertyAssignment(null, "group", module.groupId)
                 }
 
                 if (warPack) {
                     moduleScriptBuilder.plugin(null, "war")
                     if (dependentWars.any { project ->
-                        project.groupId.text() == module.groupId.text() &&
-                            project.artifactId.text() == id
+                        project.groupId == module.groupId &&
+                            project.artifactId == id
                     }) {
                         moduleScriptBuilder.taskPropertyAssignment(null, "jar", "Jar", "enabled", true)
                     }
                 }
 
                 descriptionForProject(module, moduleScriptBuilder)
-                declareDependencies(moduleDependencies, moduleScriptBuilder)
-                testNg(moduleDependencies, moduleScriptBuilder)
+                declareDependencies(moduleDependencies, wrap(moduleScriptBuilder))
+                testNg(moduleDependencies, wrap(moduleScriptBuilder))
 
                 if (packageTests(module, moduleScriptBuilder)) {
                     moduleScriptBuilder.methodInvocation(null, "publishing.publications.maven.artifact", moduleScriptBuilder.propertyExpression("testsJar"))
@@ -124,35 +123,35 @@ class Maven2Gradle {
                 moduleScriptBuilder.create().generate()
             }
             //TODO deployment
-        } else {//simple
-            generateSettings(this.effectivePom.artifactId, null)
+        } else {
+            generateSettings(this.rootProject.artifactId, Collections.<MavenProject>emptySet())
 
             scriptBuilder.plugin(null, 'java')
             scriptBuilder.plugin(null, 'maven-publish')
-            coordinatesForProject(this.effectivePom, scriptBuilder)
-            descriptionForProject(this.effectivePom, scriptBuilder)
-            compilerSettings(this.effectivePom, scriptBuilder)
-            globalExclusions(this.effectivePom, scriptBuilder)
-            def testsJarTaskGenerated = packageTests(this.effectivePom, scriptBuilder)
-            configurePublishing(scriptBuilder, packagesSources(this.effectivePom), testsJarTaskGenerated, packagesJavadocs(this.effectivePom))
+            coordinatesForProject(this.rootProject, wrap(scriptBuilder))
+            descriptionForProject(this.rootProject, scriptBuilder)
+            compilerSettings(this.rootProject, wrap(scriptBuilder))
+            globalExclusions(this.rootProject, wrap(scriptBuilder))
+            def testsJarTaskGenerated = packageTests(this.rootProject, scriptBuilder)
+            configurePublishing(wrap(scriptBuilder), packagesSources(this.rootProject), testsJarTaskGenerated, packagesJavadocs(this.rootProject))
 
             scriptBuilder.repositories().mavenLocal(null)
             Set<String> repoSet = new LinkedHashSet<String>()
-            getRepositoriesForModule(this.effectivePom, repoSet)
+            getRepositoriesForModule(this.rootProject, repoSet)
             repoSet.each {
                 scriptBuilder.repositories().maven(null, it)
             }
 
-            def dependencies = getDependencies(this.effectivePom, null)
-            declareDependencies(dependencies, scriptBuilder)
-            testNg(dependencies, scriptBuilder)
+            def dependencies = getDependencies(this.rootProject, null)
+            declareDependencies(dependencies, new ScriptBuilderWrapper(scriptBuilder))
+            testNg(dependencies, wrap(scriptBuilder))
 
         }
 
         scriptBuilder.create().generate()
     }
 
-    def configurePublishing(def builder, boolean publishesSources = false, boolean testsJarTaskGenerated = false, boolean publishesJavadoc = false) {
+    def configurePublishing(CrossConfigurationScriptBlockBuilder builder, boolean publishesSources = false, boolean testsJarTaskGenerated = false, boolean publishesJavadoc = false) {
         if (publishesSources || publishesJavadoc) {
             def javaExtension = builder.block(null, "java")
             if (publishesSources) {
@@ -171,24 +170,26 @@ class Maven2Gradle {
         }
     }
 
-    void declareDependencies(List<Dependency> dependencies, builder) {
+    void declareDependencies(List<Dependency> dependencies, CrossConfigurationScriptBlockBuilder builder) {
         def dependenciesBuilder = builder.dependencies()
         dependencies.each { dep ->
             if (dep instanceof ProjectDependency) {
                 dependenciesBuilder.projectDependency(dep.configuration, null, dep.projectPath)
             } else {
-                dependenciesBuilder.dependency(dep.configuration, null, "$dep.group:$dep.module:$dep.version")
+                ExternalDependency extDep = (ExternalDependency) dep
+                dependenciesBuilder.dependency(dep.configuration, null, "$extDep.groupId:$extDep.module:$extDep.version")
             }
         }
     }
 
-    void globalExclusions(project, builder) {
-        def enforcerPlugin = plugin('maven-enforcer-plugin', project)
-        def enforceGoal = pluginGoal('enforce', enforcerPlugin)
+    void globalExclusions(MavenProject project, CrossConfigurationScriptBlockBuilder builder) {
+        Plugin enforcerPlugin = plugin('maven-enforcer-plugin', project)
+        PluginExecution enforceGoal = pluginGoal('enforce', enforcerPlugin)
         if (enforceGoal) {
             def block = builder.block(null, "configurations.all")
-            enforceGoal.configuration.rules.bannedDependencies.excludes.childNodes().each {
-                def tokens = it.text().tokenize(':')
+            Xpp3Dom configuration = (Xpp3Dom) enforceGoal.configuration
+            configuration.getChild("rules").getChild("bannedDependencies").getChild("excludes").getChildren().each {
+                def tokens = it.getValue().split(":")
                 def params = [group: tokens[0]]
                 if (tokens.size() > 1 && tokens[1] != '*') {
                     params.module = tokens[1]
@@ -198,30 +199,30 @@ class Maven2Gradle {
         }
     }
 
-    void testNg(List<Dependency> moduleDependencies, builder) {
+    void testNg(List<Dependency> moduleDependencies, CrossConfigurationScriptBlockBuilder builder) {
         boolean testng = moduleDependencies.find { it instanceof ExternalDependency && it.groupId == 'org.testng' && it.module == 'testng' }
         if (testng) {
             builder.taskMethodInvocation(null, "test", "Test", "useTestNG")
         }
     }
 
-    def modules = { allProjects, incReactors ->
-        return allProjects.findAll { project ->
-            def parentIsPartOfThisBuild = allProjects.find { proj ->
-                proj.artifactId == project.parent.artifactId && proj.groupId == project.parent.groupId
+    private Set<MavenProject> modules(Set<MavenProject> projects, boolean incReactors) {
+        return projects.findAll { project ->
+            def parentIsPartOfThisBuild = projects.find { proj ->
+                project.parent != null && proj.artifactId == project.parent.artifactId && proj.groupId == project.parent.groupId
             }
-            project.parent.text().length() > 0 && parentIsPartOfThisBuild && (incReactors || project.packaging.text() != 'pom')
+            parentIsPartOfThisBuild && (incReactors || project.packaging != 'pom')
         }
     }
 
-    private String fqn(project, allProjects) {
+    private String fqn(MavenProject project, Set<MavenProject> allProjects) {
         def buffer = new StringBuilder()
         generateFqn(project, allProjects, buffer)
         return buffer.toString()
     }
 
-    private generateFqn(GPathResult project, GPathResult allProjects, StringBuilder buffer) {
-        def artifactId = project.artifactId.text()
+    private generateFqn(MavenProject project, Set<MavenProject> allProjects, StringBuilder buffer) {
+        def artifactId = project.artifactId
         buffer.insert(0, ":${artifactId}")
         //we don't need the top-level parent in gradle, so we stop on it
         if (getModuleIdentifier(project.parent) != getModuleIdentifier(allProjects[0])) {
@@ -234,24 +235,24 @@ class Maven2Gradle {
         }
     }
 
-    private ModuleIdentifier getModuleIdentifier(GPathResult project) {
-        def artifactId = project.artifactId.text()
-        def groupId = project.groupId ? project.groupId.text() : project.parent.groupId.text()
+    private ModuleIdentifier getModuleIdentifier(MavenProject project) {
+        def artifactId = project.artifactId
+        def groupId = project.groupId ? project.groupId : project.parent.groupId
         return DefaultModuleIdentifier.newId(groupId, artifactId)
     }
 
-    private void coordinatesForProject(project, builder) {
-        builder.propertyAssignment(null, "group", project.groupId.text())
-        builder.propertyAssignment(null, "version", project.version.text())
+    private void coordinatesForProject(MavenProject project, CrossConfigurationScriptBlockBuilder builder) {
+        builder.propertyAssignment(null, "group", project.groupId)
+        builder.propertyAssignment(null, "version", project.version)
     }
 
-    private void descriptionForProject(project, builder) {
-        if (project.name.text()) {
-            builder.propertyAssignment(null, "description", project.name.text())
+    private void descriptionForProject(MavenProject project, BuildScriptBuilder builder) {
+        if (project.name) {
+            builder.propertyAssignment(null, "description", project.name)
         }
     }
 
-    private void repositoriesForProjects(projects, builder) {
+    private void repositoriesForProjects(Set<MavenProject> projects, CrossConfigurationScriptBlockBuilder builder) {
         builder.repositories().mavenLocal(null)
         def repoSet = new LinkedHashSet<String>()
         projects.each {
@@ -262,129 +263,137 @@ class Maven2Gradle {
         }
     }
 
-    private void getRepositoriesForModule(module, repoSet) {
-        module.repositories.repository.each {
-            repoSet.add(it.url.text())
+    private void getRepositoriesForModule(MavenProject module, Set<String> repoSet) {
+        module.repositories.each {
+            repoSet.add(it.url)
         }
         // No need to include plugin repos, as they won't be used by Gradle
     }
 
-    private List<Dependency> getDependencies(project, allProjects) {
-        // use GPath to navigate the object hierarchy and retrieve the collection of dependency nodes.
-        def dependencies = project.dependencies.dependency
+    private List<Dependency> getDependencies(MavenProject project, Set<MavenProject> allProjects) {
+        List<org.apache.maven.model.Dependency> dependencies = new ArrayList<>();
+        collectAllDependencies(project, dependencies)
+
         def war = project.packaging == "war"
 
-        def compileTimeScope = []
-        def runTimeScope = []
-        def testScope = []
-        def providedScope = []
-        def systemScope = []
+        List<org.apache.maven.model.Dependency> compileTimeScope = new ArrayList<>();
+        List<org.apache.maven.model.Dependency> runTimeScope = new ArrayList<>();
+        List<org.apache.maven.model.Dependency> testScope = new ArrayList<>();
+        List<org.apache.maven.model.Dependency> providedScope = new ArrayList<>();
+        List<org.apache.maven.model.Dependency> systemScope = new ArrayList<>();
 
         //cleanup duplicates from parent
-        // using Groovy Looping and mapping a Groovy Closure to each element, we collect together all
-        // the dependency nodes into corresponding collections depending on their scope value.
-        dependencies.each() {
-            if (!duplicateDependency(it, project, allProjects)) {
-                def scope = (elementHasText(it.scope)) ? it.scope : "compile"
+        dependencies.each() { org.apache.maven.model.Dependency mavenDependency ->
+            if (!duplicateDependency(mavenDependency, project, allProjects)) {
+                def scope = !mavenDependency.scope.isEmpty() ? mavenDependency.scope : "compile"
                 switch (scope) {
                     case "compile":
-                        compileTimeScope.add(it)
+                        compileTimeScope.add(mavenDependency)
                         break
                     case "test":
-                        testScope.add(it)
+                        testScope.add(mavenDependency)
                         break
                     case "provided":
-                        providedScope.add(it)
+                        providedScope.add(mavenDependency)
                         break
                     case "runtime":
-                        runTimeScope.add(it)
+                        runTimeScope.add(mavenDependency)
                         break
                     case "system":
-                        systemScope.add(it)
+                        systemScope.add(mavenDependency)
                         break
                 }
             }
         }
 
-        /**
-         * print function then checks the exclusions node to see if it exists, if
-         * so it branches off, otherwise we call our simple print function
-         */
-        def createGradleDep = { String scope, List<Dependency> result, mavenDependency ->
-            def projectDep = allProjects.find { prj ->
-                return prj.artifactId.text() == mavenDependency.artifactId.text() && prj.groupId.text() == mavenDependency.groupId.text()
-            }
-
-            if (projectDep) {
-                createProjectDependency(projectDep, result, scope, allProjects)
-            } else {
-                if (!war && scope == 'providedCompile') {
-                    scope = 'compileOnly'
-                }
-                createExternalDependency(mavenDependency, result, scope)
-            }
-        }
-
-        def result = []
+        List<Dependency> result = new ArrayList<>();
         if (!compileTimeScope.isEmpty() || !runTimeScope.isEmpty() || !testScope.isEmpty() || !providedScope.isEmpty() || !systemScope.isEmpty()) {
 // for each collection, one at a time, we take each element and call our print function
             if (!compileTimeScope.isEmpty()) {
-                compileTimeScope.each() { createGradleDep("implementation", result, it) }
+                compileTimeScope.each() { createGradleDep("implementation", result, it, war) }
             }
             if (!runTimeScope.isEmpty()) {
-                runTimeScope.each() { createGradleDep("runtimeOnly", result, it) }
+                runTimeScope.each() { createGradleDep("runtimeOnly", result, it, war) }
             }
             if (!testScope.isEmpty()) {
-                testScope.each() { createGradleDep("testImplementation", result, it) }
+                testScope.each() { createGradleDep("testImplementation", result, it, war) }
             }
             if (!providedScope.isEmpty()) {
-                providedScope.each() { createGradleDep("providedCompile", result, it) }
+                providedScope.each() { createGradleDep("providedCompile", result, it, war) }
             }
             if (!systemScope.isEmpty()) {
-                systemScope.each() { createGradleDep("system", result, it) }
+                systemScope.each() { createGradleDep("system", result, it, war) }
             }
         }
         return result
     }
 
-    private void compilerSettings(project, builder) {
-        def configuration = plugin('maven-compiler-plugin', project).configuration
-        def source = configuration.source.text() ?: '1.8'
-        builder.propertyAssignment(null, "sourceCompatibility", source)
+    /**
+     * print function then checks the exclusions node to see if it exists, if
+     * so it branches off, otherwise we call our simple print function
+     */
+    private void createGradleDep(String scope, List<Dependency> result, org.apache.maven.model.Dependency mavenDependency, boolean war) {
+        MavenProject projectDep = allProjects.find { prj ->
+            return prj.artifactId == mavenDependency.artifactId && prj.groupId == mavenDependency.groupId
+        }
 
-        def target = configuration.target.text() ?: '1.8'
+        if (projectDep != null) {
+            createProjectDependency(projectDep, result, scope, allProjects)
+        } else {
+            if (!war && scope == 'providedCompile') {
+                scope = 'compileOnly'
+            }
+            createExternalDependency(mavenDependency, result, scope)
+        }
+    }
+
+    private void compilerSettings(MavenProject project, CrossConfigurationScriptBlockBuilder builder) {
+        String source = "1.8";
+        String target = "1.8";
+
+        Plugin compilerPlugin = plugin("maven-compiler-plugin", project)
+        if (compilerPlugin != null) {
+            Xpp3Dom configuration = (Xpp3Dom) compilerPlugin.configuration
+            source = configuration.getChild("source").getValue();
+            target = configuration.getChild("target").getValue();
+        }
+
+        builder.propertyAssignment(null, "sourceCompatibility", source)
         if (target != source) {
             builder.propertyAssignment(null, "targetCompatibility", target)
         }
 
-        def encoding = project.properties.'project.build.sourceEncoding'.text()
+        def encoding = project.getProperties().get("project.build.sourceEncoding")
         if (encoding) {
             builder.taskPropertyAssignment(null, "JavaCompile", "options.encoding", encoding)
         }
     }
 
-    def plugin = { artifactId, project ->
-        project.build.plugins.plugin.find { pluginTag ->
-            pluginTag.artifactId.text() == artifactId
+    private Plugin plugin(String artifactId, MavenProject project) {
+        project.build.plugins.find { pluginTag ->
+            pluginTag.artifactId == artifactId
         }
     }
 
-    def pluginGoal = { goalName, plugin ->
-        plugin.executions.execution.find { exec ->
-            exec.goals.goal.find { gl ->
-                gl.text().startsWith(goalName)
+    private PluginExecution pluginGoal(String goalName, Plugin plugin) {
+        if (plugin == null) {
+            return null;
+        }
+        plugin.executions.find { exec ->
+            exec.goals.find { gl ->
+                gl.startsWith(goalName)
             }
         }
     }
 
-    boolean packagesSources(project) {
-        def sourcePlugin = plugin('maven-source-plugin', project)
-        return sourcePlugin && pluginGoal('jar', sourcePlugin)
+    boolean packagesSources(MavenProject project) {
+        def sourcePlugin = plugin("maven-source-plugin", project)
+        return sourcePlugin && pluginGoal("jar", sourcePlugin)
     }
 
-    boolean packageTests(project, builder) {
-        def jarPlugin = plugin('maven-jar-plugin', project)
-        if (pluginGoal('test-jar', jarPlugin)) {
+    boolean packageTests(MavenProject project, BuildScriptBuilder builder) {
+        def jarPlugin = plugin("maven-jar-plugin", project)
+        if (pluginGoal("test-jar", jarPlugin)) {
             builder.taskRegistration(null, "testsJar", "Jar") { task ->
                 task.propertyAssignment(null, "archiveClassifier", "tests")
                 task.methodInvocation(null, "from", builder.propertyExpression("sourceSets.test.output"))
@@ -394,20 +403,17 @@ class Maven2Gradle {
         return false
     }
 
-    boolean packagesJavadocs(project) {
-        def jarPlugin = plugin('maven-javadoc-plugin', project)
-        return jarPlugin && pluginGoal('jar', jarPlugin)
+    boolean packagesJavadocs(MavenProject project) {
+        def jarPlugin = plugin("maven-javadoc-plugin", project)
+        return jarPlugin && pluginGoal("jar", jarPlugin)
     }
 
-    private boolean duplicateDependency(dependency, project, allProjects) {
-        def parentTag = project.parent
-        if (allProjects == null || parentTag.isEmpty()) {//simple project or no parent
+    private boolean duplicateDependency(org.apache.maven.model.Dependency dependency, MavenProject project, Set<MavenProject> allProjects) {
+        MavenProject parent = project.parent
+        if (allProjects == null || !allProjects.contains(parent)) { // simple project or no parent in the build
             return false
         } else {
-            def parent = allProjects.find {
-                it.groupId.equals(parentTag.groupId) && it.artifactId.equals(parentTag.artifactId)
-            }
-            def duplicate = parent.dependencies.dependency.any {
+            def duplicate = parent.dependencies.any {
                 it.groupId.equals(dependency.groupId) && it.artifactId.equals(dependency.artifactId)
             }
             if (duplicate) {
@@ -418,15 +424,11 @@ class Maven2Gradle {
         }
     }
 
-    def artifactId = { File dir ->
-        return new XmlSlurper().parse(new File(dir, 'pom.xml')).artifactId.text()
+    private File projectDir(MavenProject project) {
+        return new File(project.build.directory).parentFile
     }
 
-    def projectDir = { project ->
-        return new File(project.build.directory.text()).parentFile
-    }
-
-    private void generateSettings(def mvnProjectName, def projects) {
+    private void generateSettings(String mvnProjectName, Set<MavenProject> projects) {
         def scriptBuilder = scriptBuilderFactory.script(BuildInitDsl.GROOVY, "settings")
 
         scriptBuilder.propertyAssignment(null, "rootProject.name", mvnProjectName as String)
@@ -462,23 +464,100 @@ class Maven2Gradle {
         scriptBuilder.create().generate()
     }
 
-    private def createExternalDependency(mavenDependency, List<Dependency> result, scope) {
-        def classifier = mavenDependency.classifier ? mavenDependency.classifier.text() : null
-        def exclusions = mavenDependency.exclusions.exclusion.collect { it.artifactId.text() }
-        result.add(new ExternalDependency(scope, mavenDependency.groupId.text(), mavenDependency.artifactId.text(), mavenDependency.version.text(), classifier, exclusions))
+    private void createExternalDependency(org.apache.maven.model.Dependency mavenDependency, List<Dependency> result, String scope) {
+        String classifier = mavenDependency.classifier ? mavenDependency.classifier : null
+        List<String> exclusions = mavenDependency.exclusions.collect { it.artifactId }
+        result.add(new ExternalDependency(scope, mavenDependency.groupId, mavenDependency.artifactId, mavenDependency.version, classifier, exclusions))
     }
 
-    private def createProjectDependency(projectDep, List<Dependency> result, String scope, allProjects) {
-        if (projectDep.packaging.text() == 'war') {
+    private void createProjectDependency(MavenProject projectDep, List<Dependency> result, String scope, Set<MavenProject> allProjects) {
+        if (projectDep.packaging == 'war') {
             dependentWars += projectDep
         }
         result.add(new ProjectDependency(scope, fqn(projectDep, allProjects)))
     }
 
-    /**
-     * Check to see if the selected node has content
-     */
-    private boolean elementHasText(it) {
-        return it.text().length() != 0
+    static private CrossConfigurationScriptBlockBuilder wrap(BuildScriptBuilder scriptBuilder) {
+        return new ScriptBuilderWrapper(scriptBuilder);
+    }
+
+    private void collectAllDependencies(MavenProject mavenProject, List<org.apache.maven.model.Dependency> dependencies) {
+        if (mavenProject.parent != null) {
+            collectAllDependencies(mavenProject.parent, dependencies)
+        }
+        dependencies.addAll(mavenProject.dependencies)
+    }
+
+    static private class ScriptBuilderWrapper implements CrossConfigurationScriptBlockBuilder {
+        private final BuildScriptBuilder scriptBuilder;
+
+        public ScriptBuilderWrapper(BuildScriptBuilder scriptBuilder) {
+            this.scriptBuilder = scriptBuilder;
+        }
+
+        @Override
+        public RepositoriesBuilder repositories() {
+            return scriptBuilder.repositories();
+        }
+
+        @Override
+        public DependenciesBuilder dependencies() {
+            return scriptBuilder.dependencies();
+        }
+
+        @Override
+        public void plugin(@Nullable String comment, String pluginId) {
+            scriptBuilder.plugin(comment, pluginId);
+        }
+
+        @Override
+        public void taskPropertyAssignment(@Nullable String comment, String taskType, String propertyName, Object propertyValue) {
+            scriptBuilder.taskPropertyAssignment(comment, taskType, propertyName, propertyValue);
+        }
+
+        @Override
+        public void taskMethodInvocation(@Nullable String comment, String taskName, String taskType, String methodName, Object... methodArgs) {
+            scriptBuilder.taskMethodInvocation(comment, taskName, taskType, methodName, methodArgs);
+        }
+
+        @Override
+        public BuildScriptBuilder.Expression taskRegistration(@Nullable String comment, String taskName, String taskType, Action<? super ScriptBlockBuilder> blockContentBuilder) {
+            return scriptBuilder.taskRegistration(comment, taskName, taskType, blockContentBuilder);
+        }
+
+        @Override
+        public void propertyAssignment(@Nullable String comment, String propertyName, Object propertyValue) {
+            scriptBuilder.propertyAssignment(comment, propertyName, propertyValue);
+        }
+
+        @Override
+        public void methodInvocation(@Nullable String comment, String methodName, Object... methodArgs) {
+            scriptBuilder.methodInvocation(comment, methodName, methodArgs);
+        }
+
+        @Override
+        public void methodInvocation(@Nullable String comment, BuildScriptBuilder.Expression target, String methodName, Object... methodArgs) {
+            scriptBuilder.methodInvocation(comment, target, methodName, methodArgs);
+        }
+
+        @Override
+        public ScriptBlockBuilder block(@Nullable String comment, String methodName) {
+            return scriptBuilder.block(comment, methodName);
+        }
+
+        @Override
+        public void block(@Nullable String comment, String methodName, Action<? super ScriptBlockBuilder> blockContentsBuilder) {
+            scriptBuilder.block(comment, methodName, blockContentsBuilder);
+        }
+
+        @Override
+        public BuildScriptBuilder.Expression containerElement(@Nullable String comment, String container, String elementName, Action<? super ScriptBlockBuilder> blockContentsBuilder) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public BuildScriptBuilder.Expression propertyExpression(String value) {
+            return scriptBuilder.propertyExpression(value);
+        }
     }
 }
