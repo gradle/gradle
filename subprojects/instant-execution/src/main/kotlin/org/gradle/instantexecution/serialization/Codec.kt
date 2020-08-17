@@ -39,6 +39,8 @@ interface Codec<T> : EncodingProvider<T>, DecodingProvider<T>
 
 interface WriteContext : IsolateContext, MutableIsolateContext, Encoder {
 
+    val tracer: Tracer?
+
     val sharedIdentities: WriteIdentities
 
     override val isolate: WriteIsolate
@@ -48,6 +50,14 @@ interface WriteContext : IsolateContext, MutableIsolateContext, Encoder {
     suspend fun write(value: Any?)
 
     fun writeClass(type: Class<*>)
+}
+
+
+interface Tracer {
+
+    fun open(frame: String)
+
+    fun close(frame: String)
 }
 
 
@@ -151,6 +161,17 @@ inline fun <T : ReadContext, R> T.withImmediateMode(block: T.() -> R): R {
         this.immediateMode = immediateMode
     }
 }
+
+
+internal
+inline fun <T : MutableIsolateContext, R> T.withGradleIsolate(
+    gradle: Gradle,
+    codec: Codec<Any?>,
+    block: T.() -> R
+): R =
+    withIsolate(IsolateOwner.OwnerGradle(gradle), codec) {
+        block()
+    }
 
 
 internal

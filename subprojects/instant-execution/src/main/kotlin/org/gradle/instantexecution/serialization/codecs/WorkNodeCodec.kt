@@ -20,11 +20,10 @@ import org.gradle.api.internal.GradleInternal
 import org.gradle.execution.plan.Node
 import org.gradle.execution.plan.TaskNode
 import org.gradle.instantexecution.serialization.Codec
-import org.gradle.instantexecution.serialization.IsolateOwner
 import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.WriteContext
 import org.gradle.instantexecution.serialization.readNonNull
-import org.gradle.instantexecution.serialization.withIsolate
+import org.gradle.instantexecution.serialization.withGradleIsolate
 
 
 internal
@@ -35,13 +34,13 @@ class WorkNodeCodec(
 
     suspend fun WriteContext.writeWork(nodes: List<Node>) {
         // Share bean instances across all nodes (except tasks, which have their own isolate)
-        withIsolate(IsolateOwner.OwnerGradle(owner), internalTypesCodec) {
+        withGradleIsolate(owner, internalTypesCodec) {
             writeNodes(nodes)
         }
     }
 
     suspend fun ReadContext.readWork(): List<Node> =
-        withIsolate(IsolateOwner.OwnerGradle(owner), internalTypesCodec) {
+        withGradleIsolate(owner, internalTypesCodec) {
             readNodes()
         }
 

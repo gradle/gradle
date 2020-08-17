@@ -31,6 +31,7 @@ import org.gradle.instantexecution.serialization.IsolateOwner
 import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.ReadIdentities
 import org.gradle.instantexecution.serialization.ReadIsolate
+import org.gradle.instantexecution.serialization.Tracer
 import org.gradle.instantexecution.serialization.WriteContext
 import org.gradle.instantexecution.serialization.WriteIdentities
 import org.gradle.instantexecution.serialization.WriteIsolate
@@ -268,6 +269,9 @@ class InstantExecutionFingerprintCheckerTest {
         override suspend fun write(value: Any?) {
             values.add(value)
         }
+
+        override val tracer: Tracer?
+            get() = null
 
         override val sharedIdentities: WriteIdentities
             get() = undefined()
