@@ -1,3 +1,4 @@
+rootProject.name = 'customizingResolution-conditionalSubstitutionRule'
 ext.projectNames = ["project1", "project2", "project3"]
 
 projectNames.each { name ->

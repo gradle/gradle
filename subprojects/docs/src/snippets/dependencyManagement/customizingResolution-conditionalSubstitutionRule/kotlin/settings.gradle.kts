@@ -1,3 +1,4 @@
+rootProject.name = "customizingResolution-conditionalSubstitutionRule"
 val projectNames = listOf("project1", "project2", "project3")
 
 projectNames.forEach { name ->

@@ -1,3 +1,4 @@
+rootProject.name = 'multiproject'
 include 'admin', 'user', 'util'
 
 project(':admin').projectDir = new File(settingsDir, 'modules/admin')

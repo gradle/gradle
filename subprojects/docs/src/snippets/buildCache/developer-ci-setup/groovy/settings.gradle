@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+rootProject.name = 'developer-ci-setup'
 // tag::developer-ci-setup[]
 boolean isCiServer = System.getenv().containsKey("CI")
 

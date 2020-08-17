@@ -1,3 +1,4 @@
+rootProject.name = 'projectReports'
 include 'api', 'webapp'
 
 rootProject.children.each {

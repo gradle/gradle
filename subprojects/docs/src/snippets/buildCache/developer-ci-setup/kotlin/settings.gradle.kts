@@ -1,3 +1,4 @@
+rootProject.name = "developer-ci-setup"
 // tag::developer-ci-setup[]
 val isCiServer = System.getenv().containsKey("CI")
 

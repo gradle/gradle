@@ -1,3 +1,4 @@
+rootProject.name = "http-build-cache"
 // tag::http-build-cache[]
 buildCache {
     remote<HttpBuildCache> {

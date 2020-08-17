@@ -1,3 +1,4 @@
+rootProject.name = "pluginManagement"
 pluginManagement {
     plugins {
     }

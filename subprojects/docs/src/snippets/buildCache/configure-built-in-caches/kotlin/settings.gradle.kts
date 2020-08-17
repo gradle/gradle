@@ -1,3 +1,4 @@
+rootProject.name = "configure-built-in-caches"
 // tag::configure-directory-build-cache[]
 buildCache {
     local {
