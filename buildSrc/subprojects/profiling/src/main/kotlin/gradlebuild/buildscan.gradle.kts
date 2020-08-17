@@ -24,6 +24,16 @@ import gradlebuild.basics.kotlindsl.execAndGetStdout
 import gradlebuild.basics.tasks.ClasspathManifest
 import org.gradle.api.internal.BuildType
 import org.gradle.api.internal.GradleInternal
+import org.gradle.internal.operations.BuildOperationDescriptor
+import org.gradle.internal.operations.BuildOperationListener
+import org.gradle.internal.operations.BuildOperationListenerManager
+import org.gradle.internal.operations.OperationFinishEvent
+import org.gradle.internal.operations.OperationIdentifier
+import org.gradle.internal.operations.OperationProgressEvent
+import org.gradle.internal.operations.OperationStartEvent
+import org.gradle.internal.watch.vfs.BuildFinishedFileSystemWatchingBuildOperationType
+import org.gradle.kotlin.dsl.support.serviceOf
+import org.gradle.launcher.exec.RunBuildBuildOperationType
 import org.jsoup.Jsoup
 import org.jsoup.parser.Parser
 import java.net.URLEncoder
@@ -50,6 +60,8 @@ if (isCiServer) {
 }
 
 extractCheckstyleAndCodenarcData()
+
+extractWatchFsData()
 
 if ((project.gradle as GradleInternal).services.get(BuildType::class.java) != BuildType.TASKS) {
     buildScan.tag("SYNC")
@@ -164,6 +176,38 @@ fun BuildScanExtension.whenEnvIsSet(envName: String, action: BuildScanExtension.
     val envValue: String? = System.getenv(envName)
     if (!envValue.isNullOrEmpty()) {
         action(envValue)
+    }
+}
+
+fun Project.extractWatchFsData() {
+    gradle.serviceOf<BuildOperationListenerManager>().let { listenerManager ->
+        listenerManager.addListener(FileSystemWatchingBuildOperationListener(listenerManager, buildScan))
+    }
+}
+
+open class FileSystemWatchingBuildOperationListener(private val buildOperationListenerManager: BuildOperationListenerManager, private val buildScan: BuildScanExtension) : BuildOperationListener {
+
+    override fun started(buildOperation: BuildOperationDescriptor, startEvent: OperationStartEvent) {
+    }
+
+    override fun progress(operationIdentifier: OperationIdentifier, progressEvent: OperationProgressEvent) {
+    }
+
+    override fun finished(buildOperation: BuildOperationDescriptor, finishEvent: OperationFinishEvent) {
+        when (val result = finishEvent.result) {
+            is RunBuildBuildOperationType.Result -> buildOperationListenerManager.removeListener(this)
+            is BuildFinishedFileSystemWatchingBuildOperationType.Result -> {
+                if (result.isWatchingEnabled) {
+                    buildScan.value("watchFsStoppedDuringBuild", result.isStoppedWatchingDuringTheBuild.toString())
+                    result.statistics?.let {
+                        buildScan.value("watchFsEventsReceivedDuringBuild", it.numberOfReceivedEvents.toString())
+                        buildScan.value("watchFsRetainedDirectories", it.retainedDirectories.toString())
+                        buildScan.value("watchFsRetainedFiles", it.retainedRegularFiles.toString())
+                        buildScan.value("watchFsRetainedMissingFiles", it.retainedMissingFiles.toString())
+                    }
+                }
+            }
+        }
     }
 }
 

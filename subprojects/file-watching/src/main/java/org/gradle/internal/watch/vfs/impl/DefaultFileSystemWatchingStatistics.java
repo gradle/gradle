@@ -44,6 +44,11 @@ public class DefaultFileSystemWatchingStatistics implements FileSystemWatchingSt
     }
 
     @Override
+    public int getNumberOfWatchedHierarchies() {
+        return fileWatchingStatistics.getNumberOfWatchedHierarchies();
+    }
+
+    @Override
     public int getRetainedRegularFiles() {
         return vfsStatistics.getRetained(FileType.RegularFile);
     }

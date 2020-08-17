@@ -16,7 +16,7 @@ dependencies {
     testRuntimeOnly(project(":distributions-full"))
 }
 
-tasks.withType<Test>().configureEach {
+tasks.test {
     // Looks like loading all the classes requires more than the default 512M
     maxHeapSize = "700M"
 

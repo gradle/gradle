@@ -22,6 +22,5 @@ public interface CommandLineToolInvocationWorker extends BuildOperationWorker<Co
     /**
      * Returns a human consumable name for this tool.
      */
-    @Override
     String getDisplayName();
 }

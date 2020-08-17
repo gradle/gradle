@@ -24,8 +24,8 @@ import java.util.function.Predicate
 class NonHierarchicalFileWatcherUpdaterTest extends AbstractFileWatcherUpdaterTest {
 
     @Override
-    FileWatcherUpdater createUpdater(FileWatcher watcher, Predicate<String> watchFilter) {
-        new NonHierarchicalFileWatcherUpdater(watcher, watchFilter)
+    FileWatcherUpdater createUpdater(FileWatcher watcher, Predicate<String> watchFilter, int maxHierarchiesToWatch) {
+        new NonHierarchicalFileWatcherUpdater(watcher, watchFilter, maxHierarchiesToWatch)
     }
 
     def "only watches directories in hierarchies to watch"() {
