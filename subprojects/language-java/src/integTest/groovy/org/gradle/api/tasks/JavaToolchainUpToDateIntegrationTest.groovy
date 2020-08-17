@@ -18,11 +18,13 @@ package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractPluginIntegrationTest
 import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.internal.jvm.Jvm
 import org.gradle.test.fixtures.file.TestFile
 
 class JavaToolchainUpToDateIntegrationTest extends AbstractPluginIntegrationTest {
 
+    @ToBeFixedForInstantExecution(because="trying to serialize lambda?")
     def "compile and test reacting to toolchains are up-to-date without changes"() {
         def someJdk = AvailableJavaHomes.getDifferentJdk()
         buildscriptWithToolchain(someJdk)
@@ -40,6 +42,7 @@ class JavaToolchainUpToDateIntegrationTest extends AbstractPluginIntegrationTest
         outputContains("Task :test UP-TO-DATE")
     }
 
+    @ToBeFixedForInstantExecution(because="trying to serialize lambda?")
     def "compile and test not up-to-date once toolchain changed"() {
         def someJdk = AvailableJavaHomes.getDifferentJdk()
         buildscriptWithToolchain(someJdk)
