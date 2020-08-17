@@ -86,15 +86,20 @@ public class NonHierarchicalFileWatcherUpdater implements FileWatcherUpdater {
 
     @Override
     public SnapshotHierarchy buildFinished(SnapshotHierarchy root) {
-        SnapshotHierarchy newRoot = watchableHierarchies.removeUnwatchedSnapshots(
+        WatchableHierarchies.Invalidator invalidator = (location, currentRoot) -> {
+            SnapshotCollectingDiffListener diffListener = new SnapshotCollectingDiffListener();
+            SnapshotHierarchy invalidatedRoot = currentRoot.invalidate(location, diffListener);
+            diffListener.publishSnapshotDiff((removedSnapshots, addedSnapshots) -> virtualFileSystemContentsChanged(removedSnapshots, addedSnapshots, invalidatedRoot));
+            return invalidatedRoot;
+        };
+        SnapshotHierarchy newRoot = watchableHierarchies.removeWatchedHierarchiesOverLimit(
+            invalidator,
             hierarchy -> containsSnapshots(hierarchy, root),
-            root,
-            (location, currentRoot) -> {
-                SnapshotCollectingDiffListener diffListener = new SnapshotCollectingDiffListener();
-                SnapshotHierarchy invalidatedRoot = currentRoot.invalidate(location, diffListener);
-                diffListener.publishSnapshotDiff((removedSnapshots, addedSnapshots) -> virtualFileSystemContentsChanged(removedSnapshots, addedSnapshots, invalidatedRoot));
-                return invalidatedRoot;
-            }
+            root
+        );
+        newRoot = watchableHierarchies.removeUnwatchedSnapshots(
+            newRoot,
+            invalidator
         );
         LOGGER.warn("Watching {} directories to track changes", watchedDirectories.entrySet().size());
         return newRoot;

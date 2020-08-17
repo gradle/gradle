@@ -86,11 +86,16 @@ public class HierarchicalFileWatcherUpdater implements FileWatcherUpdater {
 
     @Override
     public SnapshotHierarchy buildFinished(SnapshotHierarchy root) {
+        WatchableHierarchies.Invalidator invalidator = (location, currentRoot) -> currentRoot.invalidate(location, SnapshotHierarchy.NodeDiffListener.NOOP);
         Set<File> watchedFiles = watchedHierarchies.stream().map(Path::toFile).collect(Collectors.toSet());
-        SnapshotHierarchy newRoot = watchableHierarchies.removeUnwatchedSnapshots(
+        SnapshotHierarchy newRoot = watchableHierarchies.removeWatchedHierarchiesOverLimit(
+            invalidator,
             watchedFiles::contains,
-            root,
-            (location, currentRoot) -> currentRoot.invalidate(location, SnapshotHierarchy.NodeDiffListener.NOOP)
+            root
+        );
+        newRoot = watchableHierarchies.removeUnwatchedSnapshots(
+            newRoot,
+            invalidator
         );
 
         determineAndUpdateWatchedHierarchies(newRoot);

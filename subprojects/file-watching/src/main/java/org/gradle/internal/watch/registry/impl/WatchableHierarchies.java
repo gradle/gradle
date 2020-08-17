@@ -67,17 +67,15 @@ public class WatchableHierarchies {
     }
 
     @CheckReturnValue
-    public SnapshotHierarchy removeUnwatchedSnapshots(Predicate<File> isWatchedHierarchy, SnapshotHierarchy root, Invalidator invalidator) {
-        recentlyUsedHierarchies.removeIf(hierarchy -> !isWatchedHierarchy.test(hierarchy));
-        SnapshotHierarchy currentRoot = stopWatchingHierarchiesOverLimit(invalidator, root);
-
-        this.watchableHierarchies = DefaultFileHierarchySet.of(recentlyUsedHierarchies);
-        RemoveUnwatchedFiles removeUnwatchedFilesVisitor = new RemoveUnwatchedFiles(currentRoot, invalidator);
-        currentRoot.visitSnapshotRoots(snapshotRoot -> snapshotRoot.accept(removeUnwatchedFilesVisitor));
+    public SnapshotHierarchy removeUnwatchedSnapshots(SnapshotHierarchy root, Invalidator invalidator) {
+        RemoveUnwatchedFiles removeUnwatchedFilesVisitor = new RemoveUnwatchedFiles(root, invalidator);
+        root.visitSnapshotRoots(snapshotRoot -> snapshotRoot.accept(removeUnwatchedFilesVisitor));
         return removeUnwatchedFilesVisitor.getRootWithUnwatchedFilesRemoved();
     }
 
-    private SnapshotHierarchy stopWatchingHierarchiesOverLimit(Invalidator invalidator, SnapshotHierarchy root) {
+    @CheckReturnValue
+    public SnapshotHierarchy removeWatchedHierarchiesOverLimit(Invalidator invalidator, Predicate<File> isWatchedHierarchy, SnapshotHierarchy root) {
+        recentlyUsedHierarchies.removeIf(hierarchy -> !isWatchedHierarchy.test(hierarchy));
         SnapshotHierarchy result = root;
         int toRemove = recentlyUsedHierarchies.size() - maxHierarchiesToWatch;
         if (toRemove > 0) {
@@ -87,6 +85,7 @@ public class WatchableHierarchies {
                 result = invalidator.invalidate(locationToRemove.getAbsolutePath(), result);
             }
         }
+        this.watchableHierarchies = DefaultFileHierarchySet.of(recentlyUsedHierarchies);
         return result;
     }
 
