@@ -23,6 +23,7 @@ import javax.annotation.Nullable
 
 import static org.gradle.internal.operations.BuildOperationDescriptor.displayName
 import static org.gradle.internal.operations.DefaultBuildOperationRunner.BuildOperationExecutionListener
+import static org.gradle.internal.operations.DefaultBuildOperationRunner.ReadableBuildOperationContext
 import static org.gradle.internal.operations.DefaultBuildOperationRunner.TimeSupplier
 
 @Unroll
@@ -70,7 +71,7 @@ class DefaultBuildOperationRunnerTest extends Specification {
         }
 
         then:
-        1 * listener.stop(_, _, _, _) >> { BuildOperationDescriptor descriptor, BuildOperationState operationState, @Nullable BuildOperationState parent, DefaultBuildOperationContext context ->
+        1 * listener.stop(_, _, _, _) >> { BuildOperationDescriptor descriptor, BuildOperationState operationState, @Nullable BuildOperationState parent, ReadableBuildOperationContext context ->
             assert descriptor.is(descriptorUnderTest)
             assert operationState.is(operationStateUnderTest)
             assert parent == defaultParent
@@ -117,7 +118,7 @@ class DefaultBuildOperationRunnerTest extends Specification {
         contextUnderTest.result = "result"
 
         then:
-        1 * listener.stop(_, _, _, _) >> { BuildOperationDescriptor descriptor, BuildOperationState operationState, @Nullable BuildOperationState parent, DefaultBuildOperationContext context ->
+        1 * listener.stop(_, _, _, _) >> { BuildOperationDescriptor descriptor, BuildOperationState operationState, @Nullable BuildOperationState parent, ReadableBuildOperationContext context ->
             assert descriptor.is(descriptorUnderTest)
             assert operationState.is(operationStateUnderTest)
             assert parent == null
@@ -165,7 +166,7 @@ class DefaultBuildOperationRunnerTest extends Specification {
         }
 
         then:
-        1 * listener.stop(_, _, _, _) >> { BuildOperationDescriptor descriptor, BuildOperationState operationState, @Nullable BuildOperationState parent, DefaultBuildOperationContext context ->
+        1 * listener.stop(_, _, _, _) >> { BuildOperationDescriptor descriptor, BuildOperationState operationState, @Nullable BuildOperationState parent, ReadableBuildOperationContext context ->
             assert descriptor.is(descriptorUnderTest)
             assert operationState.is(operationStateUnderTest)
             assert context.result == null
@@ -208,7 +209,7 @@ class DefaultBuildOperationRunnerTest extends Specification {
         contextUnderTest.failed(failure)
 
         then:
-        1 * listener.stop(_, _, _, _) >> { BuildOperationDescriptor descriptor, BuildOperationState operationState, @Nullable BuildOperationState parent, DefaultBuildOperationContext context ->
+        1 * listener.stop(_, _, _, _) >> { BuildOperationDescriptor descriptor, BuildOperationState operationState, @Nullable BuildOperationState parent, ReadableBuildOperationContext context ->
             assert descriptor.is(descriptorUnderTest)
             assert operationState.is(operationStateUnderTest)
             assert context.result == null
