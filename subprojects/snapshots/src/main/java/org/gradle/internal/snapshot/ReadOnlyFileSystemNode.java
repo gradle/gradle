@@ -27,6 +27,11 @@ public interface ReadOnlyFileSystemNode {
         }
 
         @Override
+        public boolean hasDescendantSnapshot() {
+            return false;
+        }
+
+        @Override
         public ReadOnlyFileSystemNode getNode(VfsRelativePath relativePath, CaseSensitivity caseSensitivity) {
             return EMPTY;
         }
@@ -47,6 +52,8 @@ public interface ReadOnlyFileSystemNode {
      * When calling this method, the caller needs to make sure the the snapshot is a child of this node.
      */
     Optional<MetadataSnapshot> getSnapshot(VfsRelativePath relativePath, CaseSensitivity caseSensitivity);
+
+    boolean hasDescendantSnapshot();
 
     ReadOnlyFileSystemNode getNode(VfsRelativePath relativePath, CaseSensitivity caseSensitivity);
 

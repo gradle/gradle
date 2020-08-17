@@ -131,4 +131,14 @@ public abstract class AbstractIncompleteSnapshotWithChildren extends AbstractFil
             child.accept(snapshotVisitor);
         }
     }
+
+    @Override
+    public boolean hasDescendantSnapshot() {
+        for (FileSystemNode child : children) {
+            if (child.hasDescendantSnapshot()) {
+                return true;
+            }
+        }
+        return false;
+    }
 }

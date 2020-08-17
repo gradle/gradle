@@ -66,6 +66,11 @@ public abstract class AbstractCompleteFileSystemLocationSnapshot implements Comp
     }
 
     @Override
+    public boolean hasDescendantSnapshot() {
+        return true;
+    }
+
+    @Override
     public FileSystemNode asFileSystemNode(String pathToParent) {
         return getPathToParent().equals(pathToParent)
             ? this
@@ -133,6 +138,11 @@ public abstract class AbstractCompleteFileSystemLocationSnapshot implements Comp
         @Override
         public Optional<MetadataSnapshot> getSnapshot(VfsRelativePath relativePath, CaseSensitivity caseSensitivity) {
             return delegate.getSnapshot(relativePath, caseSensitivity);
+        }
+
+        @Override
+        public boolean hasDescendantSnapshot() {
+            return delegate.hasDescendantSnapshot();
         }
 
         @Override
