@@ -26,7 +26,7 @@ import java.nio.charset.*;
 
 import static org.gradle.util.WrapUtil.*;
 import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 public class FilterChainTest {
     private final FilterChain filterChain = new FilterChain();
@@ -106,9 +106,9 @@ public class FilterChainTest {
             sb.append("丈, 😃, and नि");
         }
         String input = sb.toString();
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
         InputStream transformed = filterChain.transform(new ByteArrayInputStream(input.getBytes(charset.name())));
         // We read byte-by-byte to trigger edge cases in the downstream implementations.
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
         int read;
         while ((read = transformed.read()) != -1) {
             baos.write(read);
