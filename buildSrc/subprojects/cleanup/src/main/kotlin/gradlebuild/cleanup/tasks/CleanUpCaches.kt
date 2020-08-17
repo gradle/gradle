@@ -46,6 +46,7 @@ abstract class CleanUpCaches : DefaultTask() {
 
     @TaskAction
     fun cleanUpCaches() {
+        println("Cleaning up caches... current version: " + version.get())
         val homeDir = homeDir.get()
 
         homeDir.asFile.listFiles()?.filter { it.name.startsWith("distributions-") }?.forEach {

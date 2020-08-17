@@ -17,13 +17,20 @@ package gradlebuild
 
 import gradlebuild.cleanup.extension.CleanupExtension
 import gradlebuild.integrationtests.tasks.DistributionTest
+import gradlebuild.cleanup.tasks.CleanUpCaches
 
 plugins {
     java
+    id("gradlebuild.module-identity")
+}
+
+val cleanUpCaches by tasks.registering(CleanUpCaches::class) {
+    version.set(moduleIdentity.version)
+    homeDir.set(rootProject.layout.projectDirectory.dir("intTestHomeDir"))
 }
 
 tasks.withType<DistributionTest>().configureEach {
-    dependsOn(":cleanUpCaches")
+    dependsOn(cleanUpCaches)
     finalizedBy(":cleanUpDaemons")
     shouldRunAfter("test")
 
