@@ -99,7 +99,7 @@ public class NonHierarchicalFileWatcherUpdater implements FileWatcherUpdater {
             newRoot,
             invalidator
         );
-        LOGGER.warn("Watching {} directories to track changes", watchedDirectories.entrySet().size());
+        LOGGER.info("Watching {} directories to track changes", watchedDirectories.entrySet().size());
         return newRoot;
     }
 
