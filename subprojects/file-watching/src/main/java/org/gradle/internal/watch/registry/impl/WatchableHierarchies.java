@@ -81,7 +81,7 @@ public class WatchableHierarchies {
         SnapshotHierarchy result = root;
         int toRemove = recentlyUsedHierarchies.size() - maxHierarchiesToWatch;
         if (toRemove > 0) {
-            LOGGER.warn("Watching {} hierarchies, removing {} to limit the number of watched directories", recentlyUsedHierarchies.size(), toRemove);
+            LOGGER.warn("Watching too many directories in the file system (watching {}, limit {}), dropping some state from the virtual file system", recentlyUsedHierarchies.size(), maxHierarchiesToWatch);
             for (int i = 0; i < toRemove; i++) {
                 File locationToRemove = recentlyUsedHierarchies.removeLast();
                 result = invalidator.invalidate(locationToRemove.getAbsolutePath(), result);
