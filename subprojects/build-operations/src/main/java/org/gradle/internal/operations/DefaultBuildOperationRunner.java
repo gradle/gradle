@@ -235,11 +235,17 @@ public class DefaultBuildOperationRunner implements BuildOperationRunner {
         @Nullable
         Object getResult();
 
+        @Override
+        void setResult(@Nullable Object result);
+
         @Nullable
         Throwable getFailure();
 
         @Nullable
         String getStatus();
+
+        @Override
+        void setStatus(@Nullable String status);
     }
 
     public interface BuildOperationExecutionListener {
@@ -266,7 +272,7 @@ public class DefaultBuildOperationRunner implements BuildOperationRunner {
         }
 
         @Override
-        public void setResult(Object result) {
+        public void setResult(@Nullable Object result) {
             this.result = result;
         }
 
@@ -288,7 +294,7 @@ public class DefaultBuildOperationRunner implements BuildOperationRunner {
         }
 
         @Override
-        public void setStatus(String status) {
+        public void setStatus(@Nullable String status) {
             this.status = status;
         }
     }
