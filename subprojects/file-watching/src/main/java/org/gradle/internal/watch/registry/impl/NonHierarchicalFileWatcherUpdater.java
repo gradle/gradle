@@ -93,9 +93,7 @@ public class NonHierarchicalFileWatcherUpdater implements FileWatcherUpdater {
             return invalidatedRoot;
         };
         SnapshotHierarchy newRoot = watchableHierarchies.removeWatchedHierarchiesOverLimit(
-            invalidator,
-            hierarchy -> containsSnapshots(hierarchy, root),
-            root
+            root, hierarchy -> containsSnapshots(hierarchy, root), invalidator
         );
         newRoot = watchableHierarchies.removeUnwatchedSnapshots(
             newRoot,

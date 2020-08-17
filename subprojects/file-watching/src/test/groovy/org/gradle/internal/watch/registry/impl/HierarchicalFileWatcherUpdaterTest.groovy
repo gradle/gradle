@@ -167,18 +167,16 @@ class HierarchicalFileWatcherUpdaterTest extends AbstractFileWatcherUpdaterTest 
         0 * _
     }
 
-    def "only adds watches for the roots of the hierarchies to watch"() {
-        def firstDir = file("first").createDir()
-        def secondDir = file("second").createDir()
-        def directoryWithinFirst = file("first/within").createDir()
+    def "watch only outermost hierarchy"() {
+        def outerDir = file("outer").createDir()
+        def innerDirBefore = file("outer/inner1").createDir()
+        def innerDirAfter = file("outer/inner2").createDir()
 
         when:
-        registerWatchableHierarchies([firstDir, directoryWithinFirst, secondDir])
-        addSnapshotsInWatchableHierarchies([secondDir, firstDir, directoryWithinFirst])
+        registerWatchableHierarchies([innerDirBefore, outerDir, innerDirAfter])
+        addSnapshotsInWatchableHierarchies([outerDir, innerDirAfter, innerDirBefore])
         then:
-        [firstDir, secondDir].each { watchableHierarchy ->
-            1 * watcher.startWatching({ equalIgnoringOrder(it, [watchableHierarchy]) })
-        }
+        1 * watcher.startWatching({ equalIgnoringOrder(it, [outerDir]) })
         0 * _
     }
 
