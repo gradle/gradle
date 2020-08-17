@@ -20,6 +20,7 @@ dependencies {
     implementation(project(":diagnostics"))
     implementation(project(":normalization-java"))
     implementation(project(":resources"))
+    implementation(project(":native"))
 
     implementation(libs.groovy)
     implementation(libs.guava)
