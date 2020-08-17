@@ -49,4 +49,8 @@ public class ExternalDependency extends Dependency {
     public String getClassifier() {
         return classifier;
     }
+
+    public Collection<String> getExcludedModules() {
+        return excludedModules;
+    }
 }

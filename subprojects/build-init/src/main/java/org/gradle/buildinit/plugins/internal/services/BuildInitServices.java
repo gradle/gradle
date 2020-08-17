@@ -35,6 +35,7 @@ public class BuildInitServices extends AbstractPluginServiceRegistry {
     }
 
     private static class ProjectScopeBuildInitServices {
+        @SuppressWarnings("unused")
         ProjectLayoutSetupRegistry createProjectLayoutSetupRegistry(MavenSettingsProvider mavenSettingsProvider, DocumentationRegistry documentationRegistry, FileCollectionFactory fileCollectionFactory, GradleInternal gradle) {
             FileResolver fileResolver = gradle.getRootProject().getFileResolver();
             return new ProjectLayoutSetupRegistryFactory(mavenSettingsProvider, documentationRegistry, fileResolver, fileCollectionFactory.withResolver(fileResolver)).createProjectLayoutSetupRegistry();
