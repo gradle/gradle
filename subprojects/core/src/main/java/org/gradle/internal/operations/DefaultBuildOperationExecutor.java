@@ -166,7 +166,7 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
         fixedSizePool.stop();
     }
 
-    private static class ListenerAdapter implements BuildOperationExecutionListener {
+    private static class ListenerAdapter implements DefaultBuildOperationRunner.BuildOperationExecutionListener {
         private final BuildOperationListener buildOperationListener;
         private final ProgressLoggerFactory progressLoggerFactory;
         private final Clock clock;

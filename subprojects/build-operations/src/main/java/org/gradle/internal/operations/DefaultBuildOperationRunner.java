@@ -229,7 +229,15 @@ public class DefaultBuildOperationRunner implements BuildOperationRunner {
         }
     }
 
-    protected interface BuildOperationExecutionListenerFactory {
+    public interface BuildOperationExecutionListener {
+        void start(BuildOperationDescriptor descriptor, BuildOperationState operationState);
+
+        void stop(BuildOperationDescriptor descriptor, BuildOperationState operationState, @Nullable BuildOperationState parent, DefaultBuildOperationContext context);
+
+        void close(BuildOperationDescriptor descriptor, BuildOperationState operationState);
+    }
+
+    public interface BuildOperationExecutionListenerFactory {
         BuildOperationExecutionListener createListener();
     }
 }

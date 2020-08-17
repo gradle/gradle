@@ -16,18 +16,19 @@
 
 package org.gradle.internal.operations
 
-
 import spock.lang.Specification
 import spock.lang.Unroll
 
 import javax.annotation.Nullable
 
 import static org.gradle.internal.operations.BuildOperationDescriptor.displayName
+import static org.gradle.internal.operations.DefaultBuildOperationRunner.BuildOperationExecutionListener
+import static org.gradle.internal.operations.DefaultBuildOperationRunner.TimeSupplier
 
 @Unroll
 class DefaultBuildOperationRunnerTest extends Specification {
 
-    def timeProvider = Mock(DefaultBuildOperationRunner.TimeSupplier)
+    def timeProvider = Mock(TimeSupplier)
     def listener = Mock(BuildOperationExecutionListener)
     def currentBuildOperationRef = CurrentBuildOperationRef.instance()
     def operationRunner = new DefaultBuildOperationRunner(currentBuildOperationRef, timeProvider, new DefaultBuildOperationIdFactory(), { listener })
