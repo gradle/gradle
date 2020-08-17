@@ -65,7 +65,7 @@ class ResolveState implements ComponentStateFactory<ComponentState> {
     private final Spec<? super DependencyMetadata> edgeFilter;
     private final Map<ModuleIdentifier, ModuleResolveState> modules;
     private final Map<ResolvedConfigurationIdentifier, NodeState> nodes;
-    private final Map<Pair<ComponentSelector, Boolean>, SelectorState> selectors;
+    private final Map<Pair<ComponentSelector, Pair<Boolean, Boolean>>, SelectorState> selectors;
     private final RootNode root;
     private final IdGenerator<Long> idGenerator;
     private final DependencyToComponentIdResolver idResolver;
@@ -179,7 +179,8 @@ class ResolveState implements ComponentStateFactory<ComponentState> {
     }
 
     public SelectorState getSelector(DependencyState dependencyState, boolean ignoreVersion) {
-        SelectorState selectorState = selectors.computeIfAbsent(Pair.of(dependencyState.getRequested(), ignoreVersion), req -> {
+        boolean isVirtualPlatformEdge = dependencyState.getDependency() instanceof LenientPlatformDependencyMetadata;
+        SelectorState selectorState = selectors.computeIfAbsent(Pair.of(dependencyState.getRequested(), Pair.of(ignoreVersion, isVirtualPlatformEdge)), req -> {
             ModuleIdentifier moduleIdentifier = dependencyState.getModuleIdentifier();
             return new SelectorState(idGenerator.generateId(), dependencyState, idResolver, this, moduleIdentifier, ignoreVersion);
         });
