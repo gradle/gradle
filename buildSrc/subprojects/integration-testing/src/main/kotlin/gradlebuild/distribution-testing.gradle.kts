@@ -16,14 +16,24 @@
 package gradlebuild
 
 import gradlebuild.cleanup.extension.CleanupExtension
+import gradlebuild.cleanup.services.CachesCleaner
 import gradlebuild.integrationtests.tasks.DistributionTest
 
 plugins {
     java
+    id("gradlebuild.module-identity")
+}
+
+val intTestHomeDir = rootProject.layout.projectDirectory.dir("intTestHomeDir")
+
+val cachesCleanerService = gradle.sharedServices.registerIfAbsent("cachesCleaner", CachesCleaner::class) {
+    parameters.homeDir.set(intTestHomeDir)
 }
 
 tasks.withType<DistributionTest>().configureEach {
-    dependsOn(":cleanUpCaches")
+    usesService(cachesCleanerService)
+    cachesCleanerService.get().setGradleVersion(moduleIdentity.version.get())
+
     shouldRunAfter("test")
 
     setJvmArgsOfTestJvm()
@@ -57,7 +67,6 @@ fun DistributionTest.configureGradleTestEnvironment() {
         }
         // Set the base user home dir to be share by integration tests.
         // The actual user home dir will be a subfolder using the name of the distribution.
-        val intTestHomeDir = rootProject.layout.projectDirectory.dir("intTestHomeDir")
         gradleUserHomeDir.set(intTestHomeDir)
         // The user home dir is not wiped out by clean. Move the daemon working space underneath the build dir so they don't pile up on CI.
         // The actual daemon registry dir will be a subfolder using the name of the distribution.

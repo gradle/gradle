@@ -48,6 +48,7 @@ abstract class DaemonTracker : BuildService<DaemonTracker.Params>, AutoCloseable
     val daemonPids = ConcurrentHashMap.newKeySet<String>()
 
     override fun close() {
+        println("Cleaning up daemons...")
         cleanUpDaemons()
     }
 
