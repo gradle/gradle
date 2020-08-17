@@ -68,8 +68,8 @@ public class DefaultSnapshotHierarchy implements SnapshotHierarchy {
     }
 
     @Override
-    public boolean hasDescendantSnapshot(String absolutePath) {
-        return getNodeForLocation(absolutePath).hasDescendantSnapshot();
+    public boolean hasDescendantsUnder(String absolutePath) {
+        return getNodeForLocation(absolutePath).hasDescendants();
     }
 
     @Override
@@ -121,7 +121,7 @@ public class DefaultSnapshotHierarchy implements SnapshotHierarchy {
         }
 
         @Override
-        public boolean hasDescendantSnapshot(String absolutePath) {
+        public boolean hasDescendantsUnder(String absolutePath) {
             return false;
         }
 

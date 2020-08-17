@@ -27,7 +27,7 @@ public interface ReadOnlyFileSystemNode {
         }
 
         @Override
-        public boolean hasDescendantSnapshot() {
+        public boolean hasDescendants() {
             return false;
         }
 
@@ -53,7 +53,7 @@ public interface ReadOnlyFileSystemNode {
      */
     Optional<MetadataSnapshot> getSnapshot(VfsRelativePath relativePath, CaseSensitivity caseSensitivity);
 
-    boolean hasDescendantSnapshot();
+    boolean hasDescendants();
 
     ReadOnlyFileSystemNode getNode(VfsRelativePath relativePath, CaseSensitivity caseSensitivity);
 

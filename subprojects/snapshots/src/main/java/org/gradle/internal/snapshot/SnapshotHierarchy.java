@@ -41,7 +41,7 @@ public interface SnapshotHierarchy {
             .map(CompleteFileSystemLocationSnapshot.class::cast);
     }
 
-    boolean hasDescendantSnapshot(String absolutePath);
+    boolean hasDescendantsUnder(String absolutePath);
 
     /**
      * Returns a hierarchy augmented by the information of the snapshot at the absolute path.

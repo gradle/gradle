@@ -66,7 +66,7 @@ public abstract class AbstractCompleteFileSystemLocationSnapshot implements Comp
     }
 
     @Override
-    public boolean hasDescendantSnapshot() {
+    public boolean hasDescendants() {
         return true;
     }
 
@@ -141,8 +141,8 @@ public abstract class AbstractCompleteFileSystemLocationSnapshot implements Comp
         }
 
         @Override
-        public boolean hasDescendantSnapshot() {
-            return delegate.hasDescendantSnapshot();
+        public boolean hasDescendants() {
+            return delegate.hasDescendants();
         }
 
         @Override

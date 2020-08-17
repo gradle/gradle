@@ -79,7 +79,7 @@ public class HierarchicalFileWatcherUpdater implements FileWatcherUpdater {
     @Override
     public void virtualFileSystemContentsChanged(Collection<CompleteFileSystemLocationSnapshot> removedSnapshots, Collection<CompleteFileSystemLocationSnapshot> addedSnapshots, SnapshotHierarchy root) {
         boolean directoriesToWatchChanged = watchableHierarchies.getWatchableHierarchies().stream().anyMatch(watchableHierarchy -> {
-            boolean hasSnapshotsToWatch = root.hasDescendantSnapshot(watchableHierarchy.toString());
+            boolean hasSnapshotsToWatch = root.hasDescendantsUnder(watchableHierarchy.toString());
             if (watchedHierarchies.contains(watchableHierarchy.toString())) {
                 // Need to stop watching this hierarchy
                 return !hasSnapshotsToWatch;

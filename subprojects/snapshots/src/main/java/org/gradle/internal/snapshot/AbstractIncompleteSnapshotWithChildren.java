@@ -133,9 +133,9 @@ public abstract class AbstractIncompleteSnapshotWithChildren extends AbstractFil
     }
 
     @Override
-    public boolean hasDescendantSnapshot() {
+    public boolean hasDescendants() {
         for (FileSystemNode child : children) {
-            if (child.hasDescendantSnapshot()) {
+            if (child.hasDescendants()) {
                 return true;
             }
         }
