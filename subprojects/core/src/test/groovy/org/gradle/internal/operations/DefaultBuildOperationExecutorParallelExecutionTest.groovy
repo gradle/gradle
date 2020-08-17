@@ -50,8 +50,6 @@ class DefaultBuildOperationExecutorParallelExecutionTest extends ConcurrentSpec 
 
     static class SimpleWorker implements BuildOperationWorker<DefaultBuildOperationQueueTest.TestBuildOperation> {
         void execute(DefaultBuildOperationQueueTest.TestBuildOperation run, BuildOperationContext context) { run.run(context) }
-
-        String getDisplayName() { return getClass().simpleName }
     }
 
     def "cleanup"() {

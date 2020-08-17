@@ -22,10 +22,5 @@ package org.gradle.internal.operations;
  * Implementations must be thread-safe.
  */
 public interface BuildOperationWorker<O extends BuildOperation> {
-    /**
-     * Returns a human consumable name for this tool.
-     */
-    String getDisplayName();
-
     void execute(O buildOperation, BuildOperationContext context) throws Exception;
 }

@@ -68,6 +68,11 @@ public class TestBuildOperationExecutor implements BuildOperationExecutor {
     }
 
     @Override
+    public <O extends BuildOperation> void execute(O buildOperation, BuildOperationWorker<O> worker, @Nullable BuildOperationState defaultParent) {
+        log.execute(buildOperation, worker);
+    }
+
+    @Override
     public BuildOperationContext start(BuildOperationDescriptor.Builder descriptor) {
         return log.start(descriptor);
     }
@@ -280,6 +285,20 @@ public class TestBuildOperationExecutor implements BuildOperationExecutor {
                 throw UncheckedException.throwAsUncheckedException(failure);
             }
             return t;
+        }
+
+        private <O extends BuildOperation> void execute(O buildOperation, BuildOperationWorker<O> worker) {
+            Record record = new Record(buildOperation.description().build());
+            records.add(record);
+            TestBuildOperationContext context = new TestBuildOperationContext(record);
+            try {
+                worker.execute(buildOperation, context);
+            } catch (Throwable failure) {
+                if (record.failure == null) {
+                    record.failure = failure;
+                }
+                throw UncheckedException.throwAsUncheckedException(failure);
+            }
         }
 
         private BuildOperationContext start(final BuildOperationDescriptor.Builder descriptor) {
