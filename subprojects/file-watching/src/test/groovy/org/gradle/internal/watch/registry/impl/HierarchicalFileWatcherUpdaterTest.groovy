@@ -173,8 +173,8 @@ class HierarchicalFileWatcherUpdaterTest extends AbstractFileWatcherUpdaterTest 
         def directoryWithinFirst = file("first/within").createDir()
 
         when:
-        registerWatchableHierarchies([directoryWithinFirst, firstDir, secondDir])
-        addSnapshotsInWatchableHierarchies([secondDir, directoryWithinFirst])
+        registerWatchableHierarchies([firstDir, directoryWithinFirst, secondDir])
+        addSnapshotsInWatchableHierarchies([secondDir, firstDir, directoryWithinFirst])
         then:
         [firstDir, secondDir].each { watchableHierarchy ->
             1 * watcher.startWatching({ equalIgnoringOrder(it, [watchableHierarchy]) })

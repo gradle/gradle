@@ -75,13 +75,13 @@ public class HierarchicalFileWatcherUpdater implements FileWatcherUpdater {
 
     @Override
     public void virtualFileSystemContentsChanged(Collection<CompleteFileSystemLocationSnapshot> removedSnapshots, Collection<CompleteFileSystemLocationSnapshot> addedSnapshots, SnapshotHierarchy root) {
-        determineAndUpdateWatchedHierarchies(root);
+        updateWatchedHierarchies(root);
     }
 
     @Override
     public void registerWatchableHierarchy(File watchableHierarchy, SnapshotHierarchy root) {
         watchableHierarchies.registerWatchableHierarchy(watchableHierarchy, root);
-        determineAndUpdateWatchedHierarchies(root);
+        updateWatchedHierarchies(root);
     }
 
     @Override
@@ -98,7 +98,7 @@ public class HierarchicalFileWatcherUpdater implements FileWatcherUpdater {
             invalidator
         );
 
-        determineAndUpdateWatchedHierarchies(newRoot);
+        updateWatchedHierarchies(newRoot);
         LOGGER.info("Watched directory hierarchies: {}", watchedHierarchies);
         return newRoot;
     }
@@ -108,7 +108,7 @@ public class HierarchicalFileWatcherUpdater implements FileWatcherUpdater {
         return watchedHierarchies.size();
     }
 
-    private void determineAndUpdateWatchedHierarchies(SnapshotHierarchy root) {
+    private void updateWatchedHierarchies(SnapshotHierarchy root) {
         Set<String> snapshotsAlreadyCoveredByOtherHierarchies = new HashSet<>();
         Set<Path> hierarchiesWithSnapshots = watchableHierarchies.getWatchableHierarchies().stream()
             .flatMap(watchableHierarchy -> {
@@ -122,17 +122,9 @@ public class HierarchicalFileWatcherUpdater implements FileWatcherUpdater {
                     : Stream.of(watchableHierarchy.toPath());
             })
             .collect(Collectors.toSet());
-        updateWatchedHierarchies(resolveHierarchiesToWatch(hierarchiesWithSnapshots));
-    }
 
-    private Path locationOrFirstExistingAncestor(Path watchableHierarchy) {
-        if (Files.isDirectory(watchableHierarchy)) {
-            return watchableHierarchy;
-        }
-        return SnapshotWatchedDirectoryFinder.findFirstExistingAncestor(watchableHierarchy);
-    }
+        Set<Path> newWatchedHierarchies = resolveHierarchiesToWatch(hierarchiesWithSnapshots);
 
-    private void updateWatchedHierarchies(Set<Path> newWatchedHierarchies) {
         if (newWatchedHierarchies.isEmpty()) {
             LOGGER.info("Not watching anything anymore");
         }
@@ -159,6 +151,13 @@ public class HierarchicalFileWatcherUpdater implements FileWatcherUpdater {
             watchedHierarchies.addAll(hierarchiesToStartWatching);
         }
         LOGGER.info("Watching {} directory hierarchies to track changes", watchedHierarchies.size());
+    }
+
+    private Path locationOrFirstExistingAncestor(Path watchableHierarchy) {
+        if (Files.isDirectory(watchableHierarchy)) {
+            return watchableHierarchy;
+        }
+        return SnapshotWatchedDirectoryFinder.findFirstExistingAncestor(watchableHierarchy);
     }
 
     /**
