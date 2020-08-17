@@ -110,9 +110,9 @@ public class NonHierarchicalFileWatcherUpdater implements FileWatcherUpdater {
         return watchableHierarchies.getWatchableHierarchies().size();
     }
 
-    private boolean containsSnapshots(File location, SnapshotHierarchy root) {
+    private boolean containsSnapshots(Path location, SnapshotHierarchy root) {
         CheckIfNonEmptySnapshotVisitor checkIfNonEmptySnapshotVisitor = new CheckIfNonEmptySnapshotVisitor(watchableHierarchies);
-        root.visitSnapshotRoots(location.getAbsolutePath(), checkIfNonEmptySnapshotVisitor);
+        root.visitSnapshotRoots(location.toString(), checkIfNonEmptySnapshotVisitor);
         return !checkIfNonEmptySnapshotVisitor.isEmpty();
     }
 

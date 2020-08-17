@@ -28,6 +28,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.CheckReturnValue;
 import java.io.File;
+import java.nio.file.Path;
 import java.util.ArrayDeque;
 import java.util.Collection;
 import java.util.Deque;
@@ -40,7 +41,7 @@ public class WatchableHierarchies {
     private final int maxHierarchiesToWatch;
 
     private FileHierarchySet watchableHierarchies = DefaultFileHierarchySet.of();
-    private final Deque<File> recentlyUsedHierarchies = new ArrayDeque<>();
+    private final Deque<Path> recentlyUsedHierarchies = new ArrayDeque<>();
 
     public WatchableHierarchies(Predicate<String> watchFilter, int maxHierarchiesToWatch) {
         this.watchFilter = watchFilter;
@@ -48,20 +49,21 @@ public class WatchableHierarchies {
     }
 
     public void registerWatchableHierarchy(File watchableHierarchy, SnapshotHierarchy root) {
-        String watchableHierarchyAbsolutePath = watchableHierarchy.getAbsolutePath();
-        if (!watchFilter.test(watchableHierarchyAbsolutePath)) {
+        Path watchableHierarchyPath = watchableHierarchy.toPath().toAbsolutePath();
+        String watchableHierarchyPathString = watchableHierarchyPath.toString();
+        if (!watchFilter.test(watchableHierarchyPathString)) {
             throw new IllegalStateException(String.format(
                 "Unable to watch directory '%s' since it is within Gradle's caches",
-                watchableHierarchyAbsolutePath
+                watchableHierarchyPathString
             ));
         }
-        if (!watchableHierarchies.contains(watchableHierarchyAbsolutePath)) {
-            checkThatNothingExistsInNewWatchableHierarchy(watchableHierarchyAbsolutePath, root);
-            recentlyUsedHierarchies.addFirst(watchableHierarchy);
+        if (!watchableHierarchies.contains(watchableHierarchyPathString)) {
+            checkThatNothingExistsInNewWatchableHierarchy(watchableHierarchyPathString, root);
+            recentlyUsedHierarchies.addFirst(watchableHierarchyPath);
             watchableHierarchies = watchableHierarchies.plus(watchableHierarchy);
         } else {
-            recentlyUsedHierarchies.remove(watchableHierarchy);
-            recentlyUsedHierarchies.addFirst(watchableHierarchy);
+            recentlyUsedHierarchies.remove(watchableHierarchyPath);
+            recentlyUsedHierarchies.addFirst(watchableHierarchyPath);
         }
         LOGGER.info("Now considering {} as hierarchies to watch", recentlyUsedHierarchies);
     }
@@ -74,22 +76,22 @@ public class WatchableHierarchies {
     }
 
     @CheckReturnValue
-    public SnapshotHierarchy removeWatchedHierarchiesOverLimit(Invalidator invalidator, Predicate<File> isWatchedHierarchy, SnapshotHierarchy root) {
+    public SnapshotHierarchy removeWatchedHierarchiesOverLimit(Invalidator invalidator, Predicate<Path> isWatchedHierarchy, SnapshotHierarchy root) {
         recentlyUsedHierarchies.removeIf(hierarchy -> !isWatchedHierarchy.test(hierarchy));
         SnapshotHierarchy result = root;
         int toRemove = recentlyUsedHierarchies.size() - maxHierarchiesToWatch;
         if (toRemove > 0) {
             LOGGER.warn("Watching too many directories in the file system (watching {}, limit {}), dropping some state from the virtual file system", recentlyUsedHierarchies.size(), maxHierarchiesToWatch);
             for (int i = 0; i < toRemove; i++) {
-                File locationToRemove = recentlyUsedHierarchies.removeLast();
-                result = invalidator.invalidate(locationToRemove.getAbsolutePath(), result);
+                Path locationToRemove = recentlyUsedHierarchies.removeLast();
+                result = invalidator.invalidate(locationToRemove.toString(), result);
             }
         }
-        this.watchableHierarchies = DefaultFileHierarchySet.of(recentlyUsedHierarchies);
+        this.watchableHierarchies = DefaultFileHierarchySet.of(recentlyUsedHierarchies.stream().map(Path::toFile)::iterator);
         return result;
     }
 
-    public Collection<File> getWatchableHierarchies() {
+    public Collection<Path> getWatchableHierarchies() {
         return recentlyUsedHierarchies;
     }
 
