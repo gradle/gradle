@@ -301,6 +301,7 @@ class HierarchicalFileWatcherUpdaterTest extends AbstractFileWatcherUpdaterTest 
         when:
         missingFile.createFile()
         addSnapshot(snapshotRegularFile(missingFile))
+        buildFinished()
         then:
         1 * watcher.stopWatching({ equalIgnoringOrder(it, [rootDir]) })
         then:
