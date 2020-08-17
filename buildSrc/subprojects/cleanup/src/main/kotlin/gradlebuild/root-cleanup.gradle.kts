@@ -25,14 +25,14 @@ plugins {
 
 val trackerService = gradle.sharedServices.registerIfAbsent("daemonTracker", DaemonTracker::class) {
     parameters.gradleHomeDir.fileValue(gradle.gradleHomeDir)
-    parameters.rootProjectDir.set(rootProject.layout.projectDirectory)
+    parameters.rootProjectDir.set(layout.projectDirectory)
 }
-rootProject.extensions.create<CleanupExtension>("cleanup", trackerService)
+extensions.create<CleanupExtension>("cleanup", trackerService)
 
-val killExistingProcessesStartedByGradle by rootProject.tasks.registering(KillLeakingJavaProcesses::class) {
+val killExistingProcessesStartedByGradle by tasks.registering(KillLeakingJavaProcesses::class) {
     tracker.set(trackerService)
 }
 
-rootProject.tasks.named("clean") {
+tasks.named("clean") {
     dependsOn(killExistingProcessesStartedByGradle)
 }
