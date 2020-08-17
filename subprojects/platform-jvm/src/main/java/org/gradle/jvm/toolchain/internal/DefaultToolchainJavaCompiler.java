@@ -16,6 +16,7 @@
 
 package org.gradle.jvm.toolchain.internal;
 
+import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.jvm.toolchain.JavaCompiler;
 import org.gradle.language.base.internal.compile.CompileSpec;
@@ -34,6 +35,7 @@ public class DefaultToolchainJavaCompiler implements JavaCompiler {
         this.compilerFactory = compilerFactory;
     }
 
+    @Nested
     public JavaToolchain getJavaToolchain() {
         return javaToolchain;
     }
