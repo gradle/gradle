@@ -17,16 +17,16 @@ package org.gradle.nativeplatform.plugins;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
-import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.Project;
 import org.gradle.nativeplatform.toolchain.internal.plugins.StandardToolChainsPlugin;
 
 /**
  * A plugin that creates tasks used for constructing native binaries.
  */
 @Incubating
-public class NativeComponentPlugin implements Plugin<ProjectInternal> {
+public class NativeComponentPlugin implements Plugin<Project> {
     @Override
-    public void apply(final ProjectInternal project) {
+    public void apply(final Project project) {
         project.getPluginManager().apply(NativeComponentModelPlugin.class);
         project.getPluginManager().apply(StandardToolChainsPlugin.class);
     }
