@@ -23,6 +23,7 @@ import groovy.text.SimpleTemplateEngine;
 import groovy.text.Template;
 import groovy.util.CharsetToolkit;
 import org.gradle.api.GradleException;
+import org.gradle.util.GFileUtils;
 
 import java.io.File;
 import java.io.Writer;
@@ -48,11 +49,10 @@ public class SimpleTemplateOperation implements TemplateOperation {
         this.target = target;
     }
 
-    @SuppressWarnings("ResultOfMethodCallIgnored")
     @Override
     public void generate() {
         try {
-            target.getParentFile().mkdirs();
+            GFileUtils.parentMkdirs(target);
             SimpleTemplateEngine templateEngine = new SimpleTemplateEngine();
             String templateText = Resources.asCharSource(templateURL, CharsetToolkit.getDefaultSystemCharset()).read();
             Template template = templateEngine.createTemplate(templateText);

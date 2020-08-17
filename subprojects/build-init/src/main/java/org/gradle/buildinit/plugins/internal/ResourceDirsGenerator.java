@@ -17,6 +17,7 @@
 package org.gradle.buildinit.plugins.internal;
 
 import org.gradle.internal.file.PathToFileResolver;
+import org.gradle.util.GFileUtils;
 
 public class ResourceDirsGenerator implements BuildContentGenerator {
     private final PathToFileResolver fileResolver;
@@ -25,10 +26,9 @@ public class ResourceDirsGenerator implements BuildContentGenerator {
         this.fileResolver = fileResolver;
     }
 
-    @SuppressWarnings("ResultOfMethodCallIgnored")
     @Override
     public void generate(InitSettings settings) {
-        fileResolver.resolve("src/main/resources").mkdirs();
-        fileResolver.resolve("src/test/resources").mkdirs();
+        GFileUtils.mkdirs(fileResolver.resolve("src/main/resources"));
+        GFileUtils.mkdirs(fileResolver.resolve("src/test/resources"));
     }
 }

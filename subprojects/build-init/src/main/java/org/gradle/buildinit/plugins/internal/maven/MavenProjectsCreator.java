@@ -69,9 +69,9 @@ public class MavenProjectsCreator {
         ProjectBuilder builder = container.lookup(ProjectBuilder.class);
         MavenExecutionRequest executionRequest = new DefaultMavenExecutionRequest();
         final Properties properties = SystemProperties.getInstance().withSystemProperties(() -> {
-            final Properties properties1 = new Properties();
-            properties1.putAll(System.getProperties());
-            return properties1;
+            final Properties currentProperties = new Properties();
+            currentProperties.putAll(System.getProperties());
+            return currentProperties;
         });
 
         executionRequest.setSystemProperties(properties);
