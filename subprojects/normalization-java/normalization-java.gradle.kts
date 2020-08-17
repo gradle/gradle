@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-description = "API extraction for Java"
 
 plugins {
     id("gradlebuild.distribution.api-java")
     id("gradlebuild.publish-public-libraries")
 }
+
+description = "API extraction for Java"
 
 dependencies {
     implementation(project(":base-annotations"))
