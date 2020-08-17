@@ -46,7 +46,7 @@ include("distributions-native")
 include("distributions-full")
 
 // Gradle implementation projects
-include("instant-execution")
+include("configuration-cache")
 include("api-metadata")
 include("base-services")
 include("base-services-groovy")
@@ -155,7 +155,7 @@ include("soak")
 include("smoke-test")
 include("performance")
 include("build-scan-performance")
-include("instant-execution-report")
+include("configuration-cache-report")
 
 val upperCaseLetters = "\\p{Upper}".toRegex()
 

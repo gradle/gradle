@@ -15,7 +15,7 @@ tasks {
     }
 
     processResources {
-        from({ project(":instant-execution-report").tasks.named("assembleReport") }) {
+        from({ project(":configuration-cache-report").tasks.named("assembleReport") }) {
             into("org/gradle/instantexecution")
         }
     }
