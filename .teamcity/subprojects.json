@@ -315,15 +315,15 @@
     "crossVersionTests": false
   },
   {
-    "dirName": "instant-execution",
-    "name": "instant-execution",
+    "dirName": "configuration-cache",
+    "name": "configuration-cache",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": true
   },
   {
-    "dirName": "instant-execution-report",
-    "name": "instant-execution-report",
+    "dirName": "configuration-cache-report",
+    "name": "configuration-cache-report",
     "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
