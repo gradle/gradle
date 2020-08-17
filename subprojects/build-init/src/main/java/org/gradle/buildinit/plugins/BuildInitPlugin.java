@@ -110,7 +110,7 @@ public class BuildInitPlugin implements Plugin<Project> {
         }
 
         if (buildFile != null && buildFile.exists()) {
-            return "The build file \'" + buildFile.getName() + "\' already exists. Skipping build initialization.";
+            return "The build file '" + buildFile.getName() + "' already exists. Skipping build initialization.";
         }
 
         if (hasSubProjects) {

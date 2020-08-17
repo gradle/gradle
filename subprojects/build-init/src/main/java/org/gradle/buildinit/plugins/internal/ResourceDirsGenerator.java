@@ -25,6 +25,7 @@ public class ResourceDirsGenerator implements BuildContentGenerator {
         this.fileResolver = fileResolver;
     }
 
+    @SuppressWarnings("ResultOfMethodCallIgnored")
     @Override
     public void generate(InitSettings settings) {
         fileResolver.resolve("src/main/resources").mkdirs();
