@@ -165,8 +165,9 @@ classycle {
 tasks.test {
     setForkEvery(200)
 }
-listOf(tasks.compileGroovy, tasks.compileTestGroovy).forEach {
-    it { groovyOptions.fork("memoryInitialSize" to "128M", "memoryMaximumSize" to "1G") }
+
+tasks.compileTestGroovy {
+    groovyOptions.fork("memoryInitialSize" to "128M", "memoryMaximumSize" to "1G")
 }
 
 testFilesCleanup {
