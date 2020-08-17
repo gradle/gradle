@@ -170,7 +170,7 @@ public class JavaCompile extends AbstractCompile implements HasCompileOptions {
      * @since 6.7
      */
     @Incubating
-    @Internal
+    @Nested
     public Property<JavaCompiler> getJavaCompiler() {
         return javaCompiler;
     }
