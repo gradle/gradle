@@ -18,7 +18,6 @@ package gradlebuild
 import gradlebuild.cleanup.extension.CleanupExtension
 import gradlebuild.cleanup.services.DaemonTracker
 import gradlebuild.cleanup.tasks.CleanUpCaches
-import gradlebuild.cleanup.tasks.CleanUpDaemons
 import gradlebuild.cleanup.tasks.KillLeakingJavaProcesses
 
 plugins {
@@ -33,10 +32,6 @@ val trackerService = gradle.sharedServices.registerIfAbsent("daemonTracker", Dae
 rootProject.extensions.create<CleanupExtension>("cleanup", trackerService)
 
 val killExistingProcessesStartedByGradle by rootProject.tasks.registering(KillLeakingJavaProcesses::class) {
-    tracker.set(trackerService)
-}
-
-rootProject.tasks.register<CleanUpDaemons>("cleanUpDaemons") {
     tracker.set(trackerService)
 }
 

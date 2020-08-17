@@ -24,7 +24,6 @@ plugins {
 
 tasks.withType<DistributionTest>().configureEach {
     dependsOn(":cleanUpCaches")
-    finalizedBy(":cleanUpDaemons")
     shouldRunAfter("test")
 
     setJvmArgsOfTestJvm()

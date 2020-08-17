@@ -32,7 +32,7 @@ private
 val logger = LoggerFactory.getLogger("daemonTracker")
 
 
-abstract class DaemonTracker : BuildService<DaemonTracker.Params> {
+abstract class DaemonTracker : BuildService<DaemonTracker.Params>, AutoCloseable {
     interface Params : BuildServiceParameters {
         val rootProjectDir: DirectoryProperty
         val gradleHomeDir: DirectoryProperty
@@ -46,6 +46,10 @@ abstract class DaemonTracker : BuildService<DaemonTracker.Params> {
 
     private
     val daemonPids = ConcurrentHashMap.newKeySet<String>()
+
+    override fun close() {
+        cleanUpDaemons()
+    }
 
     fun newDaemonListener() =
         object : TestListener {
@@ -72,6 +76,7 @@ abstract class DaemonTracker : BuildService<DaemonTracker.Params> {
             }
         }
 
+    private
     fun cleanUpDaemons() {
         val alreadyKilled = mutableSetOf<String>()
         forEachJavaProcess {
