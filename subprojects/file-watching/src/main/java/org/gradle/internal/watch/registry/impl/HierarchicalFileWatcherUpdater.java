@@ -33,6 +33,7 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -123,28 +124,34 @@ public class HierarchicalFileWatcherUpdater implements FileWatcherUpdater {
     }
 
     private void updateWatchedHierarchies(SnapshotHierarchy root) {
-        Set<String> snapshotsAlreadyCoveredByOtherHierarchies = new HashSet<>();
+        AtomicReference<FileHierarchySet> newWatchedHierarchiesReference = new AtomicReference<>(DefaultFileHierarchySet.of());
         Set<Path> hierarchiesWithSnapshots = watchableHierarchies.getWatchableHierarchies().stream()
             .flatMap(watchableHierarchy -> {
+                FileHierarchySet newWatchableHierarchies = newWatchedHierarchiesReference.get();
+                if (newWatchableHierarchies.contains(watchableHierarchy.toString())) {
+                    return Stream.empty();
+                }
                 CheckIfNonEmptySnapshotVisitor checkIfNonEmptySnapshotVisitor = new CheckIfNonEmptySnapshotVisitor(watchableHierarchies);
-                root.visitSnapshotRoots(watchableHierarchy.toString(), new FilterAlreadyCoveredSnapshotsVisitor(checkIfNonEmptySnapshotVisitor, snapshotsAlreadyCoveredByOtherHierarchies));
+                root.visitSnapshotRoots(watchableHierarchy.toString(), new FilterAlreadyCoveredSnapshotsVisitor(checkIfNonEmptySnapshotVisitor, newWatchableHierarchies));
                 if (checkIfNonEmptySnapshotVisitor.isEmpty()) {
                     return Stream.empty();
                 }
+                newWatchedHierarchiesReference.updateAndGet(watchableHierarchies -> watchableHierarchies.plus(watchableHierarchy.toFile()));
                 return checkIfNonEmptySnapshotVisitor.containsOnlyMissingFiles()
                     ? Stream.of(locationOrFirstExistingAncestor(watchableHierarchy))
                     : Stream.of(watchableHierarchy);
             })
             .collect(Collectors.toSet());
+        watchedHierarchies = newWatchedHierarchiesReference.get();
 
-        Set<Path> newWatchedHierarchies = resolveHierarchiesToWatch(hierarchiesWithSnapshots);
+        Set<Path> newWatchedRoots = resolveHierarchiesToWatch(hierarchiesWithSnapshots);
 
-        if (newWatchedHierarchies.isEmpty()) {
+        if (newWatchedRoots.isEmpty()) {
             LOGGER.info("Not watching anything anymore");
         }
         Set<Path> hierarchiesToStopWatching = new HashSet<>(watchedRoots);
-        Set<Path> hierarchiesToStartWatching = new HashSet<>(newWatchedHierarchies);
-        hierarchiesToStopWatching.removeAll(newWatchedHierarchies);
+        Set<Path> hierarchiesToStartWatching = new HashSet<>(newWatchedRoots);
+        hierarchiesToStopWatching.removeAll(newWatchedRoots);
         hierarchiesToStartWatching.removeAll(watchedRoots);
         if (hierarchiesToStartWatching.isEmpty() && hierarchiesToStopWatching.isEmpty()) {
             return;
@@ -164,10 +171,6 @@ public class HierarchicalFileWatcherUpdater implements FileWatcherUpdater {
             );
             watchedRoots.addAll(hierarchiesToStartWatching);
         }
-        watchedHierarchies = DefaultFileHierarchySet.of(watchedRoots.stream()
-            .map(Path::toFile)
-            ::iterator
-        );
         LOGGER.info("Watching {} directory hierarchies to track changes", watchedRoots.size());
     }
 
@@ -211,16 +214,16 @@ public class HierarchicalFileWatcherUpdater implements FileWatcherUpdater {
 
     private static class FilterAlreadyCoveredSnapshotsVisitor implements SnapshotHierarchy.SnapshotVisitor {
         private final SnapshotHierarchy.SnapshotVisitor delegate;
-        private final Set<String> alreadyCoveredSnapshots;
+        private final FileHierarchySet alreadyCoveredSnapshots;
 
-        public FilterAlreadyCoveredSnapshotsVisitor(SnapshotHierarchy.SnapshotVisitor delegate, Set<String> alreadyCoveredSnapshots) {
+        public FilterAlreadyCoveredSnapshotsVisitor(SnapshotHierarchy.SnapshotVisitor delegate, FileHierarchySet alreadyCoveredSnapshots) {
             this.delegate = delegate;
             this.alreadyCoveredSnapshots = alreadyCoveredSnapshots;
         }
 
         @Override
         public void visitSnapshotRoot(CompleteFileSystemLocationSnapshot snapshot) {
-            if (alreadyCoveredSnapshots.add(snapshot.getAbsolutePath())) {
+            if (!alreadyCoveredSnapshots.contains(snapshot.getAbsolutePath())) {
                 delegate.visitSnapshotRoot(snapshot);
             }
         }
