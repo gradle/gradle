@@ -33,7 +33,6 @@ import org.gradle.api.internal.model.NamedObjectInstantiator
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.taskfactory.TaskInstantiator
 import org.gradle.api.internal.provider.DefaultPropertyFactory
-import org.gradle.api.internal.provider.DefaultProviderFactory
 import org.gradle.api.internal.provider.PropertyFactory
 import org.gradle.api.internal.provider.PropertyHost
 import org.gradle.api.internal.tasks.DefaultTaskDependencyFactory
@@ -112,7 +111,7 @@ class TestUtil {
     private static ServiceRegistry createServices(FileResolver fileResolver, FileCollectionFactory fileCollectionFactory) {
         def services = new DefaultServiceRegistry()
         services.register {
-            it.add(ProviderFactory, new DefaultProviderFactory())
+            it.add(ProviderFactory, new TestProviderFactory())
             it.add(TestCrossBuildInMemoryCacheFactory)
             it.add(NamedObjectInstantiator)
             it.add(CollectionCallbackActionDecorator, CollectionCallbackActionDecorator.NOOP)
