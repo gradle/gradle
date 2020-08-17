@@ -22,7 +22,7 @@ package org.gradle.instantexecution.problems
  *
  * This is a temporary measure, internal, in order to not loose too much coverage.
  *
- * TODO:instant-execution This annotation should be removed.
+ * TODO:configuration-cache This annotation should be removed.
  */
 @Target(AnnotationTarget.FIELD)
 @Retention(AnnotationRetention.RUNTIME)

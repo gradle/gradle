@@ -182,7 +182,7 @@ class InstantExecutionHost internal constructor(
             BuildOperatingFiringTaskExecutionPreparer(
                 TaskExecutionPreparer {
                     // Nothing to do
-                    // TODO:instant-execution - perhaps move this so it wraps loading tasks from cache file
+                    // TODO:configuration-cache - perhaps move this so it wraps loading tasks from cache file
                 },
                 service<BuildOperationExecutor>()
             ).prepareForTaskExecution(gradle)

@@ -77,7 +77,7 @@ interface ReadContext : IsolateContext, MutableIsolateContext, Decoder {
      * When in immediate mode, [read] calls are NOT suspending.
      * Useful for bridging with non-suspending serialization protocols such as [java.io.Serializable].
      */
-    var immediateMode: Boolean // TODO:instant-execution prevent StackOverflowErrors when crossing protocols
+    var immediateMode: Boolean // TODO:configuration-cache prevent StackOverflowErrors when crossing protocols
 
     suspend fun read(): Any?
 

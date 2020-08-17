@@ -24,7 +24,7 @@ object Workarounds {
 
     private
     val ignoredBeanFields: List<Pair<String, String>> = listOf(
-        // TODO:instant-execution remove once fixed
+        // TODO:configuration-cache remove once fixed
         "ndkLocation" to "com.android.build.gradle.tasks.ShaderCompile"
     )
 

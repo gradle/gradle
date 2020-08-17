@@ -34,7 +34,7 @@ import static org.junit.Assume.assumeThat
 @Requires(TestPrecondition.JDK11_OR_EARLIER)
 class AndroidSantaTrackerJavaCachingSmokeTest extends AbstractAndroidSantaTrackerSmokeTest {
 
-    // TODO:instant-execution remove once fixed upstream
+    // TODO:configuration-cache remove once fixed upstream
     @Override
     protected int maxInstantExecutionProblems() {
         return 100

@@ -51,7 +51,7 @@ class InstantExecutionClassLoaderScopeRegistryListener : ClassLoaderScopeRegistr
      * Stops recording [ClassLoaderScopeSpec]s and releases any recorded state.
      */
     fun dispose() {
-        // TODO:instant-execution find a way to make `dispose` unnecessary;
+        // TODO:configuration-cache find a way to make `dispose` unnecessary;
         //  maybe by extracting an `InstantExecutionBuildDefinition` service
         //  from DefaultInstantExecutionHost so a decision based on the configured
         //  instant execution strategy (none, store or load) can be taken early on.

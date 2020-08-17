@@ -114,7 +114,7 @@ println 'quiet message'
 logging.captureStandardOutput(LogLevel.ERROR)
 println 'error message'
 assert settings != null
-// TODO:instant-execution consider restoring assertion on the relationship
+// TODO:configuration-cache consider restoring assertion on the relationship
 //  between buildscript.classLoader and getClas().classLoader
 assert getClass().classLoader.parent == Thread.currentThread().contextClassLoader
 Gradle.class.classLoader.loadClass('${implClassName}')
