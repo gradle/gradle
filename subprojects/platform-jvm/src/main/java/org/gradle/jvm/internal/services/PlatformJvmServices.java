@@ -49,6 +49,7 @@ import org.gradle.jvm.toolchain.internal.JabbaInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.JavaInstallationProbe;
 import org.gradle.jvm.toolchain.internal.JavaToolchainFactory;
 import org.gradle.jvm.toolchain.internal.JavaToolchainQueryService;
+import org.gradle.jvm.toolchain.internal.LinuxInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.LocationListInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.OsXInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.SdkmanInstallationSupplier;
@@ -81,15 +82,16 @@ public class PlatformJvmServices extends AbstractPluginServiceRegistry {
     }
 
     private void registerJavaInstallationSuppliers(ServiceRegistration registration) {
-        registration.add(LocationListInstallationSupplier.class);
-        registration.add(EnvironmentVariableListInstallationSupplier.class);
-        registration.add(CurrentInstallationSupplier.class);
-        registration.add(SdkmanInstallationSupplier.class);
-        registration.add(JabbaInstallationSupplier.class);
-        registration.add(AutoInstalledInstallationSupplier.class);
-        registration.add(OsXInstallationSupplier.class);
-        registration.add(WindowsInstallationSupplier.class);
         registration.add(AsdfInstallationSupplier.class);
+        registration.add(AutoInstalledInstallationSupplier.class);
+        registration.add(CurrentInstallationSupplier.class);
+        registration.add(EnvironmentVariableListInstallationSupplier.class);
+        registration.add(JabbaInstallationSupplier.class);
+        registration.add(LinuxInstallationSupplier.class);
+        registration.add(LocationListInstallationSupplier.class);
+        registration.add(OsXInstallationSupplier.class);
+        registration.add(SdkmanInstallationSupplier.class);
+        registration.add(WindowsInstallationSupplier.class);
     }
 
     @Override
