@@ -80,7 +80,7 @@ class UserTypesCodecTest : AbstractUserTypeCodecTest() {
     fun `Peano sanity check`() {
 
         assertThat(
-                Peano.fromInt(0),
+            Peano.fromInt(0),
             equalTo(Peano.Z)
         )
 
