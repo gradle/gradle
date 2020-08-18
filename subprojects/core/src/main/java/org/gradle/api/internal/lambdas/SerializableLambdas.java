@@ -23,7 +23,7 @@ import org.gradle.internal.Factory;
 import java.io.Serializable;
 
 /**
- * Provides a mechanism for creating Java lambdas that can be stored to the instant execution cache.
+ * Provides a mechanism for creating Java lambdas that can be stored to the configuration cache.
  *
  * The methods on this class are meant to be statically imported.
  */

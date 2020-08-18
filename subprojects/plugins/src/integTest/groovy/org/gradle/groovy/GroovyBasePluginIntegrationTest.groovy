@@ -86,7 +86,7 @@ task verify {
         succeeds("verify")
     }
 
-    @ToBeFixedForInstantExecution(because = "gradle/instant-execution#270")
+    @ToBeFixedForInstantExecution(because = "gradle/configuration-cache#270")
     def "not specifying a groovy runtime produces decent error message"() {
         given:
         buildFile << """

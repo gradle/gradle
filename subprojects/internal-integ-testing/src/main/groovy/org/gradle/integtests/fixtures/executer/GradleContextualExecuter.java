@@ -138,7 +138,7 @@ public class GradleContextualExecuter extends AbstractDelegatingGradleExecuter {
             case forking:
                 return new DaemonGradleExecuter(getDistribution(), getTestDirectoryProvider(), gradleVersion, buildContext);
             case instant:
-                return new InstantExecutionGradleExecuter(getDistribution(), getTestDirectoryProvider(), gradleVersion, buildContext);
+                return new ConfigurationCacheGradleExecuter(getDistribution(), getTestDirectoryProvider(), gradleVersion, buildContext);
             case watchFs:
                 return new FileSystemWatchingGradleExecuter(getDistribution(), getTestDirectoryProvider(), gradleVersion, buildContext);
             default:

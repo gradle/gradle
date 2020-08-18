@@ -25,7 +25,7 @@ import kotlin.js.JSON.stringify
 fun main() {
     mountComponentAt(
         elementById("report"),
-        InstantExecutionReportPage,
+        ConfigurationCacheReportPage,
         reportPageModelFromJsModel(configurationCacheProblems())
     )
 }
@@ -104,7 +104,7 @@ data class ImportedProblem(
 
 
 private
-fun reportPageModelFromJsModel(jsModel: JsModel): InstantExecutionReportPage.Model {
+fun reportPageModelFromJsModel(jsModel: JsModel): ConfigurationCacheReportPage.Model {
     val problems = jsModel.problems.map { jsProblem ->
         ImportedProblem(
             jsProblem,
@@ -112,7 +112,7 @@ fun reportPageModelFromJsModel(jsModel: JsModel): InstantExecutionReportPage.Mod
             jsProblem.trace.map(::toProblemNode)
         )
     }
-    return InstantExecutionReportPage.Model(
+    return ConfigurationCacheReportPage.Model(
         cacheAction = jsModel.cacheAction,
         documentationLink = jsModel.documentationLink,
         totalProblems = jsModel.problems.size,

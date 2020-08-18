@@ -51,7 +51,11 @@ abstract class BuildOperationTreeQueries {
     }
 
     BuildOperationRecord first(String displayName) {
-        first(Pattern.compile(Pattern.quote(displayName)))
+        firstMatchingRegex(Pattern.quote(displayName))
+    }
+
+    BuildOperationRecord firstMatchingRegex(String regex) {
+        first(Pattern.compile(regex))
     }
 
     abstract BuildOperationRecord first(Pattern displayName)

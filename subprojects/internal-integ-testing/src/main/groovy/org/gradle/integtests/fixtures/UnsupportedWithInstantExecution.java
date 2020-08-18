@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.fixtures;
 
+import org.gradle.integtests.fixtures.executer.ConfigurationCacheGradleExecuter;
 import org.spockframework.runtime.extension.ExtensionAnnotation;
 
 import java.lang.annotation.ElementType;
@@ -26,7 +27,7 @@ import java.lang.annotation.Target;
 
 /**
  * Denotes a test that is unsupported with instant execution.
- * The annotated test will be skipped by the {@link org.gradle.integtests.fixtures.executer.InstantExecutionGradleExecuter}.
+ * The annotated test will be skipped by the {@link ConfigurationCacheGradleExecuter}.
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.TYPE, ElementType.METHOD})

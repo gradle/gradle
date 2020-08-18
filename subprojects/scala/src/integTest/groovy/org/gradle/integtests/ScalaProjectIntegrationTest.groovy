@@ -24,7 +24,7 @@ class ScalaProjectIntegrationTest extends AbstractIntegrationSpec {
     @Rule
     ZincScalaCompileFixture zincScalaCompileFixture = new ZincScalaCompileFixture(executer, testDirectoryProvider)
 
-    @ToBeFixedForInstantExecution(because = "gradle/instant-execution#270")
+    @ToBeFixedForInstantExecution(because = "gradle/configuration-cache#270")
     def "handles java source only"() {
         file("src/main/java/somepackage/SomeClass.java") << "public class SomeClass { }"
         buildFile << """

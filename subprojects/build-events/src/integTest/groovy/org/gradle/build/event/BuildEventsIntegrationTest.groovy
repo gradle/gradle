@@ -19,7 +19,7 @@ package org.gradle.build.event
 import org.gradle.api.services.BuildServiceParameters
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheOption
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.InstantExecutionRunner
+import org.gradle.integtests.fixtures.ConfigurationCacheRunner
 import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
 import org.gradle.test.fixtures.file.TestFile
@@ -31,7 +31,7 @@ import org.gradle.tooling.events.task.TaskSkippedResult
 import org.gradle.tooling.events.task.TaskSuccessResult
 import org.junit.runner.RunWith
 
-@RunWith(InstantExecutionRunner)
+@RunWith(ConfigurationCacheRunner)
 class BuildEventsIntegrationTest extends AbstractIntegrationSpec {
     def "listener can subscribe to task completion events"() {
         loggingListener()
