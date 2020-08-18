@@ -220,7 +220,7 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         then:
         def compileTask = project.tasks.named("compileCustomJava", JavaCompile).get()
         def configuredToolchain = compileTask.javaCompiler.get().javaToolchain
-        configuredToolchain.displayName.contains(someJdk.javaHome.canonicalPath)
+        configuredToolchain.displayName.contains(someJdk.javaVersion.getMajorVersion())
     }
 
     void "wires toolchain for test if toolchain is configured"() {
@@ -237,7 +237,7 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         def configuredJavaLauncher = testTask.javaLauncher.get()
 
         then:
-        new File(configuredJavaLauncher.javaExecutable).canonicalPath == someJdk.javaExecutable.canonicalPath
+        configuredJavaLauncher.javaExecutable.contains(someJdk.javaVersion.getMajorVersion())
     }
 
     void tasksReflectChangesToSourceSetConfiguration() {
