@@ -113,7 +113,7 @@ public abstract class SwiftProjectInitDescriptor extends LanguageLibraryProjectI
         }
     }
 
-    TemplateOperation fromSwiftTemplate(String template, InitSettings settings, String sourceSetName, String sourceDir) {
+    TemplateOperation fromSwiftTemplate(String template, InitSettings settings, String sourceSetName, @SuppressWarnings("SameParameterValue") String sourceDir) {
         String targetFileName = template.substring(template.lastIndexOf("/") + 1).replace(".template", "");
         return fromSwiftTemplate(template, targetFileName, settings, sourceSetName, sourceDir);
     }

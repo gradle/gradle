@@ -27,7 +27,7 @@ import java.util.Map;
 import java.util.TreeMap;
 
 public class ProjectLayoutSetupRegistry {
-    private final Map<String, BuildInitializer> registeredProjectDescriptors = new TreeMap<String, BuildInitializer>();
+    private final Map<String, BuildInitializer> registeredProjectDescriptors = new TreeMap<>();
     private final BuildInitializer defaultType;
     private final BuildConverter converter;
 
@@ -96,7 +96,7 @@ public class ProjectLayoutSetupRegistry {
     }
 
     public List<String> getAllTypes() {
-        List<String> result = new ArrayList<String>(registeredProjectDescriptors.size());
+        List<String> result = new ArrayList<>(registeredProjectDescriptors.size());
         for (BuildInitializer initDescriptor : registeredProjectDescriptors.values()) {
             result.add(initDescriptor.getId());
         }
