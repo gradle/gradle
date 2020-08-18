@@ -324,7 +324,7 @@ class WatchedDirectoriesFileSystemWatchingIntegrationTest extends AbstractFileSy
         assertWatchedHierarchies([projectDir])
     }
 
-    @ToBeFixedForInstantExecution(because = "composite build not yet supported")
+    @ToBeFixedForConfigurationCache(because = "composite build not yet supported")
     def "stops watching hierarchies when the limit has been reached"() {
         buildTestFixture.withBuildInSubDir()
         def includedBuild = singleProjectBuild("includedBuild") {
