@@ -24,9 +24,6 @@ import javax.inject.Inject;
 import java.io.File;
 import java.util.Collections;
 import java.util.Set;
-import java.util.stream.Stream;
-
-import static java.util.stream.Collectors.toSet;
 
 public class SdkmanInstallationSupplier extends AutoDetectingInstallationSupplier {
 
@@ -43,19 +40,9 @@ public class SdkmanInstallationSupplier extends AutoDetectingInstallationSupplie
 
     private Transformer<Set<InstallationLocation>, String> findJavaCandidates() {
         return candidatesDir -> {
-            final File[] javaCandidates = new File(candidatesDir, "java").listFiles();
-            if (javaCandidates == null) {
-                return Collections.emptySet();
-            }
-            return Stream.of(javaCandidates)
-                .filter(File::isDirectory)
-                .map(this::asInstallation)
-                .collect(toSet());
+            final File root = new File(candidatesDir, "java");
+            return FileBasedInstallationFactory.fromDirectory(root, "SDKMAN");
         };
-    }
-
-    private InstallationLocation asInstallation(File file) {
-        return new InstallationLocation(file, "SDKMAN");
     }
 
 }
