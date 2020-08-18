@@ -113,16 +113,16 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
                             throw ex;
                         }
                     }
-                    if (useNativeIntegrations && initializeAdditionalNativeLibraries) {
-                        useFileSystemWatching = true;
-                        try {
-                            FileEvents.init(nativeBaseDir);
-                        } catch (NativeIntegrationUnavailableException ex) {
-                            LOGGER.info("Native file system watching is not available for this operating system.", ex);
-                            useFileSystemWatching = false;
-                        }
-                    }
                     if (initializeAdditionalNativeLibraries) {
+                        if (useNativeIntegrations) {
+                            useFileSystemWatching = true;
+                            try {
+                                FileEvents.init(nativeBaseDir);
+                            } catch (NativeIntegrationUnavailableException ex) {
+                                LOGGER.info("Native file system watching is not available for this operating system.", ex);
+                                useFileSystemWatching = false;
+                            }
+                        }
                         JANSI_BOOT_PATH_CONFIGURER.configure(nativeBaseDir);
                     }
                     LOGGER.info("Initialized native services in: " + nativeBaseDir);
@@ -307,12 +307,12 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
     protected NativeCapabilities createNativeCapabilities() {
         return new NativeCapabilities() {
             @Override
-            public boolean isNativeIntegrationAvailable() {
+            public boolean useNativeIntegrations() {
                 return useNativeIntegrations;
             }
 
             @Override
-            public boolean isFileSystemWatchingAvailable() {
+            public boolean useFileSystemWatching() {
                 return useFileSystemWatching;
             }
         };
