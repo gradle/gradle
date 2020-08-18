@@ -15,21 +15,20 @@
  */
 package gradlebuild
 
-import gradlebuild.basics.BuildEnvironment
+import gradlebuild.cleanup.extension.CleanupExtension
+import gradlebuild.cleanup.services.DaemonTracker
+import gradlebuild.cleanup.tasks.KillLeakingJavaProcesses
 
 plugins {
     base
 }
 
-if (BuildEnvironment.isCiServer && rootProject.name != "test") {
-    val killExistingProcessesStartedByGradle by rootProject.tasks.getting
-    val rootCleanTask = rootProject.tasks.clean
+val trackerService = gradle.sharedServices.registerIfAbsent("daemonTracker", DaemonTracker::class) {
+    parameters.gradleHomeDir.fileValue(gradle.gradleHomeDir)
+    parameters.rootProjectDir.set(layout.projectDirectory)
+}
+extensions.create<CleanupExtension>("cleanup", trackerService)
 
-    tasks.configureEach {
-        mustRunAfter(killExistingProcessesStartedByGradle)
-        // Workaround for https://github.com/gradle/gradle/issues/2488
-        if (name != "clean") {
-            mustRunAfter(rootCleanTask)
-        }
-    }
+val killExistingProcessesStartedByGradle by tasks.registering(KillLeakingJavaProcesses::class) {
+    tracker.set(trackerService)
 }
