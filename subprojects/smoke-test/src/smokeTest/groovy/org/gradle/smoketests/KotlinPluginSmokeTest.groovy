@@ -30,7 +30,7 @@ class KotlinPluginSmokeTest extends AbstractSmokeTest {
 
     private static final String NO_INSTANT_EXECUTION_ITERATION_MATCHER = ".*kotlin=1\\.3\\.[2-6].*"
 
-    // TODO:instant-execution remove once fixed upstream
+    // TODO:configuration-cache remove once fixed upstream
     @Override
     protected int maxInstantExecutionProblems() {
         return 200

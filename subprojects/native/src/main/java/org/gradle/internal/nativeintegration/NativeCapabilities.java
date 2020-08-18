@@ -17,5 +17,6 @@
 package org.gradle.internal.nativeintegration;
 
 public interface NativeCapabilities {
-    boolean isNativeIntegrationAvailable();
+    boolean useNativeIntegrations();
+    boolean useFileSystemWatching();
 }

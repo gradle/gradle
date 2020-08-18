@@ -290,11 +290,27 @@ class DefaultSnapshotHierarchyTest extends Specification {
         expect:
         def s = fileHierarchySet([dir1dir2dir3, dir1dir5, dir1dir2dir4, dir6])
         flatten(s) == [parent.path, "1:dir1", "2:dir2", "3:dir3", "3:dir4", "2:dir5/and/more", "1:dir6"]
+        s.hasDescendantsUnder(dir1.absolutePath)
         collectSnapshots(s, dir1.absolutePath)*.absolutePath == [dir1dir2dir3.absolutePath, dir1dir2dir4.absolutePath, dir1dir5.absolutePath]
-        collectSnapshots(s, dir1dir2.absolutePath + "a").empty
-        collectSnapshots(s, new File(parent, "dir1/dir").absolutePath).empty
-        collectSnapshots(s, dir1.file("dir5/and").absolutePath)*.absolutePath == [dir1dir5.absolutePath]
-        collectSnapshots(s, dir1.file("dir5/and/different").absolutePath).empty
+
+        def pathWithPostfix = dir1dir2.absolutePath + "a"
+        !s.hasDescendantsUnder(pathWithPostfix)
+        collectSnapshots(s, pathWithPostfix).empty
+
+        def sibling = new File(parent, "dir1/dir")
+        !s.hasDescendantsUnder(sibling.absolutePath)
+        collectSnapshots(s, sibling.absolutePath).empty
+
+        def intermediate = dir1.file("dir5/and")
+        s.hasDescendantsUnder(intermediate.absolutePath)
+        collectSnapshots(s, intermediate.absolutePath)*.absolutePath == [dir1dir5.absolutePath]
+
+
+        def anotherSibling = dir1.file("dir5/and/different")
+        !s.hasDescendantsUnder(anotherSibling.absolutePath)
+        collectSnapshots(s, anotherSibling.absolutePath).empty
+
+        s.hasDescendantsUnder(dir1dir5.absolutePath)
         collectSnapshots(s, dir1dir5.absolutePath)*.absolutePath == [dir1dir5.absolutePath]
     }
 
@@ -467,7 +483,9 @@ class DefaultSnapshotHierarchyTest extends Specification {
         def set = EMPTY.store("/", new CompleteDirectorySnapshot("/", "", [new RegularFileSnapshot("/root.txt", "root.txt", HashCode.fromInt(1234), DefaultFileMetadata.file(1, 1, AccessType.DIRECT))], HashCode.fromInt(1111), AccessType.DIRECT), diffListener)
         then:
         set.getMetadata("/root.txt").get().type == FileType.RegularFile
+        set.hasDescendantsUnder("/root.txt")
         collectSnapshots(set, "/root.txt")[0].type == FileType.RegularFile
+        set.hasDescendantsUnder("/")
         collectSnapshots(set, "/")[0].type == FileType.Directory
 
         when:

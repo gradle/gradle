@@ -62,7 +62,7 @@ public interface TaskContainerInternal extends TaskContainer, TaskResolver, Poly
     /**
      * Creates an instance of the given task type without invoking its constructors. This is used to recreate a task instance from the instant execution cache.
      *
-     * TODO:instant-execution - review this
+     * TODO:configuration-cache - review this
      */
     <T extends Task> T createWithoutConstructor(String name, Class<T> type);
 }

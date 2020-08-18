@@ -1,0 +1,404 @@
+/*! normalize.css v7.0.0 | MIT License | github.com/necolas/normalize.css */html{line-height:1.15;-ms-text-size-adjust:100%;-webkit-text-size-adjust:100%}body{margin:0}article,aside,footer,header,nav,section{display:block}h1{font-size:2em;margin:.67em 0}figcaption,figure,main{display:block}figure{margin:1em 40px}hr{box-sizing:content-box;height:0;overflow:visible}pre{font-family:monospace,monospace;font-size:1em}a{background-color:transparent;-webkit-text-decoration-skip:objects}abbr[title]{border-bottom:none;text-decoration:underline;text-decoration:underline dotted}b,strong{font-weight:inherit}b,strong{font-weight:bolder}code,kbd,samp{font-family:monospace,monospace;font-size:1em}dfn{font-style:italic}mark{background-color:#ff0;color:#000}small{font-size:80%}sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}sub{bottom:-.25em}sup{top:-.5em}audio,video{display:inline-block}audio:not([controls]){display:none;height:0}img{border-style:none}svg:not(:root){overflow:hidden}button,input,optgroup,select,textarea{font-family:sans-serif;font-size:100%;line-height:1.15;margin:0}button,input{overflow:visible}button,select{text-transform:none}[type=reset],[type=submit],button,html [type=button]{-webkit-appearance:button}[type=button]::-moz-focus-inner,[type=reset]::-moz-focus-inner,[type=submit]::-moz-focus-inner,button::-moz-focus-inner{border-style:none;padding:0}[type=button]:-moz-focusring,[type=reset]:-moz-focusring,[type=submit]:-moz-focusring,button:-moz-focusring{outline:1px dotted ButtonText}fieldset{padding:.35em .75em .625em}legend{box-sizing:border-box;color:inherit;display:table;max-width:100%;padding:0;white-space:normal}progress{display:inline-block;vertical-align:baseline}textarea{overflow:auto}[type=checkbox],[type=radio]{box-sizing:border-box;padding:0}[type=number]::-webkit-inner-spin-button,[type=number]::-webkit-outer-spin-button{height:auto}[type=search]{-webkit-appearance:textfield;outline-offset:-2px}[type=search]::-webkit-search-cancel-button,[type=search]::-webkit-search-decoration{-webkit-appearance:none}::-webkit-file-upload-button{-webkit-appearance:button;font:inherit}details,menu{display:block}summary{display:list-item}canvas{display:inline-block}template{display:none}[hidden]{display:none}
+
+/* configuration cache styles */
+
+.report-wrapper {
+    margin: 0;
+    padding: 0 24px;
+}
+
+.gradle-logo {
+    width: 32px;
+    height: 24px;
+    background-image: url("configuration-cache-report-logo.png");
+    background-size: contain;
+}
+
+.header {
+    display: flex;
+    flex-wrap: wrap;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    padding: 24px 24px 0 24px;
+    background-color: white;
+    z-index: 1;
+}
+
+.learn-more {
+    margin-left: auto;
+    align-self: center;
+    font-size: 0.875rem;
+    font-weight: normal;
+}
+
+.title {
+    display: flex;
+    align-items: center;
+    padding: 18px 0 24px 0;
+    flex: 1 0 100%;
+}
+
+.filters {
+    margin-left: auto;
+    font-size: 0.875rem;
+}
+
+.content {
+    font-size: 0.875rem;
+    padding: 192px 0 48px;
+    overflow-x: auto;
+    white-space: nowrap;
+}
+
+.content ol:first-of-type {
+    margin: 0;
+}
+
+.tree-btn.collapsed {
+    color: transparent;
+    font-size: 18px;
+    line-height: 1rem;
+    width: 20px;
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 512"><path d="M166.9 264.5l-117.8 116c-4.7 4.7-12.3 4.7-17 0l-7.1-7.1c-4.7-4.7-4.7-12.3 0-17L127.3 256 25.1 155.6c-4.7-4.7-4.7-12.3 0-17l7.1-7.1c4.7-4.7 12.3-4.7 17 0l117.8 116c4.6 4.7 4.6 12.3-.1 17z" fill="%23999999" stroke="%23999999"/></svg>');
+    background-repeat: no-repeat;
+    background-size: 16px 16px;
+    background-position: bottom -2px left;
+}
+
+.tree-btn.expanded {
+    color: transparent;
+    font-size: 18px;
+    line-height: 1rem;
+    width: 20px;
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 512"><path d="M119.5 326.9L3.5 209.1c-4.7-4.7-4.7-12.3 0-17l7.1-7.1c4.7-4.7 12.3-4.7 17 0L128 287.3l100.4-102.2c4.7-4.7 12.3-4.7 17 0l7.1 7.1c4.7 4.7 4.7 12.3 0 17L136.5 327c-4.7 4.6-12.3 4.6-17-.1z" fill="%23999999" stroke="%23999999"/></svg>');
+    background-repeat: no-repeat;
+    background-size: 16px 16px;
+    background-position: bottom -2px left;
+}
+
+.tree-btn {
+    padding-right: 8px;
+}
+
+.tree-btn, .tree-icon {
+    color: #999;
+    display: inline-block;
+}
+
+.tree-btn:hover {
+    cursor: pointer;
+}
+
+ul .tree-btn {
+    margin-right: 4px;
+}
+
+.tree-icon {
+    font-size: 18px;
+    line-height: 1rem;
+    padding-left: 2px;
+    margin-right: 8px;
+}
+
+.error-icon {
+    color: transparent;
+    font-size: 18px;
+    line-height: 1rem;
+    padding-left: 2px;
+    margin-right: 8px;
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><path d="M193.94 256L296.5 153.44l21.15-21.15c3.12-3.12 3.12-8.19 0-11.31l-22.63-22.63c-3.12-3.12-8.19-3.12-11.31 0L160 222.06 36.29 98.34c-3.12-3.12-8.19-3.12-11.31 0L2.34 120.97c-3.12 3.12-3.12 8.19 0 11.31L126.06 256 2.34 379.71c-3.12 3.12-3.12 8.19 0 11.31l22.63 22.63c3.12 3.12 8.19 3.12 11.31 0L160 289.94 262.56 392.5l21.15 21.15c3.12 3.12 8.19 3.12 11.31 0l22.63-22.63c3.12-3.12 3.12-8.19 0-11.31L193.94 256z" fill="%23FC461E" stroke="%23FC461E"/></svg>');
+    background-repeat: no-repeat;
+    background-size: 16px 16px;
+    background-position: bottom right;
+}
+
+.error-icon::selection {
+    color: transparent;
+}
+
+.warning-icon {
+    color: transparent;
+    font-size: 18px;
+    line-height: 1rem;
+    padding-left: 2px;
+    margin-right: 0;
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><path d="M270.2 160h35.5c3.4 0 6.1 2.8 6 6.2l-7.5 196c-.1 3.2-2.8 5.8-6 5.8h-20.5c-3.2 0-5.9-2.5-6-5.8l-7.5-196c-.1-3.4 2.6-6.2 6-6.2zM288 388c-15.5 0-28 12.5-28 28s12.5 28 28 28 28-12.5 28-28-12.5-28-28-28zm281.5 52L329.6 24c-18.4-32-64.7-32-83.2 0L6.5 440c-18.4 31.9 4.6 72 41.6 72H528c36.8 0 60-40 41.5-72zM528 480H48c-12.3 0-20-13.3-13.9-24l240-416c6.1-10.6 21.6-10.7 27.7 0l240 416c6.2 10.6-1.5 24-13.8 24z" fill="%23DEAD22" stroke="%23DEAD22"/></svg>');
+    background-repeat: no-repeat;
+    background-size: 13px 13px;
+    background-position: bottom 3px left
+}
+
+.warning-icon::selection {
+    color: transparent;
+}
+
+.documentation-button {
+    color: transparent;
+    font-size: 18px;
+    line-height: 1rem;
+    margin-left: 4px;
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M256 340c-15.464 0-28 12.536-28 28s12.536 28 28 28 28-12.536 28-28-12.536-28-28-28zm7.67-24h-16c-6.627 0-12-5.373-12-12v-.381c0-70.343 77.44-63.619 77.44-107.408 0-20.016-17.761-40.211-57.44-40.211-29.144 0-44.265 9.649-59.211 28.692-3.908 4.98-11.054 5.995-16.248 2.376l-13.134-9.15c-5.625-3.919-6.86-11.771-2.645-17.177C185.658 133.514 210.842 116 255.67 116c52.32 0 97.44 29.751 97.44 80.211 0 67.414-77.44 63.849-77.44 107.408V304c0 6.627-5.373 12-12 12zM256 40c118.621 0 216 96.075 216 216 0 119.291-96.61 216-216 216-119.244 0-216-96.562-216-216 0-119.203 96.602-216 216-216m0-32C119.043 8 8 119.083 8 256c0 136.997 111.043 248 248 248s248-111.003 248-248C504 119.083 392.957 8 256 8z" fill="%23999999" stroke="%23999999"/></svg>');
+    background-repeat: no-repeat;
+    background-size: 12px 12px;
+    background-position: bottom 3px left;
+}
+
+.documentation-button::selection {
+    color: transparent;
+}
+
+.documentation-button:hover {
+    color: transparent;
+}
+
+.copy-button {
+    cursor: pointer;
+    color: transparent;
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M433.941 193.941l-51.882-51.882A48 48 0 0 0 348.118 128H320V80c0-26.51-21.49-48-48-48h-66.752C198.643 13.377 180.858 0 160 0s-38.643 13.377-45.248 32H48C21.49 32 0 53.49 0 80v288c0 26.51 21.49 48 48 48h80v48c0 26.51 21.49 48 48 48h224c26.51 0 48-21.49 48-48V227.882a48 48 0 0 0-14.059-33.941zm-22.627 22.627a15.888 15.888 0 0 1 4.195 7.432H352v-63.509a15.88 15.88 0 0 1 7.431 4.195l51.883 51.882zM160 30c9.941 0 18 8.059 18 18s-8.059 18-18 18-18-8.059-18-18 8.059-18 18-18zM48 384c-8.822 0-16-7.178-16-16V80c0-8.822 7.178-16 16-16h66.752c6.605 18.623 24.389 32 45.248 32s38.643-13.377 45.248-32H272c8.822 0 16 7.178 16 16v48H176c-26.51 0-48 21.49-48 48v208H48zm352 96H176c-8.822 0-16-7.178-16-16V176c0-8.822 7.178-16 16-16h144v72c0 13.2 10.8 24 24 24h72v208c0 8.822-7.178 16-16 16z" fill="%23999999" stroke="%23999999"/></svg>');
+    background-repeat: no-repeat;
+    background-size: 12px 12px;
+}
+
+.copy-button::selection {
+    color: transparent;
+}
+
+.filters-group {
+    display: inline-flex;
+    background-color: #EDEEEF;
+    border-radius: 5px;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    height: 30px;
+    align-items: center;
+    padding: 0 3px;
+    margin-left: 8px;
+    line-height: 1rem;
+}
+
+.btn {
+    padding: 4px 10px;
+    border-radius: 3px;
+    cursor: pointer;
+    position: relative;
+    height: 24px;
+    min-width: 78px;
+    display: inline-block;
+    text-align: center;
+}
+
+.btn:hover {
+    color: #3cafc6;
+    background-color: #d8eff3;
+    box-shadow: none;
+}
+
+.btn-active {
+    cursor: default;
+    background: #fff;
+}
+
+.groups {
+    display: flex;
+    border-bottom: 1px solid #EDEEEF;
+    flex: 1 0 100%;
+}
+
+.group-selector {
+    padding: 0 52px 24px 0;
+    font-size: 0.9rem;
+    font-weight: bold;
+    color: #999999;
+    cursor: pointer;
+}
+
+.group-selector__count {
+    margin: 0 8px;
+    border-radius: 8px;
+    background-color: #999;
+    color: #fff;
+    padding: 1px 8px 2px;
+    font-size: 0.75rem;
+}
+
+.group-selector--active {
+    color: #02303A;
+    cursor: auto;
+}
+
+.group-selector--active .group-selector__count {
+    background-color: #686868;
+}
+
+.accordion-header {
+    cursor: pointer;
+}
+
+.container {
+    padding-left: 0.5em;
+    padding-right: 0.5em;
+}
+
+.stacktrace {
+    border-radius: 4px;
+    overflow-x: auto;
+    padding: 0.5rem;
+    margin-bottom: 0;
+    min-width: 1000px;
+}
+
+/* Lato (bold, regular) */
+@font-face {
+    font-display: swap;
+    font-family: Lato;
+    font-weight: 500;
+    font-style: normal;
+    src: url("https://assets.gradle.com/lato/fonts/lato-semibold/lato-semibold.woff2") format("woff2"),
+         url("https://assets.gradle.com/lato/fonts/lato-semibold/lato-semibold.woff") format("woff");
+}
+
+@font-face {
+    font-display: swap;
+    font-family: Lato;
+    font-weight: bold;
+    font-style: normal;
+    src: url("https://assets.gradle.com/lato/fonts/lato-bold/lato-bold.woff2") format("woff2"),
+         url("https://assets.gradle.com/lato/fonts/lato-bold/lato-bold.woff") format("woff");
+}
+
+* {
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+}
+
+html,
+body {
+    margin: 0;
+    padding: 0;
+}
+
+html {
+    font-family: "Lato", "Helvetica Neue", Arial, sans-serif;
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 1.5;
+}
+
+body {
+    color: #02303A;
+    background-color: #ffffff;
+    -webkit-text-size-adjust: 100%;
+    -ms-text-size-adjust: 100%;
+    -webkit-font-smoothing: antialiased;
+}
+
+
+/* typography */
+h1, h2, h3, h4, h5, h6 {
+    color: #02303A;
+    text-rendering: optimizeLegibility;
+    margin: 0;
+}
+
+h1 {
+    font-size: 1rem;
+}
+
+h2 {
+    font-size: 0.9rem;
+}
+
+h3 {
+    font-size: 1.125rem;
+}
+
+h4, h5, h6 {
+    font-size: 0.875rem;
+}
+
+ul, ol, dl {
+    list-style-position: outside;
+    line-height: 1.6;
+    padding: 0;
+    margin: 0 0 0 20px;
+    list-style-type: none;
+}
+
+li {
+    line-height: 2;
+}
+
+a {
+    color: #1DA2BD;
+    text-decoration: none;
+    transition: all 0.3s ease, visibility 0s;
+}
+
+a:hover {
+    color: #35c1e4;
+}
+
+/* code */
+code, pre {
+    font-family: Inconsolata, Monaco, "Courier New", monospace;
+    font-style: normal;
+    font-variant-ligatures: normal;
+    font-variant-caps: normal;
+    font-variant-numeric: normal;
+    font-variant-east-asian: normal;
+    font-weight: normal;
+    font-stretch: normal;
+    color: #686868;
+    font-size: 0.75rem;
+    line-height: 1.8;
+}
+
+*:not(pre) > code {
+    letter-spacing: 0;
+    padding: 0.1em 0.5ex;
+    text-rendering: optimizeSpeed;
+    word-spacing: -0.15em;
+    word-wrap: break-word;
+}
+
+pre {
+    line-height: 1.8;
+    margin-top: 0;
+    margin-bottom: 1.5em;
+    padding: 1rem;
+}
+
+pre code {
+    background-color: transparent;
+    color: inherit;
+    line-height: 1.8;
+    font-size: 100%;
+    padding: 0;
+}
+
+a code {
+    color: #1BA8CB;
+}
+
+pre.code, pre.programlisting, pre.screen, pre.tt {
+    background-color: #f7f7f8;
+    border-radius: 4px;
+    font-size: 1em;
+    line-height: 1.45;
+    margin-bottom: 1.25em;
+    overflow-x: auto;
+    padding: 1rem;
+}
+
+li em, p em {
+    padding: 0 1px;
+}
+
+code em, tt em {
+    text-decoration: none;
+}

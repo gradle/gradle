@@ -101,6 +101,7 @@ abstract class ExternalModulesExtension {
     val maven3WagonProviderApi = "org.apache.maven.wagon:wagon-provider-api"
     val minlog = "com.esotericsoftware.minlog:minlog"
     val nativePlatform = "net.rubygrapefruit:native-platform"
+    val nativePlatformFileEvents = "net.rubygrapefruit:file-events"
     val nekohtml = "net.sourceforge.nekohtml:nekohtml"
     val objenesis = "org.objenesis:objenesis"
     val plexusCipher = "org.sonatype.plexus:plexus-cipher"

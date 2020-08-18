@@ -23,7 +23,7 @@ dependencies {
     pluginsRuntimeOnly(project(":version-control")) {
         because("We always need a VcsMappingsStore service implementation to create 'ConfigurationContainer' in ':dependency-management'.")
     }
-    pluginsRuntimeOnly(project(":instant-execution")) {
+    pluginsRuntimeOnly(project(":configuration-cache")) {
         because("We always need a BuildLogicTransformStrategy service implementation.")
     }
     pluginsRuntimeOnly(project(":testing-junit-platform")) {

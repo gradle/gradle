@@ -66,6 +66,7 @@ dependencies {
     implementation(libs.commonsIo)
     implementation(libs.commonsLang)
     implementation(libs.nativePlatform)
+    implementation(libs.nativePlatformFileEvents)
     implementation(libs.commonsCompress)
     implementation(libs.xmlApis)
 

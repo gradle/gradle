@@ -204,6 +204,7 @@ open class FileSystemWatchingBuildOperationListener(private val buildOperationLi
                         buildScan.value("watchFsRetainedDirectories", it.retainedDirectories.toString())
                         buildScan.value("watchFsRetainedFiles", it.retainedRegularFiles.toString())
                         buildScan.value("watchFsRetainedMissingFiles", it.retainedMissingFiles.toString())
+                        buildScan.value("watchFsWatchedHierarchies", it.numberOfWatchedHierarchies.toString())
                     }
                 }
             }
