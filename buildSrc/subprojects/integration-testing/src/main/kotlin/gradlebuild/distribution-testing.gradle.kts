@@ -31,8 +31,9 @@ val cachesCleanerService = gradle.sharedServices.registerIfAbsent("cachesCleaner
 }
 
 tasks.withType<DistributionTest>().configureEach {
-    usesService(cachesCleanerService)
-    cachesCleanerService.get().setGradleVersion(moduleIdentity.version.get())
+    doFirst {
+        cachesCleanerService.get().cleanUpCaches(moduleIdentity.version.get())
+    }
 
     shouldRunAfter("test")
 

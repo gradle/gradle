@@ -29,38 +29,30 @@ import org.gradle.api.services.BuildServiceParameters
 import org.gradle.api.specs.Spec
 import org.gradle.util.GradleVersion
 import java.io.File
+import java.util.concurrent.atomic.AtomicBoolean
 import javax.inject.Inject
 
 
-abstract class CachesCleaner : BuildService<CachesCleaner.Params>, AutoCloseable {
+abstract class CachesCleaner : BuildService<CachesCleaner.Params> {
     interface Params : BuildServiceParameters {
         val homeDir: DirectoryProperty
     }
 
-    private
-    var gradleVersion: GradleVersion? = null
-
     @get:Inject
     abstract val fileSystemOperations: FileSystemOperations
 
-    fun setGradleVersion(gradleVersion: GradleVersion) {
-        this.gradleVersion = gradleVersion
-    }
-
-    override fun close() {
-        gradleVersion?.let {
-            println("Cleaning up caches...")
-            cleanUpCaches(it)
-        }
-    }
-
     private
-    fun cleanUpCaches(gradleVersion: GradleVersion) {
-        val homeDir = parameters.homeDir.get()
+    val hasCleaned = AtomicBoolean(false)
 
-        homeDir.asFile.listFiles()?.filter { it.name.startsWith("distributions-") }?.forEach {
-            val workerDir = homeDir.dir(it.name)
-            cleanupDistributionCaches(workerDir, gradleVersion)
+    fun cleanUpCaches(gradleVersion: GradleVersion) {
+        if (!hasCleaned.getAndSet(true)) {
+            println("Cleaning up caches...")
+            val homeDir = parameters.homeDir.get()
+
+            homeDir.asFile.listFiles()?.filter { it.name.startsWith("distributions-") }?.forEach {
+                val workerDir = homeDir.dir(it.name)
+                cleanupDistributionCaches(workerDir, gradleVersion)
+            }
         }
     }
 
@@ -69,7 +61,6 @@ abstract class CachesCleaner : BuildService<CachesCleaner.Params>, AutoCloseable
         // Expire cache snapshots of test Gradle distributions that are older than the tested version
         // Also expire version-specific cache snapshots when they can't be re-used (for 'snapshot-1' developer builds)
         val expireDistributionCache = Spec<GradleVersion> { candidateVersion ->
-            println("candidateVersion: " + candidateVersion + " currentVersion " + gradleVersion)
             (candidateVersion.isSnapshot && candidateVersion < gradleVersion)
                 || candidateVersion.version.endsWith("-snapshot-1")
         }
