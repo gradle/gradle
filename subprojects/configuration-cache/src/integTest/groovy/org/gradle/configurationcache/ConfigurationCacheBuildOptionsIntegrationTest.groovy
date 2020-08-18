@@ -516,7 +516,7 @@ class ConfigurationCacheBuildOptionsIntegrationTest extends AbstractConfiguratio
         file("thread.pool.size").text = "3"
         instantRun("a")
 
-        then: "the instant execution cache is NOT invalidated"
+        then: "the configuration cache is NOT invalidated"
         output.count("ThreadPoolSize = 3") == 1
         instant.assertStateLoaded()
     }

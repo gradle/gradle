@@ -52,7 +52,7 @@ public interface ProviderInternal<T> extends Provider<T>, ValueSupplier, TaskDep
     ProviderInternal<T> withFinalValue(ValueConsumer consumer);
 
     /**
-     * Calculates the state of this provider that is required at execution time. The state is serialized to the instant execution cache, and recreated as a {@link Provider} implementation
+     * Calculates the state of this provider that is required at execution time. The state is serialized to the configuration cache, and recreated as a {@link Provider} implementation
      * when the cache is read.
      *
      * <p>When the value and value content of this provider is known at the completion of configuration, then returns a fixed value or missing value.

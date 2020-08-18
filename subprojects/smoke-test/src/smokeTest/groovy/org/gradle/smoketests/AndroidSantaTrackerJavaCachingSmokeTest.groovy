@@ -61,7 +61,7 @@ class AndroidSantaTrackerJavaCachingSmokeTest extends AbstractAndroidSantaTracke
         then:
         assertInstantExecutionStateStored()
 
-        when: 'up-to-date build, reusing instant execution cache when enabled'
+        when: 'up-to-date build, reusing configuration cache when enabled'
         buildLocation(originalDir, agpVersion)
 
         then:
@@ -83,7 +83,7 @@ class AndroidSantaTrackerJavaCachingSmokeTest extends AbstractAndroidSantaTracke
             : EXPECTED_RESULTS_4_2
         verify(relocatedResult, expectedResults)
 
-        when: 'clean cached build, reusing instant execution cache when enabled'
+        when: 'clean cached build, reusing configuration cache when enabled'
         cleanLocation(relocatedDir, agpVersion)
         buildLocation(relocatedDir, agpVersion)
 

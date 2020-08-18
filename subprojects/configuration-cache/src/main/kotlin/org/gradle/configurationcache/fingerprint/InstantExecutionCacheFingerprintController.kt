@@ -42,7 +42,7 @@ import java.io.OutputStream
 
 
 /**
- * Coordinates the writing and reading of the instant execution cache fingerprint.
+ * Coordinates the writing and reading of the configuration cache fingerprint.
  */
 @ServiceScope(Scopes.Build::class)
 internal
