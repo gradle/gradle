@@ -16,6 +16,7 @@
 
 package gradlebuild.integrationtests.tasks
 
+import gradlebuild.cleanup.services.CachesCleaner
 import gradlebuild.cleanup.services.DaemonTracker
 import gradlebuild.integrationtests.model.GradleDistribution
 import org.gradle.api.Named
@@ -99,6 +100,9 @@ abstract class DistributionTest : Test() {
     abstract val tracker: Property<DaemonTracker>
 
     @get:Internal
+    abstract val cachesCleaner: Property<CachesCleaner>
+
+    @get:Internal
     @get:Option(option = "rerun", description = "Always rerun the task")
     val rerun: Property<Boolean> = project.objects.property<Boolean>().convention(false)
 
@@ -121,6 +125,8 @@ abstract class DistributionTest : Test() {
     }
 
     override fun executeTests() {
+        cachesCleaner.get().cleanUpCaches()
+
         addTestListener(tracker.get().newDaemonListener())
         super.executeTests()
     }

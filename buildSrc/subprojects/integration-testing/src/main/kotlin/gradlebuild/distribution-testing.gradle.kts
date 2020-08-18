@@ -27,14 +27,11 @@ plugins {
 val intTestHomeDir = rootProject.layout.projectDirectory.dir("intTestHomeDir")
 
 val cachesCleanerService = gradle.sharedServices.registerIfAbsent("cachesCleaner", CachesCleaner::class) {
+    parameters.gradleVersion.set(moduleIdentity.version.map { it.version })
     parameters.homeDir.set(intTestHomeDir)
 }
 
 tasks.withType<DistributionTest>().configureEach {
-    doFirst {
-        cachesCleanerService.get().cleanUpCaches(moduleIdentity.version.get())
-    }
-
     shouldRunAfter("test")
 
     setJvmArgsOfTestJvm()
@@ -50,6 +47,8 @@ fun executerRequiresFullDistribution(taskName: String) =
     taskName.startsWith("noDaemon")
 
 fun DistributionTest.addSetUpAndTearDownActions() {
+    cachesCleaner.set(cachesCleanerService)
+
     val cleanupExtension = rootProject.extensions.getByType<CleanupExtension>()
     tracker.set(cleanupExtension.tracker)
 }

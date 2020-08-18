@@ -24,6 +24,7 @@ import gradlebuild.cleanup.removeTransformDir
 import org.gradle.api.file.Directory
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.FileSystemOperations
+import org.gradle.api.provider.Property
 import org.gradle.api.services.BuildService
 import org.gradle.api.services.BuildServiceParameters
 import org.gradle.api.specs.Spec
@@ -34,6 +35,7 @@ import javax.inject.Inject
 
 abstract class CachesCleaner : BuildService<CachesCleaner.Params> {
     interface Params : BuildServiceParameters {
+        val gradleVersion: Property<String>
         val homeDir: DirectoryProperty
     }
 
@@ -43,7 +45,7 @@ abstract class CachesCleaner : BuildService<CachesCleaner.Params> {
     private
     var hasCleaned = false
 
-    fun cleanUpCaches(gradleVersion: GradleVersion) {
+    fun cleanUpCaches() {
         synchronized(this) {
             if (hasCleaned) {
                 return
@@ -53,7 +55,7 @@ abstract class CachesCleaner : BuildService<CachesCleaner.Params> {
 
             homeDir.asFile.listFiles()?.filter { it.name.startsWith("distributions-") }?.forEach {
                 val workerDir = homeDir.dir(it.name)
-                cleanupDistributionCaches(workerDir, gradleVersion)
+                cleanupDistributionCaches(workerDir, GradleVersion.version(parameters.gradleVersion.get()))
             }
             hasCleaned = true
         }
