@@ -18,7 +18,7 @@ dependencies {
     implementation("javax.xml.bind:jaxb-api")
     implementation("org.gradle:test-retry-gradle-plugin")
 
-    testImplementation("org.junit.jupiter:junit-jupiter-params")
+    testImplementation("org.junit.jupiter:junit-jupiter")
     testImplementation("junit:junit")
     testImplementation("io.mockk:mockk")
 }
