@@ -1,1 +1,1 @@
-rootProject.name = "gradlePropsDont"
+rootProject.name = "gradle-props=dont"

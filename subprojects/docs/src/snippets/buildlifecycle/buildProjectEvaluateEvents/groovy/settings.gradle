@@ -1,4 +1,4 @@
-rootProject.name = 'buildProjectEvaluateEvents'
+rootProject.name = 'build-project-evaluate-events'
 
 include 'projectA', 'projectB'
 

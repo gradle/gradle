@@ -1,4 +1,4 @@
-rootProject.name = 'incrementalAnnotationProcessing'
+rootProject.name = 'incremental-annotation-processing'
 include "library"
 include "processor"
 include "user"

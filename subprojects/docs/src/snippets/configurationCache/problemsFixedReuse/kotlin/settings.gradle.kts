@@ -1,1 +1,1 @@
-rootProject.name = "problemsFixedReuse"
+rootProject.name = "problems-fixed-reuse"

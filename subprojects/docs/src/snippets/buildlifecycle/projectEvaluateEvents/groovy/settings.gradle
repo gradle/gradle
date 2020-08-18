@@ -1,4 +1,4 @@
-rootProject.name = 'projectEvaluateEvents'
+rootProject.name = 'project-evaluate-events'
 include 'projectA', 'projectB'
 
 project(':projectA').buildFileName = '../projectA.gradle'

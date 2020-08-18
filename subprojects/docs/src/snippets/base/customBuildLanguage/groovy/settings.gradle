@@ -1,4 +1,4 @@
-rootProject.name = 'customBuildLanguage'
+rootProject.name = 'custom-build-language'
 include 'billing'
 include 'identityManagement'
 include 'reporting'

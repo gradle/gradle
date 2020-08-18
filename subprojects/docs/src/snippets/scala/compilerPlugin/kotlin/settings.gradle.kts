@@ -1,1 +1,1 @@
-rootProject.name = "compilerPlugin"
+rootProject.name = "compiler-plugin"

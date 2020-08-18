@@ -1,1 +1,1 @@
-rootProject.name = "gradlePropsDo"
+rootProject.name = "gradle-props-do"
