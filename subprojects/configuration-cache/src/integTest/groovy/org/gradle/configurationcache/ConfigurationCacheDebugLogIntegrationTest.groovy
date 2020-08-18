@@ -62,7 +62,7 @@ class ConfigurationCacheDebugLogIntegrationTest extends AbstractConfigurationCac
     }
 
     private Collection<Map<String, Object>> collectOutputEvents() {
-        def pattern = /[0-9:T.\-]+ \[DEBUG\] \[org.gradle.configurationcache.DefaultInstantExecution\] \{"profile":"(.*?)","type":"(O|C)","frame":"(.*?)","at":\d+\,"sn":\d+\}/
+        def pattern = /[0-9:T.\-]+ \[DEBUG\] \[$DefaultConfigurationCache.name\] \{"profile":"(.*?)","type":"(O|C)","frame":"(.*?)","at":\d+\,"sn":\d+\}/
         (output =~ pattern)
             .findAll()
             .collect { matchResult ->
