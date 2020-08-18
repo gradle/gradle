@@ -27,6 +27,7 @@ import org.gradle.api.internal.tasks.DefaultTaskDependency
 import org.gradle.api.internal.tasks.TaskDependencyFactory
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.api.internal.tasks.TaskResolver
+import spock.lang.Unroll
 
 import java.util.concurrent.Callable
 import java.util.function.Consumer
@@ -1570,5 +1571,27 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
         expect:
         def replaced = collection.replace(collection1, {})
         replaced.is(collection)
+    }
+
+    @Unroll
+    def "can clear the collection via #action"() {
+        given:
+        collection.setFrom('file')
+
+        when:
+        actOn(collection)
+        def result = collection.files
+
+        then:
+        result == [] as Set
+
+        and:
+        0 * fileResolver.resolve('file')
+
+        where:
+        action         | actOn
+        'setFrom()'    | { it.setFrom() }
+        'setFrom([])'  | { it.setFrom([]) }
+        'setFrom(*[])' | { it.setFrom(*[]) }
     }
 }
