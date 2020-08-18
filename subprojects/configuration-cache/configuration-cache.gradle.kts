@@ -16,7 +16,7 @@ tasks {
 
     processResources {
         from({ project(":configuration-cache-report").tasks.named("assembleReport") }) {
-            into("org/gradle/instantexecution")
+            into("org/gradle/configurationcache")
         }
     }
 
@@ -92,11 +92,11 @@ dependencies {
         because("Tests instantiate DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")
     }
     integTestDistributionRuntimeOnly(project(":distributions-jvm")) {
-        because("Includes tests for builds with TestKit involved; InstantExecutionJacocoIntegrationTest requires JVM distribution")
+        because("Includes tests for builds with TestKit involved; ConfigurationCacheJacocoIntegrationTest requires JVM distribution")
     }
     crossVersionTestDistributionRuntimeOnly(project(":distributions-core"))
 }
 
 classycle {
-    excludePatterns.set(listOf("org/gradle/instantexecution/**"))
+    excludePatterns.set(listOf("org/gradle/configurationcache/**"))
 }
