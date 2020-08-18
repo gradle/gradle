@@ -42,7 +42,7 @@ class AndroidPluginsSmokeTest extends AbstractSmokeTest {
         AndroidHome.assertIsSet()
     }
 
-    // TODO:instant-execution remove once fixed upstream
+    // TODO:configuration-cache remove once fixed upstream
     @Override
     protected int maxInstantExecutionProblems() {
         return 100

@@ -33,7 +33,7 @@ class FunctionalTest(
         "coverageJvmVersion" to testCoverage.testJvmVersion.name
     )
 
-    if (name.contains("(instant-execution)")) {
+    if (name.contains("(configuration-cache)")) {
         requirements {
             doesNotContain("teamcity.agent.name", "ec2")
             // US region agents have name "EC2-XXX"
