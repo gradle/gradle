@@ -69,6 +69,7 @@ abstract class CachesCleaner : BuildService<CachesCleaner.Params>, AutoCloseable
         // Expire cache snapshots of test Gradle distributions that are older than the tested version
         // Also expire version-specific cache snapshots when they can't be re-used (for 'snapshot-1' developer builds)
         val expireDistributionCache = Spec<GradleVersion> { candidateVersion ->
+            println("candidateVersion: " + candidateVersion + " currentVersion " + gradleVersion)
             (candidateVersion.isSnapshot && candidateVersion < gradleVersion)
                 || candidateVersion.version.endsWith("-snapshot-1")
         }
