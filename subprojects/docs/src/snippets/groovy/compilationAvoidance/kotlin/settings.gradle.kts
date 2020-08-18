@@ -1,4 +1,4 @@
 rootProject.name = "compilation-avoidance"
-include("astTransformation")
-include("astTransformationConsumer")
+include("ast-transformation")
+include("ast-transformation-consumer")
 enableFeaturePreview("GROOVY_COMPILATION_AVOIDANCE")
