@@ -25,7 +25,7 @@ import org.gradle.invocation.DefaultGradle
 import spock.lang.IgnoreIf
 import spock.lang.Unroll
 
-import static org.gradle.integtests.fixtures.instantexecution.InstantExecutionProblemsFixture.resolveInstantExecutionReportDirectory
+import static org.gradle.integtests.fixtures.configurationcache.InstantExecutionProblemsFixture.resolveInstantExecutionReportDirectory
 
 @IgnoreIf({ GradleContextualExecuter.isNoDaemon() })
 class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigurationCacheIntegrationTest {

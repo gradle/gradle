@@ -16,7 +16,7 @@
 
 package org.gradle.configurationcache
 
-import org.gradle.integtests.fixtures.instantexecution.InstantExecutionBuildOperationsFixture
+import org.gradle.integtests.fixtures.configurationcache.InstantExecutionBuildOperationsFixture
 import org.gradle.test.fixtures.archive.ZipTestFixture
 import org.junit.Test
 

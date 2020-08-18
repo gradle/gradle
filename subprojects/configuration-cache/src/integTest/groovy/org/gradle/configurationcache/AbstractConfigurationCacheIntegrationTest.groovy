@@ -23,8 +23,8 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 
-import org.gradle.integtests.fixtures.instantexecution.InstantExecutionBuildOperationsFixture
-import org.gradle.integtests.fixtures.instantexecution.InstantExecutionProblemsFixture
+import org.gradle.integtests.fixtures.configurationcache.InstantExecutionBuildOperationsFixture
+import org.gradle.integtests.fixtures.configurationcache.InstantExecutionProblemsFixture
 
 import org.intellij.lang.annotations.Language
 

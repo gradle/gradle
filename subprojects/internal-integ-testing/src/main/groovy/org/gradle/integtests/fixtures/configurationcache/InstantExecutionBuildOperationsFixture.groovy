@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.fixtures.instantexecution
+package org.gradle.integtests.fixtures.configurationcache
 
 import org.gradle.integtests.fixtures.BuildOperationTreeQueries
 import org.gradle.internal.operations.trace.BuildOperationRecord

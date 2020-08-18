@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.fixtures.instantexecution
+package org.gradle.integtests.fixtures.configurationcache
 
 import groovy.json.JsonSlurper
 import groovy.transform.PackageScope

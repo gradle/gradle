@@ -19,7 +19,7 @@ package org.gradle.configurationcache
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.CrossVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetVersions
-import org.gradle.integtests.fixtures.instantexecution.InstantExecutionBuildOperationsFixture
+import org.gradle.integtests.fixtures.configurationcache.InstantExecutionBuildOperationsFixture
 import org.gradle.util.GradleVersion
 
 import static org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheOption.LONG_OPTION
