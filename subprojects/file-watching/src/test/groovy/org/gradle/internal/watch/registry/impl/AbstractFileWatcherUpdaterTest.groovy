@@ -70,10 +70,10 @@ abstract class AbstractFileWatcherUpdaterTest extends Specification {
     }
 
     def setup() {
-        updater = createUpdater(watcher, watchFilter, Integer.MAX_VALUE)
+        updater = createUpdater(watcher, watchFilter)
     }
 
-    abstract FileWatcherUpdater createUpdater(FileWatcher watcher, Predicate<String> watchFilter, int maxHierarchiesToWatch)
+    abstract FileWatcherUpdater createUpdater(FileWatcher watcher, Predicate<String> watchFilter)
 
     def "does not watch directories outside of hierarchies to watch"() {
         def watchableHierarchies = ["first", "second", "third"].collect { file(it).createDir() }
@@ -192,7 +192,6 @@ abstract class AbstractFileWatcherUpdaterTest extends Specification {
 
     def "stops watching hierarchies when maximum number of hierarchies to watch has been reached"() {
         int maxHierarchiesToWatch = 4
-        updater = createUpdater(watcher, watchFilter, maxHierarchiesToWatch)
         def oldestRegisteredWatchableHierarchy = file("oldestWatchable").createDir()
         def watchableHierarchies = (1..maxHierarchiesToWatch - 1).collect { index -> file("watchable${index}").createDir() }
         def newestRegisteredWatchableHierarchy = file("newestWatchable").createDir()
@@ -217,7 +216,7 @@ abstract class AbstractFileWatcherUpdaterTest extends Specification {
         1 * watcher.startWatching({ equalIgnoringOrder(it, [newestRegisteredWatchableHierarchy]) })
 
         when:
-        buildFinished()
+        buildFinished(maxHierarchiesToWatch)
         then:
         1 * watcher.stopWatching({ equalIgnoringOrder(it, [oldestRegisteredWatchableHierarchy]) })
 
@@ -286,9 +285,9 @@ abstract class AbstractFileWatcherUpdaterTest extends Specification {
         }
     }
 
-    void buildFinished() {
+    void buildFinished(int maximumNumberOfWatchedHierarchies = Integer.MAX_VALUE) {
         virtualFileSystem.update { root, diffListener ->
-            updater.buildFinished(root)
+            updater.buildFinished(root, maximumNumberOfWatchedHierarchies)
         }
     }
 

@@ -41,10 +41,10 @@ public interface FileWatcherUpdater {
     /**
      * Remove everything from the root which can't be kept after the current build finished.
      *
-     * @see FileWatcherRegistry#buildFinished(SnapshotHierarchy)
+     * @see FileWatcherRegistry#buildFinished(SnapshotHierarchy, int)
      */
     @CheckReturnValue
-    SnapshotHierarchy buildFinished(SnapshotHierarchy root);
+    SnapshotHierarchy buildFinished(SnapshotHierarchy root, int maximumNumberOfWatchedHierarchies);
 
     int getNumberOfWatchedHierarchies();
 }

@@ -63,10 +63,10 @@ public class HierarchicalFileWatcherUpdater implements FileWatcherUpdater {
     private final WatchableHierarchies watchableHierarchies;
     private final WatchedHierarchies watchedHierarchies = new WatchedHierarchies();
 
-    public HierarchicalFileWatcherUpdater(FileWatcher fileWatcher, FileSystemLocationToWatchValidator locationToWatchValidator, Predicate<String> watchFilter, int maxHierarchiesToWatch) {
+    public HierarchicalFileWatcherUpdater(FileWatcher fileWatcher, FileSystemLocationToWatchValidator locationToWatchValidator, Predicate<String> watchFilter) {
         this.fileWatcher = fileWatcher;
         this.locationToWatchValidator = locationToWatchValidator;
-        this.watchableHierarchies = new WatchableHierarchies(watchFilter, maxHierarchiesToWatch);
+        this.watchableHierarchies = new WatchableHierarchies(watchFilter);
     }
 
     @Override
@@ -93,11 +93,12 @@ public class HierarchicalFileWatcherUpdater implements FileWatcherUpdater {
     }
 
     @Override
-    public SnapshotHierarchy buildFinished(SnapshotHierarchy root) {
+    public SnapshotHierarchy buildFinished(SnapshotHierarchy root, int maximumNumberOfWatchedHierarchies) {
         WatchableHierarchies.Invalidator invalidator = (location, currentRoot) -> currentRoot.invalidate(location, SnapshotHierarchy.NodeDiffListener.NOOP);
         SnapshotHierarchy newRoot = watchableHierarchies.removeWatchedHierarchiesOverLimit(
             root,
             watchedHierarchies::contains,
+            maximumNumberOfWatchedHierarchies,
             invalidator
         );
         newRoot = watchableHierarchies.removeUnwatchedSnapshots(
@@ -151,5 +152,4 @@ public class HierarchicalFileWatcherUpdater implements FileWatcherUpdater {
 
         void validateLocationToWatch(File location);
     }
-
 }

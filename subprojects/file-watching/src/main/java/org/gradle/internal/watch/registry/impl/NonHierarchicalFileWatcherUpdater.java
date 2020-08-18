@@ -51,9 +51,9 @@ public class NonHierarchicalFileWatcherUpdater implements FileWatcherUpdater {
 
     private final WatchableHierarchies watchableHierarchies;
 
-    public NonHierarchicalFileWatcherUpdater(FileWatcher fileWatcher, Predicate<String> watchFilter, int maxHierarchiesToWatch) {
+    public NonHierarchicalFileWatcherUpdater(FileWatcher fileWatcher, Predicate<String> watchFilter) {
         this.fileWatcher = fileWatcher;
-        this.watchableHierarchies = new WatchableHierarchies(watchFilter, maxHierarchiesToWatch);
+        this.watchableHierarchies = new WatchableHierarchies(watchFilter);
     }
 
     @Override
@@ -85,7 +85,7 @@ public class NonHierarchicalFileWatcherUpdater implements FileWatcherUpdater {
     }
 
     @Override
-    public SnapshotHierarchy buildFinished(SnapshotHierarchy root) {
+    public SnapshotHierarchy buildFinished(SnapshotHierarchy root, int maximumNumberOfWatchedHierarchies) {
         WatchableHierarchies.Invalidator invalidator = (location, currentRoot) -> {
             SnapshotCollectingDiffListener diffListener = new SnapshotCollectingDiffListener();
             SnapshotHierarchy invalidatedRoot = currentRoot.invalidate(location, diffListener);
@@ -93,7 +93,10 @@ public class NonHierarchicalFileWatcherUpdater implements FileWatcherUpdater {
             return invalidatedRoot;
         };
         SnapshotHierarchy newRoot = watchableHierarchies.removeWatchedHierarchiesOverLimit(
-            root, hierarchy -> containsSnapshots(hierarchy, root), invalidator
+            root,
+            hierarchy -> containsSnapshots(hierarchy, root),
+            maximumNumberOfWatchedHierarchies,
+            invalidator
         );
         newRoot = watchableHierarchies.removeUnwatchedSnapshots(
             newRoot,

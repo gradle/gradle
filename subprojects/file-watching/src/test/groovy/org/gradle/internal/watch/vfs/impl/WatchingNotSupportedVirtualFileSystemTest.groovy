@@ -40,7 +40,7 @@ class WatchingNotSupportedVirtualFileSystemTest extends Specification {
 
         when:
         rootReference.update { root -> nonEmptySnapshotHierarchy }
-        watchingNotSupportedHandler.beforeBuildFinished(retentionEnabled, buildOperationRunner)
+        watchingNotSupportedHandler.beforeBuildFinished(retentionEnabled, buildOperationRunner, Integer.MAX_VALUE)
         then:
         rootReference.getRoot() == emptySnapshotHierarchy
 

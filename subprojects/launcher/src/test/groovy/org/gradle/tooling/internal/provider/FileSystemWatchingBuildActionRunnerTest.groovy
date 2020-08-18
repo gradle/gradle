@@ -60,7 +60,7 @@ class FileSystemWatchingBuildActionRunnerTest extends Specification {
         1 * delegate.run(buildAction, buildController)
 
         then:
-        1 * watchingHandler.beforeBuildFinished(watchFsEnabled, buildOperationRunner)
+        1 * watchingHandler.beforeBuildFinished(watchFsEnabled, buildOperationRunner, _)
 
         where:
         watchFsEnabled << [true, false]

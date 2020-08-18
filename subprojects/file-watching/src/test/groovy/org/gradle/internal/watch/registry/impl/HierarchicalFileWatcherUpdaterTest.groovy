@@ -29,8 +29,8 @@ import static org.gradle.internal.watch.registry.impl.HierarchicalFileWatcherUpd
 class HierarchicalFileWatcherUpdaterTest extends AbstractFileWatcherUpdaterTest {
 
     @Override
-    FileWatcherUpdater createUpdater(FileWatcher watcher, Predicate<String> watchFilter, int maxHierarchiesToWatch) {
-        new HierarchicalFileWatcherUpdater(watcher, NO_VALIDATION, watchFilter, maxHierarchiesToWatch)
+    FileWatcherUpdater createUpdater(FileWatcher watcher, Predicate<String> watchFilter) {
+        new HierarchicalFileWatcherUpdater(watcher, NO_VALIDATION, watchFilter)
     }
 
     def "does not watch hierarchy to watch if no snapshot is inside"() {
