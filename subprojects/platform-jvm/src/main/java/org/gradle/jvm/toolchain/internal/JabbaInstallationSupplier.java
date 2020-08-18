@@ -24,9 +24,6 @@ import javax.inject.Inject;
 import java.io.File;
 import java.util.Collections;
 import java.util.Set;
-import java.util.stream.Stream;
-
-import static java.util.stream.Collectors.toSet;
 
 public class JabbaInstallationSupplier extends AutoDetectingInstallationSupplier {
 
@@ -43,19 +40,9 @@ public class JabbaInstallationSupplier extends AutoDetectingInstallationSupplier
 
     private Transformer<Set<InstallationLocation>, String> findJavaCandidates() {
         return jabbaHome -> {
-            final File[] javaCandidates = new File(jabbaHome, "jdk").listFiles();
-            if (javaCandidates == null) {
-                return Collections.emptySet();
-            }
-            return Stream.of(javaCandidates)
-                .filter(File::isDirectory)
-                .map(this::asInstallation)
-                .collect(toSet());
+            final File root = new File(jabbaHome, "jdk");
+            return FileBasedInstallationFactory.fromDirectory(root, "jabba");
         };
-    }
-
-    private InstallationLocation asInstallation(File file) {
-        return new InstallationLocation(file, "jabba");
     }
 
 }
