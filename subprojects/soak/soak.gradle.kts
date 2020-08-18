@@ -35,3 +35,9 @@ dependencies {
 
     integTestDistributionRuntimeOnly(project(":distributions-full"))
 }
+
+tasks.register("soakTest") {
+    description = "Run all soak tests defined in the :soak subproject"
+    group = gradlebuild.CI_GROUP
+    dependsOn(":soak:embeddedIntegTest")
+}

@@ -23,8 +23,6 @@ import kotlin.concurrent.timerTask
 
 // Lifecycle tasks used to to fan out the build into multiple builds in a CI pipeline.
 
-val ciGroup = "CI Lifecycle"
-
 val compileAllBuild = "compileAllBuild"
 
 val sanityCheck = "sanityCheck"
@@ -63,7 +61,6 @@ setupGlobalState()
 
 subprojects.filter { it.name !in ignoredSubprojects }.forEach { it.registerLifecycleTasks() }
 
-project(":soak").registerSoakTest()
 
 tasks.registerDistributionsPromotionTasks()
 
@@ -87,17 +84,6 @@ fun Project.registerLifecycleTasks() {
     }
     plugins.withId("gradlebuild.publish-public-libraries") {
         tasks.registerPublishLibrariesPromotionTasks()
-    }
-}
-
-fun Project.registerSoakTest() {
-    tasks.register(soakTest) {
-        description = "Run all soak tests defined in the :soak subproject"
-        group = ciGroup
-    }
-
-    tasks.named(soakTest) {
-        dependsOn(":soak:embeddedIntegTest")
     }
 }
 
@@ -148,7 +134,7 @@ fun needsToUseTestVersionsAll() = isRequestedTask(allVersionsCrossVersionTest)
 fun TaskContainer.registerEarlyFeedbackLifecycleTasks() {
     register(compileAllBuild) {
         description = "Initialize CI Pipeline by priming the cache before fanning out"
-        group = ciGroup
+        group = CI_GROUP
         dependsOn(":base-services:createBuildReceipt", "compileAll")
     }
 
@@ -192,52 +178,52 @@ fun TaskContainer.registerPublishLibrariesPromotionTasks() {
 fun TaskContainer.registerCITestDistributionLifecycleTasks() {
     register(quickTest) {
         description = "Run all unit, integration and cross-version (against latest release) tests in embedded execution mode"
-        group = ciGroup
+        group = CI_GROUP
     }
 
     register(platformTest) {
         description = "Run all unit, integration and cross-version (against latest release) tests in forking execution mode"
-        group = ciGroup
+        group = CI_GROUP
     }
 
     register(quickFeedbackCrossVersionTest) {
         description = "Run cross-version tests against a limited set of versions"
-        group = ciGroup
+        group = CI_GROUP
     }
 
     register(allVersionsCrossVersionTest) {
         description = "Run cross-version tests against all released versions (latest patch release of each)"
-        group = ciGroup
+        group = CI_GROUP
     }
 
     register(allVersionsIntegMultiVersionTest) {
         description = "Run all multi-version integration tests with all version to cover"
-        group = ciGroup
+        group = CI_GROUP
     }
 
     register(parallelTest) {
         description = "Run all integration tests in parallel execution mode: each Gradle execution started in a test run with --parallel"
-        group = ciGroup
+        group = CI_GROUP
     }
 
     register(noDaemonTest) {
         description = "Run all integration tests in no-daemon execution mode: each Gradle execution started in a test forks a new daemon"
-        group = ciGroup
+        group = CI_GROUP
     }
 
     register(instantTest) {
         description = "Run all integration tests with instant execution"
-        group = ciGroup
+        group = CI_GROUP
     }
 
     register(watchFsTest) {
         description = "Run all integration tests with file system watching enabled"
-        group = ciGroup
+        group = CI_GROUP
     }
 
     register(forceRealizeDependencyManagementTest) {
         description = "Runs all integration tests with the dependency management engine in 'force component realization' mode"
-        group = ciGroup
+        group = CI_GROUP
     }
 }
 
@@ -260,7 +246,7 @@ fun TaskContainer.configureCIIntegrationTestDistributionLifecycleTasks() {
 
     named(noDaemonTest) {
         description = "Run all integration tests in no-daemon execution mode: each Gradle execution started in a test forks a new daemon"
-        group = ciGroup
+        group = CI_GROUP
         dependsOn("noDaemonIntegTest")
     }
 
