@@ -9,8 +9,7 @@ dependencies {
 
     implementation("com.google.code.gson:gson")
 
-    testImplementation("org.junit.jupiter:junit-jupiter-api")
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
+    testImplementation("org.junit.jupiter:junit-jupiter")
 }
 
 tasks.test {
