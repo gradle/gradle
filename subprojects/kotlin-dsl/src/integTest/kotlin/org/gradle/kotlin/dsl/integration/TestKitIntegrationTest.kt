@@ -16,7 +16,7 @@
 
 package org.gradle.kotlin.dsl.integration
 
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.gradle.kotlin.dsl.fixtures.normalisedPath
 
@@ -29,7 +29,7 @@ class TestKitIntegrationTest : AbstractKotlinIntegrationTest() {
 
     @Test
     @LeaksFileHandles("Kotlin Compiler Daemon working directory")
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     fun `withPluginClasspath works`() {
         assumeNonEmbeddedGradleExecuter()
 

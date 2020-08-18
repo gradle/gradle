@@ -16,7 +16,7 @@
 package org.gradle.scala.compile
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.ZincScalaCompileFixture
 import org.junit.Rule
@@ -31,7 +31,7 @@ class IncrementalScalaCompileIntegrationTest extends AbstractIntegrationSpec {
         executer.withRepositoryMirrors()
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def recompilesSourceWhenPropertiesChange() {
         expect:
         run('compileScala').assertTasksSkipped(':compileJava')
@@ -45,7 +45,7 @@ class IncrementalScalaCompileIntegrationTest extends AbstractIntegrationSpec {
         run('compileScala').assertTasksSkipped(':compileJava', ':compileScala')
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def recompilesDependentClasses() {
         given:
         run("classes")
@@ -58,7 +58,7 @@ class IncrementalScalaCompileIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("gradle/gradle#13392")
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def restoresClassesOnCompilationFailure() {
         given:
         run("classes")
@@ -78,7 +78,7 @@ class IncrementalScalaCompileIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("GRADLE-2548")
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def recompilesScalaWhenJavaChanges() {
         file("build.gradle") << """
             apply plugin: 'scala'

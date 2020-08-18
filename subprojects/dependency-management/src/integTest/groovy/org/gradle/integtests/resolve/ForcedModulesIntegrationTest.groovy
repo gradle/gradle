@@ -16,7 +16,7 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import spock.lang.Issue
 import spock.lang.Unroll
@@ -83,7 +83,7 @@ task checkDeps {
         run("checkDeps")
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     void "can force already resolved version of a module and avoid conflict"() {
         mavenRepo.module("org", "foo", '1.3.3').publish()
         mavenRepo.module("org", "foo", '1.4.4').publish()
@@ -240,7 +240,7 @@ project(':tool') {
         run("tool:checkDeps")
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     void "strict conflict strategy can be used with forced modules"() {
         mavenRepo.module("org", "foo", '1.3.3').publish()
         mavenRepo.module("org", "foo", '1.4.4').publish()

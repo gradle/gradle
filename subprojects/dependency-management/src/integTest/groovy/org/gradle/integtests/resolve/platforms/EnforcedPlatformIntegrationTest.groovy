@@ -17,7 +17,7 @@
 package org.gradle.integtests.resolve.platforms
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 
 class EnforcedPlatformIntegrationTest extends AbstractHttpDependencyResolutionTest {
@@ -28,7 +28,7 @@ class EnforcedPlatformIntegrationTest extends AbstractHttpDependencyResolutionTe
         """
     }
 
-    @ToBeFixedForInstantExecution(because = "Resolve test fixture doesn't support configuration cache")
+    @ToBeFixedForConfigurationCache(because = "Resolve test fixture doesn't support configuration cache")
     def "dependency on unsatisfiable range shouldn't trigger null pointer exception"() {
         settingsFile << """
             include 'platform'

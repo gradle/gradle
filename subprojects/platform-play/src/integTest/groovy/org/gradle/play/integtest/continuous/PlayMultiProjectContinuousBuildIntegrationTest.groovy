@@ -16,7 +16,7 @@
 
 package org.gradle.play.integtest.continuous
 
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.play.integtest.fixtures.AbstractMultiVersionPlayContinuousBuildIntegrationTest
 import org.gradle.play.integtest.fixtures.MultiProjectRunningPlayApp
 import org.gradle.play.integtest.fixtures.RunningPlayApp
@@ -36,7 +36,7 @@ class PlayMultiProjectContinuousBuildIntegrationTest extends AbstractMultiVersio
     RunningPlayApp runningChildApp = new RunningPlayApp(childDirectory)
     TestFile playRunBuildFile = file("primary/build.gradle")
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can run multiproject play app with continuous build" () {
         when:
         succeeds(":primary:runPlayBinary")
@@ -52,7 +52,7 @@ class PlayMultiProjectContinuousBuildIntegrationTest extends AbstractMultiVersio
         appIsStopped()
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can run play apps in multiple projects in multiproject continuous build" () {
         includeChildApp()
 
@@ -89,7 +89,7 @@ class PlayMultiProjectContinuousBuildIntegrationTest extends AbstractMultiVersio
         childAppIsStopped()
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "show build failures in play apps in multiple projects in multiproject continuous build" () {
         includeChildApp()
 

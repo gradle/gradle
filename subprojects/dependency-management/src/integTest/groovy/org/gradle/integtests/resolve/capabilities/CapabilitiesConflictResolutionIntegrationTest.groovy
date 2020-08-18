@@ -19,14 +19,14 @@ package org.gradle.integtests.resolve.capabilities
 
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 import spock.lang.Unroll
 
 class CapabilitiesConflictResolutionIntegrationTest extends AbstractModuleDependencyResolveTest {
 
     @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     @Unroll
     def "reasonable error message when a user rule throws an exception (#rule)"() {
         given:

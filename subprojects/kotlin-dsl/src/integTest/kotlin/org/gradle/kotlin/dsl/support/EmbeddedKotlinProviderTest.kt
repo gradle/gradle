@@ -1,6 +1,6 @@
 package org.gradle.kotlin.dsl.support
 
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.kotlin.dsl.embeddedKotlinVersion
 
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
@@ -15,7 +15,7 @@ import org.junit.Test
 class EmbeddedKotlinProviderTest : AbstractKotlinIntegrationTest() {
 
     @Test
-    @ToBeFixedForInstantExecution(because = ":buildEnvironment")
+    @ToBeFixedForConfigurationCache(because = ":buildEnvironment")
     fun `no extra dependencies are added to the buildscript classpath`() {
 
         val result = build("buildEnvironment")
@@ -24,7 +24,7 @@ class EmbeddedKotlinProviderTest : AbstractKotlinIntegrationTest() {
     }
 
     @Test
-    @ToBeFixedForInstantExecution(because = ":buildEnvironment")
+    @ToBeFixedForConfigurationCache(because = ":buildEnvironment")
     fun `embedded kotlin dependencies are pinned to the embedded version`() {
 
         withBuildScript("""
@@ -45,7 +45,7 @@ class EmbeddedKotlinProviderTest : AbstractKotlinIntegrationTest() {
     }
 
     @Test
-    @ToBeFixedForInstantExecution(because = ":buildEnvironment")
+    @ToBeFixedForConfigurationCache(because = ":buildEnvironment")
     fun `stdlib and reflect are pinned to the embedded kotlin version for requested plugins`() {
         withBuildScript("""
             plugins {
@@ -61,7 +61,7 @@ class EmbeddedKotlinProviderTest : AbstractKotlinIntegrationTest() {
     }
 
     @Test
-    @ToBeFixedForInstantExecution(because = ":buildEnvironment")
+    @ToBeFixedForConfigurationCache(because = ":buildEnvironment")
     fun `compiler-embeddable is not pinned`() {
         withBuildScript("""
             buildscript {

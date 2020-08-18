@@ -16,7 +16,7 @@
 
 package org.gradle.language.nativeplatform.tasks
 
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.NativeBinaryFixture
 import org.gradle.nativeplatform.fixtures.app.IncrementalElement
@@ -56,7 +56,7 @@ abstract class AbstractUnexportMainSymbolIntegrationTest extends AbstractInstall
     protected abstract List<String> getMainSymbols()
 
     @Issue("https://github.com/gradle/gradle-native/issues/304")
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "clean build works"() {
         makeSingleProject()
         componentUnderTest.writeToProject(testDirectory)
@@ -66,7 +66,7 @@ abstract class AbstractUnexportMainSymbolIntegrationTest extends AbstractInstall
     }
 
     @Issue("https://github.com/gradle/gradle-native/issues/297")
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "unexport is incremental"() {
         makeSingleProject()
         componentUnderTest.writeToProject(testDirectory)
@@ -88,7 +88,7 @@ abstract class AbstractUnexportMainSymbolIntegrationTest extends AbstractInstall
         result.assertTasksNotSkipped(developmentBinaryCompileTask, ":unexport")
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "relocate _main symbol with main.<ext>"() {
         makeSingleProject()
         componentUnderTest.writeToProject(testDirectory)
@@ -99,7 +99,7 @@ abstract class AbstractUnexportMainSymbolIntegrationTest extends AbstractInstall
         assertMainSymbolIsNotExported(objectFile("build/relocated/main"))
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "relocate _main symbol with notMain.<ext>"() {
         makeSingleProject()
         getMainFile("notMain").writeToProject(testDirectory)
@@ -110,7 +110,7 @@ abstract class AbstractUnexportMainSymbolIntegrationTest extends AbstractInstall
         assertMainSymbolIsNotExported(objectFile("build/relocated/notMain"))
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "relocate _main symbol with multiple files"() {
         makeSingleProject()
         componentWithOtherFileUnderTest.writeToProject(testDirectory)
@@ -122,7 +122,7 @@ abstract class AbstractUnexportMainSymbolIntegrationTest extends AbstractInstall
         file("build/relocated").assertHasDescendants(objectFile("main").name, objectFile("other").name)
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "relocate _main symbol works incrementally"() {
         makeSingleProject()
         componentUnderTest.writeToProject(testDirectory)
@@ -161,7 +161,7 @@ abstract class AbstractUnexportMainSymbolIntegrationTest extends AbstractInstall
         mainObject.lastModified() > oldTimestamp
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can relocate when there is no main symbol"() {
         makeSingleProject()
         componentWithoutMainUnderTest.writeToProject(testDirectory)

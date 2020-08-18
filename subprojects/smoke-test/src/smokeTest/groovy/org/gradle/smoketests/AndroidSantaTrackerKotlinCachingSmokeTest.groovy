@@ -16,7 +16,7 @@
 
 package org.gradle.smoketests
 
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.util.Requires
@@ -37,7 +37,7 @@ class AndroidSantaTrackerKotlinCachingSmokeTest extends AbstractAndroidSantaTrac
 
     @Unroll
     @UnsupportedWithInstantExecution(iterationMatchers = [AGP_3_ITERATION_MATCHER, AGP_4_0_ITERATION_MATCHER])
-    @ToBeFixedForInstantExecution(iterationMatchers = [AGP_4_1_ITERATION_MATCHER, AGP_4_2_ITERATION_MATCHER])
+    @ToBeFixedForConfigurationCache(iterationMatchers = [AGP_4_1_ITERATION_MATCHER, AGP_4_2_ITERATION_MATCHER])
     def "can cache Santa Tracker Kotlin Android application (agp=#agpVersion)"() {
 
         // TODO remove once next 4.2 is available

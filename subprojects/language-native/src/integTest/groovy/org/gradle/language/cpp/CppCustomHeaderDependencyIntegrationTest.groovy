@@ -16,12 +16,12 @@
 
 package org.gradle.language.cpp
 
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.CppApp
 
 class CppCustomHeaderDependencyIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can consume a directory as a header dependency"() {
         def app = new CppApp()
         settingsFile << """
@@ -55,13 +55,13 @@ class CppCustomHeaderDependencyIntegrationTest extends AbstractInstalledToolChai
             import javax.inject.Inject
 
             apply plugin: 'cpp-application'
-            
+
             repositories {
                 ${repoType} {
                     url file('lib/repo')
                 }
             }
-            
+
             def artifactType = Attribute.of('artifactType', String)
             def USAGE = Usage.USAGE_ATTRIBUTE
             def CUSTOM = objects.named(Usage.class, "custom")
@@ -70,13 +70,13 @@ class CppCustomHeaderDependencyIntegrationTest extends AbstractInstalledToolChai
             def NATIVE_LINK = objects.named(Usage.class, Usage.NATIVE_LINK)
             dependencies {
                 implementation "org.gradle.test:lib:1.0"
-                
+
                 artifactTypes {
                     zip {
                         attributes.attribute(USAGE, CUSTOM)
                     }
                 }
-                
+
                 registerTransform(UnzipTransform) {
                     from.attribute(USAGE, CUSTOM).attribute(artifactType, 'zip')
                     to.attribute(USAGE, C_PLUS_PLUS_API).attribute(artifactType, 'directory')
@@ -84,12 +84,12 @@ class CppCustomHeaderDependencyIntegrationTest extends AbstractInstalledToolChai
                         headerDir = file('lib/src/main/headers')
                     }
                 }
-                
+
                 registerTransform(EmptyTransform) {
                     from.attribute(USAGE, CUSTOM).attribute(artifactType, 'zip')
                     to.attribute(USAGE, NATIVE_RUNTIME).attribute(artifactType, 'directory')
                 }
-                
+
                 registerTransform(EmptyTransform) {
                     from.attribute(USAGE, CUSTOM).attribute(artifactType, 'zip')
                     to.attribute(USAGE, NATIVE_LINK).attribute(artifactType, 'directory')
@@ -97,16 +97,16 @@ class CppCustomHeaderDependencyIntegrationTest extends AbstractInstalledToolChai
             }
 
             // Simulates unzipping headers by copying the contents of a configured directory
-            // This is to avoid pulling in an external dependency to do this or investing the 
+            // This is to avoid pulling in an external dependency to do this or investing the
             // effort of writing our own unzip which would be pure yak-shaving for this test.
             import org.gradle.api.artifacts.transform.TransformParameters
-            
+
             abstract class UnzipTransform implements TransformAction<Parameters> {
                 interface Parameters extends TransformParameters {
                     @InputDirectory
                     DirectoryProperty getHeaderDir()
                 }
-                
+
                 void transform(TransformOutputs outputs) {
                     def unzipped = outputs.dir("unzipped")
                     parameters.headerDir.get().asFile.listFiles().each { sourceFile ->
@@ -115,7 +115,7 @@ class CppCustomHeaderDependencyIntegrationTest extends AbstractInstalledToolChai
                     }
                 }
             }
-            
+
             abstract class EmptyTransform implements TransformAction<TransformParameters.None> {
                 void transform(TransformOutputs outputs) {
                 }
@@ -127,15 +127,15 @@ class CppCustomHeaderDependencyIntegrationTest extends AbstractInstalledToolChai
         return """
             apply plugin: "base"
             apply plugin: "${repoType}-publish"
-            
+
             configurations {
                 headers
             }
-            
+
             task zipHeaders(type: Zip) {
                 from file('src/main/headers')
             }
-                    
+
             publishing {
                 publications {
                     headers(${repoType.capitalize()}Publication) {

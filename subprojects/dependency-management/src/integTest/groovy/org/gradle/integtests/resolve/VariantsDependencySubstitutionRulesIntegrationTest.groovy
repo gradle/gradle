@@ -18,7 +18,7 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import spock.lang.Issue
 import spock.lang.Unroll
@@ -142,7 +142,7 @@ class VariantsDependencySubstitutionRulesIntegrationTest extends AbstractIntegra
 
     }
 
-    @ToBeFixedForInstantExecution(because = "fails serialization of resolution error")
+    @ToBeFixedForConfigurationCache(because = "fails serialization of resolution error")
     def "can substitute a dependency without capabilities with a dependency with capabilities"() {
         mavenRepo.module("org", "lib", "1.0").publish()
 

@@ -17,13 +17,13 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.hamcrest.CoreMatchers
 import spock.lang.Issue
 
 class DependencyNotationIntegrationSpec extends AbstractIntegrationSpec {
 
-    @ToBeFixedForInstantExecution(because = "unsupported type Dependency")
+    @ToBeFixedForConfigurationCache(because = "unsupported type Dependency")
     def "understands dependency notations"() {
         when:
         buildFile <<  """
@@ -67,7 +67,7 @@ task checkDeps {
         assert configuredDep.version == '1.1'
         assert configuredDep.transitive == false
         assert configuredDep.force == true
-        
+
         assert deps.find { it instanceof ClientModule && it.name == 'moduleOne' && it.group == 'org.foo' }
         assert deps.find { it instanceof ClientModule && it.name == 'moduleTwo' && it.version == '1.0' }
 
@@ -135,11 +135,11 @@ dependencies {
         dependency 'org.foo:bar:1.0'
         dependencies ('org.foo:one:1', 'org.foo:two:1')
         dependency ('high:five:5') { transitive = false }
-        dependency('org.test:lateversion') { 
+        dependency('org.test:lateversion') {
                version {
-                  prefer '1.0' 
-                  strictly '1.1' // intentionally overriding "prefer" 
-               } 
+                  prefer '1.0'
+                  strictly '1.1' // intentionally overriding "prefer"
+               }
            }
     }
 }
@@ -249,11 +249,11 @@ task checkDeps
             configurations {
               conf
             }
-            
+
             dependencies {
-              conf provider { gradleApi() } 
+              conf provider { gradleApi() }
             }
-            
+
             task check {
                 doLast {
                     assert configurations.conf.dependencies.contains(dependencies.gradleApi())

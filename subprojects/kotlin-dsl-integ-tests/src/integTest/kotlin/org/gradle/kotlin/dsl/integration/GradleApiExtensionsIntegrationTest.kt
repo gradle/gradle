@@ -22,7 +22,7 @@ import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.Task
 import org.gradle.api.tasks.Delete
 import org.gradle.api.tasks.TaskCollection
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.kotlin.dsl.fixtures.containsMultiLineString
 import org.gradle.kotlin.dsl.support.normaliseLineSeparators
 import org.gradle.test.fixtures.file.LeaksFileHandles
@@ -39,7 +39,7 @@ import java.util.jar.JarFile
 class GradleApiExtensionsIntegrationTest : AbstractPluginIntegrationTest() {
 
     @Test
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     fun `Kotlin chooses withType extension specialized to container type`() {
 
         withBuildScript("""
@@ -85,7 +85,7 @@ class GradleApiExtensionsIntegrationTest : AbstractPluginIntegrationTest() {
     }
 
     @Test
-    @ToBeFixedForInstantExecution(because = "source dependency VCS mappings are defined")
+    @ToBeFixedForConfigurationCache(because = "source dependency VCS mappings are defined")
     fun `can use Gradle API generated extensions in scripts`() {
 
         withFile("init.gradle.kts", """
@@ -135,7 +135,7 @@ class GradleApiExtensionsIntegrationTest : AbstractPluginIntegrationTest() {
 
     @Test
     @LeaksFileHandles("Kotlin Compiler Daemon working directory")
-    @ToBeFixedForInstantExecution(because = "Kotlin Gradle Plugin")
+    @ToBeFixedForConfigurationCache(because = "Kotlin Gradle Plugin")
     fun `can use Gradle API generated extensions in buildSrc`() {
 
         assumeNonEmbeddedGradleExecuter() // Classloader issue with pre-compiled script plugins lets ':compileKotlin' fail

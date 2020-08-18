@@ -17,7 +17,7 @@
 package org.gradle.integtests.resolve.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
 class DeprecatedConfigurationsIntegrationTest extends AbstractIntegrationSpec {
 
@@ -153,7 +153,7 @@ class DeprecatedConfigurationsIntegrationTest extends AbstractIntegrationSpec {
         succeeds ':b:resolve'
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "warn if a deprecated project configuration is consumed directly"() {
         // this is testing legacy code that we can/should probably get rid of
         given:

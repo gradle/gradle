@@ -18,7 +18,7 @@ package org.gradle.configurationcache.problems
 
 
 /**
- * Disable instant execution field type check for the annotated field.
+ * Disable configuration cache field type check for the annotated field.
  *
  * This is a temporary measure, internal, in order to not loose too much coverage.
  *

@@ -18,7 +18,7 @@ package org.gradle.buildinit.plugins
 
 import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import spock.lang.Unroll
 
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl.GROOVY
@@ -63,7 +63,7 @@ class JavaLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution(because = "gradle/configuration-cache#270")
+    @ToBeFixedForConfigurationCache(because = "gradle/configuration-cache#270")
     def "creates sample source using spock instead of junit with #scriptDsl build scripts"() {
         when:
         run('init', '--type', 'java-library', '--test-framework', 'spock', '--dsl', scriptDsl.id)
@@ -166,7 +166,7 @@ class JavaLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution(because = "gradle/configuration-cache#270")
+    @ToBeFixedForConfigurationCache(because = "gradle/configuration-cache#270")
     def "creates sample source with package and spock and #scriptDsl build scripts"() {
         when:
         run('init', '--type', 'java-library', '--test-framework', 'spock', '--package', 'my.lib', '--dsl', scriptDsl.id)

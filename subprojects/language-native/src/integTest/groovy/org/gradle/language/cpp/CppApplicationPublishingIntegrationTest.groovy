@@ -16,7 +16,7 @@
 
 package org.gradle.language.cpp
 
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.language.VariantContext
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
@@ -44,8 +44,8 @@ class CppApplicationPublishingIntegrationTest extends AbstractCppPublishingInteg
             apply plugin: 'cpp-application'
 
             repositories {
-                maven { 
-                    url '${mavenRepo.uri}' 
+                maven {
+                    url '${mavenRepo.uri}'
                 }
             }
             configurations {
@@ -55,11 +55,11 @@ class CppApplicationPublishingIntegrationTest extends AbstractCppPublishingInteg
                     attributes.attribute(Attribute.of('org.gradle.native.optimized', Boolean), false)
                 }
             }
-            // HACK to install the executable from a repository 
+            // HACK to install the executable from a repository
             def binary = application.developmentBinary
             task install(type: InstallExecutable) {
                 targetPlatform.set(binary.map { it.compileTask.get().targetPlatform.get() })
-                toolChain.set(binary.map { it.toolChain }) 
+                toolChain.set(binary.map { it.toolChain })
                 installDirectory = layout.projectDirectory.dir("install")
                 lib(configurations.install.filter { it != configurations.install.files[0] })
                 executableFile = layout.file(provider {
@@ -71,7 +71,7 @@ class CppApplicationPublishingIntegrationTest extends AbstractCppPublishingInteg
         """
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can publish the binaries of an application to a Maven repository"() {
         def app = new CppApp()
 
@@ -79,7 +79,7 @@ class CppApplicationPublishingIntegrationTest extends AbstractCppPublishingInteg
         buildFile << """
             apply plugin: 'cpp-application'
             apply plugin: 'maven-publish'
-            
+
             group = 'some.group'
             version = '1.2'
             application {
@@ -163,7 +163,7 @@ class CppApplicationPublishingIntegrationTest extends AbstractCppPublishingInteg
         installation.exec().out == app.expectedOutput
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can publish an executable and library to a Maven repository"() {
         def app = new CppAppWithLibrary()
 
@@ -172,20 +172,20 @@ class CppApplicationPublishingIntegrationTest extends AbstractCppPublishingInteg
         buildFile << """
             subprojects {
                 apply plugin: 'maven-publish'
-                
+
                 group = 'some.group'
                 version = '1.2'
                 publishing {
                     repositories { maven { url '${mavenRepo.uri}' } }
                 }
             }
-            project(':app') { 
+            project(':app') {
                 apply plugin: 'cpp-application'
                 dependencies {
                     implementation project(':greeter')
                 }
             }
-            project(':greeter') { 
+            project(':greeter') {
                 apply plugin: 'cpp-library'
             }
         """
@@ -231,7 +231,7 @@ class CppApplicationPublishingIntegrationTest extends AbstractCppPublishingInteg
         when:
         def consumer = file("consumer").createDir()
         consumer.file("settings.gradle") << ''
-        consumer.file("build.gradle") << """ 
+        consumer.file("build.gradle") << """
             dependencies {
                 install 'some.group:app:1.2'
             }
@@ -244,7 +244,7 @@ class CppApplicationPublishingIntegrationTest extends AbstractCppPublishingInteg
         installation.exec().out == app.expectedOutput
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can publish an executable and a binary-specific dependency to a Maven repository"() {
         def app = new CppAppWithLibrary()
         def logger = new CppLogger().asLib()
@@ -254,14 +254,14 @@ class CppApplicationPublishingIntegrationTest extends AbstractCppPublishingInteg
         buildFile << """
             subprojects {
                 apply plugin: 'maven-publish'
-                
+
                 group = 'some.group'
                 version = '1.2'
                 publishing {
                     repositories { maven { url '${mavenRepo.uri}' } }
                 }
             }
-            project(':app') { 
+            project(':app') {
                 apply plugin: 'cpp-application'
                 dependencies {
                     implementation project(':greeter')
@@ -276,7 +276,7 @@ class CppApplicationPublishingIntegrationTest extends AbstractCppPublishingInteg
                     }
                 }
             }
-            project(':greeter') { 
+            project(':greeter') {
                 apply plugin: 'cpp-library'
             }
             project(':logger') {
@@ -338,7 +338,7 @@ class CppApplicationPublishingIntegrationTest extends AbstractCppPublishingInteg
         installation.exec().out == app.expectedOutput
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "uses the basename to calculate the coordinates"() {
         def app = new CppAppWithLibrary()
 
@@ -347,21 +347,21 @@ class CppApplicationPublishingIntegrationTest extends AbstractCppPublishingInteg
         buildFile << """
             subprojects {
                 apply plugin: 'maven-publish'
-                
+
                 group = 'some.group'
                 version = '1.2'
                 publishing {
                     repositories { maven { url '${mavenRepo.uri}' } }
                 }
             }
-            project(':app') { 
+            project(':app') {
                 apply plugin: 'cpp-application'
                 application.baseName = 'testApp'
                 dependencies {
                     implementation project(':greeter')
                 }
             }
-            project(':greeter') { 
+            project(':greeter') {
                 apply plugin: 'cpp-library'
                 library.baseName = 'appGreeter'
             }
@@ -417,7 +417,7 @@ class CppApplicationPublishingIntegrationTest extends AbstractCppPublishingInteg
         installation.exec().out == app.expectedOutput
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can publish the binaries of an application with multiple target operating systems to a Maven repository"() {
         def app = new CppApp()
         def targetMachines = [machine(WINDOWS, X86), machine(LINUX, X86), machine(MACOS, X86_64)]
@@ -468,7 +468,7 @@ class CppApplicationPublishingIntegrationTest extends AbstractCppPublishingInteg
     // macOS can only build 64-bit under 10.14+
     @Requires(TestPrecondition.NOT_MAC_OS_X)
     @RequiresInstalledToolChain(ToolChainRequirement.SUPPORTS_32_AND_64)
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can publish the binaries of an application with multiple target architectures to a Maven repository"() {
         def app = new CppApp()
         def targetMachines = [machine(currentOsFamilyName, X86), machine(currentOsFamilyName, X86_64)]

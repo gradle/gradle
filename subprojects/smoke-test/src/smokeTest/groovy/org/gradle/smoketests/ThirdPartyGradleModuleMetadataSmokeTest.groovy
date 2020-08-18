@@ -17,7 +17,7 @@
 package org.gradle.smoketests
 
 import groovy.json.JsonSlurper
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.testkit.runner.BuildResult
 
@@ -27,7 +27,7 @@ class ThirdPartyGradleModuleMetadataSmokeTest extends AbstractSmokeTest {
      * Everything is done in one test to safe execution time.
      * Running the producer build takes ~2min.
      */
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def 'produces expected metadata and can be consumed'() {
         given:
         BuildResult result

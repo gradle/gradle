@@ -16,7 +16,7 @@
 
 package org.gradle.plugin.devel.impldeps
 
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import spock.lang.IgnoreIf
 import spock.lang.Issue
@@ -52,7 +52,7 @@ class ResolvedGeneratedJarsIntegrationTest extends BaseGradleImplDepsTestCodeInt
 
     }
 
-    @ToBeFixedForInstantExecution(because = "testkit jar generated eagerly")
+    @ToBeFixedForConfigurationCache(because = "testkit jar generated eagerly")
     def "gradle testkit jar is generated only when requested"() {
         setup:
         testCode()

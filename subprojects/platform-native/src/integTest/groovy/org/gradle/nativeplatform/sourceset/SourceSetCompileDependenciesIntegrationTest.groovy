@@ -15,7 +15,7 @@
  */
 package org.gradle.nativeplatform.sourceset
 
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 
 class SourceSetCompileDependenciesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
@@ -67,7 +67,7 @@ model {
 """
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "dependencies of 2 language source sets are not shared when compiling"() {
         given:
         buildFile << """
@@ -94,7 +94,7 @@ model {
         executable("build/exe/main/main").exec().out == "12\n"
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "dependencies of language source set added to binary are not shared when compiling"() {
         given:
         buildFile << """
@@ -124,7 +124,7 @@ model {
         executable("build/exe/main/main").exec().out == "12\n"
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "dependencies of binary are shared with all source sets when compiling"() {
         given:
         buildFile << """

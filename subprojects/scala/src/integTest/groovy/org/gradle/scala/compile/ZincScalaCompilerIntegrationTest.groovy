@@ -20,7 +20,7 @@ import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.ScalaCoverage
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.TestResources
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.internal.hash.Hashing
 import org.gradle.test.fixtures.file.ClassFile
 import org.gradle.util.VersionNumber
@@ -340,7 +340,7 @@ class Person(val name: String, val age: Int) {
         return new ClassFile(scalaClassFile(path))
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def compilesScalaCodeIncrementally() {
         setup:
         def person = scalaClassFile("Person.class")
@@ -360,7 +360,7 @@ class Person(val name: String, val age: Int) {
         other.lastModified() == old(other.lastModified())
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def compilesJavaCodeIncrementally() {
         setup:
         def person = scalaClassFile("Person.class")
@@ -380,7 +380,7 @@ class Person(val name: String, val age: Int) {
         other.lastModified() == old(other.lastModified())
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def compilesIncrementallyAcrossProjectBoundaries() {
         setup:
         def person = file("prj1/build/classes/scala/main/Person.class")
@@ -402,7 +402,7 @@ class Person(val name: String, val age: Int) {
 
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def compilesAllScalaCodeWhenForced() {
         setup:
         def person = scalaClassFile("Person.class")

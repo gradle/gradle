@@ -21,7 +21,7 @@ package org.gradle.integtests.samples
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.Sample
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.file.TestFile
 import org.junit.Rule
@@ -222,7 +222,7 @@ class SamplesJavaMultiProjectIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution(because = "Task.getProject() during execution")
+    @ToBeFixedForConfigurationCache(because = "Task.getProject() during execution")
     def "should not use cache for project dependencies with #dsl dsl"() {
         TestFile dslDir = sample.dir.file(dsl)
         executer.inDirectory(dslDir).withTasks(":$API_NAME:checkProjectDependency").run()

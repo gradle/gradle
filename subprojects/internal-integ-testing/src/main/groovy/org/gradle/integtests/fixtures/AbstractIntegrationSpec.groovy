@@ -507,7 +507,7 @@ class AbstractIntegrationSpec extends Specification {
     }
 
     /**
-     * Called by {@link ToBeFixedForInstantExecutionExtension} when a test fails as expected so no further checks are applied.
+     * Called by {@link ToBeFixedForConfigurationCacheExtension} when a test fails as expected so no further checks are applied.
      */
     void ignoreCleanupAssertions() {
         this.ignoreCleanupAssertions = true

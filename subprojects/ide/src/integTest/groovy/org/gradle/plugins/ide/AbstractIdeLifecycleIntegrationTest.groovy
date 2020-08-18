@@ -16,7 +16,7 @@
 
 package org.gradle.plugins.ide
 
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
 abstract class AbstractIdeLifecycleIntegrationTest extends AbstractIdeProjectIntegrationTest {
     abstract String[] getGenerationTaskNames(String projectPath)
@@ -29,7 +29,7 @@ abstract class AbstractIdeLifecycleIntegrationTest extends AbstractIdeProjectInt
         }
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "lifecycle task is added and generates metadata"() {
         when:
         run lifeCycleTaskName
@@ -46,7 +46,7 @@ abstract class AbstractIdeLifecycleIntegrationTest extends AbstractIdeProjectInt
         projectName("foo/bar") == "bar"
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "clean tasks always run before generation tasks when specified on the command line"() {
         when:
         run cleanTaskName, lifeCycleTaskName
@@ -66,13 +66,13 @@ abstract class AbstractIdeLifecycleIntegrationTest extends AbstractIdeProjectInt
         projectName("foo/bar") == "bar"
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "clean tasks always run before generation tasks when modeled as a dependency"() {
         given:
         buildFile << """
             allprojects {
                 tasks.${lifeCycleTaskName}.dependsOn tasks.${cleanTaskName}
-            }    
+            }
         """
 
         when:

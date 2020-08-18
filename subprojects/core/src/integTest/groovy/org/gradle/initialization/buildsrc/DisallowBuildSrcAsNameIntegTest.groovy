@@ -17,7 +17,7 @@
 package org.gradle.initialization.buildsrc
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
 class DisallowBuildSrcAsNameIntegTest extends AbstractIntegrationSpec {
 
@@ -87,7 +87,7 @@ class DisallowBuildSrcAsNameIntegTest extends AbstractIntegrationSpec {
         failure.assertHasDescription("Included build $b has build name 'buildSrc' which cannot be used as it is a reserved name.")
     }
 
-    @ToBeFixedForInstantExecution(because = "GradleBuild")
+    @ToBeFixedForConfigurationCache(because = "GradleBuild")
     def "fails when trying to create a buildSrc build with GradleBuild task"() {
         def b = file("b")
         b.file("build.gradle") << ""

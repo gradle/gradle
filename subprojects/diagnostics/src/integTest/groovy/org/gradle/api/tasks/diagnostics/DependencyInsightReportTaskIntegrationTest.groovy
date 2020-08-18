@@ -19,7 +19,7 @@ package org.gradle.api.tasks.diagnostics
 import groovy.transform.CompileStatic
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.integtests.resolve.locking.LockfileFixture
 import spock.lang.Ignore
@@ -36,7 +36,7 @@ class DependencyInsightReportTaskIntegrationTest extends AbstractIntegrationSpec
         new ResolveTestFixture(buildFile).addDefaultVariantDerivationStrategy()
     }
 
-    @ToBeFixedForInstantExecution(because = ":dependencyInsight")
+    @ToBeFixedForConfigurationCache(because = ":dependencyInsight")
     def "requires use of configuration flag if Java plugin isn't applied"() {
         given:
         file("build.gradle") << """
@@ -58,7 +58,7 @@ class DependencyInsightReportTaskIntegrationTest extends AbstractIntegrationSpec
         failure.assertHasCause("Dependency insight report cannot be generated because the input configuration was not specified.")
     }
 
-    @ToBeFixedForInstantExecution(because = ":dependencyInsight")
+    @ToBeFixedForConfigurationCache(because = ":dependencyInsight")
     def "indicates that requested dependency cannot be found for default configuration"() {
         given:
         mavenRepo.module("org", "leaf1").publish()
@@ -89,7 +89,7 @@ No dependencies matching given input were found in configuration ':compileClassp
 """
     }
 
-    @ToBeFixedForInstantExecution(because = ":dependencyInsight")
+    @ToBeFixedForConfigurationCache(because = ":dependencyInsight")
     def "indicates that requested dependency cannot be found for custom configuration"() {
         given:
         mavenRepo.module("org", "leaf1").publish()
@@ -120,7 +120,7 @@ No dependencies matching given input were found in configuration ':conf'
 """
     }
 
-    @ToBeFixedForInstantExecution(because = ":dependencyInsight")
+    @ToBeFixedForConfigurationCache(because = ":dependencyInsight")
     def "shows basic single tree with repeated dependency"() {
         given:
         mavenRepo.module("org", "leaf1").publish()
@@ -167,7 +167,7 @@ org:leaf2:1.0
 """
     }
 
-    @ToBeFixedForInstantExecution(because = ":dependencyInsight")
+    @ToBeFixedForConfigurationCache(because = ":dependencyInsight")
     def "basic dependency insight with conflicting versions"() {
         given:
         mavenRepo.module("org", "leaf1").publish()
@@ -235,7 +235,7 @@ org:leaf2:1.5 -> 2.5
 """
     }
 
-    @ToBeFixedForInstantExecution(because = ":dependencyInsight")
+    @ToBeFixedForConfigurationCache(because = ":dependencyInsight")
     def "can limit the report to one path to each dependency"() {
         given:
         mavenRepo.with {
@@ -303,7 +303,7 @@ org:leaf:1.0
 """
     }
 
-    @ToBeFixedForInstantExecution(because = ":dependencyInsight")
+    @ToBeFixedForConfigurationCache(because = ":dependencyInsight")
     def "displays information about conflicting modules when failOnVersionConflict is used"() {
         given:
         mavenRepo.module("org", "leaf1").publish()
@@ -374,7 +374,7 @@ org:leaf2:1.5 -> 2.5
 """
     }
 
-    @ToBeFixedForInstantExecution(because = ":dependencyInsight")
+    @ToBeFixedForConfigurationCache(because = ":dependencyInsight")
     def "displays information about conflicting modules when failOnVersionConflict is used and afterResolve is used"() {
         given:
         mavenRepo.module("org", "leaf1").publish()
@@ -449,7 +449,7 @@ org:leaf2:1.5 -> 2.5
 """
     }
 
-    @ToBeFixedForInstantExecution(because = ":dependencyInsight")
+    @ToBeFixedForConfigurationCache(because = ":dependencyInsight")
     def "displays a dependency insight report even if locks are out of date"() {
         def lockfileFixture = new LockfileFixture(testDirectory: testDirectory)
         mavenRepo.module('org', 'foo', '1.0').publish()
@@ -496,7 +496,7 @@ org:foo:1.+ -> 1.1
 """
     }
 
-    @ToBeFixedForInstantExecution(because = ":dependencyInsight")
+    @ToBeFixedForConfigurationCache(because = ":dependencyInsight")
     def "displays a dependency insight report even if locks are out of date because of new constraint"() {
         def lockfileFixture = new LockfileFixture(testDirectory: testDirectory)
         mavenRepo.module('org', 'foo', '1.0').publish()
@@ -561,7 +561,7 @@ org:foo:1.+ FAILED
 """
     }
 
-    @ToBeFixedForInstantExecution(because = ":dependencyInsight")
+    @ToBeFixedForConfigurationCache(because = ":dependencyInsight")
     def "shows forced version and substitution equivalent to force"() {
         given:
         mavenRepo.module("org", "leaf", "1.0").publish()
@@ -637,7 +637,7 @@ org:leaf:2.0 -> 1.0
 """
     }
 
-    @ToBeFixedForInstantExecution(because = ":dependencyInsight")
+    @ToBeFixedForConfigurationCache(because = ":dependencyInsight")
     def "shows forced dynamic version"() {
         given:
         mavenRepo.module("org", "leaf", "1").publish()
@@ -681,7 +681,7 @@ org:leaf:[1,2] -> 2
 """
     }
 
-    @ToBeFixedForInstantExecution(because = ":dependencyInsight")
+    @ToBeFixedForConfigurationCache(because = ":dependencyInsight")
     def "shows multiple outgoing dependencies"() {
         given:
         ivyRepo.module("org", "leaf", "1.0").publish()
@@ -741,7 +741,7 @@ org:leaf:latest.integration -> 1.0
 """
     }
 
-    @ToBeFixedForInstantExecution(because = ":dependencyInsight")
+    @ToBeFixedForConfigurationCache(because = ":dependencyInsight")
     def "shows version selected by multiple rules"() {
         given:
         mavenRepo.module("org", "bar", "2.0").publish()
@@ -800,7 +800,7 @@ org:foo:1.0 -> org:bar:2.0
 """
     }
 
-    @ToBeFixedForInstantExecution(because = ":dependencyInsight")
+    @ToBeFixedForConfigurationCache(because = ":dependencyInsight")
     def "shows version and reason when chosen by dependency resolve rule"() {
         given:
         mavenRepo.module("org", "foo", "1.0").publish()
@@ -885,7 +885,7 @@ org:foo:1.0 -> 2.0
     }
 
 
-    @ToBeFixedForInstantExecution(because = ":dependencyInsight")
+    @ToBeFixedForConfigurationCache(because = ":dependencyInsight")
     def "shows version and reason with dependency substitution"() {
         given:
         mavenRepo.module("org", "foo", "1.0").publish()
@@ -945,7 +945,7 @@ org:foo:1.0 -> org:bar:1.0
 """
     }
 
-    @ToBeFixedForInstantExecution(because = ":dependencyInsight")
+    @ToBeFixedForConfigurationCache(because = ":dependencyInsight")
     def "shows substituted modules"() {
         given:
         mavenRepo.module("org", "new-leaf", "77").publish()
@@ -997,7 +997,7 @@ org:leaf:2.0 -> org:new-leaf:77
 """
     }
 
-    @ToBeFixedForInstantExecution(because = ":dependencyInsight")
+    @ToBeFixedForConfigurationCache(because = ":dependencyInsight")
     def "shows substituted modules with a custom description"() {
         given:
         mavenRepo.module("org", "foo", "1.0").publish()
@@ -1058,7 +1058,7 @@ org:foo:1.0 -> 2.0
 """
     }
 
-    @ToBeFixedForInstantExecution(because = ":dependencyInsight")
+    @ToBeFixedForConfigurationCache(because = ":dependencyInsight")
     def "shows version resolved from dynamic selectors"() {
         given:
         ivyRepo.module("org", "leaf", "1.6").publish()
@@ -1108,7 +1108,7 @@ org:leaf:latest.integration -> 1.6
 """
     }
 
-    @ToBeFixedForInstantExecution(because = ":dependencyInsight")
+    @ToBeFixedForConfigurationCache(because = ":dependencyInsight")
     def "forced version matches the conflict resolution"() {
         given:
         mavenRepo.module("org", "leaf", "1.0").publish()
@@ -1157,7 +1157,7 @@ org:leaf:1.0 -> 2.0
 """
     }
 
-    @ToBeFixedForInstantExecution(because = ":dependencyInsight")
+    @ToBeFixedForConfigurationCache(because = ":dependencyInsight")
     def "forced version does not match anything in the graph"() {
         given:
         mavenRepo.module("org", "leaf", "1.0").publish()
@@ -1207,7 +1207,7 @@ org:leaf:2.0 -> 1.5
 """
     }
 
-    @ToBeFixedForInstantExecution(because = ":dependencyInsight")
+    @ToBeFixedForConfigurationCache(because = ":dependencyInsight")
     def "forced version at dependency level"() {
         given:
         mavenRepo.module("org", "leaf", "1.0").publish()
@@ -1260,7 +1260,7 @@ org:leaf:2.0 -> 1.0
 """
     }
 
-    @ToBeFixedForInstantExecution(because = ":dependencyInsight")
+    @ToBeFixedForConfigurationCache(because = ":dependencyInsight")
     def "forced version combined with constraint"() {
         given:
         mavenRepo.module("org", "leaf", "2.0").publish()
@@ -1311,7 +1311,7 @@ org:leaf:1.4 -> 2.0
 """
     }
 
-    @ToBeFixedForInstantExecution(because = ":dependencyInsight")
+    @ToBeFixedForConfigurationCache(because = ":dependencyInsight")
     def "shows decent failure when inputs missing"() {
         given:
         file("build.gradle") << """
@@ -1327,7 +1327,7 @@ org:leaf:1.4 -> 2.0
         failure.assertHasCause("Dependency insight report cannot be generated because the input configuration was not specified.")
     }
 
-    @ToBeFixedForInstantExecution(because = ":dependencyInsight")
+    @ToBeFixedForConfigurationCache(because = ":dependencyInsight")
     def "informs that there are no dependencies"() {
         given:
         file("build.gradle") << """
@@ -1347,7 +1347,7 @@ org:leaf:1.4 -> 2.0
         outputContains("No dependencies matching given input were found")
     }
 
-    @ToBeFixedForInstantExecution(because = ":dependencyInsight")
+    @ToBeFixedForConfigurationCache(because = ":dependencyInsight")
     def "informs that nothing matches the input dependency"() {
         given:
         mavenRepo.module("org", "top").publish()
@@ -1375,7 +1375,7 @@ org:leaf:1.4 -> 2.0
         outputContains("No dependencies matching given input were found")
     }
 
-    @ToBeFixedForInstantExecution(because = ":dependencyInsight")
+    @ToBeFixedForConfigurationCache(because = ":dependencyInsight")
     def "marks modules that can't be resolved as 'FAILED'"() {
         given:
         mavenRepo.module("org", "top").dependsOnModules("middle").publish()
@@ -1407,7 +1407,7 @@ org:middle:1.0 FAILED
 """
     }
 
-    @ToBeFixedForInstantExecution(because = ":dependencyInsight")
+    @ToBeFixedForConfigurationCache(because = ":dependencyInsight")
     def "marks modules that can't be resolved after forcing a different version as 'FAILED'"() {
         given:
         mavenRepo.module("org", "top").dependsOn("org", "middle", "1.0").publish()
@@ -1450,7 +1450,7 @@ org:middle:1.0 -> 2.0 FAILED
 """
     }
 
-    @ToBeFixedForInstantExecution(because = ":dependencyInsight")
+    @ToBeFixedForConfigurationCache(because = ":dependencyInsight")
     def "marks modules that can't be resolved after conflict resolution as 'FAILED'"() {
         given:
         mavenRepo.module("org", "top").dependsOn("org", "middle", "1.0").publish()
@@ -1487,7 +1487,7 @@ org:middle:1.0 -> 2.0 FAILED
 """
     }
 
-    @ToBeFixedForInstantExecution(because = ":dependencyInsight")
+    @ToBeFixedForConfigurationCache(because = ":dependencyInsight")
     def "marks modules that can't be resolved after substitution as 'FAILED'"() {
         given:
         mavenRepo.module("org", "top").dependsOn("org", "middle", "1.0").publish()
@@ -1578,7 +1578,7 @@ org:leaf:[1.5,1.9] -> 1.5
 """
     }
 
-    @ToBeFixedForInstantExecution(because = ":dependencyInsight")
+    @ToBeFixedForConfigurationCache(because = ":dependencyInsight")
     def "shows multiple failed outgoing dependencies"() {
         given:
         ivyRepo.module("org", "top", "1.0")
@@ -1639,7 +1639,7 @@ org:leaf:[1.5,2.0] FAILED
 """
     }
 
-    @ToBeFixedForInstantExecution(because = ":dependencyInsight")
+    @ToBeFixedForConfigurationCache(because = ":dependencyInsight")
     void "marks project dependencies that cannot be resolved as 'FAILED'"() {
         given:
         file("settings.gradle") << "include 'A', 'B', 'C'; rootProject.name='root'"
@@ -1688,7 +1688,7 @@ project :C FAILED
 
     }
 
-    @ToBeFixedForInstantExecution(because = ":dependencyInsight")
+    @ToBeFixedForConfigurationCache(because = ":dependencyInsight")
     def "deals with dependency cycles"() {
         given:
         mavenRepo.module("org", "leaf1").dependsOnModules("leaf2").publish()
@@ -1730,7 +1730,7 @@ org:leaf2:1.0
 """
     }
 
-    @ToBeFixedForInstantExecution(because = ":dependencyInsight")
+    @ToBeFixedForConfigurationCache(because = ":dependencyInsight")
     def "deals with dependency cycle to root"() {
         given:
         file("settings.gradle") << "include 'impl'; rootProject.name='root'"
@@ -1783,7 +1783,7 @@ project :
 """
     }
 
-    @ToBeFixedForInstantExecution(because = ":dependencyInsight")
+    @ToBeFixedForConfigurationCache(because = ":dependencyInsight")
     def "selects a module component dependency with a given name"() {
         given:
         mavenRepo.module("org", "leaf1").dependsOnModules("leaf2").publish()
@@ -1839,7 +1839,7 @@ org:leaf2:1.0
 """
     }
 
-    @ToBeFixedForInstantExecution(because = ":dependencyInsight")
+    @ToBeFixedForConfigurationCache(because = ":dependencyInsight")
     def "selects a project component dependency with a given project path"() {
         given:
         mavenRepo.module("org", "leaf1").dependsOnModules("leaf2").publish()
@@ -1890,7 +1890,7 @@ project :impl
 """
     }
 
-    @ToBeFixedForInstantExecution(because = ":dependencyInsight")
+    @ToBeFixedForConfigurationCache(because = ":dependencyInsight")
     def "selects a module component dependency with a given name with dependency command line option"() {
         given:
         mavenRepo.module("org", "leaf1").dependsOnModules("leaf2").publish()
@@ -1948,7 +1948,7 @@ org:leaf4:1.0
 """
     }
 
-    @ToBeFixedForInstantExecution(because = ":dependencyInsight")
+    @ToBeFixedForConfigurationCache(because = ":dependencyInsight")
     def "selects both api and implementation dependencies with dependency command line option"() {
         given:
         mavenRepo.module("org", "leaf1").publish()
@@ -2008,7 +2008,7 @@ org:leaf2:1.0
 """
     }
 
-    @ToBeFixedForInstantExecution(because = ":dependencyInsight")
+    @ToBeFixedForConfigurationCache(because = ":dependencyInsight")
     def "selects a project component dependency with a given name with dependency command line option"() {
         given:
         mavenRepo.module("org", "leaf1").dependsOnModules("leaf2").publish()
@@ -2105,7 +2105,7 @@ project :some:deeply:nested
 """
     }
 
-    @ToBeFixedForInstantExecution(because = ":dependencyInsight")
+    @ToBeFixedForConfigurationCache(because = ":dependencyInsight")
     def "renders tree with a mix of project and external dependencies"() {
         given:
         mavenRepo.module("org", "leaf1").dependsOnModules("leaf2").publish()
@@ -2167,7 +2167,7 @@ org:leaf3:1.0
 """
     }
 
-    @ToBeFixedForInstantExecution(because = ":dependencyInsight")
+    @ToBeFixedForConfigurationCache(because = ":dependencyInsight")
     void "fails a configuration is not resolvable"() {
         mavenRepo.module("foo", "foo", '1.0').publish()
         mavenRepo.module("foo", "bar", '2.0').publish()
@@ -2222,7 +2222,7 @@ foo:foo:1.0
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution(because = ":dependencyInsight")
+    @ToBeFixedForConfigurationCache(because = ":dependencyInsight")
     def "renders dependency constraint differently"() {
         given:
         mavenRepo.module("org", "foo", "1.0").publish()
@@ -2279,7 +2279,7 @@ org:foo -> $selected
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution(because = ":dependencyInsight")
+    @ToBeFixedForConfigurationCache(because = ":dependencyInsight")
     def "renders custom dependency constraint reasons (#version)"() {
         given:
         mavenRepo.module("org", "foo", "1.0").publish()
@@ -2337,7 +2337,7 @@ org:foo -> $selected
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution(because = ":dependencyInsight")
+    @ToBeFixedForConfigurationCache(because = ":dependencyInsight")
     def "renders custom dependency reasons"() {
         given:
         mavenRepo.module("org", "foo", "1.0").publish()
@@ -2391,7 +2391,7 @@ org:foo:${displayVersion} -> $selected
         "prefer '[1.0, 1.4]'; reject '1.4'" | '{prefer [1.0, 1.4]; reject 1.4}' | "1.4 has a critical bug"                        | '1.3'    | "rejected version 1.4 because "
     }
 
-    @ToBeFixedForInstantExecution(because = ":dependencyInsight")
+    @ToBeFixedForConfigurationCache(because = ":dependencyInsight")
     def "doesn't report duplicate reasons"() {
         given:
         mavenRepo.module("org", "foo", "1.0").publish()
@@ -2440,7 +2440,7 @@ org:foo:[1.1,1.3] -> 1.3
 """
     }
 
-    @ToBeFixedForInstantExecution(because = ":dependencyInsight")
+    @ToBeFixedForConfigurationCache(because = ":dependencyInsight")
     def "doesn't mix rejected versions on different constraints"() {
         given:
         mavenRepo.module("org", "foo", "1.0").publish()
@@ -2513,7 +2513,7 @@ org:foo:{require [1.0,); reject 1.2} -> 1.1
 """
     }
 
-    @ToBeFixedForInstantExecution(because = ":dependencyInsight")
+    @ToBeFixedForConfigurationCache(because = ":dependencyInsight")
     def "shows versions rejected by rule"() {
         given:
         mavenRepo.module("org", "foo", "1.0").publish()
@@ -2594,7 +2594,7 @@ org:foo:{require [1.0,); reject 1.2} -> 1.1
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution(because = ":dependencyInsight")
+    @ToBeFixedForConfigurationCache(because = ":dependencyInsight")
     def "renders dependency from BOM as a constraint"() {
         given:
         def leaf = mavenRepo.module("org", "leaf", "1.0").publish()
@@ -2646,7 +2646,7 @@ org:leaf -> 1.0
                  "{ capabilities { requireCapability('org:bom-derived-platform') } }" ]
     }
 
-    @ToBeFixedForInstantExecution(because = ":dependencyInsight")
+    @ToBeFixedForConfigurationCache(because = ":dependencyInsight")
     def "shows published dependency reason"() {
         given:
         mavenRepo.with {
@@ -2695,7 +2695,7 @@ org.test:leaf:1.0
 """
     }
 
-    @ToBeFixedForInstantExecution(because = ":dependencyInsight")
+    @ToBeFixedForConfigurationCache(because = ":dependencyInsight")
     def "mentions web-based dependency insight report available using build scans"() {
         given:
         mavenRepo.module("org", "leaf1").publish()
@@ -2746,7 +2746,7 @@ A web-based, searchable dependency report is available by adding the --scan opti
 """
     }
 
-    @ToBeFixedForInstantExecution(because = ":dependencyInsight")
+    @ToBeFixedForConfigurationCache(because = ":dependencyInsight")
     def "renders multiple rejected modules"() {
         given:
         mavenRepo.module("org", "foo", "1.0").publish()
@@ -2826,7 +2826,7 @@ org:foo:[1.0,) FAILED
 """
     }
 
-    @ToBeFixedForInstantExecution(because = ":dependencyInsight")
+    @ToBeFixedForConfigurationCache(because = ":dependencyInsight")
     def "renders multiple rejection reasons for module"() {
         given:
         mavenRepo.module("org", "foo", "1.0").publish()
@@ -2885,7 +2885,7 @@ org:foo:{require [1.0,); reject 1.1} -> 1.0
 """
     }
 
-    @ToBeFixedForInstantExecution(because = ":dependencyInsight")
+    @ToBeFixedForConfigurationCache(because = ":dependencyInsight")
     def "shows all published dependency reasons"() {
         given:
         mavenRepo.with {
@@ -2944,7 +2944,7 @@ org.test:leaf:1.0
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution(because = ":dependencyInsight")
+    @ToBeFixedForConfigurationCache(because = ":dependencyInsight")
     def "shows that version is rejected because of attributes (#type)"() {
         mavenRepo.module("org", "foo", "1.0").publish()
         mavenRepo.module("org", "foo", "1.1").publish()
@@ -3021,7 +3021,7 @@ org:foo:[1.0,) -> 1.0
         type << ['configuration', 'dependency']
     }
 
-    @ToBeFixedForInstantExecution(because = ":dependencyInsight")
+    @ToBeFixedForConfigurationCache(because = ":dependencyInsight")
     def "reports 2nd level dependency conflicts"() {
         given:
         mavenRepo.with {
@@ -3157,7 +3157,7 @@ planet:pluto:1.0.0
 """
     }
 
-    @ToBeFixedForInstantExecution(because = ":dependencyInsight")
+    @ToBeFixedForConfigurationCache(because = ":dependencyInsight")
     def "reports a strictly on a transitive"() {
         given:
         def foo12 = mavenRepo.module("org", "foo", "1.2").publish()

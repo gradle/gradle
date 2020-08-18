@@ -17,7 +17,7 @@
 package org.gradle.java
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.test.fixtures.server.http.MavenHttpModule
 import spock.lang.Unroll
@@ -88,7 +88,7 @@ class JavaLibraryPublishedTargetJvmVersionIntegrationTest extends AbstractHttpDe
 
     }
 
-    @ToBeFixedForInstantExecution(because = ":dependencies")
+    @ToBeFixedForConfigurationCache(because = ":dependencies")
     def "can fail resolution if producer doesn't have appropriate target version"() {
         buildFile << """
             configurations.compileClasspath.attributes.attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, 5)

@@ -29,12 +29,12 @@ import java.lang.reflect.Field
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.function.Predicate
 
-import static org.gradle.integtests.fixtures.ToBeFixedForInstantExecution.Skip.DO_NOT_SKIP
+import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache.Skip.DO_NOT_SKIP
 
-class ToBeFixedForInstantExecutionExtension extends AbstractAnnotationDrivenExtension<ToBeFixedForInstantExecution> {
+class ToBeFixedForConfigurationCacheExtension extends AbstractAnnotationDrivenExtension<ToBeFixedForConfigurationCache> {
 
     @Override
-    void visitFeatureAnnotation(ToBeFixedForInstantExecution annotation, FeatureInfo feature) {
+    void visitFeatureAnnotation(ToBeFixedForConfigurationCache annotation, FeatureInfo feature) {
 
         if (GradleContextualExecuter.isNotInstant()) {
             return
@@ -169,11 +169,11 @@ class ToBeFixedForInstantExecutionExtension extends AbstractAnnotationDrivenExte
     }
 
     private static void expectedFailure(Throwable ex) {
-        System.err.println("Failed with instant execution as expected:")
+        System.err.println("Failed with configuration cache as expected:")
         ex.printStackTrace()
     }
 
-    private static boolean isEnabledSpec(ToBeFixedForInstantExecution annotation, FeatureInfo feature) {
+    private static boolean isEnabledSpec(ToBeFixedForConfigurationCache annotation, FeatureInfo feature) {
         isEnabledBottomSpec(annotation.bottomSpecs(), { it == feature.spec.bottomSpec.name })
     }
 
@@ -191,7 +191,7 @@ class ToBeFixedForInstantExecutionExtension extends AbstractAnnotationDrivenExte
 
     static class UnexpectedSuccessException extends Exception {
         UnexpectedSuccessException() {
-            super("Expected to fail with instant execution, but succeeded!")
+            super("Expected to fail with configuration cache, but succeeded!")
         }
     }
 }

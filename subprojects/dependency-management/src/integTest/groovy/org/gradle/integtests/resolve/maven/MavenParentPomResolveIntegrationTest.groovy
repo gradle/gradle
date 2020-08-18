@@ -16,7 +16,7 @@
 package org.gradle.integtests.resolve.maven
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import spock.lang.Issue
 
 class MavenParentPomResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
@@ -76,7 +76,7 @@ task retrieve(type: Sync) {
         file('libs').assertHasDescendants('child-1.0.jar', 'parent_dep-1.2.jar', 'child_dep-1.7.jar')
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "uses dependencyManagement from parent pom"() {
         given:
         mavenRepo.module("org", "child_dep", "1.7").publish()
@@ -207,7 +207,7 @@ task retrieve(type: Sync) {
         file('libs').assertHasDescendants('child-1.0.jar')
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "fails with reasonable message if parent module is an ivy module"() {
         given:
         def child = mavenHttpRepo.module("org", "child")
@@ -402,7 +402,7 @@ task retrieve(type: Sync) {
         file('libs').assertHasDescendants('child-1.0.jar')
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "parent pom parsing with custom properties for dependency coordinates"() {
         given:
         def parent = mavenHttpRepo.module('group', 'parent', '1.0').publish()
@@ -450,7 +450,7 @@ task retrieve(type: Sync) {
         succeeds ":libs"
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "dependency with same group ID and artifact ID defined in child and parent is used from child"() {
         given:
         def parent = mavenHttpRepo.module('group', 'parent', '1.0').dependsOn('my.group', 'myartifact', '1.1').publish()

@@ -16,7 +16,7 @@
 
 package org.gradle.plugins.ide.idea
 
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.plugins.ide.AbstractIdeIntegrationTest
 import org.junit.Rule
@@ -27,7 +27,7 @@ class IdeaDependencySubstitutionIntegrationTest extends AbstractIdeIntegrationTe
     public final TestResources testResources = new TestResources(testDirectoryProvider)
 
     @Test
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     void "external dependency substituted with project dependency"() {
         runTask("idea", "include 'project1', 'project2'", """
 allprojects {
@@ -55,7 +55,7 @@ project(":project2") {
     }
 
     @Test
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     void "transitive external dependency substituted with project dependency"() {
         mavenRepo.module("org.gradle", "module1").dependsOnModules("module2").publish()
         mavenRepo.module("org.gradle", "module2").publish()
@@ -91,7 +91,7 @@ project(":project2") {
     }
 
     @Test
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     void "project dependency substituted with external dependency"() {
         runTask("idea", "include 'project1', 'project2'", """
 allprojects {

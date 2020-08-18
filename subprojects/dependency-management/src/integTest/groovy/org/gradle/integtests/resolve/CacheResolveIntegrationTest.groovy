@@ -18,14 +18,14 @@ package org.gradle.integtests.resolve
 import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
 import org.gradle.cache.internal.DefaultCacheScopeMapping
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.cache.CachingIntegrationFixture
 
 import java.nio.file.Files
 
 class CacheResolveIntegrationTest extends AbstractHttpDependencyResolutionTest implements CachingIntegrationFixture {
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     void "cache handles manual deletion of cached artifacts"() {
         given:
         def module = ivyHttpRepo.module('group', 'projectA', '1.2').publish()

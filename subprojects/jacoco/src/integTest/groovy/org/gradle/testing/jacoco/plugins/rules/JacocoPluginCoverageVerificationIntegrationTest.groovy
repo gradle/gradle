@@ -16,7 +16,7 @@
 
 package org.gradle.testing.jacoco.plugins.rules
 
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.testing.jacoco.plugins.JacocoMultiVersionIntegrationTest
 import org.gradle.testing.jacoco.plugins.fixtures.JacocoCoverage
@@ -37,7 +37,7 @@ class JacocoPluginCoverageVerificationIntegrationTest extends JacocoMultiVersion
         javaProjectUnderTest.writeSourceFiles()
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can define no rules"() {
         given:
         buildFile << """
@@ -53,7 +53,7 @@ class JacocoPluginCoverageVerificationIntegrationTest extends JacocoMultiVersion
         executedAndNotSkipped(TEST_AND_JACOCO_COVERAGE_VERIFICATION_TASK_PATHS)
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can define single rule without limits"() {
         given:
         buildFile << """
@@ -71,7 +71,7 @@ class JacocoPluginCoverageVerificationIntegrationTest extends JacocoMultiVersion
         executedAndNotSkipped(TEST_AND_JACOCO_COVERAGE_VERIFICATION_TASK_PATHS)
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "Ant task reports error for unknown field value"() {
         given:
         buildFile << """
@@ -92,7 +92,7 @@ class JacocoPluginCoverageVerificationIntegrationTest extends JacocoMultiVersion
         failure.assertHasCause("'UNKNOWN' is not a permitted value for org.jacoco.core.analysis.ICoverageNode\$ElementType")
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can define includes for single rule"() {
         given:
         buildFile << """
@@ -115,7 +115,7 @@ class JacocoPluginCoverageVerificationIntegrationTest extends JacocoMultiVersion
         failure.assertHasCause("Rule violated for class org.gradle.Class1: lines covered ratio is 1.0, but expected maximum is 0.5")
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can define excludes for single rule"() {
         given:
         buildFile << """
@@ -137,7 +137,7 @@ class JacocoPluginCoverageVerificationIntegrationTest extends JacocoMultiVersion
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can define rule with sufficient coverage for #description"() {
         given:
         buildFile << """
@@ -165,7 +165,7 @@ class JacocoPluginCoverageVerificationIntegrationTest extends JacocoMultiVersion
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can define rule with insufficient coverage for #description"() {
         given:
         buildFile << """
@@ -197,7 +197,7 @@ class JacocoPluginCoverageVerificationIntegrationTest extends JacocoMultiVersion
         [Insufficient.CLASS_METRIC_MISSED_COUNT_MINIMUM_GT_MAXIMUM] | 'class metric with missed count with minimum greater than maximum value' | 'classes missed count is 0.0, but expected minimum is 0.5'
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can define same rule multiple times"() {
         given:
         buildFile << """
@@ -220,7 +220,7 @@ class JacocoPluginCoverageVerificationIntegrationTest extends JacocoMultiVersion
         executedAndNotSkipped(TEST_AND_JACOCO_COVERAGE_VERIFICATION_TASK_PATHS)
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can define multiple, different rules"() {
         given:
         buildFile << """
@@ -244,7 +244,7 @@ class JacocoPluginCoverageVerificationIntegrationTest extends JacocoMultiVersion
         failure.assertHasCause("Rule violated for bundle $testDirectory.name: classes missed count is 0.0, but expected minimum is 0.5")
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can disable rules"() {
         given:
         buildFile << """
@@ -268,7 +268,7 @@ class JacocoPluginCoverageVerificationIntegrationTest extends JacocoMultiVersion
         executedAndNotSkipped(TEST_AND_JACOCO_COVERAGE_VERIFICATION_TASK_PATHS)
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can ignore failures"() {
         given:
         buildFile << """
@@ -292,7 +292,7 @@ class JacocoPluginCoverageVerificationIntegrationTest extends JacocoMultiVersion
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can define same rules for multiple report tasks #tasksPaths"() {
         given:
         javaProjectUnderTest.writeIntegrationTestSourceFiles()
@@ -319,7 +319,7 @@ class JacocoPluginCoverageVerificationIntegrationTest extends JacocoMultiVersion
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can define different rules for multiple report tasks #tasksPaths"() {
         given:
         javaProjectUnderTest.writeIntegrationTestSourceFiles()
@@ -347,7 +347,7 @@ class JacocoPluginCoverageVerificationIntegrationTest extends JacocoMultiVersion
         INTEG_TEST_AND_JACOCO_COVERAGE_VERIFICATION_TASK_PATHS | 'jacocoIntegrationTestCoverageVerification' | Insufficient.CLASS_METRIC_MISSED_COUNT | 'classes missed count is 0.0, but expected minimum is 0.5'
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "task is never UP-TO-DATE as it does not define any outputs"() {
         buildFile << """
             jacocoTestCoverageVerification {

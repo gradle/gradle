@@ -18,7 +18,7 @@ package org.gradle.ide.xcode
 
 import org.gradle.ide.xcode.fixtures.AbstractXcodeIntegrationSpec
 import org.gradle.ide.xcode.internal.DefaultXcodeProject
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.nativeplatform.fixtures.app.CppAppWithLibrariesWithApiDependencies
 import org.gradle.nativeplatform.fixtures.app.CppAppWithLibrary
 import org.gradle.util.Requires
@@ -33,7 +33,7 @@ class XcodeMultipleCppProjectIntegrationTest extends AbstractXcodeIntegrationSpe
         useXcodebuildTool()
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can create xcode project for C++ application"() {
         given:
         settingsFile << """
@@ -91,7 +91,7 @@ class XcodeMultipleCppProjectIntegrationTest extends AbstractXcodeIntegrationSpe
             ':app:compileReleaseCpp', ':app:linkRelease', ':app:stripSymbolsRelease', ':app:installRelease', ':app:_xcode___App_Release')
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can create xcode project for C++ application with transitive dependencies"() {
         def app = new CppAppWithLibrariesWithApiDependencies()
 
@@ -169,7 +169,7 @@ class XcodeMultipleCppProjectIntegrationTest extends AbstractXcodeIntegrationSpe
             ':deck:compileReleaseCpp', ':deck:linkRelease', ':deck:stripSymbolsRelease', ':deck:_xcode___Deck_Release')
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can create xcode project for C++ application with binary-specific dependencies"() {
         def app = new CppAppWithLibrariesWithApiDependencies()
 

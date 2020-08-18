@@ -17,7 +17,7 @@
 package org.gradle.buildinit.plugins
 
 import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.nativeplatform.fixtures.AvailableToolChains
 import org.gradle.nativeplatform.fixtures.ExecutableFixture
 import spock.lang.Unroll
@@ -29,7 +29,7 @@ class CppApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
     public static final String SAMPLE_APP_TEST_CLASS = "app_test.cpp"
 
     @Unroll
-    @ToBeFixedForInstantExecution(because = "cpp-application plugin")
+    @ToBeFixedForConfigurationCache(because = "cpp-application plugin")
     def "creates sample source if no source present with #scriptDsl build scripts"() {
         when:
         run('init', '--type', 'cpp-application', '--dsl', scriptDsl.id)
@@ -58,7 +58,7 @@ class CppApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution(because = "cpp-application plugin")
+    @ToBeFixedForConfigurationCache(because = "cpp-application plugin")
     def "creates sample source if project name is specified with #scriptDsl build scripts"() {
         when:
         run('init', '--type', 'cpp-application', '--project-name', 'app', '--dsl', scriptDsl.id)
@@ -87,18 +87,18 @@ class CppApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution(because = "cpp-application plugin")
+    @ToBeFixedForConfigurationCache(because = "cpp-application plugin")
     def "source generation is skipped when cpp sources detected with #scriptDsl build scripts"() {
         setup:
         targetDir.file("src/main/cpp/hola.cpp") << """
             #include <iostream>
             #include <stdlib.h>
             #include "hola.h"
-            
+
             std::string hola() {
                 return std::string("Hola, Mundo!");
             }
-            
+
             int main () {
                 std::cout << hola() << std::endl;
                 return 0;

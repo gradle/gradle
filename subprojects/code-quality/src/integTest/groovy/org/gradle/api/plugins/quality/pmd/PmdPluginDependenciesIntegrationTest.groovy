@@ -17,7 +17,7 @@
 package org.gradle.api.plugins.quality.pmd
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
 class PmdPluginDependenciesIntegrationTest extends AbstractIntegrationSpec {
 
@@ -36,7 +36,7 @@ class PmdPluginDependenciesIntegrationTest extends AbstractIntegrationSpec {
         badCode()
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "allows configuring tool dependencies explicitly"() {
         def testDependency = 'net.sourceforge.pmd:pmd:5.1.1'
         expect: //defaults exist and can be inspected
@@ -63,7 +63,7 @@ class PmdPluginDependenciesIntegrationTest extends AbstractIntegrationSpec {
         output.contains "$testDependency"
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "fails properly using older version of PMD without incremental analysis support"() {
         given:
         buildFile << """

@@ -16,7 +16,7 @@
 package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import spock.lang.Issue
 
 class DynamicObjectIntegrationTest extends AbstractIntegrationSpec {
@@ -24,7 +24,7 @@ class DynamicObjectIntegrationTest extends AbstractIntegrationSpec {
         file('settings.gradle') << "rootProject.name = 'test'"
     }
 
-    @ToBeFixedForInstantExecution(because = "Task.getProject() during execution")
+    @ToBeFixedForConfigurationCache(because = "Task.getProject() during execution")
     def canAddDynamicPropertiesToProject() {
         file("settings.gradle").writelns("include 'child'")
         file("build.gradle").writelns(
@@ -70,7 +70,7 @@ class DynamicObjectIntegrationTest extends AbstractIntegrationSpec {
         succeeds("testTask")
     }
 
-    @ToBeFixedForInstantExecution(because = "Task.getProject() during execution")
+    @ToBeFixedForConfigurationCache(because = "Task.getProject() during execution")
     def canAddDynamicMethodsToProject() {
 
         file("settings.gradle").writelns("include 'child'")
@@ -404,7 +404,7 @@ assert 'overridden value' == global
         succeeds()
     }
 
-    @ToBeFixedForInstantExecution(because = "Task.getProject() during execution")
+    @ToBeFixedForConfigurationCache(because = "Task.getProject() during execution")
     def canAddExtensionsToDynamicExtensions() {
 
         file('build.gradle') << '''
@@ -1018,7 +1018,7 @@ task print(type: MyTask) {
         succeeds()
     }
 
-    @ToBeFixedForInstantExecution(because = "Task.getProject() during execution")
+    @ToBeFixedForConfigurationCache(because = "Task.getProject() during execution")
     def findPropertyShouldReturnValueIfFound() {
         buildFile << """
             task run {
@@ -1033,7 +1033,7 @@ task print(type: MyTask) {
         succeeds("run")
     }
 
-    @ToBeFixedForInstantExecution(because = "Task.getProject() during execution")
+    @ToBeFixedForConfigurationCache(because = "Task.getProject() during execution")
     def findPropertyShouldReturnNullIfNotFound() {
         buildFile << """
             task run {

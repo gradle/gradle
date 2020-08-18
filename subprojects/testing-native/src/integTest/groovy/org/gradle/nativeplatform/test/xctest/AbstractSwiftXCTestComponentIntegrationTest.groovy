@@ -16,7 +16,7 @@
 
 package org.gradle.nativeplatform.test.xctest
 
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.language.swift.AbstractSwiftComponentIntegrationTest
 import org.gradle.language.swift.SwiftTaskNames
@@ -52,7 +52,7 @@ abstract class AbstractSwiftXCTestComponentIntegrationTest extends AbstractSwift
     }
 
     @Requires(TestPrecondition.MAC_OS_X)
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "does not compile and link LinuxMain.swift on macOS"() {
         given:
         makeSingleProject()

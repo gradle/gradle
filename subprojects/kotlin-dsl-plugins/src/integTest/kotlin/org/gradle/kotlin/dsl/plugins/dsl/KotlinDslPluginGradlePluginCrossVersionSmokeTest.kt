@@ -17,7 +17,7 @@
 package org.gradle.kotlin.dsl.plugins.dsl
 
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.fixtures.AbstractPluginTest
 import org.gradle.test.fixtures.dsl.GradleDsl
@@ -52,8 +52,8 @@ class KotlinDslPluginGradlePluginCrossVersionSmokeTest(
 
     @Test
     @LeaksFileHandles("Kotlin Compiler Daemon working directory")
-    @ToBeFixedForInstantExecution(
-        skip = ToBeFixedForInstantExecution.Skip.FLAKY,
+    @ToBeFixedForConfigurationCache(
+        skip = ToBeFixedForConfigurationCache.Skip.FLAKY,
         because = "OOME and stack overflows with 1.3.30, plus configuration cache does not work for <1.3.70"
     )
     fun `kotlin-dsl plugin in buildSrc and production code using kotlin-gradle-plugin `() {

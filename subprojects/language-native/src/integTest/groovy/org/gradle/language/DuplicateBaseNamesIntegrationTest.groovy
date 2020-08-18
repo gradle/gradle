@@ -16,7 +16,7 @@
 
 package org.gradle.language
 
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.SourceFile
 import org.gradle.language.fixtures.app.DuplicateAssemblerBaseNamesTestApp
 import org.gradle.language.fixtures.app.DuplicateCBaseNamesTestApp
@@ -37,7 +37,7 @@ import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.VISUALCPP
 class DuplicateBaseNamesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
 
     @RequiresInstalledToolChain(SUPPORTS_32)
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can have sourcefiles with same base name but different directories"() {
         setup:
         testApp.writeSources(file("src/main"))
@@ -80,7 +80,7 @@ model {
      * is implemented
      * */
     @RequiresInstalledToolChain(SUPPORTS_32)
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can have sourcefiles with same base name in same directory"() {
         setup:
         def testApp = new DuplicateMixedSameBaseNamesTestApp(AbstractInstalledToolChainIntegrationSpec.toolChain)
@@ -138,7 +138,7 @@ model {
 
     @RequiresInstalledToolChain(GCC_COMPATIBLE)
     @Requires(TestPrecondition.NOT_WINDOWS)
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can have objectiveC and objectiveCpp source files with same name in different directories"(){
         setup:
         testApp.writeSources(file("src/main"))
@@ -163,7 +163,7 @@ model {
     }
 
     @RequiresInstalledToolChain(VISUALCPP)
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "windows-resources can have sourcefiles with same base name but different directories"() {
         setup:
         def testApp = new DuplicateWindowsResourcesBaseNamesTestApp()

@@ -17,7 +17,7 @@
 package org.gradle.vcs.internal
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.vcs.fixtures.GitFileRepository
 import org.junit.Rule
 import spock.lang.Unroll
@@ -88,7 +88,7 @@ Required by:
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "includes build identifier in task failure error message with #display"() {
         repo.file("settings.gradle") << """
             ${settings}
@@ -116,7 +116,7 @@ Required by:
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "includes build identifier in dependency resolution results with #display"() {
         repo.file("settings.gradle") << """
             ${settings}

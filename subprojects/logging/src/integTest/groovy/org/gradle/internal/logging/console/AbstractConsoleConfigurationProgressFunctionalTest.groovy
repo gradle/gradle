@@ -18,7 +18,7 @@ package org.gradle.internal.logging.console
 
 import org.gradle.api.logging.configuration.ConsoleOutput
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.RichConsoleStyling
 import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.test.fixtures.ConcurrentTestUtil
@@ -43,7 +43,7 @@ abstract class AbstractConsoleConfigurationProgressFunctionalTest extends Abstra
         """
         buildFile << """
             ${server.callFromBuild('root-build-script')}
-            task hello 
+            task hello
         """
         file("b/build.gradle") << """
             ${server.callFromBuild('b-build-script')}
@@ -68,14 +68,14 @@ abstract class AbstractConsoleConfigurationProgressFunctionalTest extends Abstra
         gradle.waitForFinish()
     }
 
-    @ToBeFixedForInstantExecution(because = "composite builds")
+    @ToBeFixedForConfigurationCache(because = "composite builds")
     def "shows work in progress with included build"() {
         settingsFile << """
             includeBuild "child"
         """
         buildFile << """
             ${server.callFromBuild('root-build-script')}
-            task hello { 
+            task hello {
                 dependsOn gradle.includedBuild("child").task(":hello")
             }
         """
@@ -119,7 +119,7 @@ abstract class AbstractConsoleConfigurationProgressFunctionalTest extends Abstra
     def "shows work in progress with buildSrc build"() {
         buildFile << """
             ${server.callFromBuild('root-build-script')}
-            task hello 
+            task hello
         """
         file("buildSrc/settings.gradle") << """
             include 'a', 'b'

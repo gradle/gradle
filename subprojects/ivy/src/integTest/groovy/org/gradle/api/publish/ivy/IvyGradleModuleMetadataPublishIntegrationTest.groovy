@@ -16,7 +16,7 @@
 
 package org.gradle.api.publish.ivy
 
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import spock.lang.Unroll
 
 class IvyGradleModuleMetadataPublishIntegrationTest extends AbstractIvyPublishIntegTest {
@@ -61,7 +61,7 @@ class TestCapability implements Capability {
 """
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "fails to generate metadata for component with no variants"() {
         given:
         settingsFile << "rootProject.name = 'root'"
@@ -93,7 +93,7 @@ class TestCapability implements Capability {
   - This publication must publish at least one variant"""
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "fails to generate Gradle metadata if 2 variants have the same attributes"() {
         given:
         settingsFile.text = """
@@ -141,7 +141,7 @@ class TestCapability implements Capability {
   - Variants 'api' and 'impl' have the same attributes and capabilities. Please make sure either attributes or capabilities are different."""
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "generates Gradle metadata if 2 variants have the same attributes but different capabilities"() {
         given:
         settingsFile.text = """
@@ -194,7 +194,7 @@ class TestCapability implements Capability {
         module.parsedModuleMetadata.variants.size() == 2
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "fails to generate Gradle metadata if 2 variants have the same name"() {
         given:
         settingsFile.text = """
@@ -242,7 +242,7 @@ class TestCapability implements Capability {
   - It is invalid to have multiple variants with the same name ('api')"""
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "fails to generate Gradle metadata if a variant doesn't have attributes"() {
         given:
         settingsFile.text = """
@@ -288,7 +288,7 @@ class TestCapability implements Capability {
   - Variant 'api' must declare at least one attribute."""
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "fails to generate Gradle metadata if no dependency have a version"() {
         given:
         settingsFile.text = """
@@ -334,7 +334,7 @@ class TestCapability implements Capability {
   - Publication only contains dependencies and/or constraints without a version. You need to"""
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "publishes ivy status"() {
         given:
         settingsFile << "rootProject.name = 'root'"
@@ -377,7 +377,7 @@ class TestCapability implements Capability {
         module.parsedModuleMetadata.attributes['org.gradle.status'] == 'milestone'
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "maps project dependencies"() {
         given:
         settingsFile << """rootProject.name = 'root'
@@ -453,7 +453,7 @@ class TestCapability implements Capability {
         api.dependencies[1].coords == 'group.b:utils:0.01'
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "publishes component with strict and prefer dependencies"() {
         settingsFile << "rootProject.name = 'root'"
         buildFile << """
@@ -527,7 +527,7 @@ class TestCapability implements Capability {
         variant.dependencies[2].rejectsVersion == []
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "publishes component with dependency constraints"() {
         settingsFile << "rootProject.name = 'root'"
         buildFile << """
@@ -579,7 +579,7 @@ class TestCapability implements Capability {
         variant.dependencyConstraints[0].rejectsVersion == []
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "publishes component with version rejects"() {
         settingsFile << "rootProject.name = 'root'"
         buildFile << """
@@ -639,7 +639,7 @@ class TestCapability implements Capability {
         variant.dependencies[1].rejectsVersion == []
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "publishes dependency reasons"() {
         settingsFile << "rootProject.name = 'root'"
         buildFile << """
@@ -696,7 +696,7 @@ class TestCapability implements Capability {
         }
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "publishes capabilities"() {
         settingsFile << "rootProject.name = 'root'"
         buildFile << """
@@ -737,7 +737,7 @@ class TestCapability implements Capability {
         }
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "publishes dependency/constraint attributes"() {
         settingsFile << "rootProject.name = 'root'"
         buildFile << """
@@ -801,7 +801,7 @@ class TestCapability implements Capability {
         }
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "publishes component with strict version constraints"() {
         settingsFile << "rootProject.name = 'root'"
         buildFile << """
@@ -884,7 +884,7 @@ class TestCapability implements Capability {
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "publishes Gradle metadata redirection marker when Gradle metadata task is enabled (enabled=#enabled)"() {
         given:
         settingsFile.text = """
@@ -933,7 +933,7 @@ class TestCapability implements Capability {
         true    | true
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def 'can skip the build identifier'() {
         given:
         settingsFile << "rootProject.name = 'root'"

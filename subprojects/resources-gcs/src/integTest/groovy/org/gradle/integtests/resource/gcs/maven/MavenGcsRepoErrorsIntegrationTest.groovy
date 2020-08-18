@@ -16,7 +16,7 @@
 
 package org.gradle.integtests.resource.gcs.maven
 
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.resource.gcs.AbstractGcsDependencyResolutionTest
 import org.gradle.integtests.resource.gcs.fixtures.MavenGcsModule
 
@@ -46,7 +46,7 @@ task retrieve(type: Sync) {
 """
     }
 
-    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FAILS_TO_CLEANUP)
+    @ToBeFixedForConfigurationCache(skip = ToBeFixedForConfigurationCache.Skip.FAILS_TO_CLEANUP)
     def "should fail with a GCS authentication error"() {
         setup:
         buildFile << mavenGcsRepoDsl()
@@ -62,7 +62,7 @@ task retrieve(type: Sync) {
             .assertHasCause("401 Unauthorized")
     }
 
-    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FAILS_TO_CLEANUP)
+    @ToBeFixedForConfigurationCache(skip = ToBeFixedForConfigurationCache.Skip.FAILS_TO_CLEANUP)
     def "fails when providing PasswordCredentials with decent error"() {
         setup:
         buildFile << """
@@ -85,7 +85,7 @@ repositories {
             .assertHasCause("Authentication scheme 'all'(Authentication) is not supported by protocol 'gcs'")
     }
 
-    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FAILS_TO_CLEANUP)
+    @ToBeFixedForConfigurationCache(skip = ToBeFixedForConfigurationCache.Skip.FAILS_TO_CLEANUP)
     def "should include resource uri when file not found"() {
         setup:
         buildFile << mavenGcsRepoDsl()
@@ -106,7 +106,7 @@ Required by:
 """)
     }
 
-    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FAILS_TO_CLEANUP)
+    @ToBeFixedForConfigurationCache(skip = ToBeFixedForConfigurationCache.Skip.FAILS_TO_CLEANUP)
     def "cannot add invalid authentication types for gcs repo"() {
         given:
         module.publish()

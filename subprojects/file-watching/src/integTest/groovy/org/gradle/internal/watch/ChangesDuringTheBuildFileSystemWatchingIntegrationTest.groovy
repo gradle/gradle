@@ -16,7 +16,7 @@
 
 package org.gradle.internal.watch
 
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.internal.operations.BuildOperationDescriptor
 import org.gradle.internal.operations.BuildOperationListener
 import org.gradle.internal.operations.BuildOperationListenerManager
@@ -72,7 +72,7 @@ class ChangesDuringTheBuildFileSystemWatchingIntegrationTest extends AbstractFil
         """
     }
 
-    @ToBeFixedForInstantExecution(because = "Cannot use buildFinished listener")
+    @ToBeFixedForConfigurationCache(because = "Cannot use buildFinished listener")
     def "detects input file change just before the task is executed"() {
         def inputFile = file("input.txt")
         buildFile << """
@@ -110,7 +110,7 @@ class ChangesDuringTheBuildFileSystemWatchingIntegrationTest extends AbstractFil
         projectFilesInVfs == 2
     }
 
-    @ToBeFixedForInstantExecution(because = "Cannot use buildFinished listener")
+    @ToBeFixedForConfigurationCache(because = "Cannot use buildFinished listener")
     def "detects input file change after the task has been executed"() {
         def inputFile = file("input.txt")
         def outputFile = file("build/output.txt")

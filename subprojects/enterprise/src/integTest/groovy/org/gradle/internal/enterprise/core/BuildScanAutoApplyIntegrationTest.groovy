@@ -17,7 +17,7 @@
 package org.gradle.internal.enterprise.core
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.internal.enterprise.GradleEnterprisePluginCheckInFixture
 import org.gradle.internal.enterprise.impl.DefautGradleEnterprisePluginCheckInService
 import org.gradle.internal.enterprise.impl.legacy.LegacyGradleEnterprisePluginCheckInService
@@ -87,7 +87,7 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
         pluginAppliedOnce()
     }
 
-    @ToBeFixedForInstantExecution(because = "composite builds")
+    @ToBeFixedForConfigurationCache(because = "composite builds")
     def "does not apply plugin to nested builds in a composite"() {
         when:
         settingsFile << """
@@ -281,7 +281,7 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
         fixture.didNotIssuedNoPluginWarning(output)
     }
 
-    @ToBeFixedForInstantExecution(because = "composite builds")
+    @ToBeFixedForConfigurationCache(because = "composite builds")
     def "does not warn for each nested build if --scan used"() {
         given:
         applyPlugin()

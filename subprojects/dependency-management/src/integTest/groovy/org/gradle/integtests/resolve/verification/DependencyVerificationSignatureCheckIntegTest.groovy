@@ -17,7 +17,7 @@
 package org.gradle.integtests.resolve.verification
 
 import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
 import org.gradle.security.fixtures.KeyServer
 import org.gradle.security.fixtures.SigningFixtures
@@ -179,7 +179,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
         terse << [true, false]
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     @Unroll
     def "can verify signature for artifacts downloaded in a previous build (stop in between = #stopInBetween)"() {
         given:
@@ -225,7 +225,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
         stopInBetween << [false, true]
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     @Unroll
     def "can verify classified artifacts downloaded in previous builds (stop in between = #stopInBetween)"() {
         def keyring = newKeyRing()
@@ -803,7 +803,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
     // This test exercises the fact that the signature cache is aware
     // of changes of the artifact
     @Unroll
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can detect tampered file between builds (terse output=#terse)"() {
         createMetadataFile {
             keyServer(keyServerFixture.uri)
@@ -856,7 +856,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
         terse << [true, false]
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     @Unroll
     def "caching takes trusted keys into account (terse output=#terse)"() {
         createMetadataFile {

@@ -19,7 +19,7 @@ package org.gradle.api.publish.maven
 
 import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
 import org.gradle.integtests.fixtures.Sample
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.test.fixtures.maven.MavenFileModule
 import org.gradle.util.TextUtil
@@ -143,7 +143,7 @@ class SamplesMavenPublishIntegrationTest extends AbstractSampleIntegrationTest {
 
     @Unroll
     @UsesSample("maven-publish/conditional-publishing")
-    @ToBeFixedForInstantExecution(
+    @ToBeFixedForConfigurationCache(
         iterationMatchers = ".* kotlin dsl"
     )
     def "conditional publishing with #dsl dsl"() {
@@ -183,7 +183,7 @@ class SamplesMavenPublishIntegrationTest extends AbstractSampleIntegrationTest {
 
     @Unroll
     @UsesSample("maven-publish/conditional-publishing")
-    @ToBeFixedForInstantExecution(
+    @ToBeFixedForConfigurationCache(
         iterationMatchers = ".* kotlin dsl"
     )
     def "shorthand publish to external repository with #dsl dsl"() {
@@ -204,7 +204,7 @@ class SamplesMavenPublishIntegrationTest extends AbstractSampleIntegrationTest {
 
     @Unroll
     @UsesSample("maven-publish/conditional-publishing")
-    @ToBeFixedForInstantExecution(
+    @ToBeFixedForConfigurationCache(
         iterationMatchers = ".* kotlin dsl"
     )
     def "shorthand publish for development with #dsl dsl"() {
@@ -227,7 +227,7 @@ class SamplesMavenPublishIntegrationTest extends AbstractSampleIntegrationTest {
 
     @Unroll
     @UsesSample("maven-publish/publish-artifact")
-    @ToBeFixedForInstantExecution(
+    @ToBeFixedForConfigurationCache(
         iterationMatchers = ".* kotlin dsl"
     )
     def "publishes rpm artifact with #dsl dsl"() {

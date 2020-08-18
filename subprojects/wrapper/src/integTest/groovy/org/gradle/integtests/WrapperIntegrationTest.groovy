@@ -16,7 +16,7 @@
 package org.gradle.integtests
 
 import groovy.io.FileType
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.file.TestFile
@@ -27,7 +27,7 @@ import spock.lang.IgnoreIf
 @IgnoreIf({ GradleContextualExecuter.embedded }) // wrapperExecuter requires a real distribution
 class WrapperIntegrationTest extends AbstractWrapperIntegrationSpec {
     @Requires(TestPrecondition.MAC_OS_X)
-    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.LONG_TIMEOUT)
+    @ToBeFixedForConfigurationCache(skip = ToBeFixedForConfigurationCache.Skip.LONG_TIMEOUT)
     def "can execute from Finder"() {
         given:
         file("build.gradle") << """

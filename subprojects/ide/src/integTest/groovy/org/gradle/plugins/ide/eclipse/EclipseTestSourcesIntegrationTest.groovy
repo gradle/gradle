@@ -15,13 +15,13 @@
  */
 package org.gradle.plugins.ide.eclipse
 
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.junit.Test
 
 class EclipseTestSourcesIntegrationTest extends AbstractEclipseIntegrationTest {
 
     @Test
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     void "All test source folders and test dependencies are marked with test attribute"() {
         //when
         file('src/main/java').mkdirs()

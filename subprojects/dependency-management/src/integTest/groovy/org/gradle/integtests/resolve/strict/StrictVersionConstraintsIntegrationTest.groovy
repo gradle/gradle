@@ -17,7 +17,7 @@ package org.gradle.integtests.resolve.strict
 
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 
 class StrictVersionConstraintsIntegrationTest extends AbstractModuleDependencyResolveTest {
@@ -232,7 +232,7 @@ class StrictVersionConstraintsIntegrationTest extends AbstractModuleDependencyRe
     }
 
     @RequiredFeature(feature=GradleMetadataResolveRunner.GRADLE_METADATA, value="true")
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "conflicting version constraints fail resolution"() {
         given:
         repository {
@@ -503,7 +503,7 @@ class StrictVersionConstraintsIntegrationTest extends AbstractModuleDependencyRe
     }
 
     @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "original version constraint is not ignored if there is another parent"() {
         given:
         repository {

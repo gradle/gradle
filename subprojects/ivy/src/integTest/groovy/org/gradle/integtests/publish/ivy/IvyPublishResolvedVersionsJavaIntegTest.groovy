@@ -17,7 +17,7 @@
 package org.gradle.integtests.publish.ivy
 
 import org.gradle.api.publish.ivy.internal.publication.DefaultIvyPublication
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.ivy.IvyJavaModule
 import spock.lang.Unroll
 
@@ -25,7 +25,7 @@ class IvyPublishResolvedVersionsJavaIntegTest extends AbstractIvyPublishIntegTes
     IvyJavaModule javaLibrary = javaLibrary(ivyRepo.module("org.gradle.test", "publishTest", "1.9"))
 
     @Unroll("can publish java-library with dependencies (#apiMapping, #runtimeMapping)")
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can publish java-library with dependencies (runtime last)"() {
         given:
         javaLibrary(ivyRepo.module("org.test", "foo", "1.0")).withModuleMetadata().publish()
@@ -105,7 +105,7 @@ class IvyPublishResolvedVersionsJavaIntegTest extends AbstractIvyPublishIntegTes
     }
 
     @Unroll("can publish java-library with dependencies (#runtimeMapping, #apiMapping)")
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can publish java-library with dependencies (runtime first)"() {
         given:
         javaLibrary(ivyRepo.module("org.test", "foo", "1.0")).withModuleMetadata().publish()
@@ -191,7 +191,7 @@ class IvyPublishResolvedVersionsJavaIntegTest extends AbstractIvyPublishIntegTes
      * or when the component is not a Java library and we don't have a default.
      */
     @Unroll("can publish resolved versions from a different configuration (#config)")
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can publish resolved versions from a different configuration"() {
         given:
         javaLibrary(ivyRepo.module("org.test", "foo", "1.0")).withModuleMetadata().publish()
@@ -282,7 +282,7 @@ class IvyPublishResolvedVersionsJavaIntegTest extends AbstractIvyPublishIntegTes
     }
 
     @Unroll("can publish resolved versions from dependency constraints (#apiMapping, #runtimeMapping)")
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can publish resolved versions from dependency constraints"() {
         javaLibrary(ivyRepo.module("org.test", "foo", "1.0")).withModuleMetadata().publish()
         javaLibrary(ivyRepo.module("org.test", "bar", "1.0")).withModuleMetadata().publish()
@@ -412,7 +412,7 @@ class IvyPublishResolvedVersionsJavaIntegTest extends AbstractIvyPublishIntegTes
                 // use for resolving
                 ivy { url "${ivyRepo.uri}" }
             }
-            
+
             publishing {
                 repositories {
                     // used for publishing
@@ -433,7 +433,7 @@ $append
     // substitution rule (via a plugin for example) that you are not aware of.
     // Ideally we should warn when such things happen (linting).
     @Unroll
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "substituted dependencies are also substituted in the generated Ivy file"() {
         javaLibrary(ivyRepo.module("org", "foo", "1.0")).withModuleMetadata().publish()
         javaLibrary(ivyRepo.module("org", "bar", "1.0"))
@@ -450,7 +450,7 @@ $append
             }
 
             $substitution
-            
+
             publishing {
                 publications {
                     maven(IvyPublication) {
@@ -460,7 +460,7 @@ $append
                             ${runtimeUsingUsage()}
                         }
                     }
-            
+
                 }
             }
         """)
@@ -506,7 +506,7 @@ $append
         ]
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can substitute with a project dependency"() {
         given:
         settingsFile << """
@@ -522,7 +522,7 @@ $append
                     substitute(module('org:foo')) with(project(':lib'))
                 }
             }
-            
+
             publishing {
                 publications {
                     maven(IvyPublication) {
@@ -532,14 +532,14 @@ $append
                             ${runtimeUsingUsage()}
                         }
                     }
-            
+
                 }
             }
         """)
 
         file("lib/build.gradle") << """
             apply plugin: 'java-library'
-            
+
             group = 'com.acme'
             version = '1.45'
         """
@@ -556,7 +556,7 @@ $append
         }
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can publish different resolved versions for the same module"() {
         given:
         javaLibrary(ivyRepo.module("org", "foo", "1.0")).publish()

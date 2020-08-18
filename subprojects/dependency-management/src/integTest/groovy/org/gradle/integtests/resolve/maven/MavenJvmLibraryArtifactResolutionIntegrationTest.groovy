@@ -16,7 +16,7 @@
 package org.gradle.integtests.resolve.maven
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.resolve.JvmLibraryArtifactResolveTestFixture
 import org.gradle.test.fixtures.maven.MavenRepository
 import spock.lang.Unroll
@@ -45,7 +45,7 @@ repositories {
 """
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "resolves and caches source artifacts"() {
         fixture.requestingSource()
                 .expectSourceArtifact("sources")
@@ -60,7 +60,7 @@ repositories {
         checkArtifactsResolvedAndCached()
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "resolve javadoc artifacts"() {
         fixture.requestingJavadoc()
                 .expectJavadocArtifact("javadoc")
@@ -75,7 +75,7 @@ repositories {
         checkArtifactsResolvedAndCached()
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "resolves and caches all artifacts"() {
         fixture.expectSourceArtifact("sources")
                 .expectJavadocArtifact("javadoc")
@@ -93,7 +93,7 @@ repositories {
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "fetches missing snapshot artifacts #condition"() {
         buildFile << """
 if (project.hasProperty('nocache')) {
@@ -148,7 +148,7 @@ if (project.hasProperty('nocache')) {
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "updates snapshot artifacts #condition"() {
         buildFile << """
 if (project.hasProperty('nocache')) {
@@ -207,7 +207,7 @@ if (project.hasProperty('nocache')) {
         "when snapshot pom changes"   | "-Pnocache"
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "reports failure to resolve artifacts of non-existing component"() {
         fixture.expectComponentNotFound().prepare()
 
@@ -231,7 +231,7 @@ Searched in the following locations:
   - ${module.pom.uri}""")
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "resolve and caches missing artifacts of existing component"() {
         fixture.prepare()
 
@@ -244,7 +244,7 @@ Searched in the following locations:
         checkArtifactsResolvedAndCached()
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "resolves and caches artifacts where some are present"() {
         fixture.expectSourceArtifact("sources")
                 .prepare()
@@ -316,7 +316,7 @@ Searched in the following locations:
         succeeds("verifyFixed")
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "resolve and does not cache artifacts from local repository"() {
         initBuild(fileRepo)
 

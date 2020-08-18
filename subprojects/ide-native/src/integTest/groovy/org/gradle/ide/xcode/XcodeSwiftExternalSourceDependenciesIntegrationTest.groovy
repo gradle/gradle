@@ -17,7 +17,7 @@
 package org.gradle.ide.xcode
 
 import org.gradle.ide.xcode.fixtures.AbstractXcodeIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.nativeplatform.fixtures.app.SwiftAppWithLibrary
 import org.gradle.nativeplatform.fixtures.app.SwiftLib
 import org.gradle.nativeplatform.fixtures.app.SwiftLibTest
@@ -35,7 +35,7 @@ class XcodeSwiftExternalSourceDependenciesIntegrationTest extends AbstractXcodeI
         requireSwiftToolChain()
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "adds source dependencies Swift module of main component to Xcode indexer search path"() {
         def fixture = new SwiftAppWithLibrary()
 
@@ -93,7 +93,7 @@ class XcodeSwiftExternalSourceDependenciesIntegrationTest extends AbstractXcodeI
             ":xcodeProject", ":xcodeProjectWorkspaceSettings", ":xcodeScheme")
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "does not add source dependencies Xcode project of main component to Xcode workspace"() {
         def fixture = new SwiftAppWithLibrary()
 
@@ -145,7 +145,7 @@ class XcodeSwiftExternalSourceDependenciesIntegrationTest extends AbstractXcodeI
         appProject.indexTarget.getBuildSettings().SWIFT_INCLUDE_PATHS == toSpaceSeparatedList(checkoutDir(repo.name, commit.id.name, repo.id).file('build/modules/main/debug'))
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "adds source dependencies Swift module of test component to Xcode indexer search path"() {
         def library = new SwiftLib()
         def test = new SwiftLibTest(library, library.greeter, library.sum, library.multiply)
@@ -199,7 +199,7 @@ class XcodeSwiftExternalSourceDependenciesIntegrationTest extends AbstractXcodeI
         appProject.indexTarget.getBuildSettings().SWIFT_INCLUDE_PATHS == toSpaceSeparatedList(file('build/modules/main/debug'), checkoutDir(repo.name, commit.id.name, repo.id).file('build/modules/main/debug'))
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "does not add source dependencies Xcode project of test component to Xcode workspace"() {
         def library = new SwiftLib()
         def test = new SwiftLibTest(library, library.greeter, library.sum, library.multiply)
@@ -254,7 +254,7 @@ class XcodeSwiftExternalSourceDependenciesIntegrationTest extends AbstractXcodeI
         appProject.indexTarget.getBuildSettings().SWIFT_INCLUDE_PATHS == toSpaceSeparatedList(file('build/modules/main/debug'), checkoutDir(repo.name, commit.id.name, repo.id).file('build/modules/main/debug'))
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "adds source dependencies Swift module of main component to Xcode indexer search path when no component in root project"() {
         def fixture = new SwiftAppWithLibrary()
 
@@ -275,7 +275,7 @@ class XcodeSwiftExternalSourceDependenciesIntegrationTest extends AbstractXcodeI
                 apply plugin: 'xcode'
                 group = 'org.gradle'
                 version = '2.0'
-    
+
                 dependencies {
                     implementation "org.test:greeter:latest.integration"
                 }
@@ -314,7 +314,7 @@ class XcodeSwiftExternalSourceDependenciesIntegrationTest extends AbstractXcodeI
         appProject.indexTarget.getBuildSettings().SWIFT_INCLUDE_PATHS == toSpaceSeparatedList(checkoutDir(repo.name, commit.id.name, repo.id).file('build/modules/main/debug'))
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "does not add source dependencies Xcode project of main component to Xcode workspace when no component in root project"() {
         def fixture = new SwiftAppWithLibrary()
 
@@ -336,7 +336,7 @@ class XcodeSwiftExternalSourceDependenciesIntegrationTest extends AbstractXcodeI
                 apply plugin: 'xcode'
                 group = 'org.gradle'
                 version = '2.0'
-    
+
                 dependencies {
                     implementation "org.test:greeter:latest.integration"
                 }

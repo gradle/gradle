@@ -19,7 +19,7 @@ package org.gradle.internal.watch
 import com.google.common.collect.ImmutableSet
 import org.apache.commons.io.FileUtils
 import org.gradle.cache.GlobalCacheLocations
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.internal.service.scopes.VirtualFileSystemServices
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
@@ -70,7 +70,7 @@ class WatchedDirectoriesFileSystemWatchingIntegrationTest extends AbstractFileSy
         assertWatchableHierarchies([ImmutableSet.of(testDirectory)] * 2)
     }
 
-    @ToBeFixedForInstantExecution(because = "composite build not yet supported")
+    @ToBeFixedForConfigurationCache(because = "composite build not yet supported")
     def "works with composite build"() {
         buildTestFixture.withBuildInSubDir()
         def includedBuild = singleProjectBuild("includedBuild") {
@@ -117,7 +117,7 @@ class WatchedDirectoriesFileSystemWatchingIntegrationTest extends AbstractFileSy
         executedAndNotSkipped(":includedBuild:jar")
     }
 
-    @ToBeFixedForInstantExecution(because = "GradleBuild task is not yet supported")
+    @ToBeFixedForConfigurationCache(because = "GradleBuild task is not yet supported")
     def "works with GradleBuild task"() {
         buildTestFixture.withBuildInSubDir()
         def buildInBuild = singleProjectBuild("buildInBuild") {

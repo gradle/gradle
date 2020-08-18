@@ -18,7 +18,7 @@ package org.gradle.integtests.samples.dependencymanagement
 
 import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
 import org.gradle.integtests.fixtures.Sample
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.test.fixtures.file.TestFile
 import org.junit.Rule
@@ -97,7 +97,7 @@ class SamplesDeclaringDependenciesIntegrationTest extends AbstractSampleIntegrat
 
     @Unroll
     @UsesSample("dependencyManagement/declaringDependencies-fileDependencies")
-    @ToBeFixedForInstantExecution(iterationMatchers = ".*kotlin dsl")
+    @ToBeFixedForConfigurationCache(iterationMatchers = ".*kotlin dsl")
     def "can use declare and resolve file dependencies with #dsl dsl"() {
         TestFile dslDir = sample.dir.file(dsl)
         executer.inDirectory(dslDir)

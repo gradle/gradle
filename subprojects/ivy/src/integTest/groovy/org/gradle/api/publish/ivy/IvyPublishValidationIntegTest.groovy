@@ -16,7 +16,7 @@
 
 package org.gradle.api.publish.ivy
 
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.encoding.Identifier
 import spock.lang.Unroll
 
@@ -25,7 +25,7 @@ import javax.xml.namespace.QName
 class IvyPublishValidationIntegTest extends AbstractIvyPublishIntegTest {
 
     @Unroll
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can publish with metadata containing #identifier characters"() {
         given:
         file("content-file") << "some content"
@@ -89,7 +89,7 @@ class IvyPublishValidationIntegTest extends AbstractIvyPublishIntegTest {
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can publish artifacts with attributes containing #identifier characters"() {
         given:
         file("content-file") << "some content"
@@ -146,7 +146,7 @@ class IvyPublishValidationIntegTest extends AbstractIvyPublishIntegTest {
         identifier << Identifier.all
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "fails with reasonable error message for invalid identifier value"() {
         buildFile << """
             apply plugin: 'ivy-publish'
@@ -173,7 +173,7 @@ class IvyPublishValidationIntegTest extends AbstractIvyPublishIntegTest {
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "fails with reasonable error message for invalid metadata value" () {
         when:
         buildFile << """
@@ -224,7 +224,7 @@ class IvyPublishValidationIntegTest extends AbstractIvyPublishIntegTest {
                 repositories {
                     ivy {
                         name '${repoName}'
-                        url "${ivyRepo.uri}" 
+                        url "${ivyRepo.uri}"
                     }
                 }
                 publications {

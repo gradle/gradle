@@ -17,7 +17,7 @@
 package org.gradle.api.internal.model
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
 import static org.hamcrest.CoreMatchers.allOf
 import static org.hamcrest.CoreMatchers.containsString
@@ -27,38 +27,38 @@ class ObjectFactoryNamedTypeIntegrationTest extends AbstractIntegrationSpec {
     def "plugin can create named instances of interface using injected factory"() {
         buildFile << """
             interface Thing extends Named { }
-            
+
             class CustomPlugin implements Plugin<Project> {
                 ObjectFactory objects
-                
+
                 @javax.inject.Inject
                 CustomPlugin(ObjectFactory objects) {
                     this.objects = objects
                 }
-                
+
                 void apply(Project project) {
-                    project.tasks.create('thing1', CustomTask) { 
+                    project.tasks.create('thing1', CustomTask) {
                         thing = objects.named(Thing, 'thing1')
                     }
-                    project.tasks.create('thing2', CustomTask) { 
+                    project.tasks.create('thing2', CustomTask) {
                         thing = project.objects.named(Thing, 'thing2')
                     }
                 }
             }
-            
+
             class CustomTask extends DefaultTask {
                 @Internal
                 Thing thing
-                
+
                 @javax.inject.Inject
                 ObjectFactory getObjects() { null }
-                
+
                 @TaskAction
                 void run() {
-                    println thing.toString() + ": " + objects.named(Thing, thing.name)    
+                    println thing.toString() + ": " + objects.named(Thing, thing.name)
                 }
             }
-            
+
             apply plugin: CustomPlugin
 """
 
@@ -73,25 +73,25 @@ class ObjectFactoryNamedTypeIntegrationTest extends AbstractIntegrationSpec {
     def "plugin can create named instances of abstract class"() {
         buildFile << """
             abstract class Thing implements Named { }
-            
+
             class CustomPlugin implements Plugin<Project> {
                 void apply(Project project) {
-                    project.tasks.create('thing1', CustomTask) { 
+                    project.tasks.create('thing1', CustomTask) {
                         thing = project.objects.named(Thing, 'thing1')
                     }
                 }
             }
-            
+
             class CustomTask extends DefaultTask {
                 @Internal
                 Thing thing
-                
+
                 @TaskAction
                 void run() {
                     println thing.toString() + ": " + thing.name
                 }
             }
-            
+
             apply plugin: CustomPlugin
 """
 
@@ -102,23 +102,23 @@ class ObjectFactoryNamedTypeIntegrationTest extends AbstractIntegrationSpec {
         outputContains("thing1: thing1")
     }
 
-    @ToBeFixedForInstantExecution(because = "ClassNotFoundException: Thing\$Impl")
+    @ToBeFixedForConfigurationCache(because = "ClassNotFoundException: Thing\$Impl")
     def "named instance can be used as task input property"() {
         buildFile << """
             interface Thing extends Named { }
-            
+
             class ThingTask extends DefaultTask {
                 @Input
                 Thing thing
-                
+
                 @OutputFile
-                RegularFile outputFile 
-                
+                RegularFile outputFile
+
                 @TaskAction def go() {
                     outputFile.asFile.text = thing.name
                 }
             }
-            
+
             task a(type: ThingTask) {
                 thing = objects.named(Thing, providers.systemProperty('name').forUseAtConfigurationTime().getOrElse('a'))
                 outputFile = layout.projectDirectory.file("out.txt")
@@ -156,7 +156,7 @@ class ObjectFactoryNamedTypeIntegrationTest extends AbstractIntegrationSpec {
     def "cannot mutate named instance from groovy"() {
         buildFile << """
             interface Thing extends Named { }
-            
+
             def t1 = objects.named(Thing, "t1")
             task changeProp {
                 doLast {
@@ -199,10 +199,10 @@ class ObjectFactoryNamedTypeIntegrationTest extends AbstractIntegrationSpec {
 
     def "cannot create named instance with fields"() {
         buildFile << """
-            class Thing implements Named { 
+            class Thing implements Named {
                 String name
             }
-            
+
             objects.named(Thing, "t1")
 """
 

@@ -21,7 +21,7 @@ import org.gradle.api.plugins.Convention
 import org.gradle.api.plugins.ObjectConfigurationAction
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.api.tasks.bundling.Jar
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
 import org.gradle.kotlin.dsl.fixtures.FoldersDslExpression
 import org.gradle.kotlin.dsl.fixtures.assertFailsWith
@@ -53,7 +53,7 @@ import java.io.File
 class PrecompiledScriptPluginTemplatesTest : AbstractPrecompiledScriptPluginTest() {
 
     @Test
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     fun `Project scripts from regular source-sets are compiled via the PrecompiledProjectScript template`() {
 
         givenPrecompiledKotlinScript("my-project-script.gradle.kts", """
@@ -81,7 +81,7 @@ class PrecompiledScriptPluginTemplatesTest : AbstractPrecompiledScriptPluginTest
     }
 
     @Test
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     fun `Settings scripts from regular source-sets are compiled via the PrecompiledSettingsScript template`() {
 
         givenPrecompiledKotlinScript("my-settings-script.settings.gradle.kts", """
@@ -103,7 +103,7 @@ class PrecompiledScriptPluginTemplatesTest : AbstractPrecompiledScriptPluginTest
     }
 
     @Test
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     fun `Gradle scripts from regular source-sets are compiled via the PrecompiledInitScript template`() {
 
         givenPrecompiledKotlinScript("my-gradle-script.init.gradle.kts", """
@@ -125,7 +125,7 @@ class PrecompiledScriptPluginTemplatesTest : AbstractPrecompiledScriptPluginTest
     }
 
     @Test
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     fun `plugin adapter doesn't mask exceptions thrown by precompiled script`() {
 
         // given:
@@ -159,7 +159,7 @@ class PrecompiledScriptPluginTemplatesTest : AbstractPrecompiledScriptPluginTest
     }
 
     @Test
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     fun `implicit imports are available to precompiled scripts`() {
 
         givenPrecompiledKotlinScript("my-project-script.gradle.kts", """
@@ -185,7 +185,7 @@ class PrecompiledScriptPluginTemplatesTest : AbstractPrecompiledScriptPluginTest
     }
 
     @Test
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     fun `precompiled script plugin ids are honored by java-gradle-plugin plugin`() {
 
         projectRoot.withFolders {
@@ -275,7 +275,7 @@ class PrecompiledScriptPluginTemplatesTest : AbstractPrecompiledScriptPluginTest
     }
 
     @Test
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     fun `precompiled script plugins can be published by maven-publish plugin`() {
 
         val repository = newDir("repository")
@@ -341,7 +341,7 @@ class PrecompiledScriptPluginTemplatesTest : AbstractPrecompiledScriptPluginTest
     }
 
     @Test
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     fun `precompiled script plugins can use Kotlin 1 dot 3 language features`() {
 
         givenPrecompiledKotlinScript("my-plugin.gradle.kts", """
@@ -367,49 +367,49 @@ class PrecompiledScriptPluginTemplatesTest : AbstractPrecompiledScriptPluginTest
     }
 
     @Test
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     fun `precompiled project script template honors HasImplicitReceiver`() {
 
         assertHasImplicitReceiverIsHonoredByScriptOf<Project>("my-project-plugin.gradle.kts")
     }
 
     @Test
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     fun `precompiled settings script template honors HasImplicitReceiver`() {
 
         assertHasImplicitReceiverIsHonoredByScriptOf<Settings>("my-settings-plugin.settings.gradle.kts")
     }
 
     @Test
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     fun `precompiled init script template honors HasImplicitReceiver`() {
 
         assertHasImplicitReceiverIsHonoredByScriptOf<Gradle>("my-init-plugin.init.gradle.kts")
     }
 
     @Test
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     fun `precompiled project script receiver is undecorated`() {
 
         assertUndecoratedImplicitReceiverOf<Project>("my-project-plugin.gradle.kts")
     }
 
     @Test
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     fun `precompiled settings script receiver is undecorated`() {
 
         assertUndecoratedImplicitReceiverOf<Settings>("my-settings-plugin.settings.gradle.kts")
     }
 
     @Test
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     fun `precompiled init script receiver is undecorated`() {
 
         assertUndecoratedImplicitReceiverOf<Gradle>("my-init-plugin.init.gradle.kts")
     }
 
     @Test
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     fun `nested plugins block fails to compile with reasonable message`() {
 
         withKotlinDslPlugin()
@@ -432,7 +432,7 @@ class PrecompiledScriptPluginTemplatesTest : AbstractPrecompiledScriptPluginTest
     }
 
     @Test
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     fun `can apply plugin using ObjectConfigurationAction syntax`() {
 
         val pluginsRepository = newDir("repository")
@@ -511,7 +511,7 @@ class PrecompiledScriptPluginTemplatesTest : AbstractPrecompiledScriptPluginTest
     }
 
     @Test
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     fun `can use PluginAware extensions against nested receiver`() {
 
         val scriptFileName = "my-project-plugin.gradle.kts"

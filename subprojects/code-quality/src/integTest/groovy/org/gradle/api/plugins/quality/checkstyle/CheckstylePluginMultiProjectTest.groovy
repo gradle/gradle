@@ -16,14 +16,14 @@
 package org.gradle.api.plugins.quality.checkstyle
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.file.TestFile
 
 import static org.gradle.util.TextUtil.getPlatformLineSeparator
 
 class CheckstylePluginMultiProjectTest extends AbstractIntegrationSpec {
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "configures checkstyle extension to read config from root project in a single project build"() {
         given:
         buildFile << javaProjectUsingCheckstyle()
@@ -35,7 +35,7 @@ class CheckstylePluginMultiProjectTest extends AbstractIntegrationSpec {
         checkStyleReportFile(testDirectory).text.contains('Dummy.java')
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "fails when root project does contain config in default location"() {
         given:
         settingsFile << "include 'child'"
@@ -48,7 +48,7 @@ class CheckstylePluginMultiProjectTest extends AbstractIntegrationSpec {
         checkStyleReportFile(file('child')).assertDoesNotExist()
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "configures checkstyle extension to read config from root project in a flat multi-project build"() {
         given:
         settingsFile << "include 'child:grand'"
@@ -61,7 +61,7 @@ class CheckstylePluginMultiProjectTest extends AbstractIntegrationSpec {
         checkStyleReportFile(file('child/grand')).text.contains('Dummy.java')
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "configures checkstyle extension to read config from root project in a deeply nested multi-project build"() {
         given:
         settingsFile << "include 'a:b:c'"
@@ -74,7 +74,7 @@ class CheckstylePluginMultiProjectTest extends AbstractIntegrationSpec {
         checkStyleReportFile(file('a/b/c')).text.contains('Dummy.java')
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "configures checkstyle extension to read config from root project in a multi-project build even if sub project config is available"() {
         given:
         settingsFile << "include 'child:grand'"
@@ -88,7 +88,7 @@ class CheckstylePluginMultiProjectTest extends AbstractIntegrationSpec {
         checkStyleReportFile(file('child/grand')).text.contains('Dummy.java')
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "explicitly configures checkstyle extension to point to config directory"() {
         given:
         settingsFile << "include 'child'"

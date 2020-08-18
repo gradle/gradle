@@ -18,7 +18,7 @@ package org.gradle.api.publish.ivy
 
 import org.gradle.api.artifacts.repositories.PasswordCredentials
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.executer.ProgressLoggingFixture
 import org.gradle.internal.credentials.DefaultPasswordCredentials
 import org.gradle.test.fixtures.file.TestFile
@@ -59,7 +59,7 @@ credentials {
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can publish to unauthenticated HTTP repository (extra checksums = #extraChecksums)"() {
         given:
         buildFile << """
@@ -122,7 +122,7 @@ credentials {
         extraChecksums << [true, false]
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can publish to a repository even if it doesn't support sha256/sha512 signatures"() {
         given:
         buildFile << """
@@ -168,7 +168,7 @@ credentials {
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can publish to authenticated repository using #authScheme auth"() {
         given:
         buildFile << """
@@ -228,7 +228,7 @@ credentials {
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "reports failure publishing with #credsName credentials to authenticated repository using #authScheme auth"() {
         given:
         buildFile << """
@@ -273,7 +273,7 @@ credentials {
         AuthScheme.NTLM   | 'bad'     | BAD_CREDENTIALS
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "reports failure publishing to HTTP repository"() {
         given:
         def repositoryPort = server.port
@@ -320,7 +320,7 @@ credentials {
         failure.assertThatCause(matchesRegexp(".*?Connect to 127.0.0.1:${repositoryPort} (\\[.*\\])? failed: Connection refused.*"))
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "uses first configured pattern for publication"() {
         given:
         buildFile << """
@@ -367,7 +367,7 @@ credentials {
         !module.ivy.file.text.contains(MetaDataParser.GRADLE_6_METADATA_MARKER)
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     void "can publish large artifact to authenticated repository"() {
         given:
         def largeJar = file("large.jar")
@@ -424,7 +424,7 @@ credentials {
         module.jarFile.assertIsCopyOf(new TestFile(largeJar))
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     void "does not upload meta-data file if artifact upload fails"() {
         given:
         buildFile << """
@@ -459,7 +459,7 @@ credentials {
         module.ivyFile.assertDoesNotExist()
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "retries artifact upload for transient network error"() {
         given:
         buildFile << """
@@ -508,7 +508,7 @@ credentials {
         module.assertMetadataAndJarFilePublished()
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     @Unroll
     def "doesn't publish Gradle metadata if custom pattern is used"() {
         given:
@@ -551,7 +551,7 @@ credentials {
         ]
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     void "can publish artifact to authenticated repository using credentials provider"() {
         given:
         String credentialsBlock = "credentials(PasswordCredentials)"
@@ -582,7 +582,7 @@ credentials {
         module.jarFile.assertIsCopyOf(file('build/libs/publish-2.jar'))
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "fails at configuration time with helpful error message when username and password provider has no value"() {
         given:
         String credentialsBlock = "credentials(PasswordCredentials)"

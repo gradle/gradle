@@ -16,7 +16,7 @@
 
 package org.gradle.language.assembler
 
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.language.AbstractNativeSoftwareModelParallelIntegrationTest
 import org.gradle.nativeplatform.fixtures.app.AssemblerWithCHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.HelloWorldApp
@@ -25,14 +25,14 @@ import org.gradle.nativeplatform.fixtures.app.HelloWorldApp
 class AssemblyLanguageParallelIntegrationTest extends AbstractNativeSoftwareModelParallelIntegrationTest {
     HelloWorldApp app = new AssemblerWithCHelloWorldApp(toolChain)
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can execute assembler tasks in parallel"() {
         given:
         withComponentForApp()
         createTaskThatRunsInParallelUsingCustomToolchainWith("assembleMainExecutableMainAsm")
         buildFile << """
             // prevent assembly and c compile tasks from running in parallel
-            // this is because we don't want the c compile tasks to accidentally use 
+            // this is because we don't want the c compile tasks to accidentally use
             // the decorated tool provider we set up for testing the parallelism
             tasks.withType(CCompile) { mustRunAfter tasks.withType(Assemble) }
         """

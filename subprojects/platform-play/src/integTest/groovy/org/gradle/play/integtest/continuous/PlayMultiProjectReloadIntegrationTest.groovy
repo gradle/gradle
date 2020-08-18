@@ -16,7 +16,7 @@
 
 package org.gradle.play.integtest.continuous
 
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.play.integtest.fixtures.AbstractMultiVersionPlayReloadIntegrationTest
 import org.gradle.play.integtest.fixtures.MultiProjectRunningPlayApp
 import org.gradle.play.integtest.fixtures.PlayApp
@@ -42,7 +42,7 @@ class PlayMultiProjectReloadIntegrationTest extends AbstractMultiVersionPlayRelo
         }
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can modify play app while app is running in continuous build and server restarts"() {
         when:
         succeeds(":primary:runPlayBinary")
@@ -72,7 +72,7 @@ class PlayMultiProjectReloadIntegrationTest extends AbstractMultiVersionPlayRelo
         }
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can modify sub module in multi-project play app while app is running in continuous build and server restarts"() {
         when:
         succeeds(":primary:runPlayBinary")
@@ -102,7 +102,7 @@ class PlayMultiProjectReloadIntegrationTest extends AbstractMultiVersionPlayRelo
         }
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can modify java sub module in multi-project play app while app is running in continuous build and server restarts"() {
         when:
         succeeds(":primary:runPlayBinary")
@@ -148,7 +148,7 @@ dependencies {
 '''
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can add javascript file to primary project and server does not restart"() {
         when:
         succeeds(":primary:runPlayBinary")
@@ -168,7 +168,7 @@ var message = "Hello JS";
         js.contains('Hello JS')
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "should reload with exception when modify java in submodule and server restarts"() {
         when:
         succeeds(":primary:runPlayBinary")
@@ -208,7 +208,7 @@ object NewType {
 """
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can add javascript file to sub module and server restarts"() {
         when:
         succeeds(":primary:runPlayBinary")

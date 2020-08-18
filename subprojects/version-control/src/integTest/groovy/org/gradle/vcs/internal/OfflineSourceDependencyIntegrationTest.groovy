@@ -17,7 +17,7 @@
 package org.gradle.vcs.internal
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.vcs.fixtures.GitHttpRepository
 import org.junit.Rule
@@ -55,8 +55,8 @@ class OfflineSourceDependencyIntegrationTest extends AbstractIntegrationSpec {
             rootProject.name = 'test'
             gradle.rootProject {
                 group = 'test'
-                configurations { 
-                    create('default') 
+                configurations {
+                    create('default')
                 }
             }
         """
@@ -64,7 +64,7 @@ class OfflineSourceDependencyIntegrationTest extends AbstractIntegrationSpec {
         repo.createLightWeightTag('1.2')
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "uses previous checkout when offline"() {
         given:
         repo.expectListVersions()

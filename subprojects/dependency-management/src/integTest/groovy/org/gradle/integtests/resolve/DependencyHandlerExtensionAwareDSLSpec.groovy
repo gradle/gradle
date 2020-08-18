@@ -17,7 +17,7 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
 class DependencyHandlerExtensionAwareDSLSpec extends AbstractIntegrationSpec {
     def "can type-safely use DependencyHandler ExtensionAware with the Groovy DSL"() {
@@ -37,7 +37,7 @@ class DependencyHandlerExtensionAwareDSLSpec extends AbstractIntegrationSpec {
         succeeds("assertValue")
     }
 
-    @ToBeFixedForInstantExecution(because = "Task.getProject() during execution")
+    @ToBeFixedForConfigurationCache(because = "Task.getProject() during execution")
     def "can type-safely use DependencyHandler ExtensionAware with the Kotlin DSL"() {
         buildKotlinFile << """
             dependencies {

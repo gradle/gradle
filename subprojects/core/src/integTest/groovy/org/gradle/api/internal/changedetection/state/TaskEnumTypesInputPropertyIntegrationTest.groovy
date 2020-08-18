@@ -17,7 +17,7 @@
 package org.gradle.api.internal.changedetection.state
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.internal.Actions
 import spock.lang.Issue
 import spock.lang.Unroll
@@ -349,7 +349,7 @@ public enum SomeEnum {
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution(because = "ClassNotFoundException: ArrayList1_groovyProxy",iterationMatchers = '.*\\[2\\]$')
+    @ToBeFixedForConfigurationCache(because = "ClassNotFoundException: ArrayList1_groovyProxy",iterationMatchers = '.*\\[2\\]$')
     def "task can take as input a collection of enum type from various sources"() {
         def buildSrcEnum = file("buildSrc/src/main/java/BuildSrcEnum.java")
         buildSrcEnum << """

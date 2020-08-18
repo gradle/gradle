@@ -19,7 +19,7 @@ package org.gradle.internal.watch.options
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.FileSystemWatchingFixture
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.operations.trace.BuildOperationRecord
 import spock.lang.IgnoreIf
@@ -29,7 +29,7 @@ class FileSystemWatchingSettingsFinalizedBuildOperationIntegTest extends Abstrac
 
     def operations = new BuildOperationsFixture(executer, temporaryFolder)
 
-    @ToBeFixedForInstantExecution(because = "uses included builds")
+    @ToBeFixedForConfigurationCache(because = "uses included builds")
     def "emits once when not used"() {
         given:
         settingsFile << "includeBuild 'plugin'"

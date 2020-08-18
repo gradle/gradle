@@ -18,7 +18,7 @@ package org.gradle.api.file
 
 import org.gradle.api.internal.provider.AbstractLanguageInterOpIntegrationTest
 import org.gradle.api.tasks.TasksWithInputsAndOutputs
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.junit.Assume
 
 abstract class AbstractFilePropertyLanguageInterOpIntegrationTest extends AbstractLanguageInterOpIntegrationTest implements TasksWithInputsAndOutputs {
@@ -30,7 +30,7 @@ abstract class AbstractFilePropertyLanguageInterOpIntegrationTest extends Abstra
         false
     }
 
-    @ToBeFixedForInstantExecution(
+    @ToBeFixedForConfigurationCache(
         because = "Kotlin Gradle Plugin",
         bottomSpecs = ["FilePropertyKotlinInterOpIntegrationTest", "ManagedFilePropertyKotlinInterOpIntegrationTest"]
     )
@@ -53,7 +53,7 @@ abstract class AbstractFilePropertyLanguageInterOpIntegrationTest extends Abstra
         file("out.txt").text == "content"
     }
 
-    @ToBeFixedForInstantExecution(
+    @ToBeFixedForConfigurationCache(
         because = "Kotlin Gradle Plugin",
         bottomSpecs = ["ManagedFilePropertyKotlinInterOpIntegrationTest"]
     )

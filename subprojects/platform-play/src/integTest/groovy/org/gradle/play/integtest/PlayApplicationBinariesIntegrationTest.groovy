@@ -17,7 +17,7 @@
 package org.gradle.play.integtest
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.hamcrest.CoreMatchers
 
 class PlayApplicationBinariesIntegrationTest extends AbstractIntegrationSpec {
@@ -30,7 +30,7 @@ class PlayApplicationBinariesIntegrationTest extends AbstractIntegrationSpec {
         """
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "produces sensible error when play binary is not buildable" () {
         buildFile << """
             model {

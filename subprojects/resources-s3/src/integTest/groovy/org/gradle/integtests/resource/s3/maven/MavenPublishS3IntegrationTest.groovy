@@ -17,7 +17,7 @@
 package org.gradle.integtests.resource.s3.maven
 
 import org.gradle.api.credentials.AwsCredentials
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 import org.gradle.integtests.resource.s3.fixtures.MavenS3Repository
 import org.gradle.integtests.resource.s3.fixtures.S3Artifact
@@ -38,7 +38,7 @@ class MavenPublishS3IntegrationTest extends AbstractMavenPublishIntegTest {
         executer.withArgument("-Dorg.gradle.s3.endpoint=${server.getUri()}")
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can publish to a S3 Maven repository"() {
         given:
         def mavenRepo = new MavenS3Repository(server, file("repo"), "/maven", "tests3Bucket")
@@ -64,7 +64,7 @@ class MavenPublishS3IntegrationTest extends AbstractMavenPublishIntegTest {
         module.parsedPom.scopes.isEmpty()
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can publish to a S3 Maven repository using provided access and secret keys"() {
         given:
         AwsCredentials credentials = new DefaultAwsCredentials()
@@ -106,7 +106,7 @@ class MavenPublishS3IntegrationTest extends AbstractMavenPublishIntegTest {
         failure.assertHasErrorOutput("- mavenSecretKey")
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can publish to a S3 Maven repository with IAM"() {
         given:
         def mavenRepo = new MavenS3Repository(server, file("repo"), "/maven", "tests3Bucket")

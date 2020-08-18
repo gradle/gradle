@@ -17,7 +17,7 @@ package org.gradle.buildinit.plugins
 
 import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.hamcrest.Matcher
 import spock.lang.Unroll
@@ -29,7 +29,7 @@ import static org.hamcrest.CoreMatchers.not
 
 class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
 
-    @ToBeFixedForInstantExecution(because = ":tasks")
+    @ToBeFixedForConfigurationCache(because = ":tasks")
     def "init shows up on tasks overview "() {
         given:
         targetDir.file("settings.gradle").touch()

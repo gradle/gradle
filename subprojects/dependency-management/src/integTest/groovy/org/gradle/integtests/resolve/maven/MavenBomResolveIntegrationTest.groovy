@@ -17,7 +17,7 @@
 package org.gradle.integtests.resolve.maven
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.test.fixtures.maven.MavenModule
 import spock.lang.Issue
@@ -184,7 +184,7 @@ class MavenBomResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
         }
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "a parent pom is not a bom"() {
         mavenHttpRepo.module('group', 'main', '5.0').allowAll().parent(bom.group, bom.artifactId, bom.version).publish()
         bomDependency('moduleA')
@@ -255,7 +255,7 @@ class MavenBomResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
         }
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "fails late for dependency entries that fail to provide a missing version"() {
         given:
         bomDependency('moduleA')

@@ -18,7 +18,7 @@ package org.gradle.api.publish.maven
 
 import org.gradle.api.attributes.Category
 import org.gradle.api.publish.maven.internal.publication.DefaultMavenPublication
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 import org.gradle.test.fixtures.maven.MavenDependencyExclusion
 import org.gradle.test.fixtures.maven.MavenFileModule
@@ -60,7 +60,7 @@ abstract class AbstractMavenPublishJavaIntegTest extends AbstractMavenPublishInt
         resolveRuntimeArtifacts(javaLibrary) { expectFiles "publishTest-1.9.jar" }
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can publish java-library with dependencies"() {
         given:
         javaLibrary(mavenRepo.module("org.test", "foo", "1.0")).withModuleMetadata().publish()
@@ -648,7 +648,7 @@ Maven publication 'maven' pom metadata warnings (silence with 'suppressPomMetada
         }
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can publish java-library with capability requests"() {
         given:
         createBuildScripts("""
@@ -789,7 +789,7 @@ Maven publication 'maven' pom metadata warnings (silence with 'suppressPomMetada
     }
 
     @Issue("https://github.com/gradle/gradle/issues/5034, https://github.com/gradle/gradle/issues/5035")
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     void "configuration exclusions are published in generated POM and Gradle metadata"() {
         given:
         createBuildScripts("""
@@ -879,7 +879,7 @@ Maven publication 'maven' pom metadata warnings (silence with 'suppressPomMetada
         }
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can publish java-library with dependencies/constraints with attributes"() {
         given:
         settingsFile << "include 'utils'\n"
@@ -984,7 +984,7 @@ Maven publication 'maven' pom metadata warnings (silence with 'suppressPomMetada
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def 'can publish java library with a #config dependency on a published BOM platform"'() {
         given:
         javaLibrary(mavenRepo.module("org.test", "bom", "1.0")).hasPackaging('pom').dependencyConstraint(mavenRepo.module('org.test', 'bar', '1.1')).withModuleMetadata().publish()
@@ -1095,7 +1095,7 @@ Maven publication 'maven' pom metadata warnings (silence with 'suppressPomMetada
 
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def 'can publish a java library using a virtual platform by ignoring it explicitly'() {
         given:
         javaLibrary(mavenRepo.module("org.test", "bar", "1.0")).withModuleMetadata().publish()
@@ -1146,7 +1146,7 @@ Maven publication 'maven' pom metadata warnings (silence with 'suppressPomMetada
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def 'can publish java library with a #config dependency on a java-platform subproject"'() {
         given:
         javaLibrary(mavenRepo.module("org.test", "bar", "1.0")).withModuleMetadata().publish()

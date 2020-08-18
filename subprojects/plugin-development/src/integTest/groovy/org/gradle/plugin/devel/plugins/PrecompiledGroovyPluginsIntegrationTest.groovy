@@ -17,7 +17,7 @@
 package org.gradle.plugin.devel.plugins
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.file.TestFile
 
 class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
@@ -160,7 +160,7 @@ class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
         outputContains("baz.bar applied")
     }
 
-    @ToBeFixedForInstantExecution(because = "groovy precompiled scripts")
+    @ToBeFixedForConfigurationCache(because = "groovy precompiled scripts")
     def "can share precompiled plugin via a jar"() {
         given:
         def pluginJar = packagePrecompiledPlugin("foo.gradle")
@@ -208,7 +208,7 @@ class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
         fails("help")
     }
 
-    @ToBeFixedForInstantExecution(because = "groovy precompiled scripts")
+    @ToBeFixedForConfigurationCache(because = "groovy precompiled scripts")
     def "can share multiple precompiled plugins via a jar"() {
         given:
         def pluginsJar = packagePrecompiledPlugins([
@@ -240,7 +240,7 @@ class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
         succeeds("thirdPluginTask")
     }
 
-    @ToBeFixedForInstantExecution(because = "groovy precompiled scripts")
+    @ToBeFixedForConfigurationCache(because = "groovy precompiled scripts")
     def "can share precompiled plugin by publishing it"() {
         given:
         pluginWithSampleTask("plugin/src/main/groovy/plugins/foo.bar.my-plugin.gradle")
@@ -285,7 +285,7 @@ class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
         succeeds(SAMPLE_TASK)
     }
 
-    @ToBeFixedForInstantExecution(because = "groovy precompiled scripts")
+    @ToBeFixedForConfigurationCache(because = "groovy precompiled scripts")
     def "can apply a precompiled settings plugin by id"() {
         given:
         def pluginJar = packagePrecompiledPlugin("my-settings-plugin.settings.gradle", """
@@ -307,7 +307,7 @@ class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
         outputContains("my-settings-plugin applied!")
     }
 
-    @ToBeFixedForInstantExecution(because = "groovy precompiled scripts")
+    @ToBeFixedForConfigurationCache(because = "groovy precompiled scripts")
     def "precompiled settings plugin can use plugins block"() {
         when:
         def pluginJar = packagePrecompiledPlugin("base-settings-plugin.settings.gradle", """
@@ -343,7 +343,7 @@ class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
         outputContains('my-settings-plugin applied!')
     }
 
-    @ToBeFixedForInstantExecution(because = "groovy precompiled scripts")
+    @ToBeFixedForConfigurationCache(because = "groovy precompiled scripts")
     def "can apply a precompiled init plugin"() {
         given:
         def pluginJar = packagePrecompiledPlugin("my-init-plugin.init.gradle", """
@@ -694,7 +694,7 @@ class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
         outputContains("from custom task")
     }
 
-    @ToBeFixedForInstantExecution(because = "groovy precompiled scripts")
+    @ToBeFixedForConfigurationCache(because = "groovy precompiled scripts")
     def "can write tests for precompiled script plugins"() {
         given:
         pluginWithSampleTask("src/main/groovy/test-plugin.gradle")
@@ -803,7 +803,7 @@ class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
         outputContains('content changed')
     }
 
-    @ToBeFixedForInstantExecution(because = "groovy precompiled scripts")
+    @ToBeFixedForConfigurationCache(because = "groovy precompiled scripts")
     def "a change in project sources invalidates build cache"() {
         given:
         def cacheDir = createDir("cache-dir")

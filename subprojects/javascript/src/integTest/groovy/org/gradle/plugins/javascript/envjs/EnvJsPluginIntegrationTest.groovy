@@ -16,7 +16,7 @@
 
 package org.gradle.plugins.javascript.envjs
 
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
 import org.gradle.plugins.javascript.envjs.browser.BrowserEvaluate
 
@@ -61,7 +61,7 @@ class EnvJsPluginIntegrationTest extends WellBehavedPluginTest {
         js.text.contains("Envjs = function")
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can evaluate content"() {
         given:
         file("input/index.html") << """

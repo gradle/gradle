@@ -17,7 +17,7 @@
 package org.gradle.api.internal.project.taskfactory
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import spock.lang.Issue
 
 class TaskPropertyNamingIntegrationTest extends AbstractIntegrationSpec {
@@ -122,19 +122,19 @@ class TaskPropertyNamingIntegrationTest extends AbstractIntegrationSpec {
         output.contains 'Output: outputFiles$2 [output2.txt]'
     }
 
-    @ToBeFixedForInstantExecution(because = "task references another task")
+    @ToBeFixedForConfigurationCache(because = "task references another task")
     def "nested properties are discovered"() {
         buildFile << classesForNestedProperties()
         buildFile << """
-            task test(type: TaskWithNestedObjectProperty) {           
+            task test(type: TaskWithNestedObjectProperty) {
                 input = "someString"
                 bean = new NestedProperty(
                     inputDir: file('input'),
                     input: 'someString',
-                    outputDir: file("\$buildDir/output"),  
+                    outputDir: file("\$buildDir/output"),
                     nestedBean: new AnotherNestedProperty(inputFile: file('inputFile'))
                 )
-            }        
+            }
             task printMetadata(type: PrintInputsAndOutputs) {
                 task = test
             }
@@ -154,10 +154,10 @@ class TaskPropertyNamingIntegrationTest extends AbstractIntegrationSpec {
         output.contains "Output file property 'bean.outputDir'"
     }
 
-    @ToBeFixedForInstantExecution(because = "task references another task")
+    @ToBeFixedForConfigurationCache(because = "task references another task")
     def "nested iterable properties have names"() {
         buildFile << printPropertiesTask()
-        buildFile << """ 
+        buildFile << """
             class TaskWithNestedBean extends DefaultTask {
                 @Nested
                 List<Object> beans
@@ -167,18 +167,18 @@ class TaskPropertyNamingIntegrationTest extends AbstractIntegrationSpec {
                 @Input
                 input
             }
-            
+
             class OtherNestedBean {
                 @Input
                 secondInput
             }
-            
-            task test(type: TaskWithNestedBean) {           
+
+            task test(type: TaskWithNestedBean) {
                 beans = [new NestedBean(input: 'someString'), new OtherNestedBean(secondInput: 'otherString')]
-            }        
+            }
             task printMetadata(type: PrintInputsAndOutputs) {
                 task = test
-            }            
+            }
         """
 
         expect:
@@ -189,7 +189,7 @@ class TaskPropertyNamingIntegrationTest extends AbstractIntegrationSpec {
         output.contains "Input property 'beans.\$1.secondInput'"
     }
 
-    @ToBeFixedForInstantExecution(because = "task references another task")
+    @ToBeFixedForConfigurationCache(because = "task references another task")
     def "nested destroyables are discovered"() {
         buildFile << classesForNestedProperties()
         buildFile << """
@@ -206,7 +206,7 @@ class TaskPropertyNamingIntegrationTest extends AbstractIntegrationSpec {
                 bean = new DestroyerBean(
                     destroyedFile: file("\$buildDir/destroyed")
                 )
-            }               
+            }
             task printMetadata(type: PrintInputsAndOutputs) {
                 task = destroy
             }
@@ -220,7 +220,7 @@ class TaskPropertyNamingIntegrationTest extends AbstractIntegrationSpec {
         output =~ /Destroys: '.*destroyed'/
     }
 
-    @ToBeFixedForInstantExecution(because = "task references another task")
+    @ToBeFixedForConfigurationCache(because = "task references another task")
     def "nested local state is discovered"() {
         buildFile << classesForNestedProperties()
         buildFile << """
@@ -237,7 +237,7 @@ class TaskPropertyNamingIntegrationTest extends AbstractIntegrationSpec {
                 bean = new LocalStateBean(
                     localStateFile: file("\$buildDir/localState")
                 )
-            }               
+            }
             task printMetadata(type: PrintInputsAndOutputs) {
                 task = taskWithLocalState
             }
@@ -251,7 +251,7 @@ class TaskPropertyNamingIntegrationTest extends AbstractIntegrationSpec {
         output =~ /Local state: '.*localState'/
     }
 
-    @ToBeFixedForInstantExecution(because = "task references another task")
+    @ToBeFixedForConfigurationCache(because = "task references another task")
     def "unnamed file properties are named"() {
         buildFile << """
             import org.gradle.api.internal.tasks.*
@@ -283,7 +283,7 @@ class TaskPropertyNamingIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/4085")
-    @ToBeFixedForInstantExecution(because = "task references another task")
+    @ToBeFixedForConfigurationCache(because = "task references another task")
     def "can register more unnamed properties after properties have been queried"() {
         buildFile << """
             import org.gradle.api.internal.tasks.*
@@ -299,7 +299,7 @@ class TaskPropertyNamingIntegrationTest extends AbstractIntegrationSpec {
                 inputs.file("input-2.txt")
                 // Trigger calculating unnamed property names again
                 inputs.hasInputs
-                
+
                 // Register first unnamed property
                 outputs.file("output-1.txt")
                 // Trigger calculating unnamed property names
@@ -310,7 +310,7 @@ class TaskPropertyNamingIntegrationTest extends AbstractIntegrationSpec {
                 // Trigger calculating unnamed property names again
                 outputs.hasOutput
             }
-            
+
             ${printProperties("myTask")}
         """
         when:
@@ -324,18 +324,18 @@ class TaskPropertyNamingIntegrationTest extends AbstractIntegrationSpec {
             """.stripIndent()
     }
 
-    @ToBeFixedForInstantExecution(because = "task references another task")
+    @ToBeFixedForConfigurationCache(because = "task references another task")
     def "input properties can be overridden"() {
         buildFile << classesForNestedProperties()
         buildFile << """
-            task test(type: TaskWithNestedObjectProperty) { 
+            task test(type: TaskWithNestedObjectProperty) {
                 input = "someString"
                 bean = new NestedProperty(
                     input: 'someString',
-                )                    
-                inputs.property("input", "someOtherString") 
+                )
+                inputs.property("input", "someOtherString")
                 inputs.property("bean.input", "otherNestedString")
-            }                        
+            }
             task printMetadata(type: PrintInputsAndOutputs) {
                 task = test
             }
@@ -361,32 +361,32 @@ class TaskPropertyNamingIntegrationTest extends AbstractIntegrationSpec {
                 Object bean
                 @Input
                 String input
-                
+
                 @TaskAction
                 void doStuff() {}
             }
-            
+
             class NestedProperty {
                 @InputDirectory
                 @Optional
                 File inputDir
-                
+
                 @OutputDirectory
                 @Optional
-                File outputDir      
-                        
+                File outputDir
+
                 @Input
                 String input
                 @Nested
                 @Optional
                 Object nestedBean
                 @Destroys File destroyedFile
-            }                    
+            }
             class AnotherNestedProperty {
                 @InputFile
                 File inputFile
-            }     
-            
+            }
+
             ${printPropertiesTask()}
         """
     }

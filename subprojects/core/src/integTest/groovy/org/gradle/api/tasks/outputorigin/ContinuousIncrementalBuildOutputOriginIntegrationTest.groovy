@@ -18,7 +18,7 @@ package org.gradle.api.tasks.outputorigin
 
 import org.gradle.api.Action
 import org.gradle.integtests.fixtures.AbstractContinuousIntegrationTest
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.OriginFixture
 import org.gradle.integtests.fixtures.ScopeIdsFixture
 import org.gradle.integtests.fixtures.executer.GradleExecuter
@@ -58,7 +58,7 @@ class ContinuousIncrementalBuildOutputOriginIntegrationTest extends AbstractCont
         afterExecute*.execute(executer)
     }
 
-    @ToBeFixedForInstantExecution(because = "build ID doesn't change")
+    @ToBeFixedForConfigurationCache(because = "build ID doesn't change")
     def "new ID is assigned for each execution"() {
         given:
         def i1 = file("i1")

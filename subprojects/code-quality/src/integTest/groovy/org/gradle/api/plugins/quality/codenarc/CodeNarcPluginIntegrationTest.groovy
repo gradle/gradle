@@ -16,7 +16,7 @@
 package org.gradle.api.plugins.quality.codenarc
 
 import org.gradle.api.plugins.quality.CodeNarcPlugin
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
 import spock.lang.Unroll
 
@@ -36,7 +36,7 @@ class CodeNarcPluginIntegrationTest extends WellBehavedPluginTest {
         writeConfigFile()
     }
 
-    @ToBeFixedForInstantExecution(because = "Task.getProject() during execution")
+    @ToBeFixedForConfigurationCache(because = "Task.getProject() during execution")
     def "adds codenarc task for each source set"() {
         given:
         buildFile << '''
@@ -75,7 +75,7 @@ class CodeNarcPluginIntegrationTest extends WellBehavedPluginTest {
         succeeds 'assertTaskForEachSourceSet'
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "adds codenarc tasks from each source sets to check lifecycle task"() {
         given:
         buildFile << '''
@@ -97,7 +97,7 @@ class CodeNarcPluginIntegrationTest extends WellBehavedPluginTest {
         notExecuted(":codenarcCustom")
     }
 
-    @ToBeFixedForInstantExecution(because = "Task.getProject() during execution")
+    @ToBeFixedForConfigurationCache(because = "Task.getProject() during execution")
     def "can customize per-source-set tasks via extension"() {
         given:
         buildFile << '''
@@ -145,7 +145,7 @@ class CodeNarcPluginIntegrationTest extends WellBehavedPluginTest {
         succeeds 'assertHasCustomizedSettings'
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can customize which tasks are added to check lifecycle task"() {
         given:
         buildFile << '''
@@ -170,7 +170,7 @@ class CodeNarcPluginIntegrationTest extends WellBehavedPluginTest {
         notExecuted(':codenarcCustom')
     }
 
-    @ToBeFixedForInstantExecution(because = "Task.getProject() during execution")
+    @ToBeFixedForConfigurationCache(because = "Task.getProject() during execution")
     def "can use legacy configFile extension property"() {
         given:
         buildFile << '''
@@ -191,7 +191,7 @@ class CodeNarcPluginIntegrationTest extends WellBehavedPluginTest {
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "allows configuring tool dependencies explicitly via #method"(String method, String buildScriptSnippet) {
         expect: //defaults exist and can be inspected
         succeeds("dependencies", "--configuration", "codenarc")

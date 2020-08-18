@@ -16,13 +16,13 @@
 
 package org.gradle.smoketests
 
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
 class GradleVersionsPluginSmokeTest extends AbstractSmokeTest {
 
-    @ToBeFixedForInstantExecution(because = "Task.getProject() during execution")
+    @ToBeFixedForConfigurationCache(because = "Task.getProject() during execution")
     def 'can check for updated versions'() {
         given:
         buildFile << """
@@ -32,7 +32,7 @@ class GradleVersionsPluginSmokeTest extends AbstractSmokeTest {
 
             subprojects {
                 apply plugin: 'java'
-                
+
                 ${jcenterRepository()}
             }
             project(":sub1") {

@@ -18,7 +18,7 @@ package org.gradle.testing.jacoco.plugins
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testing.jacoco.plugins.fixtures.JavaProjectUnderTest
 import org.gradle.util.Requires
@@ -46,7 +46,7 @@ class JacocoCachingIntegrationTest extends AbstractIntegrationSpec implements Di
     }
 
     @Requires(TestPrecondition.JDK14_OR_EARLIER) // reevaluate when upgrading JaCoco from current 0.8.5
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "jacoco file results are cached"() {
         when:
         withBuildCache().run "test", "jacocoTestReport"
@@ -68,7 +68,7 @@ class JacocoCachingIntegrationTest extends AbstractIntegrationSpec implements Di
     }
 
     @Requires(TestPrecondition.JDK14_OR_EARLIER) // reevaluate when upgrading JaCoco from current 0.8.5
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "jacoco file results are not cached when sharing output with another task"() {
         javaProjectUnderTest.writeIntegrationTestSourceFiles()
         buildFile << """
@@ -96,7 +96,7 @@ class JacocoCachingIntegrationTest extends AbstractIntegrationSpec implements Di
     }
 
     @Requires(TestPrecondition.JDK14_OR_EARLIER) // reevaluate when upgrading JaCoco from current 0.8.5
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "test execution is cached with different gradle user home"() {
         when:
         withBuildCache().run "test", "jacocoTestReport"
@@ -118,7 +118,7 @@ class JacocoCachingIntegrationTest extends AbstractIntegrationSpec implements Di
         reportFile.assertContentsHaveNotChangedSince(snapshot)
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "test is cached when jacoco is disabled"() {
         buildFile << """
             test {

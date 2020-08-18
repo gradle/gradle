@@ -17,7 +17,7 @@
 package org.gradle.language
 
 import org.apache.commons.lang.RandomStringUtils
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.HelloWorldApp
 import org.gradle.test.fixtures.file.TestFile
@@ -34,7 +34,7 @@ abstract class AbstractNativeLanguageIntegrationTest extends AbstractInstalledTo
         buildFile << helloWorldApp.extraConfiguration
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "compile and link executable"() {
         given:
         buildFile << """
@@ -57,7 +57,7 @@ abstract class AbstractNativeLanguageIntegrationTest extends AbstractInstalledTo
         mainExecutable.exec().out == helloWorldApp.englishOutput
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "build executable with custom compiler arg"() {
         given:
         buildFile << """
@@ -84,7 +84,7 @@ abstract class AbstractNativeLanguageIntegrationTest extends AbstractInstalledTo
         mainExecutable.exec().out == helloWorldApp.frenchOutput
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "build executable with macro defined"() {
         given:
         buildFile << """
@@ -112,7 +112,7 @@ abstract class AbstractNativeLanguageIntegrationTest extends AbstractInstalledTo
     }
 
     @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "install and run executable with dependencies"() {
         given:
         buildFile << """
@@ -146,7 +146,7 @@ abstract class AbstractNativeLanguageIntegrationTest extends AbstractInstalledTo
     }
 
     @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "install and run executable with dependencies and customized installation"() {
         given:
         buildFile << """
@@ -180,7 +180,7 @@ abstract class AbstractNativeLanguageIntegrationTest extends AbstractInstalledTo
     }
 
     @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "build shared library and link into executable"() {
         given:
         buildFile << """
@@ -214,7 +214,7 @@ abstract class AbstractNativeLanguageIntegrationTest extends AbstractInstalledTo
     }
 
     @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "build static library and link into executable"() {
         given:
         buildFile << """
@@ -251,7 +251,7 @@ abstract class AbstractNativeLanguageIntegrationTest extends AbstractInstalledTo
         install.exec().out == helloWorldApp.frenchOutput
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "link order is stable across project directories for the same sources"() {
         def firstCopy = file("firstDir")
         def secondCopy = file("secondDir")

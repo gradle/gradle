@@ -16,7 +16,7 @@
 
 package org.gradle.integtests.composite
 
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 
@@ -56,7 +56,7 @@ class CompositeBuildDependencyCycleIntegrationTest extends AbstractCompositeBuil
         includedBuilds << buildC
     }
 
-    @ToBeFixedForInstantExecution(because = "composite builds")
+    @ToBeFixedForConfigurationCache(because = "composite builds")
     def "direct dependency cycle between included builds"() {
         given:
         dependency "org.test:buildB:1.0"
@@ -90,7 +90,7 @@ class CompositeBuildDependencyCycleIntegrationTest extends AbstractCompositeBuil
         failure.assertHasDescription("Included build dependency cycle: build 'buildB' -> build 'buildC' -> build 'buildB'")
     }
 
-    @ToBeFixedForInstantExecution(because = "composite builds")
+    @ToBeFixedForConfigurationCache(because = "composite builds")
     def "indirect dependency cycle between included builds"() {
         given:
         dependency "org.test:buildB:1.0"
@@ -139,7 +139,7 @@ class CompositeBuildDependencyCycleIntegrationTest extends AbstractCompositeBuil
     }
 
     // Not actually a cycle, just documenting behaviour
-    @ToBeFixedForInstantExecution(because = "composite builds")
+    @ToBeFixedForConfigurationCache(because = "composite builds")
     def "dependency cycle between different projects of included builds"() {
         given:
         dependency "org.test:b1:1.0"
@@ -179,7 +179,7 @@ project(':b1') {
         failure.assertHasDescription("Included build dependency cycle: build 'buildB' -> build 'buildC' -> build 'buildB'")
     }
 
-    @ToBeFixedForInstantExecution(because = "composite builds")
+    @ToBeFixedForConfigurationCache(because = "composite builds")
     def "compile-only dependency cycle between included builds"() {
         given:
         dependency "org.test:buildB:1.0"
@@ -214,7 +214,7 @@ project(':b1') {
         failure.assertHasDescription("Included build dependency cycle: build 'buildB' -> build 'buildC' -> build 'buildB'")
     }
 
-    @ToBeFixedForInstantExecution(because = "composite builds")
+    @ToBeFixedForConfigurationCache(because = "composite builds")
     def "dependency cycle between subprojects in an included multiproject build"() {
         given:
         dependency "org.test:buildB:1.0"

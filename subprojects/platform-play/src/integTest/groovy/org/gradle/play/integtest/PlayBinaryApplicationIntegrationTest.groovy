@@ -16,12 +16,12 @@
 
 package org.gradle.play.integtest
 
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.play.integtest.fixtures.PlayMultiVersionRunApplicationIntegrationTest
 
 abstract class PlayBinaryApplicationIntegrationTest extends PlayMultiVersionRunApplicationIntegrationTest {
 
-    @ToBeFixedForInstantExecution(bottomSpecs = "PlayCompositeBuildIntegrationTest")
+    @ToBeFixedForConfigurationCache(bottomSpecs = "PlayCompositeBuildIntegrationTest")
     def "can build play app binary"() {
         when:
         succeeds("assemble")
@@ -40,7 +40,7 @@ abstract class PlayBinaryApplicationIntegrationTest extends PlayMultiVersionRunA
         skipped(":createPlayBinaryJar", ":compilePlayBinaryPlayTwirlTemplates")
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can run play app"() {
         setup:
         run "assemble"

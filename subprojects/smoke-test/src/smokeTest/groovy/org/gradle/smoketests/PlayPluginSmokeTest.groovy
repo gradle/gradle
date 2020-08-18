@@ -17,7 +17,7 @@
 package org.gradle.smoketests
 
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
@@ -26,7 +26,7 @@ import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 class PlayPluginSmokeTest extends AbstractSmokeTest {
 
     @Requires(TestPrecondition.JDK11_OR_EARLIER)
-    @ToBeFixedForInstantExecution(because = "unsupported Configuration field")
+    @ToBeFixedForConfigurationCache(because = "unsupported Configuration field")
     def 'build basic Play project'() {
         given:
         useSample("play-example")
