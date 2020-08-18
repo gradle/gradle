@@ -781,7 +781,7 @@ Gradle does of course allow you create as many archive tasks as you want, but it
 
 Gradle has several conventions around the naming of archives and where they are created based on the plugins your project uses. The main convention is provided by the <<base_plugin.adoc#base_plugin,Base Plugin>>, which defaults to creating archives in the `$buildDir/distributions` directory and typically uses archive names of the form _[projectName]-[version].[type]_.
 
-The following example comes from a project named `zipProject`, hence the `myZip` task creates an archive named `zipProject-1.0.zip`:
+The following example comes from a project named `archive-naming`, hence the `myZip` task creates an archive named `archive-naming-1.0.zip`:
 
 .Creation of ZIP archive
 ====
