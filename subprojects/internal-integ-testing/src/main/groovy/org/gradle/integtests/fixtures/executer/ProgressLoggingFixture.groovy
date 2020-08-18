@@ -120,7 +120,7 @@ class ProgressLoggingFixture extends InitScriptExecuterFixture {
                 parameters.outputFile.set(outputFile)
             }
 
-            // forces the service to be initialized immediately when instant execution loads its cache
+            // forces the service to be initialized immediately when configuration cache loads its cache
             gradle.services.get(BuildEventListenerRegistryInternal).onOperationCompletion(outputProgress)
 
             // forces the service to be initialized immediately

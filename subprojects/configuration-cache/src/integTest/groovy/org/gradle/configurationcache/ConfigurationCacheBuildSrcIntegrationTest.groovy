@@ -53,7 +53,7 @@ class ConfigurationCacheBuildSrcIntegrationTest extends AbstractConfigurationCac
 
         buildFile << """
             task greeting(type: CustomTask) {
-                greeting = 'yo instant execution'
+                greeting = 'yo configuration cache'
             }
         """
         def instant = newInstantExecutionFixture()
@@ -70,7 +70,7 @@ class ConfigurationCacheBuildSrcIntegrationTest extends AbstractConfigurationCac
 
         then:
         result.assertTasksExecuted(":greeting")
-        outputContains("yo instant execution")
+        outputContains("yo configuration cache")
         instant.assertStateLoaded()
     }
 }

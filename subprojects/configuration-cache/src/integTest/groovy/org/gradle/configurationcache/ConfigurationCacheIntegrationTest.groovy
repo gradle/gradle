@@ -38,7 +38,7 @@ import javax.inject.Inject
 
 class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
-    def "instant execution for help on empty project"() {
+    def "configuration cache for help on empty project"() {
         given:
         instantRun "help"
         def firstRunOutput = removeVfsLogOutput(result.normalizedOutput)
@@ -233,7 +233,7 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
         result.assertTasksExecuted(":a")
     }
 
-    def "instant execution for multi-level projects"() {
+    def "configuration cache for multi-level projects"() {
         given:
         settingsFile << """
             include 'a:b', 'a:c'

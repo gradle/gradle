@@ -42,7 +42,7 @@ class JavaConfigurationCachePerformanceTest extends AbstractCrossVersionGradleIn
     }
 
     @Unroll
-    def "assemble on #testProject #action instant execution state with #daemon daemon"() {
+    def "assemble on #testProject #action configuration cache state with #daemon daemon"() {
 
         given:
         runner.targetVersions = ["6.7-20200723220251+0000"]
@@ -76,7 +76,7 @@ class JavaConfigurationCachePerformanceTest extends AbstractCrossVersionGradleIn
     }
 
     private BuildExperimentListener listenerFor(String action) {
-        return instantInvocationListenerFor(action, stateDirectory)
+        return configurationCacheInvocationListenerFor(action, stateDirectory)
     }
 
     static String loading = "loading"
@@ -84,7 +84,7 @@ class JavaConfigurationCachePerformanceTest extends AbstractCrossVersionGradleIn
     static String hot = "hot"
     static String cold = "cold"
 
-    static BuildExperimentListener instantInvocationListenerFor(String action, File stateDirectory) {
+    static BuildExperimentListener configurationCacheInvocationListenerFor(String action, File stateDirectory) {
         return new BuildExperimentListenerAdapter() {
 
             @Override

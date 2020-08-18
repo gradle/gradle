@@ -74,7 +74,7 @@ class ConfigurationCacheParallelTaskIntegrationTest extends AbstractConfiguratio
 
     // Don't run in parallel mode, as the expectation for the setup build are incorrect
     // It could potentially be worth running this in parallel mode to demonstrate the difference between
-    // parallel and instant execution
+    // parallel and configuration cache
     @IgnoreIf({ GradleContextualExecuter.parallel })
     def "runs tasks in same project in parallel by default"() {
         server.start()

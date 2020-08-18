@@ -239,7 +239,7 @@ class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @RequiredFeature(feature = ConfigurationCacheOption.PROPERTY_NAME, value = "true")
-    def "service used at configuration and execution time can be used with instant execution"() {
+    def "service used at configuration and execution time can be used with configuration cache"() {
         serviceImplementation()
         buildFile << """
             def provider = gradle.sharedServices.registerIfAbsent("counter", CountingService) {

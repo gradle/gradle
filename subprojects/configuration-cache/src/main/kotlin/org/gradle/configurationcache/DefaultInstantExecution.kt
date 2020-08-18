@@ -385,7 +385,7 @@ class DefaultInstantExecution internal constructor(
     inline fun <reified T> factory() =
         host.factory(T::class.java)
 
-    // Skip instant execution for buildSrc for now.
+    // Skip configuration cache for buildSrc for now.
     private
     val isInstantExecutionEnabled: Boolean by unsafeLazy {
         startParameter.isEnabled && host.currentBuild.gradle.isRootBuild

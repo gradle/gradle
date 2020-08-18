@@ -177,7 +177,7 @@ class InstantExecutionHost internal constructor(
             }
 
             // Fire build operation required by build scan to determine when task execution starts
-            // Currently this operation is not around the actual task graph calculation/populate for instant execution (just to make this a smaller step)
+            // Currently this operation is not around the actual task graph calculation/populate for configuration cache (just to make this a smaller step)
             // This might be better done as a new build operation type
             BuildOperatingFiringTaskExecutionPreparer(
                 TaskExecutionPreparer {
