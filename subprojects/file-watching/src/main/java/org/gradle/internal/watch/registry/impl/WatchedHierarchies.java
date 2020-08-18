@@ -71,8 +71,6 @@ public class WatchedHierarchies {
 
     /**
      * Filters out directories whose ancestor is also among the watched directories.
-     *
-     * The Stream of directories must not contain duplicates.
      */
     @VisibleForTesting
     static Set<Path> resolveHierarchiesToWatch(Stream<Path> directories) {

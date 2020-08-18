@@ -30,16 +30,17 @@ class WatchedHierarchiesTest extends Specification {
         resolveRecursiveRoots(directories) == resolvedRoots
 
         where:
-        directories        | resolvedRoots
-        []                 | []
-        ["/a"]             | ["/a"]
-        ["/a", "/b"]       | ["/a", "/b"]
-        ["/a", "/a/b"]     | ["/a"]
-        ["/a/b", "/a"]     | ["/a"]
-        ["/a", "/a/b/c/d"] | ["/a"]
-        ["/a/b/c/d", "/a"] | ["/a"]
-        ["/a", "/b/a"]     | ["/a", "/b/a"]
-        ["/b/a", "/a"]     | ["/a", "/b/a"]
+        directories          | resolvedRoots
+        []                   | []
+        ["/a"]               | ["/a"]
+        ["/a", "/b"]         | ["/a", "/b"]
+        ["/a", "/a/b"]       | ["/a"]
+        ["/a/b", "/a"]       | ["/a"]
+        ["/a", "/a/b/c/d"]   | ["/a"]
+        ["/a/b/c/d", "/a"]   | ["/a"]
+        ["/a", "/b/a"]       | ["/a", "/b/a"]
+        ["/b/a", "/a"]       | ["/a", "/b/a"]
+        ["/a", "/b/a", "/a"] | ["/a", "/b/a"]
     }
 
     @Requires(TestPrecondition.WINDOWS)
@@ -49,15 +50,16 @@ class WatchedHierarchiesTest extends Specification {
 
         where:
         directories                 | resolvedRoots
-        []                          | []
-        ["C:\\a"]                   | ["C:\\a"]
-        ["C:\\a", "C:\\b"]          | ["C:\\a", "C:\\b"]
-        ["C:\\a", "C:\\a\\b"]       | ["C:\\a"]
-        ["C:\\a\\b", "C:\\a"]       | ["C:\\a"]
-        ["C:\\a", "C:\\a\\b\\c\\d"] | ["C:\\a"]
-        ["C:\\a\\b\\c\\d", "C:\\a"] | ["C:\\a"]
-        ["C:\\a", "C:\\b\\a"]       | ["C:\\a", "C:\\b\\a"]
-        ["C:\\b\\a", "C:\\a"]       | ["C:\\a", "C:\\b\\a"]
+        []                             | []
+        ["C:\\a"]                      | ["C:\\a"]
+        ["C:\\a", "C:\\b"]             | ["C:\\a", "C:\\b"]
+        ["C:\\a", "C:\\a\\b"]          | ["C:\\a"]
+        ["C:\\a\\b", "C:\\a"]          | ["C:\\a"]
+        ["C:\\a", "C:\\a\\b\\c\\d"]    | ["C:\\a"]
+        ["C:\\a\\b\\c\\d", "C:\\a"]    | ["C:\\a"]
+        ["C:\\a", "C:\\b\\a"]          | ["C:\\a", "C:\\b\\a"]
+        ["C:\\b\\a", "C:\\a"]          | ["C:\\a", "C:\\b\\a"]
+        ["C:\\a", "C:\\b\\a", "C:\\a"] | ["C:\\a", "C:\\b\\a"]
     }
 
     private static List<String> resolveRecursiveRoots(List<String> directories) {
