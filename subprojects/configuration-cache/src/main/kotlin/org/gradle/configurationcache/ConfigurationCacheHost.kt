@@ -26,6 +26,7 @@ import org.gradle.api.internal.project.IProjectFactory
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.configuration.project.ConfigureProjectBuildOperationType
+import org.gradle.configurationcache.initialization.ConfigurationCacheStartParameter
 import org.gradle.execution.plan.Node
 import org.gradle.groovy.scripts.TextResourceScriptSource
 import org.gradle.initialization.BuildLoader
@@ -39,7 +40,6 @@ import org.gradle.initialization.NotifyingBuildLoader
 import org.gradle.initialization.SettingsLocation
 import org.gradle.initialization.SettingsPreparer
 import org.gradle.initialization.TaskExecutionPreparer
-import org.gradle.configurationcache.initialization.InstantExecutionStartParameter
 import org.gradle.internal.Factory
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.file.PathToFileResolver
@@ -55,18 +55,18 @@ import org.gradle.util.Path
 import java.io.File
 
 
-class InstantExecutionHost internal constructor(
-    private val startParameter: InstantExecutionStartParameter,
+class ConfigurationCacheHost internal constructor(
+    private val startParameter: ConfigurationCacheStartParameter,
     private val gradle: GradleInternal,
     private val classLoaderScopeRegistry: ClassLoaderScopeRegistry,
     private val projectFactory: IProjectFactory
-) : DefaultInstantExecution.Host {
+) : DefaultConfigurationCache.Host {
 
     override val currentBuild: VintageGradleBuild =
         DefaultVintageGradleBuild()
 
-    override fun createBuild(rootProjectName: String): InstantExecutionBuild =
-        DefaultInstantExecutionBuild(gradle, service(), rootProjectName)
+    override fun createBuild(rootProjectName: String): ConfigurationCacheBuild =
+        DefaultConfigurationCacheBuild(gradle, service(), rootProjectName)
 
     override fun <T> service(serviceType: Class<T>): T =
         gradle.services.get(serviceType)
@@ -77,7 +77,7 @@ class InstantExecutionHost internal constructor(
     inner class DefaultVintageGradleBuild : VintageGradleBuild {
 
         override val gradle: GradleInternal
-            get() = this@InstantExecutionHost.gradle
+            get() = this@ConfigurationCacheHost.gradle
 
         override val scheduledWork: List<Node>
             get() = gradle.taskGraph.scheduledWork
@@ -86,11 +86,11 @@ class InstantExecutionHost internal constructor(
             get() = gradle.rootProject
     }
 
-    inner class DefaultInstantExecutionBuild(
+    inner class DefaultConfigurationCacheBuild(
         override val gradle: GradleInternal,
         private val fileResolver: PathToFileResolver,
         private val rootProjectName: String
-    ) : InstantExecutionBuild {
+    ) : ConfigurationCacheBuild {
         private
         val buildDirs = mutableMapOf<Path, File>()
 

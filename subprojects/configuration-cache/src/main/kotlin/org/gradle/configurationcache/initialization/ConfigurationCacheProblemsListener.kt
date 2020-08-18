@@ -23,9 +23,9 @@ import org.gradle.api.internal.GeneratedSubclasses
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.tasks.execution.TaskExecutionAccessListener
 import org.gradle.configuration.internal.UserCodeApplicationContext
+import org.gradle.configurationcache.problems.ConfigurationCacheProblems
 import org.gradle.configurationcache.problems.DocumentationSection.RequirementsBuildListeners
 import org.gradle.configurationcache.problems.DocumentationSection.RequirementsUseProjectDuringExecution
-import org.gradle.configurationcache.problems.InstantExecutionProblems
 import org.gradle.configurationcache.problems.PropertyProblem
 import org.gradle.configurationcache.problems.PropertyTrace
 import org.gradle.configurationcache.problems.StructuredMessage
@@ -36,13 +36,13 @@ import org.gradle.internal.service.scopes.ServiceScope
 
 
 @ServiceScope(Scopes.Build::class)
-interface InstantExecutionProblemsListener : TaskExecutionAccessListener, BuildScopeListenerRegistrationListener
+interface ConfigurationCacheProblemsListener : TaskExecutionAccessListener, BuildScopeListenerRegistrationListener
 
 
-class DefaultInstantExecutionProblemsListener internal constructor(
-    private val problems: InstantExecutionProblems,
+class DefaultConfigurationCacheProblemsListener internal constructor(
+    private val problems: ConfigurationCacheProblems,
     private val userCodeApplicationContext: UserCodeApplicationContext
-) : InstantExecutionProblemsListener {
+) : ConfigurationCacheProblemsListener {
 
     override fun onProjectAccess(invocationDescription: String, task: TaskInternal) {
         onTaskExecutionAccessProblem(invocationDescription, task)
@@ -115,7 +115,7 @@ class DefaultInstantExecutionProblemsListener internal constructor(
 }
 
 
-class NoOpInstantExecutionProblemsListener : InstantExecutionProblemsListener {
+class NoOpConfigurationCacheProblemsListener : ConfigurationCacheProblemsListener {
     override fun onProjectAccess(invocationDescription: String, task: TaskInternal) {
     }
 

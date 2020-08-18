@@ -22,7 +22,7 @@ import org.gradle.api.artifacts.Configuration
 import org.gradle.api.internal.ConventionTask
 import org.gradle.api.internal.TaskInternal
 
-import org.gradle.configurationcache.problems.DisableInstantExecutionFieldTypeCheck
+import org.gradle.configurationcache.problems.DisableConfigurationCacheFieldTypeCheck
 import org.gradle.configurationcache.problems.PropertyKind
 import org.gradle.configurationcache.serialization.IsolateContext
 import org.gradle.configurationcache.serialization.Workarounds
@@ -72,7 +72,7 @@ fun IsolateContext.reportUnsupportedFieldType(
 internal
 fun unsupportedFieldTypeFor(field: Field): KClass<*>? =
     field.takeUnless {
-        field.isAnnotationPresent(DisableInstantExecutionFieldTypeCheck::class.java)
+        field.isAnnotationPresent(DisableConfigurationCacheFieldTypeCheck::class.java)
     }?.let {
         unsupportedFieldDeclaredTypes
             .firstOrNull { it.java.isAssignableFrom(field.type) }

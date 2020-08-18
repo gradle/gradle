@@ -66,10 +66,10 @@ class InstantExecutionBuildOperationsFixture {
     }
 
     private BuildOperationRecord loadOperation() {
-        operations.first("Load instant execution state")
+        operations.first("Load configuration cache state")
     }
 
     private BuildOperationRecord storeOperation() {
-        operations.first("Store instant execution state")
+        operations.first("Store configuration cache state")
     }
 }

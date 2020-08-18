@@ -21,7 +21,6 @@ import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.provider.Provider
 import org.gradle.caching.configuration.BuildCache
-import org.gradle.execution.plan.Node
 import org.gradle.configurationcache.problems.DocumentationSection.NotYetImplementedCompositeBuilds
 import org.gradle.configurationcache.problems.DocumentationSection.NotYetImplementedSourceDependencies
 import org.gradle.configurationcache.serialization.DefaultReadContext
@@ -36,6 +35,7 @@ import org.gradle.configurationcache.serialization.withDebugFrame
 import org.gradle.configurationcache.serialization.withGradleIsolate
 import org.gradle.configurationcache.serialization.writeCollection
 import org.gradle.configurationcache.serialization.writeFile
+import org.gradle.execution.plan.Node
 import org.gradle.internal.build.event.BuildEventListenerRegistryInternal
 import org.gradle.internal.cleanup.BuildOutputCleanupRegistry
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginAdapter
@@ -48,9 +48,9 @@ import java.util.ArrayList
 
 
 internal
-class InstantExecutionState(
+class ConfigurationCacheState(
     private val codecs: Codecs,
-    private val host: DefaultInstantExecution.Host,
+    private val host: DefaultConfigurationCache.Host,
     private val relevantProjectsRegistry: RelevantProjectsRegistry
 ) {
 
@@ -258,7 +258,7 @@ class InstantExecutionState(
     }
 
     private
-    fun Decoder.readRelevantProjects(build: InstantExecutionBuild) {
+    fun Decoder.readRelevantProjects(build: ConfigurationCacheBuild) {
         readCollection {
             val projectPath = readString()
             val projectDir = readFile()

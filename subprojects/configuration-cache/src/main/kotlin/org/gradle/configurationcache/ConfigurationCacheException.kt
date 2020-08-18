@@ -31,30 +31,30 @@ import java.io.File
  * Marker interface for exception handling.
  */
 internal
-interface InstantExecutionThrowable
+interface ConfigurationCacheThrowable
 
 
 /**
  * State might be corrupted and should be discarded.
  */
 @Contextual
-class InstantExecutionError internal constructor(
+class ConfigurationCacheError internal constructor(
     error: String,
     cause: Throwable? = null
 ) : Exception(
     "Configuration cache state could not be cached: $error",
     cause
-), InstantExecutionThrowable
+), ConfigurationCacheThrowable
 
 
 @Contextual
-sealed class InstantExecutionException private constructor(
+sealed class ConfigurationCacheException private constructor(
     message: () -> String,
     causes: Iterable<Throwable>
-) : DefaultMultiCauseException(message, causes), InstantExecutionThrowable
+) : DefaultMultiCauseException(message, causes), ConfigurationCacheThrowable
 
 
-open class InstantExecutionProblemsException : InstantExecutionException {
+open class ConfigurationCacheProblemsException : ConfigurationCacheException {
 
     protected
     object Documentation {
@@ -91,12 +91,12 @@ open class InstantExecutionProblemsException : InstantExecutionException {
 }
 
 
-class TooManyInstantExecutionProblemsException internal constructor(
+class TooManyConfigurationCacheProblemsException internal constructor(
     causes: List<Throwable>,
     cacheAction: String,
     problems: List<PropertyProblem>,
     htmlReportFile: File
-) : InstantExecutionProblemsException(
+) : ConfigurationCacheProblemsException(
     "Maximum number of configuration cache problems has been reached.\n" +
         "This behavior can be adjusted, see ${Documentation.maxProblems}.",
     causes,

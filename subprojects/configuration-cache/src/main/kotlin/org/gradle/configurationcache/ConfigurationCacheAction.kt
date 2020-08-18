@@ -18,6 +18,6 @@ package org.gradle.configurationcache
 
 
 internal
-enum class InstantExecutionCacheAction {
+enum class ConfigurationCacheAction {
     LOAD, STORE
 }

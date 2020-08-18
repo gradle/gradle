@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,16 +14,23 @@
  * limitations under the License.
  */
 
-package org.gradle.configurationcache.problems
+package org.gradle.configurationcache
+
+import org.gradle.api.internal.GradleInternal
+import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.execution.plan.Node
+import java.io.File
 
 
-/**
- * Disable instant execution field type check for the annotated field.
- *
- * This is a temporary measure, internal, in order to not loose too much coverage.
- *
- * TODO:configuration-cache This annotation should be removed.
- */
-@Target(AnnotationTarget.FIELD)
-@Retention(AnnotationRetention.RUNTIME)
-annotation class DisableInstantExecutionFieldTypeCheck
+interface ConfigurationCacheBuild {
+
+    val gradle: GradleInternal
+
+    fun createProject(path: String, dir: File, buildDir: File)
+
+    fun getProject(path: String): ProjectInternal
+
+    fun registerProjects()
+
+    fun scheduleNodes(nodes: Collection<Node>)
+}

@@ -16,19 +16,19 @@
 
 package org.gradle.configurationcache
 
-import org.gradle.configurationcache.initialization.InstantExecutionProblemsListener
+import org.gradle.configurationcache.initialization.ConfigurationCacheProblemsListener
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.service.scopes.BuildScopeListenerManagerAction
 
 
 internal
-class InstantExecutionBuildScopeListenerManagerAction(
+class ConfigurationCacheBuildScopeListenerManagerAction(
 
     private
-    val scopeRegistryListener: InstantExecutionClassLoaderScopeRegistryListener,
+    val scopeRegistryListener: ConfigurationCacheClassLoaderScopeRegistryListener,
 
     private
-    val problemsListener: InstantExecutionProblemsListener
+    val problemsListener: ConfigurationCacheProblemsListener
 
 ) : BuildScopeListenerManagerAction {
 

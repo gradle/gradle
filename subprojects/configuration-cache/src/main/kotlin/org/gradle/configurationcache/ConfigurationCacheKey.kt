@@ -17,7 +17,7 @@
 package org.gradle.configurationcache
 
 import org.gradle.configurationcache.extensions.unsafeLazy
-import org.gradle.configurationcache.initialization.InstantExecutionStartParameter
+import org.gradle.configurationcache.initialization.ConfigurationCacheStartParameter
 import org.gradle.internal.hash.HashValue
 import org.gradle.internal.hash.Hasher
 import org.gradle.internal.hash.Hashing
@@ -26,8 +26,8 @@ import org.gradle.util.GradleVersion
 import java.io.File
 
 
-class InstantExecutionCacheKey(
-    private val startParameter: InstantExecutionStartParameter
+class ConfigurationCacheKey(
+    private val startParameter: ConfigurationCacheStartParameter
 ) {
 
     val string: String by unsafeLazy {

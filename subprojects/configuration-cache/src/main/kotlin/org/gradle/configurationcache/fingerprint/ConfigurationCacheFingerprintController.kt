@@ -24,7 +24,7 @@ import org.gradle.api.internal.provider.ValueSourceProviderFactory
 import org.gradle.configurationcache.BuildTreeListenerManager
 import org.gradle.configurationcache.extensions.hashCodeOf
 import org.gradle.configurationcache.extensions.serviceOf
-import org.gradle.configurationcache.initialization.InstantExecutionStartParameter
+import org.gradle.configurationcache.initialization.ConfigurationCacheStartParameter
 import org.gradle.configurationcache.serialization.DefaultWriteContext
 import org.gradle.configurationcache.serialization.ReadContext
 import org.gradle.internal.concurrent.Stoppable
@@ -46,8 +46,8 @@ import java.io.OutputStream
  */
 @ServiceScope(Scopes.Build::class)
 internal
-class InstantExecutionCacheFingerprintController internal constructor(
-    private val startParameter: InstantExecutionStartParameter,
+class ConfigurationCacheFingerprintController internal constructor(
+    private val startParameter: ConfigurationCacheStartParameter,
     private val taskInputsListeners: TaskInputsListeners,
     private val valueSourceProviderFactory: ValueSourceProviderFactory,
     private val fileSystemAccess: FileSystemAccess,
@@ -81,7 +81,7 @@ class InstantExecutionCacheFingerprintController internal constructor(
     inner class Idle : WritingState() {
         override fun start(writeContextForOutputStream: (OutputStream) -> DefaultWriteContext): WritingState {
             val outputStream = ByteArrayOutputStream()
-            val fingerprintWriter = InstantExecutionCacheFingerprintWriter(
+            val fingerprintWriter = ConfigurationCacheFingerprintWriter(
                 CacheFingerprintComponentHost(),
                 writeContextForOutputStream(outputStream)
             )
@@ -95,7 +95,7 @@ class InstantExecutionCacheFingerprintController internal constructor(
 
     private
     inner class Writing(
-        private val fingerprintWriter: InstantExecutionCacheFingerprintWriter,
+        private val fingerprintWriter: ConfigurationCacheFingerprintWriter,
         private val outputStream: ByteArrayOutputStream
     ) : WritingState() {
         override fun stop(): WritingState {
@@ -110,7 +110,7 @@ class InstantExecutionCacheFingerprintController internal constructor(
 
     private
     inner class Written(
-        private val fingerprintWriter: InstantExecutionCacheFingerprintWriter,
+        private val fingerprintWriter: ConfigurationCacheFingerprintWriter,
         private val outputStream: ByteArrayOutputStream
     ) : WritingState() {
         override fun commit(fingerprintFile: File): WritingState {
@@ -148,19 +148,19 @@ class InstantExecutionCacheFingerprintController internal constructor(
     }
 
     suspend fun ReadContext.checkFingerprint(): InvalidationReason? =
-        InstantExecutionCacheFingerprintChecker(CacheFingerprintComponentHost()).run {
+        ConfigurationCacheFingerprintChecker(CacheFingerprintComponentHost()).run {
             checkFingerprint()
         }
 
     private
-    fun addListener(listener: InstantExecutionCacheFingerprintWriter) {
+    fun addListener(listener: ConfigurationCacheFingerprintWriter) {
         listenerManager.addListener(listener)
         buildTreeListenerManager.service.addListener(listener)
         taskInputsListeners.addListener(listener)
     }
 
     private
-    fun removeListener(listener: InstantExecutionCacheFingerprintWriter) {
+    fun removeListener(listener: ConfigurationCacheFingerprintWriter) {
         taskInputsListeners.removeListener(listener)
         buildTreeListenerManager.service.removeListener(listener)
         listenerManager.removeListener(listener)
@@ -168,7 +168,7 @@ class InstantExecutionCacheFingerprintController internal constructor(
 
     private
     inner class CacheFingerprintComponentHost :
-        InstantExecutionCacheFingerprintWriter.Host, InstantExecutionCacheFingerprintChecker.Host {
+        ConfigurationCacheFingerprintWriter.Host, ConfigurationCacheFingerprintChecker.Host {
 
         override val gradleUserHomeDir: File
             get() = startParameter.gradleUserHomeDir

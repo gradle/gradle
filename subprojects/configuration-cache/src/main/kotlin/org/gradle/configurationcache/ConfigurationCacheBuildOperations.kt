@@ -24,12 +24,12 @@ import org.gradle.internal.operations.RunnableBuildOperation
 
 internal
 fun BuildOperationExecutor.withLoadOperation(block: () -> Unit) =
-    withOperation("Load instant execution state", block)
+    withOperation("Load configuration cache state", block)
 
 
 internal
 fun BuildOperationExecutor.withStoreOperation(block: () -> Unit) =
-    withOperation("Store instant execution state", block)
+    withOperation("Store configuration cache state", block)
 
 
 private

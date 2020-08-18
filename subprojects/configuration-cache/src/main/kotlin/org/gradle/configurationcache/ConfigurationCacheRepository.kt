@@ -25,7 +25,7 @@ import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup
 import org.gradle.cache.internal.SingleDepthFilesFinder
 import org.gradle.cache.internal.filelock.LockOptionsBuilder
 import org.gradle.configurationcache.extensions.unsafeLazy
-import org.gradle.configurationcache.initialization.InstantExecutionStartParameter
+import org.gradle.configurationcache.initialization.ConfigurationCacheStartParameter
 import org.gradle.internal.Factory
 import org.gradle.internal.concurrent.Stoppable
 import org.gradle.internal.file.FileAccessTimeJournal
@@ -35,13 +35,57 @@ import java.io.File
 
 
 internal
-class InstantExecutionCache(
+class ConfigurationCacheRepository(
     private val cacheRepository: CacheRepository,
     private val cacheCleanupFactory: CleanupActionFactory,
     private val fileAccessTimeJournal: FileAccessTimeJournal,
-    private val startParameter: InstantExecutionStartParameter,
+    private val startParameter: ConfigurationCacheStartParameter,
     private val fileSystem: FileSystem
 ) : Stoppable {
+
+    fun useForFingerprintCheck(cacheKey: String, check: (File) -> String?): CheckedFingerprint =
+        withBaseCacheDirFor(cacheKey) { cacheDir ->
+            val fingerprint = cacheDir.fingerprintFile
+            when {
+                !fingerprint.isFile -> CheckedFingerprint.NotFound
+                else -> {
+                    when (val invalidReason = check(fingerprint)) {
+                        null -> {
+                            fileAccessTracker.markAccessed(fingerprint) // Prevent cleanup before state load
+                            CheckedFingerprint.Valid
+                        }
+                        else -> CheckedFingerprint.Invalid(invalidReason)
+                    }
+                }
+            }
+        }
+
+    fun useForStateLoad(cacheKey: String, action: (File) -> Unit) {
+        withBaseCacheDirFor(cacheKey) { cacheDir ->
+            val stateFile = cacheDir.stateFile
+            fileAccessTracker.markAccessed(stateFile)
+            action(stateFile)
+        }
+    }
+
+    class Layout(val fingerprint: File, val state: File)
+
+    fun useForStore(cacheKey: String, action: (Layout) -> Unit) {
+        withBaseCacheDirFor(cacheKey) { cacheDir ->
+            // TODO GlobalCache require(!cacheDir.isDirectory)
+            cacheDir.mkdirs()
+            fileSystem.chmod(cacheDir, 448) // octal 0700
+            fileAccessTracker.markAccessed(cacheDir)
+            val layout = Layout(cacheDir.fingerprintFile, cacheDir.stateFile)
+            try {
+                action(layout)
+            } finally {
+                sequenceOf(layout.state, layout.fingerprint)
+                    .filter(File::isFile)
+                    .forEach { fileSystem.chmod(it, 384) } // octal 0600
+            }
+        }
+    }
 
     private
     val cacheRootDir
@@ -94,50 +138,6 @@ class InstantExecutionCache(
         object NotFound : CheckedFingerprint()
         object Valid : CheckedFingerprint()
         class Invalid(val reason: String) : CheckedFingerprint()
-    }
-
-    fun useForFingerprintCheck(cacheKey: String, check: (File) -> String?): CheckedFingerprint =
-        withBaseCacheDirFor(cacheKey) { cacheDir ->
-            val fingerprint = cacheDir.fingerprintFile
-            when {
-                !fingerprint.isFile -> CheckedFingerprint.NotFound
-                else -> {
-                    when (val invalidReason = check(fingerprint)) {
-                        null -> {
-                            fileAccessTracker.markAccessed(fingerprint) // Prevent cleanup before state load
-                            CheckedFingerprint.Valid
-                        }
-                        else -> CheckedFingerprint.Invalid(invalidReason)
-                    }
-                }
-            }
-        }
-
-    fun useForStateLoad(cacheKey: String, action: (File) -> Unit) {
-        withBaseCacheDirFor(cacheKey) { cacheDir ->
-            val stateFile = cacheDir.stateFile
-            fileAccessTracker.markAccessed(stateFile)
-            action(stateFile)
-        }
-    }
-
-    class Layout(val fingerprint: File, val state: File)
-
-    fun useForStore(cacheKey: String, action: (Layout) -> Unit) {
-        withBaseCacheDirFor(cacheKey) { cacheDir ->
-            // TODO GlobalCache require(!cacheDir.isDirectory)
-            cacheDir.mkdirs()
-            fileSystem.chmod(cacheDir, 448) // octal 0700
-            fileAccessTracker.markAccessed(cacheDir)
-            val layout = Layout(cacheDir.fingerprintFile, cacheDir.stateFile)
-            try {
-                action(layout)
-            } finally {
-                sequenceOf(layout.state, layout.fingerprint)
-                    .filter(File::isFile)
-                    .forEach { fileSystem.chmod(it, 384) } // octal 0600
-            }
-        }
     }
 
     private

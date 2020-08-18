@@ -34,7 +34,7 @@ import java.io.StringWriter
 import java.net.URL
 
 
-class InstantExecutionReport {
+class ConfigurationCacheReport {
 
     companion object {
 

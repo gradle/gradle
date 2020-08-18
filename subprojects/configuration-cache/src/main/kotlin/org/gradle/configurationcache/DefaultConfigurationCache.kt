@@ -19,25 +19,25 @@ package org.gradle.configurationcache
 import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.Logging
-import org.gradle.initialization.GradlePropertiesController
-import org.gradle.initialization.ConfigurationCache
-import org.gradle.configurationcache.InstantExecutionCache.CheckedFingerprint
+import org.gradle.configurationcache.ConfigurationCacheRepository.CheckedFingerprint
 import org.gradle.configurationcache.extensions.unsafeLazy
-import org.gradle.configurationcache.fingerprint.InstantExecutionCacheFingerprintController
+import org.gradle.configurationcache.fingerprint.ConfigurationCacheFingerprintController
 import org.gradle.configurationcache.fingerprint.InvalidationReason
-import org.gradle.configurationcache.initialization.InstantExecutionStartParameter
-import org.gradle.configurationcache.problems.InstantExecutionProblems
+import org.gradle.configurationcache.initialization.ConfigurationCacheStartParameter
+import org.gradle.configurationcache.problems.ConfigurationCacheProblems
 import org.gradle.configurationcache.serialization.DefaultReadContext
 import org.gradle.configurationcache.serialization.DefaultWriteContext
 import org.gradle.configurationcache.serialization.IsolateOwner
-import org.gradle.configurationcache.serialization.MutableIsolateContext
 import org.gradle.configurationcache.serialization.LoggingTracer
+import org.gradle.configurationcache.serialization.MutableIsolateContext
 import org.gradle.configurationcache.serialization.Tracer
 import org.gradle.configurationcache.serialization.beans.BeanConstructors
 import org.gradle.configurationcache.serialization.codecs.Codecs
 import org.gradle.configurationcache.serialization.runReadOperation
 import org.gradle.configurationcache.serialization.runWriteOperation
 import org.gradle.configurationcache.serialization.withIsolate
+import org.gradle.initialization.ConfigurationCache
+import org.gradle.initialization.GradlePropertiesController
 import org.gradle.internal.Factory
 import org.gradle.internal.classpath.Instrumented
 import org.gradle.internal.operations.BuildOperationExecutor
@@ -50,15 +50,15 @@ import java.io.File
 import java.io.OutputStream
 
 
-class DefaultInstantExecution internal constructor(
+class DefaultConfigurationCache internal constructor(
     private val host: Host,
-    private val startParameter: InstantExecutionStartParameter,
-    private val cache: InstantExecutionCache,
-    private val cacheKey: InstantExecutionCacheKey,
-    private val problems: InstantExecutionProblems,
+    private val startParameter: ConfigurationCacheStartParameter,
+    private val cacheRepository: ConfigurationCacheRepository,
+    private val cacheKey: ConfigurationCacheKey,
+    private val problems: ConfigurationCacheProblems,
     private val systemPropertyListener: SystemPropertyAccessListener,
-    private val scopeRegistryListener: InstantExecutionClassLoaderScopeRegistryListener,
-    private val cacheFingerprintController: InstantExecutionCacheFingerprintController,
+    private val scopeRegistryListener: ConfigurationCacheClassLoaderScopeRegistryListener,
+    private val cacheFingerprintController: ConfigurationCacheFingerprintController,
     private val beanConstructors: BeanConstructors,
     private val gradlePropertiesController: GradlePropertiesController,
     private val relevantProjectsRegistry: RelevantProjectsRegistry
@@ -68,7 +68,7 @@ class DefaultInstantExecution internal constructor(
 
         val currentBuild: VintageGradleBuild
 
-        fun createBuild(rootProjectName: String): InstantExecutionBuild
+        fun createBuild(rootProjectName: String): ConfigurationCacheBuild
 
         fun <T> service(serviceType: Class<T>): T
 
@@ -76,7 +76,7 @@ class DefaultInstantExecution internal constructor(
     }
 
     override fun canLoad(): Boolean = when {
-        !isInstantExecutionEnabled -> {
+        !isConfigurationCacheEnabled -> {
             false
         }
         startParameter.recreateCache -> {
@@ -105,7 +105,7 @@ class DefaultInstantExecution internal constructor(
             false
         }
         else -> {
-            val checkedFingerprint = cache.useForFingerprintCheck(
+            val checkedFingerprint = cacheRepository.useForFingerprintCheck(
                 cacheKey.string,
                 this::checkFingerprint
             )
@@ -134,7 +134,7 @@ class DefaultInstantExecution internal constructor(
 
     override fun prepareForConfiguration() {
 
-        if (!isInstantExecutionEnabled) return
+        if (!isConfigurationCacheEnabled) return
 
         startCollectingCacheFingerprint()
         Instrumented.setListener(systemPropertyListener)
@@ -142,7 +142,7 @@ class DefaultInstantExecution internal constructor(
 
     override fun save() {
 
-        if (!isInstantExecutionEnabled) {
+        if (!isConfigurationCacheEnabled) {
             // No need to hold onto the `ClassLoaderScope` tree
             // if we are not writing it.
             scopeRegistryListener.dispose()
@@ -156,15 +156,15 @@ class DefaultInstantExecution internal constructor(
         stopCollectingCacheFingerprint()
 
         buildOperationExecutor.withStoreOperation {
-            cache.useForStore(cacheKey.string) { layout ->
+            cacheRepository.useForStore(cacheKey.string) { layout ->
                 problems.storing {
-                    invalidateInstantExecutionState(layout)
+                    invalidateConfigurationCacheState(layout)
                 }
                 try {
-                    writeInstantExecutionFiles(layout)
-                } catch (error: InstantExecutionError) {
+                    writeConfigurationCacheFiles(layout)
+                } catch (error: ConfigurationCacheError) {
                     // Invalidate state on serialization errors
-                    invalidateInstantExecutionState(layout)
+                    invalidateConfigurationCacheState(layout)
                     problems.failingBuildDueToSerializationError()
                     throw error
                 } finally {
@@ -176,7 +176,7 @@ class DefaultInstantExecution internal constructor(
 
     override fun load() {
 
-        require(isInstantExecutionEnabled)
+        require(isConfigurationCacheEnabled)
 
         problems.loading()
 
@@ -185,23 +185,23 @@ class DefaultInstantExecution internal constructor(
         scopeRegistryListener.dispose()
 
         buildOperationExecutor.withLoadOperation {
-            cache.useForStateLoad(cacheKey.string) { stateFile ->
-                readInstantExecutionState(stateFile)
+            cacheRepository.useForStateLoad(cacheKey.string) { stateFile ->
+                readConfigurationCacheState(stateFile)
             }
         }
     }
 
     private
-    fun writeInstantExecutionFiles(layout: InstantExecutionCache.Layout) {
-        writeInstantExecutionState(layout.state)
-        writeInstantExecutionCacheFingerprint(layout.fingerprint)
+    fun writeConfigurationCacheFiles(layout: ConfigurationCacheRepository.Layout) {
+        writeConfigurationCacheState(layout.state)
+        writeConfigurationCacheFingerprint(layout.fingerprint)
     }
 
     private
-    fun writeInstantExecutionState(stateFile: File) {
+    fun writeConfigurationCacheState(stateFile: File) {
         service<ProjectStateRegistry>().withMutableStateOfAllProjects {
             withWriteContextFor(stateFile, "state") {
-                instantExecutionState().run {
+                configurationCacheState().run {
                     writeState()
                 }
             }
@@ -209,17 +209,17 @@ class DefaultInstantExecution internal constructor(
     }
 
     private
-    fun readInstantExecutionState(stateFile: File) {
+    fun readConfigurationCacheState(stateFile: File) {
         withReadContextFor(stateFile) {
-            instantExecutionState().run {
+            configurationCacheState().run {
                 readState()
             }
         }
     }
 
     private
-    fun instantExecutionState() =
-        InstantExecutionState(codecs(), host, relevantProjectsRegistry)
+    fun configurationCacheState() =
+        ConfigurationCacheState(codecs(), host, relevantProjectsRegistry)
 
     private
     fun startCollectingCacheFingerprint() {
@@ -234,7 +234,7 @@ class DefaultInstantExecution internal constructor(
     }
 
     private
-    fun writeInstantExecutionCacheFingerprint(fingerprintFile: File) =
+    fun writeConfigurationCacheFingerprint(fingerprintFile: File) =
         cacheFingerprintController.commitFingerprintTo(fingerprintFile)
 
     private
@@ -246,11 +246,11 @@ class DefaultInstantExecution internal constructor(
     private
     fun checkFingerprint(fingerprintFile: File): InvalidationReason? {
         loadGradleProperties()
-        return checkInstantExecutionFingerprintFile(fingerprintFile)
+        return checkConfigurationCacheFingerprintFile(fingerprintFile)
     }
 
     private
-    fun checkInstantExecutionFingerprintFile(fingerprintFile: File): InvalidationReason? =
+    fun checkConfigurationCacheFingerprintFile(fingerprintFile: File): InvalidationReason? =
         withReadContextFor(fingerprintFile) {
             withHostIsolate {
                 cacheFingerprintController.run {
@@ -267,7 +267,7 @@ class DefaultInstantExecution internal constructor(
     }
 
     private
-    fun invalidateInstantExecutionState(layout: InstantExecutionCache.Layout) {
+    fun invalidateConfigurationCacheState(layout: ConfigurationCacheRepository.Layout) {
         layout.fingerprint.delete()
     }
 
@@ -370,7 +370,7 @@ class DefaultInstantExecution internal constructor(
 
     private
     fun log(message: String, vararg args: Any?) {
-        logger.log(instantExecutionLogLevel, message, *args)
+        logger.log(configurationCacheLogLevel, message, *args)
     }
 
     private
@@ -387,12 +387,12 @@ class DefaultInstantExecution internal constructor(
 
     // Skip configuration cache for buildSrc for now.
     private
-    val isInstantExecutionEnabled: Boolean by unsafeLazy {
+    val isConfigurationCacheEnabled: Boolean by unsafeLazy {
         startParameter.isEnabled && host.currentBuild.gradle.isRootBuild
     }
 
     private
-    val instantExecutionLogLevel: LogLevel
+    val configurationCacheLogLevel: LogLevel
         get() = when (startParameter.isQuiet) {
             true -> LogLevel.INFO
             else -> LogLevel.LIFECYCLE
@@ -401,9 +401,9 @@ class DefaultInstantExecution internal constructor(
 
 
 internal
-inline fun <reified T> DefaultInstantExecution.Host.service(): T =
+inline fun <reified T> DefaultConfigurationCache.Host.service(): T =
     service(T::class.java)
 
 
 private
-val logger = Logging.getLogger(DefaultInstantExecution::class.java)
+val logger = Logging.getLogger(DefaultConfigurationCache::class.java)

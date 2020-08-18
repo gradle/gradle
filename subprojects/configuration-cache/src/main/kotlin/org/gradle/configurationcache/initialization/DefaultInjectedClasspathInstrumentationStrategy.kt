@@ -17,7 +17,7 @@
 package org.gradle.configurationcache.initialization
 
 import org.gradle.configurationcache.problems.DocumentationSection
-import org.gradle.configurationcache.problems.InstantExecutionProblems
+import org.gradle.configurationcache.problems.ConfigurationCacheProblems
 import org.gradle.configurationcache.problems.PropertyProblem
 import org.gradle.configurationcache.problems.PropertyTrace
 import org.gradle.configurationcache.problems.StructuredMessage
@@ -26,7 +26,7 @@ import org.gradle.plugin.use.resolve.service.internal.InjectedClasspathInstrumen
 import java.lang.management.ManagementFactory
 
 
-class DefaultInjectedClasspathInstrumentationStrategy(private val startParameter: InstantExecutionStartParameter, private val problems: InstantExecutionProblems) : InjectedClasspathInstrumentationStrategy {
+class DefaultInjectedClasspathInstrumentationStrategy(private val startParameter: ConfigurationCacheStartParameter, private val problems: ConfigurationCacheProblems) : InjectedClasspathInstrumentationStrategy {
     override fun getTransform(): CachedClasspathTransformer.StandardTransform {
         val isAgentPresent = ManagementFactory.getRuntimeMXBean().inputArguments.find { it.startsWith("-javaagent:") } != null
         return if (!startParameter.isEnabled && isAgentPresent) {

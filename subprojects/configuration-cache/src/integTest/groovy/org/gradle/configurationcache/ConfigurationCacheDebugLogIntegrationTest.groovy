@@ -19,7 +19,7 @@ package org.gradle.configurationcache
 import org.gradle.api.DefaultTask
 import org.gradle.execution.plan.LocalTaskNode
 
-import static org.gradle.configurationcache.fingerprint.InstantExecutionCacheFingerprint.GradleEnvironment
+import static org.gradle.configurationcache.fingerprint.ConfigurationCacheFingerprint.GradleEnvironment
 
 class ConfigurationCacheDebugLogIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 

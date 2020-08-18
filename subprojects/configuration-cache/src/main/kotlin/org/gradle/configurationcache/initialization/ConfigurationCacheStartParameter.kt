@@ -27,7 +27,7 @@ import java.io.File
 
 
 @ServiceScope(Scopes.BuildTree::class)
-class InstantExecutionStartParameter(
+class ConfigurationCacheStartParameter(
     private val buildLayout: BuildLayout,
     startParameter: StartParameter
 ) {

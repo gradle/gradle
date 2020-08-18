@@ -21,7 +21,7 @@ import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.logging.Logger
-import org.gradle.configurationcache.DefaultInstantExecution
+import org.gradle.configurationcache.DefaultConfigurationCache
 import org.gradle.configurationcache.extensions.uncheckedCast
 import org.gradle.configurationcache.problems.PropertyProblem
 import org.gradle.configurationcache.problems.PropertyTrace
@@ -114,7 +114,7 @@ sealed class IsolateOwner {
         override fun <T> service(type: Class<T>): T = (delegate as GradleInternal).services.get(type)
     }
 
-    class OwnerHost(override val delegate: DefaultInstantExecution.Host) : IsolateOwner() {
+    class OwnerHost(override val delegate: DefaultConfigurationCache.Host) : IsolateOwner() {
         override fun <T> service(type: Class<T>): T = delegate.service(type)
     }
 }

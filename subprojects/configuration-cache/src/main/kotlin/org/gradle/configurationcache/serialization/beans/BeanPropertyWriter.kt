@@ -18,8 +18,8 @@ package org.gradle.configurationcache.serialization.beans
 
 import org.gradle.api.internal.GeneratedSubclasses
 import org.gradle.api.internal.IConventionAware
-import org.gradle.configurationcache.InstantExecutionError
-import org.gradle.configurationcache.InstantExecutionProblemsException
+import org.gradle.configurationcache.ConfigurationCacheError
+import org.gradle.configurationcache.ConfigurationCacheProblemsException
 import org.gradle.configurationcache.extensions.maybeUnwrapInvocationTargetException
 import org.gradle.configurationcache.problems.PropertyKind
 import org.gradle.configurationcache.problems.propertyDescriptionFor
@@ -78,10 +78,10 @@ suspend fun WriteContext.writeNextProperty(name: String, value: Any?, kind: Prop
             write(value)
         } catch (passThrough: IOException) {
             throw passThrough
-        } catch (passThrough: InstantExecutionProblemsException) {
+        } catch (passThrough: ConfigurationCacheProblemsException) {
             throw passThrough
         } catch (error: Exception) {
-            throw InstantExecutionError(
+            throw ConfigurationCacheError(
                 propertyErrorMessage(value),
                 error.maybeUnwrapInvocationTargetException()
             )

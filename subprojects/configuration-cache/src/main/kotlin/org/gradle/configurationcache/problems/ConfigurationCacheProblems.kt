@@ -21,15 +21,15 @@ import org.gradle.BuildResult
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.logging.Logging
 import org.gradle.initialization.RootBuildLifecycleListener
-import org.gradle.configurationcache.InstantExecutionCacheAction
-import org.gradle.configurationcache.InstantExecutionCacheAction.LOAD
-import org.gradle.configurationcache.InstantExecutionCacheAction.STORE
-import org.gradle.configurationcache.InstantExecutionCacheKey
-import org.gradle.configurationcache.InstantExecutionProblemsException
-import org.gradle.configurationcache.InstantExecutionReport
-import org.gradle.configurationcache.TooManyInstantExecutionProblemsException
+import org.gradle.configurationcache.ConfigurationCacheAction
+import org.gradle.configurationcache.ConfigurationCacheAction.LOAD
+import org.gradle.configurationcache.ConfigurationCacheAction.STORE
+import org.gradle.configurationcache.ConfigurationCacheKey
+import org.gradle.configurationcache.ConfigurationCacheProblemsException
+import org.gradle.configurationcache.ConfigurationCacheReport
+import org.gradle.configurationcache.TooManyConfigurationCacheProblemsException
 import org.gradle.configurationcache.extensions.getBroadcaster
-import org.gradle.configurationcache.initialization.InstantExecutionStartParameter
+import org.gradle.configurationcache.initialization.ConfigurationCacheStartParameter
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.service.scopes.Scopes
 import org.gradle.internal.service.scopes.ServiceScope
@@ -42,16 +42,16 @@ const val maxCauses = 5
 
 
 @ServiceScope(Scopes.BuildTree::class)
-class InstantExecutionProblems(
+class ConfigurationCacheProblems(
 
     private
-    val startParameter: InstantExecutionStartParameter,
+    val startParameter: ConfigurationCacheStartParameter,
 
     private
-    val report: InstantExecutionReport,
+    val report: ConfigurationCacheReport,
 
     private
-    val cacheKey: InstantExecutionCacheKey,
+    val cacheKey: ConfigurationCacheKey,
 
     private
     val listenerManager: ListenerManager
@@ -80,7 +80,7 @@ class InstantExecutionProblems(
     var isFailingBuildDueToSerializationError = false
 
     private
-    var cacheAction: InstantExecutionCacheAction? = null
+    var cacheAction: ConfigurationCacheAction? = null
 
     private
     var invalidateStoredState: (() -> Unit)? = null
@@ -156,7 +156,7 @@ class InstantExecutionProblems(
         }
 
         private
-        fun InstantExecutionCacheAction.summaryText() =
+        fun ConfigurationCacheAction.summaryText() =
             when (this) {
                 LOAD -> "reusing"
                 STORE -> "storing"
@@ -164,7 +164,7 @@ class InstantExecutionProblems(
 
         private
         fun newProblemsException(cacheActionText: String, htmlReportFile: File) =
-            InstantExecutionProblemsException(
+            ConfigurationCacheProblemsException(
                 problems.causes(),
                 cacheActionText,
                 problems,
@@ -173,7 +173,7 @@ class InstantExecutionProblems(
 
         private
         fun newTooManyProblemsException(cacheActionText: String, htmlReportFile: File) =
-            TooManyInstantExecutionProblemsException(
+            TooManyConfigurationCacheProblemsException(
                 problems.causes(),
                 cacheActionText,
                 problems,
@@ -223,5 +223,5 @@ class InstantExecutionProblems(
     }
 
     private
-    val logger = Logging.getLogger(InstantExecutionProblems::class.java)
+    val logger = Logging.getLogger(ConfigurationCacheProblems::class.java)
 }

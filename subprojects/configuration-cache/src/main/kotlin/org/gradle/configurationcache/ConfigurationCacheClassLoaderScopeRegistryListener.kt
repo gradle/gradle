@@ -28,7 +28,7 @@ import org.gradle.internal.hash.HashCode
 
 
 internal
-class InstantExecutionClassLoaderScopeRegistryListener : ClassLoaderScopeRegistryListener, ScopeLookup {
+class ConfigurationCacheClassLoaderScopeRegistryListener : ClassLoaderScopeRegistryListener, ScopeLookup {
     private
     val scopeSpecs = LinkedHashMap<ClassLoaderScopeId, ClassLoaderScopeSpec>()
 

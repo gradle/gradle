@@ -32,7 +32,7 @@ typealias InvalidationReason = String
 
 
 internal
-class InstantExecutionCacheFingerprintChecker(private val host: Host) {
+class ConfigurationCacheFingerprintChecker(private val host: Host) {
 
     interface Host {
         val gradleUserHomeDir: File
@@ -49,39 +49,39 @@ class InstantExecutionCacheFingerprintChecker(private val host: Host) {
         while (true) {
             when (val input = read()) {
                 null -> return null
-                is InstantExecutionCacheFingerprint.TaskInputs -> input.run {
+                is ConfigurationCacheFingerprint.TaskInputs -> input.run {
                     val currentFingerprint = host.fingerprintOf(fileSystemInputs)
                     if (currentFingerprint != fileSystemInputsFingerprint) {
                         // TODO: summarize what has changed (see https://github.com/gradle/configuration-cache/issues/282)
                         return "an input to task '$taskPath' has changed"
                     }
                 }
-                is InstantExecutionCacheFingerprint.InputFile -> input.run {
+                is ConfigurationCacheFingerprint.InputFile -> input.run {
                     if (hasFileChanged(file, hash)) {
                         return "file '${displayNameOf(file)}' has changed"
                     }
                 }
-                is InstantExecutionCacheFingerprint.ValueSource -> input.run {
+                is ConfigurationCacheFingerprint.ValueSource -> input.run {
                     checkFingerprintValueIsUpToDate(obtainedValue)?.let { reason ->
                         return reason
                     }
                 }
-                is InstantExecutionCacheFingerprint.InitScripts -> input.run {
+                is ConfigurationCacheFingerprint.InitScripts -> input.run {
                     checkInitScriptsAreUpToDate(fingerprints, host.allInitScripts)?.let { reason ->
                         return reason
                     }
                 }
-                is InstantExecutionCacheFingerprint.UndeclaredSystemProperty -> input.run {
+                is ConfigurationCacheFingerprint.UndeclaredSystemProperty -> input.run {
                     if (isDefined(key)) {
                         return "system property '$key' has changed"
                     }
                 }
-                is InstantExecutionCacheFingerprint.ChangingDependencyResolutionValue -> input.run {
+                is ConfigurationCacheFingerprint.ChangingDependencyResolutionValue -> input.run {
                     if (host.buildStartTime >= expireAt) {
                         return input.reason
                     }
                 }
-                is InstantExecutionCacheFingerprint.GradleEnvironment -> input.run {
+                is ConfigurationCacheFingerprint.GradleEnvironment -> input.run {
                     if (host.gradleUserHomeDir != gradleUserHomeDir) {
                         return "Gradle user home directory has changed"
                     }
@@ -96,7 +96,7 @@ class InstantExecutionCacheFingerprintChecker(private val host: Host) {
 
     private
     fun checkInitScriptsAreUpToDate(
-        previous: List<InstantExecutionCacheFingerprint.InputFile>,
+        previous: List<ConfigurationCacheFingerprint.InputFile>,
         current: List<File>
     ): InvalidationReason? =
         when (val upToDatePrefix = countUpToDatePrefixOf(previous, current)) {
@@ -126,7 +126,7 @@ class InstantExecutionCacheFingerprintChecker(private val host: Host) {
 
     private
     fun countUpToDatePrefixOf(
-        previous: List<InstantExecutionCacheFingerprint.InputFile>,
+        previous: List<ConfigurationCacheFingerprint.InputFile>,
         current: List<File>
     ): Int = current.zip(previous)
         .takeWhile { (initScript, fingerprint) -> isUpToDate(initScript, fingerprint.hash) }

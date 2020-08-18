@@ -51,7 +51,7 @@ import java.io.InputStream
 import java.io.OutputStream
 
 
-class InstantExecutionFingerprintCheckerTest {
+class ConfigurationCacheFingerprintCheckerTest {
 
     @Test
     fun `first modified init script is reported`() {
@@ -164,7 +164,7 @@ class InstantExecutionFingerprintCheckerTest {
                     on { hashCodeOf(scriptFile) } doReturn HashCode.fromInt(1)
                     on { displayNameOf(scriptFile) } doReturn "displayNameOf(scriptFile)"
                 },
-                InstantExecutionCacheFingerprint.InputFile(
+                ConfigurationCacheFingerprint.InputFile(
                     scriptFile,
                     HashCode.fromInt(2)
                 )
@@ -191,7 +191,7 @@ class InstantExecutionFingerprintCheckerTest {
                 mock {
                     on { instantiateValueSourceOf(obtainedValue) } doReturn describableValueSource
                 },
-                InstantExecutionCacheFingerprint.ValueSource(obtainedValue)
+                ConfigurationCacheFingerprint.ValueSource(obtainedValue)
             ),
             equalTo("my value source has changed")
         )
@@ -212,16 +212,16 @@ class InstantExecutionFingerprintCheckerTest {
                     invocation.getArgument<File>(0).name
                 }
             },
-            InstantExecutionCacheFingerprint.InitScripts(
-                from.map { (file, hash) -> InstantExecutionCacheFingerprint.InputFile(file, hash) }
+            ConfigurationCacheFingerprint.InitScripts(
+                from.map { (file, hash) -> ConfigurationCacheFingerprint.InputFile(file, hash) }
             )
         )
     }
 
     private
     fun checkFingerprintGiven(
-        host: InstantExecutionCacheFingerprintChecker.Host,
-        fingerprint: InstantExecutionCacheFingerprint
+        host: ConfigurationCacheFingerprintChecker.Host,
+        fingerprint: ConfigurationCacheFingerprint
     ): InvalidationReason? {
 
         val readContext = recordWritingOf {
@@ -230,7 +230,7 @@ class InstantExecutionFingerprintCheckerTest {
         }
 
         return readContext.runReadOperation {
-            InstantExecutionCacheFingerprintChecker(host).run {
+            ConfigurationCacheFingerprintChecker(host).run {
                 checkFingerprint()
             }
         }

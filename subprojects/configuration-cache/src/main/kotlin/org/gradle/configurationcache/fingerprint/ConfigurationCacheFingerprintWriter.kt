@@ -27,14 +27,13 @@ import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.provider.ValueSourceProviderFactory
 import org.gradle.api.internal.provider.sources.FileContentValueSource
 import org.gradle.api.provider.ValueSourceParameters
-import org.gradle.groovy.scripts.ScriptSource
-import org.gradle.initialization.DefaultSettingsLoader.BUILD_SRC_PROJECT_PATH
 import org.gradle.configurationcache.UndeclaredBuildInputListener
 import org.gradle.configurationcache.extensions.uncheckedCast
-import org.gradle.configurationcache.fingerprint.InstantExecutionCacheFingerprint.InputFile
-import org.gradle.configurationcache.fingerprint.InstantExecutionCacheFingerprint.ValueSource
+import org.gradle.configurationcache.fingerprint.ConfigurationCacheFingerprint.InputFile
+import org.gradle.configurationcache.fingerprint.ConfigurationCacheFingerprint.ValueSource
 import org.gradle.configurationcache.serialization.DefaultWriteContext
 import org.gradle.configurationcache.serialization.runWriteOperation
+import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.resource.local.FileResourceListener
 import org.gradle.internal.scripts.ScriptExecutionListener
@@ -42,7 +41,7 @@ import java.io.File
 
 
 internal
-class InstantExecutionCacheFingerprintWriter(
+class ConfigurationCacheFingerprintWriter(
     private val host: Host,
     private val writeContext: DefaultWriteContext
 ) : ValueSourceProviderFactory.Listener, TaskInputsListener, ScriptExecutionListener, UndeclaredBuildInputListener, ChangingValueDependencyResolutionListener, FileResourceListener {
@@ -74,18 +73,18 @@ class InstantExecutionCacheFingerprintWriter(
     val undeclaredSystemProperties = newConcurrentHashSet<String>()
 
     private
-    var closestChangingValue: InstantExecutionCacheFingerprint.ChangingDependencyResolutionValue? = null
+    var closestChangingValue: ConfigurationCacheFingerprint.ChangingDependencyResolutionValue? = null
 
     init {
         val initScripts = host.allInitScripts
         capturedFiles.addAll(initScripts)
         write(
-            InstantExecutionCacheFingerprint.InitScripts(
+            ConfigurationCacheFingerprint.InitScripts(
                 initScripts.map(::inputFile)
             )
         )
         write(
-            InstantExecutionCacheFingerprint.GradleEnvironment(
+            ConfigurationCacheFingerprint.GradleEnvironment(
                 host.gradleUserHomeDir,
                 jvmFingerprint()
             )
@@ -118,16 +117,16 @@ class InstantExecutionCacheFingerprintWriter(
 
     override fun onDynamicVersionSelection(requested: ModuleComponentSelector, expiry: Expiry) {
         val expireAt = host.buildStartTime + expiry.keepFor.toMillis()
-        onChangingValue(InstantExecutionCacheFingerprint.DynamicDependencyVersion(requested.displayName, expireAt))
+        onChangingValue(ConfigurationCacheFingerprint.DynamicDependencyVersion(requested.displayName, expireAt))
     }
 
     override fun onChangingModuleResolve(moduleId: ModuleComponentIdentifier, expiry: Expiry) {
         val expireAt = host.buildStartTime + expiry.keepFor.toMillis()
-        onChangingValue(InstantExecutionCacheFingerprint.ChangingModule(moduleId.displayName, expireAt))
+        onChangingValue(ConfigurationCacheFingerprint.ChangingModule(moduleId.displayName, expireAt))
     }
 
     private
-    fun onChangingValue(changingValue: InstantExecutionCacheFingerprint.ChangingDependencyResolutionValue) {
+    fun onChangingValue(changingValue: ConfigurationCacheFingerprint.ChangingDependencyResolutionValue) {
         synchronized(this) {
             if (closestChangingValue == null || closestChangingValue!!.expireAt > changingValue.expireAt) {
                 closestChangingValue = changingValue
@@ -143,7 +142,7 @@ class InstantExecutionCacheFingerprintWriter(
         if (!undeclaredSystemProperties.add(key)) {
             return
         }
-        write(InstantExecutionCacheFingerprint.UndeclaredSystemProperty(key))
+        write(ConfigurationCacheFingerprint.UndeclaredSystemProperty(key))
     }
 
     override fun <T : Any, P : ValueSourceParameters> valueObtained(
@@ -197,7 +196,7 @@ class InstantExecutionCacheFingerprintWriter(
     private
     fun captureTaskInputs(task: TaskInternal, fileSystemInputs: FileCollectionInternal) {
         write(
-            InstantExecutionCacheFingerprint.TaskInputs(
+            ConfigurationCacheFingerprint.TaskInputs(
                 task.identityPath.path,
                 fileSystemInputs,
                 host.fingerprintOf(fileSystemInputs, task)
@@ -206,22 +205,18 @@ class InstantExecutionCacheFingerprintWriter(
     }
 
     private
-    fun write(value: InstantExecutionCacheFingerprint?) {
+    fun write(value: ConfigurationCacheFingerprint?) {
         synchronized(writeContext) {
             unsafeWrite(value)
         }
     }
 
     private
-    fun unsafeWrite(value: InstantExecutionCacheFingerprint?) {
+    fun unsafeWrite(value: ConfigurationCacheFingerprint?) {
         writeContext.runWriteOperation {
             write(value)
         }
     }
-
-    private
-    fun isBuildSrcTask(task: TaskInternal) =
-        task.taskIdentity.buildPath.path == BUILD_SRC_PROJECT_PATH
 }
 
 

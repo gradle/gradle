@@ -24,39 +24,39 @@ import java.io.File
 
 
 internal
-sealed class InstantExecutionCacheFingerprint {
+sealed class ConfigurationCacheFingerprint {
 
     data class GradleEnvironment(
         val gradleUserHomeDir: File,
         val jvm: String
-    ) : InstantExecutionCacheFingerprint()
+    ) : ConfigurationCacheFingerprint()
 
     data class InitScripts(
         val fingerprints: List<InputFile>
-    ) : InstantExecutionCacheFingerprint()
+    ) : ConfigurationCacheFingerprint()
 
     data class TaskInputs(
         val taskPath: String,
         val fileSystemInputs: FileCollectionInternal,
         val fileSystemInputsFingerprint: HashCode
-    ) : InstantExecutionCacheFingerprint()
+    ) : ConfigurationCacheFingerprint()
 
     data class InputFile(
         val file: File,
         val hash: HashCode?
-    ) : InstantExecutionCacheFingerprint()
+    ) : ConfigurationCacheFingerprint()
 
     data class ValueSource(
         val obtainedValue: ObtainedValue
-    ) : InstantExecutionCacheFingerprint()
+    ) : ConfigurationCacheFingerprint()
 
     data class UndeclaredSystemProperty(
         val key: String
-    ) : InstantExecutionCacheFingerprint()
+    ) : ConfigurationCacheFingerprint()
 
     abstract class ChangingDependencyResolutionValue(
         val expireAt: Long
-    ) : InstantExecutionCacheFingerprint() {
+    ) : ConfigurationCacheFingerprint() {
         abstract val reason: String
     }
 

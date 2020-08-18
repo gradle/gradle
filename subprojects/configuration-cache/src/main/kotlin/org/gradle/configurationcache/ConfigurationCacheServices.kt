@@ -18,13 +18,13 @@ package org.gradle.configurationcache
 
 import org.gradle.api.internal.SettingsInternal
 import org.gradle.configuration.internal.UserCodeApplicationContext
-import org.gradle.configurationcache.fingerprint.InstantExecutionCacheFingerprintController
+import org.gradle.configurationcache.fingerprint.ConfigurationCacheFingerprintController
+import org.gradle.configurationcache.initialization.ConfigurationCacheProblemsListener
+import org.gradle.configurationcache.initialization.ConfigurationCacheStartParameter
+import org.gradle.configurationcache.initialization.DefaultConfigurationCacheProblemsListener
 import org.gradle.configurationcache.initialization.DefaultInjectedClasspathInstrumentationStrategy
-import org.gradle.configurationcache.initialization.DefaultInstantExecutionProblemsListener
-import org.gradle.configurationcache.initialization.InstantExecutionProblemsListener
-import org.gradle.configurationcache.initialization.InstantExecutionStartParameter
-import org.gradle.configurationcache.initialization.NoOpInstantExecutionProblemsListener
-import org.gradle.configurationcache.problems.InstantExecutionProblems
+import org.gradle.configurationcache.initialization.NoOpConfigurationCacheProblemsListener
+import org.gradle.configurationcache.problems.ConfigurationCacheProblems
 import org.gradle.configurationcache.serialization.beans.BeanConstructors
 import org.gradle.internal.build.PublicBuildPath
 import org.gradle.internal.event.ListenerManager
@@ -34,7 +34,7 @@ import org.gradle.internal.service.scopes.Scopes
 import org.gradle.internal.service.scopes.ServiceScope
 
 
-class InstantExecutionServices : AbstractPluginServiceRegistry() {
+class ConfigurationCacheServices : AbstractPluginServiceRegistry() {
     override fun registerGlobalServices(registration: ServiceRegistration) {
         registration.run {
             add(BeanConstructors::class.java)
@@ -44,30 +44,30 @@ class InstantExecutionServices : AbstractPluginServiceRegistry() {
     override fun registerBuildTreeServices(registration: ServiceRegistration) {
         registration.run {
             add(BuildTreeListenerManager::class.java)
-            add(InstantExecutionStartParameter::class.java)
+            add(ConfigurationCacheStartParameter::class.java)
             add(DefaultInjectedClasspathInstrumentationStrategy::class.java)
-            add(InstantExecutionCacheKey::class.java)
-            add(InstantExecutionReport::class.java)
-            add(InstantExecutionProblems::class.java)
+            add(ConfigurationCacheKey::class.java)
+            add(ConfigurationCacheReport::class.java)
+            add(ConfigurationCacheProblems::class.java)
         }
     }
 
     override fun registerBuildServices(registration: ServiceRegistration) {
         registration.run {
-            add(InstantExecutionClassLoaderScopeRegistryListener::class.java)
-            add(InstantExecutionBuildScopeListenerManagerAction::class.java)
+            add(ConfigurationCacheClassLoaderScopeRegistryListener::class.java)
+            add(ConfigurationCacheBuildScopeListenerManagerAction::class.java)
             add(SystemPropertyAccessListener::class.java)
             add(RelevantProjectsRegistry::class.java)
-            add(InstantExecutionCacheFingerprintController::class.java)
+            add(ConfigurationCacheFingerprintController::class.java)
             addProvider(BuildServicesProvider())
         }
     }
 
     override fun registerGradleServices(registration: ServiceRegistration) {
         registration.run {
-            add(InstantExecutionCache::class.java)
-            add(InstantExecutionHost::class.java)
-            add(DefaultInstantExecution::class.java)
+            add(ConfigurationCacheRepository::class.java)
+            add(ConfigurationCacheHost::class.java)
+            add(DefaultConfigurationCache::class.java)
         }
     }
 }
@@ -76,14 +76,14 @@ class InstantExecutionServices : AbstractPluginServiceRegistry() {
 class BuildServicesProvider {
     fun createInstantExecutionProblemsListener(
         buildPath: PublicBuildPath,
-        startParameter: InstantExecutionStartParameter,
-        problemsListener: InstantExecutionProblems,
+        startParameter: ConfigurationCacheStartParameter,
+        problemsListener: ConfigurationCacheProblems,
         userCodeApplicationContext: UserCodeApplicationContext
-    ): InstantExecutionProblemsListener {
+    ): ConfigurationCacheProblemsListener {
         if (!startParameter.isEnabled || buildPath.buildPath.name == SettingsInternal.BUILD_SRC) {
-            return NoOpInstantExecutionProblemsListener()
+            return NoOpConfigurationCacheProblemsListener()
         } else {
-            return DefaultInstantExecutionProblemsListener(problemsListener, userCodeApplicationContext)
+            return DefaultConfigurationCacheProblemsListener(problemsListener, userCodeApplicationContext)
         }
     }
 }
