@@ -151,3 +151,13 @@ fun publishNormalizedToLocalRepository() {
         }
     }
 }
+
+/**
+ * Tasks that are called by the (currently separate) promotion build running on CI.
+ */
+tasks.register("promotionBuild") {
+    description = "Build production distros, smoke test them and publish"
+    group = "publishing"
+    dependsOn(":distributions-full:verifyIsProductionBuildEnvironment", ":distributions-full:buildDists", ":distributions-full:copyDistributionsToRootBuild",
+        ":distributions-integ-tests:forkingIntegTest", ":docs:releaseNotes", "publish", ":docs:incubationReport", ":docs:checkDeadInternalLinks")
+}

@@ -85,9 +85,6 @@ fun Project.registerLifecycleTasks() {
     plugins.withId("gradlebuild.cross-version-tests") {
         tasks.configureCICrossVersionTestDistributionLifecycleTasks()
     }
-    plugins.withId("gradlebuild.publish-public-libraries") {
-        tasks.registerPublishLibrariesPromotionTasks()
-    }
 }
 
 fun Project.registerSoakTest() {
@@ -171,18 +168,6 @@ fun TaskContainer.registerDistributionsPromotionTasks() {
         group = "build"
         dependsOn(":distributions-full:verifyIsProductionBuildEnvironment", ":distributions-full:buildDists",
             ":distributions-integ-tests:forkingIntegTest", ":docs:releaseNotes", ":docs:incubationReport", ":docs:checkDeadInternalLinks")
-    }
-}
-
-/**
- * Task that are called by the (currently separate) promotion build running on CI.
- */
-fun TaskContainer.registerPublishLibrariesPromotionTasks() {
-    register("promotionBuild") {
-        description = "Build production distros, smoke test them and publish"
-        group = "publishing"
-        dependsOn(":distributions-full:verifyIsProductionBuildEnvironment", ":distributions-full:buildDists", ":distributions-full:copyDistributionsToRootBuild",
-            ":distributions-integ-tests:forkingIntegTest", ":docs:releaseNotes", "publish", ":docs:incubationReport", ":docs:checkDeadInternalLinks")
     }
 }
 
