@@ -51,8 +51,7 @@ import org.junit.runner.RunWith;
 @SampleModifiers({
     SetMirrorsSampleModifier.class,
     MoreMemorySampleModifier.class,
-    FailOnDeprecationSampleModifier.class,
-    DonatLocalInitScriptModifier.class
+    FailOnDeprecationSampleModifier.class
 })
 public class ExemplarExternalSamplesFunctionalTest {
 }
