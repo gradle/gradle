@@ -18,13 +18,13 @@ package org.gradle.instantexecution.inputs.undeclared
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.instantexecution.AbstractInstantExecutionIntegrationTest
+import org.gradle.instantexecution.AbstractConfigurationCacheIntegrationTest
 import spock.lang.Issue
 import spock.lang.Unroll
 
 import java.util.function.Supplier
 
-class UndeclaredBuildInputsIntegrationTest extends AbstractInstantExecutionIntegrationTest {
+class UndeclaredBuildInputsIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
     @Unroll
     def "reports build logic reading a system property set #mechanism.description via the Java API"() {
         buildFile << """

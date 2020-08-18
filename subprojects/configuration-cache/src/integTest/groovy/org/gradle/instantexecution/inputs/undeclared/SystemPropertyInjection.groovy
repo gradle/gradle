@@ -16,7 +16,7 @@
 
 package org.gradle.instantexecution.inputs.undeclared
 
-import org.gradle.instantexecution.AbstractInstantExecutionIntegrationTest
+import org.gradle.instantexecution.AbstractConfigurationCacheIntegrationTest
 
 abstract class SystemPropertyInjection {
     abstract String getDescription()
@@ -25,7 +25,7 @@ abstract class SystemPropertyInjection {
         return []
     }
 
-    void setup(AbstractInstantExecutionIntegrationTest test) {
+    void setup(AbstractConfigurationCacheIntegrationTest test) {
     }
 
     static List<SystemPropertyInjection> all(String prop, String value) {
@@ -58,7 +58,7 @@ abstract class SystemPropertyInjection {
             }
 
             @Override
-            void setup(AbstractInstantExecutionIntegrationTest test) {
+            void setup(AbstractConfigurationCacheIntegrationTest test) {
                 test.file("gradle.properties").text = "systemProp.${prop}=${value}"
             }
         }
@@ -72,7 +72,7 @@ abstract class SystemPropertyInjection {
             }
 
             @Override
-            void setup(AbstractInstantExecutionIntegrationTest test) {
+            void setup(AbstractConfigurationCacheIntegrationTest test) {
                 test.executer.requireDaemon().requireIsolatedDaemons()
                 test.executer.withCommandLineGradleOpts("-D${prop}=${value}")
             }

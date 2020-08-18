@@ -16,10 +16,10 @@
 
 package org.gradle.instantexecution.inputs.undeclared
 
-import org.gradle.instantexecution.AbstractInstantExecutionIntegrationTest
+import org.gradle.instantexecution.AbstractConfigurationCacheIntegrationTest
 import spock.lang.Unroll
 
-abstract class AbstractUndeclaredBuildInputsIntegrationTest extends AbstractInstantExecutionIntegrationTest {
+abstract class AbstractUndeclaredBuildInputsIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
     abstract void buildLogicApplication(SystemPropertyRead read)
 
     abstract String getLocation()
