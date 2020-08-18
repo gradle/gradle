@@ -67,7 +67,7 @@ public interface FileWatcherRegistry extends Closeable {
      * @return the snapshot hierarchy without snapshots which can't be kept till the next build.
      */
     @CheckReturnValue
-    SnapshotHierarchy buildFinished(SnapshotHierarchy root);
+    SnapshotHierarchy buildFinished(SnapshotHierarchy root, int maximumNumberOfWatchedHierarchies);
 
     /**
      * Get statistics about the received changes.

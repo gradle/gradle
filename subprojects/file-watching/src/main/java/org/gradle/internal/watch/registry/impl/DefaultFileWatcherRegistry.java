@@ -124,8 +124,8 @@ public class DefaultFileWatcherRegistry implements FileWatcherRegistry {
     }
 
     @Override
-    public SnapshotHierarchy buildFinished(SnapshotHierarchy root) {
-        return fileWatcherUpdater.buildFinished(root);
+    public SnapshotHierarchy buildFinished(SnapshotHierarchy root, int maximumNumberOfWatchedHierarchies) {
+        return fileWatcherUpdater.buildFinished(root, maximumNumberOfWatchedHierarchies);
     }
 
     private static Type convertType(FileWatchEvent.ChangeType type) {

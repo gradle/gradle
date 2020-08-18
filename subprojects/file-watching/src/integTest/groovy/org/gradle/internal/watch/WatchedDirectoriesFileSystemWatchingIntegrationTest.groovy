@@ -21,6 +21,7 @@ import org.apache.commons.io.FileUtils
 import org.gradle.cache.GlobalCacheLocations
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.internal.service.scopes.VirtualFileSystemServices
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.gradle.test.fixtures.server.http.RepositoryHttpServer
 import org.gradle.util.TextUtil
@@ -321,6 +322,39 @@ class WatchedDirectoriesFileSystemWatchingIntegrationTest extends AbstractFileSy
         then:
         projectDir.file('build/foo-1.0.jar').assertIsCopyOf(m2Module.artifactFile)
         assertWatchedHierarchies([projectDir])
+    }
+
+    @ToBeFixedForInstantExecution(because = "composite build not yet supported")
+    def "stops watching hierarchies when the limit has been reached"() {
+        buildTestFixture.withBuildInSubDir()
+        def includedBuild = singleProjectBuild("includedBuild") {
+            buildFile << """
+                apply plugin: 'java'
+            """
+        }
+        def consumer = singleProjectBuild("consumer") {
+            buildFile << """
+                apply plugin: 'java'
+
+                dependencies {
+                    implementation "org.test:includedBuild:1.0"
+                }
+            """
+            settingsFile << """
+                includeBuild("../includedBuild")
+            """
+        }
+        executer.beforeExecute {
+            inDirectory(consumer)
+        }
+        file("consumer/gradle.properties") << "systemProp.${VirtualFileSystemServices.MAX_HIERARCHIES_TO_WATCH_PROPERTY}=1"
+
+        when:
+        withWatchFs().run "assemble", "--info"
+        then:
+        executedAndNotSkipped(":includedBuild:jar")
+        assertWatchedHierarchies([includedBuild])
+        postBuildOutputContains("Watching too many directories in the file system (watching 2, limit 1), dropping some state from the virtual file system")
     }
 
     void assertWatchableHierarchies(List<Set<File>> expectedWatchableHierarchies) {

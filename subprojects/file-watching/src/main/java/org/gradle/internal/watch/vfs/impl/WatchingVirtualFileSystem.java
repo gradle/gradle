@@ -161,7 +161,7 @@ public class WatchingVirtualFileSystem implements BuildLifecycleAwareVirtualFile
     }
 
     @Override
-    public void beforeBuildFinished(boolean watchingEnabled, BuildOperationRunner buildOperationRunner) {
+    public void beforeBuildFinished(boolean watchingEnabled, BuildOperationRunner buildOperationRunner, int maximumNumberOfWatchedHierarchies) {
         rootReference.update(currentRoot -> buildOperationRunner.call(new CallableBuildOperation<SnapshotHierarchy>() {
             @Override
             public SnapshotHierarchy call(BuildOperationContext context) {
@@ -179,7 +179,7 @@ public class WatchingVirtualFileSystem implements BuildLifecycleAwareVirtualFile
                     SnapshotHierarchy newRoot = stopWatchingIfProblemsWhenReceivingFileChanges(currentRoot, statistics);
                     if (watchRegistry != null) {
                         SnapshotHierarchy rootAfterEvents = newRoot;
-                        newRoot = withWatcherChangeErrorHandling(newRoot, () -> watchRegistry.buildFinished(rootAfterEvents));
+                        newRoot = withWatcherChangeErrorHandling(newRoot, () -> watchRegistry.buildFinished(rootAfterEvents, maximumNumberOfWatchedHierarchies));
                     }
                     boolean stoppedWatchingDuringTheBuild = watchRegistry == null;
                     FileSystemWatchingStatistics fileSystemWatchingStatistics = statistics == null ? null : new DefaultFileSystemWatchingStatistics(statistics, newRoot);

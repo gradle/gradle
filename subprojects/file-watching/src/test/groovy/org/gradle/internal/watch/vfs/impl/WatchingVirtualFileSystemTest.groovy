@@ -55,7 +55,7 @@ class WatchingVirtualFileSystemTest extends Specification {
 
         when:
         rootReference.update { root -> nonEmptySnapshotHierarchy }
-        watchingVirtualFileSystem.beforeBuildFinished(false, buildOperationRunner)
+        watchingVirtualFileSystem.beforeBuildFinished(false, buildOperationRunner, Integer.MAX_VALUE)
         then:
         0 * _
 
@@ -70,10 +70,10 @@ class WatchingVirtualFileSystemTest extends Specification {
         0 * _
 
         when:
-        watchingVirtualFileSystem.beforeBuildFinished(true, buildOperationRunner)
+        watchingVirtualFileSystem.beforeBuildFinished(true, buildOperationRunner, Integer.MAX_VALUE)
         then:
         1 * watcherRegistry.getAndResetStatistics() >> Stub(FileWatcherRegistry.FileWatchingStatistics)
-        1 * watcherRegistry.buildFinished(_) >> rootReference.getRoot()
+        1 * watcherRegistry.buildFinished(_, Integer.MAX_VALUE) >> rootReference.getRoot()
         0 * _
 
         when:
@@ -94,10 +94,10 @@ class WatchingVirtualFileSystemTest extends Specification {
         0 * _
 
         when:
-        watchingVirtualFileSystem.beforeBuildFinished(true, buildOperationRunner)
+        watchingVirtualFileSystem.beforeBuildFinished(true, buildOperationRunner, Integer.MAX_VALUE)
         then:
         1 * watcherRegistry.getAndResetStatistics() >> Stub(FileWatcherRegistry.FileWatchingStatistics)
-        1 * watcherRegistry.buildFinished(_) >> rootReference.getRoot()
+        1 * watcherRegistry.buildFinished(_, Integer.MAX_VALUE) >> rootReference.getRoot()
         0 * _
 
         when:
@@ -133,10 +133,10 @@ class WatchingVirtualFileSystemTest extends Specification {
         1 * watcherRegistry.registerWatchableHierarchy(anotherWatchableHierarchy, _)
 
         when:
-        watchingVirtualFileSystem.beforeBuildFinished(true, buildOperationRunner)
+        watchingVirtualFileSystem.beforeBuildFinished(true, buildOperationRunner, Integer.MAX_VALUE)
         then:
         1 * watcherRegistry.getAndResetStatistics() >> Stub(FileWatcherRegistry.FileWatchingStatistics)
-        1 * watcherRegistry.buildFinished(_) >> rootReference.getRoot()
+        1 * watcherRegistry.buildFinished(_, Integer.MAX_VALUE) >> rootReference.getRoot()
         0 * _
 
         when:

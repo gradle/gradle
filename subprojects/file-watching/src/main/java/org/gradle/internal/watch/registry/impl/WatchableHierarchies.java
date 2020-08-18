@@ -38,14 +38,12 @@ public class WatchableHierarchies {
     private static final Logger LOGGER = LoggerFactory.getLogger(WatchableHierarchies.class);
 
     private final Predicate<String> watchFilter;
-    private final int maxHierarchiesToWatch;
 
     private FileHierarchySet watchableHierarchies = DefaultFileHierarchySet.of();
     private final Deque<Path> recentlyUsedHierarchies = new ArrayDeque<>();
 
-    public WatchableHierarchies(Predicate<String> watchFilter, int maxHierarchiesToWatch) {
+    public WatchableHierarchies(Predicate<String> watchFilter) {
         this.watchFilter = watchFilter;
-        this.maxHierarchiesToWatch = maxHierarchiesToWatch;
     }
 
     public void registerWatchableHierarchy(File watchableHierarchy, SnapshotHierarchy root) {
@@ -76,12 +74,16 @@ public class WatchableHierarchies {
     }
 
     @CheckReturnValue
-    public SnapshotHierarchy removeWatchedHierarchiesOverLimit(SnapshotHierarchy root, Predicate<Path> isWatchedHierarchy, Invalidator invalidator) {
+    public SnapshotHierarchy removeWatchedHierarchiesOverLimit(SnapshotHierarchy root, Predicate<Path> isWatchedHierarchy, int maximumNumberOfWatchedHierarchies, Invalidator invalidator) {
         recentlyUsedHierarchies.removeIf(hierarchy -> !isWatchedHierarchy.test(hierarchy));
         SnapshotHierarchy result = root;
-        int toRemove = recentlyUsedHierarchies.size() - maxHierarchiesToWatch;
+        int toRemove = recentlyUsedHierarchies.size() - maximumNumberOfWatchedHierarchies;
         if (toRemove > 0) {
-            LOGGER.warn("Watching too many directories in the file system (watching {}, limit {}), dropping some state from the virtual file system", recentlyUsedHierarchies.size(), maxHierarchiesToWatch);
+            LOGGER.warn(
+                "Watching too many directories in the file system (watching {}, limit {}), dropping some state from the virtual file system",
+                recentlyUsedHierarchies.size(),
+                maximumNumberOfWatchedHierarchies
+            );
             for (int i = 0; i < toRemove; i++) {
                 Path locationToRemove = recentlyUsedHierarchies.removeLast();
                 result = invalidator.invalidate(locationToRemove.toString(), result);

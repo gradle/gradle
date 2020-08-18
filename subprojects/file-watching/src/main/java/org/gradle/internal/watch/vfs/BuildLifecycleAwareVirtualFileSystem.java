@@ -43,5 +43,5 @@ public interface BuildLifecycleAwareVirtualFileSystem extends VirtualFileSystem 
     /**
      * Called when the build is finished.
      */
-    void beforeBuildFinished(boolean watchingEnabled, BuildOperationRunner buildOperationRunner);
+    void beforeBuildFinished(boolean watchingEnabled, BuildOperationRunner buildOperationRunner, int maximumNumberOfWatchedHierarchies);
 }

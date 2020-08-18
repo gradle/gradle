@@ -54,7 +54,8 @@ public class FileSystemWatchingBuildActionRunner implements BuildActionRunner {
         try {
             return delegate.run(action, buildController);
         } finally {
-            virtualFileSystem.beforeBuildFinished(watchFileSystem, buildOperationRunner);
+            int maximumNumberOfWatchedHierarchies = VirtualFileSystemServices.getMaximumNumberOfWatchedHierarchies(startParameter);
+            virtualFileSystem.beforeBuildFinished(watchFileSystem, buildOperationRunner, maximumNumberOfWatchedHierarchies);
         }
     }
 

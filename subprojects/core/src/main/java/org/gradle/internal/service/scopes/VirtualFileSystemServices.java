@@ -124,8 +124,18 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
      */
     public static final String VFS_DROP_PROPERTY = "org.gradle.unsafe.vfs.drop";
 
+    private static final int DEFAULT_MAX_HIERARCHIES_TO_WATCH = 50;
+    public static final String MAX_HIERARCHIES_TO_WATCH_PROPERTY = "org.gradle.vfs.watch.hierarchies.max";
+
     public static boolean isDropVfs(StartParameter startParameter) {
         return isSystemPropertyEnabled(VFS_DROP_PROPERTY, startParameter.getSystemPropertiesArgs());
+    }
+
+    public static int getMaximumNumberOfWatchedHierarchies(StartParameter startParameter) {
+        String fromProperty = getSystemProperty(MAX_HIERARCHIES_TO_WATCH_PROPERTY, startParameter.getSystemPropertiesArgs());
+        return fromProperty != null && !fromProperty.isEmpty()
+            ? Integer.parseInt(fromProperty, 10)
+            : DEFAULT_MAX_HIERARCHIES_TO_WATCH;
     }
 
     public static boolean isDeprecatedVfsRetentionPropertyPresent(StartParameter startParameter) {
