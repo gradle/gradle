@@ -64,7 +64,7 @@ public abstract class DefaultSourceSet implements SourceSet {
         String resourcesDisplayName = displayName + " resources";
         resources = objectFactory.sourceDirectorySet("resources", resourcesDisplayName);
 
-        // Explicitly capture only a FileCollection in the lambda below for compatibility with instant-execution.
+        // Explicitly capture only a FileCollection in the lambda below for compatibility with configuration-cache.
         FileCollection javaSourceFiles = javaSource;
         resources.getFilter().exclude(
             spec(element -> javaSourceFiles.contains(element.getFile()))

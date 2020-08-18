@@ -177,7 +177,7 @@ public class ScalaBasePlugin implements Plugin<Project> {
                 sourceSet.getAllJava().source(scalaDirectorySet);
                 sourceSet.getAllSource().source(scalaDirectorySet);
 
-                // Explicitly capture only a FileCollection in the lambda below for compatibility with instant-execution.
+                // Explicitly capture only a FileCollection in the lambda below for compatibility with configuration-cache.
                 FileCollection scalaSource = scalaDirectorySet;
                 sourceSet.getResources().getFilter().exclude(
                     spec(element -> scalaSource.contains(element.getFile()))

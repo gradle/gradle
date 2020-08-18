@@ -100,7 +100,7 @@ public class Ear extends Jar {
                 // TODO: Consider capturing the `descriptor` as a spec
                 //  so any captured manifest attribute providers are re-evaluated
                 //  on each run.
-                //  See https://github.com/gradle/instant-execution/issues/168
+                //  See https://github.com/gradle/configuration-cache/issues/168
                 Cached<byte[]> cachedDescriptor = cachedContentsOf(descriptor);
                 final OutputChangeListener outputChangeListener = outputChangeListener();
                 return fileCollectionFactory().generated(

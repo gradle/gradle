@@ -104,7 +104,7 @@ public class GroovyBasePlugin implements Plugin<Project> {
                 final SourceDirectorySet groovySource = groovySourceSet.getGroovy();
                 groovySource.srcDir("src/" + sourceSet.getName() + "/groovy");
 
-                // Explicitly capture only a FileCollection in the lambda below for compatibility with instant-execution.
+                // Explicitly capture only a FileCollection in the lambda below for compatibility with configuration-cache.
                 final FileCollection groovySourceFiles = groovySource;
                 sourceSet.getResources().getFilter().exclude(
                     spec(element -> groovySourceFiles.contains(element.getFile()))

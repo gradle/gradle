@@ -57,7 +57,7 @@ class GradleRunnerSamplesEndUserIntegrationTest extends BaseTestKitEndUserIntegr
     }
 
     @UsesSample("testKit/spockQuickstart")
-    @ToBeFixedForInstantExecution(because = "gradle/instant-execution#270")
+    @ToBeFixedForInstantExecution(because = "gradle/configuration-cache#270")
     def spockQuickstart() {
         expect:
         executer.inDirectory(sample.dir.file('groovy'))
@@ -103,7 +103,7 @@ class GradleRunnerSamplesEndUserIntegrationTest extends BaseTestKitEndUserIntegr
     @Requires([ONLINE, JDK8_OR_EARLIER])
     // Uses Gradle 2.6 which does not support Java 9
     @UsesSample("testKit/gradleVersion")
-    @ToBeFixedForInstantExecution(because = "gradle/instant-execution#270")
+    @ToBeFixedForInstantExecution(because = "gradle/configuration-cache#270")
     def gradleVersion() {
         expect:
         RetryUtil.retry { //This test is also affected by gradle/gradle#1111 on Windows

@@ -41,7 +41,7 @@ class GradleRunnerConsoleInputEndUserIntegrationTest extends BaseTestKitEndUserI
         """
     }
 
-    @ToBeFixedForInstantExecution(because = "gradle/instant-execution#270")
+    @ToBeFixedForInstantExecution(because = "gradle/configuration-cache#270")
     def "can capture user input if standard input was provided"() {
         when:
         file("src/test/groovy/Test.groovy") << functionalTest(true, true)
@@ -51,7 +51,7 @@ class GradleRunnerConsoleInputEndUserIntegrationTest extends BaseTestKitEndUserI
         executedAndNotSkipped ':test'
     }
 
-    @ToBeFixedForInstantExecution(because = "gradle/instant-execution#270")
+    @ToBeFixedForInstantExecution(because = "gradle/configuration-cache#270")
     def "cannot capture user input if standard in was not provided"() {
         when:
         file("src/test/groovy/Test.groovy") << functionalTest(false, null)

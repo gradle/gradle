@@ -52,7 +52,7 @@ class InstantExecutionCacheFingerprintChecker(private val host: Host) {
                 is InstantExecutionCacheFingerprint.TaskInputs -> input.run {
                     val currentFingerprint = host.fingerprintOf(fileSystemInputs)
                     if (currentFingerprint != fileSystemInputsFingerprint) {
-                        // TODO: summarize what has changed (see https://github.com/gradle/instant-execution/issues/282)
+                        // TODO: summarize what has changed (see https://github.com/gradle/configuration-cache/issues/282)
                         return "an input to task '$taskPath' has changed"
                     }
                 }
