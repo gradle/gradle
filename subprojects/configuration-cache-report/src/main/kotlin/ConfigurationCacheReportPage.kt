@@ -82,7 +82,7 @@ val ProblemTreeModel.problemCount: Int
 
 
 internal
-object InstantExecutionReportPage : Component<InstantExecutionReportPage.Model, InstantExecutionReportPage.Intent> {
+object ConfigurationCacheReportPage : Component<ConfigurationCacheReportPage.Model, ConfigurationCacheReportPage.Intent> {
 
     data class Model(
         val cacheAction: String,
