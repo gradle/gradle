@@ -144,15 +144,13 @@ fun BuildType.dumpOpenFiles() {
 }
 
 private
-fun BaseGradleBuildType.killProcessStepIfNecessary(stepName: String, os: Os = Os.linux, daemon: Boolean = true) {
-    if (os == Os.windows) {
-        steps {
-            gradleWrapper {
-                name = stepName
-                executionMode = BuildStep.ExecutionMode.ALWAYS
-                tasks = "killExistingProcessesStartedByGradle"
-                gradleParams = buildToolParametersString(daemon) + " -DpublishStrategy=publishOnFailure" // https://github.com/gradle/gradle-enterprise-conventions-plugin/pull/8
-            }
+fun BaseGradleBuildType.killProcessStep(stepName: String, daemon: Boolean = true) {
+    steps {
+        gradleWrapper {
+            name = stepName
+            executionMode = BuildStep.ExecutionMode.ALWAYS
+            tasks = "killExistingProcessesStartedByGradle"
+            gradleParams = buildToolParametersString(daemon) + " -DpublishStrategy=publishOnFailure" // https://github.com/gradle/gradle-enterprise-conventions-plugin/pull/8
         }
     }
 }
@@ -196,12 +194,14 @@ fun applyTestDefaults(
         buildType.attachFileLeakDetector()
     }
 
+    buildType.killProcessStep("KILL_LEAKED_PROCESSES_FROM_PREVIOUS_BUILDS")
+
     buildType.gradleRunnerStep(model, gradleTasks, os, extraParameters, daemon)
 
     if (os == Os.windows) {
         buildType.dumpOpenFiles()
     }
-    buildType.killProcessStepIfNecessary("KILL_PROCESSES_STARTED_BY_GRADLE", os)
+    buildType.killProcessStep("KILL_PROCESSES_STARTED_BY_GRADLE")
 
     buildType.steps {
         extraSteps()
