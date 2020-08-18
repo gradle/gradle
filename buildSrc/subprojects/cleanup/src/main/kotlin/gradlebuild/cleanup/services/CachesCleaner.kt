@@ -14,52 +14,59 @@
  * limitations under the License.
  */
 
-package gradlebuild.cleanup.tasks
+package gradlebuild.cleanup.services
 
-import org.gradle.api.DefaultTask
-import org.gradle.api.file.Directory
-import org.gradle.api.file.DirectoryProperty
-import org.gradle.api.file.FileSystemOperations
-import org.gradle.api.provider.Property
-import org.gradle.api.specs.Spec
-import org.gradle.api.tasks.Internal
-import org.gradle.api.tasks.TaskAction
 import gradlebuild.cleanup.removeCachedScripts
 import gradlebuild.cleanup.removeDaemonLogFiles
 import gradlebuild.cleanup.removeDodgyCacheFiles
 import gradlebuild.cleanup.removeOldVersionsFromDir
 import gradlebuild.cleanup.removeTransformDir
+import org.gradle.api.file.Directory
+import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.file.FileSystemOperations
+import org.gradle.api.provider.Property
+import org.gradle.api.services.BuildService
+import org.gradle.api.services.BuildServiceParameters
+import org.gradle.api.specs.Spec
 import org.gradle.util.GradleVersion
 import java.io.File
 import javax.inject.Inject
 
 
-abstract class CleanUpCaches : DefaultTask() {
-    @get:Internal
-    abstract val version: Property<GradleVersion>
-
-    @get:Internal
-    abstract val homeDir: DirectoryProperty
+abstract class CachesCleaner : BuildService<CachesCleaner.Params> {
+    interface Params : BuildServiceParameters {
+        val gradleVersion: Property<String>
+        val homeDir: DirectoryProperty
+    }
 
     @get:Inject
     abstract val fileSystemOperations: FileSystemOperations
 
-    @TaskAction
-    fun cleanUpCaches() {
-        val homeDir = homeDir.get()
+    private
+    var hasCleaned = false
 
-        homeDir.asFile.listFiles()?.filter { it.name.startsWith("distributions-") }?.forEach {
-            val workerDir = homeDir.dir(it.name)
-            cleanupDistributionCaches(workerDir)
+    fun cleanUpCaches() {
+        synchronized(this) {
+            if (hasCleaned) {
+                return
+            }
+            println("Cleaning up caches...")
+            val homeDir = parameters.homeDir.get()
+
+            homeDir.asFile.listFiles()?.filter { it.name.startsWith("distributions-") }?.forEach {
+                val workerDir = homeDir.dir(it.name)
+                cleanupDistributionCaches(workerDir, GradleVersion.version(parameters.gradleVersion.get()))
+            }
+            hasCleaned = true
         }
     }
 
     private
-    fun cleanupDistributionCaches(workerDir: Directory) {
+    fun cleanupDistributionCaches(workerDir: Directory, gradleVersion: GradleVersion) {
         // Expire cache snapshots of test Gradle distributions that are older than the tested version
         // Also expire version-specific cache snapshots when they can't be re-used (for 'snapshot-1' developer builds)
         val expireDistributionCache = Spec<GradleVersion> { candidateVersion ->
-            (candidateVersion.isSnapshot && candidateVersion < version.get())
+            (candidateVersion.isSnapshot && candidateVersion < gradleVersion)
                 || candidateVersion.version.endsWith("-snapshot-1")
         }
 
