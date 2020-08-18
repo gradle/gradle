@@ -25,7 +25,7 @@ import java.lang.annotation.RetentionPolicy
 import java.lang.annotation.Target
 
 /**
- * Assert that this test fails when run with instant execution enabled.
+ * Assert that this test fails when run with configuration cache enabled.
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
