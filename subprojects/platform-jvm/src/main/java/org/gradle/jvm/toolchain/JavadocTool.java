@@ -19,7 +19,7 @@ package org.gradle.jvm.toolchain;
 import org.gradle.api.Incubating;
 
 /**
- * A java compiler used by compile tasks.
+ * Generates HTML API documentation for Java classes.
  *
  * @since 6.7
  */
