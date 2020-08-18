@@ -63,7 +63,7 @@ public class DefaultGradleLauncher implements GradleLauncher {
     private final List<?> servicesToStop;
     private final IncludedBuildControllers includedBuildControllers;
     private final GradleInternal gradle;
-    private final InstantExecution instantExecution;
+    private final ConfigurationCache configurationCache;
     private final SettingsPreparer settingsPreparer;
     private final TaskExecutionPreparer taskExecutionPreparer;
     private final BuildSourceBuilder buildSourceBuilder;
@@ -83,7 +83,7 @@ public class DefaultGradleLauncher implements GradleLauncher {
                                  IncludedBuildControllers includedBuildControllers,
                                  SettingsPreparer settingsPreparer,
                                  TaskExecutionPreparer taskExecutionPreparer,
-                                 InstantExecution instantExecution,
+                                 ConfigurationCache configurationCache,
                                  BuildSourceBuilder buildSourceBuilder,
                                  BuildOptionBuildOperationProgressEventsEmitter buildOptionBuildOperationProgressEventsEmitter
     ) {
@@ -97,7 +97,7 @@ public class DefaultGradleLauncher implements GradleLauncher {
         this.buildServices = buildServices;
         this.servicesToStop = servicesToStop;
         this.includedBuildControllers = includedBuildControllers;
-        this.instantExecution = instantExecution;
+        this.configurationCache = configurationCache;
         this.settingsPreparer = settingsPreparer;
         this.taskExecutionPreparer = taskExecutionPreparer;
         this.buildSourceBuilder = buildSourceBuilder;
@@ -149,8 +149,8 @@ public class DefaultGradleLauncher implements GradleLauncher {
                 buildOptionBuildOperationProgressEventsEmitter.emit(gradle.getStartParameter());
             }
 
-            if (upTo == Stage.RunTasks && instantExecution.canExecuteInstantaneously()) {
-                doInstantExecution();
+            if (upTo == Stage.RunTasks && configurationCache.canLoad()) {
+                doConfigurationCacheBuild();
             } else {
                 doClassicBuildStages(upTo);
             }
@@ -161,7 +161,7 @@ public class DefaultGradleLauncher implements GradleLauncher {
 
     private void doClassicBuildStages(Stage upTo) {
         if (stage == null) {
-            instantExecution.prepareForBuildLogicExecution();
+            configurationCache.prepareForConfiguration();
         }
         prepareSettings();
         if (upTo == Stage.LoadSettings) {
@@ -175,14 +175,14 @@ public class DefaultGradleLauncher implements GradleLauncher {
         if (upTo == Stage.TaskGraph) {
             return;
         }
-        instantExecution.saveScheduledWork();
+        configurationCache.save();
         runWork();
     }
 
     @SuppressWarnings("deprecation")
-    private void doInstantExecution() {
+    private void doConfigurationCacheBuild() {
         buildListener.buildStarted(gradle);
-        instantExecution.loadScheduledWork();
+        configurationCache.load();
         stage = Stage.TaskGraph;
         runWork();
     }

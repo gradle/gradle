@@ -150,7 +150,7 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
             includedBuildControllers,
             settingsPreparer,
             taskExecutionPreparer,
-            gradle.getServices().get(InstantExecution.class),
+            gradle.getServices().get(ConfigurationCache.class),
             gradle.getServices().get(BuildSourceBuilder.class),
             new BuildOptionBuildOperationProgressEventsEmitter(
                 gradle.getServices().get(BuildOperationProgressEventEmitter.class)

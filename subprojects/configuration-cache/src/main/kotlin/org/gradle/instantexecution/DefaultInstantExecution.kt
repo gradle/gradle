@@ -20,7 +20,7 @@ import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.Logging
 import org.gradle.initialization.GradlePropertiesController
-import org.gradle.initialization.InstantExecution
+import org.gradle.initialization.ConfigurationCache
 import org.gradle.instantexecution.InstantExecutionCache.CheckedFingerprint
 import org.gradle.instantexecution.extensions.unsafeLazy
 import org.gradle.instantexecution.fingerprint.InstantExecutionCacheFingerprintController
@@ -62,7 +62,7 @@ class DefaultInstantExecution internal constructor(
     private val beanConstructors: BeanConstructors,
     private val gradlePropertiesController: GradlePropertiesController,
     private val relevantProjectsRegistry: RelevantProjectsRegistry
-) : InstantExecution {
+) : ConfigurationCache {
 
     interface Host {
 
@@ -75,7 +75,7 @@ class DefaultInstantExecution internal constructor(
         fun <T> factory(serviceType: Class<T>): Factory<T>
     }
 
-    override fun canExecuteInstantaneously(): Boolean = when {
+    override fun canLoad(): Boolean = when {
         !isInstantExecutionEnabled -> {
             false
         }
@@ -132,7 +132,7 @@ class DefaultInstantExecution internal constructor(
         }
     }
 
-    override fun prepareForBuildLogicExecution() {
+    override fun prepareForConfiguration() {
 
         if (!isInstantExecutionEnabled) return
 
@@ -140,7 +140,7 @@ class DefaultInstantExecution internal constructor(
         Instrumented.setListener(systemPropertyListener)
     }
 
-    override fun saveScheduledWork() {
+    override fun save() {
 
         if (!isInstantExecutionEnabled) {
             // No need to hold onto the `ClassLoaderScope` tree
@@ -174,7 +174,7 @@ class DefaultInstantExecution internal constructor(
         }
     }
 
-    override fun loadScheduledWork() {
+    override fun load() {
 
         require(isInstantExecutionEnabled)
 

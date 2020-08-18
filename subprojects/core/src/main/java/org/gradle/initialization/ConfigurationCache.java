@@ -16,13 +16,13 @@
 
 package org.gradle.initialization;
 
-public interface InstantExecution {
+public interface ConfigurationCache {
 
-    boolean canExecuteInstantaneously();
+    boolean canLoad();
 
-    void prepareForBuildLogicExecution();
+    void load();
 
-    void saveScheduledWork();
+    void prepareForConfiguration();
 
-    void loadScheduledWork();
+    void save();
 }
