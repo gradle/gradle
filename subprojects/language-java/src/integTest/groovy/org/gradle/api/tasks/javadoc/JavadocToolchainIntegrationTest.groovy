@@ -26,7 +26,7 @@ import spock.lang.Unroll
 class JavadocToolchainIntegrationTest extends AbstractIntegrationSpec {
 
     @Unroll
-    @IgnoreIf({ AvailableJavaHomes.differentJdk == null })
+    @IgnoreIf({ AvailableJavaHomes.getJdk(JavaVersion.VERSION_11) == null })
     def "can manually set javadoc tool via  #type toolchain on javadoc task #jdk"() {
         buildFile << """
             import org.gradle.jvm.toolchain.internal.JavaToolchainQueryService
