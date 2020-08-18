@@ -68,6 +68,11 @@ public class DefaultSnapshotHierarchy implements SnapshotHierarchy {
     }
 
     @Override
+    public boolean hasDescendantsUnder(String absolutePath) {
+        return getNodeForLocation(absolutePath).hasDescendants();
+    }
+
+    @Override
     public SnapshotHierarchy store(String absolutePath, MetadataSnapshot snapshot, NodeDiffListener diffListener) {
         VfsRelativePath relativePath = VfsRelativePath.of(absolutePath);
         return new DefaultSnapshotHierarchy(storeSingleChild(rootNode, relativePath, caseSensitivity, snapshot, diffListener), caseSensitivity);
@@ -93,7 +98,11 @@ public class DefaultSnapshotHierarchy implements SnapshotHierarchy {
 
     @Override
     public void visitSnapshotRoots(String absolutePath, SnapshotVisitor snapshotVisitor) {
-        SnapshotUtil.getNodeFromChild(rootNode, VfsRelativePath.of(absolutePath), caseSensitivity).orElse(ReadOnlyFileSystemNode.EMPTY).accept(snapshotVisitor);
+        getNodeForLocation(absolutePath).accept(snapshotVisitor);
+    }
+
+    private ReadOnlyFileSystemNode getNodeForLocation(String absolutePath) {
+        return SnapshotUtil.getNodeFromChild(rootNode, VfsRelativePath.of(absolutePath), caseSensitivity).orElse(ReadOnlyFileSystemNode.EMPTY);
     }
 
     private enum EmptySnapshotHierarchy implements SnapshotHierarchy {
@@ -109,6 +118,11 @@ public class DefaultSnapshotHierarchy implements SnapshotHierarchy {
         @Override
         public Optional<MetadataSnapshot> getMetadata(String absolutePath) {
             return Optional.empty();
+        }
+
+        @Override
+        public boolean hasDescendantsUnder(String absolutePath) {
+            return false;
         }
 
         @Override
