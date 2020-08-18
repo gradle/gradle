@@ -24,15 +24,14 @@ import org.spockframework.runtime.extension.IMethodInvocation
 import org.spockframework.runtime.model.FeatureInfo
 import org.spockframework.runtime.model.SpecInfo
 
-import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCacheExtension.iterationMatches
 import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCacheExtension.isAllIterations
 import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCacheExtension.isEnabledBottomSpec
+import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCacheExtension.iterationMatches
 
-
-class UnsupportedWithInstantExecutionExtension extends AbstractAnnotationDrivenExtension<UnsupportedWithInstantExecution> {
+class UnsupportedWithConfigurationCacheExtension extends AbstractAnnotationDrivenExtension<UnsupportedWithConfigurationCache> {
 
     @Override
-    void visitSpecAnnotation(UnsupportedWithInstantExecution annotation, SpecInfo spec) {
+    void visitSpecAnnotation(UnsupportedWithConfigurationCache annotation, SpecInfo spec) {
         if (GradleContextualExecuter.isInstant()) {
             if (isAllIterations(annotation.iterationMatchers()) && isEnabledBottomSpec(annotation.bottomSpecs(), { spec.bottomSpec.name == it })) {
                 spec.skipped = true
@@ -45,7 +44,7 @@ class UnsupportedWithInstantExecutionExtension extends AbstractAnnotationDrivenE
     }
 
     @Override
-    void visitFeatureAnnotation(UnsupportedWithInstantExecution annotation, FeatureInfo feature) {
+    void visitFeatureAnnotation(UnsupportedWithConfigurationCache annotation, FeatureInfo feature) {
         if (GradleContextualExecuter.isInstant()) {
             if (isAllIterations(annotation.iterationMatchers()) && isEnabledBottomSpec(annotation.bottomSpecs(), { feature.parent.bottomSpec.name == it })) {
                 feature.skipped = true
@@ -68,7 +67,7 @@ class UnsupportedWithInstantExecutionExtension extends AbstractAnnotationDrivenE
             if (!iterationMatches(iterationMatchers, invocation.iteration.name)) {
                 invocation.proceed()
             } else {
-                throw new AssumptionViolatedException("Unsupported with instant execution")
+                throw new AssumptionViolatedException("Unsupported with configuration cache")
             }
         }
     }

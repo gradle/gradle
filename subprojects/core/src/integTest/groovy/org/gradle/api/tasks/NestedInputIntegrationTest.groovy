@@ -22,7 +22,7 @@ import org.gradle.initialization.StartParameterBuildOptions.BuildCacheDebugLoggi
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
+import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.ToBeImplemented
 import spock.lang.Issue
@@ -152,7 +152,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
     }
 
     @Unroll
-    @UnsupportedWithInstantExecution(because = "task references another task")
+    @UnsupportedWithConfigurationCache(because = "task references another task")
     def "re-configuring #change in nested bean during execution time is detected"() {
         def fixture = new NestedBeanTestFixture()
 
@@ -191,7 +191,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
     }
 
     @Unroll
-    @UnsupportedWithInstantExecution(because = "task references another task")
+    @UnsupportedWithConfigurationCache(because = "task references another task")
     def "re-configuring a nested bean from #from to #to during execution time is detected"() {
         def fixture = new NestedBeanTestFixture()
 

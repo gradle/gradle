@@ -18,7 +18,7 @@ package org.gradle.normalization
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
+import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Unroll
 
@@ -188,7 +188,7 @@ class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractInte
         useRuntimeApi << [true, false]
     }
 
-    @UnsupportedWithInstantExecution(because = "Task.getProject() during execution")
+    @UnsupportedWithConfigurationCache(because = "Task.getProject() during execution")
     def "runtime classpath normalization cannot be changed after first usage (using runtime API: #useRuntimeApi)"() {
         def project = new ProjectWithRuntimeClasspathNormalization(useRuntimeApi)
         project.buildFile << """

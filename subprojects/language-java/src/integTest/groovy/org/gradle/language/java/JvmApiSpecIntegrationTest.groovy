@@ -16,7 +16,7 @@
 
 package org.gradle.language.java
 
-import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
+import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.jvm.JvmSourceFile
 import org.gradle.integtests.fixtures.jvm.TestJvmComponent
 import org.gradle.integtests.language.AbstractJvmLanguageIntegrationTest
@@ -27,7 +27,7 @@ import org.gradle.util.TestPrecondition
 import spock.lang.Issue
 
 @Requires(TestPrecondition.JDK8_OR_EARLIER)
-@UnsupportedWithInstantExecution(because = "software model")
+@UnsupportedWithConfigurationCache(because = "software model")
 class JvmApiSpecIntegrationTest extends AbstractJvmLanguageIntegrationTest {
 
     TestJvmComponent app = new TestJavaComponent()

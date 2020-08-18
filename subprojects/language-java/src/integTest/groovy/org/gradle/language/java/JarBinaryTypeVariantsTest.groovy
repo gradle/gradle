@@ -16,12 +16,12 @@
 
 package org.gradle.language.java
 
-import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
+import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 
 import static JavaIntegrationTesting.applyJavaPlugin
 import static org.gradle.language.java.JavaIntegrationTesting.expectJavaLangPluginDeprecationWarnings
 
-@UnsupportedWithInstantExecution(because = "software model")
+@UnsupportedWithConfigurationCache(because = "software model")
 class JarBinaryTypeVariantsTest extends VariantAwareDependencyResolutionSpec {
 
     def "can depend on a component without specifying any variant dimension"() {

@@ -17,7 +17,7 @@
 package org.gradle.language.java
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
+import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Ignore
@@ -26,7 +26,7 @@ import spock.lang.Unroll
 import static org.gradle.language.java.JavaIntegrationTesting.applyJavaPlugin
 import static org.gradle.language.java.JavaIntegrationTesting.expectJavaLangPluginDeprecationWarnings
 
-@UnsupportedWithInstantExecution(because = "software model")
+@UnsupportedWithConfigurationCache(because = "software model")
 class JavaCompilationAgainstApiJarIntegrationTest extends AbstractIntegrationSpec {
 
     private void mainLibraryDependingOnApi(DependencyScope scope = DependencyScope.SOURCES, boolean declaresApi = true) {

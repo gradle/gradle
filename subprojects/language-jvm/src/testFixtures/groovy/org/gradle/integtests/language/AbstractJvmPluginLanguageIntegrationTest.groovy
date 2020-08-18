@@ -18,12 +18,12 @@ package org.gradle.integtests.language
 
 import org.apache.commons.lang.StringUtils
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
+import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.test.fixtures.archive.JarTestFixture
 
 import java.util.regex.Pattern
 
-@UnsupportedWithInstantExecution(because = "software model")
+@UnsupportedWithConfigurationCache(because = "software model")
 abstract class AbstractJvmPluginLanguageIntegrationTest extends AbstractIntegrationSpec {
 
     abstract String getSourceSetTypeName();

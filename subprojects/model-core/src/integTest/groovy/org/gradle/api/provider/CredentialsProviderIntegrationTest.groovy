@@ -19,7 +19,7 @@ package org.gradle.api.provider
 import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
+import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.hamcrest.CoreMatchers
 import spock.lang.IgnoreIf
@@ -244,7 +244,7 @@ class CredentialsProviderIntegrationTest extends AbstractIntegrationSpec {
         'PasswordCredentials' | "The following Gradle properties are missing for 'test' credentials:\n  - testUsername\n  - testPassword"
     }
 
-    @UnsupportedWithInstantExecution(because = "test checks behavior with and without configuration cache")
+    @UnsupportedWithConfigurationCache(because = "test checks behavior with and without configuration cache")
     def "credential values are not cached between executions"() {
         given:
         buildFile << """
@@ -272,7 +272,7 @@ class CredentialsProviderIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @NotYetImplemented
-    @UnsupportedWithInstantExecution(because = "test checks behavior with configuration cache")
+    @UnsupportedWithConfigurationCache(because = "test checks behavior with configuration cache")
     def "credential values are not stored in configuration cache`"() {
         given:
         buildFile << """

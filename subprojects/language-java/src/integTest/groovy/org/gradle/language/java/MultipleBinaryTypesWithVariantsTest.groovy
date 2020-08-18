@@ -16,14 +16,14 @@
 
 package org.gradle.language.java
 
-import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
+import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import spock.lang.Unroll
 
 import static org.gradle.language.java.JavaIntegrationTesting.applyJavaPlugin
 import static org.gradle.language.java.JavaIntegrationTesting.expectJavaLangPluginDeprecationWarnings
 import static org.gradle.util.Matchers.containsText
 
-@UnsupportedWithInstantExecution(because = "software model")
+@UnsupportedWithConfigurationCache(because = "software model")
 class MultipleBinaryTypesWithVariantsTest extends VariantAwareDependencyResolutionSpec {
 
     @Unroll("Component A(#binaryTypeA) fails resolving on B(#binaryTypeB) because of incompatible variant types")

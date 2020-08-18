@@ -17,9 +17,9 @@
 package org.gradle.model
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
+import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 
-@UnsupportedWithInstantExecution(because = "software model")
+@UnsupportedWithConfigurationCache(because = "software model")
 class RuleSourceIntegrationTest extends AbstractIntegrationSpec {
     def "cannot create a model element of type RuleSource"() {
         buildFile << '''

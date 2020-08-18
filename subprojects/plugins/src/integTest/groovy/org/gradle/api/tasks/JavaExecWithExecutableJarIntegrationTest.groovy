@@ -17,7 +17,7 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
+import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import spock.lang.Ignore
 import spock.lang.Issue
 import spock.lang.Unroll
@@ -78,7 +78,7 @@ class JavaExecWithExecutableJarIntegrationTest extends AbstractIntegrationSpec {
 
     @Issue("https://github.com/gradle/gradle/issues/1346")
     @Unroll
-    @UnsupportedWithInstantExecution(iterationMatchers = ".* project.javaexec")
+    @UnsupportedWithConfigurationCache(iterationMatchers = ".* project.javaexec")
     def "can run executable jar with #method"() {
 
         buildFile << """
@@ -104,7 +104,7 @@ class JavaExecWithExecutableJarIntegrationTest extends AbstractIntegrationSpec {
 
     @Ignore("Change rolled back, to be added again in 7.0")
     @Unroll
-    @UnsupportedWithInstantExecution(iterationMatchers = ".* project.javaexec")
+    @UnsupportedWithConfigurationCache(iterationMatchers = ".* project.javaexec")
     def "can run executable jar configured in the application plugin with #method"() {
 
         buildFile << """
@@ -129,7 +129,7 @@ class JavaExecWithExecutableJarIntegrationTest extends AbstractIntegrationSpec {
 
     @Issue("https://github.com/gradle/gradle/issues/1346")
     @Unroll
-    @UnsupportedWithInstantExecution(iterationMatchers = ".* project.javaexec")
+    @UnsupportedWithConfigurationCache(iterationMatchers = ".* project.javaexec")
     def "helpful message when jar is not executable with #method"() {
 
         when:

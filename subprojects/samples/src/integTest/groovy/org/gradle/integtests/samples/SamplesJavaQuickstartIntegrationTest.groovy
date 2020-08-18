@@ -19,7 +19,7 @@ package org.gradle.integtests.samples
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.Sample
-import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
+import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.test.fixtures.file.TestFile
 import org.junit.Rule
 import spock.lang.Unroll
@@ -29,7 +29,7 @@ import java.util.jar.Manifest
 import static org.hamcrest.CoreMatchers.equalTo
 import static org.hamcrest.MatcherAssert.assertThat
 
-@UnsupportedWithInstantExecution(because = ":uploadArchives")
+@UnsupportedWithConfigurationCache(because = ":uploadArchives")
 class SamplesJavaQuickstartIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule

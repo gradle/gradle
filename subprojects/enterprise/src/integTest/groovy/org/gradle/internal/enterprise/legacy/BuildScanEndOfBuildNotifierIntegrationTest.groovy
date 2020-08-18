@@ -17,11 +17,11 @@
 package org.gradle.internal.enterprise.legacy
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
+import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.internal.scan.eob.BuildScanEndOfBuildNotifier
 import spock.lang.Issue
 
-@UnsupportedWithInstantExecution(because = "legacy plugin is incompatible")
+@UnsupportedWithConfigurationCache(because = "legacy plugin is incompatible")
 class BuildScanEndOfBuildNotifierIntegrationTest extends AbstractIntegrationSpec {
 
     def scanPlugin = new GradleEnterprisePluginLegacyContactPointFixture(testDirectory, mavenRepo, createExecuter())
@@ -97,7 +97,7 @@ notified
     }
 
     @Issue("https://github.com/gradle/gradle/issues/7511")
-    @UnsupportedWithInstantExecution
+    @UnsupportedWithConfigurationCache
     def "can observe failed build after failure in included build buildFinished action"() {
         when:
         settingsFile << """

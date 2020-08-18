@@ -18,12 +18,12 @@ package org.gradle.jvm.test
 
 import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
-import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
+import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.hamcrest.CoreMatchers
 import spock.lang.Ignore
 import spock.lang.Unroll
 
-@UnsupportedWithInstantExecution(because = "software model")
+@UnsupportedWithConfigurationCache(because = "software model")
 class JUnitStandaloneTestExecutionIntegrationTest extends AbstractJUnitTestExecutionIntegrationSpec {
 
     def "creates a JUnit test suite binary"() {

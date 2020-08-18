@@ -17,7 +17,7 @@
 package org.gradle.workers.internal
 
 import org.gradle.integtests.fixtures.BuildOperationsFixture
-import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
+import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
@@ -42,8 +42,8 @@ class WorkerExecutorParallelBuildOperationsIntegrationTest extends AbstractWorke
 
         buildFile << """
             task slowTask {
-                doLast { 
-                    ${blockingHttpServer.callFromBuild("slowTask")} 
+                doLast {
+                    ${blockingHttpServer.callFromBuild("slowTask")}
                 }
             }
         """
@@ -71,22 +71,22 @@ class WorkerExecutorParallelBuildOperationsIntegrationTest extends AbstractWorke
         """
         buildFile << """
             task workTask(type: MultipleWorkItemTask) {
-                doLast { 
+                doLast {
                     submitWorkItem("workTask")
                 }
             }
-           
+
             // Wait for dependent task, to ensure that work task finishes first
             slowTask.doLast {
-                ${blockingHttpServer.callFromBuild("slowTask2")} 
+                ${blockingHttpServer.callFromBuild("slowTask2")}
             }
-            
+
             project(':childProject') {
                 task dependsOnWorkTask(type: MultipleWorkItemTask) {
-                    doLast { 
-                        submitWorkItem("dependsOnWorkTask") 
+                    doLast {
+                        submitWorkItem("dependsOnWorkTask")
                     }
-                    
+
                     dependsOn project(':').workTask
                 }
             }
@@ -106,7 +106,7 @@ class WorkerExecutorParallelBuildOperationsIntegrationTest extends AbstractWorke
         when:
         buildFile << """
             task workTask(type: MultipleWorkItemTask) {
-                doLast { 
+                doLast {
                     submitWorkItem("workTask")
                 }
                 doLast {
@@ -119,7 +119,7 @@ class WorkerExecutorParallelBuildOperationsIntegrationTest extends AbstractWorke
         workTaskDoesNotCompleteFirst()
     }
 
-    @UnsupportedWithInstantExecution
+    @UnsupportedWithConfigurationCache
     def "worker-based task with task action listener does not complete while another task is executing in parallel"() {
         when:
         buildFile << """
@@ -129,7 +129,7 @@ class WorkerExecutorParallelBuildOperationsIntegrationTest extends AbstractWorke
             })
 
             task workTask(type: MultipleWorkItemTask) {
-                doLast { 
+                doLast {
                     submitWorkItem("workTask")
                 }
             }
@@ -139,7 +139,7 @@ class WorkerExecutorParallelBuildOperationsIntegrationTest extends AbstractWorke
         workTaskDoesNotCompleteFirst()
     }
 
-    @UnsupportedWithInstantExecution
+    @UnsupportedWithConfigurationCache
     def "worker-based task with task execution listener does not complete while another task is executing in parallel"() {
         when:
         buildFile << """
@@ -149,7 +149,7 @@ class WorkerExecutorParallelBuildOperationsIntegrationTest extends AbstractWorke
             })
 
             task workTask(type: MultipleWorkItemTask) {
-                doLast { 
+                doLast {
                     submitWorkItem("workTask")
                 }
             }
@@ -184,7 +184,7 @@ class WorkerExecutorParallelBuildOperationsIntegrationTest extends AbstractWorke
                 WorkerExecutor getWorkerExecutor() {
                     throw new UnsupportedOperationException()
                 }
-                
+
                 def submitWorkItem(item) {
                     return workerExecutor.noIsolation().submit(${parallelWorkAction.name}.class) {
                         itemName = item.toString()

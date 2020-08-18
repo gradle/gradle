@@ -17,13 +17,13 @@
 package org.gradle.integtests.publish.maven
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
+import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import spock.lang.Unroll
 
 import static org.gradle.util.TextUtil.normaliseLineSeparators
 
 // this spec documents the status quo, not a desired behavior
-@UnsupportedWithInstantExecution(because = "legacy maven plugin")
+@UnsupportedWithConfigurationCache(because = "legacy maven plugin")
 class MavenPomGenerationPublishIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {

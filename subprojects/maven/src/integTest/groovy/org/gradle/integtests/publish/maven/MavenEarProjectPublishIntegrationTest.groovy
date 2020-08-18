@@ -16,9 +16,9 @@
 package org.gradle.integtests.publish.maven
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
+import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 
-@UnsupportedWithInstantExecution(because = "legacy maven plugin")
+@UnsupportedWithConfigurationCache(because = "legacy maven plugin")
 class MavenEarProjectPublishIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {

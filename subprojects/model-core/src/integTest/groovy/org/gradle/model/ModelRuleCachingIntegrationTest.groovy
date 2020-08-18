@@ -16,11 +16,11 @@
 
 package org.gradle.model
 
-import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
+import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.longlived.PersistentBuildProcessIntegrationTest
 import org.gradle.model.internal.inspect.ModelRuleExtractor
 
-@UnsupportedWithInstantExecution(because = "software model")
+@UnsupportedWithConfigurationCache(because = "software model")
 class ModelRuleCachingIntegrationTest extends PersistentBuildProcessIntegrationTest {
 
     def setup() {

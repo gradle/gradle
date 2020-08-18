@@ -33,7 +33,7 @@ import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheOp
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ConfigurationCacheRunner
 import org.gradle.integtests.fixtures.RequiredFeature
-import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
+import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.process.ExecOperations
 import org.junit.runner.RunWith
@@ -191,7 +191,7 @@ class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @RequiredFeature(feature = ConfigurationCacheOption.PROPERTY_NAME, value = "false")
-    @UnsupportedWithInstantExecution
+    @UnsupportedWithConfigurationCache
     def "service can be used at configuration and execution time"() {
         serviceImplementation()
         buildFile << """

@@ -20,7 +20,7 @@ import groovy.transform.NotYetImplemented
 import org.gradle.api.CircularReferenceException
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
+import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import spock.lang.Ignore
 import spock.lang.Issue
 import spock.lang.Timeout
@@ -33,7 +33,7 @@ import static org.hamcrest.CoreMatchers.startsWith
 @Unroll
 class TaskExecutionIntegrationTest extends AbstractIntegrationSpec {
 
-    @UnsupportedWithInstantExecution
+    @UnsupportedWithConfigurationCache
     def taskCanAccessTaskGraph() {
         buildFile << """
     boolean notified = false

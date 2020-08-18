@@ -17,7 +17,7 @@
 package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
+import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import spock.lang.Unroll
 
 class BuildEventsErrorIntegrationTest extends AbstractIntegrationSpec {
@@ -45,7 +45,7 @@ class BuildEventsErrorIntegrationTest extends AbstractIntegrationSpec {
     def action = {
             throw new RuntimeException('broken')
     } as Action
-    gradle.taskGraph.whenReady(action) 
+    gradle.taskGraph.whenReady(action)
     task a
 """
 
@@ -64,7 +64,7 @@ class BuildEventsErrorIntegrationTest extends AbstractIntegrationSpec {
     def listener = {
             throw new RuntimeException('broken')
     } as TaskExecutionGraphListener
-    gradle.taskGraph.addTaskExecutionGraphListener(listener) 
+    gradle.taskGraph.addTaskExecutionGraphListener(listener)
     task a
 """
 
@@ -96,7 +96,7 @@ allprojects {
     }
 
     @Unroll
-    @UnsupportedWithInstantExecution(iterationMatchers = ".*Gradle.buildFinished.*")
+    @UnsupportedWithConfigurationCache(iterationMatchers = ".*Gradle.buildFinished.*")
     def "produces reasonable error when Gradle.#method closure fails"() {
         settingsFile << """
 gradle.${method} {
@@ -122,7 +122,7 @@ gradle.rootProject { task a }
     }
 
     @Unroll
-    @UnsupportedWithInstantExecution(iterationMatchers = ".*Gradle.buildFinished.*")
+    @UnsupportedWithConfigurationCache(iterationMatchers = ".*Gradle.buildFinished.*")
     def "produces reasonable error when Gradle.#method action fails"() {
         settingsFile << """
 def action = {
@@ -149,7 +149,7 @@ gradle.rootProject { task a }
     }
 
     @Unroll
-    @UnsupportedWithInstantExecution
+    @UnsupportedWithConfigurationCache
     def "produces reasonable error when BuildListener.#method method fails"() {
         settingsFile << """
 def listener = new BuildAdapter() {
@@ -179,7 +179,7 @@ gradle.rootProject { task a }
         "buildFinished"     | "BuildResult result"
     }
 
-    @UnsupportedWithInstantExecution
+    @UnsupportedWithConfigurationCache
     def "produces reasonable error message when build fails and Gradle.buildFinished closure also fails"() {
         buildFile << """
     gradle.buildFinished {

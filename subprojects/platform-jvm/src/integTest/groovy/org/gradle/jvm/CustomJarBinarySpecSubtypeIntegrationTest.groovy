@@ -18,10 +18,10 @@ package org.gradle.jvm
 
 import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
+import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.test.fixtures.archive.JarTestFixture
 
-@UnsupportedWithInstantExecution(because = "software model")
+@UnsupportedWithConfigurationCache(because = "software model")
 class CustomJarBinarySpecSubtypeIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
         buildFile << """

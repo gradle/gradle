@@ -17,7 +17,7 @@ package org.gradle.integtests.publish.maven
 
 import org.apache.commons.lang.RandomStringUtils
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
+import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.internal.credentials.DefaultPasswordCredentials
 import org.gradle.test.fixtures.maven.MavenLocalRepository
 import org.gradle.test.fixtures.server.http.AuthScheme
@@ -32,7 +32,7 @@ import spock.lang.Unroll
 import static org.gradle.test.matchers.UserAgentMatcher.matchesNameAndVersion
 import static org.hamcrest.core.StringContains.containsString
 
-@UnsupportedWithInstantExecution(because = "legacy maven plugin")
+@UnsupportedWithConfigurationCache(because = "legacy maven plugin")
 class MavenPublishIntegrationTest extends AbstractIntegrationSpec {
     @Rule public final HttpServer server = new HttpServer()
 

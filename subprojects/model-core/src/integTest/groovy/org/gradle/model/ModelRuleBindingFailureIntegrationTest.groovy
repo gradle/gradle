@@ -17,14 +17,14 @@
 package org.gradle.model
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
+import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 
 /**
  * Tests the information provided when a model rule fails to bind.
  *
  * @see ModelRuleBindingValidationIntegrationTest
  */
-@UnsupportedWithInstantExecution(because = "software model")
+@UnsupportedWithConfigurationCache(because = "software model")
 class ModelRuleBindingFailureIntegrationTest extends AbstractIntegrationSpec {
 
     def "unbound rule by-type subject and inputs are reported"() {

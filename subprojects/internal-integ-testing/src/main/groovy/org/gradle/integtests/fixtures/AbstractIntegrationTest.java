@@ -39,7 +39,7 @@ public abstract class AbstractIntegrationTest {
     public final TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider(getClass());
 
     @Rule
-    public final UnsupportedWithInstantExecutionRule unsupportedWithInstantExecution = new UnsupportedWithInstantExecutionRule();
+    public final UnsupportedWithConfigurationCacheRule unsupportedWithInstantExecution = new UnsupportedWithConfigurationCacheRule();
 
     @Rule
     public final ToBeFixedForConfigurationCacheRule toBeFixedForInstantExecution = new ToBeFixedForConfigurationCacheRule();

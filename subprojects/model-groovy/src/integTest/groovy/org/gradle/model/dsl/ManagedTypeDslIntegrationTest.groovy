@@ -17,9 +17,9 @@
 package org.gradle.model.dsl
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
+import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 
-@UnsupportedWithInstantExecution(because = "software model")
+@UnsupportedWithConfigurationCache(because = "software model")
 class ManagedTypeDslIntegrationTest extends AbstractIntegrationSpec {
 
     def "can configure a child of a managed type using a nested closure syntax"() {
