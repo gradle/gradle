@@ -1,1 +1,1 @@
-rootProject.name = "precompiled-script-plugins-in-buildSrc"
+rootProject.name = "precompiled-script-plugins-in-buildsrc"
