@@ -29,7 +29,6 @@ import org.gradle.api.services.BuildServiceParameters
 import org.gradle.api.specs.Spec
 import org.gradle.util.GradleVersion
 import java.io.File
-import java.util.concurrent.atomic.AtomicBoolean
 import javax.inject.Inject
 
 
@@ -42,10 +41,13 @@ abstract class CachesCleaner : BuildService<CachesCleaner.Params> {
     abstract val fileSystemOperations: FileSystemOperations
 
     private
-    val hasCleaned = AtomicBoolean(false)
+    var hasCleaned = false
 
     fun cleanUpCaches(gradleVersion: GradleVersion) {
-        if (!hasCleaned.getAndSet(true)) {
+        synchronized(this) {
+            if (hasCleaned) {
+                return
+            }
             println("Cleaning up caches...")
             val homeDir = parameters.homeDir.get()
 
@@ -53,6 +55,7 @@ abstract class CachesCleaner : BuildService<CachesCleaner.Params> {
                 val workerDir = homeDir.dir(it.name)
                 cleanupDistributionCaches(workerDir, gradleVersion)
             }
+            hasCleaned = true
         }
     }
 
