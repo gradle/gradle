@@ -80,7 +80,9 @@ class ApplyDefaultConfigurationTest {
         applyTestDefaults(buildModel, buildType, "myTask", extraParameters = extraParameters, daemon = daemon)
 
         assertEquals(listOf(
+            "KILL_LEAKED_PROCESSES_FROM_PREVIOUS_BUILDS",
             "GRADLE_RUNNER",
+            "KILL_PROCESSES_STARTED_BY_GRADLE",
             "CHECK_CLEAN_M2"
         ), steps.items.map(BuildStep::name))
         verifyGradleRunnerParams(extraParameters, daemon, expectedDaemonParam)
@@ -98,6 +100,7 @@ class ApplyDefaultConfigurationTest {
 
         assertEquals(listOf(
             "ATTACH_FILE_LEAK_DETECTOR",
+            "KILL_LEAKED_PROCESSES_FROM_PREVIOUS_BUILDS",
             "GRADLE_RUNNER",
             "SET_BUILD_SUCCESS_ENV",
             "DUMP_OPEN_FILES_ON_FAILURE",
