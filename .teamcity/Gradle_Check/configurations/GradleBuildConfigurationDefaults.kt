@@ -194,6 +194,8 @@ fun applyTestDefaults(
         buildType.attachFileLeakDetector()
     }
 
+    buildType.killProcessStep("KILL_LEAKED_PROCESSES_FROM_PREVIOUS_BUILDS")
+
     buildType.gradleRunnerStep(model, gradleTasks, os, extraParameters, daemon)
 
     if (os == Os.windows) {
