@@ -24,11 +24,11 @@ import static org.hamcrest.CoreMatchers.nullValue
 import static org.hamcrest.MatcherAssert.assertThat
 
 
-class InstantExecutionBuildOperationsFixture {
+class ConfigurationCacheBuildOperationsFixture {
 
     final BuildOperationTreeQueries operations
 
-    InstantExecutionBuildOperationsFixture(BuildOperationTreeQueries operations) {
+    ConfigurationCacheBuildOperationsFixture(BuildOperationTreeQueries operations) {
         this.operations = operations
     }
 

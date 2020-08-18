@@ -23,7 +23,7 @@ import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.util.GradleVersion
 
 
-class InstantExecutionGradleExecuter extends DaemonGradleExecuter {
+class ConfigurationCacheGradleExecuter extends DaemonGradleExecuter {
 
     static final List<String> INSTANT_EXECUTION_ARGS = [
         "--${ConfigurationCacheOption.LONG_OPTION}",
@@ -31,7 +31,7 @@ class InstantExecutionGradleExecuter extends DaemonGradleExecuter {
         "-D${ConfigurationCacheMaxProblemsOption.PROPERTY_NAME}=0"
     ].collect { it.toString() }
 
-    InstantExecutionGradleExecuter(
+    ConfigurationCacheGradleExecuter(
         GradleDistribution distribution,
         TestDirectoryProvider testDirectoryProvider,
         GradleVersion gradleVersion,

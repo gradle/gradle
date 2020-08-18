@@ -23,8 +23,8 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 
-import org.gradle.integtests.fixtures.configurationcache.InstantExecutionBuildOperationsFixture
-import org.gradle.integtests.fixtures.configurationcache.InstantExecutionProblemsFixture
+import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheBuildOperationsFixture
+import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheProblemsFixture
 
 import org.intellij.lang.annotations.Language
 
@@ -44,12 +44,12 @@ class AbstractConfigurationCacheIntegrationTest extends AbstractIntegrationSpec 
     static final String MAX_PROBLEMS_GRADLE_PROP = "${ConfigurationCacheMaxProblemsOption.PROPERTY_NAME}"
     static final String MAX_PROBLEMS_SYS_PROP = "-D$MAX_PROBLEMS_GRADLE_PROP"
 
-    protected InstantExecutionProblemsFixture problems
+    protected ConfigurationCacheProblemsFixture problems
 
     def setup() {
         // Verify that the previous test cleaned up state correctly
         assert System.getProperty(ConfigurationCacheOption.PROPERTY_NAME) == null
-        problems = new InstantExecutionProblemsFixture(executer, testDirectory)
+        problems = new ConfigurationCacheProblemsFixture(executer, testDirectory)
     }
 
     @Override
@@ -78,8 +78,8 @@ class AbstractConfigurationCacheIntegrationTest extends AbstractIntegrationSpec 
         return path.replace('/', File.separator)
     }
 
-    protected InstantExecutionBuildOperationsFixture newInstantExecutionFixture() {
-        return new InstantExecutionBuildOperationsFixture(new BuildOperationsFixture(executer, temporaryFolder))
+    protected ConfigurationCacheBuildOperationsFixture newInstantExecutionFixture() {
+        return new ConfigurationCacheBuildOperationsFixture(new BuildOperationsFixture(executer, temporaryFolder))
     }
 
     protected void assertTestsExecuted(String testClass, String... testNames) {

@@ -45,14 +45,14 @@ import static org.hamcrest.CoreMatchers.startsWith
 import static org.hamcrest.MatcherAssert.assertThat
 import static org.junit.Assert.assertTrue
 
-final class InstantExecutionProblemsFixture {
+final class ConfigurationCacheProblemsFixture {
 
     protected static final String PROBLEMS_REPORT_HTML_FILE_NAME = "configuration-cache-report.html"
 
     private final GradleExecuter executer
     private final File rootDir
 
-    InstantExecutionProblemsFixture(GradleExecuter executer, File rootDir) {
+    ConfigurationCacheProblemsFixture(GradleExecuter executer, File rootDir) {
         this.executer = executer
         this.rootDir = rootDir
     }
@@ -60,7 +60,7 @@ final class InstantExecutionProblemsFixture {
     void assertFailureHasError(
         ExecutionFailure failure,
         String error,
-        @DelegatesTo(value = HasInstantExecutionErrorSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> specClosure
+        @DelegatesTo(value = HasConfigurationCacheErrorSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> specClosure
     ) {
         assertFailureHasError(failure, error, ConfigureUtil.configureUsing(specClosure))
     }
@@ -68,14 +68,14 @@ final class InstantExecutionProblemsFixture {
     void assertFailureHasError(
         ExecutionFailure failure,
         String error,
-        Action<HasInstantExecutionErrorSpec> specAction = {}
+        Action<HasConfigurationCacheErrorSpec> specAction = {}
     ) {
         assertFailureHasError(failure, newErrorSpec(error, specAction))
     }
 
     void assertFailureHasError(
         ExecutionFailure failure,
-        HasInstantExecutionErrorSpec spec
+        HasConfigurationCacheErrorSpec spec
     ) {
         spec.validateSpec()
 
@@ -89,39 +89,39 @@ final class InstantExecutionProblemsFixture {
         }
     }
 
-    HasInstantExecutionErrorSpec newErrorSpec(
+    HasConfigurationCacheErrorSpec newErrorSpec(
         String error,
-        @DelegatesTo(value = HasInstantExecutionErrorSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> specClosure
+        @DelegatesTo(value = HasConfigurationCacheErrorSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> specClosure
     ) {
         return newErrorSpec(error, ConfigureUtil.configureUsing(specClosure))
     }
 
-    HasInstantExecutionErrorSpec newErrorSpec(
+    HasConfigurationCacheErrorSpec newErrorSpec(
         String error,
-        Action<HasInstantExecutionErrorSpec> specAction = {}
+        Action<HasConfigurationCacheErrorSpec> specAction = {}
     ) {
-        def spec = new HasInstantExecutionErrorSpec(error)
+        def spec = new HasConfigurationCacheErrorSpec(error)
         specAction.execute(spec)
         return spec
     }
 
     void assertFailureHasProblems(
         ExecutionFailure failure,
-        @DelegatesTo(value = HasInstantExecutionProblemsSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> specClosure
+        @DelegatesTo(value = HasConfigurationCacheProblemsSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> specClosure
     ) {
         assertFailureHasProblems(failure, ConfigureUtil.configureUsing(specClosure))
     }
 
     void assertFailureHasProblems(
         ExecutionFailure failure,
-        Action<HasInstantExecutionProblemsSpec> specAction = {}
+        Action<HasConfigurationCacheProblemsSpec> specAction = {}
     ) {
         assertFailureHasProblems(failure, newProblemsSpec(specAction))
     }
 
     void assertFailureHasProblems(
         ExecutionFailure failure,
-        HasInstantExecutionProblemsSpec spec
+        HasConfigurationCacheProblemsSpec spec
     ) {
         assertNoProblemsSummary(failure.output)
         assertFailureDescription(failure, failureDescriptionMatcherForProblems(spec))
@@ -130,21 +130,21 @@ final class InstantExecutionProblemsFixture {
 
     void assertFailureHasTooManyProblems(
         ExecutionFailure failure,
-        @DelegatesTo(value = HasInstantExecutionProblemsSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> specClosure
+        @DelegatesTo(value = HasConfigurationCacheProblemsSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> specClosure
     ) {
         assertFailureHasTooManyProblems(failure, ConfigureUtil.configureUsing(specClosure))
     }
 
     void assertFailureHasTooManyProblems(
         ExecutionFailure failure,
-        Action<HasInstantExecutionProblemsSpec> specAction = {}
+        Action<HasConfigurationCacheProblemsSpec> specAction = {}
     ) {
         assertFailureHasTooManyProblems(failure, newProblemsSpec(specAction))
     }
 
     void assertFailureHasTooManyProblems(
         ExecutionFailure failure,
-        HasInstantExecutionProblemsSpec spec
+        HasConfigurationCacheProblemsSpec spec
     ) {
         assertNoProblemsSummary(failure.output)
         assertFailureDescription(failure, failureDescriptionMatcherForTooManyProblems(spec))
@@ -153,21 +153,21 @@ final class InstantExecutionProblemsFixture {
 
     void assertResultHasProblems(
         ExecutionResult result,
-        @DelegatesTo(value = HasInstantExecutionProblemsSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> specClosure
+        @DelegatesTo(value = HasConfigurationCacheProblemsSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> specClosure
     ) {
         assertResultHasProblems(result, ConfigureUtil.configureUsing(specClosure))
     }
 
     void assertResultHasProblems(
         ExecutionResult result,
-        Action<HasInstantExecutionProblemsSpec> specAction = {}
+        Action<HasConfigurationCacheProblemsSpec> specAction = {}
     ) {
         assertResultHasProblems(result, newProblemsSpec(specAction))
     }
 
     void assertResultHasProblems(
         ExecutionResult result,
-        HasInstantExecutionProblemsSpec spec
+        HasConfigurationCacheProblemsSpec spec
     ) {
         // assert !(result instanceof ExecutionFailure)
         if (spec.hasProblems()) {
@@ -178,32 +178,32 @@ final class InstantExecutionProblemsFixture {
         }
     }
 
-    HasInstantExecutionProblemsSpec newProblemsSpec(
-        @DelegatesTo(value = HasInstantExecutionProblemsSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> specClosure
+    HasConfigurationCacheProblemsSpec newProblemsSpec(
+        @DelegatesTo(value = HasConfigurationCacheProblemsSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> specClosure
     ) {
         return newProblemsSpec(ConfigureUtil.configureUsing(specClosure))
     }
 
-    HasInstantExecutionProblemsSpec newProblemsSpec(
-        Action<HasInstantExecutionProblemsSpec> specAction = {}
+    HasConfigurationCacheProblemsSpec newProblemsSpec(
+        Action<HasConfigurationCacheProblemsSpec> specAction = {}
     ) {
-        def spec = new HasInstantExecutionProblemsSpec()
+        def spec = new HasConfigurationCacheProblemsSpec()
         specAction.execute(spec)
         return spec
     }
 
-    private static Matcher<String> failureDescriptionMatcherForError(HasInstantExecutionErrorSpec spec) {
+    private static Matcher<String> failureDescriptionMatcherForError(HasConfigurationCacheErrorSpec spec) {
         return equalTo("Configuration cache state could not be cached: ${spec.error}".toString())
     }
 
-    private static Matcher<String> failureDescriptionMatcherForProblems(HasInstantExecutionProblemsSpec spec) {
+    private static Matcher<String> failureDescriptionMatcherForProblems(HasConfigurationCacheProblemsSpec spec) {
         return buildMatcherForProblemsFailureDescription(
             "Configuration cache problems found in this build.",
             spec
         )
     }
 
-    private static Matcher<String> failureDescriptionMatcherForTooManyProblems(HasInstantExecutionProblemsSpec spec) {
+    private static Matcher<String> failureDescriptionMatcherForTooManyProblems(HasConfigurationCacheProblemsSpec spec) {
         return buildMatcherForProblemsFailureDescription(
             "Maximum number of configuration cache problems has been reached.\n" +
                 "This behavior can be adjusted, " +
@@ -214,7 +214,7 @@ final class InstantExecutionProblemsFixture {
 
     private static Matcher<String> buildMatcherForProblemsFailureDescription(
         String message,
-        HasInstantExecutionProblemsSpec spec
+        HasConfigurationCacheProblemsSpec spec
     ) {
         return new BaseMatcher<String>() {
             @Override
@@ -244,7 +244,7 @@ final class InstantExecutionProblemsFixture {
         failure.assertThatDescription(failureMatcher)
     }
 
-    private static void assertHasConsoleSummary(String text, HasInstantExecutionProblemsSpec spec) {
+    private static void assertHasConsoleSummary(String text, HasConfigurationCacheProblemsSpec spec) {
         def uniqueCount = spec.uniqueProblems.size()
         def totalCount = spec.totalProblemsCount ?: uniqueCount
 
@@ -260,7 +260,7 @@ final class InstantExecutionProblemsFixture {
     protected static void assertProblemsHtmlReport(
         String output,
         File rootDir,
-        HasInstantExecutionProblemsSpec spec
+        HasConfigurationCacheProblemsSpec spec
     ) {
         def totalProblemCount = spec.totalProblemsCount ? spec.totalProblemsCount : spec.uniqueProblems.size()
         assertProblemsHtmlReport(
@@ -406,19 +406,19 @@ ${text}
 
 }
 
-final class HasInstantExecutionErrorSpec extends HasInstantExecutionProblemsSpec {
+final class HasConfigurationCacheErrorSpec extends HasConfigurationCacheProblemsSpec {
 
     @PackageScope
     String error
 
     @PackageScope
-    HasInstantExecutionErrorSpec(String error) {
+    HasConfigurationCacheErrorSpec(String error) {
         this.error = error
     }
 }
 
 
-class HasInstantExecutionProblemsSpec {
+class HasConfigurationCacheProblemsSpec {
     @PackageScope
     final List<Matcher<String>> uniqueProblems = []
 
@@ -451,11 +451,11 @@ class HasInstantExecutionProblemsSpec {
         return !uniqueProblems.isEmpty()
     }
 
-    HasInstantExecutionProblemsSpec withUniqueProblems(String... uniqueProblems) {
+    HasConfigurationCacheProblemsSpec withUniqueProblems(String... uniqueProblems) {
         return withUniqueProblems(uniqueProblems as List)
     }
 
-    HasInstantExecutionProblemsSpec withUniqueProblems(Iterable<String> uniqueProblems) {
+    HasConfigurationCacheProblemsSpec withUniqueProblems(Iterable<String> uniqueProblems) {
         this.uniqueProblems.clear()
         uniqueProblems.each {
             withProblem(it)
@@ -463,22 +463,22 @@ class HasInstantExecutionProblemsSpec {
         return this
     }
 
-    HasInstantExecutionProblemsSpec withProblem(String problem) {
+    HasConfigurationCacheProblemsSpec withProblem(String problem) {
         uniqueProblems.add(startsWith(problem))
         return this
     }
 
-    HasInstantExecutionProblemsSpec withProblem(Matcher<String> problem) {
+    HasConfigurationCacheProblemsSpec withProblem(Matcher<String> problem) {
         uniqueProblems.add(problem)
         return this
     }
 
-    HasInstantExecutionProblemsSpec withTotalProblemsCount(int totalProblemsCount) {
+    HasConfigurationCacheProblemsSpec withTotalProblemsCount(int totalProblemsCount) {
         this.totalProblemsCount = totalProblemsCount
         return this
     }
 
-    HasInstantExecutionProblemsSpec withProblemsWithStackTraceCount(int problemsWithStackTraceCount) {
+    HasConfigurationCacheProblemsSpec withProblemsWithStackTraceCount(int problemsWithStackTraceCount) {
         this.problemsWithStackTraceCount = problemsWithStackTraceCount
         return this
     }

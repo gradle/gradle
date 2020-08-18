@@ -16,7 +16,7 @@
 
 package org.gradle.configurationcache
 
-import org.gradle.integtests.fixtures.configurationcache.InstantExecutionBuildOperationsFixture
+import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheBuildOperationsFixture
 import org.gradle.test.fixtures.archive.ZipTestFixture
 import org.junit.Test
 
@@ -24,7 +24,7 @@ import static org.hamcrest.CoreMatchers.containsString
 
 class ConfigurationCacheJavaIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
-    protected InstantExecutionBuildOperationsFixture instantExecution
+    protected ConfigurationCacheBuildOperationsFixture instantExecution
 
     def setup() {
         instantExecution = newInstantExecutionFixture()

@@ -20,10 +20,10 @@ import com.google.common.collect.ImmutableMap;
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheOption;
 
 /**
- * Intended to be a temporary runner until there is full cross-cutting coverage for all int tests with instant execution enabled.
+ * Intended to be a temporary runner until there is full cross-cutting coverage for all int tests with configuration cache enabled.
  */
-public class InstantExecutionRunner extends BehindFlagFeatureRunner {
-    public InstantExecutionRunner(Class<?> target) {
+public class ConfigurationCacheRunner extends BehindFlagFeatureRunner {
+    public ConfigurationCacheRunner(Class<?> target) {
         super(target, ImmutableMap.of(ConfigurationCacheOption.PROPERTY_NAME, booleanFeature("configuration cache")));
     }
 }
