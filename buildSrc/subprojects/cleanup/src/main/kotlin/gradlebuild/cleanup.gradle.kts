@@ -23,7 +23,7 @@ plugins {
 
 if (BuildEnvironment.isCiServer && rootProject.name != "test") {
     val killExistingProcessesStartedByGradle by rootProject.tasks.getting
-    val rootCleanTask = rootProject.tasks.named("clean")
+    val rootCleanTask = rootProject.tasks.clean
 
     tasks.configureEach {
         mustRunAfter(killExistingProcessesStartedByGradle)
