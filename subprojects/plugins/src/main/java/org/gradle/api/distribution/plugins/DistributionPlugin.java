@@ -30,7 +30,6 @@ import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.artifacts.dsl.LazyPublishArtifact;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.plugins.DefaultArtifactPublicationSet;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.BasePlugin;
 import org.gradle.api.tasks.Sync;
 import org.gradle.api.tasks.TaskProvider;
@@ -46,7 +45,7 @@ import java.util.concurrent.Callable;
 /**
  * <p>A {@link Plugin} to package project as a distribution.</p>
  */
-public class DistributionPlugin implements Plugin<ProjectInternal> {
+public class DistributionPlugin implements Plugin<Project> {
     /**
      * Name of the main distribution
      */
@@ -70,7 +69,7 @@ public class DistributionPlugin implements Plugin<ProjectInternal> {
     }
 
     @Override
-    public void apply(final ProjectInternal project) {
+    public void apply(final Project project) {
         project.getPluginManager().apply(BasePlugin.class);
         DistributionContainer distributions = project.getExtensions().create(DistributionContainer.class, "distributions", DefaultDistributionContainer.class, Distribution.class, instantiator, project.getObjects(), fileOperations, callbackActionDecorator);
 

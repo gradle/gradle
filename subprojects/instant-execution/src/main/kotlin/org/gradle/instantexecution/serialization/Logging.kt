@@ -24,6 +24,7 @@ import org.gradle.instantexecution.problems.DocumentationSection.RequirementsDis
 import org.gradle.instantexecution.problems.PropertyProblem
 import org.gradle.instantexecution.problems.StructuredMessage
 import org.gradle.instantexecution.problems.StructuredMessage.Companion.build
+import org.gradle.instantexecution.problems.propertyDescriptionFor
 
 import kotlin.reflect.KClass
 
@@ -38,11 +39,6 @@ fun IsolateContext.logPropertyProblem(
     message: StructuredMessageBuilder
 ) {
     logPropertyProblem(action, PropertyProblem(trace, build(message), exception, documentationSection))
-}
-
-
-fun IsolateContext.logPropertyInfo(action: String, value: Any?) {
-    logger.debug("configuration-cache > {}d {} with value {}", action, trace, value)
 }
 
 
@@ -109,6 +105,22 @@ fun IsolateContext.logPropertyProblem(documentationSection: DocumentationSection
 
 private
 fun IsolateContext.logPropertyProblem(action: String, problem: PropertyProblem) {
-    logger.debug("configuration-cache > failed to {} {} because {}", action, problem.trace, problem.message)
+    logger.debug("configuration-cache > failed to {} {} because {}", action, propertyDescriptionFor(problem.trace), problem.message)
     onProblem(problem)
+}
+
+
+internal
+inline fun <T : WriteContext, R> T.withDebugFrame(name: () -> String, writeAction: T.() -> R): R {
+    val frameName: String? = if (tracer != null) name() else null
+    try {
+        frameName?.let {
+            tracer!!.open(it)
+        }
+        return writeAction()
+    } finally {
+        frameName?.let {
+            tracer!!.close(it)
+        }
+    }
 }

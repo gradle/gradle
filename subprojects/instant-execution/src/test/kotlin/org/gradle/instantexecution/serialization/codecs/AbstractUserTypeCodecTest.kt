@@ -127,6 +127,7 @@ abstract class AbstractUserTypeCodecTest {
             encoder = encoder,
             scopeLookup = mock(),
             logger = mock(),
+            tracer = null,
             problemsListener = problemHandler
         )
 

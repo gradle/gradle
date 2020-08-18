@@ -247,22 +247,8 @@ class ExceptionPlaceholder implements Serializable {
         } else {
             placeholder = new DefaultMultiCauseException(message, causes);
         }
-        try {
-            placeholder.setStackTrace(stackTrace);
-        } catch (NullPointerException e) {
-            diagnoseNullPointerException(e);
-            throw e;
-        }
+        placeholder.setStackTrace(stackTrace);
         return placeholder;
-    }
-
-    private void diagnoseNullPointerException(NullPointerException e) {
-        // https://github.com/gradle/gradle-private/issues/1368
-        StringBuilder sb = new StringBuilder("Malicious stack traces\n");
-        for (StackTraceElement element : stackTrace) {
-            sb.append(element).append("\n");
-        }
-        LOGGER.error(sb.toString(), e);
     }
 
     private List<? extends Throwable> extractCauses(Throwable throwable) {

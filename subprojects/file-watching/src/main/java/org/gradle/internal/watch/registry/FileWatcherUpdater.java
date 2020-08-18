@@ -45,4 +45,6 @@ public interface FileWatcherUpdater {
      */
     @CheckReturnValue
     SnapshotHierarchy buildFinished(SnapshotHierarchy root);
+
+    int getNumberOfWatchedHierarchies();
 }

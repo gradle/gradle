@@ -66,7 +66,7 @@ import java.util.function.Supplier;
 /**
  * <p>A {@link org.gradle.api.Plugin} which compiles and tests Java source, and assembles it into a JAR file.</p>
  */
-public class JavaBasePlugin implements Plugin<ProjectInternal> {
+public class JavaBasePlugin implements Plugin<Project> {
     public static final String CHECK_TASK_NAME = LifecycleBasePlugin.CHECK_TASK_NAME;
 
     public static final String VERIFICATION_GROUP = LifecycleBasePlugin.VERIFICATION_GROUP;
@@ -109,12 +109,14 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
     }
 
     @Override
-    public void apply(final ProjectInternal project) {
+    public void apply(final Project project) {
+        ProjectInternal projectInternal = (ProjectInternal) project;
+
         project.getPluginManager().apply(BasePlugin.class);
         project.getPluginManager().apply(JvmEcosystemPlugin.class);
         project.getPluginManager().apply(ReportingBasePlugin.class);
 
-        JavaPluginConvention javaConvention = addExtensions(project);
+        JavaPluginConvention javaConvention = addExtensions(projectInternal);
 
         configureSourceSetDefaults(javaConvention);
         configureCompileDefaults(project, javaConvention);
@@ -123,7 +125,7 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
         configureTest(project, javaConvention);
         configureBuildNeeded(project);
         configureBuildDependents(project);
-        bridgeToSoftwareModelIfNecessary(project);
+        bridgeToSoftwareModelIfNecessary(projectInternal);
     }
 
     private JavaPluginConvention addExtensions(final ProjectInternal project) {

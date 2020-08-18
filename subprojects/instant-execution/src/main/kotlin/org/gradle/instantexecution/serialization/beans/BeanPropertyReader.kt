@@ -22,7 +22,6 @@ import org.gradle.instantexecution.problems.PropertyKind
 import org.gradle.instantexecution.problems.PropertyTrace
 import org.gradle.instantexecution.serialization.IsolateContext
 import org.gradle.instantexecution.serialization.ReadContext
-import org.gradle.instantexecution.serialization.logPropertyInfo
 import org.gradle.instantexecution.serialization.logPropertyProblem
 import org.gradle.instantexecution.serialization.ownerService
 import org.gradle.instantexecution.serialization.withPropertyTrace
@@ -100,9 +99,7 @@ suspend fun ReadContext.readPropertyValue(kind: PropertyKind, name: String, acti
     withPropertyTrace(kind, name) {
         val value =
             try {
-                read().also {
-                    logPropertyInfo("deserialize", it)
-                }
+                read()
             } catch (passThrough: IOException) {
                 throw passThrough
             } catch (passThrough: GradleException) {

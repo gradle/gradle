@@ -26,6 +26,7 @@ public class ConditionalTemplateOperation implements TemplateOperation {
         this.optionalOperations = optionalOperations;
     }
 
+    @SuppressWarnings("ConstantConditions")
     @Override
     public void generate() {
         if (condition.create()) {

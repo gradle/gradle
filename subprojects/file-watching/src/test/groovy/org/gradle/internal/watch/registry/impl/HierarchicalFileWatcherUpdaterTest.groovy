@@ -32,8 +32,8 @@ import static org.gradle.internal.watch.registry.impl.HierarchicalFileWatcherUpd
 class HierarchicalFileWatcherUpdaterTest extends AbstractFileWatcherUpdaterTest {
 
     @Override
-    FileWatcherUpdater createUpdater(FileWatcher watcher, Predicate<String> watchFilter) {
-        new HierarchicalFileWatcherUpdater(watcher, NO_VALIDATION, watchFilter)
+    FileWatcherUpdater createUpdater(FileWatcher watcher, Predicate<String> watchFilter, int maxHierarchiesToWatch) {
+        new HierarchicalFileWatcherUpdater(watcher, NO_VALIDATION, watchFilter, maxHierarchiesToWatch)
     }
 
     def "does not watch hierarchy to watch if no snapshot is inside"() {
@@ -167,18 +167,16 @@ class HierarchicalFileWatcherUpdaterTest extends AbstractFileWatcherUpdaterTest 
         0 * _
     }
 
-    def "only adds watches for the roots of the hierarchies to watch"() {
-        def firstDir = file("first").createDir()
-        def secondDir = file("second").createDir()
-        def directoryWithinFirst = file("first/within").createDir()
+    def "watch only outermost hierarchy"() {
+        def outerDir = file("outer").createDir()
+        def innerDirBefore = file("outer/inner1").createDir()
+        def innerDirAfter = file("outer/inner2").createDir()
 
         when:
-        registerWatchableHierarchies([firstDir, directoryWithinFirst, secondDir])
-        addSnapshotsInWatchableHierarchies([secondDir, directoryWithinFirst])
+        registerWatchableHierarchies([innerDirBefore, outerDir, innerDirAfter])
+        addSnapshotsInWatchableHierarchies([outerDir, innerDirAfter, innerDirBefore])
         then:
-        [firstDir, secondDir].each { watchableHierarchy ->
-            1 * watcher.startWatching({ equalIgnoringOrder(it, [watchableHierarchy]) })
-        }
+        1 * watcher.startWatching({ equalIgnoringOrder(it, [outerDir]) })
         0 * _
     }
 
@@ -188,7 +186,7 @@ class HierarchicalFileWatcherUpdaterTest extends AbstractFileWatcherUpdaterTest 
         def directoryWithinFirst = file("first/within").createDir()
 
         when:
-        registerWatchableHierarchies([firstDir, directoryWithinFirst, secondDir])
+        registerWatchableHierarchies([directoryWithinFirst, firstDir, secondDir])
         addSnapshotsInWatchableHierarchies([secondDir, directoryWithinFirst])
         then:
         [firstDir, secondDir].each { watchableHierarchy ->

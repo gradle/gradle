@@ -16,6 +16,7 @@
 
 package org.gradle.instantexecution.serialization.codecs
 
+import org.gradle.api.internal.GeneratedSubclasses
 import org.gradle.instantexecution.extensions.uncheckedCast
 
 import org.gradle.instantexecution.serialization.Codec
@@ -24,6 +25,7 @@ import org.gradle.instantexecution.serialization.EncodingProvider
 import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.SerializerCodec
 import org.gradle.instantexecution.serialization.WriteContext
+import org.gradle.instantexecution.serialization.withDebugFrame
 
 import org.gradle.internal.serialize.Serializer
 
@@ -51,7 +53,9 @@ class BindingsBackedCodec(private val bindings: List<Binding>) : Codec<Any?> {
         null -> writeSmallInt(NULL_VALUE)
         else -> taggedEncodingFor(value.javaClass).run {
             writeSmallInt(tag)
-            encoding.run { encode(value) }
+            withDebugFrame({ GeneratedSubclasses.unpackType(value).typeName }) {
+                encoding.run { encode(value) }
+            }
         }
     }
 

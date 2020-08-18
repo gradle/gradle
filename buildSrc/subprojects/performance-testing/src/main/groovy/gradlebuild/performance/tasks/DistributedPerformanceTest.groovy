@@ -474,7 +474,8 @@ abstract class DistributedPerformanceTest extends PerformanceTest {
                 }
             }
         }
-        assert parsedXmls.size() == 1: "Error when parsing xml: ${response}"
+        // To avoid leaking TC build properties, which contains credentials
+        assert parsedXmls.size() == 1: "Error when parsing xml: ${response.subMap(['id', 'status', 'state', 'branchName', 'href', 'webUrl', 'statusText'])}"
         parsedXmls[0]
     }
 

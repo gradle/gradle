@@ -11,6 +11,7 @@ We would like to thank the following community contributors to this release of G
 [Leonardo Bezerra Silva Júnior](https://github.com/leonardobsjr),
 [Christoph Dreis](https://github.com/dreis2211),
 [Matthias Robbers](https://github.com/MatthiasRobbers),
+[Vladimir Sitnikov](https://github.com/vlsi),
 and [Stefan Oehme](https://github.com/oehme).
 
 <!--

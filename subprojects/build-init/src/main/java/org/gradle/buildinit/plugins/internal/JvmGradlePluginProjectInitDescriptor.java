@@ -50,12 +50,10 @@ public abstract class JvmGradlePluginProjectInitDescriptor extends JvmProjectIni
             .fileComment("User Manual available at " + documentationRegistry.getDocumentationFor("custom_plugins"));
         buildScriptBuilder.plugin("Apply the Java Gradle plugin development plugin to add support for developing Gradle plugins", "java-gradle-plugin");
 
-        buildScriptBuilder.block(null, "gradlePlugin", b -> {
-            b.containerElement("Define the plugin", "plugins", "greeting", g -> {
-                g.propertyAssignment(null, "id", pluginId);
-                g.propertyAssignment(null, "implementationClass", withPackage(settings, pluginClassName));
-            });
-        });
+        buildScriptBuilder.block(null, "gradlePlugin", b -> b.containerElement("Define the plugin", "plugins", "greeting", g -> {
+            g.propertyAssignment(null, "id", pluginId);
+            g.propertyAssignment(null, "implementationClass", withPackage(settings, pluginClassName));
+        }));
 
         BuildScriptBuilder.Expression functionalTestSourceSet = buildScriptBuilder.createContainerElement("Add a source set for the functional test suite", "sourceSets", "functionalTest", "functionalTestSourceSet");
         buildScriptBuilder.methodInvocation(null, "gradlePlugin.testSourceSets", functionalTestSourceSet);

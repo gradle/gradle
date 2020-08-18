@@ -29,6 +29,7 @@ import java.util.function.Predicate;
 
 public abstract class AbstractFileWatcherRegistryFactory<T extends AbstractFileEventFunctions> implements FileWatcherRegistryFactory {
     private static final int FILE_EVENT_QUEUE_SIZE = 4096;
+    private static final int DEFAULT_MAX_HIERARCHIES_TO_WATCH = 50;
 
     protected final T fileEventFunctions;
     private final Predicate<String> watchFilter;
@@ -43,7 +44,7 @@ public abstract class AbstractFileWatcherRegistryFactory<T extends AbstractFileE
         BlockingQueue<FileWatchEvent> fileEvents = new ArrayBlockingQueue<>(FILE_EVENT_QUEUE_SIZE);
         try {
             FileWatcher watcher = createFileWatcher(fileEvents);
-            FileWatcherUpdater fileWatcherUpdater = createFileWatcherUpdater(watcher, watchFilter);
+            FileWatcherUpdater fileWatcherUpdater = createFileWatcherUpdater(watcher, watchFilter, DEFAULT_MAX_HIERARCHIES_TO_WATCH);
             return new DefaultFileWatcherRegistry(
                 watcher,
                 handler,
@@ -58,5 +59,5 @@ public abstract class AbstractFileWatcherRegistryFactory<T extends AbstractFileE
 
     protected abstract FileWatcher createFileWatcher(BlockingQueue<FileWatchEvent> fileEvents) throws InterruptedException;
 
-    protected abstract FileWatcherUpdater createFileWatcherUpdater(FileWatcher watcher, Predicate<String> watchFilter);
+    protected abstract FileWatcherUpdater createFileWatcherUpdater(FileWatcher watcher, Predicate<String> watchFilter, int maxHierarchiesToWatch);
 }

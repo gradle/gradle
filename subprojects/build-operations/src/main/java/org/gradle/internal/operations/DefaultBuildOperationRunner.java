@@ -20,23 +20,35 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
-import javax.annotation.OverridingMethodsMustInvokeSuper;
-import java.io.ObjectStreamException;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 public class DefaultBuildOperationRunner implements BuildOperationRunner {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultBuildOperationRunner.class);
-    protected static final BuildOperationWorker<RunnableBuildOperation> RUNNABLE_BUILD_OPERATION_WORKER = new RunnableBuildOperationWorker();
+    private static final BuildOperationWorker<RunnableBuildOperation> RUNNABLE_BUILD_OPERATION_WORKER = new BuildOperationWorker<RunnableBuildOperation>() {
+        @Override
+        public void execute(RunnableBuildOperation buildOperation, BuildOperationContext context) throws Exception {
+            buildOperation.run(context);
+        }
+    };
 
-    protected final BuildOperationListener listener;
     private final TimeSupplier clock;
     private final BuildOperationIdFactory buildOperationIdFactory;
-    private final CurrentBuildOperationRef currentBuildOperationRef = CurrentBuildOperationRef.instance();
+    private final CurrentBuildOperationRef currentBuildOperationRef;
+    private final BuildOperationExecutionListenerFactory listenerFactory;
 
-    public DefaultBuildOperationRunner(BuildOperationListener listener, TimeSupplier clock, BuildOperationIdFactory buildOperationIdFactory) {
-        this.listener = listener;
+    public DefaultBuildOperationRunner(CurrentBuildOperationRef currentBuildOperationRef, TimeSupplier clock, BuildOperationIdFactory buildOperationIdFactory) {
+        this(currentBuildOperationRef, clock, buildOperationIdFactory, new BuildOperationExecutionListenerFactory() {
+            @Override
+            public BuildOperationExecutionListener createListener() {
+                return BuildOperationExecutionListener.NO_OP;
+            }
+        });
+    }
+
+    public DefaultBuildOperationRunner(CurrentBuildOperationRef currentBuildOperationRef, TimeSupplier clock, BuildOperationIdFactory buildOperationIdFactory, BuildOperationExecutionListenerFactory listenerFactory) {
+        this.currentBuildOperationRef = currentBuildOperationRef;
         this.clock = clock;
         this.buildOperationIdFactory = buildOperationIdFactory;
+        this.listenerFactory = listenerFactory;
     }
 
     @Override
@@ -51,27 +63,29 @@ public class DefaultBuildOperationRunner implements BuildOperationRunner {
         return worker.getReturnValue();
     }
 
-    protected <O extends BuildOperation> void execute(final O buildOperation, final BuildOperationWorker<O> worker, @Nullable BuildOperationState defaultParent) {
-        BuildOperationDescriptor.Builder descriptorBuilder = buildOperation.description();
-        execute(descriptorBuilder, defaultParent, new BuildOperationExecution<O>() {
+    @Override
+    public <O extends BuildOperation> void execute(final O buildOperation, final BuildOperationWorker<O> worker, @Nullable BuildOperationState defaultParent) {
+        execute(buildOperation.description(), defaultParent, new BuildOperationExecution<O>() {
             @Override
-            public O execute(BuildOperationDescriptor descriptor, BuildOperationState operationState, DefaultBuildOperationContext context, BuildOperationExecutionListener listener) {
+            public O execute(BuildOperationDescriptor descriptor, BuildOperationState operationState, @Nullable BuildOperationState parent, ReadableBuildOperationContext context, BuildOperationExecutionListener listener) {
                 Throwable failure = null;
                 try {
-                    listener.start(operationState);
+                    listener.start(descriptor, operationState);
                     try {
                         worker.execute(buildOperation, context);
                     } catch (Throwable t) {
-                        context.thrown(t);
+                        if (context.getFailure() == null) {
+                            context.failed(t);
+                        }
                         failure = t;
                     }
-                    listener.stop(operationState, context);
+                    listener.stop(descriptor, operationState, parent, context);
                     if (failure != null) {
                         throw throwAsBuildOperationInvocationException(failure);
                     }
                     return buildOperation;
                 } finally {
-                    listener.close(operationState);
+                    listener.close(descriptor, operationState);
                 }
             }
         });
@@ -81,8 +95,8 @@ public class DefaultBuildOperationRunner implements BuildOperationRunner {
     public BuildOperationContext start(BuildOperationDescriptor.Builder descriptorBuilder) {
         return execute(descriptorBuilder, getCurrentBuildOperation(), new BuildOperationExecution<BuildOperationContext>() {
             @Override
-            public BuildOperationContext execute(final BuildOperationDescriptor descriptor, final BuildOperationState operationState, final DefaultBuildOperationContext context, final BuildOperationExecutionListener listener) {
-                listener.start(operationState);
+            public BuildOperationContext execute(final BuildOperationDescriptor descriptor, final BuildOperationState operationState, @Nullable final BuildOperationState parent, final ReadableBuildOperationContext context, final BuildOperationExecutionListener listener) {
+                listener.start(descriptor, operationState);
                 return new BuildOperationContext() {
                     private boolean finished;
 
@@ -109,9 +123,9 @@ public class DefaultBuildOperationRunner implements BuildOperationRunner {
                     private void finish() {
                         finished = true;
                         try {
-                            listener.stop(operationState, context);
+                            listener.stop(descriptor, operationState, parent, context);
                         } finally {
-                            listener.close(operationState);
+                            listener.close(descriptor, operationState);
                         }
                     }
 
@@ -126,82 +140,35 @@ public class DefaultBuildOperationRunner implements BuildOperationRunner {
     }
 
     private <O> O execute(BuildOperationDescriptor.Builder descriptorBuilder, @Nullable BuildOperationState defaultParent, BuildOperationExecution<O> execution) {
-        BuildOperationState parent = determineParent(descriptorBuilder, defaultParent);
+        BuildOperationState descriptorParent = (BuildOperationState) descriptorBuilder.getParentState();
+        BuildOperationState parent = descriptorParent == null ? defaultParent : descriptorParent;
         OperationIdentifier id = new OperationIdentifier(buildOperationIdFactory.nextId());
         BuildOperationDescriptor descriptor = descriptorBuilder.build(id, parent == null
             ? null
             : parent.getDescription().getId());
         assertParentRunning("Cannot start operation (%s) as parent operation (%s) has already completed.", descriptor, parent);
 
+        BuildOperationState operationState = new BuildOperationState(descriptor, clock.getCurrentTime());
+        DefaultBuildOperationContext context = new DefaultBuildOperationContext();
         return execution.execute(
             descriptor,
-            new BuildOperationState(descriptor, clock.getCurrentTime()),
-            new DefaultBuildOperationContext(),
-            createListener(parent, descriptor)
+            operationState,
+            parent,
+            context,
+            new BuildOperationTrackingListener(currentBuildOperationRef, listenerFactory.createListener())
         );
     }
 
-    @OverridingMethodsMustInvokeSuper
-    protected BuildOperationExecutionListener createListener(@Nullable final BuildOperationState parent, final BuildOperationDescriptor descriptor) {
-        return new BuildOperationExecutionListener() {
-
-            private BuildOperationState originalCurrentBuildOperation;
-
-            @Override
-            public void start(BuildOperationState operationState) {
-                originalCurrentBuildOperation = getCurrentBuildOperation();
-                setCurrentBuildOperation(operationState);
-                operationState.setRunning(true);
-                listener.started(descriptor, new OperationStartEvent(operationState.getStartTime()));
-                LOGGER.debug("Build operation '{}' started", descriptor.getDisplayName());
-            }
-
-            @Override
-            public void stop(BuildOperationState operationState, DefaultBuildOperationContext context) {
-                LOGGER.debug("Completing Build operation '{}'", descriptor.getDisplayName());
-                listener.finished(descriptor, new OperationFinishEvent(operationState.getStartTime(), clock.getCurrentTime(), context.failure, context.result));
-                assertParentRunning("Parent operation (%2$s) completed before this operation (%1$s).", descriptor, parent);
-            }
-
-            @Override
-            public void close(BuildOperationState operationState) {
-                setCurrentBuildOperation(originalCurrentBuildOperation);
-                operationState.setRunning(false);
-                LOGGER.debug("Build operation '{}' completed", descriptor.getDisplayName());
-            }
-        };
-    }
-
-    private void assertParentRunning(String message, BuildOperationDescriptor child, @Nullable BuildOperationState parent) {
+    private static void assertParentRunning(String message, BuildOperationDescriptor child, @Nullable BuildOperationState parent) {
         if (parent != null && !parent.isRunning()) {
             String parentName = parent.getDescription().getDisplayName();
             throw new IllegalStateException(String.format(message, child.getDisplayName(), parentName));
         }
     }
 
-    @Override
-    public BuildOperationRef getCurrentOperation() {
-        BuildOperationRef current = getCurrentBuildOperation();
-        if (current == null) {
-            throw new IllegalStateException("No operation is currently running.");
-        }
-        return current;
-    }
-
     @Nullable
-    protected BuildOperationState getCurrentBuildOperation() {
+    private BuildOperationState getCurrentBuildOperation() {
         return (BuildOperationState) currentBuildOperationRef.get();
-    }
-
-    protected void setCurrentBuildOperation(@Nullable BuildOperationState parentState) {
-        currentBuildOperationRef.set(parentState);
-    }
-
-    @Nullable
-    @OverridingMethodsMustInvokeSuper
-    protected BuildOperationState determineParent(BuildOperationDescriptor.Builder descriptorBuilder, @Nullable BuildOperationState defaultParent) {
-        BuildOperationState parent = (BuildOperationState) descriptorBuilder.getParentState();
-        return parent == null ? defaultParent : parent;
     }
 
     public interface TimeSupplier {
@@ -222,106 +189,11 @@ public class DefaultBuildOperationRunner implements BuildOperationRunner {
     }
 
     private interface BuildOperationExecution<O> {
-        O execute(BuildOperationDescriptor descriptor, BuildOperationState operationState, DefaultBuildOperationContext context, BuildOperationExecutionListener listener);
-    }
-
-    protected interface BuildOperationExecutionListener {
-        void start(BuildOperationState operationState);
-
-        void stop(BuildOperationState operationState, DefaultBuildOperationContext context);
-
-        void close(BuildOperationState operationState);
-    }
-
-    protected static class DefaultBuildOperationContext implements BuildOperationContext {
-        Throwable failure;
-        Object result;
-        protected String status;
-
-        @Override
-        public void failed(@Nullable Throwable t) {
-            failure = t;
-        }
-
-        public void thrown(Throwable t) {
-            if (failure == null) {
-                failure = t;
-            }
-        }
-
-        @Override
-        public void setResult(Object result) {
-            this.result = result;
-        }
-
-        @Override
-        public void setStatus(String status) {
-            this.status = status;
-        }
-    }
-
-    protected static class BuildOperationState implements BuildOperationRef {
-        private final BuildOperationDescriptor description;
-        private final AtomicBoolean running = new AtomicBoolean();
-        private final long startTime;
-
-        public BuildOperationState(BuildOperationDescriptor descriptor, long startTime) {
-            this.startTime = startTime;
-            this.description = descriptor;
-        }
-
-        public BuildOperationDescriptor getDescription() {
-            return description;
-        }
-
-        public boolean isRunning() {
-            return running.get();
-        }
-
-        public void setRunning(boolean running) {
-            this.running.set(running);
-        }
-
-        public long getStartTime() {
-            return startTime;
-        }
-
-        @Override
-        public OperationIdentifier getId() {
-            return description.getId();
-        }
-
-        @Override
-        public OperationIdentifier getParentId() {
-            return description.getParentId();
-        }
-
-        private Object writeReplace() throws ObjectStreamException {
-            return new DefaultBuildOperationRef(description.getId(), description.getParentId());
-        }
-    }
-
-    private static class RunnableBuildOperationWorker implements BuildOperationWorker<RunnableBuildOperation> {
-        private RunnableBuildOperationWorker() {}
-
-        @Override
-        public String getDisplayName() {
-            return "runnable build operation";
-        }
-
-        @Override
-        public void execute(RunnableBuildOperation buildOperation, BuildOperationContext context) throws Exception {
-            buildOperation.run(context);
-        }
+        O execute(BuildOperationDescriptor descriptor, BuildOperationState operationState, @Nullable BuildOperationState parent, ReadableBuildOperationContext context, BuildOperationExecutionListener listener);
     }
 
     private static class CallableBuildOperationWorker<T> implements BuildOperationWorker<CallableBuildOperation<T>> {
         private T returnValue;
-
-        @Override
-        public String getDisplayName() {
-            return "callable build operation";
-        }
 
         @Override
         public void execute(CallableBuildOperation<T> buildOperation, BuildOperationContext context) throws Exception {
@@ -330,6 +202,120 @@ public class DefaultBuildOperationRunner implements BuildOperationRunner {
 
         public T getReturnValue() {
             return returnValue;
+        }
+    }
+
+    private static class BuildOperationTrackingListener implements BuildOperationExecutionListener {
+        private final CurrentBuildOperationRef currentBuildOperationRef;
+        private final BuildOperationExecutionListener delegate;
+        private BuildOperationState originalCurrentBuildOperation;
+
+        private BuildOperationTrackingListener(CurrentBuildOperationRef currentBuildOperationRef, BuildOperationExecutionListener delegate) {
+            this.currentBuildOperationRef = currentBuildOperationRef;
+            this.delegate = delegate;
+        }
+
+        @Override
+        public void start(BuildOperationDescriptor descriptor, BuildOperationState operationState) {
+            originalCurrentBuildOperation = (BuildOperationState) currentBuildOperationRef.get();
+            currentBuildOperationRef.set(operationState);
+            operationState.setRunning(true);
+            LOGGER.debug("Build operation '{}' started", descriptor.getDisplayName());
+            delegate.start(descriptor, operationState);
+        }
+
+        @Override
+        public void stop(BuildOperationDescriptor descriptor, BuildOperationState operationState, @Nullable BuildOperationState parent, ReadableBuildOperationContext context) {
+            delegate.stop(descriptor, operationState, parent, context);
+            LOGGER.debug("Completing Build operation '{}'", descriptor.getDisplayName());
+            assertParentRunning("Parent operation (%2$s) completed before this operation (%1$s).", descriptor, parent);
+        }
+
+        @Override
+        public void close(BuildOperationDescriptor descriptor, BuildOperationState operationState) {
+            delegate.close(descriptor, operationState);
+            currentBuildOperationRef.set(originalCurrentBuildOperation);
+            operationState.setRunning(false);
+            LOGGER.debug("Build operation '{}' completed", descriptor.getDisplayName());
+        }
+    }
+
+    public interface ReadableBuildOperationContext extends BuildOperationContext {
+        @Nullable
+        Object getResult();
+
+        @Override
+        void setResult(@Nullable Object result);
+
+        @Nullable
+        Throwable getFailure();
+
+        @Nullable
+        String getStatus();
+
+        @Override
+        void setStatus(@Nullable String status);
+    }
+
+    public interface BuildOperationExecutionListener {
+        BuildOperationExecutionListener NO_OP = new BuildOperationExecutionListener() {
+            @Override
+            public void start(BuildOperationDescriptor descriptor, BuildOperationState operationState) {}
+
+            @Override
+            public void stop(BuildOperationDescriptor descriptor, BuildOperationState operationState, @Nullable BuildOperationState parent, ReadableBuildOperationContext context) {}
+
+            @Override
+            public void close(BuildOperationDescriptor descriptor, BuildOperationState operationState) {}
+        };
+
+        void start(BuildOperationDescriptor descriptor, BuildOperationState operationState);
+
+        void stop(BuildOperationDescriptor descriptor, BuildOperationState operationState, @Nullable BuildOperationState parent, ReadableBuildOperationContext context);
+
+        void close(BuildOperationDescriptor descriptor, BuildOperationState operationState);
+    }
+
+    public interface BuildOperationExecutionListenerFactory {
+        BuildOperationExecutionListener createListener();
+    }
+
+    private static class DefaultBuildOperationContext implements ReadableBuildOperationContext {
+        private Throwable failure;
+        private Object result;
+        private String status;
+
+        @Nullable
+        @Override
+        public Object getResult() {
+            return result;
+        }
+
+        @Override
+        public void setResult(@Nullable Object result) {
+            this.result = result;
+        }
+
+        @Nullable
+        @Override
+        public Throwable getFailure() {
+            return failure;
+        }
+
+        @Override
+        public void failed(@Nullable Throwable t) {
+            failure = t;
+        }
+
+        @Nullable
+        @Override
+        public String getStatus() {
+            return status;
+        }
+
+        @Override
+        public void setStatus(@Nullable String status) {
+            this.status = status;
         }
     }
 }

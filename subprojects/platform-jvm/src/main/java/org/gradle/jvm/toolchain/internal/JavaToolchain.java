@@ -18,6 +18,8 @@ package org.gradle.jvm.toolchain.internal;
 
 import org.gradle.api.Describable;
 import org.gradle.api.JavaVersion;
+import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Internal;
 import org.gradle.jvm.toolchain.JavaCompiler;
 import org.gradle.jvm.toolchain.JavaInstallation;
 import org.gradle.jvm.toolchain.JavaLauncher;
@@ -36,22 +38,27 @@ public class JavaToolchain implements Describable {
         this.compilerFactory = compilerFactory;
     }
 
+    @Internal
     public JavaCompiler getJavaCompiler() {
         return new DefaultToolchainJavaCompiler(this, compilerFactory);
     }
 
+    @Internal
     public JavaLauncher getJavaLauncher() {
         return new DefaultToolchainJavaLauncher(installation.getJavaExecutable().getAsFile());
     }
 
+    @Input
     public JavaVersion getJavaMajorVersion() {
         return installation.getJavaVersion();
     }
 
+    @Internal
     public File getJavaHome() {
         return installation.getInstallationDirectory().getAsFile();
     }
 
+    @Internal
     @Override
     public String getDisplayName() {
         return getJavaHome().getAbsolutePath();

@@ -42,6 +42,7 @@ import org.gradle.internal.operations.BuildOperationListenerManager;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.operations.BuildOperationRef;
+import org.gradle.internal.operations.BuildOperationState;
 import org.gradle.internal.operations.BuildOperationWorker;
 import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.internal.operations.DefaultBuildOperationExecutor;
@@ -59,6 +60,7 @@ import org.gradle.internal.work.DefaultWorkerLeaseService;
 import org.gradle.internal.work.StopShieldingWorkerLeaseService;
 import org.gradle.internal.work.WorkerLeaseService;
 
+import javax.annotation.Nullable;
 import java.io.Closeable;
 import java.io.IOException;
 
@@ -130,6 +132,11 @@ public class CrossBuildSessionScopeServices implements Closeable {
             @Override
             public <T> T call(CallableBuildOperation<T> buildOperation) {
                 return delegate.call(buildOperation);
+            }
+
+            @Override
+            public <O extends BuildOperation> void execute(O buildOperation, BuildOperationWorker<O> worker, @Nullable BuildOperationState defaultParent) {
+                delegate.execute(buildOperation, worker, defaultParent);
             }
 
             @Override

@@ -55,6 +55,7 @@ import org.gradle.instantexecution.serialization.readCollectionInto
 import org.gradle.instantexecution.serialization.readEnum
 import org.gradle.instantexecution.serialization.readNonNull
 import org.gradle.instantexecution.serialization.runWriteOperation
+import org.gradle.instantexecution.serialization.withDebugFrame
 import org.gradle.instantexecution.serialization.withIsolate
 import org.gradle.instantexecution.serialization.withPropertyTrace
 import org.gradle.instantexecution.serialization.writeCollection
@@ -84,22 +85,31 @@ class TaskNodeCodec(
 
     private
     suspend fun WriteContext.writeTask(task: TaskInternal) {
-        val taskType = GeneratedSubclasses.unpackType(task)
-        writeClass(taskType)
-        writeString(task.project.path)
-        writeString(task.name)
+        withDebugFrame({ task.path }) {
+            val taskType = GeneratedSubclasses.unpackType(task)
+            val projectPath = task.project.path
+            val taskName = task.name
+            writeClass(taskType)
+            writeString(projectPath)
+            writeString(taskName)
 
-        withTaskOf(taskType, task, userTypesCodec) {
-            writeUpToDateSpec(task)
-            writeCollection(task.outputs.cacheIfSpecs)
-            writeCollection(task.outputs.doNotCacheIfSpecs)
-            beanStateWriterFor(task.javaClass).run {
-                writeStateOf(task)
-                writeRegisteredPropertiesOf(task, this as BeanPropertyWriter)
-                writeDestroyablesOf(task)
-                writeLocalStateOf(task)
+            withDebugFrame({ taskType.name }) {
+                withTaskOf(taskType, task, userTypesCodec) {
+                    writeUpToDateSpec(task)
+                    writeCollection(task.outputs.cacheIfSpecs)
+                    writeCollection(task.outputs.doNotCacheIfSpecs)
+                    beanStateWriterFor(task.javaClass).run {
+                        writeStateOf(task)
+                        writeRegisteredPropertiesOf(
+                            task,
+                            this as BeanPropertyWriter
+                        )
+                    }
+                    writeDestroyablesOf(task)
+                    writeLocalStateOf(task)
+                    writeRegisteredServicesOf(task)
+                }
             }
-            writeRegisteredServicesOf(task)
         }
     }
 
@@ -117,10 +127,10 @@ class TaskNodeCodec(
             readCollectionInto { task.outputs.doNotCacheIfSpecs.uncheckedCast() }
             beanStateReaderFor(task.javaClass).run {
                 readStateOf(task)
-                readRegisteredPropertiesOf(task)
-                readDestroyablesOf(task)
-                readLocalStateOf(task)
             }
+            readRegisteredPropertiesOf(task)
+            readDestroyablesOf(task)
+            readLocalStateOf(task)
             readRegisteredServicesOf(task)
         }
 

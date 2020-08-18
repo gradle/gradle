@@ -65,7 +65,7 @@ import static org.gradle.api.plugins.internal.JvmPluginsHelper.configureJavaDocT
 /**
  * <p>A {@link Plugin} which compiles and tests Java source, and assembles it into a JAR file.</p>
  */
-public class JavaPlugin implements Plugin<ProjectInternal> {
+public class JavaPlugin implements Plugin<Project> {
     /**
      * The name of the task that processes resources.
      */
@@ -284,18 +284,19 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
     }
 
     @Override
-    public void apply(ProjectInternal project) {
+    public void apply(final Project project) {
         if (project.getPluginManager().hasPlugin("java-platform")) {
             throw new IllegalStateException("The \"java\" or \"java-library\" plugin cannot be applied together with the \"java-platform\" plugin. " +
                 "A project is either a platform or a library but cannot be both at the same time.");
         }
+        final ProjectInternal projectInternal = (ProjectInternal) project;
 
         project.getPluginManager().apply(JavaBasePlugin.class);
 
         JavaPluginExtension javaPluginExtension = project.getExtensions().getByType(JavaPluginExtension.class);
         JavaPluginConvention javaConvention = project.getConvention().getPlugin(JavaPluginConvention.class);
-        project.getServices().get(ComponentRegistry.class).setMainComponent(new BuildableJavaComponentImpl(javaConvention));
-        BuildOutputCleanupRegistry buildOutputCleanupRegistry = project.getServices().get(BuildOutputCleanupRegistry.class);
+        projectInternal.getServices().get(ComponentRegistry.class).setMainComponent(new BuildableJavaComponentImpl(javaConvention));
+        BuildOutputCleanupRegistry buildOutputCleanupRegistry = projectInternal.getServices().get(BuildOutputCleanupRegistry.class);
 
         configureSourceSets(javaConvention, buildOutputCleanupRegistry);
         configureConfigurations(project, javaConvention);
@@ -355,7 +356,7 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
         return pluginConvention.getSourceSets().getByName(mainSourceSetName);
     }
 
-    private void configureJavadocTask(ProjectInternal project, JavaPluginExtension javaPluginExtension, JavaPluginConvention pluginConvention) {
+    private void configureJavadocTask(Project project, JavaPluginExtension javaPluginExtension, JavaPluginConvention pluginConvention) {
         SourceSet main = mainSourceSetOf(pluginConvention);
         configureJavaDocTask(null, main, project.getTasks(), javaPluginExtension);
     }

@@ -47,6 +47,8 @@ class DefaultWriteContext(
 
     override val logger: Logger,
 
+    override val tracer: Tracer?,
+
     private
     val problemsListener: ProblemsListener
 
@@ -141,6 +143,39 @@ class DefaultWriteContext(
 
     override fun onProblem(problem: PropertyProblem) {
         problemsListener.onProblem(problem)
+    }
+}
+
+
+internal
+class LoggingTracer(
+    private val profile: String,
+    private val writePosition: () -> Long,
+    private val logger: Logger
+) : Tracer {
+
+    // Include a sequence number in the events so the order of events can be preserved in face of log output reordering
+    private
+    var nextSequenceNumber = 0L
+
+    override fun open(frame: String) {
+        log(frame, 'O')
+    }
+
+    override fun close(frame: String) {
+        log(frame, 'C')
+    }
+
+    private
+    fun log(frame: String, openOrClose: Char) {
+        logger.debug(
+            """{"profile":"$profile","type":"$openOrClose","frame":"$frame","at":${writePosition()},"sn":${nextSequenceNumber()}}"""
+        )
+    }
+
+    private
+    fun nextSequenceNumber() = nextSequenceNumber.also {
+        nextSequenceNumber += 1
     }
 }
 

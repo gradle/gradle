@@ -36,9 +36,6 @@ import org.codehaus.plexus.DefaultPlexusContainer;
 import org.codehaus.plexus.PlexusContainerException;
 import org.codehaus.plexus.classworlds.ClassWorld;
 import org.codehaus.plexus.component.repository.exception.ComponentLookupException;
-import org.codehaus.plexus.configuration.PlexusConfigurationException;
-import org.gradle.api.Transformer;
-import org.gradle.internal.Factory;
 import org.gradle.internal.SystemProperties;
 import org.gradle.util.CollectionUtils;
 import org.sonatype.aether.RepositorySystemSession;
@@ -63,7 +60,7 @@ public class MavenProjectsCreator {
         }
     }
 
-    private Set<MavenProject> createNow(Settings settings, File pomFile) throws PlexusContainerException, PlexusConfigurationException, ComponentLookupException, MavenExecutionRequestPopulationException, ProjectBuildingException {
+    private Set<MavenProject> createNow(Settings settings, File pomFile) throws PlexusContainerException, ComponentLookupException, MavenExecutionRequestPopulationException, ProjectBuildingException {
         ContainerConfiguration containerConfiguration = new DefaultContainerConfiguration()
                 .setClassWorld(new ClassWorld("plexus.core", ClassWorld.class.getClassLoader()))
                 .setName("mavenCore");
@@ -71,13 +68,10 @@ public class MavenProjectsCreator {
         DefaultPlexusContainer container = new DefaultPlexusContainer(containerConfiguration);
         ProjectBuilder builder = container.lookup(ProjectBuilder.class);
         MavenExecutionRequest executionRequest = new DefaultMavenExecutionRequest();
-        final Properties properties = SystemProperties.getInstance().withSystemProperties(new Factory<Properties>() {
-            @Override
-            public Properties create() {
-                final Properties properties = new Properties();
-                properties.putAll(System.getProperties());
-                return properties;
-            }
+        final Properties properties = SystemProperties.getInstance().withSystemProperties(() -> {
+            final Properties currentProperties = new Properties();
+            currentProperties.putAll(System.getProperties());
+            return currentProperties;
         });
 
         executionRequest.setSystemProperties(properties);
@@ -87,19 +81,15 @@ public class MavenProjectsCreator {
         ProjectBuildingRequest buildingRequest = executionRequest.getProjectBuildingRequest();
         buildingRequest.setProcessPlugins(false);
         MavenProject mavenProject = builder.build(pomFile, buildingRequest).getProject();
-        Set<MavenProject> reactorProjects = new LinkedHashSet<MavenProject>();
+        Set<MavenProject> reactorProjects = new LinkedHashSet<>();
 
         //TODO adding the parent project first because the converter needs it this way ATM. This is oversimplified.
         //the converter should not depend on the order of reactor projects.
         //we should add coverage for nested multi-project builds with multiple parents.
         reactorProjects.add(mavenProject);
         List<ProjectBuildingResult> allProjects = builder.build(ImmutableList.of(pomFile), true, buildingRequest);
-        CollectionUtils.collect(allProjects, reactorProjects, new Transformer<MavenProject, ProjectBuildingResult>() {
-            @Override
-            public MavenProject transform(ProjectBuildingResult original) {
-                return original.getProject();
-            }
-        });
+        //noinspection NullableProblems
+        CollectionUtils.collect(allProjects, reactorProjects, ProjectBuildingResult::getProject);
 
         MavenExecutionResult result = new DefaultMavenExecutionResult();
         result.setProject(mavenProject);
