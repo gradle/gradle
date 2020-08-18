@@ -23,6 +23,7 @@ import org.gradle.integtests.fixtures.TestResultOutputAssociation
 import org.gradle.internal.SystemProperties
 import spock.lang.Issue
 import spock.lang.Specification
+import spock.lang.Unroll
 
 import static TestOutputAssociation.WITH_SUITE
 import static TestOutputAssociation.WITH_TESTCASE
@@ -57,7 +58,7 @@ class JUnitXmlResultWriterSpec extends Specification {
         def xml = getXml(result)
 
         then:
-        new JUnitTestClassExecutionResult(xml, "com.foo.FooTest", "com.foo.FooTest", false, TestResultOutputAssociation.WITH_SUITE)
+        new JUnitTestClassExecutionResult(xml, "com.foo.FooTest", "com.foo.FooTest", TestResultOutputAssociation.WITH_SUITE)
                 .assertTestCount(4, 1, 1, 0)
                 .assertTestFailed("some failing test", equalTo('failure message'))
                 .assertTestsSkipped("some skipped test")
@@ -181,9 +182,10 @@ class JUnitXmlResultWriterSpec extends Specification {
 """
     }
 
+    @Unroll
     @Issue("gradle/gradle#11445")
-    def "writes xml JUnit result displayName"() {
-        TestClassResult result = new TestClassResult(1, "com.foo.FooTest", "com.foo.FooTest displayName", startTime)
+    def "writes #writtenName as class display name when #displayName is specified"() {
+        TestClassResult result = new TestClassResult(1, "com.foo.FooTest", displayName, startTime)
         result.add(new TestMethodResult(1, "some test", "some test displayName", SUCCESS, 15, startTime + 25))
         result.add(new TestMethodResult(2, "some test two", "some test two displayName", SUCCESS, 15, startTime + 30))
         result.add(new TestMethodResult(3, "some failing test", "some failing test displayName", FAILURE, 10, startTime + 40).addFailure("failure message", "[stack-trace]", "ExceptionType"))
@@ -196,7 +198,7 @@ class JUnitXmlResultWriterSpec extends Specification {
         def xml = getXml(result)
 
         then:
-        new JUnitTestClassExecutionResult(xml, "com.foo.FooTest", "com.foo.FooTest displayName", true, TestResultOutputAssociation.WITH_SUITE)
+        new JUnitTestClassExecutionResult(xml, "com.foo.FooTest", writtenName, TestResultOutputAssociation.WITH_SUITE)
             .assertTestCount(4, 1, 1, 0)
             .assertTestFailed("some failing test displayName", equalTo('failure message'))
             .assertTestsSkipped("some skipped test displayName")
@@ -208,7 +210,7 @@ class JUnitXmlResultWriterSpec extends Specification {
 
         and:
         xml == """<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.foo.FooTest displayName" tests="4" skipped="1" failures="1" errors="0" timestamp="2012-11-19T17:09:28" hostname="localhost" time="0.045">
+<testsuite name="$writtenName" tests="4" skipped="1" failures="1" errors="0" timestamp="2012-11-19T17:09:28" hostname="localhost" time="0.045">
   <properties/>
   <testcase name="some test displayName" classname="com.foo.FooTest" time="0.015"/>
   <testcase name="some test two displayName" classname="com.foo.FooTest" time="0.015"/>
@@ -224,6 +226,11 @@ class JUnitXmlResultWriterSpec extends Specification {
   <system-err><![CDATA[err]]></system-err>
 </testsuite>
 """
+
+        where:
+        displayName           | writtenName
+        'FooTest'             | 'com.foo.FooTest'
+        'custom display name' | 'custom display name'
     }
 
     def getXml(TestClassResult result) {
