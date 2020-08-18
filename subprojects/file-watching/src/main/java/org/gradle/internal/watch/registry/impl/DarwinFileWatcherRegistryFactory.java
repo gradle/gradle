@@ -16,8 +16,8 @@
 
 package org.gradle.internal.watch.registry.impl;
 
-import net.rubygrapefruit.platform.Native;
 import net.rubygrapefruit.platform.NativeIntegrationUnavailableException;
+import net.rubygrapefruit.platform.file.FileEvents;
 import net.rubygrapefruit.platform.file.FileWatchEvent;
 import net.rubygrapefruit.platform.file.FileWatcher;
 import net.rubygrapefruit.platform.internal.jni.OsxFileEventFunctions;
@@ -33,7 +33,7 @@ import java.util.function.Predicate;
 public class DarwinFileWatcherRegistryFactory extends AbstractFileWatcherRegistryFactory<OsxFileEventFunctions> {
 
     public DarwinFileWatcherRegistryFactory(Predicate<String> watchFilter) throws NativeIntegrationUnavailableException {
-        super(Native.get(OsxFileEventFunctions.class), watchFilter);
+        super(FileEvents.get(OsxFileEventFunctions.class), watchFilter);
     }
 
     @Override

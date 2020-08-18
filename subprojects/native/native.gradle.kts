@@ -13,6 +13,7 @@ dependencies {
     implementation(project(":base-services"))
 
     implementation(libs.nativePlatform)
+    implementation(libs.nativePlatformFileEvents)
     implementation(libs.slf4jApi)
     implementation(libs.guava)
     implementation(libs.commonsIo)

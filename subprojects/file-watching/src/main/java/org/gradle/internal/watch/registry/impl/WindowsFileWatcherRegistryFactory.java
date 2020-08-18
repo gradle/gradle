@@ -16,8 +16,8 @@
 
 package org.gradle.internal.watch.registry.impl;
 
-import net.rubygrapefruit.platform.Native;
 import net.rubygrapefruit.platform.NativeIntegrationUnavailableException;
+import net.rubygrapefruit.platform.file.FileEvents;
 import net.rubygrapefruit.platform.file.FileWatchEvent;
 import net.rubygrapefruit.platform.file.FileWatcher;
 import net.rubygrapefruit.platform.internal.jni.WindowsFileEventFunctions;
@@ -34,7 +34,7 @@ public class WindowsFileWatcherRegistryFactory extends AbstractFileWatcherRegist
     private static final int BUFFER_SIZE = 64 * 1024;
 
     public WindowsFileWatcherRegistryFactory(Predicate<String> watchFilter) throws NativeIntegrationUnavailableException {
-        super(Native.get(WindowsFileEventFunctions.class), watchFilter);
+        super(FileEvents.get(WindowsFileEventFunctions.class), watchFilter);
     }
 
     @Override
