@@ -38,6 +38,6 @@ dependencies {
 
 tasks.register("soakTest") {
     description = "Run all soak tests defined in the :soak subproject"
-    group = gradlebuild.CI_GROUP
+    group = "CI Lifecycle"
     dependsOn(":soak:embeddedIntegTest")
 }
