@@ -189,6 +189,9 @@ public class BuildScriptBuilder {
         if (expression instanceof Map) {
             return new MapLiteralValue(expressionMap(Cast.uncheckedNonnullCast(expression)));
         }
+        if (expression instanceof Enum) {
+            return new EnumValue(expression);
+        }
         throw new IllegalArgumentException("Don't know how to treat " + expression + " as an expression.");
     }
 
@@ -232,7 +235,7 @@ public class BuildScriptBuilder {
      * @return this
      */
     public BuildScriptBuilder propertyAssignment(@Nullable String comment, String propertyName, Object propertyValue) {
-        block.propertyAssignment(comment, propertyName, propertyValue);
+        block.propertyAssignment(comment, propertyName, propertyValue, true);
         return this;
     }
 
@@ -268,7 +271,7 @@ public class BuildScriptBuilder {
     public BuildScriptBuilder taskPropertyAssignment(@Nullable String comment, String taskName, String taskType, String propertyName, Object propertyValue) {
         block.tasks.add(
             new TaskSelector(taskName, taskType),
-            new PropertyAssignment(comment, propertyName, expressionValue(propertyValue)));
+            new PropertyAssignment(comment, propertyName, expressionValue(propertyValue), true));
         return this;
     }
 
@@ -278,7 +281,7 @@ public class BuildScriptBuilder {
     public BuildScriptBuilder taskPropertyAssignment(@Nullable String comment, String taskType, String propertyName, Object propertyValue) {
         block.taskTypes.add(
             new TaskTypeSelector(taskType),
-            new PropertyAssignment(comment, propertyName, expressionValue(propertyValue)));
+            new PropertyAssignment(comment, propertyName, expressionValue(propertyValue), true));
         return this;
     }
 
@@ -313,7 +316,7 @@ public class BuildScriptBuilder {
     public BuildScriptBuilder conventionPropertyAssignment(@Nullable String comment, String conventionName, String propertyName, Object propertyValue) {
         block.conventions.add(
             new ConventionSelector(conventionName),
-            new PropertyAssignment(comment, propertyName, expressionValue(propertyValue)));
+            new PropertyAssignment(comment, propertyName, expressionValue(propertyValue), true));
         return this;
     }
 
@@ -410,6 +413,24 @@ public class BuildScriptBuilder {
         @Override
         public String with(Syntax syntax) {
             return literal.toString();
+        }
+    }
+
+    private static class EnumValue implements ExpressionValue {
+        final Enum<?> literal;
+
+        EnumValue(Object literal) {
+            this.literal = Cast.uncheckedNonnullCast(literal);
+        }
+
+        @Override
+        public boolean isBooleanType() {
+            return false;
+        }
+
+        @Override
+        public String with(Syntax syntax) {
+            return literal.getClass().getSimpleName() + "." + literal.name();
         }
     }
 
@@ -625,7 +646,7 @@ public class BuildScriptBuilder {
         @Nullable
         @Override
         public String codeBlockSelectorFor(Syntax syntax) {
-            return "tasks.withType(" + taskType + ")";
+            return syntax.taskByTypeSelector(taskType);
         }
 
         @Override
@@ -770,11 +791,13 @@ public class BuildScriptBuilder {
 
         final String propertyName;
         final ExpressionValue propertyValue;
+        final boolean legacyProperty;
 
-        private PropertyAssignment(String comment, String propertyName, ExpressionValue propertyValue) {
+        private PropertyAssignment(String comment, String propertyName, ExpressionValue propertyValue, boolean legacyProperty) {
             super(comment);
             this.propertyName = propertyName;
             this.propertyValue = propertyValue;
+            this.legacyProperty = legacyProperty;
         }
 
         @Override
@@ -937,7 +960,7 @@ public class BuildScriptBuilder {
         @Override
         public void writeCodeTo(PrettyPrinter printer) {
             ScriptBlockImpl statements = new ScriptBlockImpl();
-            statements.propertyAssignment(null, "url", new MethodInvocationExpression(null, "uri", Collections.singletonList(new StringValue(url))));
+            statements.propertyAssignment(null, "url", new MethodInvocationExpression(null, "uri", Collections.singletonList(new StringValue(url))), true);
             printer.printBlock("maven", statements);
         }
     }
@@ -964,8 +987,8 @@ public class BuildScriptBuilder {
         }
 
         @Override
-        public void propertyAssignment(String comment, String propertyName, Object propertyValue) {
-            statements.add(new PropertyAssignment(comment, propertyName, expressionValue(propertyValue)));
+        public void propertyAssignment(String comment, String propertyName, Object propertyValue, boolean legacyProperty) {
+            statements.add(new PropertyAssignment(comment, propertyName, expressionValue(propertyValue), legacyProperty));
         }
 
         @Override
@@ -1215,6 +1238,8 @@ public class BuildScriptBuilder {
 
         String taskSelector(TaskSelector selector);
 
+        String taskByTypeSelector(String taskType);
+
         String string(String string);
 
         String taskRegistration(String taskName, String taskType);
@@ -1266,6 +1291,8 @@ public class BuildScriptBuilder {
         public String pluginDependencySpec(String pluginId, @Nullable String version) {
             if (version != null) {
                 return "id(\"" + pluginId + "\") version \"" + version + "\"";
+            } else if (pluginId.contains(".")) {
+                return "id(\"" + pluginId + "\")";
             }
             return pluginId.matches("[a-z]+") ? pluginId : "`" + pluginId + "`";
         }
@@ -1287,10 +1314,14 @@ public class BuildScriptBuilder {
         public String propertyAssignment(PropertyAssignment expression) {
             String propertyName = expression.propertyName;
             ExpressionValue propertyValue = expression.propertyValue;
-            if (propertyValue.isBooleanType()) {
-                return booleanPropertyNameFor(propertyName) + " = " + propertyValue.with(this);
+            if (expression.legacyProperty) {
+                if (propertyValue.isBooleanType()) {
+                    return booleanPropertyNameFor(propertyName) + " = " + propertyValue.with(this);
+                }
+                return propertyName + " = " + propertyValue.with(this);
+            } else {
+                return propertyName + ".set(" + propertyValue.with(this) + ")";
             }
-            return propertyName + " = " + propertyValue.with(this);
         }
 
         // In Kotlin:
@@ -1315,6 +1346,11 @@ public class BuildScriptBuilder {
         @Override
         public String taskSelector(TaskSelector selector) {
             return "tasks." + selector.taskName;
+        }
+
+        @Override
+        public String taskByTypeSelector(String taskType) {
+            return "tasks.withType<" + taskType + ">()";
         }
 
         @Override
@@ -1434,6 +1470,11 @@ public class BuildScriptBuilder {
         @Override
         public String taskSelector(TaskSelector selector) {
             return "tasks.named('" + selector.taskName + "')";
+        }
+
+        @Override
+        public String taskByTypeSelector(String taskType) {
+            return "tasks.withType(" + taskType + ")";
         }
 
         @Override

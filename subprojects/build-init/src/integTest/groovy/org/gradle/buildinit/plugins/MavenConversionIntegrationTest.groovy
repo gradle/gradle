@@ -16,11 +16,12 @@
 
 package org.gradle.buildinit.plugins
 
-import org.gradle.buildinit.plugins.fixtures.WrapperTestFixture
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
+import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.TestResources
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.fixtures.server.http.MavenHttpModule
@@ -29,6 +30,7 @@ import org.gradle.test.fixtures.server.http.PomHttpArtifact
 import org.gradle.util.SetSystemProperties
 import org.gradle.util.TextUtil
 import org.junit.Rule
+import spock.lang.IgnoreIf
 import spock.lang.Issue
 
 class MavenConversionIntegrationTest extends AbstractInitIntegrationSpec {
@@ -42,6 +44,9 @@ class MavenConversionIntegrationTest extends AbstractInitIntegrationSpec {
     @Rule
     public final HttpServer server = new HttpServer()
 
+    @Override
+    String subprojectName() { null }
+
     def setup() {
         /**
          * We need to configure the local maven repository explicitly as
@@ -50,31 +55,36 @@ class MavenConversionIntegrationTest extends AbstractInitIntegrationSpec {
          * */
         m2.generateUserSettingsFile(m2.mavenRepo())
         using m2
-        executer.withRepositoryMirrors()
-        executer.beforeExecute {
-            executer.ignoreMissingSettingsFile()
-        }
     }
 
     @ToBeFixedForConfigurationCache(because = ":projects")
+    @IgnoreIf({ GradleContextualExecuter.embedded }) // Kotlin DSL pre-compiled script compilation fails in embedded mode
     def "multiModule"() {
-        def conventionPluginScript = file("buildSrc/src/main/groovy/com.example.webinar.java-conventions.gradle")
+        def dsl = dslFixtureFor(scriptDsl as BuildInitDsl)
+        def warSubprojectBuildFile = targetDir.file("webinar-war/" + dsl.buildFileName)
+        def implSubprojectBuildFile = targetDir.file("webinar-impl/" + dsl.buildFileName)
+        def conventionPluginScript = targetDir.file("buildSrc/src/main/${scriptDsl.name().toLowerCase()}/${scriptDsl.fileNameFor("com.example.webinar.java-conventions")}")
 
         when:
-        run 'init'
+        run 'init', '--dsl', scriptDsl.id as String
 
         then:
-        gradleFilesGenerated()
-        conventionPluginScript.text.contains("options.encoding = 'UTF-8'")
-        file("webinar-war/build.gradle").text.contains("id 'com.example.webinar.java-conventions'")
-        !file("webinar-war/build.gradle").text.contains("'options.encoding'")
+        targetDir.file(dsl.settingsFileName).exists()
+        !targetDir.file(dsl.buildFileName).exists() // no root build file
+        warSubprojectBuildFile.exists()
+
+        warSubprojectBuildFile.text.contains("id 'com.example.webinar.java-conventions'") || warSubprojectBuildFile.text.contains('id("com.example.webinar.java-conventions")')
+        !warSubprojectBuildFile.text.contains("options.encoding")
+
         assertContainsPublishingConfig(conventionPluginScript)
+        conventionPluginScript.text.contains("options.encoding = 'UTF-8'") || conventionPluginScript.text.contains('options.encoding = "UTF-8"')
         conventionPluginScript.text.contains(TextUtil.toPlatformLineSeparators('''
 java {
     withSourcesJar()
 }'''))
-        file("webinar-impl/build.gradle").text.contains("publishing.publications.maven.artifact(testsJar)")
-        file("webinar-impl/build.gradle").text.contains(TextUtil.toPlatformLineSeparators('''
+
+        implSubprojectBuildFile.text.contains("publishing.publications.maven.artifact(testsJar)") || implSubprojectBuildFile.text.contains('(publishing.publications["maven"] as MavenPublication).artifact(testsJar)')
+        implSubprojectBuildFile.text.contains(TextUtil.toPlatformLineSeparators('''
 java {
     withJavadocJar()
 }'''))
@@ -82,11 +92,11 @@ java {
         run 'clean', 'build'
 
         then: //smoke test the build artifacts
-        file("webinar-api/build/libs/webinar-api-1.0-SNAPSHOT.jar").exists()
-        file("webinar-impl/build/libs/webinar-impl-1.0-SNAPSHOT.jar").exists()
-        file("webinar-war/build/libs/webinar-war-1.0-SNAPSHOT.war").exists()
+        targetDir.file("webinar-api/build/libs/webinar-api-1.0-SNAPSHOT.jar").exists()
+        targetDir.file("webinar-impl/build/libs/webinar-impl-1.0-SNAPSHOT.jar").exists()
+        targetDir.file("webinar-war/build/libs/webinar-war-1.0-SNAPSHOT.war").exists()
 
-        new DefaultTestExecutionResult(file("webinar-impl")).assertTestClassesExecuted('webinar.WebinarTest')
+        new DefaultTestExecutionResult(targetDir.file("webinar-impl")).assertTestClassesExecuted('webinar.WebinarTest')
 
         when:
         run 'projects'
@@ -98,48 +108,66 @@ Root project 'webinar-parent'
 +--- Project ':webinar-impl' - Webinar implementation
 \\--- Project ':webinar-war' - Webinar web application
 """
+
+        where:
+        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
+    @IgnoreIf({ GradleContextualExecuter.embedded }) // Kotlin DSL pre-compiled script compilation fails in embedded mode
     def "multiModuleWithNestedParent"() {
+        def dsl = dslFixtureFor(scriptDsl as BuildInitDsl)
+
         when:
-        run 'init'
+        run 'init', '--dsl', scriptDsl.id as String
 
         then:
-        gradleFilesGenerated()
+        targetDir.file(dsl.settingsFileName).exists()
+        targetDir.file("webinar-war/" + dsl.buildFileName).exists()
 
         when:
         run 'clean', 'build'
 
         then: //smoke test the build artifacts
-        file("webinar-api/build/libs/webinar-api-1.0-SNAPSHOT.jar").exists()
-        file("webinar-impl/build/libs/webinar-impl-1.0-SNAPSHOT.jar").exists()
-        file("webinar-war/build/libs/webinar-war-1.0-SNAPSHOT.war").exists()
+        targetDir.file("webinar-api/build/libs/webinar-api-1.0-SNAPSHOT.jar").exists()
+        targetDir.file("webinar-impl/build/libs/webinar-impl-1.0-SNAPSHOT.jar").exists()
+        targetDir.file("webinar-war/build/libs/webinar-war-1.0-SNAPSHOT.war").exists()
 
-        new DefaultTestExecutionResult(file("webinar-impl")).assertTestClassesExecuted('webinar.WebinarTest')
+        new DefaultTestExecutionResult(targetDir.file("webinar-impl")).assertTestClassesExecuted('webinar.WebinarTest')
+
+        where:
+        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
     @ToBeFixedForConfigurationCache(because = ":projects")
+    @IgnoreIf({ GradleContextualExecuter.embedded }) // Kotlin DSL pre-compiled script compilation fails in embedded mode
     def "flatmultimodule"() {
+        def dsl = dslFixtureFor(scriptDsl as BuildInitDsl)
+        executer.beforeExecute {
+            executer.inDirectory(targetDir.file("webinar-parent"))
+        }
+
         when:
-        executer.inDirectory(file("webinar-parent"))
-        run 'init'
+        run 'init', '--dsl', scriptDsl.id as String
 
         then:
-        gradleFilesGenerated(file("webinar-parent"))
+        !targetDir.file(dsl.buildFileName).exists()
+        !targetDir.file("webinar-parent/" + dsl.buildFileName).exists()
+        targetDir.file("webinar-parent/" + dsl.settingsFileName).exists()
+        targetDir.file("webinar-api/" + dsl.buildFileName).exists()
+        targetDir.file("webinar-impl/" + dsl.buildFileName).exists()
+        targetDir.file("webinar-war/" + dsl.buildFileName).exists()
 
         when:
-        executer.inDirectory(file("webinar-parent"))
         run 'clean', 'build'
 
         then: //smoke test the build artifacts
-        file("webinar-api/build/libs/webinar-api-1.0-SNAPSHOT.jar").exists()
-        file("webinar-impl/build/libs/webinar-impl-1.0-SNAPSHOT.jar").exists()
-        file("webinar-war/build/libs/webinar-war-1.0-SNAPSHOT.war").exists()
+        targetDir.file("webinar-api/build/libs/webinar-api-1.0-SNAPSHOT.jar").exists()
+        targetDir.file("webinar-impl/build/libs/webinar-impl-1.0-SNAPSHOT.jar").exists()
+        targetDir.file("webinar-war/build/libs/webinar-war-1.0-SNAPSHOT.war").exists()
 
-        new DefaultTestExecutionResult(file("webinar-impl")).assertTestClassesExecuted('webinar.WebinarTest')
+        new DefaultTestExecutionResult(targetDir.file("webinar-impl")).assertTestClassesExecuted('webinar.WebinarTest')
 
         when:
-        executer.inDirectory(file("webinar-parent"))
         run 'projects'
 
         then:
@@ -149,29 +177,37 @@ Root project 'webinar-parent'
 +--- Project ':webinar-impl' - Webinar implementation
 \\--- Project ':webinar-war' - Webinar web application
 """
+
+        where:
+        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
     def "singleModule"() {
+        def dsl = dslFixtureFor(scriptDsl as BuildInitDsl)
+
         when:
-        run 'init'
+        run 'init', '--dsl', scriptDsl.id as String
 
         then:
-        gradleFilesGenerated()
-        file("settings.gradle").text.contains("rootProject.name = 'util'")
-        assertContainsPublishingConfig(file("build.gradle"))
+        dsl.assertGradleFilesGenerated()
+        dsl.getSettingsFile().text.contains("rootProject.name = 'util'") || dsl.getSettingsFile().text.contains('rootProject.name = "util"')
+        assertContainsPublishingConfig(dsl.getBuildFile())
 
         when:
         fails 'clean', 'build'
 
         then:
-        file("build/libs/util-2.5.jar").exists()
+        targetDir.file("build/libs/util-2.5.jar").exists()
         failure.assertHasDescription("Execution failed for task ':test'.")
         failure.assertHasCause("There were failing tests.")
+
+        where:
+        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
-    private void assertContainsPublishingConfig(TestFile buildScript, String indent = "", List<String> additionalArchiveTasks = []) {
+    private static void assertContainsPublishingConfig(TestFile buildScript, String indent = "", List<String> additionalArchiveTasks = []) {
         def text = buildScript.text
-        assert text.contains("id 'maven-publish'") || text.contains("apply plugin: 'maven-publish'")
+        assert text.contains("id 'maven-publish'") || text.contains("`maven-publish`")
         def configLines = ["from(components.java)"]
         configLines += additionalArchiveTasks.collect { "artifact($it)" }
         def publishingBlock = TextUtil.toPlatformLineSeparators(TextUtil.indent("""
@@ -183,129 +219,173 @@ ${TextUtil.indent(configLines.join("\n"), "                        ")}
                 }
             }
             """.stripIndent().trim(), indent))
-        assert text.contains(publishingBlock)
+        assert text.
+            replace('create<MavenPublication>("maven")', 'maven(MavenPublication)').
+            replace('["java"]', '.java').
+            contains(publishingBlock)
     }
 
     def "singleModule with explicit project dir"() {
-        setup:
+        given:
         resources.maybeCopy('MavenConversionIntegrationTest/singleModule')
         def workingDir = temporaryFolder.createDir("workingDir")
+
         when:
-        executer.inDirectory(workingDir).usingProjectDirectory(file('.'))
-        run 'init'
+        executer.beforeExecute {
+            executer.inDirectory(workingDir).usingProjectDirectory(targetDir)
+        }
+        run 'init', '--dsl', scriptDsl.id as String
 
         then:
-        gradleFilesGenerated()
+        dslFixtureFor(scriptDsl as BuildInitDsl).assertGradleFilesGenerated()
 
         when:
         fails 'clean', 'build'
 
         then:
-        file("build/libs/util-2.5.jar").exists()
+        targetDir.file("build/libs/util-2.5.jar").exists()
         failure.assertHasDescription("Execution failed for task ':test'.")
         failure.assertHasCause("There were failing tests.")
+
+        where:
+        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
     def 'sourcesJar'() {
+        def rootBuildFile = dslFixtureFor(scriptDsl as BuildInitDsl).getBuildFile()
+
         when: 'build is initialized'
-        run 'init'
+        run 'init', '--dsl', scriptDsl.id as String
 
         then: 'sourcesJar task configuration is generated'
-        buildFile.text.contains(TextUtil.toPlatformLineSeparators('''
+        rootBuildFile.text.contains(TextUtil.toPlatformLineSeparators('''
             java {
                 withSourcesJar()
             }
             '''.stripIndent().trim()))
-        assertContainsPublishingConfig(buildFile)
+        assertContainsPublishingConfig(rootBuildFile)
 
         when: 'the generated task is executed'
         run 'clean', 'build', 'sourcesJar'
 
         then: 'the sources jar is generated'
-        file('build/libs/util-2.5.jar').exists()
-        file('build/libs/util-2.5-sources.jar').exists()
+        targetDir.file('build/libs/util-2.5.jar').exists()
+        targetDir.file('build/libs/util-2.5-sources.jar').exists()
+
+        where:
+        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
     def 'testsJar'() {
+        def rootBuildFile = dslFixtureFor(scriptDsl as BuildInitDsl).getBuildFile()
+
         when: 'build is initialized'
-        run 'init'
+        run 'init', '--dsl', scriptDsl.id as String
 
         then: 'testsJar task configuration is generated'
-        buildFile.text.contains(TextUtil.toPlatformLineSeparators('''
+        rootBuildFile.text.contains(TextUtil.toPlatformLineSeparators('''
             tasks.register('testsJar', Jar) {
                 archiveClassifier = 'tests'
                 from(sourceSets.test.output)
             }
+            '''.stripIndent().trim())) || rootBuildFile.text.contains(TextUtil.toPlatformLineSeparators('''
+            val testsJar by tasks.registering(Jar::class) {
+                archiveClassifier.set("tests")
+                from(sourceSets["test"].output)
+            }
             '''.stripIndent().trim()))
-        assertContainsPublishingConfig(buildFile, '', ['testsJar'])
+        assertContainsPublishingConfig(rootBuildFile, '', ['testsJar'])
 
         when: 'the generated task is executed'
         run 'clean', 'build', 'testJar'
 
         then: 'the tests jar is generated'
-        file('build/libs/util-2.5.jar').exists()
-        file('build/libs/util-2.5-tests.jar').exists()
+        targetDir.file('build/libs/util-2.5.jar').exists()
+        targetDir.file('build/libs/util-2.5-tests.jar').exists()
+
+        where:
+        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
     def 'javadocJar'() {
+        def rootBuildFile = dslFixtureFor(scriptDsl as BuildInitDsl).getBuildFile()
+
         when: 'build is initialized'
-        run 'init'
+        run 'init', '--dsl', scriptDsl.id as String
 
         then: 'javadocJar task configuration is generated'
-        buildFile.text.contains(TextUtil.toPlatformLineSeparators('''
+        rootBuildFile.text.contains(TextUtil.toPlatformLineSeparators('''
             java {
                 withJavadocJar()
             }
             '''.stripIndent().trim()))
-        assertContainsPublishingConfig(buildFile)
+        assertContainsPublishingConfig(rootBuildFile)
 
         when: 'the generated task is executed'
         run 'clean', 'build', 'javadocJar'
 
         then: 'the javadoc jar is generated'
-        file('build/libs/util-2.5.jar').exists()
-        file('build/libs/util-2.5-javadoc.jar').exists()
+        targetDir.file('build/libs/util-2.5.jar').exists()
+        targetDir.file('build/libs/util-2.5-javadoc.jar').exists()
+
+        where:
+        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
     def "enforcerplugin"() {
+        def dsl = dslFixtureFor(scriptDsl as BuildInitDsl)
+
         when:
-        run 'init'
+        run 'init', '--dsl', scriptDsl.id as String
 
         then:
-        gradleFilesGenerated()
+        dsl.assertGradleFilesGenerated()
 
         and:
-        buildFile.text.contains(TextUtil.toPlatformLineSeparators("""configurations.all {
+        dsl.getBuildFile().text.contains(TextUtil.toPlatformLineSeparators("""configurations.all {
     exclude(group: 'org.apache.maven')
     exclude(group: 'org.apache.maven', module: 'badArtifact')
     exclude(group: '*', module: 'badArtifact')
     exclude(group: 'broken')
+}""")) || dsl.getBuildFile().text.contains(TextUtil.toPlatformLineSeparators("""configurations.all {
+    exclude(mapOf("group" to "org.apache.maven"))
+    exclude(mapOf("group" to "org.apache.maven", "module" to "badArtifact"))
+    exclude(mapOf("group" to "*", "module" to "badArtifact"))
+    exclude(mapOf("group" to "broken"))
 }"""))
         when:
         run 'clean', 'build'
 
         then:
-        file("build/libs/enforcerExample-1.0.jar").exists()
+        targetDir.file("build/libs/enforcerExample-1.0.jar").exists()
+
+        where:
+        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
     def "providedNotWar"() {
+        def dsl = dslFixtureFor(scriptDsl as BuildInitDsl)
+
         when:
-        run 'init'
+        run 'init', '--dsl', scriptDsl.id as String
 
         then:
-        gradleFilesGenerated()
+        dsl.assertGradleFilesGenerated()
 
         when:
         run 'clean', 'build'
 
         then:
-        file("build.gradle").text.contains("compileOnly 'junit:junit:4.10'")
-        file("build/libs/myThing-0.0.1-SNAPSHOT.jar").exists()
+        dsl.getBuildFile().text.contains("compileOnly 'junit:junit:4.10'") || dsl.getBuildFile().text.contains('compileOnly("junit:junit:4.10")')
+        targetDir.file("build/libs/myThing-0.0.1-SNAPSHOT.jar").exists()
+
+        where:
+        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
     def "provides decent error message when POM is invalid"() {
         setup:
-        def pom = file("pom.xml")
+        def pom = targetDir.file("pom.xml")
         pom << "<project>someInvalid pom content</project>"
 
         when:
@@ -316,76 +396,96 @@ ${TextUtil.indent(configLines.join("\n"), "                        ")}
     }
 
     def "mavenExtensions"() {
+        def dsl = dslFixtureFor(scriptDsl as BuildInitDsl)
+
         when:
-        run 'init'
+        run 'init', '--dsl', scriptDsl.id as String
+
         then:
-        gradleFilesGenerated()
+        dsl.assertGradleFilesGenerated()
 
         when:
         run 'clean', 'build'
 
         then:
-        file("build/libs/testApp-1.0.jar").exists()
+        targetDir.file("build/libs/testApp-1.0.jar").exists()
+
+        where:
+        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
     @Issue("GRADLE-2820")
     def "remoteparent"() {
+        def dsl = dslFixtureFor(scriptDsl as BuildInitDsl)
+
         setup:
         withSharedResources()
         def repo = mavenHttpServer()
         //update pom with test repo url
-        file("pom.xml").text = file("pom.xml").text.replaceAll('LOCAL_MAVEN_REPO_URL', repo.getUri().toString())
+        targetDir.file("pom.xml").text = targetDir.file("pom.xml").text.replaceAll('LOCAL_MAVEN_REPO_URL', repo.getUri().toString())
 
         expectParentPomRequest(repo)
 
         when:
-        run 'init'
+        run 'init', '--dsl', scriptDsl.id as String
 
         then:
-        gradleFilesGenerated()
+        dsl.assertGradleFilesGenerated()
 
         when:
         libRequest(repo, "commons-lang", "commons-lang", "2.6")
         run 'clean', 'build'
 
         then:
-        file("build/libs/util-2.5.jar").exists()
+        targetDir.file("build/libs/util-2.5.jar").exists()
+
+        where:
+        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
     @Issue("GRADLE-2872")
     def "expandProperties"() {
+        def dsl = dslFixtureFor(scriptDsl as BuildInitDsl)
+
         setup:
         withSharedResources()
         executer.withArgument("-DCOMMONS_LANG_VERSION=2.6")
 
         when:
-        run 'init'
+        run 'init', '--dsl', scriptDsl.id as String
+
         then:
-        gradleFilesGenerated()
+        dsl.assertGradleFilesGenerated()
 
         when:
         run('clean', 'build')
 
         then:
-        file("build/libs/util-3.2.2.jar").exists()
+        targetDir.file("build/libs/util-3.2.2.jar").exists()
+
+        where:
+        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
     @Issue("GRADLE-2819")
     @ToBeFixedForConfigurationCache(because = ":projects")
+    @IgnoreIf({ GradleContextualExecuter.embedded }) // Kotlin DSL pre-compiled script compilation fails in embedded mode
     def "multiModuleWithRemoteParent"() {
-        setup:
+        def dsl = dslFixtureFor(scriptDsl as BuildInitDsl)
+
+        given:
         withSharedResources()
         def repo = mavenHttpServer()
         //update pom with test repo url
-        file("pom.xml").text = file("pom.xml").text.replaceAll('LOCAL_MAVEN_REPO_URL', repo.getUri().toString())
+        targetDir.file("pom.xml").text = targetDir.file("pom.xml").text.replaceAll('LOCAL_MAVEN_REPO_URL', repo.getUri().toString())
 
         expectParentPomRequest(repo)
 
         when:
-        run 'init'
+        run 'init', '--dsl', scriptDsl.id as String
 
         then:
-        gradleFilesGenerated()
+        targetDir.file(dsl.settingsFileName).exists()
 
         when:
         libRequest(repo, "commons-lang", "commons-lang", 2.6)
@@ -398,11 +498,11 @@ ${TextUtil.indent(configLines.join("\n"), "                        ")}
         run 'clean', 'build'
 
         then: //smoke test the build artifacts
-        file("webinar-api/build/libs/webinar-api-1.0-SNAPSHOT.jar").exists()
-        file("webinar-impl/build/libs/webinar-impl-1.0-SNAPSHOT.jar").exists()
-        file("webinar-war/build/libs/webinar-war-1.0-SNAPSHOT.war").exists()
+        targetDir.file("webinar-api/build/libs/webinar-api-1.0-SNAPSHOT.jar").exists()
+        targetDir.file("webinar-impl/build/libs/webinar-impl-1.0-SNAPSHOT.jar").exists()
+        targetDir.file("webinar-war/build/libs/webinar-war-1.0-SNAPSHOT.war").exists()
 
-        new DefaultTestExecutionResult(file("webinar-impl")).assertTestClassesExecuted('webinar.WebinarTest')
+        new DefaultTestExecutionResult(targetDir.file("webinar-impl")).assertTestClassesExecuted('webinar.WebinarTest')
 
         when:
         run 'projects'
@@ -415,22 +515,9 @@ Root project 'webinar-parent'
 +--- Project ':webinar-impl' - Webinar implementation
 \\--- Project ':webinar-war' - Webinar web application
 """
-    }
 
-    def "kotlin dsl is not supported"() {
-        given:
-        resources.maybeCopy('MavenConversionIntegrationTest/singleModule')
-
-        when:
-        fails 'init', '--dsl', 'kotlin'
-
-        then:
-        failure.assertHasCause("The requested DSL 'kotlin' is not supported for 'pom' build type")
-    }
-
-    void gradleFilesGenerated(TestFile parentFolder = file(".")) {
-        assert parentFolder.file("settings.gradle").exists()
-        new WrapperTestFixture(parentFolder).generated()
+        where:
+        scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
     def libRequest(MavenHttpRepository repo, String group, String name, Object version) {
@@ -449,14 +536,14 @@ Root project 'webinar-parent'
 
     PomHttpArtifact expectParentPomRequest(MavenHttpRepository repo) {
         MavenHttpModule module = repo.module('util.util.parent', 'util-parent', '3')
-        module.pom.expectGet();
-        module.pom.sha1.expectGet();
-        module.pom.md5.expectGet();
+        module.pom.expectGet()
+        module.pom.sha1.expectGet()
+        module.pom.md5.expectGet()
         module.pom
     }
 
     MavenHttpRepository mavenHttpServer() {
         server.start()
-        new MavenHttpRepository(server, '/maven', maven(file("maven_repo")));
+        new MavenHttpRepository(server, '/maven', maven(file("maven_repo")))
     }
 }

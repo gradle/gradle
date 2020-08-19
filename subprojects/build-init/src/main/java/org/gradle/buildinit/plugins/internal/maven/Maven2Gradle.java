@@ -23,6 +23,7 @@ import org.apache.maven.model.PluginExecution;
 import org.apache.maven.model.Repository;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
+import org.gradle.api.JavaVersion;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.buildinit.plugins.internal.BuildScriptBuilder;
@@ -58,12 +59,14 @@ public class Maven2Gradle {
 
     private final List<MavenProject> dependentWars = new ArrayList<>();
     private final File workingDir;
+    private final BuildInitDsl dsl;
 
-    public Maven2Gradle(Set<MavenProject> mavenProjects, File workingDir, BuildScriptBuilderFactory scriptBuilderFactory) throws IOException {
+    public Maven2Gradle(Set<MavenProject> mavenProjects, File workingDir, BuildInitDsl dsl, BuildScriptBuilderFactory scriptBuilderFactory) throws IOException {
         assert !mavenProjects.isEmpty(): "No Maven projects provided.";
         this.allProjects = mavenProjects;
         this.rootProject = mavenProjects.iterator().next();
         this.workingDir = workingDir.getCanonicalFile();
+        this.dsl = dsl;
         this.scriptBuilderFactory = scriptBuilderFactory;
     }
 
@@ -73,11 +76,16 @@ public class Maven2Gradle {
         if (multimodule) {
             String groupId = rootProject.getGroupId();
 
-            BuildScriptBuilder buildSrcScriptBuilder = scriptBuilderFactory.script(BuildInitDsl.GROOVY, "buildSrc/build");
-            buildSrcScriptBuilder.plugin(null, "groovy-gradle-plugin");
+            BuildScriptBuilder buildSrcScriptBuilder = scriptBuilderFactory.script(dsl, "buildSrc/build");
+            if (dsl == BuildInitDsl.GROOVY) {
+                buildSrcScriptBuilder.plugin(null, "groovy-gradle-plugin");
+            } else {
+                buildSrcScriptBuilder.plugin(null, "kotlin-dsl");
+                buildSrcScriptBuilder.repositories().jcenter(null);
+            }
             buildSrcScriptBuilder.create().generate();
 
-            BuildScriptBuilder conventionPluginBuilder = scriptBuilderFactory.script(BuildInitDsl.GROOVY, "buildSrc/src/main/groovy/" + groupId + ".java-conventions"); // TODO Kotlin DSL and path
+            BuildScriptBuilder conventionPluginBuilder = scriptBuilderFactory.script(dsl, "buildSrc/src/main/" + dsl.name().toLowerCase() + "/" + groupId + ".java-conventions");
 
             generateSettings(rootProject.getArtifactId(), allProjects);
 
@@ -87,7 +95,7 @@ public class Maven2Gradle {
             }
 
             coordinatesForProject(rootProject, conventionPluginBuilder);
-            conventionPluginBuilder.plugin(null, "java");
+            conventionPluginBuilder.plugin(null, "java-library");
             conventionPluginBuilder.plugin(null, "maven-publish");
             compilerSettings(rootProject, conventionPluginBuilder);
 
@@ -105,7 +113,7 @@ public class Maven2Gradle {
                 String id = module.getArtifactId();
                 List<Dependency> moduleDependencies = dependencies.get(id);
                 boolean warPack = module.getPackaging().equals("war");
-                BuildScriptBuilder moduleScriptBuilder = scriptBuilderFactory.script(BuildInitDsl.GROOVY, projectDir(module).getPath() + "/build");
+                BuildScriptBuilder moduleScriptBuilder = scriptBuilderFactory.script(dsl, projectDir(module).getPath() + "/build");
 
                 moduleScriptBuilder.plugin(null, groupId + ".java-conventions");
 
@@ -125,7 +133,11 @@ public class Maven2Gradle {
                 testNg(moduleDependencies, moduleScriptBuilder);
 
                 if (packageTests(module, moduleScriptBuilder)) {
-                    moduleScriptBuilder.methodInvocation(null, "publishing.publications.maven.artifact", moduleScriptBuilder.propertyExpression("testsJar"));
+                    if (dsl == BuildInitDsl.GROOVY) {
+                        moduleScriptBuilder.methodInvocation(null, "publishing.publications.maven.artifact", moduleScriptBuilder.propertyExpression("testsJar"));
+                    } else {
+                        moduleScriptBuilder.methodInvocation(null, "(publishing.publications[\"maven\"] as MavenPublication).artifact", moduleScriptBuilder.propertyExpression("testsJar"));
+                    }
                 }
                 if (packagesJavadocs(module)) {
                     ScriptBlockBuilder javaExtension = moduleScriptBuilder.block(null, "java");
@@ -135,7 +147,7 @@ public class Maven2Gradle {
                 moduleScriptBuilder.create().generate();
             }
         } else {
-            BuildScriptBuilder scriptBuilder = scriptBuilderFactory.script(BuildInitDsl.GROOVY, "build");
+            BuildScriptBuilder scriptBuilder = scriptBuilderFactory.script(dsl, "build");
             generateSettings(this.rootProject.getArtifactId(), Collections.emptySet());
 
             scriptBuilder.plugin(null, "java");
@@ -174,8 +186,13 @@ public class Maven2Gradle {
         }
         ScriptBlockBuilder publishing = builder.block(null, "publishing");
         ScriptBlockBuilder publications = publishing.block(null, "publications");
-        ScriptBlockBuilder mavenPublication = publications.block(null, "maven(MavenPublication)");
-        mavenPublication.methodInvocation(null, "from", mavenPublication.propertyExpression("components.java"));
+        ScriptBlockBuilder mavenPublication;
+        if (dsl == BuildInitDsl.GROOVY) {
+            mavenPublication = publications.block(null, "maven(MavenPublication)");
+        } else {
+            mavenPublication = publications.block(null, "create<MavenPublication>(\"maven\")");
+        }
+        mavenPublication.methodInvocation(null, "from", builder.containerElementExpression("components", "java"));
         if (testsJarTaskGenerated) {
             mavenPublication.methodInvocation(null, "artifact", mavenPublication.propertyExpression("testsJar"));
         }
@@ -388,9 +405,9 @@ public class Maven2Gradle {
             target = configuration.getChild("target").getValue();
         }
 
-        builder.propertyAssignment(null, "sourceCompatibility", source);
+        builder.propertyAssignment(null, "java.sourceCompatibility", JavaVersion.toVersion(source));
         if (!target.equals(source)) {
-            builder.propertyAssignment(null, "targetCompatibility", target);
+            builder.propertyAssignment(null, "java.targetCompatibility", JavaVersion.toVersion(target));
         }
 
         String encoding = (String) project.getProperties().get("project.build.sourceEncoding");
@@ -423,8 +440,14 @@ public class Maven2Gradle {
         Plugin jarPlugin = plugin("maven-jar-plugin", project);
         if (pluginGoal("test-jar", jarPlugin) != null) {
             builder.taskRegistration(null, "testsJar", "Jar", task -> {
-                task.propertyAssignment(null, "archiveClassifier", "tests");
-                task.methodInvocation(null, "from", builder.propertyExpression("sourceSets.test.output"));
+                task.propertyAssignment(null, "archiveClassifier", "tests", false);
+                String testSourceSetAccess;
+                if (dsl == BuildInitDsl.GROOVY) {
+                    testSourceSetAccess = ".test";
+                } else {
+                    testSourceSetAccess = "[\"test\"]";
+                }
+                task.methodInvocation(null, "from", builder.propertyExpression("sourceSets" + testSourceSetAccess + ".output"));
             });
             return true;
         }
@@ -457,7 +480,7 @@ public class Maven2Gradle {
     }
 
     private void generateSettings(String mvnProjectName, Set<MavenProject> projects) {
-        BuildScriptBuilder scriptBuilder = scriptBuilderFactory.script(BuildInitDsl.GROOVY, "settings");
+        BuildScriptBuilder scriptBuilder = scriptBuilderFactory.script(dsl, "settings");
 
         scriptBuilder.propertyAssignment(null, "rootProject.name", mvnProjectName);
         Set<MavenProject> modules = modules(projects, true);
@@ -485,7 +508,7 @@ public class Maven2Gradle {
         }
         for (Map.Entry<String, String> entry : artifactIdToDir.entrySet()) {
             BuildScriptBuilder.Expression dirExpression = scriptBuilder.methodInvocationExpression("file", entry.getValue());
-            scriptBuilder.propertyAssignment(null, "project('" + entry.getKey() + "').projectDir", dirExpression);
+            scriptBuilder.propertyAssignment(null, "project(\"" + entry.getKey() + "\").projectDir", dirExpression);
         }
         scriptBuilder.create().generate();
     }

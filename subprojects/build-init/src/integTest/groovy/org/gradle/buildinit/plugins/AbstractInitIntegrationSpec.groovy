@@ -24,7 +24,7 @@ import org.gradle.test.fixtures.file.TestFile
 
 abstract class AbstractInitIntegrationSpec extends AbstractIntegrationSpec {
     final def targetDir = testDirectory.createDir("some-thing")
-    final def subprojectDir = targetDir.file(subprojectName())
+    final def subprojectDir = subprojectName() ? targetDir.file(subprojectName()) : targetDir
 
     abstract String subprojectName()
 

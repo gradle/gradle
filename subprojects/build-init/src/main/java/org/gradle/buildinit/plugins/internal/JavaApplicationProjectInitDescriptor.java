@@ -47,7 +47,7 @@ public class JavaApplicationProjectInitDescriptor extends JavaProjectInitDescrip
                 "application")
             .implementationDependency("This dependency is used by the application.",
                 "com.google.guava:guava:" + libraryVersionProvider.getVersion("guava"))
-            .block(null, "application", b -> b.methodInvocation("Define the main class for the application.", "mainClass.set", withPackage(settings, "App")));
+            .block(null, "application", b -> b.propertyAssignment("Define the main class for the application.", "mainClass", withPackage(settings, "App"), false));
     }
 
     @Override
