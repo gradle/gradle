@@ -19,9 +19,14 @@ package org.gradle.jvm.toolchain.install.internal
 
 import org.gradle.cache.FileLock
 import org.gradle.jvm.toolchain.JavaToolchainSpec
+import org.junit.Rule
+import org.junit.rules.TemporaryFolder
 import spock.lang.Specification
 
 class DefaultJavaToolchainProvisioningServiceTest extends Specification {
+
+    @Rule
+    public final TemporaryFolder temporaryFolder = new TemporaryFolder()
 
     def "cache is properly locked around provisioning a jdk"() {
         def cache = Mock(JdkCacheDirectory)
@@ -31,20 +36,42 @@ class DefaultJavaToolchainProvisioningServiceTest extends Specification {
 
         given:
         binary.toFilename(spec) >> 'jdk-123.zip'
-        cache.getDownloadLocation(_ as String) >> Mock(File)
+        def downloadLocation = Mock(File)
+        cache.getDownloadLocation(_ as String) >> downloadLocation
         def provisioningService = new DefaultJavaToolchainProvisioningService(binary, cache)
 
         when:
         provisioningService.tryInstall(spec)
 
         then:
-        1 * cache.acquireWriteLock("jdk-123.zip", _) >> lock
+        1 * cache.acquireWriteLock(downloadLocation, _) >> lock
 
         then:
         1 * binary.download(_, _) >> Optional.empty()
 
         then:
         1 * lock.close()
+    }
+
+    def "skips downloading if already downloaded"() {
+        def cache = Mock(JdkCacheDirectory)
+        def lock = Mock(FileLock)
+        def binary = Mock(AdoptOpenJdkRemoteBinary)
+        def spec = Mock(JavaToolchainSpec)
+
+        given:
+        cache.acquireWriteLock(_, _) >> lock
+        binary.toFilename(spec) >> 'jdk-123.zip'
+        def downloadLocation = temporaryFolder.newFile("jdk.zip")
+        downloadLocation.createNewFile()
+        cache.getDownloadLocation(_ as String) >> downloadLocation
+        def provisioningService = new DefaultJavaToolchainProvisioningService(binary, cache)
+
+        when:
+        provisioningService.tryInstall(spec)
+
+        then:
+        0 * binary.download(_, _)
     }
 
 }
