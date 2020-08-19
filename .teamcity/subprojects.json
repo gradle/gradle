@@ -402,7 +402,7 @@
     "dirName": "jvm-services",
     "name": "jvm-services",
     "unitTests": true,
-    "functionalTests": false,
+    "functionalTests": true,
     "crossVersionTests": false
   },
   {
