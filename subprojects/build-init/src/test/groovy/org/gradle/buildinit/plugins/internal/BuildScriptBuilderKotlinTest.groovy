@@ -417,10 +417,10 @@ other = extendsFrom(things.nested["element2"].outputDir)
             .taskPropertyAssignment(null, "test", "Test", "maxParallelForks", 23)
             .propertyAssignment("Set a property", "foo.bar", "bazar")
             .methodInvocation("Call a method", "foo.bar", "bazar", 12, builder.methodInvocationExpression("child", "a", 45))
-            .conventionPropertyAssignment("Convention configuration A", "application", "mainClassName", "com.example.Main")
-            .conventionPropertyAssignment("Convention configuration B", "application", "applicationName", "My Application")
-            .conventionPropertyAssignment("B convention", "b", "bp", 0)
-            .conventionPropertyAssignment("C convention", "c", "cp", 42)
+            .block(null, "application") { b ->
+                b.propertyAssignment("Define the main class for the application", "mainClass", "com.example.Main", false)
+                b.propertyAssignment("Define the application name", "applicationName", "My Application", true)
+            }
             .taskMethodInvocation("Use TestNG", "test", "Test", "useTestNG")
             .propertyAssignment(null, "cathedral", 42)
             .methodInvocation(null, "cathedral")
@@ -441,26 +441,16 @@ foo.bar = "bazar"
 // Call a method
 foo.bar("bazar", 12, child("a", 45))
 
-cathedral = 42
-cathedral()
-
 application {
-    // Convention configuration A
-    mainClassName = "com.example.Main"
+    // Define the main class for the application
+    mainClass.set("com.example.Main")
 
-    // Convention configuration B
+    // Define the application name
     applicationName = "My Application"
 }
 
-b {
-    // B convention
-    bp = 0
-}
-
-c {
-    // C convention
-    cp = 42
-}
+cathedral = 42
+cathedral()
 
 tasks.withType<Test>() {
     // Encoding
@@ -516,7 +506,6 @@ repositories {
         builder.propertyAssignment("has comment", "foo", "bar")
         builder.propertyAssignment(null, "foo", 123)
         builder.propertyAssignment(null, "foo", false)
-        builder.conventionPropertyAssignment(null, "application", "main", true)
         def b1 = builder.block(null, "block1")
         b1.methodInvocation("comment", "method1")
         b1.methodInvocation("comment", "method2")
@@ -564,10 +553,6 @@ block2 {
 
 foo = "second last"
 foo = "last"
-
-application {
-    isMain = true
-}
 """)
     }
 }

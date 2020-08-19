@@ -251,8 +251,9 @@ public class BuildScriptBuilder {
     /**
      * Adds a top level block statement.
      */
-    public void block(@Nullable String comment, String methodName, Action<? super ScriptBlockBuilder> blockContentBuilder) {
+    public BuildScriptBuilder block(@Nullable String comment, String methodName, Action<? super ScriptBlockBuilder> blockContentBuilder) {
         blockContentBuilder.execute(block.block(comment, methodName));
+        return this;
     }
 
     /**
@@ -308,16 +309,6 @@ public class BuildScriptBuilder {
         ContainerElement containerElement = new ContainerElement(comment, container, elementName, varName);
         block.add(containerElement);
         return containerElement;
-    }
-
-    /**
-     * Adds a property assignment statement to the configuration of a particular convention.
-     */
-    public BuildScriptBuilder conventionPropertyAssignment(@Nullable String comment, String conventionName, String propertyName, Object propertyValue) {
-        block.conventions.add(
-            new ConventionSelector(conventionName),
-            new PropertyAssignment(comment, propertyName, expressionValue(propertyValue), true));
-        return this;
     }
 
     public TemplateOperation create() {
