@@ -26,6 +26,7 @@ import org.gradle.test.fixtures.file.ClassFile
 import org.gradle.util.VersionNumber
 import org.junit.Assume
 import org.junit.Rule
+import spock.lang.Issue
 
 import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.mavenCentralRepositoryDefinition
 import static org.gradle.util.TextUtil.escapeString
@@ -420,6 +421,35 @@ class Person(val name: String, val age: Int) {
         classHash(person) != old(classHash(person))
         house.lastModified() != old(house.lastModified())
         other.lastModified() != old(other.lastModified())
+    }
+
+    @Issue("gradle/gradle#13535")
+    def doNotPropagateWorkerClasspathToCompilationClasspath() {
+        given:
+        // scala 2.12 is used because for 2.13 this particular case is ok
+        file("build.gradle") << """
+            apply plugin: 'scala'
+
+            ${mavenCentralRepository()}
+
+            dependencies {
+                implementation 'org.scala-lang:scala-library:2.12.11'
+            }
+        """
+
+        file("src/main/scala/ScalaXml.scala") << """
+            import scala.xml.Text
+
+            object ScalaXml {
+              def main(args: Array[String]): Unit = {
+                val text = new Text("test")
+                println(text)
+              }
+            }"""
+
+        expect:
+        fails("compileScala")
+        result.assertHasErrorOutput("object xml is not a member of package scala")
     }
 
     def classHash(File file) {

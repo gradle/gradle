@@ -1165,12 +1165,12 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     }
 
     /**
-     * Configures the java exectuable to be used to run the tests.
+     * Configures the java executable to be used to run the tests.
      *
      * @since 6.7
      */
     @Incubating
-    @Internal // getJavaVersion() is used as @Input
+    @Internal("getJavaVersion() is used as @Input")
     public Property<JavaLauncher> getJavaLauncher() {
         return javaLauncher;
     }

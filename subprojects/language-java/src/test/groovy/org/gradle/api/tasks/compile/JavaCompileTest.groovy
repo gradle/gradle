@@ -25,6 +25,7 @@ import org.gradle.jvm.toolchain.JavaInstallation
 import org.gradle.jvm.toolchain.JavaToolChain
 import org.gradle.jvm.toolchain.internal.JavaCompilerFactory
 import org.gradle.jvm.toolchain.internal.JavaToolchain
+import org.gradle.jvm.toolchain.internal.ToolchainToolFactory
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import spock.lang.Issue
 
@@ -88,7 +89,7 @@ class JavaCompileTest extends AbstractProjectBuilderSpec {
         installDir.asFile >> javaHome
         installation.installationDirectory >> installDir
         installation.getJavaVersion() >> JavaVersion.VERSION_12
-        def toolchain = new JavaToolchain(installation, Mock(JavaCompilerFactory))
+        def toolchain = new JavaToolchain(installation, Mock(JavaCompilerFactory), Mock(ToolchainToolFactory))
         javaCompile.setDestinationDir(new File("tmp"))
 
         when:

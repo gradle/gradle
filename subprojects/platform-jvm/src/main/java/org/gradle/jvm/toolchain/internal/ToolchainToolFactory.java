@@ -13,22 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package gradlebuild
 
-import gradlebuild.cleanup.extension.CleanupExtension
-import gradlebuild.cleanup.services.DaemonTracker
-import gradlebuild.cleanup.tasks.KillLeakingJavaProcesses
+package org.gradle.jvm.toolchain.internal;
 
-plugins {
-    base
-}
+public interface ToolchainToolFactory {
 
-val trackerService = gradle.sharedServices.registerIfAbsent("daemonTracker", DaemonTracker::class) {
-    parameters.gradleHomeDir.fileValue(gradle.gradleHomeDir)
-    parameters.rootProjectDir.set(layout.projectDirectory)
-}
-extensions.create<CleanupExtension>("cleanup", trackerService)
+    <T> T create(Class<T> toolType, JavaToolchain javaToolchain);
 
-tasks.register<KillLeakingJavaProcesses>("killExistingProcessesStartedByGradle") {
-    tracker.set(trackerService)
 }

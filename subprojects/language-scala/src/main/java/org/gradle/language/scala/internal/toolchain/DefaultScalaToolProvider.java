@@ -65,7 +65,7 @@ public class DefaultScalaToolProvider implements ToolProvider {
                     new DaemonScalaCompiler<ScalaJavaJointCompileSpec>(
                             daemonWorkingDir,
                             ZincScalaCompilerFacade.class,
-                            new Object[]{resolvedScalaClasspath},
+                            new Object[]{resolvedScalaClasspath, true},
                             workerDaemonFactory,
                             resolvedZincClasspath,
                             forkOptionsFactory,

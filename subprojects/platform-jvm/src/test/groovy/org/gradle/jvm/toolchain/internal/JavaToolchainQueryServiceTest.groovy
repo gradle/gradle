@@ -134,9 +134,10 @@ class JavaToolchainQueryServiceTest extends Specification {
 
     private JavaToolchainFactory newToolchainFactory() {
         def compilerFactory = Mock(JavaCompilerFactory)
-        def toolchainFactory = new JavaToolchainFactory(Mock(FileFactory), Mock(JavaInstallationRegistry), Mock(JavaCompilerFactory)) {
+        def toolFactory = Mock(ToolchainToolFactory)
+        def toolchainFactory = new JavaToolchainFactory(Mock(FileFactory), Mock(JavaInstallationRegistry), compilerFactory, toolFactory) {
             JavaToolchain newInstance(File javaHome) {
-                return new JavaToolchain(newInstallation(javaHome), compilerFactory)
+                return new JavaToolchain(newInstallation(javaHome), compilerFactory, toolFactory)
             }
         }
         toolchainFactory

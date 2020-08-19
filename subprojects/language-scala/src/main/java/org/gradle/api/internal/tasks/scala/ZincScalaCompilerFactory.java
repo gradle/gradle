@@ -87,7 +87,7 @@ public class ZincScalaCompilerFactory {
         }
     }
 
-    static ZincScalaCompiler getCompiler(CacheRepository cacheRepository, HashedClasspath hashedScalaClasspath) {
+    static ZincScalaCompiler getCompiler(CacheRepository cacheRepository, HashedClasspath hashedScalaClasspath, boolean leakCompilerClasspath) {
         ScalaInstance scalaInstance = getScalaInstance(hashedScalaClasspath);
         String zincVersion = ZincCompilerUtil.class.getPackage().getImplementationVersion();
         String scalaVersion = scalaInstance.actualVersion();
@@ -105,12 +105,12 @@ public class ZincScalaCompilerFactory {
         ScalaCompiler scalaCompiler = new AnalyzingCompiler(
             scalaInstance,
             ZincUtil.constantBridgeProvider(scalaInstance, bridgeJar),
-            ClasspathOptionsUtil.auto(),
+            ClasspathOptionsUtil.manual(),
             k -> scala.runtime.BoxedUnit.UNIT,
             Option.apply(COMPILER_CLASSLOADER_CACHE)
         );
 
-        return new ZincScalaCompiler(scalaInstance, scalaCompiler, new AnalysisStoreProvider());
+        return new ZincScalaCompiler(scalaInstance, scalaCompiler, new AnalysisStoreProvider(), leakCompilerClasspath);
     }
 
     private static ClassLoader getClassLoader(ClassPath classpath) {
