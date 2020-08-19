@@ -36,7 +36,7 @@ class ToBeFixedForConfigurationCacheExtension extends AbstractAnnotationDrivenEx
     @Override
     void visitFeatureAnnotation(ToBeFixedForConfigurationCache annotation, FeatureInfo feature) {
 
-        if (GradleContextualExecuter.isNotInstant()) {
+        if (GradleContextualExecuter.isNotConfigCache()) {
             return
         }
 

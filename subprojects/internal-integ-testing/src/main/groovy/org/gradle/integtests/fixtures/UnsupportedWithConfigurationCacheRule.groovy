@@ -31,7 +31,7 @@ class UnsupportedWithConfigurationCacheRule implements TestRule {
     @Override
     Statement apply(Statement base, Description description) {
         def annotation = description.getAnnotation(UnsupportedWithConfigurationCache.class)
-        if (GradleContextualExecuter.isNotInstant() || annotation == null) {
+        if (GradleContextualExecuter.isNotConfigCache() || annotation == null) {
             return base
         }
         def enabledBottomSpec = isEnabledBottomSpec(annotation.bottomSpecs(), { description.className.endsWith(".$it") })
@@ -52,7 +52,7 @@ class UnsupportedWithConfigurationCacheRule implements TestRule {
 
         @Override
         void evaluate() throws Throwable {
-            assumeFalse(GradleContextualExecuter.isInstant())
+            assumeFalse(GradleContextualExecuter.isConfigCache())
             next.evaluate()
         }
     }

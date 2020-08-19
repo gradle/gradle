@@ -199,7 +199,7 @@ abstract class AbstractSmokeTest extends Specification {
 
     private List<String> configurationCacheParameters() {
         List<String> parameters = []
-        if (GradleContextualExecuter.isInstant()) {
+        if (GradleContextualExecuter.isConfigCache()) {
             def maxProblems = maxConfigurationCacheProblems()
             parameters += [
                 "--${ConfigurationCacheOption.LONG_OPTION}".toString(),
@@ -236,13 +236,13 @@ abstract class AbstractSmokeTest extends Specification {
     }
 
     protected void assertConfigurationCacheStateStored() {
-        if (GradleContextualExecuter.isInstant()) {
+        if (GradleContextualExecuter.isConfigCache()) {
             newConfigurationCacheBuildOperationsFixture().assertStateStored()
         }
     }
 
     protected void assertConfigurationCacheStateLoaded() {
-        if (GradleContextualExecuter.isInstant()) {
+        if (GradleContextualExecuter.isConfigCache()) {
             newConfigurationCacheBuildOperationsFixture().assertStateLoaded()
         }
     }

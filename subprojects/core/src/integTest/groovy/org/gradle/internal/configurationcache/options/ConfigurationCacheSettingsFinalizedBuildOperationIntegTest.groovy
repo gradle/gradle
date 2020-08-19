@@ -22,7 +22,7 @@ import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.operations.trace.BuildOperationRecord
 import spock.lang.IgnoreIf
 
-@IgnoreIf({ GradleContextualExecuter.instant })
+@IgnoreIf({ GradleContextualExecuter.configCache })
 class ConfigurationCacheSettingsFinalizedBuildOperationIntegTest extends AbstractIntegrationSpec {
 
     def operations = new BuildOperationsFixture(executer, temporaryFolder)

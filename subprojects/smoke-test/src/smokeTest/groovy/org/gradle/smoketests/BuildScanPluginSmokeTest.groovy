@@ -63,7 +63,7 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
     "can use plugin #version"() {
         given:
         def versionNumber = VersionNumber.parse(version)
-        Assume.assumeFalse(GradleContextualExecuter.instant && versionNumber < FIRST_VERSION_SUPPORTING_CONFIGURATION_CACHE)
+        Assume.assumeFalse(GradleContextualExecuter.configCache && versionNumber < FIRST_VERSION_SUPPORTING_CONFIGURATION_CACHE)
 
         when:
         usePluginVersion version

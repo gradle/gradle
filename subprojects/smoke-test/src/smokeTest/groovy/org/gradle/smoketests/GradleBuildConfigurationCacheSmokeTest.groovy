@@ -42,7 +42,7 @@ import java.text.SimpleDateFormat
  * only run on the Java 14 smoke test CI job, see the {@link Requires} annotation below.
  */
 @Requires(value = TestPrecondition.JDK9_OR_LATER, adhoc = {
-    GradleContextualExecuter.isNotInstant() && GradleBuildJvmSpec.isAvailable()
+    GradleContextualExecuter.isNotConfigCache() && GradleBuildJvmSpec.isAvailable()
 })
 class GradleBuildConfigurationCacheSmokeTest extends AbstractSmokeTest {
     private BuildResult result
