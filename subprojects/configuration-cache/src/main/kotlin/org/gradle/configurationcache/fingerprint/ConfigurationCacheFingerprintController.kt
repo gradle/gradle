@@ -99,7 +99,7 @@ class ConfigurationCacheFingerprintController internal constructor(
         private val outputStream: ByteArrayOutputStream
     ) : WritingState() {
         override fun stop(): WritingState {
-            // TODO - this is a temporary step, see the comment in DefaultInstantExecution
+            // TODO - this is a temporary step, see the comment in DefaultConfigurationCache
             fingerprintWriter.stopCollectingValueSources()
             return Written(fingerprintWriter, outputStream)
         }

@@ -22,7 +22,7 @@ class ConfigurationCacheCompositeBuildsIntegrationTest extends AbstractConfigura
     def "reports a problem when included builds are present"() {
 
         given:
-        def instantExecution = newInstantExecutionFixture()
+        def configurationCache = newConfigurationCacheFixture()
         settingsFile << """includeBuild("included")"""
         file("included/settings.gradle") << ""
 
@@ -30,7 +30,7 @@ class ConfigurationCacheCompositeBuildsIntegrationTest extends AbstractConfigura
         def expectedProblem = "Gradle runtime: support for included builds is not yet implemented with the configuration cache."
 
         when:
-        instantFails("help")
+        configurationCacheFails("help")
 
         then:
         problems.assertFailureHasProblems(failure) {
@@ -39,7 +39,7 @@ class ConfigurationCacheCompositeBuildsIntegrationTest extends AbstractConfigura
         }
 
         when:
-        instantRunLenient("help")
+        configurationCacheRunLenient("help")
 
         then:
         problems.assertResultHasProblems(result) {
@@ -48,20 +48,20 @@ class ConfigurationCacheCompositeBuildsIntegrationTest extends AbstractConfigura
         }
 
         when:
-        instantFails("help")
+        configurationCacheFails("help")
 
         then:
-        instantExecution.assertStateLoaded()
+        configurationCache.assertStateLoaded()
         problems.assertFailureHasProblems(failure) {
             withUniqueProblems(expectedProblem)
             withProblemsWithStackTraceCount(0)
         }
 
         when:
-        instantRunLenient("help")
+        configurationCacheRunLenient("help")
 
         then:
-        instantExecution.assertStateLoaded()
+        configurationCache.assertStateLoaded()
         problems.assertResultHasProblems(result) {
             withUniqueProblems(expectedProblem)
             withProblemsWithStackTraceCount(0)
@@ -70,7 +70,7 @@ class ConfigurationCacheCompositeBuildsIntegrationTest extends AbstractConfigura
 
     def "reports a problem when source dependencies are present"() {
         given:
-        def instantExecution = newInstantExecutionFixture()
+        def configurationCache = newConfigurationCacheFixture()
         settingsFile << """
             sourceControl {
                 vcsMappings {
@@ -87,7 +87,7 @@ class ConfigurationCacheCompositeBuildsIntegrationTest extends AbstractConfigura
         def expectedProblem = "Gradle runtime: support for source dependencies is not yet implemented with the configuration cache."
 
         when:
-        instantFails("help")
+        configurationCacheFails("help")
 
         then:
         problems.assertFailureHasProblems(failure) {
@@ -96,7 +96,7 @@ class ConfigurationCacheCompositeBuildsIntegrationTest extends AbstractConfigura
         }
 
         when:
-        instantRunLenient("help")
+        configurationCacheRunLenient("help")
 
         then:
         problems.assertFailureHasProblems(failure) {
@@ -105,20 +105,20 @@ class ConfigurationCacheCompositeBuildsIntegrationTest extends AbstractConfigura
         }
 
         when:
-        instantFails("help")
+        configurationCacheFails("help")
 
         then:
-        instantExecution.assertStateLoaded()
+        configurationCache.assertStateLoaded()
         problems.assertFailureHasProblems(failure) {
             withUniqueProblems(expectedProblem)
             withProblemsWithStackTraceCount(0)
         }
 
         when:
-        instantRunLenient("help")
+        configurationCacheRunLenient("help")
 
         then:
-        instantExecution.assertStateLoaded()
+        configurationCache.assertStateLoaded()
         problems.assertResultHasProblems(result) {
             withUniqueProblems(expectedProblem)
             withProblemsWithStackTraceCount(0)

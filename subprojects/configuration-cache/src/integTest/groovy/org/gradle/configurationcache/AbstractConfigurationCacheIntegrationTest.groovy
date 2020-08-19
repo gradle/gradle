@@ -62,15 +62,15 @@ class AbstractConfigurationCacheIntegrationTest extends AbstractIntegrationSpec 
         buildKotlinFile << script
     }
 
-    void instantRun(String... tasks) {
+    void configurationCacheRun(String... tasks) {
         run(ENABLE_CLI_OPT, *tasks)
     }
 
-    void instantRunLenient(String... tasks) {
+    void configurationCacheRunLenient(String... tasks) {
         run(ENABLE_CLI_OPT, WARN_PROBLEMS_CLI_OPT, *tasks)
     }
 
-    void instantFails(String... tasks) {
+    void configurationCacheFails(String... tasks) {
         fails(ENABLE_CLI_OPT, *tasks)
     }
 
@@ -78,7 +78,7 @@ class AbstractConfigurationCacheIntegrationTest extends AbstractIntegrationSpec 
         return path.replace('/', File.separator)
     }
 
-    protected ConfigurationCacheBuildOperationsFixture newInstantExecutionFixture() {
+    protected ConfigurationCacheBuildOperationsFixture newConfigurationCacheFixture() {
         return new ConfigurationCacheBuildOperationsFixture(new BuildOperationsFixture(executer, temporaryFolder))
     }
 

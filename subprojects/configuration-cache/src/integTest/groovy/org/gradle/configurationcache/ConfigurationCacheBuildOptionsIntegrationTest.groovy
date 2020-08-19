@@ -24,7 +24,7 @@ class ConfigurationCacheBuildOptionsIntegrationTest extends AbstractConfiguratio
     def "system property from #systemPropertySource used as task and build logic input"() {
 
         given:
-        def instant = newInstantExecutionFixture()
+        def configurationCache = newConfigurationCacheFixture()
         createDir('root') {
             file('build.gradle.kts') << """
 
@@ -46,16 +46,16 @@ class ConfigurationCacheBuildOptionsIntegrationTest extends AbstractConfiguratio
             inDirectory('root')
             switch (systemPropertySource) {
                 case SystemPropertySource.COMMAND_LINE:
-                    return instantRun('greet', "-Dgreeting=$greeting")
+                    return configurationCacheRun('greet', "-Dgreeting=$greeting")
                 case SystemPropertySource.GRADLE_PROPERTIES:
                     file('root/gradle.properties').text = "systemProp.greeting=$greeting"
-                    return instantRun('greet')
+                    return configurationCacheRun('greet')
                 case SystemPropertySource.GRADLE_PROPERTIES_FROM_MASTER_SETTINGS_DIR:
                     file('master/gradle.properties').text = "systemProp.greeting=$greeting"
                     file('master/settings.gradle').text = """
                         rootProject.projectDir = file('../root')
                     """
-                    return instantRun('greet')
+                    return configurationCacheRun('greet')
             }
             throw new IllegalArgumentException('source')
         }
@@ -64,21 +64,21 @@ class ConfigurationCacheBuildOptionsIntegrationTest extends AbstractConfiguratio
 
         then:
         output.count("Hi!") == 1
-        instant.assertStateStored()
+        configurationCache.assertStateStored()
 
         when:
         runGreetWith 'hi'
 
         then:
         output.count("Hi!") == 1
-        instant.assertStateLoaded()
+        configurationCache.assertStateLoaded()
 
         when:
         runGreetWith 'hello'
 
         then:
         output.count("Hello, hello!") == 1
-        instant.assertStateStored()
+        configurationCache.assertStateStored()
 
         where:
         systemPropertySource << SystemPropertySource.values()
@@ -99,7 +99,7 @@ class ConfigurationCacheBuildOptionsIntegrationTest extends AbstractConfiguratio
     def "#usage property from properties file used as build logic input"() {
 
         given:
-        def instant = newInstantExecutionFixture()
+        def configurationCache = newConfigurationCacheFixture()
         buildKotlinFile """
 
             import org.gradle.api.provider.*
@@ -141,43 +141,43 @@ class ConfigurationCacheBuildOptionsIntegrationTest extends AbstractConfiguratio
         """
 
         when: "running without a file present"
-        instantRun "run"
+        configurationCacheRun "run"
 
         then:
         output.count("NOT CI") == 1
-        instant.assertStateStored()
+        configurationCache.assertStateStored()
 
         when: "running with an empty file"
         file("local.properties") << ""
-        instantRun "run"
+        configurationCacheRun "run"
 
         then:
         output.count("NOT CI") == 1
-        instant.assertStateLoaded()
+        configurationCache.assertStateLoaded()
 
         when: "running with the property present in the file"
         file("local.properties") << "ci=true"
-        instantRun "run"
+        configurationCacheRun "run"
 
         then:
         output.count("ON CI") == 1
-        instant.assertStateStored()
+        configurationCache.assertStateStored()
 
         when: "running after changing the file without changing the property value"
         file("local.properties") << "\nunrelated.properties=foo"
-        instantRun "run"
+        configurationCacheRun "run"
 
         then:
         output.count("ON CI") == 1
-        instant.assertStateLoaded()
+        configurationCache.assertStateLoaded()
 
         when: "running after changing the property value"
         file("local.properties").text = "ci=false"
-        instantRun "run"
+        configurationCacheRun "run"
 
         then:
         output.count("NOT CI") == 1
-        instant.assertStateStored()
+        configurationCache.assertStateStored()
 
         where:
         expression                                     | usage
@@ -189,7 +189,7 @@ class ConfigurationCacheBuildOptionsIntegrationTest extends AbstractConfiguratio
     def "#kind property used as task and build logic input"() {
 
         given:
-        def instant = newInstantExecutionFixture()
+        def configurationCache = newConfigurationCacheFixture()
         buildKotlinFile """
 
             $greetTask
@@ -206,25 +206,25 @@ class ConfigurationCacheBuildOptionsIntegrationTest extends AbstractConfiguratio
             }
         """
         when:
-        instantRun("greet", "-${option}greeting=hi")
+        configurationCacheRun("greet", "-${option}greeting=hi")
 
         then:
         output.count("Hi!") == 1
-        instant.assertStateStored()
+        configurationCache.assertStateStored()
 
         when:
-        instantRun("greet", "-${option}greeting=hi")
+        configurationCacheRun("greet", "-${option}greeting=hi")
 
         then:
         output.count("Hi!") == 1
-        instant.assertStateLoaded()
+        configurationCache.assertStateLoaded()
 
         when:
-        instantRun("greet", "-${option}greeting=hello")
+        configurationCacheRun("greet", "-${option}greeting=hello")
 
         then:
         output.count("Hello, hello!") == 1
-        instant.assertStateStored()
+        configurationCache.assertStateStored()
         outputContains "$description property 'greeting' has changed"
 
         where:
@@ -236,7 +236,7 @@ class ConfigurationCacheBuildOptionsIntegrationTest extends AbstractConfiguratio
     def "mapped system property used as task input"() {
 
         given:
-        def instant = newInstantExecutionFixture()
+        def configurationCache = newConfigurationCacheFixture()
         buildKotlinFile """
 
             val sysPropProvider = providers
@@ -261,31 +261,31 @@ class ConfigurationCacheBuildOptionsIntegrationTest extends AbstractConfiguratio
         """
 
         when:
-        instantRun("a")
+        configurationCacheRun("a")
 
         then:
         output.count("ThreadPoolSize = 1") == 1
-        instant.assertStateStored()
+        configurationCache.assertStateStored()
 
         when:
-        instantRun("a", "-Dthread.pool.size=4")
+        configurationCacheRun("a", "-Dthread.pool.size=4")
 
         then:
         output.count("ThreadPoolSize = 4") == 1
-        instant.assertStateLoaded()
+        configurationCache.assertStateLoaded()
 
         when:
-        instantRun("a", "-Dthread.pool.size=3")
+        configurationCacheRun("a", "-Dthread.pool.size=3")
 
         then:
         output.count("ThreadPoolSize = 3") == 1
-        instant.assertStateLoaded()
+        configurationCache.assertStateLoaded()
     }
 
     def "zipped properties used as task input"() {
 
         given:
-        def instant = newInstantExecutionFixture()
+        def configurationCache = newConfigurationCacheFixture()
         buildKotlinFile """
 
             val prefix = providers.gradleProperty("messagePrefix")
@@ -307,25 +307,25 @@ class ConfigurationCacheBuildOptionsIntegrationTest extends AbstractConfiguratio
         """
 
         when:
-        instantRun("ok", "-PmessagePrefix=fizz", "-PmessageSuffix=buzz")
+        configurationCacheRun("ok", "-PmessagePrefix=fizz", "-PmessageSuffix=buzz")
 
         then:
         output.count("fizz buzz!") == 1
-        instant.assertStateStored()
+        configurationCache.assertStateStored()
 
         when:
-        instantRun("ok", "-PmessagePrefix=foo", "-PmessageSuffix=bar")
+        configurationCacheRun("ok", "-PmessagePrefix=foo", "-PmessageSuffix=bar")
 
         then:
         output.count("foo bar!") == 1
-        instant.assertStateLoaded()
+        configurationCache.assertStateLoaded()
     }
 
     @Unroll
     def "system property #usage used as build logic input"() {
 
         given:
-        def instant = newInstantExecutionFixture()
+        def configurationCache = newConfigurationCacheFixture()
         buildKotlinFile """
             val isCi = providers.systemProperty("ci").forUseAtConfigurationTime()
             if ($expression) {
@@ -340,25 +340,25 @@ class ConfigurationCacheBuildOptionsIntegrationTest extends AbstractConfiguratio
         """
 
         when:
-        instantRun "run"
+        configurationCacheRun "run"
 
         then:
         output.count("NOT CI") == 1
-        instant.assertStateStored()
+        configurationCache.assertStateStored()
 
         when:
-        instantRun "run"
+        configurationCacheRun "run"
 
         then:
         output.count("NOT CI") == 1
-        instant.assertStateLoaded()
+        configurationCache.assertStateLoaded()
 
         when:
-        instantRun "run", "-Dci=true"
+        configurationCacheRun "run", "-Dci=true"
 
         then:
         output.count("ON CI") == 1
-        instant.assertStateStored()
+        configurationCache.assertStateStored()
 
         where:
         expression                                     | usage
@@ -369,7 +369,7 @@ class ConfigurationCacheBuildOptionsIntegrationTest extends AbstractConfiguratio
     def "environment variable used as task and build logic input"() {
 
         given:
-        def instant = newInstantExecutionFixture()
+        def configurationCache = newConfigurationCacheFixture()
         buildKotlinFile """
 
             $greetTask
@@ -387,35 +387,35 @@ class ConfigurationCacheBuildOptionsIntegrationTest extends AbstractConfiguratio
         """
         when:
         withEnvironmentVars(GREETING: "hi")
-        instantRun("greet")
+        configurationCacheRun("greet")
 
         then:
         output.count("Hi!") == 1
-        instant.assertStateStored()
+        configurationCache.assertStateStored()
 
         when:
         withEnvironmentVars(GREETING: "hi")
-        instantRun("greet")
+        configurationCacheRun("greet")
 
         then:
         output.count("Hi!") == 1
-        instant.assertStateLoaded()
+        configurationCache.assertStateLoaded()
 
         when:
         withEnvironmentVars(GREETING: "hello")
-        instantRun("greet")
+        configurationCacheRun("greet")
 
         then:
         output.count("Hello, hello!") == 1
         outputContains "environment variable 'GREETING' has changed"
-        instant.assertStateStored()
+        configurationCache.assertStateStored()
     }
 
     @Unroll
     def "file contents #usage used as build logic input"() {
 
         given:
-        def instant = newInstantExecutionFixture()
+        def configurationCache = newConfigurationCacheFixture()
         buildKotlinFile """
             val ciFile = layout.projectDirectory.file("ci")
             val isCi = providers.fileContents(ciFile)
@@ -431,43 +431,43 @@ class ConfigurationCacheBuildOptionsIntegrationTest extends AbstractConfiguratio
         """
 
         when:
-        instantRun "run"
+        configurationCacheRun "run"
 
         then:
         output.count("NOT CI") == 1
-        instant.assertStateStored()
+        configurationCache.assertStateStored()
 
         when:
-        instantRun "run"
+        configurationCacheRun "run"
 
         then:
         output.count("NOT CI") == 1
-        instant.assertStateLoaded()
+        configurationCache.assertStateLoaded()
 
         when:
         file("ci").text = "true"
-        instantRun "run"
+        configurationCacheRun "run"
 
         then:
         output.count("ON CI") == 1
-        instant.assertStateStored()
+        configurationCache.assertStateStored()
 
         when: "file is touched but unchanged"
         file("ci").text = "true"
-        instantRun "run"
+        configurationCacheRun "run"
 
         then: "cache is still valid"
         output.count("ON CI") == 1
-        instant.assertStateLoaded()
+        configurationCache.assertStateLoaded()
 
         when: "file is changed"
         file("ci").text = "false"
-        instantRun "run"
+        configurationCacheRun "run"
 
         then: "cache is NO longer valid"
         output.count(usage.endsWith("presence") ? "ON CI" : "NOT CI") == 1
         outputContains "file 'ci' has changed"
-        instant.assertStateStored()
+        configurationCache.assertStateStored()
 
         where:
         expression                                                                            | usage
@@ -480,7 +480,7 @@ class ConfigurationCacheBuildOptionsIntegrationTest extends AbstractConfiguratio
     def "mapped file contents used as task input"() {
 
         given:
-        def instant = newInstantExecutionFixture()
+        def configurationCache = newConfigurationCacheFixture()
         buildKotlinFile """
 
             val threadPoolSizeProvider = providers
@@ -506,25 +506,25 @@ class ConfigurationCacheBuildOptionsIntegrationTest extends AbstractConfiguratio
 
         when:
         file("thread.pool.size").text = "4"
-        instantRun("a")
+        configurationCacheRun("a")
 
         then:
         output.count("ThreadPoolSize = 4") == 1
-        instant.assertStateStored()
+        configurationCache.assertStateStored()
 
         when: "the file is changed"
         file("thread.pool.size").text = "3"
-        instantRun("a")
+        configurationCacheRun("a")
 
         then: "the configuration cache is NOT invalidated"
         output.count("ThreadPoolSize = 3") == 1
-        instant.assertStateLoaded()
+        configurationCache.assertStateLoaded()
     }
 
     @Unroll
     def "file contents provider used as #usage has no value when underlying file provider has no value"() {
         given:
-        def instant = newInstantExecutionFixture()
+        def configurationCache = newConfigurationCacheFixture()
         buildKotlinFile """
 
             $greetTask
@@ -538,18 +538,18 @@ class ConfigurationCacheBuildOptionsIntegrationTest extends AbstractConfiguratio
         """
 
         when:
-        instantRun("greet")
+        configurationCacheRun("greet")
 
         then:
         output.count("Hello!") == 1
-        instant.assertStateStored()
+        configurationCache.assertStateStored()
 
         when:
-        instantRun("greet")
+        configurationCacheRun("greet")
 
         then:
         output.count("Hello!") == 1
-        instant.assertStateLoaded()
+        configurationCache.assertStateLoaded()
 
         where:
         operator                                | operatorType       | usage
@@ -560,7 +560,7 @@ class ConfigurationCacheBuildOptionsIntegrationTest extends AbstractConfiguratio
     def "can define and use custom value source in a Groovy script"() {
 
         given:
-        def instant = newInstantExecutionFixture()
+        def configurationCache = newConfigurationCacheFixture()
         buildFile.text = """
 
             import org.gradle.api.provider.*
@@ -591,26 +591,26 @@ class ConfigurationCacheBuildOptionsIntegrationTest extends AbstractConfiguratio
         """
 
         when:
-        instantRun "build"
+        configurationCacheRun "build"
 
         then:
         output.count("NOT CI") == 1
-        instant.assertStateStored()
+        configurationCache.assertStateStored()
 
         when:
-        instantRun "build"
+        configurationCacheRun "build"
 
         then:
         output.count("NOT CI") == 1
-        instant.assertStateLoaded()
+        configurationCache.assertStateLoaded()
 
         when:
-        instantRun "build", "-Dci=true"
+        configurationCacheRun "build", "-Dci=true"
 
         then:
         output.count("ON CI") == 1
         output.contains("because a build logic input of type 'IsSystemPropertySet' has changed")
-        instant.assertStateStored()
+        configurationCache.assertStateStored()
     }
 
     private static String getGreetTask() {

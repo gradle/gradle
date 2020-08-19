@@ -40,13 +40,13 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
 
     def "configuration cache for help on empty project"() {
         given:
-        instantRun "help"
+        configurationCacheRun "help"
         def firstRunOutput = removeVfsLogOutput(result.normalizedOutput)
             .replaceAll(/Calculating task graph as no configuration cache is available for tasks: help\n/, '')
             .replaceAll(/Configuration cache entry stored.\n/, '')
 
         when:
-        instantRun "help"
+        configurationCacheRun "help"
         def secondRunOutput = removeVfsLogOutput(result.normalizedOutput)
             .replaceAll(/Reusing configuration cache.\n/, '')
             .replaceAll(/Configuration cache entry reused.\n/, '')
@@ -66,19 +66,19 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
 
     def "can request to recreate the cache"() {
         given:
-        def fixture = newInstantExecutionFixture()
+        def configurationCache = newConfigurationCacheFixture()
 
         when:
-        instantRun "help", "-D${ConfigurationCacheRecreateOption.PROPERTY_NAME}=true"
+        configurationCacheRun "help", "-D${ConfigurationCacheRecreateOption.PROPERTY_NAME}=true"
 
         then:
-        fixture.assertStateStored()
+        configurationCache.assertStateStored()
 
         when:
-        instantRun "help", "-D${ConfigurationCacheRecreateOption.PROPERTY_NAME}=true"
+        configurationCacheRun "help", "-D${ConfigurationCacheRecreateOption.PROPERTY_NAME}=true"
 
         then:
-        fixture.assertStateStored()
+        configurationCache.assertStateStored()
         outputContains("Recreating configuration cache")
     }
 
@@ -98,7 +98,7 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
         """
 
         when:
-        instantRun "help"
+        configurationCacheRun "help"
 
         then:
         def event = fixture.first(LoadProjectsBuildOperationType)
@@ -107,7 +107,7 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
         event.result.rootProject.children.size() == 3 // All projects are created when storing
 
         when:
-        instantRun "help"
+        configurationCacheRun "help"
 
         then:
         def event2 = fixture.first(LoadProjectsBuildOperationType)
@@ -117,7 +117,7 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
         event2.result.rootProject.children.empty // None of the child projects are created when loading, as they have no tasks scheduled
 
         when:
-        instantRun ":a:thing"
+        configurationCacheRun ":a:thing"
 
         then:
         def event3 = fixture.first(LoadProjectsBuildOperationType)
@@ -125,7 +125,7 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
         event3.result.rootProject.children.size() == 3 // All projects are created when storing
 
         when:
-        instantRun ":a:thing"
+        configurationCacheRun ":a:thing"
 
         then:
         def event4 = fixture.first(LoadProjectsBuildOperationType)
@@ -140,7 +140,7 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
         project1.children.empty
 
         when:
-        instantRun ":a:b:thing"
+        configurationCacheRun ":a:b:thing"
 
         then:
         def event5 = fixture.first(LoadProjectsBuildOperationType)
@@ -148,7 +148,7 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
         event5.result.rootProject.children.size() == 3 // All projects are created when storing
 
         when:
-        instantRun ":a:b:thing"
+        configurationCacheRun ":a:b:thing"
 
         then:
         def event6 = fixture.first(LoadProjectsBuildOperationType)
@@ -169,7 +169,7 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
 
     def "does not configure build when task graph is already cached for requested tasks"() {
 
-        def instantExecution = newInstantExecutionFixture()
+        def configurationCache = newConfigurationCacheFixture()
 
         given:
         buildFile << """
@@ -189,10 +189,10 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
         """
 
         when:
-        instantRun "a"
+        configurationCacheRun "a"
 
         then:
-        instantExecution.assertStateStored()
+        configurationCache.assertStateStored()
         outputContains("Calculating task graph as no configuration cache is available for tasks: a")
         outputContains("running build script")
         outputContains("create task")
@@ -200,10 +200,10 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
         result.assertTasksExecuted(":a")
 
         when:
-        instantRun "a"
+        configurationCacheRun "a"
 
         then:
-        instantExecution.assertStateLoaded()
+        configurationCache.assertStateLoaded()
         outputContains("Reusing configuration cache.")
         outputDoesNotContain("running build script")
         outputDoesNotContain("create task")
@@ -211,10 +211,10 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
         result.assertTasksExecuted(":a")
 
         when:
-        instantRun "b"
+        configurationCacheRun "b"
 
         then:
-        instantExecution.assertStateStored()
+        configurationCache.assertStateStored()
         outputContains("Calculating task graph as no configuration cache is available for tasks: b")
         outputContains("running build script")
         outputContains("create task")
@@ -222,10 +222,10 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
         result.assertTasksExecuted(":a", ":b")
 
         when:
-        instantRun "a"
+        configurationCacheRun "a"
 
         then:
-        instantExecution.assertStateLoaded()
+        configurationCache.assertStateLoaded()
         outputContains("Reusing configuration cache.")
         outputDoesNotContain("running build script")
         outputDoesNotContain("create task")
@@ -238,11 +238,11 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
         settingsFile << """
             include 'a:b', 'a:c'
         """
-        instantRun ":a:b:help", ":a:c:help"
+        configurationCacheRun ":a:b:help", ":a:c:help"
         def firstRunOutput = result.groupedOutput
 
         when:
-        instantRun ":a:b:help", ":a:c:help"
+        configurationCacheRun ":a:b:help", ":a:c:help"
 
         then:
         result.groupedOutput.task(":a:b:help").output == firstRunOutput.task(":a:b:help").output
@@ -287,13 +287,13 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
         """
 
         when:
-        instantRun "ok"
+        configurationCacheRun "ok"
 
         then:
         result.output.count("creating bean") == 2
 
         when:
-        instantRun "ok"
+        configurationCacheRun "ok"
 
         then:
         outputDoesNotContain("creating bean")
@@ -335,8 +335,8 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
         """
 
         when:
-        instantRun "ok"
-        instantRun "ok"
+        configurationCacheRun "ok"
+        configurationCacheRun "ok"
 
         then:
         outputContains("this.value = ${output}")
@@ -417,8 +417,8 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
         """
 
         when:
-        instantRun "ok"
-        instantRun "ok"
+        configurationCacheRun "ok"
+        configurationCacheRun "ok"
 
         then:
         outputContains("this.value = ${output}")
@@ -473,8 +473,8 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
         """
 
         when:
-        instantRun "ok"
-        instantRun "ok"
+        configurationCacheRun "ok"
+        configurationCacheRun "ok"
 
         then:
         outputContains("this.value = [a]")
@@ -505,13 +505,13 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
         """
 
         when:
-        instantRun "ok"
+        configurationCacheRun "ok"
 
         then: "bean is serialized before task runs"
         outputContains("bean.value = 42")
 
         when:
-        instantRun "ok"
+        configurationCacheRun "ok"
 
         then:
         outputContains("bean.value = 42")
@@ -544,8 +544,8 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
         """
 
         when:
-        instantRun "ok"
-        instantRun "ok"
+        configurationCacheRun "ok"
+        configurationCacheRun "ok"
 
         then:
         noExceptionThrown()
@@ -592,8 +592,8 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
         """
 
         when:
-        instantRun "ok"
-        instantRun "ok"
+        configurationCacheRun "ok"
+        configurationCacheRun "ok"
 
         then:
         outputContains("this.value = ${output}")
@@ -628,14 +628,14 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
         """
 
         when:
-        instantRun "ok"
+        configurationCacheRun "ok"
 
         then:
         outputContains("calculating value")
         outputContains("this.value = value")
 
         when:
-        instantRun "ok"
+        configurationCacheRun "ok"
 
         then:
         outputDoesNotContain("calculating value")
@@ -644,7 +644,7 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
 
     @Unroll
     def "restores task fields whose value is broken #type"() {
-        def instantExecution = newInstantExecutionFixture()
+        def configurationCache = newConfigurationCacheFixture()
 
         buildFile << """
             import ${Inject.name}
@@ -664,7 +664,7 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
         """
 
         when:
-        instantFails WARN_PROBLEMS_CLI_OPT, "broken"
+        configurationCacheFails WARN_PROBLEMS_CLI_OPT, "broken"
 
         then:
         problems.assertResultHasProblems(result) {
@@ -673,10 +673,10 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
         }
 
         when:
-        instantFails "broken"
+        configurationCacheFails "broken"
 
         then:
-        instantExecution.assertStateLoaded()
+        configurationCache.assertStateLoaded()
         failure.assertTasksExecuted(":broken")
         failure.assertHasDescription("Execution failed for task ':broken'.")
         failure.assertHasCause("broken!")
@@ -727,8 +727,8 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
         """
 
         when:
-        instantRun "ok"
-        instantRun "ok"
+        configurationCacheRun "ok"
+        configurationCacheRun "ok"
 
         then:
         def expected = output instanceof File ? file(output.path) : output
@@ -787,8 +787,8 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
         """
 
         when:
-        instantRun "ok"
-        instantRun "ok"
+        configurationCacheRun "ok"
+        configurationCacheRun "ok"
 
         then:
         outputContains("value = ${file("dir1")}")
@@ -836,8 +836,8 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
         """
 
         when:
-        instantRun "ok"
-        instantRun "ok"
+        configurationCacheRun "ok"
+        configurationCacheRun "ok"
 
         then:
         def expected = output.collect { file(it) }
@@ -897,8 +897,8 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
         """
 
         when:
-        instantRun "ok"
-        instantRun "ok"
+        configurationCacheRun "ok"
+        configurationCacheRun "ok"
 
         then:
         outputContains("this.supplier.get() -> 2")
@@ -942,8 +942,8 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
         """
 
         when:
-        instantRun "ok"
-        instantRun "ok"
+        configurationCacheRun "ok"
+        configurationCacheRun "ok"
 
         then:
         outputContains("ok action value is ${value}")
@@ -983,13 +983,13 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
         """
 
         when:
-        instantRun 'someTask'
+        configurationCacheRun 'someTask'
 
         then:
         outputContains("> content")
 
         when:
-        instantRun 'someTask'
+        configurationCacheRun 'someTask'
 
         then:
         outputContains("> content")
@@ -1043,8 +1043,8 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
         """
 
         when:
-        instantRun "ok"
-        instantRun "ok"
+        configurationCacheRun "ok"
+        configurationCacheRun "ok"
 
         then:
         outputContains("this.value = 42")
@@ -1080,8 +1080,8 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
         """
 
         when:
-        instantRun "ok"
-        instantRun "ok"
+        configurationCacheRun "ok"
+        configurationCacheRun "ok"
 
         then:
         outputContains("thisTask = true")
@@ -1108,8 +1108,8 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
         """
 
         when:
-        instantRun "ok"
-        instantRun "ok"
+        configurationCacheRun "ok"
+        configurationCacheRun "ok"
 
         then:
         outputContains("value = value")

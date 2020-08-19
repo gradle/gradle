@@ -128,7 +128,7 @@ assert classesDir.directory
                 }
             }
         """
-        if (!GradleContextualExecuter.instant) {
+        if (!GradleContextualExecuter.configCache) {
             buildFile << """
                 println('prop2=' + System.getProperty('prop2'))
             """
@@ -208,7 +208,7 @@ org.gradle.java.home=${TextUtil.escapeString(alternateJavaHome.canonicalPath)}
                 }
             }
         """
-        if (!GradleContextualExecuter.instant) {
+        if (!GradleContextualExecuter.configCache) {
             buildFile << """
                 println('prop2=' + System.getProperty('prop2'))
             """

@@ -26,10 +26,10 @@ class ConfigurationCacheScriptChangesIntegrationTest extends AbstractConfigurati
     @Test
     def "invalidates cache upon change to #scriptChangeSpec"() {
         given:
-        def instant = newInstantExecutionFixture()
+        def configurationCache = newConfigurationCacheFixture()
         def fixture = scriptChangeSpec.fixtureForProjectDir(testDirectory)
         fixture.setup()
-        def build = { instantRun(*fixture.buildArguments) }
+        def build = { configurationCacheRun(*fixture.buildArguments) }
 
         when:
         build()
@@ -43,7 +43,7 @@ class ConfigurationCacheScriptChangesIntegrationTest extends AbstractConfigurati
 
         then:
         outputContains fixture.expectedOutputAfterChange
-        instant.assertStateStored()
+        configurationCache.assertStateStored()
 
         when:
         build()
@@ -51,7 +51,7 @@ class ConfigurationCacheScriptChangesIntegrationTest extends AbstractConfigurati
         then:
         outputDoesNotContain fixture.expectedOutputBeforeChange
         outputDoesNotContain fixture.expectedOutputAfterChange
-        instant.assertStateLoaded()
+        configurationCache.assertStateLoaded()
 
         where:
         scriptChangeSpec << ScriptChangeFixture.specs()

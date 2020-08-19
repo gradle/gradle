@@ -74,7 +74,7 @@ class ConfigurationCacheServices : AbstractPluginServiceRegistry() {
 
 
 class BuildServicesProvider {
-    fun createInstantExecutionProblemsListener(
+    fun createConfigurationCacheProblemsListener(
         buildPath: PublicBuildPath,
         startParameter: ConfigurationCacheStartParameter,
         problemsListener: ConfigurationCacheProblems,

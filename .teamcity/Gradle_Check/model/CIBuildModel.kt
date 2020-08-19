@@ -52,13 +52,13 @@ data class CIBuildModel(
                 SpecificBuild.BuildDistributions,
                 SpecificBuild.Gradleception,
                 SpecificBuild.SmokeTestsMaxJavaVersion,
-                SpecificBuild.InstantSmokeTestsMaxJavaVersion,
-                SpecificBuild.InstantSmokeTestsMinJavaVersion
+                SpecificBuild.ConfigCacheSmokeTestsMaxJavaVersion,
+                SpecificBuild.ConfigCacheSmokeTestsMinJavaVersion
             ),
             functionalTests = listOf(
                 TestCoverage(3, TestType.platform, Os.linux, JvmCategory.MIN_VERSION),
                 TestCoverage(4, TestType.platform, Os.windows, JvmCategory.MAX_VERSION),
-                TestCoverage(20, TestType.instant, Os.linux, JvmCategory.MIN_VERSION)),
+                TestCoverage(20, TestType.configCache, Os.linux, JvmCategory.MIN_VERSION)),
             performanceTests = listOf(PerformanceTestType.test),
             omitsSlowProjects = true),
         Stage(StageNames.READY_FOR_NIGHTLY,
@@ -121,14 +121,14 @@ data class CIBuildModel(
             runsIndependent = true,
             specificBuilds = listOf(
                 SpecificBuild.SmokeTestsJDK15,
-                SpecificBuild.InstantSmokeTestsJDK15
+                SpecificBuild.ConfigCacheSmokeTestsJDK15
             ),
             functionalTests = listOf(
                 TestCoverage(40, TestType.quick, Os.linux, JvmCategory.OPENJDK15),
                 TestCoverage(41, TestType.quick, Os.windows, JvmCategory.OPENJDK15),
                 TestCoverage(42, TestType.platform, Os.linux, JvmCategory.OPENJDK15),
                 TestCoverage(43, TestType.platform, Os.windows, JvmCategory.OPENJDK15),
-                TestCoverage(44, TestType.instant, Os.linux, JvmCategory.OPENJDK15),
+                TestCoverage(44, TestType.configCache, Os.linux, JvmCategory.OPENJDK15),
                 TestCoverage(45, TestType.quickFeedbackCrossVersion, Os.linux, JvmCategory.OPENJDK15),
                 TestCoverage(46, TestType.quickFeedbackCrossVersion, Os.windows, JvmCategory.OPENJDK15),
                 TestCoverage(47, TestType.parallel, Os.linux, JvmCategory.OPENJDK15),
@@ -145,14 +145,14 @@ data class CIBuildModel(
             runsIndependent = true,
             specificBuilds = listOf(
                 SpecificBuild.SmokeTestsJDK16,
-                SpecificBuild.InstantSmokeTestsJDK16
+                SpecificBuild.ConfigCacheSmokeTestsJDK16
             ),
             functionalTests = listOf(
                 TestCoverage(55, TestType.quick, Os.linux, JvmCategory.OPENJDK16),
                 TestCoverage(56, TestType.quick, Os.windows, JvmCategory.OPENJDK16),
                 TestCoverage(57, TestType.platform, Os.linux, JvmCategory.OPENJDK16),
                 TestCoverage(58, TestType.platform, Os.windows, JvmCategory.OPENJDK16),
-                TestCoverage(59, TestType.instant, Os.linux, JvmCategory.OPENJDK16),
+                TestCoverage(59, TestType.configCache, Os.linux, JvmCategory.OPENJDK16),
                 TestCoverage(60, TestType.quickFeedbackCrossVersion, Os.linux, JvmCategory.OPENJDK16),
                 TestCoverage(61, TestType.quickFeedbackCrossVersion, Os.windows, JvmCategory.OPENJDK16),
                 TestCoverage(62, TestType.parallel, Os.linux, JvmCategory.OPENJDK16),
@@ -272,7 +272,7 @@ enum class TestType(val unitTests: Boolean = true, val functionalTests: Boolean 
     allVersionsIntegMultiVersion(false, true, false),
     parallel(false, true, false),
     noDaemon(false, true, false, 240),
-    instant(false, true, false),
+    configCache(false, true, false),
     watchFs(false, true, false),
     soak(false, false, false),
     forceRealizeDependencyManagement(false, true, false)
@@ -327,14 +327,14 @@ enum class SpecificBuild {
             return SmokeTests(model, stage, JvmCategory.MAX_VERSION)
         }
     },
-    InstantSmokeTestsMinJavaVersion {
+    ConfigCacheSmokeTestsMinJavaVersion {
         override fun create(model: CIBuildModel, stage: Stage): BuildType {
-            return SmokeTests(model, stage, JvmCategory.MIN_VERSION, "instantSmokeTest")
+            return SmokeTests(model, stage, JvmCategory.MIN_VERSION, "configCacheSmokeTest")
         }
     },
-    InstantSmokeTestsMaxJavaVersion {
+    ConfigCacheSmokeTestsMaxJavaVersion {
         override fun create(model: CIBuildModel, stage: Stage): BuildType {
-            return SmokeTests(model, stage, JvmCategory.MAX_VERSION, "instantSmokeTest")
+            return SmokeTests(model, stage, JvmCategory.MAX_VERSION, "configCacheSmokeTest")
         }
     },
     SmokeTestsJDK15 {
@@ -342,9 +342,9 @@ enum class SpecificBuild {
             return SmokeTests(model, stage, JvmCategory.OPENJDK15)
         }
     },
-    InstantSmokeTestsJDK15 {
+    ConfigCacheSmokeTestsJDK15 {
         override fun create(model: CIBuildModel, stage: Stage): BuildType {
-            return SmokeTests(model, stage, JvmCategory.OPENJDK15, "instantSmokeTest")
+            return SmokeTests(model, stage, JvmCategory.OPENJDK15, "configCacheSmokeTest")
         }
     },
     SmokeTestsJDK16 {
@@ -352,9 +352,9 @@ enum class SpecificBuild {
             return SmokeTests(model, stage, JvmCategory.OPENJDK16)
         }
     },
-    InstantSmokeTestsJDK16 {
+    ConfigCacheSmokeTestsJDK16 {
         override fun create(model: CIBuildModel, stage: Stage): BuildType {
-            return SmokeTests(model, stage, JvmCategory.OPENJDK16, "instantSmokeTest")
+            return SmokeTests(model, stage, JvmCategory.OPENJDK16, "configCacheSmokeTest")
         }
     };
 

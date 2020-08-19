@@ -78,21 +78,21 @@ class ConfigurationCacheClassLoaderCachingIntegrationTest extends PersistentBuil
         }
 
         when:
-        instantRun ":foo:foo:ok", ":bar:bar:ok"
+        configurationCacheRun ":foo:foo:ok", ":bar:bar:ok"
 
         then:
         outputContains("foo.value = 1")
         outputContains("bar.value = 1")
 
         when:
-        instantRun ":foo:foo:ok", ":bar:bar:ok"
+        configurationCacheRun ":foo:foo:ok", ":bar:bar:ok"
 
         then:
         outputContains("foo.value = 2")
         outputContains("bar.value = 2")
     }
 
-    private void instantRun(String... args) {
+    private void configurationCacheRun(String... args) {
         run(AbstractConfigurationCacheIntegrationTest.ENABLE_CLI_OPT, *args)
     }
 }

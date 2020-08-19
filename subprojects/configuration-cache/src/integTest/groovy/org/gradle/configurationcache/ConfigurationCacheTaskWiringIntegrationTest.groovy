@@ -37,11 +37,11 @@ class ConfigurationCacheTaskWiringIntegrationTest extends AbstractConfigurationC
         """
         def input = file("in.txt")
         def output = file("out.txt")
-        def instantExecution = newInstantExecutionFixture()
+        def configurationCache = newConfigurationCacheFixture()
 
         when:
         input.text = "12"
-        instantRun(":transformer")
+        configurationCacheRun(":transformer")
 
         then:
         result.assertTasksExecutedAndNotSkipped(":producer", ":transformer")
@@ -49,27 +49,27 @@ class ConfigurationCacheTaskWiringIntegrationTest extends AbstractConfigurationC
 
         when:
         input.text = "4"
-        instantRun(":transformer")
+        configurationCacheRun(":transformer")
 
         then:
-        instantExecution.assertStateLoaded()
+        configurationCache.assertStateLoaded()
         result.assertTasksExecutedAndNotSkipped(":producer", ":transformer")
         output.text == "16"
 
         when:
         input.text = "10"
-        instantRun(":transformer")
+        configurationCacheRun(":transformer")
 
         then:
-        instantExecution.assertStateLoaded()
+        configurationCache.assertStateLoaded()
         result.assertTasksExecutedAndNotSkipped(":producer", ":transformer")
         output.text == "22"
 
         when:
-        instantRun(":transformer")
+        configurationCacheRun(":transformer")
 
         then:
-        instantExecution.assertStateLoaded()
+        configurationCache.assertStateLoaded()
         result.assertTasksSkipped(":producer", ":transformer")
     }
 
@@ -89,11 +89,11 @@ class ConfigurationCacheTaskWiringIntegrationTest extends AbstractConfigurationC
         """
         def input = file("in.txt")
         def output = file("out.txt")
-        def instantExecution = newInstantExecutionFixture()
+        def configurationCache = newConfigurationCacheFixture()
 
         when:
         input.text = "12"
-        instantRun(":transformer")
+        configurationCacheRun(":transformer")
 
         then:
         result.assertTasksExecutedAndNotSkipped(":producer", ":transformer")
@@ -101,27 +101,27 @@ class ConfigurationCacheTaskWiringIntegrationTest extends AbstractConfigurationC
 
         when:
         input.text = "4"
-        instantRun(":transformer")
+        configurationCacheRun(":transformer")
 
         then:
-        instantExecution.assertStateLoaded()
+        configurationCache.assertStateLoaded()
         result.assertTasksExecutedAndNotSkipped(":producer", ":transformer")
         output.text == "16"
 
         when:
         input.text = "10"
-        instantRun(":transformer")
+        configurationCacheRun(":transformer")
 
         then:
-        instantExecution.assertStateLoaded()
+        configurationCache.assertStateLoaded()
         result.assertTasksExecutedAndNotSkipped(":producer", ":transformer")
         output.text == "22"
 
         when:
-        instantRun(":transformer")
+        configurationCacheRun(":transformer")
 
         then:
-        instantExecution.assertStateLoaded()
+        configurationCache.assertStateLoaded()
         result.assertTasksSkipped(":producer", ":transformer")
     }
 
@@ -147,11 +147,11 @@ class ConfigurationCacheTaskWiringIntegrationTest extends AbstractConfigurationC
         """
         def input = file("in.txt")
         def output = file("out.txt")
-        def instantExecution = newInstantExecutionFixture()
+        def configurationCache = newConfigurationCacheFixture()
 
         when:
         input.text = "12"
-        instantRun(":transformer")
+        configurationCacheRun(":transformer")
 
         then:
         result.assertTasksExecutedAndNotSkipped(":producer", ":transformer")
@@ -159,27 +159,27 @@ class ConfigurationCacheTaskWiringIntegrationTest extends AbstractConfigurationC
 
         when:
         input.text = "4"
-        instantRun(":transformer")
+        configurationCacheRun(":transformer")
 
         then:
-        instantExecution.assertStateLoaded()
+        configurationCache.assertStateLoaded()
         result.assertTasksExecutedAndNotSkipped(":producer", ":transformer")
         output.text == "16"
 
         when:
         input.text = "10"
-        instantRun(":transformer")
+        configurationCacheRun(":transformer")
 
         then:
-        instantExecution.assertStateLoaded()
+        configurationCache.assertStateLoaded()
         result.assertTasksExecutedAndNotSkipped(":producer", ":transformer")
         output.text == "22"
 
         when:
-        instantRun(":transformer")
+        configurationCacheRun(":transformer")
 
         then:
-        instantExecution.assertStateLoaded()
+        configurationCache.assertStateLoaded()
         result.assertTasksSkipped(":producer", ":transformer")
 
         where:
@@ -205,11 +205,11 @@ class ConfigurationCacheTaskWiringIntegrationTest extends AbstractConfigurationC
         """
         def input = file("in.txt")
         def output = file("out.txt")
-        def instantExecution = newInstantExecutionFixture()
+        def configurationCache = newConfigurationCacheFixture()
 
         when:
         input.text = "12"
-        instantRun(":transformer")
+        configurationCacheRun(":transformer")
 
         then:
         result.assertTasksExecutedAndNotSkipped(":producer", ":transformer")
@@ -217,27 +217,27 @@ class ConfigurationCacheTaskWiringIntegrationTest extends AbstractConfigurationC
 
         when:
         input.text = "4"
-        instantRun(":transformer")
+        configurationCacheRun(":transformer")
 
         then:
-        instantExecution.assertStateLoaded()
+        configurationCache.assertStateLoaded()
         result.assertTasksExecutedAndNotSkipped(":producer", ":transformer")
         output.text == "14,16"
 
         when:
         input.text = "10"
-        instantRun(":transformer")
+        configurationCacheRun(":transformer")
 
         then:
-        instantExecution.assertStateLoaded()
+        configurationCache.assertStateLoaded()
         result.assertTasksExecutedAndNotSkipped(":producer", ":transformer")
         output.text == "20,22"
 
         when:
-        instantRun(":transformer")
+        configurationCacheRun(":transformer")
 
         then:
-        instantExecution.assertStateLoaded()
+        configurationCache.assertStateLoaded()
         result.assertTasksSkipped(":producer", ":transformer")
     }
 
@@ -257,11 +257,11 @@ class ConfigurationCacheTaskWiringIntegrationTest extends AbstractConfigurationC
         """
         def input = file("in.txt")
         def output = file("out.txt")
-        def instantExecution = newInstantExecutionFixture()
+        def configurationCache = newConfigurationCacheFixture()
 
         when:
         input.text = "12"
-        instantRun(":transformer")
+        configurationCacheRun(":transformer")
 
         then:
         result.assertTasksExecutedAndNotSkipped(":producer", ":transformer")
@@ -269,27 +269,27 @@ class ConfigurationCacheTaskWiringIntegrationTest extends AbstractConfigurationC
 
         when:
         input.text = "4"
-        instantRun(":transformer")
+        configurationCacheRun(":transformer")
 
         then:
-        instantExecution.assertStateLoaded()
+        configurationCache.assertStateLoaded()
         result.assertTasksExecutedAndNotSkipped(":producer", ":transformer")
         output.text == "a=14,b=16"
 
         when:
         input.text = "10"
-        instantRun(":transformer")
+        configurationCacheRun(":transformer")
 
         then:
-        instantExecution.assertStateLoaded()
+        configurationCache.assertStateLoaded()
         result.assertTasksExecutedAndNotSkipped(":producer", ":transformer")
         output.text == "a=20,b=22"
 
         when:
-        instantRun(":transformer")
+        configurationCacheRun(":transformer")
 
         then:
-        instantExecution.assertStateLoaded()
+        configurationCache.assertStateLoaded()
         result.assertTasksSkipped(":producer", ":transformer")
     }
 }

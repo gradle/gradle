@@ -58,7 +58,7 @@ class ConfigurationCacheParallelTaskIntegrationTest extends AbstractConfiguratio
         server.expectConcurrent("b")
         server.expectConcurrent("c")
         server.expectConcurrent("a")
-        instantRun "a:slow"
+        configurationCacheRun "a:slow"
 
         then:
         noExceptionThrown()
@@ -66,7 +66,7 @@ class ConfigurationCacheParallelTaskIntegrationTest extends AbstractConfiguratio
         when:
         server.expectConcurrent("b", "c")
         server.expectConcurrent("a")
-        instantRun "a:slow"
+        configurationCacheRun "a:slow"
 
         then:
         noExceptionThrown()
@@ -103,7 +103,7 @@ class ConfigurationCacheParallelTaskIntegrationTest extends AbstractConfiguratio
         server.expectConcurrent("c")
         server.expectConcurrent("a")
         server.expectConcurrent("d")
-        instantRun "a", "d"
+        configurationCacheRun "a", "d"
 
         then:
         noExceptionThrown()
@@ -112,7 +112,7 @@ class ConfigurationCacheParallelTaskIntegrationTest extends AbstractConfiguratio
         server.expectConcurrent("b", "c")
         server.expectConcurrent("a")
         server.expectConcurrent("d")
-        instantRun "a", "d"
+        configurationCacheRun "a", "d"
 
         then:
         noExceptionThrown()
@@ -123,7 +123,7 @@ class ConfigurationCacheParallelTaskIntegrationTest extends AbstractConfiguratio
         server.start()
 
         given:
-        def instant = newInstantExecutionFixture()
+        def configurationCache = newConfigurationCacheFixture()
         settingsFile << """
             include 'finalized', 'finalizer'
         """
@@ -153,31 +153,31 @@ class ConfigurationCacheParallelTaskIntegrationTest extends AbstractConfiguratio
         [":finalized:dep", ":finalized:task", ":finalizer:dep", ":finalizer:task"].each {
             server.expectConcurrent(it)
         }
-        instantRun ":finalized:task", "--parallel"
-        instant.assertStateStored()
+        configurationCacheRun ":finalized:task", "--parallel"
+        configurationCache.assertStateStored()
 
         and: "unrequested finalizer dependencies not to run in parallel when loading the graph"
         [":finalized:dep", ":finalized:task", ":finalizer:dep", ":finalizer:task"].each {
             server.expectConcurrent(it)
         }
-        instantRun ":finalized:task"
-        instant.assertStateLoaded()
+        configurationCacheRun ":finalized:task"
+        configurationCache.assertStateLoaded()
 
         and: "requested finalizer dependencies to run in parallel when storing the graph with --parallel"
         server.expectConcurrent(":finalized:dep", ":finalizer:dep")
         [":finalized:task", ":finalizer:task"].each {
             server.expectConcurrent(it)
         }
-        instantRun ":finalizer:dep", ":finalized:task", "--parallel"
-        instant.assertStateStored()
+        configurationCacheRun ":finalizer:dep", ":finalized:task", "--parallel"
+        configurationCache.assertStateStored()
 
         and: "requested finalizer dependencies to run in parallel when loading the graph by default"
         server.expectConcurrent(":finalized:dep", ":finalizer:dep")
         [":finalized:task", ":finalizer:task"].each {
             server.expectConcurrent(it)
         }
-        instantRun ":finalizer:dep", ":finalized:task"
-        instant.assertStateLoaded()
+        configurationCacheRun ":finalizer:dep", ":finalized:task"
+        configurationCache.assertStateLoaded()
     }
 
     @IgnoreIf({ GradleContextualExecuter.parallel })
@@ -185,7 +185,7 @@ class ConfigurationCacheParallelTaskIntegrationTest extends AbstractConfiguratio
         server.start()
 
         given:
-        def instant = newInstantExecutionFixture()
+        def configurationCache = newConfigurationCacheFixture()
         buildFile << """
             class SlowTask extends DefaultTask {
                 @TaskAction
@@ -209,7 +209,7 @@ class ConfigurationCacheParallelTaskIntegrationTest extends AbstractConfiguratio
             ["finalizedDep", "finalized", "finalizerDep", "finalizer"].each {
                 server.expectConcurrent(it)
             }
-            instantRun "finalized"
+            configurationCacheRun "finalized"
         }
 
         and: "requested finalizer dependencies to run in parallel"
@@ -217,14 +217,14 @@ class ConfigurationCacheParallelTaskIntegrationTest extends AbstractConfiguratio
             // vintage build always executes tasks from the same project sequentially
             server.expectConcurrent(it)
         }
-        instantRun "finalizerDep", "finalized"
-        instant.assertStateStored()
+        configurationCacheRun "finalizerDep", "finalized"
+        configurationCache.assertStateStored()
 
         server.expectConcurrent("finalizerDep", "finalizedDep")
         ["finalized", "finalizer"].each {
             server.expectConcurrent(it)
         }
-        instantRun "finalizerDep", "finalized"
-        instant.assertStateLoaded()
+        configurationCacheRun "finalizerDep", "finalized"
+        configurationCache.assertStateLoaded()
     }
 }

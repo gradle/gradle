@@ -136,7 +136,7 @@ class ConfigurationCacheUnsupportedTypesIntegrationTest extends AbstractConfigur
         """
 
         when:
-        instantRunLenient "broken"
+        configurationCacheRunLenient "broken"
 
         then:
         problems.assertResultHasProblems(result) {
@@ -149,7 +149,7 @@ class ConfigurationCacheUnsupportedTypesIntegrationTest extends AbstractConfigur
         }
 
         when:
-        instantRunLenient "broken"
+        configurationCacheRunLenient "broken"
 
         then:
         problems.assertResultHasProblems(result) {
@@ -254,7 +254,7 @@ class ConfigurationCacheUnsupportedTypesIntegrationTest extends AbstractConfigur
         """
 
         when:
-        instantRunLenient "broken"
+        configurationCacheRunLenient "broken"
 
         then:
         problems.assertResultHasProblems(result) {
@@ -267,7 +267,7 @@ class ConfigurationCacheUnsupportedTypesIntegrationTest extends AbstractConfigur
         }
 
         when:
-        instantRunLenient "broken"
+        configurationCacheRunLenient "broken"
 
         then:
         problems.assertResultHasProblems(result) {

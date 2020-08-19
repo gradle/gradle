@@ -31,10 +31,10 @@ class ConfigurationCacheIncludedBuildChangesIntegrationTest extends AbstractConf
     @Test
     def "invalidates cache upon change to #scriptChangeSpec of included build"() {
         given:
-        def instant = newInstantExecutionFixture()
+        def configurationCache = newConfigurationCacheFixture()
         def fixture = scriptChangeSpec.fixtureForProjectDir(file('build-logic'))
         fixture.setup()
-        def build = { instantRunLenient(*fixture.buildArguments) }
+        def build = { configurationCacheRunLenient(*fixture.buildArguments) }
         settingsFile << """
             includeBuild 'build-logic'
         """
@@ -51,7 +51,7 @@ class ConfigurationCacheIncludedBuildChangesIntegrationTest extends AbstractConf
 
         then:
         outputContains fixture.expectedOutputAfterChange
-        instant.assertStateStored()
+        configurationCache.assertStateStored()
 
         when:
         build()
@@ -59,7 +59,7 @@ class ConfigurationCacheIncludedBuildChangesIntegrationTest extends AbstractConf
         then:
         outputDoesNotContain fixture.expectedOutputBeforeChange
         outputDoesNotContain fixture.expectedOutputAfterChange
-        instant.assertStateLoaded()
+        configurationCache.assertStateLoaded()
 
         where:
         scriptChangeSpec << ScriptChangeFixture.specs()
@@ -68,7 +68,7 @@ class ConfigurationCacheIncludedBuildChangesIntegrationTest extends AbstractConf
     @Unroll
     def "invalidates cache upon change to included #fixtureSpec"() {
         given:
-        def instant = newInstantExecutionFixture()
+        def configurationCache = newConfigurationCacheFixture()
         def fixture = fixtureSpec.fixtureForProjectDir(file('build-logic'))
         fixture.setup()
         settingsFile << """
@@ -79,26 +79,26 @@ class ConfigurationCacheIncludedBuildChangesIntegrationTest extends AbstractConf
         """
 
         when:
-        instantRunLenient fixture.task
+        configurationCacheRunLenient fixture.task
 
         then:
         outputContains fixture.expectedOutputBeforeChange
-        instant.assertStateStored()
+        configurationCache.assertStateStored()
 
         when:
         fixture.applyChange()
-        instantRunLenient fixture.task
+        configurationCacheRunLenient fixture.task
 
         then:
         outputContains fixture.expectedOutputAfterChange
-        instant.assertStateStored()
+        configurationCache.assertStateStored()
 
         when:
-        instantRunLenient fixture.task
+        configurationCacheRunLenient fixture.task
 
         then:
         outputContains fixture.expectedOutputAfterChange
-        instant.assertStateLoaded()
+        configurationCache.assertStateLoaded()
 
         where:
         fixtureSpec << BuildLogicChangeFixture.specs()
@@ -113,7 +113,7 @@ class ConfigurationCacheIncludedBuildChangesIntegrationTest extends AbstractConf
         )
 
         given:
-        def instant = newInstantExecutionFixture()
+        def configurationCache = newConfigurationCacheFixture()
         def fixture = new BuildLogicChangeFixture(file('build-logic'))
         fixture.setup()
         fixture.buildFile << """
@@ -149,30 +149,30 @@ class ConfigurationCacheIncludedBuildChangesIntegrationTest extends AbstractConf
         """
 
         when:
-        instantRunLenient fixture.task
+        configurationCacheRunLenient fixture.task
 
         then:
         output.count("NOT CI") == 1
-        instant.assertStateStored()
+        configurationCache.assertStateStored()
 
         when:
-        instantRunLenient fixture.task
+        configurationCacheRunLenient fixture.task
 
         then: "included build doesn't build"
         output.count("CI") == 0
-        instant.assertStateLoaded()
+        configurationCache.assertStateLoaded()
 
         when:
         if (inputName == 'gradle.properties') {
             file('gradle.properties').text = 'test_is_ci=true'
-            instantRunLenient fixture.task
+            configurationCacheRunLenient fixture.task
         } else {
-            instantRunLenient fixture.task, inputArgument
+            configurationCacheRunLenient fixture.task, inputArgument
         }
 
         then:
         output.count("ON CI") == 1
-        instant.assertStateStored()
+        configurationCache.assertStateStored()
 
         where:
         inputName             | inputExpression                          | inputArgument

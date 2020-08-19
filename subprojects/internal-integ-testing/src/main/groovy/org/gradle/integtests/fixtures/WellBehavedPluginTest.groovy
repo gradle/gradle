@@ -137,7 +137,7 @@ abstract class WellBehavedPluginTest extends AbstractPluginIntegrationTest {
             'ivy-publish', 'maven-publish', 'publishing',
             'eclipse', 'idea',
         ])
-        if (GradleContextualExecuter.isInstant() && appliesBasePlugin) {
+        if (GradleContextualExecuter.isConfigCache() && appliesBasePlugin) {
             assert output.count("configuring :") == 2
             outputContains("configuring :help")
             // because capturing registered outputs for stale output cleanup forces configuring clean

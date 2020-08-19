@@ -44,39 +44,39 @@ class ConfigurationCacheScriptTaskDefinitionIntegrationTest extends AbstractConf
         }
 
         when:
-        instantRun ":a:some"
+        configurationCacheRun ":a:some"
 
         then:
         result.groupedOutput.task(":a:some").assertOutputContains("FIRST").assertOutputContains("LAST")
 
         when:
-        instantRun ":a:some"
+        configurationCacheRun ":a:some"
 
         then:
         result.groupedOutput.task(":a:some").assertOutputContains("FIRST").assertOutputContains("LAST")
 
         when: // rebuild task graph, with tasks from the same set of scripts
-        instantRun ":a:some", ":a:other"
+        configurationCacheRun ":a:some", ":a:other"
 
         then:
         result.groupedOutput.task(":a:some").assertOutputContains("FIRST").assertOutputContains("LAST")
         result.groupedOutput.task(":a:other").assertOutputContains("OTHER")
 
         when:
-        instantRun ":a:some", ":a:other"
+        configurationCacheRun ":a:some", ":a:other"
 
         then:
         result.groupedOutput.task(":a:some").assertOutputContains("FIRST").assertOutputContains("LAST")
         result.groupedOutput.task(":a:other").assertOutputContains("OTHER")
 
         when: // rebuild task graph, with tasks from a different set of scripts
-        instantRun ":b:some"
+        configurationCacheRun ":b:some"
 
         then:
         result.groupedOutput.task(":b:some").assertOutputContains("FIRST").assertOutputContains("LAST")
 
         when:
-        instantRun ":b:some"
+        configurationCacheRun ":b:some"
 
         then:
         result.groupedOutput.task(":b:some").assertOutputContains("FIRST").assertOutputContains("LAST")
@@ -107,26 +107,26 @@ class ConfigurationCacheScriptTaskDefinitionIntegrationTest extends AbstractConf
         """
 
         when:
-        instantRun "some"
+        configurationCacheRun "some"
 
         then:
         result.groupedOutput.task(":some").assertOutputContains("FIRST").assertOutputContains("LAST")
 
         when:
-        instantRun "some"
+        configurationCacheRun "some"
 
         then:
         result.groupedOutput.task(":some").assertOutputContains("FIRST").assertOutputContains("LAST")
 
         when:
-        instantRun "some", "other"
+        configurationCacheRun "some", "other"
 
         then:
         result.groupedOutput.task(":some").assertOutputContains("FIRST").assertOutputContains("LAST")
         result.groupedOutput.task(":other").assertOutputContains("OTHER")
 
         when:
-        instantRun "some", "other"
+        configurationCacheRun "some", "other"
 
         then:
         result.groupedOutput.task(":some").assertOutputContains("FIRST").assertOutputContains("LAST")
@@ -158,39 +158,39 @@ class ConfigurationCacheScriptTaskDefinitionIntegrationTest extends AbstractConf
         }
 
         when:
-        instantRun ":a:some"
+        configurationCacheRun ":a:some"
 
         then:
         result.groupedOutput.task(":a:some").assertOutputContains("FIRST").assertOutputContains("LAST")
 
         when:
-        instantRun ":a:some"
+        configurationCacheRun ":a:some"
 
         then:
         result.groupedOutput.task(":a:some").assertOutputContains("FIRST").assertOutputContains("LAST")
 
         when: // rebuild task graph, with tasks from the same set of scripts
-        instantRun ":a:some", ":a:other"
+        configurationCacheRun ":a:some", ":a:other"
 
         then:
         result.groupedOutput.task(":a:some").assertOutputContains("FIRST").assertOutputContains("LAST")
         result.groupedOutput.task(":a:other").assertOutputContains("OTHER")
 
         when:
-        instantRun ":a:some", ":a:other"
+        configurationCacheRun ":a:some", ":a:other"
 
         then:
         result.groupedOutput.task(":a:some").assertOutputContains("FIRST").assertOutputContains("LAST")
         result.groupedOutput.task(":a:other").assertOutputContains("OTHER")
 
         when: // rebuild task graph, with tasks from a different set of scripts
-        instantRun ":b:some"
+        configurationCacheRun ":b:some"
 
         then:
         result.groupedOutput.task(":b:some").assertOutputContains("FIRST").assertOutputContains("LAST")
 
         when:
-        instantRun ":b:some"
+        configurationCacheRun ":b:some"
 
         then:
         result.groupedOutput.task(":b:some").assertOutputContains("FIRST").assertOutputContains("LAST")
@@ -208,7 +208,7 @@ class ConfigurationCacheScriptTaskDefinitionIntegrationTest extends AbstractConf
         """
 
         when:
-        instantFails ":some"
+        configurationCacheFails ":some"
 
         then:
         problems.assertFailureHasProblems(failure) {
@@ -230,21 +230,21 @@ class ConfigurationCacheScriptTaskDefinitionIntegrationTest extends AbstractConf
         def outputFile = file("build/out.txt")
 
         when:
-        instantRun "a"
+        configurationCacheRun "a"
 
         then:
         result.assertTasksExecutedAndNotSkipped(":a")
         outputFile.assertIsFile()
 
         when:
-        instantRun "a"
+        configurationCacheRun "a"
 
         then:
         result.assertTasksSkipped(":a")
 
         when:
         outputFile.delete()
-        instantRun "a"
+        configurationCacheRun "a"
 
         then:
         result.assertTasksExecutedAndNotSkipped(":a")
@@ -262,21 +262,21 @@ class ConfigurationCacheScriptTaskDefinitionIntegrationTest extends AbstractConf
         def outputFile = file("build/out.txt")
 
         when:
-        instantRun "a"
+        configurationCacheRun "a"
 
         then:
         result.assertTasksExecutedAndNotSkipped(":a")
         outputFile.assertIsFile()
 
         when:
-        instantRun "a"
+        configurationCacheRun "a"
 
         then:
         result.assertTasksSkipped(":a")
 
         when:
         outputFile.delete()
-        instantRun "a"
+        configurationCacheRun "a"
 
         then:
         result.assertTasksExecutedAndNotSkipped(":a")
@@ -300,14 +300,14 @@ class ConfigurationCacheScriptTaskDefinitionIntegrationTest extends AbstractConf
         """
 
         when:
-        instantRun "some"
+        configurationCacheRun "some"
 
         then:
         outputContains("A")
         outputContains("B")
 
         when:
-        instantRun "some"
+        configurationCacheRun "some"
 
         then:
         outputContains("A")
@@ -331,14 +331,14 @@ class ConfigurationCacheScriptTaskDefinitionIntegrationTest extends AbstractConf
         """
 
         when:
-        instantRun "some"
+        configurationCacheRun "some"
 
         then:
         outputContains("A")
         outputContains("B")
 
         when:
-        instantRun "some"
+        configurationCacheRun "some"
 
         then:
         outputContains("A")

@@ -280,7 +280,7 @@ final class ConfigurationCacheProblemsFixture {
         int problemsWithStackTraceCount
     ) {
         def expectReport = totalProblemCount > 0 || uniqueProblemCount > 0
-        def reportDir = resolveInstantExecutionReportDirectory(rootDir, output)
+        def reportDir = resolveConfigurationCacheReportDirectory(rootDir, output)
         if (expectReport) {
             assertThat("HTML report URI not found", reportDir, notNullValue())
             assertTrue("HTML report directory not found '$reportDir'", reportDir.isDirectory())
@@ -303,7 +303,7 @@ final class ConfigurationCacheProblemsFixture {
     }
 
     private static Map<String, Object> readJsModelFrom(File reportFile) {
-        // InstantExecutionReport ensures the pure json model can be read
+        // ConfigurationCacheReport ensures the pure json model can be read
         // by looking for `// begin-report-data` and `// end-report-data`
         def jsonText = linesBetween(reportFile, '// begin-report-data', '// end-report-data')
         assert jsonText: "malformed report file"
@@ -322,7 +322,7 @@ final class ConfigurationCacheProblemsFixture {
     }
 
     @Nullable
-    static TestFile resolveInstantExecutionReportDirectory(File rootDir, String output, String buildDir = "build") {
+    static TestFile resolveConfigurationCacheReportDirectory(File rootDir, String output, String buildDir = "build") {
         def baseDirUri = clickableUrlFor(new File(rootDir, "$buildDir/reports/configuration-cache"))
         def pattern = Pattern.compile("See the complete report at (${baseDirUri}.*)$PROBLEMS_REPORT_HTML_FILE_NAME")
         def reportDirUri = output.readLines().findResult { line ->

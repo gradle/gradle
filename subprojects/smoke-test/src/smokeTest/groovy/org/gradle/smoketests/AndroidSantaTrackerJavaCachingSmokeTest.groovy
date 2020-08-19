@@ -36,7 +36,7 @@ class AndroidSantaTrackerJavaCachingSmokeTest extends AbstractAndroidSantaTracke
 
     // TODO:configuration-cache remove once fixed upstream
     @Override
-    protected int maxInstantExecutionProblems() {
+    protected int maxConfigurationCacheProblems() {
         return 100
     }
 
@@ -59,19 +59,19 @@ class AndroidSantaTrackerJavaCachingSmokeTest extends AbstractAndroidSantaTracke
         buildLocation(originalDir, agpVersion)
 
         then:
-        assertInstantExecutionStateStored()
+        assertConfigurationCacheStateStored()
 
         when: 'up-to-date build, reusing configuration cache when enabled'
         buildLocation(originalDir, agpVersion)
 
         then:
-        assertInstantExecutionStateLoaded()
+        assertConfigurationCacheStateLoaded()
 
         when: 'clean cached build'
         BuildResult relocatedResult = buildLocation(relocatedDir, agpVersion)
 
         then:
-        assertInstantExecutionStateStored()
+        assertConfigurationCacheStateStored()
 
         and:
         def expectedResults = agpVersion.startsWith('3.6')
@@ -88,7 +88,7 @@ class AndroidSantaTrackerJavaCachingSmokeTest extends AbstractAndroidSantaTracke
         buildLocation(relocatedDir, agpVersion)
 
         then:
-        assertInstantExecutionStateLoaded()
+        assertConfigurationCacheStateLoaded()
 
         where:
         agpVersion << TESTED_AGP_VERSIONS

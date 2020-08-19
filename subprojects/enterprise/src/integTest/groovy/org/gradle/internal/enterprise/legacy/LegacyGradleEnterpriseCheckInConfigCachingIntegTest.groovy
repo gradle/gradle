@@ -20,7 +20,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import spock.lang.IgnoreIf
 
-@IgnoreIf({ GradleContextualExecuter.instant })
+@IgnoreIf({ GradleContextualExecuter.configCache })
 class LegacyGradleEnterpriseCheckInConfigCachingIntegTest extends AbstractIntegrationSpec {
 
     def scanPlugin = new GradleEnterprisePluginLegacyContactPointFixture(testDirectory, mavenRepo, createExecuter())

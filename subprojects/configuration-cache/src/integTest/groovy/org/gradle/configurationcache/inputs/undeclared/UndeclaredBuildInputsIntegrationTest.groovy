@@ -34,7 +34,7 @@ class UndeclaredBuildInputsIntegrationTest extends AbstractConfigurationCacheInt
 
         when:
         mechanism.setup(this)
-        instantFails(*mechanism.gradleArgs)
+        configurationCacheFails(*mechanism.gradleArgs)
 
         then:
         problems.assertFailureHasProblems(failure) {
@@ -58,13 +58,13 @@ class UndeclaredBuildInputsIntegrationTest extends AbstractConfigurationCacheInt
         """
 
         when:
-        instantRun()
+        configurationCacheRun()
 
         then:
         outputContains("CI1 = ${notDefined}")
 
         when:
-        instantFails("-DCI1=${value}")
+        configurationCacheFails("-DCI1=${value}")
 
         then:
         problems.assertFailureHasProblems(failure) {
@@ -93,13 +93,13 @@ class UndeclaredBuildInputsIntegrationTest extends AbstractConfigurationCacheInt
         """
 
         when:
-        instantRun()
+        configurationCacheRun()
 
         then:
         outputContains("CI1 = null")
 
         when:
-        instantFails("-DCI1=${value}")
+        configurationCacheFails("-DCI1=${value}")
 
         then:
         problems.assertFailureHasProblems(failure) {
@@ -130,7 +130,7 @@ class UndeclaredBuildInputsIntegrationTest extends AbstractConfigurationCacheInt
 
         when:
         mechanism.setup(this)
-        instantFails(*mechanism.gradleArgs, "-DCI2=true")
+        configurationCacheFails(*mechanism.gradleArgs, "-DCI2=true")
 
         then:
         problems.assertFailureHasProblems(failure) {
@@ -161,24 +161,24 @@ class UndeclaredBuildInputsIntegrationTest extends AbstractConfigurationCacheInt
         buildFile << """
             apply plugin: SneakyPlugin
         """
-        def fixture = newInstantExecutionFixture()
+        def configurationCache = newConfigurationCacheFixture()
 
         when:
-        instantRun()
+        configurationCacheRun()
 
         then:
         outputContains("CI = null")
 
         when:
-        instantRun()
+        configurationCacheRun()
 
         then:
-        fixture.assertStateLoaded()
+        configurationCache.assertStateLoaded()
         noExceptionThrown()
 
         when:
         mechanism.setup(this)
-        instantFails(*mechanism.gradleArgs)
+        configurationCacheFails(*mechanism.gradleArgs)
 
         then:
         problems.assertFailureHasProblems(failure) {
@@ -204,35 +204,35 @@ class UndeclaredBuildInputsIntegrationTest extends AbstractConfigurationCacheInt
         buildFile << """
             apply plugin: SneakyPlugin
         """
-        def fixture = newInstantExecutionFixture()
+        def configurationCache = newConfigurationCacheFixture()
 
         when:
-        instantRun()
+        configurationCacheRun()
 
         then:
         outputContains("CI = $defaultValue")
 
         when:
-        instantRun()
+        configurationCacheRun()
 
         then:
-        fixture.assertStateLoaded()
+        configurationCache.assertStateLoaded()
         noExceptionThrown()
 
         when:
-        instantRunLenient("-DCI=$defaultValue") // use the default value
+        configurationCacheRunLenient("-DCI=$defaultValue") // use the default value
 
         then:
-        fixture.assertStateStored()
+        configurationCache.assertStateStored()
         problems.assertResultHasProblems(result) {
             withProblem("plugin class 'SneakyPlugin': read system property 'CI'")
         }
 
         when:
-        instantRun("-DCI=$newValue") // undeclared inputs are not treated as inputs, but probably should be
+        configurationCacheRun("-DCI=$newValue") // undeclared inputs are not treated as inputs, but probably should be
 
         then:
-        fixture.assertStateLoaded()
+        configurationCache.assertStateLoaded()
         noExceptionThrown()
 
         where:
@@ -260,19 +260,19 @@ class UndeclaredBuildInputsIntegrationTest extends AbstractConfigurationCacheInt
         buildFile << """
             apply plugin: SneakyPlugin
         """
-        def fixture = newInstantExecutionFixture()
+        def configurationCache = newConfigurationCacheFixture()
 
         when:
-        instantRun()
+        configurationCacheRun()
 
         then:
         outputContains("$prop = ")
 
         when:
-        instantRun()
+        configurationCacheRun()
 
         then:
-        fixture.assertStateLoaded()
+        configurationCache.assertStateLoaded()
         noExceptionThrown()
 
         where:
@@ -335,7 +335,7 @@ class UndeclaredBuildInputsIntegrationTest extends AbstractConfigurationCacheInt
         """
 
         when:
-        instantRun()
+        configurationCacheRun()
 
         then:
         // The JVM only exposes one of the resources
@@ -383,8 +383,8 @@ class UndeclaredBuildInputsIntegrationTest extends AbstractConfigurationCacheInt
         """
 
         when:
-        instantRun("task")
-        instantRun("task")
+        configurationCacheRun("task")
+        configurationCacheRun("task")
 
         then:
         outputContains("value = value")

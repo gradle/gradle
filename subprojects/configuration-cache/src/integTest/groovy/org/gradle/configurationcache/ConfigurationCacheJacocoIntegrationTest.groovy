@@ -31,7 +31,7 @@ class ConfigurationCacheJacocoIntegrationTest extends AbstractConfigurationCache
         def htmlReportDir = file("build/reports/jacoco/test/html")
 
         and:
-        def instantExecution = newInstantExecutionFixture()
+        def configurationCache = newConfigurationCacheFixture()
         def expectedStoreProblemCount = 4
         def expectedStoreProblems = [
             "field 'val\$testTaskProvider' from type 'org.gradle.testing.jacoco.plugins.JacocoPlugin\$11': cannot serialize object of type 'org.gradle.api.tasks.testing.Test', a subtype of 'org.gradle.api.Task', as these are not supported with the configuration cache.",
@@ -47,7 +47,7 @@ class ConfigurationCacheJacocoIntegrationTest extends AbstractConfigurationCache
         ]
 
         when:
-        instantRunLenient 'test', 'jacocoTestReport'
+        configurationCacheRunLenient 'test', 'jacocoTestReport'
 
         then:
         problems.assertResultHasProblems(result) {
@@ -57,10 +57,10 @@ class ConfigurationCacheJacocoIntegrationTest extends AbstractConfigurationCache
         }
 
         when:
-        instantRunLenient 'test', 'jacocoTestReport'
+        configurationCacheRunLenient 'test', 'jacocoTestReport'
 
         then:
-        instantExecution.assertStateLoaded()
+        configurationCache.assertStateLoaded()
         problems.assertResultHasProblems(result) {
             withTotalProblemsCount(expectedLoadProblemCount)
             withUniqueProblems(expectedLoadProblems)
@@ -73,10 +73,10 @@ class ConfigurationCacheJacocoIntegrationTest extends AbstractConfigurationCache
         htmlReportDir.assertDoesNotExist()
 
         and:
-        instantFails 'test', 'jacocoTestReport'
+        configurationCacheFails 'test', 'jacocoTestReport'
 
         then:
-        instantExecution.assertStateLoaded()
+        configurationCache.assertStateLoaded()
         problems.assertFailureHasProblems(failure) {
             withTotalProblemsCount(expectedLoadProblemCount)
             withUniqueProblems(expectedLoadProblems)
@@ -84,10 +84,10 @@ class ConfigurationCacheJacocoIntegrationTest extends AbstractConfigurationCache
         }
 
         when:
-        instantRunLenient 'test', 'jacocoTestReport'
+        configurationCacheRunLenient 'test', 'jacocoTestReport'
 
         then:
-        instantExecution.assertStateLoaded()
+        configurationCache.assertStateLoaded()
         htmlReportDir.assertIsDir()
     }
 }

@@ -32,7 +32,7 @@ class ToBeFixedForConfigurationCacheRule implements TestRule {
     @Override
     Statement apply(Statement base, Description description) {
         def annotation = description.getAnnotation(ToBeFixedForConfigurationCache.class)
-        if (GradleContextualExecuter.isNotInstant() || annotation == null) {
+        if (GradleContextualExecuter.isNotConfigCache() || annotation == null) {
             return base
         }
         def enabledBottomSpec = isEnabledBottomSpec(annotation.bottomSpecs(), { description.className.endsWith(".$it") })

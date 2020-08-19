@@ -33,7 +33,7 @@ class AndroidSantaTrackerSmokeTest extends AbstractAndroidSantaTrackerSmokeTest 
 
     // TODO:configuration-cache remove once fixed upstream
     @Override
-    protected int maxInstantExecutionProblems() {
+    protected int maxConfigurationCacheProblems() {
         return 100
     }
 
@@ -58,7 +58,7 @@ class AndroidSantaTrackerSmokeTest extends AbstractAndroidSantaTrackerSmokeTest 
         } else {
             expectNoDeprecationWarnings(result)
         }
-        assertInstantExecutionStateStored()
+        assertConfigurationCacheStateStored()
 
         where:
         agpVersion << TESTED_AGP_VERSIONS
@@ -85,7 +85,7 @@ class AndroidSantaTrackerSmokeTest extends AbstractAndroidSantaTrackerSmokeTest 
 
         then:
         result.task(":santa-tracker:compileDevelopmentDebugJavaWithJavac").outcome == SUCCESS
-        assertInstantExecutionStateStored()
+        assertConfigurationCacheStateStored()
 
         when:
         nonAbiChangeMutator.beforeBuild(buildContext)
@@ -94,7 +94,7 @@ class AndroidSantaTrackerSmokeTest extends AbstractAndroidSantaTrackerSmokeTest 
 
         then:
         result.task(":santa-tracker:compileDevelopmentDebugJavaWithJavac").outcome == SUCCESS
-        assertInstantExecutionStateLoaded()
+        assertConfigurationCacheStateLoaded()
         md5After != md5Before
 
         where:

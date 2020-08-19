@@ -24,7 +24,7 @@ class ConfigurationCacheGroovyIntegrationTest extends AbstractConfigurationCache
 
     def "build on Groovy project with JUnit tests"() {
 
-        def instantExecution = newInstantExecutionFixture()
+        def configurationCache = newConfigurationCacheFixture()
 
         given:
         buildFile << """
@@ -58,10 +58,10 @@ class ConfigurationCacheGroovyIntegrationTest extends AbstractConfigurationCache
         def testResults = file("build/test-results/test")
 
         when:
-        instantRun "build"
+        configurationCacheRun "build"
 
         then:
-        instantExecution.assertStateStored()
+        configurationCache.assertStateStored()
         result.assertTasksExecuted(*expectedTasks)
 
         and:
@@ -73,13 +73,13 @@ class ConfigurationCacheGroovyIntegrationTest extends AbstractConfigurationCache
         assertTestsExecuted("ThingTest", "ok")
 
         when:
-        instantRun "clean"
+        configurationCacheRun "clean"
 
         and:
-        instantRun "build"
+        configurationCacheRun "build"
 
         then:
-        instantExecution.assertStateLoaded()
+        configurationCache.assertStateLoaded()
         result.assertTasksExecuted(*expectedTasks)
 
         and:
@@ -93,16 +93,16 @@ class ConfigurationCacheGroovyIntegrationTest extends AbstractConfigurationCache
 
     def "build on Groovy project without sources nor groovy dependency"() {
         given:
-        def instantExecution = newInstantExecutionFixture()
+        def configurationCache = newConfigurationCacheFixture()
         buildFile << """
             plugins { id 'groovy' }
         """
 
         when:
-        instantRunLenient "build"
+        configurationCacheRunLenient "build"
 
         then:
-        instantExecution.assertStateStored()
+        configurationCache.assertStateStored()
         problems.assertResultHasProblems(result) {
             withUniqueProblems(
                 "field 'groovyClasspath' from type 'org.gradle.api.tasks.compile.GroovyCompile': value 'Groovy runtime classpath' failed to visit file collection"
@@ -112,18 +112,18 @@ class ConfigurationCacheGroovyIntegrationTest extends AbstractConfigurationCache
         }
 
         when:
-        instantRun "clean"
-        instantRun "build"
+        configurationCacheRun "clean"
+        configurationCacheRun "build"
 
         then:
-        instantExecution.assertStateLoaded()
+        configurationCache.assertStateLoaded()
         result.assertTaskExecuted(":compileGroovy")
         result.assertTaskSkipped(":compileGroovy")
     }
 
     def "assemble on Groovy project with sources but no groovy dependency is executed and fails with a reasonable error message"() {
         given:
-        def instantExecution = newInstantExecutionFixture()
+        def configurationCache = newConfigurationCacheFixture()
         buildFile << """
             plugins { id 'groovy' }
         """
@@ -132,10 +132,10 @@ class ConfigurationCacheGroovyIntegrationTest extends AbstractConfigurationCache
         """
 
         when:
-        instantFails WARN_PROBLEMS_CLI_OPT, "assemble"
+        configurationCacheFails WARN_PROBLEMS_CLI_OPT, "assemble"
 
         then:
-        instantExecution.assertStateStored()
+        configurationCache.assertStateStored()
         problems.assertResultHasProblems(result) {
             withUniqueProblems(
                 "field 'groovyClasspath' from type 'org.gradle.api.tasks.compile.GroovyCompile': value 'Groovy runtime classpath' failed to visit file collection"
@@ -149,10 +149,10 @@ class ConfigurationCacheGroovyIntegrationTest extends AbstractConfigurationCache
         failureCauseContains("Cannot infer Groovy class path because no Groovy Jar was found on class path")
 
         when:
-        instantFails "assemble"
+        configurationCacheFails "assemble"
 
         then:
-        instantExecution.assertStateLoaded()
+        configurationCache.assertStateLoaded()
         result.assertTaskExecuted(":compileGroovy")
         failureDescriptionStartsWith("Execution failed for task ':compileGroovy'.")
         failureCauseContains("Cannot infer Groovy class path because no Groovy Jar was found on class path")

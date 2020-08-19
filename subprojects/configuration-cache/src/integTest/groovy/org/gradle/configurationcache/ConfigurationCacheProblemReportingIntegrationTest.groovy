@@ -25,7 +25,7 @@ import org.gradle.invocation.DefaultGradle
 import spock.lang.IgnoreIf
 import spock.lang.Unroll
 
-import static org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheProblemsFixture.resolveInstantExecutionReportDirectory
+import static org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheProblemsFixture.resolveConfigurationCacheReportDirectory
 
 @IgnoreIf({ GradleContextualExecuter.isNoDaemon() })
 class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
@@ -39,15 +39,15 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         """
 
         when:
-        instantFails 'broken'
+        configurationCacheFails 'broken'
 
         then:
-        resolveInstantExecutionReportDirectory(testDirectory, failure.error, 'out')?.isDirectory()
+        resolveConfigurationCacheReportDirectory(testDirectory, failure.error, 'out')?.isDirectory()
     }
 
     def "state serialization errors always halt the build and invalidate the cache"() {
         given:
-        def instant = newInstantExecutionFixture()
+        def configurationCache = newConfigurationCacheFixture()
 
         buildFile << """
             class BrokenSerializable implements java.io.Serializable {
@@ -64,13 +64,13 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         """
 
         when:
-        instantFails 'broken'
+        configurationCacheFails 'broken'
 
         then:
         failure.assertTasksExecuted()
 
         and:
-        instant.assertStateStoreFailed()
+        configurationCache.assertStateStoreFailed()
         outputContains("Configuration cache entry discarded.")
         failure.assertHasFailures(1)
         failure.assertHasFileName("Build file '${buildFile.absolutePath}'")
@@ -81,13 +81,13 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         }
 
         when:
-        instantFails WARN_PROBLEMS_CLI_OPT, 'broken'
+        configurationCacheFails WARN_PROBLEMS_CLI_OPT, 'broken'
 
         then:
         failure.assertTasksExecuted()
 
         and:
-        instant.assertStateStoreFailed()
+        configurationCache.assertStateStoreFailed()
         outputContains("Configuration cache entry discarded.")
         failure.assertHasFailures(1)
         failure.assertHasFileName("Build file '${buildFile.absolutePath}'")
@@ -100,7 +100,7 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
 
     def "state serialization errors always halt the build and earlier problems reported"() {
         given:
-        def instant = newInstantExecutionFixture()
+        def configurationCache = newConfigurationCacheFixture()
 
         buildFile << """
             class BrokenSerializable implements java.io.Serializable {
@@ -122,13 +122,13 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         """
 
         when:
-        instantFails 'problems', 'broken'
+        configurationCacheFails 'problems', 'broken'
 
         then:
         failure.assertTasksExecuted()
 
         and:
-        instant.assertStateStoreFailed()
+        configurationCache.assertStateStoreFailed()
         outputContains("Configuration cache entry discarded with 2 problems.")
         failure.assertHasFailures(1)
         failure.assertHasFileName("Build file '${buildFile.absolutePath}'")
@@ -142,13 +142,13 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         }
 
         when:
-        instantFails WARN_PROBLEMS_CLI_OPT, 'problems', 'broken'
+        configurationCacheFails WARN_PROBLEMS_CLI_OPT, 'problems', 'broken'
 
         then:
         failure.assertTasksExecuted()
 
         and:
-        instant.assertStateStoreFailed()
+        configurationCache.assertStateStoreFailed()
         outputContains("Configuration cache entry discarded with 2 problems.")
         failure.assertHasFailures(1)
         failure.assertHasFileName("Build file '${buildFile.absolutePath}'")
@@ -164,7 +164,7 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
 
     def "serialization problems are reported and fail the build by default invalidating the cache"() {
         given:
-        def instantExecution = newInstantExecutionFixture()
+        def configurationCache = newConfigurationCacheFixture()
 
         buildFile << """
             class BrokenTaskType extends DefaultTask {
@@ -187,11 +187,11 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         """
 
         when:
-        instantFails 'all'
+        configurationCacheFails 'all'
 
         then:
         executed(':problems', ':moreProblems', ':ok', ':all')
-        instantExecution.assertStateStored() // does not fail
+        configurationCache.assertStateStored() // does not fail
         outputContains("Configuration cache entry discarded with 4 problems.")
         problems.assertFailureHasProblems(failure) {
             withProblem("field 'anotherProp' from type 'BrokenTaskType': cannot serialize object of type 'org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer', a subtype of 'org.gradle.api.artifacts.ConfigurationContainer', as these are not supported with the configuration cache.")
@@ -203,11 +203,11 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         failure.assertHasFailures(1)
 
         when:
-        instantRunLenient 'all'
+        configurationCacheRunLenient 'all'
 
         then:
         executed(':problems', ':moreProblems', ':ok', ':all')
-        instantExecution.assertStateStored() // stored again
+        configurationCache.assertStateStored() // stored again
         problems.assertResultHasProblems(result) {
             withProblem("field 'anotherProp' from type 'BrokenTaskType': cannot serialize object of type 'org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer', a subtype of 'org.gradle.api.artifacts.ConfigurationContainer', as these are not supported with the configuration cache.")
             withProblem("field 'prop' from type 'BrokenTaskType': cannot serialize object of type 'org.gradle.api.internal.project.DefaultProject', a subtype of 'org.gradle.api.Project', as these are not supported with the configuration cache.")
@@ -218,11 +218,11 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         postBuildOutputContains("Configuration cache entry stored with 4 problems.")
 
         when:
-        instantFails 'all'
+        configurationCacheFails 'all'
 
         then:
         executed(':problems', ':moreProblems', ':ok', ':all')
-        instantExecution.assertStateLoaded()
+        configurationCache.assertStateLoaded()
         problems.assertFailureHasProblems(failure) {
             withProblem("field 'anotherProp' from type 'BrokenTaskType': cannot deserialize object of type 'org.gradle.api.artifacts.ConfigurationContainer' as these are not supported with the configuration cache.")
             withProblem("field 'prop' from type 'BrokenTaskType': cannot deserialize object of type 'org.gradle.api.Project' as these are not supported with the configuration cache.")
@@ -235,7 +235,7 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
 
     def "configuration time problems are reported and fail the build by default only when configuration is executed invalidating the cache"() {
         given:
-        def instantExecution = newInstantExecutionFixture()
+        def configurationCache = newConfigurationCacheFixture()
 
         buildFile << """
             gradle.buildFinished { }
@@ -245,11 +245,11 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         """
 
         when:
-        instantFails 'all'
+        configurationCacheFails 'all'
 
         then:
         executed(':all')
-        instantExecution.assertStateStored() // does not fail
+        configurationCache.assertStateStored() // does not fail
         outputContains("Configuration cache entry discarded with 2 problems.")
         problems.assertFailureHasProblems(failure) {
             withProblem("build file 'build.gradle': registration of listener on 'Gradle.buildFinished' is unsupported")
@@ -258,11 +258,11 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         failure.assertHasFailures(1)
 
         when:
-        instantRunLenient 'all'
+        configurationCacheRunLenient 'all'
 
         then:
         executed(':all')
-        instantExecution.assertStateStored() // does not fail
+        configurationCache.assertStateStored() // does not fail
         postBuildOutputContains("Configuration cache entry stored with 2 problems.")
         problems.assertResultHasProblems(result) {
             withProblem("build file 'build.gradle': registration of listener on 'Gradle.buildFinished' is unsupported")
@@ -270,22 +270,22 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         }
 
         when:
-        instantRunLenient 'all'
+        configurationCacheRunLenient 'all'
 
         then:
         executed(':all')
-        instantExecution.assertStateLoaded()
+        configurationCache.assertStateLoaded()
         postBuildOutputContains("Configuration cache entry reused.")
         problems.assertResultHasProblems(result) {
             // TODO - should give some indication to the user that the build may not work correctly
         }
 
         when:
-        instantRun 'all'
+        configurationCacheRun 'all'
 
         then:
         executed(':all')
-        instantExecution.assertStateLoaded()
+        configurationCache.assertStateLoaded()
         postBuildOutputContains("Configuration cache entry reused.")
         problems.assertResultHasProblems(result) {
             // TODO - should fail and give some indication to the user why
@@ -294,7 +294,7 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
 
     def "task execution problems are reported and fail the build by default invalidating the cache"() {
         given:
-        def instantExecution = newInstantExecutionFixture()
+        def configurationCache = newConfigurationCacheFixture()
 
         buildFile << """
             task broken {
@@ -314,11 +314,11 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         """
 
         when:
-        instantFails 'all'
+        configurationCacheFails 'all'
 
         then:
         executed(':all')
-        instantExecution.assertStateStored() // does not fail
+        configurationCache.assertStateStored() // does not fail
         outputContains("Configuration cache entry discarded with 2 problems.")
         problems.assertFailureHasProblems(failure) {
             withProblem("build file 'build.gradle': invocation of 'Task.project' at execution time is unsupported.")
@@ -327,11 +327,11 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         failure.assertHasFailures(1)
 
         when:
-        instantRunLenient 'all'
+        configurationCacheRunLenient 'all'
 
         then:
         executed(':all')
-        instantExecution.assertStateStored() // does not fail
+        configurationCache.assertStateStored() // does not fail
         postBuildOutputContains("Configuration cache entry stored with 2 problems.")
         problems.assertResultHasProblems(result) {
             withProblem("build file 'build.gradle': invocation of 'Task.project' at execution time is unsupported.")
@@ -339,11 +339,11 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         }
 
         when:
-        instantRunLenient 'all'
+        configurationCacheRunLenient 'all'
 
         then:
         executed(':all')
-        instantExecution.assertStateLoaded()
+        configurationCache.assertStateLoaded()
         postBuildOutputContains("Configuration cache entry reused with 2 problems.")
         problems.assertResultHasProblems(result) {
             // TODO - retain the location information
@@ -352,11 +352,11 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         }
 
         when:
-        instantFails 'all'
+        configurationCacheFails 'all'
 
         then:
         executed(':all')
-        instantExecution.assertStateLoaded()
+        configurationCache.assertStateLoaded()
         outputContains("Configuration cache entry reused with 2 problems.")
         problems.assertFailureHasProblems(failure) {
             withProblem("task `:anotherBroken` of type `org.gradle.api.DefaultTask`: invocation of 'Task.project' at execution time is unsupported.")
@@ -366,7 +366,7 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
 
     def "problems are reported and fail the build when there are other build failures invalidating the cache"() {
         given:
-        def instantExecution = newInstantExecutionFixture()
+        def configurationCache = newConfigurationCacheFixture()
 
         buildFile << """
             task broken {
@@ -382,10 +382,10 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         """
 
         when:
-        instantFails 'all'
+        configurationCacheFails 'all'
 
         then:
-        instantExecution.assertStateStored() // does not fail
+        configurationCache.assertStateStored() // does not fail
         outputContains("Configuration cache entry discarded with 1 problem.")
         problems.assertFailureHasProblems(failure) {
             withProblem("build file 'build.gradle': invocation of 'Task.project' at execution time is unsupported.")
@@ -395,10 +395,10 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         failure.assertHasFailures(2)
 
         when:
-        instantFails WARN_PROBLEMS_CLI_OPT, 'all'
+        configurationCacheFails WARN_PROBLEMS_CLI_OPT, 'all'
 
         then:
-        instantExecution.assertStateStored()
+        configurationCache.assertStateStored()
         outputContains("Configuration cache entry stored with 1 problem.")
         problems.assertResultHasProblems(result) {
             withProblem("build file 'build.gradle': invocation of 'Task.project' at execution time is unsupported.")
@@ -408,10 +408,10 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         failure.assertHasFailures(1)
 
         when:
-        instantFails 'all'
+        configurationCacheFails 'all'
 
         then:
-        instantExecution.assertStateLoaded()
+        configurationCache.assertStateLoaded()
         outputContains("Configuration cache entry reused with 1 problem.")
         problems.assertFailureHasProblems(failure) {
             withProblem("task `:broken` of type `org.gradle.api.DefaultTask`: invocation of 'Task.project' at execution time is unsupported.")
@@ -423,7 +423,7 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
 
     def "problems are reported and fail the build when failOnProblems is false but maxProblems is reached"() {
         given:
-        def instantExecution = newInstantExecutionFixture()
+        def configurationCache = newConfigurationCacheFixture()
 
         buildFile << """
             class BrokenTask extends DefaultTask {
@@ -450,11 +450,11 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         """
 
         when:
-        instantFails WARN_PROBLEMS_CLI_OPT, "$MAX_PROBLEMS_SYS_PROP=2", 'all'
+        configurationCacheFails WARN_PROBLEMS_CLI_OPT, "$MAX_PROBLEMS_SYS_PROP=2", 'all'
 
         then:
         executed(':problems', ':moreProblems', ':all')
-        instantExecution.assertStateStored() // does not fail
+        configurationCache.assertStateStored() // does not fail
         outputContains("Configuration cache entry discarded with too many problems (4 problems).")
         problems.assertFailureHasTooManyProblems(failure) {
             withProblem("task `:moreProblems` of type `BrokenTask`: invocation of 'Task.project' at execution time is unsupported.")
@@ -465,11 +465,11 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         }
 
         when:
-        instantFails WARN_PROBLEMS_CLI_OPT, "$MAX_PROBLEMS_SYS_PROP=3", 'all'
+        configurationCacheFails WARN_PROBLEMS_CLI_OPT, "$MAX_PROBLEMS_SYS_PROP=3", 'all'
 
         then:
         executed(':problems', ':moreProblems', ':all')
-        instantExecution.assertStateStored()
+        configurationCache.assertStateStored()
         outputContains("Configuration cache entry discarded with too many problems (4 problems).")
         problems.assertFailureHasTooManyProblems(failure) {
             withProblem("task `:moreProblems` of type `BrokenTask`: invocation of 'Task.project' at execution time is unsupported.")
@@ -481,11 +481,11 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         failure.assertHasFailures(1)
 
         when:
-        instantRun WARN_PROBLEMS_CLI_OPT, "$MAX_PROBLEMS_SYS_PROP=4", 'all'
+        configurationCacheRun WARN_PROBLEMS_CLI_OPT, "$MAX_PROBLEMS_SYS_PROP=4", 'all'
 
         then:
         executed(':problems', ':moreProblems', ':all')
-        instantExecution.assertStateStored()
+        configurationCache.assertStateStored()
         postBuildOutputContains("Configuration cache entry stored with 4 problems.")
         problems.assertResultHasProblems(result) {
             withProblem("task `:moreProblems` of type `BrokenTask`: invocation of 'Task.project' at execution time is unsupported.")
@@ -496,11 +496,11 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         }
 
         when:
-        instantRun WARN_PROBLEMS_CLI_OPT, "$MAX_PROBLEMS_SYS_PROP=4", 'all'
+        configurationCacheRun WARN_PROBLEMS_CLI_OPT, "$MAX_PROBLEMS_SYS_PROP=4", 'all'
 
         then:
         executed(':problems', ':moreProblems', ':all')
-        instantExecution.assertStateLoaded()
+        configurationCache.assertStateLoaded()
         postBuildOutputContains("Configuration cache entry reused with 4 problems.")
         problems.assertResultHasProblems(result) {
             withProblem("task `:moreProblems` of type `BrokenTask`: invocation of 'Task.project' at execution time is unsupported.")
@@ -513,7 +513,7 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
 
     def "fails regardless of maxProblems when failOnProblems is true"() {
         given:
-        def instantExecution = newInstantExecutionFixture()
+        def configurationCache = newConfigurationCacheFixture()
 
         buildFile << """
             class BrokenTask extends DefaultTask {
@@ -535,11 +535,11 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         """
 
         when:
-        instantFails "$MAX_PROBLEMS_SYS_PROP=2", 'all'
+        configurationCacheFails "$MAX_PROBLEMS_SYS_PROP=2", 'all'
 
         then:
         executed(':problems', ':moreProblems', ':all')
-        instantExecution.assertStateStored() // does not fail
+        configurationCache.assertStateStored() // does not fail
         outputContains("Configuration cache entry discarded with 4 problems.")
         problems.assertFailureHasProblems(failure) {
             withProblem("task `:moreProblems` of type `BrokenTask`: invocation of 'Task.project' at execution time is unsupported.")
@@ -550,11 +550,11 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         }
 
         when:
-        instantFails "$MAX_PROBLEMS_SYS_PROP=2000", 'all'
+        configurationCacheFails "$MAX_PROBLEMS_SYS_PROP=2000", 'all'
 
         then:
         executed(':problems', ':moreProblems', ':all')
-        instantExecution.assertStateStored()
+        configurationCache.assertStateStored()
         outputContains("Configuration cache entry discarded with 4 problems.")
         problems.assertFailureHasProblems(failure) {
             withProblem("task `:moreProblems` of type `BrokenTask`: invocation of 'Task.project' at execution time is unsupported.")
@@ -565,19 +565,19 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         }
 
         when:
-        instantRunLenient "$MAX_PROBLEMS_SYS_PROP=2000", 'all'
+        configurationCacheRunLenient "$MAX_PROBLEMS_SYS_PROP=2000", 'all'
 
         then:
         executed(':problems', ':moreProblems', ':all')
-        instantExecution.assertStateStored()
+        configurationCache.assertStateStored()
         postBuildOutputContains("Configuration cache entry stored with 4 problems.")
 
         when:
-        instantFails "$MAX_PROBLEMS_SYS_PROP=2000", 'all'
+        configurationCacheFails "$MAX_PROBLEMS_SYS_PROP=2000", 'all'
 
         then:
         executed(':problems', ':moreProblems', ':all')
-        instantExecution.assertStateLoaded()
+        configurationCache.assertStateLoaded()
         outputContains("Configuration cache entry reused with 4 problems.")
         problems.assertFailureHasProblems(failure) {
             withProblem("task `:moreProblems` of type `BrokenTask`: invocation of 'Task.project' at execution time is unsupported.")
@@ -602,7 +602,7 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         """
 
         when:
-        instantFails("broken")
+        configurationCacheFails("broken")
 
         then:
         outputContains("Configuration cache entry discarded with 2 problems.")
@@ -614,7 +614,7 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         failure.assertHasFailures(1)
 
         when:
-        instantRunLenient("broken")
+        configurationCacheRunLenient("broken")
 
         then:
         postBuildOutputContains("Configuration cache entry stored with 2 problems.")
@@ -625,7 +625,7 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         }
 
         when:
-        instantRunLenient("broken")
+        configurationCacheRunLenient("broken")
 
         then:
         postBuildOutputContains("Configuration cache entry reused with 1 problem.")
@@ -638,7 +638,7 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
     @Unroll
     def "reports #invocation access during execution"() {
 
-        def instantExecution = newInstantExecutionFixture()
+        def configurationCache = newConfigurationCacheFixture()
 
         given:
         settingsFile << "rootProject.name = 'root'"
@@ -669,10 +669,10 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         """
 
         when:
-        instantFails "a", "b", "c", "d"
+        configurationCacheFails "a", "b", "c", "d"
 
         then:
-        instantExecution.assertStateStored()
+        configurationCache.assertStateStored()
         outputContains("Configuration cache entry discarded with 5 problems.")
         problems.assertFailureHasProblems(failure) {
             withProblem("build file 'build.gradle': invocation of '$invocation' at execution time is unsupported.")
@@ -683,10 +683,10 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         }
 
         when:
-        instantRunLenient "a", "b", "c", "d"
+        configurationCacheRunLenient "a", "b", "c", "d"
 
         then:
-        instantExecution.assertStateStored()
+        configurationCache.assertStateStored()
         postBuildOutputContains("Configuration cache entry stored with 5 problems.")
         problems.assertResultHasProblems(result) {
             withProblem("build file 'build.gradle': invocation of '$invocation' at execution time is unsupported.")
@@ -697,10 +697,10 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         }
 
         when:
-        instantRunLenient "a", "b", "c", "d"
+        configurationCacheRunLenient "a", "b", "c", "d"
 
         then:
-        instantExecution.assertStateLoaded()
+        configurationCache.assertStateLoaded()
         postBuildOutputContains("Configuration cache entry reused with 5 problems.")
         problems.assertResultHasProblems(result) {
             withProblem("task `:a` of type `MyTask`: invocation of '$invocation' at execution time is unsupported.")
@@ -726,7 +726,7 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
 
         when:
         executer.noDeprecationChecks()
-        instantFails 'help'
+        configurationCacheFails 'help'
 
         then:
         outputContains("Configuration cache entry discarded with 1 problem.")
@@ -760,7 +760,7 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         """
 
         expect:
-        instantRun 'help'
+        configurationCacheRun 'help'
         postBuildOutputContains("Configuration cache entry stored.")
 
         where:
@@ -809,7 +809,7 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         """
 
         when:
-        instantRunLenient "c"
+        configurationCacheRunLenient "c"
 
         then:
         postBuildOutputContains("Configuration cache entry stored with 6 problems.")
@@ -864,7 +864,7 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         """
 
         when:
-        instantFails("ok", "-DPROP=12")
+        configurationCacheFails("ok", "-DPROP=12")
 
         then:
         outputContains("Configuration cache entry discarded with 26 problems.")
@@ -886,7 +886,7 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         """
 
         when:
-        instantFails("ok", "-DPROP=12")
+        configurationCacheFails("ok", "-DPROP=12")
 
         then:
         outputContains("Configuration cache entry discarded with 2 problems.")
@@ -909,7 +909,7 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         """
 
         when:
-        instantFails("ok", "-DPROP=12")
+        configurationCacheFails("ok", "-DPROP=12")
 
         then:
         outputContains("Configuration cache entry discarded with 2 problems.")
@@ -933,7 +933,7 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         """
 
         when:
-        instantFails("broken")
+        configurationCacheFails("broken")
 
         then:
         outputContains("Configuration cache entry discarded with 2 problems.")
@@ -957,7 +957,7 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         """
 
         when:
-        instantFails("broken")
+        configurationCacheFails("broken")
 
         then:
         outputContains("Configuration cache entry discarded with 2 problems.")
@@ -989,7 +989,7 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         """
 
         when:
-        instantFails("broken")
+        configurationCacheFails("broken")
 
         then:
         outputContains("Configuration cache entry discarded with 2 problems.")
@@ -1013,7 +1013,7 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         }
 
         when:
-        instantFails("all")
+        configurationCacheFails("all")
 
         then:
         outputContains("Configuration cache entry discarded with 530 problems.")

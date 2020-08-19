@@ -32,7 +32,7 @@ class UnsupportedWithConfigurationCacheExtension extends AbstractAnnotationDrive
 
     @Override
     void visitSpecAnnotation(UnsupportedWithConfigurationCache annotation, SpecInfo spec) {
-        if (GradleContextualExecuter.isInstant()) {
+        if (GradleContextualExecuter.isConfigCache()) {
             if (isAllIterations(annotation.iterationMatchers()) && isEnabledBottomSpec(annotation.bottomSpecs(), { spec.bottomSpec.name == it })) {
                 spec.skipped = true
             } else {
@@ -45,7 +45,7 @@ class UnsupportedWithConfigurationCacheExtension extends AbstractAnnotationDrive
 
     @Override
     void visitFeatureAnnotation(UnsupportedWithConfigurationCache annotation, FeatureInfo feature) {
-        if (GradleContextualExecuter.isInstant()) {
+        if (GradleContextualExecuter.isConfigCache()) {
             if (isAllIterations(annotation.iterationMatchers()) && isEnabledBottomSpec(annotation.bottomSpecs(), { feature.parent.bottomSpec.name == it })) {
                 feature.skipped = true
             } else {

@@ -59,8 +59,8 @@ class ConfigurationCacheWorkerApiIntegrationTest extends AbstractConfigurationCa
         """
 
         when:
-        instantRun("worker")
-        instantRun("worker")
+        configurationCacheRun("worker")
+        configurationCacheRun("worker")
 
         then:
         outputContains("value = ${expectedOutput}")

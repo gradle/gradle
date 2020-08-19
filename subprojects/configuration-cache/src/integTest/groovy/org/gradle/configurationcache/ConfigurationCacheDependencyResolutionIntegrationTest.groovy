@@ -70,7 +70,7 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
     }
 
     def "task input file collection can include project dependencies, external dependencies, prebuilt file dependencies and task output file dependencies"() {
-        def fixture = newInstantExecutionFixture()
+        def configurationCache = newConfigurationCacheFixture()
 
         setupBuildWithEachDependencyType()
         taskTypeLogsInputFileCollectionContent()
@@ -81,13 +81,13 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
         """
 
         given:
-        instantRun(":resolve")
+        configurationCacheRun(":resolve")
 
         when:
-        instantRun(":resolve")
+        configurationCacheRun(":resolve")
 
         then: // everything is up-to-date
-        fixture.assertStateLoaded()
+        configurationCache.assertStateLoaded()
         result.assertTaskOrder(":additionalFile", ":resolve")
         result.assertTaskOrder(":a:producer", ":resolve")
         result.assertTaskOrder(":b:producer", ":resolve")
@@ -97,10 +97,10 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
         outputContains("result = [a.thing, b.thing, a.out, b.out, lib1-6500.jar]")
 
         when:
-        instantRun(":resolve", "-PaContent=changed")
+        configurationCacheRun(":resolve", "-PaContent=changed")
 
         then:
-        fixture.assertStateLoaded()
+        configurationCache.assertStateLoaded()
         result.assertTaskOrder(":additionalFile", ":resolve")
         result.assertTaskOrder(":a:producer", ":resolve")
         result.assertTaskOrder(":b:producer", ":resolve")
@@ -111,7 +111,7 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
     }
 
     def "task input artifact collection can include project dependencies, external dependencies, prebuilt file dependencies and task output file dependencies"() {
-        def fixture = newInstantExecutionFixture()
+        def configurationCache = newConfigurationCacheFixture()
 
         setupBuildWithEachDependencyType()
         taskTypeLogsArtifactCollectionDetails()
@@ -123,13 +123,13 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
         """
 
         given:
-        instantRun(":resolve")
+        configurationCacheRun(":resolve")
 
         when:
-        instantRun(":resolve")
+        configurationCacheRun(":resolve")
 
         then: // everything is up-to-date
-        fixture.assertStateLoaded()
+        configurationCache.assertStateLoaded()
         result.assertTaskOrder(":additionalFile", ":resolve")
         result.assertTaskOrder(":a:producer", ":resolve")
         result.assertTaskOrder(":b:producer", ":resolve")
@@ -141,10 +141,10 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
         outputContains("variants = [{artifactType=thing}, {artifactType=thing}, {artifactType=out}, {artifactType=out}, {artifactType=jar, org.gradle.status=release}]")
 
         when:
-        instantRun(":resolve", "-PaContent=changed")
+        configurationCacheRun(":resolve", "-PaContent=changed")
 
         then:
-        fixture.assertStateLoaded()
+        configurationCache.assertStateLoaded()
         result.assertTaskOrder(":additionalFile", ":resolve")
         result.assertTaskOrder(":a:producer", ":resolve")
         result.assertTaskOrder(":b:producer", ":resolve")
@@ -157,7 +157,7 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
     }
 
     def "task input property can include mapped configuration elements that contain project dependencies"() {
-        def fixture = newInstantExecutionFixture()
+        def configurationCache = newConfigurationCacheFixture()
 
         taskTypeWithOutputFileProperty()
         taskTypeWithInputListProperty()
@@ -188,13 +188,13 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
         """
 
         given:
-        instantRun(":resolve")
+        configurationCacheRun(":resolve")
 
         when:
-        instantRun(":resolve")
+        configurationCacheRun(":resolve")
 
         then: // everything is up-to-date
-        fixture.assertStateLoaded()
+        configurationCache.assertStateLoaded()
         result.assertTaskOrder(":a:producer", ":resolve")
         result.assertTaskOrder(":b:producer", ":resolve")
         result.assertTaskSkipped(":a:producer")
@@ -203,10 +203,10 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
         file('out.txt').text == "10,10"
 
         when:
-        instantRun(":resolve", "-PaContent=2")
+        configurationCacheRun(":resolve", "-PaContent=2")
 
         then:
-        fixture.assertStateLoaded()
+        configurationCache.assertStateLoaded()
         result.assertTaskOrder(":a:producer", ":resolve")
         result.assertTaskOrder(":b:producer", ":resolve")
         result.assertTaskNotSkipped(":a:producer")
@@ -236,22 +236,22 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
     }
 
     def "task input file collection can include the output of artifact transform of project dependencies"() {
-        def fixture = newInstantExecutionFixture()
+        def configurationCache = newConfigurationCacheFixture()
 
         setupBuildWithArtifactTransformOfProjectDependencies()
 
         when:
-        instantRun(":resolve")
+        configurationCacheRun(":resolve")
 
         then:
         assertTransformed("a.jar", "b.jar")
         outputContains("result = [root.green, a.jar.green, b.jar.green]")
 
         when:
-        instantRun(":resolve")
+        configurationCacheRun(":resolve")
 
         then: // everything is up-to-date
-        fixture.assertStateLoaded()
+        configurationCache.assertStateLoaded()
         result.assertTaskOrder(":a:producer", ":resolve")
         result.assertTaskOrder(":b:producer", ":resolve")
         result.assertTaskSkipped(":a:producer")
@@ -260,10 +260,10 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
         outputContains("result = [root.green, a.jar.green, b.jar.green]")
 
         when:
-        instantRun(":resolve", "-PaContent=changed")
+        configurationCacheRun(":resolve", "-PaContent=changed")
 
         then:
-        fixture.assertStateLoaded()
+        configurationCache.assertStateLoaded()
         result.assertTaskOrder(":a:producer", ":resolve")
         result.assertTaskOrder(":b:producer", ":resolve")
         assertTransformed("a.jar")
@@ -273,12 +273,12 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
     }
 
     def "task input artifact collection can include the output of artifact transform of project dependencies"() {
-        def fixture = newInstantExecutionFixture()
+        def configurationCache = newConfigurationCacheFixture()
 
         setupBuildWithArtifactTransformOfProjectDependencies()
 
         when:
-        instantRun(":resolveArtifacts")
+        configurationCacheRun(":resolveArtifacts")
 
         then:
         assertTransformed("a.jar", "b.jar")
@@ -287,10 +287,10 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
         outputContains("variants = [{artifactType=green, color=green}, {artifactType=jar, color=green}, {artifactType=jar, color=green}]")
 
         when:
-        instantRun(":resolveArtifacts")
+        configurationCacheRun(":resolveArtifacts")
 
         then: // everything up-to-date
-        fixture.assertStateLoaded()
+        configurationCache.assertStateLoaded()
         result.assertTaskOrder(":a:producer", ":resolveArtifacts")
         result.assertTaskOrder(":b:producer", ":resolveArtifacts")
         result.assertTaskSkipped(":a:producer")
@@ -301,10 +301,10 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
         outputContains("variants = [{artifactType=green, color=green}, {artifactType=jar, color=green}, {artifactType=jar, color=green}]")
 
         when:
-        instantRun(":resolveArtifacts", "-PaContent=changed")
+        configurationCacheRun(":resolveArtifacts", "-PaContent=changed")
 
         then:
-        fixture.assertStateLoaded()
+        configurationCache.assertStateLoaded()
         result.assertTaskOrder(":a:producer", ":resolveArtifacts")
         result.assertTaskOrder(":b:producer", ":resolveArtifacts")
         result.assertTaskNotSkipped(":a:producer")
@@ -336,33 +336,33 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
     }
 
     def "task input file collection can include the output of artifact transform of external dependencies"() {
-        def fixture = newInstantExecutionFixture()
+        def configurationCache = newConfigurationCacheFixture()
 
         setupBuildWithArtifactTransformsOfExternalDependencies()
 
         when:
-        instantRun(":resolve")
+        configurationCacheRun(":resolve")
 
         then:
         assertTransformed("thing1-1.2.jar", "thing2-1.2.jar")
         outputContains("result = [thing1-1.2.jar.green, thing2-1.2.jar.green]")
 
         when:
-        instantRun(":resolve")
+        configurationCacheRun(":resolve")
 
         then:
-        fixture.assertStateLoaded()
+        configurationCache.assertStateLoaded()
         assertTransformed()
         outputContains("result = [thing1-1.2.jar.green, thing2-1.2.jar.green]")
     }
 
     def "task input artifact collection can include the output of artifact transform of external dependencies"() {
-        def fixture = newInstantExecutionFixture()
+        def configurationCache = newConfigurationCacheFixture()
 
         setupBuildWithArtifactTransformsOfExternalDependencies()
 
         when:
-        instantRun(":resolveArtifacts")
+        configurationCacheRun(":resolveArtifacts")
 
         then:
         assertTransformed("thing1-1.2.jar", "thing2-1.2.jar")
@@ -371,10 +371,10 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
         outputContains("variants = [{artifactType=jar, color=green, org.gradle.status=release}, {artifactType=jar, color=green, org.gradle.status=release}]")
 
         when:
-        instantRun(":resolveArtifacts")
+        configurationCacheRun(":resolveArtifacts")
 
         then:
-        fixture.assertStateLoaded()
+        configurationCache.assertStateLoaded()
         assertTransformed()
         outputContains("files = [thing1-1.2.jar.green, thing2-1.2.jar.green]")
         outputContains("artifacts = [thing1-1.2.jar.green (group:thing1:1.2), thing2-1.2.jar.green (group:thing2:1.2)]")
@@ -407,34 +407,34 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
     }
 
     def "task input file collection can include the output of artifact transforms of prebuilt file dependencies"() {
-        def fixture = newInstantExecutionFixture()
+        def configurationCache = newConfigurationCacheFixture()
 
         setupBuildWithArtifactTransformsOfPrebuiltFileDependencies()
 
         when:
-        instantRun(":resolve")
+        configurationCacheRun(":resolve")
 
         then:
         assertTransformed("root.blue", "a.blue", "a.jar")
         outputContains("result = [root.blue.green, a.jar.green, a.blue.green]")
 
         when:
-        instantRun(":resolve")
+        configurationCacheRun(":resolve")
 
         then: // everything up-to-date
-        fixture.assertStateLoaded()
+        configurationCache.assertStateLoaded()
         result.assertTaskOrder(":a:producer", ":resolve")
         assertTransformed()
         outputContains("result = [root.blue.green, a.jar.green, a.blue.green]")
     }
 
     def "task input artifact collection can include the output of artifact transforms of prebuilt file dependencies"() {
-        def fixture = newInstantExecutionFixture()
+        def configurationCache = newConfigurationCacheFixture()
 
         setupBuildWithArtifactTransformsOfPrebuiltFileDependencies()
 
         when:
-        instantRun(":resolveArtifacts")
+        configurationCacheRun(":resolveArtifacts")
 
         then:
         assertTransformed("root.blue", "a.blue", "a.jar")
@@ -443,10 +443,10 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
         outputContains("variants = [{artifactType=blue, color=green}, {artifactType=jar, color=green}, {artifactType=blue, color=green}]")
 
         when:
-        instantRun(":resolveArtifacts")
+        configurationCacheRun(":resolveArtifacts")
 
         then: // everything up-to-date
-        fixture.assertStateLoaded()
+        configurationCache.assertStateLoaded()
         result.assertTaskOrder(":a:producer", ":resolveArtifacts")
         assertTransformed()
         outputContains("files = [root.blue.green, a.jar.green, a.blue.green]")
@@ -486,22 +486,22 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
 
     @Issue("https://github.com/gradle/gradle/issues/13200")
     def "task input file collection can include the output of artifact transforms of file dependencies that include task outputs"() {
-        def fixture = newInstantExecutionFixture()
+        def configurationCache = newConfigurationCacheFixture()
 
         setupBuildWithArtifactTransformsOfFileDependenciesThatContainTaskOutputs()
 
         when:
-        instantRun(":resolve")
+        configurationCacheRun(":resolve")
 
         then:
         assertTransformed("root.blue", "root.additional.blue", "a.additional.blue", "a.jar")
         outputContains("result = [root.additional.blue.green, root.blue.green, a.jar.green, a.additional.blue.green]")
 
         when:
-        instantRun(":resolve")
+        configurationCacheRun(":resolve")
 
         then: // everything up-to-date
-        fixture.assertStateLoaded()
+        configurationCache.assertStateLoaded()
         result.assertTaskOrder(":a:producer", ":resolve")
         result.assertTaskOrder(":a:additionalFile", ":resolve")
         result.assertTaskOrder(":additionalFile", ":resolve")
@@ -511,12 +511,12 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
 
     @Issue("https://github.com/gradle/gradle/issues/13200")
     def "task input artifact collection can include the output of artifact transforms of file dependencies that include task outputs"() {
-        def fixture = newInstantExecutionFixture()
+        def configurationCache = newConfigurationCacheFixture()
 
         setupBuildWithArtifactTransformsOfFileDependenciesThatContainTaskOutputs()
 
         when:
-        instantRun(":resolveArtifacts")
+        configurationCacheRun(":resolveArtifacts")
 
         then:
         assertTransformed("root.blue", "root.additional.blue", "a.additional.blue", "a.jar")
@@ -525,10 +525,10 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
         outputContains("variants = [{artifactType=blue, color=green}, {artifactType=blue, color=green}, {artifactType=jar, color=green}, {artifactType=blue, color=green}]")
 
         when:
-        instantRun(":resolveArtifacts")
+        configurationCacheRun(":resolveArtifacts")
 
         then: // everything up-to-date
-        fixture.assertStateLoaded()
+        configurationCache.assertStateLoaded()
         result.assertTaskOrder(":a:producer", ":resolveArtifacts")
         result.assertTaskOrder(":a:additionalFile", ":resolveArtifacts")
         result.assertTaskOrder(":additionalFile", ":resolveArtifacts")
@@ -539,7 +539,7 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
     }
 
     def "task input file collection can include the output of chained artifact transform of project dependencies"() {
-        def fixture = newInstantExecutionFixture()
+        def configurationCache = newConfigurationCacheFixture()
 
         settingsFile << """
             include 'a', 'b'
@@ -553,17 +553,17 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
         """
 
         when:
-        instantRun(":resolve")
+        configurationCacheRun(":resolve")
 
         then:
         assertTransformed("a.jar", "a.jar.red", "b.jar", "b.jar.red")
         outputContains("result = [a.jar.red.green, b.jar.red.green]")
 
         when:
-        instantRun(":resolve")
+        configurationCacheRun(":resolve")
 
         then: // everything up-to-date
-        fixture.assertStateLoaded()
+        configurationCache.assertStateLoaded()
         result.assertTaskOrder(":a:producer", ":resolve")
         result.assertTaskOrder(":b:producer", ":resolve")
         result.assertTaskSkipped(":a:producer")
@@ -572,10 +572,10 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
         outputContains("result = [a.jar.red.green, b.jar.red.green")
 
         when:
-        instantRun(":resolve", "-PaContent=changed")
+        configurationCacheRun(":resolve", "-PaContent=changed")
 
         then:
-        fixture.assertStateLoaded()
+        configurationCache.assertStateLoaded()
         result.assertTaskOrder(":a:producer", ":resolve")
         result.assertTaskOrder(":b:producer", ":resolve")
         result.assertTaskNotSkipped(":a:producer")
@@ -585,7 +585,7 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
     }
 
     def "task input file collection can include the output of artifact transform of project dependencies which takes the output of another transform as input parameter"() {
-        def fixture = newInstantExecutionFixture()
+        def configurationCache = newConfigurationCacheFixture()
 
         settingsFile << """
             include 'a', 'b'
@@ -600,7 +600,7 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
         """
 
         when:
-        instantRun(":resolve")
+        configurationCacheRun(":resolve")
 
         then:
         output.count("processing") == 3
@@ -610,10 +610,10 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
         outputContains("result = [a.jar.green, b.jar.green]")
 
         when:
-        instantRun(":resolve")
+        configurationCacheRun(":resolve")
 
         then: // everything up-to-date
-        fixture.assertStateLoaded()
+        configurationCache.assertStateLoaded()
         result.assertTaskOrder(":a:producer", ":resolve")
         result.assertTaskOrder(":b:producer", ":resolve")
         result.assertTaskSkipped(":a:producer")
@@ -622,10 +622,10 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
         outputContains("result = [a.jar.green, b.jar.green]")
 
         when:
-        instantRun(":resolve", "-PaContent=changed")
+        configurationCacheRun(":resolve", "-PaContent=changed")
 
         then:
-        fixture.assertStateLoaded()
+        configurationCache.assertStateLoaded()
         result.assertTaskOrder(":a:producer", ":resolve")
         result.assertTaskOrder(":b:producer", ":resolve")
         result.assertTaskNotSkipped(":a:producer")
@@ -638,7 +638,7 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
     }
 
     def "task input file collection can include output of artifact transform of project dependencies when transform takes upstream artifacts"() {
-        def fixture = newInstantExecutionFixture()
+        def configurationCache = newConfigurationCacheFixture()
 
         settingsFile << """
             include 'a', 'b', 'c'
@@ -657,7 +657,7 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
         """
 
         when:
-        instantRun(":resolve")
+        configurationCacheRun(":resolve")
 
         then:
         output.count("processing") == 3
@@ -667,10 +667,10 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
         outputContains("result = [a.jar.green, b.jar.green, c.jar.green]")
 
         when:
-        instantRun(":resolve")
+        configurationCacheRun(":resolve")
 
         then: // everything is up-to-date
-        fixture.assertStateLoaded()
+        configurationCache.assertStateLoaded()
         result.assertTaskOrder(":a:producer", ":resolve")
         result.assertTaskOrder(":b:producer", ":resolve")
         result.assertTaskOrder(":c:producer", ":resolve")
@@ -681,10 +681,10 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
         outputContains("result = [a.jar.green, b.jar.green, c.jar.green]")
 
         when:
-        instantRun(":resolve", "-PbContent=changed")
+        configurationCacheRun(":resolve", "-PbContent=changed")
 
         then:
-        fixture.assertStateLoaded()
+        configurationCache.assertStateLoaded()
         result.assertTaskOrder(":a:producer", ":resolve")
         result.assertTaskOrder(":b:producer", ":resolve")
         result.assertTaskOrder(":c:producer", ":resolve")
@@ -698,12 +698,12 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
     }
 
     def "task input file collection can include output of artifact transform of external dependencies when transform takes upstream artifacts"() {
-        def fixture = newInstantExecutionFixture()
+        def configurationCache = newConfigurationCacheFixture()
 
         setupBuildWithArtifactTransformsOfExternalDependenciesThatTakeUpstreamDependencies()
 
         when:
-        instantRun(":resolve")
+        configurationCacheRun(":resolve")
 
         then:
         output.count("processing") == 3
@@ -713,21 +713,21 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
         outputContains("result = [thing3-1.2.jar.green, thing1-1.2.jar.green, thing2-1.2.jar.green]")
 
         when:
-        instantRun(":resolve")
+        configurationCacheRun(":resolve")
 
         then: // everything is up-to-date
-        fixture.assertStateLoaded()
+        configurationCache.assertStateLoaded()
         output.count("processing") == 0
         outputContains("result = [thing3-1.2.jar.green, thing1-1.2.jar.green, thing2-1.2.jar.green]")
     }
 
     def "task input artifact collection can include output of artifact transform of external dependencies when transform takes upstream artifacts"() {
-        def fixture = newInstantExecutionFixture()
+        def configurationCache = newConfigurationCacheFixture()
 
         setupBuildWithArtifactTransformsOfExternalDependenciesThatTakeUpstreamDependencies()
 
         when:
-        instantRun(":resolveArtifacts")
+        configurationCacheRun(":resolveArtifacts")
 
         then:
         output.count("processing") == 3
@@ -739,10 +739,10 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
         outputContains("variants = [{artifactType=jar, color=green, org.gradle.status=release}, {artifactType=jar, color=green, org.gradle.status=release}, {artifactType=jar, color=green, org.gradle.status=release}]")
 
         when:
-        instantRun(":resolveArtifacts")
+        configurationCacheRun(":resolveArtifacts")
 
         then: // everything is up-to-date
-        fixture.assertStateLoaded()
+        configurationCache.assertStateLoaded()
         output.count("processing") == 0
         outputContains("files = [thing3-1.2.jar.green, thing1-1.2.jar.green, thing2-1.2.jar.green]")
         outputContains("artifacts = [thing3-1.2.jar.green (group:thing3:1.2), thing1-1.2.jar.green (group:thing1:1.2), thing2-1.2.jar.green (group:thing2:1.2)]")
@@ -769,7 +769,7 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
 
     @Issue("https://github.com/gradle/gradle/issues/13245")
     def "task input file collection can include output of artifact transform of project dependencies when transform takes transformed upstream artifacts"() {
-        def fixture = newInstantExecutionFixture()
+        def configurationCache = newConfigurationCacheFixture()
 
         settingsFile << """
             include 'a', 'b', 'c'
@@ -789,7 +789,7 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
         """
 
         when:
-        instantRun(":resolve")
+        configurationCacheRun(":resolve")
 
         then:
         output.count("processing") == 6
@@ -802,10 +802,10 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
         outputContains("result = [a.jar.red.green, b.jar.red.green, c.jar.red.green]")
 
         when:
-        instantRun(":resolve")
+        configurationCacheRun(":resolve")
 
         then: // everything is up-to-date
-        fixture.assertStateLoaded()
+        configurationCache.assertStateLoaded()
         result.assertTaskOrder(":a:producer", ":resolve")
         result.assertTaskOrder(":b:producer", ":resolve")
         result.assertTaskOrder(":c:producer", ":resolve")
@@ -816,10 +816,10 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
         outputContains("result = [a.jar.red.green, b.jar.red.green, c.jar.red.green]")
 
         when:
-        instantRun(":resolve", "-PbContent=changed")
+        configurationCacheRun(":resolve", "-PbContent=changed")
 
         then:
-        fixture.assertStateLoaded()
+        configurationCache.assertStateLoaded()
         result.assertTaskOrder(":a:producer", ":resolve")
         result.assertTaskOrder(":b:producer", ":resolve")
         result.assertTaskOrder(":c:producer", ":resolve")
@@ -835,7 +835,7 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
 
     @Issue("https://github.com/gradle/gradle/issues/13245")
     def "task input file collection can include output of artifact transform of external dependencies when transform takes transformed upstream artifacts"() {
-        def fixture = newInstantExecutionFixture()
+        def configurationCache = newConfigurationCacheFixture()
 
         httpServer.start()
         def dep1 = withColorVariants(remoteRepo.module("group", "thing1", "1.2")).publish().allowAll()
@@ -854,7 +854,7 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
         """
 
         when:
-        instantRun(":resolve")
+        configurationCacheRun(":resolve")
 
         then:
         output.count("processing") == 6
@@ -867,10 +867,10 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
         outputContains("result = [thing3-1.2.jar.red.green, thing1-1.2.jar.red.green, thing2-1.2.jar.red.green]")
 
         when:
-        instantRun(":resolve")
+        configurationCacheRun(":resolve")
 
         then: // everything is up-to-date
-        fixture.assertStateLoaded()
+        configurationCache.assertStateLoaded()
         output.count("processing") == 0
         outputContains("result = [thing3-1.2.jar.red.green, thing1-1.2.jar.red.green, thing2-1.2.jar.red.green]")
     }
@@ -909,13 +909,13 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
         """
         file('root.blue') << 'root'
         file('a/a.blue') << 'a'
-        def fixture = newInstantExecutionFixture()
+        def configurationCache = newConfigurationCacheFixture()
 
         when:
-        instantFails(":resolve")
+        configurationCacheFails(":resolve")
 
         then:
-        fixture.assertStateStored() // transform spec is stored
+        configurationCache.assertStateStored() // transform spec is stored
         output.count("processing") == 3
         outputContains("processing root.blue")
         outputContains("processing a.jar")
@@ -928,10 +928,10 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
         failure.assertHasFailures(1)
 
         when:
-        instantFails(":resolve")
+        configurationCacheFails(":resolve")
 
         then:
-        fixture.assertStateLoaded()
+        configurationCache.assertStateLoaded()
         output.count("processing") == 2
         outputContains("processing root.blue")
         outputContains("processing a.jar")
@@ -964,13 +964,13 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
             }
         """
 
-        def fixture = newInstantExecutionFixture()
+        def configurationCache = newConfigurationCacheFixture()
 
         when:
-        instantFails(":resolve")
+        configurationCacheFails(":resolve")
 
         then:
-        fixture.assertStateStored()
+        configurationCache.assertStateStored()
         output.count("processing") == 2
         outputContains("processing a.jar")
         outputContains("processing b.jar")
@@ -980,10 +980,10 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
         }
 
         when:
-        instantFails(":resolve")
+        configurationCacheFails(":resolve")
 
         then:
-        fixture.assertStateLoaded()
+        configurationCache.assertStateLoaded()
         output.count("processing") == 2
         outputContains("processing a.jar")
         outputContains("processing b.jar")
@@ -1021,13 +1021,13 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
             }
         """
 
-        def fixture = newInstantExecutionFixture()
+        def configurationCache = newConfigurationCacheFixture()
 
         when:
-        instantFails(":resolve")
+        configurationCacheFails(":resolve")
 
         then:
-        fixture.assertStateStored()
+        configurationCache.assertStateStored()
         output.count("processing") == 2
         outputContains("processing thing1-1.2.jar")
         outputContains("processing thing2-1.2.jar")
@@ -1037,10 +1037,10 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
         }
 
         when:
-        instantFails(":resolve")
+        configurationCacheFails(":resolve")
 
         then:
-        fixture.assertStateLoaded()
+        configurationCache.assertStateLoaded()
         output.count("processing") == 1
         outputContains("processing thing1-1.2.jar")
         failure.assertHasDescription("Execution failed for task ':resolve'.")
@@ -1127,23 +1127,23 @@ dependencies {
         def inputFile = file('input.txt').tap { write("the input file") }
         def outputFile = file('build/summary.txt')
         def expectedOutput = "input.txt: ${inputFile.length()}"
-        def instant = newInstantExecutionFixture()
+        def configurationCache = newConfigurationCacheFixture()
 
         when:
-        instantRun 'summarize'
+        configurationCacheRun 'summarize'
 
         then:
-        instant.assertStateStored()
+        configurationCache.assertStateStored()
         outputFile.text == expectedOutput
         outputContains 'Transforming input.txt...'
         result.assertTaskExecuted ':summarize'
 
         when: 'input file changes'
         inputFile.text = inputFile.text.reverse()
-        instantRun 'summarize'
+        configurationCacheRun 'summarize'
 
         then:
-        instant.assertStateLoaded()
+        configurationCache.assertStateLoaded()
         outputFile.text == expectedOutput
         outputContains 'Transforming input.txt...'
         result.assertTaskExecuted ':summarize'

@@ -24,7 +24,7 @@ class ConfigurationCacheSkipCacheIntegrationTest extends AbstractConfigurationCa
     @Unroll
     def "skip reading cached state on #commandLine"() {
 
-        def instantExecution = newInstantExecutionFixture()
+        def configurationCache = newConfigurationCacheFixture()
 
         given:
         buildFile << """
@@ -44,45 +44,45 @@ class ConfigurationCacheSkipCacheIntegrationTest extends AbstractConfigurationCa
         file("message") << "foo"
 
         when:
-        instantRun "myTask"
+        configurationCacheRun "myTask"
 
         then:
         outputContains("foo")
-        instantExecution.assertStateStored()
+        configurationCache.assertStateStored()
 
         when:
-        instantRun "myTask"
+        configurationCacheRun "myTask"
 
         then:
         outputContains("foo")
-        instantExecution.assertStateLoaded()
+        configurationCache.assertStateLoaded()
 
         when:
         file("message").text = "bar"
 
         and:
-        instantRun "myTask"
+        configurationCacheRun "myTask"
 
         then:
         outputContains("foo")
-        instantExecution.assertStateLoaded()
+        configurationCache.assertStateLoaded()
 
         when:
         def commandLineArgs = commandLine.split("\\s+")
         executer.withArguments(commandLineArgs)
-        instantRun "myTask"
+        configurationCacheRun "myTask"
 
         then:
         outputContains("bar")
         outputContains("Calculating task graph as configuration cache cannot be reused due to ${commandLineArgs.first()}")
-        instantExecution.assertStateStored()
+        configurationCache.assertStateStored()
 
         when:
-        instantRun "myTask"
+        configurationCacheRun "myTask"
 
         then:
         outputContains("bar")
-        instantExecution.assertStateLoaded()
+        configurationCache.assertStateLoaded()
 
         where:
         commandLine              | _

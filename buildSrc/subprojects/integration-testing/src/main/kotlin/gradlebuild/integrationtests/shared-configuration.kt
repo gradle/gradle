@@ -38,7 +38,7 @@ import org.gradle.plugins.ide.idea.IdeaPlugin
 
 
 enum class TestType(val prefix: String, val executers: List<String>) {
-    INTEGRATION("integ", listOf("embedded", "forking", "noDaemon", "parallel", "instant", "watchFs")),
+    INTEGRATION("integ", listOf("embedded", "forking", "noDaemon", "parallel", "configCache", "watchFs")),
     CROSSVERSION("crossVersion", listOf("embedded", "forking"))
 }
 

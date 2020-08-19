@@ -36,7 +36,7 @@ class ConfigurationCacheDebugLogIntegrationTest extends AbstractConfigurationCac
 
         when:
         withDebugLogging()
-        instantRun 'ok'
+        configurationCacheRun 'ok'
 
         then: "fingerprint frame events are logged"
         def events = collectOutputEvents()
