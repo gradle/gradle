@@ -375,6 +375,16 @@ class FailOnDynamicVersionsResolveIntegrationTest extends AbstractModuleDependen
 
     @CompileStatic
     static Closure<String> latestNotation() {
-        { -> GradleMetadataResolveRunner.useIvy() ? "latest.integration" : "latest.release" }
+        return new Closure(this) {
+            @Override
+            Object call() {
+                return GradleMetadataResolveRunner.useIvy() ? "latest.integration" : "latest.release"
+            }
+
+            @Override
+            String toString() {
+                return GradleMetadataResolveRunner.useIvy() ? "latest.integration" : "latest.release"
+            }
+        }
     }
 }
