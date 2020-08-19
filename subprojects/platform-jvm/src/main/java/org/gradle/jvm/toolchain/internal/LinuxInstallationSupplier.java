@@ -17,33 +17,40 @@
 package org.gradle.jvm.toolchain.internal;
 
 import org.gradle.api.provider.ProviderFactory;
+import org.gradle.internal.os.OperatingSystem;
 
 import javax.inject.Inject;
 import java.io.File;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 public class LinuxInstallationSupplier extends AutoDetectingInstallationSupplier {
 
     private final String[] roots;
+    private final OperatingSystem os;
 
     @Inject
     public LinuxInstallationSupplier(ProviderFactory factory) {
-        this(factory, "/usr/lib/jvm", "/usr/java");
+        this(factory, OperatingSystem.current(), "/usr/lib/jvm", "/usr/java");
     }
 
-    private LinuxInstallationSupplier(ProviderFactory factory, String... roots) {
+    private LinuxInstallationSupplier(ProviderFactory factory, OperatingSystem os, String... roots) {
         super(factory);
         this.roots = roots;
+        this.os = os;
     }
 
     @Override
     protected Set<InstallationLocation> findCandidates() {
-        return Arrays.stream(roots)
-            .map(root -> FileBasedInstallationFactory.fromDirectory(new File(root), "linux"))
-            .flatMap(Set::stream)
-            .collect(Collectors.toSet());
+        if (os.isLinux()) {
+            return Arrays.stream(roots)
+                .map(root -> FileBasedInstallationFactory.fromDirectory(new File(root), "linux"))
+                .flatMap(Set::stream)
+                .collect(Collectors.toSet());
+        }
+        return Collections.emptySet();
     }
 
 }

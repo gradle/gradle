@@ -18,6 +18,7 @@ package org.gradle.jvm.toolchain.internal
 
 import org.gradle.api.internal.provider.Providers
 import org.gradle.api.provider.ProviderFactory
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Requires
@@ -57,12 +58,24 @@ class LinuxInstallationSupplierTest extends Specification {
         def directories = supplier.get()
 
         then:
-        directories.isEmpty()
+        directories != null
     }
 
     def "supplies no installations for empty directory"() {
         given:
         def supplier = createSupplier(candidates.absolutePath)
+
+        when:
+        def directories = supplier.get()
+
+        then:
+        directories.isEmpty()
+    }
+
+    def "supplies no installations non-linux operating system"() {
+        given:
+        candidates.createDir("11.0.6.hs-adpt")
+        def supplier = new LinuxInstallationSupplier(createProviderFactory(), OperatingSystem.WINDOWS, candidates.absolutePath)
 
         when:
         def directories = supplier.get()
@@ -149,7 +162,7 @@ class LinuxInstallationSupplierTest extends Specification {
     }
 
     InstallationSupplier createSupplier(String... roots) {
-        new LinuxInstallationSupplier(createProviderFactory(), roots)
+        new LinuxInstallationSupplier(createProviderFactory(), OperatingSystem.LINUX, roots)
     }
 
     ProviderFactory createProviderFactory(String propertyValue) {
