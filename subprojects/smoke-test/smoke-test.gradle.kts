@@ -69,7 +69,7 @@ tasks.register<SmokeTest>("smokeTest") {
 tasks.register<SmokeTest>("instantSmokeTest") {
     description = "Runs Smoke tests with instant execution"
     configureForSmokeTest()
-    systemProperty("org.gradle.integtest.executer", "instant")
+    systemProperty("org.gradle.integtest.executer", "configCache")
 }
 
 plugins.withType<IdeaPlugin>().configureEach {
