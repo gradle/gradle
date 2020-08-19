@@ -8,7 +8,7 @@ class ServicePluginTest extends PluginTest {
     def setup() {
         buildFile << """
             plugins {
-                id 'com.example.service'
+                id 'com.example.service-conventions'
             }
         """
     }

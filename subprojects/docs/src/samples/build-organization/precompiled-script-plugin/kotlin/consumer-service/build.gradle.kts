@@ -1,3 +1,3 @@
 plugins {
-    id("com.example.service") version "1.0"
+    id("com.example.service-conventions") version "1.0"
 }
