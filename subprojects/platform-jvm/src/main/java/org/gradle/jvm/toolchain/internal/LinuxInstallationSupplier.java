@@ -33,7 +33,7 @@ public class LinuxInstallationSupplier extends AutoDetectingInstallationSupplier
         this(factory, "/usr/lib/jvm", "/usr/java");
     }
 
-    public LinuxInstallationSupplier(ProviderFactory factory, String... roots) {
+    private LinuxInstallationSupplier(ProviderFactory factory, String... roots) {
         super(factory);
         this.roots = roots;
     }
