@@ -185,14 +185,14 @@ import java.util.Map;
  * <h3>Project dependencies</h3>
  *
  * <p>To add a project dependency, you use the following notation:
- * <p><code><i>configurationName</i> project(':someProject')</code>
+ * <p><code><i>configurationName</i> project(':some-project')</code>
  *
- * <p>The notation <code>project(':projectA')</code> is similar to the syntax you use
+ * <p>The notation <code>project(':project-a')</code> is similar to the syntax you use
  * when configuring a projectA in a multi-module gradle project.
  *
  * <p>By default, when you declare dependency to projectA, you actually declare dependency to the 'default' configuration of the projectA.
  * If you need to depend on a specific configuration of projectA, use map notation for projects:
- * <p><code><i>configurationName</i> project(path: ':projectA', configuration: 'someOtherConfiguration')</code>
+ * <p><code><i>configurationName</i> project(path: ':project-a', configuration: 'someOtherConfiguration')</code>
  *
  * <p>Project dependencies are represented using a {@link org.gradle.api.artifacts.ProjectDependency}.
  *
