@@ -1,7 +1,12 @@
 import gradlebuild.basics.PublicApi
 
 plugins {
-    id("gradlebuild.internal.java")
+    id("gradlebuild.code-quality")
+    id("gradlebuild.dependency-modules")
+    id("gradlebuild.repositories")
+    id("gradlebuild.strict-compile")
+    id("gradlebuild.classycle")
+    id("gradlebuild.unittest-and-compile")
     id("gradlebuild.binary-compatibility")
 }
 
@@ -14,6 +19,10 @@ dependencies {
     testImplementation(libs.guava)
 
     testRuntimeOnly(project(":distributions-full"))
+}
+
+tasks.named("check").configure {
+    dependsOn("codeQuality")
 }
 
 tasks.test {

@@ -17,6 +17,7 @@ package gradlebuild
 
 plugins {
     `java-library`
+    id("gradlebuild.code-quality")
     id("gradlebuild.dependency-modules")
     id("gradlebuild.repositories")
     id("gradlebuild.minify")
@@ -30,8 +31,6 @@ plugins {
     id("gradlebuild.integration-tests")
     id("gradlebuild.cross-version-tests")
 }
-
-apply(from = "$rootDir/gradle/shared-with-buildSrc/code-quality-configuration.gradle.kts")
 
 tasks.named("check").configure {
     dependsOn("codeQuality")
