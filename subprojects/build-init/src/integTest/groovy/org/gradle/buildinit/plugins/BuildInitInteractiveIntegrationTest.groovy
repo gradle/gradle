@@ -28,6 +28,9 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
     String projectNamePrompt = "Project name (default: some-thing)"
     String convertMavenBuildPrompt = "Found a Maven build. Generate a Gradle build from this?"
 
+    @Override
+    String subprojectName() { 'app' }
+
     def "prompts user when run from an interactive session"() {
         when:
         executer.withForceInteractive(true)
@@ -73,11 +76,11 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
         executer.withTasks("init")
         def handle = executer.start()
 
-        // Select 'library'
+        // Select 'application'
         ConcurrentTestUtil.poll(60) {
             assert handle.standardOutput.contains(projectTypePrompt)
         }
-        handle.stdinPipe.write(("3" + TextUtil.platformLineSeparator).bytes)
+        handle.stdinPipe.write(("2" + TextUtil.platformLineSeparator).bytes)
 
         // Select 'java'
         ConcurrentTestUtil.poll(60) {
@@ -86,7 +89,6 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
             assert handle.standardOutput.contains("2: Groovy")
             assert handle.standardOutput.contains("3: Java")
             assert handle.standardOutput.contains("4: Kotlin")
-            assert handle.standardOutput.contains("5: Scala")
         }
         handle.stdinPipe.write(("3" + TextUtil.platformLineSeparator).bytes)
 
@@ -144,7 +146,7 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
         !handle.standardOutput.contains(projectNamePrompt)
 
         then:
-        dslFixtureFor(BuildInitDsl.GROOVY).assertGradleFilesGenerated()
+        rootProjectDslFixtureFor(BuildInitDsl.GROOVY).assertGradleFilesGenerated()
     }
 
     def "user can skip Maven conversion when pom.xml present"() {

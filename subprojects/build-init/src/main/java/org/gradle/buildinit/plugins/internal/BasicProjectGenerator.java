@@ -42,7 +42,7 @@ public class BasicProjectGenerator implements ProjectGenerator {
 
     @Override
     public void generate(InitSettings settings) {
-        scriptBuilderFactory.script(settings.getDsl(), "build")
+        scriptBuilderFactory.script(settings.getDsl(), settings.getSubprojectName() + "/build")
             .fileComment("This is a general purpose Gradle build.\n"
                 + "Learn how to create Gradle builds at " + documentationRegistry.getGuideFor("creating-new-gradle-builds"))
             .create()

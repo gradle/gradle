@@ -17,15 +17,25 @@
 package org.gradle.buildinit.plugins.internal.modifiers;
 
 public enum ComponentType {
-    BASIC,
-    APPLICATION,
-    LIBRARY,
-    GRADLE_PLUGIN() {
+    BASIC("app"),
+    APPLICATION("app"),
+    LIBRARY("lib"),
+    GRADLE_PLUGIN("plugin") {
         @Override
         public String toString() {
             return "Gradle plugin";
         }
     };
+
+    private final String defaultProjectName;
+
+    ComponentType(String defaultProjectName) {
+        this.defaultProjectName = defaultProjectName;
+    }
+
+    public String getDefaultProjectName() {
+        return defaultProjectName;
+    }
 
     @Override
     public String toString() {

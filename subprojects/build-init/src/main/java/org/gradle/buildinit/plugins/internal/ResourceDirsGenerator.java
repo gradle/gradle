@@ -28,7 +28,7 @@ public class ResourceDirsGenerator implements BuildContentGenerator {
 
     @Override
     public void generate(InitSettings settings) {
-        GFileUtils.mkdirs(fileResolver.resolve("src/main/resources"));
-        GFileUtils.mkdirs(fileResolver.resolve("src/test/resources"));
+        GFileUtils.mkdirs(fileResolver.resolve(settings.getSubprojectName() + "/src/main/resources"));
+        GFileUtils.mkdirs(fileResolver.resolve(settings.getSubprojectName() + "/src/test/resources"));
     }
 }

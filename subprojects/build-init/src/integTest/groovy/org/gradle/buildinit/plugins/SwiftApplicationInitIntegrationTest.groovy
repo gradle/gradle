@@ -42,6 +42,9 @@ class SwiftApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
         swiftcToolChain.resetEnvironment()
     }
 
+    @Override
+    String subprojectName() { 'app' }
+
     @Unroll
     @ToBeFixedForConfigurationCache(because = "swift-application plugin")
     def "creates sample source if no source present with #scriptDsl build scripts"() {
@@ -49,11 +52,11 @@ class SwiftApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
         run('init', '--type', 'swift-application', '--dsl', scriptDsl.id)
 
         then:
-        targetDir.file("src/main/swift").assertHasDescendants(SAMPLE_APPLICATION_CLASS)
-        targetDir.file("src/test/swift").assertHasDescendants(SAMPLE_APPLICATION_TEST_CLASS, LINUX_MAIN_DOT_SWIFT)
+        subprojectDir.file("src/main/swift").assertHasDescendants(SAMPLE_APPLICATION_CLASS)
+        subprojectDir.file("src/test/swift").assertHasDescendants(SAMPLE_APPLICATION_TEST_CLASS, LINUX_MAIN_DOT_SWIFT)
 
         and:
-        targetDir.file("src/test/swift/${SAMPLE_APPLICATION_TEST_CLASS}").text.contains("@testable import SomeThing")
+        subprojectDir.file("src/test/swift/${SAMPLE_APPLICATION_TEST_CLASS}").text.contains("@testable import App")
 
         and:
         commonFilesGenerated(scriptDsl)
@@ -62,7 +65,7 @@ class SwiftApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
         succeeds("build")
 
         and:
-        executable("build/exe/main/debug/SomeThing").exec().out ==  "Hello, World!\n"
+        executable("${subprojectName()}/build/exe/main/debug/App").exec().out ==  "Hello, World!\n"
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
@@ -75,11 +78,11 @@ class SwiftApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
         run('init', '--type', 'swift-application', '--project-name', 'app', '--dsl', scriptDsl.id)
 
         then:
-        targetDir.file("src/main/swift").assertHasDescendants(SAMPLE_APPLICATION_CLASS)
-        targetDir.file("src/test/swift").assertHasDescendants(SAMPLE_APPLICATION_TEST_CLASS, LINUX_MAIN_DOT_SWIFT)
+        subprojectDir.file("src/main/swift").assertHasDescendants(SAMPLE_APPLICATION_CLASS)
+        subprojectDir.file("src/test/swift").assertHasDescendants(SAMPLE_APPLICATION_TEST_CLASS, LINUX_MAIN_DOT_SWIFT)
 
         and:
-        targetDir.file("src/test/swift/${SAMPLE_APPLICATION_TEST_CLASS}").text.contains("@testable import App")
+        subprojectDir.file("src/test/swift/${SAMPLE_APPLICATION_TEST_CLASS}").text.contains("@testable import App")
 
         and:
         commonFilesGenerated(scriptDsl)
@@ -88,7 +91,7 @@ class SwiftApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
         succeeds("build")
 
         and:
-        executable("build/exe/main/debug/App").exec().out ==  "Hello, World!\n"
+        executable("${subprojectName()}/build/exe/main/debug/App").exec().out ==  "Hello, World!\n"
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
@@ -98,14 +101,14 @@ class SwiftApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
     @ToBeFixedForConfigurationCache(because = "swift-application plugin")
     def "source generation is skipped when swift sources detected with #scriptDsl build scripts"() {
         setup:
-        targetDir.file("src/main/swift/main.swift") << """
+        subprojectDir.file("src/main/swift/main.swift") << """
             public func hola() -> String {
                 return "Hola, Mundo!"
             }
 
             print(hola())
         """
-        targetDir.file("src/test/swift/HolaTests.swift") << """
+        subprojectDir.file("src/test/swift/HolaTests.swift") << """
             import XCTest
             @testable import App
 
@@ -119,7 +122,7 @@ class SwiftApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
                 }
             }
         """
-        targetDir.file("src/test/swift/${LINUX_MAIN_DOT_SWIFT}") << """
+        subprojectDir.file("src/test/swift/${LINUX_MAIN_DOT_SWIFT}") << """
             import XCTest
 
             XCTMain([testCase(HolaTests.allTests)])
@@ -129,23 +132,23 @@ class SwiftApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
         run('init', '--type', 'swift-application', '--project-name', 'app', '--dsl', scriptDsl.id)
 
         then:
-        targetDir.file("src/main/swift").assertHasDescendants("main.swift")
-        targetDir.file("src/test/swift").assertHasDescendants("HolaTests.swift", LINUX_MAIN_DOT_SWIFT)
+        subprojectDir.file("src/main/swift").assertHasDescendants("main.swift")
+        subprojectDir.file("src/test/swift").assertHasDescendants("HolaTests.swift", LINUX_MAIN_DOT_SWIFT)
         dslFixtureFor(scriptDsl).assertGradleFilesGenerated()
 
         and:
-        targetDir.file("src/main/swift/${SAMPLE_APPLICATION_CLASS}").text.contains("hola()")
-        targetDir.file("src/test/swift/${SAMPLE_APPLICATION_TEST_CLASS}").assertDoesNotExist()
-        targetDir.file("src/test/swift/${LINUX_MAIN_DOT_SWIFT}").text.contains("HolaTests.allTests")
+        subprojectDir.file("src/main/swift/${SAMPLE_APPLICATION_CLASS}").text.contains("hola()")
+        subprojectDir.file("src/test/swift/${SAMPLE_APPLICATION_TEST_CLASS}").assertDoesNotExist()
+        subprojectDir.file("src/test/swift/${LINUX_MAIN_DOT_SWIFT}").text.contains("HolaTests.allTests")
 
         when:
         run("build")
 
         then:
-        executed(":test")
+        executed(":app:test")
 
         and:
-        executable("build/exe/main/debug/App").exec().out ==  "Hola, Mundo!\n"
+        executable("${subprojectName()}/build/exe/main/debug/App").exec().out ==  "Hola, Mundo!\n"
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS

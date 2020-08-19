@@ -125,7 +125,7 @@ public abstract class CppProjectInitDescriptor extends LanguageLibraryProjectIni
 
         return templateOperationFactory.newTemplateOperation()
             .withTemplate(template)
-            .withTarget("src/" + sourceSetName + "/" + sourceDir + "/" + targetFileName)
+            .withTarget(settings.getSubprojectName() + "/src/" + sourceSetName + "/" + sourceDir + "/" + targetFileName)
             .withBinding("projectName", settings.getProjectName())
             .withBinding("namespace", namespace)
             .create();

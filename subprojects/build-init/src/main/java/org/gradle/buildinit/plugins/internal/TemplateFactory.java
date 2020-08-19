@@ -40,8 +40,8 @@ public class TemplateFactory {
 
     public TemplateOperation whenNoSourcesAvailable(TemplateOperation... operations) {
         return new ConditionalTemplateOperation(() -> {
-            FileTree mainFiles = fileCollectionFactory.resolving("main files", "src/main/" + language.getName()).getAsFileTree();
-            FileTree testFiles = fileCollectionFactory.resolving("test files", "src/test/" + language.getName()).getAsFileTree();
+            FileTree mainFiles = fileCollectionFactory.resolving("main files", initSettings.getSubprojectName() + "/src/main/" + language.getName()).getAsFileTree();
+            FileTree testFiles = fileCollectionFactory.resolving("test files", initSettings.getSubprojectName() + "/src/test/" + language.getName()).getAsFileTree();
             return mainFiles.isEmpty() || testFiles.isEmpty();
         }, operations);
     }
@@ -74,7 +74,7 @@ public class TemplateFactory {
 
         TemplateOperationFactory.TemplateOperationBuilder operationBuilder = templateOperationFactory.newTemplateOperation()
             .withTemplate(sourceTemplate)
-            .withTarget("src/" + details.sourceSet + "/" + details.language.getName() + "/" + targetFileName)
+            .withTarget(initSettings.getSubprojectName() + "/src/" + details.sourceSet + "/" + details.language.getName() + "/" + targetFileName)
             .withBinding("packageDecl", packageDecl)
             .withBinding("className", className);
         for (Map.Entry<String, String> entry : details.bindings.entrySet()) {
