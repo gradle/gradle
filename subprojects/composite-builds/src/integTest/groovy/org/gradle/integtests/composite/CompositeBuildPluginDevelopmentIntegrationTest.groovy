@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.composite
 
+import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import spock.lang.Issue
@@ -59,6 +60,34 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
 
         then:
         executed ":pluginBuild:jar", ":pluginBuild:assemble", ":assemble"
+
+        where:
+        pluginsBlock | withVersion
+        true         | true
+        true         | false
+        false        | true
+        false        | false
+    }
+
+    @Unroll
+    @ToBeFixedForConfigurationCache
+    @NotYetImplemented
+    def "does not expose Gradle runtime dependencies without shading"() {
+        given:
+        applyPlugin(buildA, pluginsBlock, withVersion)
+        addLifecycleTasks(buildA)
+
+        includeBuild pluginBuild
+
+        buildA.buildFile << """
+            import ${com.google.common.collect.ImmutableList.name}
+        """
+
+        when:
+        fails(buildA, "taskFromPluginBuild")
+
+        then:
+        failure.assertHasDescription("Could not compile build file '$buildA.buildFile.canonicalPath'.")
 
         where:
         pluginsBlock | withVersion
