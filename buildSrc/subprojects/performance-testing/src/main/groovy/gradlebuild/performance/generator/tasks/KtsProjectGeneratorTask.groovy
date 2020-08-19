@@ -24,7 +24,7 @@ class KtsProjectGeneratorTask extends JvmProjectGeneratorTask {
 
     @Override
     List<String> getDefaultProjectFiles() {
-        Object.defaultProjectFiles + ['build.gradle.kts']
+        super.defaultProjectFiles + ['build.gradle.kts']
     }
 
     @Override
