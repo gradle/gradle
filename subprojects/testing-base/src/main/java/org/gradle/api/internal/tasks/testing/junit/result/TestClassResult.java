@@ -103,7 +103,11 @@ public class TestClassResult {
         this.startTime = startTime;
     }
 
-    public boolean hasDefaultDisplayName() {
+    String getXmlTestSuiteName() {
+        return hasDefaultDisplayName() ? className : classDisplayName;
+    }
+
+    private boolean hasDefaultDisplayName() {
         // both JUnit Jupiter and Vintage use the simple class name as the default display name
         // so we use this as a heuristic to determine whether the display name was customized
         return className.endsWith("." + classDisplayName) || className.endsWith("$" + classDisplayName);
