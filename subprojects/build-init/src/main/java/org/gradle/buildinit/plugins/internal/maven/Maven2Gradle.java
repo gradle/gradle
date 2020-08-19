@@ -23,19 +23,15 @@ import org.apache.maven.model.PluginExecution;
 import org.apache.maven.model.Repository;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
-import org.gradle.api.Action;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.buildinit.plugins.internal.BuildScriptBuilder;
 import org.gradle.buildinit.plugins.internal.BuildScriptBuilderFactory;
-import org.gradle.buildinit.plugins.internal.CrossConfigurationScriptBlockBuilder;
 import org.gradle.buildinit.plugins.internal.DependenciesBuilder;
-import org.gradle.buildinit.plugins.internal.RepositoriesBuilder;
 import org.gradle.buildinit.plugins.internal.ScriptBlockBuilder;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
 import org.gradle.util.RelativePathUtil;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -72,10 +68,17 @@ public class Maven2Gradle {
     }
 
     public void convert() {
-        BuildScriptBuilder scriptBuilder = scriptBuilderFactory.script(BuildInitDsl.GROOVY, "build");
         boolean multimodule = !rootProject.getModules().isEmpty();
 
         if (multimodule) {
+            String groupId = rootProject.getGroupId();
+
+            BuildScriptBuilder buildSrcScriptBuilder = scriptBuilderFactory.script(BuildInitDsl.GROOVY, "buildSrc/build");
+            buildSrcScriptBuilder.plugin(null, "groovy-gradle-plugin");
+            buildSrcScriptBuilder.create().generate();
+
+            BuildScriptBuilder conventionPluginBuilder = scriptBuilderFactory.script(BuildInitDsl.GROOVY, "buildSrc/src/main/groovy/" + groupId + ".java-conventions"); // TODO Kotlin DSL and path
+
             generateSettings(rootProject.getArtifactId(), allProjects);
 
             Map<String, List<Dependency>> dependencies = new LinkedHashMap<>();
@@ -83,27 +86,28 @@ public class Maven2Gradle {
                 dependencies.put(project.getArtifactId(), getDependencies(project, allProjects));
             }
 
-            CrossConfigurationScriptBlockBuilder allprojectsBuilder = scriptBuilder.allprojects();
-            coordinatesForProject(rootProject, allprojectsBuilder);
+            coordinatesForProject(rootProject, conventionPluginBuilder);
+            conventionPluginBuilder.plugin(null, "java");
+            conventionPluginBuilder.plugin(null, "maven-publish");
+            compilerSettings(rootProject, conventionPluginBuilder);
 
-            CrossConfigurationScriptBlockBuilder subprojectsBuilder = scriptBuilder.subprojects();
-            subprojectsBuilder.plugin(null, "java");
-            subprojectsBuilder.plugin(null, "maven-publish");
-            compilerSettings(rootProject, subprojectsBuilder);
-
-            repositoriesForProjects(allProjects, subprojectsBuilder);
-            globalExclusions(rootProject, subprojectsBuilder);
+            repositoriesForProjects(allProjects, conventionPluginBuilder);
+            globalExclusions(rootProject, conventionPluginBuilder);
 
             List<Dependency> commonDeps = dependencies.get(rootProject.getArtifactId());
-            declareDependencies(commonDeps, subprojectsBuilder);
-            testNg(commonDeps, subprojectsBuilder);
-            configurePublishing(subprojectsBuilder, packagesSources(rootProject), false, false);
+            declareDependencies(commonDeps, conventionPluginBuilder);
+            testNg(commonDeps, conventionPluginBuilder);
+            configurePublishing(conventionPluginBuilder, packagesSources(rootProject), false, false);
+
+            conventionPluginBuilder.create().generate();
 
             for (MavenProject module : modules(allProjects, false)) {
                 String id = module.getArtifactId();
                 List<Dependency> moduleDependencies = dependencies.get(id);
                 boolean warPack = module.getPackaging().equals("war");
                 BuildScriptBuilder moduleScriptBuilder = scriptBuilderFactory.script(BuildInitDsl.GROOVY, projectDir(module).getPath() + "/build");
+
+                moduleScriptBuilder.plugin(null, groupId + ".java-conventions");
 
                 if (!module.getGroupId().equals(rootProject.getGroupId())) {
                     moduleScriptBuilder.propertyAssignment(null, "group", module.getGroupId());
@@ -117,8 +121,8 @@ public class Maven2Gradle {
                 }
 
                 descriptionForProject(module, moduleScriptBuilder);
-                declareDependencies(moduleDependencies, wrap(moduleScriptBuilder));
-                testNg(moduleDependencies, wrap(moduleScriptBuilder));
+                declareDependencies(moduleDependencies, moduleScriptBuilder);
+                testNg(moduleDependencies, moduleScriptBuilder);
 
                 if (packageTests(module, moduleScriptBuilder)) {
                     moduleScriptBuilder.methodInvocation(null, "publishing.publications.maven.artifact", moduleScriptBuilder.propertyExpression("testsJar"));
@@ -131,16 +135,17 @@ public class Maven2Gradle {
                 moduleScriptBuilder.create().generate();
             }
         } else {
+            BuildScriptBuilder scriptBuilder = scriptBuilderFactory.script(BuildInitDsl.GROOVY, "build");
             generateSettings(this.rootProject.getArtifactId(), Collections.emptySet());
 
             scriptBuilder.plugin(null, "java");
             scriptBuilder.plugin(null, "maven-publish");
-            coordinatesForProject(this.rootProject, wrap(scriptBuilder));
+            coordinatesForProject(this.rootProject, scriptBuilder);
             descriptionForProject(this.rootProject, scriptBuilder);
-            compilerSettings(this.rootProject, wrap(scriptBuilder));
-            globalExclusions(this.rootProject, wrap(scriptBuilder));
+            compilerSettings(this.rootProject, scriptBuilder);
+            globalExclusions(this.rootProject, scriptBuilder);
             boolean testsJarTaskGenerated = packageTests(this.rootProject, scriptBuilder);
-            configurePublishing(wrap(scriptBuilder), packagesSources(this.rootProject), testsJarTaskGenerated, packagesJavadocs(this.rootProject));
+            configurePublishing(scriptBuilder, packagesSources(this.rootProject), testsJarTaskGenerated, packagesJavadocs(this.rootProject));
 
             scriptBuilder.repositories().mavenLocal(null);
             Set<String> repoSet = new LinkedHashSet<>();
@@ -150,15 +155,14 @@ public class Maven2Gradle {
             }
 
             List<Dependency> dependencies = getDependencies(this.rootProject, null);
-            declareDependencies(dependencies, new ScriptBuilderWrapper(scriptBuilder));
-            testNg(dependencies, wrap(scriptBuilder));
+            declareDependencies(dependencies, scriptBuilder);
+            testNg(dependencies, scriptBuilder);
 
+            scriptBuilder.create().generate();
         }
-
-        scriptBuilder.create().generate();
     }
 
-    private void configurePublishing(CrossConfigurationScriptBlockBuilder builder, boolean publishesSources, boolean testsJarTaskGenerated, boolean publishesJavadoc) {
+    private void configurePublishing(BuildScriptBuilder builder, boolean publishesSources, boolean testsJarTaskGenerated, boolean publishesJavadoc) {
         if (publishesSources || publishesJavadoc) {
             ScriptBlockBuilder javaExtension = builder.block(null, "java");
             if (publishesSources) {
@@ -177,7 +181,7 @@ public class Maven2Gradle {
         }
     }
 
-    private void declareDependencies(List<Dependency> dependencies, CrossConfigurationScriptBlockBuilder builder) {
+    private void declareDependencies(List<Dependency> dependencies, BuildScriptBuilder builder) {
         DependenciesBuilder dependenciesBuilder = builder.dependencies();
         for (Dependency dep : dependencies) {
             if (dep instanceof ProjectDependency) {
@@ -189,7 +193,7 @@ public class Maven2Gradle {
         }
     }
 
-    private void globalExclusions(MavenProject project, CrossConfigurationScriptBlockBuilder builder) {
+    private void globalExclusions(MavenProject project, BuildScriptBuilder builder) {
         Plugin enforcerPlugin = plugin("maven-enforcer-plugin", project);
         PluginExecution enforceGoal = pluginGoal("enforce", enforcerPlugin);
         if (enforceGoal != null) {
@@ -207,7 +211,7 @@ public class Maven2Gradle {
         }
     }
 
-    private void testNg(List<Dependency> moduleDependencies, CrossConfigurationScriptBlockBuilder builder) {
+    private void testNg(List<Dependency> moduleDependencies, BuildScriptBuilder builder) {
         boolean testng = moduleDependencies.stream().anyMatch(dep ->
             dep instanceof ExternalDependency && "org.testng".equals(((ExternalDependency) dep).getGroupId()) && "testng".equals(((ExternalDependency) dep).getModule())
         );
@@ -251,7 +255,7 @@ public class Maven2Gradle {
         return DefaultModuleIdentifier.newId(groupId, artifactId);
     }
 
-    private void coordinatesForProject(MavenProject project, CrossConfigurationScriptBlockBuilder builder) {
+    private void coordinatesForProject(MavenProject project, BuildScriptBuilder builder) {
         builder.propertyAssignment(null, "group", project.getGroupId());
         builder.propertyAssignment(null, "version", project.getVersion());
     }
@@ -262,7 +266,7 @@ public class Maven2Gradle {
         }
     }
 
-    private void repositoriesForProjects(Set<MavenProject> projects, CrossConfigurationScriptBlockBuilder builder) {
+    private void repositoriesForProjects(Set<MavenProject> projects, BuildScriptBuilder builder) {
         builder.repositories().mavenLocal(null);
         Set<String> repoSet = new LinkedHashSet<>();
         for(MavenProject project : projects) {
@@ -373,7 +377,7 @@ public class Maven2Gradle {
         }
     }
 
-    private void compilerSettings(MavenProject project, CrossConfigurationScriptBlockBuilder builder) {
+    private void compilerSettings(MavenProject project, BuildScriptBuilder builder) {
         String source = "1.8";
         String target = "1.8";
 
@@ -499,80 +503,4 @@ public class Maven2Gradle {
         result.add(new ProjectDependency(scope, fqn(projectDep, allProjects)));
     }
 
-    static private CrossConfigurationScriptBlockBuilder wrap(BuildScriptBuilder scriptBuilder) {
-        return new ScriptBuilderWrapper(scriptBuilder);
-    }
-
-    static private class ScriptBuilderWrapper implements CrossConfigurationScriptBlockBuilder {
-        private final BuildScriptBuilder scriptBuilder;
-
-        public ScriptBuilderWrapper(BuildScriptBuilder scriptBuilder) {
-            this.scriptBuilder = scriptBuilder;
-        }
-
-        @Override
-        public RepositoriesBuilder repositories() {
-            return scriptBuilder.repositories();
-        }
-
-        @Override
-        public DependenciesBuilder dependencies() {
-            return scriptBuilder.dependencies();
-        }
-
-        @Override
-        public void plugin(@Nullable String comment, String pluginId) {
-            scriptBuilder.plugin(comment, pluginId);
-        }
-
-        @Override
-        public void taskPropertyAssignment(@Nullable String comment, String taskType, String propertyName, Object propertyValue) {
-            scriptBuilder.taskPropertyAssignment(comment, taskType, propertyName, propertyValue);
-        }
-
-        @Override
-        public void taskMethodInvocation(@Nullable String comment, String taskName, String taskType, String methodName, Object... methodArgs) {
-            scriptBuilder.taskMethodInvocation(comment, taskName, taskType, methodName, methodArgs);
-        }
-
-        @Override
-        public BuildScriptBuilder.Expression taskRegistration(@Nullable String comment, String taskName, String taskType, Action<? super ScriptBlockBuilder> blockContentBuilder) {
-            return scriptBuilder.taskRegistration(comment, taskName, taskType, blockContentBuilder);
-        }
-
-        @Override
-        public void propertyAssignment(@Nullable String comment, String propertyName, Object propertyValue) {
-            scriptBuilder.propertyAssignment(comment, propertyName, propertyValue);
-        }
-
-        @Override
-        public void methodInvocation(@Nullable String comment, String methodName, Object... methodArgs) {
-            scriptBuilder.methodInvocation(comment, methodName, methodArgs);
-        }
-
-        @Override
-        public void methodInvocation(@Nullable String comment, BuildScriptBuilder.Expression target, String methodName, Object... methodArgs) {
-            scriptBuilder.methodInvocation(comment, target, methodName, methodArgs);
-        }
-
-        @Override
-        public ScriptBlockBuilder block(@Nullable String comment, String methodName) {
-            return scriptBuilder.block(comment, methodName);
-        }
-
-        @Override
-        public void block(@Nullable String comment, String methodName, Action<? super ScriptBlockBuilder> blockContentsBuilder) {
-            scriptBuilder.block(comment, methodName, blockContentsBuilder);
-        }
-
-        @Override
-        public BuildScriptBuilder.Expression containerElement(@Nullable String comment, String container, String elementName, Action<? super ScriptBlockBuilder> blockContentsBuilder) {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public BuildScriptBuilder.Expression propertyExpression(String value) {
-            return scriptBuilder.propertyExpression(value);
-        }
-    }
 }

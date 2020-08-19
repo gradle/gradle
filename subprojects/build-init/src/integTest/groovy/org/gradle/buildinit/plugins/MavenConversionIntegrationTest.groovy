@@ -58,18 +58,21 @@ class MavenConversionIntegrationTest extends AbstractIntegrationSpec {
 
     @ToBeFixedForConfigurationCache(because = ":projects")
     def "multiModule"() {
+        def conventionPluginScript = file("buildSrc/src/main/groovy/com.example.webinar.java-conventions.gradle")
+
         when:
         run 'init'
 
         then:
         gradleFilesGenerated()
-        file("build.gradle").text.contains("options.encoding = 'UTF-8'")
+        conventionPluginScript.text.contains("options.encoding = 'UTF-8'")
+        file("webinar-war/build.gradle").text.contains("id 'com.example.webinar.java-conventions'")
         !file("webinar-war/build.gradle").text.contains("'options.encoding'")
-        assertContainsPublishingConfig(file("build.gradle"), "    ")
-        buildFile.text.contains(TextUtil.toPlatformLineSeparators('''
-    java {
-        withSourcesJar()
-    }'''))
+        assertContainsPublishingConfig(conventionPluginScript)
+        conventionPluginScript.text.contains(TextUtil.toPlatformLineSeparators('''
+java {
+    withSourcesJar()
+}'''))
         file("webinar-impl/build.gradle").text.contains("publishing.publications.maven.artifact(testsJar)")
         file("webinar-impl/build.gradle").text.contains(TextUtil.toPlatformLineSeparators('''
 java {
@@ -426,7 +429,6 @@ Root project 'webinar-parent'
     }
 
     void gradleFilesGenerated(TestFile parentFolder = file(".")) {
-        assert parentFolder.file("build.gradle").exists()
         assert parentFolder.file("settings.gradle").exists()
         new WrapperTestFixture(parentFolder).generated()
     }
