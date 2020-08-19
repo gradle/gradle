@@ -63,7 +63,6 @@ setupGlobalState()
 
 subprojects.filter { it.name !in ignoredSubprojects }.forEach { it.registerLifecycleTasks() }
 
-project(":soak").registerSoakTest()
 
 tasks.registerDistributionsPromotionTasks()
 
@@ -84,17 +83,6 @@ fun Project.registerLifecycleTasks() {
     }
     plugins.withId("gradlebuild.cross-version-tests") {
         tasks.configureCICrossVersionTestDistributionLifecycleTasks()
-    }
-}
-
-fun Project.registerSoakTest() {
-    tasks.register(soakTest) {
-        description = "Run all soak tests defined in the :soak subproject"
-        group = ciGroup
-    }
-
-    tasks.named(soakTest) {
-        dependsOn(":soak:embeddedIntegTest")
     }
 }
 
