@@ -10,6 +10,7 @@ dependencies {
     implementation(project(":process-services"))
     implementation(project(":logging"))
     implementation(libs.inject)
+    implementation(libs.nativePlatform)
     implementation(libs.guava)
 
     testImplementation(project(":native"))
