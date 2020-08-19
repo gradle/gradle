@@ -29,6 +29,6 @@ val trackerService = gradle.sharedServices.registerIfAbsent("daemonTracker", Dae
 }
 extensions.create<CleanupExtension>("cleanup", trackerService)
 
-val killExistingProcessesStartedByGradle by tasks.registering(KillLeakingJavaProcesses::class) {
+tasks.register<KillLeakingJavaProcesses>("killExistingProcessesStartedByGradle") {
     tracker.set(trackerService)
 }
