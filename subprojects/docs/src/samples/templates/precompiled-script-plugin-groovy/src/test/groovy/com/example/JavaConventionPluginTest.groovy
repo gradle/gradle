@@ -7,7 +7,7 @@ class JavaConventionPluginTest extends PluginTest {
     def setup() {
         buildFile << """
             plugins {
-                id 'com.example.java-convention'
+                id 'com.example.java-conventions'
             }
         """
     }
@@ -17,9 +17,9 @@ class JavaConventionPluginTest extends PluginTest {
         testProjectDir.newFolder('src', 'main', 'java', 'com', 'example')
         testProjectDir.newFile('src/main/java/com/example/Foo.java') << """
             package com.example;
-            
+
             import java.util.*;
-                        
+
             class Foo {
                 void bar() {
                 }
@@ -40,10 +40,10 @@ class JavaConventionPluginTest extends PluginTest {
         testProjectDir.newFolder('src', 'main', 'java', 'com', 'example')
         testProjectDir.newFile('src/main/java/com/example/Foo.java') << """
             package com.example;
-                                    
+
             class Foo {
                 final static public String FOO = "BAR";
-            
+
                 void bar() {
                 }
             }
@@ -63,7 +63,7 @@ class JavaConventionPluginTest extends PluginTest {
         testProjectDir.newFolder('src', 'main', 'java', 'com', 'example')
         testProjectDir.newFile('src/main/java/com/example/Foo.java') << """
             package com.example;
-                       
+
             class Foo {
                 void bar() {
                     String s = null;
@@ -84,7 +84,7 @@ class JavaConventionPluginTest extends PluginTest {
         testProjectDir.newFolder('src', 'main', 'java', 'com', 'example')
         testProjectDir.newFile('src/main/java/com/example/Foo.java') << """
             package com.example;
-                       
+
             public class Foo {
                 @Deprecated
                 public void deprecatedMethod() {}
@@ -93,7 +93,7 @@ class JavaConventionPluginTest extends PluginTest {
 
         testProjectDir.newFile('src/main/java/com/example/Bar.java') << """
             package com.example;
-                                    
+
             public class Bar {
                 public void bar() {
                     new Foo().deprecatedMethod();

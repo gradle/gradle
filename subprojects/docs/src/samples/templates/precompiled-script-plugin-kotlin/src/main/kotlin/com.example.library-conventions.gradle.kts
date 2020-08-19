@@ -5,7 +5,7 @@
 plugins {
     `java-library`
     `maven-publish`
-    id("com.example.java-convention")
+    id("com.example.java-conventions")
 }
 // end::plugins[]
 

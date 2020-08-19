@@ -13,7 +13,7 @@ class LibraryPluginTest : PluginTest() {
     fun init() {
         buildFile.appendText("""
             plugins {
-                id("com.example.library")
+                id("com.example.library-conventions")
             }
         """)
     }

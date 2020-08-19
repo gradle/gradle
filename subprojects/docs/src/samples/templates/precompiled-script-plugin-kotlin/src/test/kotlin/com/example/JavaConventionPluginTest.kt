@@ -12,7 +12,7 @@ class JavaConventionPluginTest : PluginTest() {
     fun init() {
         buildFile.appendText("""
             plugins {
-                id("com.example.java-convention")
+                id("com.example.java-conventions")
             }
         """)
     }

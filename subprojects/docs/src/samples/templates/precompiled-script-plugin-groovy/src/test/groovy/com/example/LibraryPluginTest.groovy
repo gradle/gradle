@@ -7,7 +7,7 @@ class LibraryPluginTest extends PluginTest {
     def setup() {
         buildFile << """
             plugins {
-                id 'com.example.library'
+                id 'com.example.library-conventions'
             }
         """
     }
