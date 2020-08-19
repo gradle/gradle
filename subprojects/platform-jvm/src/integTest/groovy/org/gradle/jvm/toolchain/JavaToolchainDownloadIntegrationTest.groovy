@@ -17,10 +17,12 @@
 package org.gradle.jvm.toolchain
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.hamcrest.CoreMatchers
 
 class JavaToolchainDownloadIntegrationTest extends AbstractIntegrationSpec {
 
+    @ToBeFixedForConfigurationCache(because = "Fails the build with an additional error")
     def "can properly fails for missing combination"() {
         buildFile << """
             apply plugin: "java"
