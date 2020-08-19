@@ -16,6 +16,7 @@
 
 package org.gradle.process.internal
 
+import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 
@@ -59,6 +60,67 @@ task runBrokenWorker {
         workerDaemonProcess.run(new Param())
     }
 }
+'''
+        when:
+        fails('runBrokenWorker')
+
+        then:
+        failureCauseContains('No response was received from Gradle Worker but the worker process has finished')
+        executer.getGradleUserHomeDir().file('workers').listFiles().find { it.name.startsWith('worker-error') }.text.contains(MESSAGE)
+    }
+
+    @NotYetImplemented
+    def "worker won't hang when error occurs in socket connection in included build"() {
+        given:
+        requireOwnGradleUserHomeDir()
+        executer.getGradleUserHomeDir().file()
+
+        file('included/src/main/java/Param.java') << """
+import java.io.*;
+public class Param implements Serializable {
+    private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
+        throw new IllegalStateException("$MESSAGE");
+    }
+}
+"""
+
+        file('included/src/main/java/TestWorkerProcessImpl.java') << '''
+import org.gradle.process.internal.worker.RequestHandler;
+
+public class TestWorkerProcessImpl implements RequestHandler<Object, Object> {
+    public Object run(Object param) { return null; }
+}
+'''
+        file('included/src/main/groovy/buildlogic.foo.gradle') << '''
+import org.gradle.process.internal.worker.WorkerProcessFactory
+
+task runBrokenWorker {
+    def rootDir = project.rootDir
+    doLast {
+        WorkerProcessFactory workerProcessFactory = services.get(WorkerProcessFactory)
+        def builder = workerProcessFactory.multiRequestWorker(TestWorkerProcessImpl)
+        builder.getJavaCommand().setWorkingDir(rootDir)
+
+        def workerDaemonProcess = builder.build()
+        workerDaemonProcess.start()
+        workerDaemonProcess.run(new Param())
+    }
+}
+'''
+        file('included/build.gradle') << """
+plugins {
+    id("groovy-gradle-plugin")
+}
+group = "buildlogic"
+
+"""
+        buildFile << '''
+plugins {
+    id('buildlogic.foo')
+}
+'''
+        settingsFile << '''
+includeBuild('included')
 '''
         when:
         fails('runBrokenWorker')
