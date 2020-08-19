@@ -31,7 +31,7 @@ import org.gradle.util.TextUtil
 import org.junit.Rule
 import spock.lang.Issue
 
-class MavenConversionIntegrationTest extends AbstractIntegrationSpec {
+class MavenConversionIntegrationTest extends AbstractInitIntegrationSpec {
 
     @Rule
     public final TestResources resources = new TestResources(temporaryFolder)
