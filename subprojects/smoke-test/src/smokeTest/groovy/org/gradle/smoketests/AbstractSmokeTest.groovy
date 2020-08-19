@@ -21,9 +21,9 @@ import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheMa
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheOption
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheProblemsOption
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheQuietOption
-import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheBuildOperationsFixture
 import org.gradle.integtests.fixtures.BuildOperationTreeFixture
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
+import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheBuildOperationsFixture
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.versions.AndroidGradlePluginVersions
@@ -200,7 +200,7 @@ abstract class AbstractSmokeTest extends Specification {
     private List<String> configurationCacheParameters() {
         List<String> parameters = []
         if (GradleContextualExecuter.isInstant()) {
-            def maxProblems = maxInstantExecutionProblems()
+            def maxProblems = maxConfigurationCacheProblems()
             parameters += [
                 "--${ConfigurationCacheOption.LONG_OPTION}".toString(),
                 "-D${ConfigurationCacheMaxProblemsOption.PROPERTY_NAME}=$maxProblems".toString(),
@@ -231,24 +231,28 @@ abstract class AbstractSmokeTest extends Specification {
         ]
     }
 
-    protected int maxInstantExecutionProblems() {
+    protected int maxConfigurationCacheProblems() {
         return 0
     }
 
-    protected void assertInstantExecutionStateStored() {
+    protected void assertConfigurationCacheStateStored() {
         if (GradleContextualExecuter.isInstant()) {
-            newInstantExecutionBuildOperationsFixture().assertStateStored()
+            newConfigurationCacheBuildOperationsFixture().assertStateStored()
         }
     }
 
-    protected void assertInstantExecutionStateLoaded() {
+    protected void assertConfigurationCacheStateLoaded() {
         if (GradleContextualExecuter.isInstant()) {
-            newInstantExecutionBuildOperationsFixture().assertStateLoaded()
+            newConfigurationCacheBuildOperationsFixture().assertStateLoaded()
         }
     }
 
-    private ConfigurationCacheBuildOperationsFixture newInstantExecutionBuildOperationsFixture() {
-        return new ConfigurationCacheBuildOperationsFixture(new BuildOperationTreeFixture(BuildOperationTrace.read(buildOperationTracePath())))
+    private ConfigurationCacheBuildOperationsFixture newConfigurationCacheBuildOperationsFixture() {
+        return new ConfigurationCacheBuildOperationsFixture(
+            new BuildOperationTreeFixture(
+                BuildOperationTrace.read(buildOperationTracePath())
+            )
+        )
     }
 
     private String buildOperationTracePath() {

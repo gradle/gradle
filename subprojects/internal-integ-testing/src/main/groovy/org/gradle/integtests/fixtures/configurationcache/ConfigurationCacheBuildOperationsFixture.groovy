@@ -60,7 +60,7 @@ class ConfigurationCacheBuildOperationsFixture {
         assertThat(store.failure, notNullValue())
     }
 
-    void assertNoInstantExecution() {
+    void assertNoConfigurationCache() {
         assertThat(loadOperation(), nullValue())
         assertThat(storeOperation(), nullValue())
     }

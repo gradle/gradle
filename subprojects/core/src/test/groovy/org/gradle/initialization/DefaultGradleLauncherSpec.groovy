@@ -52,7 +52,7 @@ class DefaultGradleLauncherSpec extends Specification {
     def buildServices = Mock(BuildScopeServices.class)
     def otherService = Mock(Stoppable)
     def includedBuildControllers = Mock(IncludedBuildControllers)
-    def instantExecution = Mock(ConfigurationCache)
+    def configurationCache = Mock(ConfigurationCache)
     public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
     def failure = new RuntimeException("main")
@@ -69,7 +69,7 @@ class DefaultGradleLauncherSpec extends Specification {
     DefaultGradleLauncher launcher() {
         return new DefaultGradleLauncher(gradleMock, buildConfigurerMock, exceptionAnalyserMock, buildBroadcaster,
             buildCompletionListener, buildFinishedListener, buildExecuter, buildServices, [otherService], includedBuildControllers,
-            settingsPreparerMock, taskExecutionPreparerMock, instantExecution, buildSourceBuilder, Mock(BuildOptionBuildOperationProgressEventsEmitter))
+            settingsPreparerMock, taskExecutionPreparerMock, configurationCache, buildSourceBuilder, Mock(BuildOptionBuildOperationProgressEventsEmitter))
     }
 
     void testRunTasks() {

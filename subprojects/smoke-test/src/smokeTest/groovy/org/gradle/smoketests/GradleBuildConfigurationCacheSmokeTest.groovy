@@ -71,13 +71,13 @@ class GradleBuildConfigurationCacheSmokeTest extends AbstractSmokeTest {
         ]
 
         when:
-        instantRun(*supportedTasks)
+        configurationCacheRun(*supportedTasks)
 
         then:
         result.output.count("Calculating task graph as no configuration cache is available") == 1
 
         when:
-        instantRun(*supportedTasks)
+        configurationCacheRun(*supportedTasks)
 
         then:
         result.output.count("Reusing configuration cache") == 1
@@ -89,7 +89,7 @@ class GradleBuildConfigurationCacheSmokeTest extends AbstractSmokeTest {
         run("clean")
 
         and:
-        instantRun(*supportedTasks)
+        configurationCacheRun(*supportedTasks)
 
         then:
         result.output.count("Reusing configuration cache") == 1
@@ -101,7 +101,7 @@ class GradleBuildConfigurationCacheSmokeTest extends AbstractSmokeTest {
             .assertTestClassesExecuted("org.gradle.NameValidationIntegrationTest")
     }
 
-    private void instantRun(String... tasks) {
+    private void configurationCacheRun(String... tasks) {
         result = run(
             "--${ConfigurationCacheOption.LONG_OPTION}",
             "--${ConfigurationCacheProblemsOption.LONG_OPTION}=warn", // TODO remove

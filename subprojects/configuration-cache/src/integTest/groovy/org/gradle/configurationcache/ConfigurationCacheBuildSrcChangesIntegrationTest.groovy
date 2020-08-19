@@ -28,7 +28,7 @@ class ConfigurationCacheBuildSrcChangesIntegrationTest extends AbstractConfigura
     @Unroll
     def "invalidates cache upon change to buildSrc #changeFixtureSpec"() {
         given:
-        def instant = newInstantExecutionFixture()
+        def configurationCache = newConfigurationCacheFixture()
         def changeFixture = changeFixtureSpec.fixtureForProjectDir(file('buildSrc'))
         changeFixture.setup()
         buildFile << """
@@ -37,33 +37,33 @@ class ConfigurationCacheBuildSrcChangesIntegrationTest extends AbstractConfigura
 
         when:
         if (isKotlinBuildSrc) {
-            instantRunLenient changeFixture.task
+            configurationCacheRunLenient changeFixture.task
         } else {
-            instantRun changeFixture.task
+            configurationCacheRun changeFixture.task
         }
 
         then:
         outputContains changeFixture.expectedOutputBeforeChange
-        instant.assertStateStored()
+        configurationCache.assertStateStored()
 
         when:
         changeFixture.applyChange()
         if (isKotlinBuildSrc) {
-            instantRunLenient changeFixture.task
+            configurationCacheRunLenient changeFixture.task
         } else {
-            instantRun changeFixture.task
+            configurationCacheRun changeFixture.task
         }
 
         then:
         outputContains changeFixture.expectedOutputAfterChange
-        instant.assertStateStored()
+        configurationCache.assertStateStored()
 
         when:
-        instantRun changeFixture.task
+        configurationCacheRun changeFixture.task
 
         then:
         outputContains changeFixture.expectedOutputAfterChange
-        instant.assertStateLoaded()
+        configurationCache.assertStateLoaded()
 
         where:
         changeFixtureSpec << BuildLogicChangeFixture.specs()
@@ -79,7 +79,7 @@ class ConfigurationCacheBuildSrcChangesIntegrationTest extends AbstractConfigura
         )
 
         given:
-        def instant = newInstantExecutionFixture()
+        def configurationCache = newConfigurationCacheFixture()
         file("buildSrc/build.gradle.kts").text = """
 
             interface Params: $ValueSourceParameters.name {
@@ -115,30 +115,30 @@ class ConfigurationCacheBuildSrcChangesIntegrationTest extends AbstractConfigura
         """
 
         when:
-        instantRun "assemble"
+        configurationCacheRun "assemble"
 
         then:
         output.count("NOT CI") == 1
-        instant.assertStateStored()
+        configurationCache.assertStateStored()
 
         when:
-        instantRun "assemble"
+        configurationCacheRun "assemble"
 
         then: "buildSrc doesn't build"
         output.count("CI") == 0
-        instant.assertStateLoaded()
+        configurationCache.assertStateLoaded()
 
         when:
         if (inputName == 'gradle.properties') {
             file('gradle.properties').text = 'test_is_ci=true'
-            instantRun "assemble"
+            configurationCacheRun "assemble"
         } else {
-            instantRun "assemble", inputArgument
+            configurationCacheRun "assemble", inputArgument
         }
 
         then:
         output.count("ON CI") == 1
-        instant.assertStateStored()
+        configurationCache.assertStateStored()
 
         where:
         inputName             | inputExpression                          | inputArgument

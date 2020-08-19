@@ -56,21 +56,21 @@ class ConfigurationCacheBuildSrcIntegrationTest extends AbstractConfigurationCac
                 greeting = 'yo configuration cache'
             }
         """
-        def instant = newInstantExecutionFixture()
+        def configurationCache = newConfigurationCacheFixture()
 
         when:
-        instantRun("greeting")
+        configurationCacheRun("greeting")
 
         then:
         result.assertTaskExecuted(":buildSrc:build")
         result.assertTaskExecuted(":greeting")
 
         when:
-        instantRun("greeting")
+        configurationCacheRun("greeting")
 
         then:
         result.assertTasksExecuted(":greeting")
         outputContains("yo configuration cache")
-        instant.assertStateLoaded()
+        configurationCache.assertStateLoaded()
     }
 }

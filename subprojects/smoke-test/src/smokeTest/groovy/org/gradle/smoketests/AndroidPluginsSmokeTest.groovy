@@ -44,7 +44,7 @@ class AndroidPluginsSmokeTest extends AbstractSmokeTest {
 
     // TODO:configuration-cache remove once fixed upstream
     @Override
-    protected int maxInstantExecutionProblems() {
+    protected int maxConfigurationCacheProblems() {
         return 100
     }
 
@@ -84,7 +84,7 @@ class AndroidPluginsSmokeTest extends AbstractSmokeTest {
         }
 
         and:
-        assertInstantExecutionStateStored()
+        assertConfigurationCacheStateStored()
 
         when: 'up-to-date build'
         result = runner.build()
@@ -95,7 +95,7 @@ class AndroidPluginsSmokeTest extends AbstractSmokeTest {
         result.task(':app:assembleDebug').outcome == TaskOutcome.UP_TO_DATE
 
         and:
-        assertInstantExecutionStateLoaded()
+        assertConfigurationCacheStateLoaded()
 
         when: 'abi change on library'
         abiChange.run()
@@ -108,7 +108,7 @@ class AndroidPluginsSmokeTest extends AbstractSmokeTest {
         result.task(':app:assembleDebug').outcome == TaskOutcome.SUCCESS
 
         and:
-        assertInstantExecutionStateLoaded()
+        assertConfigurationCacheStateLoaded()
 
         when: 'clean re-build'
         useAgpVersion(agpVersion, this.runner('clean')).build()
@@ -120,7 +120,7 @@ class AndroidPluginsSmokeTest extends AbstractSmokeTest {
         result.task(':app:assembleDebug').outcome == TaskOutcome.SUCCESS
 
         and:
-        assertInstantExecutionStateLoaded()
+        assertConfigurationCacheStateLoaded()
 
         where:
         [agpVersion, ide] << [

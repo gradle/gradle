@@ -26,21 +26,21 @@ class ConfigurationCacheEnablementIntegrationTest extends AbstractConfigurationC
     def "can enable with a command line #origin"() {
 
         given:
-        def fixture = newInstantExecutionFixture()
+        def configurationCache = newConfigurationCacheFixture()
 
         when:
         run 'help', argument
 
         then:
         outputContainsIncubatingFeatureUsage()
-        fixture.assertStateStored()
+        configurationCache.assertStateStored()
 
         when:
         run 'help', argument
 
         then:
         outputContainsIncubatingFeatureUsage()
-        fixture.assertStateLoaded()
+        configurationCache.assertStateLoaded()
 
         where:
         origin            | argument
@@ -51,7 +51,7 @@ class ConfigurationCacheEnablementIntegrationTest extends AbstractConfigurationC
     def "can enable with a property in root directory gradle.properties"() {
 
         given:
-        def fixture = newInstantExecutionFixture()
+        def configurationCache = newConfigurationCacheFixture()
 
         and:
         file('gradle.properties') << """
@@ -63,20 +63,20 @@ class ConfigurationCacheEnablementIntegrationTest extends AbstractConfigurationC
 
         then:
         outputContainsIncubatingFeatureUsage()
-        fixture.assertStateStored()
+        configurationCache.assertStateStored()
 
         when:
         run 'help'
 
         then:
         outputContainsIncubatingFeatureUsage()
-        fixture.assertStateLoaded()
+        configurationCache.assertStateLoaded()
     }
 
     def "can enable with a property in gradle user home gradle.properties"() {
 
         given:
-        def fixture = newInstantExecutionFixture()
+        def configurationCache = newConfigurationCacheFixture()
 
         and:
         executer.requireOwnGradleUserHomeDir()
@@ -89,21 +89,21 @@ class ConfigurationCacheEnablementIntegrationTest extends AbstractConfigurationC
 
         then:
         outputContainsIncubatingFeatureUsage()
-        fixture.assertStateStored()
+        configurationCache.assertStateStored()
 
         when:
         run 'help'
 
         then:
         outputContainsIncubatingFeatureUsage()
-        fixture.assertStateLoaded()
+        configurationCache.assertStateLoaded()
     }
 
     @Unroll
     def "can disable with a command line #cliOrigin when enabled in gradle.properties"() {
 
         given:
-        def fixture = newInstantExecutionFixture()
+        def configurationCache = newConfigurationCacheFixture()
 
         and:
         file('gradle.properties') << """
@@ -114,7 +114,7 @@ class ConfigurationCacheEnablementIntegrationTest extends AbstractConfigurationC
         run 'help', cliArgument
 
         then:
-        fixture.assertNoInstantExecution()
+        configurationCache.assertNoConfigurationCache()
 
         where:
         cliOrigin         | cliArgument

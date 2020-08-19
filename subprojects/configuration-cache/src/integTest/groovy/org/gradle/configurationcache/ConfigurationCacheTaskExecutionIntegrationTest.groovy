@@ -43,8 +43,8 @@ class ConfigurationCacheTaskExecutionIntegrationTest extends AbstractConfigurati
         """
 
         when:
-        instantRun("never", "always")
-        instantRun("never", "always")
+        configurationCacheRun("never", "always")
+        configurationCacheRun("never", "always")
 
         then:
         result.assertTaskSkipped(":always")
@@ -59,13 +59,13 @@ class ConfigurationCacheTaskExecutionIntegrationTest extends AbstractConfigurati
         '''
 
         when:
-        instantRun 'b'
+        configurationCacheRun 'b'
 
         then:
         result.assertTasksExecuted ':b'
 
         when:
-        instantRun 'b'
+        configurationCacheRun 'b'
 
         then:
         result.assertTasksExecuted ':b'
@@ -79,13 +79,13 @@ class ConfigurationCacheTaskExecutionIntegrationTest extends AbstractConfigurati
         '''
 
         when:
-        instantRun 'b'
+        configurationCacheRun 'b'
 
         then:
         result.assertTasksExecuted ':b'
 
         when:
-        instantRun 'b'
+        configurationCacheRun 'b'
 
         then:
         result.assertTasksExecuted ':b'
@@ -99,13 +99,13 @@ class ConfigurationCacheTaskExecutionIntegrationTest extends AbstractConfigurati
         '''
 
         when:
-        instantRun 'b'
+        configurationCacheRun 'b'
 
         then:
         result.assertTasksExecuted ':b', ':a'
 
         when:
-        instantRun 'b'
+        configurationCacheRun 'b'
 
         then:
         result.assertTasksExecuted ':b', ':a'

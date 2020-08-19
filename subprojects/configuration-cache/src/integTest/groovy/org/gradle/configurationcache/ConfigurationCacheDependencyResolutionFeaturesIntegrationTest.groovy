@@ -62,38 +62,38 @@ class ConfigurationCacheDependencyResolutionFeaturesIntegrationTest extends Abst
                 inFiles.from(configurations.implementation)
             }
         """
-        def fixture = newInstantExecutionFixture()
+        def configurationCache = newConfigurationCacheFixture()
 
         remoteRepo.getModuleMetaData("thing", "lib").expectGet()
         v3.pom.expectGet()
         v3.artifact.expectGet()
 
         when:
-        instantRun("resolve1")
+        configurationCacheRun("resolve1")
 
         then:
-        fixture.assertStateStored()
+        configurationCache.assertStateStored()
         outputContains("result = [lib-1.3.jar]")
 
         when:
-        instantRun("resolve1")
+        configurationCacheRun("resolve1")
 
         then:
-        fixture.assertStateLoaded()
+        configurationCache.assertStateLoaded()
         outputContains("result = [lib-1.3.jar]")
 
         when: // run again with different tasks, to verify behaviour when version list is already cached when configuration cache entry is written
-        instantRun("resolve2")
+        configurationCacheRun("resolve2")
 
         then:
-        fixture.assertStateStored()
+        configurationCache.assertStateStored()
         outputContains("result = [lib-1.3.jar]")
 
         when:
-        instantRun("resolve2")
+        configurationCacheRun("resolve2")
 
         then:
-        fixture.assertStateLoaded()
+        configurationCache.assertStateLoaded()
         outputContains("result = [lib-1.3.jar]")
     }
 
@@ -125,41 +125,41 @@ class ConfigurationCacheDependencyResolutionFeaturesIntegrationTest extends Abst
                 inFiles.from(configurations.implementation)
             }
         """
-        def fixture = newInstantExecutionFixture()
+        def configurationCache = newConfigurationCacheFixture()
 
         remoteRepo.getModuleMetaData("thing", "lib").expectGet()
         v3.pom.expectGet()
         v3.artifact.expectGet()
 
         when:
-        instantRun("resolve1")
+        configurationCacheRun("resolve1")
 
         then:
-        fixture.assertStateStored()
+        configurationCache.assertStateStored()
         outputContains("result = [lib-1.3.jar]")
 
         when: // run again with different tasks, to verify behaviour when version list is already cached when configuration cache entry is written
-        instantRun("resolve2")
+        configurationCacheRun("resolve2")
 
         then:
-        fixture.assertStateStored()
+        configurationCache.assertStateStored()
         outputContains("result = [lib-1.3.jar]")
 
         when:
         def clockOffset = TimeUnit.MILLISECONDS.convert(4, TimeUnit.HOURS)
         remoteRepo.getModuleMetaData("thing", "lib").expectHead()
-        instantRun("resolve1", "-Dorg.gradle.internal.test.clockoffset=${clockOffset}")
+        configurationCacheRun("resolve1", "-Dorg.gradle.internal.test.clockoffset=${clockOffset}")
 
         then:
-        fixture.assertStateStored()
+        configurationCache.assertStateStored()
         outputContains("Calculating task graph as configuration cache cannot be reused because cached version information for thing:lib:1.+ has expired.")
         outputContains("result = [lib-1.3.jar]")
 
         when:
-        instantRun("resolve2", "-Dorg.gradle.internal.test.clockoffset=${clockOffset}")
+        configurationCacheRun("resolve2", "-Dorg.gradle.internal.test.clockoffset=${clockOffset}")
 
         then:
-        fixture.assertStateStored()
+        configurationCache.assertStateStored()
         outputContains("Calculating task graph as configuration cache cannot be reused because cached version information for thing:lib:1.+ has expired.")
         outputContains("result = [lib-1.3.jar]")
     }
@@ -191,37 +191,37 @@ class ConfigurationCacheDependencyResolutionFeaturesIntegrationTest extends Abst
                 inFiles.from(configurations.implementation)
             }
         """
-        def fixture = newInstantExecutionFixture()
+        def configurationCache = newConfigurationCacheFixture()
 
         v3.pom.expectGet()
         v3.artifact.expectGet()
 
         when:
-        instantRun("resolve1")
+        configurationCacheRun("resolve1")
 
         then:
-        fixture.assertStateStored()
+        configurationCache.assertStateStored()
         outputContains("result = [lib-1.3.jar]")
 
         when:
-        instantRun("resolve1")
+        configurationCacheRun("resolve1")
 
         then:
-        fixture.assertStateLoaded()
+        configurationCache.assertStateLoaded()
         outputContains("result = [lib-1.3.jar]")
 
         when: // run again with different tasks, to verify behaviour when artifact information is cached
-        instantRun("resolve2")
+        configurationCacheRun("resolve2")
 
         then:
-        fixture.assertStateStored()
+        configurationCache.assertStateStored()
         outputContains("result = [lib-1.3.jar]")
 
         when:
-        instantRun("resolve2")
+        configurationCacheRun("resolve2")
 
         then:
-        fixture.assertStateLoaded()
+        configurationCache.assertStateLoaded()
         outputContains("result = [lib-1.3.jar]")
     }
 
@@ -254,41 +254,41 @@ class ConfigurationCacheDependencyResolutionFeaturesIntegrationTest extends Abst
                 inFiles.from(configurations.implementation)
             }
         """
-        def fixture = newInstantExecutionFixture()
+        def configurationCache = newConfigurationCacheFixture()
 
         v3.pom.expectGet()
         v3.artifact.expectGet()
 
         when:
-        instantRun("resolve1")
+        configurationCacheRun("resolve1")
 
         then:
-        fixture.assertStateStored()
+        configurationCache.assertStateStored()
         outputContains("result = [lib-1.3.jar]")
 
         when: // run again with different tasks, to verify behaviour when artifact information is cached
-        instantRun("resolve2")
+        configurationCacheRun("resolve2")
 
         then:
-        fixture.assertStateStored()
+        configurationCache.assertStateStored()
         outputContains("result = [lib-1.3.jar]")
 
         when:
         v3.pom.expectHead()
         v3.artifact.expectHead()
         def clockOffset = TimeUnit.MILLISECONDS.convert(4, TimeUnit.HOURS)
-        instantRun("resolve1", "-Dorg.gradle.internal.test.clockoffset=${clockOffset}")
+        configurationCacheRun("resolve1", "-Dorg.gradle.internal.test.clockoffset=${clockOffset}")
 
         then:
-        fixture.assertStateStored()
+        configurationCache.assertStateStored()
         outputContains("Calculating task graph as configuration cache cannot be reused because cached artifact information for thing:lib:1.3 has expired.")
         outputContains("result = [lib-1.3.jar]")
 
         when:
-        instantRun("resolve2", "-Dorg.gradle.internal.test.clockoffset=${clockOffset}")
+        configurationCacheRun("resolve2", "-Dorg.gradle.internal.test.clockoffset=${clockOffset}")
 
         then:
-        fixture.assertStateStored()
+        configurationCache.assertStateStored()
         outputContains("Calculating task graph as configuration cache cannot be reused because cached artifact information for thing:lib:1.3 has expired.")
         outputContains("result = [lib-1.3.jar]")
     }
@@ -315,36 +315,36 @@ class ConfigurationCacheDependencyResolutionFeaturesIntegrationTest extends Abst
                 inFiles.from(configurations.resolve2)
             }
         """
-        def fixture = newInstantExecutionFixture()
+        def configurationCache = newConfigurationCacheFixture()
 
         when:
-        instantRun("resolve1", "resolve2")
+        configurationCacheRun("resolve1", "resolve2")
 
         then:
-        fixture.assertStateStored()
+        configurationCache.assertStateStored()
         outputContains("result = [lib1-2.1.jar]")
 
         when:
-        instantRun("resolve1", "resolve2")
+        configurationCacheRun("resolve1", "resolve2")
 
         then:
-        fixture.assertStateLoaded()
+        configurationCache.assertStateLoaded()
         outputContains("result = [lib1-2.1.jar]")
 
         when:
         repo.publishWithDifferentArtifactContent(this)
-        instantRun("resolve1", "resolve2")
+        configurationCacheRun("resolve1", "resolve2")
 
         then:
-        fixture.assertStateStored()
+        configurationCache.assertStateStored()
         outputContains("Calculating task graph as configuration cache cannot be reused because file '${repo.metadataLocation}' has changed.")
         outputContains("result = [lib1-2.1.jar]")
 
         when:
-        instantRun("resolve1", "resolve2")
+        configurationCacheRun("resolve1", "resolve2")
 
         then:
-        fixture.assertStateLoaded()
+        configurationCache.assertStateLoaded()
         outputContains("result = [lib1-2.1.jar]")
 
         where:
@@ -375,36 +375,36 @@ class ConfigurationCacheDependencyResolutionFeaturesIntegrationTest extends Abst
                 inFiles.from(configurations.resolve2)
             }
         """
-        def fixture = newInstantExecutionFixture()
+        def configurationCache = newConfigurationCacheFixture()
 
         when:
-        instantRun("resolve1", "resolve2")
+        configurationCacheRun("resolve1", "resolve2")
 
         then:
-        fixture.assertStateStored()
+        configurationCache.assertStateStored()
         outputContains("result = [lib1-2.1.jar]")
 
         when:
-        instantRun("resolve1", "resolve2")
+        configurationCacheRun("resolve1", "resolve2")
 
         then:
-        fixture.assertStateLoaded()
+        configurationCache.assertStateLoaded()
         outputContains("result = [lib1-2.1.jar]")
 
         when:
         repo.publishWithDifferentDependencies(this)
-        instantRun("resolve1", "resolve2")
+        configurationCacheRun("resolve1", "resolve2")
 
         then:
-        fixture.assertStateStored()
+        configurationCache.assertStateStored()
         outputContains("Calculating task graph as configuration cache cannot be reused because file '${repo.metadataLocation}' has changed.")
         outputContains("result = [lib1-2.1.jar, lib2-4.0.jar]")
 
         when:
-        instantRun("resolve1", "resolve2")
+        configurationCacheRun("resolve1", "resolve2")
 
         then:
-        fixture.assertStateLoaded()
+        configurationCache.assertStateLoaded()
         outputContains("result = [lib1-2.1.jar, lib2-4.0.jar]")
 
         where:
@@ -435,36 +435,36 @@ class ConfigurationCacheDependencyResolutionFeaturesIntegrationTest extends Abst
                 inFiles.from(configurations.resolve2)
             }
         """
-        def fixture = newInstantExecutionFixture()
+        def configurationCache = newConfigurationCacheFixture()
 
         when:
-        instantRun("resolve1", "resolve2")
+        configurationCacheRun("resolve1", "resolve2")
 
         then:
-        fixture.assertStateStored()
+        configurationCache.assertStateStored()
         outputContains("result = [lib1-2.1.jar]")
 
         when:
-        instantRun("resolve1", "resolve2")
+        configurationCacheRun("resolve1", "resolve2")
 
         then:
-        fixture.assertStateLoaded()
+        configurationCache.assertStateLoaded()
         outputContains("result = [lib1-2.1.jar]")
 
         when:
         repo.publishNewVersion(this)
-        instantRun("resolve1", "resolve2")
+        configurationCacheRun("resolve1", "resolve2")
 
         then:
-        fixture.assertStateStored()
+        configurationCache.assertStateStored()
         outputContains("Calculating task graph as configuration cache cannot be reused because file '${repo.versionMetadataLocation}' has changed.")
         outputContains("result = [lib1-2.5.jar, lib2-4.0.jar]")
 
         when:
-        instantRun("resolve1", "resolve2")
+        configurationCacheRun("resolve1", "resolve2")
 
         then:
-        fixture.assertStateLoaded()
+        configurationCache.assertStateLoaded()
         outputContains("result = [lib1-2.5.jar, lib2-4.0.jar]")
 
         where:
@@ -501,7 +501,7 @@ class ConfigurationCacheDependencyResolutionFeaturesIntegrationTest extends Abst
             }
         """
 
-        def fixture = newInstantExecutionFixture()
+        def configurationCache = newConfigurationCacheFixture()
 
         def moduleMetaData = remoteRepo.getModuleMetaData("thing", "lib")
         moduleMetaData.expectGet()
@@ -509,17 +509,17 @@ class ConfigurationCacheDependencyResolutionFeaturesIntegrationTest extends Abst
         v3.artifact.expectGet()
 
         when:
-        instantRun("resolve1")
+        configurationCacheRun("resolve1")
 
         then:
-        fixture.assertStateStored()
+        configurationCache.assertStateStored()
         outputContains("result = [lib-1.3.jar]")
 
         when:
-        instantRun("resolve1")
+        configurationCacheRun("resolve1")
 
         then:
-        fixture.assertStateLoaded()
+        configurationCache.assertStateLoaded()
         outputContains("result = [lib-1.3.jar]")
 
         when:
@@ -535,27 +535,27 @@ class ConfigurationCacheDependencyResolutionFeaturesIntegrationTest extends Abst
         noExceptionThrown()
 
         when:
-        instantRun("resolve1")
+        configurationCacheRun("resolve1")
 
         then:
-        fixture.assertStateStored()
+        configurationCache.assertStateStored()
         def filePath = lockFile.replace('/', File.separator)
         outputContains("Calculating task graph as configuration cache cannot be reused because file '${filePath}' has changed.")
         outputContains("result = [lib-1.4.jar]")
 
         when:
-        instantRun("resolve1")
+        configurationCacheRun("resolve1")
 
         then:
-        fixture.assertStateLoaded()
+        configurationCache.assertStateLoaded()
         outputContains("result = [lib-1.4.jar]")
 
         when:
         file(lockFile).delete()
-        instantRun("resolve1")
+        configurationCacheRun("resolve1")
 
         then:
-        fixture.assertStateStored()
+        configurationCache.assertStateStored()
         outputContains("Calculating task graph as configuration cache cannot be reused because file '${filePath}' has changed.")
         outputContains("result = [lib-1.4.jar]")
 

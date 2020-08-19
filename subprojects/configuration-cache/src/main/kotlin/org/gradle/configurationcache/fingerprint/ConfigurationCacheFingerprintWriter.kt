@@ -111,7 +111,7 @@ class ConfigurationCacheFingerprintWriter(
     }
 
     fun stopCollectingValueSources() {
-        // TODO - this is a temporary step, see the comment in DefaultInstantExecution
+        // TODO - this is a temporary step, see the comment in DefaultConfigurationCache
         ignoreValueSources = true
     }
 

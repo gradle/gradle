@@ -22,7 +22,7 @@ import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Ignore
 
 
-class ConfigurationCacheCacheCleanupIntegrationTest
+class ConfigurationCacheCleanupIntegrationTest
     extends AbstractConfigurationCacheIntegrationTest
     implements FileAccessTimeJournalFixture {
 
@@ -39,7 +39,7 @@ class ConfigurationCacheCacheCleanupIntegrationTest
 
         expect:
         ConcurrentTestUtil.poll(60, 0, 10) {
-            instantRun 'help'
+            configurationCacheRun 'help'
             run '--stop'
             assert !outdated.isDirectory()
         }

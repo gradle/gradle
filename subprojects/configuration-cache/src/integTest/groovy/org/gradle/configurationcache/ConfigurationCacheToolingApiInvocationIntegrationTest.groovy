@@ -42,13 +42,13 @@ class ConfigurationCacheToolingApiInvocationIntegrationTest extends AbstractConf
         """
 
         when:
-        instantRun("assemble")
+        configurationCacheRun("assemble")
 
         then:
         outputContains("Configuration cache is an incubating feature.")
 
         when:
-        instantRun("assemble")
+        configurationCacheRun("assemble")
 
         then:
         outputContains("Configuration cache is an incubating feature.")

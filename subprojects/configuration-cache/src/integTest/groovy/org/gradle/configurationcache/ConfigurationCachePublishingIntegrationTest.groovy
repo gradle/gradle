@@ -107,7 +107,7 @@ class ConfigurationCachePublishingIntegrationTest extends AbstractConfigurationC
                 }
             }
         """
-        def instant = newInstantExecutionFixture()
+        def configurationCache = newConfigurationCacheFixture()
         def metadataFile = file('build/publications/maven/module.json')
         def tasks = [
             'generateMetadataFileForMavenPublication',
@@ -117,10 +117,10 @@ class ConfigurationCachePublishingIntegrationTest extends AbstractConfigurationC
         ]
 
         when:
-        instantRun(*tasks)
+        configurationCacheRun(*tasks)
 
         then:
-        instant.assertStateStored()
+        configurationCache.assertStateStored()
         metadataFile.exists()
 
         when:
@@ -128,10 +128,10 @@ class ConfigurationCachePublishingIntegrationTest extends AbstractConfigurationC
         def storeTimeMetadata = metadataFile.text
         metadataFile.delete()
         deleteDirectory(mavenRepo.rootDir)
-        instantRun(*tasks)
+        configurationCacheRun(*tasks)
 
         then:
-        instant.assertStateLoaded()
+        configurationCache.assertStateLoaded()
         def loadTimeRepo = mavenRepoFiles()
         storeTimeRepo == loadTimeRepo
         def loadTimeMetadata = metadataFile.text

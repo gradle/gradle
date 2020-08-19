@@ -28,28 +28,28 @@ class ConfigurationCacheMultiProjectIntegrationTest extends AbstractConfiguratio
         """
         def a = createDir('a')
         def b = createDir('b')
-        def instantExecution = newInstantExecutionFixture()
+        def configurationCache = newConfigurationCacheFixture()
 
         when:
         inDirectory a
-        instantRun ':ok'
+        configurationCacheRun ':ok'
 
         then:
-        instantExecution.assertStateStored()
+        configurationCache.assertStateStored()
 
         when:
         inDirectory b
-        instantRun ':ok'
+        configurationCacheRun ':ok'
 
         then:
-        instantExecution.assertStateLoaded()
+        configurationCache.assertStateLoaded()
 
         when:
         inDirectory a
-        instantRun ':ok'
+        configurationCacheRun ':ok'
 
         then:
-        instantExecution.assertStateLoaded()
+        configurationCache.assertStateLoaded()
     }
 
     def "reuses cache for relative task invocation from subproject dir"() {
@@ -64,54 +64,54 @@ class ConfigurationCacheMultiProjectIntegrationTest extends AbstractConfiguratio
         """
         def a = createDir('a')
         def b = createDir('b')
-        def instantExecution = newInstantExecutionFixture()
+        def configurationCache = newConfigurationCacheFixture()
 
         when:
         inDirectory testDirectory
-        instantRun 'ok'
+        configurationCacheRun 'ok'
 
         then:
         result.assertTasksExecuted(':ok', ':a:ok', ':b:ok')
-        instantExecution.assertStateStored()
+        configurationCache.assertStateStored()
 
         when:
         inDirectory a
-        instantRun 'ok'
+        configurationCacheRun 'ok'
 
         then:
         result.assertTasksExecuted(':a:ok')
-        instantExecution.assertStateStored()
+        configurationCache.assertStateStored()
 
         when:
         inDirectory b
-        instantRun 'ok'
+        configurationCacheRun 'ok'
 
         then:
         result.assertTasksExecuted(':b:ok')
-        instantExecution.assertStateStored()
+        configurationCache.assertStateStored()
 
         when:
         inDirectory a
-        instantRun 'ok'
+        configurationCacheRun 'ok'
 
         then:
         result.assertTasksExecuted(':a:ok')
-        instantExecution.assertStateLoaded()
+        configurationCache.assertStateLoaded()
 
         when:
         inDirectory b
-        instantRun 'ok'
+        configurationCacheRun 'ok'
 
         then:
         result.assertTasksExecuted(':b:ok')
-        instantExecution.assertStateLoaded()
+        configurationCache.assertStateLoaded()
 
         when:
         inDirectory testDirectory
-        instantRun 'ok'
+        configurationCacheRun 'ok'
 
         then:
         result.assertTasksExecuted(':ok', ':a:ok', ':b:ok')
-        instantExecution.assertStateLoaded()
+        configurationCache.assertStateLoaded()
     }
 }

@@ -55,19 +55,19 @@ class AndroidSantaTrackerKotlinCachingSmokeTest extends AbstractAndroidSantaTrac
         buildLocation(originalDir, agpVersion)
 
         then:
-        assertInstantExecutionStateStored()
+        assertConfigurationCacheStateStored()
 
         when: 'up-to-date build, reusing configuration cache when enabled'
         buildLocation(originalDir, agpVersion)
 
         then:
-        assertInstantExecutionStateLoaded()
+        assertConfigurationCacheStateLoaded()
 
         when: 'clean cached build'
         BuildResult relocatedResult = buildLocation(relocatedDir, agpVersion)
 
         then:
-        assertInstantExecutionStateStored()
+        assertConfigurationCacheStateStored()
 
         and:
         def expectedResults = agpVersion.startsWith('3.6')
@@ -84,7 +84,7 @@ class AndroidSantaTrackerKotlinCachingSmokeTest extends AbstractAndroidSantaTrac
         buildLocation(relocatedDir, agpVersion)
 
         then:
-        assertInstantExecutionStateLoaded()
+        assertConfigurationCacheStateLoaded()
 
         where:
         agpVersion << TESTED_AGP_VERSIONS

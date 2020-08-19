@@ -32,7 +32,7 @@ class KotlinPluginSmokeTest extends AbstractSmokeTest {
 
     // TODO:configuration-cache remove once fixed upstream
     @Override
-    protected int maxInstantExecutionProblems() {
+    protected int maxConfigurationCacheProblems() {
         return 200
     }
 
