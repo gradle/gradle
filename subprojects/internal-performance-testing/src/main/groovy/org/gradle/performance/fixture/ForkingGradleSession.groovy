@@ -79,7 +79,7 @@ class ForkingGradleSession implements GradleSession {
 
     private void run(BuildExperimentInvocationInfo invocationInfo, GradleInvocationSpec invocation, List<String> tasks) {
         String jvmArgs = invocation.jvmOpts.join(' ')
-        Map<String, String> env = [:]
+        Map<String, String> env = [JAVA_OPTS: '-Xmx128m -Xms128m']
         List<String> args = []
         if (OperatingSystem.current().isWindows()) {
             args << "cmd.exe" << "/C"
