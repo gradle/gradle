@@ -51,6 +51,7 @@ public class JavaToolchain implements Describable {
         return new DefaultToolchainJavaLauncher(installation.getJavaExecutable().getAsFile());
     }
 
+    @Internal
     public JavadocTool getJavadocTool() {
         return toolFactory.create(JavadocTool.class, this);
     }
