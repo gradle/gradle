@@ -21,7 +21,7 @@ import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheOp
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ConfigurationCacheRunner
 import org.gradle.integtests.fixtures.RequiredFeature
-import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
+import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.events.FinishEvent
 import org.gradle.tooling.events.OperationCompletionListener
@@ -132,7 +132,7 @@ class BuildEventsIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @RequiredFeature(feature = ConfigurationCacheOption.PROPERTY_NAME, value = "false")
-    @UnsupportedWithInstantExecution
+    @UnsupportedWithConfigurationCache
     def "listener receives task completion events from included builds"() {
         settingsFile << """
             includeBuild 'a'

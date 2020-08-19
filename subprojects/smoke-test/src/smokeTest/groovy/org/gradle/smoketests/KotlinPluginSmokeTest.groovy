@@ -16,7 +16,7 @@
 
 package org.gradle.smoketests
 
-import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
+import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.android.AndroidHome
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.GradleRunner
@@ -28,7 +28,7 @@ import static org.gradle.testkit.runner.TaskOutcome.UP_TO_DATE
 
 class KotlinPluginSmokeTest extends AbstractSmokeTest {
 
-    private static final String NO_INSTANT_EXECUTION_ITERATION_MATCHER = ".*kotlin=1\\.3\\.[2-6].*"
+    private static final String NO_CONFIGURATION_CACHE_ITERATION_MATCHER = ".*kotlin=1\\.3\\.[2-6].*"
 
     // TODO:configuration-cache remove once fixed upstream
     @Override
@@ -37,7 +37,7 @@ class KotlinPluginSmokeTest extends AbstractSmokeTest {
     }
 
     @Unroll
-    @UnsupportedWithInstantExecution(iterationMatchers = NO_INSTANT_EXECUTION_ITERATION_MATCHER)
+    @UnsupportedWithConfigurationCache(iterationMatchers = NO_CONFIGURATION_CACHE_ITERATION_MATCHER)
     def 'kotlin jvm (kotlin=#version, workers=#workers)'() {
         given:
         useSample("kotlin-example")
@@ -69,7 +69,7 @@ class KotlinPluginSmokeTest extends AbstractSmokeTest {
     }
 
     @Unroll
-    @UnsupportedWithInstantExecution(iterationMatchers = [NO_INSTANT_EXECUTION_ITERATION_MATCHER, AGP_3_ITERATION_MATCHER, AGP_4_0_ITERATION_MATCHER])
+    @UnsupportedWithConfigurationCache(iterationMatchers = [NO_CONFIGURATION_CACHE_ITERATION_MATCHER, AGP_3_ITERATION_MATCHER, AGP_4_0_ITERATION_MATCHER])
     def "kotlin android on sample '#sampleName' (kotlin=#kotlinPluginVersion, agp=#androidPluginVersion, workers=#workers)"() {
         given:
         AndroidHome.assertIsSet()
@@ -115,7 +115,7 @@ class KotlinPluginSmokeTest extends AbstractSmokeTest {
     }
 
     @Unroll
-    @UnsupportedWithInstantExecution(iterationMatchers = NO_INSTANT_EXECUTION_ITERATION_MATCHER)
+    @UnsupportedWithConfigurationCache(iterationMatchers = NO_CONFIGURATION_CACHE_ITERATION_MATCHER)
     def 'kotlin javascript (kotlin=#version, workers=#workers)'() {
         given:
         useSample("kotlin-js-sample")
@@ -144,7 +144,7 @@ class KotlinPluginSmokeTest extends AbstractSmokeTest {
     }
 
     @Unroll
-    @UnsupportedWithInstantExecution(iterationMatchers = NO_INSTANT_EXECUTION_ITERATION_MATCHER)
+    @UnsupportedWithConfigurationCache(iterationMatchers = NO_CONFIGURATION_CACHE_ITERATION_MATCHER)
     def 'kotlin jvm and groovy plugins combined (kotlin=#kotlinVersion)'() {
         given:
         buildFile << """

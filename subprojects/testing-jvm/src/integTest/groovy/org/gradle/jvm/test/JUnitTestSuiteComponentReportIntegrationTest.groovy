@@ -17,9 +17,9 @@
 package org.gradle.jvm.test
 
 import org.gradle.api.reporting.components.AbstractComponentReportIntegrationTest
-import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
+import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 
-@UnsupportedWithInstantExecution(because = "software model")
+@UnsupportedWithConfigurationCache(because = "software model")
 class JUnitTestSuiteComponentReportIntegrationTest extends AbstractComponentReportIntegrationTest {
     def setup() {
         buildFile << """

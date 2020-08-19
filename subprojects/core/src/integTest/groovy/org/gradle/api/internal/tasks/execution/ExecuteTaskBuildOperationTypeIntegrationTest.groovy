@@ -19,7 +19,7 @@ package org.gradle.api.internal.tasks.execution
 import org.gradle.api.DefaultTask
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
-import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
+import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 
 class ExecuteTaskBuildOperationTypeIntegrationTest extends AbstractIntegrationSpec {
 
@@ -68,14 +68,14 @@ class ExecuteTaskBuildOperationTypeIntegrationTest extends AbstractIntegrationSp
         op.failure == "org.gradle.api.tasks.TaskExecutionException: Execution failed for task ':t'."
     }
 
-    @UnsupportedWithInstantExecution
+    @UnsupportedWithConfigurationCache
     def "does not emit result for beforeTask failure"() {
         when:
         buildScript """
             task t {
-                doLast {}   
+                doLast {}
             }
-            
+
             gradle.taskGraph.beforeTask {
                 throw new RuntimeException("!")
             }
@@ -91,14 +91,14 @@ class ExecuteTaskBuildOperationTypeIntegrationTest extends AbstractIntegrationSp
         op.failure == "org.gradle.api.tasks.TaskExecutionException: Execution failed for task ':t'."
     }
 
-    @UnsupportedWithInstantExecution
+    @UnsupportedWithConfigurationCache
     def "does emit result for afterTask failure"() {
         when:
         buildScript """
             task t {
-                doLast {}   
+                doLast {}
             }
-            
+
             gradle.taskGraph.afterTask {
                 throw new RuntimeException("!")
             }
@@ -114,16 +114,16 @@ class ExecuteTaskBuildOperationTypeIntegrationTest extends AbstractIntegrationSp
         op.failure == "org.gradle.api.tasks.TaskExecutionException: Execution failed for task ':t'."
     }
 
-    @UnsupportedWithInstantExecution
+    @UnsupportedWithConfigurationCache
     def "afterTask failure is included with task failure"() {
         when:
         buildScript """
             task t {
                 doLast {
                     throw new RuntimeException("!")
-                }   
+                }
             }
-            
+
             gradle.taskGraph.afterTask {
                 throw new RuntimeException("2")
             }

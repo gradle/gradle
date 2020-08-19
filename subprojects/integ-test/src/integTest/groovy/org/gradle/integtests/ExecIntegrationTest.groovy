@@ -19,7 +19,7 @@ package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestResources
-import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
+import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.junit.Rule
 import spock.lang.Issue
 import spock.lang.Unroll
@@ -29,7 +29,7 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
     public final TestResources testResources = new TestResources(testDirectoryProvider)
 
     @Unroll
-    @UnsupportedWithInstantExecution(iterationMatchers = ".*javaexecProjectMethod")
+    @UnsupportedWithConfigurationCache(iterationMatchers = ".*javaexecProjectMethod")
     def 'can execute java with #task'() {
         given:
         buildFile << """
@@ -87,7 +87,7 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Unroll
-    @UnsupportedWithInstantExecution(iterationMatchers = ".*execProjectMethod")
+    @UnsupportedWithConfigurationCache(iterationMatchers = ".*execProjectMethod")
     def 'can execute commands with #task'() {
         given:
         buildFile << """
@@ -267,7 +267,7 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Unroll
-    @UnsupportedWithInstantExecution(iterationMatchers = [".*Task", ".*ProjectMethod"])
+    @UnsupportedWithConfigurationCache(iterationMatchers = [".*Task", ".*ProjectMethod"])
     def "can capture output of #task"() {
 
         given:

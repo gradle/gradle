@@ -42,7 +42,7 @@ class ToBeFixedForConfigurationCacheRule implements TestRule {
             if (skip == ToBeFixedForConfigurationCache.Skip.DO_NOT_SKIP) {
                 return new ExpectingFailureRuleStatement(base)
             } else {
-                return new UnsupportedWithInstantExecutionRule.SkippingRuleStatement(base)
+                return new UnsupportedWithConfigurationCacheRule.SkippingRuleStatement(base)
             }
         }
         return base
@@ -64,7 +64,7 @@ class ToBeFixedForConfigurationCacheRule implements TestRule {
             } catch (ToBeFixedForConfigurationCacheExtension.UnexpectedSuccessException ex) {
                 throw ex
             } catch (Throwable ex) {
-                System.err.println("Failed with instant execution as expected:")
+                System.err.println("Failed with configuration cache as expected:")
                 ex.printStackTrace()
             }
         }

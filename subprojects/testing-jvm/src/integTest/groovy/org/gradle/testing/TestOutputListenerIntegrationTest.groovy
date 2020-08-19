@@ -17,7 +17,7 @@ package org.gradle.testing
 
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.TestResources
-import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
+import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.testing.fixture.JUnitMultiVersionIntegrationSpec
 import org.junit.Before
 import org.junit.Rule
@@ -99,7 +99,7 @@ class RemoveMeListener implements TestOutputListener {
     }
 
     @Test
-    @UnsupportedWithInstantExecution
+    @UnsupportedWithConfigurationCache
     def "can register output listener at gradle level and using onOutput method"() {
         given:
         def test = file("src/test/java/SomeTest.java")

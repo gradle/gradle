@@ -17,10 +17,10 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
+import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 
 
-@UnsupportedWithInstantExecution
+@UnsupportedWithConfigurationCache
 class TaskEventsErrorIntegrationTest extends AbstractIntegrationSpec {
     def "reports task as failed when beforeTask closure fails"() {
         when:

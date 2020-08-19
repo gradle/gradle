@@ -26,11 +26,11 @@ import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCacheExten
 import static org.junit.Assume.assumeFalse
 
 
-class UnsupportedWithInstantExecutionRule implements TestRule {
+class UnsupportedWithConfigurationCacheRule implements TestRule {
 
     @Override
     Statement apply(Statement base, Description description) {
-        def annotation = description.getAnnotation(UnsupportedWithInstantExecution.class)
+        def annotation = description.getAnnotation(UnsupportedWithConfigurationCache.class)
         if (GradleContextualExecuter.isNotInstant() || annotation == null) {
             return base
         }

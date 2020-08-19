@@ -18,7 +18,7 @@ package org.gradle.integtests.resolve.verification
 
 import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
+import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.security.fixtures.KeyServer
 import org.gradle.security.fixtures.SigningFixtures
 import org.gradle.security.internal.Fingerprint
@@ -1343,7 +1343,7 @@ If the artifacts are trustworthy, you will need to update the gradle/verificatio
     }
 
     @Unroll
-    @UnsupportedWithInstantExecution
+    @UnsupportedWithConfigurationCache
     def "can verify dependencies in a buildFinished hook (terse output=#terse)"() {
         createMetadataFile {
             keyServer(keyServerFixture.uri)

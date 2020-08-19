@@ -25,7 +25,7 @@ import org.gradle.util.GradleVersion
 
 class ConfigurationCacheGradleExecuter extends DaemonGradleExecuter {
 
-    static final List<String> INSTANT_EXECUTION_ARGS = [
+    static final List<String> CONFIGURATION_CACHE_ARGS = [
         "--${ConfigurationCacheOption.LONG_OPTION}",
         "-D${ConfigurationCacheQuietOption.PROPERTY_NAME}=true",
         "-D${ConfigurationCacheMaxProblemsOption.PROPERTY_NAME}=0"
@@ -42,6 +42,6 @@ class ConfigurationCacheGradleExecuter extends DaemonGradleExecuter {
 
     @Override
     protected List<String> getAllArgs() {
-        return super.getAllArgs() + INSTANT_EXECUTION_ARGS
+        return super.getAllArgs() + CONFIGURATION_CACHE_ARGS
     }
 }

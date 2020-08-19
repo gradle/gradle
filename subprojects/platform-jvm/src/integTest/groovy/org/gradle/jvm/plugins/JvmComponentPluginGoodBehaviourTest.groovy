@@ -16,10 +16,10 @@
 
 package org.gradle.jvm.plugins
 
-import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
+import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
 
-@UnsupportedWithInstantExecution(because = "software model")
+@UnsupportedWithConfigurationCache(because = "software model")
 class JvmComponentPluginGoodBehaviourTest extends WellBehavedPluginTest {
 
     def setup() {

@@ -26,13 +26,13 @@ import java.lang.annotation.Target;
 
 
 /**
- * Denotes a test that is unsupported with instant execution.
+ * Denotes a test that is unsupported with configuration cache.
  * The annotated test will be skipped by the {@link ConfigurationCacheGradleExecuter}.
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.TYPE, ElementType.METHOD})
-@ExtensionAnnotation(UnsupportedWithInstantExecutionExtension.class)
-public @interface UnsupportedWithInstantExecution {
+@ExtensionAnnotation(UnsupportedWithConfigurationCacheExtension.class)
+public @interface UnsupportedWithConfigurationCache {
 
     String because() default "";
 

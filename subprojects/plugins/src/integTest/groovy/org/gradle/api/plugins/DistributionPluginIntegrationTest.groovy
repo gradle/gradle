@@ -16,7 +16,7 @@
 
 package org.gradle.api.plugins
 
-import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
+import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
 import org.gradle.integtests.fixtures.archives.TestReproducibleArchives
 import org.gradle.test.fixtures.archive.TarTestFixture
@@ -56,7 +56,7 @@ class DistributionPluginIntegrationTest extends WellBehavedPluginTest {
         file("unzip/TestProject-custom/someFile").assertIsFile()
     }
 
-    @UnsupportedWithInstantExecution(because = "uploadArchives")
+    @UnsupportedWithConfigurationCache(because = "uploadArchives")
     def "can publish distribution"() {
         when:
         buildFile << """
