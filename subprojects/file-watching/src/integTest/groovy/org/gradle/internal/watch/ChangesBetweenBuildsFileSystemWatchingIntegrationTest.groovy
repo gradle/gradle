@@ -25,7 +25,7 @@ class ChangesBetweenBuildsFileSystemWatchingIntegrationTest extends AbstractFile
         buildFile << """
             apply plugin: "application"
 
-            application.mainClassName = "Main"
+            application.mainClass = "Main"
         """
 
         def mainSourceFileRelativePath = "src/main/java/Main.java"
@@ -126,7 +126,7 @@ class ChangesBetweenBuildsFileSystemWatchingIntegrationTest extends AbstractFile
         buildFile << """
             apply plugin: "application"
 
-            application.mainClassName = "Main"
+            application.mainClass = "Main"
         """
 
         def mainSourceFile = file("src/main/java/Main.java")
@@ -150,7 +150,7 @@ class ChangesBetweenBuildsFileSystemWatchingIntegrationTest extends AbstractFile
         buildFile << """
             apply plugin: "application"
 
-            application.mainClassName = "Main"
+            application.mainClass = "Main"
         """
 
         def mainSourceFile = file("src/main/java/Main.java")

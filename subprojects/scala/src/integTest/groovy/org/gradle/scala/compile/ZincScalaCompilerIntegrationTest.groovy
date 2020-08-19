@@ -207,7 +207,7 @@ compileScala.scalaCompileOptions.failOnError = false
         buildFile <<
             """
 apply plugin: "application"
-mainClassName = "Main"
+application.mainClass = "Main"
 compileScala.scalaCompileOptions.encoding = "ISO8859_7"
 """
 

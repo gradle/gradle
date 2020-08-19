@@ -33,7 +33,9 @@ class CachedGroovyCompileIntegrationTest extends AbstractCachedCompileIntegratio
                 id 'application'
             }
 
-            mainClassName = "Hello"
+            application {
+                mainClass = "Hello"
+            }
 
             ${mavenCentralRepository()}
 

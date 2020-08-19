@@ -92,7 +92,9 @@ class CompositeContinuousBuildIntegrationTest extends AbstractContinuousIntegrat
             apply plugin: 'java'
             apply plugin: 'application'
             group = 'com.example'
-            mainClassName = 'com.example.Main'
+            application {
+                mainClass = 'com.example.Main'
+            }
             dependencies {
                 implementation 'org.test:library:0.1'
             }
@@ -212,7 +214,9 @@ class CompositeContinuousBuildIntegrationTest extends AbstractContinuousIntegrat
                 apply plugin: 'java'
                 apply plugin: 'application'
                 group = 'com.example'
-                mainClassName = 'com.example.' + name + '.Main'
+                application {
+                   mainClass = 'com.example.' + name + '.Main'
+                }
                 dependencies {
                     implementation 'org.test:library:0.1'
                 }

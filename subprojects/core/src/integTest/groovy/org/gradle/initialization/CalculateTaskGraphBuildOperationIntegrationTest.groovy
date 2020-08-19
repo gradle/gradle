@@ -272,7 +272,7 @@ class CalculateTaskGraphBuildOperationIntegrationTest extends AbstractIntegratio
 
             application {
                 // Define the main class for the application.
-                mainClassName = 'artifact.transform.sample.App'
+                mainClass = 'artifact.transform.sample.App'
             }
 
             abstract class SomeTransform implements TransformAction<TransformParameters.None> {

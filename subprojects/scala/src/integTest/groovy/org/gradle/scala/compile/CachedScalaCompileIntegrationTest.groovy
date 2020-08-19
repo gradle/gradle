@@ -35,7 +35,7 @@ class CachedScalaCompileIntegrationTest extends AbstractCachedCompileIntegration
                 id 'application'
             }
 
-            mainClassName = "Hello"
+            application.mainClass = "Hello"
 
             ${mavenCentralRepository()}
 

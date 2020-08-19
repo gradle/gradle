@@ -460,7 +460,7 @@ class ConfigurationCacheJavaIntegrationTest extends AbstractConfigurationCacheIn
         """
         buildFile << """
             plugins { id 'application' }
-            application.mainClassName = 'Thing'
+            application.mainClass = 'Thing'
         """
         file("src/main/java/Thing.java") << """
             class Thing {

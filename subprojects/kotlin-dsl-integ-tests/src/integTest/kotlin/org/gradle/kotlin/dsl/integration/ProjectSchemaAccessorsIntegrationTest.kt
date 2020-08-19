@@ -548,10 +548,10 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
         withBuildScript("""
             plugins { application }
 
-            application { mainClassName = "App" }
+            application { mainClass.set("App") }
 
             task("mainClassName") {
-                doLast { println("*" + application.mainClassName + "*") }
+                doLast { println("*" + application.mainClass.get() + "*") }
             }
         """)
 
