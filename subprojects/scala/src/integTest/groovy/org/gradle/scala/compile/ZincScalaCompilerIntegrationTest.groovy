@@ -452,6 +452,35 @@ class Person(val name: String, val age: Int) {
         result.assertHasErrorOutput("object xml is not a member of package scala")
     }
 
+    @Issue("gradle/gradle#14168")
+    def doNotPropagateZincDependenciesToCompilationClasspath() {
+        // InternalOneOfEnum is not resolved when compiled with protobuf-java:3.7.0 which is zinc:1.3.5 dependency
+        given:
+        file("build.gradle") << """
+            apply plugin: 'scala'
+
+            ${mavenCentralRepository()}
+
+            dependencies {
+                implementation "org.scala-lang:scala-library:$version"
+                implementation 'com.google.protobuf:protobuf-java:3.12.4'
+            }
+
+            scala {
+                zincVersion = "1.3.5"
+            }
+        """
+
+        file("src/main/scala/compile/test/ProtobufJava.scala") << """
+            import com.google.protobuf.AbstractMessageLite.InternalOneOfEnum
+
+            object ProtobufJava {}
+        """
+
+        expect:
+        succeeds("compileScala")
+    }
+
     def classHash(File file) {
         def dir = file.parentFile
         def name = file.name - '.class'
