@@ -1,1 +1,1 @@
-rootProject.name = "custom-plugin"
+rootProject.name = "plugin"

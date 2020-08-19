@@ -171,8 +171,8 @@ Here is a simple build script for the project.
 
 .A build for a custom plugin
 ====
-include::sample[dir="snippets/plugins/customPlugin/groovy/javaGradlePlugin",files="build.gradle[tags=use-and-configure-plugin]"]
-include::sample[dir="snippets/plugins/customPlugin/kotlin/javaGradlePlugin",files="build.gradle.kts[tags=use-and-configure-plugin]"]
+include::sample[dir="snippets/plugins/customPlugin/groovy/java-gradle-plugin",files="build.gradle[tags=use-and-configure-plugin]"]
+include::sample[dir="snippets/plugins/customPlugin/kotlin/java-gradle-plugin",files="build.gradle.kts[tags=use-and-configure-plugin]"]
 ====
 
 [[sec:creating_a_plugin_id]]
