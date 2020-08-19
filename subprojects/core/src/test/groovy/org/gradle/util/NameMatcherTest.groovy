@@ -119,6 +119,12 @@ class NameMatcherTest extends Specification {
         matches("s_n", "some_name", "some_name_with_extra")
     }
 
+    def "prefers full kebab case match over kebab case prefix"() {
+        expect:
+        matches("sN", "some-name", "some-name-with-extra")
+        matches("name", "names", "name-with-extra")
+    }
+
     def "prefers case sensitive camel case match over case insensitive camel case match"() {
         expect:
         matches("soNa", "someName", "somename")
@@ -150,8 +156,8 @@ class NameMatcherTest extends Specification {
 
     def "does not select items when multiple kebab case matches"() {
         expect:
-        matcher.find("sN", ["some-name", "some-name-with-extra", "other"]) == null
-        matcher.matches == ["some-name", "some-name-with-extra"] as Set
+        matcher.find("sN", ["some-name", "some-number", "other"]) == null
+        matcher.matches == ["some-name", "some-number"] as Set
     }
 
     def "does not select items when multiple mixed camel and kebab case matches"() {

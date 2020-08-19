@@ -73,11 +73,13 @@ public class NameMatcher {
         Pattern normalisedCamelCasePattern = Pattern.compile(camelCasePattern.pattern(), Pattern.CASE_INSENSITIVE);
         String normalisedPattern = pattern.toUpperCase();
         Pattern kebabCasePattern = getKebabCasePatternForName(pattern);
+        Pattern kebabCasePrefixPattern = Pattern.compile(kebabCasePattern.pattern() + "[\\p{javaLowerCase}\\p{Digit}-]*");
 
         Set<String> caseInsensitiveMatches = new TreeSet<>();
         Set<String> caseSensitiveCamelCaseMatches = new TreeSet<>();
         Set<String> caseInsensitiveCamelCaseMatches = new TreeSet<>();
         Set<String> kebabCaseMatches = new TreeSet<>();
+        Set<String> kebabCasePrefixMatches = new TreeSet<>();
 
         for (String candidate : items) {
             if (candidate.equalsIgnoreCase(pattern)) {
@@ -95,6 +97,10 @@ public class NameMatcher {
                 kebabCaseMatches.add(candidate);
                 continue;
             }
+            if (kebabCasePrefixPattern.matcher(candidate).matches()) {
+                kebabCasePrefixMatches.add(candidate);
+                continue;
+            }
             if (StringUtils.getLevenshteinDistance(normalisedPattern, candidate.toUpperCase()) <= Math.min(3, pattern.length() / 2)) {
                 candidates.add(candidate);
             }
@@ -110,6 +116,8 @@ public class NameMatcher {
 
         if (!kebabCaseMatches.isEmpty()) {
             matches.addAll(kebabCaseMatches);
+        } else if (!kebabCasePrefixMatches.isEmpty()) {
+            matches.addAll(kebabCasePrefixMatches);
         }
 
         if (matches.size() == 1) {
@@ -155,7 +163,6 @@ public class NameMatcher {
             pos = matcher.end();
         }
         builder.append(Pattern.quote(name.substring(pos)));
-        builder.append("[\\p{javaLowerCase}\\p{Digit}-]*");
         return Pattern.compile(builder.toString());
     }
 
