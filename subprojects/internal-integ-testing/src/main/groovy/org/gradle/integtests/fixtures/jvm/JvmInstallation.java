@@ -17,7 +17,6 @@
 package org.gradle.integtests.fixtures.jvm;
 
 import org.gradle.api.JavaVersion;
-import org.gradle.util.VersionNumber;
 
 import java.io.File;
 
@@ -25,37 +24,24 @@ import java.io.File;
  * Should be synced with {@link org.gradle.internal.jvm.Jvm}.
  */
 public class JvmInstallation {
-    public enum Arch { i386, x86_64, Unknown }
 
     private final JavaVersion javaVersion;
-    private final VersionNumber version;
     private final File javaHome;
     private final boolean jdk;
-    private final Arch arch;
 
-    public JvmInstallation(JavaVersion javaVersion, String version, File javaHome, boolean jdk, Arch arch) {
+    public JvmInstallation(JavaVersion javaVersion, File javaHome, boolean jdk) {
         this.javaVersion = javaVersion;
-        this.version = VersionNumber.withPatchNumber().parse(version);
         this.javaHome = javaHome;
         this.jdk = jdk;
-        this.arch = arch;
     }
 
     @Override
     public String toString() {
-        return String.format("%s %s (%s) %s %s", jdk ? "JDK" : "JRE", javaVersion, version, arch, javaHome);
-    }
-
-    public Arch getArch() {
-        return arch;
+        return String.format("%s %s %s", jdk ? "JDK" : "JRE", javaVersion, javaHome);
     }
 
     public boolean isJdk() {
         return jdk;
-    }
-
-    public VersionNumber getVersion() {
-        return version;
     }
 
     public JavaVersion getJavaVersion() {
