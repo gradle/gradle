@@ -17,13 +17,13 @@
 package org.gradle.integtests.resolve.caching
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import spock.lang.IgnoreIf
 
 class CachedMissingModulesIntegrationTest extends AbstractHttpDependencyResolutionTest {
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "caches missing module when module found in another repository"() {
         given:
         def repo1 = ivyHttpRepo("repo1")
@@ -58,7 +58,7 @@ task showMissing { doLast { println configurations.missing.files } }
         succeeds('showMissing')
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "caches missing changing module when module found in another repository"() {
         given:
         def repo1 = ivyHttpRepo("repo1")
@@ -100,7 +100,7 @@ task showMissing { doLast { println configurations.missing.files } }
         succeeds('showMissing')
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "checks for missing modules in each repository when run with --refresh-dependencies"() {
         given:
         def repo1 = ivyHttpRepo("repo1")
@@ -145,7 +145,7 @@ task showMissing { doLast { println configurations.missing.files } }
         succeeds("showMissing")
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "cached empty version list is ignored when no module for dynamic version is available in any repo"() {
         given:
         def repo1 = mavenHttpRepo("repo1")
@@ -236,7 +236,7 @@ Required by:
         run 'retrieve'
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "previously cached empty version list is ignored when no result can be found"() {
         given:
         def repo1 = mavenHttpRepo("repo1")
@@ -366,7 +366,7 @@ Required by:
 
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "cached missing module is ignored if module is not available in any repo"() {
         given:
         def repo1 = mavenHttpRepo("repo1")
@@ -445,7 +445,7 @@ Required by:
         run 'retrieve'
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "cached missing module is ignored when no module for dynamic version is available in any repo"() {
         given:
         def repo1 = mavenHttpRepo("repo1")

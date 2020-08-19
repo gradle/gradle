@@ -16,7 +16,7 @@
 
 package org.gradle.nativeplatform.test.cpp.plugins
 
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
 class CppUnitTestWithoutComponentIntegrationTest extends AbstractCppUnitTestIntegrationTest {
     @Override
@@ -57,7 +57,7 @@ class CppUnitTestWithoutComponentIntegrationTest extends AbstractCppUnitTestInte
         // Ok
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "test fails when test executable returns non-zero status"() {
         buildFile << """
             apply plugin: 'cpp-unit-test'

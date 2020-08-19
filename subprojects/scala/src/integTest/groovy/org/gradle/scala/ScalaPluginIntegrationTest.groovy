@@ -16,7 +16,7 @@
 package org.gradle.scala
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.language.scala.internal.toolchain.DefaultScalaToolProvider
 import spock.lang.Issue
 
@@ -193,7 +193,7 @@ task someTask
     }
 
     @Issue("https://github.com/gradle/gradle/issues/6849")
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can publish test-only projects"() {
         using m2
         settingsFile << """
@@ -218,7 +218,7 @@ task someTask
         succeeds("install")
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "forcing an incompatible version of Scala fails with a clear error message"() {
         settingsFile << """
             rootProject.name = "scala"
@@ -247,7 +247,7 @@ task someTask
             " Version 2.10.7 is not compatible with org.scala-sbt:zinc_2.12:" + DefaultScalaToolProvider.DEFAULT_ZINC_VERSION)
     }
 
-    @ToBeFixedForInstantExecution(because = ":dependencyInsight")
+    @ToBeFixedForConfigurationCache(because = ":dependencyInsight")
     def "trying to use an old version of Zinc switches to Gradle-supported version"() {
         settingsFile << """
             rootProject.name = "scala"

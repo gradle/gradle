@@ -16,13 +16,13 @@
 
 package org.gradle.plugins.signing
 
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import spock.lang.Issue
 
 class SigningDistributionsIntegrationSpec extends SigningIntegrationSpec {
 
     @Issue("https://github.com/gradle/gradle/issues/7580")
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can sign a distribution zip when distribution plugin is applied after signing is configured"() {
         given:
         buildFile << """
@@ -30,7 +30,7 @@ class SigningDistributionsIntegrationSpec extends SigningIntegrationSpec {
                 ${signingConfiguration()}
                 sign configurations.archives
             }
-            
+
             apply plugin: "distribution"
 
             distributions {

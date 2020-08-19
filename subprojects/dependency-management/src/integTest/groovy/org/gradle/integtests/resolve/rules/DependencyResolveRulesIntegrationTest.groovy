@@ -18,7 +18,7 @@
 package org.gradle.integtests.resolve.rules
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.FluidDependenciesResolveRunner
 import org.junit.runner.RunWith
 
@@ -660,7 +660,7 @@ Required by:
         failure.assertHasCause("Unhappy :(")
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     void "can substitute module name and resolve conflict"()
     {
         mavenRepo.module("org.utils", "a",  '1.2').publish()
@@ -703,7 +703,7 @@ Required by:
 \\--- org.utils:b:2.0 -> 2.1"""
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can substitute module group"()
     {
         mavenRepo.module("org", "a", "1.0").publish()
@@ -738,7 +738,7 @@ Required by:
      \\--- org:a:2.0 (*)"""
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can substitute module group, name and version"()
     {
         mavenRepo.module("org", "a", "1.0").publish()
@@ -773,7 +773,7 @@ Required by:
      \\--- org:a:2.0 (*)"""
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "provides decent feedback when target module incorrectly specified"()
     {
         buildFile << """
@@ -797,7 +797,7 @@ Required by:
         failure.assertHasCause("Invalid format: 'foobar'")
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "substituted module version participates in conflict resolution"()
     {
         mavenRepo.module("org", "a", "2.0").dependsOn("org", "b", "2.0").publish()

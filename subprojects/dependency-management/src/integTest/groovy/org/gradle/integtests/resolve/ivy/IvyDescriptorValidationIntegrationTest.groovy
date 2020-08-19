@@ -16,12 +16,12 @@
 package org.gradle.integtests.resolve.ivy
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
 import static org.hamcrest.CoreMatchers.containsString
 
 class IvyDescriptorValidationIntegrationTest extends AbstractDependencyResolutionTest {
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "incorrect value for revision attribute is flagged"() {
         given:
         buildFile << """

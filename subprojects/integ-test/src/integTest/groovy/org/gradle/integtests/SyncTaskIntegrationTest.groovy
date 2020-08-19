@@ -17,7 +17,7 @@ package org.gradle.integtests
 
 import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -339,7 +339,7 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec {
         !file('dest/extraDir/extra2.txt').exists()
     }
 
-    @ToBeFixedForInstantExecution(because = "Task.getProject() during execution")
+    @ToBeFixedForConfigurationCache(because = "Task.getProject() during execution")
     def "sync single files"() {
         given:
         file('source').create {
@@ -372,7 +372,7 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Requires(TestPrecondition.WINDOWS)
-    @ToBeFixedForInstantExecution(because = "Task.getProject() during execution")
+    @ToBeFixedForConfigurationCache(because = "Task.getProject() during execution")
     def "sync fails when unable to clean-up files"() {
         given:
         file('source').create {
@@ -402,7 +402,7 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec {
         ins.close()
     }
 
-    @ToBeFixedForInstantExecution(because = """
+    @ToBeFixedForConfigurationCache(because = """
         `ProviderBackedFileCollection#visitChildren` evaluates the provider after `stopCollectingValueSources()` thus
         the system property below is not captured in the fingerprint.
         There are two possible solutions:
@@ -440,7 +440,7 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FLAKY)
+    @ToBeFixedForConfigurationCache(skip = ToBeFixedForConfigurationCache.Skip.FLAKY)
     @Issue("https://github.com/gradle/gradle/issues/9586")
     def "change in case of input folder will sync properly"() {
         given:
@@ -483,7 +483,7 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec {
         )
     }
 
-    @ToBeFixedForInstantExecution(because = "Task.getProject() during execution")
+    @ToBeFixedForConfigurationCache(because = "Task.getProject() during execution")
     def "sync from file tree"() {
         given:
         file('source').create {
@@ -521,7 +521,7 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec {
         !file('dest/dir2/extra3.txt').exists()
     }
 
-    @ToBeFixedForInstantExecution(because = "Task.getProject() during execution")
+    @ToBeFixedForConfigurationCache(because = "Task.getProject() during execution")
     def "sync from file collection"() {
         given:
         file('source').create {
@@ -561,7 +561,7 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec {
         !file('dest/dir2/extra3.txt').exists()
     }
 
-    @ToBeFixedForInstantExecution(because = "Task.getProject() during execution")
+    @ToBeFixedForConfigurationCache(because = "Task.getProject() during execution")
     def "sync from composite file collection"() {
         given:
         file('source').create {

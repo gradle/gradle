@@ -16,7 +16,7 @@
 
 package org.gradle.internal.logging.console.taskgrouping
 
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.console.AbstractConsoleGroupedTaskFunctionalTest
 
 
@@ -25,11 +25,11 @@ abstract class AbstractLoggingHooksFunctionalTest extends AbstractConsoleGrouped
         buildFile << """
             class CollectingListener implements StandardOutputListener {
                 def result = new StringBuilder()
-                
+
                 String toString() {
                     return result.toString()
                 }
-                
+
                 void onOutput(CharSequence output) {
                     result.append(output)
                 }
@@ -37,31 +37,31 @@ abstract class AbstractLoggingHooksFunctionalTest extends AbstractConsoleGrouped
         """
     }
 
-    @ToBeFixedForInstantExecution(because = "Gradle.buildFinished")
+    @ToBeFixedForConfigurationCache(because = "Gradle.buildFinished")
     def "listener added to script receives output synchronously and only while script is running"() {
         buildFile << """
-            System.out.println "before" 
-            System.err.println "before" 
+            System.out.println "before"
+            System.err.println "before"
 
             def output = new CollectingListener()
             def error = new CollectingListener()
-            logging.addStandardOutputListener(output)            
-            logging.addStandardErrorListener(error)            
+            logging.addStandardOutputListener(output)
+            logging.addStandardErrorListener(error)
 
-            System.out.println "output 1" 
+            System.out.println "output 1"
             assert output.toString().readLines() == ["output 1"]
-            System.err.println "error 1" 
+            System.err.println "error 1"
             assert error.toString().readLines() == ["error 1"]
-            
+
             task log {
                 doLast {
                     System.out.println "output 2"
                     assert output.toString().readLines() == ["output 1"]
-                    System.err.println "error 2" 
+                    System.err.println "error 2"
                     assert error.toString().readLines() == ["error 1"]
                 }
             }
-            
+
             gradle.buildFinished {
                 println "finished"
                 assert output.toString().readLines() == ["output 1"]
@@ -73,21 +73,21 @@ abstract class AbstractLoggingHooksFunctionalTest extends AbstractConsoleGrouped
         succeeds("log")
     }
 
-    @ToBeFixedForInstantExecution(because = "Gradle.buildFinished")
+    @ToBeFixedForConfigurationCache(because = "Gradle.buildFinished")
     def "listener added to task receives output synchronously and only while the task is running"() {
         buildFile << """
             def output = new CollectingListener()
             def error = new CollectingListener()
             def after = new CollectingListener()
             def before = new CollectingListener()
-            
+
             task log {
                 doLast {
                     logging.addStandardOutputListener(output)
                     logging.addStandardErrorListener(error)
                     System.out.println "output"
                     assert output.toString().readLines() == [":log", "output"]
-                    System.err.println "error" 
+                    System.err.println "error"
                     assert error.toString().readLines() == ["error"]
                 }
             }
@@ -95,8 +95,8 @@ abstract class AbstractLoggingHooksFunctionalTest extends AbstractConsoleGrouped
             // Listener added before
             log.logging.addStandardOutputListener(before)
             log.logging.addStandardErrorListener(before)
-            System.out.println "ignore" 
-            System.err.println "ignore" 
+            System.out.println "ignore"
+            System.err.println "ignore"
 
             task other {
                 dependsOn log
@@ -104,11 +104,11 @@ abstract class AbstractLoggingHooksFunctionalTest extends AbstractConsoleGrouped
                     // Listener added after
                     log.logging.addStandardOutputListener(after)
                     log.logging.addStandardErrorListener(after)
-                    System.out.println "ignore" 
-                    System.err.println "ignore" 
+                    System.out.println "ignore"
+                    System.err.println "ignore"
                 }
             }
-            
+
             gradle.buildFinished {
                 log.logging.addStandardOutputListener(after)
                 log.logging.addStandardErrorListener(after)
@@ -124,11 +124,11 @@ abstract class AbstractLoggingHooksFunctionalTest extends AbstractConsoleGrouped
         succeeds("log", "other")
     }
 
-    @ToBeFixedForInstantExecution(because = "Gradle.buildFinished")
+    @ToBeFixedForConfigurationCache(because = "Gradle.buildFinished")
     def "listener added to task receives logging for log level"() {
         buildFile << """
             def output = new CollectingListener()
-            
+
             task log {
                 doLast {
                     logging.addStandardOutputListener(output)
@@ -138,11 +138,11 @@ abstract class AbstractLoggingHooksFunctionalTest extends AbstractConsoleGrouped
                     logger.lifecycle("lifecycle")
                     logger.warn("warn")
                     logger.error("error")
-                    System.out.println "System.out" 
-                    System.err.println "System.err" 
+                    System.out.println "System.out"
+                    System.err.println "System.err"
                 }
             }
-            
+
             gradle.buildFinished {
                 file("output.txt").text = output.toString()
             }
@@ -248,21 +248,21 @@ abstract class AbstractLoggingHooksFunctionalTest extends AbstractConsoleGrouped
             task brokenOut {
                 doLast {
                     logging.addStandardOutputListener(output)
-                    System.out.println "output 1" 
+                    System.out.println "output 1"
                     assert false // should not get here
                 }
             }
             task brokenErr {
                 doLast {
                     logging.addStandardErrorListener(error)
-                    System.err.println "error 1" 
+                    System.err.println "error 1"
                     assert false // should not get here
                 }
             }
             task ok {
                 doLast {
-                    System.out.println "output 2" 
-                    System.err.println "error 2" 
+                    System.out.println "output 2"
+                    System.err.println "error 2"
                 }
             }
         """

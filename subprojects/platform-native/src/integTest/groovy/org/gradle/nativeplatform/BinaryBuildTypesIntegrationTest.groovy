@@ -15,7 +15,7 @@
  */
 package org.gradle.nativeplatform
 
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.NativePlatformsTestFixture
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
@@ -26,7 +26,7 @@ import org.gradle.util.TestPrecondition
 class BinaryBuildTypesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     def helloWorldApp = new CppHelloWorldApp()
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "creates debug and release variants"() {
         when:
         helloWorldApp.writeSources(file("src/main"))
@@ -89,7 +89,7 @@ model {
         }
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "configure component for a single build type"() {
         when:
         helloWorldApp.writeSources(file("src/main"))
@@ -123,7 +123,7 @@ model {
     }
 
     @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "executable with build type depends on library with matching build type"() {
         when:
         helloWorldApp.executable.writeSources(file("src/main"))

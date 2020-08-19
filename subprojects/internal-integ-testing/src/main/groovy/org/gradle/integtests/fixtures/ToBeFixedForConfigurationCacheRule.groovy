@@ -21,25 +21,25 @@ import org.junit.rules.TestRule
 import org.junit.runner.Description
 import org.junit.runners.model.Statement
 
-import static org.gradle.integtests.fixtures.ToBeFixedForInstantExecutionExtension.isEnabledBottomSpec
-import static org.gradle.integtests.fixtures.ToBeFixedForInstantExecutionExtension.iterationMatches
+import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCacheExtension.isEnabledBottomSpec
+import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCacheExtension.iterationMatches
 
 /**
- * JUnit Rule supporting the {@link ToBeFixedForInstantExecution} annotation.
+ * JUnit Rule supporting the {@link ToBeFixedForConfigurationCache} annotation.
  */
-class ToBeFixedForInstantExecutionRule implements TestRule {
+class ToBeFixedForConfigurationCacheRule implements TestRule {
 
     @Override
     Statement apply(Statement base, Description description) {
-        def annotation = description.getAnnotation(ToBeFixedForInstantExecution.class)
+        def annotation = description.getAnnotation(ToBeFixedForConfigurationCache.class)
         if (GradleContextualExecuter.isNotInstant() || annotation == null) {
             return base
         }
         def enabledBottomSpec = isEnabledBottomSpec(annotation.bottomSpecs(), { description.className.endsWith(".$it") })
         def enabledIteration = iterationMatches(annotation.iterationMatchers(), description.methodName)
         if (enabledBottomSpec && enabledIteration) {
-            ToBeFixedForInstantExecution.Skip skip = annotation.skip()
-            if (skip == ToBeFixedForInstantExecution.Skip.DO_NOT_SKIP) {
+            ToBeFixedForConfigurationCache.Skip skip = annotation.skip()
+            if (skip == ToBeFixedForConfigurationCache.Skip.DO_NOT_SKIP) {
                 return new ExpectingFailureRuleStatement(base)
             } else {
                 return new UnsupportedWithInstantExecutionRule.SkippingRuleStatement(base)
@@ -60,8 +60,8 @@ class ToBeFixedForInstantExecutionRule implements TestRule {
         void evaluate() throws Throwable {
             try {
                 next.evaluate()
-                throw new ToBeFixedForInstantExecutionExtension.UnexpectedSuccessException()
-            } catch (ToBeFixedForInstantExecutionExtension.UnexpectedSuccessException ex) {
+                throw new ToBeFixedForConfigurationCacheExtension.UnexpectedSuccessException()
+            } catch (ToBeFixedForConfigurationCacheExtension.UnexpectedSuccessException ex) {
                 throw ex
             } catch (Throwable ex) {
                 System.err.println("Failed with instant execution as expected:")

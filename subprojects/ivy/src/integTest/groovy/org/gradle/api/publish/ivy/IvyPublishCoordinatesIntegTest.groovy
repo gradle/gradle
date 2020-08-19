@@ -17,11 +17,11 @@
 
 package org.gradle.api.publish.ivy
 
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
 class IvyPublishCoordinatesIntegTest extends AbstractIvyPublishIntegTest {
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can publish single jar with specified coordinates"() {
         given:
         def javaLibrary = javaLibrary(ivyRepo.module('org.custom', 'custom', '2.2'))
@@ -64,7 +64,7 @@ class IvyPublishCoordinatesIntegTest extends AbstractIvyPublishIntegTest {
         resolveArtifacts(javaLibrary) { expectFiles 'custom-2.2.jar' }
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can produce multiple separate publications for single project"() {
         given:
         def module = javaLibrary(ivyRepo.module('org.custom', 'custom', '2.2'))
@@ -149,7 +149,7 @@ class IvyPublishCoordinatesIntegTest extends AbstractIvyPublishIntegTest {
         }
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "warns when multiple publications share the same coordinates"() {
         given:
         settingsFile << "rootProject.name = 'duplicate-publications'"
@@ -194,7 +194,7 @@ class IvyPublishCoordinatesIntegTest extends AbstractIvyPublishIntegTest {
         outputContains("Multiple publications with coordinates 'org.example:duplicate-publications:1.0' are published to repository 'ivy'. The publications will overwrite each other!")
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "warns when publications in different projects share the same coordinates"() {
         given:
         settingsFile << """
@@ -230,7 +230,7 @@ include 'projectB'
         outputContains("Multiple publications with coordinates 'org.example:duplicate:1.0' are published to repository 'ivy'. The publications will overwrite each other!")
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "does not fail for publication with duplicate repositories"() {
         given:
         settingsFile << "rootProject.name = 'duplicate-repos'"
@@ -243,13 +243,13 @@ include 'projectB'
 
             publishing {
                 repositories {
-                    ivy { 
+                    ivy {
                         name "ivy1"
-                        url "${ivyRepo.uri}" 
+                        url "${ivyRepo.uri}"
                     }
-                    ivy { 
+                    ivy {
                         name "ivy2"
-                        url "${ivyRepo.uri}" 
+                        url "${ivyRepo.uri}"
                     }
                 }
                 publications {

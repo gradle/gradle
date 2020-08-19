@@ -1,7 +1,7 @@
 package org.gradle.kotlin.dsl.integration
 
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil.jcenterRepository
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.util.TestPrecondition
@@ -13,7 +13,7 @@ import org.junit.Test
 class JacocoIntegrationTest : AbstractPluginIntegrationTest() {
 
     @Test
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     fun `jacoco ignore codegen`() {
 
         assumeTrue(TestPrecondition.JDK14_OR_EARLIER.isFulfilled) // reevaluate when upgrading JaCoco from current 0.8.5

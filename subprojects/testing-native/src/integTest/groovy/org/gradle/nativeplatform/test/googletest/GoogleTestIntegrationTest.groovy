@@ -17,7 +17,7 @@ package org.gradle.nativeplatform.test.googletest
 
 import org.gradle.ide.visualstudio.fixtures.ProjectFile
 import org.gradle.ide.visualstudio.fixtures.SolutionFile
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
@@ -111,7 +111,7 @@ model {
         return OperatingSystem.current().getStaticLibraryName("gtest")
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can build and run googleTest test suite"() {
         given:
         useConventionalSourceLocations()
@@ -131,7 +131,7 @@ model {
         testResults.checkTestCases(1, 1, 0)
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "assemble does not build or run tests"() {
         given:
         useConventionalSourceLocations()
@@ -146,7 +146,7 @@ model {
     }
 
     @Issue("GRADLE-3225")
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can build and run googleTest test suite with C and C++ plugins"() {
         given:
         useConventionalSourceLocations()
@@ -163,7 +163,7 @@ model {
             ":linkHelloTestGoogleTestExe", ":helloTestGoogleTestExe", ":runHelloTestGoogleTestExe"
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can configure via testSuite component"() {
         given:
         useConventionalSourceLocations()
@@ -205,7 +205,7 @@ tasks.withType(RunTestExecutable) {
         testResults.checkTestCases(1, 1, 0)
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can supply cppCompiler macro to googleTest sources"() {
         given:
         useConventionalSourceLocations()
@@ -229,7 +229,7 @@ model {
         testResults.checkTestCases(1, 1, 0)
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can configure location of googleTest test sources"() {
         given:
         useStandardConfig()
@@ -255,7 +255,7 @@ model {
         succeeds "runHelloTestGoogleTestExe"
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can configure location of googleTest test sources before component is declared"() {
         given:
         app.library.writeSources(file("src/hello"))
@@ -281,7 +281,7 @@ model {
         succeeds "runHelloTestGoogleTestExe"
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "variant-dependent sources are included in test binary"() {
         given:
         app.library.headerFiles*.writeToDir(file("src/hello"))
@@ -317,7 +317,7 @@ model {
         succeeds "runHelloTestGoogleTestExe"
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can configure variant-dependent test sources"() {
         given:
         useStandardConfig()
@@ -346,7 +346,7 @@ model {
         succeeds "runHelloTestGoogleTestExe"
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "test suite skipped after successful run"() {
         given:
         useStandardConfig()
@@ -361,7 +361,7 @@ model {
         skipped ":helloTestGoogleTestExe", ":runHelloTestGoogleTestExe"
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can build and run googleTest failing test suite"() {
         when:
         useStandardConfig()
@@ -384,7 +384,7 @@ model {
         testResults.checkTestCases(1, 0, 1)
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "build does not break for failing tests if ignoreFailures is true"() {
         when:
         useStandardConfig()
@@ -404,7 +404,7 @@ tasks.withType(RunTestExecutable) {
         file("build/test-results/helloTest/test_detail.xml").assertExists()
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "test suite not skipped after failing run"() {
         given:
         useStandardConfig()
@@ -418,7 +418,7 @@ tasks.withType(RunTestExecutable) {
         executedAndNotSkipped ":runHelloTestGoogleTestExe"
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "creates visual studio solution and project for googleTest test suite"() {
         given:
         useStandardConfig()
@@ -450,7 +450,7 @@ tasks.withType(RunTestExecutable) {
         }
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "non-buildable binaries are not attached to check task"() {
         given:
         useConventionalSourceLocations()
@@ -481,7 +481,7 @@ model {
         executedAndNotSkipped ":runHelloTestGoogleTestExe"
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "google test run task is properly wired to binaries check tasks and lifecycle check task"() {
         given:
         useStandardConfig()
@@ -516,7 +516,7 @@ model {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/1000")
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can configure legacy plugin"() {
         given:
         buildFile << """

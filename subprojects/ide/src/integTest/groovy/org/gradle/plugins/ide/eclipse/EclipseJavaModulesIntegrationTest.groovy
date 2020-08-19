@@ -15,7 +15,7 @@
  */
 package org.gradle.plugins.ide.eclipse
 
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.maven.MavenModule
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -40,7 +40,7 @@ class EclipseJavaModulesIntegrationTest extends AbstractEclipseIntegrationSpec {
         mavenRepo.module('org', name, '1.0').mainArtifact(content: autoModuleJar(name)).publish()
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     @Unroll
     def "Marks modules on classpath as such"() {
         given:

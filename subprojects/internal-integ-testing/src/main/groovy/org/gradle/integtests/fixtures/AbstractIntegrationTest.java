@@ -42,7 +42,7 @@ public abstract class AbstractIntegrationTest {
     public final UnsupportedWithInstantExecutionRule unsupportedWithInstantExecution = new UnsupportedWithInstantExecutionRule();
 
     @Rule
-    public final ToBeFixedForInstantExecutionRule toBeFixedForInstantExecution = new ToBeFixedForInstantExecutionRule();
+    public final ToBeFixedForConfigurationCacheRule toBeFixedForInstantExecution = new ToBeFixedForConfigurationCacheRule();
 
     @Rule
     public final ToBeFixedForFileSystemWatchingRule toBeFixedForFileSystemWatching = new ToBeFixedForFileSystemWatchingRule();

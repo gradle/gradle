@@ -18,7 +18,7 @@ package org.gradle.scala.compile
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.language.scala.internal.toolchain.DefaultScalaToolProvider
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -35,7 +35,7 @@ class UpToDateScalaCompileIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Requires(TestPrecondition.JDK8_OR_EARLIER)
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "compile is out of date when changing the #changedVersion version"() {
         buildScript(scalaProjectBuildScript(defaultZincVersion, defaultScalaVersion))
 
@@ -68,7 +68,7 @@ class UpToDateScalaCompileIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Requires(adhoc = { AvailableJavaHomes.getJdk(VERSION_1_8) && AvailableJavaHomes.getJdk(VERSION_1_9) })
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "compile is out of date when changing the java version"() {
         def jdk8 = AvailableJavaHomes.getJdk(VERSION_1_8)
         def jdk9 = AvailableJavaHomes.getJdk(VERSION_1_9)
@@ -97,17 +97,17 @@ class UpToDateScalaCompileIntegrationTest extends AbstractIntegrationSpec {
     def scalaProjectBuildScript(String zincVersion, String scalaVersion) {
         return """
             apply plugin: 'scala'
-                        
+
             ${jcenterRepository()}
 
             dependencies {
-                implementation "org.scala-lang:scala-library:${scalaVersion}" 
+                implementation "org.scala-lang:scala-library:${scalaVersion}"
             }
-            
+
             scala {
                 zincVersion = "${zincVersion}"
             }
-            
+
             sourceCompatibility = '1.7'
             targetCompatibility = '1.7'
         """.stripIndent()

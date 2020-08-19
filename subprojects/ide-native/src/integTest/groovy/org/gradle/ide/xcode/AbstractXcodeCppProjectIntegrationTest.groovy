@@ -16,7 +16,7 @@
 
 package org.gradle.ide.xcode
 
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.nativeplatform.fixtures.app.CppSourceElement
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -34,7 +34,7 @@ abstract class AbstractXcodeCppProjectIntegrationTest extends AbstractXcodeNativ
     protected abstract CppSourceElement getComponentUnderTest()
 
     @Requires(TestPrecondition.XCODE)
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "returns meaningful errors from xcode when component product is unbuildable due architecture"() {
         useXcodebuildTool()
 

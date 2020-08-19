@@ -17,14 +17,14 @@
 package org.gradle.integtests.composite
 
 import org.gradle.integtests.fixtures.AbstractContinuousIntegrationTest
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
 class CompositeContinuousBuildIntegrationTest extends AbstractContinuousIntegrationTest {
     def setup() {
         buildTestFixture.withBuildInSubDir()
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "will rebuild on input change for included build task dependency"() {
         def outputFile = file("included/build/output.txt")
         def inputFile = file("included/inputs/input.txt")
@@ -67,7 +67,7 @@ class CompositeContinuousBuildIntegrationTest extends AbstractContinuousIntegrat
         outputFile.text == "second"
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "will rebuild on change for included build library dependency"() {
         def includedLibrary = singleProjectBuild("library") {
             buildFile << """
@@ -100,7 +100,7 @@ class CompositeContinuousBuildIntegrationTest extends AbstractContinuousIntegrat
         def mainSource = file("src/main/java/com/example/Main.java")
         mainSource << """
             package com.example;
-            
+
             public class Main {
                 public static void main(String... args) {
                     org.test.Library.print("World");
@@ -125,7 +125,7 @@ class CompositeContinuousBuildIntegrationTest extends AbstractContinuousIntegrat
         outputContains("Goodbye Friend")
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "will rebuild on change for plugin supplied by included build"() {
         // to reduce contention with concurrently executing tests
         requireOwnGradleUserHomeDir()
@@ -184,7 +184,7 @@ class CompositeContinuousBuildIntegrationTest extends AbstractContinuousIntegrat
         stopGradle()
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "will rebuild on change for build included into a multi-project build"() {
         def includedLibrary = singleProjectBuild("library") {
             buildFile << """
@@ -224,7 +224,7 @@ class CompositeContinuousBuildIntegrationTest extends AbstractContinuousIntegrat
         def mainSourceSub1 = file("sub1/src/main/java/com/example/sub1/Main.java")
         mainSourceSub1 << """
             package com.example.sub1;
-            
+
             public class Main {
                 public static void main(String... args) {
                     org.test.Library.print("First");
@@ -234,7 +234,7 @@ class CompositeContinuousBuildIntegrationTest extends AbstractContinuousIntegrat
         def mainSourceSub2 = file("sub2/src/main/java/com/example/sub2/Main.java")
         mainSourceSub2 << """
             package com.example.sub2;
-            
+
             public class Main {
                 public static void main(String... args) {
                     org.test.Library.print("Second");

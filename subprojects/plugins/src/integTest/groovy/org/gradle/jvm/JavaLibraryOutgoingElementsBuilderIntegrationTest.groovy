@@ -18,7 +18,7 @@ package org.gradle.jvm
 
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import spock.lang.Unroll
 
 class JavaLibraryOutgoingElementsBuilderIntegrationTest extends AbstractIntegrationSpec {
@@ -49,7 +49,7 @@ class JavaLibraryOutgoingElementsBuilderIntegrationTest extends AbstractIntegrat
         """
     }
 
-    @ToBeFixedForInstantExecution(because = "outgoing variants report isn't compatible")
+    @ToBeFixedForConfigurationCache(because = "outgoing variants report isn't compatible")
     @Unroll
     def "configures an additional outgoing variant (#scenario, #capability)"() {
         buildFile << """
@@ -115,7 +115,7 @@ Artifacts
         capability = cgroup == null ? 'com.acme:mylib:1.4 (default capability)' : "${cgroup}:${cname}:${cversion}\n".replaceAll(/'/, '')
     }
 
-    @ToBeFixedForInstantExecution(because = "outgoing variants report isn't compatible")
+    @ToBeFixedForConfigurationCache(because = "outgoing variants report isn't compatible")
     @Unroll
     def "can configure an additional outgoing variant from a source set (with classes dir=#classesDir)"() {
         buildFile << """
@@ -178,7 +178,7 @@ Secondary variants (*)
         classesDir << [false, true]
     }
 
-    @ToBeFixedForInstantExecution(because = "outgoing variants report isn't compatible")
+    @ToBeFixedForConfigurationCache(because = "outgoing variants report isn't compatible")
     def "can configure an outgoing elements configuration for documentation"() {
         buildFile << """
             def userguide = tasks.register('userguide') {

@@ -16,12 +16,12 @@
 
 package org.gradle.integtests.resolve.http
 
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 
 class ArtifactLookupResolveIntegrationTest extends AbstractModuleDependencyResolveTest {
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "does not try to fetch the jar whenever the metadata artifact is not found"() {
         buildFile << """
             dependencies {

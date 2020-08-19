@@ -17,7 +17,7 @@
 package org.gradle.ide.xcode
 
 import org.gradle.ide.xcode.fixtures.AbstractXcodeIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.nativeplatform.fixtures.app.SwiftAppWithLibrary
 
 class XcodeMultipleProjectIntegrationTest extends AbstractXcodeIntegrationSpec {
@@ -34,11 +34,11 @@ class XcodeMultipleProjectIntegrationTest extends AbstractXcodeIntegrationSpec {
         return "root"
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "create xcode workspace when no language plugins are applied"() {
         given:
         buildFile << """
-            allprojects { 
+            allprojects {
                 apply plugin: 'xcode'
             }
         """
@@ -60,7 +60,7 @@ class XcodeMultipleProjectIntegrationTest extends AbstractXcodeIntegrationSpec {
         project.assertNoTargets()
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "creates workspace with Xcode project for each project"() {
         given:
         settingsFile << """
@@ -71,7 +71,7 @@ class XcodeMultipleProjectIntegrationTest extends AbstractXcodeIntegrationSpec {
             allprojects {
                 apply plugin: 'xcode'
             }
-            apply plugin: 'swift-application' 
+            apply plugin: 'swift-application'
             project(':app') {
                 apply plugin: 'swift-application'
                 dependencies {
@@ -101,7 +101,7 @@ class XcodeMultipleProjectIntegrationTest extends AbstractXcodeIntegrationSpec {
         xcodeProject("empty/empty.xcodeproj")
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "Gradle project with added xcode plugin are included in the workspace"() {
         given:
         file('greeter/build.gradle') << """
@@ -150,7 +150,7 @@ class XcodeMultipleProjectIntegrationTest extends AbstractXcodeIntegrationSpec {
         rootXcodeWorkspace.contentFile.assertHasProjects("${rootProjectName}.xcodeproj", 'app/app.xcodeproj', 'greeter/greeter.xcodeproj')
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "Gradle project with removed xcode plugin are not included in the workspace"() {
         given:
         file('greeter/build.gradle') << """

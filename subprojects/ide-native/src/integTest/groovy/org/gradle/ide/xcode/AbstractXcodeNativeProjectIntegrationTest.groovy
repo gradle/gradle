@@ -17,13 +17,13 @@
 package org.gradle.ide.xcode
 
 import org.gradle.ide.xcode.fixtures.AbstractXcodeIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.nativeplatform.fixtures.app.SourceElement
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
 abstract class AbstractXcodeNativeProjectIntegrationTest extends AbstractXcodeIntegrationSpec {
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can create xcode project for unbuildable component"() {
         given:
         makeSingleProject()
@@ -56,7 +56,7 @@ abstract class AbstractXcodeNativeProjectIntegrationTest extends AbstractXcodeIn
         }
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "warns about unbuildable components in generated xcode project"() {
         given:
         makeSingleProject()
@@ -74,7 +74,7 @@ abstract class AbstractXcodeNativeProjectIntegrationTest extends AbstractXcodeIn
     }
 
     @Requires(TestPrecondition.XCODE)
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "returns meaningful errors from xcode when component product is unbuildable due to operating system"() {
         useXcodebuildTool()
 

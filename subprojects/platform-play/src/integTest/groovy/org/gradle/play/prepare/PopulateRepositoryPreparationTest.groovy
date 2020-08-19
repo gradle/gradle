@@ -17,7 +17,7 @@
 package org.gradle.play.prepare
 
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.play.integtest.fixtures.PlayMultiVersionIntegrationTest
 import org.gradle.play.integtest.fixtures.app.AdvancedPlayApp
 import org.gradle.play.integtest.fixtures.app.BasicPlayApp
@@ -27,7 +27,7 @@ import org.gradle.play.integtest.fixtures.app.WithFailingTestsApp
 
 class PopulateRepositoryPreparationTest extends PlayMultiVersionIntegrationTest {
 
-    @ToBeFixedForInstantExecution(because = "composite builds")
+    @ToBeFixedForConfigurationCache(because = "composite builds")
     void "populates repository"() {
         playApp.writeSources(testDirectory)
         buildFile << """

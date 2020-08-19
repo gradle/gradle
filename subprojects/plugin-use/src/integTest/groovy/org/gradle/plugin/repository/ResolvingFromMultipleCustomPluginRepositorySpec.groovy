@@ -18,7 +18,7 @@ package org.gradle.plugin.repository
 
 import com.google.common.base.Splitter
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.Repository
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.maven.MavenFileRepository
@@ -268,7 +268,7 @@ class ResolvingFromMultipleCustomPluginRepositorySpec extends AbstractDependency
     }
 
     @Issue("gradle/gradle#3210")
-    @ToBeFixedForInstantExecution(because = ":buildEnvironment")
+    @ToBeFixedForConfigurationCache(because = ":buildEnvironment")
     def "all plugin repositories are considered when resolving plugins transitive dependencies"() {
         given:
         requireOwnGradleUserHomeDir()

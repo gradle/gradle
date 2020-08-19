@@ -17,7 +17,7 @@
 package org.gradle.integtests.resolve.verification
 
 import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.cache.CachingIntegrationFixture
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Issue
@@ -82,7 +82,7 @@ class DependencyVerificationIntegrityCheckIntegTest extends AbstractDependencyVe
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "fails verifying the file but not resolution itself if verification metadata fails for #kind"() {
         createMetadataFile {
             addChecksum("org:foo:1.0", kind, "invalid")
@@ -320,7 +320,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution(
+    @ToBeFixedForConfigurationCache(
         because = "broken file collection"
     )
     def "fails on the first access to an artifact (not at the end of the build) using #firstResolution"() {
@@ -617,7 +617,7 @@ If the artifacts are trustworthy, you will need to update the gradle/verificatio
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "dependency verification also checks included build dependencies (terse output=#terse)"() {
         createMetadataFile {
             addChecksum("org:foo", "sha1", "16e066e005a935ac60f06216115436ab97c5da02")
@@ -669,7 +669,7 @@ If the artifacts are trustworthy, you will need to update the gradle/verificatio
 
     @Unroll
     @Issue("https://github.com/gradle/gradle/issues/4934")
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can detect a tampered file in the local cache (terse output=#terse)"() {
         createMetadataFile {
             addChecksum("org:foo", "sha1", "16e066e005a935ac60f06216115436ab97c5da02")
@@ -726,7 +726,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
      * it means they have access to the local FS so all bets are off.
      */
     @Issue("https://github.com/gradle/gradle/issues/4934")
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     @Unroll
     def "can detect a tampered metadata file in the local cache (stop in between = #stop)"() {
         createMetadataFile {
@@ -773,7 +773,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
         stop << [true, false]
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     @Unroll
     def "deleting local artifacts fails verification (stop in between = #stop)"() {
         createMetadataFile {
@@ -929,7 +929,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
         "sha512" | "734fce768f0e1a3aec423cb4804e5cdf343fd317418a5da1adc825256805c5cad9026a3e927ae43ecc12d378ce8f45cc3e16ade9114c9a147fda3958d357a85b" | "3d890ff72a2d6fcb2a921715143e6489d8f650a572c33070b7f290082a07bfc4af0b64763bcf505e1c07388bc21b7d5707e50a3952188dc604814e09387fbbfe"
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "reasonable error message when the verification file can't be parsed"() {
         given:
         javaLibrary()
@@ -999,7 +999,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can disable verification of a detached configuration (terse output=#terse)"() {
         createMetadataFile {
             addChecksum("org:foo:1.0", 'sha1', "invalid")

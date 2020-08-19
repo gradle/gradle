@@ -18,7 +18,7 @@ package org.gradle.integtests.samples.bestpractices
 
 import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
 import org.gradle.integtests.fixtures.Sample
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.UsesSample
 import org.junit.Rule
 import spock.lang.Unroll
@@ -45,7 +45,7 @@ class SamplesAuthoringMaintainableBuildsIntegrationTest extends AbstractSampleIn
 
     @Unroll
     @UsesSample('bestPractices/taskGroupDescription')
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can render a task's group and description in tasks report with #dsl dsl"() {
         executer.inDirectory(sample.dir.file(dsl))
 
@@ -63,7 +63,7 @@ generateDocs - Generates the HTML documentation for this project.""")
 
     @Unroll
     @UsesSample('bestPractices/logicDuringConfiguration-do')
-    @ToBeFixedForInstantExecution(iterationMatchers = ".*kotlin dsl.*")
+    @ToBeFixedForConfigurationCache(iterationMatchers = ".*kotlin dsl.*")
     def "can execute logic during execution phase with #dsl dsl"() {
         executer.inDirectory(sample.dir.file(dsl))
 

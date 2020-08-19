@@ -16,23 +16,23 @@
 
 package org.gradle.api.publish.maven
 
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import spock.lang.Unroll
 
 class MavenPublishFeaturesJavaPluginIntegTest extends AbstractMavenPublishFeaturesJavaIntegTest {
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can publish java-library with feature using extension"() {
         mavenRepo.module('org', 'optionaldep', '1.0').withModuleMetadata().publish()
 
         given:
         buildFile << """
-            
+
             java {
                 registerFeature("feature") {
                     usingSourceSet(sourceSets.main)
                 }
             }
-            
+
             dependencies {
                 featureImplementation 'org:optionaldep:1.0'
             }
@@ -81,23 +81,23 @@ class MavenPublishFeaturesJavaPluginIntegTest extends AbstractMavenPublishFeatur
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can update #prop after feature has been registered"() {
         mavenRepo.module('org', 'optionaldep', '1.0').withModuleMetadata().publish()
 
         given:
         buildFile << """
-            
+
             java {
                 registerFeature("feature") {
                     usingSourceSet(sourceSets.main)
                 }
             }
-            
+
             dependencies {
                 featureImplementation 'org:optionaldep:1.0'
             }
-            
+
             $prop = "$newValue"
         """
 

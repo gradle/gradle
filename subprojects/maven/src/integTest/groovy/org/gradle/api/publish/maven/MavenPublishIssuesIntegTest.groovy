@@ -16,7 +16,7 @@
 
 package org.gradle.api.publish.maven
 
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.maven.MavenFileModule
@@ -259,7 +259,7 @@ subprojects {
         output.contains(":customPublish")
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     @Issue("https://github.com/gradle/gradle/issues/5136")
     void "doesn't publish if main artifact is missing"() {
         settingsFile << 'rootProject.name = "test"'
@@ -307,7 +307,7 @@ subprojects {
         failure.assertHasCause("Artifact test-1.0.jar wasn't produced by this build.")
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     @Issue("https://github.com/gradle/gradle/issues/5136")
     void "doesn't publish stale files"() {
         MavenFileModule publishedModule

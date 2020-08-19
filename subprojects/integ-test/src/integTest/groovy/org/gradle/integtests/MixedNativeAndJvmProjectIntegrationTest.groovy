@@ -16,7 +16,7 @@
 
 package org.gradle.integtests
 
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
@@ -25,7 +25,7 @@ import org.gradle.test.fixtures.archive.JarTestFixture
 
 class MixedNativeAndJvmProjectIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
 
-    @ToBeFixedForInstantExecution(because = "cpp plugin")
+    @ToBeFixedForConfigurationCache(because = "cpp plugin")
     def "can combine legacy java and cpp plugins in a single project"() {
         settingsFile << "rootProject.name = 'test'"
         buildFile << """

@@ -16,7 +16,7 @@
 
 package org.gradle.nativeplatform.toolchain
 
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
@@ -56,7 +56,7 @@ model {
     }
 
     @RequiresInstalledToolChain(SUPPORTS_32)
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can configure platform specific args"() {
         when:
         buildFile << """
@@ -110,7 +110,7 @@ model {
     }
 
     @Requires(TestPrecondition.NOT_WINDOWS)
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can configure tool executables"() {
         def binDir = testDirectory.createDir("bin")
         wrapperTool(binDir, "c-compiler", toolChain.CCompiler, "-DFRENCH")
@@ -139,7 +139,7 @@ model {
     }
 
     @Requires(TestPrecondition.NOT_WINDOWS)
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can configure platform specific executables"() {
         def binDir = testDirectory.createDir("bin")
         wrapperTool(binDir, "french-c-compiler", toolChain.CCompiler, "-DFRENCH")
@@ -209,7 +209,7 @@ model {
     }
 
     @Requires(TestPrecondition.NOT_WINDOWS)
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can configure setTargets with alternate toolchain"() {
         def binDir = testDirectory.createDir("bin")
         wrapperTool(binDir, "french-c-compiler", toolChain.CCompiler, "-DFRENCH")
@@ -220,7 +220,7 @@ model {
         buildFile << """
 model {
     platforms {
-        x86 { 
+        x86 {
             architecture 'x86'
         }
         x86_64 {

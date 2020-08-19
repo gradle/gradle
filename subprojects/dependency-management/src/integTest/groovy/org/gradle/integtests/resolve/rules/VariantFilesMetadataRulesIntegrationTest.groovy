@@ -17,7 +17,7 @@ package org.gradle.integtests.resolve.rules
 
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 import spock.lang.Unroll
 
@@ -203,7 +203,7 @@ class VariantFilesMetadataRulesIntegrationTest extends AbstractModuleDependencyR
         }
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "using a non-existing base throws and error"() {
         given:
         repository {
@@ -398,7 +398,7 @@ class VariantFilesMetadataRulesIntegrationTest extends AbstractModuleDependencyR
         }
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "cannot add file with the same name multiple times"() {
         def dependencyDeclaration = (useMaven() || gradleMetadataPublished)
             ? "'org.test:moduleA:1.0'" // variant matching

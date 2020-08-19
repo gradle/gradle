@@ -16,7 +16,7 @@
 
 package org.gradle.play.tasks
 
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.play.integtest.fixtures.PlayApp
 import org.gradle.play.integtest.fixtures.PlayMultiVersionRunApplicationIntegrationTest
 import org.gradle.play.integtest.fixtures.app.BasicPlayApp
@@ -35,7 +35,7 @@ class PlayRunIntegrationTest extends PlayMultiVersionRunApplicationIntegrationTe
         """
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "play run container classloader is isolated from the worker process classloader"() {
         withLoadProjectClassController()
 

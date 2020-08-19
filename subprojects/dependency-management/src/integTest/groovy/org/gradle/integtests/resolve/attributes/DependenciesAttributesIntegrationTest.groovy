@@ -18,7 +18,7 @@ package org.gradle.integtests.resolve.attributes
 
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 import spock.lang.Issue
 import spock.lang.Unroll
@@ -157,7 +157,7 @@ class DependenciesAttributesIntegrationTest extends AbstractModuleDependencyReso
     }
 
     @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "Fails resolution because dependency attributes and constraint attributes conflict"() {
         given:
         repository {
@@ -260,7 +260,7 @@ class DependenciesAttributesIntegrationTest extends AbstractModuleDependencyReso
 
     @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
     @Issue("gradle/gradle#5232")
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "Serializes and reads back failed resolution when failure comes from an unmatched typed attribute"() {
         given:
         repository {
@@ -355,7 +355,7 @@ class DependenciesAttributesIntegrationTest extends AbstractModuleDependencyReso
     }
 
     @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "Fails resolution because consumer configuration attributes and dependency attributes conflict"() {
         given:
         repository {
@@ -507,7 +507,7 @@ class DependenciesAttributesIntegrationTest extends AbstractModuleDependencyReso
     }
 
     @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "Fails resolution because consumer configuration attributes and constraint attributes conflict"() {
         given:
         repository {

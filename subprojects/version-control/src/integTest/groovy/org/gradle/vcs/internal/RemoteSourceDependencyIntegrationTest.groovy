@@ -17,7 +17,7 @@
 package org.gradle.vcs.internal
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.vcs.fixtures.GitHttpRepository
 import org.junit.Rule
@@ -130,7 +130,7 @@ class RemoteSourceDependencyIntegrationTest extends AbstractIntegrationSpec {
         repoC.commit('initial version')
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "git version lookup and checkout is performed once per version selector per build invocation"() {
         repoA.file("build.gradle") << """
             dependencies {
@@ -183,7 +183,7 @@ class RemoteSourceDependencyIntegrationTest extends AbstractIntegrationSpec {
         result.assertTasksExecuted(':resolve', ':a:resolve', ':b:resolve', ':testA:jar', ':testB:jar', ':testC:jar')
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "git version lookup and checkout is performed once per branch selector per build invocation"() {
         repoA.file("build.gradle") << """
             dependencies {

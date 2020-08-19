@@ -17,7 +17,7 @@ package org.gradle.integtests.resolve.strict
 
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 import spock.lang.Ignore
 import spock.lang.Unroll
@@ -268,7 +268,7 @@ class StrictVersionsInPlatformCentricDevelopmentIntegrationTest extends Abstract
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution(iterationMatchers = [
+    @ToBeFixedForConfigurationCache(iterationMatchers = [
         ".*\\[PLATFORM\\].*",
         ".*\\[LEGACY_PLATFORM\\].*",
         ".*\\[MODULE\\].*"
@@ -328,7 +328,7 @@ class StrictVersionsInPlatformCentricDevelopmentIntegrationTest extends Abstract
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution(iterationMatchers = [
+    @ToBeFixedForConfigurationCache(iterationMatchers = [
         ".*\\[ENFORCED_PLATFORM\\].*"
     ])
     void "(4) library developer has issues with org:foo:3.1.1 and forces an override of the platform decision with strictly [#platformType]"() {
@@ -413,7 +413,7 @@ class StrictVersionsInPlatformCentricDevelopmentIntegrationTest extends Abstract
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     void "(5) if two libraries are combined without agreeing on an override, the original platform constraint is brought back [#platformType]"() {
         updatedRepository(platformType)
         settingsFile << "\ninclude 'recklessLibrary', 'secondLibrary'"

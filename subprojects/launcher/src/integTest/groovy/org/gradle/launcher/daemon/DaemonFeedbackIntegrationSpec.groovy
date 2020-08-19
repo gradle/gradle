@@ -16,7 +16,7 @@
 
 package org.gradle.launcher.daemon
 
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
 import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 import org.gradle.launcher.daemon.logging.DaemonMessages
@@ -75,7 +75,7 @@ task sleep {
         ex.message.contains("Unrecognized option: -Xyz")
     }
 
-    @ToBeFixedForInstantExecution(because = "asserts on configuration phase logging")
+    @ToBeFixedForConfigurationCache(because = "asserts on configuration phase logging")
     def "daemon log contains all necessary logging"() {
         given:
         file("build.gradle") << "println 'Hello build!'"
@@ -164,7 +164,7 @@ task sleep {
 
     //Java 9 and above needs --add-opens to make environment variable mutation work
     @Requires(TestPrecondition.JDK8_OR_EARLIER)
-    @ToBeFixedForInstantExecution(because = "asserts on configuration phase logging")
+    @ToBeFixedForConfigurationCache(because = "asserts on configuration phase logging")
     def "foreground daemon log honors log levels for logging"() {
         given:
         file("build.gradle") << """

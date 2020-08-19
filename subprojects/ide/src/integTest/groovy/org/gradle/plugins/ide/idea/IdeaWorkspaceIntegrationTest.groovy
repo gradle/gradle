@@ -16,14 +16,14 @@
 
 package org.gradle.plugins.ide.idea
 
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.plugins.ide.AbstractIdeIntegrationTest
 import org.junit.Test
 
 class IdeaWorkspaceIntegrationTest extends AbstractIdeIntegrationTest {
 
     @Test
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     void enablesCustomizationOfIws() {
         //when
         runIdeaTask '''

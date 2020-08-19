@@ -17,7 +17,7 @@
 package org.gradle.plugins.ide.fixtures
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Issue
 
@@ -47,7 +47,7 @@ abstract class AbstractMultiBuildIdeIntegrationTest extends AbstractIntegrationS
         } // else, unspecified
     }
 
-    @ToBeFixedForInstantExecution(because = "composite builds")
+    @ToBeFixedForConfigurationCache(because = "composite builds")
     def "workspace includes projects from included builds"() {
         buildTestFixture.withBuildInSubDir()
         def buildA = singleProjectBuild("buildA") {
@@ -56,8 +56,8 @@ abstract class AbstractMultiBuildIdeIntegrationTest extends AbstractIntegrationS
                 includeBuild("../buildB")
             """
             buildFile << """
-                allprojects { 
-                    apply plugin: '${pluginId}' 
+                allprojects {
+                    apply plugin: '${pluginId}'
                     apply plugin: '${libraryPluginId}'
                 }
                 dependencies { implementation 'org.test:p1:1.2' }
@@ -65,8 +65,8 @@ abstract class AbstractMultiBuildIdeIntegrationTest extends AbstractIntegrationS
         }
         def buildB = multiProjectBuild("buildB", ["p1", "p2"]) {
             buildFile << """
-                allprojects { 
-                    apply plugin: '${pluginId}' 
+                allprojects {
+                    apply plugin: '${pluginId}'
                     apply plugin: '${libraryPluginId}'
                 }
             """
@@ -84,7 +84,7 @@ abstract class AbstractMultiBuildIdeIntegrationTest extends AbstractIntegrationS
         workspace.assertContains(project(buildB.file("p2"), "p2"))
     }
 
-    @ToBeFixedForInstantExecution(because = "composite builds")
+    @ToBeFixedForConfigurationCache(because = "composite builds")
     def "workspace includes projects from nested included builds"() {
         buildTestFixture.withBuildInSubDir()
         def buildA = singleProjectBuild("buildA") {
@@ -93,8 +93,8 @@ abstract class AbstractMultiBuildIdeIntegrationTest extends AbstractIntegrationS
                 includeBuild("../buildB")
             """
             buildFile << """
-                allprojects { 
-                    apply plugin: '${pluginId}' 
+                allprojects {
+                    apply plugin: '${pluginId}'
                     apply plugin: '${libraryPluginId}'
                 }
                 dependencies { implementation 'org.test:buildB:1.2' }
@@ -105,8 +105,8 @@ abstract class AbstractMultiBuildIdeIntegrationTest extends AbstractIntegrationS
                 includeBuild("../buildC")
             """
             buildFile << """
-                allprojects { 
-                    apply plugin: '${pluginId}' 
+                allprojects {
+                    apply plugin: '${pluginId}'
                     apply plugin: '${libraryPluginId}'
                 }
                 dependencies { implementation 'org.test:p1:1.2' }
@@ -114,8 +114,8 @@ abstract class AbstractMultiBuildIdeIntegrationTest extends AbstractIntegrationS
         }
         def buildC = multiProjectBuild("buildC", ["p1", "p2"]) {
             buildFile << """
-                allprojects { 
-                    apply plugin: '${pluginId}' 
+                allprojects {
+                    apply plugin: '${pluginId}'
                     apply plugin: '${libraryPluginId}'
                 }
             """

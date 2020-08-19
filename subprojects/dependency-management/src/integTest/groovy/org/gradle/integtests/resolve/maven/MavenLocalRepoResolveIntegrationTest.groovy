@@ -16,7 +16,7 @@
 package org.gradle.integtests.resolve.maven
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.maven.MavenModule
 import spock.lang.Issue
 
@@ -155,7 +155,7 @@ class MavenLocalRepoResolveIntegrationTest extends AbstractDependencyResolutionT
     }
 
     @Issue('GRADLE-2034')
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "mavenLocal fails to resolve artifact if contains pom but not artifact"() {
         given:
         m2.mavenRepo().module('group', 'projectA', '1.2').publishPom()
@@ -167,7 +167,7 @@ class MavenLocalRepoResolveIntegrationTest extends AbstractDependencyResolutionT
         failure.assertHasCause('Could not find group:projectA:1.2')
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "mavenLocal reports and recovers from missing module"() {
         def module = m2.mavenRepo().module('group', 'projectA', '1.2')
 
@@ -244,7 +244,7 @@ Required by:
     }
 
     @Issue('GRADLE-2034')
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "mavenLocal fails to resolve snapshot artifact if contains pom but not artifact"() {
         given:
         m2.mavenRepo().module('group', 'projectA', '1.2-SNAPSHOT').publishPom()
@@ -272,7 +272,7 @@ Required by:
     }
 
     @Issue('GRADLE-2034')
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "mavenLocal fails to resolve non-unique snapshot artifact if contains pom but not artifact"() {
         given:
         m2.mavenRepo().module('group', 'projectA', '1.2-SNAPSHOT').withNonUniqueSnapshots().publishPom()

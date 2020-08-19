@@ -16,7 +16,7 @@
 
 package org.gradle.api.publish.maven
 
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 
 /**
@@ -112,7 +112,7 @@ class MavenPublishSnapshotIntegTest extends AbstractMavenPublishIntegTest {
         }
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can publish a snapshot version that was previously published with uploadArchives"() {
         given:
         using m2 // uploadArchives writes to .m2/repo
@@ -190,7 +190,7 @@ class MavenPublishSnapshotIntegTest extends AbstractMavenPublishIntegTest {
         }
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can install snapshot versions"() {
         using m2
 

@@ -17,7 +17,7 @@
 package org.gradle.launcher.continuous
 
 import org.gradle.integtests.fixtures.AbstractContinuousIntegrationTest
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.internal.environment.GradleBuildEnvironment
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.util.Requires
@@ -32,7 +32,7 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
         }
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "basic smoke test"() {
         given:
         def markerFile = file("marker")
@@ -62,7 +62,7 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
         output.contains "value: changed"
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "notifications work with quiet logging"() {
         given:
         def markerFile = file("marker")
@@ -210,7 +210,7 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
         output.contains("Exiting continuous build as no executed tasks declared file system inputs.")
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "reuses build script classes"() {
         given:
         def markerFile = file("marker")
@@ -296,7 +296,7 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
         failureDescriptionContains("Could not determine the dependencies of task ':b'.")
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "failure to determine inputs cancels build and has a reasonable message after initial success"() {
         when:
         def bFlag = file("bFlag")

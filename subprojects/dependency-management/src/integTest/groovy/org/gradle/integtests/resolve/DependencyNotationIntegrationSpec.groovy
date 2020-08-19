@@ -17,13 +17,13 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.hamcrest.CoreMatchers
 import spock.lang.Issue
 
 class DependencyNotationIntegrationSpec extends AbstractIntegrationSpec {
 
-    @ToBeFixedForInstantExecution(because = "unsupported type Dependency")
+    @ToBeFixedForConfigurationCache(because = "unsupported type Dependency")
     def "understands dependency notations"() {
         when:
         buildFile <<  """

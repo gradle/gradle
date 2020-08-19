@@ -16,11 +16,11 @@
 
 package org.gradle.integtests.composite
 
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
 class CompositeBuildCleanupIntegrationTest extends AbstractCompositeBuildIntegrationTest {
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "stale outputs are removed from composite builds"() {
         given:
         dependency("org.test:buildB:1.0")

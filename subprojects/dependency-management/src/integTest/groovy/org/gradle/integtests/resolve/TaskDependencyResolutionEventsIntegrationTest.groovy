@@ -16,17 +16,17 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
 class TaskDependencyResolutionEventsIntegrationTest extends AbstractIntegrationSpec {
 
-    @ToBeFixedForInstantExecution(because = "broken file collection")
+    @ToBeFixedForConfigurationCache(because = "broken file collection")
     def "does not generate events when task dependencies are calculated for configuration that is used as a task input"() {
         given:
         buildFile << """
             configurations {
                 parent { }
-                things.extendsFrom parent          
+                things.extendsFrom parent
                 all {
                     incoming.beforeResolve { throw new RuntimeException() }
                     incoming.afterResolve { throw new RuntimeException() }

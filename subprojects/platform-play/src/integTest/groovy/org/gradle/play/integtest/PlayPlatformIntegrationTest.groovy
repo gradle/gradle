@@ -16,7 +16,7 @@
 package org.gradle.play.integtest
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.play.integtest.fixtures.app.BasicPlayApp
 import org.gradle.play.internal.DefaultPlayPlatform
 import org.gradle.test.fixtures.archive.JarTestFixture
@@ -27,7 +27,7 @@ import org.gradle.util.VersionNumber
 import spock.lang.Unroll
 
 class PlayPlatformIntegrationTest extends AbstractIntegrationSpec {
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can build play app binary for default platform"() {
         given:
         executer.noDeprecationChecks()
@@ -44,7 +44,7 @@ class PlayPlatformIntegrationTest extends AbstractIntegrationSpec {
 
     @Requires(TestPrecondition.JDK8)
     @Unroll
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can build play app binary for specified platform on JDK8 [#platform]"() {
         given:
         executer.noDeprecationChecks()

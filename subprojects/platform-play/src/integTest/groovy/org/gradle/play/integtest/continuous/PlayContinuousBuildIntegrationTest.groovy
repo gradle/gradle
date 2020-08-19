@@ -16,7 +16,7 @@
 
 package org.gradle.play.integtest.continuous
 
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.play.integtest.fixtures.AbstractMultiVersionPlayContinuousBuildIntegrationTest
 import org.gradle.play.integtest.fixtures.RunningPlayApp
 import org.gradle.play.integtest.fixtures.app.BasicPlayApp
@@ -26,7 +26,7 @@ class PlayContinuousBuildIntegrationTest extends AbstractMultiVersionPlayContinu
     RunningPlayApp runningApp = new RunningPlayApp(testDirectory)
     PlayApp playApp = new BasicPlayApp(versionNumber)
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "build does not block when running play app with continuous build" () {
         when: "the build runs until it enters continuous build"
         succeeds("runPlayBinary")
@@ -35,7 +35,7 @@ class PlayContinuousBuildIntegrationTest extends AbstractMultiVersionPlayContinu
         appIsRunningAndDeployed()
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can run play app multiple times with continuous build" () {
         when:
         succeeds("runPlayBinary")
@@ -62,7 +62,7 @@ class PlayContinuousBuildIntegrationTest extends AbstractMultiVersionPlayContinu
         succeeds()
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "build failure prior to launch does not prevent launch on subsequent build" () {
         executer.withStackTraceChecksDisabled()
         def original = file("app/controllers/Application.scala").text
@@ -83,7 +83,7 @@ class PlayContinuousBuildIntegrationTest extends AbstractMultiVersionPlayContinu
         appIsRunningAndDeployed()
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "play application is stopped when build is cancelled" () {
         when:
         succeeds("runPlayBinary")

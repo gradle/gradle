@@ -18,7 +18,7 @@
 package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
 class GradlePluginIntegrationTest extends AbstractIntegrationSpec {
     File initFile;
@@ -28,7 +28,7 @@ class GradlePluginIntegrationTest extends AbstractIntegrationSpec {
         executer.usingInitScript(initFile);
     }
 
-    @ToBeFixedForInstantExecution(because = "Gradle.buildFinished")
+    @ToBeFixedForConfigurationCache(because = "Gradle.buildFinished")
     def "can apply binary plugin from init script"() {
         when:
         initFile << """
@@ -47,7 +47,7 @@ class GradlePluginIntegrationTest extends AbstractIntegrationSpec {
         executed.output.contains("Gradle Plugin received build finished!")
     }
 
-    @ToBeFixedForInstantExecution(because = "Gradle.buildFinished")
+    @ToBeFixedForConfigurationCache(because = "Gradle.buildFinished")
     def "can apply script with relative path"() {
         setup:
         def externalInitFile = temporaryFolder.createFile("initscripts/somePath/anInit.gradle")
@@ -65,7 +65,7 @@ class GradlePluginIntegrationTest extends AbstractIntegrationSpec {
         executed.output.contains("Gradle Plugin received build finished!")
     }
 
-    @ToBeFixedForInstantExecution(because = "Gradle.buildFinished")
+    @ToBeFixedForConfigurationCache(because = "Gradle.buildFinished")
     def "can apply script with relative path on Gradle instance"() {
         setup:
         def externalInitFile = temporaryFolder.createFile("initscripts/somePath/anInit.gradle")
@@ -83,7 +83,7 @@ class GradlePluginIntegrationTest extends AbstractIntegrationSpec {
         executed.output.contains("Gradle Plugin received build finished!")
     }
 
-    @ToBeFixedForInstantExecution(because = "Gradle.buildFinished")
+    @ToBeFixedForConfigurationCache(because = "Gradle.buildFinished")
     def "path to script is interpreted relative to the applying script"() {
         setup:
         def externalInitFile = temporaryFolder.createFile("initscripts/path1/anInit.gradle")

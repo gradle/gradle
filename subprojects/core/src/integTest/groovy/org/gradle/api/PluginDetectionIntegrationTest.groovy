@@ -17,7 +17,7 @@ package org.gradle.api
 
 import org.gradle.api.plugins.AppliedPlugin
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import spock.lang.Issue
 import spock.lang.Unroll
@@ -61,7 +61,7 @@ class PluginDetectionIntegrationTest extends AbstractIntegrationSpec {
         detectedBy << JAVA_PLUGIN_IDS + JAVA_PLUGIN_IDS.reverse()
     }
 
-    @ToBeFixedForInstantExecution(because = "Gradle.buildFinished")
+    @ToBeFixedForConfigurationCache(because = "Gradle.buildFinished")
     def "unqualified ids from classpath are detectable"() {
         def pluginBuilder = new PluginBuilder(testDirectory)
         pluginBuilder.addPlugin("")

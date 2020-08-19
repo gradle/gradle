@@ -16,7 +16,7 @@
 
 package org.gradle.play.tasks
 
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.play.integtest.fixtures.PlayMultiVersionIntegrationTest
 import org.gradle.test.fixtures.archive.JarTestFixture
 import org.gradle.util.VersionNumber
@@ -93,7 +93,7 @@ class TwirlCompileIntegrationTest extends PlayMultiVersionIntegrationTest {
             model {
                 components {
                     play {
-                        sources {                        
+                        sources {
                             withType(TwirlSourceSet) {
                                 addUserTemplateFormat("unused", "views.formats.unused.UnusedFormat")
                             }
@@ -126,7 +126,7 @@ class TwirlCompileIntegrationTest extends PlayMultiVersionIntegrationTest {
         """
         file("app/my/pkg/MyClass.scala") << """
             package my.pkg
-            
+
             object MyClass;
         """
 
@@ -161,7 +161,7 @@ class TwirlCompileIntegrationTest extends PlayMultiVersionIntegrationTest {
         generatedFile.assertContents(containsString("import my.pkg.MyClass"))
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "runs compiler incrementally"() {
         when:
         withTwirlTemplate("input1.scala.html")
@@ -196,7 +196,7 @@ class TwirlCompileIntegrationTest extends PlayMultiVersionIntegrationTest {
         destinationDir.assertHasDescendants("html/input1.template.scala")
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "removes stale output files in incremental compile"(){
         given:
         withTwirlTemplate("input1.scala.html")
@@ -245,7 +245,7 @@ class TwirlCompileIntegrationTest extends PlayMultiVersionIntegrationTest {
             .containsDescendants("views/html/index.class", "templates/html/other.class", "html/extra.class")
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can build twirl source set with default Java imports" () {
         withTwirlJavaSourceSets()
         withTemplateSourceExpectingJavaImports(file("twirlJava", "javaTemplate.scala.html"))
@@ -281,7 +281,7 @@ class TwirlCompileIntegrationTest extends PlayMultiVersionIntegrationTest {
             .containsDescendants("html/javaTemplate.class", "views/html/index.class")
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "twirl source sets default to Scala imports" () {
         withTemplateSource(file("app", "views", "index.scala.html"))
         validateThatPlayJavaDependencyIsNotAdded()
@@ -294,7 +294,7 @@ class TwirlCompileIntegrationTest extends PlayMultiVersionIntegrationTest {
         executedAndNotSkipped ":compilePlayBinaryPlayTwirlTemplates"
     }
 
-    @ToBeFixedForInstantExecution(because = ":components")
+    @ToBeFixedForConfigurationCache(because = ":components")
     def "extra sources appear in the component report"() {
         withExtraSourceSets()
 
@@ -339,7 +339,7 @@ Binaries
             model {
                 components {
                     play {
-                        sources {                        
+                        sources {
                             withType(TwirlSourceSet) {
                                 addUserTemplateFormat($template)
                             }
@@ -494,7 +494,7 @@ Binaries
             model {
                 components {
                     play {
-                        sources {                        
+                        sources {
                             withType(TwirlSourceSet) {
                                 addUserTemplateFormat("csv", "views.formats.csv.CsvFormat", "views.formats.csv._")
                             }
@@ -522,7 +522,7 @@ object Csv {
   implicit def contentTypeCsv(implicit codec: Codec): ContentTypeOf[Csv] = ContentTypeOf[Csv](Some(Csv.contentType))
 
   def apply(text: String): Csv = new Csv(new StringBuilder(text))
-  
+
   def empty: Csv = new Csv(new StringBuilder)
 }
 

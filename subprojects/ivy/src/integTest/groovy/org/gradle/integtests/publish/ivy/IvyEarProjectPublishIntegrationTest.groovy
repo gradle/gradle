@@ -16,7 +16,7 @@
 package org.gradle.integtests.publish.ivy
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
 class IvyEarProjectPublishIntegrationTest extends AbstractIntegrationSpec {
 
@@ -25,7 +25,7 @@ class IvyEarProjectPublishIntegrationTest extends AbstractIntegrationSpec {
         executer.noDeprecationChecks()
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     public void "publishes EAR only for mixed java and WAR and EAR project"() {
         given:
         file("settings.gradle") << "rootProject.name = 'publishTest' "

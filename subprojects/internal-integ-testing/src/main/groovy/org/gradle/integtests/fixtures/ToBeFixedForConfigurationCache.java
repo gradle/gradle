@@ -25,12 +25,12 @@ import java.lang.annotation.Target;
 
 
 /**
- * Assert that this test fails when run with instant execution enabled.
+ * Assert that this test fails when run with configuration cache enabled.
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
-@ExtensionAnnotation(ToBeFixedForInstantExecutionExtension.class)
-public @interface ToBeFixedForInstantExecution {
+@ExtensionAnnotation(ToBeFixedForConfigurationCacheExtension.class)
+public @interface ToBeFixedForConfigurationCache {
 
     /**
      * Set to some {@link Skip} to skip the annotated test.
@@ -52,7 +52,7 @@ public @interface ToBeFixedForInstantExecution {
     String because() default "";
 
     /**
-     * Reason for skipping a test with instant execution.
+     * Reason for skipping a test with configuration cache.
      */
     enum Skip {
 
@@ -68,12 +68,12 @@ public @interface ToBeFixedForInstantExecution {
         UNROLLED_FAILS_IN_SUBCLASS,
 
         /**
-         * Use this reason on tests that fail <code>:verifyTestFilesCleanup</code> with instant execution.
+         * Use this reason on tests that fail <code>:verifyTestFilesCleanup</code> with configuration cache.
          */
         FAILS_TO_CLEANUP,
 
         /**
-         * Use this reason on tests that intermittently fail with instant execution.
+         * Use this reason on tests that intermittently fail with configuration cache.
          */
         FLAKY,
 

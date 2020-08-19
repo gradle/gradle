@@ -16,11 +16,11 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
 class ClientModuleDependenciesResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "uses metadata from Client Module and looks up artifact in declared repositories"() {
         given:
         def repo1 = ivyHttpRepo("repo1")
@@ -66,7 +66,7 @@ task listJars {
 
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can resolve nested Client Module"() {
         given:
         def repo = mavenHttpRepo("repo")
@@ -112,7 +112,7 @@ task listJars {
         succeeds('listJars')
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "client module dependency ignores published artifact listing and resolves single jar file"() {
         given:
         def projectA = ivyHttpRepo.module('group', 'projectA', '1.2')

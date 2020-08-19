@@ -15,7 +15,7 @@
  */
 package org.gradle.plugins.ide.eclipse
 
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import spock.lang.Unroll
 
 class EclipseProjectIntegrationTest extends AbstractEclipseIntegrationSpec {
@@ -24,7 +24,7 @@ class EclipseProjectIntegrationTest extends AbstractEclipseIntegrationSpec {
         settingsFile.text = "rootProject.name = 'root'"
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     void allowsConfiguringEclipseProject() {
         given:
         buildScript """
@@ -80,7 +80,7 @@ eclipse {
         assert jdt.contains('source=1.4')
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     void "allows custom matcher resource filter"() {
         given:
         buildScript """
@@ -121,7 +121,7 @@ eclipse {
         project.assertHasResourceFilterXml(resourceFilterXml)
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     void "allows configuring multiple resource filters"() {
         given:
         buildScript """
@@ -179,7 +179,7 @@ eclipse {
         project.assertHasResourceFilterXml(resourceFilterXml)
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     void "allows 'include only' type resource filter"() {
         given:
         buildScript """
@@ -220,7 +220,7 @@ eclipse {
         project.assertHasResourceFilterXml(resourceFilterXml)
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     void "allows resource filter for files"() {
         given:
         buildScript """
@@ -261,7 +261,7 @@ eclipse {
         project.assertHasResourceFilterXml(resourceFilterXml)
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     void "allows resource filter for folders"() {
         given:
         buildScript """
@@ -302,7 +302,7 @@ eclipse {
         project.assertHasResourceFilterXml(resourceFilterXml)
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     void "allows non-recursive resource filter"() {
         given:
         buildScript """
@@ -344,7 +344,7 @@ eclipse {
         project.assertHasResourceFilterXml(resourceFilterXml)
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     void "existing resource filters are not duplicated"() {
         given:
         def projectFile = file('.project')
@@ -422,7 +422,7 @@ eclipse {
         project.assertHasResourceFilterXml(resourceFilterXml)
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     void "existing project file with equivalent resource filters is unchanged"() {
         given:
         def projectFile = file('.project')
@@ -525,7 +525,7 @@ eclipse {
         projectFileOriginalText == projectFile.text.normalize()
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     void "allows nested matcher"() {
         given:
         buildScript """
@@ -583,7 +583,7 @@ eclipse {
         project.assertHasResourceFilterXml(resourceFilterXml)
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     void enablesBeforeAndWhenHooksForProject() {
         given:
         def projectFile = file('.project')
@@ -634,7 +634,7 @@ eclipse {
         project.assertHasNatures('org.eclipse.jdt.core.javanature', 'some.nature.one', 'some.nature.two', 'some.nature.three')
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     void enablesBeforeAndWhenAndWithPropertiesHooksForJdt() {
         given:
         def jdtFile = file('.settings/org.eclipse.jdt.core.prefs')
@@ -683,7 +683,7 @@ eclipseJdt.doLast() {
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     void "setting project name within #hook is disallowed"(){
         given:
 

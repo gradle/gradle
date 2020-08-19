@@ -17,7 +17,7 @@
 package org.gradle.api.internal.changedetection.state
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.internal.Actions
 import spock.lang.Unroll
 
@@ -26,16 +26,16 @@ class TaskCustomTypesInputPropertyIntegrationTest extends AbstractIntegrationSpe
         """
 import java.io.Serializable;
 
-public class CustomType implements Serializable { 
+public class CustomType implements Serializable {
     public String value;
-    
+
     public CustomType(String value) { this.value = value; }
-    
+
     public boolean equals(Object o) {
         CustomType other = (CustomType)o;
         return other.value.equals(value);
     }
-    
+
     public int hashCode() { return value.hashCode(); }
 }
 """
@@ -47,16 +47,16 @@ public class CustomType implements Serializable {
         """
 import java.io.Serializable;
 
-public class CustomType implements Serializable { 
+public class CustomType implements Serializable {
     public String value;
-    
+
     public CustomType(String value) { this.value = value; }
-    
+
     public boolean equals(Object o) {
         CustomType other = (CustomType)o;
         return other.value.startsWith(value) || value.startsWith(other.value);
     }
-    
+
     public int hashCode() { return 1; }
 }
 """
@@ -79,7 +79,7 @@ public class SomeTask extends DefaultTask {
     public File f;
     @OutputDirectory
     public File getF() { return f; }
-    
+
     @TaskAction
     public void go() { }
 }
@@ -352,7 +352,7 @@ task someTask {
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution(because = "ClassNotFoundException: ArrayList1_groovyProxy", iterationMatchers = '.*\\[2\\]$')
+    @ToBeFixedForConfigurationCache(because = "ClassNotFoundException: ArrayList1_groovyProxy", iterationMatchers = '.*\\[2\\]$')
     def "task can take as input a collection of custom types from various sources"() {
         def buildSrcType = file("buildSrc/src/main/java/CustomType.java")
         buildSrcType << customSerializableType()

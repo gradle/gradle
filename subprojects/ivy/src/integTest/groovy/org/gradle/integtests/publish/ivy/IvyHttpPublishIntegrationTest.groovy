@@ -19,7 +19,7 @@ package org.gradle.integtests.publish.ivy
 
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.executer.ProgressLoggingFixture
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.AuthScheme
@@ -59,7 +59,7 @@ class IvyHttpPublishIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can publish to authenticated repository using #authScheme auth"() {
         given:
         buildFile << """
@@ -107,7 +107,7 @@ class IvyHttpPublishIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "reports failure publishing with #credsName credentials to authenticated repository using #authScheme auth"() {
         given:
         buildFile << """
@@ -147,7 +147,7 @@ class IvyHttpPublishIntegrationTest extends AbstractIntegrationSpec {
         AuthScheme.NTLM   | 'bad'     | BAD_CREDENTIALS
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     void reportsFailedPublishToHttpRepository() {
         given:
         def repositoryPort = server.port
@@ -188,7 +188,7 @@ class IvyHttpPublishIntegrationTest extends AbstractIntegrationSpec {
         failure.assertThatCause(matchesRegexp(".*?Connect to 127.0.0.1:${repositoryPort} (\\[.*\\])? failed: Connection refused.*"))
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     void usesFirstConfiguredPatternForPublication() {
         given:
         buildFile << """
@@ -226,7 +226,7 @@ class IvyHttpPublishIntegrationTest extends AbstractIntegrationSpec {
         module.jarFile.assertIsCopyOf(file('build/libs/publish-2.jar'))
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     void "can publish large artifact to authenticated repository"() {
         given:
         def largeJar = file("large.jar")

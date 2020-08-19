@@ -19,7 +19,7 @@ package org.gradle.buildinit.plugins
 import org.gradle.buildinit.plugins.fixtures.WrapperTestFixture
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.HttpServer
@@ -56,7 +56,7 @@ class MavenConversionIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    @ToBeFixedForInstantExecution(because = ":projects")
+    @ToBeFixedForConfigurationCache(because = ":projects")
     def "multiModule"() {
         when:
         run 'init'
@@ -115,7 +115,7 @@ Root project 'webinar-parent'
         new DefaultTestExecutionResult(file("webinar-impl")).assertTestClassesExecuted('webinar.WebinarTest')
     }
 
-    @ToBeFixedForInstantExecution(because = ":projects")
+    @ToBeFixedForConfigurationCache(because = ":projects")
     def "flatmultimodule"() {
         when:
         executer.inDirectory(file("webinar-parent"))
@@ -368,7 +368,7 @@ ${TextUtil.indent(configLines.join("\n"), "                        ")}
     }
 
     @Issue("GRADLE-2819")
-    @ToBeFixedForInstantExecution(because = ":projects")
+    @ToBeFixedForConfigurationCache(because = ":projects")
     def "multiModuleWithRemoteParent"() {
         setup:
         withSharedResources()

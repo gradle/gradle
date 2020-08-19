@@ -16,7 +16,7 @@
 
 package org.gradle.ide.xcode
 
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.language.swift.SwiftVersion
 import org.gradle.nativeplatform.fixtures.app.Swift3WithSwift4XCTest
 import org.gradle.nativeplatform.fixtures.app.Swift3WithXCTest
@@ -71,7 +71,7 @@ abstract class AbstractXcodeSwiftWithXCTestProjectIntegrationTest extends Abstra
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "honors Swift source compatibility difference on both tested component (#componentSourceCompatibility) and XCTest component (#xctestSourceCompatibility)"() {
         given:
         // TODO: Generating the Xcode files for incompatible source compatibility shouldn't fail the build

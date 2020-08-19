@@ -16,14 +16,14 @@
 
 package org.gradle.api.publish.ivy
 
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.ivy.IvyDescriptorArtifact
 
 class IvyPublishArtifactCustomizationIntegTest extends AbstractIvyPublishIntegTest {
 
     def module = ivyRepo.module("org.gradle.test", "ivyPublish", "2.4")
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     void "can publish custom artifacts"() {
         given:
         createBuildScripts("""
@@ -76,7 +76,7 @@ class IvyPublishArtifactCustomizationIntegTest extends AbstractIvyPublishIntegTe
         }
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can configure custom artifacts when creating"() {
         given:
         createBuildScripts("""
@@ -136,7 +136,7 @@ class IvyPublishArtifactCustomizationIntegTest extends AbstractIvyPublishIntegTe
         }
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can publish custom file artifacts with map notation"() {
         given:
         createBuildScripts("""
@@ -181,7 +181,7 @@ class IvyPublishArtifactCustomizationIntegTest extends AbstractIvyPublishIntegTe
         }
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can set custom artifacts to override component artifacts"() {
         given:
         createBuildScripts("""
@@ -207,7 +207,7 @@ class IvyPublishArtifactCustomizationIntegTest extends AbstractIvyPublishIntegTe
         module.parsedIvy.artifacts.collect({"${it.name}.${it.ext}"}) as Set == ["ivyPublish.txt", "ivyPublish.html", "ivyPublish.jar"] as Set
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can configure custom artifacts post creation"() {
         given:
         createBuildScripts("""
@@ -241,7 +241,7 @@ class IvyPublishArtifactCustomizationIntegTest extends AbstractIvyPublishIntegTe
         }
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can publish artifact with no extension"() {
         given:
         file("no-extension") << "some content"
@@ -271,7 +271,7 @@ class IvyPublishArtifactCustomizationIntegTest extends AbstractIvyPublishIntegTe
         }
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can publish artifact with classifier"() {
         given:
         createBuildScripts("""
@@ -300,7 +300,7 @@ class IvyPublishArtifactCustomizationIntegTest extends AbstractIvyPublishIntegTe
         }
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can add custom configurations"() {
         given:
         createBuildScripts("""
@@ -330,7 +330,7 @@ class IvyPublishArtifactCustomizationIntegTest extends AbstractIvyPublishIntegTe
         ivy.configurations["custom"].extend == ["runtime", "base"] as Set
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "reports failure publishing when validation fails"() {
         given:
         file("a-directory.dir").createDir()
@@ -351,7 +351,7 @@ class IvyPublishArtifactCustomizationIntegTest extends AbstractIvyPublishIntegTe
         failure.assertHasCause("Invalid publication 'ivy': artifact file is a directory")
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "cannot publish when artifact does not exist"() {
         given:
         createBuildScripts("""
@@ -395,7 +395,7 @@ The following types/formats are supported:
     }
 
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "artifact coordinates are evaluated lazily"() {
         given:
         createBuildScripts("""
@@ -454,7 +454,7 @@ The following types/formats are supported:
         """
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "dependencies with multiple dependency artifacts are mapped to multiple dependency declarations in GMM"() {
         def repoModule = javaLibrary(ivyRepo.module('group', 'root', '1.0'))
 

@@ -17,7 +17,7 @@
 package org.gradle.integtests.composite
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
 class CompositeBuildWarningJavaProjectIntegrationTest extends AbstractIntegrationSpec {
 
@@ -51,7 +51,7 @@ class CompositeBuildWarningJavaProjectIntegrationTest extends AbstractIntegratio
         output.count(warningMessage(':buildDependents')) == 0
     }
 
-    @ToBeFixedForInstantExecution(because = "composite builds")
+    @ToBeFixedForConfigurationCache(because = "composite builds")
     def "Shows warning when buildDependents task executed on single-project build"() {
         given:
         singleProjectBuild("project") {
@@ -67,7 +67,7 @@ class CompositeBuildWarningJavaProjectIntegrationTest extends AbstractIntegratio
         output.count(warningMessage(':buildDependents')) == 1
     }
 
-    @ToBeFixedForInstantExecution(because = "composite builds")
+    @ToBeFixedForConfigurationCache(because = "composite builds")
     def "Shows warning for all buildDependents tasks executed on multi-project build"() {
         given:
         multiProjectBuild("multi-project", ['sub1', 'sub2']) {

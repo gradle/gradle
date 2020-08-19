@@ -19,7 +19,7 @@ package org.gradle.integtests.samples
 
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
 import org.gradle.integtests.fixtures.Sample
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.file.TestFile
 import org.junit.Before
 import org.junit.Rule
@@ -47,7 +47,7 @@ class SamplesJavaOnlyIfIntegrationTest extends AbstractIntegrationTest {
      * execute dists
      * check that it re-ran tests
      */
-    @ToBeFixedForInstantExecution(because = "onlyIf spec capturing another task")
+    @ToBeFixedForConfigurationCache(because = "onlyIf spec capturing another task")
     @Test void testOptimizedBuild() {
         TestFile javaprojectDir = sample.dir.file('groovy')
 

@@ -17,7 +17,7 @@
 package org.gradle
 
 import org.apache.tools.ant.taskdefs.Expand
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.AntUtil
 import org.gradle.util.Requires
@@ -44,7 +44,7 @@ class SrcDistributionIntegrationSpec extends DistributionIntegrationSpec {
     }
 
     @Requires(TestPrecondition.NOT_WINDOWS)
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def sourceZipContents() {
         given:
         // workaround for https://github.com/asciidoctor/asciidoctor-gradle-plugin/issues/270

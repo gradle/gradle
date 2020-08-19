@@ -17,12 +17,12 @@
 package org.gradle.api.provider
 
 import org.gradle.api.internal.provider.AbstractLanguageInterOpIntegrationTest
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
 abstract class AbstractNestedBeanLanguageInterOpIntegrationTest extends AbstractLanguageInterOpIntegrationTest {
     abstract void pluginDefinesTask()
 
-    @ToBeFixedForInstantExecution(
+    @ToBeFixedForConfigurationCache(
         because = "Kotlin Gradle Plugin",
         bottomSpecs = ["NestedBeanKotlinInterOpIntegrationTest"]
     )

@@ -18,7 +18,7 @@ package org.gradle.integtests.resolve.alignment
 
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import spock.lang.Issue
 
 class AlignmentIntegrationTest extends AbstractAlignmentSpec {
@@ -862,7 +862,7 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
     // We only need to test one flavor
     @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
     @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "virtual platform missing modules are cached across builds"() {
         // Disable daemon, so that the second run executes with the file cache
         // and therefore make sure that we read the "missing" status from disk
@@ -926,7 +926,7 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
 
     // Platforms cannot be published with plain Ivy
     @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "published platform can be found in a different repository"() {
         // Disable daemon, so that the second run executes with the file cache
         // and therefore make sure that we read the "missing" status from disk
@@ -1119,7 +1119,7 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
     }
 
     @Issue("gradle/gradle#7916")
-    @ToBeFixedForInstantExecution(because = ":dependencyInsight")
+    @ToBeFixedForConfigurationCache(because = ":dependencyInsight")
     def "shouldn't fail when a referenced component is a virtual platform"() {
         repository {
             'org:foo:1.0'()
@@ -1160,7 +1160,7 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
     // We only need to test one flavor
     @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
     @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
-    @ToBeFixedForInstantExecution(because = ":dependencyInsight")
+    @ToBeFixedForConfigurationCache(because = ":dependencyInsight")
     def "should manage to realign through two conflicts"() {
         repository {
             path 'start:start:1.0 -> foo:1.0'

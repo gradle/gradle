@@ -20,7 +20,7 @@ package org.gradle.java.compile.incremental
 import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.CompilationOutputsFixture
 import org.gradle.integtests.fixtures.CompiledLanguage
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -87,7 +87,7 @@ abstract class AbstractCrossTaskIncrementalCompilationIntegrationTest extends Ab
         out
     }
 
-    @ToBeFixedForInstantExecution(
+    @ToBeFixedForConfigurationCache(
         bottomSpecs = [
             "CrossTaskIncrementalGroovyCompilationUsingClassDirectoryIntegrationTest",
             "CrossTaskIncrementalGroovyCompilationUsingJarIntegrationTest"
@@ -106,7 +106,7 @@ abstract class AbstractCrossTaskIncrementalCompilationIntegrationTest extends Ab
         impl.recompiledClasses("ImplA")
     }
 
-    @ToBeFixedForInstantExecution(
+    @ToBeFixedForConfigurationCache(
         bottomSpecs = [
             "CrossTaskIncrementalGroovyCompilationUsingClassDirectoryIntegrationTest",
             "CrossTaskIncrementalGroovyCompilationUsingJarIntegrationTest"
@@ -132,7 +132,7 @@ abstract class AbstractCrossTaskIncrementalCompilationIntegrationTest extends Ab
         app.recompiledClasses("C", "D")
     }
 
-    @ToBeFixedForInstantExecution(
+    @ToBeFixedForConfigurationCache(
         bottomSpecs = [
             "CrossTaskIncrementalGroovyCompilationUsingClassDirectoryIntegrationTest",
             "CrossTaskIncrementalGroovyCompilationUsingJarIntegrationTest"
@@ -158,7 +158,7 @@ abstract class AbstractCrossTaskIncrementalCompilationIntegrationTest extends Ab
         app.recompiledClasses("C")
     }
 
-    @ToBeFixedForInstantExecution(
+    @ToBeFixedForConfigurationCache(
         bottomSpecs = [
             "CrossTaskIncrementalGroovyCompilationUsingClassDirectoryIntegrationTest",
             "CrossTaskIncrementalGroovyCompilationUsingJarIntegrationTest"
@@ -189,7 +189,7 @@ abstract class AbstractCrossTaskIncrementalCompilationIntegrationTest extends Ab
         app.recompiledClasses("C")
     }
 
-    @ToBeFixedForInstantExecution(
+    @ToBeFixedForConfigurationCache(
         bottomSpecs = [
             "CrossTaskIncrementalGroovyCompilationUsingClassDirectoryIntegrationTest",
             "CrossTaskIncrementalGroovyCompilationUsingJarIntegrationTest"
@@ -209,7 +209,7 @@ abstract class AbstractCrossTaskIncrementalCompilationIntegrationTest extends Ab
         impl.noneRecompiled()
     }
 
-    @ToBeFixedForInstantExecution(
+    @ToBeFixedForConfigurationCache(
         bottomSpecs = [
             "CrossTaskIncrementalGroovyCompilationUsingClassDirectoryIntegrationTest",
             "CrossTaskIncrementalGroovyCompilationUsingJarIntegrationTest"
@@ -228,7 +228,7 @@ abstract class AbstractCrossTaskIncrementalCompilationIntegrationTest extends Ab
         impl.noneRecompiled()
     }
 
-    @ToBeFixedForInstantExecution(
+    @ToBeFixedForConfigurationCache(
         bottomSpecs = [
             "CrossTaskIncrementalGroovyCompilationUsingClassDirectoryIntegrationTest",
             "CrossTaskIncrementalGroovyCompilationUsingJarIntegrationTest"
@@ -256,7 +256,7 @@ abstract class AbstractCrossTaskIncrementalCompilationIntegrationTest extends Ab
         impl.noneRecompiled() //because after earlier change to B, class A is no longer a dependency
     }
 
-    @ToBeFixedForInstantExecution(
+    @ToBeFixedForConfigurationCache(
         bottomSpecs = [
             "CrossTaskIncrementalGroovyCompilationUsingClassDirectoryIntegrationTest",
             "CrossTaskIncrementalGroovyCompilationUsingJarIntegrationTest"
@@ -276,7 +276,7 @@ abstract class AbstractCrossTaskIncrementalCompilationIntegrationTest extends Ab
         impl.noneRecompiled()
     }
 
-    @ToBeFixedForInstantExecution(
+    @ToBeFixedForConfigurationCache(
         bottomSpecs = [
             "CrossTaskIncrementalGroovyCompilationUsingClassDirectoryIntegrationTest",
             "CrossTaskIncrementalGroovyCompilationUsingJarIntegrationTest"
@@ -378,7 +378,7 @@ abstract class AbstractCrossTaskIncrementalCompilationIntegrationTest extends Ab
         impl.recompiledClasses('Y')
     }
 
-    @ToBeFixedForInstantExecution(
+    @ToBeFixedForConfigurationCache(
         bottomSpecs = [
             "CrossTaskIncrementalGroovyCompilationUsingClassDirectoryIntegrationTest",
             "CrossTaskIncrementalGroovyCompilationUsingJarIntegrationTest"
@@ -397,7 +397,7 @@ abstract class AbstractCrossTaskIncrementalCompilationIntegrationTest extends Ab
         impl.recompiledClasses('ImplB')
     }
 
-    @ToBeFixedForInstantExecution(
+    @ToBeFixedForConfigurationCache(
         bottomSpecs = [
             "CrossTaskIncrementalGroovyCompilationUsingClassDirectoryIntegrationTest",
             "CrossTaskIncrementalGroovyCompilationUsingJarIntegrationTest"
@@ -416,7 +416,7 @@ abstract class AbstractCrossTaskIncrementalCompilationIntegrationTest extends Ab
         impl.noneRecompiled()
     }
 
-    @ToBeFixedForInstantExecution(
+    @ToBeFixedForConfigurationCache(
         bottomSpecs = [
             "CrossTaskIncrementalGroovyCompilationUsingClassDirectoryIntegrationTest",
             "CrossTaskIncrementalGroovyCompilationUsingJarIntegrationTest"
@@ -435,7 +435,7 @@ abstract class AbstractCrossTaskIncrementalCompilationIntegrationTest extends Ab
         impl.noneRecompiled()
     }
 
-    @ToBeFixedForInstantExecution(
+    @ToBeFixedForConfigurationCache(
         bottomSpecs = [
             "CrossTaskIncrementalGroovyCompilationUsingClassDirectoryIntegrationTest",
             "CrossTaskIncrementalGroovyCompilationUsingJarIntegrationTest"
@@ -479,7 +479,7 @@ abstract class AbstractCrossTaskIncrementalCompilationIntegrationTest extends Ab
         impl.noneRecompiled()
     }
 
-    @ToBeFixedForInstantExecution(
+    @ToBeFixedForConfigurationCache(
         bottomSpecs = [
             "CrossTaskIncrementalGroovyCompilationUsingClassDirectoryIntegrationTest",
             "CrossTaskIncrementalGroovyCompilationUsingJarIntegrationTest"
@@ -499,7 +499,7 @@ abstract class AbstractCrossTaskIncrementalCompilationIntegrationTest extends Ab
         impl.recompiledClasses("ImplA")
     }
 
-    @ToBeFixedForInstantExecution(
+    @ToBeFixedForConfigurationCache(
         bottomSpecs = [
             "CrossTaskIncrementalGroovyCompilationUsingClassDirectoryIntegrationTest",
             "CrossTaskIncrementalGroovyCompilationUsingJarIntegrationTest"
@@ -540,7 +540,7 @@ abstract class AbstractCrossTaskIncrementalCompilationIntegrationTest extends Ab
         impl.noneRecompiled()
     }
 
-    @ToBeFixedForInstantExecution(
+    @ToBeFixedForConfigurationCache(
         bottomSpecs = [
             "CrossTaskIncrementalGroovyCompilationUsingClassDirectoryIntegrationTest",
             "CrossTaskIncrementalGroovyCompilationUsingJarIntegrationTest"
@@ -795,7 +795,7 @@ abstract class AbstractCrossTaskIncrementalCompilationIntegrationTest extends Ab
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution(
+    @ToBeFixedForConfigurationCache(
         bottomSpecs = [
             "CrossTaskIncrementalGroovyCompilationUsingClassDirectoryIntegrationTest",
             "CrossTaskIncrementalGroovyCompilationUsingJarIntegrationTest"
@@ -834,7 +834,7 @@ abstract class AbstractCrossTaskIncrementalCompilationIntegrationTest extends Ab
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution(
+    @ToBeFixedForConfigurationCache(
         bottomSpecs = [
             "CrossTaskIncrementalGroovyCompilationUsingClassDirectoryIntegrationTest",
             "CrossTaskIncrementalGroovyCompilationUsingJarIntegrationTest"
@@ -909,7 +909,7 @@ abstract class AbstractCrossTaskIncrementalCompilationIntegrationTest extends Ab
         impl.recompiledClasses 'B'
     }
 
-    @ToBeFixedForInstantExecution(
+    @ToBeFixedForConfigurationCache(
         bottomSpecs = [
             "CrossTaskIncrementalGroovyCompilationUsingClassDirectoryIntegrationTest",
             "CrossTaskIncrementalGroovyCompilationUsingJarIntegrationTest"
@@ -930,7 +930,7 @@ abstract class AbstractCrossTaskIncrementalCompilationIntegrationTest extends Ab
     }
 
     @Issue("gradle/gradle#1474")
-    @ToBeFixedForInstantExecution(
+    @ToBeFixedForConfigurationCache(
         bottomSpecs = [
             "CrossTaskIncrementalGroovyCompilationUsingClassDirectoryIntegrationTest",
             "CrossTaskIncrementalGroovyCompilationUsingJarIntegrationTest"
@@ -950,7 +950,7 @@ abstract class AbstractCrossTaskIncrementalCompilationIntegrationTest extends Ab
 
     }
 
-    @ToBeFixedForInstantExecution(
+    @ToBeFixedForConfigurationCache(
         bottomSpecs = [
             "CrossTaskIncrementalGroovyCompilationUsingClassDirectoryIntegrationTest",
             "CrossTaskIncrementalGroovyCompilationUsingJarIntegrationTest"
@@ -970,7 +970,7 @@ abstract class AbstractCrossTaskIncrementalCompilationIntegrationTest extends Ab
         impl.noneRecompiled()
     }
 
-    @ToBeFixedForInstantExecution(
+    @ToBeFixedForConfigurationCache(
         bottomSpecs = [
             "CrossTaskIncrementalGroovyCompilationUsingClassDirectoryIntegrationTest",
             "CrossTaskIncrementalGroovyCompilationUsingJarIntegrationTest"
@@ -993,7 +993,7 @@ abstract class AbstractCrossTaskIncrementalCompilationIntegrationTest extends Ab
     // This test checks the current behavior, not necessarily the desired one.
     // If all classes are compiled by the same compile task, we do not know if a
     // change is an abi change or not. Hence, an abi change is always assumed.
-    @ToBeFixedForInstantExecution(
+    @ToBeFixedForConfigurationCache(
         bottomSpecs = [
             "CrossTaskIncrementalGroovyCompilationUsingClassDirectoryIntegrationTest",
             "CrossTaskIncrementalGroovyCompilationUsingJarIntegrationTest"

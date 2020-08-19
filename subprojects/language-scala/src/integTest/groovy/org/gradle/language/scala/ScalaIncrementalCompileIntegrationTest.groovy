@@ -17,12 +17,12 @@
 package org.gradle.language.scala
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import spock.lang.Issue
 
 class ScalaIncrementalCompileIntegrationTest extends AbstractIntegrationSpec {
     @Issue("gradle/gradle#8421")
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "incremental compiler detects change in package"() {
         settingsFile << """
             include 'lib'
@@ -43,7 +43,7 @@ dependencies {
         buildFile << """
             dependencies {
                 implementation project(":lib")
-            } 
+            }
         """
 
         file("src/main/scala/Hello.scala") << """import pkg1.Other
@@ -53,7 +53,7 @@ dependencies {
 
         file("lib/src/main/scala/pkg1/Other.scala") << """
             package pkg1
-            
+
             class Other
         """
 
@@ -67,7 +67,7 @@ dependencies {
         file("lib/src/main/scala/pkg1/Other.scala").delete()
         file("lib/src/main/scala/pkg2/Other.scala") << """
             package pkg2
-            
+
             class Other
         """
         fails ':build'

@@ -19,7 +19,7 @@ package org.gradle.api.provider
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.internal.provider.AbstractLanguageInterOpIntegrationTest
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
 abstract class AbstractPropertyLanguageInterOpIntegrationTest extends AbstractLanguageInterOpIntegrationTest {
 
@@ -31,7 +31,7 @@ abstract class AbstractPropertyLanguageInterOpIntegrationTest extends AbstractLa
 
     abstract void pluginDefinesTask()
 
-    @ToBeFixedForInstantExecution(
+    @ToBeFixedForConfigurationCache(
         because = "Kotlin Gradle Plugin",
         bottomSpecs = ["PropertyKotlinInterOpIntegrationTest", "ManagedPropertyKotlinInterOpIntegrationTest"]
     )
@@ -53,7 +53,7 @@ abstract class AbstractPropertyLanguageInterOpIntegrationTest extends AbstractLa
         outputContains("map = {1=true, 2=false}")
     }
 
-    @ToBeFixedForInstantExecution(
+    @ToBeFixedForConfigurationCache(
         because = "Kotlin Gradle Plugin",
         bottomSpecs = ["PropertyKotlinInterOpIntegrationTest", "ManagedPropertyKotlinInterOpIntegrationTest"]
     )
@@ -75,7 +75,7 @@ abstract class AbstractPropertyLanguageInterOpIntegrationTest extends AbstractLa
         outputContains("map = {1=true, 2=false}")
     }
 
-    @ToBeFixedForInstantExecution(
+    @ToBeFixedForConfigurationCache(
         because = "Kotlin Gradle Plugin",
         bottomSpecs = ["PropertyKotlinInterOpIntegrationTest", "ManagedPropertyKotlinInterOpIntegrationTest"]
     )
@@ -97,7 +97,7 @@ abstract class AbstractPropertyLanguageInterOpIntegrationTest extends AbstractLa
         outputContains("map = {1=true, 2=false}")
     }
 
-    @ToBeFixedForInstantExecution(
+    @ToBeFixedForConfigurationCache(
         because = "Kotlin Gradle Plugin",
         bottomSpecs = ["PropertyKotlinInterOpIntegrationTest", "ManagedPropertyKotlinInterOpIntegrationTest"]
     )
@@ -117,7 +117,7 @@ abstract class AbstractPropertyLanguageInterOpIntegrationTest extends AbstractLa
         outputContains("flag = task ':someTask' property 'flag'")
     }
 
-    @ToBeFixedForInstantExecution(
+    @ToBeFixedForConfigurationCache(
         because = "Kotlin Gradle Plugin",
         bottomSpecs = [
             "PropertyKotlinInterOpIntegrationTest",
@@ -169,7 +169,7 @@ abstract class AbstractPropertyLanguageInterOpIntegrationTest extends AbstractLa
         outputContains("map = {3=true}")
     }
 
-    @ToBeFixedForInstantExecution(
+    @ToBeFixedForConfigurationCache(
         because = "Kotlin Gradle Plugin",
         bottomSpecs = ["PropertyKotlinInterOpIntegrationTest", "ManagedPropertyKotlinInterOpIntegrationTest"]
     )
@@ -221,7 +221,7 @@ abstract class AbstractPropertyLanguageInterOpIntegrationTest extends AbstractLa
         outputContains("map = {3=true}")
     }
 
-    @ToBeFixedForInstantExecution(
+    @ToBeFixedForConfigurationCache(
         because = "Kotlin Gradle Plugin",
         bottomSpecs = ["PropertyKotlinInterOpIntegrationTest", "ManagedPropertyKotlinInterOpIntegrationTest"]
     )
@@ -288,7 +288,7 @@ abstract class AbstractPropertyLanguageInterOpIntegrationTest extends AbstractLa
         outputContains("map = {1=true, 2=false}")
     }
 
-    @ToBeFixedForInstantExecution(because = "Kotlin Gradle Plugin")
+    @ToBeFixedForConfigurationCache(because = "Kotlin Gradle Plugin")
     def "can define property in language plugin and set value from Kotlin plugin"() {
         pluginDefinesTask()
 

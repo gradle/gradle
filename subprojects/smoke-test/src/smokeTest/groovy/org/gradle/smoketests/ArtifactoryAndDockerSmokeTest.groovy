@@ -16,7 +16,7 @@
 
 package org.gradle.smoketests
 
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.util.Requires
 
 import static org.gradle.util.TestPrecondition.HAS_DOCKER
@@ -25,7 +25,7 @@ import static org.gradle.util.TestPrecondition.HAS_DOCKER
 @Requires(HAS_DOCKER)
 class ArtifactoryAndDockerSmokeTest extends AbstractSmokeTest {
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def 'artifactory with docker and plugin upload'() {
         when:
         buildFile << """

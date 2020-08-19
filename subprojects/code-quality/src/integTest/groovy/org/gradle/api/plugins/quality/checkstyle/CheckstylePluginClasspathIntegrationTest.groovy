@@ -15,7 +15,7 @@
  */
 package org.gradle.api.plugins.quality.checkstyle
 
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.quality.integtest.fixtures.CheckstyleCoverage
@@ -30,7 +30,7 @@ class CheckstylePluginClasspathIntegrationTest extends MultiVersionIntegrationSp
         goodCode()
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "accepts throwing exception from other project"() {
         expect:
         succeeds("checkstyleMain")

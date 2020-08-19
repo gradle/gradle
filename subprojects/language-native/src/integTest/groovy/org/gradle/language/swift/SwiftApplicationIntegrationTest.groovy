@@ -16,7 +16,7 @@
 
 package org.gradle.language.swift
 
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.SwiftApp
@@ -62,7 +62,7 @@ class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest imple
         return "application"
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "relinks when an upstream dependency changes in ABI compatible way"() {
         settingsFile << "include 'app', 'greeter'"
         def app = new SwiftAppWithLibrary()
@@ -97,7 +97,7 @@ class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest imple
         installation("app/build/install/main/debug").exec().out == app.expectedOutput.replace("Hello", "Goodbye")
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "recompiles when an upstream dependency changes in non-ABI compatible way"() {
         settingsFile << "include 'app', 'greeter'"
         def app = new SwiftAppWithLibrary()
@@ -943,7 +943,7 @@ class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest imple
         sharedLibrary("app/build/install/main/debug/lib/Log").file.assertExists()
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can compile and link against libraries in included builds"() {
         settingsFile << """
             rootProject.name = 'app'

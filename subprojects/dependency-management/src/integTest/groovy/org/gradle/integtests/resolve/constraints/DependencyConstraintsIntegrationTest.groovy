@@ -16,7 +16,7 @@
 package org.gradle.integtests.resolve.constraints
 
 import org.gradle.integtests.fixtures.AbstractPolyglotIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import spock.lang.Issue
 import spock.lang.Unroll
@@ -97,7 +97,7 @@ class DependencyConstraintsIntegrationTest extends AbstractPolyglotIntegrationSp
         }
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     void "dependency constraint can be used to declare incompatibility"() {
         given:
         mavenRepo.module("org", "foo", '1.1').publish()
@@ -421,7 +421,7 @@ class DependencyConstraintsIntegrationTest extends AbstractPolyglotIntegrationSp
         }
     }
 
-    @ToBeFixedForInstantExecution(because = "composite builds")
+    @ToBeFixedForConfigurationCache(because = "composite builds")
     void "dependency constraints defined for a build are applied when resolving a configuration that uses that build as an included build"() {
         given:
         resolve.expectDefaultConfiguration('default')
@@ -726,7 +726,7 @@ class DependencyConstraintsIntegrationTest extends AbstractPolyglotIntegrationSp
         }
     }
 
-    @ToBeFixedForInstantExecution(because = "broken file collection")
+    @ToBeFixedForConfigurationCache(because = "broken file collection")
     void 'dependency constraint on failed variant resolution needs to be in the right state'() {
         mavenRepo.module('org', 'bar', '1.0').publish()
         writeSpec {
@@ -753,7 +753,7 @@ class DependencyConstraintsIntegrationTest extends AbstractPolyglotIntegrationSp
         outputContains("org:bar: FAILED")
     }
 
-    @ToBeFixedForInstantExecution(because = "broken file collection")
+    @ToBeFixedForConfigurationCache(because = "broken file collection")
     @Unroll
     void 'multiple dependency constraints on single module are all taken into account (#one then #two)'() {
         def bar10 = mavenRepo.module('org', 'bar', '1.0').publish()

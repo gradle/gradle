@@ -18,7 +18,7 @@ package org.gradle.integtests.resolve.rules
 
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 
 class ComponentMetadataRulesCachingIntegrationTest extends AbstractModuleDependencyResolveTest implements ComponentMetadataRulesSupport {
@@ -46,7 +46,7 @@ task resolve {
         executer.withArgument("-Ddebug.modulesource=true")
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "rule is cached across builds"() {
         repository {
             'org.test:projectA:1.0' {
@@ -100,7 +100,7 @@ dependencies {
         outputDoesNotContain('See dependency')
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
     def 'cached rule can access PomModuleDescriptor for Maven component'() {
         given:
@@ -135,7 +135,7 @@ dependencies {
         succeeds 'resolve'
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def 'rule cache properly differentiates inputs'() {
         repository {
             'org.test:projectA:1.0'()
@@ -184,7 +184,7 @@ dependencies {
         outputContains('Rule B executed - saw changing true')
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def 'can cache rules with service injection'() {
         repository {
             'org.test:projectA:1.0'()
@@ -252,7 +252,7 @@ dependencies {
         outputContains('Rule B executed - saw changing true')
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def 'can cache rules having a custom type attribute as parameter'() {
         repository {
             'org.test:projectA:1.0'()
@@ -305,7 +305,7 @@ dependencies {
     }
 
     @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def 'can cache rules setting custom type attributes'() {
         repository {
             'org.test:projectA:1.0'()
