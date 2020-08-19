@@ -282,7 +282,7 @@ task checkDeps
         when:
         executer.expectDocumentedDeprecationWarning("Adding a Configuration as a dependency is a confusing behavior which isn't recommended."
             + " This behaviour has been deprecated and is scheduled to be removed in Gradle 8.0."
-            + " You should use Configuration#extendsFrom instead."
+            + " If you're interested in inheriting the dependencies from the Configuration you are adding, you should use Configuration#extendsFrom instead."
             + " See https://docs.gradle.org/current/dsl/org.gradle.api.artifacts.Configuration.html#org.gradle.api.artifacts.Configuration:extendsFrom(org.gradle.api.artifacts.Configuration[]) for more details.")
 
         then:

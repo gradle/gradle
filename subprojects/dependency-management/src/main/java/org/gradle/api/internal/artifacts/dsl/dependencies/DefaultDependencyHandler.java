@@ -126,7 +126,7 @@ public abstract class DefaultDependencyHandler implements DependencyHandler, Met
     private Dependency doAdd(Configuration configuration, Object dependencyNotation, @Nullable Closure configureClosure) {
         if (dependencyNotation instanceof Configuration) {
             DeprecationLogger.deprecateBehaviour("Adding a Configuration as a dependency is a confusing behavior which isn't recommended.")
-                .withAdvice("You should use Configuration#extendsFrom instead.")
+                .withAdvice("If you're interested in inheriting the dependencies from the Configuration you are adding, you should use Configuration#extendsFrom instead.")
                 .willBeRemovedInGradle8()
                 .withDslReference(Configuration.class, "extendsFrom(org.gradle.api.artifacts.Configuration[])")
                 .nagUser();
