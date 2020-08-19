@@ -207,20 +207,6 @@ public class BuildScriptBuilder {
     }
 
     /**
-     * Allows statements to be added to the allprojects block.
-     */
-    public CrossConfigurationScriptBlockBuilder allprojects() {
-        return block.allprojects;
-    }
-
-    /**
-     * Allows statements to be added to the subprojects block.
-     */
-    public CrossConfigurationScriptBlockBuilder subprojects() {
-        return block.subprojects;
-    }
-
-    /**
      * Adds a top level method invocation statement.
      *
      * @return this
@@ -1018,95 +1004,10 @@ public class BuildScriptBuilder {
         }
     }
 
-    private static class CrossConfigBlock extends ScriptBlockImpl implements CrossConfigurationScriptBlockBuilder, Statement {
-        final String blockName;
-        final RepositoriesBlock repositories = new RepositoriesBlock();
-        final DependenciesBlock dependencies = new DependenciesBlock();
-        final StatementSequence plugins = new StatementSequence();
-        final ConfigurationStatements<TaskTypeSelector> taskTypes = new ConfigurationStatements<>();
-        final ConfigurationStatements<TaskSelector> tasks = new ConfigurationStatements<>();
-        final ConfigurationStatements<ConventionSelector> conventions = new ConfigurationStatements<>();
-
-        CrossConfigBlock(String blockName) {
-            this.blockName = blockName;
-        }
-
-        @Override
-        public RepositoriesBuilder repositories() {
-            return repositories;
-        }
-
-        @Override
-        public DependenciesBuilder dependencies() {
-            return dependencies;
-        }
-
-        @Override
-        public void plugin(String comment, String pluginId) {
-            plugins.add(new NestedPluginSpec(pluginId, null, comment));
-        }
-
-        @Override
-        public void taskPropertyAssignment(String comment, String taskType, String propertyName, Object propertyValue) {
-            taskTypes.add(new TaskTypeSelector(taskType), new PropertyAssignment(comment, propertyName, expressionValue(propertyValue)));
-        }
-
-        @Override
-        public void taskMethodInvocation(@Nullable String comment, String taskName, String taskType, String methodName, Object... methodArgs) {
-            tasks.add(new TaskSelector(taskName, taskType), new MethodInvocation(comment, new MethodInvocationExpression(null, methodName, expressionValues(methodArgs))));
-        }
-
-        @Override
-        public Expression taskRegistration(@Nullable String comment, String taskName, String taskType, Action<? super ScriptBlockBuilder> blockContentBuilder) {
-            TaskRegistration registration = new TaskRegistration(comment, taskName, taskType);
-            add(registration);
-            blockContentBuilder.execute(registration.body);
-            return registration;
-        }
-
-        @Override
-        public Type type() {
-            if (super.type() == Type.Empty
-                && repositories.type() == Type.Empty
-                && plugins.type() == Type.Empty
-                && conventions.type() == Type.Empty
-                && tasks.type() == Type.Empty
-                && taskTypes.type() == Type.Empty
-                && dependencies.type() == Type.Empty) {
-                return Type.Empty;
-            }
-            return Type.Group;
-        }
-
-        @Nullable
-        @Override
-        public String getComment() {
-            return null;
-        }
-
-        @Override
-        public void writeCodeTo(PrettyPrinter printer) {
-            printer.printBlock(blockName, this);
-        }
-
-        @Override
-        public void writeBodyTo(PrettyPrinter printer) {
-            printer.printStatement(plugins);
-            printer.printStatement(repositories);
-            printer.printStatement(dependencies);
-            super.writeBodyTo(printer);
-            printer.printStatement(conventions);
-            printer.printStatement(taskTypes);
-            printer.printStatement(tasks);
-        }
-    }
-
     private static class TopLevelBlock extends ScriptBlockImpl {
         final BlockStatement plugins = new BlockStatement("plugins");
         final RepositoriesBlock repositories = new RepositoriesBlock();
         final DependenciesBlock dependencies = new DependenciesBlock();
-        final CrossConfigBlock allprojects = new CrossConfigBlock("allprojects");
-        final CrossConfigBlock subprojects = new CrossConfigBlock("subprojects");
         final ConfigurationStatements<TaskTypeSelector> taskTypes = new ConfigurationStatements<>();
         final ConfigurationStatements<TaskSelector> tasks = new ConfigurationStatements<>();
         final ConfigurationStatements<ConventionSelector> conventions = new ConfigurationStatements<>();
@@ -1114,8 +1015,6 @@ public class BuildScriptBuilder {
         @Override
         public void writeBodyTo(PrettyPrinter printer) {
             printer.printStatement(plugins);
-            printer.printStatement(allprojects);
-            printer.printStatement(subprojects);
             printer.printStatement(repositories);
             printer.printStatement(dependencies);
             super.writeBodyTo(printer);
