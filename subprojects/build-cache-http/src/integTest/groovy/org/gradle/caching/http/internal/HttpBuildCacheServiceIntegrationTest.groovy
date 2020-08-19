@@ -69,7 +69,9 @@ class HttpBuildCacheServiceIntegrationTest extends AbstractIntegrationSpec imple
     def "outputs are correctly loaded from cache"() {
         buildFile << """
             apply plugin: "application"
-            mainClassName = "Hello"
+            application {
+                mainClass = "Hello"
+            }
         """
         withBuildCache().run "run"
         withBuildCache().run "clean"

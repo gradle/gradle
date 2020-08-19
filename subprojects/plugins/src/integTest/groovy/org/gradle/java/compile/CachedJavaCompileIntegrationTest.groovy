@@ -32,7 +32,9 @@ class CachedJavaCompileIntegrationTest extends AbstractCachedCompileIntegrationT
                 id 'application'
             }
 
-            mainClassName = "Hello"
+            application {
+                mainClass = "Hello"
+            }
 
             ${mavenCentralRepository()}
 

@@ -546,7 +546,9 @@ public class Main {
         buildFile << """
 apply plugin: 'application'
 
-mainClassName = 'org.gradle.test.Main'
+application {
+    mainClass = 'org.gradle.test.Main'
+}
 """
     }
 

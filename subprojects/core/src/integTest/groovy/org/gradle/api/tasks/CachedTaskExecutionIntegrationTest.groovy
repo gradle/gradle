@@ -148,7 +148,9 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
     def "outputs are correctly loaded from cache"() {
         buildFile << """
             apply plugin: "application"
-            mainClassName = "Hello"
+            application {
+                mainClass = "Hello"
+            }
         """
         withBuildCache().run "run"
         withBuildCache().run "clean"
@@ -281,7 +283,9 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
         given:
         buildFile << """
             apply plugin: "application"
-            mainClassName = "Hello"
+            application {
+                mainClass = "Hello"
+            }
         """
 
         when:

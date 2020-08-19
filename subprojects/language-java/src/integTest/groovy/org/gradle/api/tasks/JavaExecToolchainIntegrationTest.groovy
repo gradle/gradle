@@ -58,7 +58,7 @@ class JavaExecToolchainIntegrationTest extends AbstractPluginIntegrationTest {
             apply plugin: ApplyTestToolchain
 
             application {
-                mainClassName = 'App'
+                mainClass = 'App'
             }
         """
 
@@ -98,7 +98,7 @@ class JavaExecToolchainIntegrationTest extends AbstractPluginIntegrationTest {
             }
 
             application {
-                mainClassName = 'App'
+                mainClass = 'App'
             }
         """
 

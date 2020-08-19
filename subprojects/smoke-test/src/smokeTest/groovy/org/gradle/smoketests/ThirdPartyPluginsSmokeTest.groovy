@@ -185,7 +185,7 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
                 id "com.bmuschko.docker-java-application" version "${TestedVersions.docker}"
             }
 
-            mainClassName = 'org.gradle.JettyMain'
+            application.mainClass = 'org.gradle.JettyMain'
 
             docker {
                 javaApplication {

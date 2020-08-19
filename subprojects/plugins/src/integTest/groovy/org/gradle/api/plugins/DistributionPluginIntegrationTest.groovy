@@ -442,7 +442,10 @@ class DistributionPluginIntegrationTest extends WellBehavedPluginTest {
         buildFile << """
             apply plugin: 'application'
             apply plugin: 'java'
-            mainClassName = "Main"
+
+            application {
+                mainClass = "Main"
+            }
         """
         file("src/main/java/Main.java") << "public class Main {}"
         settingsFile << """
