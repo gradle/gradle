@@ -20,7 +20,7 @@ tasks {
         }
     }
 
-    instantIntegTest {
+    configCacheIntegTest {
         enabled = false
     }
 }

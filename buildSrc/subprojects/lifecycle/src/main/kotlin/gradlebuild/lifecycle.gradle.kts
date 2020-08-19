@@ -238,7 +238,7 @@ fun TaskContainer.configureCIIntegrationTestDistributionLifecycleTasks() {
     }
 
     named(instantTest) {
-        dependsOn("instantIntegTest")
+        dependsOn("configCacheIntegTest")
     }
 
     named(watchFsTest) {
