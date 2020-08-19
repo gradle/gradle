@@ -1454,7 +1454,7 @@ public class BuildScriptBuilder {
 
         @Override
         public String containerElement(String container, String element) {
-            return container + ".getByName(" + string(element) + ")";
+            return container + "[" + string(element) + "]";
         }
     }
 
