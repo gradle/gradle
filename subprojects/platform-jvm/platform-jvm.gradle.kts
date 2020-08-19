@@ -20,7 +20,7 @@ dependencies {
     implementation(project(":diagnostics"))
     implementation(project(":normalization-java"))
     implementation(project(":resources"))
-    implementation(project(":persistentCache"))
+    implementation(project(":persistent-cache"))
     implementation(project(":native"))
 
     implementation(libs.groovy)

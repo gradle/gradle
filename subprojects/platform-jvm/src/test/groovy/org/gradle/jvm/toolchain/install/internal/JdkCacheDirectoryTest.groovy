@@ -52,8 +52,15 @@ class JdkCacheDirectoryTest extends Specification {
         given:
         def jdkCacheDirectory = new JdkCacheDirectory(newHomeDirProvider(), Mock(FileOperations), mockLockManager())
         def install1 = temporaryFolder.newFolder("jdks/jdk-123")
+        new File(install1, "provisioned.ok").createNewFile()
+
         def install2 = temporaryFolder.newFolder("jdks/jdk-345")
+        new File(install2, "provisioned.ok").createNewFile()
+
         def install3 = temporaryFolder.newFolder("jdks/jdk-mac/Contents/Home")
+        new File(temporaryFolder.getRoot(), "jdks/jdk-mac/provisioned.ok").createNewFile()
+
+        temporaryFolder.newFolder("jdks/notReady")
 
         when:
         def homes = jdkCacheDirectory.listJavaHomes()
@@ -72,6 +79,7 @@ class JdkCacheDirectoryTest extends Specification {
         then:
         installedJdk.exists()
         new File(installedJdk, "file").exists()
+        new File(installedJdk, "provisioned.ok").exists()
     }
 
     def "provisions jdk from zip archive"() {
@@ -85,6 +93,7 @@ class JdkCacheDirectoryTest extends Specification {
         installedJdk.exists()
         println installedJdk
         new File(installedJdk, "file").exists()
+        new File(installedJdk, "provisioned.ok").exists()
     }
 
     private GradleUserHomeDirProvider newHomeDirProvider() {

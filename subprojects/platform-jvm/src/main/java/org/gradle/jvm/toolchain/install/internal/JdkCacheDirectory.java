@@ -17,6 +17,7 @@
 package org.gradle.jvm.toolchain.install.internal;
 
 import org.apache.commons.io.FilenameUtils;
+import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.EmptyFileVisitor;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileVisitDetails;
@@ -29,16 +30,19 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 public class JdkCacheDirectory {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JdkCacheDirectory.class);
+    public static final String MARKER_FILE = "provisioned.ok";
 
     private final FileOperations operations;
     private final File jdkDirectory;
@@ -52,16 +56,15 @@ public class JdkCacheDirectory {
     }
 
     public Set<File> listJavaHomes() {
-        final FileLock lock = acquireReadLock();
-        try {
-            final File[] files = jdkDirectory.listFiles();
-            if (files != null) {
-                return Arrays.stream(files).filter(File::isDirectory).map(this::findJavaHome).collect(Collectors.toSet());
-            }
-            return Collections.emptySet();
-        } finally {
-            lock.close();
+        final File[] files = jdkDirectory.listFiles();
+        if (files != null) {
+            return Arrays.stream(files).filter(isValidInstallation()).map(this::findJavaHome).collect(Collectors.toSet());
         }
+        return Collections.emptySet();
+    }
+
+    private Predicate<File> isValidInstallation() {
+        return home -> home.isDirectory() && new File(home, MARKER_FILE).exists();
     }
 
     private File findJavaHome(File potentialHome) {
@@ -75,18 +78,30 @@ public class JdkCacheDirectory {
      * Unpacks and installs the given JDK archive. Returns a file pointing to the java home directory.
      */
     public File provisionFromArchive(File jdkArchive) {
-        return findJavaHome(unpack(jdkArchive));
+        final File destination = unpack(jdkArchive);
+        markAsReady(destination);
+        return findJavaHome(destination);
+    }
+
+    private void markAsReady(File destination) {
+        try {
+            new File(destination, MARKER_FILE).createNewFile();
+        } catch (IOException e) {
+            throw new UncheckedIOException("Unable to create .ok file", e);
+        }
     }
 
     private File unpack(File jdkArchive) {
         final FileTree fileTree = asFileTree(jdkArchive);
-        operations.copy(spec -> {
-            spec.from(fileTree);
-            spec.into(jdkDirectory);
-        });
         final String rootName = getRootDirectory(fileTree);
         final File installLocation = new File(jdkDirectory, rootName);
-        LOGGER.info("Installed {} into {}", jdkArchive.getName(), installLocation);
+        if (!installLocation.exists()) {
+            operations.copy(spec -> {
+                spec.from(fileTree);
+                spec.into(jdkDirectory);
+            });
+            LOGGER.info("Installed {} into {}", jdkArchive.getName(), installLocation);
+        }
         return installLocation;
     }
 
@@ -109,12 +124,8 @@ public class JdkCacheDirectory {
         return operations.tarTree(operations.getResources().gzip(jdkArchive));
     }
 
-    public FileLock acquireWriteLock(String destinationFilename, String operationName) {
-        return lockManager.lock(jdkDirectory, LockOptionsBuilder.mode(FileLockManager.LockMode.Exclusive), destinationFilename, operationName);
-    }
-
-    private FileLock acquireReadLock() {
-        return lockManager.lock(jdkDirectory, LockOptionsBuilder.mode(FileLockManager.LockMode.Shared), "", "Locating installed toolchains");
+    public FileLock acquireWriteLock(File destinationFile, String operationName) {
+        return lockManager.lock(destinationFile, LockOptionsBuilder.mode(FileLockManager.LockMode.Exclusive), destinationFile.getName(), operationName);
     }
 
     public File getDownloadLocation(String filename) {
