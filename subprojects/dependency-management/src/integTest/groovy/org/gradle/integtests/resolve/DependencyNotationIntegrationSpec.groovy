@@ -264,7 +264,7 @@ task checkDeps
         succeeds "check"
     }
 
-    @ToBeFixedForInstantExecution(because = "Dependency report task isn't compatible")
+    @ToBeFixedForConfigurationCache(because = "Dependency report task isn't compatible")
     def "warns if using a configuration as a dependency"() {
         given:
         buildFile << """
