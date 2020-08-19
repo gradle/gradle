@@ -29,7 +29,6 @@ plugins {
     id("gradlebuild.classycle")
     id("gradlebuild.integration-tests")
     id("gradlebuild.cross-version-tests")
-    id("gradlebuild.cleanup")
 }
 
 apply(from = "$rootDir/gradle/shared-with-buildSrc/code-quality-configuration.gradle.kts")
