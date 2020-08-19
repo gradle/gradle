@@ -43,7 +43,7 @@ val parallelTest = "parallelTest"
 
 val noDaemonTest = "noDaemonTest"
 
-val instantTest = "instantTest"
+val configCacheTest = "configCacheTest"
 
 val watchFsTest = "watchFsTest"
 
@@ -198,7 +198,7 @@ fun TaskContainer.registerCITestDistributionLifecycleTasks() {
         group = ciGroup
     }
 
-    register(instantTest) {
+    register(configCacheTest) {
         description = "Run all integration tests with instant execution"
         group = ciGroup
     }
@@ -237,7 +237,7 @@ fun TaskContainer.configureCIIntegrationTestDistributionLifecycleTasks() {
         dependsOn("noDaemonIntegTest")
     }
 
-    named(instantTest) {
+    named(configCacheTest) {
         dependsOn("configCacheIntegTest")
     }
 
