@@ -535,7 +535,6 @@ The following types/formats are supported:
         file("out.txt").text == "1"
     }
 
-    @ToBeFixedForConfigurationCache(because = "queries mapped value of task output before it has completed")
     def "input file collection containing filtered tree of task output implies dependency on the task"() {
         taskTypeWithOutputDirectoryProperty()
         taskTypeWithInputFileCollection()
@@ -698,7 +697,6 @@ The following types/formats are supported:
         file("out.txt").text == "b"
     }
 
-    @ToBeFixedForConfigurationCache(because = "queries mapped value of task output before it has completed")
     def "input file collection containing mapped task output property implies dependency on a specific output of the task"() {
         taskTypeWithMultipleOutputFileProperties()
         taskTypeWithInputFileCollection()

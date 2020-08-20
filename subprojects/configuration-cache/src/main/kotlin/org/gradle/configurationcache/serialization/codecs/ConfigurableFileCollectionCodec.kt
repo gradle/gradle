@@ -29,11 +29,16 @@ class ConfigurableFileCollectionCodec(
     private val codec: Codec<FileCollectionInternal>,
     private val fileCollectionFactory: FileCollectionFactory
 ) : Codec<ConfigurableFileCollection> {
-    override suspend fun WriteContext.encode(value: ConfigurableFileCollection) =
-        codec.run { encode(value as FileCollectionInternal) }
+    override suspend fun WriteContext.encode(value: ConfigurableFileCollection) = codec.run {
+        encode(value as FileCollectionInternal)
+    }
 
     override suspend fun ReadContext.decode(): ConfigurableFileCollection =
-        fileCollectionFactory.configurableFiles().also {
-            it.from(codec.run { decode() })
+        fileCollectionFactory.configurableFiles().apply {
+            from(
+                codec.run {
+                    decode()
+                }
+            )
         }
 }
