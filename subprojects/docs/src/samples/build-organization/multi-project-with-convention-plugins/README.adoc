@@ -68,8 +68,8 @@ We can model this use case by layering two separate plugins that each define the
 │   ├── src
 │   │   ├── main
 │   │   │   └── groovy
-│   │   │       ├── com.example.java-conventions.gradle
-│   │   │       └── com.example.library-conventions.gradle
+│   │   │       ├── myproject.java-conventions.gradle
+│   │   │       └── myproject.library-conventions.gradle
 ...
 ----
 =====
@@ -84,34 +84,34 @@ We can model this use case by layering two separate plugins that each define the
 │   ├── src
 │   │   ├── main
 │   │   │   └── kotlin
-│   │   │       ├── com.example.java-conventions.gradle.kts
-│   │   │       └── com.example.library-conventions.gradle.kts
+│   │   │       ├── myproject.java-conventions.gradle.kts
+│   │   │       └── myproject.library-conventions.gradle.kts
 ...
 ----
 =====
 ====
 
-* `com.example.java-conventions` - configures conventions that are generic for any Java project in the organization.
+* `myproject.java-conventions` - configures conventions that are generic for any Java project in the organization.
 It applies the core `java` and `checkstyle` plugins as well as an external `com.github.spotbugs` plugin, configures common
 compiler options as well as code quality checks.
-* `com.example.library-conventions` - adds publishing configuration to publish to the organization's repository and checks for mandatory content in a README.
-It applies `java-library` and `maven-publish` plugins as well as the `com.example.java-conventions` plugin.
+* `myproject.library-conventions` - adds publishing configuration to publish to the organization's repository and checks for mandatory content in a README.
+It applies `java-library` and `maven-publish` plugins as well as the `myproject.java-conventions` plugin.
 
-The internal library subproject applies `com.example.java-conventions` plugin:
+The internal library subproject applies `myproject.java-conventions` plugin:
 ====
 include::sample[dir="groovy",files="internal-module/build.gradle[]"]
 include::sample[dir="kotlin",files="internal-module/build.gradle.kts[]"]
 ====
 
-The two public library subprojects apply `com.example.library-conventions` plugin.
+The two public library subprojects apply `myproject.library-conventions` plugin.
 ====
 include::sample[dir="groovy",files="library-a/build.gradle[];library-b/build.gradle[]"]
 include::sample[dir="kotlin",files="library-a/build.gradle.kts[];library-b/build.gradle.kts[]"]
 ====
 
 Note how applying a convention plugin to a subproject effectively declares its type.
-By applying `com.example.java-conventions` plugin we state: this is `com.example` organization's "Java" project.
-By applying `com.example.library-conventions` plugin we state: this is `com.example` organization's "Library" project.
+By applying `myproject.java-conventions` plugin we state: this is a "Java" project.
+By applying `myproject.library-conventions` plugin we state: this is a "Library" project.
 
 All plugins created in this sample contain functional tests that use link:{userManualPath}/test_kit.html[TestKit] to verify their behavior.
 
@@ -143,7 +143,7 @@ include::sample[dir="kotlin",files="buildSrc/build.gradle.kts[tags=apply]"]
 
 === Applying an external plugin in precompiled script plugin
 
-The `com.example.java-conventions` plugin uses SpotBugs plugin to perform static code analysis.
+The `myproject.java-conventions` plugin uses SpotBugs plugin to perform static code analysis.
 
 SpotBugs is an external plugin - external plugins link:{userManualPath}/custom_plugins.html#applying_external_plugins_in_precompiled_script_plugins[need to be added as implementation dependencies] before they can be applied in a precompiled script plugin:
 ====
@@ -157,28 +157,28 @@ include::sample[dir="kotlin",files="buildSrc/build.gradle.kts[tags=repositories-
 
 Once the dependency is added, the external plugin can be applied in precompiled script plugin by id:
 ====
-include::sample[dir="groovy",files="buildSrc/src/main/groovy/com.example.java-conventions.gradle[tags=apply-external-plugin]"]
-include::sample[dir="kotlin",files="buildSrc/src/main/kotlin/com.example.java-conventions.gradle.kts[tags=apply-external-plugin]"]
+include::sample[dir="groovy",files="buildSrc/src/main/groovy/myproject.java-conventions.gradle[tags=apply-external-plugin]"]
+include::sample[dir="kotlin",files="buildSrc/src/main/kotlin/myproject.java-conventions.gradle.kts[tags=apply-external-plugin]"]
 ====
 
 === Applying other precompiled script plugins
 
 Precompiled script plugins can apply other precompiled script plugins.
 
-The `com.example.library-conventions` plugin applies the `com.example.java-conventions` plugin:
+The `myproject.library-conventions` plugin applies the `myproject.java-conventions` plugin:
 ====
-include::sample[dir="groovy",files="buildSrc/src/main/groovy/com.example.library-conventions.gradle[tags=plugins]"]
-include::sample[dir="kotlin",files="buildSrc/src/main/kotlin/com.example.library-conventions.gradle.kts[tags=plugins]"]
+include::sample[dir="groovy",files="buildSrc/src/main/groovy/myproject.library-conventions.gradle[tags=plugins]"]
+include::sample[dir="kotlin",files="buildSrc/src/main/kotlin/myproject.library-conventions.gradle.kts[tags=plugins]"]
 ====
 
 === Using classes from the main source set
 
 Precompiled script plugins can use classes defined in the main source set of the plugins project.
 
-In this sample, `com.example.library-conventions` plugin uses a custom task class from `buildSrc/src/main/java` to configure library README checks:
+In this sample, `myproject.library-conventions` plugin uses a custom task class from `buildSrc/src/main/java` to configure library README checks:
 ====
-include::sample[dir="groovy",files="buildSrc/src/main/groovy/com.example.library-conventions.gradle[tags=use-java-class]"]
-include::sample[dir="kotlin",files="buildSrc/src/main/kotlin/com.example.library-conventions.gradle.kts[tags=use-java-class]"]
+include::sample[dir="groovy",files="buildSrc/src/main/groovy/myproject.library-conventions.gradle[tags=use-java-class]"]
+include::sample[dir="kotlin",files="buildSrc/src/main/kotlin/myproject.library-conventions.gradle.kts[tags=use-java-class]"]
 ====
 
 For more details on authoring custom Gradle plugins, consult the link:{userManualPath}/custom_plugins.html[user manual].

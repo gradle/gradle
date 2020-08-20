@@ -7,7 +7,7 @@ class JavaConventionPluginTest extends PluginTest {
     def setup() {
         buildFile << """
             plugins {
-                id 'com.example.java-conventions'
+                id 'myproject.java-conventions'
             }
         """
     }
