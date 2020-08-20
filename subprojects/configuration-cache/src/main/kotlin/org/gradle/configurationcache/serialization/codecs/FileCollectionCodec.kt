@@ -33,7 +33,10 @@ import org.gradle.api.internal.file.FilteredFileCollection
 import org.gradle.api.internal.file.SubtractingFileCollection
 import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree
 import org.gradle.api.internal.file.collections.MinimalFileSet
+import org.gradle.api.internal.file.collections.ProviderBackedFileCollection
+import org.gradle.api.internal.provider.ProviderInternal
 import org.gradle.api.specs.Spec
+import org.gradle.api.tasks.TaskProvider
 import org.gradle.api.tasks.util.PatternSet
 import org.gradle.configurationcache.serialization.Codec
 import org.gradle.configurationcache.serialization.ReadContext
@@ -86,6 +89,7 @@ class FileCollectionCodec(
                         is TransformationNode -> Callable { element.transformedSubject.get().files }
                         is SubtractingFileCollectionSpec -> element.left.minus(element.right)
                         is FilteredFileCollectionSpec -> element.collection.filter(element.filter)
+                        is ProviderBackedFileCollectionSpec -> element.provider
                         is FileTree -> element
                         is TransformedExternalArtifactSet -> Callable {
                             element.calculateResult()
@@ -123,6 +127,10 @@ TransformedLocalFileSpec(val origin: File, val transformation: Transformation)
 
 
 private
+class ProviderBackedFileCollectionSpec(val provider: ProviderInternal<*>)
+
+
+private
 class CollectingVisitor : FileCollectionStructureVisitor {
     val elements: MutableSet<Any> = mutableSetOf()
     override fun startVisit(source: FileCollectionInternal.Source, fileCollection: FileCollectionInternal): Boolean =
@@ -136,6 +144,15 @@ class CollectingVisitor : FileCollectionStructureVisitor {
                 // TODO - when the collection is static then we should serialize the current contents of the collection
                 elements.add(FilteredFileCollectionSpec(fileCollection.collection, fileCollection.filterSpec))
                 false
+            }
+            is ProviderBackedFileCollection -> {
+                val provider = fileCollection.provider
+                if (provider !is TaskProvider<*>) {
+                    elements.add(ProviderBackedFileCollectionSpec(provider))
+                    false
+                } else {
+                    true
+                }
             }
             else -> {
                 true
