@@ -112,18 +112,15 @@ class FileCollectionCodec(
 
 
 private
-class
-SubtractingFileCollectionSpec(val left: FileCollection, val right: FileCollection)
+class SubtractingFileCollectionSpec(val left: FileCollection, val right: FileCollection)
 
 
 private
-class
-FilteredFileCollectionSpec(val collection: FileCollection, val filter: Spec<in File>)
+class FilteredFileCollectionSpec(val collection: FileCollection, val filter: Spec<in File>)
 
 
 private
-class
-TransformedLocalFileSpec(val origin: File, val transformation: Transformation)
+class TransformedLocalFileSpec(val origin: File, val transformation: Transformation)
 
 
 private
