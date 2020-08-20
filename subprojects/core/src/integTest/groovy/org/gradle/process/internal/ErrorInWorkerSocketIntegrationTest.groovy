@@ -16,7 +16,7 @@
 
 package org.gradle.process.internal
 
-import groovy.transform.NotYetImplemented
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 
@@ -69,7 +69,6 @@ task runBrokenWorker {
         executer.getGradleUserHomeDir().file('workers').listFiles().find { it.name.startsWith('worker-error') }.text.contains(MESSAGE)
     }
 
-    @NotYetImplemented
     def "worker won't hang when error occurs in socket connection in included build"() {
         given:
         requireOwnGradleUserHomeDir()

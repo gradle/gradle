@@ -16,12 +16,11 @@
 
 package org.gradle.integtests.composite
 
-import groovy.transform.NotYetImplemented
+
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import spock.lang.Issue
 import spock.lang.Unroll
-
 /**
  * Tests for plugin development scenarios within a composite build.
  */
@@ -71,7 +70,6 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
 
     @Unroll
     @ToBeFixedForConfigurationCache
-    @NotYetImplemented
     def "does not expose Gradle runtime dependencies without shading"() {
         given:
         applyPlugin(buildA, pluginsBlock, withVersion)
