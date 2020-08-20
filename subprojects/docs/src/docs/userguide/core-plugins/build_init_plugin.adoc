@@ -216,12 +216,10 @@ It has the following features:
 
 * Uses the “`scala`” plugin to produce a library implemented in Scala
 * Uses the “`jcenter`” dependency repository
-* Uses Scala 2.11
+* Uses Scala 2.13
 * Uses http://www.scalatest.org[ScalaTest] for testing
 * Has directories in the conventional locations for source code
 * Contains a sample Scala class and an associated ScalaTest test suite, if there are no existing source or test files
-* Uses the Zinc Scala compiler by default
-
 
 [[sec:groovy_library]]
 === `groovy-library` build type
