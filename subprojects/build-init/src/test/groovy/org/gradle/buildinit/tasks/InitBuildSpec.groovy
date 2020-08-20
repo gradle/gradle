@@ -82,6 +82,7 @@ class InitBuildSpec extends Specification {
         projectSetupDescriptor.testFrameworks >> [SPOCK]
         projectSetupDescriptor.dsls >> [GROOVY, KOTLIN]
         projectSetupDescriptor.furtherReading >> Optional.empty()
+        projectSetupDescriptor.componentType >> ComponentType.LIBRARY
         init.type = "java-library"
         init.dsl = "kotlin"
         init.testFramework = "spock"

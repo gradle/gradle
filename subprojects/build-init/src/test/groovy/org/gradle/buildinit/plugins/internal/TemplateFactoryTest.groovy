@@ -31,7 +31,7 @@ class TemplateFactoryTest extends Specification {
 
     def "generates from template within sourceSet"() {
         setup:
-        def settings = new InitSettings("project", BuildInitDsl.GROOVY, "", BuildInitTestFramework.NONE)
+        def settings = new InitSettings("project", "app", BuildInitDsl.GROOVY, "", BuildInitTestFramework.NONE)
         def factory = new TemplateFactory(settings, Language.withName(language), fileCollectionFactory, templateOperationFactory)
 
         when:
@@ -47,14 +47,14 @@ class TemplateFactoryTest extends Specification {
 
         where:
         language        | sourceSet   | target
-        "somelang"      | "main"      | "src/main/somelang/SomeClazz.somelang"
-        "someotherlang" | "test"      | "src/test/someotherlang/SomeClazz.somelang"
-        "somelang"      | "integTest" | "src/integTest/somelang/SomeClazz.somelang"
+        "somelang"      | "main"      | "app/src/main/somelang/SomeClazz.somelang"
+        "someotherlang" | "test"      | "app/src/test/someotherlang/SomeClazz.somelang"
+        "somelang"      | "integTest" | "app/src/integTest/somelang/SomeClazz.somelang"
     }
 
     def "generates source file with package from template"() {
         setup:
-        def settings = new InitSettings("project", BuildInitDsl.GROOVY, "my.lib", BuildInitTestFramework.NONE)
+        def settings = new InitSettings("project", "app", BuildInitDsl.GROOVY, "my.lib", BuildInitTestFramework.NONE)
         def factory = new TemplateFactory(settings, Language.withName(language), fileCollectionFactory, templateOperationFactory)
 
         when:
@@ -70,14 +70,14 @@ class TemplateFactoryTest extends Specification {
 
         where:
         language        | sourceSet   | target
-        "somelang"      | "main"      | "src/main/somelang/my/lib/SomeClazz.somelang"
-        "someotherlang" | "test"      | "src/test/someotherlang/my/lib/SomeClazz.somelang"
-        "somelang"      | "integTest" | "src/integTest/somelang/my/lib/SomeClazz.somelang"
+        "somelang"      | "main"      | "app/src/main/somelang/my/lib/SomeClazz.somelang"
+        "someotherlang" | "test"      | "app/src/test/someotherlang/my/lib/SomeClazz.somelang"
+        "somelang"      | "integTest" | "app/src/integTest/somelang/my/lib/SomeClazz.somelang"
     }
 
     def "can specify output class name"() {
         setup:
-        def settings = new InitSettings("project", BuildInitDsl.GROOVY, packageName, BuildInitTestFramework.NONE)
+        def settings = new InitSettings("project", "app", BuildInitDsl.GROOVY, packageName, BuildInitTestFramework.NONE)
         def factory = new TemplateFactory(settings, Language.withName("somelang"), fileCollectionFactory, templateOperationFactory)
 
         when:
@@ -95,8 +95,8 @@ class TemplateFactoryTest extends Specification {
 
         where:
         packageName | className | target
-        ""          | "Main"    | "src/main/somelang/Main.somelang"
-        "a.b"       | "Main"    | "src/main/somelang/a/b/Main.somelang"
+        ""          | "Main"    | "app/src/main/somelang/Main.somelang"
+        "a.b"       | "Main"    | "app/src/main/somelang/a/b/Main.somelang"
     }
 
     def "whenNoSourcesAvailable creates template operation checking for sources"() {
@@ -104,7 +104,7 @@ class TemplateFactoryTest extends Specification {
         def mainSourceDirectory = Mock(FileTreeInternal)
         def testSourceDirectory = Mock(FileTreeInternal)
         def delegate = Mock(TemplateOperation)
-        def settings = new InitSettings("project", BuildInitDsl.GROOVY, "my.lib", BuildInitTestFramework.NONE)
+        def settings = new InitSettings("project", "app", BuildInitDsl.GROOVY, "my.lib", BuildInitTestFramework.NONE)
         def factory = new TemplateFactory(settings, Language.withName("somelang"), fileCollectionFactory, templateOperationFactory)
 
         when:
@@ -115,8 +115,8 @@ class TemplateFactoryTest extends Specification {
         1 * mainSourceDirectory.empty >> noMainSources
         _ * testSourceDirectory.asFileTree >> testSourceDirectory
         _ * testSourceDirectory.empty >> noTestSources
-        1 * fileCollectionFactory.resolving(_, "src/main/somelang") >> mainSourceDirectory
-        _ * fileCollectionFactory.resolving(_, "src/test/somelang") >> testSourceDirectory
+        1 * fileCollectionFactory.resolving(_, "app/src/main/somelang") >> mainSourceDirectory
+        _ * fileCollectionFactory.resolving(_, "app/src/test/somelang") >> testSourceDirectory
         delegateInvocation * delegate.generate()
 
         where:

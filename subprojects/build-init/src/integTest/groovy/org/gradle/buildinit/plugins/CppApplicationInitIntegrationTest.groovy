@@ -28,6 +28,9 @@ class CppApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
     public static final String SAMPLE_APP_HEADER = "app.h"
     public static final String SAMPLE_APP_TEST_CLASS = "app_test.cpp"
 
+    @Override
+    String subprojectName() { 'app' }
+
     @Unroll
     @ToBeFixedForConfigurationCache(because = "cpp-application plugin")
     def "creates sample source if no source present with #scriptDsl build scripts"() {
@@ -35,14 +38,14 @@ class CppApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
         run('init', '--type', 'cpp-application', '--dsl', scriptDsl.id)
 
         then:
-        targetDir.file("src/main/cpp").assertHasDescendants(SAMPLE_APP_CLASS)
-        targetDir.file("src/main/headers").assertHasDescendants(SAMPLE_APP_HEADER)
-        targetDir.file("src/test/cpp").assertHasDescendants(SAMPLE_APP_TEST_CLASS)
+        subprojectDir.file("src/main/cpp").assertHasDescendants(SAMPLE_APP_CLASS)
+        subprojectDir.file("src/main/headers").assertHasDescendants(SAMPLE_APP_HEADER)
+        subprojectDir.file("src/test/cpp").assertHasDescendants(SAMPLE_APP_TEST_CLASS)
 
         and:
-        targetDir.file("src/main/headers/${SAMPLE_APP_HEADER}").text.contains("namespace some_thing {")
-        targetDir.file("src/main/cpp/${SAMPLE_APP_CLASS}").text.contains("some_thing::")
-        targetDir.file("src/test/cpp/${SAMPLE_APP_TEST_CLASS}").text.contains("some_thing::")
+        subprojectDir.file("src/main/headers/${SAMPLE_APP_HEADER}").text.contains("namespace some_thing {")
+        subprojectDir.file("src/main/cpp/${SAMPLE_APP_CLASS}").text.contains("some_thing::")
+        subprojectDir.file("src/test/cpp/${SAMPLE_APP_TEST_CLASS}").text.contains("some_thing::")
 
         and:
         commonFilesGenerated(scriptDsl)
@@ -51,7 +54,7 @@ class CppApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
         succeeds("build")
 
         and:
-        executable("build/exe/main/debug/some-thing").exec().out ==  "Hello, World!\n"
+        executable("${subprojectName()}/build/exe/main/debug/app").exec().out ==  "Hello, World!\n"
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
@@ -64,14 +67,14 @@ class CppApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
         run('init', '--type', 'cpp-application', '--project-name', 'app', '--dsl', scriptDsl.id)
 
         then:
-        targetDir.file("src/main/cpp").assertHasDescendants(SAMPLE_APP_CLASS)
-        targetDir.file("src/main/headers").assertHasDescendants(SAMPLE_APP_HEADER)
-        targetDir.file("src/test/cpp").assertHasDescendants(SAMPLE_APP_TEST_CLASS)
+        subprojectDir.file("src/main/cpp").assertHasDescendants(SAMPLE_APP_CLASS)
+        subprojectDir.file("src/main/headers").assertHasDescendants(SAMPLE_APP_HEADER)
+        subprojectDir.file("src/test/cpp").assertHasDescendants(SAMPLE_APP_TEST_CLASS)
 
         and:
-        targetDir.file("src/main/headers/${SAMPLE_APP_HEADER}").text.contains("namespace app {")
-        targetDir.file("src/main/cpp/${SAMPLE_APP_CLASS}").text.contains("app::")
-        targetDir.file("src/test/cpp/${SAMPLE_APP_TEST_CLASS}").text.contains("app::")
+        subprojectDir.file("src/main/headers/${SAMPLE_APP_HEADER}").text.contains("namespace app {")
+        subprojectDir.file("src/main/cpp/${SAMPLE_APP_CLASS}").text.contains("app::")
+        subprojectDir.file("src/test/cpp/${SAMPLE_APP_TEST_CLASS}").text.contains("app::")
 
         and:
         commonFilesGenerated(scriptDsl)
@@ -80,7 +83,7 @@ class CppApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
         succeeds("build")
 
         and:
-        executable("build/exe/main/debug/app").exec().out ==  "Hello, World!\n"
+        executable("${subprojectName()}/build/exe/main/debug/app").exec().out ==  "Hello, World!\n"
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
@@ -90,7 +93,7 @@ class CppApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
     @ToBeFixedForConfigurationCache(because = "cpp-application plugin")
     def "source generation is skipped when cpp sources detected with #scriptDsl build scripts"() {
         setup:
-        targetDir.file("src/main/cpp/hola.cpp") << """
+        subprojectDir.file("src/main/cpp/hola.cpp") << """
             #include <iostream>
             #include <stdlib.h>
             #include "hola.h"
@@ -104,12 +107,12 @@ class CppApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
                 return 0;
             }
         """
-        targetDir.file("src/main/headers/hola.h") << """
+        subprojectDir.file("src/main/headers/hola.h") << """
             #include <string>
 
             extern std::string hola();
         """
-        targetDir.file("src/test/cpp/hola_test.cpp") << """
+        subprojectDir.file("src/test/cpp/hola_test.cpp") << """
             #include "hola.h"
             #include <cassert>
 
@@ -122,24 +125,24 @@ class CppApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
         run('init', '--type', 'cpp-application', '--project-name', 'app', '--dsl', scriptDsl.id)
 
         then:
-        targetDir.file("src/main/cpp").assertHasDescendants("hola.cpp")
-        targetDir.file("src/main/headers").assertHasDescendants("hola.h")
-        targetDir.file("src/test/cpp").assertHasDescendants("hola_test.cpp")
+        subprojectDir.file("src/main/cpp").assertHasDescendants("hola.cpp")
+        subprojectDir.file("src/main/headers").assertHasDescendants("hola.h")
+        subprojectDir.file("src/test/cpp").assertHasDescendants("hola_test.cpp")
         dslFixtureFor(scriptDsl).assertGradleFilesGenerated()
 
         and:
-        targetDir.file("src/main/cpp/${SAMPLE_APP_CLASS}").assertDoesNotExist()
-        targetDir.file("src/main/headers/${SAMPLE_APP_HEADER}").assertDoesNotExist()
-        targetDir.file("src/test/cpp/${SAMPLE_APP_TEST_CLASS}").assertDoesNotExist()
+        subprojectDir.file("src/main/cpp/${SAMPLE_APP_CLASS}").assertDoesNotExist()
+        subprojectDir.file("src/main/headers/${SAMPLE_APP_HEADER}").assertDoesNotExist()
+        subprojectDir.file("src/test/cpp/${SAMPLE_APP_TEST_CLASS}").assertDoesNotExist()
 
         when:
         run("build")
 
         then:
-        executed(":test")
+        executed(":app:test")
 
         and:
-        executable("build/exe/main/debug/app").exec().out ==  "Hola, Mundo!\n"
+        executable("${subprojectName()}/build/exe/main/debug/app").exec().out ==  "Hola, Mundo!\n"
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS

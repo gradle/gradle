@@ -29,6 +29,9 @@ class JavaApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
     public static final String SAMPLE_APP_TEST_CLASS = "some/thing/AppTest.java"
     public static final String SAMPLE_APP_SPOCK_TEST_CLASS = "some/thing/AppTest.groovy"
 
+    @Override
+    String subprojectName() { 'app' }
+
     def "defaults to Groovy build scripts"() {
         when:
         run ('init', '--type', 'java-application')
@@ -43,8 +46,8 @@ class JavaApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
         run('init', '--type', 'java-application', '--dsl', scriptDsl.id)
 
         then:
-        targetDir.file("src/main/java").assertHasDescendants(SAMPLE_APP_CLASS)
-        targetDir.file("src/test/java").assertHasDescendants(SAMPLE_APP_TEST_CLASS)
+        subprojectDir.file("src/main/java").assertHasDescendants(SAMPLE_APP_CLASS)
+        subprojectDir.file("src/test/java").assertHasDescendants(SAMPLE_APP_TEST_CLASS)
 
         and:
         commonJvmFilesGenerated(scriptDsl)
@@ -72,9 +75,9 @@ class JavaApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
         run('init', '--type', 'java-application', '--test-framework', 'spock', '--dsl', scriptDsl.id)
 
         then:
-        targetDir.file("src/main/java").assertHasDescendants(SAMPLE_APP_CLASS)
-        !targetDir.file("src/test/java").exists()
-        targetDir.file("src/test/groovy").assertHasDescendants(SAMPLE_APP_SPOCK_TEST_CLASS)
+        subprojectDir.file("src/main/java").assertHasDescendants(SAMPLE_APP_CLASS)
+        !subprojectDir.file("src/test/java").exists()
+        subprojectDir.file("src/test/groovy").assertHasDescendants(SAMPLE_APP_SPOCK_TEST_CLASS)
 
         and:
         commonJvmFilesGenerated(scriptDsl)
@@ -95,8 +98,8 @@ class JavaApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
         run('init', '--type', 'java-application', '--test-framework', 'testng', '--dsl', scriptDsl.id)
 
         then:
-        targetDir.file("src/main/java").assertHasDescendants(SAMPLE_APP_CLASS)
-        targetDir.file("src/test/java").assertHasDescendants(SAMPLE_APP_TEST_CLASS)
+        subprojectDir.file("src/main/java").assertHasDescendants(SAMPLE_APP_CLASS)
+        subprojectDir.file("src/test/java").assertHasDescendants(SAMPLE_APP_TEST_CLASS)
 
         and:
         commonJvmFilesGenerated(scriptDsl)
@@ -117,8 +120,8 @@ class JavaApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
         run('init', '--type', 'java-application', '--test-framework', 'junit-jupiter', '--dsl', scriptDsl.id)
 
         then:
-        targetDir.file("src/main/java").assertHasDescendants(SAMPLE_APP_CLASS)
-        targetDir.file("src/test/java").assertHasDescendants(SAMPLE_APP_TEST_CLASS)
+        subprojectDir.file("src/main/java").assertHasDescendants(SAMPLE_APP_CLASS)
+        subprojectDir.file("src/test/java").assertHasDescendants(SAMPLE_APP_TEST_CLASS)
 
         and:
         commonJvmFilesGenerated(scriptDsl)
@@ -139,8 +142,8 @@ class JavaApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
         run('init', '--type', 'java-application', '--test-framework', testFramework.id, '--package', 'my.app', '--dsl', scriptDsl.id)
 
         then:
-        targetDir.file("src/main/java").assertHasDescendants("my/app/App.java")
-        targetDir.file("src/test/java").assertHasDescendants("my/app/AppTest.java")
+        subprojectDir.file("src/main/java").assertHasDescendants("my/app/App.java")
+        subprojectDir.file("src/test/java").assertHasDescendants("my/app/AppTest.java")
 
         and:
         commonJvmFilesGenerated(scriptDsl)
@@ -175,8 +178,8 @@ class JavaApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
         run('init', '--type', 'java-application', '--test-framework', 'spock', '--package', 'my.app', '--dsl', scriptDsl.id)
 
         then:
-        targetDir.file("src/main/java").assertHasDescendants("my/app/App.java")
-        targetDir.file("src/test/groovy").assertHasDescendants("my/app/AppTest.groovy")
+        subprojectDir.file("src/main/java").assertHasDescendants("my/app/App.java")
+        subprojectDir.file("src/test/groovy").assertHasDescendants("my/app/AppTest.groovy")
 
         and:
         commonJvmFilesGenerated(scriptDsl)
@@ -200,13 +203,13 @@ class JavaApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
     @Unroll
     def "source generation is skipped when java sources detected with #scriptDsl build scripts"() {
         setup:
-        targetDir.file("src/main/java/org/acme/SampleMain.java") << """
+        subprojectDir.file("src/main/java/org/acme/SampleMain.java") << """
         package org.acme;
 
         public class SampleMain{
         }
 """
-        targetDir.file("src/test/java/org/acme/SampleMainTest.java") << """
+        subprojectDir.file("src/test/java/org/acme/SampleMainTest.java") << """
                 package org.acme;
 
                 public class SampleMainTest {
@@ -216,15 +219,15 @@ class JavaApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
         run('init', '--type', 'java-application', '--dsl', scriptDsl.id)
 
         then:
-        targetDir.file("src/main/java").assertHasDescendants("org/acme/SampleMain.java")
-        targetDir.file("src/test/java").assertHasDescendants("org/acme/SampleMainTest.java")
+        subprojectDir.file("src/main/java").assertHasDescendants("org/acme/SampleMain.java")
+        subprojectDir.file("src/test/java").assertHasDescendants("org/acme/SampleMainTest.java")
         dslFixtureFor(scriptDsl).assertGradleFilesGenerated()
 
         when:
         run("build")
 
         then:
-        executed(":test")
+        executed(":app:test")
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS

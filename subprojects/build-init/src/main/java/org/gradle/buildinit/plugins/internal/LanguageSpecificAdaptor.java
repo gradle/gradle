@@ -83,7 +83,7 @@ public class LanguageSpecificAdaptor implements ProjectGenerator {
 
     @Override
     public void generate(InitSettings settings) {
-        BuildScriptBuilder buildScriptBuilder = scriptBuilderFactory.script(settings.getDsl(), "build");
+        BuildScriptBuilder buildScriptBuilder = scriptBuilderFactory.script(settings.getDsl(), settings.getSubprojectName() + "/build");
         descriptor.generate(settings, buildScriptBuilder, new TemplateFactory(settings, descriptor.getLanguage(), fileCollectionFactory, templateOperationFactory));
         buildScriptBuilder.create().generate();
     }

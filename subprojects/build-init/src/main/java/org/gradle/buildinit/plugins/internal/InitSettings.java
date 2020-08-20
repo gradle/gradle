@@ -24,9 +24,11 @@ public class InitSettings {
     private final String packageName;
     private final BuildInitTestFramework testFramework;
     private final String projectName;
+    private final String subprojectName;
 
-    public InitSettings(String projectName, BuildInitDsl dsl, String packageName, BuildInitTestFramework testFramework) {
+    public InitSettings(String projectName, String subprojectName, BuildInitDsl dsl, String packageName, BuildInitTestFramework testFramework) {
         this.projectName = projectName;
+        this.subprojectName = subprojectName;
         this.dsl = dsl;
         this.packageName = packageName;
         this.testFramework = testFramework;
@@ -34,6 +36,10 @@ public class InitSettings {
 
     public String getProjectName() {
         return projectName;
+    }
+
+    public String getSubprojectName() {
+        return subprojectName;
     }
 
     public BuildInitDsl getDsl() {

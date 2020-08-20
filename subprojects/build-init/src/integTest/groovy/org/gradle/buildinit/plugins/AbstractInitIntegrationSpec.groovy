@@ -22,8 +22,11 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.test.fixtures.file.TestFile
 
-class AbstractInitIntegrationSpec extends AbstractIntegrationSpec {
+abstract class AbstractInitIntegrationSpec extends AbstractIntegrationSpec {
     final def targetDir = testDirectory.createDir("some-thing")
+    final def subprojectDir = targetDir.file(subprojectName())
+
+    abstract String subprojectName()
 
     def setup() {
         executer.withRepositoryMirrors()
@@ -34,13 +37,13 @@ class AbstractInitIntegrationSpec extends AbstractIntegrationSpec {
     }
 
     void assertTestPassed(String className, String name) {
-        def result = new DefaultTestExecutionResult(targetDir)
+        def result = new DefaultTestExecutionResult(subprojectDir)
         result.assertTestClassesExecuted(className)
         result.testClass(className).assertTestPassed(name)
     }
 
     void assertFunctionalTestPassed(String className, String name) {
-        def result = new DefaultTestExecutionResult(targetDir, 'build', '', '', 'functionalTest')
+        def result = new DefaultTestExecutionResult(subprojectDir, 'build', '', '', 'functionalTest')
         result.assertTestClassesExecuted(className)
         result.testClass(className).assertTestPassed(name)
     }
@@ -52,12 +55,16 @@ class AbstractInitIntegrationSpec extends AbstractIntegrationSpec {
     }
     protected void commonJvmFilesGenerated(BuildInitDsl scriptDsl) {
         commonFilesGenerated(scriptDsl)
-        targetDir.file("src/main/resources").assertIsDir()
-        targetDir.file("src/test/resources").assertIsDir()
+        subprojectDir.file("src/main/resources").assertIsDir()
+        subprojectDir.file("src/test/resources").assertIsDir()
     }
 
     protected ScriptDslFixture dslFixtureFor(BuildInitDsl dsl) {
-        ScriptDslFixture.of(dsl, targetDir)
+        ScriptDslFixture.of(dsl, targetDir, subprojectName())
+    }
+
+    protected ScriptDslFixture rootProjectDslFixtureFor(BuildInitDsl dsl) {
+        ScriptDslFixture.of(dsl, targetDir, null)
     }
 
     protected TestFile pom() {

@@ -29,6 +29,9 @@ import static org.hamcrest.CoreMatchers.not
 
 class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
 
+    @Override
+    String subprojectName() { 'app' }
+
     @ToBeFixedForConfigurationCache(because = ":tasks")
     def "init shows up on tasks overview "() {
         given:
@@ -69,14 +72,14 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
     @Unroll
     def "#targetScriptDsl build file generation is skipped when #existingScriptDsl build file already exists"() {
         given:
-        def existingDslFixture = dslFixtureFor(existingScriptDsl)
-        def targetDslFixture = dslFixtureFor(targetScriptDsl)
+        def existingDslFixture = rootProjectDslFixtureFor(existingScriptDsl as BuildInitDsl)
+        def targetDslFixture = dslFixtureFor(targetScriptDsl as BuildInitDsl)
 
         and:
         existingDslFixture.buildFile.createFile()
 
         when:
-        runInitWith targetScriptDsl
+        runInitWith targetScriptDsl as BuildInitDsl
 
         then:
         result.assertTasksExecuted(":init")
@@ -93,14 +96,14 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
     @Unroll
     def "#targetScriptDsl build file generation is skipped when #existingScriptDsl settings file already exists"() {
         given:
-        def existingDslFixture = dslFixtureFor(existingScriptDsl)
-        def targetDslFixture = dslFixtureFor(targetScriptDsl)
+        def existingDslFixture = dslFixtureFor(existingScriptDsl as BuildInitDsl)
+        def targetDslFixture = dslFixtureFor(targetScriptDsl as BuildInitDsl)
 
         and:
         existingDslFixture.settingsFile.createFile()
 
         when:
-        runInitWith targetScriptDsl
+        runInitWith targetScriptDsl as BuildInitDsl
 
         then:
         result.assertTasksExecuted(":init")
@@ -117,15 +120,15 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
     @Unroll
     def "#targetScriptDsl build file generation is skipped when custom #existingScriptDsl build file exists"() {
         given:
-        def existingDslFixture = dslFixtureFor(existingScriptDsl)
-        def targetDslFixture = dslFixtureFor(targetScriptDsl)
+        def existingDslFixture = dslFixtureFor(existingScriptDsl as BuildInitDsl)
+        def targetDslFixture = dslFixtureFor(targetScriptDsl as BuildInitDsl)
 
         and:
         def customBuildScript = existingDslFixture.scriptFile("customBuild").createFile()
 
         when:
         executer.usingBuildScript(customBuildScript)
-        runInitWith targetScriptDsl
+        runInitWith targetScriptDsl as BuildInitDsl
 
         then:
         result.assertTasksExecuted(":init")
@@ -143,8 +146,8 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
     @Unroll
     def "#targetScriptDsl build file generation is skipped when part of a multi-project build with non-standard #existingScriptDsl settings file location"() {
         given:
-        def existingDslFixture = dslFixtureFor(existingScriptDsl)
-        def targetDslFixture = dslFixtureFor(targetScriptDsl)
+        def existingDslFixture = dslFixtureFor(existingScriptDsl as BuildInitDsl)
+        def targetDslFixture = dslFixtureFor(targetScriptDsl as BuildInitDsl)
 
         and:
         def customSettings = existingDslFixture.scriptFile("customSettings")
@@ -154,7 +157,7 @@ include("child")
 
         when:
         executer.usingSettingsFile(customSettings)
-        runInitWith targetScriptDsl
+        runInitWith targetScriptDsl as BuildInitDsl
 
         then:
         result.assertTasksExecuted(":init")
@@ -177,7 +180,7 @@ include("child")
         run('init')
 
         then:
-        pomValuesUsed(dslFixtureFor(GROOVY))
+        pomValuesUsed(rootProjectDslFixtureFor(GROOVY))
     }
 
     @Unroll
@@ -186,7 +189,7 @@ include("child")
         pom()
 
         when:
-        succeeds('init', '--type', 'java-library', '--dsl', scriptDsl.id)
+        succeeds('init', '--type', 'java-application', '--dsl', scriptDsl.id)
 
         then:
         pomValuesNotUsed(dslFixtureFor(scriptDsl))

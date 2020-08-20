@@ -26,6 +26,7 @@ import org.gradle.api.GradleException;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
 import org.gradle.internal.Cast;
 import org.gradle.internal.file.PathToFileResolver;
+import org.gradle.util.GFileUtils;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -333,6 +334,7 @@ public class BuildScriptBuilder {
     public TemplateOperation create() {
         return () -> {
             File target = getTargetFile();
+            GFileUtils.mkdirs(target.getParentFile());
             try {
                 try (PrintWriter writer = new PrintWriter(new FileWriter(target))) {
                     PrettyPrinter printer = new PrettyPrinter(syntaxFor(dsl), writer);
@@ -1413,7 +1415,7 @@ public class BuildScriptBuilder {
 
         @Override
         public String taskSelector(TaskSelector selector) {
-            return "val " + selector.taskName + " by tasks.getting(" + selector.taskType + "::class)";
+            return "tasks." + selector.taskName;
         }
 
         @Override
@@ -1452,7 +1454,7 @@ public class BuildScriptBuilder {
 
         @Override
         public String containerElement(String container, String element) {
-            return container + ".getByName(" + string(element) + ")";
+            return container + "[" + string(element) + "]";
         }
     }
 
@@ -1532,7 +1534,7 @@ public class BuildScriptBuilder {
 
         @Override
         public String taskSelector(TaskSelector selector) {
-            return selector.taskName;
+            return "tasks.named('" + selector.taskName + "')";
         }
 
         @Override
