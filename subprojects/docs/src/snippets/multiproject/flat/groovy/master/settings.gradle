@@ -1,1 +1,2 @@
+rootProject.name = 'master'
 includeFlat('dolphin', 'shark')

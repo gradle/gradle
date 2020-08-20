@@ -30,5 +30,6 @@
  * limitations under the License.
  */
 
+rootProject.name = "recommender"
 include("platform")
 include("consumer")
