@@ -616,12 +616,12 @@ foo {
  */
 
 // Call method
-things.getByName("element1").thing(12, things.nested.getByName("element2"))
+things["element1"].thing(12, things.nested["element2"])
 
 // Set property
-prop = things.nested.getByName("element2")
+prop = things.nested["element2"]
 
-other = extendsFrom(things.nested.getByName("element2").outputDir)
+other = extendsFrom(things.nested["element2"].outputDir)
 """)
     }
 
@@ -681,7 +681,7 @@ tasks.withType(Test) {
     encoding = "UTF-8"
 }
 
-val test by tasks.getting(Test::class) {
+tasks.test {
     maxParallelForks = 23
 
     // Use TestNG

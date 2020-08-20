@@ -1415,7 +1415,7 @@ public class BuildScriptBuilder {
 
         @Override
         public String taskSelector(TaskSelector selector) {
-            return "val " + selector.taskName + " by tasks.getting(" + selector.taskType + "::class)";
+            return "tasks." + selector.taskName;
         }
 
         @Override
@@ -1454,7 +1454,7 @@ public class BuildScriptBuilder {
 
         @Override
         public String containerElement(String container, String element) {
-            return container + ".getByName(" + string(element) + ")";
+            return container + "[" + string(element) + "]";
         }
     }
 
@@ -1534,7 +1534,7 @@ public class BuildScriptBuilder {
 
         @Override
         public String taskSelector(TaskSelector selector) {
-            return selector.taskName;
+            return "tasks.named('" + selector.taskName + "')";
         }
 
         @Override
