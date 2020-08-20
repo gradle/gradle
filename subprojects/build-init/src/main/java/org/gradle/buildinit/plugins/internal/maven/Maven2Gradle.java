@@ -77,12 +77,7 @@ public class Maven2Gradle {
             String groupId = rootProject.getGroupId();
 
             BuildScriptBuilder buildSrcScriptBuilder = scriptBuilderFactory.script(dsl, "buildSrc/build");
-            if (dsl == BuildInitDsl.GROOVY) {
-                buildSrcScriptBuilder.plugin(null, "groovy-gradle-plugin");
-            } else {
-                buildSrcScriptBuilder.plugin(null, "kotlin-dsl");
-                buildSrcScriptBuilder.repositories().jcenter(null);
-            }
+            buildSrcScriptBuilder.conventionPluginSupport("Support convention plugins written in " + dsl.toString() + ". Convention plugins are build scripts in 'src/main' that automatically become available as plugins in the main build.");
             buildSrcScriptBuilder.create().generate();
 
             BuildScriptBuilder conventionPluginBuilder = scriptBuilderFactory.script(dsl, "buildSrc/src/main/" + dsl.name().toLowerCase() + "/" + groupId + ".java-conventions");
@@ -185,17 +180,12 @@ public class Maven2Gradle {
             }
         }
         ScriptBlockBuilder publishing = builder.block(null, "publishing");
-        ScriptBlockBuilder publications = publishing.block(null, "publications");
-        ScriptBlockBuilder mavenPublication;
-        if (dsl == BuildInitDsl.GROOVY) {
-            mavenPublication = publications.block(null, "maven(MavenPublication)");
-        } else {
-            mavenPublication = publications.block(null, "create<MavenPublication>(\"maven\")");
-        }
-        mavenPublication.methodInvocation(null, "from", builder.containerElementExpression("components", "java"));
-        if (testsJarTaskGenerated) {
-            mavenPublication.methodInvocation(null, "artifact", mavenPublication.propertyExpression("testsJar"));
-        }
+        publishing.containerElement(null, "publications", "maven", "MavenPublication", p -> {
+            p.methodInvocation(null, "from", builder.containerElementExpression("components", "java"));
+            if (testsJarTaskGenerated) {
+                p.methodInvocation(null, "artifact", builder.propertyExpression("testsJar"));
+            }
+        });
     }
 
     private void declareDependencies(List<Dependency> dependencies, BuildScriptBuilder builder) {
@@ -441,13 +431,7 @@ public class Maven2Gradle {
         if (pluginGoal("test-jar", jarPlugin) != null) {
             builder.taskRegistration(null, "testsJar", "Jar", task -> {
                 task.propertyAssignment(null, "archiveClassifier", "tests", false);
-                String testSourceSetAccess;
-                if (dsl == BuildInitDsl.GROOVY) {
-                    testSourceSetAccess = ".test";
-                } else {
-                    testSourceSetAccess = "[\"test\"]";
-                }
-                task.methodInvocation(null, "from", builder.propertyExpression("sourceSets" + testSourceSetAccess + ".output"));
+                task.methodInvocation(null, "from", builder.propertyExpression(builder.containerElementExpression("sourceSets", "test"), "output"));
             });
             return true;
         }

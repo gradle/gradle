@@ -76,7 +76,7 @@ class MavenConversionIntegrationTest extends AbstractInitIntegrationSpec {
         warSubprojectBuildFile.text.contains("id 'com.example.webinar.java-conventions'") || warSubprojectBuildFile.text.contains('id("com.example.webinar.java-conventions")')
         !warSubprojectBuildFile.text.contains("options.encoding")
 
-        assertContainsPublishingConfig(conventionPluginScript)
+        assertContainsPublishingConfig(conventionPluginScript, scriptDsl)
         conventionPluginScript.text.contains("options.encoding = 'UTF-8'") || conventionPluginScript.text.contains('options.encoding = "UTF-8"')
         conventionPluginScript.text.contains(TextUtil.toPlatformLineSeparators('''
 java {
@@ -191,7 +191,7 @@ Root project 'webinar-parent'
         then:
         dsl.assertGradleFilesGenerated()
         dsl.getSettingsFile().text.contains("rootProject.name = 'util'") || dsl.getSettingsFile().text.contains('rootProject.name = "util"')
-        assertContainsPublishingConfig(dsl.getBuildFile())
+        assertContainsPublishingConfig(dsl.getBuildFile(), scriptDsl)
 
         when:
         fails 'clean', 'build'
@@ -205,12 +205,13 @@ Root project 'webinar-parent'
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
-    private static void assertContainsPublishingConfig(TestFile buildScript, String indent = "", List<String> additionalArchiveTasks = []) {
+    private static void assertContainsPublishingConfig(TestFile buildScript, BuildInitDsl dsl, String indent = "", List<String> additionalArchiveTasks = []) {
         def text = buildScript.text
-        assert text.contains("id 'maven-publish'") || text.contains("`maven-publish`")
-        def configLines = ["from(components.java)"]
-        configLines += additionalArchiveTasks.collect { "artifact($it)" }
-        def publishingBlock = TextUtil.toPlatformLineSeparators(TextUtil.indent("""
+        if (dsl == BuildInitDsl.GROOVY) {
+            assert text.contains("id 'maven-publish'")
+            def configLines = ["from(components.java)"]
+            configLines += additionalArchiveTasks.collect { "artifact($it)" }
+            def publishingBlock = TextUtil.toPlatformLineSeparators(TextUtil.indent("""
             publishing {
                 publications {
                     maven(MavenPublication) {
@@ -219,10 +220,21 @@ ${TextUtil.indent(configLines.join("\n"), "                        ")}
                 }
             }
             """.stripIndent().trim(), indent))
-        assert text.
-            replace('create<MavenPublication>("maven")', 'maven(MavenPublication)').
-            replace('["java"]', '.java').
-            contains(publishingBlock)
+            assert text.contains(publishingBlock)
+        } else {
+            assert text.contains("`maven-publish`")
+            def configLines = ['from(components["java"])']
+            configLines += additionalArchiveTasks.collect { "artifact($it)" }
+            def publishingBlock = TextUtil.toPlatformLineSeparators(TextUtil.indent("""
+            publishing {
+                publications.create<MavenPublication>("maven") {
+${TextUtil.indent(configLines.join("\n"), "                    ")}
+                }
+            }
+            """.stripIndent().trim(), indent))
+            assert text.contains(publishingBlock)
+        }
+
     }
 
     def "singleModule with explicit project dir"() {
@@ -263,7 +275,7 @@ ${TextUtil.indent(configLines.join("\n"), "                        ")}
                 withSourcesJar()
             }
             '''.stripIndent().trim()))
-        assertContainsPublishingConfig(rootBuildFile)
+        assertContainsPublishingConfig(rootBuildFile, scriptDsl)
 
         when: 'the generated task is executed'
         run 'clean', 'build', 'sourcesJar'
@@ -294,7 +306,7 @@ ${TextUtil.indent(configLines.join("\n"), "                        ")}
                 from(sourceSets["test"].output)
             }
             '''.stripIndent().trim()))
-        assertContainsPublishingConfig(rootBuildFile, '', ['testsJar'])
+        assertContainsPublishingConfig(rootBuildFile, scriptDsl, '', ['testsJar'])
 
         when: 'the generated task is executed'
         run 'clean', 'build', 'testJar'
@@ -319,7 +331,7 @@ ${TextUtil.indent(configLines.join("\n"), "                        ")}
                 withJavadocJar()
             }
             '''.stripIndent().trim()))
-        assertContainsPublishingConfig(rootBuildFile)
+        assertContainsPublishingConfig(rootBuildFile, scriptDsl)
 
         when: 'the generated task is executed'
         run 'clean', 'build', 'javadocJar'

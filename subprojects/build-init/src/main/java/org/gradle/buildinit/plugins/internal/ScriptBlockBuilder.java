@@ -53,7 +53,7 @@ public interface ScriptBlockBuilder {
      *
      * @return an expression that can be used to refer to the element. Note: currently this expression can only be used within this current block.
      */
-    BuildScriptBuilder.Expression containerElement(@Nullable String comment, String container, String elementName, Action<? super ScriptBlockBuilder> blockContentsBuilder);
+    BuildScriptBuilder.Expression containerElement(@Nullable String comment, String container, String elementName, @Nullable String elementType, Action<? super ScriptBlockBuilder> blockContentsBuilder);
 
     /**
      * Returns a property expression that can be used as a method argument or property assignment value

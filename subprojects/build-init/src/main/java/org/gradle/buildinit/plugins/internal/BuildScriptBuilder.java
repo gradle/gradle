@@ -81,6 +81,15 @@ public class BuildScriptBuilder {
     }
 
     /**
+     * Adds the plugin and config needed to support writing pre-compiled script plugins in the selected DSL in this project.
+     */
+    public BuildScriptBuilder conventionPluginSupport(@Nullable String comment) {
+        Syntax syntax = syntaxFor(dsl);
+        syntax.configureConventionPlugin(comment, block.plugins, block.repositories);
+        return this;
+    }
+
+    /**
      * Adds a plugin to be applied
      *
      * @param comment A description of why the plugin is required
@@ -306,7 +315,7 @@ public class BuildScriptBuilder {
      * @return An expression that can be used to refer to the element later in the script.
      */
     public Expression createContainerElement(@Nullable String comment, String container, String elementName, @Nullable String varName) {
-        ContainerElement containerElement = new ContainerElement(comment, container, elementName, varName);
+        ContainerElement containerElement = new ContainerElement(comment, container, elementName, null, varName);
         block.add(containerElement);
         return containerElement;
     }
@@ -740,13 +749,16 @@ public class BuildScriptBuilder {
         private final String elementName;
         @Nullable
         private final String varName;
+        @Nullable
+        private final String elementType;
         private final ScriptBlockImpl body = new ScriptBlockImpl();
 
-        public ContainerElement(String comment, String container, String elementName, @Nullable String varName) {
+        public ContainerElement(String comment, String container, String elementName, @Nullable String elementType, @Nullable String varName) {
             super(null);
             this.comment = comment;
             this.container = container;
             this.elementName = elementName;
+            this.elementType = elementType;
             this.varName = varName;
         }
 
@@ -757,7 +769,7 @@ public class BuildScriptBuilder {
 
         @Override
         public void writeCodeTo(PrettyPrinter printer) {
-            Statement statement = printer.syntax.createContainerElement(comment, container, elementName, varName, body.statements);
+            Statement statement = printer.syntax.createContainerElement(comment, container, elementName, elementType, varName, body.statements);
             printer.printStatement(statement);
         }
 
@@ -994,8 +1006,8 @@ public class BuildScriptBuilder {
         }
 
         @Override
-        public Expression containerElement(@Nullable String comment, String container, String elementName, Action<? super ScriptBlockBuilder> blockContentsBuilder) {
-            ContainerElement containerElement = new ContainerElement(comment, container, elementName, null);
+        public Expression containerElement(@Nullable String comment, String container, String elementName, @Nullable String elementType, Action<? super ScriptBlockBuilder> blockContentsBuilder) {
+            ContainerElement containerElement = new ContainerElement(comment, container, elementName, elementType, null);
             statements.add(containerElement);
             blockContentsBuilder.execute(containerElement.body);
             return containerElement;
@@ -1230,11 +1242,13 @@ public class BuildScriptBuilder {
 
         String firstArg(ExpressionValue argument);
 
-        Statement createContainerElement(@Nullable String comment, String container, String elementName, @Nullable String varName, List<Statement> body);
+        Statement createContainerElement(@Nullable String comment, String container, String elementName, @Nullable String elementType, @Nullable String varName, List<Statement> body);
 
         String referenceCreatedContainerElement(String container, String elementName, @Nullable String varName);
 
         String containerElement(String container, String element);
+
+        void configureConventionPlugin(@Nullable String comment, BlockStatement plugins, RepositoriesBlock repositories);
     }
 
     private static final class KotlinSyntax implements Syntax {
@@ -1344,12 +1358,20 @@ public class BuildScriptBuilder {
         }
 
         @Override
-        public Statement createContainerElement(String comment, String container, String elementName, String varName, List<Statement> body) {
+        public Statement createContainerElement(String comment, String container, String elementName, @Nullable String elementType, String varName, List<Statement> body) {
             String literal;
             if (varName == null) {
-                literal = "val " + elementName + " by " + container + ".creating";
+                if (elementType == null) {
+                    literal = "val " + elementName + " by " + container + ".creating";
+                } else {
+                    literal = container + ".create<" + elementType + ">(" + string(elementName) + ")";
+                }
             } else {
-                literal = "val " + varName + " = " + container + ".create(" + string(elementName) + ")";
+                if (elementType == null) {
+                    literal = "val " + varName + " = " + container + ".create(" + string(elementName) + ")";
+                } else {
+                    literal = "val " + varName + " = " + container + ".create<" + elementType + ">(" + string(elementName) + ")";
+                }
             }
             BlockStatement blockStatement = new ScriptBlock(comment, literal);
             for (Statement statement : body) {
@@ -1370,6 +1392,12 @@ public class BuildScriptBuilder {
         @Override
         public String containerElement(String container, String element) {
             return container + "[" + string(element) + "]";
+        }
+
+        @Override
+        public void configureConventionPlugin(@Nullable String comment, BlockStatement plugins, RepositoriesBlock repositories) {
+            plugins.add(new PluginSpec("kotlin-dsl", null, comment));
+            repositories.jcenter(null);
         }
     }
 
@@ -1468,9 +1496,9 @@ public class BuildScriptBuilder {
         }
 
         @Override
-        public Statement createContainerElement(String comment, String container, String elementName, String varName, List<Statement> body) {
+        public Statement createContainerElement(String comment, String container, String elementName, @Nullable String elementType, String varName, List<Statement> body) {
             ScriptBlock outerBlock = new ScriptBlock(comment, container);
-            ScriptBlock innerBlock = new ScriptBlock(null, elementName);
+            ScriptBlock innerBlock = new ScriptBlock(null, elementType == null ? elementName : (elementName + "(" + elementType + ")"));
             outerBlock.add(innerBlock);
             for (Statement statement : body) {
                 innerBlock.add(statement);
@@ -1486,6 +1514,11 @@ public class BuildScriptBuilder {
         @Override
         public String containerElement(String container, String element) {
             return container + "." + element;
+        }
+
+        @Override
+        public void configureConventionPlugin(@Nullable String comment, BlockStatement plugins, RepositoriesBlock repositories) {
+            plugins.add(new PluginSpec("groovy-gradle-plugin", null, comment));
         }
     }
 }

@@ -377,11 +377,11 @@ prop2 = foo.bar.e2.outputDir
     def "can add container elements to nested containers and reference the element later"() {
         given:
         builder.block("Add some thing", "foo") { b ->
-            def element1 = b.containerElement("Element 1", "bar", "one") { e ->
+            def element1 = b.containerElement("Element 1", "bar", "one", null) { e ->
                 e.propertyAssignment(null, "value", "bazar", true)
-                e.containerElement(null, "nested", "oneNested") {}
+                e.containerElement(null, "nested", "oneNested", null) {}
             }
-            b.containerElement("Element 2", "bar", "two") { e ->
+            b.containerElement("Element 2", "bar", "two", null) { e ->
             }
             b.propertyAssignment("Use value", "prop", element1, true)
         }
