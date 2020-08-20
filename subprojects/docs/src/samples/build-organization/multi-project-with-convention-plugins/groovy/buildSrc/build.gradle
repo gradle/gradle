@@ -1,0 +1,22 @@
+// tag::apply[]
+plugins {
+    id 'groovy-gradle-plugin'
+// end::apply[]
+    id 'maven-publish'
+// tag::apply[]
+}
+// end::apply[]
+
+group = 'com.example.conventions'
+version = '1.0'
+
+// tag::repositories-and-dependencies[]
+repositories {
+    gradlePluginPortal() // so that external plugins can be resolved in dependencies section
+}
+
+dependencies {
+    implementation 'gradle.plugin.com.github.spotbugs.snom:spotbugs-gradle-plugin:4.0.5'
+    testImplementation 'org.spockframework:spock-core:1.3-groovy-2.5'
+}
+// end::repositories-and-dependencies[]
