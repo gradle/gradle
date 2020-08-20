@@ -13,7 +13,7 @@ class ServicePluginTest : PluginTest() {
     fun init() {
         buildFile.appendText("""
             plugins {
-                id("com.example.service-conventions")
+                id("myproject.service-conventions")
             }
         """)
     }
