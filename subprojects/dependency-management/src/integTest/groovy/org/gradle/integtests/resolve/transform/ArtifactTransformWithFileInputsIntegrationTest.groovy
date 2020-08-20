@@ -461,7 +461,6 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
     }
 
     @Unroll
-    @ToBeFixedForConfigurationCache(because = "file collection containing a String provider is not serialized correctly")
     def "can use input path sensitivity #pathSensitivity for parameter object"() {
         settingsFile << """
                 include 'a', 'b', 'c'
