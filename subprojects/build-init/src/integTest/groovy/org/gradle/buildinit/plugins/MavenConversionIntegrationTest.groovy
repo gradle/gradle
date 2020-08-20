@@ -113,6 +113,7 @@ Root project 'webinar-parent'
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
+    @ToBeFixedForConfigurationCache(because = "Kotlin Gradle Plugin") // Kotlin compilation is used for the pre-compiled script plugin
     @IgnoreIf({ GradleContextualExecuter.embedded }) // Kotlin DSL pre-compiled script compilation fails in embedded mode
     def "multiModuleWithNestedParent"() {
         def dsl = dslFixtureFor(scriptDsl as BuildInitDsl)
