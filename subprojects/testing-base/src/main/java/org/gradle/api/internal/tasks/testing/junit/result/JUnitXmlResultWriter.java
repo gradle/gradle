@@ -41,13 +41,12 @@ public class JUnitXmlResultWriter {
      * @param output The destination, unbuffered
      */
     public void write(TestClassResult result, OutputStream output) {
-        String className = result.getClassDisplayName();
         long classId = result.getId();
 
         try {
             SimpleXmlWriter writer = new SimpleXmlWriter(output, "  ");
             writer.startElement("testsuite")
-                    .attribute("name", className)
+                    .attribute("name", result.getXmlTestSuiteName())
                     .attribute("tests", String.valueOf(result.getTestsCount()))
                     .attribute("skipped", String.valueOf(result.getSkippedCount()))
                     .attribute("failures", String.valueOf(result.getFailuresCount()))
