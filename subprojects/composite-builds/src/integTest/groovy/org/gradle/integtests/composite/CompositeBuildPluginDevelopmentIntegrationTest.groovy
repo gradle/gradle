@@ -41,7 +41,7 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
 
     @Unroll
     @ToBeFixedForConfigurationCache
-    def "can co-develop plugin and consumer with plugin as included build"() {
+    def "can co-develop plugin and consumer with plugin as included build #pluginsBlock, #withVersion"() {
         given:
         applyPlugin(buildA, pluginsBlock, withVersion)
         addLifecycleTasks(buildA)
@@ -68,11 +68,9 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
         false        | false
     }
 
-    @Unroll
-    @ToBeFixedForConfigurationCache
     def "does not expose Gradle runtime dependencies without shading"() {
         given:
-        applyPlugin(buildA, pluginsBlock, withVersion)
+        applyPlugin(buildA, true, false)
         addLifecycleTasks(buildA)
 
         includeBuild pluginBuild
@@ -86,13 +84,6 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
 
         then:
         failure.assertHasDescription("Could not compile build file '$buildA.buildFile.canonicalPath'.")
-
-        where:
-        pluginsBlock | withVersion
-        true         | true
-        true         | false
-        false        | true
-        false        | false
     }
 
     @ToBeFixedForConfigurationCache

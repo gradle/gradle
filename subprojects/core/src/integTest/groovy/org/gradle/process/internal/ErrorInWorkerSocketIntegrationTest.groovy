@@ -18,6 +18,7 @@ package org.gradle.process.internal
 
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 
 @IntegrationTestTimeout(180)
@@ -69,6 +70,7 @@ task runBrokenWorker {
         executer.getGradleUserHomeDir().file('workers').listFiles().find { it.name.startsWith('worker-error') }.text.contains(MESSAGE)
     }
 
+    @ToBeFixedForConfigurationCache(because="composite build")
     def "worker won't hang when error occurs in socket connection in included build"() {
         given:
         requireOwnGradleUserHomeDir()
