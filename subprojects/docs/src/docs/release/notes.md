@@ -53,6 +53,10 @@ Note, that even though the kebab case name matching works with tasks too, the re
 
 To learn more about name abbreviation, check out the [user guide](userguide/command_line_interface.html#task_name_abbreviation).  
 
+## Gradle init improvements
+
+<-- TBD: add something if we think it is worth mentioning, see #14219 and #14210 -->
+
 ## Promoted features
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
 See the User Manual section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
