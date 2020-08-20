@@ -1,7 +1,11 @@
+// tag::apply[]
 plugins {
     `kotlin-dsl`
+// end::apply[]
     `maven-publish`
+// tag::apply[]
 }
+// end::apply[]
 
 group = "com.example.conventions"
 version = "1.0"
