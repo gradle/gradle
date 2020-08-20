@@ -1,7 +1,11 @@
+// tag::apply[]
 plugins {
     id 'groovy-gradle-plugin'
+// end::apply[]
     id 'maven-publish'
+// tag::apply[]
 }
+// end::apply[]
 
 group = 'com.example.conventions'
 version = '1.0'

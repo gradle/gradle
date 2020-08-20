@@ -540,10 +540,10 @@ samples {
             }
         }
 
-        precompiledScriptPluginInBuildSrc {
-            sampleDirectory = samplesRoot.dir("build-organization/multi-project-with-precompiled-script-plugins")
-            displayName = "Precompiled Script Plugin in buildSrc"
-            description = "Use the Groovy or Kotlin DSL in a Gradle plugin in buildSrc."
+        conventionPlugins {
+            sampleDirectory = samplesRoot.dir("build-organization/multi-project-with-convention-plugins")
+            displayName = "Sharing configuration between subprojects"
+            description = "Organize build logic into reusable pieces"
             category = "Build organization"
             common {
                 from(templates.precompiledScriptPluginUtilsInBuildSrc)
