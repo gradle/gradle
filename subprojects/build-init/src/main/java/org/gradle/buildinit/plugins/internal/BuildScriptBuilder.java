@@ -524,17 +524,6 @@ public class BuildScriptBuilder {
         }
     }
 
-    public static class NestedPluginSpec extends PluginSpec {
-        NestedPluginSpec(String id, @Nullable String version, String comment) {
-            super(id, version, comment);
-        }
-
-        @Override
-        public void writeCodeTo(PrettyPrinter printer) {
-            printer.println(printer.syntax.nestedPluginDependencySpec(id, version));
-        }
-    }
-
     private static class DepSpec extends AbstractStatement {
         final String configuration;
         final List<String> deps;
