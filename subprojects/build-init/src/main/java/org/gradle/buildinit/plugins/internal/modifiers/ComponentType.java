@@ -17,7 +17,7 @@
 package org.gradle.buildinit.plugins.internal.modifiers;
 
 public enum ComponentType {
-    BASIC("app"),
+    BASIC(null),
     APPLICATION("app"),
     LIBRARY("lib"),
     GRADLE_PLUGIN("plugin") {

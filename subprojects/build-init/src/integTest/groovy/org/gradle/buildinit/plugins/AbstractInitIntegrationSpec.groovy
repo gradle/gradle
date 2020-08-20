@@ -48,8 +48,8 @@ abstract class AbstractInitIntegrationSpec extends AbstractIntegrationSpec {
         result.testClass(className).assertTestPassed(name)
     }
 
-    protected void commonFilesGenerated(BuildInitDsl scriptDsl) {
-        dslFixtureFor(scriptDsl).assertGradleFilesGenerated()
+    protected void commonFilesGenerated(BuildInitDsl scriptDsl, dslFixture = dslFixtureFor(scriptDsl)) {
+        dslFixture.assertGradleFilesGenerated()
         targetDir.file(".gitignore").assertIsFile()
         targetDir.file(".gitattributes").assertIsFile()
     }

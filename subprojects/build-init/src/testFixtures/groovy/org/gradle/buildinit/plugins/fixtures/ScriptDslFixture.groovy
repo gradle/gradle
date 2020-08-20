@@ -35,8 +35,8 @@ class ScriptDslFixture {
         return ([SCRIPT_DSLS] * count).combinations()
     }
 
-    static ScriptDslFixture of(BuildInitDsl scriptDsl, TestFile rootDir, String projectType) {
-        new ScriptDslFixture(scriptDsl, rootDir, projectType)
+    static ScriptDslFixture of(BuildInitDsl scriptDsl, TestFile rootDir, String subprojectName) {
+        new ScriptDslFixture(scriptDsl, rootDir, subprojectName)
     }
 
     final BuildInitDsl scriptDsl
