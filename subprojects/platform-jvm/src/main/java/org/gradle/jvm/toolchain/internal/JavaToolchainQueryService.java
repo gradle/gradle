@@ -24,7 +24,6 @@ import org.gradle.jvm.toolchain.install.internal.JavaToolchainProvisioningServic
 
 import javax.inject.Inject;
 import java.io.File;
-import java.util.Comparator;
 import java.util.Optional;
 import java.util.function.Predicate;
 
@@ -52,16 +51,9 @@ public class JavaToolchainQueryService {
         return registry.listInstallations().stream()
             .map(this::asToolchain)
             .filter(matchingToolchain(filter))
-            .sorted(bestMatch())
+            .sorted(new JavaToolchainComparator())
             .findFirst()
             .orElseGet(() -> downloadToolchain(filter));
-    }
-
-    // TOOD: [bm] temporary order until #13892 is implemented
-    private Comparator<JavaToolchain> bestMatch() {
-        return Comparator.<JavaToolchain, String>
-            comparing(t -> t.getJavaHome().getName())
-            .reversed();
     }
 
     private JavaToolchain downloadToolchain(JavaToolchainSpec spec) {

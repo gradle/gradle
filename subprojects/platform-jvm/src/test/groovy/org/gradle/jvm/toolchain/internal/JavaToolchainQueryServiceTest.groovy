@@ -52,7 +52,7 @@ class JavaToolchainQueryServiceTest extends Specification {
     @Unroll
     def "uses most recent version of multiple matches for version #versionToFind"() {
         given:
-        def registry = createInstallationRegistry(["8.0", "8.0.242.hs-adpt", "7.9", "7.7", "14.0.2+12"])
+        def registry = createInstallationRegistry(["8.0", "8.0.242.hs-adpt", "7.9", "7.7", "14.0.2+12", "8.0.zzz.j9"])
         def toolchainFactory = newToolchainFactory()
         def queryService = new JavaToolchainQueryService(registry, toolchainFactory, Mock(JavaToolchainProvisioningService))
 
@@ -68,7 +68,7 @@ class JavaToolchainQueryServiceTest extends Specification {
         where:
         versionToFind           | expectedPath
         JavaVersion.VERSION_1_7 | "/path/7.9"
-        JavaVersion.VERSION_1_8 | "/path/8.0.242.hs-adpt"
+        JavaVersion.VERSION_1_8 | "/path/8.0.zzz.j9" // zzz resolves to a real toolversion 999
         JavaVersion.VERSION_14  | "/path/14.0.2+12"
     }
 
@@ -140,9 +140,10 @@ class JavaToolchainQueryServiceTest extends Specification {
     }
 
     def newProbe(File javaHome) {
-        def probe = Mock(JavaInstallationProbe.ProbeResult) {
+        Mock(JavaInstallationProbe.ProbeResult) {
             getJavaVersion() >> JavaVersion.toVersion(javaHome.name)
             getJavaHome() >> javaHome
+            getImplementationJavaVersion() >> javaHome.name.replace("zzz", "999")
         }
     }
 

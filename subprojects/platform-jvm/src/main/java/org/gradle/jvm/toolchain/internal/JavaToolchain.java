@@ -24,6 +24,7 @@ import org.gradle.internal.os.OperatingSystem;
 import org.gradle.jvm.toolchain.JavaCompiler;
 import org.gradle.jvm.toolchain.JavaLauncher;
 import org.gradle.jvm.toolchain.JavadocTool;
+import org.gradle.util.VersionNumber;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -62,8 +63,18 @@ public class JavaToolchain implements Describable {
     }
 
     @Internal
+    public VersionNumber getToolVersion() {
+        return VersionNumber.parse(probe.getImplementationJavaVersion());
+    }
+
+    @Internal
     public File getJavaHome() {
         return probe.getJavaHome();
+    }
+
+    @Internal
+    public boolean isJdk() {
+        return probe.getInstallType() == JavaInstallationProbe.InstallType.IS_JDK;
     }
 
     @Internal
