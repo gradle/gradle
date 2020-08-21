@@ -138,8 +138,6 @@ class GradleApiExtensionsIntegrationTest : AbstractPluginIntegrationTest() {
     @ToBeFixedForConfigurationCache(because = "Kotlin Gradle Plugin")
     fun `can use Gradle API generated extensions in buildSrc`() {
 
-        assumeNonEmbeddedGradleExecuter() // Classloader issue with pre-compiled script plugins lets ':compileKotlin' fail
-
         withKotlinBuildSrc()
 
         withFile("buildSrc/src/main/kotlin/foo/FooTask.kt", """

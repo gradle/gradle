@@ -17,7 +17,6 @@ class JacocoIntegrationTest : AbstractPluginIntegrationTest() {
     fun `jacoco ignore codegen`() {
 
         assumeTrue(TestPrecondition.JDK14_OR_EARLIER.isFulfilled) // reevaluate when upgrading JaCoco from current 0.8.5
-        assumeNonEmbeddedGradleExecuter() // Classloader issue with pre-compiled script plugins lets ':compileKotlin' fail
 
         withBuildScript("""
             plugins {

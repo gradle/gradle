@@ -236,6 +236,8 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
     @ToBeFixedForConfigurationCache
     fun `can use type-safe accessors for the Kotlin Gradle plugin extensions`() {
 
+        assumeNonEmbeddedGradleExecuter() // Unknown issue with accessing the plugin portal from pre-compiled script plugin in embedded test mode
+
         withKotlinDslPlugin().appendText("""
             dependencies {
                 implementation(kotlin("gradle-plugin"))
