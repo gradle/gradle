@@ -235,7 +235,7 @@ public abstract class AvailableJavaHomes {
 
     private static JvmInstallation asJvmInstallation(File javaHome, JvmVersionDetector versionDetector) {
         JavaVersion version = versionDetector.getJavaVersion(new File(javaHome, "bin/java").getAbsolutePath());
-        boolean isJdk = new File(javaHome, "bin/javac").exists();
+        boolean isJdk = new File(javaHome, OperatingSystem.current().getExecutableName("bin/javac")).exists();
         return new JvmInstallation(version, javaHome, isJdk);
     }
 
