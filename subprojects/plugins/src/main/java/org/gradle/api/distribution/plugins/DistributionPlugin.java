@@ -27,6 +27,7 @@ import org.gradle.api.distribution.DistributionContainer;
 import org.gradle.api.distribution.internal.DefaultDistributionContainer;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
+import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.artifacts.dsl.LazyPublishArtifact;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.plugins.DefaultArtifactPublicationSet;
@@ -60,12 +61,14 @@ public class DistributionPlugin implements Plugin<Project> {
     private final Instantiator instantiator;
     private final FileOperations fileOperations;
     private final CollectionCallbackActionDecorator callbackActionDecorator;
+    private final FeaturePreviews featurePreviews;
 
     @Inject
-    public DistributionPlugin(Instantiator instantiator, FileOperations fileOperations, CollectionCallbackActionDecorator callbackActionDecorator) {
+    public DistributionPlugin(Instantiator instantiator, FileOperations fileOperations, CollectionCallbackActionDecorator callbackActionDecorator, FeaturePreviews featurePreviews) {
         this.instantiator = instantiator;
         this.fileOperations = fileOperations;
         this.callbackActionDecorator = callbackActionDecorator;
+        this.featurePreviews = featurePreviews;
     }
 
     @Override
@@ -124,8 +127,10 @@ public class DistributionPlugin implements Plugin<Project> {
             task.with(childSpec);
         });
 
-        PublishArtifact archiveArtifact = new LazyPublishArtifact(archiveTask);
-        project.getExtensions().getByType(DefaultArtifactPublicationSet.class).addCandidate(archiveArtifact);
+        if (!featurePreviews.isFeatureEnabled(FeaturePreviews.Feature.GRADLE7_REMOVALS)) {
+            PublishArtifact archiveArtifact = new LazyPublishArtifact(archiveTask);
+            project.getExtensions().getByType(DefaultArtifactPublicationSet.class).addCandidate(archiveArtifact);
+        }
     }
 
     private void addInstallTask(final Project project, final String taskName, final Distribution distribution) {

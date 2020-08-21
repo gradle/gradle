@@ -22,6 +22,7 @@ import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.DependencySet;
+import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.tasks.DefaultSourceSet;
 import org.gradle.api.model.ObjectFactory;
@@ -40,10 +41,12 @@ import java.util.concurrent.Callable;
 public class AntlrPlugin implements Plugin<Project> {
     public static final String ANTLR_CONFIGURATION_NAME = "antlr";
     private final ObjectFactory objectFactory;
+    private final FeaturePreviews featurePreviews;
 
     @Inject
-    public AntlrPlugin(ObjectFactory objectFactory) {
+    public AntlrPlugin(ObjectFactory objectFactory, FeaturePreviews featurePreviews) {
         this.objectFactory = objectFactory;
+        this.featurePreviews = featurePreviews;
     }
 
     @Override
@@ -63,9 +66,11 @@ public class AntlrPlugin implements Plugin<Project> {
             }
         });
 
-        @SuppressWarnings("deprecation")
-        Configuration compileConfiguration = project.getConfigurations().getByName(JavaPlugin.COMPILE_CONFIGURATION_NAME);
-        compileConfiguration.extendsFrom(antlrConfiguration);
+        if (!featurePreviews.isFeatureEnabled(FeaturePreviews.Feature.GRADLE7_REMOVALS)) {
+            @SuppressWarnings("deprecation")
+            Configuration compileConfiguration = project.getConfigurations().getByName(JavaPlugin.COMPILE_CONFIGURATION_NAME);
+            compileConfiguration.extendsFrom(antlrConfiguration);
+        }
 
         // Wire the antlr configuration into all antlr tasks
         project.getTasks().withType(AntlrTask.class).configureEach(new Action<AntlrTask>() {

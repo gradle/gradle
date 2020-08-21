@@ -23,6 +23,7 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.artifacts.dsl.LazyPublishArtifact;
 import org.gradle.api.internal.plugins.DefaultArtifactPublicationSet;
 import org.gradle.api.model.ObjectFactory;
@@ -53,6 +54,7 @@ public class EarPlugin implements Plugin<Project> {
     static final String DEFAULT_LIB_DIR_NAME = "lib";
 
     private final ObjectFactory objectFactory;
+    private final FeaturePreviews featurePreviews;
 
     /**
      * Injects an {@link ObjectFactory}
@@ -60,8 +62,9 @@ public class EarPlugin implements Plugin<Project> {
      * @since 4.2
      */
     @Inject
-    public EarPlugin(ObjectFactory objectFactory) {
+    public EarPlugin(ObjectFactory objectFactory, FeaturePreviews featurePreviews) {
         this.objectFactory = objectFactory;
+        this.featurePreviews = featurePreviews;
     }
 
     @Override
@@ -195,7 +198,9 @@ public class EarPlugin implements Plugin<Project> {
         Configuration earlibConfiguration = configurations.create(EARLIB_CONFIGURATION_NAME).setVisible(false)
             .setDescription("Classpath for module dependencies.");
 
-        configurations.getByName(Dependency.DEFAULT_CONFIGURATION)
-            .extendsFrom(moduleConfiguration, earlibConfiguration);
+        if (!featurePreviews.isFeatureEnabled(FeaturePreviews.Feature.GRADLE7_REMOVALS)) {
+            configurations.getByName(Dependency.DEFAULT_CONFIGURATION)
+                .extendsFrom(moduleConfiguration, earlibConfiguration);
+        }
     }
 }

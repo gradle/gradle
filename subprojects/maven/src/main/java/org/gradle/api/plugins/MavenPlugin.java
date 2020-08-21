@@ -27,6 +27,7 @@ import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer;
 import org.gradle.api.artifacts.maven.MavenPom;
 import org.gradle.api.artifacts.maven.MavenResolver;
+import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.Module;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
@@ -73,14 +74,19 @@ public class MavenPlugin implements Plugin<ProjectInternal> {
     private final MavenSettingsProvider mavenSettingsProvider;
     private final LocalMavenRepositoryLocator mavenRepositoryLocator;
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
+    private final FeaturePreviews featurePreviews;
 
     private Project project;
 
     @Inject
-    public MavenPlugin(Factory<LoggingManagerInternal> loggingManagerFactory, FileResolver fileResolver,
-                       ProjectPublicationRegistry publicationRegistry, ProjectConfigurationActionContainer configurationActionContainer,
-                       MavenSettingsProvider mavenSettingsProvider, LocalMavenRepositoryLocator mavenRepositoryLocator,
-                       ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
+    public MavenPlugin(Factory<LoggingManagerInternal> loggingManagerFactory,
+                       FileResolver fileResolver,
+                       ProjectPublicationRegistry publicationRegistry,
+                       ProjectConfigurationActionContainer configurationActionContainer,
+                       MavenSettingsProvider mavenSettingsProvider,
+                       LocalMavenRepositoryLocator mavenRepositoryLocator,
+                       ImmutableModuleIdentifierFactory moduleIdentifierFactory,
+                       FeaturePreviews featurePreviews) {
         this.loggingManagerFactory = loggingManagerFactory;
         this.fileResolver = fileResolver;
         this.publicationRegistry = publicationRegistry;
@@ -88,10 +94,15 @@ public class MavenPlugin implements Plugin<ProjectInternal> {
         this.mavenSettingsProvider = mavenSettingsProvider;
         this.mavenRepositoryLocator = mavenRepositoryLocator;
         this.moduleIdentifierFactory = moduleIdentifierFactory;
+        this.featurePreviews = featurePreviews;
     }
 
     @Override
     public void apply(final ProjectInternal project) {
+        if (featurePreviews.isFeatureEnabled(FeaturePreviews.Feature.GRADLE7_REMOVALS)) {
+            // make this plugin a no-op if Gradle 7 removals is active
+            return;
+        }
         this.project = project;
         DeprecationLogger.deprecatePlugin("maven").replaceWith("maven-publish")
             .willBeRemovedInGradle7()

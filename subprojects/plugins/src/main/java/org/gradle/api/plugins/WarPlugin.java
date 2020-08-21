@@ -24,6 +24,7 @@ import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.artifacts.dsl.LazyPublishArtifact;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.java.WebApplication;
@@ -49,11 +50,13 @@ public class WarPlugin implements Plugin<Project> {
 
     private final ObjectFactory objectFactory;
     private final ImmutableAttributesFactory attributesFactory;
+    private final FeaturePreviews featurePreviews;
 
     @Inject
-    public WarPlugin(ObjectFactory objectFactory, ImmutableAttributesFactory attributesFactory) {
+    public WarPlugin(ObjectFactory objectFactory, ImmutableAttributesFactory attributesFactory, FeaturePreviews featurePreviews) {
         this.objectFactory = objectFactory;
         this.attributesFactory = attributesFactory;
+        this.featurePreviews = featurePreviews;
     }
 
     @Override
@@ -94,8 +97,10 @@ public class WarPlugin implements Plugin<Project> {
         Configuration provideRuntimeConfiguration = configurationContainer.create(PROVIDED_RUNTIME_CONFIGURATION_NAME).setVisible(false).
             extendsFrom(provideCompileConfiguration).
             setDescription("Additional runtime classpath for libraries that should not be part of the WAR archive.");
-        configurationContainer.getByName(JavaPlugin.COMPILE_CONFIGURATION_NAME).extendsFrom(provideCompileConfiguration);
-        configurationContainer.getByName(JavaPlugin.RUNTIME_CONFIGURATION_NAME).extendsFrom(provideRuntimeConfiguration);
+        if (!featurePreviews.isFeatureEnabled(FeaturePreviews.Feature.GRADLE7_REMOVALS)) {
+            configurationContainer.getByName(JavaPlugin.COMPILE_CONFIGURATION_NAME).extendsFrom(provideCompileConfiguration);
+            configurationContainer.getByName(JavaPlugin.RUNTIME_CONFIGURATION_NAME).extendsFrom(provideRuntimeConfiguration);
+        }
     }
 
     private void configureComponent(Project project, PublishArtifact warArtifact) {

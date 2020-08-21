@@ -33,6 +33,7 @@ import org.gradle.api.attributes.Usage;
 import org.gradle.api.component.AdhocComponentWithVariants;
 import org.gradle.api.component.SoftwareComponentFactory;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.artifacts.ArtifactAttributes;
 import org.gradle.api.internal.artifacts.dsl.LazyPublishArtifact;
 import org.gradle.api.internal.component.BuildableJavaComponent;
@@ -273,14 +274,17 @@ public class JavaPlugin implements Plugin<Project> {
     private final ObjectFactory objectFactory;
     private final SoftwareComponentFactory softwareComponentFactory;
     private final JvmPluginServices jvmServices;
+    private final FeaturePreviews featurePreviews;
 
     @Inject
     public JavaPlugin(ObjectFactory objectFactory,
                       SoftwareComponentFactory softwareComponentFactory,
-                      JvmPluginServices jvmServices) {
+                      JvmPluginServices jvmServices,
+                      FeaturePreviews featurePreviews) {
         this.objectFactory = objectFactory;
         this.softwareComponentFactory = softwareComponentFactory;
         this.jvmServices = jvmServices;
+        this.featurePreviews = featurePreviews;
     }
 
     @Override
@@ -326,15 +330,16 @@ public class JavaPlugin implements Plugin<Project> {
     private void configureArchivesAndComponent(Project project, final JavaPluginConvention pluginConvention) {
         PublishArtifact jarArtifact = new LazyPublishArtifact(registerJarTaskFor(project, pluginConvention));
         Configuration apiElementConfiguration = project.getConfigurations().getByName(API_ELEMENTS_CONFIGURATION_NAME);
-        Configuration runtimeConfiguration = project.getConfigurations().getByName(RUNTIME_CONFIGURATION_NAME);
         Configuration runtimeElementsConfiguration = project.getConfigurations().getByName(RUNTIME_ELEMENTS_CONFIGURATION_NAME);
 
-        project.getExtensions().getByType(DefaultArtifactPublicationSet.class).addCandidate(jarArtifact);
+        if (!featurePreviews.isFeatureEnabled(FeaturePreviews.Feature.GRADLE7_REMOVALS)) {
+            project.getExtensions().getByType(DefaultArtifactPublicationSet.class).addCandidate(jarArtifact);
+            Configuration runtimeConfiguration = project.getConfigurations().getByName(RUNTIME_CONFIGURATION_NAME);
+            addJar(runtimeConfiguration, jarArtifact);
+        }
 
         Provider<ProcessResources> processResources = project.getTasks().named(PROCESS_RESOURCES_TASK_NAME, ProcessResources.class);
-
         addJar(apiElementConfiguration, jarArtifact);
-        addJar(runtimeConfiguration, jarArtifact);
         addRuntimeVariants(runtimeElementsConfiguration, jarArtifact, mainSourceSetOf(pluginConvention), processResources);
 
         registerSoftwareComponents(project);
@@ -423,19 +428,12 @@ public class JavaPlugin implements Plugin<Project> {
     private void configureConfigurations(Project project, JavaPluginConvention convention) {
         ConfigurationContainer configurations = project.getConfigurations();
 
-        Configuration defaultConfiguration = configurations.getByName(Dependency.DEFAULT_CONFIGURATION);
-        Configuration compileConfiguration = configurations.getByName(COMPILE_CONFIGURATION_NAME);
         Configuration implementationConfiguration = configurations.getByName(IMPLEMENTATION_CONFIGURATION_NAME);
-        Configuration runtimeConfiguration = configurations.getByName(RUNTIME_CONFIGURATION_NAME);
         Configuration runtimeOnlyConfiguration = configurations.getByName(RUNTIME_ONLY_CONFIGURATION_NAME);
-        Configuration compileTestsConfiguration = configurations.getByName(TEST_COMPILE_CONFIGURATION_NAME);
         Configuration testImplementationConfiguration = configurations.getByName(TEST_IMPLEMENTATION_CONFIGURATION_NAME);
-        Configuration testRuntimeConfiguration = configurations.getByName(TEST_RUNTIME_CONFIGURATION_NAME);
         Configuration testRuntimeOnlyConfiguration = configurations.getByName(TEST_RUNTIME_ONLY_CONFIGURATION_NAME);
 
-        compileTestsConfiguration.extendsFrom(compileConfiguration);
         testImplementationConfiguration.extendsFrom(implementationConfiguration);
-        testRuntimeConfiguration.extendsFrom(runtimeConfiguration);
         testRuntimeOnlyConfiguration.extendsFrom(runtimeOnlyConfiguration);
 
         SourceSet main = convention.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
@@ -443,15 +441,29 @@ public class JavaPlugin implements Plugin<Project> {
         final DeprecatableConfiguration apiElementsConfiguration = (DeprecatableConfiguration) jvmServices.createOutgoingElements(API_ELEMENTS_CONFIGURATION_NAME,
             builder -> builder.fromSourceSet(main)
                 .providesApi()
-                .withDescription("API elements for main.")
-                .extendsFrom(runtimeConfiguration));
+                .withDescription("API elements for main."));
 
         final DeprecatableConfiguration runtimeElementsConfiguration = (DeprecatableConfiguration) jvmServices.createOutgoingElements(RUNTIME_ELEMENTS_CONFIGURATION_NAME,
             builder -> builder.fromSourceSet(main)
                 .providesRuntime()
                 .withDescription("Elements of runtime for main.")
-                .extendsFrom(implementationConfiguration, runtimeOnlyConfiguration, runtimeConfiguration));
-        defaultConfiguration.extendsFrom(runtimeElementsConfiguration);
+                .extendsFrom(implementationConfiguration, runtimeOnlyConfiguration));
+
+        if (!featurePreviews.isFeatureEnabled(FeaturePreviews.Feature.GRADLE7_REMOVALS)) {
+            Configuration defaultConfiguration = configurations.getByName(Dependency.DEFAULT_CONFIGURATION);
+            Configuration compileConfiguration = configurations.getByName(COMPILE_CONFIGURATION_NAME);
+            Configuration runtimeConfiguration = configurations.getByName(RUNTIME_CONFIGURATION_NAME);
+            Configuration compileTestsConfiguration = configurations.getByName(TEST_COMPILE_CONFIGURATION_NAME);
+            Configuration testRuntimeConfiguration = configurations.getByName(TEST_RUNTIME_CONFIGURATION_NAME);
+
+            compileTestsConfiguration.extendsFrom(compileConfiguration);
+            testRuntimeConfiguration.extendsFrom(runtimeConfiguration);
+
+            apiElementsConfiguration.extendsFrom(runtimeConfiguration);
+            runtimeElementsConfiguration.extendsFrom(runtimeConfiguration);
+
+            defaultConfiguration.extendsFrom(runtimeElementsConfiguration);
+        }
 
         apiElementsConfiguration.deprecateForDeclaration(IMPLEMENTATION_CONFIGURATION_NAME, COMPILE_ONLY_CONFIGURATION_NAME);
         runtimeElementsConfiguration.deprecateForDeclaration(IMPLEMENTATION_CONFIGURATION_NAME, COMPILE_ONLY_CONFIGURATION_NAME, RUNTIME_ONLY_CONFIGURATION_NAME);

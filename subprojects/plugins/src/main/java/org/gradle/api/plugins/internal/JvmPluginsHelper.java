@@ -33,6 +33,7 @@ import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.ConventionMapping;
+import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.dsl.LazyPublishArtifact;
 import org.gradle.api.internal.artifacts.publish.AbstractPublishArtifact;
@@ -78,7 +79,7 @@ public class JvmPluginsHelper {
      * @param sourceSet the source set to add an API for
      * @return the created API configuration
      */
-    public static Configuration addApiToSourceSet(SourceSet sourceSet, ConfigurationContainer configurations) {
+    public static Configuration addApiToSourceSet(SourceSet sourceSet, ConfigurationContainer configurations, FeaturePreviews featurePreviews) {
         Configuration apiConfiguration = configurations.maybeCreate(sourceSet.getApiConfigurationName());
         apiConfiguration.setVisible(false);
         apiConfiguration.setDescription("API dependencies for " + sourceSet + ".");
@@ -91,9 +92,11 @@ public class JvmPluginsHelper {
         Configuration implementationConfiguration = configurations.getByName(sourceSet.getImplementationConfigurationName());
         implementationConfiguration.extendsFrom(apiConfiguration);
 
-        @SuppressWarnings("deprecation")
-        Configuration compileConfiguration = configurations.getByName(sourceSet.getCompileConfigurationName());
-        apiConfiguration.extendsFrom(compileConfiguration);
+        if (!featurePreviews.isFeatureEnabled(FeaturePreviews.Feature.GRADLE7_REMOVALS)) {
+            @SuppressWarnings("deprecation")
+            Configuration compileConfiguration = configurations.getByName(sourceSet.getCompileConfigurationName());
+            apiConfiguration.extendsFrom(compileConfiguration);
+        }
 
         return apiConfiguration;
     }

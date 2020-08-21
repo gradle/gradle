@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
+import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.Module;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
@@ -60,12 +61,14 @@ public class BasePlugin implements Plugin<Project> {
     private final ProjectPublicationRegistry publicationRegistry;
     private final ProjectConfigurationActionContainer configurationActionContainer;
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
+    private final FeaturePreviews featurePreviews;
 
     @Inject
-    public BasePlugin(ProjectPublicationRegistry publicationRegistry, ProjectConfigurationActionContainer configurationActionContainer, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
+    public BasePlugin(ProjectPublicationRegistry publicationRegistry, ProjectConfigurationActionContainer configurationActionContainer, ImmutableModuleIdentifierFactory moduleIdentifierFactory, FeaturePreviews featurePreviews) {
         this.publicationRegistry = publicationRegistry;
         this.configurationActionContainer = configurationActionContainer;
         this.moduleIdentifierFactory = moduleIdentifierFactory;
+        this.featurePreviews = featurePreviews;
     }
 
     @Override
@@ -76,11 +79,13 @@ public class BasePlugin implements Plugin<Project> {
         project.getConvention().getPlugins().put("base", convention);
 
         configureBuildConfigurationRule(project);
-        configureUploadRules(project);
-        configureUploadArchivesTask();
         configureArchiveDefaults(project, convention);
         configureConfigurations(project);
-        configureAssemble((ProjectInternal) project);
+        if (!featurePreviews.isFeatureEnabled(FeaturePreviews.Feature.GRADLE7_REMOVALS)) {
+            configureUploadRules(project);
+            configureUploadArchivesTask();
+            configureAssemble((ProjectInternal) project);
+        }
     }
 
     private void configureArchiveDefaults(final Project project, final BasePluginConvention pluginConvention) {
@@ -140,30 +145,37 @@ public class BasePlugin implements Plugin<Project> {
         ConfigurationContainer configurations = project.getConfigurations();
         project.setStatus("integration");
 
-        final DeprecatableConfiguration archivesConfiguration = (DeprecatableConfiguration) configurations.maybeCreate(Dependency.ARCHIVES_CONFIGURATION).
-            setDescription("Configuration for archive artifacts.");
+        configureLegacyConfigurations(project, configurations);
+    }
 
+    private void configureLegacyConfigurations(Project project, ConfigurationContainer configurations) {
         final DeprecatableConfiguration defaultConfiguration = (DeprecatableConfiguration) configurations.maybeCreate(Dependency.DEFAULT_CONFIGURATION).
             setDescription("Configuration for default artifacts.");
-
-        final DefaultArtifactPublicationSet defaultArtifacts = project.getExtensions().create(
-            "defaultArtifacts", DefaultArtifactPublicationSet.class, archivesConfiguration.getArtifacts()
-        );
-
-        archivesConfiguration.deprecateForResolution(JavaPlugin.COMPILE_CLASSPATH_CONFIGURATION_NAME, JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME);
         defaultConfiguration.deprecateForResolution(JavaPlugin.COMPILE_CLASSPATH_CONFIGURATION_NAME, JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME);
-        archivesConfiguration.deprecateForDeclaration(JavaPlugin.IMPLEMENTATION_CONFIGURATION_NAME, JavaPlugin.API_CONFIGURATION_NAME);
         defaultConfiguration.deprecateForDeclaration(JavaPlugin.IMPLEMENTATION_CONFIGURATION_NAME, JavaPlugin.API_CONFIGURATION_NAME);
 
-        configurations.all(configuration -> {
-            if (!configuration.equals(archivesConfiguration)) {
-                configuration.getArtifacts().configureEach(artifact -> {
-                    if (configuration.isVisible()) {
-                        defaultArtifacts.addCandidate(artifact);
-                    }
-                });
-            }
-        });
+        if (!featurePreviews.isFeatureEnabled(FeaturePreviews.Feature.GRADLE7_REMOVALS)) {
+            final DeprecatableConfiguration archivesConfiguration = (DeprecatableConfiguration) configurations.maybeCreate(Dependency.ARCHIVES_CONFIGURATION).
+                setDescription("Configuration for archive artifacts.");
+
+
+            final DefaultArtifactPublicationSet defaultArtifacts = project.getExtensions().create(
+                "defaultArtifacts", DefaultArtifactPublicationSet.class, archivesConfiguration.getArtifacts()
+            );
+
+            archivesConfiguration.deprecateForResolution(JavaPlugin.COMPILE_CLASSPATH_CONFIGURATION_NAME, JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME);
+            archivesConfiguration.deprecateForDeclaration(JavaPlugin.IMPLEMENTATION_CONFIGURATION_NAME, JavaPlugin.API_CONFIGURATION_NAME);
+
+            configurations.all(configuration -> {
+                if (!configuration.equals(archivesConfiguration)) {
+                    configuration.getArtifacts().configureEach(artifact -> {
+                        if (configuration.isVisible()) {
+                            defaultArtifacts.addCandidate(artifact);
+                        }
+                    });
+                }
+            });
+        }
     }
 
     private void configureAssemble(final ProjectInternal project) {

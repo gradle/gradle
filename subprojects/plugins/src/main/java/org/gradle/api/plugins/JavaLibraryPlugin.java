@@ -18,6 +18,7 @@ package org.gradle.api.plugins;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.plugins.internal.JvmPluginsHelper;
 import org.gradle.api.plugins.jvm.JvmEcosystemUtilities;
 import org.gradle.api.tasks.SourceSet;
@@ -35,10 +36,12 @@ import javax.inject.Inject;
 public class JavaLibraryPlugin implements Plugin<Project> {
 
     private final JvmEcosystemUtilities jvmEcosystemUtilities;
+    private final FeaturePreviews featurePreviews;
 
     @Inject
-    public JavaLibraryPlugin(JvmEcosystemUtilities jvmEcosystemUtilities) {
+    public JavaLibraryPlugin(JvmEcosystemUtilities jvmEcosystemUtilities, FeaturePreviews featurePreviews) {
         this.jvmEcosystemUtilities = jvmEcosystemUtilities;
+        this.featurePreviews = featurePreviews;
     }
 
     @Override
@@ -48,7 +51,7 @@ public class JavaLibraryPlugin implements Plugin<Project> {
         SourceSetContainer sourceSets = project.getExtensions().getByType(SourceSetContainer.class);
         ConfigurationContainer configurations = project.getConfigurations();
         SourceSet sourceSet = sourceSets.getByName(SourceSet.MAIN_SOURCE_SET_NAME);
-        JvmPluginsHelper.addApiToSourceSet(sourceSet, configurations);
+        JvmPluginsHelper.addApiToSourceSet(sourceSet, configurations, featurePreviews);
         jvmEcosystemUtilities.configureClassesDirectoryVariant(sourceSet.getApiElementsConfigurationName(), sourceSet);
         deprecateConfigurationsForDeclaration(sourceSets, configurations);
     }
@@ -56,7 +59,6 @@ public class JavaLibraryPlugin implements Plugin<Project> {
     private void deprecateConfigurationsForDeclaration(SourceSetContainer sourceSets, ConfigurationContainer configurations) {
         SourceSet sourceSet = sourceSets.getByName("main");
 
-        DeprecatableConfiguration compileConfiguration = (DeprecatableConfiguration) configurations.getByName(sourceSet.getCompileConfigurationName());
         DeprecatableConfiguration apiElementsConfiguration = (DeprecatableConfiguration) configurations.getByName(sourceSet.getApiElementsConfigurationName());
         DeprecatableConfiguration runtimeElementsConfiguration = (DeprecatableConfiguration) configurations.getByName(sourceSet.getRuntimeElementsConfigurationName());
         DeprecatableConfiguration compileClasspathConfiguration = (DeprecatableConfiguration) configurations.getByName(sourceSet.getCompileClasspathConfigurationName());
@@ -67,8 +69,10 @@ public class JavaLibraryPlugin implements Plugin<Project> {
         String runtimeOnlyConfigurationName = sourceSet.getRuntimeOnlyConfigurationName();
         String apiConfigurationName = sourceSet.getApiConfigurationName();
 
-        compileConfiguration.deprecateForDeclaration(implementationConfigurationName, apiConfigurationName);
-
+        if (!featurePreviews.isFeatureEnabled(FeaturePreviews.Feature.GRADLE7_REMOVALS)) {
+            DeprecatableConfiguration compileConfiguration = (DeprecatableConfiguration) configurations.getByName(sourceSet.getCompileConfigurationName());
+            compileConfiguration.deprecateForDeclaration(implementationConfigurationName, apiConfigurationName);
+        }
         apiElementsConfiguration.deprecateForDeclaration(implementationConfigurationName, apiConfigurationName, compileOnlyConfigurationName);
         runtimeElementsConfiguration.deprecateForDeclaration(implementationConfigurationName, apiConfigurationName, compileOnlyConfigurationName, runtimeOnlyConfigurationName);
 

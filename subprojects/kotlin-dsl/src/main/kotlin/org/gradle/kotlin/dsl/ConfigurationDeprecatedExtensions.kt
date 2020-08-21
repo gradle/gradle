@@ -278,6 +278,7 @@ val <T : Configuration> NamedDomainObjectProvider<T>.resolvedConfiguration
 /**
  * See [Configuration.getUploadTaskName].
  */
+@Suppress("DEPRECATION")
 @Deprecated(deprecationMessage, replaceWith = ReplaceWith("get().uploadTaskName"))
 val <T : Configuration> NamedDomainObjectProvider<T>.uploadTaskName
     get() = get().uploadTaskName
