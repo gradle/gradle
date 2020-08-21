@@ -49,6 +49,7 @@ import org.gradle.internal.Describables
 import org.gradle.internal.DisplayName
 import org.gradle.internal.component.local.model.ComponentFileArtifactIdentifier
 import java.io.File
+import java.util.Collections.unmodifiableSet
 import java.util.concurrent.Callable
 
 
@@ -162,29 +163,60 @@ class CollectingArtifactVisitor : ArtifactVisitor {
 private
 class FixedArtifactCollection(
     private val artifactFiles: FileCollection,
-    private val elements: List<Any>,
+    private var elements: List<Any>?,
     private val failures: List<Throwable>,
     private val noDependencies: ExecutionGraphDependenciesResolver
 ) : ArtifactCollectionInternal {
 
-    override fun getFailures() = failures
+    private
+    val artifactResults by lazy {
+        unmodifiableSet(resolve(elements!!)).also {
+            elements = null // allow elements to be GC'd
+        }
+    }
+
+    override fun getFailures() =
+        failures
 
     override fun iterator(): MutableIterator<ResolvedArtifactResult> =
         artifacts.iterator()
 
-    override fun getArtifactFiles() = artifactFiles
+    override fun getArtifactFiles() =
+        artifactFiles
 
-    override fun getArtifacts(): MutableSet<ResolvedArtifactResult> {
+    override fun getArtifacts(): MutableSet<ResolvedArtifactResult> =
+        artifactResults
+
+    private
+    fun resolve(elements: List<Any>): Set<ResolvedArtifactResult> {
         val result = mutableSetOf<ResolvedArtifactResult>()
         for (element in elements) {
             when (element) {
-                is FixedFileArtifactSpec -> result.add(DefaultResolvedArtifactResult(element.id, element.variantAttributes, element.variantDisplayName, Artifact::class.java, element.file))
+                is FixedFileArtifactSpec -> {
+                    result.add(
+                        DefaultResolvedArtifactResult(
+                            element.id,
+                            element.variantAttributes,
+                            element.variantDisplayName,
+                            Artifact::class.java,
+                            element.file
+                        )
+                    )
+                }
                 is TransformedProjectVariantSpec -> {
                     val displayName = Describables.of(element.ownerId, element.variantAttributes)
                     for (node in element.nodes) {
                         for (output in node.transformedSubject.get().files) {
                             val resolvedArtifact: ResolvableArtifact = node.inputArtifacts.transformedTo(output)
-                            result.add(DefaultResolvedArtifactResult(resolvedArtifact.id, displayName, element.variantAttributes, Artifact::class.java, output))
+                            result.add(
+                                DefaultResolvedArtifactResult(
+                                    resolvedArtifact.id,
+                                    displayName,
+                                    element.variantAttributes,
+                                    Artifact::class.java,
+                                    output
+                                )
+                            )
                         }
                     }
                 }
@@ -193,14 +225,30 @@ class FixedArtifactCollection(
                     for (file in element.calculateResult()) {
                         // TODO - preserve artifact id, for error reporting
                         val artifactId = ComponentFileArtifactIdentifier(element.ownerId, file.name)
-                        result.add(DefaultResolvedArtifactResult(artifactId, displayName, element.targetVariantAttributes, Artifact::class.java, file))
+                        result.add(
+                            DefaultResolvedArtifactResult(
+                                artifactId,
+                                displayName,
+                                element.targetVariantAttributes,
+                                Artifact::class.java,
+                                file
+                            )
+                        )
                     }
                 }
                 is TransformedLocalArtifactSpec -> {
                     val displayName = Describables.of(element.ownerId, element.variantAttributes)
                     for (output in element.transformation.createInvocation(TransformationSubject.initial(element.origin), noDependencies, null).invoke().get().files) {
                         val artifactId = ComponentFileArtifactIdentifier(element.ownerId, output.name)
-                        result.add(DefaultResolvedArtifactResult(artifactId, displayName, element.variantAttributes, Artifact::class.java, output))
+                        result.add(
+                            DefaultResolvedArtifactResult(
+                                artifactId,
+                                displayName,
+                                element.variantAttributes,
+                                Artifact::class.java,
+                                output
+                            )
+                        )
                     }
                 }
                 else -> throw IllegalArgumentException("Unexpected element $element in artifact collection")
