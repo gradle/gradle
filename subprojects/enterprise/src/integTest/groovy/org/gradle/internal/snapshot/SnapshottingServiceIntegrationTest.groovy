@@ -16,6 +16,7 @@
 
 package org.gradle.internal.snapshot
 
+import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.fingerprint.IgnoredPathInputNormalizer
 import org.gradle.test.fixtures.plugin.PluginBuilder
@@ -23,14 +24,30 @@ import org.gradle.test.fixtures.plugin.PluginBuilder
 class SnapshottingServiceIntegrationTest extends AbstractIntegrationSpec {
 
     def "can inject service into plugin"() {
+        given:
         def pluginBuilder = new PluginBuilder(file("buildSrc"))
         pluginBuilder.addPlugin("""
-            $SnapshottingService.name service = project.getServices(${SnapshottingService.name}.class);
-            $Snapshot.name hash = service.snapshotFor(project.file("input.txt").toPath(), ${IgnoredPathInputNormalizer.name}.class);
-            System.out.println("Hash: " + hash.getHashValue());
+            def service = (($ProjectInternal.name) project).getServices($SnapshottingService.name)
+            def hash = service.snapshotFor(project.file("input.txt").toPath(), $IgnoredPathInputNormalizer.name)
+            println("Hash: " + hash.hashValue)
         """
         )
+        pluginBuilder.generateForBuildSrc()
+
         buildFile << """
+            plugins {
+                id 'test-plugin'
+            }
         """
+
+        file("input.txt") << """
+            Some input
+        """
+
+        when:
+        succeeds "help"
+
+        then:
+        outputContains"Hash: "
     }
 }
