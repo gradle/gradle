@@ -16,6 +16,8 @@
 
 package org.gradle.internal.snapshot.impl;
 
+import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinter;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry;
@@ -28,17 +30,25 @@ import java.nio.file.Path;
 public class DefaultSnapshottingService implements SnapshottingService {
 
     private final FileCollectionFingerprinterRegistry fingerprinterRegistry;
-    private final FileColl
+    private final FileCollectionFactory fileCollectionFactory;
 
     @Inject
-    public DefaultSnapshottingService(FileCollectionFingerprinterRegistry fingerprinterRegistry) {
+    public DefaultSnapshottingService(FileCollectionFingerprinterRegistry fingerprinterRegistry, FileCollectionFactory fileCollectionFactory) {
         this.fingerprinterRegistry = fingerprinterRegistry;
+        this.fileCollectionFactory = fileCollectionFactory;
     }
 
     @Override
     public Snapshot snapshotFor(Path filePath, Class<? extends FileNormalizer> normalizationType) {
+        FileCollectionInternal fileCollection = fileCollectionFactory.fixed(filePath.toFile());
+
         FileCollectionFingerprinter fingerprinter = fingerprinterRegistry.getFingerprinter(normalizationType);
-        fingerprinter.fingerprint();
+        org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint fingerprint = fingerprinter.fingerprint(fileCollection);
+
         return null;
+    }
+
+    private static class DefaultSnapshot extends Snapshot {
+
     }
 }

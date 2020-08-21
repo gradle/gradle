@@ -27,6 +27,8 @@ dependencies {
     implementation(project(":core-api"))
     implementation(project(":core"))
     implementation(project(":launcher"))
+    implementation(project(":file-collections"))
+    implementation(project(":snapshots"))
 
     integTestImplementation(project(":internal-testing"))
     integTestImplementation(project(":internal-integ-testing"))
