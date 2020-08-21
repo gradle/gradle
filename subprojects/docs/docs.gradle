@@ -548,12 +548,6 @@ samples {
             common {
                 from(templates.precompiledScriptPluginUtilsInBuildSrc)
             }
-            groovy {
-                from(templates.precompiledScriptPluginGroovyInBuildSrc)
-            }
-            kotlin {
-                from(templates.precompiledScriptPluginKotlinInBuildSrc)
-            }
         }
 
         jvmMultiProjectBuild {
