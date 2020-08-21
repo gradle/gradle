@@ -42,7 +42,7 @@ import java.util.stream.Collectors;
 public class JdkCacheDirectory {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JdkCacheDirectory.class);
-    public static final String MARKER_FILE = "provisioned.ok";
+    private static final String MARKER_FILE = "provisioned.ok";
 
     private final FileOperations operations;
     private final File jdkDirectory;
