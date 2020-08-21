@@ -20,8 +20,8 @@ import org.gradle.api.Describable;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
+import org.gradle.internal.os.OperatingSystem;
 import org.gradle.jvm.toolchain.JavaCompiler;
-import org.gradle.jvm.toolchain.JavaInstallation;
 import org.gradle.jvm.toolchain.JavaLauncher;
 import org.gradle.jvm.toolchain.JavadocTool;
 
@@ -30,13 +30,13 @@ import java.io.File;
 
 public class JavaToolchain implements Describable {
 
-    private final JavaInstallation installation;
-    private JavaCompilerFactory compilerFactory;
+    private final JavaInstallationProbe.ProbeResult probe;
+    private final JavaCompilerFactory compilerFactory;
     private final ToolchainToolFactory toolFactory;
 
     @Inject
-    public JavaToolchain(JavaInstallation installation, JavaCompilerFactory compilerFactory, ToolchainToolFactory toolFactory) {
-        this.installation = installation;
+    public JavaToolchain(JavaInstallationProbe.ProbeResult probe, JavaCompilerFactory compilerFactory, ToolchainToolFactory toolFactory) {
+        this.probe = probe;
         this.compilerFactory = compilerFactory;
         this.toolFactory = toolFactory;
     }
@@ -48,7 +48,7 @@ public class JavaToolchain implements Describable {
 
     @Internal
     public JavaLauncher getJavaLauncher() {
-        return new DefaultToolchainJavaLauncher(installation.getJavaExecutable().getAsFile());
+        return new DefaultToolchainJavaLauncher(findExecutable("java"));
     }
 
     @Internal
@@ -58,12 +58,12 @@ public class JavaToolchain implements Describable {
 
     @Input
     public JavaVersion getJavaMajorVersion() {
-        return installation.getJavaVersion();
+        return probe.getJavaVersion();
     }
 
     @Internal
     public File getJavaHome() {
-        return installation.getInstallationDirectory().getAsFile();
+        return probe.getJavaHome();
     }
 
     @Internal
@@ -72,7 +72,7 @@ public class JavaToolchain implements Describable {
         return getJavaHome().getAbsolutePath();
     }
 
-    public String findExecutable(String toolname) {
-        return new File(getJavaHome(), "bin/javadoc").getAbsolutePath();
+    public File findExecutable(String toolname) {
+        return new File(getJavaHome(), "bin/" + OperatingSystem.current().getExecutableName(toolname));
     }
 }

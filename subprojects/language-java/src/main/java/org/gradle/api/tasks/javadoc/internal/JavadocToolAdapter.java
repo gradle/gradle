@@ -32,7 +32,7 @@ public class JavadocToolAdapter implements JavadocTool {
     }
 
     public WorkResult execute(JavadocSpec spec) {
-        spec.setExecutable(toolchain.findExecutable("javadoc"));
+        spec.setExecutable(toolchain.findExecutable("javadoc").getAbsolutePath());
         return generator.execute(spec);
     }
 

@@ -17,10 +17,6 @@
 package org.gradle.jvm.toolchain.internal
 
 import org.gradle.api.JavaVersion
-import org.gradle.api.file.Directory
-import org.gradle.api.internal.file.FileFactory
-import org.gradle.jvm.toolchain.JavaInstallation
-import org.gradle.jvm.toolchain.JavaInstallationRegistry
 import org.gradle.jvm.toolchain.JavaToolchainSpec
 import org.gradle.jvm.toolchain.install.internal.JavaToolchainProvisioningService
 import org.gradle.util.TestUtil
@@ -45,7 +41,7 @@ class JavaToolchainQueryServiceTest extends Specification {
 
         then:
         toolchain.javaMajorVersion == versionToFind
-        toolchain.installation.installationDirectory.asFile.absolutePath == systemSpecificAbsolutePath(expectedPath)
+        toolchain.getJavaHome().absolutePath == systemSpecificAbsolutePath(expectedPath)
 
         where:
         versionToFind           | expectedPath
@@ -67,7 +63,7 @@ class JavaToolchainQueryServiceTest extends Specification {
 
         then:
         toolchain.javaMajorVersion == versionToFind
-        toolchain.installation.installationDirectory.asFile.absolutePath == systemSpecificAbsolutePath(expectedPath)
+        toolchain.getJavaHome().absolutePath == systemSpecificAbsolutePath(expectedPath)
 
         where:
         versionToFind           | expectedPath
@@ -135,21 +131,19 @@ class JavaToolchainQueryServiceTest extends Specification {
     private JavaToolchainFactory newToolchainFactory() {
         def compilerFactory = Mock(JavaCompilerFactory)
         def toolFactory = Mock(ToolchainToolFactory)
-        def toolchainFactory = new JavaToolchainFactory(Mock(FileFactory), Mock(JavaInstallationRegistry), compilerFactory, toolFactory) {
+        def toolchainFactory = new JavaToolchainFactory(Mock(JavaInstallationProbe), compilerFactory, toolFactory) {
             JavaToolchain newInstance(File javaHome) {
-                return new JavaToolchain(newInstallation(javaHome), compilerFactory, toolFactory)
+                return new JavaToolchain(newProbe(javaHome), compilerFactory, toolFactory)
             }
         }
         toolchainFactory
     }
 
-    def newInstallation(File javaHome) {
-        def installation = Mock(JavaInstallation)
-        installation.getJavaVersion() >> JavaVersion.toVersion(javaHome.name)
-        def installDir = Mock(Directory)
-        installDir.asFile >> javaHome
-        installation.installationDirectory >> installDir
-        installation
+    def newProbe(File javaHome) {
+        def probe = Mock(JavaInstallationProbe.ProbeResult) {
+            getJavaVersion() >> JavaVersion.toVersion(javaHome.name)
+            getJavaHome() >> javaHome
+        }
     }
 
     def createInstallationRegistry(List<String> installations = ["8", "9", "10", "11", "12"]) {
