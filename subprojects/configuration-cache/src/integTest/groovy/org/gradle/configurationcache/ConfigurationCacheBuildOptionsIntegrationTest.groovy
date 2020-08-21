@@ -613,6 +613,96 @@ class ConfigurationCacheBuildOptionsIntegrationTest extends AbstractConfiguratio
         configurationCache.assertStateStored()
     }
 
+    def "mapped gradleProperty in producer task"() {
+        given:
+        buildFile '''
+
+            import java.nio.file.Files
+
+            abstract class MyTask extends DefaultTask {
+                @OutputDirectory
+                public abstract DirectoryProperty getOutputDir()
+
+                @Input
+                public abstract Property<Integer> getInputCount()
+
+                @TaskAction
+                public void doTask() {
+                    File outputFile = getOutputDir().get().asFile
+                    outputFile.deleteDir()
+                    outputFile.mkdirs()
+                    for (int i = 0; i < getInputCount().get(); i++) {
+                        new File(outputFile, i.toString()).mkdirs()
+                    }
+                }
+            }
+
+            abstract class ConsumerTask extends DefaultTask {
+                @InputFiles
+                public abstract ConfigurableFileCollection getMyInputs()
+
+                @OutputFile
+                public abstract RegularFileProperty getOutputFile()
+
+                @TaskAction
+                public void doTask() {
+                    File outputFile = getOutputFile().get().asFile
+                    outputFile.delete()
+                    outputFile.parentFile.mkdirs()
+                    String outputContent = ""
+                    for(File f: getMyInputs().files) {
+                        outputContent += f.canonicalPath + "\\n"
+                    }
+                    Files.write(outputFile.toPath(), outputContent.getBytes())
+                }
+            }
+
+            tasks.register("myTask", MyTask.class) {
+                it.getInputCount().set(project.providers.gradleProperty("generateInputs").map { Integer.parseInt(it) })
+                it.getOutputDir().set(new File(project.buildDir, "mytask"))
+            }
+
+            tasks.register("consumer", ConsumerTask.class) {
+                it.getOutputFile().set(new File(project.buildDir, "consumer/out.txt"))
+
+                MyTask myTask = (MyTask) tasks.getByName("myTask")
+                Provider<Set<File>> inputs = myTask.outputDir.map {
+                    File[] files = it.asFile.listFiles()
+                    Set<File> result = new HashSet<File>()
+                    for (File f : files) {
+                        if (f.name.toInteger() % 2 == 0) {
+                            result.add(f)
+                        }
+                    }
+                    System.err.println("Computing task inputs for consumer")
+                    return result
+                }
+
+                it.getMyInputs().from(inputs)
+            }
+        '''
+        def configurationCache = newConfigurationCacheFixture()
+        def consumedFileNames = {
+            file('build/consumer/out.txt').readLines().collect {
+                new File(it).name
+            }.toSet()
+        }
+
+        when:
+        configurationCacheRun('consumer', '-PgenerateInputs=4')
+
+        then:
+        consumedFileNames() == ['0', '2'] as Set
+        configurationCache.assertStateStored()
+
+        when:
+        configurationCacheRun('consumer', '-PgenerateInputs=6')
+
+        then:
+        consumedFileNames() == ['0', '2', '4'] as Set
+        configurationCache.assertStateLoaded()
+    }
+
     private static String getGreetTask() {
         """
             abstract class Greet : DefaultTask() {

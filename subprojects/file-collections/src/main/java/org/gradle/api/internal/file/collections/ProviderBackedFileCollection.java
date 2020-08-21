@@ -58,4 +58,8 @@ public class ProviderBackedFileCollection extends CompositeFileCollection {
         UnpackingVisitor unpackingVisitor = new UnpackingVisitor(visitor, resolver, patternSetFactory);
         unpackingVisitor.add(provider.get());
     }
+
+    public ProviderInternal<?> getProvider() {
+        return provider;
+    }
 }

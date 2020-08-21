@@ -75,7 +75,10 @@ abstract class BasicJavaCompilerIntegrationSpec extends AbstractIntegrationSpec 
         and:
         buildFile << '''
             apply plugin: 'application'
-            mainClassName = 'Main'
+
+            application {
+                mainClass = 'Main'
+            }
             compileJava.options.encoding = \'ISO8859_7\'
 '''
 

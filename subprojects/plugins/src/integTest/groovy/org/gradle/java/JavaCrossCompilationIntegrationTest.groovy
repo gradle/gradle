@@ -121,7 +121,10 @@ public class ThingTest {
         given:
         buildFile << """
 apply plugin: 'application'
-mainClassName = 'Main'
+
+application {
+    mainClass = 'Main'
+}
 """
 
         file("src/main/java/Main.java") << """

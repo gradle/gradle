@@ -129,11 +129,20 @@ class ModuleVersionSpec {
     }
 
     void variant(String name, @DelegatesTo(value = VariantMetadataSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
-        def variant = new VariantMetadataSpec(name)
+        def variant = variants.find { it.name == name }
+        if (variant == null) {
+            variant = new VariantMetadataSpec(name)
+            variants << variant
+        }
         spec.delegate = variant
         spec.resolveStrategy = Closure.DELEGATE_FIRST
         spec()
-        variants << variant
+    }
+
+    void variants(List<String> names, @DelegatesTo(value = VariantMetadataSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
+        names.each { name ->
+            variant(name, spec)
+        }
     }
 
     void asPlatform() {

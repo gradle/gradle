@@ -58,6 +58,10 @@ class AbstractConfigurationCacheIntegrationTest extends AbstractIntegrationSpec 
         assert System.getProperty(ConfigurationCacheOption.PROPERTY_NAME) == null
     }
 
+    void buildFile(@Language("groovy") String script) {
+        buildFile << script
+    }
+
     void buildKotlinFile(@Language("kotlin") String script) {
         buildKotlinFile << script
     }

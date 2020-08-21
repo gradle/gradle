@@ -17,7 +17,7 @@ dependencies {
 }
 
 application {
-    mainClassName = "org.gradle.performance.android.Main"
+    mainClass.set("org.gradle.performance.android.Main")
     applicationName = "android-test-app"
 }
 

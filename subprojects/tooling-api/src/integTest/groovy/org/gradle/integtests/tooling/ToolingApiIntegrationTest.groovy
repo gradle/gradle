@@ -201,7 +201,7 @@ allprojects {
                 runtimeOnly 'org.slf4j:slf4j-simple:1.7.10'
             }
 
-            mainClassName = 'Main'
+            application.mainClass = 'Main'
 
             run {
                 args = ["${TextUtil.escapeString(gradleHomeDirPath)}", "${TextUtil.escapeString(gradleUserHomeDirPath)}"]

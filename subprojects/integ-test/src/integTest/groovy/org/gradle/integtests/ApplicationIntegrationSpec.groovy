@@ -34,7 +34,9 @@ class ApplicationIntegrationSpec extends AbstractIntegrationSpec {
 
         buildFile << """
             apply plugin: 'application'
-            mainClassName = 'org.gradle.test.Main'
+            application {
+               mainClass = 'org.gradle.test.Main'
+            }
         """
     }
 

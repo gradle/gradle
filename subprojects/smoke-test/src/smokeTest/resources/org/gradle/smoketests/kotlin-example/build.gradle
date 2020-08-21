@@ -13,7 +13,9 @@ buildscript {
 apply plugin: 'kotlin'
 apply plugin: 'application'
 
-mainClassName = "pkg.MainKt"
+application {
+    mainClass = "pkg.MainKt"
+}
 
 repositories {
     mavenCentral()
