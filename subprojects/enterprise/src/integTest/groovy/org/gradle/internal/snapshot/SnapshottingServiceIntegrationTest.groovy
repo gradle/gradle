@@ -17,17 +17,19 @@
 package org.gradle.internal.snapshot
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.internal.fingerprint.IgnoredPathInputNormalizer
 import org.gradle.test.fixtures.plugin.PluginBuilder
 
 class SnapshottingServiceIntegrationTest extends AbstractIntegrationSpec {
 
     def "can inject service into plugin"() {
         def pluginBuilder = new PluginBuilder(file("buildSrc"))
-        file("buildSrc/build.gradle") << """
-            plugins {
-                id ''
-            }
+        pluginBuilder.addPlugin("""
+            $SnapshottingService.name service = project.getServices(${SnapshottingService.name}.class);
+            $Snapshot.name hash = service.snapshotFor(project.file("input.txt").toPath(), ${IgnoredPathInputNormalizer.name}.class);
+            System.out.println("Hash: " + hash.getHashValue());
         """
+        )
         buildFile << """
         """
     }
