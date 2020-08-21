@@ -16,7 +16,6 @@
 
 package org.gradle.process.internal
 
-
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
@@ -28,7 +27,6 @@ class ErrorInWorkerSocketIntegrationTest extends AbstractIntegrationSpec {
     def "worker won't hang when error occurs in socket connection"() {
         given:
         requireOwnGradleUserHomeDir()
-        executer.getGradleUserHomeDir().file()
 
         file('buildSrc/src/main/java/Param.java') << """
 import java.io.*;
@@ -74,7 +72,6 @@ task runBrokenWorker {
     def "worker won't hang when error occurs in socket connection in included build"() {
         given:
         requireOwnGradleUserHomeDir()
-        executer.getGradleUserHomeDir().file()
 
         file('included/src/main/java/Param.java') << """
 import java.io.*;
