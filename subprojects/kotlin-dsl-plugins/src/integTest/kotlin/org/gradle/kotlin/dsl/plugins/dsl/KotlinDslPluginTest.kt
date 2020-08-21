@@ -63,6 +63,8 @@ class KotlinDslPluginTest : AbstractPluginTest() {
     @ToBeFixedForConfigurationCache
     fun `gradle kotlin dsl api is available for test implementation`() {
 
+        assumeNonEmbeddedGradleExecuter() // Requires a Gradle distribution on the test-under-test classpath, but gradleApi() does not offer the full distribution
+
         withBuildScript("""
 
             plugins {
