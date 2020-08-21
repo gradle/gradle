@@ -19,8 +19,10 @@ package org.gradle.internal.snapshot.impl;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.tasks.FileNormalizer;
+import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinter;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry;
+import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.snapshot.Snapshot;
 import org.gradle.internal.snapshot.SnapshottingService;
 
@@ -40,15 +42,23 @@ public class DefaultSnapshottingService implements SnapshottingService {
 
     @Override
     public Snapshot snapshotFor(Path filePath, Class<? extends FileNormalizer> normalizationType) {
-        FileCollectionInternal fileCollection = fileCollectionFactory.fixed(filePath.toFile());
-
         FileCollectionFingerprinter fingerprinter = fingerprinterRegistry.getFingerprinter(normalizationType);
-        org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint fingerprint = fingerprinter.fingerprint(fileCollection);
-
-        return null;
+        FileCollectionInternal fileCollection = fileCollectionFactory.fixed(filePath.toFile());
+        CurrentFileCollectionFingerprint fingerprint = fingerprinter.fingerprint(fileCollection);
+        return new DefaultSnapshot(fingerprint.getHash());
     }
 
-    private static class DefaultSnapshot extends Snapshot {
+    private static class DefaultSnapshot implements Snapshot {
 
+        private final HashCode hashCode;
+
+        public DefaultSnapshot(HashCode hashCode) {
+            this.hashCode = hashCode;
+        }
+
+        @Override
+        public String getHashValue() {
+            return hashCode.toString();
+        }
     }
 }
