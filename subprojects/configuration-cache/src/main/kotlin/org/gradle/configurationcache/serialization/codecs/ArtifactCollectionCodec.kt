@@ -49,7 +49,6 @@ import org.gradle.internal.Describables
 import org.gradle.internal.DisplayName
 import org.gradle.internal.component.local.model.ComponentFileArtifactIdentifier
 import java.io.File
-import java.util.Collections.unmodifiableSet
 import java.util.concurrent.Callable
 
 
@@ -163,17 +162,13 @@ class CollectingArtifactVisitor : ArtifactVisitor {
 private
 class FixedArtifactCollection(
     private val artifactFiles: FileCollection,
-    private var elements: List<Any>?,
+    private val elements: List<Any>,
     private val failures: List<Throwable>,
     private val noDependencies: ExecutionGraphDependenciesResolver
 ) : ArtifactCollectionInternal {
 
     private
-    val artifactResults by lazy {
-        unmodifiableSet(resolve(elements!!)).also {
-            elements = null // allow elements to be GC'd
-        }
-    }
+    var artifactResults: MutableSet<ResolvedArtifactResult>? = null
 
     override fun getFailures() =
         failures
@@ -184,11 +179,14 @@ class FixedArtifactCollection(
     override fun getArtifactFiles() =
         artifactFiles
 
+    @Synchronized
     override fun getArtifacts(): MutableSet<ResolvedArtifactResult> =
-        artifactResults
+        artifactResults ?: resolve().also {
+            artifactResults = it
+        }
 
     private
-    fun resolve(elements: List<Any>): Set<ResolvedArtifactResult> {
+    fun resolve(): MutableSet<ResolvedArtifactResult> {
         val result = mutableSetOf<ResolvedArtifactResult>()
         for (element in elements) {
             when (element) {
