@@ -19,7 +19,6 @@ package org.gradle.api.internal.changedetection.state;
 import org.gradle.api.internal.file.archive.ZipEntry;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
-import org.gradle.internal.snapshot.RegularFileSnapshot;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,8 +47,8 @@ public class MetaInfAwareClasspathResourceHasher implements ResourceHasher {
 
     @Nullable
     @Override
-    public HashCode hash(RegularFileSnapshot snapshot) {
-        return delegate.hash(snapshot);
+    public HashCode hash(RegularFileSnapshotContext snapshotContext) {
+        return delegate.hash(snapshotContext);
     }
 
     @Nullable
