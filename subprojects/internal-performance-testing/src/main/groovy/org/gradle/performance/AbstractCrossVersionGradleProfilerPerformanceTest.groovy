@@ -58,7 +58,7 @@ class AbstractCrossVersionGradleProfilerPerformanceTest extends Specification {
         runner = new GradleProfilerCrossVersionPerformanceTestRunner(
             new GradleProfilerBuildExperimentRunner(gradleProfilerReporter.getResultCollector()),
             resultStore,
-            resultStore,
+            gradleProfilerReporter,
             new ReleasedVersionDistributions(buildContext),
             buildContext
         )
