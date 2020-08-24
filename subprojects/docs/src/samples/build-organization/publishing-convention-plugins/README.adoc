@@ -167,7 +167,7 @@ include::sample[dir="kotlin",files="convention-plugins/build.gradle.kts[tags=rep
 * The Gradle Plugin Portal (`gradlePluginPortal()`) is added as a repository for plugin dependencies.
 * The plugin version is determined from the dependency version.
 
-Once the dependency is added, the external plugin can be applied in precompiled script plugin by id:
+Once the dependency is added, the external plugin can be applied in a convention plugin by id:
 ====
 include::sample[dir="groovy",files="convention-plugins/src/main/groovy/com.myorg.java-conventions.gradle[tags=apply-external-plugin]"]
 include::sample[dir="kotlin",files="convention-plugins/src/main/kotlin/com.myorg.java-conventions.gradle.kts[tags=apply-external-plugin]"]
