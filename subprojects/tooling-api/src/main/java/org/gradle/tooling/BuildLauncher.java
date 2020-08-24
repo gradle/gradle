@@ -33,7 +33,7 @@ import org.gradle.tooling.model.Task;
  * Example:
  * <pre class='autoTested'>
  * ProjectConnection connection = GradleConnector.newConnector()
- *    .forProjectDirectory(new File("someFolder"))
+ *    .forProjectDirectory(new File("some-folder"))
  *    .connect();
  *
  * try {
@@ -43,7 +43,7 @@ import org.gradle.tooling.model.Task;
  *    build.forTasks("clean", "test");
  *
  *    //include some build arguments:
- *    build.withArguments("-i", "--project-dir", "someProjectDir");
+ *    build.withArguments("-i", "--project-dir", "some-project-dir");
  *
  *    //configure the standard input:
  *    build.setStandardInput(new ByteArrayInputStream("consume this!".getBytes()));
