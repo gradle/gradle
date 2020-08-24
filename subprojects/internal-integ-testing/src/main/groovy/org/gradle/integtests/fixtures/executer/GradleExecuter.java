@@ -203,13 +203,13 @@ public interface GradleExecuter extends Stoppable {
     GradleExecuter withFullDeprecationStackTraceDisabled();
 
     /**
-     * Downloads and sets up the JVM arguments for running with the file leak detector: https://file-leak-detector.kohsuke.org/
+     * Downloads and sets up the JVM arguments for running the Gradle daemon with the file leak detector: https://file-leak-detector.kohsuke.org/
      *
      * NOTE: This requires running the test with JDK8 and the forking executer.
      *
      * This should not be checked-in on. This is only for local debugging.
      *
-     * By default, this starts a HTTP server on port 19999 so you can observe which files are open. Passing any arguments disables this behavior.
+     * By default, this starts a HTTP server on port 19999, so you can observe which files are open. Passing any arguments disables this behavior.
      *
      * @param args the arguments to pass the file leak detector java agent
      */
