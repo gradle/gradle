@@ -19,13 +19,67 @@ The powerful support for multi-project builds is one of Gradle's unique selling 
 
 A multi-project build in gradle consists of one root project, and one or more subprojects that may also have subprojects.
 
+[[sec:sharing_configuration_between_subprojects]]
+== Sharing configuration between subprojects
+
+Usually subprojects in a multi-project build share some common traits.
+For example, a project might consist of several subprojects containing _code_ written in a particular programming language as well as a subproject
+dedicated for _documentation_.
+There may be further traits that the _code_ subprojects share, such as certain code quality rules that we want to apply to all of them.
+At the same time the subprojects that share one common trait may serve different purposes - they may produce different _artifact types_, for example:
+
+ - _public libraries_ - libraries that are published to some repository
+ - _internal libraries_ - libraries on which other subprojects depend internally within the project
+ - _command line applications_ - applications with specific packaging requirements
+ - _web services_ - applications with specific packaging requirements that are different from above
+ - etc
+
+Some other _code_ subprojects may be dedicated for _testing purposes_ and so on.
+
+The traits above identify a subproject's _type_.
+Or in other words, a subproject's _type_ tells us what traits the project has.
+
+Gradle's recommended way of organizing build logic is its plugin system.
+A plugin should define the _type_ of a subproject.
+In fact, Gradle core plugins are modeled in the same way - for example `java` plugin configures a generic `java` project,
+while `java-library` plugin internally applies the `java` plugin and configures aspects specific to a generic Java library.
+
+Similarly, we can compose custom build logic by applying and configuring both core and external plugins and create custom plugins
+that define new project _types_.
+For each of the example traits from the beginning of this section, we can write a plugin that encapsulates
+the logic common to the project of a given _type_.
+
+Have a look at the link:{samplesPath}/sample_convention_plugins.html[sample that demonstrates a multi-project build that models the build logic using convention plugins].
+
+Another, more complex and real-world example of a multi-project build that composes build logic using convention plugins
+is the build of the link:https://github.com/gradle/gradle[Gradle Build Tool] itself.
+
+[[sec:convention_plugins_vs_cross_configuration]]
+=== Convention plugins versus cross project configuration
+
+While cross-cutting aspects of subprojects can be configured using <<#sec:cross_project_configuration,cross project configuration>> as well,
+doing so will make it harder to understand the logic of a particular subproject in the long term.
+With cross configuration, build logic gets injected into a subproject and this is not evident from looking at the subproject's
+build script.
+In the long run cross configuration usually grows complex with more and more conditional logic being added.
+
+There are two most common uses of cross-configuration that can be better modelled using convention plugins:
+
+- Applying plugins or other configuration to subprojects of certain type.
+Often the cross-configuration section will do `if subproject is of type X, then configure Y`.
+This is equivalent to applying `X-conventions` plugin directly to a subproject.
+- Extracting information from subprojects of certain type.
+This use case can be modelled using <<cross_project_publications.adoc#sec:simple-sharing-artifacts-between-projects,outgoing configuration variants>>.
 
 [[sec:cross_project_configuration]]
 == Cross project configuration
 
-While each subproject could configure itself in complete isolation of the other subprojects, it is common that subprojects share common traits. It is then usually preferable to share configurations among projects, so the same configuration affects several subprojects.
+While each subproject could configure itself in complete isolation of the other subprojects, it is common that subprojects share common traits.
+It is then usually preferable to share configurations among projects, so the same configuration affects several subprojects.
 
-Let's start with a very simple multi-project build. Gradle is a general purpose build tool at its core, so the projects don't have to be Java projects. Our first examples are about marine life.
+Let's start with a very simple multi-project build.
+Gradle is a general purpose build tool at its core, so the projects don't have to be Java projects.
+Our first examples are about marine life.
 
 
 [[sec:configuration_and_execution]]
