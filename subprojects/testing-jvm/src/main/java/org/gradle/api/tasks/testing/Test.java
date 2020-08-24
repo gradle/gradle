@@ -23,7 +23,6 @@ import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.NonNullApi;
-import org.gradle.api.Transformer;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
@@ -77,11 +76,9 @@ import org.gradle.internal.scan.UsedByScanPlugin;
 import org.gradle.internal.time.Clock;
 import org.gradle.internal.work.WorkerLeaseRegistry;
 import org.gradle.jvm.toolchain.JavaLauncher;
+import org.gradle.jvm.toolchain.JavaLauncherQueryService;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.gradle.jvm.toolchain.internal.DefaultToolchainJavaLauncher;
-import org.gradle.jvm.toolchain.internal.DefaultToolchainSpec;
-import org.gradle.jvm.toolchain.internal.JavaToolchain;
-import org.gradle.jvm.toolchain.internal.JavaToolchainQueryService;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.JavaDebugOptions;
 import org.gradle.process.JavaForkOptions;
@@ -237,7 +234,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     }
 
     @Inject
-    protected JavaToolchainQueryService getToolchainQueryService() {
+    protected JavaLauncherQueryService getLauncherQueryService() {
         throw new UnsupportedOperationException();
     }
 
@@ -1196,14 +1193,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
      */
     @Incubating
     public Provider<JavaLauncher> toolchainLauncher(Action<? super JavaToolchainSpec> action) {
-        DefaultToolchainSpec toolchainSpec = getObjectFactory().newInstance(DefaultToolchainSpec.class);
-        action.execute(toolchainSpec);
-        return getToolchainQueryService().findMatchingToolchain(toolchainSpec).map(new Transformer<JavaLauncher, JavaToolchain>() {
-            @Override
-            public JavaLauncher transform(JavaToolchain javaToolchain) {
-                return javaToolchain.getJavaLauncher();
-            }
-        });
+        return getLauncherQueryService().getToolchainLauncher(action);
     }
 
     @Nullable
