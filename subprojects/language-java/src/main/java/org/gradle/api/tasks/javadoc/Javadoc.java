@@ -27,6 +27,7 @@ import org.gradle.api.internal.tasks.compile.CompilationSourceDirs;
 import org.gradle.api.jvm.ModularitySpec;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
@@ -49,7 +50,11 @@ import org.gradle.jvm.internal.toolchain.JavaToolChainInternal;
 import org.gradle.jvm.platform.JavaPlatform;
 import org.gradle.jvm.platform.internal.DefaultJavaPlatform;
 import org.gradle.jvm.toolchain.JavaToolChain;
+import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.gradle.jvm.toolchain.JavadocTool;
+import org.gradle.jvm.toolchain.internal.DefaultToolchainSpec;
+import org.gradle.jvm.toolchain.internal.JavaToolchain;
+import org.gradle.jvm.toolchain.internal.JavaToolchainQueryService;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.util.ConfigureUtil;
 
@@ -125,6 +130,11 @@ public class Javadoc extends SourceTask {
     public Javadoc() {
         this.modularity = getObjectFactory().newInstance(DefaultModularitySpec.class);
         this.javadocTool = getObjectFactory().property(JavadocTool.class);
+    }
+
+    @Inject
+    protected JavaToolchainQueryService getToolchainQueryService() {
+        throw new UnsupportedOperationException();
     }
 
     @TaskAction
@@ -247,6 +257,22 @@ public class Javadoc extends SourceTask {
     public Property<JavadocTool> getJavadocTool() {
         return javadocTool;
     }
+
+    /**
+     * Obtain a {@link JavadocTool} matching the {@link JavaToolchainSpec} which can then be used to configure the compiler used by this task.
+     *
+     * @param action The action to configure the {@code JavaToolchainSpec}
+     * @return A {@code Provider<JavadocTool>}
+     *
+     * @since 6.7
+     */
+    @Incubating
+    public Provider<JavadocTool> toolchainJavadocTool(Action<? super JavaToolchainSpec> action) {
+        DefaultToolchainSpec toolchainSpec = getObjectFactory().newInstance(DefaultToolchainSpec.class);
+        action.execute(toolchainSpec);
+        return getToolchainQueryService().findMatchingToolchain(toolchainSpec).map(JavaToolchain::getJavadocTool);
+    }
+
 
     /**
      * <p>Returns the directory to generate the documentation into.</p>
