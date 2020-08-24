@@ -86,7 +86,8 @@ to a company's artifact repository.
 Convention plugins are regular Gradle plugins - thus they can be link:{userManualPath}/custom_plugins.html#sec:publishing_your_plugin[published to an external repository like any other Gradle plugin].
 
 Here, we configure the project to publish the plugins using the link:{userManualPath}/publishing_maven.html[maven-publish plugin].
-to a filesystem directory for demonstration purposes.
+For demonstration purposes, we publish to a local filesystem directory.
+You can find information about how to publish to a remote repository in the <INSERT LINK HERE> section of the user manual.
 
 .Publishing configuration
 ====
