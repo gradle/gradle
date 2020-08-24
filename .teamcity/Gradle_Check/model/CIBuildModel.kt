@@ -275,12 +275,12 @@ enum class SpecificBuild {
     },
     ConfigCacheSmokeTestsMinJavaVersion {
         override fun create(model: CIBuildModel, stage: Stage): BuildType {
-            return SmokeTests(model, stage, JvmCategory.MIN_VERSION, "instantSmokeTest")
+            return SmokeTests(model, stage, JvmCategory.MIN_VERSION, "configCacheSmokeTest")
         }
     },
     ConfigCacheSmokeTestsMaxJavaVersion {
         override fun create(model: CIBuildModel, stage: Stage): BuildType {
-            return SmokeTests(model, stage, JvmCategory.MAX_VERSION, "instantSmokeTest")
+            return SmokeTests(model, stage, JvmCategory.MAX_VERSION, "configCacheSmokeTest")
         }
     };
 
