@@ -23,6 +23,7 @@ import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.NonNullApi;
+import org.gradle.api.Transformer;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
@@ -43,6 +44,7 @@ import org.gradle.api.internal.tasks.testing.testng.TestNGTestFramework;
 import org.gradle.api.jvm.ModularitySpec;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
@@ -75,7 +77,11 @@ import org.gradle.internal.scan.UsedByScanPlugin;
 import org.gradle.internal.time.Clock;
 import org.gradle.internal.work.WorkerLeaseRegistry;
 import org.gradle.jvm.toolchain.JavaLauncher;
+import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.gradle.jvm.toolchain.internal.DefaultToolchainJavaLauncher;
+import org.gradle.jvm.toolchain.internal.DefaultToolchainSpec;
+import org.gradle.jvm.toolchain.internal.JavaToolchain;
+import org.gradle.jvm.toolchain.internal.JavaToolchainQueryService;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.JavaDebugOptions;
 import org.gradle.process.JavaForkOptions;
@@ -155,7 +161,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
 
     private final JavaForkOptions forkOptions;
     private final ModularitySpec modularity;
-    private Property<JavaLauncher> javaLauncher;
+    private final Property<JavaLauncher> javaLauncher;
 
     private FileCollection testClassesDirs;
     private final PatternFilterable patternSet;
@@ -227,6 +233,11 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
 
     @Inject
     protected JavaModuleDetector getJavaModuleDetector() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Inject
+    protected JavaToolchainQueryService getToolchainQueryService() {
         throw new UnsupportedOperationException();
     }
 
@@ -1173,6 +1184,26 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     @Internal("getJavaVersion() is used as @Input")
     public Property<JavaLauncher> getJavaLauncher() {
         return javaLauncher;
+    }
+
+    /**
+     * Obtain a {@link JavaLauncher} matching the {@link JavaToolchainSpec} which can then be used to configure the launcher used by this task.
+     *
+     * @param action The action to configure the {@code JavaToolchainSpec}
+     * @return A {@code Provider<JavaLauncher>}
+     *
+     * @since 6.7
+     */
+    @Incubating
+    public Provider<JavaLauncher> toolchainLauncher(Action<? super JavaToolchainSpec> action) {
+        DefaultToolchainSpec toolchainSpec = getObjectFactory().newInstance(DefaultToolchainSpec.class);
+        action.execute(toolchainSpec);
+        return getToolchainQueryService().findMatchingToolchain(toolchainSpec).map(new Transformer<JavaLauncher, JavaToolchain>() {
+            @Override
+            public JavaLauncher transform(JavaToolchain javaToolchain) {
+                return javaToolchain.getJavaLauncher();
+            }
+        });
     }
 
     @Nullable

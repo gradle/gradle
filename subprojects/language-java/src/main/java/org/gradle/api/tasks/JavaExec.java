@@ -32,7 +32,11 @@ import org.gradle.internal.jvm.DefaultModularitySpec;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.jvm.toolchain.JavaLauncher;
+import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.gradle.jvm.toolchain.internal.DefaultToolchainJavaLauncher;
+import org.gradle.jvm.toolchain.internal.DefaultToolchainSpec;
+import org.gradle.jvm.toolchain.internal.JavaToolchain;
+import org.gradle.jvm.toolchain.internal.JavaToolchainQueryService;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.ExecResult;
 import org.gradle.process.JavaDebugOptions;
@@ -115,7 +119,7 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
     private final Property<String> mainClass;
     private final ModularitySpec modularity;
     private final Property<ExecResult> execResult;
-    private Property<JavaLauncher> javaLauncher;
+    private final Property<JavaLauncher> javaLauncher;
 
     public JavaExec() {
         ObjectFactory objectFactory = getObjectFactory();
@@ -143,6 +147,11 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
 
     @Inject
     protected ProviderFactory getProviderFactory() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Inject
+    protected JavaToolchainQueryService getToolchainQueryService() {
         throw new UnsupportedOperationException();
     }
 
@@ -756,6 +765,21 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
     @Internal // getJavaVersion() is used as @Input
     public Property<JavaLauncher> getJavaLauncher() {
         return javaLauncher;
+    }
+
+    /**
+     * Obtain a {@link JavaLauncher} matching the {@link JavaToolchainSpec} which can then be used to configure the launcher used by this task.
+     *
+     * @param action The action to configure the {@code JavaToolchainSpec}
+     * @return A {@code Provider<JavaLauncher>}
+     *
+     * @since 6.7
+     */
+    @Incubating
+    public Provider<JavaLauncher> toolchainLauncher(Action<? super JavaToolchainSpec> action) {
+        DefaultToolchainSpec toolchainSpec = getObjectFactory().newInstance(DefaultToolchainSpec.class);
+        action.execute(toolchainSpec);
+        return getToolchainQueryService().findMatchingToolchain(toolchainSpec).map(JavaToolchain::getJavaLauncher);
     }
 
     @Nullable
