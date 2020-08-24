@@ -74,8 +74,7 @@ This use case can be modelled using <<cross_project_publications.adoc#sec:simple
 [[sec:cross_project_configuration]]
 == Cross project configuration
 
-While each subproject could configure itself in complete isolation of the other subprojects, it is common that subprojects share common traits.
-It is then usually preferable to share configurations among projects, so the same configuration affects several subprojects.
+An alternative to <<#sec:sharing_configuration_between_subprojects,sharing build logic between subprojects via convention plugins>> is cross project configuration.
 
 Let's start with a very simple multi-project build.
 Gradle is a general purpose build tool at its core, so the projects don't have to be Java projects.
