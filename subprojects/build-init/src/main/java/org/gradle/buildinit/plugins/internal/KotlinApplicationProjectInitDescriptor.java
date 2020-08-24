@@ -66,7 +66,7 @@ public class KotlinApplicationProjectInitDescriptor extends JvmProjectInitDescri
             .plugin("Apply the application plugin to add support for building a CLI application.", "application")
             .block(null,
                 "application",
-                b -> b.methodInvocation("Define the main class for the application.", "mainClass.set", withPackage(settings, "AppKt")));
+                b -> b.propertyAssignment("Define the main class for the application.", "mainClass", withPackage(settings, "AppKt"), false));
 
         TemplateOperation kotlinSourceTemplate = templateFactory.fromSourceTemplate("kotlinapp/App.kt.template", "main");
         TemplateOperation kotlinTestTemplate = templateFactory.fromSourceTemplate("kotlinapp/AppTest.kt.template", "test");

@@ -16,6 +16,7 @@
 
 package org.gradle.buildinit.plugins
 
+import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.util.TextUtil
@@ -66,7 +67,7 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
         handle.waitForFinish()
 
         then:
-        dslFixtureFor(BuildInitDsl.KOTLIN).assertGradleFilesGenerated()
+        ScriptDslFixture.of(BuildInitDsl.KOTLIN, targetDir, null).assertGradleFilesGenerated()
     }
 
     def "user can provide details for JVM based build"() {
@@ -187,6 +188,6 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
         handle.waitForFinish()
 
         then:
-        dslFixtureFor(BuildInitDsl.KOTLIN).assertGradleFilesGenerated()
+        ScriptDslFixture.of(BuildInitDsl.KOTLIN, targetDir, null).assertGradleFilesGenerated()
     }
 }

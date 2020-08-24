@@ -30,9 +30,11 @@ import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.util.IncubationLogger;
 
 import java.io.File;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Optional;
 import java.util.Set;
+import java.util.TreeSet;
 
 public class PomProjectInitDescriptor implements BuildConverter {
     private final MavenSettingsProvider settingsProvider;
@@ -74,7 +76,7 @@ public class PomProjectInitDescriptor implements BuildConverter {
         try {
             Settings settings = settingsProvider.buildSettings();
             Set<MavenProject> mavenProjects = new MavenProjectsCreator().create(settings, pom);
-            new Maven2Gradle(mavenProjects, fileResolver.resolve("."), scriptBuilderFactory).convert();
+            new Maven2Gradle(mavenProjects, fileResolver.resolve("."), initSettings.getDsl(), scriptBuilderFactory).convert();
         } catch (Exception exception) {
             throw new MavenConversionException(String.format("Could not convert Maven POM %s to a Gradle build.", pom), exception);
         }
@@ -92,7 +94,7 @@ public class PomProjectInitDescriptor implements BuildConverter {
 
     @Override
     public Set<BuildInitDsl> getDsls() {
-        return Collections.singleton(BuildInitDsl.GROOVY);
+        return new TreeSet<>(Arrays.asList(BuildInitDsl.values()));
     }
 
     @Override

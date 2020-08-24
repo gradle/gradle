@@ -26,7 +26,7 @@ import static org.gradle.util.TextUtil.toPlatformLineSeparators
 class BasicTypeInitIntegrationTest extends AbstractInitIntegrationSpec {
 
     @Override
-    String subprojectName() { 'app' }
+    String subprojectName() { null }
 
     def "defaults to groovy build scripts"() {
         when:

@@ -24,7 +24,7 @@ import org.gradle.test.fixtures.file.TestFile
 
 abstract class AbstractInitIntegrationSpec extends AbstractIntegrationSpec {
     final def targetDir = testDirectory.createDir("some-thing")
-    final def subprojectDir = targetDir.file(subprojectName())
+    final def subprojectDir = subprojectName() ? targetDir.file(subprojectName()) : targetDir
 
     abstract String subprojectName()
 
@@ -48,8 +48,8 @@ abstract class AbstractInitIntegrationSpec extends AbstractIntegrationSpec {
         result.testClass(className).assertTestPassed(name)
     }
 
-    protected void commonFilesGenerated(BuildInitDsl scriptDsl) {
-        dslFixtureFor(scriptDsl).assertGradleFilesGenerated()
+    protected void commonFilesGenerated(BuildInitDsl scriptDsl, dslFixture = dslFixtureFor(scriptDsl)) {
+        dslFixture.assertGradleFilesGenerated()
         targetDir.file(".gitignore").assertIsFile()
         targetDir.file(".gitattributes").assertIsFile()
     }

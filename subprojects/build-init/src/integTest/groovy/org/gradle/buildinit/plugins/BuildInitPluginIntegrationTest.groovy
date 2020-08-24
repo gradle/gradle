@@ -47,13 +47,13 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
     @Unroll
     def "creates a simple project with #scriptDsl build scripts when no pom file present and no type specified"() {
         given:
-        def dslFixture = dslFixtureFor(scriptDsl)
+        def dslFixture = ScriptDslFixture.of(scriptDsl, targetDir, null)
 
         when:
         runInitWith scriptDsl
 
         then:
-        commonFilesGenerated(scriptDsl)
+        commonFilesGenerated(scriptDsl, dslFixture)
 
         and:
         dslFixture.buildFile.assertContents(

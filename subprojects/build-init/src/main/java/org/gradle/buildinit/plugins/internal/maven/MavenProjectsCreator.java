@@ -29,6 +29,7 @@ import org.apache.maven.project.ProjectBuilder;
 import org.apache.maven.project.ProjectBuildingException;
 import org.apache.maven.project.ProjectBuildingRequest;
 import org.apache.maven.project.ProjectBuildingResult;
+import org.apache.maven.repository.RepositorySystem;
 import org.apache.maven.settings.Settings;
 import org.codehaus.plexus.ContainerConfiguration;
 import org.codehaus.plexus.DefaultContainerConfiguration;
@@ -36,6 +37,7 @@ import org.codehaus.plexus.DefaultPlexusContainer;
 import org.codehaus.plexus.PlexusContainerException;
 import org.codehaus.plexus.classworlds.ClassWorld;
 import org.codehaus.plexus.component.repository.exception.ComponentLookupException;
+import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.internal.SystemProperties;
 import org.gradle.util.CollectionUtils;
 import org.sonatype.aether.RepositorySystemSession;
@@ -79,6 +81,11 @@ public class MavenProjectsCreator {
         populator.populateFromSettings(executionRequest, settings);
         populator.populateDefaults(executionRequest);
         ProjectBuildingRequest buildingRequest = executionRequest.getProjectBuildingRequest();
+        buildingRequest.getRemoteRepositories().forEach(repository -> {
+            if (repository.getId().equals(RepositorySystem.DEFAULT_REMOTE_REPO_ID)) {
+                repository.setUrl(RepositoryHandler.MAVEN_CENTRAL_URL);
+            }
+        });
         buildingRequest.setProcessPlugins(false);
         MavenProject mavenProject = builder.build(pomFile, buildingRequest).getProject();
         Set<MavenProject> reactorProjects = new LinkedHashSet<>();
