@@ -68,8 +68,8 @@ Most builds support a common set of tasks known as <<more_about_tasks#sec:lifecy
 In a <<intro_multi_project_builds.adoc#intro_multi_project_builds, multi-project build>>, subproject tasks can be executed with ":" separating subproject name and task name. The following are equivalent _when run from the root project_.
 
 ----
-$ gradle :mySubproject:taskName
-$ gradle mySubproject:taskName
+$ gradle :my-subproject:taskName
+$ gradle my-subproject:taskName
 ----
 
 You can also run a task for all subprojects using the task name only. For example, this will run the "test" task for all subprojects when invoked from the root project directory.
@@ -81,7 +81,7 @@ $ gradle test
 When invoking Gradle from within a subproject, the project name should be omitted:
 
 ----
-$ cd mySubproject
+$ cd my-subproject
 $ gradle taskName
 ----
 

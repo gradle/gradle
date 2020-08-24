@@ -185,7 +185,7 @@ include::sample[dir="snippets/plugins/multiproject/groovy/project", files="setti
 include::sample[dir="snippets/plugins/multiproject/kotlin/project", files="settings.gradle.kts[tags=include-subprojects];build.gradle.kts[tags=plugins-on-subprojects];goodbyeC/build.gradle.kts[]"]
 ====
 
-If you then run `gradle hello` you'll see that only the helloA and helloB subprojects had the hello plugin applied.
+If you then run `gradle hello` you'll see that only the hello-a and hello-b subprojects had the hello plugin applied.
 
 
 .Output of `gradle hello`
@@ -193,8 +193,8 @@ If you then run `gradle hello` you'll see that only the helloA and helloB subpro
 [source]
 ----
 > gradle hello
-:helloA:hello
-:helloB:hello
+:hello-a:hello
+:hello-b:hello
 Hello!
 Hello!
 
