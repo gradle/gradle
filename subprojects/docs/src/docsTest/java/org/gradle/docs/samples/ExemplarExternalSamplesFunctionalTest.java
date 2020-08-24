@@ -16,7 +16,6 @@
 
 package org.gradle.docs.samples;
 
-import org.gradle.integtests.fixtures.DonatLocalInitScriptModifier;
 import org.gradle.integtests.fixtures.FailOnDeprecationSampleModifier;
 import org.gradle.integtests.fixtures.executer.MoreMemorySampleModifier;
 import org.gradle.integtests.fixtures.logging.ArtifactResolutionOmittingOutputNormalizer;
