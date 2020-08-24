@@ -81,7 +81,7 @@ include::sample[dir="kotlin",files="convention-plugins/build.gradle.kts[tags=app
 
 == Publishing convention plugins
 
-In this sample we are targeting a multi-repo setup - in order to apply the above plugins to separate projects, they have to be published
+In this sample we are targeting a multi-repo setup. In order to apply the above plugins to separate projects, they have to be published
 to a company's artifact repository.
 Convention plugins are regular Gradle plugins - thus they can be link:{userManualPath}/custom_plugins.html#sec:publishing_your_plugin[published to an external repository like any other Gradle plugin].
 
