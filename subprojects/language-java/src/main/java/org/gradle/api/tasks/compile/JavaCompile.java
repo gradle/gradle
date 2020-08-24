@@ -70,12 +70,11 @@ import org.gradle.jvm.internal.toolchain.JavaToolChainInternal;
 import org.gradle.jvm.platform.JavaPlatform;
 import org.gradle.jvm.platform.internal.DefaultJavaPlatform;
 import org.gradle.jvm.toolchain.JavaCompiler;
+import org.gradle.jvm.toolchain.JavaCompilerQueryService;
 import org.gradle.jvm.toolchain.JavaToolChain;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.gradle.jvm.toolchain.internal.DefaultToolchainJavaCompiler;
-import org.gradle.jvm.toolchain.internal.DefaultToolchainSpec;
 import org.gradle.jvm.toolchain.internal.JavaToolchain;
-import org.gradle.jvm.toolchain.internal.JavaToolchainQueryService;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.language.base.internal.compile.CompilerUtil;
 import org.gradle.work.Incremental;
@@ -112,11 +111,10 @@ public class JavaCompile extends AbstractCompile implements HasCompileOptions {
     private final ModularitySpec modularity;
     private File sourceClassesMappingFile;
     private final Property<JavaCompiler> javaCompiler;
-    private final ObjectFactory objectFactory;
 
     public JavaCompile() {
         Project project = getProject();
-        objectFactory = project.getObjects();
+        ObjectFactory objectFactory = project.getObjects();
         compileOptions = objectFactory.newInstance(CompileOptions.class);
         CompilerForkUtils.doNotCacheIfForkingViaExecutable(compileOptions, getOutputs());
         modularity = objectFactory.newInstance(DefaultModularitySpec.class);
@@ -125,7 +123,7 @@ public class JavaCompile extends AbstractCompile implements HasCompileOptions {
     }
 
     @Inject
-    protected JavaToolchainQueryService getToolchainQueryService() {
+    protected JavaCompilerQueryService getCompilerQueryService() {
         throw new UnsupportedOperationException();
     }
 
@@ -198,9 +196,7 @@ public class JavaCompile extends AbstractCompile implements HasCompileOptions {
      */
     @Incubating
     public Provider<JavaCompiler> toolchainCompiler(Action<? super JavaToolchainSpec> action) {
-        DefaultToolchainSpec toolchainSpec = objectFactory.newInstance(DefaultToolchainSpec.class);
-        action.execute(toolchainSpec);
-        return getToolchainQueryService().findMatchingToolchain(toolchainSpec).map(JavaToolchain::getJavaCompiler);
+        return getCompilerQueryService().getToolchainCompiler(action);
     }
 
     /**

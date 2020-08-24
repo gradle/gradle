@@ -52,9 +52,7 @@ import org.gradle.jvm.platform.internal.DefaultJavaPlatform;
 import org.gradle.jvm.toolchain.JavaToolChain;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.gradle.jvm.toolchain.JavadocTool;
-import org.gradle.jvm.toolchain.internal.DefaultToolchainSpec;
-import org.gradle.jvm.toolchain.internal.JavaToolchain;
-import org.gradle.jvm.toolchain.internal.JavaToolchainQueryService;
+import org.gradle.jvm.toolchain.JavadocToolQueryService;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.util.ConfigureUtil;
 
@@ -133,7 +131,7 @@ public class Javadoc extends SourceTask {
     }
 
     @Inject
-    protected JavaToolchainQueryService getToolchainQueryService() {
+    protected JavadocToolQueryService getJavadocToolQueryService() {
         throw new UnsupportedOperationException();
     }
 
@@ -268,9 +266,7 @@ public class Javadoc extends SourceTask {
      */
     @Incubating
     public Provider<JavadocTool> toolchainJavadocTool(Action<? super JavaToolchainSpec> action) {
-        DefaultToolchainSpec toolchainSpec = getObjectFactory().newInstance(DefaultToolchainSpec.class);
-        action.execute(toolchainSpec);
-        return getToolchainQueryService().findMatchingToolchain(toolchainSpec).map(JavaToolchain::getJavadocTool);
+        return getJavadocToolQueryService().getToolchainJavadocTool(action);
     }
 
 

@@ -32,11 +32,9 @@ import org.gradle.internal.jvm.DefaultModularitySpec;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.jvm.toolchain.JavaLauncher;
+import org.gradle.jvm.toolchain.JavaLauncherQueryService;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.gradle.jvm.toolchain.internal.DefaultToolchainJavaLauncher;
-import org.gradle.jvm.toolchain.internal.DefaultToolchainSpec;
-import org.gradle.jvm.toolchain.internal.JavaToolchain;
-import org.gradle.jvm.toolchain.internal.JavaToolchainQueryService;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.ExecResult;
 import org.gradle.process.JavaDebugOptions;
@@ -151,7 +149,7 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
     }
 
     @Inject
-    protected JavaToolchainQueryService getToolchainQueryService() {
+    protected JavaLauncherQueryService getLauncherQueryService() {
         throw new UnsupportedOperationException();
     }
 
@@ -777,9 +775,7 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
      */
     @Incubating
     public Provider<JavaLauncher> toolchainLauncher(Action<? super JavaToolchainSpec> action) {
-        DefaultToolchainSpec toolchainSpec = getObjectFactory().newInstance(DefaultToolchainSpec.class);
-        action.execute(toolchainSpec);
-        return getToolchainQueryService().findMatchingToolchain(toolchainSpec).map(JavaToolchain::getJavaLauncher);
+        return getLauncherQueryService().getToolchainLauncher(action);
     }
 
     @Nullable
