@@ -40,9 +40,9 @@ class ServicePluginTest : PluginTest() {
             }
         """)
 
-        testProjectDir.newFolder("src", "integrationTest", "java", "com", "example")
-        testProjectDir.newFile("src/integrationTest/java/com/example/SomeIntegrationTest.java").writeText("""
-            package com.example;
+        testProjectDir.newFolder("src", "integrationTest", "java", "com", "myorg")
+        testProjectDir.newFile("src/integrationTest/java/com/myorg/SomeIntegrationTest.java").writeText("""
+            package com.myorg;
 
             import org.junit.Test;
 

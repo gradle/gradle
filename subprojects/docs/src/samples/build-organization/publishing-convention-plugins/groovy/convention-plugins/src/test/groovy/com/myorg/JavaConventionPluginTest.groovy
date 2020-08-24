@@ -14,9 +14,9 @@ class JavaConventionPluginTest extends PluginTest {
 
     def "fails on checkstyle error"() {
         given:
-        testProjectDir.newFolder('src', 'main', 'java', 'com', 'example')
-        testProjectDir.newFile('src/main/java/com/example/Foo.java') << """
-            package com.example;
+        testProjectDir.newFolder('src', 'main', 'java', 'com', 'myorg')
+        testProjectDir.newFile('src/main/java/com/myorg/Foo.java') << """
+            package com.myorg;
 
             import java.util.*;
 
@@ -37,9 +37,9 @@ class JavaConventionPluginTest extends PluginTest {
 
     def "fails on checkstyle warning"() {
         given:
-        testProjectDir.newFolder('src', 'main', 'java', 'com', 'example')
-        testProjectDir.newFile('src/main/java/com/example/Foo.java') << """
-            package com.example;
+        testProjectDir.newFolder('src', 'main', 'java', 'com', 'myorg')
+        testProjectDir.newFile('src/main/java/com/myorg/Foo.java') << """
+            package com.myorg;
 
             class Foo {
                 final static public String FOO = "BAR";
@@ -60,9 +60,9 @@ class JavaConventionPluginTest extends PluginTest {
 
     def "fails on spotbugs error"() {
         given:
-        testProjectDir.newFolder('src', 'main', 'java', 'com', 'example')
-        testProjectDir.newFile('src/main/java/com/example/Foo.java') << """
-            package com.example;
+        testProjectDir.newFolder('src', 'main', 'java', 'com', 'myorg')
+        testProjectDir.newFile('src/main/java/com/myorg/Foo.java') << """
+            package com.myorg;
 
             class Foo {
                 void bar() {
@@ -81,9 +81,9 @@ class JavaConventionPluginTest extends PluginTest {
 
     def "warns on deprecated API usage"() {
         given:
-        testProjectDir.newFolder('src', 'main', 'java', 'com', 'example')
-        testProjectDir.newFile('src/main/java/com/example/Foo.java') << """
-            package com.example;
+        testProjectDir.newFolder('src', 'main', 'java', 'com', 'myorg')
+        testProjectDir.newFile('src/main/java/com/myorg/Foo.java') << """
+            package com.myorg;
 
             public class Foo {
                 @Deprecated
@@ -91,8 +91,8 @@ class JavaConventionPluginTest extends PluginTest {
             }
         """
 
-        testProjectDir.newFile('src/main/java/com/example/Bar.java') << """
-            package com.example;
+        testProjectDir.newFile('src/main/java/com/myorg/Bar.java') << """
+            package com.myorg;
 
             public class Bar {
                 public void bar() {

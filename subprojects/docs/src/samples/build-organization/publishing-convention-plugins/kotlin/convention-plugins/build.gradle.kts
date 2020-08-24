@@ -8,7 +8,7 @@ plugins {
 }
 // end::apply[]
 
-group = "com.example.conventions"
+group = "com.myorg.conventions"
 version = "1.0"
 
 publishing {

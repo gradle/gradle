@@ -9,8 +9,8 @@ plugins {
 }
 // end::plugins[]
 
-// Projects have the 'com.example' group by convention
-group = 'com.example'
+// Projects have the 'com.myorg' group by convention
+group = 'com.myorg'
 
 publishing {
     publications {

@@ -51,9 +51,9 @@ class LibraryPluginTest : PluginTest() {
             }
         """)
 
-        testProjectDir.newFolder("src", "main", "java", "com", "example")
-        testProjectDir.newFile("src/main/java/com/example/Util.java").writeText("""
-            package com.example;
+        testProjectDir.newFolder("src", "main", "java", "com", "myorg")
+        testProjectDir.newFile("src/main/java/com/myorg/Util.java").writeText("""
+            package com.myorg;
 
             public class Util {
                 public static void someUtil() {
@@ -65,7 +65,7 @@ class LibraryPluginTest : PluginTest() {
 
         assertEquals(TaskOutcome.SUCCESS, result.task(":jar")?.outcome)
         assertEquals(TaskOutcome.SUCCESS, result.task(":publishLibraryPublicationToTestRepoRepository")?.outcome)
-        assertTrue(File(testProjectDir.getRoot(), "build/test-repo/com/example/my-library/0.1.0/my-library-0.1.0.jar").exists())
+        assertTrue(File(testProjectDir.getRoot(), "build/test-repo/com/myorg/my-library/0.1.0/my-library-0.1.0.jar").exists())
     }
 
     @Test

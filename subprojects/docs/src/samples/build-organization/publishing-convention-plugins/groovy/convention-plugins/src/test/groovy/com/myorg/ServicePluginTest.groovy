@@ -37,9 +37,9 @@ class ServicePluginTest extends PluginTest {
             }
         """
 
-        testProjectDir.newFolder('src', 'integrationTest', 'java', 'com', 'example')
-        testProjectDir.newFile('src/integrationTest/java/com/example/SomeIntegrationTest.java') << """
-            package com.example;
+        testProjectDir.newFolder('src', 'integrationTest', 'java', 'com', 'myorg')
+        testProjectDir.newFile('src/integrationTest/java/com/myorg/SomeIntegrationTest.java') << """
+            package com.myorg;
 
             import org.junit.Test;
 

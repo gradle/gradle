@@ -45,9 +45,9 @@ class LibraryPluginTest extends PluginTest {
             }
         """
 
-        testProjectDir.newFolder('src', 'main', 'java', 'com', 'example')
-        testProjectDir.newFile('src/main/java/com/example/Util.java') << """
-            package com.example;
+        testProjectDir.newFolder('src', 'main', 'java', 'com', 'myorg')
+        testProjectDir.newFile('src/main/java/com/myorg/Util.java') << """
+            package com.myorg;
 
             public class Util {
                 public static void someUtil() {
@@ -61,7 +61,7 @@ class LibraryPluginTest extends PluginTest {
         then:
         result.task(":jar").outcome == TaskOutcome.SUCCESS
         result.task(":publishLibraryPublicationToTestRepoRepository").outcome == TaskOutcome.SUCCESS
-        new File(testProjectDir.getRoot(), 'build/test-repo/com/example/my-library/0.1.0/my-library-0.1.0.jar').exists()
+        new File(testProjectDir.getRoot(), 'build/test-repo/com/myorg/my-library/0.1.0/my-library-0.1.0.jar').exists()
     }
 
     def "fails when no README exists"() {
