@@ -7,24 +7,20 @@ plugins {
 }
 // end::plugins[]
 
-// The organization requires integration tests
-sourceSets {
-    integrationTest {
-        compileClasspath += sourceSets.main.output + sourceSets.test.output
-        runtimeClasspath += sourceSets.main.output + sourceSets.test.output
-    }
+def integrationTest = sourceSets.create('integrationTest')
+
+configurations[integrationTest.implementationConfigurationName].extendsFrom(configurations.testImplementation)
+configurations[integrationTest.runtimeOnlyConfigurationName].extendsFrom(configurations.testRuntimeOnly)
+
+def integrationTestTask = tasks.register('integrationTest', Test) {
+    testClassesDirs = integrationTest.output.classesDirs
+    classpath = integrationTest.runtimeClasspath
+
+    shouldRunAfter(tasks.named('test'))
 }
 
-def integrationTest = tasks.register('integrationTest', Test) {
-    shouldRunAfter(test)
-
-    testClassesDirs = sourceSets.integrationTest.output.classesDirs
-    classpath = sourceSets.integrationTest.runtimeClasspath
-}
-
-configurations {
-    integrationTestImplementation.extendsFrom testImplementation
-    integrationTestRuntimeOnly.extendsFrom testRuntimeOnly
+dependencies {
+    integrationTestImplementation project
 }
 
 // The organization requires additional documentation in the README for this project
@@ -37,5 +33,5 @@ def readmeCheck = tasks.register('readmeCheck', com.example.ReadmeVerificationTa
 }
 // end::use-java-class[]
 
-tasks.named('check') { dependsOn(integrationTest, readmeCheck) }
+tasks.named('check') { dependsOn(integrationTestTask, readmeCheck) }
 
