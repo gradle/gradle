@@ -58,7 +58,7 @@ class KotlinDslPluginGradlePluginCrossVersionSmokeTest(
     )
     fun `kotlin-dsl plugin in buildSrc and production code using kotlin-gradle-plugin `() {
 
-        assumeNonEmbeddedGradleExecuter()
+        assumeNonEmbeddedGradleExecuter() // newer Kotlin version always leaks on the classpath when running embedded
 
         executer.noDeprecationChecks()
         // Ignore stacktraces when the Kotlin daemon fails

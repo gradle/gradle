@@ -42,8 +42,6 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
     @ToBeFixedForConfigurationCache(because = "Kotlin Gradle Plugin")
     fun `can access sub-project specific task`() {
 
-        assumeNonEmbeddedGradleExecuter()
-
         withDefaultSettings().appendText("""
             include(":sub")
         """)
@@ -98,8 +96,6 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
     @Test
     @ToBeFixedForConfigurationCache
     fun `can access extension of internal type made public`() {
-
-        assumeNonEmbeddedGradleExecuter()
 
         lateinit var extensionSourceFile: File
 
@@ -159,8 +155,6 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
     @ToBeFixedForConfigurationCache(because = "Kotlin Gradle Plugin")
     fun `can access extension of default package type`() {
 
-        assumeNonEmbeddedGradleExecuter()
-
         withBuildSrc {
 
             "src/main/kotlin" {
@@ -200,8 +194,6 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
     @ToBeFixedForConfigurationCache(because = "Kotlin Gradle Plugin")
     fun `can access task of default package type`() {
 
-        assumeNonEmbeddedGradleExecuter()
-
         withBuildSrc {
             "src/main/kotlin" {
 
@@ -237,8 +229,6 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
     @Test
     @ToBeFixedForConfigurationCache(because = "Kotlin Gradle Plugin")
     fun `can access extension of nested type`() {
-
-        assumeNonEmbeddedGradleExecuter()
 
         withBuildSrc {
             "src/main/kotlin/my" {
@@ -296,8 +286,6 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
     @ToBeFixedForConfigurationCache
     fun `multiple generic extension targets`() {
 
-        assumeNonEmbeddedGradleExecuter()
-
         withBuildSrc {
 
             "src/main/kotlin" {
@@ -351,9 +339,6 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
     @ToBeFixedForConfigurationCache
     fun `conflicting extensions across build scripts with same body`() {
 
-
-        assumeNonEmbeddedGradleExecuter()
-
         withFolders {
 
             "buildSrc" {
@@ -400,8 +385,6 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
     @Test
     @ToBeFixedForConfigurationCache
     fun `conflicting extensions across build runs`() {
-
-        assumeNonEmbeddedGradleExecuter()
 
         withFolders {
 
@@ -1077,7 +1060,6 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
     @Test
     @ToBeFixedForConfigurationCache(because = "Kotlin Gradle Plugin")
     fun `accessors to extensions of the dependency handler`() {
-        assumeNonEmbeddedGradleExecuter()
 
         withKotlinBuildSrc()
         withFile("buildSrc/src/main/kotlin/Mine.kt", """
@@ -1167,7 +1149,6 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
     @Test
     @ToBeFixedForConfigurationCache(because = "Kotlin Gradle Plugin")
     fun `accessors to kotlin internal task types are typed with the first kotlin public parent type`() {
-        assumeNonEmbeddedGradleExecuter()
 
         withDefaultSettings()
         withKotlinBuildSrc()

@@ -50,8 +50,6 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
     @ToBeFixedForConfigurationCache
     fun `precompiled script plugins tasks are cached and relocatable`() {
 
-        assumeNonEmbeddedGradleExecuter()
-
         val firstLocation = "first-location"
         val secondLocation = "second-location"
         val cacheDir = newDir("cache-dir")
@@ -133,8 +131,6 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
     @ToBeFixedForConfigurationCache(because = "Kotlin Gradle Plugin")
     fun `can apply precompiled script plugin from groovy script`() {
 
-        assumeNonEmbeddedGradleExecuter()
-
         withKotlinBuildSrc()
         withFile("buildSrc/src/main/kotlin/my-plugin.gradle.kts", """
             tasks.register("myTask") {}
@@ -153,8 +149,6 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
     @Test
     @ToBeFixedForConfigurationCache
     fun `accessors are available after script body change`() {
-
-        assumeNonEmbeddedGradleExecuter()
 
         withKotlinBuildSrc()
         val myPluginScript = withFile("buildSrc/src/main/kotlin/my-plugin.gradle.kts", """
@@ -191,8 +185,6 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
     @ToBeFixedForConfigurationCache(because = "Kotlin Gradle Plugin")
     fun `accessors are available after re-running tasks`() {
 
-        assumeNonEmbeddedGradleExecuter()
-
         withKotlinBuildSrc()
         withFile("buildSrc/src/main/kotlin/my-plugin.gradle.kts", """
             plugins { base }
@@ -215,8 +207,6 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
     @Test
     @ToBeFixedForConfigurationCache(because = "Kotlin Gradle Plugin")
     fun `accessors are available after renaming precompiled script plugin from project dependency`() {
-
-        assumeNonEmbeddedGradleExecuter()
 
         withSettings("""
             $defaultSettingsScript

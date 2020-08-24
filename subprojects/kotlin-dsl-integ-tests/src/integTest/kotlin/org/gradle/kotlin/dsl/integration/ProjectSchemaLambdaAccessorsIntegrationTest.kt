@@ -66,8 +66,6 @@ class ProjectSchemaLambdaAccessorsIntegrationTest : AbstractPluginIntegrationTes
     @ToBeFixedForConfigurationCache(because = "Kotlin Gradle Plugin")
     fun `accessors to __untyped__ kotlin lambda extensions are typed Any`() {
 
-        assumeNonEmbeddedGradleExecuter()
-
         withDefaultSettings()
         withKotlinBuildSrc()
         withFile("buildSrc/src/main/kotlin/my.gradle.kts", """
@@ -187,8 +185,6 @@ class ProjectSchemaLambdaAccessorsIntegrationTest : AbstractPluginIntegrationTes
     @Issue("https://github.com/gradle/gradle/issues/10772")
     @ToBeFixedForConfigurationCache(because = "Kotlin Gradle Plugin")
     fun `accessors to __typed__ kotlin lambda extensions are typed`() {
-
-        assumeNonEmbeddedGradleExecuter()
 
         withDefaultSettings()
         withKotlinBuildSrc()

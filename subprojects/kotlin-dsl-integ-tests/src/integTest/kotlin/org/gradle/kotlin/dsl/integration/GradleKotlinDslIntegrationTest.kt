@@ -179,6 +179,7 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
     @Test
     @ToBeFixedForConfigurationCache
     fun `can compile against a different (but compatible) version of the Kotlin compiler`() {
+
         assumeNonEmbeddedGradleExecuter() // Class path isolation, tested here, is not correct in embedded mode
 
         val differentKotlinVersion = "1.3.30"
