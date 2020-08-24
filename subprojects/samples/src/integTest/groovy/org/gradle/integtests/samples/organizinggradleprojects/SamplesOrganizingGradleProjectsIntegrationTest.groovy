@@ -21,7 +21,6 @@ import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.test.fixtures.archive.ZipTestFixture
 import org.junit.Rule
-import spock.lang.Unroll
 
 class SamplesOrganizingGradleProjectsIntegrationTest extends AbstractSampleIntegrationTest {
 
@@ -41,18 +40,4 @@ class SamplesOrganizingGradleProjectsIntegrationTest extends AbstractSampleInteg
         new ZipTestFixture(customDistribution).assertContainsFile("gradle-4.6/init.d/repositories.gradle")
     }
 
-    @UsesSample("organizingGradleProjects/separatedTestTypes")
-    @Unroll
-    def "can execute different types of tests with #dsl dsl"() {
-        executer.inDirectory(sample.dir.file(dsl))
-
-        when:
-        succeeds('build')
-
-        then:
-        executedAndNotSkipped(':test', ':integTest')
-
-        where:
-        dsl << ['groovy', 'kotlin']
-    }
 }
