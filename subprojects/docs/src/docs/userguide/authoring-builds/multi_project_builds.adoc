@@ -213,13 +213,13 @@ Other build systems use inheritance as the primary means for defining common beh
 Another possibility for sharing configuration is to use a common external script.
 
 [[sec:subproject_configuration]]
-== Subproject configuration
+=== Subproject configuration
 
 The Project API also provides a property for accessing the subprojects only.
 
 
 [[sec:defining_common_behavior_subprojects]]
-=== Defining common behavior
+==== Defining common behavior
 
 
 .Defining common behavior of all projects and subprojects
@@ -237,7 +237,7 @@ include::{snippetsPath}/multiproject/useSubprojects/tests/multiprojectUseSubproj
 You may notice that there are two code snippets referencing the “`hello`” task. The first one, which uses the “`task`” keyword (in Groovy) or the `task()` function (in Kotlin), constructs the task and provides it's base configuration. The second piece doesn't use the “`task`” keyword or function, as it is further configuring the existing “`hello`” task. You may only construct a task once in a project, but you may add any number of code blocks providing additional configuration.
 
 [[sub:adding_specific_behavior]]
-=== Adding specific behavior
+==== Adding specific behavior
 
 You can add specific behavior on top of the common behavior. Usually we put the project specific behavior in the build script of the project where we want to apply this specific behavior. But as we have already seen, we don't have to do it this way. We could add project specific behavior for the `bluewhale` project like this:
 
@@ -300,7 +300,7 @@ include::{snippetsPath}/multiproject/spreadSpecifics/tests/multiprojectSpreadSpe
 ====
 
 [[sub:project_filtering]]
-=== Project filtering
+==== Project filtering
 
 To show more of the power of configuration injection, let's add another project called `tropicalFish` and add more behavior to the build via the build script of the `water` project.
 
