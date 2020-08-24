@@ -52,13 +52,13 @@ data class CIBuildModel(
                 SpecificBuild.BuildDistributions,
                 SpecificBuild.Gradleception,
                 SpecificBuild.SmokeTestsMaxJavaVersion,
-                SpecificBuild.InstantSmokeTestsMaxJavaVersion,
-                SpecificBuild.InstantSmokeTestsMinJavaVersion
+                SpecificBuild.ConfigCacheSmokeTestsMaxJavaVersion,
+                SpecificBuild.ConfigCacheSmokeTestsMinJavaVersion
             ),
             functionalTests = listOf(
                 TestCoverage(3, TestType.platform, Os.linux, JvmCategory.MIN_VERSION.version, vendor = JvmCategory.MIN_VERSION.vendor),
                 TestCoverage(4, TestType.platform, Os.windows, JvmCategory.MAX_VERSION.version, vendor = JvmCategory.MAX_VERSION.vendor),
-                TestCoverage(20, TestType.instant, Os.linux, JvmCategory.MIN_VERSION.version, vendor = JvmCategory.MIN_VERSION.vendor)),
+                TestCoverage(20, TestType.configCache, Os.linux, JvmCategory.MIN_VERSION.version, vendor = JvmCategory.MIN_VERSION.vendor)),
             performanceTests = listOf(PerformanceTestType.test),
             omitsSlowProjects = true),
         Stage(StageNames.READY_FOR_NIGHTLY,
@@ -218,7 +218,7 @@ enum class TestType(val unitTests: Boolean = true, val functionalTests: Boolean 
     allVersionsIntegMultiVersion(false, true, false),
     parallel(false, true, false),
     noDaemon(false, true, false, 240),
-    instant(false, true, false),
+    configCache(false, true, false),
     watchFs(false, true, false),
     soak(false, false, false),
     forceRealizeDependencyManagement(false, true, false)
@@ -273,14 +273,14 @@ enum class SpecificBuild {
             return SmokeTests(model, stage, JvmCategory.MAX_VERSION)
         }
     },
-    InstantSmokeTestsMinJavaVersion {
+    ConfigCacheSmokeTestsMinJavaVersion {
         override fun create(model: CIBuildModel, stage: Stage): BuildType {
-            return SmokeTests(model, stage, JvmCategory.MIN_VERSION, "instantSmokeTest")
+            return SmokeTests(model, stage, JvmCategory.MIN_VERSION, "configCacheSmokeTest")
         }
     },
-    InstantSmokeTestsMaxJavaVersion {
+    ConfigCacheSmokeTestsMaxJavaVersion {
         override fun create(model: CIBuildModel, stage: Stage): BuildType {
-            return SmokeTests(model, stage, JvmCategory.MAX_VERSION, "instantSmokeTest")
+            return SmokeTests(model, stage, JvmCategory.MAX_VERSION, "configCacheSmokeTest")
         }
     };
 
