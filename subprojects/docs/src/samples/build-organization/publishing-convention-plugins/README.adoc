@@ -173,7 +173,7 @@ include::sample[dir="groovy",files="convention-plugins/src/main/groovy/com.myorg
 include::sample[dir="kotlin",files="convention-plugins/src/main/kotlin/com.myorg.java-conventions.gradle.kts[tags=apply-external-plugin]"]
 ====
 
-=== Applying other precompiled script plugins
+=== Applying other convention plugins
 
 Precompiled script plugins can apply other precompiled script plugins.
 
