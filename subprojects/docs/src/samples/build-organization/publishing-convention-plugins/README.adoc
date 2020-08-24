@@ -175,7 +175,7 @@ include::sample[dir="kotlin",files="convention-plugins/src/main/kotlin/com.myorg
 
 === Applying other convention plugins
 
-Precompiled script plugins can apply other precompiled script plugins.
+Convention plugins can apply other convention plugins.
 
 The `com.myorg.library-conventions` and `com.myorg.service-conventions` plugins both apply the `com.myorg.java-conventions` plugin:
 ====
