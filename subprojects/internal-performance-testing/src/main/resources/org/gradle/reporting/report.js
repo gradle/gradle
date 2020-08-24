@@ -15,14 +15,14 @@ $(document).ready(function () {
                 var startCol = currentCol;
                 currentCol += parseInt(e.attr('colspan'));
                 var endCol = currentCol;
-                if (title.length == 0) {
+                if (title.length === 0) {
                     return;
                 }
                 var id = title.replace(/[^\w]/g, '-').toLowerCase();
                 if (groups.indexOf(id) < 0) {
                     groups.push(id);
                     var div = controls.append("<div/>");
-                    div.append("<label for='" + id + "'>" + title + "</label>");
+                    div.append($("<label>", {for: id}).text(title));
                     var checkbox = $("<input>", {type: "checkbox", id: id, checked: true});
                     div.append(checkbox);
                     checkbox.change(function () {
