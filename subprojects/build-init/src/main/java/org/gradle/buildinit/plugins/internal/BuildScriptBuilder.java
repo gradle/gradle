@@ -23,9 +23,9 @@ import com.google.common.collect.MultimapBuilder;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
+import org.gradle.api.file.Directory;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
 import org.gradle.internal.Cast;
-import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.util.GFileUtils;
 
 import javax.annotation.Nullable;
@@ -46,15 +46,13 @@ import java.util.Map;
 public class BuildScriptBuilder {
 
     private final BuildInitDsl dsl;
-    private final PathToFileResolver fileResolver;
     private final String fileNameWithoutExtension;
 
     private final List<String> headerLines = new ArrayList<>();
     private final TopLevelBlock block = new TopLevelBlock();
 
-    public BuildScriptBuilder(BuildInitDsl dsl, PathToFileResolver fileResolver, String fileNameWithoutExtension) {
+    public BuildScriptBuilder(BuildInitDsl dsl, String fileNameWithoutExtension) {
         this.dsl = dsl;
-        this.fileResolver = fileResolver;
         this.fileNameWithoutExtension = fileNameWithoutExtension;
     }
 
@@ -320,9 +318,9 @@ public class BuildScriptBuilder {
         return containerElement;
     }
 
-    public TemplateOperation create() {
+    public TemplateOperation create(Directory targetDirectory) {
         return () -> {
-            File target = getTargetFile();
+            File target = getTargetFile(targetDirectory);
             GFileUtils.mkdirs(target.getParentFile());
             try {
                 try (PrintWriter writer = new PrintWriter(new FileWriter(target))) {
@@ -336,8 +334,8 @@ public class BuildScriptBuilder {
         };
     }
 
-    private File getTargetFile() {
-        return fileResolver.resolve(dsl.fileNameFor(fileNameWithoutExtension));
+    private File getTargetFile(Directory targetDirectory) {
+        return targetDirectory.file(dsl.fileNameFor(fileNameWithoutExtension)).getAsFile();
     }
 
     private static Syntax syntaxFor(BuildInitDsl dsl) {

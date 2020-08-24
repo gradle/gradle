@@ -16,7 +16,6 @@
 
 package org.gradle.buildinit.plugins.internal;
 
-import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
 import org.gradle.buildinit.plugins.internal.modifiers.ComponentType;
@@ -27,14 +26,12 @@ import java.util.Set;
 
 public class LanguageSpecificAdaptor implements ProjectGenerator {
     private final BuildScriptBuilderFactory scriptBuilderFactory;
-    private final FileCollectionFactory fileCollectionFactory;
     private final TemplateOperationFactory templateOperationFactory;
     private final LanguageSpecificProjectGenerator descriptor;
 
-    public LanguageSpecificAdaptor(LanguageSpecificProjectGenerator descriptor, BuildScriptBuilderFactory scriptBuilderFactory, FileCollectionFactory fileCollectionFactory, TemplateOperationFactory templateOperationFactory) {
+    public LanguageSpecificAdaptor(LanguageSpecificProjectGenerator descriptor, BuildScriptBuilderFactory scriptBuilderFactory, TemplateOperationFactory templateOperationFactory) {
         this.scriptBuilderFactory = scriptBuilderFactory;
         this.descriptor = descriptor;
-        this.fileCollectionFactory = fileCollectionFactory;
         this.templateOperationFactory = templateOperationFactory;
     }
 
@@ -84,7 +81,7 @@ public class LanguageSpecificAdaptor implements ProjectGenerator {
     @Override
     public void generate(InitSettings settings) {
         BuildScriptBuilder buildScriptBuilder = scriptBuilderFactory.script(settings.getDsl(), settings.getSubprojectName() + "/build");
-        descriptor.generate(settings, buildScriptBuilder, new TemplateFactory(settings, descriptor.getLanguage(), fileCollectionFactory, templateOperationFactory));
-        buildScriptBuilder.create().generate();
+        descriptor.generate(settings, buildScriptBuilder, new TemplateFactory(settings, descriptor.getLanguage(), templateOperationFactory));
+        buildScriptBuilder.create(settings.getTarget()).generate();
     }
 }
