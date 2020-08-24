@@ -30,25 +30,13 @@ class JavaCompileToolchainIntegrationTest extends AbstractPluginIntegrationTest 
     @IgnoreIf({ AvailableJavaHomes.differentJdk == null })
     def "can manually set java compiler via #type toolchain on java compile task"() {
         buildFile << """
-            import org.gradle.jvm.toolchain.internal.JavaToolchainQueryService
-            import org.gradle.jvm.toolchain.internal.DefaultToolchainSpec
-
             apply plugin: "java"
 
-            abstract class InstallToolchain implements Plugin<Project> {
-                @javax.inject.Inject
-                abstract JavaToolchainQueryService getQueryService()
-
-                void apply(Project project) {
-                    project.tasks.withType(JavaCompile) {
-                        def filter = project.objects.newInstance(DefaultToolchainSpec)
-                        filter.languageVersion = JavaVersion.${jdk.javaVersion.name()}
-                        javaCompiler = getQueryService().findMatchingToolchain(filter).map({it.javaCompiler})
-                    }
+            compileJava {
+                javaCompiler = toolchainCompiler {
+                    languageVersion = JavaVersion.${jdk.javaVersion.name()}
                 }
             }
-
-            apply plugin: InstallToolchain
         """
 
         file("src/main/java/Foo.java") << "public class Foo {}"
