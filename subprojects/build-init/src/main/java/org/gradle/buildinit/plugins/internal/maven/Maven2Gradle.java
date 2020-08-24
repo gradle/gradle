@@ -204,16 +204,22 @@ public class Maven2Gradle {
         Plugin enforcerPlugin = plugin("maven-enforcer-plugin", project);
         PluginExecution enforceGoal = pluginGoal("enforce", enforcerPlugin);
         if (enforceGoal != null) {
-            ScriptBlockBuilder block = builder.block(null, "configurations.all");
             Xpp3Dom configuration = (Xpp3Dom) enforceGoal.getConfiguration();
-            for(Xpp3Dom exclude : configuration.getChild("rules").getChild("bannedDependencies").getChild("excludes").getChildren()) {
-                String[] tokens = exclude.getValue().split(":");
-                Map<String, String> params = new LinkedHashMap<>();
-                params.put("group", tokens[0]);
-                if (tokens.length > 1 && !tokens[1].equals("*")) {
-                    params.put("module", tokens[1]);
+            Xpp3Dom bannedDependencies = configuration.getChild("rules").getChild("bannedDependencies");
+            if (bannedDependencies!=null) {
+                Xpp3Dom[] children = bannedDependencies.getChild("excludes").getChildren();
+                ScriptBlockBuilder block = builder.block(null, "configurations.all");
+                if (children != null) {
+                    for (Xpp3Dom exclude : children) {
+                        String[] tokens = exclude.getValue().split(":");
+                        Map<String, String> params = new LinkedHashMap<>();
+                        params.put("group", tokens[0]);
+                        if (tokens.length > 1 && !tokens[1].equals("*")) {
+                            params.put("module", tokens[1]);
+                        }
+                        block.methodInvocation(null, "exclude", params);
+                    }
                 }
-                block.methodInvocation(null, "exclude", params);
             }
         }
     }
