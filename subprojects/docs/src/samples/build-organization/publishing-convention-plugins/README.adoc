@@ -155,7 +155,7 @@ plugins {
 
 === Applying an external plugin in precompiled script plugin
 
-The `com.myorg.java-conventions` plugin uses SpotBugs plugin to perform static code analysis.
+The `com.myorg.java-conventions` plugin uses the SpotBugs plugin to perform static code analysis.
 
 SpotBugs is an external plugin - external plugins link:{userManualPath}/custom_plugins.html#applying_external_plugins_in_precompiled_script_plugins[need to be added as implementation dependencies] before they can be applied in a precompiled script plugin:
 ====
