@@ -9,7 +9,7 @@ buildscript {
         }
     }
     dependencies {
-        classpath 'org.gradle:customTask:1.0-SNAPSHOT'
+        classpath 'org.gradle:task:1.0-SNAPSHOT'
     }
 }
 

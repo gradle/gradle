@@ -3,6 +3,6 @@ plugins {
 }
 
 dependencies {
-    implementation project(':identityManagement')
+    implementation project(':identity-management')
     implementation 'commons-lang:commons-lang:2.4'
 }
