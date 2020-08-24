@@ -185,7 +185,7 @@ include::sample[dir="kotlin",files="convention-plugins/src/main/kotlin/com.myorg
 
 === Using classes from the main source set
 
-Precompiled script plugins can use classes defined in the main source set of the plugins project.
+Convention plugins can use classes defined in the main source set of the plugins project.
 
 In this sample, `com.myorg.service-conventions` plugin uses a custom task class from `src/main/java` to configure service README checks:
 ====
