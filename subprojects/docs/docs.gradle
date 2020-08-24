@@ -521,7 +521,7 @@ samples {
 
         publishingConventionPlugins {
             sampleDirectory = samplesRoot.dir("build-organization/publishing-convention-plugins")
-            displayName = "Sharing configuration between projects in multi-repo setup"
+            displayName = "Sharing build logic in a multi-repo setup"
             description = "Organize and publish build logic for reuse in other projects"
             category = "Build organization"
             common {
