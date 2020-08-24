@@ -38,6 +38,7 @@ public class GradleProfilerReporter implements DataReporter<PerformanceTestResul
             new CsvGenerator(new File(debugArtifactsDirectory, "benchmark.csv"), CsvGenerator.Format.LONG),
             new HtmlGenerator(new File(debugArtifactsDirectory, "benchmark.html"))
         );
+
     }
 
     @Override
