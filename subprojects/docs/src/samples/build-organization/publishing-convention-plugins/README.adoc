@@ -157,7 +157,7 @@ plugins {
 
 The `com.myorg.java-conventions` plugin uses the SpotBugs plugin to perform static code analysis.
 
-SpotBugs is an external plugin - external plugins link:{userManualPath}/custom_plugins.html#applying_external_plugins_in_precompiled_script_plugins[need to be added as implementation dependencies] before they can be applied in a precompiled script plugin:
+SpotBugs is an external plugin - external plugins link:{userManualPath}/custom_plugins.html#applying_external_plugins_in_precompiled_script_plugins[need to be added as implementation dependencies] before they can be applied in a convention plugin:
 ====
 include::sample[dir="groovy",files="convention-plugins/build.gradle[tags=repositories-and-dependencies]"]
 include::sample[dir="kotlin",files="convention-plugins/build.gradle.kts[tags=repositories-and-dependencies]"]
