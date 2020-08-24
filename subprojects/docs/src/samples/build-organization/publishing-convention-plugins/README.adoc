@@ -153,7 +153,7 @@ plugins {
 
 == Things to note
 
-=== Applying an external plugin in precompiled script plugin
+=== Applying an external plugin in convention plugin
 
 The `com.myorg.java-conventions` plugin uses the SpotBugs plugin to perform static code analysis.
 
