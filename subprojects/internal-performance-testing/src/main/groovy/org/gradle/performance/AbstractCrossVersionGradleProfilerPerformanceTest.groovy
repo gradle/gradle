@@ -24,6 +24,7 @@ import org.gradle.performance.fixture.GradleProfilerBuildExperimentRunner
 import org.gradle.performance.fixture.GradleProfilerCrossVersionPerformanceTestRunner
 import org.gradle.performance.fixture.PerformanceTestDirectoryProvider
 import org.gradle.performance.fixture.PerformanceTestIdProvider
+import org.gradle.performance.results.CompositeDataReporter
 import org.gradle.performance.results.CrossVersionResultsStore
 import org.gradle.performance.results.GradleProfilerReporter
 import org.gradle.test.fixtures.file.CleanupTestDirectory
@@ -31,6 +32,7 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import org.junit.experimental.categories.Category
 import spock.lang.Specification
+
 /**
  * A base class for cross version performance tests.
  *
@@ -58,7 +60,7 @@ class AbstractCrossVersionGradleProfilerPerformanceTest extends Specification {
         runner = new GradleProfilerCrossVersionPerformanceTestRunner(
             new GradleProfilerBuildExperimentRunner(gradleProfilerReporter.getResultCollector()),
             resultStore,
-            resultStore,
+            CompositeDataReporter.of(gradleProfilerReporter, resultStore),
             new ReleasedVersionDistributions(buildContext),
             buildContext
         )
