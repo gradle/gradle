@@ -49,7 +49,7 @@ that define new project _types_.
 For each of the example traits from the beginning of this section, we can write a plugin that encapsulates
 the logic common to the project of a given _type_.
 
-Have a look at the link:{samplesPath}/sample_convention_plugins.html[sample that demonstrates a multi-project build that models the build logic using convention plugins].
+Have a look at the link:../samples/sample_convention_plugins.html[sample that demonstrates a multi-project build that models the build logic using convention plugins].
 
 Another, more complex and real-world example of a multi-project build that composes build logic using convention plugins
 is the build of the link:https://github.com/gradle/gradle[Gradle Build Tool] itself.
