@@ -87,11 +87,11 @@ public abstract class AbstractTablePageGenerator extends HtmlPageGenerator<Resul
                         a().classAttr("btn btn-sm btn-outline-primary").attr("data-toggle", "tooltip").title("Go back to Performance Coordinator Build")
                             .href("https://builds.gradle.org/viewLog.html?buildId=" + System.getenv("BUILD_ID")).target("_blank").text("<-").end();
                     end();
-                    div().classAttr("col-6 p-0");
+                    div().classAttr("col-5 p-0");
                         text(getTableTitle());
                         a().target("_blank").href("https://github.com/gradle/gradle/commits/" + executionDataProvider.getCommitId()).small().classAttr("text-muted").text(executionDataProvider.getCommitId()).end().end();
                     end();
-                    div().classAttr("col-2 p-0");
+                    div().classAttr("col-3 p-0");
                         if(renderFailureSelectButton()) {
                             button().id("failed-scenarios").classAttr("btn-sm btn-danger").text("Failed scenarios").end();
                             button().id("all-scenarios").classAttr("btn-sm btn-primary").text("All scenarios").end();
@@ -102,12 +102,14 @@ public abstract class AbstractTablePageGenerator extends HtmlPageGenerator<Resul
                     end();
                     div().classAttr("col p-0")
                         .attr("data-toggle", "tooltip")
+                        .style("font-size: smaller")
                         .title("The difference between two series of execution data (usually baseline vs current Gradle), positive numbers indicate current Gradle is slower, and vice versa.")
                         .text("Difference");
                             i().classAttr("fa fa-info-circle").text(" ").end()
                     .end();
                     div().classAttr("col p-0")
                         .attr("data-toggle", "tooltip")
+                        .style("font-size: smaller")
                         .title("The confidence with which these two data series are different. E.g. 90% means they're different with 90% confidence. Currently we fail the test if the confidence > 99.9%.")
                         .text("Confidence");
                             i().classAttr("fa fa-info-circle").text(" ").end()
@@ -165,11 +167,11 @@ public abstract class AbstractTablePageGenerator extends HtmlPageGenerator<Resul
                                     .id("section-sign-" + index).text("§");
                                 end();
                             end();
-                            div().classAttr("col-7");
+                            div().classAttr("col-6");
                                 big().text(scenario.getScenarioName()).end();
                                 tags.stream().filter(Tag::isValid).forEach(this::renderTag);
                             end();
-                            div().classAttr("col-2");
+                            div().classAttr("col-3");
                                 renderScenarioButtons(index, scenario);
                                 a().target("_blank").classAttr("btn btn-primary btn-sm").href("tests/" + urlEncode(PerformanceTestHistory.convertToId(scenario.getScenarioName()) + ".html")).text("Graph").end();
                                 a().classAttr("btn btn-primary btn-sm collapsed").href("#").attr("data-toggle", "collapse", "data-target", "#collapse" + index).text("Detail").end();
@@ -179,7 +181,7 @@ public abstract class AbstractTablePageGenerator extends HtmlPageGenerator<Resul
                                     text("N/A");
                                 } else {
                                     scenario.getExecutionsToDisplayInRow().forEach(execution -> {
-                                        div().classAttr("row p-0");
+                                        div().classAttr("row p-0").style("font-size: smaller");
                                             div().classAttr("p-0 col " + getTextColorCss(scenario, execution)).text(execution.getDifferenceDisplay()).end();
                                             div().classAttr("p-0 col " + getTextColorCss(scenario, execution)).text(execution.getFormattedConfidence()).end();
                                         end();
