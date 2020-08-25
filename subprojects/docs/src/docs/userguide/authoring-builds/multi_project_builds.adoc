@@ -60,6 +60,12 @@ include::sample[dir="snippets/multiproject/basic-multiproject/kotlin",files="set
 
 In this case, Gradle when invoked will look for a build file in the `app` directory.
 
+We can view the structure of a multi-project build by running the `gradle projects` command.
+----
+> gradle -q projects
+include::{snippetsPath}/multiproject/basic-multiproject/tests/projects.out[]
+----
+
 Let's say the `app` subproject is a Java application by applying the `application` plugin and configuring the main class:
 ====
 include::sample[dir="snippets/multiproject/basic-multiproject/groovy",files="app/build.gradle[]"]
