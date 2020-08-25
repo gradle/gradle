@@ -204,11 +204,6 @@ This can save a significant amount of time for incremental builds, where the num
 [[sec:daemon_watch_fs]]
 == Watching the file system
 
-[NOTE]
-====
-Watching the file system is an experimental feature.
-====
-
 To detect changes on the file system, and to calculate what needs to be rebuilt, Gradle collects information about the file system in-memory during every build (aka _Virtual File System_).
 By watching the file system, Gradle can keep the Virtual File System in sync with the file system even between builds.
 Doing so allows the Daemon to save the time to rebuild the Virtual File System from disk for the next build.
