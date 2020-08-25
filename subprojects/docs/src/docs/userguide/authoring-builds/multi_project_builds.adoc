@@ -91,8 +91,8 @@ Next, we will look at multi-project builds that contain more than one subproject
 how build logic can be shared across subprojects and how subprojects can depend on one another.
 
 
-[[sec:sharing_configuration_between_subprojects]]
-== Sharing configuration between subprojects
+[[sec:sharing_build_logic_between_subprojects]]
+== Sharing build logic between subprojects
 
 Usually subprojects in a multi-project build share some common traits.
 For example, a project might consist of several subprojects containing _code_ written in a particular programming language as well as a subproject
@@ -147,7 +147,7 @@ This use case can be modelled using <<cross_project_publications.adoc#sec:simple
 [[sec:cross_project_configuration]]
 == Cross project configuration
 
-An alternative to <<#sec:sharing_configuration_between_subprojects,sharing build logic between subprojects via convention plugins>> is cross project configuration.
+An alternative to <<#sec:sharing_build_logic_between_subprojects,sharing build logic between subprojects via convention plugins>> is cross project configuration.
 
 Let's start with a very simple multi-project build.
 Gradle is a general purpose build tool at its core, so the projects don't have to be Java projects.
