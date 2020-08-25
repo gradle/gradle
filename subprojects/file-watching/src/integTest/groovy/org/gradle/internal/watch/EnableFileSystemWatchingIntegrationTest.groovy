@@ -21,48 +21,59 @@ import org.gradle.internal.service.scopes.VirtualFileSystemServices
 import spock.lang.Unroll
 
 class EnableFileSystemWatchingIntegrationTest extends AbstractFileSystemWatchingIntegrationTest {
-    private static final String INCUBATING_MESSAGE = "Watching the file system is an incubating feature"
+    private static final String ENABLED_MESSAGE = "Watching the file system is enabled"
+    private static final String DISABLED_MESSAGE = "Watching the file system is disabled"
 
-    def "incubating message is shown for watching the file system"() {
+    @Unroll
+    def "can be enabled via gradle.properties (enabled: #enabled)"() {
         buildFile << """
             apply plugin: "java"
         """
 
         when:
-        withWatchFs().run("assemble")
+        file("gradle.properties") << "${StartParameterBuildOptions.WatchFileSystemOption.GRADLE_PROPERTY}=${enabled}"
+        run("assemble", "--info")
         then:
-        outputContains(INCUBATING_MESSAGE)
+        outputContains(expectedMessage)
 
-        when:
-        withoutWatchFs().run("assemble")
-        then:
-        outputDoesNotContain(INCUBATING_MESSAGE)
+        where:
+        enabled | expectedMessage
+        true    | ENABLED_MESSAGE
+        false   | DISABLED_MESSAGE
     }
 
-    def "can be enabled via gradle.properties"() {
+    @Unroll
+    def "can be enabled via system property (enabled: #enabled)"() {
         buildFile << """
             apply plugin: "java"
         """
 
         when:
-        file("gradle.properties") << "${StartParameterBuildOptions.WatchFileSystemOption.GRADLE_PROPERTY}=true"
-        run("assemble")
+        run("assemble", "-D${StartParameterBuildOptions.WatchFileSystemOption.GRADLE_PROPERTY}=${enabled}", "--info")
         then:
-        outputContains(INCUBATING_MESSAGE)
+        outputContains(expectedMessage)
+
+        where:
+        enabled | expectedMessage
+        true    | ENABLED_MESSAGE
+        false   | DISABLED_MESSAGE
     }
 
+    @Unroll
     def "can be enabled via #commandLineOption"() {
         buildFile << """
             apply plugin: "java"
         """
 
         when:
-        run("assemble", commandLineOption)
+        run("assemble", commandLineOption, "--info")
         then:
-        outputContains(INCUBATING_MESSAGE)
+        outputContains(expectedMessage)
 
         where:
-        commandLineOption << ["-D${StartParameterBuildOptions.WatchFileSystemOption.GRADLE_PROPERTY}=true", "--watch-fs"]
+        commandLineOption | expectedMessage
+        "--watch-fs"      | ENABLED_MESSAGE
+        "--no-watch-fs"   | DISABLED_MESSAGE
     }
 
     @Unroll
@@ -72,10 +83,10 @@ class EnableFileSystemWatchingIntegrationTest extends AbstractFileSystemWatching
             apply plugin: "java"
         """
         executer.expectDocumentedDeprecationWarning(
-                "The org.gradle.unsafe.watch-fs system property has been deprecated. " +
-                        "This is scheduled to be removed in Gradle 7.0. " +
-                        "Please use the org.gradle.vfs.watch system property instead. " +
-                        "See https://docs.gradle.org/current/userguide/gradle_daemon.html for more details."
+            "The org.gradle.unsafe.watch-fs system property has been deprecated. " +
+                "This is scheduled to be removed in Gradle 7.0. " +
+                "Please use the org.gradle.vfs.watch system property instead. " +
+                "See https://docs.gradle.org/current/userguide/gradle_daemon.html for more details."
         )
 
         expect:
@@ -92,10 +103,10 @@ class EnableFileSystemWatchingIntegrationTest extends AbstractFileSystemWatching
             apply plugin: "java"
         """
         executer.expectDocumentedDeprecationWarning(
-                "Using the system property org.gradle.unsafe.vfs.retention to enable watching the file system has been deprecated. " +
-                        "This is scheduled to be removed in Gradle 7.0. " +
-                        "Use the gradle property org.gradle.vfs.watch instead. " +
-                        "See https://docs.gradle.org/current/userguide/gradle_daemon.html for more details."
+            "Using the system property org.gradle.unsafe.vfs.retention to enable watching the file system has been deprecated. " +
+                "This is scheduled to be removed in Gradle 7.0. " +
+                "Use the gradle property org.gradle.vfs.watch instead. " +
+                "See https://docs.gradle.org/current/userguide/gradle_daemon.html for more details."
         )
 
         expect:
@@ -109,9 +120,9 @@ class EnableFileSystemWatchingIntegrationTest extends AbstractFileSystemWatching
     @SuppressWarnings('GrDeprecatedAPIUsage')
     def "deprecation message is shown when using the old property to drop the VFS (drop: #drop)"() {
         executer.expectDeprecationWarning(
-                "The org.gradle.unsafe.vfs.drop system property has been deprecated. " +
-                        "This is scheduled to be removed in Gradle 7.0. " +
-                        "Please use the org.gradle.vfs.drop system property instead."
+            "The org.gradle.unsafe.vfs.drop system property has been deprecated. " +
+                "This is scheduled to be removed in Gradle 7.0. " +
+                "Please use the org.gradle.vfs.drop system property instead."
         )
 
         expect:
