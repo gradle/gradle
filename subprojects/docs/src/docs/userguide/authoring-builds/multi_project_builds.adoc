@@ -66,7 +66,7 @@ We can view the structure of a multi-project build by running the `gradle projec
 include::{snippetsPath}/multiproject/basic-multiproject/tests/projects.out[]
 ----
 
-Let's say the `app` subproject is a Java application by applying the `application` plugin and configuring the main class:
+Let's say the `app` subproject is a Java application by applying the <<application_plugin,application plugin>> and configuring the main class:
 ====
 include::sample[dir="snippets/multiproject/basic-multiproject/groovy",files="app/build.gradle[]"]
 include::sample[dir="snippets/multiproject/basic-multiproject/kotlin",files="app/build.gradle.kts[]"]
@@ -77,12 +77,10 @@ include::{snippetsPath}/multiproject/basic-multiproject/groovy/app/src/main/java
 ====
 
 Finally, we can run the application by executing the `run` task from the <<application_plugin,application plugin>>.
-====
 ----
 > gradle -q run
 include::{snippetsPath}/multiproject/basic-multiproject/tests/run.out[]
 ----
-====
 
 And that's how simple it is to create a basic multi-project build.
 
