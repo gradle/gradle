@@ -20,7 +20,7 @@ public class Main {
             }
         }
 
-        connector.forProjectDirectory(new File("../sampleBuild"));
+        connector.forProjectDirectory(new File("../sample-build"));
 
         ProjectConnection connection = connector.connect();
         try {

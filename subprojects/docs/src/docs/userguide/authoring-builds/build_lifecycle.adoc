@@ -161,8 +161,8 @@ Below is an example which adds a `test` task to each project which has a `hasTes
 
 .Adding of test task to each project which has certain property set
 ====
-include::sample[dir="snippets/buildlifecycle/projectEvaluateEvents/groovy",files="build.gradle[tags=after-evaluate];projectA.gradle[]"]
-include::sample[dir="snippets/buildlifecycle/projectEvaluateEvents/kotlin",files="build.gradle.kts[tags=after-evaluate];projectA.gradle.kts[]"]
+include::sample[dir="snippets/buildlifecycle/projectEvaluateEvents/groovy",files="build.gradle[tags=after-evaluate];project-a.gradle[]"]
+include::sample[dir="snippets/buildlifecycle/projectEvaluateEvents/kotlin",files="build.gradle.kts[tags=after-evaluate];project-a.gradle.kts[]"]
 ====
 
 .Output of `gradle -q test`

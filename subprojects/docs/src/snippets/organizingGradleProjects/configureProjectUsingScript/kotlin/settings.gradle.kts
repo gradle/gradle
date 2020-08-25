@@ -1,1 +1,1 @@
-rootProject.name = "configureProjectUsingScript"
+rootProject.name = "configure-project-using-script"

@@ -46,7 +46,7 @@ class SamplesScalaCustomizedLayoutIntegrationTest extends AbstractSampleIntegrat
 
         // Check contents of Jar
         TestFile jarContents = file('jar')
-        projectDir.file("build/libs/customizedLayout-1.0.jar").unzipTo(jarContents)
+        projectDir.file("build/libs/customized-layout-1.0.jar").unzipTo(jarContents)
         jarContents.assertHasDescendants(
                 'META-INF/MANIFEST.MF',
                 'org/gradle/sample/Named.class',

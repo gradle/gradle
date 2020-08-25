@@ -1,2 +1,2 @@
-rootProject.name = "earCustomized"
+rootProject.name = "ear-customized"
 include("war", "ear")

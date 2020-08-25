@@ -1,3 +1,3 @@
-rootProject.name = 'testReport'
+rootProject.name = 'test-report'
 include 'util'
 include 'core'

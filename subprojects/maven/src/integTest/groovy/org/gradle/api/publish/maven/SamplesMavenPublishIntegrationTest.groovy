@@ -90,7 +90,7 @@ class SamplesMavenPublishIntegrationTest extends AbstractSampleIntegrationTest {
 
         and:
         def fileRepo = maven(sampleDir.file("build/repos/releases"))
-        def module = fileRepo.module("org.gradle.sample", "javaProject", "1.0").withModuleMetadata()
+        def module = fileRepo.module("org.gradle.sample", "java-project", "1.0").withModuleMetadata()
 
         when:
         succeeds "publish"
@@ -98,10 +98,10 @@ class SamplesMavenPublishIntegrationTest extends AbstractSampleIntegrationTest {
         then:
         module.assertPublished()
         module.assertArtifactsPublished(
-            "javaProject-1.0.jar",
-            "javaProject-1.0-javadoc.jar",
-            "javaProject-1.0.pom",
-            "javaProject-1.0.module")
+            "java-project-1.0.jar",
+            "java-project-1.0-javadoc.jar",
+            "java-project-1.0.pom",
+            "java-project-1.0.module")
         module.parsedPom.packaging == null
         module.parsedPom.scopes.runtime.assertDependsOn("commons-collections:commons-collections:3.2.2")
 

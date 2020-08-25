@@ -44,7 +44,7 @@ class SamplesGroovyCustomizedLayoutIntegrationTest extends AbstractSampleIntegra
         and:
         // Check contents of jar
         TestFile tmpDir = file('jarContents')
-        groovyProjectDir.file('build/libs/customizedLayout.jar').unzipTo(tmpDir)
+        groovyProjectDir.file('build/libs/customized-layout.jar').unzipTo(tmpDir)
         tmpDir.assertHasDescendants(
             'META-INF/MANIFEST.MF',
             'org/gradle/Person.class'

@@ -12,7 +12,7 @@ subprojects {
         }
     }
 }
-configure(subprojects.filter { it.name != "tropicalFish" }) {
+configure(subprojects.filter { it.name != "tropicalfish" }) {
     tasks.named("hello") {
         doLast {
             println("- I love to spend time in the arctic waters.")

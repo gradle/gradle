@@ -13,18 +13,18 @@
 > Task :api:test
 > Task :api:check
 > Task :api:build
-> Task :services:personService:compileJava
-> Task :services:personService:processResources
-> Task :services:personService:classes
-> Task :services:personService:jar
-> Task :services:personService:assemble
-> Task :services:personService:compileTestJava
-> Task :services:personService:processTestResources
-> Task :services:personService:testClasses
-> Task :services:personService:test
-> Task :services:personService:check
-> Task :services:personService:build
-> Task :services:personService:buildDependents
+> Task :services:person-service:compileJava
+> Task :services:person-service:processResources
+> Task :services:person-service:classes
+> Task :services:person-service:jar
+> Task :services:person-service:assemble
+> Task :services:person-service:compileTestJava
+> Task :services:person-service:processTestResources
+> Task :services:person-service:testClasses
+> Task :services:person-service:test
+> Task :services:person-service:check
+> Task :services:person-service:build
+> Task :services:person-service:buildDependents
 > Task :api:buildDependents
 
 BUILD SUCCESSFUL in 0s

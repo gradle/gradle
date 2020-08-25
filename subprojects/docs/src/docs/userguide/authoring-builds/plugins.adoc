@@ -181,8 +181,8 @@ If you have a <<multi_project_builds.adoc#multi_project_builds,multi-project bui
 
 .Applying plugins only on certain subprojects
 ====
-include::sample[dir="snippets/plugins/multiproject/groovy/project", files="settings.gradle[tags=include-subprojects];build.gradle[tags=plugins-on-subprojects];goodbyeC/build.gradle[]"]
-include::sample[dir="snippets/plugins/multiproject/kotlin/project", files="settings.gradle.kts[tags=include-subprojects];build.gradle.kts[tags=plugins-on-subprojects];goodbyeC/build.gradle.kts[]"]
+include::sample[dir="snippets/plugins/multiproject/groovy/project", files="settings.gradle[tags=include-subprojects];build.gradle[tags=plugins-on-subprojects];goodbye-c/build.gradle[]"]
+include::sample[dir="snippets/plugins/multiproject/kotlin/project", files="settings.gradle.kts[tags=include-subprojects];build.gradle.kts[tags=plugins-on-subprojects];goodbye-c/build.gradle.kts[]"]
 ====
 
 If you then run `gradle hello` you'll see that only the hello-a and hello-b subprojects had the hello plugin applied.

@@ -1,1 +1,1 @@
-rootProject.name = "noAccessors"
+rootProject.name = "no-accessors"

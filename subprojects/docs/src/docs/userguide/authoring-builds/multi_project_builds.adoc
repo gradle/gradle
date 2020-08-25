@@ -472,8 +472,8 @@ Using the project name for filtering is one option. Using <<writing_build_script
 
 
 ====
-include::sample[dir="snippets/multiproject/tropicalWithProperties/groovy",files="settings.gradle[];bluewhale/build.gradle[];krill/build.gradle[];build.gradle[];tropicalFish/build.gradle[]"]
-include::sample[dir="snippets/multiproject/tropicalWithProperties/kotlin",files="settings.gradle.kts[];bluewhale/build.gradle.kts[];krill/build.gradle.kts[];build.gradle.kts[];tropicalFish/build.gradle.kts[]"]
+include::sample[dir="snippets/multiproject/tropicalWithProperties/groovy",files="settings.gradle[];bluewhale/build.gradle[];krill/build.gradle[];build.gradle[];tropicalfish/build.gradle[]"]
+include::sample[dir="snippets/multiproject/tropicalWithProperties/kotlin",files="settings.gradle.kts[];bluewhale/build.gradle.kts[];krill/build.gradle.kts[];build.gradle.kts[];tropicalfish/build.gradle.kts[]"]
 
 .Output of `gradle -q hello`
 ----

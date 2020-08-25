@@ -1,5 +1,5 @@
-rootProject.name = "buildProjectEvaluateEvents"
+rootProject.name = "build-project-evaluate-events"
 
-include("projectA", "projectB")
+include("project-a", "project-b")
 
-project(":projectB").buildFileName = "../projectB.gradle.kts"
+project(":project-b").buildFileName = "../project-b.gradle.kts"
