@@ -36,6 +36,8 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionP
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.DesugaredAttributeContainerSerializer
 import org.gradle.api.internal.artifacts.repositories.metadata.IvyMutableModuleMetadataFactory
 import org.gradle.api.internal.artifacts.repositories.metadata.MavenMutableModuleMetadataFactory
+import org.gradle.api.internal.artifacts.repositories.metadata.MutableModuleMetadataFactory
+import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceArtifactResolver
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata
@@ -148,7 +150,7 @@ class ModuleMetadataSerializerTest extends Specification {
 
     MutableModuleComponentResolveMetadata parseGradle(File gradleFile) {
         def metadata = mavenMetadataFactory.create(DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId('test', 'test-module'), '1.0'), [])
-        gradleMetadataParser.parse(resource(gradleFile), metadata)
+        gradleMetadataParser.parse(resource(gradleFile), metadata, Mock(ExternalResourceArtifactResolver), Mock(MutableModuleMetadataFactory))
         metadata
     }
 

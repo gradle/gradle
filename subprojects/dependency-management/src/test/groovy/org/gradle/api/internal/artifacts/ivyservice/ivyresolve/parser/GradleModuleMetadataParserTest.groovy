@@ -16,14 +16,23 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser
 
+import com.google.common.collect.ImmutableMap
 import org.gradle.api.Transformer
 import org.gradle.api.artifacts.VersionConstraint
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
+import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint
+import org.gradle.api.internal.artifacts.repositories.metadata.MutableModuleMetadataFactory
+import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceArtifactResolver
+import org.gradle.api.internal.attributes.AttributesSchemaInternal
 import org.gradle.api.internal.attributes.ImmutableAttributes
+import org.gradle.api.internal.model.NamedObjectInstantiator
 import org.gradle.internal.component.external.descriptor.DefaultExclude
 import org.gradle.internal.component.external.model.MutableComponentVariant
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata
+import org.gradle.internal.component.external.model.UrlBackedArtifactMetadata
+import org.gradle.internal.component.external.model.maven.DefaultMutableMavenModuleResolveMetadata
 import org.gradle.internal.component.model.DefaultIvyArtifactName
 import org.gradle.internal.component.model.Exclude
 import org.gradle.internal.resource.local.LocallyAvailableExternalResource
@@ -159,7 +168,7 @@ class GradleModuleMetadataParserTest extends Specification {
         def metadata = Mock(MutableModuleComponentResolveMetadata)
 
         when:
-        parser.parse(resource('{ "formatVersion": "1.1" }'), metadata)
+        parser.parse(resource('{ "formatVersion": "1.1" }'), metadata, Mock(ExternalResourceArtifactResolver), Mock(MutableModuleMetadataFactory))
 
         then:
         1 * metadata.getMutableVariants()
@@ -176,7 +185,7 @@ class GradleModuleMetadataParserTest extends Specification {
         "component": { "url": "elsewhere", "group": "g", "module": "m", "version": "v" },
         "builtBy": { "gradle": { "version": "123", "buildId": "abc" } }
     }
-'''), metadata)
+'''), metadata, Mock(ExternalResourceArtifactResolver), Mock(MutableModuleMetadataFactory))
 
         then:
         1 * metadata.getMutableVariants()
@@ -193,7 +202,7 @@ class GradleModuleMetadataParserTest extends Specification {
         "component": { "url": "elsewhere", "group": "g", "module": "m", "version": "v", "attributes": {"foo": "bar", "org.gradle.status": "release" } },
         "builtBy": { "gradle": { "version": "123", "buildId": "abc" } }
     }
-'''), metadata)
+'''), metadata, Mock(ExternalResourceArtifactResolver), Mock(MutableModuleMetadataFactory))
 
         then:
         1 * metadata.setAttributes(attributes(foo: 'bar', 'org.gradle.status': 'release'))
@@ -218,7 +227,7 @@ class GradleModuleMetadataParserTest extends Specification {
             }
         ]
     }
-'''), metadata)
+'''), metadata, Mock(ExternalResourceArtifactResolver), Mock(MutableModuleMetadataFactory))
 
         then:
         1 * metadata.addVariant("api", attributes(usage: "compile")) >> variant
@@ -248,7 +257,7 @@ class GradleModuleMetadataParserTest extends Specification {
             }
         ]
     }
-'''), metadata)
+'''), metadata, Mock(ExternalResourceArtifactResolver), Mock(MutableModuleMetadataFactory))
 
         then:
         1 * metadata.addVariant("api", attributes(usage: "compile")) >> variant1
@@ -285,7 +294,7 @@ class GradleModuleMetadataParserTest extends Specification {
             }
         ]
     }
-'''), metadata)
+'''), metadata, Mock(ExternalResourceArtifactResolver), Mock(MutableModuleMetadataFactory))
 
         then:
         1 * metadata.addVariant("api", attributes(usage: "compile")) >> variant1
@@ -338,7 +347,7 @@ class GradleModuleMetadataParserTest extends Specification {
             }
         ]
     }
-'''), metadata)
+'''), metadata, Mock(ExternalResourceArtifactResolver), Mock(MutableModuleMetadataFactory))
 
         then:
         1 * metadata.addVariant("api", attributes(usage: "compile")) >> variant1
@@ -390,7 +399,7 @@ class GradleModuleMetadataParserTest extends Specification {
             }
         ]
     }
-'''), metadata)
+'''), metadata, Mock(ExternalResourceArtifactResolver), Mock(MutableModuleMetadataFactory))
 
         then:
         1 * metadata.addVariant("api", attributes(usage: "compile")) >> variant1
@@ -434,7 +443,7 @@ class GradleModuleMetadataParserTest extends Specification {
             }
         ]
     }
-'''), metadata)
+'''), metadata, Mock(ExternalResourceArtifactResolver), Mock(MutableModuleMetadataFactory))
 
         then:
         1 * metadata.addVariant("api", attributes(usage: "compile")) >> variant1
@@ -475,7 +484,7 @@ class GradleModuleMetadataParserTest extends Specification {
             }
         ]
     }
-'''), metadata)
+'''), metadata, Mock(ExternalResourceArtifactResolver), Mock(MutableModuleMetadataFactory))
 
         then:
         1 * metadata.addVariant("api", attributes(usage: "compile")) >> variant1
@@ -514,7 +523,7 @@ class GradleModuleMetadataParserTest extends Specification {
             }
         ]
     }
-'''), metadata)
+'''), metadata, Mock(ExternalResourceArtifactResolver), Mock(MutableModuleMetadataFactory))
 
         then:
         1 * metadata.addVariant("runtime", attributes(usage: "runtime")) >> variant1
@@ -541,7 +550,7 @@ class GradleModuleMetadataParserTest extends Specification {
             }
         ]
     }
-'''), metadata)
+'''), metadata, Mock(ExternalResourceArtifactResolver), Mock(MutableModuleMetadataFactory))
 
         then:
         1 * metadata.addVariant("api", attributes(usage: "compile", debuggable: true, testable: false)) >> variant
@@ -570,7 +579,7 @@ class GradleModuleMetadataParserTest extends Specification {
             }
         ]
     }
-'''), metadata)
+'''), metadata, Mock(ExternalResourceArtifactResolver), Mock(MutableModuleMetadataFactory))
 
         then:
         1 * metadata.addVariant("api", attributes([:])) >> variant1
@@ -579,11 +588,12 @@ class GradleModuleMetadataParserTest extends Specification {
         0 * _
     }
 
-    def "parses content with variants in another module"() {
+    def "parses content with variants in another module and falls back to dependencies when resource is not available"() {
         def metadata = Mock(MutableModuleComponentResolveMetadata)
         def variant1 = Mock(MutableComponentVariant)
         def variant2 = Mock(MutableComponentVariant)
 
+        def artifactResolver = Mock(ExternalResourceArtifactResolver)
         when:
         parser.parse(resource('''
     {
@@ -593,7 +603,7 @@ class GradleModuleMetadataParserTest extends Specification {
                 "name": "api",
                 "attributes": { "usage": "compile" },
                 "available-at": {
-                    "url": "../elsewhere",
+                    "url": "../elsewhere/elsewhere-v1.module",
                     "group": "g1",
                     "module": "m1",
                     "version": "v1"
@@ -603,7 +613,7 @@ class GradleModuleMetadataParserTest extends Specification {
                 "attributes": { "usage": "runtime", "packaging": "zip" },
                 "name": "runtime",
                 "available-at": {
-                    "url": "../elsewhere",
+                    "url": "../elsewhere/elsewhere-v2.module",
                     "group": "g2",
                     "module": "m2",
                     "version": "v2"
@@ -611,7 +621,7 @@ class GradleModuleMetadataParserTest extends Specification {
             }
         ]
     }
-'''), metadata)
+'''), metadata, artifactResolver, Mock(MutableModuleMetadataFactory))
 
         then:
         1 * metadata.addVariant("api", attributes(usage: "compile")) >> variant1
@@ -619,6 +629,109 @@ class GradleModuleMetadataParserTest extends Specification {
         1 * metadata.addVariant("runtime", attributes(usage: "runtime", packaging: "zip")) >> variant2
         1 * variant2.addDependency("g2", "m2", version("v2"), [], null, ImmutableAttributes.EMPTY, [], false, null)
         1 * metadata.getMutableVariants()
+        1 * artifactResolver.resolveArtifact({ artifact ->
+            artifact instanceof UrlBackedArtifactMetadata &&
+                artifact.relativeUrl == '../elsewhere/elsewhere-v1.module'
+        }, _) >> null
+        1 * artifactResolver.resolveArtifact({ artifact ->
+            artifact instanceof UrlBackedArtifactMetadata &&
+                artifact.relativeUrl == '../elsewhere/elsewhere-v2.module'
+        }, _) >> null
+        0 * _
+    }
+
+    def "parses content with variants in another module and inlines parsed variants"() {
+        def metadata = Mock(MutableModuleComponentResolveMetadata)
+        def variant1 = Mock(MutableComponentVariant)
+        def variant2 = Mock(MutableComponentVariant)
+
+        def artifactResolver = Mock(ExternalResourceArtifactResolver)
+        def metadataFactory = Mock(MutableModuleMetadataFactory)
+        when:
+        parser.parse(resource('''
+    {
+        "formatVersion": "1.1",
+        "variants": [
+            {
+                "name": "api",
+                "attributes": { "usage": "compile" },
+                "available-at": {
+                    "url": "../elsewhere/elsewhere-v1.module",
+                    "group": "g1",
+                    "module": "m1",
+                    "version": "v1"
+                }
+            },
+            {
+                "attributes": { "usage": "runtime", "packaging": "zip" },
+                "name": "runtime",
+                "available-at": {
+                    "url": "../elsewhere/elsewhere-v2.module",
+                    "group": "g2",
+                    "module": "m2",
+                    "version": "v2"
+                }
+            }
+        ]
+    }
+'''), metadata, artifactResolver, metadataFactory)
+
+        then:
+        1 * metadata.addVariant("api", attributes(usage: "compile")) >> variant1
+        0 * variant1.addDependency(_, _, _, _, _, _, _, _, _)
+        1 * metadata.addVariant("runtime", attributes(usage: "runtime", packaging: "zip")) >> variant2
+        1 * metadata.getMutableVariants()
+        1 * artifactResolver.resolveArtifact({ artifact ->
+            artifact instanceof UrlBackedArtifactMetadata &&
+                artifact.relativeUrl == '../elsewhere/elsewhere-v1.module'
+        }, _) >> resource('''
+{
+        "formatVersion": "1.1",
+        "variants": [
+            {
+                "name": "api",
+                "attributes": { "usage": "compile" }
+            },
+            {
+                "attributes": { "usage": "runtime", "packaging": "zip" },
+                "name": "runtime"
+            }
+        ]
+    }
+        ''')
+        2 * metadataFactory.createForGradleModuleMetadata(_) >> { args ->
+            ModuleComponentIdentifier mci = args[0]
+            new DefaultMutableMavenModuleResolveMetadata(
+                DefaultModuleVersionIdentifier.newId(mci),
+                mci,
+                Collections.emptyList(),
+                AttributeTestUtil.attributesFactory(),
+                Stub(NamedObjectInstantiator),
+                Stub(AttributesSchemaInternal),
+                ImmutableMap.of())
+        }
+        1 * artifactResolver.resolveArtifact({ artifact ->
+            artifact instanceof UrlBackedArtifactMetadata &&
+                artifact.relativeUrl == '../elsewhere/elsewhere-v2.module'
+        }, _) >> resource('''
+{
+        "formatVersion": "1.1",
+        "variants": [
+            {
+                "name": "api",
+                "attributes": { "usage": "compile" }
+            },
+            {
+                "attributes": { "usage": "runtime", "packaging": "zip" },
+                "name": "runtime",
+                "dependencies": [
+                    { "module": "m3", "group": "g3", "requestedCapabilities":[{"group":"org", "name":"foo", "version": null}]}
+                ]
+            }
+        ]
+    }
+        ''')
+        1 * variant2.addDependency('g3', 'm3', _, _, _, _, _, _, _)
         0 * _
     }
 
@@ -653,7 +766,7 @@ class GradleModuleMetadataParserTest extends Specification {
             }
         ]
     }
-'''), metadata)
+'''), metadata, Mock(ExternalResourceArtifactResolver), Mock(MutableModuleMetadataFactory))
 
         then:
         1 * metadata.addVariant("api", attributes([:])) >> variant1
@@ -666,7 +779,7 @@ class GradleModuleMetadataParserTest extends Specification {
         def metadata = Mock(MutableModuleComponentResolveMetadata)
 
         when:
-        parser.parse(resource('not-json'), metadata)
+        parser.parse(resource('not-json'), metadata, Mock(ExternalResourceArtifactResolver), Mock(MutableModuleMetadataFactory))
 
         then:
         def e = thrown(MetaDataParseException)
@@ -677,7 +790,7 @@ class GradleModuleMetadataParserTest extends Specification {
         def metadata = Mock(MutableModuleComponentResolveMetadata)
 
         when:
-        parser.parse(resource(UNKNOWN_TOP_LEVEL), metadata)
+        parser.parse(resource(UNKNOWN_TOP_LEVEL), metadata, Mock(ExternalResourceArtifactResolver), Mock(MutableModuleMetadataFactory))
 
         then:
         1 * metadata.getMutableVariants()
@@ -688,7 +801,7 @@ class GradleModuleMetadataParserTest extends Specification {
         def metadata = Mock(MutableModuleComponentResolveMetadata)
 
         when:
-        parser.parse(resource(UNKNOWN_VARIANT_VALUES), metadata)
+        parser.parse(resource(UNKNOWN_VARIANT_VALUES), metadata, Mock(ExternalResourceArtifactResolver), Mock(MutableModuleMetadataFactory))
 
         then:
         1 * metadata.addVariant("api", attributes([:]))
@@ -701,7 +814,7 @@ class GradleModuleMetadataParserTest extends Specification {
         def variant = Mock(MutableComponentVariant)
 
         when:
-        parser.parse(resource(UNKNOWN_FILE_VALUES), metadata)
+        parser.parse(resource(UNKNOWN_FILE_VALUES), metadata, Mock(ExternalResourceArtifactResolver), Mock(MutableModuleMetadataFactory))
 
         then:
         1 * metadata.addVariant("api", attributes([:])) >> variant
@@ -714,7 +827,7 @@ class GradleModuleMetadataParserTest extends Specification {
         def variant = Mock(MutableComponentVariant)
 
         when:
-        parser.parse(resource(UNKNOWN_DEPENDENCY_VALUES), metadata)
+        parser.parse(resource(UNKNOWN_DEPENDENCY_VALUES), metadata, Mock(ExternalResourceArtifactResolver), Mock(MutableModuleMetadataFactory))
 
         then:
         1 * metadata.addVariant("api", attributes([:])) >> variant
@@ -736,7 +849,7 @@ class GradleModuleMetadataParserTest extends Specification {
                     $variantDefinition
                 }
             ]
-        }"""), metadata)
+        }"""), metadata, Mock(ExternalResourceArtifactResolver), Mock(MutableModuleMetadataFactory))
 
         then:
         0 * _
@@ -776,7 +889,7 @@ class GradleModuleMetadataParserTest extends Specification {
         def metadata = Mock(MutableModuleComponentResolveMetadata)
 
         when:
-        parser.parse(resource('["abc"]'), metadata)
+        parser.parse(resource('["abc"]'), metadata, Mock(ExternalResourceArtifactResolver), Mock(MutableModuleMetadataFactory))
 
         then:
         def e = thrown(MetaDataParseException)
@@ -788,7 +901,7 @@ class GradleModuleMetadataParserTest extends Specification {
         def metadata = Mock(MutableModuleComponentResolveMetadata)
 
         when:
-        parser.parse(resource('{ }'), metadata)
+        parser.parse(resource('{ }'), metadata, Mock(ExternalResourceArtifactResolver), Mock(MutableModuleMetadataFactory))
 
         then:
         def e = thrown(MetaDataParseException)
@@ -796,7 +909,7 @@ class GradleModuleMetadataParserTest extends Specification {
         e.cause.message == "Module metadata should contain a 'formatVersion' value."
 
         when:
-        parser.parse(resource('{ "other": 1.2 }'), metadata)
+        parser.parse(resource('{ "other": 1.2 }'), metadata, Mock(ExternalResourceArtifactResolver), Mock(MutableModuleMetadataFactory))
 
         then:
         def e2 = thrown(MetaDataParseException)
@@ -808,7 +921,7 @@ class GradleModuleMetadataParserTest extends Specification {
         def metadata = Mock(MutableModuleComponentResolveMetadata)
 
         when:
-        parser.parse(resource('{ "formatVersion": 1.2 }'), metadata)
+        parser.parse(resource('{ "formatVersion": 1.2 }'), metadata, Mock(ExternalResourceArtifactResolver), Mock(MutableModuleMetadataFactory))
 
         then:
         def e = thrown(MetaDataParseException)
@@ -820,7 +933,7 @@ class GradleModuleMetadataParserTest extends Specification {
         def metadata = Mock(MutableModuleComponentResolveMetadata)
 
         when:
-        parser.parse(resource('{ "formatVersion": "123.4", "variants": {} }'), metadata)
+        parser.parse(resource('{ "formatVersion": "123.4", "variants": {} }'), metadata, Mock(ExternalResourceArtifactResolver), Mock(MutableModuleMetadataFactory))
 
         then:
         def e = thrown(MetaDataParseException)
@@ -835,7 +948,7 @@ class GradleModuleMetadataParserTest extends Specification {
         }
 
         when:
-        parser.parse(resource(replaceMetadataVersion(json, version)), metadata)
+        parser.parse(resource(replaceMetadataVersion(json, version)), metadata, Mock(ExternalResourceArtifactResolver), Mock(MutableModuleMetadataFactory))
 
         then:
         1 * metadata.getMutableVariants()

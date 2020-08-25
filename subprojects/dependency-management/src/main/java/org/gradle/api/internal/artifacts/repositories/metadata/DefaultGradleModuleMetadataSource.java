@@ -70,7 +70,7 @@ public class DefaultGradleModuleMetadataSource extends AbstractMetadataSource<Mu
         LocallyAvailableExternalResource gradleMetadataArtifact = artifactResolver.resolveArtifact(artifactId, result);
         if (gradleMetadataArtifact != null) {
             MutableModuleComponentResolveMetadata metaDataFromResource = mutableModuleMetadataFactory.createForGradleModuleMetadata(moduleComponentIdentifier);
-            metadataParser.parse(gradleMetadataArtifact, metaDataFromResource);
+            metadataParser.parse(gradleMetadataArtifact, metaDataFromResource, artifactResolver, mutableModuleMetadataFactory);
             validateGradleMetadata(metaDataFromResource);
             createModuleSources(artifactId, gradleMetadataArtifact, metaDataFromResource);
             metadataCompatibilityConverter.process(metaDataFromResource);

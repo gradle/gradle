@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
@@ -26,25 +27,32 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.Category;
 import org.gradle.api.capabilities.Capability;
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ImmutableVersionConstraint;
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DefaultExcludeRuleConverter;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ExcludeRuleConverter;
 import org.gradle.api.internal.artifacts.repositories.metadata.MavenImmutableAttributesFactory;
+import org.gradle.api.internal.artifacts.repositories.metadata.MutableModuleMetadataFactory;
+import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceArtifactResolver;
 import org.gradle.api.internal.attributes.AttributeValue;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.internal.component.external.model.ComponentVariant;
+import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 import org.gradle.internal.component.external.model.DefaultShadowedCapability;
 import org.gradle.internal.component.external.model.ImmutableCapability;
 import org.gradle.internal.component.external.model.MutableComponentVariant;
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
+import org.gradle.internal.component.external.model.UrlBackedArtifactMetadata;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
+import org.gradle.internal.resolve.result.DefaultBuildableComponentResolveResult;
 import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
 import org.gradle.internal.snapshot.impl.CoercingStringValueSnapshot;
 
@@ -85,7 +93,7 @@ public class GradleModuleMetadataParser {
         return instantiator;
     }
 
-    public void parse(final LocallyAvailableExternalResource resource, final MutableModuleComponentResolveMetadata metadata) {
+    public void parse(final LocallyAvailableExternalResource resource, final MutableModuleComponentResolveMetadata metadata, ExternalResourceArtifactResolver externalResourceArtifactResolver, MutableModuleMetadataFactory<? extends MutableModuleComponentResolveMetadata> mutableModuleMetadataFactory) {
         resource.withContent(inputStream -> {
             String version = null;
             try {
@@ -102,7 +110,7 @@ public class GradleModuleMetadataParser {
                     throw new RuntimeException("The 'formatVersion' value should have a string value.");
                 }
                 version = reader.nextString();
-                consumeTopLevelElements(reader, metadata);
+                consumeTopLevelElements(reader, metadata, externalResourceArtifactResolver, mutableModuleMetadataFactory);
                 File file = resource.getFile();
                 if (!FORMAT_VERSION.equals(version)) {
                     LOGGER.debug("Unrecognized metadata format version '{}' found in '{}'. Parsing succeeded but it may lead to unexpected resolution results. Try upgrading to a newer version of Gradle", version, file);
@@ -136,18 +144,18 @@ public class GradleModuleMetadataParser {
 
     private Capability buildShadowPlatformCapability(ModuleComponentIdentifier componentId) {
         return new DefaultShadowedCapability(new ImmutableCapability(
-                componentId.getGroup(),
-                componentId.getModule(),
-                componentId.getVersion()
-            ), "-derived-enforced-platform");
+            componentId.getGroup(),
+            componentId.getModule(),
+            componentId.getVersion()
+        ), "-derived-enforced-platform");
     }
 
-    private void consumeTopLevelElements(JsonReader reader, MutableModuleComponentResolveMetadata metadata) throws IOException {
+    private void consumeTopLevelElements(JsonReader reader, MutableModuleComponentResolveMetadata metadata, ExternalResourceArtifactResolver externalResourceArtifactResolver, MutableModuleMetadataFactory<? extends MutableModuleComponentResolveMetadata> mutableModuleMetadataFactory) throws IOException {
         while (reader.peek() != END_OBJECT) {
             String name = reader.nextName();
             switch (name) {
                 case "variants":
-                    consumeVariants(reader, metadata);
+                    consumeVariants(reader, metadata, externalResourceArtifactResolver, mutableModuleMetadataFactory);
                     break;
                 case "component":
                     consumeComponent(reader, metadata);
@@ -176,21 +184,23 @@ public class GradleModuleMetadataParser {
         reader.endObject();
     }
 
-    private void consumeVariants(JsonReader reader, MutableModuleComponentResolveMetadata metadata) throws IOException {
+    private void consumeVariants(JsonReader reader, MutableModuleComponentResolveMetadata metadata, ExternalResourceArtifactResolver externalResourceArtifactResolver, MutableModuleMetadataFactory<? extends MutableModuleComponentResolveMetadata> mutableModuleMetadataFactory) throws IOException {
         reader.beginArray();
         while (reader.peek() != JsonToken.END_ARRAY) {
-            consumeVariant(reader, metadata);
+            consumeVariant(reader, metadata, externalResourceArtifactResolver, mutableModuleMetadataFactory);
         }
         reader.endArray();
     }
 
-    private void consumeVariant(JsonReader reader, MutableModuleComponentResolveMetadata metadata) throws IOException {
+    private void consumeVariant(JsonReader reader, MutableModuleComponentResolveMetadata metadata, ExternalResourceArtifactResolver externalResourceArtifactResolver, MutableModuleMetadataFactory<? extends MutableModuleComponentResolveMetadata> mutableModuleMetadataFactory) throws IOException {
         String variantName = null;
         ImmutableAttributes attributes = ImmutableAttributes.EMPTY;
         List<ModuleFile> files = Collections.emptyList();
         List<ModuleDependency> dependencies = Collections.emptyList();
         List<ModuleDependencyConstraint> dependencyConstraints = Collections.emptyList();
         List<VariantCapability> capabilities = Collections.emptyList();
+        String relativeUri = null;
+        MutableModuleComponentResolveMetadata referencedComponent = null;
 
         reader.beginObject();
         while (reader.peek() != END_OBJECT) {
@@ -215,9 +225,10 @@ public class GradleModuleMetadataParser {
                     capabilities = consumeCapabilities(reader, true);
                     break;
                 case "available-at":
-                    // For now just collect this as another dependency
-                    // TODO - collect this information and merge the metadata from the other module
-                    dependencies = consumeVariantLocation(reader);
+                    ExternalVariant maybeComponent = findReferencedComponent(reader, externalResourceArtifactResolver, mutableModuleMetadataFactory);
+                    dependencies = maybeComponent.dependencies;
+                    referencedComponent = maybeComponent.resolvedMetadata;
+                    relativeUri = maybeComponent.relativeUri;
                     break;
                 default:
                     consumeAny(reader);
@@ -227,9 +238,106 @@ public class GradleModuleMetadataParser {
         assertDefined(reader, "name", variantName);
         reader.endObject();
 
+        if (referencedComponent != null) {
+            MutableComponentVariant foundVariant = findReferencedVariant(attributes, referencedComponent);
+            if (foundVariant != null) {
+                dependencies = convertDependencies(foundVariant.getDependencies());
+                dependencyConstraints = convertDependencyConstraints(foundVariant.getDependencyConstraints());
+                files = convertFiles(relativeUri, foundVariant.getFiles());
+            } else {
+                assert dependencies != null;
+                LOGGER.debug("Component references a variant available at " + relativeUri + " but it doesn't declare the expected variant. Falling back to legacy behavior of adding referenced variant as a dependency.");
+            }
+        }
+
         MutableComponentVariant variant = metadata.addVariant(variantName, attributes);
         populateVariant(files, dependencies, dependencyConstraints, capabilities, variant);
     }
+
+    private MutableComponentVariant findReferencedVariant(ImmutableAttributes attributes, MutableModuleComponentResolveMetadata referencedComponent) {
+        List<? extends MutableComponentVariant> variants = referencedComponent.getMutableVariants();
+        MutableComponentVariant foundVariant = null;
+        for (MutableComponentVariant variant : variants) {
+            if (variant.getAttributes().equals(attributes)) {
+                return variant;
+            }
+        }
+        // For backwards compatibility, Kotlin MPP relies on the fact that the target
+        // variants _may_ have additional attributes, in particular they are published with
+        // an `artifactType` attribute (they shouldn't!) so we're doing a second pass with
+        // a "containsAll" strategy
+        ImmutableSet<Attribute<?>> requestedAttributeKeys = attributes.keySet();
+        for (MutableComponentVariant variant : variants) {
+            ImmutableAttributes variantAttributes = variant.getAttributes();
+            ImmutableSet<Attribute<?>> variantAttributeKeys = variantAttributes.keySet();
+            if (variantAttributeKeys.containsAll(requestedAttributeKeys)) {
+                foundVariant = variant;
+                for (Attribute<?> requestedAttributeKey : requestedAttributeKeys) {
+                    Object requested = attributes.getAttribute(requestedAttributeKey);
+                    Object actual = variantAttributes.getAttribute(requestedAttributeKey);
+                    if (!requested.equals(actual)) {
+                        foundVariant = null;
+                        break;
+                    }
+                }
+            }
+            if (foundVariant != null) {
+                break;
+            }
+        }
+        return foundVariant;
+    }
+
+    private List<ModuleFile> convertFiles(String relativeUri, List<? extends ComponentVariant.File> files) {
+        if (files.isEmpty()) {
+            return Collections.emptyList();
+        }
+        ImmutableList.Builder<ModuleFile> builder = ImmutableList.builderWithExpectedSize(files.size());
+        for (ComponentVariant.File file : files) {
+            String uri = relativeUri + file.getUri();
+            builder.add(new ModuleFile(
+                file.getName(),
+                uri
+            ));
+        }
+        return builder.build();
+    }
+
+    private List<ModuleDependencyConstraint> convertDependencyConstraints(List<ComponentVariant.DependencyConstraint> dependencyConstraints) {
+        if (dependencyConstraints.isEmpty()) {
+            return Collections.emptyList();
+        }
+        ImmutableList.Builder<ModuleDependencyConstraint> builder = ImmutableList.builderWithExpectedSize(dependencyConstraints.size());
+        for (ComponentVariant.DependencyConstraint dependency : dependencyConstraints) {
+            builder.add(new ModuleDependencyConstraint(
+                dependency.getGroup(),
+                dependency.getModule(),
+                dependency.getVersionConstraint(),
+                dependency.getReason(),
+                dependency.getAttributes()));
+        }
+        return builder.build();
+    }
+
+    private List<ModuleDependency> convertDependencies(List<ComponentVariant.Dependency> dependencies) {
+        if (dependencies.isEmpty()) {
+            return Collections.emptyList();
+        }
+        ImmutableList.Builder<ModuleDependency> builder = ImmutableList.builderWithExpectedSize(dependencies.size());
+        for (ComponentVariant.Dependency dependency : dependencies) {
+            builder.add(new ModuleDependency(dependency.getGroup(),
+                dependency.getModule(),
+                dependency.getVersionConstraint(),
+                dependency.getExcludes(),
+                dependency.getReason(),
+                dependency.getAttributes(),
+                dependency.getRequestedCapabilities(),
+                dependency.isEndorsingStrictVersions(),
+                dependency.getDependencyArtifact()));
+        }
+        return builder.build();
+    }
+
 
     private void populateVariant(List<ModuleFile> files, List<ModuleDependency> dependencies, List<ModuleDependencyConstraint> dependencyConstraints, List<VariantCapability> capabilities, MutableComponentVariant variant) {
         for (ModuleFile file : files) {
@@ -246,7 +354,7 @@ public class GradleModuleMetadataParser {
         }
     }
 
-    private List<ModuleDependency> consumeVariantLocation(JsonReader reader) throws IOException {
+    private ExternalVariant findReferencedComponent(JsonReader reader, ExternalResourceArtifactResolver externalArtifactResolver, MutableModuleMetadataFactory<? extends MutableModuleComponentResolveMetadata> mutableModuleMetadataFactory) throws IOException {
         String url = null;
         String group = null;
         String module = null;
@@ -279,7 +387,26 @@ public class GradleModuleMetadataParser {
         assertDefined(reader, "version", version);
         reader.endObject();
 
-        return ImmutableList.of(new ModuleDependency(group, module, new DefaultImmutableVersionConstraint(version), ImmutableList.of(), null, ImmutableAttributes.EMPTY, Collections.emptyList(), false, null));
+        DefaultBuildableComponentResolveResult result = new DefaultBuildableComponentResolveResult();
+        ModuleComponentIdentifier targetId = DefaultModuleComponentIdentifier.newId(
+            DefaultModuleIdentifier.newId(group, module), version
+        );
+        LocallyAvailableExternalResource resource = externalArtifactResolver.resolveArtifact(
+            new UrlBackedArtifactMetadata(
+                targetId,
+                module + "-" + version + ".module",
+                url
+            ), result
+        );
+        ImmutableList<ModuleDependency> fallbackDependencies = ImmutableList.of(new ModuleDependency(group, module, new DefaultImmutableVersionConstraint(version), ImmutableList.of(), null, ImmutableAttributes.EMPTY, Collections.emptyList(), false, null));
+        if (resource != null) {
+            MutableModuleComponentResolveMetadata targetComponent = mutableModuleMetadataFactory.createForGradleModuleMetadata(targetId);
+            parse(resource, targetComponent, externalArtifactResolver, mutableModuleMetadataFactory);
+
+            return ExternalVariant.of(url, targetComponent, fallbackDependencies);
+        } else {
+            return ExternalVariant.of(url, targetId, fallbackDependencies);
+        }
     }
 
     private List<ModuleDependency> consumeDependencies(JsonReader reader) throws IOException {
@@ -675,5 +802,27 @@ public class GradleModuleMetadataParser {
         public String getVersion() {
             return version;
         }
+    }
+
+    private static class ExternalVariant {
+        private final String relativeUri;
+        private final MutableModuleComponentResolveMetadata resolvedMetadata;
+        private final List<ModuleDependency> dependencies;
+
+        private ExternalVariant(String moduleUri, MutableModuleComponentResolveMetadata resolvedMetadata, List<ModuleDependency> dependencies) {
+            this.relativeUri = moduleUri.substring(0, moduleUri.lastIndexOf("/") + 1);
+            this.resolvedMetadata = resolvedMetadata;
+            this.dependencies = dependencies;
+        }
+
+        public static ExternalVariant of(String relativeUri, MutableModuleComponentResolveMetadata targetComponent, List<ModuleDependency> dependencies) {
+            return new ExternalVariant(relativeUri, targetComponent, dependencies);
+        }
+
+        public static ExternalVariant of(String relativeUri, ModuleComponentIdentifier id, List<ModuleDependency> dependencies) {
+            LOGGER.debug("Component references a variant available at " + relativeUri + " with id " + id + " but it wasn't found in the same repository. Falling back to legacy behavior to add variant as dependencies.");
+            return new ExternalVariant(relativeUri, null, dependencies);
+        }
+
     }
 }
