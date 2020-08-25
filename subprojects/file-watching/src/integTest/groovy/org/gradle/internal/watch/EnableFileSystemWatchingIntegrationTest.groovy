@@ -18,6 +18,7 @@ package org.gradle.internal.watch
 
 import org.gradle.initialization.StartParameterBuildOptions
 import org.gradle.internal.service.scopes.VirtualFileSystemServices
+import spock.lang.Unroll
 
 class EnableFileSystemWatchingIntegrationTest extends AbstractFileSystemWatchingIntegrationTest {
     private static final String INCUBATING_MESSAGE = "Watching the file system is an incubating feature"
@@ -77,5 +78,20 @@ class EnableFileSystemWatchingIntegrationTest extends AbstractFileSystemWatching
 
         expect:
         succeeds("assemble", "-D${VirtualFileSystemServices.DEPRECATED_VFS_RETENTION_ENABLED_PROPERTY}=true")
+    }
+
+    @Unroll
+    def "deprecation message is shown when using the old property to drop the VFS (drop: #drop)"() {
+        executer.expectDeprecationWarning(
+                "The org.gradle.unsafe.vfs.drop system property has been deprecated. " +
+                        "This is scheduled to be removed in Gradle 7.0. " +
+                        "Please use the org.gradle.vfs.drop system property instead."
+        )
+
+        expect:
+        succeeds("help", "--watch-fs", "-D${VirtualFileSystemServices.DEPRECATED_VFS_DROP_PROPERTY}=${drop}")
+
+        where:
+        drop << [true, false]
     }
 }
