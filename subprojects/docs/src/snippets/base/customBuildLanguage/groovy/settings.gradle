@@ -1,7 +1,0 @@
-rootProject.name = 'custom-build-language'
-include 'billing'
-include 'identity-management'
-include 'reporting'
-
-include 'basic-edition'
-include 'enterprise-edition'
