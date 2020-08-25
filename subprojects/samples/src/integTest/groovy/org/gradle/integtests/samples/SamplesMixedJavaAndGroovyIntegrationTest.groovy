@@ -46,7 +46,7 @@ class SamplesMixedJavaAndGroovyIntegrationTest extends AbstractIntegrationTest {
 
         // Check contents of jar
         TestFile tmpDir = file('jarContents')
-        projectDir.file('build/libs/mixedJavaAndGroovy-1.0.jar').unzipTo(tmpDir)
+        projectDir.file('build/libs/mixed-java-and-groovy-1.0.jar').unzipTo(tmpDir)
         tmpDir.assertHasDescendants(
                 'META-INF/MANIFEST.MF',
                 'org/gradle/Person.class',
@@ -63,13 +63,13 @@ class SamplesMixedJavaAndGroovyIntegrationTest extends AbstractIntegrationTest {
 
         TestFile javadocsDir = projectDir.file("build/docs/javadoc")
         javadocsDir.file("index.html").assertIsFile()
-        javadocsDir.file("index.html").assertContents(containsString('mixedJavaAndGroovy 1.0 API'))
+        javadocsDir.file("index.html").assertContents(containsString('mixed-java-and-groovy 1.0 API'))
         javadocsDir.file("org/gradle/Person.html").assertIsFile()
         javadocsDir.file("org/gradle/JavaPerson.html").assertIsFile()
 
         TestFile groovydocsDir = projectDir.file("build/docs/groovydoc")
         groovydocsDir.file("index.html").assertIsFile()
-        groovydocsDir.file("overview-summary.html").assertContents(containsString('mixedJavaAndGroovy 1.0 API'))
+        groovydocsDir.file("overview-summary.html").assertContents(containsString('mixed-java-and-groovy 1.0 API'))
         groovydocsDir.file("org/gradle/JavaPerson.html").assertIsFile()
         groovydocsDir.file("org/gradle/GroovyPerson.html").assertIsFile()
         groovydocsDir.file("org/gradle/PersonList.html").assertIsFile()

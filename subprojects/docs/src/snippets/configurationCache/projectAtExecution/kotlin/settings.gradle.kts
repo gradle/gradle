@@ -1,1 +1,1 @@
-rootProject.name = "projectAtExecution"
+rootProject.name = "project-at-execution"

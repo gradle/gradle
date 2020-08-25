@@ -38,7 +38,7 @@ class SamplesCustomBuildLanguageIntegrationTest extends AbstractIntegrationTest 
         executer.inDirectory(rootDir).withTasks('clean', 'dist').run()
 
         TestFile expandDir = file('expand-basic')
-        rootDir.file('basicEdition/build/distributions/some-company-basic-edition-1.0.zip').unzipTo(expandDir)
+        rootDir.file('basic-edition/build/distributions/some-company-basic-edition-1.0.zip').unzipTo(expandDir)
         expandDir.assertHasDescendants(
                 'readme.txt',
                 'end-user-license-agreement.txt',
@@ -49,7 +49,7 @@ class SamplesCustomBuildLanguageIntegrationTest extends AbstractIntegrationTest 
         )
 
         expandDir = file('expand-enterprise')
-        rootDir.file('enterpriseEdition/build/distributions/some-company-enterprise-edition-1.0.zip').unzipTo(expandDir)
+        rootDir.file('enterprise-edition/build/distributions/some-company-enterprise-edition-1.0.zip').unzipTo(expandDir)
         expandDir.assertHasDescendants(
                 'readme.txt',
                 'end-user-license-agreement.txt',

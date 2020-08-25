@@ -1,1 +1,1 @@
-rootProject.name = "fileContentsDo"
+rootProject.name = "file-contents-do"

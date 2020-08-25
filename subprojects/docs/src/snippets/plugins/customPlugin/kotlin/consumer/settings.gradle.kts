@@ -14,7 +14,7 @@ pluginManagement {
     resolutionStrategy {
         eachPlugin {
             if (requested.id.namespace == "org.samples") {
-                useModule("org.gradle:customPlugin:${requested.version}")
+                useModule("org.gradle:custom-plugin:${requested.version}")
             }
         }
     }

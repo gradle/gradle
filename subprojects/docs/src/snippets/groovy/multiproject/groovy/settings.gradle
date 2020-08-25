@@ -1,2 +1,2 @@
 rootProject.name = 'multiproject'
-include 'groovycDetector', 'testproject'
+include 'groovyc-detector', 'testproject'

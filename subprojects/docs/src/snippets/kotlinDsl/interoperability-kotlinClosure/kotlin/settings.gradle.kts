@@ -1,1 +1,1 @@
-rootProject.name = "interoperability-kotlinClosure"
+rootProject.name = "interoperability-kotlin-closure"

@@ -46,11 +46,11 @@ class SamplesJavaCustomizedLayoutIntegrationTest extends AbstractSampleIntegrati
         result.assertTestClassesExecuted('org.gradle.PersonTest')
 
         // Check jar exists
-        javaprojectDir.file('build/libs/customizedLayout.jar').assertIsFile()
+        javaprojectDir.file('build/libs/customized-layout.jar').assertIsFile()
 
         // Check contents of Jar
         TestFile jarContents = file('jar')
-        javaprojectDir.file('build/libs/customizedLayout.jar').unzipTo(jarContents)
+        javaprojectDir.file('build/libs/customized-layout.jar').unzipTo(jarContents)
         jarContents.assertHasDescendants(
                 'META-INF/MANIFEST.MF',
                 'org/gradle/Person.class'

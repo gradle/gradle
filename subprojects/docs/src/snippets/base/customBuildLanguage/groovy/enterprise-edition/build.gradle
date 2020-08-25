@@ -4,8 +4,9 @@ plugins {
 
 // A custom build element. This defines the product to build
 product {
-    displayName 'Basic Edition'
+    displayName 'Enterprise Edition'
     // Which modules to include in this product?
-    module project(':identityManagement')
+    module project(':identity-management')
     module project(':billing')
+    module project(':reporting')
 }
