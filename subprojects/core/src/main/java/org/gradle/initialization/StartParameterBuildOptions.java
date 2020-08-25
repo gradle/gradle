@@ -21,8 +21,6 @@ import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.verification.DependencyVerificationMode;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.file.BasicFileResolver;
-import org.gradle.cli.CommandLineOption;
-import org.gradle.cli.CommandLineParser;
 import org.gradle.internal.buildoption.BooleanBuildOption;
 import org.gradle.internal.buildoption.BooleanCommandLineOptionConfiguration;
 import org.gradle.internal.buildoption.BuildOption;
@@ -349,11 +347,6 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         DependencyVerificationWriteOption() {
             super(null, CommandLineOptionConfiguration.create(LONG_OPTION, SHORT_OPTION,
                 "Generates checksums for dependencies used in the project (comma-separated list)").incubating());
-        }
-
-        @Override
-        protected CommandLineOption configureCommandLineOption(CommandLineParser parser, String[] options, String description, boolean deprecated, boolean incubating) {
-            return super.configureCommandLineOption(parser, options, description, deprecated, incubating);
         }
 
         @Override
