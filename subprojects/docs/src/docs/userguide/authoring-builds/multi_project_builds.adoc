@@ -145,7 +145,7 @@ This is equivalent to applying `X-conventions` plugin directly to a subproject.
 This use case can be modelled using <<cross_project_publications.adoc#sec:simple-sharing-artifacts-between-projects,outgoing configuration variants>>.
 
 [[sec:cross_project_configuration]]
-== Cross project configuration
+== Injecting build logic by cross-configuring projects
 
 An alternative to <<#sec:sharing_build_logic_between_subprojects,sharing build logic between subprojects via convention plugins>> is cross project configuration.
 
