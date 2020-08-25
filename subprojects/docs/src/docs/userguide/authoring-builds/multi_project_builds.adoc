@@ -15,8 +15,6 @@
 [[multi_project_builds]]
 = Authoring Multi-Project Builds
 
-The powerful support for multi-project builds is one of Gradle's unique selling points. This topic is also the most intellectually challenging.
-
 A multi-project build in gradle consists of one root project, and one or more subprojects that may also have subprojects.
 
 
