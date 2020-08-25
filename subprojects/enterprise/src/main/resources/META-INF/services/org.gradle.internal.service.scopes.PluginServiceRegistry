@@ -1,1 +1,2 @@
 org.gradle.internal.enterprise.impl.GradleEnterprisePluginServices
+org.gradle.internal.snapshot.impl.SnapshottingServices
