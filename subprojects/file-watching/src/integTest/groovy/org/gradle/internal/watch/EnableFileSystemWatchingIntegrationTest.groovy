@@ -85,7 +85,9 @@ class EnableFileSystemWatchingIntegrationTest extends AbstractFileSystemWatching
         enabled << [true, false]
     }
 
-    def "deprecation message is shown when using old VFS retention property to enable watching the file system"() {
+    @Unroll
+    @SuppressWarnings('GrDeprecatedAPIUsage')
+    def "deprecation message is shown when using old VFS retention property to enable watching the file system (enabled: #enabled)"() {
         buildFile << """
             apply plugin: "java"
         """
@@ -97,10 +99,14 @@ class EnableFileSystemWatchingIntegrationTest extends AbstractFileSystemWatching
         )
 
         expect:
-        succeeds("assemble", "-D${VirtualFileSystemServices.DEPRECATED_VFS_RETENTION_ENABLED_PROPERTY}=true")
+        succeeds("assemble", "-D${VirtualFileSystemServices.DEPRECATED_VFS_RETENTION_ENABLED_PROPERTY}=${enabled}")
+
+        where:
+        enabled << [true, false]
     }
 
     @Unroll
+    @SuppressWarnings('GrDeprecatedAPIUsage')
     def "deprecation message is shown when using the old property to drop the VFS (drop: #drop)"() {
         executer.expectDeprecationWarning(
                 "The org.gradle.unsafe.vfs.drop system property has been deprecated. " +
