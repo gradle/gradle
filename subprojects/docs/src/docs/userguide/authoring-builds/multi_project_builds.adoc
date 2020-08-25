@@ -15,9 +15,74 @@
 [[multi_project_builds]]
 = Authoring Multi-Project Builds
 
-The powerful support for multi-project builds is one of Gradle's unique selling points. This topic is also the most intellectually challenging.
+A multi-project build in Gradle consists of one root project, and one or more subprojects that may also have subprojects.
 
-A multi-project build in gradle consists of one root project, and one or more subprojects that may also have subprojects.
+
+[[sec:creating_multi_project_builds]]
+== Creating a multi-project build
+
+A basic multi-project build contains a root project and a single subproject.
+This is a structure of a multi-project build that contains a single subproject called `app`:
+
+.Basic multi-project build
+====
+[.multi-language-sample]
+=====
+.Project layout
+[source, groovy]
+----
+.
+├── app
+│   ...
+│   └── build.gradle
+└── settings.gradle
+----
+=====
+[.multi-language-sample]
+=====
+.Project layout
+[source, kotlin]
+----
+.
+├── app
+│   ...
+│   └── build.gradle.kts
+└── settings.gradle.kts
+----
+=====
+====
+
+Note that the root project does not have a Gradle build file, only a settings file that defines the subprojects to include.
+====
+include::sample[dir="snippets/multiproject/basic-multiproject/groovy",files="settings.gradle[]"]
+include::sample[dir="snippets/multiproject/basic-multiproject/kotlin",files="settings.gradle.kts[]"]
+====
+
+In this case, Gradle when invoked will look for a build file in the `app` directory.
+
+Let's say the `app` subproject is a Java application by applying the `application` plugin and configuring the main class:
+====
+include::sample[dir="snippets/multiproject/basic-multiproject/groovy",files="app/build.gradle[]"]
+include::sample[dir="snippets/multiproject/basic-multiproject/kotlin",files="app/build.gradle.kts[]"]
+.app/src/main/java/com/example/Hello.java
+----
+include::{snippetsPath}/multiproject/basic-multiproject/groovy/app/src/main/java/com/example/Hello.java[]
+----
+====
+
+Finally, we can run the application by executing the `run` task from the <<application_plugin,application plugin>>.
+====
+----
+> gradle -q run
+include::{snippetsPath}/multiproject/basic-multiproject/tests/run.out[]
+----
+====
+
+And that's how simple it is to create a basic multi-project build.
+
+Next, we will look at multi-project builds that contain more than one subproject,
+how build logic can be shared across subprojects and how subprojects can depend on one another.
+
 
 [[sec:sharing_configuration_between_subprojects]]
 == Sharing configuration between subprojects
@@ -26,7 +91,7 @@ Usually subprojects in a multi-project build share some common traits.
 For example, a project might consist of several subprojects containing _code_ written in a particular programming language as well as a subproject
 dedicated for _documentation_.
 There may be further traits that the _code_ subprojects share, such as certain code quality rules that we want to apply to all of them.
-At the same time the subprojects that share one common trait may serve different purposes - they may produce different _artifact types_, for example:
+At the same time the subprojects that share one common trait may serve different purposes - they may produce different _artifact types_ that further differentiate them, for example:
 
  - _public libraries_ - libraries that are published to some repository
  - _internal libraries_ - libraries on which other subprojects depend internally within the project
@@ -41,13 +106,14 @@ Or in other words, a subproject's _type_ tells us what traits the project has.
 
 Gradle's recommended way of organizing build logic is its plugin system.
 A plugin should define the _type_ of a subproject.
-In fact, Gradle core plugins are modeled in the same way - for example `java` plugin configures a generic `java` project,
-while `java-library` plugin internally applies the `java` plugin and configures aspects specific to a generic Java library.
+In fact, <<plugin_reference,Gradle core plugins>> are modeled in the same way - for example <<java_plugin,java plugin>> configures a generic `java` project,
+while <<java_library_plugin,java-library plugin>> internally applies the <<java_plugin,java plugin>> and configures aspects specific to a generic Java library.
+Similarly, the <<application_plugin,application plugin>> applies and configures the <<java_plugin,java plugin>> and the <<distribution_plugin,distribution plugin>>.
 
-Similarly, we can compose custom build logic by applying and configuring both core and external plugins and create custom plugins
-that define new project _types_.
+You can compose custom build logic by applying and configuring both core and external plugins and create custom plugins
+that define new project _types_ and configure conventions specific to your project or organization.
 For each of the example traits from the beginning of this section, we can write a plugin that encapsulates
-the logic common to the project of a given _type_.
+the logic common to the subproject of a given _type_.
 
 Have a look at the link:../samples/sample_convention_plugins.html[sample that demonstrates a multi-project build that models the build logic using convention plugins].
 
