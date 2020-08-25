@@ -45,6 +45,7 @@ public class FileSystemWatchingBuildActionRunner implements BuildActionRunner {
 
         boolean watchFileSystem = startParameter.isWatchFileSystem();
 
+        logMessageForDeprecatedWatchFileSystemProperty(startParameter);
         logMessageForDeprecatedVfsRetentionProperty(startParameter);
         if (watchFileSystem) {
             IncubationLogger.incubatingFeatureUsed("Watching the file system");
@@ -62,6 +63,18 @@ public class FileSystemWatchingBuildActionRunner implements BuildActionRunner {
     private static void dropVirtualFileSystemIfRequested(StartParameterInternal startParameter, BuildLifecycleAwareVirtualFileSystem virtualFileSystem) {
         if (VirtualFileSystemServices.isDropVfs(startParameter)) {
             virtualFileSystem.update(VirtualFileSystem.INVALIDATE_ALL);
+        }
+    }
+
+    private static void logMessageForDeprecatedWatchFileSystemProperty(StartParameterInternal startParameter) {
+        if (startParameter.isWatchFileSystemUsingDeprecatedOption()) {
+            @SuppressWarnings("deprecation")
+            String deprecatedWatchFsProperty = StartParameterBuildOptions.DeprecatedWatchFileSystemOption.GRADLE_PROPERTY;
+            DeprecationLogger.deprecateSystemProperty(deprecatedWatchFsProperty)
+                .replaceWith(StartParameterBuildOptions.WatchFileSystemOption.GRADLE_PROPERTY)
+                .willBeRemovedInGradle7()
+                .withUserManual("gradle_daemon")
+                .nagUser();
         }
     }
 
