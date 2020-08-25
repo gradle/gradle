@@ -142,7 +142,7 @@ fun TaskContainer.registerEarlyFeedbackLifecycleTasks() {
         group = "verification"
         dependsOn(
             "compileAll", ":docs:checkstyleApi", "codeQuality", ":internal-build-reports:allIncubationReportsZip",
-            ":docs:javadocAll",
+            ":architecture-test:checkBinaryCompatibility", ":docs:javadocAll",
             ":architecture-test:test", ":tooling-api:toolingApiShadedJar")
     }
 }

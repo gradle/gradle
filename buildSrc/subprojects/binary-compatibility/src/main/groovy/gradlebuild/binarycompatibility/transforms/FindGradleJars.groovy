@@ -40,9 +40,6 @@ abstract class FindGradleJars implements TransformAction<Parameters> {
         ConfigurableFileCollection getCurrentJars()
 
         @Input
-        Property<String> getBaselineVersion()
-
-        @Input
         Property<String> getCurrentVersion()
     }
 
@@ -52,13 +49,15 @@ abstract class FindGradleJars implements TransformAction<Parameters> {
 
     @Override
     void transform(TransformOutputs outputs) {
-        File artifactFile = artifact.get().asFile
-        if (artifactFile.name == 'gradle-jars') {
-            def jarNames = parameters.currentJars.collect { it.name.replace(parameters.currentVersion.get(), parameters.baselineVersion.get()) }
-            artifactFile.listFiles().findAll {
-                jarNames.contains(it.name)
-            }.each {
-                outputs.file(it)
+        File baselineJarsDirectory = artifact.get().asFile
+        if (baselineJarsDirectory.name == 'gradle-jars') {
+            def jarPrefixes = parameters.currentJars.collect { it.name.replace("${parameters.currentVersion.get()}.jar", '') }
+            baselineJarsDirectory.listFiles().each {
+                for (def jarPrefix : jarPrefixes) {
+                    if (it.name.startsWith(jarPrefix)) {
+                        outputs.file(it)
+                    }
+                }
             }
         }
     }

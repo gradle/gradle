@@ -128,7 +128,6 @@ def checkBinaryCompatibility = tasks.register("checkBinaryCompatibility", Japicm
         to.attribute(ARTIFACT_TYPE, 'gradle-baseline-jars')
         parameters {
             currentJars.from(currentDistributionJars)
-            baselineVersion.set(compatibilityBaselineVersion)
             currentVersion.set(baseVersion)
         }
     }
