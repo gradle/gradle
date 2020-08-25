@@ -153,6 +153,22 @@ class DeprecationMessagesTest extends Specification {
         expectMessage "The DeprecationLogger.propertyName property has been deprecated. This is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}. Please use the replacement property instead."
     }
 
+    def "logs deprecated system property message"() {
+        when:
+        DeprecationLogger.deprecateSystemProperty("org.gradle.test").withAdvice("Advice.").willBeRemovedInGradle7().undocumented().nagUser()
+
+        then:
+        expectMessage "The org.gradle.test system property has been deprecated. This is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}. Advice."
+    }
+
+    def "logs deprecated and replaced system property message"() {
+        when:
+        DeprecationLogger.deprecateSystemProperty("org.gradle.deprecated.test").replaceWith("org.gradle.test").willBeRemovedInGradle7().undocumented().nagUser()
+
+        then:
+        expectMessage "The org.gradle.deprecated.test system property has been deprecated. This is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}. Please use the org.gradle.test system property instead."
+    }
+
     def "logs discontinued method message"() {
         when:
         DeprecationLogger.deprecateMethod(DeprecationLogger, "method()").withAdvice("Advice.").willBeRemovedInGradle7().undocumented().nagUser()
