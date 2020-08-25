@@ -170,8 +170,8 @@ Configuration on demand mode attempts to configure only projects that are releva
 * The root project is always configured. This way the typical common configuration is supported (allprojects or subprojects script blocks).
 * The project in the directory where the build is executed is also configured, but only when Gradle is executed without any tasks. This way the default tasks behave correctly when projects are configured on demand.
 * The standard project dependencies are supported and makes relevant projects configured. If project A has a compile dependency on project B then building A causes configuration of both projects.
-* The task dependencies declared via task path are supported and cause relevant projects to be configured. Example: `someTask.dependsOn(":someOtherProject:someOtherTask")`
-* A task requested via task path from the command line (or Tooling API) causes the relevant project to be configured. For example, building 'projectA:projectB:someTask' causes configuration of projectB.
+* The task dependencies declared via task path are supported and cause relevant projects to be configured. Example: `someTask.dependsOn(":some-other-project:someOtherTask")`
+* A task requested via task path from the command line (or Tooling API) causes the relevant project to be configured. For example, building 'project-a:project-b:someTask' causes configuration of project-b.
 
 
 Eager to try out this new feature? To configure on demand with every build run see <<build_environment.adoc#sec:gradle_configuration_properties,Gradle properties>>. To configure on demand just for a given build, see <<command_line_interface.adoc#sec:command_line_performance,command-line performance-oriented options>>.
@@ -375,7 +375,7 @@ include::{snippetsPath}/multiproject/spreadSpecifics/tests/multiprojectSpreadSpe
 [[sub:project_filtering]]
 ==== Project filtering
 
-To show more of the power of configuration injection, let's add another project called `tropicalFish` and add more behavior to the build via the build script of the `water` project.
+To show more of the power of configuration injection, let's add another project called `tropicalfish` and add more behavior to the build via the build script of the `water` project.
 
 
 [[ssub:filtering_by_name]]
@@ -395,7 +395,7 @@ To show more of the power of configuration injection, let's add another project 
 ├── krill/
 │   └── build.gradle
 ├── settings.gradle
-└── tropicalFish/
+└── tropicalfish/
 ----
 =====
 [.multi-language-sample]
@@ -410,7 +410,7 @@ To show more of the power of configuration injection, let's add another project 
 ├── krill/
 │   └── build.gradle.kts
 ├── settings.gradle.kts
-└── tropicalFish/
+└── tropicalfish/
 ----
 =====
 ====
@@ -448,7 +448,7 @@ Using the project name for filtering is one option. Using <<writing_build_script
 ├── krill
 │   └── build.gradle
 ├── settings.gradle
-└── tropicalFish
+└── tropicalfish
     └── build.gradle
 ----
 =====
@@ -464,7 +464,7 @@ Using the project name for filtering is one option. Using <<writing_build_script
 ├── krill
 │   └── build.gradle.kts
 ├── settings.gradle.kts
-└── tropicalFish
+└── tropicalfish
     └── build.gradle.kts
 ----
 =====
@@ -517,7 +517,7 @@ include::{snippetsPath}/multiproject/partialTasks/tests/multiprojectPartialTasks
 ----
 ====
 
-The build is executed from the `water` project. Neither `water` nor `tropicalFish` have a task with the name `distanceToIceberg`. Gradle does not care. The simple rule mentioned already above is: Execute all tasks down the hierarchy which have this name. Only complain if there is _no_ such task!
+The build is executed from the `water` project. Neither `water` nor `tropicalfish` have a task with the name `distanceToIceberg`. Gradle does not care. The simple rule mentioned already above is: Execute all tasks down the hierarchy which have this name. Only complain if there is _no_ such task!
 
 [[sec:running_partial_build_from_the_root]]
 == Running tasks by their absolute path
@@ -530,7 +530,7 @@ As we have seen, you can run a multi-project build by entering any subproject di
 include::{snippetsPath}/multiproject/tropicalWithProperties/tests-common/multiprojectAbsoluteTaskPaths.out[]
 ----
 
-The build is executed from the `tropicalFish` project. We execute the `hello` tasks of the `water`, the `krill` and the `tropicalFish` project. The first two tasks are specified by their absolute path, the last task is executed using the name matching mechanism described above.
+The build is executed from the `tropicalfish` project. We execute the `hello` tasks of the `water`, the `krill` and the `tropicalfish` project. The first two tasks are specified by their absolute path, the last task is executed using the name matching mechanism described above.
 
 [[sec:project_and_task_paths]]
 == Project and task paths
@@ -595,7 +595,7 @@ include::{snippetsPath}/multiproject/dependencies-firstMessages/tests/multiproje
 ----
 ====
 
-This didn't quite do what we want. If nothing else is defined, Gradle executes the task in alphanumeric order. Therefore, Gradle will execute “`:consumer:action`” before “`:producer:action`”. Let's try to solve this with a hack and rename the producer project to “`aProducer`”.
+This didn't quite do what we want. If nothing else is defined, Gradle executes the task in alphanumeric order. Therefore, Gradle will execute “`:consumer:action`” before “`:producer:action`”. Let's try to solve this with a hack and rename the producer project to “`a-producer`”.
 
 .Dependencies and execution order
 ====
@@ -605,7 +605,7 @@ This didn't quite do what we want. If nothing else is defined, Gradle executes t
 [source, groovy]
 ----
 .
-├── aProducer
+├── a-producer
 │   └── build.gradle
 ├── build.gradle
 ├── consumer
@@ -619,7 +619,7 @@ This didn't quite do what we want. If nothing else is defined, Gradle executes t
 [source, kotlin]
 ----
 .
-├── aProducer
+├── a-producer
 │   └── build.gradle.kts
 ├── build.gradle.kts
 ├── consumer
@@ -630,8 +630,8 @@ This didn't quite do what we want. If nothing else is defined, Gradle executes t
 ====
 
 ====
-include::sample[dir="snippets/multiproject/dependencies-messagesHack/groovy",files="build.gradle[];settings.gradle[];consumer/build.gradle[];aProducer/build.gradle[]"]
-include::sample[dir="snippets/multiproject/dependencies-messagesHack/kotlin",files="build.gradle.kts[];settings.gradle.kts[];consumer/build.gradle.kts[];aProducer/build.gradle.kts[]"]
+include::sample[dir="snippets/multiproject/dependencies-messagesHack/groovy",files="build.gradle[];settings.gradle[];consumer/build.gradle[];a-producer/build.gradle[]"]
+include::sample[dir="snippets/multiproject/dependencies-messagesHack/kotlin",files="build.gradle.kts[];settings.gradle.kts[];consumer/build.gradle.kts[];a-producer/build.gradle.kts[]"]
 
 .Output of `gradle -q action`
 ----
@@ -725,7 +725,7 @@ include::sample[dir="snippets/multiproject/dependencies-webDist/groovy",files="s
 include::sample[dir="snippets/multiproject/dependencies-webDist/kotlin",files="settings.gradle.kts[];build.gradle.kts[]"]
 ====
 
-We have an interesting set of dependencies. Obviously the `date` and `hello` projects have a _configuration_ dependency on `webDist`, as all the build logic for the webapp projects is injected by `webDist`. The _execution_ dependency is in the other direction, as `webDist` depends on the build artifacts of `date` and `hello`. There is even a third dependency. `webDist` has a _configuration_ dependency on `date` and `hello` because it needs to know the `archivePath`. But it asks for this information at _execution time_. Therefore we have no circular dependency.
+We have an interesting set of dependencies. Obviously the `date` and `hello` projects have a _configuration_ dependency on `web-dist`, as all the build logic for the webapp projects is injected by `web-dist`. The _execution_ dependency is in the other direction, as `web-dist` depends on the build artifacts of `date` and `hello`. There is even a third dependency. `web-dist` has a _configuration_ dependency on `date` and `hello` because it needs to know the `archivePath`. But it asks for this information at _execution time_. Therefore we have no circular dependency.
 
 Such dependency patterns are daily bread in the problem space of multi-project builds. If a build system does not support these patterns, you either can't solve your problem or you need to do ugly hacks which are hard to maintain and massively impair your productivity as a build master.
 
@@ -751,7 +751,7 @@ What if one project needs the jar produced by another project in its compile pat
 │       │               └── sample
 │       │                   ├── api
 │       │                   │   └── Person.java
-│       │                   └── apiImpl
+│       │                   └── api-impl
 │       │                       └── PersonImpl.java
 │       └── test
 │           └── java
@@ -760,7 +760,7 @@ What if one project needs the jar produced by another project in its compile pat
 │                       └── PersonTest.java
 ├── build.gradle
 ├── services
-│   └── personService
+│   └── person-service
 │       └── src
 │           ├── main
 │           │   └── java
@@ -803,7 +803,7 @@ What if one project needs the jar produced by another project in its compile pat
 │       │               └── sample
 │       │                   ├── api
 │       │                   │   └── Person.java
-│       │                   └── apiImpl
+│       │                   └── api-impl
 │       │                       └── PersonImpl.java
 │       └── test
 │           └── java
@@ -812,7 +812,7 @@ What if one project needs the jar produced by another project in its compile pat
 │                       └── PersonTest.java
 ├── build.gradle.kts
 ├── services
-│   └── personService
+│   └── person-service
 │       └── src
 │           ├── main
 │           │   └── java
@@ -843,7 +843,7 @@ What if one project needs the jar produced by another project in its compile pat
 ====
 
 
-We have the projects “`shared`”, “`api`” and “`personService`”. The “`personService`” project has a lib dependency on the other two projects. The “`api`” project has a lib dependency on the “`shared`” project.
+We have the projects “`shared`”, “`api`” and “`person-service`”. The “`person-service`” project has a lib dependency on the other two projects. The “`api`” project has a lib dependency on the “`shared`” project.
 “`services`” is also a project, but we use it just as a container. It has no build script and gets nothing injected by another build script. We use the `:` separator to define a project path. Consult the DSL documentation of link:{groovyDslPath}++/org.gradle.api.initialization.Settings.html#org.gradle.api.initialization.Settings:include(java.lang.String[])++[Settings.include(java.lang.String[\])] for more information about defining project paths.
 
 [[javadependencies_2]]

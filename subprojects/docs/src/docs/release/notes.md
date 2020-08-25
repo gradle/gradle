@@ -13,7 +13,8 @@ We would like to thank the following community contributors to this release of G
 [Christoph Dreis](https://github.com/dreis2211),
 [Matthias Robbers](https://github.com/MatthiasRobbers),
 [Vladimir Sitnikov](https://github.com/vlsi),
-and [Stefan Oehme](https://github.com/oehme).
+[Stefan Oehme](https://github.com/oehme),
+and [Michał Mlak](https://github.com/Miehau).
 
 <!--
 Include only their name, impactful features should be called out separately below.

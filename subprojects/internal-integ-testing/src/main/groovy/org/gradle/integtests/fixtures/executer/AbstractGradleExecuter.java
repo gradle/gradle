@@ -15,11 +15,13 @@
  */
 package org.gradle.integtests.fixtures.executer;
 
+import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
+import com.google.common.io.ByteStreams;
 import com.google.common.io.CharSource;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
@@ -57,14 +59,18 @@ import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.testfixtures.internal.NativeServicesTestFixture;
 import org.gradle.util.ClosureBackedAction;
 import org.gradle.util.CollectionUtils;
+import org.gradle.util.GFileUtils;
 import org.gradle.util.GradleVersion;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
+import java.net.URL;
 import java.nio.charset.Charset;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -1418,6 +1424,36 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     @Override
     public GradleExecuter withFullDeprecationStackTraceDisabled() {
         fullDeprecationStackTrace = false;
+        return this;
+    }
+
+    @Override
+    public GradleExecuter withFileLeakDetection(String... args) {
+        String leakDetectorUrl = "https://repo1.maven.org/maven2/org/kohsuke/file-leak-detector/1.13/file-leak-detector-1.13-jar-with-dependencies.jar";
+        this.beforeExecute(executer -> {
+            File leakDetectorJar = new File(this.gradleUserHomeDir, "file-leak-detector-1.13-jar-with-dependencies.jar");
+            if (!leakDetectorJar.exists()) {
+                // Need to download the jar
+                GFileUtils.parentMkdirs(leakDetectorJar);
+                GFileUtils.touch(leakDetectorJar);
+                try (OutputStream out = Files.newOutputStream(leakDetectorJar.toPath());
+                     InputStream in = new URL(leakDetectorUrl).openStream()) {
+                    ByteStreams.copy(in, out);
+                } catch (IOException e) {
+                    throw new RuntimeException("Couldn't download " + leakDetectorUrl, e);
+                }
+            }
+
+            String joinedArgs;
+            if (args.length == 0) {
+                // Default arguments to pass to the java agent
+                joinedArgs = "http=19999";
+            } else {
+                joinedArgs = Joiner.on(',').join(args);
+            }
+            withBuildJvmOpts("-javaagent:" + leakDetectorJar + "=" + joinedArgs);
+        });
+
         return this;
     }
 

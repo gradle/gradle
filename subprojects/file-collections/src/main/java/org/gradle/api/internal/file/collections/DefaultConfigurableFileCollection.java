@@ -178,8 +178,10 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
 
     @Override
     public void setFrom(Object... paths) {
-        if (assertMutable() && paths.length > 0) {
-            value = value.setFrom(this, resolver, patternSetFactory, dependencyFactory, host, paths);
+        if (assertMutable()) {
+            value = paths.length > 0
+                ? value.setFrom(this, resolver, patternSetFactory, dependencyFactory, host, paths)
+                : EMPTY_COLLECTOR;
         }
     }
 

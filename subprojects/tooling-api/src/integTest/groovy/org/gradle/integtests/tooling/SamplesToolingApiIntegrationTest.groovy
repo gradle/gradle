@@ -112,7 +112,7 @@ run {
 }
 """ + buildScript.substring(index)
 
-        buildScript = buildScript.replace("def toolingApiVersion = gradle.gradleVersion", "def toolingApiVersion = ${distribution.version.baseVersion.version}")
+        buildScript = buildScript.replace("def toolingApiVersion = gradle.gradleVersion", "def toolingApiVersion = \"${distribution.version.baseVersion.version}\"")
 
         buildFile.text = buildScript
     }

@@ -40,6 +40,7 @@ import org.gradle.groovy.scripts.internal.BuildScriptData;
 import org.gradle.groovy.scripts.internal.CompileOperation;
 import org.gradle.groovy.scripts.internal.ScriptCompilationHandler;
 import org.gradle.initialization.ClassLoaderScopeRegistry;
+import org.gradle.internal.classloader.ClassLoaderUtils;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.model.dsl.internal.transform.ClosureCreationInterceptingVerifier;
 
@@ -104,6 +105,7 @@ abstract class CompileGroovyScriptPluginsTask extends DefaultTask {
             copySpec.from(intermediatePluginClassesDirectory.get().getAsFileTree().getFiles());
             copySpec.into(getPrecompiledGroovyScriptsOutputDirectory());
         });
+        ClassLoaderUtils.tryClose(compileClassLoader);
     }
 
     private void compileBuildScript(PrecompiledGroovyScript scriptPlugin, ClassLoader compileClassLoader) {

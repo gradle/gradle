@@ -179,7 +179,7 @@ class JavaGradlePluginPluginTest extends AbstractProjectBuilderSpec {
 
         then:
         project.configurations
-            .getByName(JavaGradlePluginPlugin.API_CONFIGURATION)
+            .getByName("compileOnlyApi")
             .dependencies.find {
             it.files == project.dependencies.gradleApi().files
         }
