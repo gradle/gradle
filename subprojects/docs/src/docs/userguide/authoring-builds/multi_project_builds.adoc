@@ -69,7 +69,7 @@ We can view the structure of a multi-project build by running the `gradle projec
 include::{snippetsPath}/multiproject/basic-multiproject/tests/projects.out[]
 ----
 
-Let's say the `app` subproject is a Java application by applying the <<application_plugin,application plugin>> and configuring the main class:
+Let's say the `app` subproject is a Java application by applying the <<application_plugin#,application plugin>> and configuring the main class:
 ====
 include::sample[dir="snippets/multiproject/basic-multiproject/groovy",files="app/build.gradle[]"]
 include::sample[dir="snippets/multiproject/basic-multiproject/kotlin",files="app/build.gradle.kts[]"]
@@ -79,7 +79,7 @@ include::{snippetsPath}/multiproject/basic-multiproject/groovy/app/src/main/java
 ----
 ====
 
-Finally, we can run the application by executing the `run` task from the <<application_plugin,application plugin>>.
+Finally, we can run the application by executing the `run` task from the <<application_plugin#,application plugin>>.
 ----
 > gradle -q run
 include::{snippetsPath}/multiproject/basic-multiproject/tests/run.out[]
@@ -113,9 +113,9 @@ Or in other words, a subproject's _type_ tells us what traits the project has.
 
 Gradle's recommended way of organizing build logic is its plugin system.
 A plugin should define the _type_ of a subproject.
-In fact, <<plugin_reference,Gradle core plugins>> are modeled in the same way - for example <<java_plugin,java plugin>> configures a generic `java` project,
-while <<java_library_plugin,java-library plugin>> internally applies the <<java_plugin,java plugin>> and configures aspects specific to a generic Java library.
-Similarly, the <<application_plugin,application plugin>> applies and configures the <<java_plugin,java plugin>> and the <<distribution_plugin,distribution plugin>>.
+In fact, <<plugin_reference#,Gradle core plugins>> are modeled in the same way - for example <<java_plugin#,java plugin>> configures a generic `java` project,
+while <<java_library_plugin#,java-library plugin>> internally applies the <<java_plugin#,java plugin>> and configures aspects specific to a generic Java library.
+Similarly, the <<application_plugin#,application plugin>> applies and configures the <<java_plugin#,java plugin>> and the <<distribution_plugin#,distribution plugin>>.
 
 You can compose custom build logic by applying and configuring both core and external plugins and create custom plugins
 that define new project _types_ and configure conventions specific to your project or organization.

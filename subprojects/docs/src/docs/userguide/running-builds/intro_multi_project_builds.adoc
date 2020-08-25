@@ -21,7 +21,7 @@ Only the smallest of projects has a single build file and source tree, unless it
 
 Gradle supports this scenario through _multi-project_ builds.
 
-For details about authoring _multi-project_ builds, consult the <<multi_project_builds,Authoring Multi-Project Builds section of the user manual>>.
+For details about authoring _multi-project_ builds, consult the <<multi_project_builds#,Authoring Multi-Project Builds section of the user manual>>.
 
 
 [[sec:executing_a_multiproject_build]]
