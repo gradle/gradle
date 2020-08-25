@@ -1,13 +1,13 @@
-project('projectA') {
+project('project-a') {
     task taskX {
-        dependsOn ':projectB:taskY'
+        dependsOn ':project-b:taskY'
         doLast {
             println 'taskX'
         }
     }
 }
 
-project('projectB') {
+project('project-b') {
     task taskY {
         doLast {
             println 'taskY'

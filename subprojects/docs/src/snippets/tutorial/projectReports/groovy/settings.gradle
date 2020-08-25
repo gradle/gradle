@@ -1,4 +1,4 @@
-rootProject.name = 'projectReports'
+rootProject.name = 'project-reports'
 include 'api', 'webapp'
 
 rootProject.children.each {

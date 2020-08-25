@@ -6,4 +6,4 @@ pluginManagement {
     repositories {
     }
 }
-rootProject.name = 'pluginManagement'
+rootProject.name = 'plugin-management'

@@ -21,7 +21,7 @@ project(":api") {
     }
 }
 
-project(":services:personService") {
+project(":services:person-service") {
     dependencies {
         "implementation"(project(":shared"))
         "implementation"(project(path = ":api", configuration = "spi"))

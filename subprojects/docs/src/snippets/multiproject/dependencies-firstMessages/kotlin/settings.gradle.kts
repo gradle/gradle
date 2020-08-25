@@ -1,2 +1,2 @@
-rootProject.name = "dependencies-firstMessages"
+rootProject.name = "dependencies-first-messages"
 include("consumer", "producer")

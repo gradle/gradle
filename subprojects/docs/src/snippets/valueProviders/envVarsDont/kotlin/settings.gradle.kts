@@ -1,1 +1,1 @@
-rootProject.name = "envVarsDont"
+rootProject.name = "env-vars-dont"

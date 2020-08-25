@@ -1,1 +1,1 @@
-rootProject.name = "disallowedTypesFixed"
+rootProject.name = "disallowed-types-fixed"

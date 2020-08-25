@@ -1,1 +1,1 @@
-rootProject.name = "conditionalLogic-do"
+rootProject.name = "conditional-logic-do"

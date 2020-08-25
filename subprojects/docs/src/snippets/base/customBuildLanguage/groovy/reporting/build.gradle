@@ -3,7 +3,7 @@ plugins {
 }
 
 dependencies {
-    implementation project(':identityManagement')
+    implementation project(':identity-management')
     implementation project(':billing')
     implementation 'commons-io:commons-io:1.2'
 }

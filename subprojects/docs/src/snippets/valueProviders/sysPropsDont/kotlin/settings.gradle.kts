@@ -1,1 +1,1 @@
-rootProject.name = "sysPropsDont"
+rootProject.name = "sys-props-dont"

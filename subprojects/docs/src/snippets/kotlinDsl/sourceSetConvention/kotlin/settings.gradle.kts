@@ -1,1 +1,1 @@
-rootProject.name = "sourceSetConvention"
+rootProject.name = "source-set-convention"

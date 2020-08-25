@@ -1,1 +1,1 @@
-rootProject.name = "fileContentsDont"
+rootProject.name = "file-contents-dont"

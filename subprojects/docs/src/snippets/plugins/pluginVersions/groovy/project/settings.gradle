@@ -13,4 +13,4 @@ pluginManagement {
 }
 // end::configure-plugin-version[]
 
-rootProject.name = 'multiproject'
+rootProject.name = 'plugin-versions'

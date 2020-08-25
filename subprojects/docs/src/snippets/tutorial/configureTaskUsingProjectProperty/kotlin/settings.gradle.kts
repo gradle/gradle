@@ -1,1 +1,1 @@
-rootProject.name = "configureTaskUsingProjectProperty"
+rootProject.name = "configure-task-using-project-property"

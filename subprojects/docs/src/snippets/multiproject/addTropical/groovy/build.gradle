@@ -12,7 +12,7 @@ subprojects {
         }
     }
 }
-configure(subprojects.findAll {it.name != 'tropicalFish'}) {
+configure(subprojects.findAll {it.name != 'tropicalfish'}) {
     hello {
         doLast {
             println '- I love to spend time in the arctic waters.'

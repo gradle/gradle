@@ -1,1 +1,1 @@
-rootProject.name = "zipProject"
+rootProject.name = "archive-naming"
