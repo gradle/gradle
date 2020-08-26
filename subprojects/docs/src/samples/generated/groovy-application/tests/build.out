@@ -1,0 +1,19 @@
+> Task :app:compileJava NO-SOURCE
+> Task :app:compileGroovy
+> Task :app:processResources NO-SOURCE
+> Task :app:classes
+> Task :app:jar
+> Task :app:startScripts
+> Task :app:distTar
+> Task :app:distZip
+> Task :app:assemble
+> Task :app:compileTestJava NO-SOURCE
+> Task :app:compileTestGroovy
+> Task :app:processTestResources NO-SOURCE
+> Task :app:testClasses
+> Task :app:test
+> Task :app:check
+> Task :app:build
+
+BUILD SUCCESSFUL in 0s
+7 actionable tasks: 7 executed

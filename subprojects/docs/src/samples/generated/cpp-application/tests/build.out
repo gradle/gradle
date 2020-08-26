@@ -1,0 +1,15 @@
+> Task :app:compileTestCpp
+> Task :app:compileDebugCpp
+> Task :app:relocateMainForTest
+> Task :app:linkDebug
+> Task :app:installDebug
+> Task :app:assemble
+> Task :app:linkTest
+> Task :app:installTest
+> Task :app:runTest
+> Task :app:test
+> Task :app:check
+> Task :app:build
+
+BUILD SUCCESSFUL in 0s
+8 actionable tasks: 8 executed

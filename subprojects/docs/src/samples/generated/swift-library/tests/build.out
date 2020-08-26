@@ -1,0 +1,13 @@
+> Task :lib:compileDebugSwift
+> Task :lib:linkDebug
+> Task :lib:assemble
+> Task :lib:compileTestSwift
+> Task :lib:linkTest
+> Task :lib:installTest
+> Task :lib:xcTest
+> Task :lib:test
+> Task :lib:check
+> Task :lib:build
+
+BUILD SUCCESSFUL in 0s
+6 actionable tasks: 6 executed

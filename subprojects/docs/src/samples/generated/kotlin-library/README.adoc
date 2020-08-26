@@ -1,0 +1,341 @@
+This guide demonstrates how to create a Kotlin library with Gradle using `gradle init`.
+You can follow the guide step-by-step to create a new project from scratch or download the complete sample project using the links above.
+
+== What you’ll build
+
+You'll generate a Kotlin library that follows Gradle's conventions.
+
+== What you’ll need
+
+* A text editor or IDE - for example link:https://www.jetbrains.com/idea/download/[IntelliJ IDEA]
+* A Java Development Kit (JDK), version 8 or higher - for example link:https://adoptopenjdk.net/[AdoptOpenJDK]
+* A https://gradle.org/install[Gradle distribution], version {gradle-version} or newer
+
+
+== Create a project folder
+
+Gradle comes with a built-in task, called `init`, that initializes a new Gradle project in an empty folder.
+The `init` task uses the (also built-in) `wrapper` task to create a Gradle wrapper script, `gradlew`.
+
+The first step is to create a folder for the new project and change directory into it.
+
+[listing.terminal.sample-command]
+----
+$ mkdir demo
+$ cd demo
+----
+
+== Run the init task
+
+From inside the new project directory, run the `init` task using the following command in a terminal: `gradle init`.
+When prompted, select the `3: library` project type and `4: Kotlin` as implementation language.
+Next you can choose the DSL for writing buildscripts -  `1  : Groovy` or `2: Kotlin`.
+For the other questions, press enter to use the default values.
+
+The output will look like this:
+
+[listing.terminal.sample-command,user-inputs="3|4|1|||"]
+----
+$ gradle init
+
+Select type of project to generate:
+  1: basic
+  2: application
+  3: library
+  4: Gradle plugin
+Enter selection (default: basic) [1..4] 3
+
+Select implementation language:
+  1: C++
+  2: Groovy
+  3: Java
+  4: Kotlin
+  5: Scala
+  6: Swift
+Enter selection (default: Java) [1..6] 4
+
+Select build script DSL:
+  1: Groovy
+  2: Kotlin
+Enter selection (default: Groovy) [1..2] 1
+
+Project name (default: demo):
+Source package (default: demo):
+
+
+BUILD SUCCESSFUL
+2 actionable tasks: 2 executed
+----
+
+The `init` task generates the new project with the following structure:
+
+.Groovy DSL
+[source.multi-language-sample,groovy]
+----
+├── gradle // <1>
+│   └── wrapper
+│       ├── gradle-wrapper.jar
+│       └── gradle-wrapper.properties
+├── gradlew // <2>
+├── gradlew.bat // <2>
+├── settings.gradle // <3>
+└── lib
+    ├── build.gradle // <4>
+    └── src
+        ├── main
+        │   └── kotlin // <5>
+        │       └── demo
+        │           └── Library.kt
+        └── test
+            └── kotlin // <6>
+        │       └── demo
+        │           └── LibraryTest.kt
+----
+
+.Kotlin DSL
+[source.multi-language-sample,kotlin]
+----
+├── gradle // <1>
+│   └── wrapper
+│       ├── gradle-wrapper.jar
+│       └── gradle-wrapper.properties
+├── gradlew // <2>
+├── gradlew.bat // <2>
+├── settings.gradle.kts // <3>
+└── lib
+    ├── build.gradle.kts // <4>
+    └── src
+        ├── main
+        │   └── java // <5>
+        ├── main
+        │   └── kotlin // <5>
+        │       └── demo
+        │           └── Library.kt
+        └── test
+            └── kotlin // <6>
+        │       └── demo
+        │           └── LibraryTest.kt
+----
+
+<1> Generated folder for wrapper files
+<2> Gradle wrapper start scripts
+<3> Settings file to define build name and subprojects
+<4> Build script of `lib` project
+<5> Default Kotlin source folder
+<6> Default Kotlin test source folder
+
+You now have the project setup to build a Kotlin library.
+
+== Review the project files
+
+The `settings.gradle(.kts)` file has two active line:
+
+====
+include::sample[dir="groovy",files="settings.gradle[]"]
+include::sample[dir="kotlin",files="settings.gradle.kts[]"]
+====
+- `rootProject.name` assigns a name to the build, which overrides the default behavior of naming the build after the directory it's in.
+  It's recommended to set a fixed name as the folder might change if the project is shared - e.g. as root of a Git repository.
+- `include("lib")` defines that the build consists of one subproject called `lib` that contains the actual code and build logic.
+  More subprojects can be added by additional `include(...)` statements.
+
+Our build contains one subproject called `lib` that represents the Kotlin library we are building.
+It is configured in the `lib/build.gradle(.kts)` file:
+
+====
+include::sample[dir="groovy",files="lib/build.gradle[]"]
+include::sample[dir="kotlin",files="lib/build.gradle.kts[]"]
+====
+<1> Apply the Kotlin JVM plugin to add support for Kotlin.
+<2> Apply the java-library plugin for API and implementation separation.
+<3> Use JCenter for resolving dependencies.
+<4> Align versions of all Kotlin components
+<5> Use the Kotlin JDK 8 standard library.
+<6> Use the Kotlin test library.
+<7> Use the Kotlin JUnit integration.
+
+The file `src/main/kotlin/demo/Library.kt` is shown here:
+
+.Generated src/main/kotlin/demo/Library.kt
+[source,kotlin]
+----
+include::{samples-dir}/groovy/lib/src/main/kotlin/demo/Library.kt[]
+----
+
+The generated test, `src/test/kotlin/demo/Library.kt` is shown next:
+
+.Generated src/test/kotlin/demo/LibraryTest.kt
+[source,kotlin]
+----
+$ ./gradlew build
+include::{samples-dir}/groovy/lib/src/test/kotlin/demo/LibraryTest.kt[]
+----
+
+The generated test class has a single _kotlin.test_ test.
+The test instantiates the `Library` class, invokes a method on it, and checks that it returns the expected value.
+
+More information about the features the `java-library` plugin adds to any JVM library project, such as API and implementation separation, can be found in the link:{userManualPath}/java_library_plugin.html[Java Library Plugin documentation].
+
+== Assemble the library JAR
+
+To build the project, run the `build` task. You can use the regular `gradle` command, but when a project includes a wrapper script, it is considered good form to use it instead.
+
+[listing.terminal.sample-command]
+----
+$ ./gradlew build
+
+include::{samplesPath}/generated/kotlin-library/tests/build.out[]
+----
+
+NOTE: The first time you run the wrapper script, `gradlew`, there may be a delay while that version of `gradle` is downloaded and stored locally in your `~/.gradle/wrapper/dists` folder.
+
+The first time you run the build, Gradle will check whether or not you already have the required dependencies in your cache under your `~/.gradle` directory. If not, the libraries will be downloaded and stored there. The next time you run the build, the cached versions will be used. The `build` task compiles the classes, runs the tests, and generates a test report.
+
+You can view the test report by opening the HTML output file, located at `lib/build/reports/tests/test/index.html`.
+
+You can find your newly packaged JAR file in the `lib/build/libs` directory with the name `lib.jar`.
+Verify that the archive is valid by running the following command:
+
+[listing.terminal.sample-command]
+----
+$ jar tf lib/build/libs/lib.jar
+META-INF/
+META-INF/MANIFEST.MF
+lib/
+lib/Library.class
+----
+
+You should see the required manifest file —`MANIFEST.MF`— and the compiled `Library` class.
+
+[NOTE]
+====
+All of this happens without any additional configuration in the build script because Gradle's `java-library` plugin assumes your project sources are arranged in a link:{userManualPath}/java_plugin.html#sec:java_project_layout[conventional project layout].
+You can customize the project layout if you wish link:{userManualPath}/java_plugin.html#sec:changing_java_project_layout[as described in the user manual].
+====
+
+Congratulations, you have just completed the first step of creating a Kotlin library!
+You can now customize this to your own project needs.
+
+== Customize the library JAR
+
+You will often want the name of the JAR file to include the library _version_.
+This is achieved by setting a top-level `version` property in the build script:
+
+.build.gradle
+[source.multi-language-sample,groovy]
+----
+version = '0.1.0'
+----
+
+.build.gradle.kts
+[source.multi-language-sample,kotlin]
+----
+version = "0.1.0"
+----
+
+[NOTE]
+====
+Next to the version, other important identity properties of a library are it's _name_ and _group_.
+The name is directly derived from the subproject name that represents the library.
+It's `lib` in the example so you probably want to adjust it by changing the name of the `lib` folder and the corresponding `include(...)` statement in the `settings.gradle(.kts)` file.
+The _group_ is used to give your library full coordinates when published.
+You can define it directly in the build script by setting the `group` property similar to how you set the version (shown above).
+====
+
+Now run the `jar` task:
+
+[listing.terminal.sample-command]
+----
+$ ./gradlew jar
+
+BUILD SUCCESSFUL
+2 actionable tasks: 1 executed, 1 up-to-date
+----
+
+You'll notice that the resulting JAR file at `lib/build/libs/lib-0.1.0.jar` contains the version as expected.
+
+Another common requirement is customizing the manifest file, typically by adding one or more attributes.
+Let's include the library name and version in the manifest file by link:{userManualPath}/more_about_tasks.html#sec:configuring_tasks[configuring the `jar` task].
+Add the following to the end of your build script:
+
+.build.gradle
+[source.multi-language-sample,groovy]
+----
+tasks.named('jar') {
+    manifest {
+        attributes('Implementation-Title': project.name,
+                   'Implementation-Version': project.version)
+    }
+}
+----
+
+.build.gradle.kts
+[source.multi-language-sample,kotlin]
+----
+tasks.jar {
+    manifest {
+        attributes(mapOf("Implementation-Title" to project.name,
+                         "Implementation-Version" to project.version))
+    }
+}
+----
+
+To confirm that these changes work as expected, run the `jar` task again, and this time also unpack the manifest file from the JAR:
+
+[listing.terminal]
+----
+$ ./gradlew jar
+$ jar xf lib/build/libs/lib-0.1.0.jar META-INF/MANIFEST.MF
+----
+
+Now view the contents of the `META-INF/MANIFEST.MF` file and you should see the following:
+
+[source,mf]
+.META-INF/MANIFEST.MF
+----
+Manifest-Version: 1.0
+Implementation-Title: lib
+Implementation-Version: 0.1.0
+----
+
+=== Generating Sources JAR
+
+You can easily generate a sources JAR for your library:
+
+.build.gradle
+[source.multi-language-sample,groovy]
+----
+java {
+    withSourcesJar()
+}
+----
+
+.build.gradle.kts
+[source.multi-language-sample,kotlin]
+----
+java {
+    withSourcesJar()
+}
+----
+
+Additional JARs defined that way will be produced by the `build` task and will be part of the publication.
+The resulting files will be found in `lib/build/libs`, with a name using the conventional classifier `-javadoc` or `-sources`.
+
+== Summary
+
+That's it! You've now successfully configured and built a Kotlin library project with Gradle.
+You've learned how to:
+
+* Initialize a project that produces a Kotlin library
+* Run the build and view the test report
+* Customize the Jar files the build produces
+
+Now you could complete this exercise by trying to compile some Kotlin code that uses the library you just built.
+
+== Next steps
+
+Building a library is just one aspect of reusing code across project boundaries. From here, you may be interested in:
+
+ - link:{userManualPath}/artifact_dependencies_tutorial.html[Consuming JVM libraries]
+ - link:{userManualPath}/publishing_setup.html[Publishing JVM libraries]
+ - link:{userManualPath}/multi_project_builds.html[Working with multi-project builds]

@@ -1,0 +1,13 @@
+> Task :lib:compileTestCpp
+> Task :lib:compileDebugCpp
+> Task :lib:linkDebug
+> Task :lib:assemble
+> Task :lib:linkTest
+> Task :lib:installTest
+> Task :lib:runTest
+> Task :lib:test
+> Task :lib:check
+> Task :lib:build
+
+BUILD SUCCESSFUL in 0s
+6 actionable tasks: 6 executed
