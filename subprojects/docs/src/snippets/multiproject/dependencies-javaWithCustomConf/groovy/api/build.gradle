@@ -1,0 +1,17 @@
+plugins {
+    id 'myproject.java-conventions'
+}
+
+dependencies {
+    implementation project(':shared')
+}
+def spiJar = tasks.register("spiJar", Jar) {
+    archiveBaseName = 'api-spi'
+    from sourceSets.main.output
+    include('org/gradle/sample/api/**')
+}
+configurations {
+    spi {
+        outgoing.artifact(spiJar)
+    }
+}
