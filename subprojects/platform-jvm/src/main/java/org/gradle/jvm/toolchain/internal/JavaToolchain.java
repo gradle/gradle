@@ -34,10 +34,12 @@ public class JavaToolchain implements Describable {
     private final JavaInstallationProbe.ProbeResult probe;
     private final JavaCompilerFactory compilerFactory;
     private final ToolchainToolFactory toolFactory;
+    private final File javaHome;
 
     @Inject
     public JavaToolchain(JavaInstallationProbe.ProbeResult probe, JavaCompilerFactory compilerFactory, ToolchainToolFactory toolFactory) {
         this.probe = probe;
+        this.javaHome = computeJavaHome(probe);
         this.compilerFactory = compilerFactory;
         this.toolFactory = toolFactory;
     }
@@ -80,10 +82,24 @@ public class JavaToolchain implements Describable {
     @Internal
     @Override
     public String getDisplayName() {
-        return getJavaHome().getAbsolutePath();
+        return javaHome.getAbsolutePath();
     }
 
     public File findExecutable(String toolname) {
-        return new File(getJavaHome(), "bin/" + OperatingSystem.current().getExecutableName(toolname));
+        return new File(getJavaHome(), getBinaryPath(toolname));
+    }
+
+    private File computeJavaHome(JavaInstallationProbe.ProbeResult probe) {
+        final File home = probe.getJavaHome();
+        final File parentFile = home.getParentFile();
+        final boolean isEmbeddedJre = home.getName().equalsIgnoreCase("jre");
+        if (isEmbeddedJre && new File(parentFile, getBinaryPath("java")).exists()) {
+            return parentFile;
+        }
+        return home;
+    }
+
+    private String getBinaryPath(String java) {
+        return "bin/" + OperatingSystem.current().getExecutableName(java);
     }
 }
