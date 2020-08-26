@@ -159,6 +159,14 @@ public class DeprecationLogger {
     }
 
     /**
+     * Output: The ${property} system property has been deprecated.
+     */
+    @CheckReturnValue
+    public static DeprecationMessageBuilder.DeprecateSystemProperty deprecateSystemProperty(String systemProperty) {
+        return new DeprecationMessageBuilder.DeprecateSystemProperty(systemProperty);
+    }
+
+    /**
      * Output: The ${parameter} named parameter has been deprecated.
      */
     @CheckReturnValue

@@ -27,9 +27,12 @@ import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.service.scopes.VirtualFileSystemServices;
 import org.gradle.internal.vfs.VirtualFileSystem;
 import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem;
-import org.gradle.util.IncubationLogger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class FileSystemWatchingBuildActionRunner implements BuildActionRunner {
+    private static final Logger LOGGER = LoggerFactory.getLogger(FileSystemWatchingBuildActionRunner.class);
+
     private final BuildActionRunner delegate;
 
     public FileSystemWatchingBuildActionRunner(BuildActionRunner delegate) {
@@ -45,9 +48,10 @@ public class FileSystemWatchingBuildActionRunner implements BuildActionRunner {
 
         boolean watchFileSystem = startParameter.isWatchFileSystem();
 
+        logMessageForDeprecatedWatchFileSystemProperty(startParameter);
         logMessageForDeprecatedVfsRetentionProperty(startParameter);
+        LOGGER.info("Watching the file system is {}", watchFileSystem ? "enabled" : "disabled");
         if (watchFileSystem) {
-            IncubationLogger.incubatingFeatureUsed("Watching the file system");
             dropVirtualFileSystemIfRequested(startParameter, virtualFileSystem);
         }
         virtualFileSystem.afterBuildStarted(watchFileSystem, buildOperationRunner);
@@ -62,6 +66,18 @@ public class FileSystemWatchingBuildActionRunner implements BuildActionRunner {
     private static void dropVirtualFileSystemIfRequested(StartParameterInternal startParameter, BuildLifecycleAwareVirtualFileSystem virtualFileSystem) {
         if (VirtualFileSystemServices.isDropVfs(startParameter)) {
             virtualFileSystem.update(VirtualFileSystem.INVALIDATE_ALL);
+        }
+    }
+
+    private static void logMessageForDeprecatedWatchFileSystemProperty(StartParameterInternal startParameter) {
+        if (startParameter.isWatchFileSystemUsingDeprecatedOption()) {
+            @SuppressWarnings("deprecation")
+            String deprecatedWatchFsProperty = StartParameterBuildOptions.DeprecatedWatchFileSystemOption.GRADLE_PROPERTY;
+            DeprecationLogger.deprecateSystemProperty(deprecatedWatchFsProperty)
+                .replaceWith(StartParameterBuildOptions.WatchFileSystemOption.GRADLE_PROPERTY)
+                .willBeRemovedInGradle7()
+                .withUserManual("gradle_daemon")
+                .nagUser();
         }
     }
 

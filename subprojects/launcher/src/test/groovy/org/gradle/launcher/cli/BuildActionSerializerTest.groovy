@@ -29,6 +29,8 @@ import org.gradle.tooling.internal.provider.TestExecutionRequestAction
 import org.gradle.tooling.internal.provider.serialization.SerializedPayload
 import spock.lang.Unroll
 
+import java.beans.Introspector
+
 @Unroll
 class BuildActionSerializerTest extends SerializerSpec {
     def "serializes ExecuteBuildAction with all defaults"() {
@@ -62,27 +64,11 @@ class BuildActionSerializerTest extends SerializerSpec {
         result.startParameter."${buildOptionName}" == expectedValue
 
         where:
-        buildOptionName << [
-            "parallelProjectExecutionEnabled",
-            "searchUpwardsWithoutDeprecationWarning",
-            "buildProjectDependencies",
-            "dryRun",
-            "rerunTasks",
-            "profile",
-            "continueOnFailure",
-            "offline",
-            "refreshDependencies",
-            "buildCacheEnabled",
-            "buildCacheDebugLogging",
-            "watchFileSystem",
-            "configureOnDemand",
-            "continuous",
-            "buildScan",
-            "noBuildScan",
-            "writeDependencyLocks",
-            "refreshKeys",
-            "exportKeys"
-        ]
+        // Check all mutable boolean properties (must manually check for setters as many of them return StartParameter)
+        buildOptionName << Introspector.getBeanInfo(StartParameterInternal).propertyDescriptors
+            .findAll { it.propertyType == boolean }
+            .findAll { StartParameterInternal.methods*.name.contains("set" + it.name.capitalize()) }
+            .collect { it.name }
     }
 
     def "serializes other actions #action.class"() {
