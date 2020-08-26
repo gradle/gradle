@@ -276,14 +276,16 @@ samples {
     }
 
     publishedSamples {
-        androidApplication {
-            description = "Build a simple Android application."
+        buildingAndroidApps {
+            sampleDirectory = samplesRoot.dir("android-application")
+            description = "Build a simple Android app."
             category = "Android"
             common {
                 from(templates.javaAndroidApplication)
             }
         }
-        springBootWebApplication {
+        buildingSpringBootWebApplications {
+            sampleDirectory = samplesRoot.dir("spring-boot-web-application")
             description = "Build a simple Spring Boot application."
             category = "Spring"
             common {
@@ -354,9 +356,8 @@ samples {
                 from(templates.javaJunit5TestForListLibrary)
             }
         }
-        javaModulesMultiProject {
+        buildingJavaModules {
             sampleDirectory = samplesRoot.dir("java/modules-multi-project")
-            displayName = "Java Modules"
             description = "Build Java Modules and a modular Java application."
             category = "Java Modules"
             common {
@@ -370,9 +371,8 @@ samples {
                 from(templates.javaJunit5TestForListLibrary)
             }
         }
-        javaModulesMultiProjectWithIntegrationTests {
+        buildingJavaModulesWithBlackboxTests {
             sampleDirectory = samplesRoot.dir("java/modules-multi-project-with-integration-tests")
-            displayName = "Java Modules with Blackbox Tests"
             description = "Build Java Modules with blackbox integration tests."
             category = "Java Modules"
             common {
@@ -391,9 +391,8 @@ samples {
                 from(templates.javaJunit5ModuleInfoForUtilitiesLibrary)
             }
         }
-        javaModulesWithTransform {
+        buildingJavaModulesWithLegacyLibraries {
             sampleDirectory = samplesRoot.dir("java/modules-with-transform")
-            displayName = "Java Modules with Legacy Libraries"
             description = "Build a modular Java application that integrates legacy libraries."
             category = "Java Modules"
             common {
@@ -413,7 +412,7 @@ samples {
                 from(templates.javaJunit5TestForListLibrary)
             }
         }
-        javaLibraryPublishing {
+        publishingJavaLibraries {
             sampleDirectory = samplesRoot.dir("java/library-publishing")
             description = "Publish a Java library to a binary repository."
             category = "Java"
@@ -475,7 +474,7 @@ samples {
                 from(templates.groovySpockTestForListLibrary)
             }
         }
-        groovyLibraryPublishing {
+        publishingGroovyLibraries {
             sampleDirectory = samplesRoot.dir("groovy/library-publishing")
             description = "Publish a Groovy library to a binary repository."
             category = "Groovy"
@@ -496,7 +495,7 @@ samples {
 
         conventionPlugins {
             sampleDirectory = samplesRoot.dir("build-organization/multi-project-with-convention-plugins")
-            displayName = "Sharing configuration between subprojects"
+            displayName = "Sharing build logic between subprojects"
             description = "Organize build logic into reusable pieces"
             category = "Build organization"
             common {
@@ -516,8 +515,8 @@ samples {
 
         jvmMultiProjectBuild {
             sampleDirectory = samplesRoot.dir("build-organization/jvm-multi-project-build")
-            displayName = "Multi-project build (JVM)"
-            description = "Use dependencies in a multi-project build."
+            displayName = "Structuring a multi-project build"
+            description = "Use dependencies and share build logic in a multi-project JVM build."
             category = "Build organization"
             common {
                 from(templates.javaApplicationAsSubproject)
@@ -528,7 +527,7 @@ samples {
 
         taskWithArguments {
             sampleDirectory = samplesRoot.dir("writing-tasks/task-with-arguments")
-            displayName = "Task with command-line arguments"
+            displayName = "Implementing Tasks with Command-line Arguments"
             description = "Pass arguments to a custom task."
             category = "Writing Custom Tasks"
         }
