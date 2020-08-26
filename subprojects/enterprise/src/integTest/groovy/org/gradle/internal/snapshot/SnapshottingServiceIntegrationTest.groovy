@@ -53,6 +53,6 @@ class SnapshottingServiceIntegrationTest extends AbstractIntegrationSpec {
         succeeds "help"
 
         then:
-        outputContains"Snapshot for input file"
+        outputContains "Snapshot for input file"
     }
 }
