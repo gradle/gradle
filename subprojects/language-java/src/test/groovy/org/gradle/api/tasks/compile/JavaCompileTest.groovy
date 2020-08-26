@@ -17,13 +17,12 @@
 package org.gradle.api.tasks.compile
 
 import org.gradle.api.JavaVersion
-import org.gradle.api.file.Directory
 import org.gradle.api.internal.tasks.compile.CommandLineJavaCompileSpec
 import org.gradle.internal.jvm.Jvm
 import org.gradle.jvm.toolchain.JavaCompiler
-import org.gradle.jvm.toolchain.JavaInstallation
 import org.gradle.jvm.toolchain.JavaToolChain
 import org.gradle.jvm.toolchain.internal.JavaCompilerFactory
+import org.gradle.jvm.toolchain.internal.JavaInstallationProbe
 import org.gradle.jvm.toolchain.internal.JavaToolchain
 import org.gradle.jvm.toolchain.internal.ToolchainToolFactory
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
@@ -84,12 +83,10 @@ class JavaCompileTest extends AbstractProjectBuilderSpec {
     def "spec is configured using the toolchain compiler via command line"() {
         def javaCompile = project.tasks.create("compileJava", JavaCompile)
         def javaHome = Jvm.current().javaHome
-        def installation = Mock(JavaInstallation)
-        def installDir = Mock(Directory)
-        installDir.asFile >> javaHome
-        installation.installationDirectory >> installDir
-        installation.getJavaVersion() >> JavaVersion.VERSION_12
-        def toolchain = new JavaToolchain(installation, Mock(JavaCompilerFactory), Mock(ToolchainToolFactory))
+        def probe = Mock(JavaInstallationProbe.ProbeResult)
+        probe.getJavaVersion() >> JavaVersion.VERSION_12
+        probe.getJavaHome() >> javaHome
+        def toolchain = new JavaToolchain(probe, Mock(JavaCompilerFactory), Mock(ToolchainToolFactory))
         javaCompile.setDestinationDir(new File("tmp"))
 
         when:
