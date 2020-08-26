@@ -19,8 +19,11 @@ package org.gradle.integtests.resolve.validation
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 import org.gradle.test.fixtures.gradle.GradleFileModuleAdapter
+import org.gradle.test.fixtures.maven.MavenFileRepository
+import org.gradle.test.fixtures.maven.MavenModule
 import spock.lang.Issue
 
 @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
@@ -110,4 +113,116 @@ class GradleMetadataValidationResolveIntegrationTest extends AbstractModuleDepen
         fails ":checkDeps"
         failure.assertHasCause("Gradle Module Metadata for module org.test:projectA:1.1 is invalid because it doesn't declare any variant")
     }
+
+    @UnsupportedWithConfigurationCache(because = "tries to revisit a file collection which failed to resolve")
+    def "fails if an available-at module isn't published"() {
+        buildFile << """
+            dependencies {
+                conf 'org.test:module:1.0'
+            }
+        """
+
+        when:
+        repository {
+            'org.test:module:1.0' {
+                variants(['api', 'runtime']) {
+                    availableAt("../../module2/1.0/module2-1.0.module", "org.test", "module2", "1.0")
+                }
+            }
+        }
+
+        then:
+        repositoryInteractions {
+            'org.test:module:1.0' {
+                expectGetMetadata()
+            }
+            'org.test:module2:1.0' {
+                withModule {
+                    moduleMetadata.expectGetMissing()
+                }
+            }
+        }
+        fails ":checkDeps"
+        failure.assertHasCause("Module org.test:module:1.0 is invalid because it references a variant from a module which isn't published in the same repository.")
+    }
+
+    @UnsupportedWithConfigurationCache(because = "tries to revisit a file collection which failed to resolve")
+    def "fails if an available-at module is published in a different repository"() {
+        def otherRepo = new MavenFileRepository(temporaryFolder.createDir("other-repo"))
+        otherRepo.module('org.test', 'module2', '1.0').publish()
+
+        buildFile << """
+            repositories {
+                maven {
+                    name = 'other'
+                    url = '${otherRepo.uri}'
+                }
+            }
+            dependencies {
+                conf 'org.test:module:1.0'
+            }
+        """
+
+        when:
+        repository {
+            'org.test:module:1.0' {
+                variants(['api', 'runtime']) {
+                    availableAt("../../module2/1.0/module2-1.0.module", "org.test", "module2", "1.0")
+                }
+            }
+        }
+
+        then:
+        repositoryInteractions {
+            'org.test:module:1.0' {
+                expectGetMetadata()
+            }
+            'org.test:module2:1.0' {
+                withModule {
+                    moduleMetadata.expectGetMissing()
+                }
+            }
+        }
+        fails ":checkDeps"
+        failure.assertHasCause("Module org.test:module:1.0 is invalid because it references a variant from a module which isn't published in the same repository.")
+    }
+
+    @UnsupportedWithConfigurationCache(because = "tries to revisit a file collection which failed to resolve")
+    @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
+    def "fails if an available-at module is a snapshot"() {
+        buildFile << """
+            dependencies {
+                conf 'org.test:module:1.0'
+            }
+        """
+
+        when:
+        repository {
+            'org.test:module2:1.0-SNAPSHOT' {
+                withModule(MavenModule) {
+                    withNonUniqueSnapshots() // this is just a trick because `available-at` would need to reference the timestamp otherwise
+                }
+            }
+            'org.test:module:1.0' {
+                variants(['api', 'runtime']) {
+                    availableAt("../../module2/1.0-SNAPSHOT/module2-1.0-SNAPSHOT.module", "org.test", "module2", "1.0-SNAPSHOT")
+                }
+            }
+        }
+
+        then:
+        repositoryInteractions {
+            'org.test:module:1.0' {
+                expectGetMetadata()
+            }
+            'org.test:module2:1.0-SNAPSHOT' {
+                withModule {
+                    moduleMetadata.expectGet()
+                }
+            }
+        }
+        fails ":checkDeps"
+        failure.assertHasCause("Module org.test:module:1.0 is invalid because it references a variant from a changing module: org.test:module2:1.0-SNAPSHOT.")
+    }
+
 }
