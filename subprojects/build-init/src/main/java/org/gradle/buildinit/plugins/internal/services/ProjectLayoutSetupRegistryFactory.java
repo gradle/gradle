@@ -44,6 +44,7 @@ import org.gradle.buildinit.plugins.internal.LanguageSpecificProjectGenerator;
 import org.gradle.buildinit.plugins.internal.ProjectGenerator;
 import org.gradle.buildinit.plugins.internal.ProjectLayoutSetupRegistry;
 import org.gradle.buildinit.plugins.internal.ResourceDirsGenerator;
+import org.gradle.buildinit.plugins.internal.ScalaApplicationProjectInitDescriptor;
 import org.gradle.buildinit.plugins.internal.ScalaLibraryProjectInitDescriptor;
 import org.gradle.buildinit.plugins.internal.SimpleGlobalFilesBuildSettingsDescriptor;
 import org.gradle.buildinit.plugins.internal.SwiftApplicationProjectInitDescriptor;
@@ -86,6 +87,7 @@ public class ProjectLayoutSetupRegistryFactory {
         registry.add(of(new JavaApplicationProjectInitDescriptor(libraryVersionProvider, documentationRegistry), jvmProjectGenerators));
         registry.add(of(new GroovyApplicationProjectInitDescriptor(libraryVersionProvider, documentationRegistry), jvmProjectGenerators));
         registry.add(of(new GroovyLibraryProjectInitDescriptor(libraryVersionProvider, documentationRegistry), jvmProjectGenerators));
+        registry.add(of(new ScalaApplicationProjectInitDescriptor(libraryVersionProvider, documentationRegistry), jvmProjectGenerators));
         registry.add(of(new ScalaLibraryProjectInitDescriptor(libraryVersionProvider, documentationRegistry), jvmProjectGenerators));
         registry.add(of(new CppApplicationProjectInitDescriptor(templateOperationBuilder, documentationRegistry), commonGenerators));
         registry.add(of(new CppLibraryProjectInitDescriptor(templateOperationBuilder, documentationRegistry), commonGenerators));
