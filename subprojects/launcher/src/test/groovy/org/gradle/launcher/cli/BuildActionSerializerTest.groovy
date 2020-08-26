@@ -64,7 +64,7 @@ class BuildActionSerializerTest extends SerializerSpec {
         result.startParameter."${buildOptionName}" == expectedValue
 
         where:
-        // Check all boolean properties (must manually check for setters as many of them return StartParameter)
+        // Check all mutable boolean properties (must manually check for setters as many of them return StartParameter)
         buildOptionName << Introspector.getBeanInfo(StartParameterInternal).propertyDescriptors
             .findAll { it.propertyType == boolean }
             .findAll { StartParameterInternal.methods*.name.contains("set" + it.name.capitalize()) }
