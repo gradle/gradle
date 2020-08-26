@@ -257,7 +257,9 @@ include::{snippetsPath}/multiproject/addKrill/tests/multiprojectAddKrill.out[]
 ----
 ====
 
-Is this cool or is this cool? And how does this work? The Project API provides a property `allprojects` which returns a list with the current project and all its subprojects underneath it. If you call `allprojects` with a closure, the statements of the closure are delegated to the projects associated with `allprojects`. You could also do an iteration via `allprojects.each` (in Groovy) or `allprojects.forEach` (in Kotlin), but that would be more verbose.
+The Project API provides a property `allprojects` which returns a list with the current project and all its subprojects underneath it.
+If you call `allprojects` with a closure, the statements of the closure are delegated to the projects associated with `allprojects`.
+You could also do an iteration via `allprojects.each` (in Groovy) or `allprojects.forEach` (in Kotlin), but that would be more verbose.
 
 [[sec:subproject_configuration]]
 === Subproject configuration
