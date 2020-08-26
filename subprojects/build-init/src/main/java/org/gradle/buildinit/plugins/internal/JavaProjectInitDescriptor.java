@@ -93,7 +93,7 @@ public abstract class JavaProjectInitDescriptor extends JvmProjectInitDescriptor
                         "Use TestNG framework, also requires calling test.useTestNG() below",
                         "org.testng:testng:" + libraryVersionProvider.getVersion("testng"))
                     .taskMethodInvocation(
-                        "Use TestNG for unit tests",
+                        "Use TestNG for unit tests.",
                         "test", "Test", "useTestNG");
                 break;
             case JUNIT_JUPITER:
@@ -105,12 +105,12 @@ public abstract class JavaProjectInitDescriptor extends JvmProjectInitDescriptor
                     "Use JUnit Jupiter Engine for testing.",
                     "org.junit.jupiter:junit-jupiter-engine:" + libraryVersionProvider.getVersion("junit-jupiter")
                 ).taskMethodInvocation(
-                    "Use junit platform for unit tests",
+                    "Use junit platform for unit tests.",
                     "test", "Test", "useJUnitPlatform"
                 );
                 break;
             default:
-                buildScriptBuilder.testImplementationDependency("Use JUnit test framework", "junit:junit:" + libraryVersionProvider.getVersion("junit"));
+                buildScriptBuilder.testImplementationDependency("Use JUnit test framework.", "junit:junit:" + libraryVersionProvider.getVersion("junit"));
                 break;
         }
     }
