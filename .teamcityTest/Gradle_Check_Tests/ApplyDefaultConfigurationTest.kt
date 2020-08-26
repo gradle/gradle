@@ -63,6 +63,7 @@ class ApplyDefaultConfigurationTest {
         applyDefaults(buildModel, buildType, "myTask")
 
         assertEquals(listOf(
+            "KILL_LEAKED_PROCESSES_FROM_PREVIOUS_BUILDS",
             "GRADLE_RUNNER",
             "CHECK_CLEAN_M2"
         ), steps.items.map(BuildStep::name))
