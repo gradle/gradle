@@ -43,6 +43,7 @@ abstract class AbstractPlaySampleIntegrationTest extends AbstractSampleIntegrati
     }
 
     def setup() {
+        executer.requireIsolatedDaemons()
         executer.noDeprecationChecks()
         executer.withPluginRepositoryMirror()
         initScript = file("initFile") << """
