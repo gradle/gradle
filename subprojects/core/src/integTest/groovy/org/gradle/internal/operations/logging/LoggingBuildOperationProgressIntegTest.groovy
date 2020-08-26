@@ -395,6 +395,7 @@ class LoggingBuildOperationProgressIntegTest extends AbstractIntegrationSpec {
         uniqueMessages.contains "finished operation"
     }
 
+    @IgnoreIf({ GradleContextualExecuter.watchFs })
     def "filters non supported output events"() {
         settingsFile << """
             rootProject.name = 'root'
