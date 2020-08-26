@@ -801,30 +801,7 @@ public class BuildScriptBuilder {
      */
     private interface BlockBody {
         void writeBodyTo(PrettyPrinter printer);
-    }
 
-    private static class StatementSequence implements Statement {
-        final ScriptBlockImpl statements = new ScriptBlockImpl();
-
-        public void add(Statement statement) {
-            statements.add(statement);
-        }
-
-        @Nullable
-        @Override
-        public String getComment() {
-            return null;
-        }
-
-        @Override
-        public Statement.Type type() {
-            return statements.type();
-        }
-
-        @Override
-        public void writeCodeTo(PrettyPrinter printer) {
-            statements.writeBodyTo(printer);
-        }
     }
 
     private static class BlockStatement implements Statement {
