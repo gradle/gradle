@@ -19,4 +19,5 @@ package org.gradle.internal.snapshot;
 public interface Snapshot {
 
     String getHashValue();
+
 }

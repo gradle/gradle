@@ -16,36 +16,31 @@
 
 package org.gradle.internal.snapshot.impl;
 
-import org.gradle.api.internal.file.FileCollectionFactory;
-import org.gradle.api.internal.file.FileCollectionInternal;
-import org.gradle.api.tasks.FileNormalizer;
-import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
-import org.gradle.internal.fingerprint.FileCollectionFingerprinter;
-import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry;
 import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.Snapshot;
 import org.gradle.internal.snapshot.SnapshottingService;
+import org.gradle.internal.vfs.FileSystemAccess;
 
 import javax.inject.Inject;
 import java.nio.file.Path;
 
+import static java.lang.String.format;
+
 public class DefaultSnapshottingService implements SnapshottingService {
 
-    private final FileCollectionFingerprinterRegistry fingerprinterRegistry;
-    private final FileCollectionFactory fileCollectionFactory;
-
+    private final FileSystemAccess fileSystemAccess;
     @Inject
-    public DefaultSnapshottingService(FileCollectionFingerprinterRegistry fingerprinterRegistry, FileCollectionFactory fileCollectionFactory) {
-        this.fingerprinterRegistry = fingerprinterRegistry;
-        this.fileCollectionFactory = fileCollectionFactory;
+    public DefaultSnapshottingService(FileSystemAccess fileSystemAccess) {
+        this.fileSystemAccess = fileSystemAccess;
     }
 
     @Override
-    public Snapshot snapshotFor(Path filePath, Class<? extends FileNormalizer> normalizationType) {
-        FileCollectionFingerprinter fingerprinter = fingerprinterRegistry.getFingerprinter(normalizationType);
-        FileCollectionInternal fileCollection = fileCollectionFactory.fixed(filePath.toFile());
-        CurrentFileCollectionFingerprint fingerprint = fingerprinter.fingerprint(fileCollection);
-        return new DefaultSnapshot(fingerprint.getHash());
+    public Snapshot snapshotFor(Path filePath) {
+        String absolutePath = filePath.toAbsolutePath().toString();
+        HashCode hash = fileSystemAccess.read(absolutePath, CompleteFileSystemLocationSnapshot::getHash);
+
+        return new DefaultSnapshot(hash);
     }
 
     private static class DefaultSnapshot implements Snapshot {
@@ -59,6 +54,11 @@ public class DefaultSnapshottingService implements SnapshottingService {
         @Override
         public String getHashValue() {
             return hashCode.toString();
+        }
+
+        @Override
+        public String toString() {
+            return format("DefaultSnapshottingService { hashValue='%s' }", getHashValue());
         }
     }
 }

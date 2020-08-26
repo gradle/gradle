@@ -16,12 +16,10 @@
 
 package org.gradle.internal.snapshot;
 
-import org.gradle.api.tasks.FileNormalizer;
-
 import java.nio.file.Path;
 
 public interface SnapshottingService {
 
-    Snapshot snapshotFor(Path filePath, Class<? extends FileNormalizer> normalizationType);
+    Snapshot snapshotFor(Path filePath);
 
 }
