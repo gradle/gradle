@@ -134,7 +134,9 @@ While cross-cutting aspects of subprojects can be configured using <<#sec:cross_
 doing so will make it harder to understand the logic of a particular subproject in the long term.
 With cross configuration, build logic gets injected into a subproject and this is not evident from looking at the subproject's
 build script.
-In the long run cross configuration usually grows complex with more and more conditional logic being added.
+In the long run cross configuration usually grows complex with more and more conditional logic being added which leads to a maintenance burden.
+Cross configuration can also introduce <<sec:decoupled_projects,configuration-time coupling between projects>> which can prevent optimizations like
+<<sec:configuration_on_demand,configuration-on-demand>> from working properly.
 
 There are two most common uses of cross-configuration that can be better modelled using convention plugins:
 
@@ -148,6 +150,8 @@ This use case can be modelled using <<cross_project_publications.adoc#sec:simple
 == Injecting build logic by cross-configuring projects
 
 An alternative to <<#sec:sharing_build_logic_between_subprojects,sharing build logic between subprojects via convention plugins>> is cross project configuration.
+This is a powerful feature, but one that should be used with caution.
+Before we dive into the details, do check if your <<sec:convention_plugins_vs_cross_configuration,use case can be solved using convention plugin instead>>.
 
 Let's start with a very simple multi-project build.
 Gradle is a general purpose build tool at its core, so the projects don't have to be Java projects.
