@@ -267,10 +267,6 @@ You could also do an iteration via `allprojects.each` (in Groovy) or `allproject
 The Project API also provides a property for accessing the subprojects only.
 
 
-[[sec:defining_common_behavior_subprojects]]
-==== Defining common behavior
-
-
 .Defining common behavior of all projects and subprojects
 ====
 include::sample[dir="snippets/multiproject/useSubprojects/groovy",files="build.gradle[]"]
