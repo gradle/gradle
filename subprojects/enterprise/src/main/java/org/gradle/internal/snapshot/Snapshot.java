@@ -16,8 +16,14 @@
 
 package org.gradle.internal.snapshot;
 
+/**
+ * Snapshot directory or regular file.
+ */
 public interface Snapshot {
 
+    /**
+     * Returns the hash of the snapshot.
+     */
     String getHashValue();
 
 }
