@@ -21,6 +21,7 @@ import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
 import org.gradle.buildinit.plugins.internal.modifiers.ComponentType;
 import org.gradle.buildinit.plugins.internal.modifiers.Language;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -83,5 +84,12 @@ public class LanguageSpecificAdaptor implements ProjectGenerator {
         BuildScriptBuilder buildScriptBuilder = scriptBuilderFactory.script(settings.getDsl(), settings.getSubprojectName() + "/build");
         descriptor.generate(settings, buildScriptBuilder, new TemplateFactory(settings, descriptor.getLanguage(), templateOperationFactory));
         buildScriptBuilder.create(settings.getTarget()).generate();
+    }
+
+    public List<String> generateWithExternalComments(InitSettings settings) {
+        BuildScriptBuilder buildScriptBuilder = scriptBuilderFactory.scriptWithExternalComments(settings.getDsl(), settings.getSubprojectName() + "/build");
+        descriptor.generate(settings, buildScriptBuilder, new TemplateFactory(settings, descriptor.getLanguage(), templateOperationFactory));
+        buildScriptBuilder.create(settings.getTarget()).generate();
+        return buildScriptBuilder.extractComments();
     }
 }
