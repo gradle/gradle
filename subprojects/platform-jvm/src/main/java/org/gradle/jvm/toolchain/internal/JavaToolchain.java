@@ -31,17 +31,25 @@ import java.io.File;
 
 public class JavaToolchain implements Describable {
 
-    private final JavaInstallationProbe.ProbeResult probe;
+    private final boolean isJdk;
     private final JavaCompilerFactory compilerFactory;
     private final ToolchainToolFactory toolFactory;
     private final File javaHome;
+    private final VersionNumber implementationVersion;
+    private final JavaVersion javaVersion;
 
     @Inject
     public JavaToolchain(JavaInstallationProbe.ProbeResult probe, JavaCompilerFactory compilerFactory, ToolchainToolFactory toolFactory) {
-        this.probe = probe;
-        this.javaHome = computeJavaHome(probe);
+        this(probe.getJavaHome(), probe.getJavaVersion(), probe.getImplementationJavaVersion(), probe.getInstallType() == JavaInstallationProbe.InstallType.IS_JDK, compilerFactory, toolFactory);
+    }
+
+    JavaToolchain(File javaHome, JavaVersion version, String implementationJavaVersion, boolean isJdk, JavaCompilerFactory compilerFactory, ToolchainToolFactory toolFactory) {
+        this.javaHome = computeEnclosingJavaHome(javaHome);
+        this.javaVersion = version;
+        this.isJdk = isJdk;
         this.compilerFactory = compilerFactory;
         this.toolFactory = toolFactory;
+        this.implementationVersion = VersionNumber.parse(implementationJavaVersion);
     }
 
     @Internal
@@ -61,22 +69,22 @@ public class JavaToolchain implements Describable {
 
     @Input
     public JavaVersion getJavaMajorVersion() {
-        return probe.getJavaVersion();
+        return javaVersion;
     }
 
     @Internal
     public VersionNumber getToolVersion() {
-        return VersionNumber.parse(probe.getImplementationJavaVersion());
+        return implementationVersion;
     }
 
     @Internal
     public File getJavaHome() {
-        return probe.getJavaHome();
+        return javaHome;
     }
 
     @Internal
     public boolean isJdk() {
-        return probe.getInstallType() == JavaInstallationProbe.InstallType.IS_JDK;
+        return isJdk;
     }
 
     @Internal
@@ -89,8 +97,7 @@ public class JavaToolchain implements Describable {
         return new File(getJavaHome(), getBinaryPath(toolname));
     }
 
-    private File computeJavaHome(JavaInstallationProbe.ProbeResult probe) {
-        final File home = probe.getJavaHome();
+    private File computeEnclosingJavaHome(File home) {
         final File parentFile = home.getParentFile();
         final boolean isEmbeddedJre = home.getName().equalsIgnoreCase("jre");
         if (isEmbeddedJre && new File(parentFile, getBinaryPath("java")).exists()) {
