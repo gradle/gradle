@@ -28,14 +28,14 @@ class TemplateOperationFactorySpec extends Specification {
     TemplateOperationFactory factory
 
     def setup() {
-        factory = new TemplateOperationFactory("/some/template/package", fileResolver, documentationRegistry)
+        factory = new TemplateOperationFactory("/some/template/package", documentationRegistry)
         builder = factory.newTemplateOperation()
         builder.withTemplate(GroovyMock(URL))
         _ * fileResolver.resolve(_) >> { String fileName ->
             File fileMock = Mock(File)
             fileMock
         }
-        builder.withTarget("someTarget")
+        builder.withTarget(new File("someTarget"))
     }
 
     def "factory creates isolated builders"() {
@@ -45,7 +45,7 @@ class TemplateOperationFactorySpec extends Specification {
         def operation2 = factory.newTemplateOperation()
 
         operation1.withBindings(key:"value")
-        operation1.withTarget("atarget")
+        operation1.withTarget(new File("atarget"))
 
         then:
         operation1 != operation2

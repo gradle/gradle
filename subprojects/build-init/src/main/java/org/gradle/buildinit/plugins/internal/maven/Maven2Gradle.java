@@ -37,7 +37,6 @@ import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
 import org.gradle.util.RelativePathUtil;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -64,7 +63,7 @@ public class Maven2Gradle {
     private final Directory workingDir;
     private final BuildInitDsl dsl;
 
-    public Maven2Gradle(Set<MavenProject> mavenProjects, Directory workingDir, BuildInitDsl dsl, BuildScriptBuilderFactory scriptBuilderFactory) throws IOException {
+    public Maven2Gradle(Set<MavenProject> mavenProjects, Directory workingDir, BuildInitDsl dsl, BuildScriptBuilderFactory scriptBuilderFactory) {
         assert !mavenProjects.isEmpty(): "No Maven projects provided.";
         this.allProjects = mavenProjects;
         this.rootProject = mavenProjects.iterator().next();
