@@ -124,6 +124,14 @@ This value, nested in `variants`, must contain an object with the following valu
 - `module`: The name of the module. A string
 - `version`: The version of the module. A string
 
+There are a number of constraints when using the `available-at` feature:
+
+- the module referenced by the `available-at` must be published in the same repository as the including module
+- the module referenced by the `available-at` must exist before the including module is first resolved. This means that if different builds produce the including module and the included modules, then before a consumer starts using the including module all other modules must be published.
+- the module referenced by the `available-at` must not be changing (typically mustn't be a `SNAPSHOT`)
+
+The attributes of the variant which has an `available-at` must match exactly the attributes of one variant in the included module.
+
 ### `dependencies` value
 
 This value, nested in `variants`, must contain an array with zero or more elements. Each element must be an object with the following values:
