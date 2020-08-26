@@ -17,7 +17,9 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser
 
 import com.google.common.collect.ImmutableMap
+import org.gradle.api.GradleException
 import org.gradle.api.Transformer
+import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.VersionConstraint
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
@@ -588,7 +590,7 @@ class GradleModuleMetadataParserTest extends Specification {
         0 * _
     }
 
-    def "parses content with variants in another module and falls back to dependencies when resource is not available"() {
+    def "parses content with variants in another module and fails when resource is not available"() {
         def metadata = Mock(MutableModuleComponentResolveMetadata)
         def variant1 = Mock(MutableComponentVariant)
         def variant2 = Mock(MutableComponentVariant)
@@ -624,20 +626,16 @@ class GradleModuleMetadataParserTest extends Specification {
 '''), metadata, artifactResolver, Mock(MutableModuleMetadataFactory))
 
         then:
-        1 * metadata.addVariant("api", attributes(usage: "compile")) >> variant1
-        1 * variant1.addDependency("g1", "m1", version("v1"), [], null, ImmutableAttributes.EMPTY, [], false, null)
-        1 * metadata.addVariant("runtime", attributes(usage: "runtime", packaging: "zip")) >> variant2
-        1 * variant2.addDependency("g2", "m2", version("v2"), [], null, ImmutableAttributes.EMPTY, [], false, null)
-        1 * metadata.getMutableVariants()
+        1 * metadata.getModuleVersionId() >> Stub(ModuleVersionIdentifier) {
+            toString() >> 'org:foo:1.0'
+        }
         1 * artifactResolver.resolveArtifact({ artifact ->
             artifact instanceof UrlBackedArtifactMetadata &&
                 artifact.relativeUrl == '../elsewhere/elsewhere-v1.module'
         }, _) >> null
-        1 * artifactResolver.resolveArtifact({ artifact ->
-            artifact instanceof UrlBackedArtifactMetadata &&
-                artifact.relativeUrl == '../elsewhere/elsewhere-v2.module'
-        }, _) >> null
         0 * _
+        GradleException e = thrown()
+        e.cause.message == 'Module org:foo:1.0 is invalid because it references a variant from a module which isn\'t published in the same repository.'
     }
 
     def "parses content with variants in another module and inlines parsed variants"() {
@@ -677,6 +675,7 @@ class GradleModuleMetadataParserTest extends Specification {
 '''), metadata, artifactResolver, metadataFactory)
 
         then:
+        2 * metadata.getModuleVersionId() >> Stub(ModuleVersionIdentifier)
         1 * metadata.addVariant("api", attributes(usage: "compile")) >> variant1
         0 * variant1.addDependency(_, _, _, _, _, _, _, _, _)
         1 * metadata.addVariant("runtime", attributes(usage: "runtime", packaging: "zip")) >> variant2
@@ -852,6 +851,7 @@ class GradleModuleMetadataParserTest extends Specification {
         }"""), metadata, Mock(ExternalResourceArtifactResolver), Mock(MutableModuleMetadataFactory))
 
         then:
+        _ * metadata.getModuleVersionId() >> Stub(ModuleVersionIdentifier)
         0 * _
         def e = thrown(MetaDataParseException)
         e.cause.message == "missing '$attribute' at $path"

@@ -409,9 +409,6 @@ public class GradleModuleMetadataParser {
             if (targetComponent instanceof MutableMavenModuleResolveMetadata) {
                 MavenResolver.processMetaData((MutableMavenModuleResolveMetadata) targetComponent);
             }
-            if (targetComponent.isChanging()) {
-                throw invalidReferenceToExternalModule(id, "it references a variant from a changing module: " + targetComponent.getModuleVersionId() + ".");
-            }
             return ExternalVariant.of(url, targetComponent, fallbackDependencies);
         } else {
             throw invalidReferenceToExternalModule(id, "it references a variant from a module which isn't published in the same repository.");

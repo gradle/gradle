@@ -797,6 +797,11 @@ dependencies { implementation 'some.group:greeter:1.2' }
         assertMainModuleIsPublished('some.group', 'shuffle', '1.2', targetMachines)
         assertVariantsArePublished('some.group', 'shuffle', '1.2', ['debug', 'release'], targetMachines)
 
+        // The following part of the test is commented because this used to work
+        // but because of #14017 we can't support this anymore: when a consumer
+        // consumes a module which uses `available-at`, then _all_ variants must
+        // be published beforehand
+        /*
         when:
         def consumer = file("consumer").createDir()
         consumer.file('settings.gradle') << ''
@@ -816,6 +821,7 @@ dependencies { implementation 'some.group:greeter:1.2' }
         sharedLibrary(consumer.file("build/install/main/debug/lib/card")).file.assertExists()
         sharedLibrary(consumer.file("build/install/main/debug/lib/shuffle")).file.assertExists()
         installation(consumer.file("build/install/main/debug")).exec().out == app.expectedOutput
+         */
     }
 
     @RequiresInstalledToolChain(ToolChainRequirement.SUPPORTS_32_AND_64)

@@ -446,6 +446,12 @@ class CppApplicationPublishingIntegrationTest extends AbstractCppPublishingInteg
         assertMainModuleIsPublished('some.group', 'test', '1.2', targetMachines)
         assertVariantsArePublished('some.group', 'test', '1.2', ['debug', 'release'], targetMachines)
 
+        // The following part of the test is commented because this used to work
+        // but because of #14017 we can't support this anymore: when a consumer
+        // consumes a module which uses `available-at`, then _all_ variants must
+        // be published beforehand
+        /*
+
         when:
         consumer.file("build.gradle") << """
             configurations {
@@ -463,6 +469,8 @@ class CppApplicationPublishingIntegrationTest extends AbstractCppPublishingInteg
         then:
         def installation = installation("consumer/install")
         installation.exec().out == app.expectedOutput
+
+         */
     }
 
     // macOS can only build 64-bit under 10.14+
