@@ -30,6 +30,7 @@ import org.gradle.execution.MultipleBuildFailures;
 import org.gradle.initialization.buildsrc.BuildSourceBuilder;
 import org.gradle.initialization.exception.ExceptionAnalyser;
 import org.gradle.initialization.layout.BuildLayout;
+import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.service.scopes.BuildScopeServices;
 
@@ -230,6 +231,10 @@ public class DefaultGradleLauncher implements GradleLauncher {
 
     private void prepareProjects() {
         if (stage == Stage.LoadSettings) {
+            if (gradle.isRootBuild()) {
+                gradle.getServices().get(BuildStateRegistry.class).beforeConfigureRootBuild();
+            }
+
             ClassLoaderScope baseProjectClassLoaderScope = buildSourceBuilder.buildAndCreateClassLoader(gradle);
             gradle.setBaseProjectClassLoaderScope(baseProjectClassLoaderScope);
             projectsPreparer.prepareProjects(gradle);

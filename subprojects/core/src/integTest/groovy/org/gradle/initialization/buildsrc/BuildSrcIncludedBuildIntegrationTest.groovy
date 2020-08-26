@@ -17,6 +17,7 @@
 package org.gradle.initialization.buildsrc
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.test.fixtures.plugin.PluginBuilder
 
 
 class BuildSrcIncludedBuildIntegrationTest extends AbstractIntegrationSpec {
@@ -31,5 +32,25 @@ class BuildSrcIncludedBuildIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         failure.assertHasDescription("Cannot include build 'child' in build 'buildSrc'. This is not supported yet.")
+    }
+
+    def "buildSrc can rely on plugins contributed by other included builds"() {
+        file("buildSrc/build.gradle") << """
+            plugins {
+                id "test-plugin"
+            }
+        """
+
+        def pluginBuilder = new PluginBuilder(file("included"))
+        pluginBuilder.addPlugin("println 'test-plugin applied'")
+        pluginBuilder.prepareToExecute()
+
+        settingsFile << """
+            includeBuild("included")
+        """
+        when:
+        succeeds("help")
+        then:
+        outputContains("test-plugin applied")
     }
 }

@@ -515,13 +515,12 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         return new TaskPathProjectEvaluator(cancellationToken);
     }
 
-    protected ProjectsPreparer createBuildConfigurer(ProjectConfigurer projectConfigurer, BuildStateRegistry buildStateRegistry, BuildLoader buildLoader, ListenerManager listenerManager, BuildOperationExecutor buildOperationExecutor) {
+    protected ProjectsPreparer createBuildConfigurer(ProjectConfigurer projectConfigurer, BuildLoader buildLoader, ListenerManager listenerManager, BuildOperationExecutor buildOperationExecutor) {
         ModelConfigurationListener modelConfigurationListener = listenerManager.getBroadcaster(ModelConfigurationListener.class);
         return new BuildOperationFiringProjectsPreparer(
             new DefaultProjectsPreparer(
                 projectConfigurer,
-                buildStateRegistry,
-                buildLoader,
+                    buildLoader,
                 modelConfigurationListener,
                 buildOperationExecutor),
             buildOperationExecutor);
