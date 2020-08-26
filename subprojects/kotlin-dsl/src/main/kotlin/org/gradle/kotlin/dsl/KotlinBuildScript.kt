@@ -40,6 +40,7 @@ import kotlin.script.templates.ScriptTemplateDefinition
     scriptFilePattern = ".*\\.gradle\\.kts"
 )
 @ScriptTemplateAdditionalCompilerArguments([
+    "-language-version", "1.3",
     "-jvm-target", "1.8",
     "-Xjsr305=strict",
     "-XXLanguage:+NewInference",
