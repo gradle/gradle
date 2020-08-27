@@ -16,13 +16,13 @@
 
 package org.gradle.api.plugins.quality.pmd
 
-import org.gradle.api.plugins.quality.PmdPlugin
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
-import org.gradle.integtests.fixtures.TargetVersions
+import org.gradle.integtests.fixtures.TargetCoverage
+import org.gradle.quality.integtest.fixtures.PmdCoverage
 import org.gradle.util.TestPrecondition
 import org.gradle.util.VersionNumber
 
-@TargetVersions([PmdPlugin.DEFAULT_PMD_VERSION, '4.3', '5.0.5', '5.1.1', '5.3.3', '6.0.0' /*Java 9*/, '6.13.0' /*Java 12*/])
+@TargetCoverage({ PmdCoverage.getSupportedVersionsByJdk() })
 class AbstractPmdPluginVersionIntegrationTest extends MultiVersionIntegrationSpec {
     String calculateDefaultDependencyNotation() {
         if (versionNumber < VersionNumber.version(5)) {

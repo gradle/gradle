@@ -31,7 +31,7 @@ import java.io.File;
  */
 public class CodeNarcPlugin extends AbstractCodeQualityPlugin<CodeNarc> {
 
-    public static final String DEFAULT_CODENARC_VERSION = "1.5";
+    public static final String DEFAULT_CODENARC_VERSION = "1.6.1";
     private CodeNarcExtension extension;
 
     @Override
