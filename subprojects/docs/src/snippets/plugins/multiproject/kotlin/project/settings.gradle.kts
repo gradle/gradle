@@ -5,8 +5,8 @@ pluginManagement {
 }
 
 // tag::include-subprojects[]
-include("helloA")
-include("helloB")
+include("hello-a")
+include("hello-b")
 include("goodbye-c")
 // end::include-subprojects[]
 
