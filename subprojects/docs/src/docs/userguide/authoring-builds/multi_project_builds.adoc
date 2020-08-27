@@ -473,20 +473,20 @@ include::{snippetsPath}/multiproject/tropicalWithProperties/tests-common/multipr
 ----
 ====
 
-In the build file of the `water` project we use an `afterEvaluate` notification. This means that the closure we are passing gets evaluated _after_ the build scripts of the subproject are evaluated. As the property `arctic` is set in those build scripts, we have to do it this way. You will find more on this topic in <<#sec:dependencies_which_dependencies,Dependencies — Which Dependencies?>>
-
-
-[[sec:dependencies_which_dependencies]]
-== Dependencies - Which dependencies?
-
-The examples from the last section were special, as the projects had no _Execution Dependencies_. They had only _Configuration Dependencies_. The following sections illustrate the differences between these two types of dependencies.
+In the build file of the `water` project we use an `afterEvaluate` notification.
+This means that the closure we are passing gets evaluated _after_ the build scripts of the subprojects are evaluated.
+As the property `arctic` is set in those build scripts, we need to have them evaluated before this property becomes available.
 
 
 [[sub:execution_time_dependencies]]
-=== Execution dependencies
+== Execution dependencies
+
+The examples from the last section were special, as the projects had no _Execution Dependencies_.
+They had only _Configuration Dependencies_.
+The following sections illustrate the differences between these two types of dependencies.
 
 [[ssub:dependencies_and_execution_order]]
-==== Dependencies and execution order
+=== Dependencies and execution order
 
 .Dependencies and execution order
 ====
