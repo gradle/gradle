@@ -40,7 +40,7 @@ object WarmupEc2Agent : BuildType({
             tasks = "resolveAllDependencies"
             gradleParams = (
                     buildToolGradleParameters(isContinue = false) +
-                    builtInRemoteBuildCacheNode.gradleParameters(Os.linux)
+                    builtInRemoteBuildCacheNode.gradleParameters(Os.LINUX)
             ).joinToString(separator = " ")
         }
     }

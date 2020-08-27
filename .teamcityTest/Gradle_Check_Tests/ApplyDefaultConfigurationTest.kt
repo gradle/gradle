@@ -97,7 +97,7 @@ class ApplyDefaultConfigurationTest {
         "''     , false, '--no-daemon'"
     ])
     fun `can apply defaults to windows test configurations`(extraParameters: String, daemon: Boolean, expectedDaemonParam: String) {
-        applyTestDefaults(buildModel, buildType, "myTask", os = Os.windows, extraParameters = extraParameters, daemon = daemon)
+        applyTestDefaults(buildModel, buildType, "myTask", os = Os.WINDOWS, extraParameters = extraParameters, daemon = daemon)
 
         assertEquals(listOf(
             "ATTACH_FILE_LEAK_DETECTOR",

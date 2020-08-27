@@ -8,17 +8,16 @@ import common.checkCleanM2
 import common.gradleWrapper
 import common.individualPerformanceTestArtifactRules
 import common.performanceTestCommandLine
-import configurations.individualPerformanceTestJavaHome
-import configurations.killAllGradleProcesses
 import jetbrains.buildServer.configs.kotlin.v2019_2.BuildStep
 import jetbrains.buildServer.configs.kotlin.v2019_2.BuildType
 import jetbrains.buildServer.configs.kotlin.v2019_2.ParameterDisplay
 import jetbrains.buildServer.configs.kotlin.v2019_2.buildSteps.script
 
-object AdHocPerformanceScenarioLinux : BuildType({
-    uuid = "a3183d81-e07d-475c-8ef6-04ed60bf4053"
-    name = "AdHoc Performance Scenario - Linux"
-    id("Gradle_Util_Performance_AdHocPerformanceScenarioLinux")
+abstract class AdHocPerformanceScenario(os: Os) : BuildType({
+    val id = "Gradle_Util_Performance_AdHocPerformanceScenario${os.name.toLowerCase().capitalize()}"
+    this.uuid = id
+    name = "AdHoc Performance Scenario - ${os.name.toLowerCase().capitalize()}"
+    id(id)
 
     applyPerformanceTestSettings(timeout = 420)
     artifactRules = individualPerformanceTestArtifactRules
@@ -31,20 +30,23 @@ object AdHocPerformanceScenarioLinux : BuildType({
         text("runs", "10", display = ParameterDisplay.PROMPT, allowEmpty = false)
         text("warmups", "3", display = ParameterDisplay.PROMPT, allowEmpty = false)
         text("scenario", "", display = ParameterDisplay.PROMPT, allowEmpty = false)
-        param("flamegraphs", "--flamegraphs true")
-        param("env.FG_HOME_DIR", "/opt/FlameGraph")
-        param("additional.gradle.parameters", "")
 
-        param("env.ANDROID_HOME", "/opt/android/sdk")
-        param("env.PATH", "%env.PATH%:/opt/swift/4.2.3/usr/bin")
-        param("env.HP_HOME_DIR", "/opt/honest-profiler")
+        if (os != Os.WINDOWS) {
+            param("flamegraphs", "--flamegraphs true")
+            param("env.FG_HOME_DIR", "/opt/FlameGraph")
+            param("env.PATH", "%env.PATH%:/opt/swift/4.2.3/usr/bin")
+            param("env.HP_HOME_DIR", "/opt/honest-profiler")
+        }
+
+        param("additional.gradle.parameters", "")
+        param("env.ANDROID_HOME", os.androidHome)
     }
 
     steps {
         script {
             name = "KILL_GRADLE_PROCESSES"
             executionMode = BuildStep.ExecutionMode.ALWAYS
-            scriptContent = killAllGradleProcesses
+            scriptContent = os.killAllGradleProcesses
         }
         gradleWrapper {
             name = "GRADLE_RUNNER"
@@ -53,12 +55,16 @@ object AdHocPerformanceScenarioLinux : BuildType({
                     "clean %templates% performance:performanceAdHocTest",
                     "%baselines%",
                     """--scenarios "%scenario%" --warmups %warmups% --runs %runs% --checks %checks% --channel %channel% %flamegraphs% %additional.gradle.parameters%""",
-                    individualPerformanceTestJavaHome(Os.linux)
+                    Os.LINUX
                 ) +
                     buildToolGradleParameters(isContinue = false) +
-                    builtInRemoteBuildCacheNode.gradleParameters(Os.linux)
+                    builtInRemoteBuildCacheNode.gradleParameters(Os.LINUX)
                 ).joinToString(separator = " ")
         }
         checkCleanM2()
     }
 })
+
+object AdHocPerformanceScenarioLinux : AdHocPerformanceScenario(Os.LINUX)
+object AdHocPerformanceScenarioWindows : AdHocPerformanceScenario(Os.WINDOWS)
+object AdHocPerformanceScenarioMacOS : AdHocPerformanceScenario(Os.MACOS)

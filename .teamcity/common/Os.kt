@@ -16,6 +16,31 @@
 
 package common
 
-enum class Os(val agentRequirement: String, val ignoredSubprojects: List<String> = emptyList()) {
-    linux("Linux"), windows("Windows"), macos("Mac", listOf("integ-test", "native", "plugins", "resources", "scala", "workers", "wrapper", "platform-play", "tooling-native"))
+val killAllGradleProcessesUnixLike = """
+    free -m
+    ps aux | egrep 'Gradle(Daemon|Worker)'
+    ps aux | egrep 'Gradle(Daemon|Worker)' | awk '{print ${'$'}2}' | xargs kill -9
+    free -m
+    ps aux | egrep 'Gradle(Daemon|Worker)' | awk '{print ${'$'}2}'
+""".trimIndent()
+
+val killAllGradleProcessesWindows = """
+    wmic OS get FreePhysicalMemory,FreeVirtualMemory,FreeSpaceInPagingFiles /VALUE
+    wmic Path win32_process Where "name='java.exe'"
+    wmic Path win32_process Where "name='java.exe' AND CommandLine Like '%%GradleDaemon%%'" Call Terminate
+    wmic Path win32_process Where "name='java.exe' AND CommandLine Like '%%GradleWorker%%'" Call Terminate
+    wmic OS get FreePhysicalMemory,FreeVirtualMemory,FreeSpaceInPagingFiles /VALUE
+    wmic Path win32_process Where "name='java.exe'"
+""".trimIndent()
+
+enum class Os(val agentRequirement: String, val ignoredSubprojects: List<String> = emptyList(), val androidHome: String, val killAllGradleProcesses: String) {
+    LINUX("Linux", androidHome = "/opt/android/sdk", killAllGradleProcesses = killAllGradleProcessesUnixLike),
+    WINDOWS("Windows", androidHome = """C:\Program Files\android\sdk""", killAllGradleProcesses = killAllGradleProcessesWindows),
+    MACOS("Mac",
+        listOf("integ-test", "native", "plugins", "resources", "scala", "workers", "wrapper", "platform-play", "tooling-native"),
+        androidHome = "/opt/android/sdk",
+        killAllGradleProcesses = killAllGradleProcessesUnixLike
+    );
+
+    fun escapeKeyValuePair(key: String, value: String) = if (this == WINDOWS) """$key="$value"""" else """"$key=$value""""
 }

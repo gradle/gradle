@@ -36,6 +36,6 @@ object MasterSanityCheck : BuildType({
     }
 
     requirements {
-        requiresOs(Os.linux)
+        requiresOs(Os.LINUX)
     }
 })

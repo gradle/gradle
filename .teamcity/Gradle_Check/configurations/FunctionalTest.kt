@@ -28,7 +28,7 @@ class FunctionalTest(
     val testTasks = getTestTaskName(testCoverage, stage, subprojects)
     val buildScanTags = listOf("FunctionalTest")
     val buildScanValues = mapOf(
-        "coverageOs" to testCoverage.os.name,
+        "coverageOs" to testCoverage.os.name.toLowerCase(),
         "coverageJvmVendor" to testCoverage.vendor.name,
         "coverageJvmVersion" to testCoverage.testJvmVersion.name
     )
@@ -61,18 +61,10 @@ class FunctionalTest(
         }
 
         param("env.JAVA_HOME", "%${testCoverage.os}.${testCoverage.buildJvmVersion}.openjdk.64bit%")
-        when (testCoverage.os) {
-            Os.linux -> {
-                param("env.ANDROID_HOME", "/opt/android/sdk")
-            }
-            Os.macos -> {
-                param("env.ANDROID_HOME", "/opt/android/sdk")
-                // Use fewer parallel forks on macOs, since the agents are not very powerful.
-                param("maxParallelForks", "2")
-            }
-            Os.windows -> {
-                param("env.ANDROID_HOME", """C:\Program Files\android\sdk""")
-            }
+        param("env.ANDROID_HOME", testCoverage.os.androidHome)
+        if (testCoverage.os == Os.MACOS) {
+            // Use fewer parallel forks on macOs, since the agents are not very powerful.
+            param("maxParallelForks", "2")
         }
 
         if (testCoverage.testDistribution) {

@@ -33,7 +33,7 @@ abstract class BasePromotionBuildType(vcsRoot: GitVcsRoot, cleanCheckout: Boolea
         }
 
         requirements {
-            requiresOs(Os.linux)
+            requiresOs(Os.LINUX)
         }
 
         params {
