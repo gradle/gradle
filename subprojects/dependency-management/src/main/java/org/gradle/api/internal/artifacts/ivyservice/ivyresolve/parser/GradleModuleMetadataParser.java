@@ -45,6 +45,7 @@ import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.internal.component.external.model.AvailableAtUrlBackedArtifactMetadata;
 import org.gradle.internal.component.external.model.ComponentVariant;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 import org.gradle.internal.component.external.model.DefaultShadowedCapability;
@@ -67,11 +68,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import static com.google.gson.stream.JsonToken.BOOLEAN;
-import static com.google.gson.stream.JsonToken.END_ARRAY;
-import static com.google.gson.stream.JsonToken.END_OBJECT;
-import static com.google.gson.stream.JsonToken.NULL;
-import static com.google.gson.stream.JsonToken.NUMBER;
+import static com.google.gson.stream.JsonToken.*;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.apache.commons.lang.StringUtils.capitalize;
 
@@ -395,12 +392,13 @@ public class GradleModuleMetadataParser {
         ModuleComponentIdentifier targetId = DefaultModuleComponentIdentifier.newId(
             DefaultModuleIdentifier.newId(group, module), version
         );
+        UrlBackedArtifactMetadata artifact = new AvailableAtUrlBackedArtifactMetadata(
+            targetId,
+            module + "-" + version + ".module",
+            url
+        );
         LocallyAvailableExternalResource resource = externalArtifactResolver.resolveArtifact(
-            new UrlBackedArtifactMetadata(
-                targetId,
-                module + "-" + version + ".module",
-                url
-            ), result
+            artifact, result
         );
         ImmutableList<ModuleDependency> fallbackDependencies = ImmutableList.of(new ModuleDependency(group, module, new DefaultImmutableVersionConstraint(version), ImmutableList.of(), null, ImmutableAttributes.EMPTY, Collections.emptyList(), false, null));
         if (resource != null) {

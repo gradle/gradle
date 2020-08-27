@@ -67,7 +67,15 @@ public class GradleModuleMetadataCompatibilityConverter {
                 if (invalidFiles != null) {
                     for (ComponentVariant.File invalidFile : invalidFiles) {
                         mutableVariant.removeFile(invalidFile);
-                        mutableVariant.addFile(invalidFile.getName(), invalidFile.getUri().replace("SNAPSHOT", uniqueIdentifier.getTimestamp()));
+                        String uri = invalidFile.getUri();
+                        int idx = uri.lastIndexOf("/");
+                        if (idx > 0) {
+                            String prefix = uri.substring(0, idx);
+                            uri = prefix + uri.substring(idx).replace("SNAPSHOT", uniqueIdentifier.getTimestamp());
+                        } else {
+                            uri = uri.replace("SNAPSHOT", uniqueIdentifier.getTimestamp());
+                        }
+                        mutableVariant.addFile(invalidFile.getName(), uri);
                     }
                 }
             }

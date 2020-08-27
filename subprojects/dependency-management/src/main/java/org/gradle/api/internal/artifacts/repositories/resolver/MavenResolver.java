@@ -28,10 +28,12 @@ import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransp
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.api.resources.MissingResourceException;
 import org.gradle.internal.action.InstantiatingAction;
+import org.gradle.internal.component.external.model.AvailableAtUrlBackedArtifactMetadata;
 import org.gradle.internal.component.external.model.FixedComponentArtifacts;
 import org.gradle.internal.component.external.model.MetadataSourcedComponentArtifacts;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
+import org.gradle.internal.component.external.model.UrlBackedArtifactMetadata;
 import org.gradle.internal.component.external.model.maven.MavenModuleResolveMetadata;
 import org.gradle.internal.component.external.model.maven.MutableMavenModuleResolveMetadata;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
@@ -47,6 +49,7 @@ import org.gradle.internal.resolve.result.DefaultResourceAwareResolveResult;
 import org.gradle.internal.resolve.result.ResourceAwareResolveResult;
 import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.local.FileStore;
+import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
 
 import javax.annotation.Nullable;
@@ -140,13 +143,13 @@ public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMe
 
     @Override
     protected ExternalResourceArtifactResolver createArtifactResolver(final ModuleSources moduleSources) {
-        return moduleSources.withSource(MavenUniqueSnapshotModuleSource.class, source -> {
+        return new AvailableAtSnapshotUrlResolver(moduleSources.withSource(MavenUniqueSnapshotModuleSource.class, source -> {
             if (source.isPresent()) {
                 return new MavenUniqueSnapshotExternalResourceArtifactResolver(super.createArtifactResolver(moduleSources), source.get());
             } else {
                 return super.createArtifactResolver(moduleSources);
             }
-        });
+        }), this);
     }
 
     public void addArtifactLocation(URI baseUri) {
@@ -292,5 +295,42 @@ public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMe
             moduleComponentIdentifier.getModuleIdentifier(),
             moduleComponentIdentifier.getVersion(),
             uniqueSnapshotVersion.getTimestamp());
+    }
+
+    private static class AvailableAtSnapshotUrlResolver implements ExternalResourceArtifactResolver {
+        private final ExternalResourceArtifactResolver delegate;
+        private final MavenResolver mavenResolver;
+
+        public AvailableAtSnapshotUrlResolver(ExternalResourceArtifactResolver delegate, MavenResolver mavenResolver) {
+            this.delegate = delegate;
+            this.mavenResolver = mavenResolver;
+        }
+
+        @Override
+        @Nullable
+        public LocallyAvailableExternalResource resolveArtifact(ModuleComponentArtifactMetadata artifact, ResourceAwareResolveResult result) {
+            if (artifact instanceof AvailableAtUrlBackedArtifactMetadata) {
+                AvailableAtUrlBackedArtifactMetadata availableAt = (AvailableAtUrlBackedArtifactMetadata) artifact;
+                String relativeUrl = availableAt.getRelativeUrl();
+                if (relativeUrl.endsWith("-SNAPSHOT.module")) {
+                    MavenUniqueSnapshotModuleSource uniqueSnapshotVersion = mavenResolver.findUniqueSnapshotVersion(availableAt.getComponentId(), new DefaultResourceAwareResolveResult());
+                    if (uniqueSnapshotVersion != null) {
+                        String fixedFileName = availableAt.getFileName().replace("-SNAPSHOT", "-" + uniqueSnapshotVersion.getTimestamp());
+                        UrlBackedArtifactMetadata fixedUrl = new UrlBackedArtifactMetadata(
+                            availableAt.getComponentId(),
+                            fixedFileName,
+                            relativeUrl.replace(availableAt.getFileName(), fixedFileName)
+                        );
+                        return delegate.resolveArtifact(fixedUrl, result);
+                    }
+                }
+            }
+            return delegate.resolveArtifact(artifact, result);
+        }
+
+        @Override
+        public boolean artifactExists(ModuleComponentArtifactMetadata artifact, ResourceAwareResolveResult result) {
+            return delegate.artifactExists(artifact, result);
+        }
     }
 }
