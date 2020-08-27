@@ -32,7 +32,7 @@ class ConfigurationCacheJavaIntegrationTest extends AbstractConfigurationCacheIn
 
     def "can add JavaExec mainClass convention to automatically find class at execution time"() {
         given:
-        def confCache = newConfigurationCacheFixture()
+        def configurationCache = newConfigurationCacheFixture()
         buildFile """
 
             plugins {
@@ -78,14 +78,14 @@ class ConfigurationCacheJavaIntegrationTest extends AbstractConfigurationCacheIn
 
         then:
         outputContains 'it works!'
-        confCache.assertStateStored()
+        configurationCache.assertStateStored()
 
         when:
         configurationCacheRun 'run'
 
         then:
         outputContains 'it works!'
-        confCache.assertStateLoaded()
+        configurationCache.assertStateLoaded()
     }
 
     def "build on Java project with no source"() {
