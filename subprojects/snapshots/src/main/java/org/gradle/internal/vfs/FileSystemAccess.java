@@ -17,7 +17,6 @@
 package org.gradle.internal.vfs;
 
 import org.gradle.internal.hash.HashCode;
-import org.gradle.internal.scan.UsedByScanPlugin;
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.SnapshottingFilter;
 
@@ -32,7 +31,6 @@ import java.util.function.Function;
  *
  * The file system access needs to be informed when some state on disk changes, so it does not become out of sync with the actual file system.
  */
-@UsedByScanPlugin("test-distribution")
 public interface FileSystemAccess {
 
     /**
@@ -45,7 +43,6 @@ public interface FileSystemAccess {
     /**
      * Visits the hierarchy of files at the given location.
      */
-    @UsedByScanPlugin("test-distribution")
     <T> T read(String location, Function<CompleteFileSystemLocationSnapshot, T> visitor);
 
     /**
