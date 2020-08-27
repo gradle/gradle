@@ -17,7 +17,6 @@
 
 A multi-project build in Gradle consists of one root project, and one or more subprojects that may also have subprojects.
 
-
 [[sec:creating_multi_project_builds]]
 == Creating a multi-project build
 
@@ -996,3 +995,21 @@ Finally, you may want to build and test everything in all projects. Any task you
 == Multi Project and buildSrc
 
 <<organizing_gradle_projects.adoc#sec:build_sources,Using buildSrc to organize build logic>> tells us that we can place build logic to be compiled and tested in the special `buildSrc` directory. In a multi project build, there can only be one `buildSrc` directory which must be located in the root directory.
+
+== Naming recommendations
+
+As your project grows, naming and consistency gets increasingly more important.
+To keep your builds maintainable, we recommend to apply the following recommendations:
+
+1. _Don't use custom project locations for subprojects_:
+It’s an unnecessary extra effort for the developers to keep track of which project belongs to what folders.
+
+2. _Use kebab case formatting for all project names_:
+A kebab case formatting is when all letters lowercase, words separated with a dash (‘-’) character (e.g.`kebab-case-formatting`).
+This is already the de-facto pattern for many large projects.
+Besides, Gradle supports <<command_line_interface.adoc#sec:name_abbreviation,name abbreviation for kebab case names>>.
+
+3. _Define the root project name in the settings file_:
+Many things in Gradle - like the project publications - depend on the project name.
+If the root project name is not set, the name will be the container directory name, which can be unstable (i.e. you can check out your project to any directory).
+if the `rootProject.name` property is set in the settings file, the name will be fixed making your build more robust.
