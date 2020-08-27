@@ -15,40 +15,148 @@
 [[multi_project_builds]]
 = Authoring Multi-Project Builds
 
-The powerful support for multi-project builds is one of Gradle's unique selling points. This topic is also the most intellectually challenging.
+A multi-project build in Gradle consists of one root project, and one or more subprojects that may also have subprojects.
 
-A multi-project build in gradle consists of one root project, and one or more subprojects that may also have subprojects.
 
+[[sec:creating_multi_project_builds]]
+== Creating a multi-project build
+
+A basic multi-project build contains a root project and a single subproject.
+This is a structure of a multi-project build that contains a single subproject called `app`:
+
+.Basic multi-project build
+====
+[.multi-language-sample]
+=====
+.Project layout
+[source, groovy]
+----
+.
+├── app
+│   ...
+│   └── build.gradle
+└── settings.gradle
+----
+=====
+[.multi-language-sample]
+=====
+.Project layout
+[source, kotlin]
+----
+.
+├── app
+│   ...
+│   └── build.gradle.kts
+└── settings.gradle.kts
+----
+=====
+====
+
+This is also the recommended project structure for starting any Gradle project.
+The <<build_init_plugin#,build init plugin>> also generates skeleton projects that follow this structure - a root project with a single subproject.
+
+Note that the root project does not have a Gradle build file, only a settings file that defines the subprojects to include.
+====
+include::sample[dir="snippets/multiproject/basic-multiproject/groovy",files="settings.gradle[]"]
+include::sample[dir="snippets/multiproject/basic-multiproject/kotlin",files="settings.gradle.kts[]"]
+====
+
+In this case, Gradle when invoked will look for a build file in the `app` directory.
+
+We can view the structure of a multi-project build by running the `gradle projects` command.
+----
+> gradle -q projects
+include::{snippetsPath}/multiproject/basic-multiproject/tests/projects.out[]
+----
+
+Let's say the `app` subproject is a Java application by applying the <<application_plugin#,application plugin>> and configuring the main class:
+====
+include::sample[dir="snippets/multiproject/basic-multiproject/groovy",files="app/build.gradle[]"]
+include::sample[dir="snippets/multiproject/basic-multiproject/kotlin",files="app/build.gradle.kts[]"]
+.app/src/main/java/com/example/Hello.java
+----
+include::{snippetsPath}/multiproject/basic-multiproject/groovy/app/src/main/java/com/example/Hello.java[]
+----
+====
+
+Finally, we can run the application by executing the `run` task from the <<application_plugin#,application plugin>>.
+----
+> gradle -q run
+include::{snippetsPath}/multiproject/basic-multiproject/tests/run.out[]
+----
+
+And that's how simple it is to create a basic multi-project build.
+
+Next, we will look at multi-project builds that contain more than one subproject,
+how build logic can be shared across subprojects and how subprojects can depend on one another.
+
+
+[[sec:sharing_build_logic_between_subprojects]]
+== Sharing build logic between subprojects
+
+Usually subprojects in a multi-project build share some common traits.
+For example, a project might consist of several subprojects containing _code_ written in a particular programming language as well as a subproject
+dedicated for _documentation_.
+There may be further traits that the _code_ subprojects share, such as certain code quality rules that we want to apply to all of them.
+At the same time the subprojects that share one common trait may serve different purposes - they may produce different _artifact types_ that further differentiate them, for example:
+
+ - _public libraries_ - libraries that are published to some repository
+ - _internal libraries_ - libraries on which other subprojects depend internally within the project
+ - _command line applications_ - applications with specific packaging requirements
+ - _web services_ - applications with specific packaging requirements that are different from above
+ - etc
+
+Some other _code_ subprojects may be dedicated for _testing purposes_ and so on.
+
+The traits above identify a subproject's _type_.
+Or in other words, a subproject's _type_ tells us what traits the project has.
+
+Gradle's recommended way of organizing build logic is its plugin system.
+A plugin should define the _type_ of a subproject.
+In fact, <<plugin_reference#,Gradle core plugins>> are modeled in the same way - for example <<java_plugin#,java plugin>> configures a generic `java` project,
+while <<java_library_plugin#,java-library plugin>> internally applies the <<java_plugin#,java plugin>> and configures aspects specific to a generic Java library.
+Similarly, the <<application_plugin#,application plugin>> applies and configures the <<java_plugin#,java plugin>> and the <<distribution_plugin#,distribution plugin>>.
+
+You can compose custom build logic by applying and configuring both core and external plugins and create custom plugins
+that define new project _types_ and configure conventions specific to your project or organization.
+For each of the example traits from the beginning of this section, we can write a plugin that encapsulates
+the logic common to the subproject of a given _type_.
+
+Have a look at the link:../samples/sample_convention_plugins.html[sample that demonstrates a multi-project build that models the build logic using convention plugins].
+
+Another, more complex and real-world example of a multi-project build that composes build logic using convention plugins
+is the build of the link:https://github.com/gradle/gradle[Gradle Build Tool] itself.
+
+[[sec:convention_plugins_vs_cross_configuration]]
+=== Convention plugins versus cross project configuration
+
+While cross-cutting aspects of subprojects can be configured using <<#sec:cross_project_configuration,cross project configuration>> as well,
+doing so will make it harder to understand the logic of a particular subproject in the long term.
+With cross configuration, build logic gets injected into a subproject and this is not evident from looking at the subproject's
+build script.
+In the long run cross configuration usually grows complex with more and more conditional logic being added which leads to a maintenance burden.
+Cross configuration can also introduce <<sec:decoupled_projects,configuration-time coupling between projects>> which can prevent optimizations like
+<<sec:configuration_on_demand,configuration-on-demand>> from working properly.
+
+There are two most common uses of cross-configuration that can be better modelled using convention plugins:
+
+- Applying plugins or other configuration to subprojects of certain type.
+Often the cross-configuration section will do `if subproject is of type X, then configure Y`.
+This is equivalent to applying `X-conventions` plugin directly to a subproject.
+- Extracting information from subprojects of certain type.
+This use case can be modelled using <<cross_project_publications.adoc#sec:simple-sharing-artifacts-between-projects,outgoing configuration variants>>.
 
 [[sec:cross_project_configuration]]
-== Cross project configuration
+== Injecting build logic by cross-configuring projects
 
-While each subproject could configure itself in complete isolation of the other subprojects, it is common that subprojects share common traits. It is then usually preferable to share configurations among projects, so the same configuration affects several subprojects.
+An alternative to <<#sec:sharing_build_logic_between_subprojects,sharing build logic between subprojects via convention plugins>> is cross project configuration.
+This is a powerful feature, but one that should be used with caution.
+Before we dive into the details, do check if your <<sec:convention_plugins_vs_cross_configuration,use case can be solved using convention plugin instead>>.
 
-Let's start with a very simple multi-project build. Gradle is a general purpose build tool at its core, so the projects don't have to be Java projects. Our first examples are about marine life.
+Let's start with a very simple multi-project build.
+Gradle is a general purpose build tool at its core, so the projects don't have to be Java projects.
+Our first examples are about marine life.
 
-
-[[sec:configuration_and_execution]]
-=== Configuration and execution
-
-<<build_lifecycle.adoc#sec:build_phases,Build phases>> describes the phases of every Gradle build. Let's zoom into the configuration and execution phases of a multi-project build. Configuration here means executing the `build.gradle` (or `build.gradle.kts`) file of a project, which implies e.g. downloading all plugins that were declared using '```apply plugin```' or a `plugins` block. By default, the configuration of all projects happens before any task is executed. This means that when a single task, from a single project is requested, _all_ projects of multi-project build are configured first. The reason every project needs to be configured is to support the flexibility of accessing and changing any part of the Gradle project model.
-
-
-[[sec:configuration_on_demand]]
-==== Configuration on demand
-
-The _Configuration injection_ feature and access to the complete project model are possible because every project is configured before the execution phase. Yet, this approach may not be the most efficient in a very large multi-project build. There are Gradle builds with a hierarchy of hundreds of subprojects. The configuration time of huge multi-project builds may become noticeable. Scalability is an important requirement for Gradle. Hence, starting from version 1.4 a new incubating 'configuration on demand' mode is introduced.
-
-Configuration on demand mode attempts to configure only projects that are relevant for requested tasks, i.e. it only executes the `build.gradle[.kts]` file of projects that are participating in the build. This way, the configuration time of a large multi-project build can be reduced. In the long term, this mode will become the default mode, possibly the only mode for Gradle build execution. The configuration on demand feature is incubating so not every build is guaranteed to work correctly. The feature should work very well for multi-project builds that have <<#sec:decoupled_projects,decoupled projects>>. In “configuration on demand” mode, projects are configured as follows:
-
-* The root project is always configured. This way the typical common configuration is supported (allprojects or subprojects script blocks).
-* The project in the directory where the build is executed is also configured, but only when Gradle is executed without any tasks. This way the default tasks behave correctly when projects are configured on demand.
-* The standard project dependencies are supported and makes relevant projects configured. If project A has a compile dependency on project B then building A causes configuration of both projects.
-* The task dependencies declared via task path are supported and cause relevant projects to be configured. Example: `someTask.dependsOn(":some-other-project:someOtherTask")`
-* A task requested via task path from the command line (or Tooling API) causes the relevant project to be configured. For example, building 'project-a:project-b:someTask' causes configuration of project-b.
-
-
-Eager to try out this new feature? To configure on demand with every build run see <<build_environment.adoc#sec:gradle_configuration_properties,Gradle properties>>. To configure on demand just for a given build, see <<command_line_interface.adoc#sec:command_line_performance,command-line performance-oriented options>>.
 
 [[sec:defining_common_behavior]]
 === Defining common behavior
@@ -153,20 +261,14 @@ include::{snippetsPath}/multiproject/addKrill/tests/multiprojectAddKrill.out[]
 ----
 ====
 
-Is this cool or is this cool? And how does this work? The Project API provides a property `allprojects` which returns a list with the current project and all its subprojects underneath it. If you call `allprojects` with a closure, the statements of the closure are delegated to the projects associated with `allprojects`. You could also do an iteration via `allprojects.each` (in Groovy) or `allprojects.forEach` (in Kotlin), but that would be more verbose.
-
-Other build systems use inheritance as the primary means for defining common behavior. We also offer inheritance for projects as you will see later. But Gradle uses configuration injection as the usual way of defining common behavior. We think it provides a very powerful and flexible way of configuring multiproject builds.
-
-Another possibility for sharing configuration is to use a common external script.
+The Project API provides a property `allprojects` which returns a list with the current project and all its subprojects underneath it.
+If you call `allprojects` with a closure, the statements of the closure are delegated to the projects associated with `allprojects`.
+You could also do an iteration via `allprojects.each` (in Groovy) or `allprojects.forEach` (in Kotlin), but that would be more verbose.
 
 [[sec:subproject_configuration]]
-== Subproject configuration
+=== Subproject configuration
 
 The Project API also provides a property for accessing the subprojects only.
-
-
-[[sec:defining_common_behavior_subprojects]]
-=== Defining common behavior
 
 
 .Defining common behavior of all projects and subprojects
@@ -184,7 +286,7 @@ include::{snippetsPath}/multiproject/useSubprojects/tests/multiprojectUseSubproj
 You may notice that there are two code snippets referencing the “`hello`” task. The first one, which uses the “`task`” keyword (in Groovy) or the `task()` function (in Kotlin), constructs the task and provides it's base configuration. The second piece doesn't use the “`task`” keyword or function, as it is further configuring the existing “`hello`” task. You may only construct a task once in a project, but you may add any number of code blocks providing additional configuration.
 
 [[sub:adding_specific_behavior]]
-=== Adding specific behavior
+==== Adding specific behavior
 
 You can add specific behavior on top of the common behavior. Usually we put the project specific behavior in the build script of the project where we want to apply this specific behavior. But as we have already seen, we don't have to do it this way. We could add project specific behavior for the `bluewhale` project like this:
 
@@ -247,7 +349,7 @@ include::{snippetsPath}/multiproject/spreadSpecifics/tests/multiprojectSpreadSpe
 ====
 
 [[sub:project_filtering]]
-=== Project filtering
+==== Project filtering
 
 To show more of the power of configuration injection, let's add another project called `tropicalfish` and add more behavior to the build via the build script of the `water` project.
 
@@ -799,6 +901,50 @@ In order to make good use of cross project configuration without running into is
 
 * Avoid a subproject's build script referencing other subprojects; preferring cross configuration from the root project.
 * Avoid changing the configuration of other projects at execution time.
+
+
+[[sec:configuration_and_execution]]
+== Configuration and execution
+
+<<build_lifecycle.adoc#sec:build_phases,Build phases>> describes the phases of every Gradle build.
+Let's zoom into the configuration and execution phases of a multi-project build.
+Configuration here means executing the `build.gradle` (or `build.gradle.kts`) file of a project, which implies e.g. downloading all plugins that were declared using '```apply plugin```' or a `plugins` block.
+By default, the configuration of all projects happens before any task is executed.
+This means that when a single task, from a single project is requested, _all_ projects of multi-project build are configured first.
+The reason every project needs to be configured is to support the flexibility of accessing and changing any part of the Gradle project model.
+
+
+[[sec:configuration_on_demand]]
+== Configuration on demand
+
+The _Configuration injection_ feature and access to the complete project model are possible because every project is configured before the execution phase.
+Yet, this approach may not be the most efficient in a very large multi-project build.
+There are Gradle builds with a hierarchy of hundreds of subprojects.
+The configuration time of huge multi-project builds may become noticeable.
+Scalability is an important requirement for Gradle.
+Hence, starting from version 1.4 a new incubating 'configuration on demand' mode is introduced.
+
+Configuration on demand mode attempts to configure only projects that are relevant for requested tasks, i.e. it only executes the `build.gradle[.kts]` file of projects that are participating in the build.
+This way, the configuration time of a large multi-project build can be reduced.
+In the long term, this mode will become the default mode, possibly the only mode for Gradle build execution.
+The configuration on demand feature is incubating so not every build is guaranteed to work correctly.
+The feature should work very well for multi-project builds that have <<#sec:decoupled_projects,decoupled projects>>.
+In “configuration on demand” mode, projects are configured as follows:
+
+* The root project is always configured.
+This way the typical common configuration is supported (allprojects or subprojects script blocks).
+* The project in the directory where the build is executed is also configured, but only when Gradle is executed without any tasks.
+This way the default tasks behave correctly when projects are configured on demand.
+* The standard project dependencies are supported and makes relevant projects configured.
+If project A has a compile dependency on project B then building A causes configuration of both projects.
+* The task dependencies declared via task path are supported and cause relevant projects to be configured.
+Example: `someTask.dependsOn(":some-other-project:someOtherTask")`
+* A task requested via task path from the command line (or Tooling API) causes the relevant project to be configured.
+For example, building 'project-a:project-b:someTask' causes configuration of project-b.
+
+
+Eager to try out this new feature? To configure on demand with every build run see <<build_environment.adoc#sec:gradle_configuration_properties,Gradle properties>>.
+To configure on demand just for a given build, see <<command_line_interface.adoc#sec:command_line_performance,command-line performance-oriented options>>.
 
 
 [[sec:multiproject_build_and_test]]
