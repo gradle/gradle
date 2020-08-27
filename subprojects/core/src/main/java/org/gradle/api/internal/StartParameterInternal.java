@@ -23,6 +23,7 @@ import java.io.File;
 
 public class StartParameterInternal extends StartParameter {
     private boolean watchFileSystem;
+    private boolean watchFileSystemVerboseLogging;
     private boolean watchFileSystemUsingDeprecatedOption;
 
     private boolean configurationCache;
@@ -45,6 +46,7 @@ public class StartParameterInternal extends StartParameter {
     protected StartParameter prepareNewBuild(StartParameter startParameter) {
         StartParameterInternal p = (StartParameterInternal) super.prepareNewBuild(startParameter);
         p.watchFileSystem = watchFileSystem;
+        p.watchFileSystemVerboseLogging = watchFileSystemVerboseLogging;
         p.watchFileSystemUsingDeprecatedOption = watchFileSystemUsingDeprecatedOption;
         p.configurationCache = configurationCache;
         p.configurationCacheProblems = configurationCacheProblems;
@@ -84,6 +86,14 @@ public class StartParameterInternal extends StartParameter {
 
     public void setWatchFileSystem(boolean watchFileSystem) {
         this.watchFileSystem = watchFileSystem;
+    }
+
+    public boolean isWatchFileSystemVerboseLogging() {
+        return watchFileSystemVerboseLogging;
+    }
+
+    public void setWatchFileSystemVerboseLogging(boolean watchFileSystemVerboseLogging) {
+        this.watchFileSystemVerboseLogging = watchFileSystemVerboseLogging;
     }
 
     public boolean isWatchFileSystemUsingDeprecatedOption() {

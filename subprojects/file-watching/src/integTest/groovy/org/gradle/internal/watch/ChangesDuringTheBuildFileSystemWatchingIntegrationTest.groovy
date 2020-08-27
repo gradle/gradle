@@ -17,15 +17,6 @@
 package org.gradle.internal.watch
 
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-import org.gradle.internal.operations.BuildOperationDescriptor
-import org.gradle.internal.operations.BuildOperationListener
-import org.gradle.internal.operations.BuildOperationListenerManager
-import org.gradle.internal.operations.OperationFinishEvent
-import org.gradle.internal.operations.OperationIdentifier
-import org.gradle.internal.operations.OperationProgressEvent
-import org.gradle.internal.operations.OperationStartEvent
-import org.gradle.internal.watch.vfs.BuildFinishedFileSystemWatchingBuildOperationType
-import org.gradle.launcher.exec.RunBuildBuildOperationType
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
 
@@ -36,7 +27,9 @@ class ChangesDuringTheBuildFileSystemWatchingIntegrationTest extends AbstractFil
     def setup() {
         executer.requireDaemon()
         server.start()
-        setupFileEventsLogging()
+        executer.beforeExecute {
+            withVerboseVfsLog()
+        }
         buildFile << """
             import org.gradle.internal.file.FileType
             import org.gradle.internal.snapshot.*
@@ -46,28 +39,6 @@ class ChangesDuringTheBuildFileSystemWatchingIntegrationTest extends AbstractFil
                 doLast {
                     ${server.callFromBuild("userInput")}
                 }
-            }
-
-            gradle.buildFinished {
-                def projectRoot = project.projectDir.absolutePath
-                def vfs = gradle.services.get(VirtualFileSystem)
-                int filesInVfs = 0
-                vfs.getRoot().visitSnapshotRoots { snapshot ->
-                    snapshot.accept(new FileSystemSnapshotVisitor() {
-                        @Override
-                        void visitFile(CompleteFileSystemLocationSnapshot fileSnapshot) {
-                            if (fileSnapshot.type == FileType.RegularFile && fileSnapshot.absolutePath.startsWith(projectRoot)) {
-                                filesInVfs++
-                            }
-                        }
-
-                        @Override
-                        boolean preVisitDirectory(CompleteDirectorySnapshot directorySnapshot) { return true }
-                        @Override
-                        void postVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {}
-                    })
-                }
-                println("Project files in VFS: \$filesInVfs")
             }
         """
     }
@@ -90,24 +61,28 @@ class ChangesDuringTheBuildFileSystemWatchingIntegrationTest extends AbstractFil
         """
 
         when:
-        runWithRetentionAndDoChangesWhen("consumer", "userInput") {
+        runWithFileSystemWatchingAndMakeChangesWhen("consumer", "userInput") {
             inputFile.text = "initial"
             waitForChangesToBePickedUp()
         }
         then:
         executedAndNotSkipped(":consumer")
         // TODO: sometimes, the changes from the same build are picked up
-        projectFilesInVfs >= 1
+        vfsLogs.receivedFileSystemEventsInCurrentBuild >= 0
+        vfsLogs.retainedFilesSinceLastBuild == 0
+        vfsLogs.retainedFilesInCurrentBuild >= 1
 
         when:
-        runWithRetentionAndDoChangesWhen("consumer", "userInput") {
+        runWithFileSystemWatchingAndMakeChangesWhen("consumer", "userInput") {
             inputFile.text = "changed"
             waitForChangesToBePickedUp()
         }
         then:
         executedAndNotSkipped(":consumer")
-        receivedFileSystemEventsInCurrentBuild >= 1
-        projectFilesInVfs == 2
+        vfsLogs.receivedFileSystemEventsSinceLastBuild >= 0
+        vfsLogs.receivedFileSystemEventsInCurrentBuild >= 1
+        vfsLogs.retainedFilesSinceLastBuild >= 1
+        vfsLogs.retainedFilesInCurrentBuild >= 2
     }
 
     @ToBeFixedForConfigurationCache(because = "Cannot use buildFinished listener")
@@ -131,25 +106,29 @@ class ChangesDuringTheBuildFileSystemWatchingIntegrationTest extends AbstractFil
 
         when:
         inputFile.text = "initial"
-        runWithRetentionAndDoChangesWhen("waitForUserChanges", "userInput") {
+        runWithFileSystemWatchingAndMakeChangesWhen("waitForUserChanges", "userInput") {
             inputFile.text = "changed"
             waitForChangesToBePickedUp()
         }
         then:
         executedAndNotSkipped(":consumer")
         outputFile.text == "initial"
-        projectFilesInVfs == 1
+        vfsLogs.receivedFileSystemEventsInCurrentBuild >= 0
+        vfsLogs.retainedFilesSinceLastBuild == 0
+        vfsLogs.retainedFilesInCurrentBuild > 0
 
         when:
-        runWithRetentionAndDoChangesWhen("waitForUserChanges", "userInput") {
+        runWithFileSystemWatchingAndMakeChangesWhen("waitForUserChanges", "userInput") {
             inputFile.text = "changedAgain"
             waitForChangesToBePickedUp()
         }
         then:
         executedAndNotSkipped(":consumer")
         outputFile.text == "changed"
-        receivedFileSystemEventsInCurrentBuild >= 1
-        projectFilesInVfs == 1
+        vfsLogs.receivedFileSystemEventsSinceLastBuild >= 0
+        vfsLogs.receivedFileSystemEventsInCurrentBuild >= 1
+        vfsLogs.retainedFilesSinceLastBuild > 0
+        vfsLogs.retainedFilesInCurrentBuild > 0
 
         when:
         server.expect("userInput")
@@ -157,65 +136,18 @@ class ChangesDuringTheBuildFileSystemWatchingIntegrationTest extends AbstractFil
         then:
         executedAndNotSkipped(":consumer")
         outputFile.text == "changedAgain"
-        projectFilesInVfs == 2
+        vfsLogs.receivedFileSystemEventsSinceLastBuild >= 0
+        vfsLogs.receivedFileSystemEventsInCurrentBuild >= 0
+        vfsLogs.retainedFilesSinceLastBuild > 0
+        vfsLogs.retainedFilesInCurrentBuild > 0
     }
 
-    private void runWithRetentionAndDoChangesWhen(String task, String expectedCall, Closure action) {
+    private void runWithFileSystemWatchingAndMakeChangesWhen(String task, String expectedCall, Closure action) {
         def handle = withWatchFs().executer.withTasks(task).start()
         def userInput = server.expectAndBlock(expectedCall)
         userInput.waitForAllPendingCalls()
         action()
         userInput.releaseAll()
         result = handle.waitForFinish()
-    }
-
-    int getProjectFilesInVfs() {
-        def retainedInformation = result.getOutputLineThatContains("Project files in VFS: ")
-        def numberMatcher = retainedInformation =~ /Project files in VFS: (\d+)/
-        return numberMatcher[0][1] as int
-
-    }
-
-    void setupFileEventsLogging() {
-        settingsFile << """
-            import ${BuildOperationListener.name}
-            import ${BuildOperationDescriptor.name}
-            import ${OperationFinishEvent.name}
-            import ${OperationIdentifier.name}
-            import ${OperationProgressEvent.name}
-            import ${OperationStartEvent.name}
-            import ${BuildOperationListenerManager.name}
-            import ${BuildFinishedFileSystemWatchingBuildOperationType.name}
-            import ${RunBuildBuildOperationType.name}
-
-            class FileSystemWatchingLogger implements BuildOperationListener {
-                private final BuildOperationListenerManager operationListenerManager
-
-                FileSystemWatchingLogger(BuildOperationListenerManager operationListenerManager) {
-                    this.operationListenerManager = operationListenerManager
-                }
-
-                void started(BuildOperationDescriptor descriptor, OperationStartEvent startEvent) {}
-
-                @Override
-                void progress(OperationIdentifier operationIdentifier, OperationProgressEvent progressEvent) {}
-
-                @Override
-                void finished(BuildOperationDescriptor buildOperation, OperationFinishEvent finishEvent) {
-                    if (finishEvent.result instanceof RunBuildBuildOperationType.Result) {
-                        operationListenerManager.removeListener(this)
-                    }
-                    if (finishEvent.result instanceof BuildFinishedFileSystemWatchingBuildOperationType.Result) {
-                        def result = finishEvent.result
-                        if (result.statistics != null) {
-                            println "Received \${result.statistics.numberOfReceivedEvents} file system events for current build"
-                        }
-                    }
-                }
-            }
-
-            def operationListenerManager = gradle.services.get(BuildOperationListenerManager)
-            operationListenerManager.addListener(new FileSystemWatchingLogger(operationListenerManager))
-        """
     }
 }
