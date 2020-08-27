@@ -16,7 +16,6 @@
 
 package org.gradle.internal.watch
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
 
@@ -43,7 +42,6 @@ class ChangesDuringTheBuildFileSystemWatchingIntegrationTest extends AbstractFil
         """
     }
 
-    @ToBeFixedForConfigurationCache(because = "Cannot use buildFinished listener")
     def "detects input file change just before the task is executed"() {
         def inputFile = file("input.txt")
         buildFile << """
@@ -85,7 +83,6 @@ class ChangesDuringTheBuildFileSystemWatchingIntegrationTest extends AbstractFil
         vfsLogs.retainedFilesInCurrentBuild >= 2
     }
 
-    @ToBeFixedForConfigurationCache(because = "Cannot use buildFinished listener")
     def "detects input file change after the task has been executed"() {
         def inputFile = file("input.txt")
         def outputFile = file("build/output.txt")
