@@ -98,11 +98,11 @@ class ConfigurationCacheHost internal constructor(
             gradle.run {
                 // Fire build operation required by build scan to determine startup duration and settings evaluated duration
                 val settingsPreparer = BuildOperationFiringSettingsPreparer(
-                        SettingsPreparer {
-                            settings = processSettings()
-                        },
-                        service<BuildOperationExecutor>(),
-                        service<BuildDefinition>().fromBuild
+                    SettingsPreparer {
+                        settings = processSettings()
+                    },
+                    service<BuildOperationExecutor>(),
+                    service<BuildDefinition>().fromBuild
                 )
                 settingsPreparer.prepareSettings(this)
 
@@ -180,11 +180,11 @@ class ConfigurationCacheHost internal constructor(
             // Currently this operation is not around the actual task graph calculation/populate for configuration cache (just to make this a smaller step)
             // This might be better done as a new build operation type
             BuildOperationFiringTaskExecutionPreparer(
-                    TaskExecutionPreparer {
-                        // Nothing to do
-                        // TODO:configuration-cache - perhaps move this so it wraps loading tasks from cache file
-                    },
-                    service<BuildOperationExecutor>()
+                TaskExecutionPreparer {
+                    // Nothing to do
+                    // TODO:configuration-cache - perhaps move this so it wraps loading tasks from cache file
+                },
+                service<BuildOperationExecutor>()
             ).prepareForTaskExecution(gradle)
         }
 
