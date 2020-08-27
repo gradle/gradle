@@ -22,9 +22,11 @@ import gradlebuild.identity.extension.ModuleIdentityExtension
 import io.mockk.every
 import io.mockk.mockkStatic
 import io.mockk.unmockkStatic
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.kotlin.dsl.*
 import org.gradle.testfixtures.ProjectBuilder
 import org.junit.After
+import org.junit.Assume
 import org.junit.Before
 import org.junit.Test
 
@@ -69,6 +71,7 @@ class DetermineBaselinesTest {
 
     @Test
     fun `determines fork point commit on feature branch and default configuration`() {
+        Assume.assumeFalse(OperatingSystem.current().isWindows)
         // given
         setCurrentBranch("my-branch")
         mockGitOperation(listOf("git", "fetch", "origin", "master", "release"), "")
@@ -83,6 +86,7 @@ class DetermineBaselinesTest {
 
     @Test
     fun `determines fork point commit on feature branch and empty configuration`() {
+        Assume.assumeFalse(OperatingSystem.current().isWindows)
         // given
         setCurrentBranch("my-branch")
         mockGitOperation(listOf("git", "fetch", "origin", "master", "release"), "")
