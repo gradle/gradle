@@ -125,7 +125,7 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
         execResult = objectFactory.property(ExecResult.class);
 
         javaExecSpec = objectFactory.newInstance(DefaultJavaExecSpec.class);
-        javaExecSpec.getMainClass().convention(getProviderFactory().provider(this::getMain)); // go through 'main' to keep this compatible with existing convention mappings
+        javaExecSpec.getMainClass().convention(getMainClass().orElse(getProviderFactory().provider(this::getMain))); // go through 'main' to keep this compatible with existing convention mappings
         javaExecSpec.getMainModule().convention(mainModule);
         javaExecSpec.getModularity().getInferModulePath().convention(modularity.getInferModulePath());
         javaLauncher = objectFactory.property(JavaLauncher.class);
