@@ -18,7 +18,6 @@ package org.gradle.api.tasks.compile;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multimap;
-import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.Project;
@@ -47,8 +46,6 @@ import org.gradle.api.internal.tasks.compile.incremental.recomp.SourceFileClassN
 import org.gradle.api.jvm.ModularitySpec;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.model.ReplacedBy;
-import org.gradle.api.provider.Property;
-import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.CompileClasspath;
 import org.gradle.api.tasks.InputFiles;
@@ -69,10 +66,9 @@ import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.jvm.internal.toolchain.JavaToolChainInternal;
 import org.gradle.jvm.platform.JavaPlatform;
 import org.gradle.jvm.platform.internal.DefaultJavaPlatform;
-import org.gradle.jvm.toolchain.JavaCompiler;
-import org.gradle.jvm.toolchain.JavaCompilerQueryService;
+import org.gradle.jvm.toolchain.JavaCompilerProperty;
 import org.gradle.jvm.toolchain.JavaToolChain;
-import org.gradle.jvm.toolchain.JavaToolchainSpec;
+import org.gradle.jvm.toolchain.JavaToolchainPropertiesFactory;
 import org.gradle.jvm.toolchain.internal.DefaultToolchainJavaCompiler;
 import org.gradle.jvm.toolchain.internal.JavaToolchain;
 import org.gradle.language.base.internal.compile.Compiler;
@@ -110,7 +106,7 @@ public class JavaCompile extends AbstractCompile implements HasCompileOptions {
     private final FileCollection stableSources = getProject().files((Callable<Object[]>) () -> new Object[]{getSource(), getSources()});
     private final ModularitySpec modularity;
     private File sourceClassesMappingFile;
-    private final Property<JavaCompiler> javaCompiler;
+    private JavaCompilerProperty javaCompiler;
 
     public JavaCompile() {
         Project project = getProject();
@@ -118,12 +114,10 @@ public class JavaCompile extends AbstractCompile implements HasCompileOptions {
         compileOptions = objectFactory.newInstance(CompileOptions.class);
         CompilerForkUtils.doNotCacheIfForkingViaExecutable(compileOptions, getOutputs());
         modularity = objectFactory.newInstance(DefaultModularitySpec.class);
-        javaCompiler = objectFactory.property(JavaCompiler.class);
-        javaCompiler.finalizeValueOnRead();
     }
 
     @Inject
-    protected JavaCompilerQueryService getCompilerQueryService() {
+    protected JavaToolchainPropertiesFactory getToolchainPropertiesFactory() {
         throw new UnsupportedOperationException();
     }
 
@@ -182,21 +176,12 @@ public class JavaCompile extends AbstractCompile implements HasCompileOptions {
     @Incubating
     @Nested
     @Optional
-    public Property<JavaCompiler> getJavaCompiler() {
+    public JavaCompilerProperty getJavaCompiler() {
+        if (javaCompiler == null) {
+            javaCompiler = getToolchainPropertiesFactory().newJavaCompilerProperty();
+            javaCompiler.finalizeValueOnRead();
+        }
         return javaCompiler;
-    }
-
-    /**
-     * Obtain a {@link JavaCompiler} matching the {@link JavaToolchainSpec} which can then be used to configure the compiler used by this task.
-     *
-     * @param action The action to configure the {@code JavaToolchainSpec}
-     * @return A {@code Provider<JavaCompiler>}
-     *
-     * @since 6.7
-     */
-    @Incubating
-    public Provider<JavaCompiler> toolchainCompiler(Action<? super JavaToolchainSpec> action) {
-        return getCompilerQueryService().getToolchainCompiler(action);
     }
 
     /**
@@ -232,7 +217,7 @@ public class JavaCompile extends AbstractCompile implements HasCompileOptions {
     }
 
     private void validateConfiguration() {
-        if (javaCompiler.isPresent()) {
+        if (getJavaCompiler().isPresent()) {
             checkState(toolChain == null, "Must not use `javaCompiler` property together with (deprecated) `toolchain`");
             checkState(getOptions().getForkOptions().getJavaHome() == null, "Must not use `javaHome` property on `ForkOptions` together with `javaCompiler` property");
             checkState(getOptions().getForkOptions().getExecutable() == null, "Must not use `exectuable` property on `ForkOptions` together with `javaCompiler` property");
@@ -324,14 +309,14 @@ public class JavaCompile extends AbstractCompile implements HasCompileOptions {
     }
 
     private Compiler<JavaCompileSpec> createToolchainCompiler(JavaCompileSpec spec) {
-        if (javaCompiler.isPresent()) {
+        if (getJavaCompiler().isPresent()) {
             return useNewToolchainCompiler();
         }
         return legacyCompiler(spec);
     }
 
     private Compiler<JavaCompileSpec> useNewToolchainCompiler() {
-        return spec -> ((DefaultToolchainJavaCompiler) javaCompiler.get()).execute(spec);
+        return spec -> ((DefaultToolchainJavaCompiler) getJavaCompiler().get()).execute(spec);
     }
 
     private Compiler<JavaCompileSpec> legacyCompiler(JavaCompileSpec spec) {
@@ -372,9 +357,9 @@ public class JavaCompile extends AbstractCompile implements HasCompileOptions {
         JavaModuleDetector javaModuleDetector = getJavaModuleDetector();
         boolean isModule = JavaModuleDetector.isModuleSource(modularity.getInferModulePath().get(), sourcesRoots);
 
-        if (javaCompiler.isPresent()) {
+        if (getJavaCompiler().isPresent()) {
             compileOptions.setFork(true);
-            final JavaToolchain toolchain = ((DefaultToolchainJavaCompiler) javaCompiler.get()).getJavaToolchain();
+            final JavaToolchain toolchain = ((DefaultToolchainJavaCompiler) getJavaCompiler().get()).getJavaToolchain();
             compileOptions.getForkOptions().setJavaHome(toolchain.getJavaHome());
         }
         final DefaultJavaCompileSpec spec = new DefaultJavaCompileSpecFactory(compileOptions).create();
@@ -396,8 +381,8 @@ public class JavaCompile extends AbstractCompile implements HasCompileOptions {
     }
 
     private void configureCompatibilityOptions(DefaultJavaCompileSpec spec) {
-        if (javaCompiler.isPresent()) {
-            final JavaToolchain toolchain = ((DefaultToolchainJavaCompiler) javaCompiler.get()).getJavaToolchain();
+        if (getJavaCompiler().isPresent()) {
+            final JavaToolchain toolchain = ((DefaultToolchainJavaCompiler) getJavaCompiler().get()).getJavaToolchain();
             spec.setTargetCompatibility(toolchain.getJavaMajorVersion().getMajorVersion());
             spec.setSourceCompatibility(toolchain.getJavaMajorVersion().getMajorVersion());
         } else if (compileOptions.getRelease().isPresent()) {

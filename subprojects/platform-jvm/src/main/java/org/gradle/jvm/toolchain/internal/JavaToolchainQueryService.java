@@ -22,7 +22,6 @@ import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.jvm.toolchain.JavaCompiler;
-import org.gradle.jvm.toolchain.JavaCompilerQueryService;
 import org.gradle.jvm.toolchain.JavaLauncher;
 import org.gradle.jvm.toolchain.JavaLauncherQueryService;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
@@ -35,7 +34,7 @@ import java.io.File;
 import java.util.Optional;
 import java.util.function.Predicate;
 
-public class JavaToolchainQueryService implements JavaCompilerQueryService, JavadocToolQueryService, JavaLauncherQueryService {
+public class JavaToolchainQueryService implements JavadocToolQueryService, JavaLauncherQueryService {
 
     private final SharedJavaInstallationRegistry registry;
     private final JavaToolchainFactory toolchainFactory;
@@ -50,7 +49,6 @@ public class JavaToolchainQueryService implements JavaCompilerQueryService, Java
         this.objectFactory = objectFactory;
     }
 
-    @Override
     public Provider<JavaCompiler> getToolchainCompiler(Action<? super JavaToolchainSpec> config) {
         return findMatchingToolchain(configureToolchainSpec(config)).map(JavaToolchain::getJavaCompiler);
     }

@@ -18,21 +18,22 @@ package org.gradle.jvm.toolchain;
 
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
-import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.Property;
 
 /**
- * A service that allows to retrieve a {@link JavaCompiler} by using a {@link JavaToolchainSpec}.
+ * A dedicated property implementation to deal with {@link JavaCompiler}.
+ *
+ * It enables the property to be set from a {@link JavaToolchainSpec}.
  *
  * @since 6.7
  */
 @Incubating
-public interface JavaCompilerQueryService {
+public interface JavaCompilerProperty extends Property<JavaCompiler> {
 
     /**
-     * Obtain a {@link JavaCompiler} matching the {@link JavaToolchainSpec}
+     * Sets the property value lazily from the provided {@link JavaToolchainSpec}
      *
-     * @param config The configuration of the {@code JavaToolchainSpec}
-     * @return A {@code Provider<JavaCompiler>}
+     * @param toolchainConfig the {@code JavaToolchainSpec} to select the toolchain
      */
-    Provider<JavaCompiler> getToolchainCompiler(Action<? super JavaToolchainSpec> config);
+    void from(Action<? super JavaToolchainSpec> toolchainConfig);
 }
