@@ -42,11 +42,11 @@ import java.util.Set;
 import static java.util.Objects.requireNonNull;
 
 @SuppressWarnings({"Guava"})
-public class BuildOperatingFiringTaskExecutionPreparer implements TaskExecutionPreparer {
+public class BuildOperationFiringTaskExecutionPreparer implements TaskExecutionPreparer {
     private final TaskExecutionPreparer delegate;
     private final BuildOperationExecutor buildOperationExecutor;
 
-    public BuildOperatingFiringTaskExecutionPreparer(TaskExecutionPreparer delegate, BuildOperationExecutor buildOperationExecutor) {
+    public BuildOperationFiringTaskExecutionPreparer(TaskExecutionPreparer delegate, BuildOperationExecutor buildOperationExecutor) {
         this.delegate = delegate;
         this.buildOperationExecutor = buildOperationExecutor;
     }
@@ -163,7 +163,7 @@ public class BuildOperatingFiringTaskExecutionPreparer implements TaskExecutionP
         } else {
             return FluentIterable.from(nodes)
                 .filter(TaskNode.class)
-                .transform(BuildOperatingFiringTaskExecutionPreparer::toIdentity)
+                .transform(BuildOperationFiringTaskExecutionPreparer::toIdentity)
                 .toList();
         }
     }

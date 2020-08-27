@@ -30,8 +30,8 @@ import org.gradle.configurationcache.initialization.ConfigurationCacheStartParam
 import org.gradle.execution.plan.Node
 import org.gradle.groovy.scripts.TextResourceScriptSource
 import org.gradle.initialization.BuildLoader
-import org.gradle.initialization.BuildOperatingFiringSettingsPreparer
-import org.gradle.initialization.BuildOperatingFiringTaskExecutionPreparer
+import org.gradle.initialization.BuildOperationFiringSettingsPreparer
+import org.gradle.initialization.BuildOperationFiringTaskExecutionPreparer
 import org.gradle.initialization.BuildOperationSettingsProcessor
 import org.gradle.initialization.ClassLoaderScopeRegistry
 import org.gradle.initialization.DefaultProjectDescriptor
@@ -97,12 +97,12 @@ class ConfigurationCacheHost internal constructor(
         init {
             gradle.run {
                 // Fire build operation required by build scan to determine startup duration and settings evaluated duration
-                val settingsPreparer = BuildOperatingFiringSettingsPreparer(
-                    SettingsPreparer {
-                        settings = processSettings()
-                    },
-                    service<BuildOperationExecutor>(),
-                    service<BuildDefinition>().fromBuild
+                val settingsPreparer = BuildOperationFiringSettingsPreparer(
+                        SettingsPreparer {
+                            settings = processSettings()
+                        },
+                        service<BuildOperationExecutor>(),
+                        service<BuildDefinition>().fromBuild
                 )
                 settingsPreparer.prepareSettings(this)
 
@@ -179,12 +179,12 @@ class ConfigurationCacheHost internal constructor(
             // Fire build operation required by build scan to determine when task execution starts
             // Currently this operation is not around the actual task graph calculation/populate for configuration cache (just to make this a smaller step)
             // This might be better done as a new build operation type
-            BuildOperatingFiringTaskExecutionPreparer(
-                TaskExecutionPreparer {
-                    // Nothing to do
-                    // TODO:configuration-cache - perhaps move this so it wraps loading tasks from cache file
-                },
-                service<BuildOperationExecutor>()
+            BuildOperationFiringTaskExecutionPreparer(
+                    TaskExecutionPreparer {
+                        // Nothing to do
+                        // TODO:configuration-cache - perhaps move this so it wraps loading tasks from cache file
+                    },
+                    service<BuildOperationExecutor>()
             ).prepareForTaskExecution(gradle)
         }
 
