@@ -270,7 +270,7 @@ class PerformanceTestPlugin : Plugin<Project> {
             createDistributedPerformanceTestTask(name, clazz, performanceSourceSet, prepareSamplesTask).configure(configure)
         }
 
-        val channelSuffix = if (OperatingSystem.current().isLinux) "" else "-${OperatingSystem.current().name.toLowerCase()}"
+        val channelSuffix = if (OperatingSystem.current().isLinux) "" else "-${OperatingSystem.current().familyName.toLowerCase()}"
 
         create("distributedPerformanceTest", DistributedPerformanceTest::class) {
             includeCategories(performanceRegressionTestCategory)
