@@ -29,4 +29,6 @@ public interface JavaToolchainPropertiesFactory {
     JavaCompilerProperty newJavaCompilerProperty();
 
     JavaLauncherProperty newJavaLauncherProperty();
+
+    JavadocToolProperty newJavadocToolProperty();
 }

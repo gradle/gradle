@@ -21,6 +21,7 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.jvm.toolchain.JavaCompilerProperty;
 import org.gradle.jvm.toolchain.JavaLauncherProperty;
 import org.gradle.jvm.toolchain.JavaToolchainPropertiesFactory;
+import org.gradle.jvm.toolchain.JavadocToolProperty;
 
 import javax.inject.Inject;
 
@@ -45,5 +46,10 @@ public class DefaultJavaToolchainPropertiesFactory implements JavaToolchainPrope
     @Override
     public JavaLauncherProperty newJavaLauncherProperty() {
         return objectFactory.newInstance(DefaultJavaLauncherProperty.class, propertyHost, toolchainQueryService);
+    }
+
+    @Override
+    public JavadocToolProperty newJavadocToolProperty() {
+        return objectFactory.newInstance(DefaultJavadocToolProperty.class, propertyHost, toolchainQueryService);
     }
 }
