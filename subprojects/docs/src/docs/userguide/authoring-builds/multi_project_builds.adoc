@@ -166,7 +166,7 @@ This use case can be modelled using <<cross_project_publications.adoc#sec:simple
 
 An alternative to <<#sec:sharing_build_logic_between_subprojects,sharing build logic between subprojects via convention plugins>> is cross project configuration.
 This is a powerful feature, but one that should be used with caution.
-Before we dive into the details, do check if your <<sec:convention_plugins_vs_cross_configuration,use case can be solved using convention plugin instead>>.
+Before we dive into the details, do check if your <<sec:convention_plugins_vs_cross_configuration,use case can be solved using convention plugins instead>>.
 
 Let's start with a very simple multi-project build.
 Gradle is a general purpose build tool at its core, so the projects don't have to be Java projects.
@@ -475,60 +475,6 @@ include::{snippetsPath}/multiproject/tropicalWithProperties/tests-common/multipr
 
 In the build file of the `water` project we use an `afterEvaluate` notification. This means that the closure we are passing gets evaluated _after_ the build scripts of the subproject are evaluated. As the property `arctic` is set in those build scripts, we have to do it this way. You will find more on this topic in <<#sec:dependencies_which_dependencies,Dependencies — Which Dependencies?>>
 
-[[sec:execution_rules_for_multi_project_builds]]
-== Execution rules for multi-project builds
-
-When we executed the `hello` task from the root project dir, things behaved in an intuitive way. All the `hello` tasks of the different projects were executed. Let's switch to the `bluewhale` dir and see what happens if we execute Gradle from there.
-
-.Running build from subproject
-----
-> gradle -q hello
-include::{snippetsPath}/multiproject/tropicalWithProperties/tests-common/multiprojectSubBuild.out[]
-----
-
-The basic rule behind Gradle's behavior is simple. Gradle looks down the hierarchy, starting with the _current dir_, for tasks with the name `hello` and executes them. One thing is very important to note. Gradle _always_ evaluates _every_ project of the multi-project build and creates all existing task objects. Then, according to the task name arguments and the current dir, Gradle filters the tasks which should be executed. Because of Gradle's cross project configuration _every_ project has to be evaluated before _any_ task gets executed. We will have a closer look at this in the next section. Let's now have our last marine example. Let's add a task to `bluewhale` and `krill`.
-
-.Evaluation and execution of projects
-====
-include::sample[dir="snippets/multiproject/partialTasks/groovy",files="bluewhale/build.gradle[];krill/build.gradle[]"]
-include::sample[dir="snippets/multiproject/partialTasks/kotlin",files="bluewhale/build.gradle.kts[];krill/build.gradle.kts[]"]
-
-.Output of `gradle -q distanceToIceberg`
-----
-> gradle -q distanceToIceberg
-include::{snippetsPath}/multiproject/partialTasks/tests/multiprojectPartialTasks.out[]
-----
-
-Here's the output without the `-q` option:
-
-.Output of **`gradle distanceToIceberg`**
-----
-> gradle distanceToIceberg
-include::{snippetsPath}/multiproject/partialTasks/tests/multiprojectPartialTasksNotQuiet.out[]
-----
-====
-
-The build is executed from the `water` project. Neither `water` nor `tropicalfish` have a task with the name `distanceToIceberg`. Gradle does not care. The simple rule mentioned already above is: Execute all tasks down the hierarchy which have this name. Only complain if there is _no_ such task!
-
-[[sec:running_partial_build_from_the_root]]
-== Running tasks by their absolute path
-
-As we have seen, you can run a multi-project build by entering any subproject dir and execute the build from there. All matching task names of the project hierarchy starting with the current dir are executed. But Gradle also offers to execute tasks by their absolute path (see also <<#sec:project_and_task_paths,Project and task paths>>):
-
-.Running tasks by their absolute path
-----
-> gradle -q :hello :krill:hello hello
-include::{snippetsPath}/multiproject/tropicalWithProperties/tests-common/multiprojectAbsoluteTaskPaths.out[]
-----
-
-The build is executed from the `tropicalfish` project. We execute the `hello` tasks of the `water`, the `krill` and the `tropicalfish` project. The first two tasks are specified by their absolute path, the last task is executed using the name matching mechanism described above.
-
-[[sec:project_and_task_paths]]
-== Project and task paths
-
-A project path has the following pattern: It starts with an optional colon, which denotes the root project. The root project is the only project in a path that is not specified by its name. The rest of a project path is a colon-separated sequence of project names, where the next project is a subproject of the previous project.
-
-The path of a task is simply its project path plus the task name, like “`:bluewhale:hello`”. Within a project you can address a task of the same project just by its name. This is interpreted as a relative path.
 
 [[sec:dependencies_which_dependencies]]
 == Dependencies - Which dependencies?
