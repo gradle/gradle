@@ -18,8 +18,9 @@ package org.gradle.initialization.buildsrc
 
 import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.plugin.PluginBuilder
-
 
 class BuildSrcIncludedBuildIntegrationTest extends AbstractIntegrationSpec {
     def "buildSrc cannot (yet) define any included builds"() {
@@ -35,6 +36,7 @@ class BuildSrcIncludedBuildIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasDescription("Cannot include build 'child' in build 'buildSrc'. This is not supported yet.")
     }
 
+    @ToBeFixedForConfigurationCache(because="composite build")
     def "buildSrc can apply plugins contributed by other included builds"() {
         file("buildSrc/build.gradle") << """
             plugins {
@@ -42,12 +44,68 @@ class BuildSrcIncludedBuildIntegrationTest extends AbstractIntegrationSpec {
             }
         """
 
+        writePluginTo(file("included"))
+
+        settingsFile << """
+            includeBuild("included")
+        """
+        when:
+        succeeds("help")
+        then:
+        outputContains("test-plugin applied to :buildSrc")
+    }
+
+    @ToBeFixedForConfigurationCache(because="composite build")
+    def "buildSrc can apply plugins contributed by other included builds from CLI"() {
+        file("buildSrc/build.gradle") << """
+            plugins {
+                id "test-plugin"
+            }
+        """
+
+        writePluginTo(file("included"))
+        when:
+        succeeds("help", "--include-build=included")
+        then:
+        outputContains("test-plugin applied to :buildSrc")
+    }
+
+    @ToBeFixedForConfigurationCache(because="composite build")
+    def "buildSrc can apply settings plugins contributed by other included builds"() {
+        file("buildSrc/settings.gradle") << """
+            plugins {
+                id "test-settings-plugin"
+            }
+        """
+
         def pluginBuilder = new PluginBuilder(file("included"))
-        pluginBuilder.addPlugin("println 'test-plugin applied to ' + project.gradle.publicBuildPath.buildPath")
+        pluginBuilder.addSettingsPlugin("println 'test-settings-plugin applied to ' + settings.gradle.publicBuildPath.buildPath")
         pluginBuilder.prepareToExecute()
 
         settingsFile << """
             includeBuild("included")
+        """
+        when:
+        succeeds("help")
+        then:
+        outputContains("test-settings-plugin applied to :buildSrc")
+    }
+
+    @ToBeFixedForConfigurationCache(because="composite build")
+    def "buildSrc can apply plugins contributed by nested included build"() {
+        file("buildSrc/build.gradle") << """
+            plugins {
+                id "test-plugin"
+            }
+        """
+
+        writePluginTo(file("included/nested"))
+
+        settingsFile << """
+            includeBuild("included")
+        """
+        file("included/settings.gradle") << """
+            includeBuild("nested")
         """
         when:
         succeeds("help")
@@ -63,9 +121,8 @@ class BuildSrcIncludedBuildIntegrationTest extends AbstractIntegrationSpec {
             }
         """
 
-        def pluginBuilder = new PluginBuilder(file("buildSrc"))
-        pluginBuilder.addPlugin("println 'test-plugin applied'")
-        pluginBuilder.generateForBuildSrc()
+        writePluginTo(file("buildSrc"))
+
 
         buildFile << """
             task executeIncluded {
@@ -78,6 +135,13 @@ class BuildSrcIncludedBuildIntegrationTest extends AbstractIntegrationSpec {
         when:
         succeeds("executeIncluded")
         then:
-        outputContains("test-plugin applied")
+        outputContains("test-plugin applied to :included")
     }
+
+    private void writePluginTo(TestFile projectDir) {
+        def pluginBuilder = new PluginBuilder(projectDir)
+        pluginBuilder.addPlugin("println 'test-plugin applied to ' + project.gradle.publicBuildPath.buildPath")
+        pluginBuilder.prepareToExecute()
+    }
+
 }
