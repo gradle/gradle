@@ -58,7 +58,7 @@ public class DefaultSnapshottingService implements SnapshottingService {
 
         @Override
         public String toString() {
-            return format("DefaultSnapshottingService { hashValue='%s' }", getHashValue());
+            return format("DefaultSnapshot { hashValue='%s' }", getHashValue());
         }
     }
 }
