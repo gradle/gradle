@@ -721,11 +721,13 @@ We have an interesting set of dependencies. Obviously the `date` and `hello` pro
 Such dependency patterns are daily bread in the problem space of multi-project builds. If a build system does not support these patterns, you either can't solve your problem or you need to do ugly hacks which are hard to maintain and massively impair your productivity as a build master.
 
 [[sec:project_jar_dependencies]]
-== Project lib dependencies
+== Project dependencies
 
-What if one project needs the jar produced by another project in its compile path, and not just the jar but also the transitive dependencies of this jar? Obviously this is a very common use case for Java multi-project builds. As mentioned in <<declaring_dependencies.adoc#sub:project_dependencies,Project dependencies>>, Gradle offers project lib dependencies for this.
+What if one project needs the jar produced by another project in its compile path, and not just the jar but also the transitive dependencies of this jar?
+Obviously this is a very common use case for Java multi-project builds.
+As mentioned in <<declaring_dependencies.adoc#sub:project_dependencies,Project dependencies>>, Gradle offers project dependencies for this.
 
-.Project lib dependencies
+.Project dependencies
 ====
 [.multi-language-sample]
 =====
@@ -733,50 +735,22 @@ What if one project needs the jar produced by another project in its compile pat
 [source, groovy]
 ----
 .
+├── buildSrc
+│   ...
 ├── api
-│   └── src
-│       ├── main
-│       │   └── java
-│       │       └── org
-│       │           └── gradle
-│       │               └── sample
-│       │                   ├── api
-│       │                   │   └── Person.java
-│       │                   └── api-impl
-│       │                       └── PersonImpl.java
-│       └── test
-│           └── java
-│               └── org
-│                   └── gradle
-│                       └── PersonTest.java
-├── build.gradle
+│   ├── src
+│   │   └──...
+│   └── build.gradle
 ├── services
-│   └── person-service
-│       └── src
-│           ├── main
-│           │   └── java
-│           │       └── org
-│           │           └── gradle
-│           │               └── sample
-│           │                   └── services
-│           │                       └── PersonService.java
-│           └── test
-│               └── java
-│                   └── org
-│                       └── gradle
-│                           └── sample
-│                               └── services
-│                                   └── PersonServiceTest.java
-├── settings.gradle
-└── shared
-    └── src
-        └── main
-            └── java
-                └── org
-                    └── gradle
-                        └── sample
-                            └── shared
-                                └── Helper.java
+│   └── person-service
+│       ├── src
+│       │   └──...
+│       └── build.gradle
+├── shared
+│   ├── src
+│   │   └──...
+│   └── build.gradle
+└── settings.gradle
 ----
 =====
 [.multi-language-sample]
@@ -785,75 +759,61 @@ What if one project needs the jar produced by another project in its compile pat
 [source, kotlin]
 ----
 .
+├── buildSrc
+│   ...
 ├── api
-│   └── src
-│       ├── main
-│       │   └── java
-│       │       └── org
-│       │           └── gradle
-│       │               └── sample
-│       │                   ├── api
-│       │                   │   └── Person.java
-│       │                   └── api-impl
-│       │                       └── PersonImpl.java
-│       └── test
-│           └── java
-│               └── org
-│                   └── gradle
-│                       └── PersonTest.java
-├── build.gradle.kts
+│   ├── src
+│   │   └──...
+│   └── build.gradle.kts
 ├── services
-│   └── person-service
-│       └── src
-│           ├── main
-│           │   └── java
-│           │       └── org
-│           │           └── gradle
-│           │               └── sample
-│           │                   └── services
-│           │                       └── PersonService.java
-│           └── test
-│               └── java
-│                   └── org
-│                       └── gradle
-│                           └── sample
-│                               └── services
-│                                   └── PersonServiceTest.java
-├── settings.gradle.kts
-└── shared
-    └── src
-        └── main
-            └── java
-                └── org
-                    └── gradle
-                        └── sample
-                            └── shared
-                                └── Helper.java
+│   └── person-service
+│       ├── src
+│       │   └──...
+│       └── build.gradle.kts
+├── shared
+│   ├── src
+│   │   └──...
+│   └── build.gradle.kts
+└── settings.gradle.kts
 ----
 =====
 ====
 
-
-We have the projects “`shared`”, “`api`” and “`person-service`”. The “`person-service`” project has a lib dependency on the other two projects. The “`api`” project has a lib dependency on the “`shared`” project.
-“`services`” is also a project, but we use it just as a container. It has no build script and gets nothing injected by another build script. We use the `:` separator to define a project path. Consult the DSL documentation of link:{groovyDslPath}++/org.gradle.api.initialization.Settings.html#org.gradle.api.initialization.Settings:include(java.lang.String[])++[Settings.include(java.lang.String[\])] for more information about defining project paths.
+We have the projects `shared`, `api` and `person-service`.
+The `person-service` project has a dependency on the other two projects.
+The `api` project has a dependency on the `shared` project.
+`services` is also a project, but we use it just as a container.
+It has no build script and gets nothing injected by another build script.
+We use the `:` separator to define a project path.
+Consult the DSL documentation of link:{groovyDslPath}++/org.gradle.api.initialization.Settings.html#org.gradle.api.initialization.Settings:include(java.lang.String[])++[Settings.include(java.lang.String[\])] for more information about defining project paths.
 
 [[javadependencies_2]]
 ====
-include::sample[dir="snippets/multiproject/dependencies-java/groovy",files="settings.gradle[];build.gradle[]"]
-include::sample[dir="snippets/multiproject/dependencies-java/kotlin",files="settings.gradle.kts[];build.gradle.kts[]"]
+include::sample[dir="snippets/multiproject/dependencies-java/groovy",files="settings.gradle[];buildSrc/src/main/groovy/myproject.java-conventions.gradle[];api/build.gradle[];shared/build.gradle[];services/person-service/build.gradle[]"]
+include::sample[dir="snippets/multiproject/dependencies-java/kotlin",files="settings.gradle.kts[];buildSrc/src/main/kotlin/myproject.java-conventions.gradle.kts[];api/build.gradle.kts[];shared/build.gradle.kts[];services/person-service/build.gradle.kts[]"]
 ====
 
-All the build logic is in the build script of the root project.footnote:[We do this here, as it makes the layout a bit easier. We usually put the project specific stuff into the build script of the respective projects.] A “_lib_” dependency is a special form of an execution dependency. It causes the other project to be built first and adds the jar with the classes of the other project to the classpath. It also adds the dependencies of the other project to the classpath. So you can enter the “`api`” directory and trigger a “`gradle compile`”. First the “`shared`” project is built and then the “`api`” project is built. Project dependencies enable partial multi-project builds.
+Shared build logic is extracted into a _convention plugin_ that is applied in the subprojects' build scripts that also define project dependencies.
+A project dependency is a special form of an execution dependency.
+It causes the other project to be built first and adds the jar with the classes of the other project to the classpath.
+It also adds the dependencies of the other project to the classpath.
+You can trigger a `gradle :api:compile`. First the `shared` project is built and then the `api` project is built.
+Project dependencies enable partial multi-project builds.
 
-If you come from Maven land you might be perfectly happy with this. If you come from Ivy land, you might expect some more fine grained control. Gradle offers this to you:
+If you come from Maven land you might be perfectly happy with this.
+If you come from Ivy land, you might expect some more fine grained control.
+Gradle offers this to you:
 
 .Fine grained control over dependencies
 ====
-include::sample[dir="snippets/multiproject/dependencies-javaWithCustomConf/groovy",files="build.gradle[]"]
-include::sample[dir="snippets/multiproject/dependencies-javaWithCustomConf/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/multiproject/dependencies-javaWithCustomConf/groovy",files="api/build.gradle[];services/person-service/build.gradle[]"]
+include::sample[dir="snippets/multiproject/dependencies-javaWithCustomConf/kotlin",files="api/build.gradle.kts[];services/person-service/build.gradle.kts[]"]
 ====
 
-The Java plugin adds per default a jar to your project libraries which contains all the classes. In this example we create an _additional_ library containing only the interfaces of the “`api`” project. We assign this library to a new _dependency configuration_. For the person service we declare that the project should be compiled only against the “`api`” interfaces but tested with all classes from “`api`”.
+The Java plugin adds per default a jar to your project libraries which contains all the classes.
+In this example we create an _additional_ library containing only the interfaces of the `api` project.
+We assign this library to a new _dependency configuration_.
+For the person service we declare that the project should be compiled only against the `api` interfaces but tested with all classes from `api`.
 
 [[sec:depending_on_output_of_another_project]]
 == Depending on the task output produced by another project
@@ -961,7 +921,7 @@ To configure on demand just for a given build, see <<command_line_interface.adoc
 
 The `build` task of the Java plugin is typically used to compile, test, and perform code style checks (if the CodeQuality plugin is used) of a single project. In multi-project builds you may often want to do all of these tasks across a range of projects. The `buildNeeded` and `buildDependents` tasks can help with this.
 
-In <<#javadependencies_2,this example>>, the “`:services:personservice`” project depends on both the “`:api`” and “`:shared`” projects. The “`:api`” project also depends on the “`:shared`” project.
+In <<#javadependencies_2,this example>>, the “`:services:person-service`” project depends on both the “`:api`” and “`:shared`” projects. The “`:api`” project also depends on the “`:shared`” project.
 
 Assume you are working on a single project, the “`:api`” project. You have been making changes, but have not built the entire project since performing a clean. You want to build any necessary supporting jars, but only perform code quality and unit tests on the project you have changed. The `build` task does this.
 
@@ -977,7 +937,7 @@ include::{snippetsPath}/multiproject/dependencies-java/tests/multitestingBuild.o
 =====
 ====
 
-If you have just gotten the latest version of source from your version control system which included changes in other projects that “`:api`” depends on, you might want to not only build all the projects you depend on, but test them as well. The `buildNeeded` task also tests all the projects from the project lib dependencies of the testRuntime configuration.
+If you have just gotten the latest version of source from your version control system which included changes in other projects that “`:api`” depends on, you might want to not only build all the projects you depend on, but test them as well. The `buildNeeded` task also tests all the projects from the project dependencies of the testRuntime configuration.
 
 .Build and Test Depended On Projects
 ====
@@ -991,7 +951,7 @@ include::{snippetsPath}/multiproject/dependencies-java/tests/multitestingBuildNe
 =====
 ====
 
-You also might want to refactor some part of the “`:api`” project that is used in other projects. If you make these types of changes, it is not sufficient to test just the “`:api`” project, you also need to test all projects that depend on the “`:api`” project. The `buildDependents` task also tests all the projects that have a project lib dependency (in the testRuntime configuration) on the specified project.
+You also might want to refactor some part of the “`:api`” project that is used in other projects. If you make these types of changes, it is not sufficient to test just the “`:api`” project, you also need to test all projects that depend on the “`:api`” project. The `buildDependents` task also tests all the projects that have a project dependency (in the testRuntime configuration) on the specified project.
 
 .Build and Test Dependent Projects
 ====
