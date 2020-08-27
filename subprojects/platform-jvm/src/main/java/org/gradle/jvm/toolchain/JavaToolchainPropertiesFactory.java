@@ -27,4 +27,6 @@ import org.gradle.api.Incubating;
 public interface JavaToolchainPropertiesFactory {
 
     JavaCompilerProperty newJavaCompilerProperty();
+
+    JavaLauncherProperty newJavaLauncherProperty();
 }

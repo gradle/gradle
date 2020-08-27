@@ -18,21 +18,22 @@ package org.gradle.jvm.toolchain;
 
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
-import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.Property;
 
 /**
- * A service that allows to retrieve a {@link JavaLauncher} by using a {@link JavaToolchainSpec}.
+ * A dedicated property implementation to deal with {@link JavaLauncher}.
+ *
+ * It enables the property to be set from a {@link JavaToolchainSpec}.
  *
  * @since 6.7
  */
 @Incubating
-public interface JavaLauncherQueryService {
+public interface JavaLauncherProperty extends Property<JavaLauncher> {
 
     /**
-     * Obtain a {@link JavaLauncher} matching the {@link JavaToolchainSpec}
+     * Sets the property value lazily from the provided {@link JavaToolchainSpec}
      *
-     * @param config The configuration of the {@code JavaToolchainSpec}
-     * @return A {@code Provider<JavaLauncher>}
+     * @param toolchainConfig the {@code JavaToolchainSpec} to select the toolchain
      */
-    Provider<JavaLauncher> getToolchainLauncher(Action<? super JavaToolchainSpec> config);
+    void from(Action<? super JavaToolchainSpec> toolchainConfig);
 }

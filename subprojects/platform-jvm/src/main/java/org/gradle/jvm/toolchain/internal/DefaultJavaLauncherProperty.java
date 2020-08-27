@@ -16,34 +16,27 @@
 
 package org.gradle.jvm.toolchain.internal;
 
+import org.gradle.api.Action;
+import org.gradle.api.internal.provider.DefaultProperty;
 import org.gradle.api.internal.provider.PropertyHost;
-import org.gradle.api.model.ObjectFactory;
-import org.gradle.jvm.toolchain.JavaCompilerProperty;
+import org.gradle.jvm.toolchain.JavaLauncher;
 import org.gradle.jvm.toolchain.JavaLauncherProperty;
-import org.gradle.jvm.toolchain.JavaToolchainPropertiesFactory;
+import org.gradle.jvm.toolchain.JavaToolchainSpec;
 
 import javax.inject.Inject;
 
-public class DefaultJavaToolchainPropertiesFactory implements JavaToolchainPropertiesFactory {
+public class DefaultJavaLauncherProperty extends DefaultProperty<JavaLauncher> implements JavaLauncherProperty {
 
-    private final PropertyHost propertyHost;
     private final JavaToolchainQueryService toolchainQueryService;
-    private final ObjectFactory objectFactory;
 
     @Inject
-    public DefaultJavaToolchainPropertiesFactory(PropertyHost propertyHost, JavaToolchainQueryService toolchainQueryService, ObjectFactory objectFactory) {
-        this.propertyHost = propertyHost;
+    public DefaultJavaLauncherProperty(PropertyHost propertyHost, JavaToolchainQueryService toolchainQueryService) {
+        super(propertyHost, JavaLauncher.class);
         this.toolchainQueryService = toolchainQueryService;
-        this.objectFactory = objectFactory;
     }
 
     @Override
-    public JavaCompilerProperty newJavaCompilerProperty() {
-        return objectFactory.newInstance(DefaultJavaCompilerProperty.class, propertyHost, toolchainQueryService);
-    }
-
-    @Override
-    public JavaLauncherProperty newJavaLauncherProperty() {
-        return objectFactory.newInstance(DefaultJavaLauncherProperty.class, propertyHost, toolchainQueryService);
+    public void from(Action<? super JavaToolchainSpec> toolchainConfig) {
+        set(toolchainQueryService.getToolchainLauncher(toolchainConfig));
     }
 }

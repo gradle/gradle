@@ -42,8 +42,6 @@ import org.gradle.api.internal.tasks.testing.junitplatform.JUnitPlatformTestFram
 import org.gradle.api.internal.tasks.testing.testng.TestNGTestFramework;
 import org.gradle.api.jvm.ModularitySpec;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.provider.Property;
-import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
@@ -75,9 +73,8 @@ import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.scan.UsedByScanPlugin;
 import org.gradle.internal.time.Clock;
 import org.gradle.internal.work.WorkerLeaseRegistry;
-import org.gradle.jvm.toolchain.JavaLauncher;
-import org.gradle.jvm.toolchain.JavaLauncherQueryService;
-import org.gradle.jvm.toolchain.JavaToolchainSpec;
+import org.gradle.jvm.toolchain.JavaLauncherProperty;
+import org.gradle.jvm.toolchain.JavaToolchainPropertiesFactory;
 import org.gradle.jvm.toolchain.internal.DefaultToolchainJavaLauncher;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.JavaDebugOptions;
@@ -158,7 +155,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
 
     private final JavaForkOptions forkOptions;
     private final ModularitySpec modularity;
-    private final Property<JavaLauncher> javaLauncher;
+    private JavaLauncherProperty javaLauncher;
 
     private FileCollection testClassesDirs;
     private final PatternFilterable patternSet;
@@ -185,7 +182,6 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
         forkOptions.setEnableAssertions(true);
         forkOptions.setExecutable(null);
         modularity = getObjectFactory().newInstance(DefaultModularitySpec.class);
-        javaLauncher = getObjectFactory().property(JavaLauncher.class);
     }
 
     @Inject
@@ -234,7 +230,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     }
 
     @Inject
-    protected JavaLauncherQueryService getLauncherQueryService() {
+    protected JavaToolchainPropertiesFactory getToolchainPropertiesFactory() {
         throw new UnsupportedOperationException();
     }
 
@@ -1179,27 +1175,17 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
      */
     @Incubating
     @Internal("getJavaVersion() is used as @Input")
-    public Property<JavaLauncher> getJavaLauncher() {
+    public JavaLauncherProperty getJavaLauncher() {
+        if (javaLauncher == null) {
+            javaLauncher = getToolchainPropertiesFactory().newJavaLauncherProperty();
+        }
         return javaLauncher;
-    }
-
-    /**
-     * Obtain a {@link JavaLauncher} matching the {@link JavaToolchainSpec} which can then be used to configure the launcher used by this task.
-     *
-     * @param action The action to configure the {@code JavaToolchainSpec}
-     * @return A {@code Provider<JavaLauncher>}
-     *
-     * @since 6.7
-     */
-    @Incubating
-    public Provider<JavaLauncher> toolchainLauncher(Action<? super JavaToolchainSpec> action) {
-        return getLauncherQueryService().getToolchainLauncher(action);
     }
 
     @Nullable
     private String getEffectiveExecutable() {
-        if (javaLauncher.isPresent()) {
-            return ((DefaultToolchainJavaLauncher) javaLauncher.get()).getExecutable();
+        if (getJavaLauncher().isPresent()) {
+            return ((DefaultToolchainJavaLauncher) getJavaLauncher().get()).getExecutable();
         }
         final String executable = getExecutable();
         return executable == null ? Jvm.current().getJavaExecutable().getAbsolutePath() : executable;

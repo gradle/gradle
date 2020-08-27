@@ -31,9 +31,8 @@ import org.gradle.api.tasks.options.Option;
 import org.gradle.internal.jvm.DefaultModularitySpec;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
-import org.gradle.jvm.toolchain.JavaLauncher;
-import org.gradle.jvm.toolchain.JavaLauncherQueryService;
-import org.gradle.jvm.toolchain.JavaToolchainSpec;
+import org.gradle.jvm.toolchain.JavaLauncherProperty;
+import org.gradle.jvm.toolchain.JavaToolchainPropertiesFactory;
 import org.gradle.jvm.toolchain.internal.DefaultToolchainJavaLauncher;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.ExecResult;
@@ -117,7 +116,7 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
     private final Property<String> mainClass;
     private final ModularitySpec modularity;
     private final Property<ExecResult> execResult;
-    private final Property<JavaLauncher> javaLauncher;
+    private JavaLauncherProperty javaLauncher;
 
     public JavaExec() {
         ObjectFactory objectFactory = getObjectFactory();
@@ -130,7 +129,6 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
         javaExecSpec.getMainClass().convention(getMainClass().orElse(getProviderFactory().provider(this::getMain))); // go through 'main' to keep this compatible with existing convention mappings
         javaExecSpec.getMainModule().convention(mainModule);
         javaExecSpec.getModularity().getInferModulePath().convention(modularity.getInferModulePath());
-        javaLauncher = objectFactory.property(JavaLauncher.class);
     }
 
     @Inject
@@ -149,7 +147,7 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
     }
 
     @Inject
-    protected JavaLauncherQueryService getLauncherQueryService() {
+    protected JavaToolchainPropertiesFactory getToolchainPropertyFactory() {
         throw new UnsupportedOperationException();
     }
 
@@ -761,27 +759,17 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
      */
     @Incubating
     @Internal // getJavaVersion() is used as @Input
-    public Property<JavaLauncher> getJavaLauncher() {
+    public JavaLauncherProperty getJavaLauncher() {
+        if (javaLauncher == null) {
+            javaLauncher = getToolchainPropertyFactory().newJavaLauncherProperty();
+        }
         return javaLauncher;
-    }
-
-    /**
-     * Obtain a {@link JavaLauncher} matching the {@link JavaToolchainSpec} which can then be used to configure the launcher used by this task.
-     *
-     * @param action The action to configure the {@code JavaToolchainSpec}
-     * @return A {@code Provider<JavaLauncher>}
-     *
-     * @since 6.7
-     */
-    @Incubating
-    public Provider<JavaLauncher> toolchainLauncher(Action<? super JavaToolchainSpec> action) {
-        return getLauncherQueryService().getToolchainLauncher(action);
     }
 
     @Nullable
     private String getEffectiveExecutable() {
-        if (javaLauncher.isPresent()) {
-            return ((DefaultToolchainJavaLauncher) javaLauncher.get()).getExecutable();
+        if (getJavaLauncher().isPresent()) {
+            return ((DefaultToolchainJavaLauncher) getJavaLauncher().get()).getExecutable();
         }
         final String executable = getExecutable();
         if (executable != null) {
