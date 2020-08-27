@@ -13,4 +13,5 @@ class WorkersProject(model: CIBuildModel) : Project({
 
     buildType(IndividualPerformanceScenarioWorkers(model, Os.LINUX))
     buildType(IndividualPerformanceScenarioWorkers(model, Os.WINDOWS))
+    buildType(IndividualPerformanceScenarioWorkers(model, Os.MACOS))
 })
