@@ -61,7 +61,7 @@ class PerformanceTestBuildTypeTest {
             "",
             "-x",
             "prepareSamples",
-            "\"-PtestJavaHome=%LINUX.java8.oracle.64bit%\"",
+            "\"-PtestJavaHome=%linux.java8.oracle.64bit%\"",
             "\"-Porg.gradle.performance.branchName=%teamcity.build.branch%\"",
             "\"-Porg.gradle.performance.db.url=%performance.db.url%\"",
             "\"-Porg.gradle.performance.db.username=%performance.db.username%\"",
