@@ -60,6 +60,6 @@ public class TestNGTestFrameworkTest extends Specification {
     }
 
     TestNGTestFramework createFramework() {
-        new TestNGTestFramework(testTask, Stub(FileCollection), new DefaultTestFilter(), objects, project.getProjectDir())
+        new TestNGTestFramework(testTask, Stub(FileCollection), new DefaultTestFilter(), objects)
     }
 }
