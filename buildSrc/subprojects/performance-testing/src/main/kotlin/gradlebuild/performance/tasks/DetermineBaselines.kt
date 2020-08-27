@@ -19,13 +19,12 @@ package gradlebuild.performance.tasks
 import gradlebuild.basics.kotlindsl.execAndGetStdout
 import gradlebuild.identity.extension.ModuleIdentityExtension
 import gradlebuild.performance.Config
-import javax.inject.Inject
 import org.gradle.api.DefaultTask
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.TaskAction
-import org.gradle.internal.os.OperatingSystem
 import org.gradle.kotlin.dsl.*
+import javax.inject.Inject
 
 
 const val defaultBaseline = "defaults"
