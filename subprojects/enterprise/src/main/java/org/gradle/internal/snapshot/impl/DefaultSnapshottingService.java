@@ -30,6 +30,7 @@ import static java.lang.String.format;
 public class DefaultSnapshottingService implements SnapshottingService {
 
     private final FileSystemAccess fileSystemAccess;
+
     @Inject
     public DefaultSnapshottingService(FileSystemAccess fileSystemAccess) {
         this.fileSystemAccess = fileSystemAccess;
