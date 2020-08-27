@@ -32,10 +32,7 @@ class SnapshottingServiceIntegrationTest extends AbstractIntegrationSpec {
         def pluginBuilder = new PluginBuilder(file("buildSrc"))
         pluginBuilder.addPlugin("""
             def input = ($Paths.name).get("$inputFile")
-            def projectInternal = (org.gradle.api.internal.project.ProjectInternal)project
-            def serviceRegistry = projectInternal.getServices()
-
-            def snapshottingService = serviceRegistry.get($SnapshottingService.name)
+            def snapshottingService = project.services.get(${SnapshottingService.name})
             def snapshot = snapshottingService.snapshotFor(input)
 
             println("Snapshot for input file $inputFile.name is \$snapshot")
