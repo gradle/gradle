@@ -175,32 +175,21 @@ _Future versions of Gradle will remove this restriction._
 If the restrictions of the `plugins {}` block are prohibitive, the recommended approach is to apply plugins using the <<#sec:applying_plugins_buildscript,buildscript {} block>>.
 
 [[sec:subprojects_plugins_dsl]]
-==== Applying plugins to subprojects
+==== Applying external plugins with same version to subprojects
 
-If you have a <<multi_project_builds.adoc#multi_project_builds,multi-project build>>, you probably want to apply plugins to some or all of the subprojects in your build, but not to the `root` or `master` project. The default behavior of the `plugins {}` block is to immediately `resolve` _and_  `apply` the plugins. But, you can use the `apply false` syntax to tell Gradle not to apply the plugin to the current project and then use `apply plugin: «plugin id»` in the `subprojects` block or use the `plugins {}` block in sub projects build scripts:
+If you have a <<multi_project_builds.adoc#multi_project_builds,multi-project build>>, you probably want to apply plugins to some or all of the subprojects in your build, but not to the `root` project.
+The default behavior of the `plugins {}` block is to immediately `resolve` _and_  `apply` the plugins.
+But, you can use the `apply false` syntax to tell Gradle not to apply the plugin to the current project
+and then use the `plugins {}` block without the version in subprojects' build scripts:
 
 .Applying plugins only on certain subprojects
 ====
-include::sample[dir="snippets/plugins/multiproject/groovy/project", files="settings.gradle[tags=include-subprojects];build.gradle[tags=plugins-on-subprojects];goodbye-c/build.gradle[]"]
-include::sample[dir="snippets/plugins/multiproject/kotlin/project", files="settings.gradle.kts[tags=include-subprojects];build.gradle.kts[tags=plugins-on-subprojects];goodbye-c/build.gradle.kts[]"]
+include::sample[dir="snippets/plugins/multiproject/groovy/project", files="settings.gradle[tags=include-subprojects];build.gradle[tags=plugins-on-subprojects];hello-a/build.gradle[];hello-b/build.gradle[];goodbye-c/build.gradle[]"]
+include::sample[dir="snippets/plugins/multiproject/kotlin/project", files="settings.gradle.kts[tags=include-subprojects];build.gradle.kts[tags=plugins-on-subprojects];hello-a/build.gradle.kts[];hello-b/build.gradle.kts[];goodbye-c/build.gradle.kts[]"]
 ====
 
-If you then run `gradle hello` you'll see that only the hello-a and hello-b subprojects had the hello plugin applied.
-
-
-.Output of `gradle hello`
-====
-[source]
-----
-> gradle hello
-:hello-a:hello
-:hello-b:hello
-Hello!
-Hello!
-
-BUILD SUCCEEDED
-----
-====
+Even better - you can encapsulate the versions of external plugins by composing the build logic
+using your own <<multi_project_builds#sec:sharing_build_logic_between_subprojects, convention plugins>>.
 
 [[sec:buildsrc_plugins_dsl]]
 ==== Applying plugins from the _buildSrc_ directory
