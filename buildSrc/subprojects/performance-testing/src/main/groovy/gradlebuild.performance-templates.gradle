@@ -354,7 +354,7 @@ tasks.register("k9AndroidBuild", RemoteProject) {
 tasks.register("largeAndroidBuild", RemoteProject) {
     remoteUri = 'https://github.com/gradle/perf-android-large.git'
     // From android-35 branch
-    ref = "36143205842725fb1bd33f5ffc4667ccd0336641"
+    ref = "ea980c1d903491aae18ecdea2abb9c60cc520239"
 }
 
 tasks.register("santaTrackerAndroidBuild", RemoteProject) {
@@ -463,7 +463,7 @@ tasks.register("excludeRuleMergingBuild", RemoteProject) {
 tasks.register("springBootApp", RemoteProject) {
     remoteUri = 'https://github.com/gradle/performance-comparisons.git'
     // From master branch
-    ref = "13739fa299e485c079335b0cd5b30da1cff92234"
+    ref = "cbfe4c63fa570200624575c75bafb556d3eb4bdd"
     subdirectory = 'parallel-downloads'
 }
 
