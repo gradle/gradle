@@ -146,7 +146,7 @@ public final class BuildOperationRecord {
 
     @Override
     public String toString() {
-        return "BuildOperationRecord{" + displayName + '}';
+        return "BuildOperationRecord{" + id + "->" + displayName + '}';
     }
 
     public static class Progress {

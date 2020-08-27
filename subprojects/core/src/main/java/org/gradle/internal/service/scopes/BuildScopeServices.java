@@ -84,6 +84,7 @@ import org.gradle.cache.CacheRepository;
 import org.gradle.cache.FileLockManager;
 import org.gradle.caching.internal.BuildCacheServices;
 import org.gradle.configuration.BuildOperationFiringProjectsPreparer;
+import org.gradle.configuration.BuildTreePreparingProjectsPreparer;
 import org.gradle.configuration.CompileOperationFactory;
 import org.gradle.configuration.DefaultInitScriptProcessor;
 import org.gradle.configuration.DefaultProjectsPreparer;
@@ -515,15 +516,19 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         return new TaskPathProjectEvaluator(cancellationToken);
     }
 
-    protected ProjectsPreparer createBuildConfigurer(ProjectConfigurer projectConfigurer, BuildLoader buildLoader, ListenerManager listenerManager, BuildOperationExecutor buildOperationExecutor) {
+    protected ProjectsPreparer createBuildConfigurer(ProjectConfigurer projectConfigurer, BuildSourceBuilder buildSourceBuilder, BuildStateRegistry buildStateRegistry, BuildLoader buildLoader, ListenerManager listenerManager, BuildOperationExecutor buildOperationExecutor) {
         ModelConfigurationListener modelConfigurationListener = listenerManager.getBroadcaster(ModelConfigurationListener.class);
-        return new BuildOperationFiringProjectsPreparer(
-            new DefaultProjectsPreparer(
-                projectConfigurer,
-                    buildLoader,
-                modelConfigurationListener,
-                buildOperationExecutor),
-            buildOperationExecutor);
+        return new BuildTreePreparingProjectsPreparer(
+                new BuildOperationFiringProjectsPreparer(
+                        new DefaultProjectsPreparer(
+                                projectConfigurer,
+                                buildLoader,
+                                modelConfigurationListener,
+                                buildOperationExecutor),
+                        buildOperationExecutor),
+                buildOperationExecutor,
+                buildStateRegistry,
+                buildSourceBuilder);
     }
 
     protected ProjectAccessHandler createProjectAccessHandler() {

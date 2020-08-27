@@ -21,7 +21,6 @@ import org.gradle.execution.ProjectConfigurer;
 import org.gradle.initialization.BuildLoader;
 import org.gradle.initialization.ModelConfigurationListener;
 import org.gradle.initialization.ProjectsEvaluatedNotifier;
-import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.util.IncubationLogger;
 

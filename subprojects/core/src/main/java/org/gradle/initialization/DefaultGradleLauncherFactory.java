@@ -28,7 +28,6 @@ import org.gradle.composite.internal.IncludedBuildControllers;
 import org.gradle.configuration.ProjectsPreparer;
 import org.gradle.deployment.internal.DefaultDeploymentRegistry;
 import org.gradle.execution.BuildWorkExecutor;
-import org.gradle.initialization.buildsrc.BuildSourceBuilder;
 import org.gradle.initialization.exception.ExceptionAnalyser;
 import org.gradle.internal.InternalBuildAdapter;
 import org.gradle.internal.build.BuildState;
@@ -151,7 +150,6 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
             settingsPreparer,
             taskExecutionPreparer,
             gradle.getServices().get(ConfigurationCache.class),
-            gradle.getServices().get(BuildSourceBuilder.class),
             new BuildOptionBuildOperationProgressEventsEmitter(
                 gradle.getServices().get(BuildOperationProgressEventEmitter.class)
             )

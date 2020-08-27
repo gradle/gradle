@@ -16,6 +16,7 @@
 
 package org.gradle.initialization.buildsrc
 
+import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.plugin.PluginBuilder
 
@@ -34,7 +35,7 @@ class BuildSrcIncludedBuildIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasDescription("Cannot include build 'child' in build 'buildSrc'. This is not supported yet.")
     }
 
-    def "buildSrc can rely on plugins contributed by other included builds"() {
+    def "buildSrc can apply plugins contributed by other included builds"() {
         file("buildSrc/build.gradle") << """
             plugins {
                 id "test-plugin"
@@ -42,7 +43,7 @@ class BuildSrcIncludedBuildIntegrationTest extends AbstractIntegrationSpec {
         """
 
         def pluginBuilder = new PluginBuilder(file("included"))
-        pluginBuilder.addPlugin("println 'test-plugin applied'")
+        pluginBuilder.addPlugin("println 'test-plugin applied to ' + project.gradle.publicBuildPath.buildPath")
         pluginBuilder.prepareToExecute()
 
         settingsFile << """
@@ -50,6 +51,32 @@ class BuildSrcIncludedBuildIntegrationTest extends AbstractIntegrationSpec {
         """
         when:
         succeeds("help")
+        then:
+        outputContains("test-plugin applied to :buildSrc")
+    }
+
+    @NotYetImplemented
+    def "plugins from buildSrc can be used by other included builds"() {
+        file("included/build.gradle") << """
+            plugins {
+                id "test-plugin"
+            }
+        """
+
+        def pluginBuilder = new PluginBuilder(file("buildSrc"))
+        pluginBuilder.addPlugin("println 'test-plugin applied'")
+        pluginBuilder.generateForBuildSrc()
+
+        buildFile << """
+            task executeIncluded {
+                dependsOn gradle.includedBuild("included").task(":help")
+            }
+        """
+        settingsFile << """
+            includeBuild("included")
+        """
+        when:
+        succeeds("executeIncluded")
         then:
         outputContains("test-plugin applied")
     }
