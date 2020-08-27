@@ -395,7 +395,6 @@ class LoggingBuildOperationProgressIntegTest extends AbstractIntegrationSpec {
         uniqueMessages.contains "finished operation"
     }
 
-    @IgnoreIf({ GradleContextualExecuter.watchFs })
     def "filters non supported output events"() {
         settingsFile << """
             rootProject.name = 'root'
@@ -433,10 +432,8 @@ class LoggingBuildOperationProgressIntegTest extends AbstractIntegrationSpec {
             .flatten()
             .with { it as List<BuildOperationRecord.Progress> }
             .findAll { OutputEvent.isAssignableFrom(it.detailsType) }
-        // Watching the file system is an incubating feature.
-        def watchFsExtraEvents = GradleContextualExecuter.watchFs ? 1 : 0
         assert progressOutputEvents
-            .size() == 14 + watchFsExtraEvents // 11 tasks + "\n" + "BUILD SUCCESSFUL" + "2 actionable tasks: 2 executed" +
+            .size() == 14 // 11 tasks + "\n" + "BUILD SUCCESSFUL" + "2 actionable tasks: 2 executed" +
     }
 
     private void assertNestedTaskOutputTracked(String projectPath = ':nested') {
