@@ -17,10 +17,12 @@
 package org.gradle.performance.regression.buildcache
 
 import org.gradle.initialization.ParallelismBuildOptions
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import spock.lang.Unroll
 
+@Requires(TestPrecondition.LINUX)
 class TaskOutputCachingSwiftPerformanceTest extends AbstractTaskOutputCachingPerformanceTest {
-
     def setup() {
         runner.minimumBaseVersion = "4.5"
         runner.targetVersions = ["6.7-20200824220048+0000"]
