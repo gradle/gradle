@@ -174,12 +174,12 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractConsoleGr
 
         and:
         childBuildScript.waitForAllPendingCalls()
-        assertHasBuildPhase("0% CONFIGURING")
+        assertHasBuildPhase("0% INITIALIZING")
         childBuildScript.releaseAll()
 
         and:
         rootBuildScript.waitForAllPendingCalls()
-        assertHasBuildPhase("75% CONFIGURING")
+        assertHasBuildPhase("0% CONFIGURING")
         rootBuildScript.releaseAll()
 
         and:

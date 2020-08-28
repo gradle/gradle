@@ -25,6 +25,7 @@ import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.events.OperationType
 import org.gradle.tooling.events.ProgressEvent
 import org.gradle.tooling.model.gradle.BuildInvocations
+import org.gradle.util.GradleVersion
 
 class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
 
@@ -109,12 +110,10 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
 
         // Verify the most interesting operations; there may be others
         def runBuild = events.operation("Run build")
-        runBuild.descriptor.name == "Run build"
         runBuild.descriptor.parent == null
+        runBuild.successful
 
-        def configureBuild = events.operation("Configure build")
-        configureBuild.descriptor.name == "Configure build"
-        configureBuild.descriptor.parent == runBuild.descriptor
+        assertConfigureOperationFound(events)
 
         def runTasks = events.operation("Run tasks")
         runTasks.descriptor.name == "Run tasks"
@@ -164,12 +163,10 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         runBuild.failed
         runBuild.failures.size() == 1
 
-        def configureBuild = events.operation("Configure build")
-        configureBuild.descriptor.parent == runBuild.descriptor
-        configureBuild.successful
+        assertConfigureOperationFound(events)
 
         def runTasks = events.operation("Run tasks")
-        assert runTasks.descriptor.parent == runBuild.descriptor
+        runTasks.descriptor.parent == runBuild.descriptor
         runTasks.failed
         runTasks.failures.size() == 1
 
@@ -178,6 +175,23 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
 
         events.failed == [runBuild, runTasks]
         events.successful == events.operations - [runBuild, runTasks]
+    }
+
+    private void assertConfigureOperationFound(ProgressEvents events) {
+        def runBuild = events.operation("Run build")
+
+        if (targetVersion < GradleVersion.version("6.7")) {
+            def configureBuild = events.operation("Configure build")
+            assert configureBuild.descriptor.parent == runBuild.descriptor
+            assert configureBuild.successful
+        } else {
+            def prepareBuildTree = events.operation("Prepare build tree")
+            assert prepareBuildTree.descriptor.parent == runBuild.descriptor
+
+            def configureBuild = events.operation("Configure build")
+            assert configureBuild.descriptor.parent == prepareBuildTree.descriptor
+            assert configureBuild.successful
+        }
     }
 
     def goodCode() {

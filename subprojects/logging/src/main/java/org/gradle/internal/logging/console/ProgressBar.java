@@ -29,11 +29,11 @@ public class ProgressBar {
 
     private final ConsoleMetaData consoleMetaData;
     private final String progressBarPrefix;
-    private int progressBarWidth;
+    private final int progressBarWidth;
     private final String progressBarSuffix;
-    private char fillerChar;
+    private final char fillerChar;
     private final char incompleteChar;
-    private String suffix;
+    private final String suffix;
 
     private int current;
     private int total;

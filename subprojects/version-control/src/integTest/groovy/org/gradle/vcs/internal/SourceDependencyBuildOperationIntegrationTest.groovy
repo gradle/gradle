@@ -85,11 +85,14 @@ class SourceDependencyBuildOperationIntegrationTest extends AbstractIntegrationS
         loadOps[1].details.buildPath == ":buildB"
         loadOps[1].parentId == resolve.id
 
+        def buildTreeOp = operations.only(/Prepare build tree/)
+        buildTreeOp.parentId == root.id
+
         def configureOps = operations.all(ConfigureBuildBuildOperationType)
         configureOps.size() == 2
         configureOps[0].displayName == "Configure build"
         configureOps[0].details.buildPath == ":"
-        configureOps[0].parentId == root.id
+        configureOps[0].parentId == buildTreeOp.id
         configureOps[1].displayName == "Configure build (:${buildName})"
         configureOps[1].details.buildPath == ":${buildName}"
         configureOps[1].parentId == resolve.id
