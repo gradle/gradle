@@ -19,7 +19,7 @@ abstract class AdHocPerformanceScenario(os: Os) : BuildType({
     name = "AdHoc Performance Scenario - ${os.name.toLowerCase().capitalize()}"
     id(id)
 
-    applyPerformanceTestSettings(timeout = 420)
+    applyPerformanceTestSettings(os = os, timeout = 420)
     artifactRules = individualPerformanceTestArtifactRules
 
     params {
@@ -36,6 +36,8 @@ abstract class AdHocPerformanceScenario(os: Os) : BuildType({
             param("env.FG_HOME_DIR", "/opt/FlameGraph")
             param("env.PATH", "%env.PATH%:/opt/swift/4.2.3/usr/bin")
             param("env.HP_HOME_DIR", "/opt/honest-profiler")
+        } else {
+            param("flamegraphs", "--flamegraphs false")
         }
 
         param("additional.gradle.parameters", "")
@@ -55,13 +57,13 @@ abstract class AdHocPerformanceScenario(os: Os) : BuildType({
                     "clean %templates% performance:performanceAdHocTest",
                     "%baselines%",
                     """--scenarios "%scenario%" --warmups %warmups% --runs %runs% --checks %checks% --channel %channel% %flamegraphs% %additional.gradle.parameters%""",
-                    Os.LINUX
+                    os
                 ) +
                     buildToolGradleParameters(isContinue = false) +
                     builtInRemoteBuildCacheNode.gradleParameters(Os.LINUX)
                 ).joinToString(separator = " ")
         }
-        checkCleanM2()
+        checkCleanM2(os)
     }
 })
 

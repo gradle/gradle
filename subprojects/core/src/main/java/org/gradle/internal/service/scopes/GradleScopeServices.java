@@ -74,7 +74,7 @@ import org.gradle.execution.plan.WorkNodeExecutor;
 import org.gradle.execution.taskgraph.DefaultTaskExecutionGraph;
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
 import org.gradle.execution.taskgraph.TaskListenerInternal;
-import org.gradle.initialization.BuildOperatingFiringTaskExecutionPreparer;
+import org.gradle.initialization.BuildOperationFiringTaskExecutionPreparer;
 import org.gradle.initialization.DefaultTaskExecutionPreparer;
 import org.gradle.initialization.TaskExecutionPreparer;
 import org.gradle.internal.Factory;
@@ -161,7 +161,7 @@ public class GradleScopeServices extends DefaultServiceRegistry {
     }
 
     TaskExecutionPreparer createTaskExecutionPreparer(BuildConfigurationActionExecuter buildConfigurationActionExecuter, IncludedBuildControllers includedBuildControllers, BuildOperationExecutor buildOperationExecutor) {
-        return new BuildOperatingFiringTaskExecutionPreparer(
+        return new BuildOperationFiringTaskExecutionPreparer(
             new DefaultTaskExecutionPreparer(buildConfigurationActionExecuter, includedBuildControllers, buildOperationExecutor),
             buildOperationExecutor);
     }

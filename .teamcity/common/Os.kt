@@ -27,8 +27,8 @@ val killAllGradleProcessesUnixLike = """
 val killAllGradleProcessesWindows = """
     wmic OS get FreePhysicalMemory,FreeVirtualMemory,FreeSpaceInPagingFiles /VALUE
     wmic Path win32_process Where "name='java.exe'"
-    wmic Path win32_process Where "name='java.exe' AND CommandLine Like '%%GradleDaemon%%'" Call Terminate
-    wmic Path win32_process Where "name='java.exe' AND CommandLine Like '%%GradleWorker%%'" Call Terminate
+    wmic Path win32_process Where "name='java.exe' AND CommandLine Like '%%%%GradleDaemon%%%%'" Call Terminate
+    wmic Path win32_process Where "name='java.exe' AND CommandLine Like '%%%%GradleWorker%%%%'" Call Terminate
     wmic OS get FreePhysicalMemory,FreeVirtualMemory,FreeSpaceInPagingFiles /VALUE
     wmic Path win32_process Where "name='java.exe'"
 """.trimIndent()

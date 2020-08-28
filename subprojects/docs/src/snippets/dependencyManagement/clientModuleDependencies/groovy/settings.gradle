@@ -1,2 +1,0 @@
-rootProject.name = 'client-module-dependencies'
-include 'api', 'shared'

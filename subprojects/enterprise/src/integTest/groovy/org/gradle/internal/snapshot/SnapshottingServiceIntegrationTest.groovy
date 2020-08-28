@@ -19,23 +19,21 @@ package org.gradle.internal.snapshot
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.plugin.PluginBuilder
 
-import java.nio.file.Paths
-
 class SnapshottingServiceIntegrationTest extends AbstractIntegrationSpec {
 
     def "can inject snapshotting service into plugin"() {
         given:
-        def inputFile = file("input.txt") << """
+        file("input.txt") << """
             Some text
         """
 
         def pluginBuilder = new PluginBuilder(file("buildSrc"))
         pluginBuilder.addPlugin("""
-            def input = ($Paths.name).get("$inputFile")
+            def inputFile = project.file("input.txt")
             def snapshottingService = project.services.get(${SnapshottingService.name})
-            def snapshot = snapshottingService.snapshotFor(input)
+            def snapshot = snapshottingService.snapshotFor(inputFile.toPath())
 
-            println("Snapshot for input file $inputFile.name is \$snapshot")
+            println("Snapshot for input file \${inputFile.name} is \$snapshot")
         """
         )
         pluginBuilder.generateForBuildSrc()

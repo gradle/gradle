@@ -41,9 +41,9 @@ fun BuildType.applyPerformanceTestSettings(os: Os = Os.LINUX, timeout: Int = 30)
 
 fun performanceTestCommandLine(task: String, baselines: String, extraParameters: String = "", os: Os = Os.LINUX) = listOf(
     "$task --baselines $baselines $extraParameters",
-    "-x prepareSamples"
+    "-x prepareSamples",
+    "\"-PtestJavaHome=" + individualPerformanceTestJavaHome(os) + "\""
 ) + listOf(
-    "-PtestJavaHome" to individualPerformanceTestJavaHome(os),
     "-Porg.gradle.performance.branchName" to "%teamcity.build.branch%",
     "-Porg.gradle.performance.db.url" to "%performance.db.url%",
     "-Porg.gradle.performance.db.username" to "%performance.db.username%",

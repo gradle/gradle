@@ -83,7 +83,7 @@ import org.gradle.api.provider.ProviderFactory;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.FileLockManager;
 import org.gradle.caching.internal.BuildCacheServices;
-import org.gradle.configuration.BuildOperatingFiringProjectsPreparer;
+import org.gradle.configuration.BuildOperationFiringProjectsPreparer;
 import org.gradle.configuration.CompileOperationFactory;
 import org.gradle.configuration.DefaultInitScriptProcessor;
 import org.gradle.configuration.DefaultProjectsPreparer;
@@ -113,7 +113,7 @@ import org.gradle.groovy.scripts.internal.FileCacheBackedScriptClassCompiler;
 import org.gradle.groovy.scripts.internal.ScriptRunnerFactory;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.BuildLoader;
-import org.gradle.initialization.BuildOperatingFiringSettingsPreparer;
+import org.gradle.initialization.BuildOperationFiringSettingsPreparer;
 import org.gradle.initialization.BuildOperationSettingsProcessor;
 import org.gradle.initialization.ClassLoaderRegistry;
 import org.gradle.initialization.ClassLoaderScopeListeners;
@@ -488,7 +488,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
     }
 
     protected SettingsPreparer createSettingsPreparer(InitScriptHandler initScriptHandler, SettingsLoaderFactory settingsLoaderFactory, BuildOperationExecutor buildOperationExecutor, BuildDefinition buildDefinition) {
-        return new BuildOperatingFiringSettingsPreparer(
+        return new BuildOperationFiringSettingsPreparer(
             new DefaultSettingsPreparer(
                 initScriptHandler,
                 settingsLoaderFactory
@@ -517,7 +517,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
 
     protected ProjectsPreparer createBuildConfigurer(ProjectConfigurer projectConfigurer, BuildStateRegistry buildStateRegistry, BuildLoader buildLoader, ListenerManager listenerManager, BuildOperationExecutor buildOperationExecutor) {
         ModelConfigurationListener modelConfigurationListener = listenerManager.getBroadcaster(ModelConfigurationListener.class);
-        return new BuildOperatingFiringProjectsPreparer(
+        return new BuildOperationFiringProjectsPreparer(
             new DefaultProjectsPreparer(
                 projectConfigurer,
                 buildStateRegistry,
