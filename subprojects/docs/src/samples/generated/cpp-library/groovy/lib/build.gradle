@@ -1,0 +1,10 @@
+
+plugins {
+    id 'cpp-library' // <1>
+
+    id 'cpp-unit-test' // <2>
+}
+
+library {
+    targetMachines.add(machines.linux.x86_64) // <3>
+}

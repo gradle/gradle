@@ -28,6 +28,7 @@ import org.gradle.api.artifacts.repositories.ArtifactRepository;
 import org.gradle.api.artifacts.repositories.MetadataSupplierAware;
 import org.gradle.api.artifacts.repositories.RepositoryContentDescriptor;
 import org.gradle.api.artifacts.repositories.RepositoryResourceAccessor;
+import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.artifacts.repositories.resolver.ExternalRepositoryResourceAccessor;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 import org.gradle.api.model.ObjectFactory;
@@ -56,10 +57,15 @@ public abstract class AbstractArtifactRepository implements ArtifactRepositoryIn
     private Action<? super ActionConfiguration> componentMetadataListerRuleConfiguration;
     private final ObjectFactory objectFactory;
     private final Supplier<RepositoryContentDescriptorInternal> repositoryContentDescriptor = Suppliers.memoize(this::createRepositoryDescriptor)::get;
+    private final FeaturePreviews featurePreviews;
 
     protected AbstractArtifactRepository(ObjectFactory objectFactory) {
-        this.objectFactory = objectFactory;
+       this(objectFactory, null);
+    }
 
+    protected AbstractArtifactRepository(ObjectFactory objectFactory, @Nullable FeaturePreviews featurePreviews) {
+        this.objectFactory = objectFactory;
+        this.featurePreviews = featurePreviews;
     }
 
     @Override
@@ -111,7 +117,7 @@ public abstract class AbstractArtifactRepository implements ArtifactRepositoryIn
 
     @Override
     public RepositoryContentDescriptorInternal createRepositoryDescriptor() {
-        return new DefaultRepositoryContentDescriptor(this::getDisplayName);
+        return new DefaultRepositoryContentDescriptor(this::getDisplayName, featurePreviews);
     }
 
     @Override

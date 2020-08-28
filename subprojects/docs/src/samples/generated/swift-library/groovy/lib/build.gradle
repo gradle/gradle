@@ -1,0 +1,10 @@
+
+plugins {
+    id 'swift-library' // <1>
+
+    id 'xctest' // <2>
+}
+
+library {
+    targetMachines.add(machines.macOS.x86_64) // <3>
+}

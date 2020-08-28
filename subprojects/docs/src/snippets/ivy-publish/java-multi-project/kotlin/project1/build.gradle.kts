@@ -1,0 +1,10 @@
+plugins {
+    id("myproject.publishing-conventions")
+}
+
+description = "The first project"
+
+dependencies {
+    implementation("junit:junit:4.13")
+    implementation(project(":project2"))
+}
