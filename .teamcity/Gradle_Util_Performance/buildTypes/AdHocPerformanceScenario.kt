@@ -19,7 +19,7 @@ abstract class AdHocPerformanceScenario(os: Os) : BuildType({
     name = "AdHoc Performance Scenario - ${os.name.toLowerCase().capitalize()}"
     id(id)
 
-    applyPerformanceTestSettings(timeout = 420)
+    applyPerformanceTestSettings(os = os, timeout = 420)
     artifactRules = individualPerformanceTestArtifactRules
 
     params {
