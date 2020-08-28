@@ -138,6 +138,43 @@ class BuildSrcIncludedBuildIntegrationTest extends AbstractIntegrationSpec {
         outputContains("test-plugin applied to :included")
     }
 
+
+    @ToBeFixedForConfigurationCache(because="composite build")
+    def "buildSrc can apply plugins contributed by other included builds and use them in plugins for the root build"() {
+        file("buildSrc/build.gradle") << """
+            plugins {
+                id "test-plugin"
+                id "groovy-gradle-plugin"
+            }
+            
+            dependencies {
+                implementation("org.gradle.test:included")
+            }
+        """
+
+        file("buildSrc/src/main/groovy/apply-test-plugin.gradle") << """
+            plugins {
+                id("test-plugin")
+            }
+        """
+
+        writePluginTo(file("included"))
+
+        buildFile << """
+            plugins {
+                id "apply-test-plugin"
+            }
+        """
+        settingsFile << """
+            includeBuild("included")
+        """
+        when:
+        succeeds("help")
+        then:
+        outputContains("test-plugin applied to :buildSrc")
+        outputContains("test-plugin applied to :")
+    }
+
     private void writePluginTo(TestFile projectDir) {
         def pluginBuilder = new PluginBuilder(projectDir)
         pluginBuilder.addPlugin("println 'test-plugin applied to ' + project.gradle.publicBuildPath.buildPath")
