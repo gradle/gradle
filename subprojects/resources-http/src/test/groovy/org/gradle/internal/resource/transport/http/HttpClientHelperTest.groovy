@@ -20,6 +20,7 @@ import org.apache.http.client.methods.HttpGet
 import org.apache.http.client.methods.HttpRequestBase
 import org.apache.http.impl.client.CloseableHttpClient
 import org.apache.http.ssl.SSLContexts
+import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 
@@ -27,7 +28,7 @@ class HttpClientHelperTest extends AbstractHttpClientTest {
     @Rule SetSystemProperties sysProp = new SetSystemProperties()
 
     def "throws HttpRequestException if an IO error occurs during a request"() {
-        def client = new HttpClientHelper(httpSettings) {
+        def client = new HttpClientHelper(new DocumentationRegistry(), httpSettings) {
             @Override
             protected HttpClientResponse executeGetOrHead(HttpRequestBase method) {
                 throw new IOException("ouch")
@@ -43,7 +44,7 @@ class HttpClientHelperTest extends AbstractHttpClientTest {
     }
 
     def "response is closed if an error occurs during a request"() {
-        def client = new HttpClientHelper(httpSettings)
+        def client = new HttpClientHelper(new DocumentationRegistry(), httpSettings)
         CloseableHttpClient httpClient = Mock()
         client.client = httpClient
         MockedHttpResponse mockedHttpResponse = mockedHttpResponse()
@@ -59,7 +60,7 @@ class HttpClientHelperTest extends AbstractHttpClientTest {
     }
 
     def "request with revalidate adds Cache-Control header"() {
-        def client = new HttpClientHelper(httpSettings) {
+        def client = new HttpClientHelper(new DocumentationRegistry(), httpSettings) {
             @Override
             protected HttpClientResponse executeGetOrHead(HttpRequestBase method) {
                 return null

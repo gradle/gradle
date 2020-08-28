@@ -78,6 +78,7 @@ import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
 import java.net.ProxySelector;
 import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 
@@ -112,6 +113,10 @@ public class HttpClientConfigurer {
         } catch (NoSuchAlgorithmException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
+    }
+
+    static Collection<String> supportedTlsVersions() {
+        return Arrays.asList(SSL_PROTOCOLS);
     }
 
     private final HttpSettings httpSettings;
