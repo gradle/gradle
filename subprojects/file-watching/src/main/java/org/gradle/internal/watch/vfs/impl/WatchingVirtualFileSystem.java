@@ -16,12 +16,17 @@
 
 package org.gradle.internal.watch.vfs.impl;
 
+import com.google.common.collect.EnumMultiset;
 import net.rubygrapefruit.platform.internal.jni.InotifyInstanceLimitTooLowException;
 import net.rubygrapefruit.platform.internal.jni.InotifyWatchesLimitTooLowException;
+import org.gradle.internal.file.FileType;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.CallableBuildOperation;
+import org.gradle.internal.snapshot.CompleteDirectorySnapshot;
+import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
+import org.gradle.internal.snapshot.FileSystemSnapshotVisitor;
 import org.gradle.internal.snapshot.SnapshotHierarchy;
 import org.gradle.internal.vfs.impl.VfsRootReference;
 import org.gradle.internal.watch.WatchingNotSupportedException;
@@ -94,7 +99,7 @@ public class WatchingVirtualFileSystem implements BuildLifecycleAwareVirtualFile
     }
 
     @Override
-    public void afterBuildStarted(boolean watchingEnabled, BuildOperationRunner buildOperationRunner) {
+    public void afterBuildStarted(boolean watchingEnabled, boolean verboseLogging, BuildOperationRunner buildOperationRunner) {
         reasonForNotWatchingFiles = null;
         rootReference.update(currentRoot -> buildOperationRunner.call(new CallableBuildOperation<SnapshotHierarchy>() {
             @Override
@@ -130,12 +135,15 @@ public class WatchingVirtualFileSystem implements BuildLifecycleAwareVirtualFile
                                           }
                                       }
                     );
+                    if (verboseLogging) {
+                        logVerboseVfsStatistics(newRoot, "retained", "since last build");
+                        logVerboseWatchingStatistics(statistics, "since last build");
+                    }
                     return newRoot;
                 } else {
                     context.setResult(BuildStartedFileSystemWatchingBuildOperationType.Result.WATCHING_DISABLED);
                     return stopWatchingAndInvalidateHierarchy(currentRoot);
                 }
-
             }
 
             @Override
@@ -161,7 +169,7 @@ public class WatchingVirtualFileSystem implements BuildLifecycleAwareVirtualFile
     }
 
     @Override
-    public void beforeBuildFinished(boolean watchingEnabled, BuildOperationRunner buildOperationRunner, int maximumNumberOfWatchedHierarchies) {
+    public void beforeBuildFinished(boolean watchingEnabled, boolean verboseLogging, BuildOperationRunner buildOperationRunner, int maximumNumberOfWatchedHierarchies) {
         rootReference.update(currentRoot -> buildOperationRunner.call(new CallableBuildOperation<SnapshotHierarchy>() {
             @Override
             public SnapshotHierarchy call(BuildOperationContext context) {
@@ -199,6 +207,10 @@ public class WatchingVirtualFileSystem implements BuildLifecycleAwareVirtualFile
                             return fileSystemWatchingStatistics;
                         }
                     });
+                    if (verboseLogging) {
+                        logVerboseVfsStatistics(newRoot, "retains", "until next build");
+                        logVerboseWatchingStatistics(statistics, "during the current build");
+                    }
                     return newRoot;
                 } else {
                     SnapshotHierarchy newRoot = currentRoot.empty();
@@ -319,6 +331,45 @@ public class WatchingVirtualFileSystem implements BuildLifecycleAwareVirtualFile
             return stopWatchingAndInvalidateHierarchy(currentRoot);
         }
         return currentRoot;
+    }
+
+    private static void logVerboseVfsStatistics(SnapshotHierarchy root, String verb, String statisticsFor) {
+        EnumMultiset<FileType> retained = countRetainedTypes(root);
+        LOGGER.warn(
+            "Virtual file system {} information about {} files, {} directories and {} missing files {}",
+            verb,
+            retained.count(FileType.RegularFile),
+            retained.count(FileType.Directory),
+            retained.count(FileType.Missing),
+            statisticsFor
+        );
+    }
+
+    private static EnumMultiset<FileType> countRetainedTypes(SnapshotHierarchy root) {
+        EnumMultiset<FileType> retained = EnumMultiset.create(FileType.class);
+        root.visitSnapshotRoots(snapshot -> snapshot.accept(new FileSystemSnapshotVisitor() {
+            @Override
+            public boolean preVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
+                retained.add(directorySnapshot.getType());
+                return true;
+            }
+
+            @Override
+            public void visitFile(CompleteFileSystemLocationSnapshot fileSnapshot) {
+                retained.add(fileSnapshot.getType());
+            }
+
+            @Override
+            public void postVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
+            }
+        }));
+        return retained;
+    }
+
+    private static void logVerboseWatchingStatistics(@Nullable FileWatcherRegistry.FileWatchingStatistics statistics, String eventsFor) {
+        if (statistics != null) {
+            LOGGER.warn("Received {} file system events {}", statistics.getNumberOfReceivedEvents(), eventsFor);
+        }
     }
 
     @Override

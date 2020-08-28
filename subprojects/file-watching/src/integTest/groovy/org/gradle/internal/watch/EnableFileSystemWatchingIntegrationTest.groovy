@@ -76,6 +76,35 @@ class EnableFileSystemWatchingIntegrationTest extends AbstractFileSystemWatching
         "--no-watch-fs"   | DISABLED_MESSAGE
     }
 
+    def "verbose logging can be enabled"() {
+        buildFile << """
+            apply plugin: "java"
+        """
+        when:
+        run("assemble", "--watch-fs", "-D${StartParameterBuildOptions.WatchFileSystemVerboseLoggingOption.GRADLE_PROPERTY}=true")
+        then:
+        !(result.output =~ /Received \d+ file system events since last build/)
+        result.output =~ /Virtual file system retained information about 0 files, 0 directories and 0 missing files since last build/
+        result.output =~ /Virtual file system retains information about \d+ files, \d+ directories and \d+ missing files until next build/
+        result.output =~ /Received \d+ file system events during the current build/
+
+        when:
+        run("assemble", "--watch-fs", "-D${StartParameterBuildOptions.WatchFileSystemVerboseLoggingOption.GRADLE_PROPERTY}=true")
+        then:
+        result.output =~ /Received \d+ file system events since last build/
+        result.output =~ /Virtual file system retained information about \d+ files, \d+ directories and \d+ missing files since last build/
+        result.output =~ /Virtual file system retains information about \d+ files, \d+ directories and \d+ missing files until next build/
+        result.output =~ /Received \d+ file system events during the current build/
+
+        when:
+        run("assemble", "--watch-fs", "-D${StartParameterBuildOptions.WatchFileSystemVerboseLoggingOption.GRADLE_PROPERTY}=false")
+        then:
+        !(result.output =~ /Received \d+ file system events since last build/)
+        !(result.output =~ /Virtual file system retained information about \d+ files, \d+ directories and \d+ missing files since last build/)
+        !(result.output =~ /Virtual file system retains information about \d+ files, \d+ directories and \d+ missing files until next build/)
+        !(result.output =~ /Received \d+ file system events during the current build/)
+    }
+
     @Unroll
     @SuppressWarnings('GrDeprecatedAPIUsage')
     def "deprecation message is shown when using the old property to enable watching the file system (enabled: #enabled)"() {

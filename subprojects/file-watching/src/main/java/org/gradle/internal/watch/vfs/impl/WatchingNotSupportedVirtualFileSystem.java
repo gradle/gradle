@@ -55,7 +55,7 @@ public class WatchingNotSupportedVirtualFileSystem implements BuildLifecycleAwar
     }
 
     @Override
-    public void afterBuildStarted(boolean watchingEnabled, BuildOperationRunner buildOperationRunner) {
+    public void afterBuildStarted(boolean watchingEnabled, boolean verboseLogging, BuildOperationRunner buildOperationRunner) {
         if (watchingEnabled) {
             LOGGER.warn("Watching the file system is not supported on this operating system.");
         }
@@ -79,7 +79,7 @@ public class WatchingNotSupportedVirtualFileSystem implements BuildLifecycleAwar
     }
 
     @Override
-    public void beforeBuildFinished(boolean watchingEnabled, BuildOperationRunner buildOperationRunner, int maximumNumberOfWatchedHierarchies) {
+    public void beforeBuildFinished(boolean watchingEnabled, boolean verboseLogging, BuildOperationRunner buildOperationRunner, int maximumNumberOfWatchedHierarchies) {
         rootReference.update(vfsRoot -> buildOperationRunner.call(new CallableBuildOperation<SnapshotHierarchy>() {
             @Override
             public SnapshotHierarchy call(BuildOperationContext context) {
