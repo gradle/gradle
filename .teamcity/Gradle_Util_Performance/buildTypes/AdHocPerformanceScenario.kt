@@ -57,7 +57,7 @@ abstract class AdHocPerformanceScenario(os: Os) : BuildType({
                     "clean %templates% performance:performanceAdHocTest",
                     "%baselines%",
                     """--scenarios "%scenario%" --warmups %warmups% --runs %runs% --checks %checks% --channel %channel% %flamegraphs% %additional.gradle.parameters%""",
-                    Os.LINUX
+                    os
                 ) +
                     buildToolGradleParameters(isContinue = false) +
                     builtInRemoteBuildCacheNode.gradleParameters(Os.LINUX)
