@@ -5,6 +5,6 @@ plugins {
 description = "The first project"
 
 dependencies {
-    "implementation"("junit:junit:4.13")
-    "implementation"(project(":project2"))
+    implementation("junit:junit:4.13")
+    implementation(project(":project2"))
 }

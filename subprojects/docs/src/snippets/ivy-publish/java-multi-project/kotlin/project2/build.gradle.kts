@@ -5,5 +5,5 @@ plugins {
 description = "The second project"
 
 dependencies {
-    "implementation"("commons-collections:commons-collections:3.2.2")
+    implementation("commons-collections:commons-collections:3.2.2")
 }
