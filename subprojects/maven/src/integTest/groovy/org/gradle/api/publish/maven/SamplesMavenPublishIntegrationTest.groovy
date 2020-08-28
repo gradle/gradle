@@ -110,6 +110,48 @@ class SamplesMavenPublishIntegrationTest extends AbstractSampleIntegrationTest {
     }
 
     @Unroll
+    @UsesSample("maven-publish/customize-identity")
+    def "customize publication identity with #dsl dsl"() {
+        given:
+        def sampleDir = sampleProject.dir.file(dsl)
+        inDirectory(sampleDir)
+
+        and:
+        def fileRepo = maven(sampleDir.file("build/repo"))
+        def library = fileRepo.module("org.gradle.sample", "library", "1.1").withModuleMetadata()
+
+        when:
+        succeeds "publish"
+
+        then:
+        library.assertPublishedAsJavaModule()
+        verifyPomFile(library, """<?xml version="1.0" encoding="UTF-8"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <!-- This module was also published with a richer model, Gradle metadata,  -->
+  <!-- which should be used instead. Do not delete the following line which  -->
+  <!-- is to indicate to Gradle or any Gradle module metadata file consumer  -->
+  <!-- that they should prefer consuming it instead. -->
+  <!-- do_not_remove: published-with-gradle-metadata -->
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>org.gradle.sample</groupId>
+  <artifactId>library</artifactId>
+  <version>1.1</version>
+  <dependencies>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+      <version>1.7.10</version>
+      <scope>compile</scope>
+    </dependency>
+  </dependencies>
+</project>""")
+
+        where:
+        dsl << ['groovy', 'kotlin']
+    }
+
+    @Unroll
     @UsesSample("maven-publish/conditional-publishing")
     @ToBeFixedForConfigurationCache(
         iterationMatchers = ".* kotlin dsl"
@@ -262,13 +304,8 @@ class SamplesMavenPublishIntegrationTest extends AbstractSampleIntegrationTest {
         dsl << ['groovy', 'kotlin']
     }
 
-    private void verifyPomFile(MavenFileModule module, String dsl, String outputFileName) {
+    private static void verifyPomFile(MavenFileModule module, String expectedPom) {
         def actualPomXmlText = module.pomFile.text.replaceFirst('publication="\\d+"', 'publication="«PUBLICATION-TIME-STAMP»"').trim()
-        assert actualPomXmlText == getExpectedPomOutput(sampleProject.dir.file("$dsl/$outputFileName"))
-    }
-
-    String getExpectedPomOutput(File outputFile) {
-        assert outputFile.file
-        outputFile.readLines()[1..-1].join(TextUtil.getPlatformLineSeparator()).trim()
+        assert actualPomXmlText == expectedPom
     }
 }
