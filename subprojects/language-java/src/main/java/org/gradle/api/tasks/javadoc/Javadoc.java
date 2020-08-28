@@ -23,6 +23,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.internal.file.FileTreeInternal;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.compile.CompilationSourceDirs;
 import org.gradle.api.jvm.ModularitySpec;
 import org.gradle.api.model.ObjectFactory;
@@ -120,15 +121,15 @@ public class Javadoc extends SourceTask {
     private final ModularitySpec modularity;
 
     private String executable;
-    private JavadocToolProperty javadocTool;
+    private final JavadocToolProperty javadocTool;
 
     public Javadoc() {
         this.modularity = getObjectFactory().newInstance(DefaultModularitySpec.class);
-    }
 
-    @Inject
-    protected JavaToolchainPropertiesFactory getToolchainPropertiesFactory() {
-        throw new UnsupportedOperationException();
+        // If you implement your own task, inject that service, this is done here for legacy reasons
+        JavaToolchainPropertiesFactory javaToolchainPropertiesFactory = ((ProjectInternal) getProject()).getServices().get(JavaToolchainPropertiesFactory.class);
+        javadocTool = javaToolchainPropertiesFactory.newJavadocToolProperty();
+
     }
 
     @TaskAction
@@ -200,7 +201,7 @@ public class Javadoc extends SourceTask {
         spec.setWorkingDir(getProjectLayout().getProjectDirectory().getAsFile());
         spec.setOptionsFile(getOptionsFile());
 
-        final JavadocToolAdapter tool = (JavadocToolAdapter) getJavadocTool().getOrNull();
+        final JavadocToolAdapter tool = (JavadocToolAdapter) javadocTool.getProvider().getOrNull();
         if (tool != null) {
             tool.execute(spec);
         } else {
@@ -249,9 +250,6 @@ public class Javadoc extends SourceTask {
     @Incubating
     @Internal
     public JavadocToolProperty getJavadocTool() {
-        if (javadocTool == null) {
-            javadocTool = getToolchainPropertiesFactory().newJavadocToolProperty();
-        }
         return javadocTool;
     }
 

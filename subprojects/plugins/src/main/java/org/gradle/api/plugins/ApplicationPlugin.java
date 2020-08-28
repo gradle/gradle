@@ -32,6 +32,7 @@ import org.gradle.api.internal.project.DefaultProject;
 import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.plugins.internal.DefaultApplicationPluginConvention;
 import org.gradle.api.plugins.internal.DefaultJavaApplication;
+import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.JavaExec;
@@ -42,6 +43,7 @@ import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.application.CreateStartScripts;
 import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.api.tasks.compile.JavaCompile;
+import org.gradle.jvm.toolchain.JavaLauncher;
 import org.gradle.jvm.toolchain.internal.JavaToolchain;
 import org.gradle.jvm.toolchain.internal.JavaToolchainQueryService;
 
@@ -166,7 +168,7 @@ public class ApplicationPlugin implements Plugin<Project> {
 
             JavaPluginExtension javaPluginExtension = project.getExtensions().getByType(JavaPluginExtension.class);
             run.getModularity().getInferModulePath().convention(javaPluginExtension.getModularity().getInferModulePath());
-            run.getJavaLauncher().convention(getToolchainTool(project, JavaToolchain::getJavaLauncher));
+            ((Property<JavaLauncher>) run.getJavaLauncher().getProvider()).convention(getToolchainTool(project, JavaToolchain::getJavaLauncher));
         });
     }
 

@@ -22,6 +22,7 @@ import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.jvm.ModularitySpec;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
@@ -31,6 +32,7 @@ import org.gradle.api.tasks.options.Option;
 import org.gradle.internal.jvm.DefaultModularitySpec;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
+import org.gradle.jvm.toolchain.JavaLauncher;
 import org.gradle.jvm.toolchain.JavaLauncherProperty;
 import org.gradle.jvm.toolchain.JavaToolchainPropertiesFactory;
 import org.gradle.jvm.toolchain.internal.DefaultToolchainJavaLauncher;
@@ -116,7 +118,7 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
     private final Property<String> mainClass;
     private final ModularitySpec modularity;
     private final Property<ExecResult> execResult;
-    private JavaLauncherProperty javaLauncher;
+    private final JavaLauncherProperty javaLauncher;
 
     public JavaExec() {
         ObjectFactory objectFactory = getObjectFactory();
@@ -129,6 +131,10 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
         javaExecSpec.getMainClass().convention(getMainClass().orElse(getProviderFactory().provider(this::getMain))); // go through 'main' to keep this compatible with existing convention mappings
         javaExecSpec.getMainModule().convention(mainModule);
         javaExecSpec.getModularity().getInferModulePath().convention(modularity.getInferModulePath());
+
+        // If you implement your own task, inject that service, this is done here for legacy reasons
+        JavaToolchainPropertiesFactory javaToolchainPropertiesFactory = ((ProjectInternal) getProject()).getServices().get(JavaToolchainPropertiesFactory.class);
+        javaLauncher = javaToolchainPropertiesFactory.newJavaLauncherProperty();
     }
 
     @Inject
@@ -143,11 +149,6 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
 
     @Inject
     protected ProviderFactory getProviderFactory() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Inject
-    protected JavaToolchainPropertiesFactory getToolchainPropertyFactory() {
         throw new UnsupportedOperationException();
     }
 
@@ -758,18 +759,16 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
      * @since 6.7
      */
     @Incubating
-    @Internal // getJavaVersion() is used as @Input
+    @Internal("getJavaVersion() is used as @Input")
     public JavaLauncherProperty getJavaLauncher() {
-        if (javaLauncher == null) {
-            javaLauncher = getToolchainPropertyFactory().newJavaLauncherProperty();
-        }
         return javaLauncher;
     }
 
     @Nullable
     private String getEffectiveExecutable() {
-        if (getJavaLauncher().isPresent()) {
-            return ((DefaultToolchainJavaLauncher) getJavaLauncher().get()).getExecutable();
+        Provider<JavaLauncher> javaLauncherProvider = javaLauncher.getProvider();
+        if (javaLauncherProvider.isPresent()) {
+            return ((DefaultToolchainJavaLauncher) javaLauncherProvider.get()).getExecutable();
         }
         final String executable = getExecutable();
         if (executable != null) {

@@ -16,40 +16,47 @@
 
 package org.gradle.jvm.toolchain.internal;
 
-import org.gradle.api.internal.provider.PropertyHost;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Property;
+import org.gradle.jvm.toolchain.JavaCompiler;
 import org.gradle.jvm.toolchain.JavaCompilerProperty;
+import org.gradle.jvm.toolchain.JavaLauncher;
 import org.gradle.jvm.toolchain.JavaLauncherProperty;
 import org.gradle.jvm.toolchain.JavaToolchainPropertiesFactory;
+import org.gradle.jvm.toolchain.JavadocTool;
 import org.gradle.jvm.toolchain.JavadocToolProperty;
 
 import javax.inject.Inject;
 
 public class DefaultJavaToolchainPropertiesFactory implements JavaToolchainPropertiesFactory {
 
-    private final PropertyHost propertyHost;
     private final JavaToolchainQueryService toolchainQueryService;
     private final ObjectFactory objectFactory;
 
     @Inject
-    public DefaultJavaToolchainPropertiesFactory(PropertyHost propertyHost, JavaToolchainQueryService toolchainQueryService, ObjectFactory objectFactory) {
-        this.propertyHost = propertyHost;
+    public DefaultJavaToolchainPropertiesFactory(JavaToolchainQueryService toolchainQueryService, ObjectFactory objectFactory) {
         this.toolchainQueryService = toolchainQueryService;
         this.objectFactory = objectFactory;
     }
 
     @Override
     public JavaCompilerProperty newJavaCompilerProperty() {
-        return objectFactory.newInstance(DefaultJavaCompilerProperty.class, propertyHost, toolchainQueryService);
+        Property<JavaCompiler> javaCompilerProperty = objectFactory.property(JavaCompiler.class);
+        javaCompilerProperty.finalizeValueOnRead();
+        return objectFactory.newInstance(DefaultJavaCompilerProperty.class, javaCompilerProperty, toolchainQueryService);
     }
 
     @Override
     public JavaLauncherProperty newJavaLauncherProperty() {
-        return objectFactory.newInstance(DefaultJavaLauncherProperty.class, propertyHost, toolchainQueryService);
+        Property<JavaLauncher> javaLauncherProperty = objectFactory.property(JavaLauncher.class);
+        javaLauncherProperty.finalizeValueOnRead();
+        return objectFactory.newInstance(DefaultJavaLauncherProperty.class, javaLauncherProperty, toolchainQueryService);
     }
 
     @Override
     public JavadocToolProperty newJavadocToolProperty() {
-        return objectFactory.newInstance(DefaultJavadocToolProperty.class, propertyHost, toolchainQueryService);
+        Property<JavadocTool> javadocToolProperty = objectFactory.property(JavadocTool.class);
+        javadocToolProperty.finalizeValueOnRead();
+        return objectFactory.newInstance(DefaultJavadocToolProperty.class, javadocToolProperty, toolchainQueryService);
     }
 }

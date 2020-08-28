@@ -216,7 +216,7 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
 
         then:
         def compileTask = project.tasks.named("compileCustomJava", JavaCompile).get()
-        def configuredToolchain = compileTask.javaCompiler.get().javaToolchain
+        def configuredToolchain = compileTask.javaCompiler.provider.get().javaToolchain
         configuredToolchain.displayName.contains(someJdk.javaVersion.getMajorVersion())
     }
 
@@ -227,7 +227,7 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
 
         when:
         def testTask = project.tasks.named("test", Test).get()
-        def configuredJavaLauncher = testTask.javaLauncher.get()
+        def configuredJavaLauncher = testTask.javaLauncher.provider.get()
 
         then:
         configuredJavaLauncher.javaExecutable.contains(someJdk.javaVersion.getMajorVersion())
@@ -240,7 +240,7 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
 
         when:
         def javadocTask = project.tasks.named("javadoc", Javadoc).get()
-        def configuredJavadocTool = javadocTask.javadocTool
+        def configuredJavadocTool = javadocTask.javadocTool.provider
 
         then:
         configuredJavadocTool.isPresent()

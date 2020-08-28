@@ -17,26 +17,33 @@
 package org.gradle.jvm.toolchain.internal;
 
 import org.gradle.api.Action;
-import org.gradle.api.internal.provider.DefaultProperty;
-import org.gradle.api.internal.provider.PropertyHost;
+import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.gradle.jvm.toolchain.JavadocTool;
 import org.gradle.jvm.toolchain.JavadocToolProperty;
 
 import javax.inject.Inject;
 
-public class DefaultJavadocToolProperty extends DefaultProperty<JavadocTool> implements JavadocToolProperty {
+public class DefaultJavadocToolProperty implements JavadocToolProperty {
 
-    private final JavaToolchainQueryService toolchainQueryService;
+    private final Property<JavadocTool> javadocTool;
+    // This field is only used during configuration
+    private final transient JavaToolchainQueryService toolchainQueryService;
 
     @Inject
-    public DefaultJavadocToolProperty(PropertyHost propertyHost, JavaToolchainQueryService toolchainQueryService) {
-        super(propertyHost, JavadocTool.class);
+    public DefaultJavadocToolProperty(Property<JavadocTool> javadocTool, JavaToolchainQueryService toolchainQueryService) {
+        this.javadocTool = javadocTool;
         this.toolchainQueryService = toolchainQueryService;
     }
 
     @Override
     public void from(Action<? super JavaToolchainSpec> toolchainConfig) {
-        set(toolchainQueryService.getToolchainJavadocTool(toolchainConfig));
+        javadocTool.set(toolchainQueryService.getToolchainJavadocTool(toolchainConfig));
+    }
+
+    @Override
+    public Provider<JavadocTool> getProvider() {
+        return javadocTool;
     }
 }

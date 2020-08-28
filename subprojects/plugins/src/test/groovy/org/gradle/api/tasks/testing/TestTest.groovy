@@ -283,7 +283,7 @@ class TestTest extends AbstractConventionTaskTest {
         def launcher = new DefaultToolchainJavaLauncher(Jvm.current().javaExecutable)
 
         when:
-        test.javaLauncher.set(launcher)
+        test.javaLauncher.provider.set(launcher)
 
         then:
         test.getJavaVersion() == Jvm.current().javaVersion
@@ -291,7 +291,7 @@ class TestTest extends AbstractConventionTaskTest {
 
     def "cannot set executable and toolchain launcher at the same time"() {
         when:
-        test.javaLauncher.set(Mock(JavaLauncher))
+        test.javaLauncher.provider.set(Mock(JavaLauncher))
         test.executable = "something"
         test.createTestExecutionSpec()
 

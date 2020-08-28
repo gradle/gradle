@@ -64,7 +64,7 @@ class JavadocTest extends AbstractProjectBuilderSpec {
         task.source(srcDir)
 
         when:
-        task.javadocTool.set(tool)
+        task.javadocTool.provider.set(tool)
 
         and:
         execute(task)

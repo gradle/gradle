@@ -17,26 +17,33 @@
 package org.gradle.jvm.toolchain.internal;
 
 import org.gradle.api.Action;
-import org.gradle.api.internal.provider.DefaultProperty;
-import org.gradle.api.internal.provider.PropertyHost;
+import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
 import org.gradle.jvm.toolchain.JavaLauncher;
 import org.gradle.jvm.toolchain.JavaLauncherProperty;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
 
 import javax.inject.Inject;
 
-public class DefaultJavaLauncherProperty extends DefaultProperty<JavaLauncher> implements JavaLauncherProperty {
+public class DefaultJavaLauncherProperty implements JavaLauncherProperty {
 
-    private final JavaToolchainQueryService toolchainQueryService;
+    private final Property<JavaLauncher> javaLauncher;
+    // This field is only used during configuration
+    private final transient JavaToolchainQueryService toolchainQueryService;
 
     @Inject
-    public DefaultJavaLauncherProperty(PropertyHost propertyHost, JavaToolchainQueryService toolchainQueryService) {
-        super(propertyHost, JavaLauncher.class);
+    public DefaultJavaLauncherProperty(Property<JavaLauncher> javaLauncher, JavaToolchainQueryService toolchainQueryService) {
+        this.javaLauncher = javaLauncher;
         this.toolchainQueryService = toolchainQueryService;
     }
 
     @Override
     public void from(Action<? super JavaToolchainSpec> toolchainConfig) {
-        set(toolchainQueryService.getToolchainLauncher(toolchainConfig));
+        javaLauncher.set(toolchainQueryService.getToolchainLauncher(toolchainConfig));
+    }
+
+    @Override
+    public Provider<JavaLauncher> getProvider() {
+        return javaLauncher;
     }
 }

@@ -39,6 +39,7 @@ import org.gradle.api.plugins.internal.DefaultJavaPluginExtension;
 import org.gradle.api.plugins.internal.JvmPluginsHelper;
 import org.gradle.api.plugins.jvm.JvmEcosystemUtilities;
 import org.gradle.api.plugins.jvm.internal.JvmPluginServices;
+import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.reporting.DirectoryReport;
 import org.gradle.api.reporting.ReportingExtension;
@@ -51,7 +52,10 @@ import org.gradle.api.tasks.javadoc.Javadoc;
 import org.gradle.api.tasks.testing.JUnitXmlReport;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.internal.deprecation.DeprecatableConfiguration;
+import org.gradle.jvm.toolchain.JavaCompiler;
 import org.gradle.jvm.toolchain.JavaInstallationRegistry;
+import org.gradle.jvm.toolchain.JavaLauncher;
+import org.gradle.jvm.toolchain.JavadocTool;
 import org.gradle.jvm.toolchain.internal.JavaToolchain;
 import org.gradle.jvm.toolchain.internal.JavaToolchainQueryService;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
@@ -174,6 +178,7 @@ public class JavaBasePlugin implements Plugin<Project> {
         jvmPluginServices.useDefaultTargetPlatformInference(configurations.getByName(sourceSet.getRuntimeClasspathConfigurationName()), sourceSet);
     }
 
+    @SuppressWarnings("unchecked")
     private TaskProvider<JavaCompile> createCompileJavaTask(final SourceSet sourceSet, final SourceDirectorySet sourceDirectorySet, final Project target) {
         return target.getTasks().register(sourceSet.getCompileJavaTaskName(), JavaCompile.class, compileTask -> {
             compileTask.setDescription("Compiles " + sourceDirectorySet + ".");
@@ -185,7 +190,7 @@ public class JavaBasePlugin implements Plugin<Project> {
             compileTask.getOptions().getHeaderOutputDirectory().convention(target.getLayout().getBuildDirectory().dir(generatedHeadersDir));
             JavaPluginExtension javaPluginExtension = target.getExtensions().getByType(JavaPluginExtension.class);
             compileTask.getModularity().getInferModulePath().convention(javaPluginExtension.getModularity().getInferModulePath());
-            compileTask.getJavaCompiler().convention(getToolchainTool(target, JavaToolchain::getJavaCompiler));
+            ((Property<JavaCompiler>)compileTask.getJavaCompiler().getProvider()).convention(getToolchainTool(target, JavaToolchain::getJavaCompiler));
         });
     }
 
@@ -325,7 +330,7 @@ public class JavaBasePlugin implements Plugin<Project> {
         project.getTasks().withType(Javadoc.class).configureEach(javadoc -> {
             javadoc.getConventionMapping().map("destinationDir", () -> new File(convention.getDocsDir(), "javadoc"));
             javadoc.getConventionMapping().map("title", () -> project.getExtensions().getByType(ReportingExtension.class).getApiDocTitle());
-            javadoc.getJavadocTool().convention(getToolchainTool(project, JavaToolchain::getJavadocTool));
+            ((Property<JavadocTool>) javadoc.getJavadocTool().getProvider()).convention(getToolchainTool(project, JavaToolchain::getJavadocTool));
         });
     }
 
@@ -364,7 +369,7 @@ public class JavaBasePlugin implements Plugin<Project> {
         htmlReport.getOutputLocation().convention(project.getLayout().getProjectDirectory().dir(project.provider(() -> new File(convention.getTestReportDir(), test.getName()).getAbsolutePath())));
         test.getBinaryResultsDirectory().convention(project.getLayout().getProjectDirectory().dir(project.provider(() -> new File(convention.getTestResultsDir(), test.getName() + "/binary").getAbsolutePath())));
         test.workingDir(project.getProjectDir());
-        test.getJavaLauncher().convention(getToolchainTool(project, JavaToolchain::getJavaLauncher));
+        ((Property<JavaLauncher>) test.getJavaLauncher().getProvider()).convention(getToolchainTool(project, JavaToolchain::getJavaLauncher));
     }
 
     private <T> Provider<T> getToolchainTool(Project project, Transformer<T, JavaToolchain> toolMapper) {

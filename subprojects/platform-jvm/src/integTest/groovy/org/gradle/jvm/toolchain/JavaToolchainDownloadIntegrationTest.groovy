@@ -46,7 +46,7 @@ class JavaToolchainDownloadIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         failure.assertHasDescription("Execution failed for task ':compileJava'.")
-            .assertHasCause("Failed to calculate the value of task ':compileJava' property 'javaCompiler'")
+            .assertHasCause("Failed to calculate the value of task ':compileJava' property 'javaCompiler.provider'")
             .assertHasCause("Unable to download toolchain matching these requirements: {languageVersion=17}")
             .assertHasCause("Unable to download toolchain. This might indicate that the combination (version, architecture, release/early access, ...) for the requested JDK is not available.")
             .assertThatCause(CoreMatchers.startsWith("Could not read 'https://api.adoptopenjdk.net/v3/binary/latest/17/ga/"))

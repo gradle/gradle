@@ -30,6 +30,7 @@ import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.testing.JvmTestExecutionSpec;
 import org.gradle.api.internal.tasks.testing.TestExecuter;
 import org.gradle.api.internal.tasks.testing.TestFramework;
@@ -42,6 +43,7 @@ import org.gradle.api.internal.tasks.testing.junitplatform.JUnitPlatformTestFram
 import org.gradle.api.internal.tasks.testing.testng.TestNGTestFramework;
 import org.gradle.api.jvm.ModularitySpec;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
@@ -73,6 +75,7 @@ import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.scan.UsedByScanPlugin;
 import org.gradle.internal.time.Clock;
 import org.gradle.internal.work.WorkerLeaseRegistry;
+import org.gradle.jvm.toolchain.JavaLauncher;
 import org.gradle.jvm.toolchain.JavaLauncherProperty;
 import org.gradle.jvm.toolchain.JavaToolchainPropertiesFactory;
 import org.gradle.jvm.toolchain.internal.DefaultToolchainJavaLauncher;
@@ -155,7 +158,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
 
     private final JavaForkOptions forkOptions;
     private final ModularitySpec modularity;
-    private JavaLauncherProperty javaLauncher;
+    private final JavaLauncherProperty javaLauncher;
 
     private FileCollection testClassesDirs;
     private final PatternFilterable patternSet;
@@ -182,6 +185,10 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
         forkOptions.setEnableAssertions(true);
         forkOptions.setExecutable(null);
         modularity = getObjectFactory().newInstance(DefaultModularitySpec.class);
+
+        // If you implement your own task, inject that service, this is done here for legacy reasons
+        JavaToolchainPropertiesFactory javaToolchainPropertiesFactory = ((ProjectInternal) getProject()).getServices().get(JavaToolchainPropertiesFactory.class);
+        javaLauncher = javaToolchainPropertiesFactory.newJavaLauncherProperty();
     }
 
     @Inject
@@ -650,7 +657,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     }
 
     private void validateToolchainConfiguration() {
-        if (javaLauncher.isPresent()) {
+        if (javaLauncher.getProvider().isPresent()) {
             checkState(forkOptions.getExecutable() == null, "Must not use `executable` property on `Test` together with `javaLauncher` property");
         }
     }
@@ -1176,16 +1183,14 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     @Incubating
     @Internal("getJavaVersion() is used as @Input")
     public JavaLauncherProperty getJavaLauncher() {
-        if (javaLauncher == null) {
-            javaLauncher = getToolchainPropertiesFactory().newJavaLauncherProperty();
-        }
         return javaLauncher;
     }
 
     @Nullable
     private String getEffectiveExecutable() {
-        if (getJavaLauncher().isPresent()) {
-            return ((DefaultToolchainJavaLauncher) getJavaLauncher().get()).getExecutable();
+        Provider<JavaLauncher> javaLauncherProvider = getJavaLauncher().getProvider();
+        if (javaLauncherProvider.isPresent()) {
+            return ((DefaultToolchainJavaLauncher) javaLauncherProvider.get()).getExecutable();
         }
         final String executable = getExecutable();
         return executable == null ? Jvm.current().getJavaExecutable().getAbsolutePath() : executable;

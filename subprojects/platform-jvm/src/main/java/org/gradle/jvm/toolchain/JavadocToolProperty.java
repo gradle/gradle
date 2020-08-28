@@ -18,17 +18,19 @@ package org.gradle.jvm.toolchain;
 
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
-import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
+import org.gradle.api.tasks.Nested;
+import org.gradle.api.tasks.Optional;
 
 /**
- * A dedicated property implementation to deal with {@link JavadocTool}.
+ * A dedicated field type to deal with {@link JavadocTool}.
  *
- * It enables the property to be set from a {@link JavaToolchainSpec}.
+ * It enables the value to be set from a {@link JavaToolchainSpec} and exposes a {@link Provider} for accessing the value.
  *
  * @since 6.7
  */
 @Incubating
-public interface JavadocToolProperty extends Property<JavadocTool> {
+public interface JavadocToolProperty {
 
     /**
      * Sets the property value lazily from the provided {@link JavaToolchainSpec}
@@ -36,4 +38,13 @@ public interface JavadocToolProperty extends Property<JavadocTool> {
      * @param toolchainConfig the {@code JavaToolchainSpec} to select the toolchain
      */
     void from(Action<? super JavaToolchainSpec> toolchainConfig);
+
+    /**
+     * Provides lazy access to the {@link JavadocTool}.
+     *
+     * @return a {@code Provider<JavadocTool>}
+     */
+    @Nested
+    @Optional
+    Provider<JavadocTool> getProvider();
 }

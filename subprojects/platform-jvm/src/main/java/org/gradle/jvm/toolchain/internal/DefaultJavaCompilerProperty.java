@@ -17,26 +17,33 @@
 package org.gradle.jvm.toolchain.internal;
 
 import org.gradle.api.Action;
-import org.gradle.api.internal.provider.DefaultProperty;
-import org.gradle.api.internal.provider.PropertyHost;
+import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
 import org.gradle.jvm.toolchain.JavaCompiler;
 import org.gradle.jvm.toolchain.JavaCompilerProperty;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
 
 import javax.inject.Inject;
 
-public class DefaultJavaCompilerProperty extends DefaultProperty<JavaCompiler> implements JavaCompilerProperty {
+public class DefaultJavaCompilerProperty implements JavaCompilerProperty {
 
-    private final JavaToolchainQueryService toolchainQueryService;
+    private final Property<JavaCompiler> javaCompiler;
+    // This field is only used during configuration
+    private final transient JavaToolchainQueryService toolchainQueryService;
 
     @Inject
-    public DefaultJavaCompilerProperty(PropertyHost propertyHost, JavaToolchainQueryService toolchainQueryService) {
-        super(propertyHost, JavaCompiler.class);
+    public DefaultJavaCompilerProperty(Property<JavaCompiler> javaCompiler, JavaToolchainQueryService toolchainQueryService) {
+        this.javaCompiler = javaCompiler;
         this.toolchainQueryService = toolchainQueryService;
     }
 
     @Override
     public void from(Action<? super JavaToolchainSpec> toolchainConfig) {
-        set(toolchainQueryService.getToolchainCompiler(toolchainConfig));
+        javaCompiler.set(toolchainQueryService.getToolchainCompiler(toolchainConfig));
+    }
+
+    @Override
+    public Provider<JavaCompiler> getProvider() {
+        return javaCompiler;
     }
 }

@@ -45,7 +45,7 @@ class JavaCompileTest extends AbstractProjectBuilderSpec {
         def javaCompile = project.tasks.create("compileJava", JavaCompile)
 
         when:
-        javaCompile.javaCompiler.set(Mock(JavaCompiler))
+        javaCompile.javaCompiler.provider.set(Mock(JavaCompiler))
         javaCompile.toolChain = Mock(JavaToolChain)
         javaCompile.createSpec()
 
@@ -58,7 +58,7 @@ class JavaCompileTest extends AbstractProjectBuilderSpec {
         def javaCompile = project.tasks.create("compileJava", JavaCompile)
 
         when:
-        javaCompile.javaCompiler.set(Mock(JavaCompiler))
+        javaCompile.javaCompiler.provider.set(Mock(JavaCompiler))
         javaCompile.options.forkOptions.javaHome = Mock(File)
         javaCompile.createSpec()
 
@@ -71,7 +71,7 @@ class JavaCompileTest extends AbstractProjectBuilderSpec {
         def javaCompile = project.tasks.create("compileJava", JavaCompile)
 
         when:
-        javaCompile.javaCompiler.set(Mock(JavaCompiler))
+        javaCompile.javaCompiler.provider.set(Mock(JavaCompiler))
         javaCompile.options.forkOptions.executable = "somejavac"
         javaCompile.createSpec()
 
@@ -90,7 +90,7 @@ class JavaCompileTest extends AbstractProjectBuilderSpec {
         javaCompile.setDestinationDir(new File("tmp"))
 
         when:
-        javaCompile.javaCompiler.set(toolchain.javaCompiler)
+        javaCompile.javaCompiler.provider.set(toolchain.javaCompiler)
         def spec = javaCompile.createSpec()
 
         then:
