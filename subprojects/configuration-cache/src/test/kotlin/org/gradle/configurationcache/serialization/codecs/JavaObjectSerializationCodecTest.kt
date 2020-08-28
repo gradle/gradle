@@ -19,10 +19,10 @@ package org.gradle.configurationcache.serialization.codecs
 import com.nhaarman.mockitokotlin2.mock
 import org.gradle.api.Project
 import org.gradle.configurationcache.extensions.uncheckedCast
+import org.gradle.configurationcache.extensions.useToRun
 import org.gradle.configurationcache.problems.DocumentationSection.NotYetImplementedJavaSerialization
 import org.gradle.configurationcache.problems.PropertyKind
 import org.gradle.configurationcache.problems.PropertyTrace
-import org.gradle.kotlin.dsl.support.useToRun
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.nullValue
 import org.hamcrest.CoreMatchers.sameInstance

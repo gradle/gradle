@@ -16,20 +16,8 @@
 
 package org.gradle.configurationcache.extensions
 
-import org.gradle.api.Project
-import org.gradle.api.internal.TaskInternal
-import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.internal.service.ServiceRegistry
+
+inline fun <T : AutoCloseable, U> T.useToRun(action: T.() -> U): U =
+    use { run(action) }
 
 
-internal
-inline fun <reified T : Any> TaskInternal.serviceOf(): T =
-    project.serviceOf()
-
-
-inline fun <reified T : Any> Project.serviceOf(): T =
-    (this as ProjectInternal).services.get()
-
-
-inline fun <reified T : Any> ServiceRegistry.get(): T =
-    this[T::class.java]!!

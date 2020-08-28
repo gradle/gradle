@@ -26,12 +26,13 @@ import org.gradle.internal.metaobject.BeanDynamicObject;
 import org.gradle.internal.metaobject.DynamicInvokeResult;
 import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.internal.metaobject.DynamicObjectUtil;
+import org.gradle.internal.scripts.GradleScript;
 import org.gradle.internal.service.ServiceRegistry;
 
 import java.io.PrintStream;
 import java.util.Map;
 
-public abstract class BasicScript extends org.gradle.groovy.scripts.Script implements org.gradle.api.Script, DynamicObjectAware {
+public abstract class BasicScript extends org.gradle.groovy.scripts.Script implements org.gradle.api.Script, DynamicObjectAware, GradleScript {
     private StandardOutputCapture standardOutputCapture;
     private Object target;
     private ScriptDynamicObject dynamicObject = new ScriptDynamicObject(this);
