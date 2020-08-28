@@ -39,13 +39,13 @@ abstract class PluginsManifest : DefaultTask() {
     abstract val coreClasspath: ConfigurableFileCollection
 
     @Input
-    fun getCore() = coreClasspath.toGradleModuleNameProvider()
+    val core = coreClasspath.toGradleModuleNameProvider()
 
     @get:Internal
     abstract val pluginsClasspath: ConfigurableFileCollection
 
     @Input
-    fun getPlugins() = pluginsClasspath.toGradleModuleNameProvider()
+    val plugins = pluginsClasspath.toGradleModuleNameProvider()
 
     @get:OutputFile
     abstract val manifestFile: RegularFileProperty
@@ -57,7 +57,7 @@ abstract class PluginsManifest : DefaultTask() {
 
     private
     fun createProperties() = Properties().also { properties ->
-        properties["plugins"] = (getPlugins().get() - getCore().get()).joinForProperties()
+        properties["plugins"] = (plugins.get() - core.get()).joinForProperties()
     }
 
     private
