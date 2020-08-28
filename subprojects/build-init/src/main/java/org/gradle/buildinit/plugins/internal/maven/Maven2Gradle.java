@@ -22,9 +22,11 @@ import org.apache.maven.model.Plugin;
 import org.apache.maven.model.PluginExecution;
 import org.apache.maven.model.Repository;
 import org.apache.maven.project.MavenProject;
+import org.apache.maven.repository.RepositorySystem;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.artifacts.ModuleIdentifier;
+import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.buildinit.plugins.internal.BuildScriptBuilder;
 import org.gradle.buildinit.plugins.internal.BuildScriptBuilderFactory;
@@ -292,7 +294,11 @@ public class Maven2Gradle {
 
     private void getRepositoriesForModule(MavenProject module, Set<String> repoSet) {
         for(Repository repo : module.getRepositories()) {
-            repoSet.add(repo.getUrl());
+            if (repo.getId().equals(RepositorySystem.DEFAULT_REMOTE_REPO_ID)) {
+                repoSet.add(RepositoryHandler.MAVEN_CENTRAL_URL);
+            } else {
+                repoSet.add(repo.getUrl());
+            }
         }
         // No need to include plugin repos, as they won't be used by Gradle
     }

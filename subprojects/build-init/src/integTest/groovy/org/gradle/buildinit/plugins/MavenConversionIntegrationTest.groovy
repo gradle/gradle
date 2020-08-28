@@ -361,6 +361,7 @@ ${TextUtil.indent(configLines.join("\n"), "                    ")}
     exclude(mapOf("group" to "*", "module" to "badArtifact"))
     exclude(mapOf("group" to "broken"))
 }"""))
+        !dsl.getBuildFile().text.contains("http://repo.maven.apache.org/maven2")
         when:
         run 'clean', 'build'
 
