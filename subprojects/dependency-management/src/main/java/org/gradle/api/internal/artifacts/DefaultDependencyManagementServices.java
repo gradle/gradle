@@ -464,7 +464,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 NamedObjectInstantiator instantiator,
                 DefaultUrlArtifactRepository.Factory urlArtifactRepositoryFactory,
                 ChecksumService checksumService,
-                ProviderFactory providerFactory
+                ProviderFactory providerFactory,
+                FeaturePreviews featurePreviews
         ) {
             return new DefaultBaseRepositoryFactory(
                     localMavenRepositoryLocator,
@@ -488,7 +489,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                     callbackDecorator,
                     urlArtifactRepositoryFactory,
                     checksumService,
-                    providerFactory);
+                    providerFactory,
+                    featurePreviews);
         }
 
         RepositoryHandler createRepositoryHandler(Instantiator instantiator, BaseRepositoryFactory baseRepositoryFactory, CollectionCallbackActionDecorator callbackDecorator) {
