@@ -36,6 +36,8 @@ abstract class AdHocPerformanceScenario(os: Os) : BuildType({
             param("env.FG_HOME_DIR", "/opt/FlameGraph")
             param("env.PATH", "%env.PATH%:/opt/swift/4.2.3/usr/bin")
             param("env.HP_HOME_DIR", "/opt/honest-profiler")
+        } else {
+            param("flamegraphs", "--flamegraphs false")
         }
 
         param("additional.gradle.parameters", "")
