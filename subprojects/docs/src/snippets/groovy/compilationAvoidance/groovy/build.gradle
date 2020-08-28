@@ -1,8 +1,5 @@
 subprojects {
     apply plugin: 'groovy'
-    repositories {
-        jcenter()
-    }
     dependencies {
         implementation localGroovy()
     }

@@ -110,38 +110,6 @@ class SamplesMavenPublishIntegrationTest extends AbstractSampleIntegrationTest {
     }
 
     @Unroll
-    @UsesSample("maven-publish/multiple-publications")
-    def "multiple publications with #dsl dsl"() {
-        given:
-        def sampleDir = sampleProject.dir.file(dsl)
-        inDirectory(sampleDir)
-
-        and:
-        def fileRepo = maven(sampleDir.file("build/repo"))
-        def project1sample = fileRepo.module("org.gradle.sample", "project1-sample", "1.1").withModuleMetadata()
-        def project2api = fileRepo.module("org.gradle.sample", "project2-api", "2.3") // publication without component
-        def project2impl = fileRepo.module("org.gradle.sample", "project2-impl", "2.3").withModuleMetadata()
-
-        when:
-        succeeds "publish"
-
-        then:
-        project1sample.assertPublishedAsJavaModule()
-        verifyPomFile(project1sample, dsl, "output/project1.pom.xml")
-
-        and:
-        project2api.assertPublishedAsJavaModule()
-        verifyPomFile(project2api, dsl, "output/project2-api.pom.xml")
-
-        and:
-        project2impl.assertPublishedAsJavaModule()
-        verifyPomFile(project2impl, dsl, "output/project2-impl.pom.xml")
-
-        where:
-        dsl << ['groovy', 'kotlin']
-    }
-
-    @Unroll
     @UsesSample("maven-publish/conditional-publishing")
     @ToBeFixedForConfigurationCache(
         iterationMatchers = ".* kotlin dsl"
