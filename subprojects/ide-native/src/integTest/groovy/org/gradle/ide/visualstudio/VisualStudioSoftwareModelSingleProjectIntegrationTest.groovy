@@ -1006,9 +1006,9 @@ model {
         main(NativeExecutableSpec) {
             binaries.all {
                 if (it.buildType.name == 'debug') {
-                    cppCompiler.args "/std:cpp14"
+                    cppCompiler.args "/std:c++14"
                 } else {
-                    cppCompiler.args "/std:cpp17"
+                    cppCompiler.args "/std:c++17"
                 }
             }
         }

@@ -311,9 +311,9 @@ abstract class AbstractVisualStudioProjectIntegrationTest extends AbstractVisual
         buildFile << """
             ${componentUnderTestDsl}.binaries.configureEach {
                 if (optimized) {
-                    compileTask.get().compilerArgs.add('/std:cpp17')
+                    compileTask.get().compilerArgs.add('/std:c++17')
                 } else {
-                    compileTask.get().compilerArgs.add('/std:cpp14')
+                    compileTask.get().compilerArgs.add('/std:c++14')
                 }
             }
         """
