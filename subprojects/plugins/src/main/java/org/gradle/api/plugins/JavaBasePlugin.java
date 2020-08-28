@@ -39,7 +39,6 @@ import org.gradle.api.plugins.internal.DefaultJavaPluginExtension;
 import org.gradle.api.plugins.internal.JvmPluginsHelper;
 import org.gradle.api.plugins.jvm.JvmEcosystemUtilities;
 import org.gradle.api.plugins.jvm.internal.JvmPluginServices;
-import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.reporting.DirectoryReport;
 import org.gradle.api.reporting.ReportingExtension;
@@ -52,10 +51,8 @@ import org.gradle.api.tasks.javadoc.Javadoc;
 import org.gradle.api.tasks.testing.JUnitXmlReport;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.internal.deprecation.DeprecatableConfiguration;
-import org.gradle.jvm.toolchain.JavaCompiler;
 import org.gradle.jvm.toolchain.JavaInstallationRegistry;
-import org.gradle.jvm.toolchain.JavaLauncher;
-import org.gradle.jvm.toolchain.JavadocTool;
+import org.gradle.jvm.toolchain.internal.DefaultJavaToolchainPropertiesFactory;
 import org.gradle.jvm.toolchain.internal.JavaToolchain;
 import org.gradle.jvm.toolchain.internal.JavaToolchainQueryService;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
@@ -102,12 +99,14 @@ public class JavaBasePlugin implements Plugin<Project> {
     );
 
     private final JavaInstallationRegistry javaInstallationRegistry;
+    private final DefaultJavaToolchainPropertiesFactory toolchainPropertiesFactory;
     private final boolean javaClasspathPackaging;
     private final JvmPluginServices jvmPluginServices;
 
     @Inject
-    public JavaBasePlugin(JavaInstallationRegistry javaInstallationRegistry, JvmEcosystemUtilities jvmPluginServices) {
+    public JavaBasePlugin(JavaInstallationRegistry javaInstallationRegistry, JvmEcosystemUtilities jvmPluginServices, DefaultJavaToolchainPropertiesFactory toolchainPropertiesFactory) {
         this.javaInstallationRegistry = javaInstallationRegistry;
+        this.toolchainPropertiesFactory = toolchainPropertiesFactory;
         this.javaClasspathPackaging = Boolean.getBoolean(COMPILE_CLASSPATH_PACKAGING_SYSTEM_PROPERTY);
         this.jvmPluginServices = (JvmPluginServices) jvmPluginServices;
     }
@@ -136,7 +135,8 @@ public class JavaBasePlugin implements Plugin<Project> {
         SourceSetContainer sourceSets = (SourceSetContainer) project.getExtensions().getByName("sourceSets");
         JavaPluginConvention javaConvention = new DefaultJavaPluginConvention(project, sourceSets);
         project.getConvention().getPlugins().put("java", javaConvention);
-        project.getExtensions().create(JavaPluginExtension.class, "java", DefaultJavaPluginExtension.class, javaConvention, project, jvmPluginServices);
+        JavaPluginExtension javaPluginExtension = project.getExtensions().create(JavaPluginExtension.class, "java", DefaultJavaPluginExtension.class, javaConvention, project, jvmPluginServices);
+        toolchainPropertiesFactory.setDefaultToolchain(javaPluginExtension.getToolchain());
         project.getExtensions().add(JavaInstallationRegistry.class, "javaInstalls", javaInstallationRegistry);
         return javaConvention;
     }
@@ -190,7 +190,6 @@ public class JavaBasePlugin implements Plugin<Project> {
             compileTask.getOptions().getHeaderOutputDirectory().convention(target.getLayout().getBuildDirectory().dir(generatedHeadersDir));
             JavaPluginExtension javaPluginExtension = target.getExtensions().getByType(JavaPluginExtension.class);
             compileTask.getModularity().getInferModulePath().convention(javaPluginExtension.getModularity().getInferModulePath());
-            ((Property<JavaCompiler>)compileTask.getJavaCompiler().getProvider()).convention(getToolchainTool(target, JavaToolchain::getJavaCompiler));
         });
     }
 
@@ -330,7 +329,6 @@ public class JavaBasePlugin implements Plugin<Project> {
         project.getTasks().withType(Javadoc.class).configureEach(javadoc -> {
             javadoc.getConventionMapping().map("destinationDir", () -> new File(convention.getDocsDir(), "javadoc"));
             javadoc.getConventionMapping().map("title", () -> project.getExtensions().getByType(ReportingExtension.class).getApiDocTitle());
-            ((Property<JavadocTool>) javadoc.getJavadocTool().getProvider()).convention(getToolchainTool(project, JavaToolchain::getJavadocTool));
         });
     }
 
@@ -369,7 +367,6 @@ public class JavaBasePlugin implements Plugin<Project> {
         htmlReport.getOutputLocation().convention(project.getLayout().getProjectDirectory().dir(project.provider(() -> new File(convention.getTestReportDir(), test.getName()).getAbsolutePath())));
         test.getBinaryResultsDirectory().convention(project.getLayout().getProjectDirectory().dir(project.provider(() -> new File(convention.getTestResultsDir(), test.getName() + "/binary").getAbsolutePath())));
         test.workingDir(project.getProjectDir());
-        ((Property<JavaLauncher>) test.getJavaLauncher().getProvider()).convention(getToolchainTool(project, JavaToolchain::getJavaLauncher));
     }
 
     private <T> Provider<T> getToolchainTool(Project project, Transformer<T, JavaToolchain> toolMapper) {

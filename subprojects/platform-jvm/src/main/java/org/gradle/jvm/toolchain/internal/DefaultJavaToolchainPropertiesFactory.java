@@ -23,6 +23,7 @@ import org.gradle.jvm.toolchain.JavaCompilerProperty;
 import org.gradle.jvm.toolchain.JavaLauncher;
 import org.gradle.jvm.toolchain.JavaLauncherProperty;
 import org.gradle.jvm.toolchain.JavaToolchainPropertiesFactory;
+import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.gradle.jvm.toolchain.JavadocTool;
 import org.gradle.jvm.toolchain.JavadocToolProperty;
 
@@ -32,6 +33,7 @@ public class DefaultJavaToolchainPropertiesFactory implements JavaToolchainPrope
 
     private final JavaToolchainQueryService toolchainQueryService;
     private final ObjectFactory objectFactory;
+    private JavaToolchainSpec defaultToolchain;
 
     @Inject
     public DefaultJavaToolchainPropertiesFactory(JavaToolchainQueryService toolchainQueryService, ObjectFactory objectFactory) {
@@ -42,6 +44,9 @@ public class DefaultJavaToolchainPropertiesFactory implements JavaToolchainPrope
     @Override
     public JavaCompilerProperty newJavaCompilerProperty() {
         Property<JavaCompiler> javaCompilerProperty = objectFactory.property(JavaCompiler.class);
+        if (defaultToolchain != null) {
+            javaCompilerProperty.convention(toolchainQueryService.findMatchingToolchain(defaultToolchain).map(JavaToolchain::getJavaCompiler));
+        }
         javaCompilerProperty.finalizeValueOnRead();
         return objectFactory.newInstance(DefaultJavaCompilerProperty.class, javaCompilerProperty, toolchainQueryService);
     }
@@ -49,6 +54,9 @@ public class DefaultJavaToolchainPropertiesFactory implements JavaToolchainPrope
     @Override
     public JavaLauncherProperty newJavaLauncherProperty() {
         Property<JavaLauncher> javaLauncherProperty = objectFactory.property(JavaLauncher.class);
+        if (defaultToolchain != null) {
+            javaLauncherProperty.convention(toolchainQueryService.findMatchingToolchain(defaultToolchain).map(JavaToolchain::getJavaLauncher));
+        }
         javaLauncherProperty.finalizeValueOnRead();
         return objectFactory.newInstance(DefaultJavaLauncherProperty.class, javaLauncherProperty, toolchainQueryService);
     }
@@ -56,7 +64,14 @@ public class DefaultJavaToolchainPropertiesFactory implements JavaToolchainPrope
     @Override
     public JavadocToolProperty newJavadocToolProperty() {
         Property<JavadocTool> javadocToolProperty = objectFactory.property(JavadocTool.class);
+        if (defaultToolchain != null) {
+            javadocToolProperty.convention(toolchainQueryService.findMatchingToolchain(defaultToolchain).map(JavaToolchain::getJavadocTool));
+        }
         javadocToolProperty.finalizeValueOnRead();
         return objectFactory.newInstance(DefaultJavadocToolProperty.class, javadocToolProperty, toolchainQueryService);
+    }
+
+    public void setDefaultToolchain(JavaToolchainSpec defaultToolchain) {
+        this.defaultToolchain = defaultToolchain;
     }
 }
