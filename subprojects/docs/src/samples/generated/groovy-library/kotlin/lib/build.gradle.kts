@@ -1,0 +1,16 @@
+
+plugins {
+    groovy // <1>
+
+    `java-library` // <2>
+}
+
+repositories {
+    jcenter() // <3>
+}
+
+dependencies {
+    implementation("org.codehaus.groovy:groovy-all:2.5.12") // <4>
+
+    testImplementation("org.spockframework:spock-core:1.3-groovy-2.5") // <5>
+}

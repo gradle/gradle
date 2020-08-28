@@ -99,26 +99,6 @@ samples {
         javaApplication
         javaListLibrary
         javaUtilitiesLibrary
-        javaApplicationInApp {
-            sourceDirectory = javaApplication.sourceDirectory
-            target = "app"
-        }
-        javaListLibraryInApp {
-            sourceDirectory = javaListLibrary.sourceDirectory
-            target = "app"
-        }
-        javaUtilitiesLibraryInApp {
-            sourceDirectory = javaUtilitiesLibrary.sourceDirectory
-            target = "app"
-        }
-        javaListLibraryInLib {
-            sourceDirectory = javaListLibrary.sourceDirectory
-            target = "lib"
-        }
-        javaUtilitiesLibraryInLib {
-            sourceDirectory = javaUtilitiesLibrary.sourceDirectory
-            target = "lib"
-        }
         javaListLibraryInMyLibrary {
             sourceDirectory = javaListLibrary.sourceDirectory
             target = "my-library"
@@ -178,26 +158,6 @@ samples {
         groovyApplication
         groovyListLibrary
         groovyUtilitiesLibrary
-        groovyApplicationInApp {
-            sourceDirectory = groovyApplication.sourceDirectory
-            target = "app"
-        }
-        groovyListLibraryInApp {
-            sourceDirectory = groovyListLibrary.sourceDirectory
-            target = "app"
-        }
-        groovyUtilitiesLibraryInApp {
-            sourceDirectory = groovyUtilitiesLibrary.sourceDirectory
-            target = "app"
-        }
-        groovyListLibraryInLib {
-            sourceDirectory = groovyListLibrary.sourceDirectory
-            target = "lib"
-        }
-        groovyUtilitiesLibraryInLib {
-            sourceDirectory = groovyUtilitiesLibrary.sourceDirectory
-            target = "lib"
-        }
         groovyListLibraryInMyLibrary {
             sourceDirectory = groovyListLibrary.sourceDirectory
             target = "my-library"
@@ -219,29 +179,10 @@ samples {
             target = "utilities"
         }
 
+        // These are currently unused, but we plan to integrate these into the 'init plugin' in some form an then have a larger multi-project sample for each JVM language generated
         kotlinApplication
         kotlinListLibrary
         kotlinUtilitiesLibrary
-        kotlinApplicationInApp {
-            sourceDirectory = kotlinApplication.sourceDirectory
-            target = "app"
-        }
-        kotlinListLibraryInApp {
-            sourceDirectory = kotlinListLibrary.sourceDirectory
-            target = "app"
-        }
-        kotlinUtilitiesLibraryInApp {
-            sourceDirectory = kotlinUtilitiesLibrary.sourceDirectory
-            target = "app"
-        }
-        kotlinListLibraryInLib {
-            sourceDirectory = kotlinListLibrary.sourceDirectory
-            target = "lib"
-        }
-        kotlinUtilitiesLibraryInLib {
-            sourceDirectory = kotlinUtilitiesLibrary.sourceDirectory
-            target = "lib"
-        }
 
         projectInfoPlugin
 
@@ -276,14 +217,82 @@ samples {
     }
 
     publishedSamples {
-        androidApplication {
-            description = "Build a simple Android application."
+        // Libraries - Guide-style samples generated from 'build init'
+        buildingJavaLibraries {
+            sampleDirectory = samplesRoot.dir("generated/java-library")
+            description = "Setup a Java library project step-by-step."
+            category = "Java"
+        }
+        buildingGroovyLibraries {
+            sampleDirectory = samplesRoot.dir("generated/groovy-library")
+            description = "Setup a Groovy library project step-by-step."
+            category = "Groovy"
+        }
+        buildingKotlinLibraries {
+            sampleDirectory = samplesRoot.dir("generated/kotlin-library")
+            description = "Setup a Kotlin library project step-by-step."
+            category = "Kotlin"
+        }
+        buildingScalaLibraries {
+            sampleDirectory = samplesRoot.dir("generated/scala-library")
+            description = "Setup a Scala library project step-by-step."
+            category = "Scala"
+        }
+        buildingCppLibraries {
+            displayName = "Building {cpp} Libraries"
+            sampleDirectory = samplesRoot.dir("generated/cpp-library")
+            description = "Setup a C++ library project step-by-step."
+            category = "C++"
+        }
+        buildingSwiftLibraries {
+            sampleDirectory = samplesRoot.dir("generated/swift-library")
+            description = "Setup a Swift library project step-by-step."
+            category = "Swift"
+        }
+
+        // Applications - Guide-style samples generated from 'build init'
+        buildingJavaApplications {
+            sampleDirectory = samplesRoot.dir("generated/java-application")
+            description = "Setup a Java application project step-by-step."
+            category = "Java"
+        }
+        buildingGroovyApplications {
+            sampleDirectory = samplesRoot.dir("generated/groovy-application")
+            description = "Setup a Groovy application project step-by-step."
+            category = "Groovy"
+        }
+        buildingKotlinApplications {
+            sampleDirectory = samplesRoot.dir("generated/kotlin-application")
+            description = "Setup a Kotlin application project step-by-step."
+            category = "Kotlin"
+        }
+        buildingScalaApplications {
+            sampleDirectory = samplesRoot.dir("generated/scala-application")
+            description = "Setup a Scala library project step-by-step."
+            category = "Scala"
+        }
+        buildingCppApplications {
+            displayName = "Building {cpp} Applications"
+            sampleDirectory = samplesRoot.dir("generated/cpp-application")
+            description = "Setup a C++ application project step-by-step."
+            category = "C++"
+        }
+        buildingSwiftApplications {
+            sampleDirectory = samplesRoot.dir("generated/swift-application")
+            description = "Setup a Swift application project step-by-step."
+            category = "Swift"
+        }
+
+        buildingAndroidApps {
+            sampleDirectory = samplesRoot.dir("android-application")
+            description = "Build a simple Android app."
             category = "Android"
             common {
                 from(templates.javaAndroidApplication)
             }
         }
-        springBootWebApplication {
+        buildingSpringBootWebApplications {
+            sampleDirectory = samplesRoot.dir("spring-boot-web-application")
             description = "Build a simple Spring Boot application."
             category = "Spring"
             common {
@@ -307,25 +316,6 @@ samples {
                 from(templates.javaJunit5IntegrationTestForUtilitiesLibrary)
 
                 from(templates.javaUtilitiesLibraryAsSubproject)
-            }
-        }
-        javaApplication {
-            sampleDirectory = samplesRoot.dir("java/application")
-            description = "Build a Java application."
-            category = "Java"
-            common {
-                from(templates.javaApplicationInApp)
-                from(templates.javaListLibraryInApp)
-                from(templates.javaUtilitiesLibraryInApp)
-            }
-        }
-        javaLibrary {
-            sampleDirectory = samplesRoot.dir("java/library")
-            description = "Build a Java library."
-            category = "Java"
-            common {
-                from(templates.javaListLibraryInLib)
-                from(templates.javaUtilitiesLibraryInLib)
             }
         }
         javaMultiProjectWithSpockTests {
@@ -354,9 +344,8 @@ samples {
                 from(templates.javaJunit5TestForListLibrary)
             }
         }
-        javaModulesMultiProject {
+        buildingJavaModules {
             sampleDirectory = samplesRoot.dir("java/modules-multi-project")
-            displayName = "Java Modules"
             description = "Build Java Modules and a modular Java application."
             category = "Java Modules"
             common {
@@ -370,9 +359,8 @@ samples {
                 from(templates.javaJunit5TestForListLibrary)
             }
         }
-        javaModulesMultiProjectWithIntegrationTests {
+        buildingJavaModulesWithBlackboxTests {
             sampleDirectory = samplesRoot.dir("java/modules-multi-project-with-integration-tests")
-            displayName = "Java Modules with Blackbox Tests"
             description = "Build Java Modules with blackbox integration tests."
             category = "Java Modules"
             common {
@@ -391,9 +379,8 @@ samples {
                 from(templates.javaJunit5ModuleInfoForUtilitiesLibrary)
             }
         }
-        javaModulesWithTransform {
+        buildingJavaModulesWithLegacyLibraries {
             sampleDirectory = samplesRoot.dir("java/modules-with-transform")
-            displayName = "Java Modules with Legacy Libraries"
             description = "Build a modular Java application that integrates legacy libraries."
             category = "Java Modules"
             common {
@@ -413,7 +400,7 @@ samples {
                 from(templates.javaJunit5TestForListLibrary)
             }
         }
-        javaLibraryPublishing {
+        publishingJavaLibraries {
             sampleDirectory = samplesRoot.dir("java/library-publishing")
             description = "Publish a Java library to a binary repository."
             category = "Java"
@@ -423,45 +410,6 @@ samples {
             }
         }
 
-        kotlinApplication {
-            sampleDirectory = samplesRoot.dir("kotlin/application")
-            description = "Build a Kotlin application."
-            category = "Kotlin"
-            common {
-                from(templates.kotlinApplicationInApp)
-                from(templates.kotlinListLibraryInApp)
-                from(templates.kotlinUtilitiesLibraryInApp)
-            }
-        }
-        kotlinLibrary {
-            sampleDirectory = samplesRoot.dir("kotlin/library")
-            description = "Build a Kotlin library."
-            category = "Kotlin"
-            common {
-                from(templates.kotlinListLibraryInLib)
-                from(templates.kotlinUtilitiesLibraryInLib)
-            }
-        }
-
-        groovyApplication {
-            sampleDirectory = samplesRoot.dir("groovy/application")
-            description = "Build a Groovy application."
-            category = "Groovy"
-            common {
-                from(templates.groovyApplicationInApp)
-                from(templates.groovyListLibraryInApp)
-                from(templates.groovyUtilitiesLibraryInApp)
-            }
-        }
-        groovyLibrary {
-            sampleDirectory = samplesRoot.dir("groovy/library")
-            description = "Build a Groovy library."
-            category = "Groovy"
-            common {
-                from(templates.groovyListLibraryInLib)
-                from(templates.groovyUtilitiesLibraryInLib)
-            }
-        }
         groovyMultiProjectWithSpockTests {
             sampleDirectory = samplesRoot.dir("groovy/multi-project-with-spock-tests")
             displayName = "Testing with Spock"
@@ -475,7 +423,7 @@ samples {
                 from(templates.groovySpockTestForListLibrary)
             }
         }
-        groovyLibraryPublishing {
+        publishingGroovyLibraries {
             sampleDirectory = samplesRoot.dir("groovy/library-publishing")
             description = "Publish a Groovy library to a binary repository."
             category = "Groovy"
@@ -496,7 +444,7 @@ samples {
 
         conventionPlugins {
             sampleDirectory = samplesRoot.dir("build-organization/multi-project-with-convention-plugins")
-            displayName = "Sharing configuration between subprojects"
+            displayName = "Sharing build logic between subprojects"
             description = "Organize build logic into reusable pieces"
             category = "Build organization"
             common {
@@ -516,8 +464,8 @@ samples {
 
         jvmMultiProjectBuild {
             sampleDirectory = samplesRoot.dir("build-organization/jvm-multi-project-build")
-            displayName = "Multi-project build (JVM)"
-            description = "Use dependencies in a multi-project build."
+            displayName = "Structuring a multi-project build"
+            description = "Use dependencies and share build logic in a multi-project JVM build."
             category = "Build organization"
             common {
                 from(templates.javaApplicationAsSubproject)
@@ -528,7 +476,7 @@ samples {
 
         taskWithArguments {
             sampleDirectory = samplesRoot.dir("writing-tasks/task-with-arguments")
-            displayName = "Task with command-line arguments"
+            displayName = "Implementing Tasks with Command-line Arguments"
             description = "Pass arguments to a custom task."
             category = "Writing Custom Tasks"
         }
@@ -614,9 +562,21 @@ tasks.named("docsTest") { task ->
     filter {
         // workaround for https://github.com/gradle/dotcom/issues/5958
         failOnNoMatchingTests = false
+        // Only execute C++ sample tests on Linux because it is the configured target
+        if (!org.gradle.internal.os.OperatingSystem.current().linux) {
+            excludeTestsMatching "org.gradle.docs.samples.ExemplarExternalSamplesFunctionalTest.building-cpp-*.sample"
+        }
+        // Only execute Swift sample tests on OS X because it is the configured target
+        if (!org.gradle.internal.os.OperatingSystem.current().macOsX) {
+            excludeTestsMatching "org.gradle.docs.samples.ExemplarExternalSamplesFunctionalTest.building-swift-*.sample"
+        }
+        // Only execute Groovy sample tests on Java < 9 to avoid warnings in output
+        if (buildJvms.testJvm.get().javaVersion.java9Compatible) {
+            excludeTestsMatching "org.gradle.docs.samples.ExemplarExternalSamplesFunctionalTest.building-groovy-*.sample"
+        }
         // Do not execute Java Module tests on JVM < 9
         if (!buildJvms.testJvm.get().javaVersion.java9Compatible) {
-            excludeTestsMatching "org.gradle.docs.samples.ExemplarExternalSamplesFunctionalTest.java-modules-*.sample"
+            excludeTestsMatching "org.gradle.docs.samples.ExemplarExternalSamplesFunctionalTest.building-java-modules*.sample"
         }
 
         // Do not execute JaCoCo tests on JDK >= 15 until JaCoCo we use starts supporting newer JDKs

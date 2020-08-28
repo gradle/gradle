@@ -1,0 +1,219 @@
+This guide demonstrates how to create a Kotlin application with Gradle using `gradle init`.
+You can follow the guide step-by-step to create a new project from scratch or download the complete sample project using the links above.
+
+== What you’ll build
+
+You'll generate a Kotlin application that follows Gradle's conventions.
+
+== What you’ll need
+
+* A text editor or IDE - for example link:https://www.jetbrains.com/idea/download/[IntelliJ IDEA]
+* A Java Development Kit (JDK), version 8 or higher - for example link:https://adoptopenjdk.net/[AdoptOpenJDK]
+* A https://gradle.org/install[Gradle distribution], version {gradle-version} or newer
+
+
+== Create a project folder
+
+Gradle comes with a built-in task, called `init`, that initializes a new Gradle project in an empty folder.
+The `init` task uses the (also built-in) `wrapper` task to create a Gradle wrapper script, `gradlew`.
+
+The first step is to create a folder for the new project and change directory into it.
+
+[listing.terminal.sample-command]
+----
+$ mkdir demo
+$ cd demo
+----
+
+== Run the init task
+
+From inside the new project directory, run the `init` task using the following command in a terminal: `gradle init`.
+When prompted, select the `2: application` project type and `4: Kotlin` as implementation language.
+Next you can choose the DSL for writing buildscripts -  `1  : Groovy` or `2: Kotlin`.
+For the other questions, press enter to use the default values.
+
+The output will look like this:
+
+[listing.terminal.sample-command,user-inputs="2|4|1|||"]
+----
+$ gradle init
+
+Select type of project to generate:
+  1: basic
+  2: application
+  3: library
+  4: Gradle plugin
+Enter selection (default: basic) [1..4] 2
+
+Select implementation language:
+  1: C++
+  2: Groovy
+  3: Java
+  4: Kotlin
+  5: Scala
+  6: Swift
+Enter selection (default: Java) [1..6] 4
+
+Select build script DSL:
+  1: Groovy
+  2: Kotlin
+Enter selection (default: Groovy) [1..2] 1
+
+Project name (default: demo):
+Source package (default: demo):
+
+
+BUILD SUCCESSFUL
+2 actionable tasks: 2 executed
+----
+
+The `init` task generates the new project with the following structure:
+
+.Groovy DSL
+[source.multi-language-sample,groovy]
+----
+├── gradle // <1>
+│   └── wrapper
+│       ├── gradle-wrapper.jar
+│       └── gradle-wrapper.properties
+├── gradlew // <2>
+├── gradlew.bat // <2>
+├── settings.gradle // <3>
+└── app
+    ├── build.gradle // <4>
+    └── src
+        ├── main
+        │   └── kotlin // <5>
+        │       └── demo
+        │           └── App.kt
+        └── test
+            └── kotlin // <6>
+        │       └── demo
+        │           └── AppTest.kt
+----
+
+.Kotlin DSL
+[source.multi-language-sample,kotlin]
+----
+├── gradle // <1>
+│   └── wrapper
+│       ├── gradle-wrapper.jar
+│       └── gradle-wrapper.properties
+├── gradlew // <2>
+├── gradlew.bat // <2>
+├── settings.gradle.kts // <3>
+└── app
+    ├── build.gradle.kts // <4>
+    └── src
+        ├── main
+        │   └── java // <5>
+        ├── main
+        │   └── kotlin // <5>
+        │       └── demo
+        │           └── App.kt
+        └── test
+            └── kotlin // <6>
+        │       └── demo
+        │           └── AppTest.kt
+----
+
+<1> Generated folder for wrapper files
+<2> Gradle wrapper start scripts
+<3> Settings file to define build name and subprojects
+<4> Build script of `app` project
+<5> Default Kotlin source folder
+<6> Default Kotlin test source folder
+
+You now have the project setup to build a Kotlin application.
+
+== Review the project files
+
+The `settings.gradle(.kts)` file has two active line:
+
+====
+include::sample[dir="groovy",files="settings.gradle[]"]
+include::sample[dir="kotlin",files="settings.gradle.kts[]"]
+====
+- `rootProject.name` assigns a name to the build, which overrides the default behavior of naming the build after the directory it's in.
+  It's recommended to set a fixed name as the folder might change if the project is shared - e.g. as root of a Git repository.
+- `include("app")` defines that the build consists of one subproject called `app` that contains the actual code and build logic.
+  More subprojects can be added by additional `include(...)` statements.
+
+Our build contains one subproject called `app` that represents the Kotlin application we are building.
+It is configured in the `app/build.gradle(.kts)` file:
+
+====
+include::sample[dir="groovy",files="app/build.gradle[]"]
+include::sample[dir="kotlin",files="app/build.gradle.kts[]"]
+====
+<1> Apply the Kotlin JVM plugin to add support for Kotlin.
+<2> Apply the application plugin to add support for building a CLI application.
+<3> Use JCenter for resolving dependencies.
+<4> Align versions of all Kotlin components
+<5> Use the Kotlin JDK 8 standard library.
+<6> Use the Kotlin test library.
+<7> Use the Kotlin JUnit integration.
+<8> Define the main class for the application.
+
+The file `src/main/kotlin/demo/App.kt` is shown here:
+
+.Generated src/main/kotlin/demo/App.kt
+[source,kotlin]
+----
+include::{samples-dir}/groovy/app/src/main/kotlin/demo/App.kt[]
+----
+
+The generated test, `src/test/kotlin/demo/App.kt` is shown next:
+
+.Generated src/test/kotlin/demo/AppTest.kt
+[source,kotlin]
+----
+$ ./gradlew build
+include::{samples-dir}/groovy/app/src/test/kotlin/demo/AppTest.kt[]
+----
+
+The generated test class has a single _kotlin.test_ test.
+The test instantiates the `App` class, invokes a method on it, and checks that it returns the expected value.
+
+== Run the application
+
+Thanks to the `application` plugin, you can run the application directly from the command line.
+The `run` task tells Gradle to execute the `main` method in the class assigned to the `mainClass` property.
+
+[listing.terminal.sample-command]
+----
+$ ./gradlew run
+
+> Task :app:run
+Hello world.
+
+BUILD SUCCESSFUL
+2 actionable tasks: 2 executed
+----
+
+NOTE: The first time you run the wrapper script, `gradlew`, there may be a delay while that version of `gradle` is downloaded and stored locally in your `~/.gradle/wrapper/dists` folder.
+
+== Bundle the application
+
+The `application` plugin also bundles the application, with all its dependencies, for you.
+The archive will also contain a script to start the application with a single command.
+
+[listing.terminal.sample-command]
+----
+$ ./gradlew build
+
+include::{samplesPath}/generated/kotlin-application/tests/build.out[]
+----
+
+If you run a full build as shown above, Gradle will have produced the archive in two formats for you:
+`app/build/distributions/app.tar` and `app/build/distributions/app.zip`.
+
+== Summary
+
+That's it! You've now successfully configured and built a Kotlin application project with Gradle.
+You've learned how to:
+
+* Initialize a project that produces a Kotlin application
+* Run the build and view the test report
+* Execute a Kotlin application using the `run` task from the `application` plugin
+* Bundle the application in an archive

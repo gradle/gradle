@@ -1,0 +1,15 @@
+> Task :app:compileDebugSwift
+> Task :app:relocateMainForTest
+> Task :app:linkDebug
+> Task :app:installDebug
+> Task :app:assemble
+> Task :app:compileTestSwift
+> Task :app:linkTest
+> Task :app:installTest
+> Task :app:xcTest
+> Task :app:test
+> Task :app:check
+> Task :app:build
+
+BUILD SUCCESSFUL in 0s
+8 actionable tasks: 8 executed

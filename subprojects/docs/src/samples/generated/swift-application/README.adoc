@@ -1,0 +1,234 @@
+This guide demonstrates how to create a Swift application with Gradle using `gradle init`.
+You can follow the guide step-by-step to create a new project from scratch or download the complete sample project using the links above.
+
+== What you’ll build
+
+You'll generate a Swift application that follows Gradle's conventions.
+
+== What you’ll need
+
+* A text editor or IDE - for example link:https://www.jetbrains.com/idea/download/[IntelliJ IDEA]
+* A Java Development Kit (JDK), version 8 or higher - for example link:https://adoptopenjdk.net/[AdoptOpenJDK]
+* A https://gradle.org/install[Gradle distribution], version {gradle-version} or newer
+* An installed Swift compiler. See which link:{userManualPath}/building_swift_projects.html#sec:swift_supported_tool_chain[Swift tool chains] are supported by Gradle.
+
+== Create a project folder
+
+Gradle comes with a built-in task, called `init`, that initializes a new Gradle project in an empty folder.
+The `init` task uses the (also built-in) `wrapper` task to create a Gradle wrapper script, `gradlew`.
+
+The first step is to create a folder for the new project and change directory into it.
+
+[listing.terminal.sample-command]
+----
+$ mkdir demo
+$ cd demo
+----
+
+== Run the init task
+
+From inside the new project directory, run the `init` task using the following command in a terminal: `gradle init`.
+When prompted, select the `2: application` project type and `6: Swift` as implementation language.
+Next you can choose the DSL for writing buildscripts -  `1  : Groovy` or `2: Kotlin`.
+For the other questions, press enter to use the default values.
+
+The output will look like this:
+
+[listing.terminal.sample-command,user-inputs="2|6|1|||"]
+----
+$ gradle init
+
+Select type of project to generate:
+  1: basic
+  2: application
+  3: library
+  4: Gradle plugin
+Enter selection (default: basic) [1..4] 2
+
+Select implementation language:
+  1: C++
+  2: Groovy
+  3: Java
+  4: Kotlin
+  5: Scala
+  6: Swift
+Enter selection (default: Java) [1..6] 6
+
+Select build script DSL:
+  1: Groovy
+  2: Kotlin
+Enter selection (default: Groovy) [1..2] 1
+
+Project name (default: demo):
+
+> Task :init
+https://docs.gradle.org/6.7-20200825220000+0000/userguide/building_swift_projects.html
+
+BUILD SUCCESSFUL
+2 actionable tasks: 2 executed
+----
+
+The `init` task generates the new project with the following structure:
+
+.Groovy DSL
+[source.multi-language-sample,groovy]
+----
+├── gradle // <1>
+│   └── wrapper
+│       ├── gradle-wrapper.jar
+│       └── gradle-wrapper.properties
+├── gradlew // <2>
+├── gradlew.bat // <2>
+├── settings.gradle // <3>
+└── app
+    ├── build.gradle // <4>
+    └── src
+        ├── main
+        │   └── swift // <5>
+        │       └── main.swift
+        └── test
+            └── swift // <6>
+                └── GreeterTests.swift
+                └── LinuxMain.swift
+----
+
+.Kotlin DSL
+[source.multi-language-sample,kotlin]
+----
+├── gradle // <1>
+│   └── wrapper
+│       ├── gradle-wrapper.jar
+│       └── gradle-wrapper.properties
+├── gradlew // <2>
+├── gradlew.bat // <2>
+├── settings.gradle.kts // <3>
+└── app
+    ├── build.gradle.kts // <4>
+    └── src
+        ├── main
+        │   └── java // <5>
+        ├── main
+        │   └── swift // <5>
+        │       └── main.swift
+        └── test
+            └── swift // <6>
+                └── GreeterTests.swift
+                └── LinuxMain.swift
+----
+
+<1> Generated folder for wrapper files
+<2> Gradle wrapper start scripts
+<3> Settings file to define build name and subprojects
+<4> Build script of `app` project
+<5> Default Swift source folder
+<6> Default Swift test source folder
+
+You now have the project setup to build a Swift application.
+
+== Review the project files
+
+The `settings.gradle(.kts)` file has two active line:
+
+====
+include::sample[dir="groovy",files="settings.gradle[]"]
+include::sample[dir="kotlin",files="settings.gradle.kts[]"]
+====
+- `rootProject.name` assigns a name to the build, which overrides the default behavior of naming the build after the directory it's in.
+  It's recommended to set a fixed name as the folder might change if the project is shared - e.g. as root of a Git repository.
+- `include("app")` defines that the build consists of one subproject called `app` that contains the actual code and build logic.
+  More subprojects can be added by additional `include(...)` statements.
+
+Our build contains one subproject called `app` that represents the Swift application we are building.
+It is configured in the `app/build.gradle(.kts)` file:
+
+====
+include::sample[dir="groovy",files="app/build.gradle[]"]
+include::sample[dir="kotlin",files="app/build.gradle.kts[]"]
+====
+<1> Apply the swift-application plugin to add support for building Swift executables
+<2> Apply the xctest plugin to add support for building and running Swift test executables (Linux) or bundles (macOS)
+<3> Set the target operating system and architecture for this library
+
+The file `src/main/swift/main.swift` is shown here:
+
+.Generated src/main/swift/main.swift
+[source,swift]
+----
+include::{samples-dir}/groovy/app/src/main/swift/main.swift[]
+----
+
+The generated test, `src/test/swift/main.swift` is shown next:
+
+.Generated src/test/swift/GreeterTests.swift
+[source,swift]
+----
+$ ./gradlew build
+include::{samples-dir}/groovy/app/src/test/swift/GreeterTests.swift[]
+----
+
+The generated test class has a single  test.
+The test instantiates the `Greeter` class, invokes a method on it, and checks that it returns the expected value.
+
+== Build the application
+
+[listing.terminal.sample-command]
+----
+$ ./gradlew build
+
+include::{samplesPath}/generated/swift-application/tests/build.out[]
+----
+
+NOTE: The first time you run the wrapper script, `gradlew`, there may be a delay while that version of `gradle` is downloaded and stored locally in your `~/.gradle/wrapper/dists` folder.
+
+The `build` task compiles the Swift sources, links the object files, and runs the tests.
+It also packages the main and test applications for distribution on other systems.
+The `installDebug` and `installTest` tasks, which both run as part of `build`, copy the executable and generates a shell script for executing the application.
+The following shows the content of the `build/install` folder:
+
+[listing.terminal.sample-command]
+----
+./app/build/install
+├── main
+│   └── debug
+│       ├── app      // <1>
+│       └── lib
+│           └── app  // <2>
+└── test
+    ├── appTest      // <1>
+    └── lib
+        └── appTest  // <3>
+----
+<1> The script for executing the application variant
+<2> The main executable binary (debug variant)
+<3> The test executable binary
+
+NOTE: When a build has dependencies, the dependent libraries are also copied into the installation folder.
+The shell scripts properly configure the library path so the package can be relocated.
+
+NOTE: Dependencies on other projects isn't covered in this guide.
+To learn more about this subject, have a look at the https://github.com/gradle/native-samples/tree/master/cpp/transitive-dependencies[transitive dependency sample] for a demonstration.
+
+NOTE: Gradle integrates with several IDEs: link:{userManualPath}/visual_studio_plugin.html[Visual Studio], link:{userManualPath}/xcode_plugin.html[Xcode] and https://www.jetbrains.com/help/clion/gradle-support.html[Clion].
+To learn more, have a look at their respective linked documentation to configure those IDE integration in your project.
+
+== Run the application
+
+Look inside the `build` folder and you will notice the appearance of an `exe` folder.
+By convention, Gradle will place all applications in subfolders named according to the component name.
+In this case, you will find your assembled executable in `build/exe/main/debug` and it will be called `app` (or `app.exe` under Windows).
+
+Now run your newly built executable.
+
+[listing.terminal.sample-command]
+----
+$ ./app/build/exe/main/debug/app
+Hello, World!
+----
+
+== Summary
+
+That's it! You've now successfully configured and built a Swift application project with Gradle.
+You've learned how to:
+
+* Initialize a project that produces a Swift application
+* Build, bundle and run the application
