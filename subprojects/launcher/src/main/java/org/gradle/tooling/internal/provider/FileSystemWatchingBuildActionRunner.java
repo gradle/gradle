@@ -47,6 +47,7 @@ public class FileSystemWatchingBuildActionRunner implements BuildActionRunner {
         BuildOperationRunner buildOperationRunner = gradle.getServices().get(BuildOperationRunner.class);
 
         boolean watchFileSystem = startParameter.isWatchFileSystem();
+        boolean verboseLogging = startParameter.isWatchFileSystemVerboseLogging();
 
         logMessageForDeprecatedWatchFileSystemProperty(startParameter);
         logMessageForDeprecatedVfsRetentionProperty(startParameter);
@@ -54,12 +55,12 @@ public class FileSystemWatchingBuildActionRunner implements BuildActionRunner {
         if (watchFileSystem) {
             dropVirtualFileSystemIfRequested(startParameter, virtualFileSystem);
         }
-        virtualFileSystem.afterBuildStarted(watchFileSystem, buildOperationRunner);
+        virtualFileSystem.afterBuildStarted(watchFileSystem, verboseLogging, buildOperationRunner);
         try {
             return delegate.run(action, buildController);
         } finally {
             int maximumNumberOfWatchedHierarchies = VirtualFileSystemServices.getMaximumNumberOfWatchedHierarchies(startParameter);
-            virtualFileSystem.beforeBuildFinished(watchFileSystem, buildOperationRunner, maximumNumberOfWatchedHierarchies);
+            virtualFileSystem.beforeBuildFinished(watchFileSystem, verboseLogging, buildOperationRunner, maximumNumberOfWatchedHierarchies);
         }
     }
 
