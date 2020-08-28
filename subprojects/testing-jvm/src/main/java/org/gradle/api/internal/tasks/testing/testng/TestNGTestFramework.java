@@ -60,7 +60,7 @@ public class TestNGTestFramework implements TestFramework {
         this.testTaskPath = testTask.getPath();
         this.testTaskClasspath = classpath;
         this.testTaskTemporaryDir = testTask.getTemporaryDirFactory();
-        options = objects.newInstance(TestNGOptions.class, testTask.getProject().getProjectDir());
+        options = objects.newInstance(TestNGOptions.class);
         conventionMapOutputDirectory(options, testTask.getReports().getHtml());
         detector = new TestNGDetector(new ClassFileExtractionManager(testTask.getTemporaryDirFactory()));
     }
