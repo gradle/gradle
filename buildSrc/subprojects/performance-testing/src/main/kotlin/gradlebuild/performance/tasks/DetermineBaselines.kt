@@ -52,6 +52,7 @@ abstract class DetermineBaselines @Inject constructor(@get:Internal val distribu
         } else if (configuredBaselines.getOrElse("") == flakinessDetectionCommitBaseline) {
             determinedBaselines.set(determineFlakinessDetectionBaseline())
         } else if (!currentBranchIsMasterOrRelease() && !OperatingSystem.current().isWindows && configuredBaselines.isDefaultValue()) {
+            // Windows git complains "long path" so we don't build commit distribution on Windows
             determinedBaselines.set(forkPointCommitBaseline())
         } else {
             determinedBaselines.set(configuredBaselines)

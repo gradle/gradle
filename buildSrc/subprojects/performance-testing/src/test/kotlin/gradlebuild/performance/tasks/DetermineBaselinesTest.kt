@@ -71,6 +71,7 @@ class DetermineBaselinesTest {
 
     @Test
     fun `determines fork point commit on feature branch and default configuration`() {
+        // Windows git complains "long path" so we don't build commit distribution on Windows
         Assume.assumeFalse(OperatingSystem.current().isWindows)
         // given
         setCurrentBranch("my-branch")
@@ -86,6 +87,7 @@ class DetermineBaselinesTest {
 
     @Test
     fun `determines fork point commit on feature branch and empty configuration`() {
+        // Windows git complains "long path" so we don't build commit distribution on Windows
         Assume.assumeFalse(OperatingSystem.current().isWindows)
         // given
         setCurrentBranch("my-branch")
