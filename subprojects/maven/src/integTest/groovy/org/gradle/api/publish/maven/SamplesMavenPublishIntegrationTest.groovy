@@ -21,8 +21,6 @@ import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.UsesSample
-import org.gradle.test.fixtures.maven.MavenFileModule
-import org.gradle.util.TextUtil
 import org.junit.Rule
 import spock.lang.Unroll
 
@@ -110,32 +108,21 @@ class SamplesMavenPublishIntegrationTest extends AbstractSampleIntegrationTest {
     }
 
     @Unroll
-    @UsesSample("maven-publish/multiple-publications")
-    def "multiple publications with #dsl dsl"() {
+    @UsesSample("maven-publish/customize-identity")
+    def "customize publication identity with #dsl dsl"() {
         given:
         def sampleDir = sampleProject.dir.file(dsl)
         inDirectory(sampleDir)
 
         and:
         def fileRepo = maven(sampleDir.file("build/repo"))
-        def project1sample = fileRepo.module("org.gradle.sample", "project1-sample", "1.1").withModuleMetadata()
-        def project2api = fileRepo.module("org.gradle.sample", "project2-api", "2.3") // publication without component
-        def project2impl = fileRepo.module("org.gradle.sample", "project2-impl", "2.3").withModuleMetadata()
+        def library = fileRepo.module("org.gradle.sample", "library", "1.1").withModuleMetadata()
 
         when:
         succeeds "publish"
 
         then:
-        project1sample.assertPublishedAsJavaModule()
-        verifyPomFile(project1sample, dsl, "output/project1.pom.xml")
-
-        and:
-        project2api.assertPublishedAsJavaModule()
-        verifyPomFile(project2api, dsl, "output/project2-api.pom.xml")
-
-        and:
-        project2impl.assertPublishedAsJavaModule()
-        verifyPomFile(project2impl, dsl, "output/project2-impl.pom.xml")
+        library.assertPublishedAsJavaModule()
 
         where:
         dsl << ['groovy', 'kotlin']
@@ -294,13 +281,4 @@ class SamplesMavenPublishIntegrationTest extends AbstractSampleIntegrationTest {
         dsl << ['groovy', 'kotlin']
     }
 
-    private void verifyPomFile(MavenFileModule module, String dsl, String outputFileName) {
-        def actualPomXmlText = module.pomFile.text.replaceFirst('publication="\\d+"', 'publication="«PUBLICATION-TIME-STAMP»"').trim()
-        assert actualPomXmlText == getExpectedPomOutput(sampleProject.dir.file("$dsl/$outputFileName"))
-    }
-
-    String getExpectedPomOutput(File outputFile) {
-        assert outputFile.file
-        outputFile.readLines()[1..-1].join(TextUtil.getPlatformLineSeparator()).trim()
-    }
 }

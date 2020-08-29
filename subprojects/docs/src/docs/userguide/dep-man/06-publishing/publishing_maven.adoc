@@ -84,8 +84,8 @@ Overriding the default identity values is easy: simply specify the `groupId`, `a
 
 .Customizing the publication identity
 ====
-include::sample[dir="snippets/maven-publish/multiple-publications/groovy",files="build.gradle[tags=customize-identity]"]
-include::sample[dir="snippets/maven-publish/multiple-publications/kotlin",files="build.gradle.kts[tags=customize-identity]"]
+include::sample[dir="snippets/maven-publish/customize-identity/groovy/library",files="build.gradle[tags=customize-identity]"]
+include::sample[dir="snippets/maven-publish/customize-identity/kotlin/library",files="build.gradle.kts[tags=customize-identity]"]
 ====
 
 [TIP]
