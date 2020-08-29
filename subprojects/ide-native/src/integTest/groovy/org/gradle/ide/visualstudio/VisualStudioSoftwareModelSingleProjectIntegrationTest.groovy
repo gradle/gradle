@@ -988,12 +988,12 @@ model {
         where:
         // uniqueIndex: https://github.com/gradle/gradle/issues/8787
         compilerFlag     | expectedLanguageStandard | uniqueIndex
-        '/std:cpp14'     | 'stdcpp14'               | 1
-        '-std:cpp14'     | 'stdcpp14'               | 2
-        '/std:cpp17'     | 'stdcpp17'               | 3
-        '-std:cpp17'     | 'stdcpp17'               | 4
-        '/std:cpplatest' | 'stdcpplatest'           | 5
-        '-std:cpplatest' | 'stdcpplatest'           | 6
+        '/std:c++14'     | 'stdcpp14'               | 1
+        '-std:c++14'     | 'stdcpp14'               | 2
+        '/std:c++17'     | 'stdcpp17'               | 3
+        '-std:c++17'     | 'stdcpp17'               | 4
+        '/std:c++latest' | 'stdcpplatest'           | 5
+        '-std:c++latest' | 'stdcpplatest'           | 6
     }
 
     @ToBeFixedForConfigurationCache
@@ -1006,9 +1006,9 @@ model {
         main(NativeExecutableSpec) {
             binaries.all {
                 if (it.buildType.name == 'debug') {
-                    cppCompiler.args "/std:cpp14"
+                    cppCompiler.args "/std:c++14"
                 } else {
-                    cppCompiler.args "/std:cpp17"
+                    cppCompiler.args "/std:c++17"
                 }
             }
         }

@@ -14,6 +14,7 @@ We would like to thank the following community contributors to this release of G
 [Matthias Robbers](https://github.com/MatthiasRobbers),
 [Vladimir Sitnikov](https://github.com/vlsi),
 [Stefan Oehme](https://github.com/oehme),
+[Thad House](https://github.com/ThadHouse),
 and [Michał Mlak](https://github.com/Miehau).
 
 <!--
