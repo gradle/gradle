@@ -22,7 +22,6 @@ import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.test.fixtures.maven.MavenFileModule
-import org.gradle.util.TextUtil
 import org.junit.Rule
 import spock.lang.Unroll
 
