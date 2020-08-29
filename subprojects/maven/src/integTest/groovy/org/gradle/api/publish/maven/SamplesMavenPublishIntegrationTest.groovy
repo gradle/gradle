@@ -21,7 +21,6 @@ import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.UsesSample
-import org.gradle.test.fixtures.maven.MavenFileModule
 import org.junit.Rule
 import spock.lang.Unroll
 
@@ -124,27 +123,6 @@ class SamplesMavenPublishIntegrationTest extends AbstractSampleIntegrationTest {
 
         then:
         library.assertPublishedAsJavaModule()
-        verifyPomFile(library, """<?xml version="1.0" encoding="UTF-8"?>
-<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-  <!-- This module was also published with a richer model, Gradle metadata,  -->
-  <!-- which should be used instead. Do not delete the following line which  -->
-  <!-- is to indicate to Gradle or any Gradle module metadata file consumer  -->
-  <!-- that they should prefer consuming it instead. -->
-  <!-- do_not_remove: published-with-gradle-metadata -->
-  <modelVersion>4.0.0</modelVersion>
-  <groupId>org.gradle.sample</groupId>
-  <artifactId>library</artifactId>
-  <version>1.1</version>
-  <dependencies>
-    <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-api</artifactId>
-      <version>1.7.10</version>
-      <scope>compile</scope>
-    </dependency>
-  </dependencies>
-</project>""")
 
         where:
         dsl << ['groovy', 'kotlin']
@@ -303,8 +281,4 @@ class SamplesMavenPublishIntegrationTest extends AbstractSampleIntegrationTest {
         dsl << ['groovy', 'kotlin']
     }
 
-    private static void verifyPomFile(MavenFileModule module, String expectedPom) {
-        def actualPomXmlText = module.pomFile.text.replaceFirst('publication="\\d+"', 'publication="«PUBLICATION-TIME-STAMP»"').trim()
-        assert actualPomXmlText == expectedPom
-    }
 }
