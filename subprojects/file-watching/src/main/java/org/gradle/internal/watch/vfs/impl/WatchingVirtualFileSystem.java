@@ -109,7 +109,8 @@ public class WatchingVirtualFileSystem implements BuildLifecycleAwareVirtualFile
                     newRoot = stopWatchingIfProblemsWhenReceivingFileChanges(newRoot, statistics);
                     if (watchRegistry == null) {
                         context.setStatus("Starting file system watching");
-                        newRoot = startWatching(newRoot);
+                        startWatching(newRoot);
+                        newRoot = newRoot.empty();
                     }
                     boolean startedWatching = !alreadyWatching && watchRegistry != null;
                     FileSystemWatchingStatistics fileSystemWatchingStatistics = statistics == null ? null : new DefaultFileSystemWatchingStatistics(statistics, newRoot);
@@ -226,7 +227,7 @@ public class WatchingVirtualFileSystem implements BuildLifecycleAwareVirtualFile
     /**
      * Start watching the known areas of the file system for changes.
      */
-    private SnapshotHierarchy startWatching(SnapshotHierarchy currentRoot) {
+    private void startWatching(SnapshotHierarchy currentRoot) {
         try {
             watchRegistry = watcherRegistryFactory.createFileWatcherRegistry(new FileWatcherRegistry.ChangeHandler() {
                 @Override
@@ -251,11 +252,9 @@ public class WatchingVirtualFileSystem implements BuildLifecycleAwareVirtualFile
             });
             watchableHierarchies.forEach(watchableHierarchy -> watchRegistry.registerWatchableHierarchy(watchableHierarchy, currentRoot));
             watchableHierarchies.clear();
-            return currentRoot.empty();
         } catch (Exception ex) {
             logWatchingError(ex, FILE_WATCHING_ERROR_MESSAGE_DURING_BUILD);
             closeUnderLock();
-            return currentRoot.empty();
         }
     }
 
