@@ -22,6 +22,7 @@ import org.gradle.performance.fixture.GradleInvocationSpec
 import org.gradle.performance.fixture.InvocationCustomizer
 import org.gradle.performance.fixture.InvocationSpec
 import org.gradle.test.fixtures.keystore.TestKeyStore
+import spock.lang.Ignore
 import spock.lang.Unroll
 
 import static org.gradle.performance.fixture.BuildExperimentRunner.Phase.MEASUREMENT
@@ -29,6 +30,7 @@ import static org.gradle.performance.fixture.BuildExperimentRunner.Phase.WARMUP
 import static org.gradle.performance.regression.buildcache.TaskOutputCachingJavaPerformanceTest.setupTestProject
 import static org.gradle.performance.regression.buildcache.TaskOutputCachingJavaPerformanceTest.touchCacheArtifactsDir
 
+@Ignore
 // Gradle profiler doesn't support different parameters per invocation, so we extract the single method here
 @Unroll
 class HttpsTaskOutputCachingJavaPerformanceTest extends AbstractTaskOutputCachingPerformanceTest {
