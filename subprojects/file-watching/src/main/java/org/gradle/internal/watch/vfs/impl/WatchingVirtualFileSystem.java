@@ -36,7 +36,6 @@ import org.gradle.internal.watch.vfs.FileSystemWatchingStatistics;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nullable;
 import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
@@ -312,10 +311,7 @@ public class WatchingVirtualFileSystem implements BuildLifecycleAwareVirtualFile
         return currentRoot.empty();
     }
 
-    private SnapshotHierarchy stopWatchingIfProblemsWhenReceivingFileChanges(SnapshotHierarchy currentRoot, @Nullable FileWatcherRegistry.FileWatchingStatistics statistics) {
-        if (statistics == null) {
-            return currentRoot.empty();
-        }
+    private SnapshotHierarchy stopWatchingIfProblemsWhenReceivingFileChanges(SnapshotHierarchy currentRoot, FileWatcherRegistry.FileWatchingStatistics statistics) {
         if (statistics.isUnknownEventEncountered()) {
             LOGGER.warn("Dropped VFS state due to lost state");
             return stopWatchingAndInvalidateHierarchy(currentRoot);
