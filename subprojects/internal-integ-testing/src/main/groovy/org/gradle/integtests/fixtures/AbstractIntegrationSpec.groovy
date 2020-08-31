@@ -19,6 +19,7 @@ import org.eclipse.jgit.api.Git
 import org.gradle.api.Action
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.integtests.fixtures.build.BuildTestFixture
+import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheBuildOperationsFixture
 import org.gradle.integtests.fixtures.executer.ArtifactBuilder
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.integtests.fixtures.executer.ExecutionResult
@@ -183,6 +184,10 @@ class AbstractIntegrationSpec extends Specification {
 
     protected TestNameTestDirectoryProvider getTestDirectoryProvider() {
         temporaryFolder
+    }
+
+    protected ConfigurationCacheBuildOperationsFixture newConfigurationCacheFixture() {
+        return new ConfigurationCacheBuildOperationsFixture(new BuildOperationsFixture(executer, temporaryFolder))
     }
 
     TestFile getTestDirectory() {

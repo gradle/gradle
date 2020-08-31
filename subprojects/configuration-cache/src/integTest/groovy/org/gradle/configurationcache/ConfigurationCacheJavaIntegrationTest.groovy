@@ -30,64 +30,6 @@ class ConfigurationCacheJavaIntegrationTest extends AbstractConfigurationCacheIn
         configurationCache = newConfigurationCacheFixture()
     }
 
-    def "can add JavaExec mainClass convention to automatically find class at execution time"() {
-        given:
-        def configurationCache = newConfigurationCacheFixture()
-        buildFile """
-
-            plugins {
-                id 'java'
-            }
-
-            abstract class ComputeMain extends DefaultTask {
-
-                @Classpath
-                @InputFiles
-                abstract ConfigurableFileCollection getClasspath()
-
-                @OutputFile
-                abstract RegularFileProperty getMainClassFile()
-
-                @TaskAction
-                def computeMainClass() {
-                    // automagically discover main class name from classpath here
-                    mainClassFile.get().asFile.text = 'Main'
-                }
-            }
-
-            def computeMainClass = tasks.register('computeMainClass', ComputeMain) {
-                classpath.from(compileJava)
-                mainClassFile = layout.buildDirectory.file('mainClass.txt')
-            }
-
-            tasks.register('run', JavaExec) {
-                classpath = layout.files(compileJava)
-                mainClass.convention(
-                    computeMainClass.flatMap { it.mainClassFile }.map { it.asFile.text }
-                )
-            }
-        """
-        file("src/main/java/Main.java") << """
-            class Main { public static void main(String[] args) {
-                System.out.println("it works!");
-            } }
-        """
-
-        when:
-        configurationCacheRun 'run'
-
-        then:
-        outputContains 'it works!'
-        configurationCache.assertStateStored()
-
-        when:
-        configurationCacheRun 'run'
-
-        then:
-        outputContains 'it works!'
-        configurationCache.assertStateLoaded()
-    }
-
     def "build on Java project with no source"() {
         given:
         settingsFile << """
