@@ -17,7 +17,7 @@
 package org.gradle.performance.regression.java
 
 import org.gradle.performance.AbstractCrossVersionGradleProfilerPerformanceTest
-import org.gradle.profiler.mutations.ApplyNonAbiChangeToJavaSourceFileMutator
+import org.gradle.performance.mutator.ApplyNonAbiChangeToJavaSourceFileMutator
 import spock.lang.Unroll
 
 import static org.gradle.performance.generator.JavaTestProject.LARGE_GROOVY_MULTI_PROJECT
@@ -34,7 +34,7 @@ class JavaNonABIChangePerformanceTest extends AbstractCrossVersionGradleProfiler
         runner.gradleOpts = ["-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}"]
         runner.tasksToRun = ['assemble']
         runner.targetVersions = ["6.7-20200824220048+0000"]
-        runner.addBuildMutator { new ApplyNonAbiChangeToJavaSourceFileMutator(new File(it.projectDir, testProject.config.fileToChangeByScenario['assemble'])) }
+        runner.addBuildMutator { new ApplyNonAbiChangeToJavaSourceFileMutator(it.projectDir, testProject.config.fileToChangeByScenario['assemble']) }
         if (testProject.name().contains("GROOVY")) {
             runner.minimumBaseVersion = '5.0'
         }
