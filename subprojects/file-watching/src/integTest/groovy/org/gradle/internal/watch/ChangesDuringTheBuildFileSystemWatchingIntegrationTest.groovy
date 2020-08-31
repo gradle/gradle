@@ -67,7 +67,6 @@ class ChangesDuringTheBuildFileSystemWatchingIntegrationTest extends AbstractFil
         executedAndNotSkipped(":consumer")
         // TODO: sometimes, the changes from the same build are picked up
         vfsLogs.receivedFileSystemEventsInCurrentBuild >= 0
-        vfsLogs.retainedFilesSinceLastBuild == 0
         vfsLogs.retainedFilesInCurrentBuild >= 1
 
         when:
@@ -111,7 +110,6 @@ class ChangesDuringTheBuildFileSystemWatchingIntegrationTest extends AbstractFil
         executedAndNotSkipped(":consumer")
         outputFile.text == "initial"
         vfsLogs.receivedFileSystemEventsInCurrentBuild >= 0
-        vfsLogs.retainedFilesSinceLastBuild == 0
         vfsLogs.retainedFilesInCurrentBuild > 0
 
         when:
