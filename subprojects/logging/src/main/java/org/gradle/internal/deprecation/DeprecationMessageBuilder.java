@@ -291,6 +291,8 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
         DeprecateSystemProperty(String systemProperty) {
             super(systemProperty);
             this.systemProperty = systemProperty;
+            // This never happens in user code
+            setIndirectUsage();
         }
 
         /**
