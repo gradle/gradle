@@ -1140,7 +1140,7 @@ For up to date checks and the <<build_cache.adoc#build_cache,build cache>> Gradl
 In order to do so, Gradle first normalizes both inputs and then compares the result.
 For example, for a compile classpath, Gradle extracts the ABI signature from the classes on the classpath and then compares signatures between the last Gradle run and the current Gradle run as described in <<java_plugin.adoc#sec:java_compile_avoidance,Java compile avoidance>>.
 
-Normalization applies to all zip files on the classpath (e.g. jars, wars, aars, apks, etc).  This allows Gradle to recognize when two zip files are functionally the same, even though the zip files themselves might be slightly different due to metadata (such as timestamps or file order).  Normalization applies not only to zip files directly on the classpath, but also to zip files nested inside directories or inside other zip files on the classpath.
+Normalization applies to all zip files on the classpath (e.g. jars, wars, ears, apks, etc).  This allows Gradle to recognize when two zip files are functionally the same, even though the zip files themselves might be slightly different due to metadata (such as timestamps or file order).  Normalization applies not only to zip files directly on the classpath, but also to zip files nested inside directories or inside other zip files on the classpath.
 
 It is possible to customize Gradle's built-in strategy for runtime classpath normalization.
 All inputs annotated with `@link:{javadocPath}/org/gradle/api/tasks/Classpath.html[Classpath]` are considered to be runtime classpaths.
@@ -1157,7 +1157,8 @@ include::sample[dir="snippets/tasks/inputNormalization/groovy",files="build.grad
 include::sample[dir="snippets/tasks/inputNormalization/kotlin",files="build.gradle.kts[tags=ignore-build-info-properties]"]
 ====
 
-If adding such a file to your jar files is something you do for all of the projects in your build, and you want to filter this file for all consumers, you may wrap the configurations described above in an `allprojects {}` or `subprojects {}` block in the root build script.
+If adding such a file to your jar files is something you do for all of the projects in your build, and you want to filter this file for all consumers,
+you should consider configuring such normalization in a <<multi_project_builds#sec:sharing_build_logic_between_subprojects,convention plugin>> to share it between subprojects.
 
 The effect of this configuration would be that changes to `build-info.properties` would be ignored for up-to-date checks and <<build_cache.adoc#build_cache,build cache>> key calculations.
 Note that this will not change the runtime behavior of the `test` task — i.e. any test is still able to load `build-info.properties` and the runtime classpath is still the same as before.
