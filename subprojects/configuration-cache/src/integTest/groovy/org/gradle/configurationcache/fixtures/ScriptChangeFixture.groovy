@@ -19,6 +19,8 @@ package org.gradle.configurationcache.fixtures
 import groovy.transform.Immutable
 import org.gradle.test.fixtures.file.TestFile
 
+import static org.gradle.util.GFileUtils.relativePathOf
+
 class ScriptChangeFixture {
 
     static List<Spec> specs() {
@@ -42,7 +44,7 @@ class ScriptChangeFixture {
             "$scriptDiscovery $scriptLanguage $scriptType script".toLowerCase()
         }
 
-        ScriptChangeFixture fixtureForProjectDir(TestFile projectDir) {
+        ScriptChangeFixture fixtureForProjectDir(TestFile projectDir, TestFile rootProjectDir = projectDir) {
             def scriptFileExtension = scriptLanguage == ScriptLanguage.GROOVY ? '.gradle' : '.gradle.kts'
             def defaultScriptFile = projectDir.file("${baseScriptFileNameFor(scriptType)}$scriptFileExtension")
             def buildArguments = scriptType == ScriptType.INIT
@@ -50,14 +52,14 @@ class ScriptChangeFixture {
                 : ['help']
             switch (scriptDiscovery) {
                 case ScriptDiscovery.DEFAULT:
-                    return new ScriptChangeFixture(defaultScriptFile, buildArguments)
+                    return new ScriptChangeFixture(rootProjectDir, defaultScriptFile, buildArguments)
                 case ScriptDiscovery.APPLIED:
                     String appliedScriptName = "applied${scriptFileExtension}"
                     TestFile appliedScriptFile = new TestFile(defaultScriptFile.parentFile, appliedScriptName)
                     defaultScriptFile.text = scriptLanguage == ScriptLanguage.GROOVY
                         ? "apply from: './$appliedScriptName'"
                         : "apply(from = \"./$appliedScriptName\")"
-                    return new ScriptChangeFixture(appliedScriptFile, buildArguments)
+                    return new ScriptChangeFixture(rootProjectDir, appliedScriptFile, buildArguments)
             }
         }
 
@@ -95,14 +97,22 @@ class ScriptChangeFixture {
         BUILDSRC_SETTINGS,
     }
 
+    final TestFile projectDir
     final TestFile scriptFile
     final List<String> buildArguments
     final String expectedOutputBeforeChange = 'Hello!'
     final String expectedOutputAfterChange = 'Hi!'
 
-    ScriptChangeFixture(TestFile scriptFile, List<String> buildArguments) {
+    ScriptChangeFixture(TestFile projectDir, TestFile scriptFile, List<String> buildArguments) {
+        this.projectDir = projectDir
         this.scriptFile = scriptFile
         this.buildArguments = buildArguments
+    }
+
+    String getExpectedCacheInvalidationMessage() {
+        def scriptPath = relativePathOf(scriptFile, projectDir)
+        def scriptDesc = scriptPath.contains('init') ? 'init script' : 'file'
+        return "configuration cache cannot be reused because $scriptDesc '$scriptPath' has changed."
     }
 
     void setup() {
