@@ -21,10 +21,10 @@ import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream
 import org.gradle.internal.hash.Hashing
 import org.gradle.performance.fixture.AbstractCrossVersionPerformanceTestRunner
 import org.gradle.performance.generator.JavaTestProject
-import org.gradle.performance.mutator.ApplyAbiChangeToJavaSourceFileMutator
-import org.gradle.performance.mutator.ApplyNonAbiChangeToJavaSourceFileMutator
 import org.gradle.profiler.BuildContext
 import org.gradle.profiler.BuildMutator
+import org.gradle.profiler.mutations.ApplyAbiChangeToJavaSourceFileMutator
+import org.gradle.profiler.mutations.ApplyNonAbiChangeToJavaSourceFileMutator
 import spock.lang.Unroll
 
 import java.util.zip.GZIPInputStream
@@ -126,7 +126,7 @@ class TaskOutputCachingJavaPerformanceTest extends AbstractTaskOutputCachingPerf
     def "clean #tasks for abi change on #testProject with local cache (parallel: true)"() {
         given:
         setupTestProject(runner, testProject, tasks)
-        runner.addBuildMutator { new ApplyAbiChangeToJavaSourceFileMutator(it.projectDir, testProject.config.fileToChangeByScenario['assemble']) }
+        runner.addBuildMutator { new ApplyAbiChangeToJavaSourceFileMutator(new File(it.projectDir, testProject.config.fileToChangeByScenario['assemble'])) }
         runner.args += "--parallel"
         pushToRemote = false
         runner.addBuildMutator { touchCacheArtifacts() }
@@ -146,7 +146,7 @@ class TaskOutputCachingJavaPerformanceTest extends AbstractTaskOutputCachingPerf
     def "clean #tasks for non-abi change on #testProject with local cache (parallel: true)"() {
         given:
         setupTestProject(runner, testProject, tasks)
-        runner.addBuildMutator { new ApplyNonAbiChangeToJavaSourceFileMutator(it.projectDir, testProject.config.fileToChangeByScenario['assemble']) }
+        runner.addBuildMutator { new ApplyNonAbiChangeToJavaSourceFileMutator(new File(it.projectDir, testProject.config.fileToChangeByScenario['assemble'])) }
         runner.args += "--parallel"
         pushToRemote = false
         runner.addBuildMutator { touchCacheArtifacts() }
