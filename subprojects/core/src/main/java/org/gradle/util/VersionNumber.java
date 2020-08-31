@@ -78,6 +78,7 @@ public class VersionNumber implements Comparable<VersionNumber> {
         return patch;
     }
 
+    @Nullable
     public String getQualifier() {
         return qualifier;
     }
@@ -142,14 +143,15 @@ public class VersionNumber implements Comparable<VersionNumber> {
         return DEFAULT_SCHEME.parse(versionString);
     }
 
+    @Nullable
     private String toLowerCase(@Nullable String string) {
         return string == null ? null : string.toLowerCase();
     }
 
     public interface Scheme {
-        public VersionNumber parse(String value);
+        VersionNumber parse(String value);
 
-        public String format(VersionNumber versionNumber);
+        String format(VersionNumber versionNumber);
     }
 
     private abstract static class AbstractScheme implements Scheme {
@@ -160,7 +162,7 @@ public class VersionNumber implements Comparable<VersionNumber> {
         }
 
         @Override
-        public VersionNumber parse(String versionString) {
+        public VersionNumber parse(@Nullable String versionString) {
             if (versionString == null || versionString.length() == 0) {
                 return UNKNOWN;
             }
@@ -243,18 +245,11 @@ public class VersionNumber implements Comparable<VersionNumber> {
                 return pos == str.length();
             }
 
-            private boolean skip(char ch) {
-                if (pos < str.length() && str.charAt(pos) == ch) {
-                    pos++;
-                    return true;
-                }
-                return false;
-            }
-
             public void skipSeparator() {
                 pos++;
             }
 
+            @Nullable
             public String remainder() {
                 return pos == str.length() ? null : str.substring(pos);
             }
