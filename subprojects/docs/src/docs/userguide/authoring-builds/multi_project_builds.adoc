@@ -94,7 +94,7 @@ As your project grows, naming and consistency gets increasingly more important.
 To keep your builds maintainable, we recommend the following :
 
 1. _Keep default project names for subprojects_:
-It is possible to configure custom project names in the settings file. 
+It is possible to configure custom project names in the settings file.
 However, it’s an unnecessary extra effort for the developers to keep track of which project belongs to what folders.
 
 2. _Use kebab case formatting for all project names_:
@@ -686,11 +686,18 @@ For the person service we declare that the project should be compiled only again
 [[sec:depending_on_output_of_another_project]]
 == Depending on the task output produced by another project
 
-<<#sec:project_jar_dependencies,Project dependencies>> model dependencies between modules. Effectively, you are saying that you depend on the main output of another project. In a Java-based project that's usually a JAR file.
+<<#sec:project_jar_dependencies,Project dependencies>> model dependencies between modules.
+Effectively, you are saying that you depend on the main output of another project. In a Java-based project that's usually a JAR file.
 
-Sometimes you may want to depend on an output produced by another task. In turn you'll want to make sure that the task is executed beforehand to produce that very output. Declaring a task dependency from one project to another is a poor way to model this kind of relationship and introduces unnecessary coupling. The recommended way to model such a dependency is to produce the output, mark it as an "outgoing" artifact or add it to the output of the `main` source set which you can depend on in the consuming project.
+Sometimes you may want to depend on an output produced by another task.
+In turn, you'll want to make sure that the task is executed beforehand to produce that very output.
+Declaring a task dependency from one project to another is a poor way to model this kind of relationship and introduces unnecessary coupling.
+The recommended way to model such a dependency is to produce the output, mark it as an "outgoing" artifact or add it to the output of the `main` source set which you can depend on in the consuming project.
 
-Let's say you are working in a multi-project build with the two subprojects `producer` and `consumer`. The subproject `producer` defines a task named `buildInfo` that generates a properties file containing build information e.g. the project version. The attribute `builtBy` takes care of establishing an inferred task dependency. For more information on `builtBy`, see link:{groovyDslPath}/org.gradle.api.tasks.SourceSetOutput.html[SourceSetOutput].
+Let's say you are working in a multi-project build with the two subprojects `producer` and `consumer`.
+The subproject `producer` defines a task named `buildInfo` that generates a properties file containing build information e.g. the project version.
+The attribute `builtBy` takes care of establishing an inferred task dependency.
+For more information on `builtBy`, see link:{groovyDslPath}/org.gradle.api.tasks.SourceSetOutput.html[SourceSetOutput].
 
 .Task generating a property file containing build information
 ====
@@ -698,7 +705,8 @@ include::sample[dir="snippets/multiproject/dependencies-outgoingArtifact/groovy/
 include::sample[dir="snippets/multiproject/dependencies-outgoingArtifact/kotlin/producer",files="build.gradle.kts[]"]
 ====
 
-The consuming project is supposed to be able to read the properties file at runtime. Declaring a project dependency on the producing project takes care of creating the properties beforehand and making it available to the runtime classpath.
+The consuming project is supposed to be able to read the properties file at runtime.
+Declaring a project dependency on the producing project takes care of creating the properties beforehand and making it available to the runtime classpath.
 
 .Declaring a project dependency on the project producing the properties file
 ====
