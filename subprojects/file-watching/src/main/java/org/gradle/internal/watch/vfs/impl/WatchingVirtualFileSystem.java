@@ -100,12 +100,12 @@ public class WatchingVirtualFileSystem implements BuildLifecycleAwareVirtualFile
             public SnapshotHierarchy call(BuildOperationContext context) {
                 if (watchingEnabled) {
                     SnapshotHierarchy newRoot;
-                    FileSystemWatchingStatistics fileSystemWatchingStatisticsSinceLastBuild;
+                    FileSystemWatchingStatistics statisticsSinceLastBuild;
                     if (watchRegistry == null) {
                         context.setStatus("Starting file system watching");
                         startWatching(currentRoot);
                         newRoot = currentRoot.empty();
-                        fileSystemWatchingStatisticsSinceLastBuild = null;
+                        statisticsSinceLastBuild = null;
                     } else {
                         FileWatcherRegistry.FileWatchingStatistics statistics = watchRegistry.getAndResetStatistics();
                         if (hasDroppedStateBecauseOfErrorsReceivedWhileWatching(statistics)) {
@@ -113,13 +113,13 @@ public class WatchingVirtualFileSystem implements BuildLifecycleAwareVirtualFile
                         } else {
                             newRoot = currentRoot;
                         }
-                        fileSystemWatchingStatisticsSinceLastBuild = new DefaultFileSystemWatchingStatistics(statistics, newRoot);
+                        statisticsSinceLastBuild = new DefaultFileSystemWatchingStatistics(statistics, newRoot);
                         if (verboseLogging) {
-                            LOGGER.warn("Received {} file system events since last build", fileSystemWatchingStatisticsSinceLastBuild.getNumberOfReceivedEvents());
+                            LOGGER.warn("Received {} file system events since last build", statisticsSinceLastBuild.getNumberOfReceivedEvents());
                             LOGGER.warn("Virtual file system retained information about {} files, {} directories and {} missing files since last build",
-                                fileSystemWatchingStatisticsSinceLastBuild.getRetainedRegularFiles(),
-                                fileSystemWatchingStatisticsSinceLastBuild.getRetainedDirectories(),
-                                fileSystemWatchingStatisticsSinceLastBuild.getRetainedMissingFiles()
+                                statisticsSinceLastBuild.getRetainedRegularFiles(),
+                                statisticsSinceLastBuild.getRetainedDirectories(),
+                                statisticsSinceLastBuild.getRetainedMissingFiles()
                             );
                         }
                     }
@@ -131,12 +131,12 @@ public class WatchingVirtualFileSystem implements BuildLifecycleAwareVirtualFile
 
                                           @Override
                                           public boolean isStartedWatching() {
-                                              return fileSystemWatchingStatisticsSinceLastBuild == null;
+                                              return statisticsSinceLastBuild == null;
                                           }
 
                                           @Override
                                           public FileSystemWatchingStatistics getStatistics() {
-                                              return fileSystemWatchingStatisticsSinceLastBuild;
+                                              return statisticsSinceLastBuild;
                                           }
                                       }
                     );
@@ -182,9 +182,9 @@ public class WatchingVirtualFileSystem implements BuildLifecycleAwareVirtualFile
                         reasonForNotWatchingFiles = null;
                     }
                     SnapshotHierarchy newRoot;
-                    FileSystemWatchingStatistics fileSystemWatchingStatisticsDuringBuild;
+                    FileSystemWatchingStatistics statisticsDuringBuild;
                     if (watchRegistry == null) {
-                        fileSystemWatchingStatisticsDuringBuild = null;
+                        statisticsDuringBuild = null;
                         newRoot = currentRoot.empty();
                     } else {
                         FileWatcherRegistry.FileWatchingStatistics statistics = watchRegistry.getAndResetStatistics();
@@ -193,13 +193,13 @@ public class WatchingVirtualFileSystem implements BuildLifecycleAwareVirtualFile
                         } else {
                             newRoot = withWatcherChangeErrorHandling(currentRoot, () -> watchRegistry.buildFinished(currentRoot, maximumNumberOfWatchedHierarchies));
                         }
-                        fileSystemWatchingStatisticsDuringBuild = new DefaultFileSystemWatchingStatistics(statistics, newRoot);
+                        statisticsDuringBuild = new DefaultFileSystemWatchingStatistics(statistics, newRoot);
                         if (verboseLogging) {
-                            LOGGER.warn("Received {} file system events during the current build", fileSystemWatchingStatisticsDuringBuild.getNumberOfReceivedEvents());
+                            LOGGER.warn("Received {} file system events during the current build", statisticsDuringBuild.getNumberOfReceivedEvents());
                             LOGGER.warn("Virtual file system retains information about {} files, {} directories and {} missing files until next build",
-                                fileSystemWatchingStatisticsDuringBuild.getRetainedRegularFiles(),
-                                fileSystemWatchingStatisticsDuringBuild.getRetainedDirectories(),
-                                fileSystemWatchingStatisticsDuringBuild.getRetainedMissingFiles()
+                                statisticsDuringBuild.getRetainedRegularFiles(),
+                                statisticsDuringBuild.getRetainedDirectories(),
+                                statisticsDuringBuild.getRetainedMissingFiles()
                             );
                         }
                     }
@@ -217,7 +217,7 @@ public class WatchingVirtualFileSystem implements BuildLifecycleAwareVirtualFile
 
                         @Override
                         public FileSystemWatchingStatistics getStatistics() {
-                            return fileSystemWatchingStatisticsDuringBuild;
+                            return statisticsDuringBuild;
                         }
                     });
                     return newRoot;
