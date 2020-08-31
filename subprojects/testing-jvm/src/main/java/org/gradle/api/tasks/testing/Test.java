@@ -75,7 +75,6 @@ import org.gradle.internal.scan.UsedByScanPlugin;
 import org.gradle.internal.time.Clock;
 import org.gradle.internal.work.WorkerLeaseRegistry;
 import org.gradle.jvm.toolchain.JavaLauncher;
-import org.gradle.jvm.toolchain.internal.DefaultToolchainJavaLauncher;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.JavaDebugOptions;
 import org.gradle.process.JavaForkOptions;
@@ -1178,7 +1177,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     @Nullable
     private String getEffectiveExecutable() {
         if (javaLauncher.isPresent()) {
-            return ((DefaultToolchainJavaLauncher) javaLauncher.get()).getExecutable();
+            return javaLauncher.get().getExecutable();
         }
         final String executable = getExecutable();
         return executable == null ? Jvm.current().getJavaExecutable().getAbsolutePath() : executable;

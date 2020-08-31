@@ -60,7 +60,7 @@ public class JavaToolchain implements Describable, JavaToolMetadata {
 
     @Internal
     public JavaLauncher getJavaLauncher() {
-        return new DefaultToolchainJavaLauncher(findExecutable("java"));
+        return new DefaultToolchainJavaLauncher(this);
     }
 
     @Internal

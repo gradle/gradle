@@ -26,4 +26,17 @@ import org.gradle.api.Incubating;
 @Incubating
 public interface JavaLauncher {
 
+    /**
+     * Returns metadata information about this tool
+     *
+     * @return the tool metadata
+     */
+    JavaToolMetadata getMetadata();
+
+    /**
+     * Returns the path to the executable for this tool
+     *
+     * @return the path to the executable
+     */
+    String getExecutable();
 }

@@ -32,7 +32,6 @@ import org.gradle.internal.jvm.DefaultModularitySpec;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.jvm.toolchain.JavaLauncher;
-import org.gradle.jvm.toolchain.internal.DefaultToolchainJavaLauncher;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.ExecResult;
 import org.gradle.process.JavaDebugOptions;
@@ -761,7 +760,7 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
     @Nullable
     private String getEffectiveExecutable() {
         if (javaLauncher.isPresent()) {
-            return ((DefaultToolchainJavaLauncher) javaLauncher.get()).getExecutable();
+            return javaLauncher.get().getExecutable();
         }
         final String executable = getExecutable();
         if (executable != null) {
