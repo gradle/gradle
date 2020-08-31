@@ -100,20 +100,22 @@ public class WatchingVirtualFileSystem implements BuildLifecycleAwareVirtualFile
             @Override
             public SnapshotHierarchy call(BuildOperationContext context) {
                 if (watchingEnabled) {
-                    SnapshotHierarchy newRoot = currentRoot;
-                    boolean alreadyWatching = watchRegistry != null;
-                    FileWatcherRegistry.FileWatchingStatistics statistics = watchRegistry == null
-                        ? null
-                        : watchRegistry.getAndResetStatistics();
-
-                    newRoot = stopWatchingIfProblemsWhenReceivingFileChanges(newRoot, statistics);
+                    SnapshotHierarchy newRoot;
+                    FileSystemWatchingStatistics fileSystemWatchingStatisticsSinceLastBuild;
                     if (watchRegistry == null) {
                         context.setStatus("Starting file system watching");
-                        startWatching(newRoot);
-                        newRoot = newRoot.empty();
+                        startWatching(currentRoot);
+                        newRoot = currentRoot.empty();
+                        fileSystemWatchingStatisticsSinceLastBuild = null;
+                    } else {
+                        FileWatcherRegistry.FileWatchingStatistics statistics = watchRegistry.getAndResetStatistics();
+                        newRoot = stopWatchingIfProblemsWhenReceivingFileChanges(currentRoot, statistics);
+                        fileSystemWatchingStatisticsSinceLastBuild = new DefaultFileSystemWatchingStatistics(statistics, newRoot);
+                        if (verboseLogging) {
+                            logVerboseVfsStatistics(fileSystemWatchingStatisticsSinceLastBuild, "retained", "since last build");
+                            logVerboseWatchingStatistics(fileSystemWatchingStatisticsSinceLastBuild, "since last build");
+                        }
                     }
-                    boolean startedWatching = !alreadyWatching && watchRegistry != null;
-                    FileSystemWatchingStatistics fileSystemWatchingStatistics = statistics == null ? null : new DefaultFileSystemWatchingStatistics(statistics, newRoot);
                     context.setResult(new BuildStartedFileSystemWatchingBuildOperationType.Result() {
                                           @Override
                                           public boolean isWatchingEnabled() {
@@ -122,19 +124,15 @@ public class WatchingVirtualFileSystem implements BuildLifecycleAwareVirtualFile
 
                                           @Override
                                           public boolean isStartedWatching() {
-                                              return startedWatching;
+                                              return fileSystemWatchingStatisticsSinceLastBuild == null;
                                           }
 
                                           @Override
                                           public FileSystemWatchingStatistics getStatistics() {
-                                              return fileSystemWatchingStatistics;
+                                              return fileSystemWatchingStatisticsSinceLastBuild;
                                           }
                                       }
                     );
-                    if (verboseLogging && fileSystemWatchingStatistics != null) {
-                        logVerboseVfsStatistics(fileSystemWatchingStatistics, "retained", "since last build");
-                        logVerboseWatchingStatistics(fileSystemWatchingStatistics, "since last build");
-                    }
                     return newRoot;
                 } else {
                     context.setResult(BuildStartedFileSystemWatchingBuildOperationType.Result.WATCHING_DISABLED);
