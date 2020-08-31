@@ -19,12 +19,13 @@ package gradlebuild.performance.tasks
 import gradlebuild.basics.kotlindsl.execAndGetStdout
 import gradlebuild.identity.extension.ModuleIdentityExtension
 import gradlebuild.performance.Config
-import javax.inject.Inject
 import org.gradle.api.DefaultTask
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.TaskAction
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.kotlin.dsl.*
+import javax.inject.Inject
 
 
 const val defaultBaseline = "defaults"
@@ -50,7 +51,8 @@ abstract class DetermineBaselines @Inject constructor(@get:Internal val distribu
             determinedBaselines.set(defaultBaseline)
         } else if (configuredBaselines.getOrElse("") == flakinessDetectionCommitBaseline) {
             determinedBaselines.set(determineFlakinessDetectionBaseline())
-        } else if (!currentBranchIsMasterOrRelease() && configuredBaselines.isDefaultValue()) {
+        } else if (!currentBranchIsMasterOrRelease() && !OperatingSystem.current().isWindows && configuredBaselines.isDefaultValue()) {
+            // Windows git complains "long path" so we don't build commit distribution on Windows
             determinedBaselines.set(forkPointCommitBaseline())
         } else {
             determinedBaselines.set(configuredBaselines)
@@ -78,7 +80,11 @@ abstract class DetermineBaselines @Inject constructor(@get:Internal val distribu
     private
     fun forkPointCommitBaseline(): String {
         val upstream = tryGetUpstream()
-        val source = if (upstream == null) { "origin" } else { upstream }
+        val source = if (upstream == null) {
+            "origin"
+        } else {
+            upstream
+        }
         project.execAndGetStdout("git", "fetch", source, "master", "release")
         val masterForkPointCommit = project.execAndGetStdout("git", "merge-base", "origin/master", "HEAD")
         val releaseForkPointCommit = project.execAndGetStdout("git", "merge-base", "origin/release", "HEAD")

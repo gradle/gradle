@@ -155,3 +155,4 @@ class ParallelDownloadsPerformanceTest extends AbstractCrossVersionGradleInterna
     }
 
 }
+

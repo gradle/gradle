@@ -18,12 +18,15 @@ package org.gradle.performance.regression.nativeplatform
 
 import org.gradle.performance.AbstractCrossVersionGradleProfilerPerformanceTest
 import org.gradle.profiler.mutations.ApplyChangeToNativeSourceFileMutator
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import spock.lang.Unroll
 
+@Requires(TestPrecondition.LINUX)
 class NativeBuildPerformanceTest extends AbstractCrossVersionGradleProfilerPerformanceTest {
     def setup() {
         runner.minimumBaseVersion = '4.1' // minimum version that contains new C++ plugins
-        runner.targetVersions = ["6.7-20200806220106+0000"]
+        runner.targetVersions = ["6.7-20200824220048+0000"]
     }
 
     @Unroll
