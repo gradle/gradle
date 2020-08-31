@@ -32,7 +32,7 @@ class ConfigurationCacheIncludedBuildChangesIntegrationTest extends AbstractConf
     def "invalidates cache upon change to #scriptChangeSpec of included build"() {
         given:
         def configurationCache = newConfigurationCacheFixture()
-        def fixture = scriptChangeSpec.fixtureForProjectDir(file('build-logic'))
+        def fixture = scriptChangeSpec.fixtureForProjectDir(file('build-logic'), testDirectory)
         fixture.setup()
         def build = { configurationCacheRunLenient(*fixture.buildArguments) }
         settingsFile << """
@@ -44,12 +44,21 @@ class ConfigurationCacheIncludedBuildChangesIntegrationTest extends AbstractConf
 
         then:
         outputContains fixture.expectedOutputBeforeChange
+        configurationCache.assertStateStored()
+
+        when:
+        build()
+
+        then: 'scripts are not executed when loading from cache'
+        outputDoesNotContain fixture.expectedOutputBeforeChange
+        configurationCache.assertStateLoaded()
 
         when:
         fixture.applyChange()
         build()
 
         then:
+        outputContains fixture.expectedCacheInvalidationMessage
         outputContains fixture.expectedOutputAfterChange
         configurationCache.assertStateStored()
 
@@ -86,10 +95,18 @@ class ConfigurationCacheIncludedBuildChangesIntegrationTest extends AbstractConf
         configurationCache.assertStateStored()
 
         when:
+        configurationCacheRunLenient fixture.task
+
+        then:
+        outputContains fixture.expectedOutputBeforeChange
+        configurationCache.assertStateLoaded()
+
+        when:
         fixture.applyChange()
         configurationCacheRunLenient fixture.task
 
         then:
+        outputContains fixture.expectedCacheInvalidationMessage
         outputContains fixture.expectedOutputAfterChange
         configurationCache.assertStateStored()
 
