@@ -222,9 +222,15 @@ There is also a standalone link:{groovyDslPath}/org.gradle.api.tasks.testing.Tes
 
 .Creating a unit test report for subprojects
 ====
-include::sample[dir="snippets/testing/testReport/groovy",files="build.gradle[tags=test-report]"]
-include::sample[dir="snippets/testing/testReport/kotlin",files="build.gradle.kts[tags=test-report]"]
+include::sample[dir="snippets/testing/testReport/groovy",files="buildSrc/src/main/groovy/myproject.java-conventions.gradle[tags=test-report];build.gradle[tags=test-report]"]
+include::sample[dir="snippets/testing/testReport/kotlin",files="buildSrc/src/main/kotlin/myproject.java-conventions.gradle.kts[tags=test-report];build.gradle.kts[tags=test-report]"]
 ====
+
+Here, we have built a convention plugin `myproject.java-conventions` that declares a consumable `binaryTestResultsElements` configuration
+that depends on the binary results directory of the `test` task.
+This plugin is applied to subprojects from which we want to aggregate the test results.
+In the root project's build file, we declare `testReportData` configuration and depend on the projects that we want to aggregate the results from.
+Lastly, we add a `testReport` task that sets the `testResultsDirs` property to resolve to `testReportData` configuration.
 
 You should note that the `TestReport` type combines the results from multiple test tasks and needs to aggregate the results of individual test classes. This means that if a given test class is executed by multiple test tasks, then the test report will include executions of that class, but it can be hard to distinguish individual executions of that class and their output.
 
