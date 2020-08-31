@@ -6,20 +6,10 @@ import ratpack.gradle.RatpackExtension
 // tag::root[]
 plugins {
     id("com.github.johnrengelman.shadow") version "4.0.1" apply false
-    id("io.ratpack.ratpack-java") version "1.5.4" apply false
+    id("io.ratpack.ratpack-java") version "1.8.0" apply false
 }
 // end::root[]
 
-// end::cross[]
-subprojects {
-    apply(plugin = "java-base")
-    configure<JavaPluginExtension> {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
-    }
-}
-
-// tag::cross[]
 project(":domain") {
     apply(plugin = "java-library")
     dependencies {
@@ -42,6 +32,7 @@ project(":infra") {
 project(":http") {
     apply(plugin = "java")
     apply(plugin = "io.ratpack.ratpack-java")
+    repositories { jcenter() }
     val ratpack = the<RatpackExtension>()
     dependencies {
         "implementation"(project(":domain"))
