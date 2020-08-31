@@ -27,8 +27,8 @@ import org.gradle.profiler.InvocationSettings
 import java.util.function.Function
 
 @CompileStatic
-class CrossBuildGradleProfilerPerformanceTestRunner extends AbstractCrossBuildPerformanceTestRunner {
-    CrossBuildGradleProfilerPerformanceTestRunner(GradleProfilerBuildExperimentRunner experimentRunner, ResultsStore resultsStore, DataReporter<CrossBuildPerformanceResults> dataReporter, IntegrationTestBuildContext buildContext) {
+class CrossBuildGradleProfilerPerformanceTestRunner<R extends CrossBuildPerformanceResults> extends AbstractCrossBuildPerformanceTestRunner {
+    CrossBuildGradleProfilerPerformanceTestRunner(GradleProfilerBuildExperimentRunner experimentRunner, ResultsStore resultsStore, DataReporter<R> dataReporter, IntegrationTestBuildContext buildContext) {
         super(experimentRunner, resultsStore, dataReporter, buildContext)
     }
 

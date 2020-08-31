@@ -16,18 +16,19 @@
 
 package org.gradle.performance.mutator
 
-import org.gradle.performance.fixture.BuildExperimentInvocationInfo
-import org.gradle.performance.fixture.BuildExperimentListener
-import org.gradle.performance.fixture.BuildExperimentListenerAdapter
-import org.gradle.performance.measure.MeasuredOperation
 
-abstract class AbstractFileChangeMutator extends BuildExperimentListenerAdapter {
+import org.gradle.profiler.BuildContext
+import org.gradle.profiler.BuildMutator
+
+abstract class AbstractFileChangeMutator implements BuildMutator {
+    private final File projectDir;
     protected final String sourceFilePath
     private String originalText
     private long timestamp
     protected int counter
 
-    protected AbstractFileChangeMutator(String sourceFilePath) {
+    protected AbstractFileChangeMutator(File projectDir, String sourceFilePath) {
+        this.projectDir = projectDir;
         this.sourceFilePath = sourceFilePath
         this.timestamp = System.currentTimeMillis()
     }
@@ -44,14 +45,12 @@ abstract class AbstractFileChangeMutator extends BuildExperimentListenerAdapter 
         return "_" + String.valueOf(timestamp) + "_" + counter
     }
 
-    @Override
-    void beforeInvocation(BuildExperimentInvocationInfo invocationInfo) {
-        change(invocationInfo.projectDir)
+    void beforeBuild(BuildContext context) {
+        change(projectDir)
     }
 
-    @Override
-    void afterInvocation(BuildExperimentInvocationInfo invocationInfo, MeasuredOperation operation, BuildExperimentListener.MeasurementCallback measurementCallback) {
-        revert(invocationInfo.projectDir)
+    void afterBuild(BuildContext context, Throwable error) {
+        revert(projectDir)
     }
 
     private change(File projectDir) {

@@ -21,7 +21,6 @@ import org.gradle.performance.AbstractCrossVersionGradleInternalPerformanceTest
 import org.gradle.performance.categories.PerformanceRegressionTest
 import org.gradle.performance.fixture.BuildExperimentInvocationInfo
 import org.gradle.performance.fixture.BuildExperimentListener
-import org.gradle.performance.fixture.BuildExperimentListenerAdapter
 import org.gradle.performance.measure.MeasuredOperation
 import org.junit.experimental.categories.Category
 import spock.lang.Unroll
@@ -85,8 +84,7 @@ class JavaConfigurationCachePerformanceTest extends AbstractCrossVersionGradleIn
     static String cold = "cold"
 
     static BuildExperimentListener configurationCacheInvocationListenerFor(String action, File stateDirectory) {
-        return new BuildExperimentListenerAdapter() {
-
+        return new BuildExperimentListener() {
             @Override
             void beforeInvocation(BuildExperimentInvocationInfo invocationInfo) {
                 if (action == storing) {

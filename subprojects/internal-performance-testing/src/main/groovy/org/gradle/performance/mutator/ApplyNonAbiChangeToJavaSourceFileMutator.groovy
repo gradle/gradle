@@ -17,9 +17,8 @@
 package org.gradle.performance.mutator
 
 class ApplyNonAbiChangeToJavaSourceFileMutator extends AbstractJavaSourceFileMutator {
-
-    ApplyNonAbiChangeToJavaSourceFileMutator(String sourceFilePath) {
-        super(sourceFilePath)
+    ApplyNonAbiChangeToJavaSourceFileMutator(File projectDir, String sourceFilePath) {
+        super(projectDir, sourceFilePath)
     }
 
     @Override

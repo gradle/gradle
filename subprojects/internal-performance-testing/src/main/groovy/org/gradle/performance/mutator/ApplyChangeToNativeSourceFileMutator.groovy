@@ -17,9 +17,8 @@
 package org.gradle.performance.mutator
 
 class ApplyChangeToNativeSourceFileMutator extends AbstractFileChangeMutator {
-
-    ApplyChangeToNativeSourceFileMutator(String sourceFilePath) {
-        super(sourceFilePath)
+    ApplyChangeToNativeSourceFileMutator(File projectDir, String sourceFilePath) {
+        super(projectDir, sourceFilePath)
         if (!sourceFilePath.endsWith('.cpp') && !sourceFilePath.endsWith('.h')) {
             throw new IllegalArgumentException('Can only modify C++ source or header files')
         }

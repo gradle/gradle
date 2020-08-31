@@ -19,20 +19,19 @@ import org.gradle.api.internal.tasks.DefaultTaskContainer
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.performance.categories.PerformanceRegressionTest
 import org.gradle.performance.fixture.BuildExperimentSpec
-import org.gradle.performance.fixture.CrossBuildGradleInternalPerformanceTestRunner
+import org.gradle.performance.fixture.CrossBuildGradleProfilerPerformanceTestRunner
 import org.gradle.performance.fixture.GradleBuildExperimentSpec
-import org.gradle.performance.fixture.GradleInternalBuildExperimentRunner
-import org.gradle.performance.fixture.GradleSessionProvider
+import org.gradle.performance.fixture.GradleProfilerBuildExperimentRunner
 import org.gradle.performance.results.BaselineVersion
 import org.gradle.performance.results.CrossBuildPerformanceResults
 import org.gradle.performance.results.CrossBuildResultsStore
+import org.gradle.performance.results.GradleProfilerReporter
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import org.junit.experimental.categories.Category
 import org.junit.rules.TestName
 import spock.lang.AutoCleanup
-import spock.lang.Ignore
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -53,7 +52,6 @@ import static org.gradle.performance.regression.inception.GradleInceptionPerform
  */
 @Category(PerformanceRegressionTest)
 @CleanupTestDirectory
-@Ignore
 class GradleBuildPerformanceTest extends Specification {
 
     @Rule
@@ -68,14 +66,15 @@ class GradleBuildPerformanceTest extends Specification {
     @Shared
     def resultStore = new CrossBuildResultsStore()
 
-    CrossBuildGradleInternalPerformanceTestRunner runner
+    CrossBuildGradleProfilerPerformanceTestRunner runner
 
     def warmupBuilds = 20
     def measuredBuilds = 20
 
     def setup() {
-        runner = new CrossBuildGradleInternalPerformanceTestRunner(
-            new GradleInternalBuildExperimentRunner(new GradleSessionProvider(buildContext)),
+        def gradleProfilerReporter = new GradleProfilerReporter(temporaryFolder.testDirectory)
+        runner = new CrossBuildGradleProfilerPerformanceTestRunner(
+            new GradleProfilerBuildExperimentRunner(gradleProfilerReporter.resultCollector),
             resultStore,
             resultStore,
             buildContext) {

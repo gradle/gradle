@@ -20,14 +20,14 @@ import groovy.json.JsonSlurper
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.performance.fixture.BuildExperimentSpec
 import org.gradle.performance.fixture.BuildScanPerformanceTestRunner
-import org.gradle.performance.fixture.CrossBuildGradleInternalPerformanceTestRunner
-import org.gradle.performance.fixture.GradleInternalBuildExperimentRunner
-import org.gradle.performance.fixture.GradleSessionProvider
+import org.gradle.performance.fixture.CrossBuildGradleProfilerPerformanceTestRunner
+import org.gradle.performance.fixture.GradleProfilerBuildExperimentRunner
 import org.gradle.performance.measure.Amount
 import org.gradle.performance.measure.MeasuredOperation
 import org.gradle.performance.results.BaselineVersion
 import org.gradle.performance.results.BuildScanResultsStore
 import org.gradle.performance.results.CrossBuildPerformanceResults
+import org.gradle.performance.results.GradleProfilerReporter
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.AutoCleanup
@@ -45,7 +45,7 @@ class AbstractBuildScanPluginPerformanceTest extends Specification {
     def resultStore = new BuildScanResultsStore()
 
     protected final IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext()
-    CrossBuildGradleInternalPerformanceTestRunner runner
+    CrossBuildGradleProfilerPerformanceTestRunner runner
 
     @Shared
     String pluginVersionNumber = resolvePluginVersion()
@@ -56,7 +56,8 @@ class AbstractBuildScanPluginPerformanceTest extends Specification {
         def buildStampJsonData = new JsonSlurper().parse(buildStampJsonFile) as Map<String, ?>
         assert buildStampJsonData.commitId
         def pluginCommitId = buildStampJsonData.commitId as String
-        runner = new BuildScanPerformanceTestRunner(new GradleInternalBuildExperimentRunner(new GradleSessionProvider(buildContext)), resultStore, resultStore, pluginCommitId, buildContext) {
+        def gradleProfilerReporter = new GradleProfilerReporter(tmpDir.testDirectory)
+        runner = new BuildScanPerformanceTestRunner(new GradleProfilerBuildExperimentRunner(gradleProfilerReporter.resultCollector), resultStore, resultStore, pluginCommitId, buildContext) {
             @Override
             protected void defaultSpec(BuildExperimentSpec.Builder builder) {
                 super.defaultSpec(builder)

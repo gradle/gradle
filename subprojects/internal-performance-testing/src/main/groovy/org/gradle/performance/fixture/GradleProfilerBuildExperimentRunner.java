@@ -59,11 +59,10 @@ import java.util.stream.Collectors;
  * This runner uses Gradle profiler to execute the actual experiment.
  */
 public class GradleProfilerBuildExperimentRunner extends AbstractBuildExperimentRunner {
-
     private static final String GRADLE_USER_HOME_NAME = "gradleUserHome";
-    private final ProfilerFlameGraphGenerator flameGraphGenerator;
-    private final BenchmarkResultCollector resultCollector;
-    private final Profiler profiler;
+    protected final ProfilerFlameGraphGenerator flameGraphGenerator;
+    protected final BenchmarkResultCollector resultCollector;
+    protected final Profiler profiler;
 
     public GradleProfilerBuildExperimentRunner(BenchmarkResultCollector resultCollector) {
         String jfrProfileTargetDir = org.gradle.performance.fixture.Profiler.getJfrProfileTargetDir();
@@ -145,8 +144,8 @@ public class GradleProfilerBuildExperimentRunner extends AbstractBuildExperiment
         GradleBuildInvoker invoker = invocationSpec.isUseDaemon()
             ? daemonInvoker
             : (daemonInvoker == GradleBuildInvoker.ToolingApi
-                ? daemonInvoker.withColdDaemon()
-                : GradleBuildInvoker.CliNoDaemon);
+            ? daemonInvoker.withColdDaemon()
+            : GradleBuildInvoker.CliNoDaemon);
         return new InvocationSettings(
             invocationSpec.getWorkingDirectory(),
             profiler,
@@ -193,7 +192,7 @@ public class GradleProfilerBuildExperimentRunner extends AbstractBuildExperiment
         );
     }
 
-    private Supplier<BuildMutator> toMutatorSupplierForSettings(InvocationSettings invocationSettings, Function<InvocationSettings, BuildMutator> mutatorFunction) {
+    protected Supplier<BuildMutator> toMutatorSupplierForSettings(InvocationSettings invocationSettings, Function<InvocationSettings, BuildMutator> mutatorFunction) {
         return () -> mutatorFunction.apply(invocationSettings);
     }
 }

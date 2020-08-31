@@ -50,6 +50,5 @@ class GradleInternalCrossVersionPerformanceTestRunner extends AbstractCrossVersi
         builder
             .listener(buildExperimentListeners)
             .invocationCustomizer(invocationCustomizers)
-
     }
 }

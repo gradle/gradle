@@ -16,6 +16,7 @@
 
 package org.gradle.performance.fixture
 
+import com.google.common.collect.ImmutableList
 import groovy.transform.CompileStatic
 import groovy.transform.EqualsAndHashCode
 import org.gradle.performance.results.BuildDisplayInfo
@@ -28,7 +29,6 @@ import java.util.function.Function
 @CompileStatic
 @EqualsAndHashCode
 abstract class BuildExperimentSpec {
-
     String displayName
     String projectName
     File workingDirectory
@@ -38,8 +38,19 @@ abstract class BuildExperimentSpec {
     Integer invocationCount
     BuildExperimentListener listener
     InvocationCustomizer invocationCustomizer
+    ImmutableList<Function<InvocationSettings, BuildMutator>> buildMutators
+    ImmutableList<String> measuredBuildOperations
 
-    BuildExperimentSpec(String displayName, String projectName, File workingDirectory, Integer warmUpCount, Integer invocationCount, BuildExperimentListener listener, InvocationCustomizer invocationCustomizer) {
+    BuildExperimentSpec(String displayName,
+                        String projectName,
+                        File workingDirectory,
+                        Integer warmUpCount,
+                        Integer invocationCount,
+                        BuildExperimentListener listener,
+                        InvocationCustomizer invocationCustomizer,
+                        List<Function<InvocationSettings, BuildMutator>> buildMutators,
+                        List<String> measuredBuildOperations
+    ) {
         this.displayName = displayName
         this.projectName = projectName
         this.workingDirectory = workingDirectory
@@ -47,6 +58,8 @@ abstract class BuildExperimentSpec {
         this.invocationCount = invocationCount
         this.listener = listener
         this.invocationCustomizer = invocationCustomizer
+        this.buildMutators = ImmutableList.copyOf(buildMutators)
+        this.measuredBuildOperations = ImmutableList.copyOf(measuredBuildOperations)
     }
 
     abstract BuildDisplayInfo getDisplayInfo()
@@ -55,16 +68,21 @@ abstract class BuildExperimentSpec {
 
     interface Builder {
         String getDisplayName()
+
         String getProjectName()
+
         void setProjectName(String projectName)
 
         File getWorkingDirectory()
+
         void setWorkingDirectory(File workingDirectory)
 
         BuildExperimentListener getListener()
+
         void setListener(BuildExperimentListener listener)
 
         InvocationCustomizer getInvocationCustomizer()
+
         void setInvocationCustomizer(InvocationCustomizer invocationCustomizer)
 
         List<Function<InvocationSettings, BuildMutator>> getBuildMutators()

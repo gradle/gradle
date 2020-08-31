@@ -21,11 +21,14 @@ import org.gradle.performance.measure.MeasuredOperation;
 import java.io.File;
 
 public interface BuildExperimentListener {
-    void beforeExperiment(BuildExperimentSpec experimentSpec, File projectDir);
+    default void beforeExperiment(BuildExperimentSpec experimentSpec, File projectDir) {
+    }
 
-    void beforeInvocation(BuildExperimentInvocationInfo invocationInfo);
+    default void beforeInvocation(BuildExperimentInvocationInfo invocationInfo) {
+    }
 
-    void afterInvocation(BuildExperimentInvocationInfo invocationInfo, MeasuredOperation operation, MeasurementCallback measurementCallback);
+    default void afterInvocation(BuildExperimentInvocationInfo invocationInfo, MeasuredOperation operation, MeasurementCallback measurementCallback) {
+    }
 
     interface MeasurementCallback {
         void omitMeasurement();

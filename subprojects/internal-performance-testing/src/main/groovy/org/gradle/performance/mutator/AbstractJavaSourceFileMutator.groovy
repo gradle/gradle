@@ -17,9 +17,8 @@
 package org.gradle.performance.mutator
 
 abstract class AbstractJavaSourceFileMutator extends AbstractFileChangeMutator {
-
-    AbstractJavaSourceFileMutator(String sourceFilePath) {
-        super(sourceFilePath)
+    AbstractJavaSourceFileMutator(File projectDir, String sourceFilePath) {
+        super(projectDir, sourceFilePath)
         if (!sourceFilePath.endsWith(".java") && !sourceFilePath.endsWith('.groovy')) {
             throw new IllegalArgumentException("Can only modify Java/Groovy source files")
         }

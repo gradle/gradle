@@ -28,8 +28,8 @@ import org.gradle.performance.util.Git
 import org.gradle.util.GradleVersion
 
 @CompileStatic
-abstract class AbstractCrossBuildPerformanceTestRunner extends AbstractGradleBuildPerformanceTestRunner<CrossBuildPerformanceResults> {
-    AbstractCrossBuildPerformanceTestRunner(BuildExperimentRunner experimentRunner, ResultsStore resultsStore, DataReporter<CrossBuildPerformanceResults> dataReporter, IntegrationTestBuildContext buildContext) {
+abstract class AbstractCrossBuildPerformanceTestRunner<R extends CrossBuildPerformanceResults> extends AbstractGradleBuildPerformanceTestRunner<R> {
+    AbstractCrossBuildPerformanceTestRunner(BuildExperimentRunner experimentRunner, ResultsStore resultsStore, DataReporter<R> dataReporter, IntegrationTestBuildContext buildContext) {
         super(experimentRunner, resultsStore, dataReporter, buildContext)
     }
 
@@ -66,7 +66,7 @@ abstract class AbstractCrossBuildPerformanceTestRunner extends AbstractGradleBui
     }
 
     @Override
-    MeasuredOperationList operations(CrossBuildPerformanceResults result, BuildExperimentSpec spec) {
+    MeasuredOperationList operations(R result, BuildExperimentSpec spec) {
         result.buildResult(spec.displayInfo)
     }
 }

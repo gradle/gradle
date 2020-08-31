@@ -17,7 +17,7 @@
 package org.gradle.performance.regression.java
 
 
-import org.gradle.performance.AbstractCrossVersionGradleInternalPerformanceTest
+import org.gradle.performance.AbstractCrossVersionGradleProfilerPerformanceTest
 import org.gradle.performance.mutator.ApplyAbiChangeToJavaSourceFileMutator
 import spock.lang.Unroll
 
@@ -26,7 +26,7 @@ import static org.gradle.performance.generator.JavaTestProject.LARGE_JAVA_MULTI_
 import static org.gradle.performance.generator.JavaTestProject.LARGE_MONOLITHIC_GROOVY_PROJECT
 import static org.gradle.performance.generator.JavaTestProject.LARGE_MONOLITHIC_JAVA_PROJECT
 
-class JavaABIChangePerformanceTest extends AbstractCrossVersionGradleInternalPerformanceTest {
+class JavaABIChangePerformanceTest extends AbstractCrossVersionGradleProfilerPerformanceTest {
 
     @Unroll
     def "assemble for abi change on #testProject"() {
@@ -36,6 +36,7 @@ class JavaABIChangePerformanceTest extends AbstractCrossVersionGradleInternalPer
         runner.tasksToRun = ['assemble']
         runner.addBuildExperimentListener(new ApplyAbiChangeToJavaSourceFileMutator(testProject.config.fileToChangeByScenario['assemble']))
         runner.targetVersions = ["6.7-20200824220048+0000"]
+        runner.addBuildMutator { new ApplyAbiChangeToJavaSourceFileMutator(it.projectDir, testProject.config.fileToChangeByScenario['assemble']) }
         if (testProject.name().contains("GROOVY")) {
             runner.minimumBaseVersion = '5.0'
         }

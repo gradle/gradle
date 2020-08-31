@@ -34,7 +34,7 @@ public abstract class AbstractBuildExperimentRunner implements BuildExperimentRu
     @Override
     public void run(BuildExperimentSpec experiment, MeasuredOperationList results) {
         System.out.println();
-        System.out.println(String.format("%s ...", experiment.getDisplayName()));
+        System.out.printf("%s ...%n", experiment.getDisplayName());
         System.out.println();
 
         InvocationSpec invocationSpec = experiment.getInvocation();

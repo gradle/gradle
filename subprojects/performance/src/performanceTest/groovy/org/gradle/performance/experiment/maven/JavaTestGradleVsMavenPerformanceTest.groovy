@@ -78,7 +78,7 @@ class JavaTestGradleVsMavenPerformanceTest extends AbstractGradleVsMavenPerforma
         if (mavenTask == "package") {
             runner.mvnArgs << "-Dmaven.test.skip=true"
         }
-        runner.buildExperimentListener = new ApplyNonAbiChangeToJavaSourceFileMutator(fileToChange)
+        runner.addBuildMutator { new ApplyNonAbiChangeToJavaSourceFileMutator(it.projectDir, fileToChange) }
         runner.warmUpRuns = 4
         runner.runs = 10
 

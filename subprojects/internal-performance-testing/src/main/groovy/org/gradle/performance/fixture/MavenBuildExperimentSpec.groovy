@@ -28,11 +28,20 @@ import java.util.function.Function
 @CompileStatic
 @EqualsAndHashCode
 class MavenBuildExperimentSpec extends BuildExperimentSpec {
-
     final MavenInvocationSpec invocation
 
-    MavenBuildExperimentSpec(String displayName, String projectName, File workingDirectory, MavenInvocationSpec mavenInvocation, Integer warmUpCount, Integer invocationCount, BuildExperimentListener listener, InvocationCustomizer invocationCustomizer) {
-        super(displayName, projectName, workingDirectory, warmUpCount, invocationCount, listener, invocationCustomizer)
+    MavenBuildExperimentSpec(String displayName,
+                             String projectName,
+                             File workingDirectory,
+                             MavenInvocationSpec mavenInvocation,
+                             Integer warmUpCount,
+                             Integer invocationCount,
+                             BuildExperimentListener listener,
+                             InvocationCustomizer invocationCustomizer,
+                             ImmutableList<Function<InvocationSettings, BuildMutator>> buildMutators,
+                             ImmutableList<String> measuredBuildOperations
+    ) {
+        super(displayName, projectName, workingDirectory, warmUpCount, invocationCount, listener, invocationCustomizer, buildMutators, measuredBuildOperations)
         this.invocation = mavenInvocation
     }
 
@@ -55,6 +64,8 @@ class MavenBuildExperimentSpec extends BuildExperimentSpec {
         Integer invocationCount
         BuildExperimentListener listener
         InvocationCustomizer invocationCustomizer
+        final List<Function<InvocationSettings, BuildMutator>> buildMutators = []
+        final List<String> measuredBuildOperations = []
 
         MavenBuilder invocation(@DelegatesTo(MavenInvocationSpec.InvocationBuilder) Closure<?> conf) {
             invocation.with(conf)
@@ -90,14 +101,15 @@ class MavenBuildExperimentSpec extends BuildExperimentSpec {
             this
         }
 
-        @Override
-        ImmutableList<Function<InvocationSettings, BuildMutator>> getBuildMutators() {
-            throw new UnsupportedOperationException("Maven for Gradle profiler is not yet supported")
+        MavenBuilder addBuildMutator(Function<InvocationSettings, BuildMutator> buildMutator) {
+            this.buildMutators.add(buildMutator)
+            this
         }
 
-        @Override
-        ImmutableList<String> getMeasuredBuildOperations() {
-            throw new UnsupportedOperationException("Maven for Gradle profiler is not yet supported")
+        MavenBuilder measuredBuildOperations(List<String> measuredBuildOperations) {
+            this.measuredBuildOperations.clear()
+            this.measuredBuildOperations.addAll(measuredBuildOperations)
+            this
         }
 
         BuildExperimentSpec build() {
@@ -105,7 +117,18 @@ class MavenBuildExperimentSpec extends BuildExperimentSpec {
             assert displayName != null
             assert invocation != null
 
-            new MavenBuildExperimentSpec(displayName, projectName, workingDirectory, invocation.build(), warmUpCount, invocationCount, listener, invocationCustomizer)
+            new MavenBuildExperimentSpec(
+                displayName,
+                projectName,
+                workingDirectory,
+                invocation.build(),
+                warmUpCount,
+                invocationCount,
+                listener,
+                invocationCustomizer,
+                ImmutableList.copyOf(buildMutators),
+                ImmutableList.copyOf(measuredBuildOperations)
+            )
         }
 
     }

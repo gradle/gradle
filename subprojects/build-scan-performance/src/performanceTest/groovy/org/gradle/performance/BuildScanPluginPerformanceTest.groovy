@@ -18,12 +18,12 @@ package org.gradle.performance
 
 import org.apache.commons.io.FileUtils
 import org.gradle.performance.categories.PerformanceRegressionTest
-import org.gradle.performance.fixture.BuildExperimentInvocationInfo
 import org.gradle.performance.fixture.BuildExperimentListener
-import org.gradle.performance.fixture.BuildExperimentListenerAdapter
-import org.gradle.performance.fixture.BuildExperimentRunner
-import org.gradle.performance.fixture.BuildExperimentSpec
-import org.gradle.performance.measure.MeasuredOperation
+import org.gradle.profiler.BuildContext
+import org.gradle.profiler.BuildMutator
+import org.gradle.profiler.InvocationSettings
+import org.gradle.profiler.Phase
+import org.gradle.profiler.ScenarioContext
 import org.gradle.test.fixtures.file.TestFile
 import org.junit.experimental.categories.Category
 import spock.lang.Unroll
@@ -46,8 +46,8 @@ class BuildScanPluginPerformanceTest extends AbstractBuildScanPluginPerformanceT
         def opts = ['-Xms4096m', '-Xmx4096m']
 
         def buildExperimentListeners = [
-                new InjectBuildScanPlugin(pluginVersionNumber),
-                new SaveScanSpoolFile(scenario)
+            new InjectBuildScanPlugin(pluginVersionNumber),
+            new SaveScanSpoolFile(scenario)
         ]
 
         if (manageCacheState) {
@@ -113,11 +113,21 @@ class BuildScanPluginPerformanceTest extends AbstractBuildScanPluginPerformanceT
     }
 
 
-    static class ManageLocalCacheState extends BuildExperimentListenerAdapter {
-        void beforeExperiment(BuildExperimentSpec experimentSpec, File projectDir) {
+    static class ManageLocalCacheState implements BuildMutator {
+        final File projectDir
+
+        ManageLocalCacheState(File projectDir) {
+            this.projectDir = projectDir
+        }
+
+        @Override
+        void beforeBuild(BuildContext context) {
             def projectTestDir = new TestFile(projectDir)
-            def cacheDir = projectTestDir.file('local-build-cache')
             def settingsFile = projectTestDir.file('settings.gradle')
+            if (settingsFile.exists()) {
+                return
+            }
+            def cacheDir = projectTestDir.file('local-build-cache')
             settingsFile << """
                     buildCache {
                         local {
@@ -128,9 +138,9 @@ class BuildScanPluginPerformanceTest extends AbstractBuildScanPluginPerformanceT
         }
 
         @Override
-        void afterInvocation(BuildExperimentInvocationInfo invocationInfo, MeasuredOperation operation, MeasurementCallback measurementCallback) {
-            assert !new File(invocationInfo.projectDir, 'error.log').exists()
-            def buildCacheDirectory = new TestFile(invocationInfo.projectDir, 'local-build-cache')
+        void afterBuild(BuildContext context, Throwable t) {
+            assert !new File(projectDir, 'error.log').exists()
+            def buildCacheDirectory = new TestFile(projectDir, 'local-build-cache')
             def cacheEntries = buildCacheDirectory.listFiles().sort()
             cacheEntries.eachWithIndex { TestFile entry, int i ->
                 if (i % 2 == 0) {
@@ -140,46 +150,52 @@ class BuildScanPluginPerformanceTest extends AbstractBuildScanPluginPerformanceT
         }
     }
 
-    static class SaveScanSpoolFile extends BuildExperimentListenerAdapter {
+    static class SaveScanSpoolFile implements BuildMutator {
+        final InvocationSettings invocationSettings
         final String testId
 
-        SaveScanSpoolFile(String testId) {
+        SaveScanSpoolFile(InvocationSettings invocationSettings, String testId) {
+            this.invocationSettings = invocationSettings
             this.testId = testId.replaceAll(/[- ]/, '_')
         }
 
         @Override
-        void beforeInvocation(BuildExperimentInvocationInfo invocationInfo) {
-            spoolDir(invocationInfo).deleteDir()
+        void beforeBuild(BuildContext context) {
+            spoolDir().deleteDir()
         }
 
         @Override
-        void afterInvocation(BuildExperimentInvocationInfo invocationInfo, MeasuredOperation operation, MeasurementCallback measurementCallback) {
-            def spoolDir = this.spoolDir(invocationInfo)
-            if (invocationInfo.phase == BuildExperimentRunner.Phase.MEASUREMENT && (invocationInfo.iterationNumber == invocationInfo.iterationMax) && spoolDir.exists()) {
+        void afterBuild(BuildContext context, Throwable t) {
+            def spoolDir = this.spoolDir()
+            if (context.phase == Phase.MEASURE && (context.iteration == invocationSettings.buildCount) && spoolDir.exists()) {
                 def targetDirectory = new File("build/scan-dumps/$testId")
                 targetDirectory.deleteDir()
                 FileUtils.moveToDirectory(spoolDir, targetDirectory, true)
             }
         }
 
-        private File spoolDir(BuildExperimentInvocationInfo invocationInfo) {
-            new File(invocationInfo.gradleUserHome, "build-scan-data")
+        private File spoolDir() {
+            new File(invocationSettings.gradleUserHome, "build-scan-data")
         }
     }
 
-    static class InjectBuildScanPlugin extends BuildExperimentListenerAdapter {
+    static class InjectBuildScanPlugin implements BuildMutator {
+        final File projectDir
         final String buildScanPluginVersion
 
-        InjectBuildScanPlugin(String buildScanPluginVersion) {
+        InjectBuildScanPlugin(File projectDir, String buildScanPluginVersion) {
+            this.projectDir = projectDir
             this.buildScanPluginVersion = buildScanPluginVersion
             println "InjectBuildScanPlugin buildScanPluginVersion = $buildScanPluginVersion"
         }
 
         @Override
-        void beforeExperiment(BuildExperimentSpec experimentSpec, File projectDir) {
-
+        void beforeScenario(ScenarioContext context) {
             def projectTestDir = new TestFile(projectDir)
             def settingsScript = projectTestDir.file('settings.gradle')
+            if (settingsScript.exists()) {
+                return
+            }
             settingsScript.text = """
                     buildscript {
                         repositories {
