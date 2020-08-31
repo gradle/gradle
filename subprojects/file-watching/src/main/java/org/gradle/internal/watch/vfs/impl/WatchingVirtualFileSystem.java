@@ -108,7 +108,11 @@ public class WatchingVirtualFileSystem implements BuildLifecycleAwareVirtualFile
                         fileSystemWatchingStatisticsSinceLastBuild = null;
                     } else {
                         FileWatcherRegistry.FileWatchingStatistics statistics = watchRegistry.getAndResetStatistics();
-                        newRoot = stopWatchingIfProblemsWhenReceivingFileChanges(currentRoot, statistics);
+                        if (hasDroppedStateBecauseOfErrorsReceivedWhileWatching(statistics)) {
+                            newRoot = stopWatchingAndInvalidateHierarchy(currentRoot);
+                        } else {
+                            newRoot = currentRoot;
+                        }
                         fileSystemWatchingStatisticsSinceLastBuild = new DefaultFileSystemWatchingStatistics(statistics, newRoot);
                         if (verboseLogging) {
                             logVerboseVfsStatistics(fileSystemWatchingStatisticsSinceLastBuild, "retained", "since last build");
@@ -180,10 +184,10 @@ public class WatchingVirtualFileSystem implements BuildLifecycleAwareVirtualFile
                         newRoot = currentRoot.empty();
                     } else {
                         FileWatcherRegistry.FileWatchingStatistics statistics = watchRegistry.getAndResetStatistics();
-                        newRoot = stopWatchingIfProblemsWhenReceivingFileChanges(currentRoot, statistics);
-                        if (watchRegistry != null) {
-                            SnapshotHierarchy rootAfterEvents = newRoot;
-                            newRoot = withWatcherChangeErrorHandling(newRoot, () -> watchRegistry.buildFinished(rootAfterEvents, maximumNumberOfWatchedHierarchies));
+                        if (hasDroppedStateBecauseOfErrorsReceivedWhileWatching(statistics)) {
+                            newRoot = stopWatchingAndInvalidateHierarchy(currentRoot);
+                        } else {
+                            newRoot = withWatcherChangeErrorHandling(currentRoot, () -> watchRegistry.buildFinished(currentRoot, maximumNumberOfWatchedHierarchies));
                         }
                         fileSystemWatchingStatisticsDuringBuild = new DefaultFileSystemWatchingStatistics(statistics, newRoot);
                         if (verboseLogging) {
@@ -311,16 +315,16 @@ public class WatchingVirtualFileSystem implements BuildLifecycleAwareVirtualFile
         return currentRoot.empty();
     }
 
-    private SnapshotHierarchy stopWatchingIfProblemsWhenReceivingFileChanges(SnapshotHierarchy currentRoot, FileWatcherRegistry.FileWatchingStatistics statistics) {
+    private boolean hasDroppedStateBecauseOfErrorsReceivedWhileWatching(FileWatcherRegistry.FileWatchingStatistics statistics) {
         if (statistics.isUnknownEventEncountered()) {
             LOGGER.warn("Dropped VFS state due to lost state");
-            return stopWatchingAndInvalidateHierarchy(currentRoot);
+            return true;
         }
         if (statistics.getErrorWhileReceivingFileChanges().isPresent()) {
             LOGGER.warn("Dropped VFS state due to error while receiving file changes", statistics.getErrorWhileReceivingFileChanges().get());
-            return stopWatchingAndInvalidateHierarchy(currentRoot);
+            return true;
         }
-        return currentRoot;
+        return false;
     }
 
     private static void logVerboseVfsStatistics(FileSystemWatchingStatistics statistics, String verb, String statisticsFor) {
