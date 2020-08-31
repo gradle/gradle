@@ -17,6 +17,7 @@
 package org.gradle.jvm.toolchain.internal
 
 import org.gradle.api.JavaVersion
+import org.gradle.jvm.toolchain.JavaLanguageVersion
 import org.gradle.jvm.toolchain.JavaToolchainSpec
 import org.gradle.jvm.toolchain.install.internal.JavaToolchainProvisioningService
 import org.gradle.util.TestUtil
@@ -40,13 +41,13 @@ class JavaToolchainQueryServiceTest extends Specification {
         def toolchain = queryService.findMatchingToolchain(filter).get()
 
         then:
-        toolchain.javaMajorVersion == versionToFind
+        toolchain.languageVersion.equals(versionToFind)
         toolchain.getJavaHome().absolutePath == systemSpecificAbsolutePath(expectedPath)
 
         where:
-        versionToFind           | expectedPath
-        JavaVersion.VERSION_1_9 | "/path/9"
-        JavaVersion.VERSION_12  | "/path/12"
+        versionToFind               | expectedPath
+        JavaLanguageVersion.of(9)   | "/path/9"
+        JavaLanguageVersion.of(12)  | "/path/12"
     }
 
     @Unroll
@@ -62,14 +63,14 @@ class JavaToolchainQueryServiceTest extends Specification {
         def toolchain = queryService.findMatchingToolchain(filter).get()
 
         then:
-        toolchain.javaMajorVersion == versionToFind
+        toolchain.languageVersion.equals(versionToFind)
         toolchain.getJavaHome().absolutePath == systemSpecificAbsolutePath(expectedPath)
 
         where:
-        versionToFind           | expectedPath
-        JavaVersion.VERSION_1_7 | "/path/7.9"
-        JavaVersion.VERSION_1_8 | "/path/8.0.zzz.j9" // zzz resolves to a real toolversion 999
-        JavaVersion.VERSION_14  | "/path/14.0.2+12"
+        versionToFind               | expectedPath
+        JavaLanguageVersion.of(7)   | "/path/7.9"
+        JavaLanguageVersion.of(8)   | "/path/8.0.zzz.j9" // zzz resolves to a real toolversion 999
+        JavaLanguageVersion.of(14)  | "/path/14.0.2+12"
     }
 
     def "returns failing provider if no toolchain matches"() {
@@ -82,7 +83,7 @@ class JavaToolchainQueryServiceTest extends Specification {
 
         when:
         def filter = new DefaultToolchainSpec(TestUtil.objectFactory())
-        filter.languageVersion.set(JavaVersion.VERSION_12)
+        filter.languageVersion.set(JavaLanguageVersion.of(12))
         def toolchain = queryService.findMatchingToolchain(filter)
         toolchain.get()
 
@@ -120,7 +121,7 @@ class JavaToolchainQueryServiceTest extends Specification {
 
         when:
         def filter = new DefaultToolchainSpec(TestUtil.objectFactory())
-        filter.languageVersion.set(JavaVersion.VERSION_12)
+        filter.languageVersion.set(JavaLanguageVersion.of(12))
         def toolchain = queryService.findMatchingToolchain(filter)
         toolchain.get()
 

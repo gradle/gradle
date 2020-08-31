@@ -34,7 +34,7 @@ class JavaCompileToolchainIntegrationTest extends AbstractPluginIntegrationTest 
 
             compileJava {
                 javaCompiler = javaToolchains.compilerFrom {
-                    languageVersion = JavaVersion.${jdk.javaVersion.name()}
+                    languageVersion = JavaLanguageVersion.of(${jdk.javaVersion.majorVersion})
                 }
             }
         """
@@ -61,7 +61,7 @@ class JavaCompileToolchainIntegrationTest extends AbstractPluginIntegrationTest 
 
             java {
                 toolchain {
-                    languageVersion = JavaVersion.toVersion(${someJdk.javaVersion.majorVersion})
+                    languageVersion = JavaLanguageVersion.of(${someJdk.javaVersion.majorVersion})
                 }
             }
         """
@@ -84,7 +84,7 @@ class JavaCompileToolchainIntegrationTest extends AbstractPluginIntegrationTest 
 
             java {
                 toolchain {
-                    languageVersion = JavaVersion.VERSION_11
+                    languageVersion = JavaLanguageVersion.of(11)
                 }
             }
         """

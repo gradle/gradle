@@ -35,7 +35,7 @@ class JavadocToolchainIntegrationTest extends AbstractIntegrationSpec {
 
             javadoc {
                 javadocTool = javaToolchains.javadocToolFrom {
-                    languageVersion = JavaVersion.${jdk.javaVersion.name()}
+                    languageVersion = JavaLanguageVersion.of(${jdk.javaVersion.majorVersion})
                 }
             }
 
@@ -43,7 +43,7 @@ class JavadocToolchainIntegrationTest extends AbstractIntegrationSpec {
             task javadocVersionOutput(type: Javadoc) {
                 options.jFlags("-version")
                 javadocTool = javaToolchains.javadocToolFrom {
-                    languageVersion = JavaVersion.${jdk.javaVersion.name()}
+                    languageVersion = JavaLanguageVersion.of(${jdk.javaVersion.majorVersion})
                 }
             }
 
@@ -80,7 +80,7 @@ class JavadocToolchainIntegrationTest extends AbstractIntegrationSpec {
 
             java {
                 toolchain {
-                    languageVersion = JavaVersion.toVersion(${someJdk.javaVersion.majorVersion})
+                    languageVersion = JavaLanguageVersion.of(${someJdk.javaVersion.majorVersion})
                 }
             }
 

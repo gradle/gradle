@@ -86,7 +86,7 @@ class JavaToolchainUpToDateIntegrationTest extends AbstractPluginIntegrationTest
 
             java {
                 toolchain {
-                    languageVersion = JavaVersion.toVersion(${someJdk.javaVersion.majorVersion})
+                    languageVersion = JavaLanguageVersion.of(${someJdk.javaVersion.majorVersion})
                 }
             }
         """

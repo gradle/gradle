@@ -88,7 +88,7 @@ public class JavaToolchainQueryService {
     }
 
     private Predicate<JavaToolchain> matchingToolchain(JavaToolchainSpec spec) {
-        return toolchain -> toolchain.getJavaMajorVersion() == spec.getLanguageVersion().get();
+        return toolchain -> toolchain.getLanguageVersion().equals(spec.getLanguageVersion().get());
     }
 
     private JavaToolchain asToolchain(File javaHome) {

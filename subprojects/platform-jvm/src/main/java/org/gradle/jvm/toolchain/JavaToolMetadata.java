@@ -17,7 +17,6 @@
 package org.gradle.jvm.toolchain;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.JavaVersion;
 
 import java.io.File;
 
@@ -31,9 +30,9 @@ public interface JavaToolMetadata {
     /**
      * Returns the language version of the JVM to which this tool belongs
      *
-     * @return the JavaVersion
+     * @return the {@code JavaLanguageVersion}
      */
-    JavaVersion getJavaMajorVersion();
+    JavaLanguageVersion getLanguageVersion();
 
     /**
      * The path to JAVA_HOME this tool belongs to.

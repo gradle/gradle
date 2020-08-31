@@ -17,11 +17,11 @@
 package org.gradle.jvm.toolchain.internal;
 
 import org.gradle.api.Describable;
-import org.gradle.api.JavaVersion;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.jvm.toolchain.JavaCompiler;
+import org.gradle.jvm.toolchain.JavaLanguageVersion;
 import org.gradle.jvm.toolchain.JavaLauncher;
 import org.gradle.jvm.toolchain.JavaToolMetadata;
 import org.gradle.jvm.toolchain.JavadocTool;
@@ -37,14 +37,14 @@ public class JavaToolchain implements Describable, JavaToolMetadata {
     private final ToolchainToolFactory toolFactory;
     private final File javaHome;
     private final VersionNumber implementationVersion;
-    private final JavaVersion javaVersion;
+    private final JavaLanguageVersion javaVersion;
 
     @Inject
     public JavaToolchain(JavaInstallationProbe.ProbeResult probe, JavaCompilerFactory compilerFactory, ToolchainToolFactory toolFactory) {
-        this(probe.getJavaHome(), probe.getJavaVersion(), probe.getImplementationJavaVersion(), probe.getInstallType() == JavaInstallationProbe.InstallType.IS_JDK, compilerFactory, toolFactory);
+        this(probe.getJavaHome(), new DefaultJavaLanguageVersion(Integer.parseInt(probe.getJavaVersion().getMajorVersion())), probe.getImplementationJavaVersion(), probe.getInstallType() == JavaInstallationProbe.InstallType.IS_JDK, compilerFactory, toolFactory);
     }
 
-    JavaToolchain(File javaHome, JavaVersion version, String implementationJavaVersion, boolean isJdk, JavaCompilerFactory compilerFactory, ToolchainToolFactory toolFactory) {
+    JavaToolchain(File javaHome, JavaLanguageVersion version, String implementationJavaVersion, boolean isJdk, JavaCompilerFactory compilerFactory, ToolchainToolFactory toolFactory) {
         this.javaHome = computeEnclosingJavaHome(javaHome);
         this.javaVersion = version;
         this.isJdk = isJdk;
@@ -69,7 +69,7 @@ public class JavaToolchain implements Describable, JavaToolMetadata {
     }
 
     @Input
-    public JavaVersion getJavaMajorVersion() {
+    public JavaLanguageVersion getLanguageVersion() {
         return javaVersion;
     }
 
