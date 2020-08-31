@@ -401,14 +401,14 @@ The <<plugins#sec:subprojects_plugins_dsl,Using Gradle plugins>> chapter explain
 [[ex:multi_project_ratpack]]
 .Declare plugin dependencies in the root build script using the `plugins {}` block
 ====
-include::sample[dir="snippets/kotlinDsl/multiProjectBuildKotlin/kotlin",files="settings.gradle.kts[tags=base];build.gradle.kts[tags=root];domain/build.gradle.kts[];infra/build.gradle.kts[];http/build.gradle.kts[]"]
+include::sample[dir="snippets/kotlinDsl/multiProjectBuild/kotlin",files="settings.gradle.kts[tags=base];build.gradle.kts[tags=root];domain/build.gradle.kts[];infra/build.gradle.kts[];http/build.gradle.kts[]"]
 ====
 
 If your build requires additional plugin repositories on top of the Gradle Plugin Portal, you should declare them in the `pluginManagement {}` block in your `settings.gradle.kts` file, like so:
 
 .Declare additional plugin repositories
 ====
-include::sample[dir="snippets/kotlinDsl/multiProjectBuildKotlin/kotlin",files="settings.gradle.kts[tags=repositories]"]
+include::sample[dir="snippets/kotlinDsl/multiProjectBuild/kotlin",files="settings.gradle.kts[tags=repositories]"]
 ====
 
 Plugins fetched from a source other than the link:https://plugins.gradle.org/[Gradle Plugin Portal] can only be declared via the `plugins {}` block if they are published with their <<plugins#sec:plugin_markers,plugin marker artifacts>>.
@@ -438,7 +438,7 @@ As an example, let's modify the <<ex:multi_project_ratpack,Java/Ratpack sample b
 
 .Cross-configuring projects
 ====
-include::sample[dir="snippets/kotlinDsl/multiProjectBuildKotlin/kotlin",files="settings.gradle.kts[tags=base];build.gradle.kts[tags=cross]"]
+include::sample[dir="snippets/kotlinDsl/multiProjectBuild/kotlin",files="settings.gradle.kts[tags=base];build.gradle.kts[tags=cross]"]
 ====
 
 Note how we're using the `apply()` method to apply the plugins since the `plugins {}` block doesn't work in this context.
