@@ -18,6 +18,7 @@ package org.gradle.performance.fixture;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import joptsimple.OptionParser;
 import org.gradle.integtests.fixtures.executer.GradleDistribution;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.jvm.Jvm;
@@ -37,15 +38,16 @@ import org.gradle.profiler.GradleScenarioInvoker;
 import org.gradle.profiler.InvocationSettings;
 import org.gradle.profiler.Logging;
 import org.gradle.profiler.Profiler;
+import org.gradle.profiler.ProfilerFactory;
 import org.gradle.profiler.RunTasksAction;
 import org.gradle.profiler.instrument.PidInstrumentation;
-import org.gradle.profiler.jfr.JfrProfiler;
 import org.gradle.profiler.report.CsvGenerator;
 import org.gradle.profiler.result.Sample;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
@@ -60,9 +62,9 @@ import java.util.stream.Collectors;
  */
 public class GradleProfilerBuildExperimentRunner extends AbstractBuildExperimentRunner {
     private static final String GRADLE_USER_HOME_NAME = "gradleUserHome";
-    protected final ProfilerFlameGraphGenerator flameGraphGenerator;
-    protected final BenchmarkResultCollector resultCollector;
-    protected final Profiler profiler;
+    private final ProfilerFlameGraphGenerator flameGraphGenerator;
+    private final BenchmarkResultCollector resultCollector;
+    private final Profiler profiler;
 
     public GradleProfilerBuildExperimentRunner(BenchmarkResultCollector resultCollector) {
         String jfrProfileTargetDir = org.gradle.performance.fixture.Profiler.getJfrProfileTargetDir();
@@ -71,8 +73,21 @@ public class GradleProfilerBuildExperimentRunner extends AbstractBuildExperiment
             : new JfrFlameGraphGenerator(new File(jfrProfileTargetDir));
         this.profiler = jfrProfileTargetDir == null
             ? Profiler.NONE
-            : new JfrProfiler();
+            : ProfilerFactory.of(Arrays.asList("jfr")).createFromOptions(new OptionParser().parse());
         this.resultCollector = resultCollector;
+    }
+
+    protected ProfilerFlameGraphGenerator getFlameGraphGenerator() {
+        return flameGraphGenerator;
+    }
+
+    protected BenchmarkResultCollector getResultCollector() {
+        return resultCollector;
+    }
+
+    protected Profiler getProfiler() {
+        return profiler;
+
     }
 
     @Override
@@ -192,7 +207,7 @@ public class GradleProfilerBuildExperimentRunner extends AbstractBuildExperiment
         );
     }
 
-    protected Supplier<BuildMutator> toMutatorSupplierForSettings(InvocationSettings invocationSettings, Function<InvocationSettings, BuildMutator> mutatorFunction) {
+    protected static Supplier<BuildMutator> toMutatorSupplierForSettings(InvocationSettings invocationSettings, Function<InvocationSettings, BuildMutator> mutatorFunction) {
         return () -> mutatorFunction.apply(invocationSettings);
     }
 }

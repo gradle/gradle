@@ -68,7 +68,7 @@ public class GradleVsMavenBuildExperimentRunner extends GradleProfilerBuildExper
             int warmUpCount = scenarioDefinition.getWarmUpCount();
             Logging.setupLogging(workingDirectory);
 
-            Consumer<BuildInvocationResult> scenarioReporter = resultCollector.scenario(
+            Consumer<BuildInvocationResult> scenarioReporter = getResultCollector().scenario(
                 scenarioDefinition,
                 ImmutableList.<Sample<? super BuildInvocationResult>>builder()
                     .add(BuildInvocationResult.EXECUTION_TIME)
@@ -88,8 +88,8 @@ public class GradleVsMavenBuildExperimentRunner extends GradleProfilerBuildExper
                     };
                 }
             });
-            flameGraphGenerator.generateGraphs(experimentSpec);
-            flameGraphGenerator.generateDifferentialGraphs();
+            getFlameGraphGenerator().generateGraphs(experimentSpec);
+            getFlameGraphGenerator().generateDifferentialGraphs();
         } catch (IOException | InterruptedException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         } finally {
@@ -102,10 +102,10 @@ public class GradleVsMavenBuildExperimentRunner extends GradleProfilerBuildExper
     }
 
     private InvocationSettings createInvocationSettings(MavenBuildExperimentSpec experimentSpec) {
-        File outputDir = flameGraphGenerator.getJfrOutputDirectory(experimentSpec);
+        File outputDir = getFlameGraphGenerator().getJfrOutputDirectory(experimentSpec);
         return new InvocationSettings(
             experimentSpec.getInvocation().getWorkingDirectory(),
-            profiler,
+            getProfiler(),
             true,
             outputDir,
             new BuildInvoker() {

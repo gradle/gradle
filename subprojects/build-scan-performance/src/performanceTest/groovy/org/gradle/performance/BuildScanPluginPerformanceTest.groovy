@@ -191,11 +191,8 @@ class BuildScanPluginPerformanceTest extends AbstractBuildScanPluginPerformanceT
 
         @Override
         void beforeScenario(ScenarioContext context) {
-            def projectTestDir = new TestFile(projectDir)
+            def projectTestDir = new TestFile(context.projectDir)
             def settingsScript = projectTestDir.file('settings.gradle')
-            if (settingsScript.exists()) {
-                return
-            }
             settingsScript.text = """
                     buildscript {
                         repositories {
@@ -220,6 +217,7 @@ class BuildScanPluginPerformanceTest extends AbstractBuildScanPluginPerformanceT
                         apply plugin: 'com.gradle.enterprise'
                     }
                     """ + settingsScript.text
+
         }
     }
 }

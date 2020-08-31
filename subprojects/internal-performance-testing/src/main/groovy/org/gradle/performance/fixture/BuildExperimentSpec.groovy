@@ -29,17 +29,17 @@ import java.util.function.Function
 @CompileStatic
 @EqualsAndHashCode
 abstract class BuildExperimentSpec {
-    String displayName
-    String projectName
-    File workingDirectory
+    final String displayName
+    final String projectName
+    final File workingDirectory
     @Nullable
-    Integer warmUpCount
+    final Integer warmUpCount
     @Nullable
-    Integer invocationCount
-    BuildExperimentListener listener
-    InvocationCustomizer invocationCustomizer
-    ImmutableList<Function<InvocationSettings, BuildMutator>> buildMutators
-    ImmutableList<String> measuredBuildOperations
+    final Integer invocationCount
+    final BuildExperimentListener listener
+    final InvocationCustomizer invocationCustomizer
+    final ImmutableList<Function<InvocationSettings, BuildMutator>> buildMutators
+    final ImmutableList<String> measuredBuildOperations
 
     BuildExperimentSpec(String displayName,
                         String projectName,
@@ -49,7 +49,7 @@ abstract class BuildExperimentSpec {
                         BuildExperimentListener listener,
                         InvocationCustomizer invocationCustomizer,
                         List<Function<InvocationSettings, BuildMutator>> buildMutators,
-                        List<String> measuredBuildOperations
+                        Collection<String> measuredBuildOperations
     ) {
         this.displayName = displayName
         this.projectName = projectName

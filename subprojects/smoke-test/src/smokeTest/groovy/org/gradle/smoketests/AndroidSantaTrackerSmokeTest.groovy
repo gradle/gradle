@@ -17,8 +17,8 @@
 package org.gradle.smoketests
 
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
+import org.gradle.profiler.DefaultScenarioContext
 import org.gradle.profiler.Phase
-import org.gradle.profiler.ScenarioContext
 import org.gradle.profiler.mutations.ApplyNonAbiChangeToJavaSourceFileMutator
 import org.gradle.util.GradleVersion
 import org.gradle.util.Requires
@@ -26,7 +26,6 @@ import org.gradle.util.TestPrecondition
 import spock.lang.Unroll
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
-
 
 @Requires(TestPrecondition.JDK11_OR_EARLIER)
 class AndroidSantaTrackerSmokeTest extends AbstractAndroidSantaTrackerSmokeTest {
@@ -71,7 +70,7 @@ class AndroidSantaTrackerSmokeTest extends AbstractAndroidSantaTrackerSmokeTest 
         given:
         def checkoutDir = temporaryFolder.createDir("checkout")
         setupCopyOfSantaTracker(checkoutDir, 'Java', agpVersion)
-        def buildContext = new ScenarioContext(UUID.randomUUID(), "nonAbiChange").withBuild(Phase.MEASURE, 0)
+        def buildContext = new DefaultScenarioContext(UUID.randomUUID(), "nonAbiChange").withBuild(Phase.MEASURE, 0)
 
         and:
         def pathToClass = "com/google/android/apps/santatracker/map/BottomSheetBehavior"

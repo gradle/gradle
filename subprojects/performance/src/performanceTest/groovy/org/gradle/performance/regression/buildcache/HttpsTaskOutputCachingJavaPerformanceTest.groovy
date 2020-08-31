@@ -26,7 +26,6 @@ import spock.lang.Unroll
 
 import static org.gradle.performance.fixture.BuildExperimentRunner.Phase.MEASUREMENT
 import static org.gradle.performance.fixture.BuildExperimentRunner.Phase.WARMUP
-import static org.gradle.performance.regression.buildcache.TaskOutputCachingJavaPerformanceTest.getScenarios
 import static org.gradle.performance.regression.buildcache.TaskOutputCachingJavaPerformanceTest.setupTestProject
 import static org.gradle.performance.regression.buildcache.TaskOutputCachingJavaPerformanceTest.touchCacheArtifactsDir
 

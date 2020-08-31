@@ -71,6 +71,8 @@ dependencies {
     implementation(libs.jetty)
     implementation(testFixtures(project(":core")))
     implementation(testFixtures(project(":tooling-api")))
+    implementation("net.sf.jopt-simple:jopt-simple:5.0.4")
+
 
     runtimeOnly("mysql:mysql-connector-java:8.0.17")
 

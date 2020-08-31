@@ -17,11 +17,9 @@
 package org.gradle.performance.regression.nativeplatform
 
 import org.apache.commons.io.FileUtils
-import org.gradle.performance.AbstractCrossVersionGradleInternalPerformanceTest
-import org.gradle.performance.fixture.BuildExperimentInvocationInfo
-import org.gradle.performance.fixture.BuildExperimentListener
-import org.gradle.performance.fixture.BuildExperimentListenerAdapter
-import org.gradle.performance.measure.MeasuredOperation
+import org.gradle.performance.AbstractCrossVersionGradleProfilerPerformanceTest
+import org.gradle.profiler.BuildContext
+import org.gradle.profiler.BuildMutator
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Unroll

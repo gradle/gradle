@@ -38,8 +38,6 @@ class GradleBuildExperimentSpec extends BuildExperimentSpec {
                               ImmutableList<String> measuredBuildOperations) {
         super(displayName, projectName, workingDirectory, warmUpCount, invocationCount, listener, invocationCustomizer, buildMutators, measuredBuildOperations)
         this.invocation = invocation
-        this.buildMutators = buildMutators
-        this.measuredBuildOperations = measuredBuildOperations
     }
 
     static GradleBuilder builder() {
