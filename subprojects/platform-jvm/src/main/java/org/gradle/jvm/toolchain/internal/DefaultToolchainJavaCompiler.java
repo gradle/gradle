@@ -16,9 +16,11 @@
 
 package org.gradle.jvm.toolchain.internal;
 
+import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.jvm.toolchain.JavaCompiler;
+import org.gradle.jvm.toolchain.JavaToolMetadata;
 import org.gradle.language.base.internal.compile.CompileSpec;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,9 +37,16 @@ public class DefaultToolchainJavaCompiler implements JavaCompiler {
         this.compilerFactory = compilerFactory;
     }
 
+    @Override
     @Nested
-    public JavaToolchain getJavaToolchain() {
+    public JavaToolMetadata getMetadata() {
         return javaToolchain;
+    }
+
+    @Override
+    @Internal
+    public String getExecutable() {
+        return javaToolchain.findExecutable("javac").getAbsolutePath();
     }
 
     @SuppressWarnings("unchecked")

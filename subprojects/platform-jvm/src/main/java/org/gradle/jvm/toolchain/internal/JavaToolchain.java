@@ -23,13 +23,14 @@ import org.gradle.api.tasks.Internal;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.jvm.toolchain.JavaCompiler;
 import org.gradle.jvm.toolchain.JavaLauncher;
+import org.gradle.jvm.toolchain.JavaToolMetadata;
 import org.gradle.jvm.toolchain.JavadocTool;
 import org.gradle.util.VersionNumber;
 
 import javax.inject.Inject;
 import java.io.File;
 
-public class JavaToolchain implements Describable {
+public class JavaToolchain implements Describable, JavaToolMetadata {
 
     private final boolean isJdk;
     private final JavaCompilerFactory compilerFactory;

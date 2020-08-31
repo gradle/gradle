@@ -17,26 +17,28 @@
 package org.gradle.jvm.toolchain;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.JavaVersion;
+
+import java.io.File;
 
 /**
- * A java compiler used by compile tasks.
+ * Metadata about a Java tool obtained from a toolchain.
  *
  * @since 6.7
  */
 @Incubating
-public interface JavaCompiler {
+public interface JavaToolMetadata {
+    /**
+     * Returns the language version of the JVM to which this tool belongs
+     *
+     * @return the JavaVersion
+     */
+    JavaVersion getJavaMajorVersion();
 
     /**
-     * Returns metadata information about this tool
+     * The path to JAVA_HOME this tool belongs to.
      *
-     * @return the tool metadata
+     * @return the JAVA_HOME path
      */
-    JavaToolMetadata getMetadata();
-
-    /**
-     * Returns the path to the executable for this tool
-     *
-     * @return the path to the executable
-     */
-    String getExecutable();
+    File getJavaHome();
 }
