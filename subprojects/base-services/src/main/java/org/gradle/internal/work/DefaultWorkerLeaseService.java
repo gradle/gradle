@@ -27,6 +27,7 @@ import org.gradle.concurrent.ParallelismConfiguration;
 import org.gradle.internal.Factories;
 import org.gradle.internal.Factory;
 import org.gradle.internal.MutableBoolean;
+import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.resources.AbstractResourceLockRegistry;
 import org.gradle.internal.resources.AbstractTrackedResourceLock;
 import org.gradle.internal.resources.DefaultResourceLockCoordinationService;
@@ -35,8 +36,6 @@ import org.gradle.internal.resources.ProjectLockStatistics;
 import org.gradle.internal.resources.ResourceLock;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
 import org.gradle.internal.resources.ResourceLockState;
-import org.gradle.internal.service.scopes.Scopes;
-import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
 import org.gradle.util.CollectionUtils;
@@ -55,8 +54,7 @@ import static org.gradle.internal.resources.DefaultResourceLockCoordinationServi
 import static org.gradle.internal.resources.DefaultResourceLockCoordinationService.unlock;
 import static org.gradle.internal.resources.ResourceLockState.Disposition.FINISHED;
 
-@ServiceScope(Scopes.BuildSession.class)
-public class DefaultWorkerLeaseService implements WorkerLeaseService {
+public class DefaultWorkerLeaseService implements WorkerLeaseService, Stoppable {
     public static final String PROJECT_LOCK_STATS_PROPERTY = "org.gradle.internal.project.lock.stats";
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultWorkerLeaseService.class);
 

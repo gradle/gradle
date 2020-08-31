@@ -23,13 +23,27 @@ import org.gradle.internal.service.scopes.ServiceScope
 
 class ServicesCodec : EncodingProducer, Decoding {
     override fun encodingForType(type: Class<*>): Encoding? {
-        // Only handle build tree scoped service for now
         // TODO - perhaps query the isolate owner to see whether the value is in fact a service
-        return if (type.getAnnotation(ServiceScope::class.java) != null) {
-            OwnerServiceEncoding
+        val serviceType = serviceType(type)
+        return if (serviceType != null) {
+            OwnerServiceEncoding(serviceType)
         } else {
             null
         }
+    }
+
+    private
+    fun serviceType(type: Class<*>): Class<*>? {
+        if (type.getAnnotation(ServiceScope::class.java) != null) {
+            return type
+        }
+        for (superInterface in type.interfaces) {
+            val serviceType = serviceType(superInterface)
+            if (serviceType != null) {
+                return serviceType
+            }
+        }
+        return null
     }
 
     override suspend fun ReadContext.decode(): Any? {
@@ -39,8 +53,8 @@ class ServicesCodec : EncodingProducer, Decoding {
 
 
 internal
-object OwnerServiceEncoding : Encoding {
+class OwnerServiceEncoding(val serviceType: Class<*>) : Encoding {
     override suspend fun WriteContext.encode(value: Any) {
-        writeClass(value.javaClass)
+        writeClass(serviceType)
     }
 }

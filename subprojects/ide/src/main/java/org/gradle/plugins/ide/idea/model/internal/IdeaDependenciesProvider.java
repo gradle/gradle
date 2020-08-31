@@ -30,7 +30,6 @@ import org.gradle.api.artifacts.result.UnresolvedDependencyResult;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectStateRegistry;
-import org.gradle.internal.Factory;
 import org.gradle.internal.jvm.JavaModuleDetector;
 import org.gradle.plugins.ide.idea.model.Dependency;
 import org.gradle.plugins.ide.idea.model.FilePath;
@@ -110,14 +109,10 @@ public class IdeaDependenciesProvider {
         final JavaModuleDetector javaModuleDetector = projectInternal.getServices().get(JavaModuleDetector.class);
 
         final IdeaDependenciesVisitor visitor = new IdeaDependenciesVisitor(ideaModule, scope.name());
-        return projectInternal.getMutationState().withMutableState(new Factory<IdeaDependenciesVisitor>() {
-            @Override
-            public IdeaDependenciesVisitor create() {
-                new IdeDependencySet(handler, javaModuleDetector, plusConfigurations, minusConfigurations, false, gradleApiSourcesResolver).visit(visitor);
-                return visitor;
-            }
+        return projectInternal.getMutationState().fromMutableState(p -> {
+            new IdeDependencySet(handler, javaModuleDetector, plusConfigurations, minusConfigurations, false, gradleApiSourcesResolver).visit(visitor);
+            return visitor;
         });
-
     }
 
     private Collection<Configuration> getPlusConfigurations(IdeaModule ideaModule, GeneratedIdeaScope scope) {

@@ -45,26 +45,23 @@ public class DefaultTaskContainerFactory implements Factory<TaskContainerInterna
     private static final ModelType<Task> TASK_MODEL_TYPE = ModelType.of(Task.class);
     private static final ModelReference<Task> TASK_MODEL_REFERENCE = ModelReference.of(TASK_MODEL_TYPE);
     private static final SimpleModelRuleDescriptor COPY_TO_TASK_CONTAINER_DESCRIPTOR = new SimpleModelRuleDescriptor("copyToTaskContainer");
-    private final ModelRegistry modelRegistry;
     private final Instantiator instantiator;
     private final ITaskFactory taskFactory;
     private final CollectionCallbackActionDecorator callbackDecorator;
-    private final Project project;
+    private final ProjectInternal project;
     private final ProjectAccessListener projectAccessListener;
     private final TaskStatistics statistics;
     private final BuildOperationExecutor buildOperationExecutor;
     private final CrossProjectConfigurator crossProjectConfigurator;
 
-    public DefaultTaskContainerFactory(ModelRegistry modelRegistry,
-                                       Instantiator instantiator,
+    public DefaultTaskContainerFactory(Instantiator instantiator,
                                        ITaskFactory taskFactory,
-                                       Project project,
+                                       ProjectInternal project,
                                        ProjectAccessListener projectAccessListener,
                                        TaskStatistics statistics,
                                        BuildOperationExecutor buildOperationExecutor,
                                        CrossProjectConfigurator crossProjectConfigurator,
                                        CollectionCallbackActionDecorator callbackDecorator) {
-        this.modelRegistry = modelRegistry;
         this.instantiator = instantiator;
         this.taskFactory = taskFactory;
         this.project = project;
@@ -83,7 +80,7 @@ public class DefaultTaskContainerFactory implements Factory<TaskContainerInterna
     }
 
     private void bridgeIntoSoftwareModelWhenNeeded(final DefaultTaskContainer tasks) {
-        ((ProjectInternal) project).addRuleBasedPluginListener(new RuleBasedPluginListener() {
+        project.addRuleBasedPluginListener(new RuleBasedPluginListener() {
             @Override
             public void prepareForRuleBasedPlugins(Project project) {
                 ModelReference<DefaultTaskContainer> containerReference = ModelReference.of(TaskContainerInternal.MODEL_PATH, DEFAULT_TASK_CONTAINER_MODEL_TYPE);
@@ -102,6 +99,7 @@ public class DefaultTaskContainerFactory implements Factory<TaskContainerInterna
                     new Namer()
                 );
 
+                ModelRegistry modelRegistry = ((ProjectInternal) project).getServices().get(ModelRegistry.class);
                 modelRegistry.register(
                     registrationBuilder
                         .withProjection(ModelMapModelProjection.unmanaged(TASK_MODEL_TYPE, ChildNodeInitializerStrategyAccessors.of(NodeBackedModelMap.createUsingParentNode(new Transformer<NamedEntityInstantiator<Task>, MutableModelNode>() {

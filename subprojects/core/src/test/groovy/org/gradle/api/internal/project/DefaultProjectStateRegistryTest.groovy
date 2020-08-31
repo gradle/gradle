@@ -108,16 +108,17 @@ class DefaultProjectStateRegistryTest extends ConcurrentSpec {
 
         registry.registerProjects(build)
         def state = registry.stateFor(project)
+        state.attachMutableModel(project)
 
         when:
         async {
             workerThread {
                 assert !state.hasMutableState()
-                state.withMutableState {
+                state.applyToMutableState {
                     assert state.hasMutableState()
                     instant.start
                     thread.block()
-                    state.withMutableState {
+                    state.applyToMutableState {
                         // nested
                     }
                     assert state.hasMutableState()
@@ -128,7 +129,7 @@ class DefaultProjectStateRegistryTest extends ConcurrentSpec {
             workerThread {
                 thread.blockUntil.start
                 assert !state.hasMutableState()
-                state.withMutableState {
+                state.applyToMutableState {
                     assert state.hasMutableState()
                     instant.thread2
                 }
@@ -148,7 +149,9 @@ class DefaultProjectStateRegistryTest extends ConcurrentSpec {
 
         registry.registerProjects(build)
         def state1 = registry.stateFor(project1)
+        state1.attachMutableModel(project1)
         def state2 = registry.stateFor(project2)
+        state2.attachMutableModel(project2)
 
         def projectLock1 = workerLeaseService.getProjectLock(build.getIdentityPath(), project1.getIdentityPath())
         def projectLock2 = workerLeaseService.getProjectLock(build.getIdentityPath(), project2.getIdentityPath())
@@ -156,10 +159,10 @@ class DefaultProjectStateRegistryTest extends ConcurrentSpec {
         expect:
         async {
             workerThread {
-                state1.withMutableState {
+                state1.applyToMutableState {
                     instant.start1
                     thread.blockUntil.start2
-                    state2.withMutableState {
+                    state2.applyToMutableState {
                         assert workerLeaseService.getCurrentProjectLocks().contains(projectLock2)
                         assert !workerLeaseService.getCurrentProjectLocks().contains(projectLock1)
                         instant.thread1
@@ -168,10 +171,10 @@ class DefaultProjectStateRegistryTest extends ConcurrentSpec {
                 }
             }
             workerThread {
-                state2.withMutableState {
+                state2.applyToMutableState {
                     instant.start2
                     thread.blockUntil.start1
-                    state1.withMutableState {
+                    state1.applyToMutableState {
                         assert workerLeaseService.getCurrentProjectLocks().contains(projectLock1)
                         assert !workerLeaseService.getCurrentProjectLocks().contains(projectLock2)
                         instant.thread2
@@ -243,7 +246,7 @@ class DefaultProjectStateRegistryTest extends ConcurrentSpec {
             }
             start {
                 thread.blockUntil.start
-                registry.stateFor(project("p1")).withMutableState {
+                registry.stateFor(project("p1")).applyToMutableState {
                 }
             }
         }
@@ -255,9 +258,13 @@ class DefaultProjectStateRegistryTest extends ConcurrentSpec {
     def "thread must own project state in order to set calculated value"() {
         given:
         registry.registerProjects(build("p1", "p2"))
-        def project1 = registry.stateFor(project("p1"))
-        def project2 = registry.stateFor(project("p2"))
-        def calculatedValue = project1.newCalculatedValue("initial")
+        def project1 = project("p1")
+        def project2 = project("p2")
+        def state1 = registry.stateFor(project1)
+        state1.attachMutableModel(project1)
+        def state2 = registry.stateFor(project2)
+        state2.attachMutableModel(project2)
+        def calculatedValue = state1.newCalculatedValue("initial")
 
         when:
         calculatedValue.set("bad")
@@ -267,7 +274,7 @@ class DefaultProjectStateRegistryTest extends ConcurrentSpec {
         calculatedValue.get() == "initial"
 
         when:
-        project1.withMutableState {
+        state1.applyToMutableState {
             calculatedValue.set("updated")
         }
 
@@ -275,8 +282,8 @@ class DefaultProjectStateRegistryTest extends ConcurrentSpec {
         calculatedValue.get() == "updated"
 
         when:
-        project1.withMutableState {
-            project2.withMutableState {
+        state1.applyToMutableState {
+            state2.applyToMutableState {
                 // Thread no longer owns the project state
                 calculatedValue.set("bad")
             }
@@ -290,9 +297,13 @@ class DefaultProjectStateRegistryTest extends ConcurrentSpec {
     def "thread must own project state in order to update calculated value"() {
         given:
         registry.registerProjects(build("p1", "p2"))
-        def project1 = registry.stateFor(project("p1"))
-        def project2 = registry.stateFor(project("p2"))
-        def calculatedValue = project1.newCalculatedValue("initial")
+        def project1 = project("p1")
+        def project2 = project("p2")
+        def state1 = registry.stateFor(project1)
+        state1.attachMutableModel(project1)
+        def state2 = registry.stateFor(project2)
+        state2.attachMutableModel(project2)
+        def calculatedValue = state1.newCalculatedValue("initial")
 
         when:
         calculatedValue.update { throw new RuntimeException() }
@@ -302,7 +313,7 @@ class DefaultProjectStateRegistryTest extends ConcurrentSpec {
         calculatedValue.get() == "initial"
 
         when:
-        project1.withMutableState {
+        state1.applyToMutableState {
             calculatedValue.update {
                 assert it == "initial"
                 "updated"
@@ -313,8 +324,8 @@ class DefaultProjectStateRegistryTest extends ConcurrentSpec {
         calculatedValue.get() == "updated"
 
         when:
-        project1.withMutableState {
-            project2.withMutableState {
+        state1.applyToMutableState {
+            state2.applyToMutableState {
                 // Thread no longer owns the project state
                 calculatedValue.update { throw new RuntimeException() }
             }
@@ -328,13 +339,15 @@ class DefaultProjectStateRegistryTest extends ConcurrentSpec {
     def "update thread blocks other update threads"() {
         given:
         registry.registerProjects(build("p1", "p2"))
-        def project1 = registry.stateFor(project("p1"))
-        def calculatedValue = project1.newCalculatedValue("initial")
+        def project1 = project("p1")
+        def state1 = registry.stateFor(project1)
+        state1.attachMutableModel(project1)
+        def calculatedValue = state1.newCalculatedValue("initial")
 
         when:
         async {
             workerThread {
-                project1.withMutableState {
+                state1.applyToMutableState {
                     calculatedValue.update {
                         assert it == "initial"
                         instant.start
@@ -346,7 +359,7 @@ class DefaultProjectStateRegistryTest extends ConcurrentSpec {
             }
             workerThread {
                 thread.blockUntil.start
-                project1.withMutableState {
+                state1.applyToMutableState {
                     calculatedValue.update {
                         assert it == "updated1"
                         instant.thread2
@@ -364,13 +377,15 @@ class DefaultProjectStateRegistryTest extends ConcurrentSpec {
     def "update thread does not block other read threads"() {
         given:
         registry.registerProjects(build("p1", "p2"))
-        def project1 = registry.stateFor(project("p1"))
-        def calculatedValue = project1.newCalculatedValue("initial")
+        def project1 = project("p1")
+        def state1 = registry.stateFor(project1)
+        state1.attachMutableModel(project1)
+        def calculatedValue = state1.newCalculatedValue("initial")
 
         when:
         async {
             workerThread {
-                project1.withMutableState {
+                state1.applyToMutableState {
                     calculatedValue.update {
                         assert it == "initial"
                         instant.start
@@ -393,19 +408,23 @@ class DefaultProjectStateRegistryTest extends ConcurrentSpec {
     def "can have cycle in project dependencies"() {
         given:
         registry.registerProjects(build("p1", "p2"))
-        def project1 = registry.stateFor(project("p1"))
-        def project2 = registry.stateFor(project("p2"))
-        def calculatedValue = project1.newCalculatedValue("initial")
+        def project1 = project("p1")
+        def state1 = registry.stateFor(project1)
+        state1.attachMutableModel(project1)
+        def project2 = project("p2")
+        def state2 = registry.stateFor(project2)
+        state2.attachMutableModel(project2)
+        def calculatedValue = state1.newCalculatedValue("initial")
 
         when:
         async {
             workerThread {
-                project1.withMutableState {
+                state1.applyToMutableState {
                     instant.start
                     thread.blockUntil.start2
                     calculatedValue.update {
                         assert it == "initial"
-                        project2.withMutableState {
+                        state2.applyToMutableState {
                         }
                         "updated1"
                     }
@@ -413,9 +432,9 @@ class DefaultProjectStateRegistryTest extends ConcurrentSpec {
             }
             workerThread {
                 thread.blockUntil.start
-                project2.withMutableState {
+                state2.applyToMutableState {
                     instant.start2
-                    project1.withMutableState {
+                    state1.applyToMutableState {
                         calculatedValue.update {
                             assert it == "updated1"
                             "updated2"

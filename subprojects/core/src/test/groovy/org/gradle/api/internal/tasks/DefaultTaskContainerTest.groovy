@@ -39,7 +39,6 @@ import org.gradle.api.tasks.TaskDependency
 import org.gradle.initialization.ProjectAccessListener
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.service.ServiceRegistry
-import org.gradle.model.internal.registry.ModelRegistry
 import org.gradle.util.Path
 import org.gradle.util.TestUtil
 
@@ -48,7 +47,6 @@ import static java.util.Collections.singletonMap
 class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerSpec<Task> {
 
     private taskFactory = Mock(ITaskFactory)
-    def modelRegistry = Mock(ModelRegistry)
     private project = Mock(ProjectInternal, name: "<project>") {
         identityPath(_) >> { String name ->
             Path.path(":project").child(name)
@@ -65,7 +63,6 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
     private taskCount = 1
     private accessListener = Mock(ProjectAccessListener)
     private container = new DefaultTaskContainerFactory(
-        modelRegistry,
         DirectInstantiator.INSTANCE,
         taskFactory,
         project,
