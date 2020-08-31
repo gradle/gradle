@@ -115,11 +115,11 @@ public class WatchingVirtualFileSystem implements BuildLifecycleAwareVirtualFile
                         }
                         fileSystemWatchingStatisticsSinceLastBuild = new DefaultFileSystemWatchingStatistics(statistics, newRoot);
                         if (verboseLogging) {
-                            logVerboseStatistics(
-                                fileSystemWatchingStatisticsSinceLastBuild,
-                                "since last build",
-                                "retained",
-                                "since last build"
+                            LOGGER.warn("Received {} file system events since last build", fileSystemWatchingStatisticsSinceLastBuild.getNumberOfReceivedEvents());
+                            LOGGER.warn("Virtual file system retained information about {} files, {} directories and {} missing files since last build",
+                                fileSystemWatchingStatisticsSinceLastBuild.getRetainedRegularFiles(),
+                                fileSystemWatchingStatisticsSinceLastBuild.getRetainedDirectories(),
+                                fileSystemWatchingStatisticsSinceLastBuild.getRetainedMissingFiles()
                             );
                         }
                     }
@@ -195,11 +195,11 @@ public class WatchingVirtualFileSystem implements BuildLifecycleAwareVirtualFile
                         }
                         fileSystemWatchingStatisticsDuringBuild = new DefaultFileSystemWatchingStatistics(statistics, newRoot);
                         if (verboseLogging) {
-                            logVerboseStatistics(
-                                fileSystemWatchingStatisticsDuringBuild,
-                                "during the current build",
-                                "retains",
-                                "until next build"
+                            LOGGER.warn("Received {} file system events during the current build", fileSystemWatchingStatisticsDuringBuild.getNumberOfReceivedEvents());
+                            LOGGER.warn("Virtual file system retains information about {} files, {} directories and {} missing files until next build",
+                                fileSystemWatchingStatisticsDuringBuild.getRetainedRegularFiles(),
+                                fileSystemWatchingStatisticsDuringBuild.getRetainedDirectories(),
+                                fileSystemWatchingStatisticsDuringBuild.getRetainedMissingFiles()
                             );
                         }
                     }
@@ -333,18 +333,6 @@ public class WatchingVirtualFileSystem implements BuildLifecycleAwareVirtualFile
             return true;
         }
         return false;
-    }
-
-    private static void logVerboseStatistics(FileSystemWatchingStatistics statistics, String eventsFor, String verb, String statisticsFor) {
-        LOGGER.warn("Received {} file system events {}", statistics.getNumberOfReceivedEvents(), eventsFor);
-        LOGGER.warn(
-            "Virtual file system {} information about {} files, {} directories and {} missing files {}",
-            verb,
-            statistics.getRetainedRegularFiles(),
-            statistics.getRetainedDirectories(),
-            statistics.getRetainedMissingFiles(),
-            statisticsFor
-        );
     }
 
     @Override
