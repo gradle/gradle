@@ -34,6 +34,7 @@ class FileSystemWatchingSoakTest extends DaemonIntegrationSpec implements FileSy
     private static final double LOST_EVENTS_RATIO_WINDOWS = 0.1
 
     List<TestFile> sourceFiles
+    VerboseVfsLogAccessor vfsLogs
 
     def setup() {
         def subprojects = (1..NUMBER_OF_SUBPROJECTS).collect { "project$it" }
@@ -60,7 +61,7 @@ class FileSystemWatchingSoakTest extends DaemonIntegrationSpec implements FileSy
             withWatchFs()
             // running in parallel, so the soak test doesn't take this long.
             withArgument("--parallel")
-            withVerboseVfsLog()
+            vfsLogs = enableVerboseVfsLogs()
         }
     }
 

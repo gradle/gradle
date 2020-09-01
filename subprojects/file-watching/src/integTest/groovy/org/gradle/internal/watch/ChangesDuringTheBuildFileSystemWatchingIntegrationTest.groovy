@@ -33,10 +33,12 @@ class ChangesDuringTheBuildFileSystemWatchingIntegrationTest extends AbstractFil
     @Rule
     BlockingHttpServer server = new BlockingHttpServer()
 
+    VerboseVfsLogAccessor vfsLogs
+
     def setup() {
         executer.requireDaemon()
         executer.beforeExecute {
-            withVerboseVfsLog()
+            vfsLogs = enableVerboseVfsLogs()
         }
         server.start()
         setupFileEventsLogging()

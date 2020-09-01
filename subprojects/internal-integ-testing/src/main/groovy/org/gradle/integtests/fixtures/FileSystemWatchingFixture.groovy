@@ -38,17 +38,13 @@ trait FileSystemWatchingFixture {
         this as AbstractIntegrationSpec
     }
 
-    AbstractIntegrationSpec withVerboseVfsLog() {
+    VerboseVfsLogAccessor enableVerboseVfsLogs() {
         executer.withArgument(FileSystemWatchingHelper.verboseLoggingArgument)
-        this as AbstractIntegrationSpec
+        new VerboseVfsLogAccessor(this as AbstractIntegrationSpec)
     }
 
     void waitForChangesToBePickedUp() {
         FileSystemWatchingHelper.waitForChangesToBePickedUp()
-    }
-
-    VerboseVfsLogAccessor getVfsLogs() {
-        return new VerboseVfsLogAccessor(this as AbstractIntegrationSpec)
     }
 
     protected static class VerboseVfsLogAccessor {
