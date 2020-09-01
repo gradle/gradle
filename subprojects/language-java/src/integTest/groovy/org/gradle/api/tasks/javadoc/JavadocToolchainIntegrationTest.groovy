@@ -34,7 +34,7 @@ class JavadocToolchainIntegrationTest extends AbstractIntegrationSpec {
             }
 
             javadoc {
-                javadocTool = toolchainJavadocTool {
+                javadocTool = javaToolchains.javadocToolFrom {
                     languageVersion = JavaVersion.${jdk.javaVersion.name()}
                 }
             }
@@ -42,7 +42,7 @@ class JavadocToolchainIntegrationTest extends AbstractIntegrationSpec {
             // need to do as separate task as -version stop javadoc generation
             task javadocVersionOutput(type: Javadoc) {
                 options.jFlags("-version")
-                javadocTool = toolchainJavadocTool {
+                javadocTool = javaToolchains.javadocToolFrom {
                     languageVersion = JavaVersion.${jdk.javaVersion.name()}
                 }
             }

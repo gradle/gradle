@@ -22,6 +22,8 @@ import org.gradle.api.provider.Provider;
 
 /**
  * Allows to query for toolchain managed tools, like {@link JavaCompiler}, {@link JavaLauncher} and {@link JavadocTool}.
+ * <p>
+ * An instance of this service is available for injection into tasks, plugins and other types.
  *
  * @since 6.7
  */
