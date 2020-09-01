@@ -123,7 +123,7 @@ include::sample[dir="snippets/java-library/quickstart/kotlin",files="build.gradl
 [[sec:java_library_configurations_graph]]
 == The Java Library plugin configurations
 
-The following graph describes the configurations setup when the Java Library plugin is in use.
+The following graph describes how configurations are setup when the Java Library plugin is in use.
 
 image::java-library-ignore-deprecated-main.png[]
 
