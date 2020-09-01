@@ -64,7 +64,7 @@ class IncrementalAndroidTestProject extends AndroidTestProject {
     static final SANTA_TRACKER_KOTLIN = new IncrementalAndroidTestProject(
         templateName: 'santaTrackerAndroidBuild',
         memory: '1g',
-        pathToChange: 'snowballrun/src/main/java/com/google/android/apps/santatracker/doodles/snowballrun/BackgroundActor.java',
+        pathToChange: 'common/src/main/java/com/google/android/apps/santatracker/AudioPlayer.kt',
         taskToRunForChange: ':santa-tracker:assembleDebug'
     )
 
