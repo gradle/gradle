@@ -7,6 +7,9 @@ repositories {
 }
 
 // tag::producer[]
+group = 'org.gradle.demo'
+version = '1.0'
+
 java {
     registerFeature('mysqlSupport') {
         usingSourceSet(sourceSets.main)
