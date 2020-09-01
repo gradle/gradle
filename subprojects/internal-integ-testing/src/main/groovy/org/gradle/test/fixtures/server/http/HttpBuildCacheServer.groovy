@@ -35,6 +35,9 @@ class HttpBuildCacheServer extends ExternalResource implements HttpServerFixture
     HttpBuildCacheServer(TestDirectoryProvider provider) {
         this.provider = provider
         this.webapp = new WebAppContext()
+        // The following code is because of a problem under Windows: the file descriptors are kept open under JDK 11
+        // even after server shutdown, which prevents from deleting the test directory
+        this.webapp.setInitParameter("org.eclipse.jetty.servlet.Default.useFileMappedBuffer", "false");
     }
 
     TestFile getCacheDir() {

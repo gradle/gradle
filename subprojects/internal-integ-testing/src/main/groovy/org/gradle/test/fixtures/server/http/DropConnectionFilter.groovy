@@ -84,12 +84,13 @@ class DropConnectionFilter implements Filter {
             def stream = request.getInputStream()
             IO.copy(ByteStreams.limit(stream, dropConnectionForPutBytes), out)
             stream.close()
-
-            // Drop the current connection (by dropping all), but accept subsequent connections.
-            buildCache.stop()
-            buildCache.dropConnectionForPutAfterBytes(-1)
-            buildCache.start()
         }
+
+        // Drop the current connection (by dropping all), but accept subsequent connections.
+        buildCache.stop()
+        buildCache.dropConnectionForPutAfterBytes(-1)
+        buildCache.start()
+
     }
 
     @Override
