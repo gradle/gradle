@@ -1,12 +1,12 @@
-> Task :lib:compileKotlin
 > Task :lib:compileJava NO-SOURCE
+> Task :lib:compileKotlin
 > Task :lib:processResources NO-SOURCE
 > Task :lib:classes UP-TO-DATE
 > Task :lib:inspectClassesForKotlinIC
 > Task :lib:jar
 > Task :lib:assemble
-> Task :lib:compileTestKotlin
 > Task :lib:compileTestJava NO-SOURCE
+> Task :lib:compileTestKotlin
 > Task :lib:processTestResources NO-SOURCE
 > Task :lib:testClasses UP-TO-DATE
 > Task :lib:test

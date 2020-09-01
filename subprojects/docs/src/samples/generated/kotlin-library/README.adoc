@@ -298,7 +298,7 @@ Implementation-Title: lib
 Implementation-Version: 0.1.0
 ----
 
-=== Generating Sources JAR
+== Generating Sources JAR
 
 You can easily generate a sources JAR for your library:
 
@@ -318,8 +318,8 @@ java {
 }
 ----
 
-Additional JARs defined that way will be produced by the `build` task and will be part of the publication.
-The resulting files will be found in `lib/build/libs`, with a name using the conventional classifier `-javadoc` or `-sources`.
+The additional JAR will be produced as part of the `assemble` or `build` lifecycle tasks and will be part of the publication.
+The resulting file is found in `lib/build/libs`, with a name using the conventional classifier `-sources`.
 
 == Summary
 

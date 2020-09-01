@@ -1,9 +1,9 @@
-> Task :app:compileTestCpp
 > Task :app:compileDebugCpp
 > Task :app:relocateMainForTest
 > Task :app:linkDebug
 > Task :app:installDebug
 > Task :app:assemble
+> Task :app:compileTestCpp
 > Task :app:linkTest
 > Task :app:installTest
 > Task :app:runTest

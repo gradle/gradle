@@ -70,7 +70,7 @@ Project name (default: demo):
 Source package (default: demo):
 
 > Task :init
-https://docs.gradle.org/6.7-20200825220000+0000/userguide/java_library_plugin.html
+https://docs.gradle.org/6.7-20200901220000+0000/userguide/java_library_plugin.html
 
 BUILD SUCCESSFUL
 2 actionable tasks: 2 executed
@@ -305,6 +305,29 @@ Implementation-Title: lib
 Implementation-Version: 0.1.0
 ----
 
+== Generating Sources JAR
+
+You can easily generate a sources JAR for your library:
+
+.build.gradle
+[source.multi-language-sample,groovy]
+----
+java {
+    withSourcesJar()
+}
+----
+
+.build.gradle.kts
+[source.multi-language-sample,kotlin]
+----
+java {
+    withSourcesJar()
+}
+----
+
+The additional JAR will be produced as part of the `assemble` or `build` lifecycle tasks and will be part of the publication.
+The resulting file is found in `lib/build/libs`, with a name using the conventional classifier `-sources`.
+
 == Adding API documentation
 
 The `java-library` plugin has built-in support for Java's API documentation tool via the `javadoc` task.
@@ -332,9 +355,7 @@ BUILD SUCCESSFUL
 
 You can view the generated `javadoc` files by opening the HTML file located at `lib/build/docs/javadoc/index.html`.
 
-=== Generating Javadoc and Sources JAR
-
-You can easily generate a Javadoc JAR for your library:
+You can also generate a Javadoc JAR for your library:
 
 .build.gradle
 [source.multi-language-sample,groovy]
@@ -352,10 +373,8 @@ java {
 }
 ----
 
-Similarly, you can use `withSourcesJar()` to also generate a JAR containing the project source files.
-
-Additional JARs defined that way will be produced by the `build` task and will be part of the publication.
-The resulting files will be found in `lib/build/libs`, with a name using the conventional classifier `-javadoc` or `-sources`.
+The additional JAR will be produced as part of the `assemble` or `build` lifecycle tasks and will be part of the publication.
+The resulting file is found in `lib/build/libs`, with a name using the conventional classifier `-javadoc`.
 
 == Summary
 

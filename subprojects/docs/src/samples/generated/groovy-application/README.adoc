@@ -63,7 +63,7 @@ Project name (default: demo):
 Source package (default: demo):
 
 > Task :init
-https://docs.gradle.org/6.7-20200825220000+0000/userguide/tutorial_groovy_projects.html
+https://docs.gradle.org/6.7-20200901220000+0000/userguide/tutorial_groovy_projects.html
 
 BUILD SUCCESSFUL
 2 actionable tasks: 2 executed
