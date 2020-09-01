@@ -38,6 +38,31 @@ For Java, Groovy, Kotlin and Android compatibility, see the [full compatibility 
 
 TBD - load from cache performance improvements and reduced memory consumption for Android builds
 
+## Compile-only API dependencies can be declared for JVM libraries
+
+When writing a Java (or Groovy/Kotlin/Scala) library, there are cases where you require dependencies at compilation time which are parts of the API of your library, but which should not be on the runtime classpath.
+
+An example of such a dependency is an annotation library with annotations that are not used at runtime.
+These typically need to be available at compile time of the library's consumers when annotation processors inspect annotations of all classes.
+Another example is a dependency that is part of the runtime environment the library is expected to run on, but also provides types that are used in the public API of the library.
+
+The [Java Library Plugin](userguide/java_library_plugin.html#sec:java_library_configurations_graph) now offers the `compileOnlyApi` configuration for this purpose.
+It effectively combines the major properties of the `compileOnly` configuration (dependency will _not_ be on the runtime classpath)
+and the `api` (dependencies are visible for consumers at compile time).
+
+```
+plugins {
+  id("java-library")
+  // add Groovy, Kotlin or Scala plugin if desired
+}
+
+dependencies {
+  compileOnlyApi("com.google.errorprone:error_prone_annotations:2.4.0")
+}
+```
+
+The behavior of `compileOnlyApi` dependencies is preserved for published libraries when published with [Gradle Module Metadata](userguide/publishing_gradle_module_metadata.html#).
+
 ## Support kebab case formatting when launching a Gradle build with abbreviated names
 
 When running Gradle builds, you can abbreviate project and task names. For example, you can execute the `compileTest` task by running `gradle cT`.

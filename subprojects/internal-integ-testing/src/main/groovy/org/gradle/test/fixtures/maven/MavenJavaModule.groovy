@@ -176,7 +176,7 @@ class MavenJavaModule extends DelegatingMavenModule<MavenFileModule> implements 
         }
     }
 
-    private void assertDependencies(String feature, String variant, String mavenScope, List<GradleModuleMetadata.Dependency> additionalGMMDependencies, String... expected) {
+    void assertDependencies(String feature, String variant, String mavenScope, List<GradleModuleMetadata.Dependency> additionalGMMDependencies, String... expected) {
         if (feature != MAIN_FEATURE) {
             // no dependencies for optional features in this test
             assert parsedModuleMetadata.variant(variantName(feature, variant)).dependencies.empty
