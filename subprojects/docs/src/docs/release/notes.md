@@ -45,6 +45,11 @@ This significantly reduces the amount of disk I/O needed to determine what has c
 
 This feature is now ready for production use and supported on Linux, Windows and macOS.
 You can enable it by supplying the parameter `--watch-fs` on the command-line.
+The feature can also be enabled by adding the following to `gradle.properties` in the project root or in your Gradle home:
+
+```
+org.gradle.vfs.watch=true
+```
 
 Read more about this new feature and its impact [on the Gradle blog](https://blog.gradle.org/introducing-file-system-watching)!
 
