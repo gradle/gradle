@@ -199,7 +199,8 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
             pluginUnderTestMetadataTask.getOutputDirectory().set(project.getLayout().getBuildDirectory().dir(pluginUnderTestMetadataTask.getName()));
 
             pluginUnderTestMetadataTask.getPluginClasspath().from((Callable<FileCollection>) () -> {
-                Configuration runtimeClasspath = project.getConfigurations().getByName(extension.getPluginSourceSet().getRuntimeClasspathConfigurationName());
+                SourceSet sourceSet = extension.getPluginSourceSet();
+                Configuration runtimeClasspath = project.getConfigurations().getByName(sourceSet.getRuntimeClasspathConfigurationName());
                 ArtifactView view = runtimeClasspath.getIncoming().artifactView(config -> {
                     config.componentFilter(componentId -> {
                         if (componentId instanceof OpaqueComponentIdentifier) {
@@ -208,7 +209,7 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
                         return true;
                     });
                 });
-                return view.getFiles();
+                return sourceSet.getOutput().plus(view.getFiles());
             });
         });
     }

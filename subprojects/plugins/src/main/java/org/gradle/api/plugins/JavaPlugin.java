@@ -514,7 +514,8 @@ public class JavaPlugin implements Plugin<Project> {
                     return true;
                 });
             });
-            return view.getFiles();
+            Configuration runtimeElements = project.getConfigurations().getByName(mainSourceSet.getRuntimeElementsConfigurationName());
+            return runtimeElements.getOutgoing().getArtifacts().getFiles().plus(view.getFiles());
         }
 
         @Override
