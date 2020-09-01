@@ -41,13 +41,3 @@ application {
     targetMachines.set(listOf(machines.linux.x86_64, machines.macOS.x86_64))
 }
 // end::swift-select-target-machines[]
-
-project(":common") {
-    apply(plugin = "swift-library")
-
-    // tag::swift-source-set[]
-    extensions.configure<SwiftLibrary> {
-        source.from(file("Sources/Common"))
-    }
-    // end::swift-source-set[]
-}

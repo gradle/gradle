@@ -1,7 +1,3 @@
-project(":project-a") {
-    tasks.register("hello")
-}
-
 tasks.register("hello")
 
 println(tasks.getByPath("hello").path)
