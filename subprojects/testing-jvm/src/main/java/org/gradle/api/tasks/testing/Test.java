@@ -1193,7 +1193,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
      */
     @Incubating
     public Provider<JavaLauncher> toolchainLauncher(Action<? super JavaToolchainSpec> action) {
-        return getLauncherQueryService().getToolchainLauncher(action);
+        return getLauncherQueryService().launcherFrom(action);
     }
 
     @Nullable

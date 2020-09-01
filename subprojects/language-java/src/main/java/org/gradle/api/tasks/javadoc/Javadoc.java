@@ -266,7 +266,7 @@ public class Javadoc extends SourceTask {
      */
     @Incubating
     public Provider<JavadocTool> toolchainJavadocTool(Action<? super JavaToolchainSpec> action) {
-        return getJavadocToolQueryService().getToolchainJavadocTool(action);
+        return getJavadocToolQueryService().javadocToolFrom(action);
     }
 
 

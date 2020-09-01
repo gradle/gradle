@@ -34,5 +34,5 @@ public interface JavadocToolQueryService {
      * @param config The configuration of the {@code JavaToolchainSpec}
      * @return A {@code Provider<JavadocTool>}
      */
-    Provider<JavadocTool> getToolchainJavadocTool(Action<? super JavaToolchainSpec> config);
+    Provider<JavadocTool> javadocToolFrom(Action<? super JavaToolchainSpec> config);
 }

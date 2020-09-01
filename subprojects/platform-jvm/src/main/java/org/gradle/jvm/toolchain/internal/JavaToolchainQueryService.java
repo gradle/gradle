@@ -25,6 +25,7 @@ import org.gradle.jvm.toolchain.JavaCompiler;
 import org.gradle.jvm.toolchain.JavaCompilerQueryService;
 import org.gradle.jvm.toolchain.JavaLauncher;
 import org.gradle.jvm.toolchain.JavaLauncherQueryService;
+import org.gradle.jvm.toolchain.JavaToolchainService;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.gradle.jvm.toolchain.JavadocTool;
 import org.gradle.jvm.toolchain.JavadocToolQueryService;
@@ -51,17 +52,17 @@ public class JavaToolchainQueryService implements JavaCompilerQueryService, Java
     }
 
     @Override
-    public Provider<JavaCompiler> getToolchainCompiler(Action<? super JavaToolchainSpec> config) {
+    public Provider<JavaCompiler> compilerFrom(Action<? super JavaToolchainSpec> config) {
         return findMatchingToolchain(configureToolchainSpec(config)).map(JavaToolchain::getJavaCompiler);
     }
 
     @Override
-    public Provider<JavaLauncher> getToolchainLauncher(Action<? super JavaToolchainSpec> config) {
+    public Provider<JavaLauncher> launcherFrom(Action<? super JavaToolchainSpec> config) {
         return findMatchingToolchain(configureToolchainSpec(config)).map(JavaToolchain::getJavaLauncher);
     }
 
     @Override
-    public Provider<JavadocTool> getToolchainJavadocTool(Action<? super JavaToolchainSpec> config) {
+    public Provider<JavadocTool> javadocToolFrom(Action<? super JavaToolchainSpec> config) {
         return findMatchingToolchain(configureToolchainSpec(config)).map(JavaToolchain::getJavadocTool);
     }
 

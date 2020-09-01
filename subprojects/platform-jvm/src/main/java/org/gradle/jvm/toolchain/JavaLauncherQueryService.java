@@ -34,5 +34,5 @@ public interface JavaLauncherQueryService {
      * @param config The configuration of the {@code JavaToolchainSpec}
      * @return A {@code Provider<JavaLauncher>}
      */
-    Provider<JavaLauncher> getToolchainLauncher(Action<? super JavaToolchainSpec> config);
+    Provider<JavaLauncher> launcherFrom(Action<? super JavaToolchainSpec> config);
 }

@@ -196,7 +196,7 @@ public class JavaCompile extends AbstractCompile implements HasCompileOptions {
      */
     @Incubating
     public Provider<JavaCompiler> toolchainCompiler(Action<? super JavaToolchainSpec> action) {
-        return getCompilerQueryService().getToolchainCompiler(action);
+        return getCompilerQueryService().compilerFrom(action);
     }
 
     /**

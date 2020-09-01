@@ -21,12 +21,12 @@ import org.gradle.api.Incubating;
 import org.gradle.api.provider.Provider;
 
 /**
- * A service that allows to retrieve a {@link JavaCompiler} by using a {@link JavaToolchainSpec}.
+ * Allows to query for toolchain managed tools, like {@link JavaCompiler}, {@link JavaLauncher} and {@link JavadocTool}.
  *
  * @since 6.7
  */
 @Incubating
-public interface JavaCompilerQueryService {
+public interface JavaToolchainService {
 
     /**
      * Obtain a {@link JavaCompiler} matching the {@link JavaToolchainSpec}
@@ -35,4 +35,20 @@ public interface JavaCompilerQueryService {
      * @return A {@code Provider<JavaCompiler>}
      */
     Provider<JavaCompiler> compilerFrom(Action<? super JavaToolchainSpec> config);
+
+    /**
+     * Obtain a {@link JavaLauncher} matching the {@link JavaToolchainSpec}
+     *
+     * @param config The configuration of the {@code JavaToolchainSpec}
+     * @return A {@code Provider<JavaLauncher>}
+     */
+    Provider<JavaLauncher> launcherFrom(Action<? super JavaToolchainSpec> config);
+
+    /**
+     * Obtain a {@link JavadocTool} matching the {@link JavaToolchainSpec}
+     *
+     * @param config The configuration of the {@code JavaToolchainSpec}
+     * @return A {@code Provider<JavadocTool>}
+     */
+    Provider<JavadocTool> javadocToolFrom(Action<? super JavaToolchainSpec> config);
 }
