@@ -44,8 +44,7 @@ When enabled, it allows Gradle to keep what it has learned about the file-system
 This significantly reduces the amount of disk I/O needed to determine what has changed since the previous build.
 
 This feature is now ready for production use and supported on Linux, Windows and macOS.
-You can enable it by supplying the parameter `--watch-fs` on the command-line.
-The feature can also be enabled by adding the following to `gradle.properties` in the project root or in your Gradle home:
+You can enable it by adding the following to `gradle.properties` in the project root or in your Gradle user home:
 
 ```
 org.gradle.vfs.watch=true
