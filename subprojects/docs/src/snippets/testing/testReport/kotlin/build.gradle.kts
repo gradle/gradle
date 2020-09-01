@@ -1,10 +1,12 @@
 // tag::test-report[]
-val testReportData by configurations.creating {
-    isCanBeResolved = true
-    isCanBeConsumed = false
-    attributes {
-        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.DOCUMENTATION))
-        attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named("test-report-data"))
+plugins {
+    id("java")
+}
+
+// A resolvable configuration to collect test report data
+val testReportData = jvm.createResolvableConfiguration("testReportData") {
+    requiresAttributes {
+        documentation("test-report-data")
     }
 }
 
