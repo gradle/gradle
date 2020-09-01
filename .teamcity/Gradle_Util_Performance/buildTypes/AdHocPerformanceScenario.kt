@@ -7,11 +7,12 @@ import common.builtInRemoteBuildCacheNode
 import common.checkCleanM2
 import common.gradleWrapper
 import common.individualPerformanceTestArtifactRules
+import common.killGradleProcessesStep
 import common.performanceTestCommandLine
-import jetbrains.buildServer.configs.kotlin.v2019_2.BuildStep
+import common.removeSubstDirOnWindows
+import common.substDirOnWindows
 import jetbrains.buildServer.configs.kotlin.v2019_2.BuildType
 import jetbrains.buildServer.configs.kotlin.v2019_2.ParameterDisplay
-import jetbrains.buildServer.configs.kotlin.v2019_2.buildSteps.script
 
 abstract class AdHocPerformanceScenario(os: Os) : BuildType({
     val id = "Gradle_Util_Performance_AdHocPerformanceScenario${os.name.toLowerCase().capitalize()}"
@@ -45,11 +46,8 @@ abstract class AdHocPerformanceScenario(os: Os) : BuildType({
     }
 
     steps {
-        script {
-            name = "KILL_GRADLE_PROCESSES"
-            executionMode = BuildStep.ExecutionMode.ALWAYS
-            scriptContent = os.killAllGradleProcesses
-        }
+        killGradleProcessesStep(os)
+        substDirOnWindows(os)
         gradleWrapper {
             name = "GRADLE_RUNNER"
             workingDir = os.perfTestWorkingDir
@@ -64,6 +62,7 @@ abstract class AdHocPerformanceScenario(os: Os) : BuildType({
                     builtInRemoteBuildCacheNode.gradleParameters(os)
                 ).joinToString(separator = " ")
         }
+        removeSubstDirOnWindows(os)
         checkCleanM2(os)
     }
 })
