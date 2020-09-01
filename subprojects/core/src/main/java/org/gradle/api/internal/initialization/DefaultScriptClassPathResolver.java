@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.initialization;
 
+import org.gradle.api.artifacts.ArtifactView;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
@@ -36,6 +37,9 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
         for (ScriptClassPathInitializer initializer : initializers) {
             initializer.execute(classpathConfiguration);
         }
-        return DefaultClassPath.of(classpathConfiguration);
+        ArtifactView view = classpathConfiguration.getIncoming().artifactView(config -> {
+            config.componentFilter(componentId -> !componentId.getDisplayName().equals("Gradle API"));
+        });
+        return DefaultClassPath.of(view.getFiles());
     }
 }
