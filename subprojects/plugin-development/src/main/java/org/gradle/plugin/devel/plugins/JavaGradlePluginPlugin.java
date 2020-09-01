@@ -22,6 +22,7 @@ import org.gradle.api.NonNullApi;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
+import org.gradle.api.artifacts.ArtifactView;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.file.CopySpec;
@@ -194,13 +195,14 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
             pluginUnderTestMetadataTask.setDescription(PLUGIN_UNDER_TEST_METADATA_TASK_DESCRIPTION);
 
             pluginUnderTestMetadataTask.getOutputDirectory().set(project.getLayout().getBuildDirectory().dir(pluginUnderTestMetadataTask.getName()));
-            pluginUnderTestMetadataTask.getPluginClasspath().from(project.provider(
-                (Callable<Object>) () -> {
-                    Configuration gradlePluginConfiguration = project.getConfigurations().detachedConfiguration(project.getDependencies().gradleApi());
-                    FileCollection gradleApi = gradlePluginConfiguration.getIncoming().getFiles();
-                    return extension.getPluginSourceSet().getRuntimeClasspath().minus(gradleApi);
-                }
-            ));
+
+            pluginUnderTestMetadataTask.getPluginClasspath().from((Callable<FileCollection>) () -> {
+                Configuration runtimeClasspath = project.getConfigurations().getByName(extension.getPluginSourceSet().getRuntimeClasspathConfigurationName());
+                ArtifactView view = runtimeClasspath.getIncoming().artifactView(config -> {
+                    config.componentFilter(componentId -> !componentId.getDisplayName().equals("Gradle API"));
+                });
+                return view.getFiles();
+            });
         });
     }
 

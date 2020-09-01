@@ -21,6 +21,7 @@ import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
+import org.gradle.api.artifacts.ArtifactView;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.ConfigurationPublications;
@@ -502,11 +503,11 @@ public class JavaPlugin implements Plugin<Project> {
         public FileCollection getRuntimeClasspath() {
             ProjectInternal project = convention.getProject();
             SourceSet mainSourceSet = mainSourceSetOf(convention);
-            FileCollection runtimeClasspath = mainSourceSet.getRuntimeClasspath();
-            FileCollection gradleApi = project.getConfigurations().detachedConfiguration(project.getDependencies().gradleApi(), project.getDependencies().localGroovy());
-            Configuration runtimeElements = project.getConfigurations().getByName(mainSourceSet.getRuntimeElementsConfigurationName());
-            FileCollection mainSourceSetArtifact = runtimeElements.getOutgoing().getArtifacts().getFiles();
-            return mainSourceSetArtifact.plus(runtimeClasspath.minus(mainSourceSet.getOutput()).minus(gradleApi));
+            Configuration runtimeClasspath = project.getConfigurations().getByName(mainSourceSet.getRuntimeClasspathConfigurationName());
+            ArtifactView view = runtimeClasspath.getIncoming().artifactView(config -> {
+                config.componentFilter(componentId -> !componentId.getDisplayName().equals("Gradle API"));
+            });
+            return view.getFiles();
         }
 
         @Override
