@@ -115,7 +115,9 @@ public class WatchingVirtualFileSystem implements BuildLifecycleAwareVirtualFile
                         }
                         statisticsSinceLastBuild = new DefaultFileSystemWatchingStatistics(statistics, newRoot);
                         if (verboseLogging) {
-                            LOGGER.warn("Received {} file system events since last build", statisticsSinceLastBuild.getNumberOfReceivedEvents());
+                            LOGGER.warn("Received {} file system events since last build while watching {} hierarchies",
+                                statisticsSinceLastBuild.getNumberOfReceivedEvents(),
+                                statisticsSinceLastBuild.getNumberOfWatchedHierarchies());
                             LOGGER.warn("Virtual file system retained information about {} files, {} directories and {} missing files since last build",
                                 statisticsSinceLastBuild.getRetainedRegularFiles(),
                                 statisticsSinceLastBuild.getRetainedDirectories(),
@@ -195,7 +197,9 @@ public class WatchingVirtualFileSystem implements BuildLifecycleAwareVirtualFile
                         }
                         statisticsDuringBuild = new DefaultFileSystemWatchingStatistics(statistics, newRoot);
                         if (verboseLogging) {
-                            LOGGER.warn("Received {} file system events during the current build", statisticsDuringBuild.getNumberOfReceivedEvents());
+                            LOGGER.warn("Received {} file system events during the current build while watching {} hierarchies",
+                                statisticsDuringBuild.getNumberOfReceivedEvents(),
+                                statisticsDuringBuild.getNumberOfWatchedHierarchies());
                             LOGGER.warn("Virtual file system retains information about {} files, {} directories and {} missing files until next build",
                                 statisticsDuringBuild.getRetainedRegularFiles(),
                                 statisticsDuringBuild.getRetainedDirectories(),
