@@ -50,13 +50,13 @@ class ExecuteStepTest extends StepSpec<InputChangesContext> {
     }
 
     @Unroll
-    def "failure #failure.class.simpleName is not caught"() {
+    def "failure #failure.class.simpleName is handled"() {
         when:
-        step.execute(context)
+        def result = step.execute(context)
 
         then:
-        def ex = thrown Throwable
-        ex == failure
+        !result.outcome.successful
+        result.outcome.failure.get() == failure
 
         _ * context.inputChanges >> Optional.empty()
         _ * work.execute(null, context) >> { throw failure }
