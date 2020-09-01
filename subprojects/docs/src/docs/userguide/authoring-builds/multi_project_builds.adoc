@@ -696,8 +696,7 @@ The recommended way to model such a dependency is to produce the output, mark it
 
 Let's say you are working in a multi-project build with the two subprojects `producer` and `consumer`.
 The subproject `producer` defines a task named `buildInfo` that generates a properties file containing build information e.g. the project version.
-The attribute `builtBy` takes care of establishing an inferred task dependency.
-For more information on `builtBy`, see link:{groovyDslPath}/org.gradle.api.tasks.SourceSetOutput.html[SourceSetOutput].
+You can then map the task provider to its output file and Gradle will automatically establish a task dependency.
 
 .Task generating a property file containing build information
 ====

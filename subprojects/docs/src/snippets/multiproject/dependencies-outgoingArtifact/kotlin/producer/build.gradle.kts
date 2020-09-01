@@ -11,6 +11,6 @@ val buildInfo by tasks.registering(BuildInfo::class) {
 
 sourceSets {
     main {
-        output.dir(buildInfo.get().outputFile.getAsFile().get().parentFile, "builtBy" to buildInfo)
+        output.dir(buildInfo.map { it.outputFile.asFile.get().parentFile })
     }
 }

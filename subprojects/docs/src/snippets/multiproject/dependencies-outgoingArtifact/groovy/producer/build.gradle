@@ -4,13 +4,13 @@ plugins {
 
 version = '1.0'
 
-task buildInfo(type: BuildInfo) {
-    version.set(project.version)
-    outputFile.set(file("$buildDir/generated-resources/build-info.properties"))
+def buildInfo = tasks.register("buildInfo", BuildInfo) {
+    version = project.version
+    outputFile = file("$buildDir/generated-resources/build-info.properties")
 }
 
 sourceSets {
     main {
-        output.dir(buildInfo.outputFile.getAsFile().get().parentFile, builtBy: buildInfo)
+        output.dir(buildInfo.map { it.outputFile.asFile.get().parentFile })
     }
 }
