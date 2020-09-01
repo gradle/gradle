@@ -58,8 +58,7 @@ public abstract class JavaProjectInitDescriptor extends JvmProjectInitDescriptor
         buildScriptBuilder
             .fileComment("This generated file contains a sample " + desc.projectType + " project to get you started.")
             .fileComment("For more details take a look at the " + desc.chapterName + " chapter in the Gradle")
-            .fileComment("User Manual available at " + documentationRegistry.getDocumentationFor(desc.userguideId))
-            .plugin("Apply the " + desc.pluginName + " plugin to add support for " + desc.projectType, desc.pluginName);
+            .fileComment("User Manual available at " + documentationRegistry.getDocumentationFor(desc.userguideId));
         configureBuildScript(settings, buildScriptBuilder);
         addTestFramework(settings.getTestFramework(), buildScriptBuilder);
 
@@ -94,7 +93,7 @@ public abstract class JavaProjectInitDescriptor extends JvmProjectInitDescriptor
                         "Use TestNG framework, also requires calling test.useTestNG() below",
                         "org.testng:testng:" + libraryVersionProvider.getVersion("testng"))
                     .taskMethodInvocation(
-                        "Use TestNG for unit tests",
+                        "Use TestNG for unit tests.",
                         "test", "Test", "useTestNG");
                 break;
             case JUNIT_JUPITER:
@@ -106,12 +105,12 @@ public abstract class JavaProjectInitDescriptor extends JvmProjectInitDescriptor
                     "Use JUnit Jupiter Engine for testing.",
                     "org.junit.jupiter:junit-jupiter-engine:" + libraryVersionProvider.getVersion("junit-jupiter")
                 ).taskMethodInvocation(
-                    "Use junit platform for unit tests",
+                    "Use junit platform for unit tests.",
                     "test", "Test", "useJUnitPlatform"
                 );
                 break;
             default:
-                buildScriptBuilder.testImplementationDependency("Use JUnit test framework", "junit:junit:" + libraryVersionProvider.getVersion("junit"));
+                buildScriptBuilder.testImplementationDependency("Use JUnit test framework.", "junit:junit:" + libraryVersionProvider.getVersion("junit"));
                 break;
         }
     }

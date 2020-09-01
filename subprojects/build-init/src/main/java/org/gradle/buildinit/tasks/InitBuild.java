@@ -221,7 +221,6 @@ public class InitBuild extends DefaultTask {
     }
 
     @OptionValues("type")
-    @SuppressWarnings("unused")
     public List<String> getAvailableBuildTypes() {
         return getProjectLayoutRegistry().getAllTypes();
     }
@@ -242,7 +241,6 @@ public class InitBuild extends DefaultTask {
      * @since 4.5
      */
     @OptionValues("dsl")
-    @SuppressWarnings("unused")
     public List<String> getAvailableDSLs() {
         return BuildInitDsl.listSupported();
     }
@@ -259,7 +257,6 @@ public class InitBuild extends DefaultTask {
      * Available test frameworks.
      */
     @OptionValues("test-framework")
-    @SuppressWarnings("unused")
     public List<String> getAvailableTestFrameworks() {
         return BuildInitTestFramework.listSupported();
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,34 +19,36 @@ package org.gradle.buildinit.plugins.internal;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.buildinit.plugins.internal.modifiers.ComponentType;
 
-public class ScalaLibraryProjectInitDescriptor extends ScalaProjectInitDescriptor {
+public class ScalaApplicationProjectInitDescriptor extends ScalaProjectInitDescriptor {
 
-    public ScalaLibraryProjectInitDescriptor(TemplateLibraryVersionProvider libraryVersionProvider, DocumentationRegistry documentationRegistry) {
+    public ScalaApplicationProjectInitDescriptor(TemplateLibraryVersionProvider libraryVersionProvider, DocumentationRegistry documentationRegistry) {
         super(libraryVersionProvider, documentationRegistry);
     }
 
     @Override
     public String getId() {
-        return "scala-library";
+        return "scala-application";
     }
 
     @Override
     public ComponentType getComponentType() {
-        return ComponentType.LIBRARY;
+        return ComponentType.APPLICATION;
     }
 
     @Override
     protected void configureBuildScript(InitSettings settings, BuildScriptBuilder buildScriptBuilder) {
-        buildScriptBuilder.plugin("Apply the java-library plugin for API and implementation separation.", "java-library");
+        buildScriptBuilder
+            .plugin("Apply the application plugin to add support for building a CLI application.", "application")
+            .block(null, "application", b -> b.propertyAssignment("Define the main class for the application.", "mainClass", withPackage(settings, "App"), false));
     }
 
     @Override
     protected TemplateOperation sourceTemplateOperation(TemplateFactory templateFactory) {
-        return templateFactory.fromSourceTemplate("scalalibrary/Library.scala.template", "main");
+        return templateFactory.fromSourceTemplate("scalaapp/App.scala.template", "main");
     }
 
     @Override
     protected TemplateOperation testTemplateOperation(TemplateFactory templateFactory) {
-        return templateFactory.fromSourceTemplate("scalalibrary/LibrarySuite.scala.template", "test");
+        return templateFactory.fromSourceTemplate("scalaapp/AppSuite.scala.template", "test");
     }
 }
