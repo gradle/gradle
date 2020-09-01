@@ -43,7 +43,7 @@ class TestTaskToolchainIntegrationTest extends AbstractPluginIntegrationTest {
                 }
             }
             test {
-                javaLauncher = toolchainLauncher {
+                javaLauncher = javaToolchains.launcherFrom {
                     languageVersion = JavaVersion.${jdk.javaVersion.name()}
                 }
             }

@@ -43,7 +43,6 @@ import org.gradle.api.internal.tasks.testing.testng.TestNGTestFramework;
 import org.gradle.api.jvm.ModularitySpec;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
-import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
@@ -76,8 +75,6 @@ import org.gradle.internal.scan.UsedByScanPlugin;
 import org.gradle.internal.time.Clock;
 import org.gradle.internal.work.WorkerLeaseRegistry;
 import org.gradle.jvm.toolchain.JavaLauncher;
-import org.gradle.jvm.toolchain.JavaLauncherQueryService;
-import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.gradle.jvm.toolchain.internal.DefaultToolchainJavaLauncher;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.JavaDebugOptions;
@@ -230,11 +227,6 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
 
     @Inject
     protected JavaModuleDetector getJavaModuleDetector() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Inject
-    protected JavaLauncherQueryService getLauncherQueryService() {
         throw new UnsupportedOperationException();
     }
 
@@ -1181,19 +1173,6 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     @Internal("getJavaVersion() is used as @Input")
     public Property<JavaLauncher> getJavaLauncher() {
         return javaLauncher;
-    }
-
-    /**
-     * Obtain a {@link JavaLauncher} matching the {@link JavaToolchainSpec} which can then be used to configure the launcher used by this task.
-     *
-     * @param action The action to configure the {@code JavaToolchainSpec}
-     * @return A {@code Provider<JavaLauncher>}
-     *
-     * @since 6.7
-     */
-    @Incubating
-    public Provider<JavaLauncher> toolchainLauncher(Action<? super JavaToolchainSpec> action) {
-        return getLauncherQueryService().launcherFrom(action);
     }
 
     @Nullable
