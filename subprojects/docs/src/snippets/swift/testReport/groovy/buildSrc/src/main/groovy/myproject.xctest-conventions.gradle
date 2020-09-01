@@ -1,0 +1,14 @@
+// tag::test-report[]
+plugins {
+    id 'xctest'
+}
+
+xctest {
+    binaries.configureEach {
+        runTask.get().configure {
+            // Disable the test report for the individual test task
+            reports.html.enabled = false
+        }
+    }
+}
+// end::test-report[]

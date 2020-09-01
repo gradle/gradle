@@ -142,8 +142,8 @@ Here is a sample which generates a combined report for the unit tests from all s
 
 .Combine test reports from all subprojects
 ====
-include::sample[dir="snippets/swift/testReport/groovy",files="build.gradle[tags=test-report]"]
-include::sample[dir="snippets/swift/testReport/kotlin",files="build.gradle.kts[tags=test-report]"]
+include::sample[dir="snippets/swift/testReport/groovy",files="buildSrc/src/main/groovy/myproject.xctest-conventions.gradle[tags=test-report];build.gradle[tags=test-report]"]
+include::sample[dir="snippets/swift/testReport/kotlin",files="buildSrc/src/main/kotlin/myproject.xctest-conventions.gradle.kts[tags=test-report];build.gradle.kts[tags=test-report]"]
 ====
 
 You should note that the link:{groovyDslPath}/org.gradle.api.tasks.testing.TestReport.html[TestReport] type combines the results from multiple test tasks and needs to aggregate the results of individual test classes.
