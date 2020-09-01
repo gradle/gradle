@@ -16,8 +16,8 @@
 
 package org.gradle.performance.regression.java
 
-
 import org.gradle.performance.AbstractCrossVersionGradleProfilerPerformanceTest
+import org.gradle.performance.mutator.ApplyAbiChangeToGroovySourceFileMutator
 import org.gradle.profiler.mutations.ApplyAbiChangeToJavaSourceFileMutator
 import spock.lang.Unroll
 
@@ -34,9 +34,13 @@ class JavaABIChangePerformanceTest extends AbstractCrossVersionGradleProfilerPer
         runner.testProject = testProject
         runner.gradleOpts = ["-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}"]
         runner.tasksToRun = ['assemble']
-        runner.addBuildMutator { new ApplyAbiChangeToJavaSourceFileMutator(new File(it.projectDir, testProject.config.fileToChangeByScenario['assemble']) ) }
+        boolean isGroovyProject = testProject.name().contains("GROOVY")
+        runner.addBuildMutator {
+            def fileToChange = new File(it.projectDir, testProject.config.fileToChangeByScenario['assemble'])
+            return isGroovyProject ? new ApplyAbiChangeToGroovySourceFileMutator(fileToChange) : new ApplyAbiChangeToJavaSourceFileMutator(fileToChange)
+        }
         runner.targetVersions = ["6.7-20200824220048+0000"]
-        if (testProject.name().contains("GROOVY")) {
+        if (isGroovyProject) {
             runner.minimumBaseVersion = '5.0'
         }
 
