@@ -83,6 +83,7 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
     private static final Logger LOGGER = Logging.getLogger(JavaGradlePluginPlugin.class);
     @Deprecated
     static final String COMPILE_CONFIGURATION = "compile";
+    static final String API_CONFIGURATION = JavaPlugin.API_CONFIGURATION_NAME;
     static final String JAR_TASK = "jar";
     static final String PROCESS_RESOURCES_TASK = "processResources";
     static final String GRADLE_PLUGINS = "gradle-plugins";
