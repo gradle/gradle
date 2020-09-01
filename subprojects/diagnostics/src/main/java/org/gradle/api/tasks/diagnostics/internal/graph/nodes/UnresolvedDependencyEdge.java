@@ -45,7 +45,7 @@ public class UnresolvedDependencyEdge implements DependencyEdge {
             DefaultProjectComponentSelector attempted = (DefaultProjectComponentSelector) dependency.getAttempted();
             actual = new DefaultProjectComponentIdentifier(attempted.getBuildIdentifier(), attempted.getIdentityPath(), attempted.projectPath(), attempted.getProjectName());
         } else {
-            actual = new OpaqueComponentIdentifier(dependency.getAttempted().getDisplayName());
+            actual = () -> dependency.getAttempted().getDisplayName();
         }
     }
 

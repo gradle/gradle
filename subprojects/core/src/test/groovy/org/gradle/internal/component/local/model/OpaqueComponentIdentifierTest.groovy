@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,22 +17,19 @@
 package org.gradle.internal.component.local.model
 
 import org.gradle.api.artifacts.component.ComponentIdentifier
+import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory
 import spock.lang.Specification
-import spock.lang.Unroll
 
 import static org.gradle.util.Matchers.strictlyEquals
 
 class OpaqueComponentIdentifierTest extends Specification {
     def "is instantiated with non-null constructor parameter value"() {
-        given:
-        String configurationName = 'compile'
-
         when:
-        ComponentIdentifier componentIdentifier = new OpaqueComponentIdentifier(configurationName)
+        ComponentIdentifier componentIdentifier = new OpaqueComponentIdentifier(DependencyFactory.ClassPathNotation.GRADLE_API)
 
         then:
-        componentIdentifier.displayName == configurationName
-        componentIdentifier.toString() == configurationName
+        componentIdentifier.displayName == "Gradle API"
+        componentIdentifier.toString() == "Gradle API"
     }
 
     def "is instantiated with null constructor parameter value"() {
@@ -43,18 +40,21 @@ class OpaqueComponentIdentifierTest extends Specification {
         thrown(AssertionError)
     }
 
-    @Unroll
-    def "can compare with other instance (#displayName)"() {
+    def "can compare with equivalent identifiers"() {
         expect:
-        ComponentIdentifier componentIdentifier1 = new OpaqueComponentIdentifier('compile')
-        ComponentIdentifier componentIdentifier2 = new OpaqueComponentIdentifier(displayName)
-        strictlyEquals(componentIdentifier1, componentIdentifier2) == equality
-        (componentIdentifier1.hashCode() == componentIdentifier2.hashCode()) == hashCode
-        (componentIdentifier1.toString() == componentIdentifier2.toString()) == stringRepresentation
+        ComponentIdentifier componentIdentifier1 = new OpaqueComponentIdentifier(DependencyFactory.ClassPathNotation.GRADLE_API)
+        ComponentIdentifier componentIdentifier2 = new OpaqueComponentIdentifier(DependencyFactory.ClassPathNotation.GRADLE_API)
+        strictlyEquals(componentIdentifier1, componentIdentifier2)
+        componentIdentifier1.hashCode() == componentIdentifier2.hashCode()
+        componentIdentifier1.toString() == componentIdentifier2.toString()
+    }
 
-        where:
-        displayName | equality | hashCode | stringRepresentation
-        'compile'   | true     | true     | true
-        'runtime'   | false    | false    | false
+    def "can compare with different identifiers"() {
+        expect:
+        ComponentIdentifier componentIdentifier1 = new OpaqueComponentIdentifier(DependencyFactory.ClassPathNotation.GRADLE_API)
+        ComponentIdentifier componentIdentifier2 = new OpaqueComponentIdentifier(DependencyFactory.ClassPathNotation.LOCAL_GROOVY)
+        !strictlyEquals(componentIdentifier1, componentIdentifier2)
+        componentIdentifier1.hashCode() != componentIdentifier2.hashCode()
+        componentIdentifier1.toString() != componentIdentifier2.toString()
     }
 }
