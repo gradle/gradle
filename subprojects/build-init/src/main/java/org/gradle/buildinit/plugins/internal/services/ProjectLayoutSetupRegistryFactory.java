@@ -18,8 +18,6 @@ package org.gradle.buildinit.plugins.internal.services;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.artifacts.mvnsettings.MavenSettingsProvider;
-import org.gradle.api.internal.file.FileCollectionFactory;
-import org.gradle.api.internal.file.FileResolver;
 import org.gradle.buildinit.plugins.internal.BasicProjectGenerator;
 import org.gradle.buildinit.plugins.internal.BuildContentGenerator;
 import org.gradle.buildinit.plugins.internal.BuildInitializer;
@@ -57,32 +55,28 @@ import java.util.List;
 public class ProjectLayoutSetupRegistryFactory {
     private final DocumentationRegistry documentationRegistry;
     private final MavenSettingsProvider mavenSettingsProvider;
-    private final FileResolver fileResolver;
-    private final FileCollectionFactory fileCollectionFactory;
     private final BuildScriptBuilderFactory scriptBuilderFactory;
     private final TemplateOperationFactory templateOperationBuilder;
 
-    public ProjectLayoutSetupRegistryFactory(MavenSettingsProvider mavenSettingsProvider, DocumentationRegistry documentationRegistry, FileResolver fileResolver, FileCollectionFactory fileCollectionFactory) {
+    public ProjectLayoutSetupRegistryFactory(MavenSettingsProvider mavenSettingsProvider, DocumentationRegistry documentationRegistry) {
         this.mavenSettingsProvider = mavenSettingsProvider;
         this.documentationRegistry = documentationRegistry;
-        this.fileResolver = fileResolver;
-        scriptBuilderFactory = new BuildScriptBuilderFactory(fileResolver);
-        this.fileCollectionFactory = fileCollectionFactory;
-        templateOperationBuilder = new TemplateOperationFactory("/org/gradle/buildinit/tasks/templates", fileResolver, documentationRegistry);
+        scriptBuilderFactory = new BuildScriptBuilderFactory();
+        templateOperationBuilder = new TemplateOperationFactory("/org/gradle/buildinit/tasks/templates", documentationRegistry);
     }
 
     public ProjectLayoutSetupRegistry createProjectLayoutSetupRegistry() {
         DefaultTemplateLibraryVersionProvider libraryVersionProvider = new DefaultTemplateLibraryVersionProvider();
         TemplateOperationFactory templateOperationBuilder = this.templateOperationBuilder;
         BuildContentGenerator settingsDescriptor = new SimpleGlobalFilesBuildSettingsDescriptor(scriptBuilderFactory, documentationRegistry);
-        BuildContentGenerator resourcesGenerator = new ResourceDirsGenerator(fileResolver);
-        BuildContentGenerator gitIgnoreGenerator = new GitIgnoreGenerator(fileResolver);
-        BuildContentGenerator gitAttributesGenerator = new GitAttributesGenerator(fileResolver);
+        BuildContentGenerator resourcesGenerator = new ResourceDirsGenerator();
+        BuildContentGenerator gitIgnoreGenerator = new GitIgnoreGenerator();
+        BuildContentGenerator gitAttributesGenerator = new GitAttributesGenerator();
         List<BuildContentGenerator> jvmProjectGenerators = ImmutableList.of(settingsDescriptor, gitIgnoreGenerator, gitAttributesGenerator, resourcesGenerator);
         List<BuildContentGenerator> commonGenerators = ImmutableList.of(settingsDescriptor, gitIgnoreGenerator, gitAttributesGenerator);
         BuildInitializer basicType = of(new BasicProjectGenerator(scriptBuilderFactory, documentationRegistry), commonGenerators);
-        PomProjectInitDescriptor mavenBuildConverter = new PomProjectInitDescriptor(fileResolver, mavenSettingsProvider, scriptBuilderFactory, documentationRegistry);
-        ProjectLayoutSetupRegistry registry = new ProjectLayoutSetupRegistry(basicType, mavenBuildConverter);
+        PomProjectInitDescriptor mavenBuildConverter = new PomProjectInitDescriptor(mavenSettingsProvider, scriptBuilderFactory, documentationRegistry);
+        ProjectLayoutSetupRegistry registry = new ProjectLayoutSetupRegistry(basicType, mavenBuildConverter, templateOperationBuilder);
         registry.add(of(new JavaLibraryProjectInitDescriptor(libraryVersionProvider, documentationRegistry), jvmProjectGenerators));
         registry.add(of(new JavaApplicationProjectInitDescriptor(libraryVersionProvider, documentationRegistry), jvmProjectGenerators));
         registry.add(of(new GroovyApplicationProjectInitDescriptor(libraryVersionProvider, documentationRegistry), jvmProjectGenerators));
@@ -106,7 +100,7 @@ public class ProjectLayoutSetupRegistryFactory {
     }
 
     private BuildInitializer of(LanguageSpecificProjectGenerator projectGenerator, List<BuildContentGenerator> generators) {
-        return of(new LanguageSpecificAdaptor(projectGenerator, scriptBuilderFactory, fileCollectionFactory, templateOperationBuilder), generators);
+        return of(new LanguageSpecificAdaptor(projectGenerator, scriptBuilderFactory, templateOperationBuilder), generators);
     }
 
 }
