@@ -662,9 +662,14 @@ For a component produced in a different Gradle project, the notation is similar.
 === Example: Declaring project dependencies
 
 [source.multi-language-sample,groovy]
-.build.gradle
+.lib/build.gradle
 ----
-include::{snippetsPath}/native-binaries/multi-project/groovy/build.gradle[tag=project-dependencies]
+include::{snippetsPath}/native-binaries/multi-project/groovy/lib/build.gradle[]
+----
+[source.multi-language-sample,groovy]
+.exe/build.gradle
+----
+include::{snippetsPath}/native-binaries/multi-project/groovy/exe/build.gradle[]
 ----
 
 
