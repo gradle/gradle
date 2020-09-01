@@ -20,8 +20,8 @@ import org.gradle.integtests.fixtures.versions.AndroidGradlePluginVersions
 import org.gradle.performance.fixture.GradleBuildExperimentSpec
 import org.gradle.performance.fixture.GradleProfilerCrossVersionPerformanceTestRunner
 import org.gradle.profiler.InvocationSettings
-import org.gradle.profiler.mutations.ApplyAbiChangeToJavaSourceFileMutator
-import org.gradle.profiler.mutations.ApplyNonAbiChangeToJavaSourceFileMutator
+import org.gradle.profiler.mutations.ApplyAbiChangeToSourceFileMutator
+import org.gradle.profiler.mutations.ApplyNonAbiChangeToSourceFileMutator
 
 class AndroidTestProject {
 
@@ -104,7 +104,7 @@ class IncrementalAndroidTestProject extends AndroidTestProject {
         configure(runner)
         runner.tasksToRun = [taskToRunForChange]
         runner.addBuildMutator { invocationSettings ->
-            new ApplyAbiChangeToJavaSourceFileMutator(getFileToChange(invocationSettings))
+            new ApplyAbiChangeToSourceFileMutator(getFileToChange(invocationSettings))
         }
     }
 
@@ -114,7 +114,7 @@ class IncrementalAndroidTestProject extends AndroidTestProject {
             tasksToRun(taskToRunForChange)
         }
         builder.addBuildMutator { invocationSettings ->
-            new ApplyAbiChangeToJavaSourceFileMutator(getFileToChange(invocationSettings))
+            new ApplyAbiChangeToSourceFileMutator(getFileToChange(invocationSettings))
         }
     }
 
@@ -122,7 +122,7 @@ class IncrementalAndroidTestProject extends AndroidTestProject {
         configure(runner)
         runner.tasksToRun = [taskToRunForChange]
         runner.addBuildMutator { invocationSettings ->
-            new ApplyNonAbiChangeToJavaSourceFileMutator(getFileToChange(invocationSettings))
+            new ApplyNonAbiChangeToSourceFileMutator(getFileToChange(invocationSettings))
         }
     }
 
@@ -132,7 +132,7 @@ class IncrementalAndroidTestProject extends AndroidTestProject {
             tasksToRun(taskToRunForChange)
         }
         builder.addBuildMutator { invocationSettings ->
-            new ApplyNonAbiChangeToJavaSourceFileMutator(getFileToChange(invocationSettings))
+            new ApplyNonAbiChangeToSourceFileMutator(getFileToChange(invocationSettings))
         }
     }
 
