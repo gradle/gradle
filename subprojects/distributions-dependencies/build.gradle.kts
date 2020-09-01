@@ -35,6 +35,7 @@ val awsS3Version = "1.11.633"
 val bouncycastleVersion = "1.64"
 val googleApiVersion = "1.25.0"
 val jacksonVersion = "2.10.2"
+val jettyVersion = "9.4.31.v20200723"
 val mavenVersion = "3.0.5"
 val mavenWagonVersion = "3.0.0"
 val nativePlatformVersion = "0.22-milestone-8"
@@ -134,6 +135,7 @@ dependencies {
         api(libs.pmavenCommon)          { version { strictly(pmavenVersion) }}
         api(libs.pmavenGroovy)          { version { strictly(pmavenVersion) }}
         api(libs.rhino)                 { version { strictly("1.7.10") }}
+        api(libs.servletApi)            { version { strictly("3.1.0") }}
         api(libs.simple)                { version { strictly("4.1.21") }}
         api(libs.slf4jApi)              { version { strictly(slf4jVersion) }}
         api(libs.snakeyaml)             { version { strictly("1.17") }}
@@ -155,7 +157,9 @@ dependencies {
         api(libs.guice)                 { version { strictly("2.0") }}
         api(libs.httpmime)              { version { strictly("4.5.10") }}
         api(libs.jacksonKotlin)         { version { strictly("2.9.2") }}
-        api(libs.jetty)                 { version { strictly("6.1.26") }}
+        api(libs.jetty)                 { version { strictly(jettyVersion) }}
+        api(libs.jettySecurity)         { version { strictly(jettyVersion) }}
+        api(libs.jettyWebApp)         { version { strictly(jettyVersion) }}
         api(libs.jsoup)                 { version { strictly("1.11.3") }}
         api(libs.jtar)                  { version { strictly("2.3") }}
         api(libs.kotlinCoroutines)      { version { strictly("1.3.3") }}

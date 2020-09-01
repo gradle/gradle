@@ -34,6 +34,7 @@ dependencies {
     integTestImplementation(libs.commonsIo)
     integTestImplementation(libs.littleproxy)
     integTestImplementation(libs.jetty)
+    integTestImplementation(libs.jettyWebApp)
 
     integTestDistributionRuntimeOnly(project(":distributions-basics"))
 }

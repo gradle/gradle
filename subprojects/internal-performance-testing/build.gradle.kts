@@ -35,6 +35,8 @@ dependencies {
         because("Consumers need to instantiate BuildMutators")
     }
 
+    api(libs.jettyWebApp)
+
     implementation(project(":base-services"))
     implementation(project(":native"))
     implementation(project(":cli"))
@@ -68,7 +70,7 @@ dependencies {
     implementation(libs.jclToSlf4j)
     implementation(libs.flightrecorder)
     implementation(libs.mina)
-    implementation(libs.jetty)
+
     implementation(testFixtures(project(":core")))
     implementation(testFixtures(project(":tooling-api")))
 

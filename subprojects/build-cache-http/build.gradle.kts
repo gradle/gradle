@@ -33,8 +33,10 @@ dependencies {
     implementation(libs.inject)
 
     testImplementation(testFixtures(project(":core")))
+    testImplementation(libs.servletApi)
 
     integTestImplementation(libs.jetty)
+    integTestImplementation(libs.jettyWebApp)
 
     integTestDistributionRuntimeOnly(project(":distributions-basics"))
 }

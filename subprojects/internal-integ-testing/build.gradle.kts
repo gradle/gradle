@@ -50,6 +50,8 @@ dependencies {
     implementation(libs.commonsLang)
     implementation(libs.commonsIo)
     implementation(libs.jetty)
+    implementation(libs.jettySecurity)
+    implementation(libs.jettyWebApp)
     implementation(libs.littleproxy)
     implementation(libs.gcs)
     implementation(libs.inject)
