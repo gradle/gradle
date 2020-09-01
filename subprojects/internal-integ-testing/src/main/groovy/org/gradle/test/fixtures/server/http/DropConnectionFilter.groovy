@@ -17,8 +17,8 @@
 package org.gradle.test.fixtures.server.http
 
 import com.google.common.io.ByteStreams
-import org.mortbay.util.IO
-import org.mortbay.util.URIUtil
+import org.eclipse.jetty.util.IO
+import org.eclipse.jetty.util.URIUtil
 
 import javax.servlet.Filter
 import javax.servlet.FilterChain

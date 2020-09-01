@@ -46,6 +46,7 @@ dependencies {
 
     integTestImplementation(libs.jsoup)
     integTestImplementation(libs.jetty)
+    integTestImplementation(libs.jettyWebApp)
 
     testFixturesApi(testFixtures(project(":platform-native")))
     testFixturesImplementation(project(":base-services"))

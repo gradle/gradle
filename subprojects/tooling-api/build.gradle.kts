@@ -55,7 +55,7 @@ dependencies {
     integTestImplementation(project(":persistent-cache"))
 
     crossVersionTestImplementation(project(":jvm-services"))
-    crossVersionTestImplementation(libs.jetty)
+    crossVersionTestImplementation(libs.jettyWebApp)
     crossVersionTestImplementation(libs.commonsIo)
     crossVersionTestRuntimeOnly(libs.cglib) {
         because("BuildFinishedCrossVersionSpec classpath inference requires cglib enhancer")

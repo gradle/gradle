@@ -83,6 +83,9 @@ dependencies {
     integTestImplementation(libs.guava)
     integTestImplementation(libs.ant)
     integTestImplementation(libs.inject)
+    integTestImplementation(libs.jettyWebApp) {
+        because("A bug in the Groovy compiler leaks API dependencies")
+    }
     integTestImplementation(testFixtures(project(":dependency-management")))
     integTestImplementation(testFixtures(project(":jacoco")))
 

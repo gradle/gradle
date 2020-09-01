@@ -29,6 +29,7 @@ dependencies {
     integTestImplementation(project(":model-core"))
     integTestImplementation(libs.commonsIo)
     integTestImplementation(libs.jetty)
+    integTestImplementation(libs.jettyWebApp)
 
     integTestDistributionRuntimeOnly(project(":distributions-basics"))
 }
