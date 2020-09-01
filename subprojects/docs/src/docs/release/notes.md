@@ -34,6 +34,28 @@ For Java, Groovy, Kotlin and Android compatibility, see the [full compatibility 
 
 <!-- Do not add breaking changes or deprecations here! Add them to the upgrade guide instead. -->
 
+## File system watching is ready for production use
+
+In an [incremental build](userguide/more_about_tasks.html#sec:up_to_date_checks), input and output files are checked to determine what needs to be rebuilt.
+This feature typically saves a lot of time; however, it adds some I/O overhead, which can be noticeable in large projects when not much has changed since the previous build. 
+
+Back in Gradle 6.5 we've introduced _[file-system watching](userguide/gradle_daemon.html#sec:daemon_watch_fs)_ as an experimental feature.
+When enabled, it allows Gradle to keep what it has learned about the file-system in memory during and between builds instead of polling the file system on each build.
+This significantly reduces the amount of disk I/O needed to determine what has changed since the previous build.
+
+This feature is now ready for production use and supported on Linux, Windows and macOS.
+You can enable it by adding the following to `gradle.properties` in the project root or in your Gradle user home:
+
+```
+org.gradle.vfs.watch=true
+```
+
+Read more about this new feature and its impact [on the Gradle blog](https://blog.gradle.org/introducing-file-system-watching)!
+
+![Build time improvements using Santa Tracker Android with file-system watching enabled, Linux with OpenJDK 8.](https://blog.gradle.org/images/introducing-file-system-watching/watch-fs-santa-tracker-linux.png)
+
+_Build time improvements using [Santa Tracker Android](https://github.com/gradle/santa-tracker-performance) with file-system watching enabled, Linux with OpenJDK 8._
+
 ## Configuration cache improvements
 
 TBD - load from cache performance improvements and reduced memory consumption for Android builds
