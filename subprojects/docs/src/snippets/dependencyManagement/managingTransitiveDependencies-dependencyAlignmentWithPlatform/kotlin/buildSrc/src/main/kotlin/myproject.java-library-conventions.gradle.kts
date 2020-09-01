@@ -5,7 +5,7 @@ plugins {
 
 publishing {
     publications {
-        create("maven", MavenPublication::class.java) {
+        create<MavenPublication>("maven") {
             from(components["java"])
         }
     }
