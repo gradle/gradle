@@ -18,7 +18,7 @@ package org.gradle.jvm.toolchain;
 
 import org.gradle.api.Incubating;
 
-import java.io.File;
+import java.nio.file.Path;
 
 /**
  * Metadata about a Java tool obtained from a toolchain.
@@ -39,5 +39,5 @@ public interface JavaToolMetadata {
      *
      * @return the JAVA_HOME path
      */
-    File getJavaHome();
+    Path getJavaHome();
 }

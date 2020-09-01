@@ -18,6 +18,8 @@ package org.gradle.jvm.toolchain;
 
 import org.gradle.api.Incubating;
 
+import java.nio.file.Path;
+
 /**
  * A java compiler used by compile tasks.
  *
@@ -38,5 +40,5 @@ public interface JavaCompiler {
      *
      * @return the path to the executable
      */
-    String getExecutable();
+    Path getExecutable();
 }

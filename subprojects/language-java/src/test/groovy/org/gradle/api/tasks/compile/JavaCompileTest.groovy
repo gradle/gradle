@@ -85,7 +85,7 @@ class JavaCompileTest extends AbstractProjectBuilderSpec {
         def javaHome = Jvm.current().javaHome
         def probe = Mock(JavaInstallationProbe.ProbeResult)
         probe.getJavaVersion() >> JavaVersion.VERSION_12
-        probe.getJavaHome() >> javaHome
+        probe.getJavaHome() >> javaHome.toPath()
         def toolchain = new JavaToolchain(probe, Mock(JavaCompilerFactory), Mock(ToolchainToolFactory))
         javaCompile.setDestinationDir(new File("tmp"))
 

@@ -38,8 +38,12 @@ import org.gradle.api.tasks.AbstractConventionTaskTest
 import org.gradle.api.tasks.util.PatternSet
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.work.WorkerLeaseRegistry
+import org.gradle.jvm.toolchain.JavaLanguageVersion
 import org.gradle.jvm.toolchain.JavaLauncher
 import org.gradle.jvm.toolchain.internal.DefaultToolchainJavaLauncher
+import org.gradle.jvm.toolchain.internal.JavaCompilerFactory
+import org.gradle.jvm.toolchain.internal.JavaToolchain
+import org.gradle.jvm.toolchain.internal.ToolchainToolFactory
 import org.gradle.process.CommandLineArgumentProvider
 import org.gradle.process.internal.worker.WorkerProcessBuilder
 
@@ -280,7 +284,9 @@ class TestTest extends AbstractConventionTaskTest {
     }
 
     def "java version is determined with toolchain if set"() {
-        def launcher = new DefaultToolchainJavaLauncher(Jvm.current().javaExecutable)
+        def javaVersion = JavaLanguageVersion.of(Jvm.current().javaVersion.majorVersion)
+        def toolchain = new JavaToolchain(Jvm.current().getJavaHome().toPath(), javaVersion, 'not needed', true, Mock(JavaCompilerFactory), Mock(ToolchainToolFactory))
+        def launcher = new DefaultToolchainJavaLauncher(toolchain)
 
         when:
         test.javaLauncher.set(launcher)

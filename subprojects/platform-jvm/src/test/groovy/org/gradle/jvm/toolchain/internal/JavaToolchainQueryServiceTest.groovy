@@ -42,7 +42,7 @@ class JavaToolchainQueryServiceTest extends Specification {
 
         then:
         toolchain.languageVersion.equals(versionToFind)
-        toolchain.getJavaHome().absolutePath == systemSpecificAbsolutePath(expectedPath)
+        toolchain.getJavaHome().toString() == systemSpecificAbsolutePath(expectedPath)
 
         where:
         versionToFind               | expectedPath
@@ -64,7 +64,7 @@ class JavaToolchainQueryServiceTest extends Specification {
 
         then:
         toolchain.languageVersion.equals(versionToFind)
-        toolchain.getJavaHome().absolutePath == systemSpecificAbsolutePath(expectedPath)
+        toolchain.getJavaHome().toString() == systemSpecificAbsolutePath(expectedPath)
 
         where:
         versionToFind               | expectedPath
@@ -143,7 +143,7 @@ class JavaToolchainQueryServiceTest extends Specification {
     def newProbe(File javaHome) {
         Mock(JavaInstallationProbe.ProbeResult) {
             getJavaVersion() >> JavaVersion.toVersion(javaHome.name)
-            getJavaHome() >> javaHome
+            getJavaHome() >> javaHome.toPath()
             getImplementationJavaVersion() >> javaHome.name.replace("zzz", "999")
         }
     }

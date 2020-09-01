@@ -22,6 +22,8 @@ import org.gradle.jvm.toolchain.JavadocTool;
 import org.gradle.jvm.toolchain.internal.JavaToolchain;
 import org.gradle.process.internal.ExecActionFactory;
 
+import java.nio.file.Path;
+
 public class JavadocToolAdapter implements JavadocTool {
 
     private final JavadocGenerator generator;
@@ -33,7 +35,7 @@ public class JavadocToolAdapter implements JavadocTool {
     }
 
     public WorkResult execute(JavadocSpec spec) {
-        spec.setExecutable(getExecutable());
+        spec.setExecutable(getExecutable().toString());
         return generator.execute(spec);
     }
 
@@ -43,7 +45,7 @@ public class JavadocToolAdapter implements JavadocTool {
     }
 
     @Override
-    public String getExecutable() {
-        return toolchain.findExecutable("javadoc").getAbsolutePath();
+    public Path getExecutable() {
+        return toolchain.findExecutable("javadoc");
     }
 }

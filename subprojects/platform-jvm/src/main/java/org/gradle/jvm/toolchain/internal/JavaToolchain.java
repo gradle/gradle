@@ -28,14 +28,15 @@ import org.gradle.jvm.toolchain.JavadocTool;
 import org.gradle.util.VersionNumber;
 
 import javax.inject.Inject;
-import java.io.File;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 public class JavaToolchain implements Describable, JavaToolMetadata {
 
     private final boolean isJdk;
     private final JavaCompilerFactory compilerFactory;
     private final ToolchainToolFactory toolFactory;
-    private final File javaHome;
+    private final Path javaHome;
     private final VersionNumber implementationVersion;
     private final JavaLanguageVersion javaVersion;
 
@@ -44,7 +45,7 @@ public class JavaToolchain implements Describable, JavaToolMetadata {
         this(probe.getJavaHome(), new DefaultJavaLanguageVersion(Integer.parseInt(probe.getJavaVersion().getMajorVersion())), probe.getImplementationJavaVersion(), probe.getInstallType() == JavaInstallationProbe.InstallType.IS_JDK, compilerFactory, toolFactory);
     }
 
-    JavaToolchain(File javaHome, JavaLanguageVersion version, String implementationJavaVersion, boolean isJdk, JavaCompilerFactory compilerFactory, ToolchainToolFactory toolFactory) {
+    JavaToolchain(Path javaHome, JavaLanguageVersion version, String implementationJavaVersion, boolean isJdk, JavaCompilerFactory compilerFactory, ToolchainToolFactory toolFactory) {
         this.javaHome = computeEnclosingJavaHome(javaHome);
         this.javaVersion = version;
         this.isJdk = isJdk;
@@ -79,7 +80,7 @@ public class JavaToolchain implements Describable, JavaToolMetadata {
     }
 
     @Internal
-    public File getJavaHome() {
+    public Path getJavaHome() {
         return javaHome;
     }
 
@@ -91,23 +92,23 @@ public class JavaToolchain implements Describable, JavaToolMetadata {
     @Internal
     @Override
     public String getDisplayName() {
-        return javaHome.getAbsolutePath();
+        return javaHome.toString();
     }
 
-    public File findExecutable(String toolname) {
-        return new File(getJavaHome(), getBinaryPath(toolname));
+    public Path findExecutable(String toolname) {
+        return getJavaHome().resolve(getBinaryPath(toolname));
     }
 
-    private File computeEnclosingJavaHome(File home) {
-        final File parentFile = home.getParentFile();
-        final boolean isEmbeddedJre = home.getName().equalsIgnoreCase("jre");
-        if (isEmbeddedJre && new File(parentFile, getBinaryPath("java")).exists()) {
-            return parentFile;
+    private Path computeEnclosingJavaHome(Path home) {
+        final Path parentPath = home.getParent();
+        final boolean isEmbeddedJre = home.getFileName().toString().equalsIgnoreCase("jre");
+        if (isEmbeddedJre && parentPath.resolve(getBinaryPath("java")).toFile().exists()) {
+            return parentPath;
         }
         return home;
     }
 
-    private String getBinaryPath(String java) {
-        return "bin/" + OperatingSystem.current().getExecutableName(java);
+    private Path getBinaryPath(String java) {
+        return Paths.get("bin/", OperatingSystem.current().getExecutableName(java));
     }
 }

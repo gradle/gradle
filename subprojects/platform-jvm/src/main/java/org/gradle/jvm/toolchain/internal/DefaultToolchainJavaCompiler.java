@@ -25,6 +25,8 @@ import org.gradle.language.base.internal.compile.CompileSpec;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.nio.file.Path;
+
 public class DefaultToolchainJavaCompiler implements JavaCompiler {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultToolchainJavaCompiler.class);
@@ -45,8 +47,8 @@ public class DefaultToolchainJavaCompiler implements JavaCompiler {
 
     @Override
     @Internal
-    public String getExecutable() {
-        return javaToolchain.findExecutable("javac").getAbsolutePath();
+    public Path getExecutable() {
+        return javaToolchain.findExecutable("javac");
     }
 
     @SuppressWarnings("unchecked")

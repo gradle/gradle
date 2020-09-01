@@ -20,6 +20,8 @@ import org.gradle.api.tasks.Internal;
 import org.gradle.jvm.toolchain.JavaLauncher;
 import org.gradle.jvm.toolchain.JavaToolMetadata;
 
+import java.nio.file.Path;
+
 public class DefaultToolchainJavaLauncher implements JavaLauncher {
 
     private final JavaToolchain javaToolchain;
@@ -30,8 +32,8 @@ public class DefaultToolchainJavaLauncher implements JavaLauncher {
 
     @Override
     @Internal
-    public String getExecutable() {
-        return javaToolchain.findExecutable("java").getAbsolutePath();
+    public Path getExecutable() {
+        return javaToolchain.findExecutable("java");
     }
 
     @Override
