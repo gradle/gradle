@@ -150,7 +150,7 @@ As far as configurations go, the main ones of interest are:
 
 You can learn more about these and how they relate to one another in the <<java_plugin.adoc#sec:java_plugin_and_dependency_management,plugin reference chapter>>.
 
-Be aware that the <<java_library_plugin.adoc#java_library_plugin,Java Library Plugin>> creates an additional configuration — `api` — for dependencies that are required for compiling both the module and any modules that depend on it.
+Be aware that the <<java_library_plugin.adoc#java_library_plugin,Java Library Plugin>> offers two additional configuration — `api` and `compileOnlyApi` — for dependencies that are required for compiling both the module and any modules that depend on it.
 
 [NOTE]
 .Why no `compile` configuration?
