@@ -18,7 +18,6 @@ package org.gradle.api.tasks.compile;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multimap;
-import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.Project;
@@ -48,7 +47,6 @@ import org.gradle.api.jvm.ModularitySpec;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.model.ReplacedBy;
 import org.gradle.api.provider.Property;
-import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.CompileClasspath;
 import org.gradle.api.tasks.InputFiles;
@@ -70,9 +68,7 @@ import org.gradle.jvm.internal.toolchain.JavaToolChainInternal;
 import org.gradle.jvm.platform.JavaPlatform;
 import org.gradle.jvm.platform.internal.DefaultJavaPlatform;
 import org.gradle.jvm.toolchain.JavaCompiler;
-import org.gradle.jvm.toolchain.JavaCompilerQueryService;
 import org.gradle.jvm.toolchain.JavaToolChain;
-import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.gradle.jvm.toolchain.internal.DefaultToolchainJavaCompiler;
 import org.gradle.jvm.toolchain.internal.JavaToolchain;
 import org.gradle.language.base.internal.compile.Compiler;
@@ -120,11 +116,6 @@ public class JavaCompile extends AbstractCompile implements HasCompileOptions {
         modularity = objectFactory.newInstance(DefaultModularitySpec.class);
         javaCompiler = objectFactory.property(JavaCompiler.class);
         javaCompiler.finalizeValueOnRead();
-    }
-
-    @Inject
-    protected JavaCompilerQueryService getCompilerQueryService() {
-        throw new UnsupportedOperationException();
     }
 
     /**
@@ -184,19 +175,6 @@ public class JavaCompile extends AbstractCompile implements HasCompileOptions {
     @Optional
     public Property<JavaCompiler> getJavaCompiler() {
         return javaCompiler;
-    }
-
-    /**
-     * Obtain a {@link JavaCompiler} matching the {@link JavaToolchainSpec} which can then be used to configure the compiler used by this task.
-     *
-     * @param action The action to configure the {@code JavaToolchainSpec}
-     * @return A {@code Provider<JavaCompiler>}
-     *
-     * @since 6.7
-     */
-    @Incubating
-    public Provider<JavaCompiler> toolchainCompiler(Action<? super JavaToolchainSpec> action) {
-        return getCompilerQueryService().compilerFrom(action);
     }
 
     /**

@@ -38,7 +38,7 @@ class TestTaskToolchainIntegrationTest extends AbstractPluginIntegrationTest {
             }
 
             tasks.withType(JavaCompile).configureEach {
-                javaCompiler = toolchainCompiler {
+                javaCompiler = javaToolchains.compilerFrom {
                     languageVersion = JavaVersion.${jdk.javaVersion.name()}
                 }
             }
