@@ -245,9 +245,9 @@ So it’s either a bug we need to fix, or your build is lacking the declaration 
 Why am I always getting “Received 8 file system events since last build” even though I only changed one file?::
 These are harmless notifications about changes to Gradle's own caches that happen after file watching has started.
 
-`Dropped VFS state due to lost state`::
-_Please https://gradle-community.slack.com/app_redirect?channel=file-system-watching[let us know on the Gradle community Slack] if that happens to you._
-This message means that either
+VFS state is dropped due to lost state::
+If you receive the `Dropped VFS state due to lost state` message during the build, _please https://gradle-community.slack.com/app_redirect?channel=file-system-watching[let us know on the Gradle community Slack] if that happens to you._
+This message means that either:
 +
 --
 - the daemon received some unknown file system event,
@@ -255,8 +255,8 @@ This message means that either
 --
 In both cases the build cannot benefit from file system watching.
 
-`java.io.IOException: Too many open files`::
-If you receive this error on macOS, you need to raise your open files limit, see https://superuser.com/a/443168/8117[here].
+Too many open files on macOS::
+If you receive the `java.io.IOException: Too many open files` error on macOS, you need to raise your open files limit, see https://superuser.com/a/443168/8117[here].
 
 [[sec:inotify_watches_limit]]
 ===  Linux-specific notes
