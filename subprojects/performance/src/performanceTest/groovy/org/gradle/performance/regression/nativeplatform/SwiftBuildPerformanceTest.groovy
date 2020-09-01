@@ -79,15 +79,10 @@ class SwiftBuildPerformanceTest extends AbstractCrossVersionGradleProfilerPerfor
             }
         }
 
-//        @Override
-//        protected void applyChangeTo(StringBuilder text) {
-//            def location = text.indexOf("public init() { }")
-//            text.insert(location, "var ${uniqueText} : Int = 0\n    ")
-//        }
-
         @Override
         protected void applyChangeTo(BuildContext context, StringBuilder text) {
-
+            def location = text.indexOf("public init() { }")
+            text.insert(location, "var ${context.getUniqueBuildId()} : Int = 0\n    ")
         }
     }
 
