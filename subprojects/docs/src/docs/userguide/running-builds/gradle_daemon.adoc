@@ -237,13 +237,33 @@ File system watching currently has the following limitations:
 - When multiple daemons are running, the idle ones can pick up the changes produced by the others and create large log files with lots of debug info about the changes.
 - On Windows, we don’t support SUBST and network drives (they might work, but we don’t test them yet).
 
-Gradle does not pick up some of my changes.::
+Enable verbose logging::
+You can instruct Gradle to some more information about the state of the virtual file system, and the events received from the file system using the `org.gradle.vfs.verbose` flag.
+This produces the following output at the start and end of the build:
++
+----
+$ gradle assemble --watch-fs -Dorg.gradle.vfs.verbose=true
+Received 3 file system events since last build while watching 1 hierarchies
+Virtual file system retained information about 2 files, 2 directories and 0 missing files since last build
+> Task :compileJava NO-SOURCE
+> Task :processResources NO-SOURCE
+> Task :classes UP-TO-DATE
+> Task :jar UP-TO-DATE
+> Task :assemble UP-TO-DATE
+
+BUILD SUCCESSFUL in 58ms
+1 actionable task: 1 up-to-date
+Received 5 file system events during the current build while watching 1 hierarchies
+Virtual file system retains information about 3 files, 2 directories and 2 missing files until next build
+----
++
+Note that on Windows and macOS Gradle might report changes received since the last build even if you haven't changed anything.
+These are harmless notifications about changes to Gradle's own caches and can be ignored safely.
+
+Gradle does not pick up some of my changes::
 _Please https://gradle-community.slack.com/app_redirect?channel=file-system-watching[let us know on the Gradle community Slack] if that happens to you._
 If your build declares its inputs and outputs correctly, this should not happen.
 So it’s either a bug we need to fix, or your build is lacking the declaration of some inputs or outputs.
-
-Why am I always getting “Received 8 file system events since last build” even though I only changed one file?::
-These are harmless notifications about changes to Gradle's own caches that happen after file watching has started.
 
 VFS state is dropped due to lost state::
 If you receive the `Dropped VFS state due to lost state` message during the build, _please https://gradle-community.slack.com/app_redirect?channel=file-system-watching[let us know on the Gradle community Slack] if that happens to you._
