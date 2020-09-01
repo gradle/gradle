@@ -9,4 +9,18 @@ extensions.configure<SwiftXCTestSuite>() {
         runTask.get().reports.html.isEnabled = false
     }
 }
+
+configurations.create("binaryTestResultsElements") {
+    isCanBeResolved = false
+    isCanBeConsumed = true
+    attributes {
+        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.DOCUMENTATION))
+        attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named("test-report-data"))
+    }
+    afterEvaluate {
+        tasks.withType<XCTest>().forEach {
+            outgoing.artifact(it.binaryResultsDirectory)
+        }
+    }
+}
 // end::test-report[]

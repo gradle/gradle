@@ -11,4 +11,21 @@ xctest {
         }
     }
 }
+
+// Share the test report data to be aggregated for the whole project
+configurations {
+    binaryTestResultsElements {
+        canBeResolved = false
+        canBeConsumed = true
+        attributes {
+            attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.DOCUMENTATION))
+            attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named(DocsType, 'test-report-data'))
+        }
+        afterEvaluate {
+            tasks.withType(XCTest).each {
+                outgoing.artifact(it.binaryResultsDirectory)
+            }
+        }
+    }
+}
 // end::test-report[]
