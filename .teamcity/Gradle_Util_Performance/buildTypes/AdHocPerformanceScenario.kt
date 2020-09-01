@@ -52,6 +52,7 @@ abstract class AdHocPerformanceScenario(os: Os) : BuildType({
         }
         gradleWrapper {
             name = "GRADLE_RUNNER"
+            workingDir = os.perfTestWorkingDir
             gradleParams = (
                 performanceTestCommandLine(
                     "clean %templates% performance:performanceAdHocTest",
