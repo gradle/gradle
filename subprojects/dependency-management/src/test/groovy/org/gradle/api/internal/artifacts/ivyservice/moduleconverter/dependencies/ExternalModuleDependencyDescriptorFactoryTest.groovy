@@ -23,14 +23,18 @@ import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentSelector
 import org.gradle.api.internal.artifacts.VersionConstraintInternal
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
-import org.gradle.internal.component.local.model.OpaqueComponentIdentifier
 import org.gradle.internal.component.model.LocalOriginDependencyMetadata
 
 class ExternalModuleDependencyDescriptorFactoryTest extends AbstractDependencyDescriptorFactoryInternalSpec {
 
     ExternalModuleIvyDependencyDescriptorFactory externalModuleDependencyDescriptorFactory =
             new ExternalModuleIvyDependencyDescriptorFactory(excludeRuleConverterStub)
-    private final ComponentIdentifier componentId = new OpaqueComponentIdentifier("foo")
+    private final ComponentIdentifier componentId = new ComponentIdentifier() {
+        @Override
+        String getDisplayName() {
+            return "example"
+        }
+    }
 
     def canConvert() {
         expect:
