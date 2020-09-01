@@ -95,7 +95,7 @@ class ChangesDuringTheBuildFileSystemWatchingIntegrationTest extends AbstractFil
         """
 
         when:
-        runWithRetentionAndDoChangesWhen("consumer", "userInput") {
+        runWithFileSystemWatchingAndMakeChangesWhen("consumer", "userInput") {
             inputFile.text = "initial"
             waitForChangesToBePickedUp()
         }
@@ -105,7 +105,7 @@ class ChangesDuringTheBuildFileSystemWatchingIntegrationTest extends AbstractFil
         projectFilesInVfs >= 1
 
         when:
-        runWithRetentionAndDoChangesWhen("consumer", "userInput") {
+        runWithFileSystemWatchingAndMakeChangesWhen("consumer", "userInput") {
             inputFile.text = "changed"
             waitForChangesToBePickedUp()
         }
@@ -136,7 +136,7 @@ class ChangesDuringTheBuildFileSystemWatchingIntegrationTest extends AbstractFil
 
         when:
         inputFile.text = "initial"
-        runWithRetentionAndDoChangesWhen("waitForUserChanges", "userInput") {
+        runWithFileSystemWatchingAndMakeChangesWhen("waitForUserChanges", "userInput") {
             inputFile.text = "changed"
             waitForChangesToBePickedUp()
         }
@@ -146,7 +146,7 @@ class ChangesDuringTheBuildFileSystemWatchingIntegrationTest extends AbstractFil
         projectFilesInVfs == 1
 
         when:
-        runWithRetentionAndDoChangesWhen("waitForUserChanges", "userInput") {
+        runWithFileSystemWatchingAndMakeChangesWhen("waitForUserChanges", "userInput") {
             inputFile.text = "changedAgain"
             waitForChangesToBePickedUp()
         }
@@ -165,7 +165,7 @@ class ChangesDuringTheBuildFileSystemWatchingIntegrationTest extends AbstractFil
         projectFilesInVfs == 2
     }
 
-    private void runWithRetentionAndDoChangesWhen(String task, String expectedCall, Closure action) {
+    private void runWithFileSystemWatchingAndMakeChangesWhen(String task, String expectedCall, Closure action) {
         def handle = withWatchFs().executer.withTasks(task).start()
         def userInput = server.expectAndBlock(expectedCall)
         userInput.waitForAllPendingCalls()
