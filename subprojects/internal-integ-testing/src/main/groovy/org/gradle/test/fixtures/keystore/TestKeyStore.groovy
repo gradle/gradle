@@ -50,7 +50,7 @@ class TestKeyStore {
         trustStore = rootDir.file("serverStore")
 
         copyCertFile("test-key-store/keyStore", keyStore)
-        copyCertFile("test-key-store/trustStore-adoptopenjdk-8", trustStore)
+        copyCertFile("test-key-store/trustStore-adoptopenjdk-8.bin", trustStore)
     }
 
     private static void copyCertFile(String s, TestFile clientStore) {
