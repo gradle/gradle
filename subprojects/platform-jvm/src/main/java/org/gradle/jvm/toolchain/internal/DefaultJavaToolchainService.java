@@ -36,17 +36,17 @@ public class DefaultJavaToolchainService implements JavaToolchainService {
     }
 
     @Override
-    public Provider<JavaCompiler> compilerFrom(Action<? super JavaToolchainSpec> config) {
-        return queryService.compilerFrom(config);
+    public Provider<JavaCompiler> compilerFor(Action<? super JavaToolchainSpec> config) {
+        return queryService.compilerFor(config);
     }
 
     @Override
-    public Provider<JavaLauncher> launcherFrom(Action<? super JavaToolchainSpec> config) {
-        return queryService.launcherFrom(config);
+    public Provider<JavaLauncher> launcherFor(Action<? super JavaToolchainSpec> config) {
+        return queryService.launcherFor(config);
     }
 
     @Override
-    public Provider<JavadocTool> javadocToolFrom(Action<? super JavaToolchainSpec> config) {
-        return queryService.javadocToolFrom(config);
+    public Provider<JavadocTool> javadocToolFor(Action<? super JavaToolchainSpec> config) {
+        return queryService.javadocToolFor(config);
     }
 }

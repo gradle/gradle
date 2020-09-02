@@ -47,15 +47,15 @@ public class JavaToolchainQueryService {
         this.objectFactory = objectFactory;
     }
 
-    Provider<JavaCompiler> compilerFrom(Action<? super JavaToolchainSpec> config) {
+    Provider<JavaCompiler> compilerFor(Action<? super JavaToolchainSpec> config) {
         return findMatchingToolchain(configureToolchainSpec(config)).map(JavaToolchain::getJavaCompiler);
     }
 
-    Provider<JavaLauncher> launcherFrom(Action<? super JavaToolchainSpec> config) {
+    Provider<JavaLauncher> launcherFor(Action<? super JavaToolchainSpec> config) {
         return findMatchingToolchain(configureToolchainSpec(config)).map(JavaToolchain::getJavaLauncher);
     }
 
-    Provider<JavadocTool> javadocToolFrom(Action<? super JavaToolchainSpec> config) {
+    Provider<JavadocTool> javadocToolFor(Action<? super JavaToolchainSpec> config) {
         return findMatchingToolchain(configureToolchainSpec(config)).map(JavaToolchain::getJavadocTool);
     }
 

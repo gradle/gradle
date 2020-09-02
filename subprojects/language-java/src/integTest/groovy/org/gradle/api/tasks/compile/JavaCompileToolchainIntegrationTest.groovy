@@ -33,7 +33,7 @@ class JavaCompileToolchainIntegrationTest extends AbstractPluginIntegrationTest 
             apply plugin: "java"
 
             compileJava {
-                javaCompiler = javaToolchains.compilerFrom {
+                javaCompiler = javaToolchains.compilerFor {
                     languageVersion = JavaLanguageVersion.of(${jdk.javaVersion.majorVersion})
                 }
             }
