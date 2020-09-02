@@ -73,7 +73,6 @@ dependencies {
     implementation(testFixtures(project(":core")))
     implementation(testFixtures(project(":tooling-api")))
 
-
     runtimeOnly("mysql:mysql-connector-java:8.0.17")
 
     integTestDistributionRuntimeOnly(project(":distributions-core"))

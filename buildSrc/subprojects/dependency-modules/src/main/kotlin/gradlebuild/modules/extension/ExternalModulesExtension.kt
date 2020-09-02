@@ -137,6 +137,7 @@ abstract class ExternalModulesExtension {
     val httpmime = "org.apache.httpcomponents:httpmime"
     val jacksonKotlin = "com.fasterxml.jackson.module:jackson-module-kotlin"
     val jetty = "org.mortbay.jetty:jetty"
+    val joptSimple = "net.sf.jopt-simple:jopt-simple"
     val jsoup = "org.jsoup:jsoup"
     val jtar = "org.kamranzafar:jtar"
     val kotlinCoroutines = "org.jetbrains.kotlinx:kotlinx-coroutines-core"
@@ -153,7 +154,6 @@ abstract class ExternalModulesExtension {
     val sshdSftp = "org.apache.sshd:sshd-sftp"
     val testcontainersSpock = "org.testcontainers:spock"
     val xmlunit = "xmlunit:xmlunit"
-    val joptSimple = "net.sf.jopt-simple:jopt-simple"
 
     val licenses = mapOf(
         aetherApi to License.EPL,

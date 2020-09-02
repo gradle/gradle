@@ -172,6 +172,6 @@ dependencies {
         api(libs.sshdSftp)              { version { strictly(sshdVersion) }}
         api(libs.testcontainersSpock)   { version { strictly("1.12.5") }}
         api(libs.xmlunit)               { version { strictly("1.6") }}
-        api(libs.joptSimple)           { version { strictly("5.0.4"); because("Gradle profiler needs to create from OptionSet") }}
+        api(libs.joptSimple)           { version { strictly("5.0.4"); because("needed to create profiler in Gradle profiler API") }}
     }
 }
