@@ -17,11 +17,11 @@
 package org.gradle.performance.regression.java
 
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheOption
-import org.gradle.performance.AbstractCrossVersionGradleInternalPerformanceTest
+import org.gradle.performance.AbstractCrossVersionGradleProfilerPerformanceTest
 import org.gradle.performance.categories.PerformanceRegressionTest
-import org.gradle.performance.fixture.BuildExperimentInvocationInfo
-import org.gradle.performance.fixture.BuildExperimentListener
-import org.gradle.performance.measure.MeasuredOperation
+import org.gradle.profiler.BuildContext
+import org.gradle.profiler.BuildMutator
+import org.gradle.profiler.InvocationSettings
 import org.junit.experimental.categories.Category
 import spock.lang.Unroll
 
@@ -32,7 +32,7 @@ import static org.gradle.performance.generator.JavaTestProject.SMALL_JAVA_MULTI_
 import static org.junit.Assert.assertTrue
 
 @Category(PerformanceRegressionTest)
-class JavaConfigurationCachePerformanceTest extends AbstractCrossVersionGradleInternalPerformanceTest {
+class JavaConfigurationCachePerformanceTest extends AbstractCrossVersionGradleProfilerPerformanceTest {
 
     private File stateDirectory
 
@@ -52,7 +52,7 @@ class JavaConfigurationCachePerformanceTest extends AbstractCrossVersionGradleIn
 
         and:
         runner.useDaemon = daemon == hot
-        runner.addBuildExperimentListener(listenerFor(action))
+        runner.addBuildMutator { configurationCacheInvocationListenerFor(it, action, stateDirectory) }
         runner.warmUpRuns = daemon == hot ? 20 : 1
         runner.runs = daemon == hot ? 60 : 25
 
@@ -74,35 +74,33 @@ class JavaConfigurationCachePerformanceTest extends AbstractCrossVersionGradleIn
 //        SMALL_JAVA_MULTI_PROJECT_NO_BUILD_SRC | cold   | storing
     }
 
-    private BuildExperimentListener listenerFor(String action) {
-        return configurationCacheInvocationListenerFor(action, stateDirectory)
-    }
-
     static String loading = "loading"
     static String storing = "storing"
     static String hot = "hot"
     static String cold = "cold"
 
-    static BuildExperimentListener configurationCacheInvocationListenerFor(String action, File stateDirectory) {
-        return new BuildExperimentListener() {
+    static BuildMutator configurationCacheInvocationListenerFor(InvocationSettings invocationSettings, String action, File stateDirectory) {
+        return new BuildMutator() {
             @Override
-            void beforeInvocation(BuildExperimentInvocationInfo invocationInfo) {
+            void beforeBuild(BuildContext context) {
                 if (action == storing) {
                     stateDirectory.deleteDir()
                 }
             }
 
             @Override
-            void afterInvocation(BuildExperimentInvocationInfo invocationInfo, MeasuredOperation operation, BuildExperimentListener.MeasurementCallback measurementCallback) {
-                if (invocationInfo.iterationNumber > 1) {
+            void afterBuild(BuildContext context, Throwable error) {
+                if (context.iteration > 1) {
                     def tag = action == storing
                         ? "Calculating task graph as no configuration cache is available"
                         : "Reusing configuration cache"
-                    def found = Files.lines(invocationInfo.buildLog.toPath()).withCloseable { lines ->
+                    File buildLog = new File(invocationSettings.projectDir, "log.txt")
+
+                    def found = Files.lines(buildLog.toPath()).withCloseable { lines ->
                         lines.anyMatch { line -> line.contains(tag) }
                     }
                     if (!found) {
-                        assertTrue("Configuration cache log '$tag' not found in '$invocationInfo.buildLog'\n\n$invocationInfo.buildLog.text", found)
+                        assertTrue("Configuration cache log '$tag' not found in '$buildLog'\n\n$buildLog.text", found)
                     }
                 }
             }
