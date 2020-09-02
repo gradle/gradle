@@ -163,8 +163,6 @@ rootProject.name = "gradle"
 
 for (project in rootProject.children) {
     project.projectDir = file("subprojects/${project.name}")
-    // TODO convert docs/build.gradle to Kotlin DSL https://github.com/gradle/gradle/issues/14393
-    project.buildFileName = "build.gradle${if (project.name == "docs") "" else ".kts"}"
 }
 
 FeaturePreviews.Feature.values().forEach { feature ->
