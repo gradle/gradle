@@ -65,8 +65,8 @@ class TaskOutputCachingJavaPerformanceTest extends AbstractTaskOutputCachingPerf
         setupTestProject(testProject, tasks)
         protocol = "https"
         pushToRemote = true
-        runner.addBuildExperimentListener(cleanLocalCache())
-        runner.addBuildExperimentListener(touchCacheArtifacts())
+        runner.addBuildMutator { cleanLocalCache() }
+        runner.addBuildMutator { touchCacheArtifacts() }
 
         def keyStore = TestKeyStore.init(temporaryFolder.file('ssl-keystore'))
         keyStore.enableSslWithServerCert(buildCacheServer)
