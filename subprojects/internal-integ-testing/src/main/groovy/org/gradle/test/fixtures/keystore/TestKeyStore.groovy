@@ -35,20 +35,19 @@ class TestKeyStore {
     /*
      clientStore/serverStore only contains self-signed certificates for embedded HTTPS server.
      To make the client work with both embedded HTTPS server and real-world HTTPS server (e.g. Maven Central),
-     we need to merge JDK's cacerts into the custom keystore/truststore via:
+     we need to merge JDK's cacerts into the custom truststore via:
 
-     keytool -importkeystore -srckeystore <JDK cacerts file location> -destkeystore <resource>/test-key-store/keyStore
      keytool -importkeystore -srckeystore <JDK cacerts file location> -destkeystore <resource>/test-key-store/trustStore
 
      Note that default password for JDK cacerts is "changeit".
 
-     The current keyStore-adoptopenjdk-8/trustStore-adoptopenjdk-8 is created from AdoptOpenJDK8 cacerts.
+     The current trustStore-adoptopenjdk-8 is created from AdoptOpenJDK8 cacerts.
      */
     private TestKeyStore(TestFile rootDir) {
         keyStore = rootDir.file("clientStore")
         trustStore = rootDir.file("serverStore")
 
-        copyCertFile("test-key-store/keyStore-adoptopenjdk-8", keyStore)
+        copyCertFile("test-key-store/keyStore", keyStore)
         copyCertFile("test-key-store/trustStore-adoptopenjdk-8", trustStore)
     }
 
