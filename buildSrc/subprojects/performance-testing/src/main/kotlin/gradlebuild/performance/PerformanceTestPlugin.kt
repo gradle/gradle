@@ -107,7 +107,6 @@ class PerformanceTestPlugin : Plugin<Project> {
         createCheckNoIdenticalBuildFilesTask()
         configureGeneratorTasks()
 
-        createPrepareSamplesTask()
         createCleanSamplesTask()
 
         createLocalPerformanceTestTasks(performanceTestSourceSet)
@@ -193,16 +192,6 @@ class PerformanceTestPlugin : Plugin<Project> {
             sharedTemplateDirectory = project(":internal-performance-testing").file("src/templates")
         }
     }
-
-    private
-    fun Project.createPrepareSamplesTask(): TaskProvider<Task> =
-        tasks.register("prepareSamples") {
-            group = "Project Setup"
-            description = "Generates all sample projects for automated performance tests"
-            configureSampleGenerators {
-                this@register.dependsOn(this)
-            }
-        }
 
     private
     fun Project.configureSampleGenerators(action: TaskCollection<*>.() -> Unit) {
