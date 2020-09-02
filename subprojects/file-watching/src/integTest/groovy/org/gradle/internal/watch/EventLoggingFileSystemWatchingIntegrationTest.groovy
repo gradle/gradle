@@ -17,6 +17,7 @@
 package org.gradle.internal.watch
 
 import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
+import org.gradle.test.fixtures.ConcurrentTestUtil
 
 class EventLoggingFileSystemWatchingIntegrationTest extends AbstractFileSystemWatchingIntegrationTest {
 
@@ -36,15 +37,17 @@ class EventLoggingFileSystemWatchingIntegrationTest extends AbstractFileSystemWa
 
         when:
         withWatchFs().run("assemble")
+        def daemon = new DaemonLogsAnalyzer(executer.daemonBaseDir).daemon
         then:
         vfsLogs.retainedFilesInCurrentBuild >= 4
+        // Make sure the daemon is already idle before making the file changes
+        daemon.becomesIdle()
 
         when:
         sourceFile.text = "public class MyClass { private void doStuff() {} }"
         waitForChangesToBePickedUp()
         sourceFile.text = "public class MyClass { private void doStuff1() {} }"
         waitForChangesToBePickedUp()
-        def daemon = new DaemonLogsAnalyzer(executer.daemonBaseDir).daemon
         then:
         // The first modification removes the VFS entry, so the second modification doesn't have an effect on the VFS.
         daemon.log.count("Handling VFS change MODIFIED ${file().absolutePath}") == 1

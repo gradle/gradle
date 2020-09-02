@@ -58,6 +58,7 @@ class ContinuousBuildFileWatchingIntegrationTest extends AbstractContinuousInteg
 
         when:
         sourceFile.text = "class Thing { public void doStuff() {} }"
+        waitForChangesToBePickedUp()
 
         then:
         succeeds()
