@@ -22,7 +22,10 @@ import org.gradle.integtests.fixtures.FileSystemWatchingHelper
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import spock.lang.IgnoreIf
 
-@IgnoreIf({ GradleContextualExecuter.noDaemon || GradleContextualExecuter.watchFs }) // See AbstractFileSystemWatchingIntegrationTest
+@IgnoreIf({
+	GradleContextualExecuter.noDaemon || // There is no shared state without a daemon
+        GradleContextualExecuter.watchFs // The test manually enables file system watching
+})
 class ContinuousBuildFileWatchingIntegrationTest extends AbstractContinuousIntegrationTest implements FileSystemWatchingFixture {
 
     def setup() {
