@@ -81,7 +81,7 @@ class EnableFileSystemWatchingIntegrationTest extends AbstractFileSystemWatching
             apply plugin: "java"
         """
         when:
-        run("assemble", "--watch-fs", "-D${StartParameterBuildOptions.VerboseVfsLoggingOption.GRADLE_PROPERTY}=true")
+        run("assemble", "--watch-fs", "-D${StartParameterBuildOptions.VfsVerboseLoggingOption.GRADLE_PROPERTY}=true")
         then:
         !(result.output =~ /Received \d+ file system events since last build while watching \d+ hierarchies/)
         !(result.output =~ /Virtual file system retained information about \d+ files, \d+ directories and \d+ missing files since last build/)
@@ -89,7 +89,7 @@ class EnableFileSystemWatchingIntegrationTest extends AbstractFileSystemWatching
         result.output =~ /Virtual file system retains information about \d+ files, \d+ directories and \d+ missing files until next build/
 
         when:
-        run("assemble", "--watch-fs", "-D${StartParameterBuildOptions.VerboseVfsLoggingOption.GRADLE_PROPERTY}=true")
+        run("assemble", "--watch-fs", "-D${StartParameterBuildOptions.VfsVerboseLoggingOption.GRADLE_PROPERTY}=true")
         then:
         result.output =~ /Received \d+ file system events since last build while watching \d+ hierarchies/
         result.output =~ /Virtual file system retained information about \d+ files, \d+ directories and \d+ missing files since last build/
@@ -97,7 +97,7 @@ class EnableFileSystemWatchingIntegrationTest extends AbstractFileSystemWatching
         result.output =~ /Virtual file system retains information about \d+ files, \d+ directories and \d+ missing files until next build/
 
         when:
-        run("assemble", "--watch-fs", "-D${StartParameterBuildOptions.VerboseVfsLoggingOption.GRADLE_PROPERTY}=false")
+        run("assemble", "--watch-fs", "-D${StartParameterBuildOptions.VfsVerboseLoggingOption.GRADLE_PROPERTY}=false")
         then:
         !(result.output =~ /Received \d+ file system events since last build while watching \d+ hierarchies/)
         !(result.output =~ /Virtual file system retained information about \d+ files, \d+ directories and \d+ missing files since last build/)

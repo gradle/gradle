@@ -47,7 +47,7 @@ public class FileSystemWatchingBuildActionRunner implements BuildActionRunner {
         BuildOperationRunner buildOperationRunner = gradle.getServices().get(BuildOperationRunner.class);
 
         boolean watchFileSystem = startParameter.isWatchFileSystem();
-        boolean verboseVfsLogging = startParameter.isVerboseVfsLogging();
+        boolean verboseVfsLogging = startParameter.isVfsVerboseLogging();
         boolean debugWatchLogging = startParameter.isWatchFileSystemDebugLogging();
 
         logMessageForDeprecatedWatchFileSystemProperty(startParameter);

@@ -65,7 +65,7 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         options.add(new WatchFileSystemOption());
         options.add(new WatchFileSystemDebugLoggingOption());
         options.add(new DeprecatedWatchFileSystemOption());
-        options.add(new VerboseVfsLoggingOption());
+        options.add(new VfsVerboseLoggingOption());
         options.add(new BuildScanOption());
         options.add(new DependencyLockingWriteOption());
         options.add(new DependencyVerificationWriteOption());
@@ -341,16 +341,16 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         }
     }
 
-    public static class VerboseVfsLoggingOption extends BooleanBuildOption<StartParameterInternal> {
+    public static class VfsVerboseLoggingOption extends BooleanBuildOption<StartParameterInternal> {
         public static final String GRADLE_PROPERTY = "org.gradle.vfs.verbose";
 
-        public VerboseVfsLoggingOption() {
+        public VfsVerboseLoggingOption() {
             super(GRADLE_PROPERTY);
         }
 
         @Override
         public void applyTo(boolean value, StartParameterInternal startParameter, Origin origin) {
-            startParameter.setVerboseVfsLogging(value);
+            startParameter.setVfsVerboseLogging(value);
         }
     }
 

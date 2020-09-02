@@ -25,7 +25,7 @@ public class StartParameterInternal extends StartParameter {
     private boolean watchFileSystem;
     private boolean watchFileSystemDebugLogging;
     private boolean watchFileSystemUsingDeprecatedOption;
-    private boolean verboseVfsLogging;
+    private boolean vfsVerboseLogging;
 
     private boolean configurationCache;
     private ConfigurationCacheProblemsOption.Value configurationCacheProblems = ConfigurationCacheProblemsOption.Value.FAIL;
@@ -49,7 +49,7 @@ public class StartParameterInternal extends StartParameter {
         p.watchFileSystem = watchFileSystem;
         p.watchFileSystemDebugLogging = watchFileSystemDebugLogging;
         p.watchFileSystemUsingDeprecatedOption = watchFileSystemUsingDeprecatedOption;
-        p.verboseVfsLogging = verboseVfsLogging;
+        p.vfsVerboseLogging = vfsVerboseLogging;
         p.configurationCache = configurationCache;
         p.configurationCacheProblems = configurationCacheProblems;
         p.configurationCacheMaxProblems = configurationCacheMaxProblems;
@@ -106,12 +106,12 @@ public class StartParameterInternal extends StartParameter {
         this.watchFileSystemUsingDeprecatedOption = watchFileSystemUsingDeprecatedOption;
     }
 
-    public boolean isVerboseVfsLogging() {
-        return verboseVfsLogging;
+    public boolean isVfsVerboseLogging() {
+        return vfsVerboseLogging;
     }
 
-    public void setVerboseVfsLogging(boolean verboseVfsLogging) {
-        this.verboseVfsLogging = verboseVfsLogging;
+    public void setVfsVerboseLogging(boolean vfsVerboseLogging) {
+        this.vfsVerboseLogging = vfsVerboseLogging;
     }
 
     public boolean isConfigurationCache() {

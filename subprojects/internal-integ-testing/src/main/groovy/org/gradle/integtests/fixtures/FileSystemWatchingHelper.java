@@ -41,7 +41,7 @@ public class FileSystemWatchingHelper {
     }
 
     public static String getVerboseVfsLoggingArgument() {
-        return systemProperty(StartParameterBuildOptions.VerboseVfsLoggingOption.GRADLE_PROPERTY, true);
+        return systemProperty(StartParameterBuildOptions.VfsVerboseLoggingOption.GRADLE_PROPERTY, true);
     }
 
     private static String systemProperty(String key, Object value) {
