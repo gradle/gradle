@@ -101,7 +101,7 @@ class AdoptOpenJdkRemoteBinaryTest extends Specification {
 
         when:
         def uri
-        def properties = ["org.gradle.jvm.toolchain.install.internal.adoptopenjdk.baseUri": customBaseUrl]
+        def properties = ["org.gradle.jvm.toolchain.install.adoptopenjdk.baseUri": customBaseUrl]
         SystemProperties.getInstance().withSystemProperties(properties, {
             uri = binary.toDownloadUri(spec)
         })
