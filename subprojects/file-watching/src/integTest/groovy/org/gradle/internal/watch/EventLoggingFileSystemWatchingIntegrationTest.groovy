@@ -17,6 +17,7 @@
 package org.gradle.internal.watch
 
 import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
+import org.gradle.test.fixtures.ConcurrentTestUtil
 
 class EventLoggingFileSystemWatchingIntegrationTest extends AbstractFileSystemWatchingIntegrationTest {
 
@@ -48,7 +49,10 @@ class EventLoggingFileSystemWatchingIntegrationTest extends AbstractFileSystemWa
         sourceFile.text = "public class MyClass { private void doStuff1() {} }"
         waitForChangesToBePickedUp()
         then:
-        // The first modification removes the VFS entry, so the second modification doesn't have an effect on the VFS.
-        daemon.log.count("Handling VFS change MODIFIED ${file().absolutePath}") <= 1
+        // On Windows, it may take some extra time until the event occurs
+        ConcurrentTestUtil.poll {
+            // The first modification removes the VFS entry, so the second modification doesn't have an effect on the VFS.
+            assert daemon.log.count("Handling VFS change MODIFIED ${file().absolutePath}") == 1
+        }
     }
 }
