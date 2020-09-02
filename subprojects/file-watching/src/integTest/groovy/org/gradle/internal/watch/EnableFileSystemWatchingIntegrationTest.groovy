@@ -83,26 +83,26 @@ class EnableFileSystemWatchingIntegrationTest extends AbstractFileSystemWatching
         when:
         run("assemble", "--watch-fs", "-D${StartParameterBuildOptions.WatchFileSystemVerboseLoggingOption.GRADLE_PROPERTY}=true")
         then:
-        !(result.output =~ /Received \d+ file system events since last build/)
+        !(result.output =~ /Received \d+ file system events since last build while watching \d+ hierarchies/)
         !(result.output =~ /Virtual file system retained information about \d+ files, \d+ directories and \d+ missing files since last build/)
+        result.output =~ /Received \d+ file system events during the current build while watching \d+ hierarchies/
         result.output =~ /Virtual file system retains information about \d+ files, \d+ directories and \d+ missing files until next build/
-        result.output =~ /Received \d+ file system events during the current build/
 
         when:
         run("assemble", "--watch-fs", "-D${StartParameterBuildOptions.WatchFileSystemVerboseLoggingOption.GRADLE_PROPERTY}=true")
         then:
-        result.output =~ /Received \d+ file system events since last build/
+        result.output =~ /Received \d+ file system events since last build while watching \d+ hierarchies/
         result.output =~ /Virtual file system retained information about \d+ files, \d+ directories and \d+ missing files since last build/
+        result.output =~ /Received \d+ file system events during the current build while watching \d+ hierarchies/
         result.output =~ /Virtual file system retains information about \d+ files, \d+ directories and \d+ missing files until next build/
-        result.output =~ /Received \d+ file system events during the current build/
 
         when:
         run("assemble", "--watch-fs", "-D${StartParameterBuildOptions.WatchFileSystemVerboseLoggingOption.GRADLE_PROPERTY}=false")
         then:
-        !(result.output =~ /Received \d+ file system events since last build/)
+        !(result.output =~ /Received \d+ file system events since last build while watching \d+ hierarchies/)
         !(result.output =~ /Virtual file system retained information about \d+ files, \d+ directories and \d+ missing files since last build/)
+        !(result.output =~ /Received \d+ file system events during the current build while watching \d+ hierarchies/)
         !(result.output =~ /Virtual file system retains information about \d+ files, \d+ directories and \d+ missing files until next build/)
-        !(result.output =~ /Received \d+ file system events during the current build/)
     }
 
     @Unroll

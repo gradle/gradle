@@ -74,9 +74,8 @@ val linkedPlugins =
         "groovy", "groovy-base",
         "help-tasks",
         "idea", "ivy-publish",
-        "jacoco", "java", "java-base", "java-gradle-plugin", "java-lang",
-        "java-library", "java-library-distribution", "junit-test-suite",
-        "jvm-component", "jvm-resources",
+        "jacoco", "java", "java-base", "java-gradle-plugin",
+        "java-library", "java-library-distribution",
         "maven", "maven-publish",
         "microsoft-visual-cpp-compiler",
         "native-component", "native-component-model",
@@ -93,6 +92,7 @@ val linkedPlugins =
 val unlinkedPlugins =
     listOf(
         "coffeescript-base", "envjs", "javascript-base", "jshint",
+        "java-lang", "junit-test-suite", "jvm-component", "jvm-resources",
         "language-base", "lifecycle-base",
         "publishing",
         "rhino",

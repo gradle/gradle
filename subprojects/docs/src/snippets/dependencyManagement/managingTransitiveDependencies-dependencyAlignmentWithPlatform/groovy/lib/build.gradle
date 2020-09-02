@@ -1,16 +1,8 @@
 plugins {
-    id 'java-library'
+    id 'myproject.java-library-conventions'
 }
 
 dependencies {
     // Each project has a dependency on the platform
     api(platform(project(":platform")))
-}
-
-publishing {
-    publications {
-        maven(MavenPublication) {
-            from components.java
-        }
-    }
 }
