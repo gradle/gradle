@@ -369,8 +369,8 @@ NOTE: You can use this feature to apply the `<dependencyManagement>` information
 [[migmvn:multimodule_builds]]
 == Migrating multi-module builds (project aggregation)
 
-Maven's multi-module builds map nicely to Gradle's <<multi_project_builds#,multi-project builds>>.
-Try the corresponding link:{guidesUrl}/creating-multi-project-builds/[tutorial] to see how a basic multi-project Gradle build is set up.
+Maven's multi-module builds map nicely to Gradle's <<multi_project_builds#multi_project_builds,multi-project builds>>.
+Try the corresponding link:../samples/sample_jvm_multi_project_build.html[sample] to see how a basic multi-project Gradle build is set up.
 
 To migrate a multi-module Maven build, simply follow these steps:
 
