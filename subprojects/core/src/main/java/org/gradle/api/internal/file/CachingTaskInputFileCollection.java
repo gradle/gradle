@@ -22,9 +22,9 @@ import org.gradle.api.internal.file.collections.FileCollectionAdapter;
 import org.gradle.api.internal.file.collections.ListBackedFileSet;
 import org.gradle.api.internal.provider.PropertyHost;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
-import org.gradle.api.internal.tasks.properties.LifecycleAwareValue;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.Factory;
+import org.gradle.internal.execution.LifecycleAwareValue;
 import org.gradle.internal.file.PathToFileResolver;
 
 import java.io.File;

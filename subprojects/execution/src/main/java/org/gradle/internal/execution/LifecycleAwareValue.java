@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.properties;
+package org.gradle.internal.execution;
 
 /**
  * An input property value may implement this interface to be notified when the task that owns it starts and completes execution.

@@ -17,7 +17,7 @@
 package org.gradle.api.internal.file;
 
 import org.gradle.api.internal.file.collections.MinimalFileSet;
-import org.gradle.api.internal.tasks.properties.LifecycleAwareValue;
+import org.gradle.internal.execution.LifecycleAwareValue;
 
 import java.io.File;
 import java.util.ArrayList;

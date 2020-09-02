@@ -34,6 +34,7 @@ import org.gradle.internal.execution.steps.CaptureStateBeforeExecutionStep
 import org.gradle.internal.execution.steps.CleanupNonIncrementalOutputsStep
 import org.gradle.internal.execution.steps.CreateOutputsStep
 import org.gradle.internal.execution.steps.ExecuteStep
+import org.gradle.internal.execution.steps.FinalizePropertiesStep
 import org.gradle.internal.execution.steps.LoadExecutionStateStep
 import org.gradle.internal.execution.steps.RecordOutputsStep
 import org.gradle.internal.execution.steps.ResolveCachingStateStep
@@ -133,6 +134,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
     WorkExecutor<ExecutionRequestContext, CachingResult> getExecutor() {
         // @formatter:off
         new DefaultWorkExecutor<>(
+            new FinalizePropertiesStep<>(
             new LoadExecutionStateStep<>(
             new ValidateStep<>(validationWarningReporter,
             new CaptureStateBeforeExecutionStep<>(buildOperationExecutor, classloaderHierarchyHasher, valueSnapshotter, overlappingOutputDetector,
@@ -147,7 +149,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
             new ResolveInputChangesStep<>(
             new CleanupNonIncrementalOutputsStep<>(deleter, outputChangeListener,
             new ExecuteStep<>(
-        )))))))))))))))
+        ))))))))))))))))
         // @formatter:on
     }
 

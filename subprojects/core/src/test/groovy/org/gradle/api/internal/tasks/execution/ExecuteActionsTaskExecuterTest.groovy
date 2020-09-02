@@ -52,6 +52,7 @@ import org.gradle.internal.execution.steps.CaptureStateBeforeExecutionStep
 import org.gradle.internal.execution.steps.CleanupNonIncrementalOutputsStep
 import org.gradle.internal.execution.steps.CleanupStaleOutputsStep
 import org.gradle.internal.execution.steps.ExecuteStep
+import org.gradle.internal.execution.steps.FinalizePropertiesStep
 import org.gradle.internal.execution.steps.LoadExecutionStateStep
 import org.gradle.internal.execution.steps.ResolveCachingStateStep
 import org.gradle.internal.execution.steps.ResolveChangesStep
@@ -153,6 +154,7 @@ class ExecuteActionsTaskExecuterTest extends Specification {
 
     // @formatter:off
     def workExecutor = new DefaultWorkExecutor<>(
+        new FinalizePropertiesStep<>(
         new CleanupStaleOutputsStep<>(buildOperationExecutor, cleanupRegistry, deleter, outputChangeListener, outputFilesRepository,
         new LoadExecutionStateStep<>(
         new SkipEmptyWorkStep<>(
@@ -167,7 +169,7 @@ class ExecuteActionsTaskExecuterTest extends Specification {
         new ResolveInputChangesStep<>(
         new CleanupNonIncrementalOutputsStep<>(deleter, outputChangeListener,
         new ExecuteStep<>(
-    )))))))))))))))
+    ))))))))))))))))
     // @formatter:on
 
     def executer = new ExecuteActionsTaskExecuter(

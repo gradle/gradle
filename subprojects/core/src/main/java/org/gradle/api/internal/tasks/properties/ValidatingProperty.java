@@ -17,6 +17,7 @@
 package org.gradle.api.internal.tasks.properties;
 
 import org.gradle.api.internal.tasks.TaskValidationContext;
+import org.gradle.internal.execution.LifecycleAwareValue;
 
 public interface ValidatingProperty extends LifecycleAwareValue {
     void validate(TaskValidationContext context);

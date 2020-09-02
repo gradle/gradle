@@ -40,6 +40,7 @@ dependencies {
     implementation(project(":ivy"))
     implementation(project(":tooling-api"))
     implementation(project(":version-control"))
+    implementation(project(":execution"))
 
     implementation(libs.groovy)
     implementation(libs.slf4jApi)

@@ -18,7 +18,7 @@ package org.gradle.api.internal.tasks
 
 
 import org.gradle.api.internal.tasks.properties.DefaultFinalizingValidatingProperty
-import org.gradle.api.internal.tasks.properties.LifecycleAwareValue
+import org.gradle.internal.execution.LifecycleAwareValue
 import org.gradle.api.internal.tasks.properties.PropertyValue
 import org.gradle.api.internal.tasks.properties.ValidationActions
 import spock.lang.Specification
