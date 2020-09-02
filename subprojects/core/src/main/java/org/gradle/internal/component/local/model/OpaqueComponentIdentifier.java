@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,18 +17,19 @@
 package org.gradle.internal.component.local.model;
 
 import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
 
 public class OpaqueComponentIdentifier implements ComponentIdentifier {
-    private final String displayName;
+    private final DependencyFactory.ClassPathNotation classPathNotation;
 
-    public OpaqueComponentIdentifier(String displayName) {
-        assert displayName != null : "display name cannot be null";
-        this.displayName = displayName;
+    public OpaqueComponentIdentifier(DependencyFactory.ClassPathNotation classPathNotation) {
+        assert classPathNotation != null;
+        this.classPathNotation = classPathNotation;
     }
 
     @Override
     public String getDisplayName() {
-        return displayName;
+        return classPathNotation.displayName;
     }
 
     @Override
@@ -42,16 +43,20 @@ public class OpaqueComponentIdentifier implements ComponentIdentifier {
 
         OpaqueComponentIdentifier that = (OpaqueComponentIdentifier) o;
 
-        return displayName.equals(that.displayName);
+        return classPathNotation.equals(that.classPathNotation);
     }
 
     @Override
     public int hashCode() {
-        return displayName.hashCode();
+        return classPathNotation.hashCode();
     }
 
     @Override
     public String toString() {
-        return displayName;
+        return getDisplayName();
+    }
+
+    public DependencyFactory.ClassPathNotation getClassPathNotation() {
+        return classPathNotation;
     }
 }

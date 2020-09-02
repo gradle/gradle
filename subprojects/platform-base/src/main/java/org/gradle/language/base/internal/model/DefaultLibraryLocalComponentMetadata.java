@@ -33,7 +33,6 @@ import org.gradle.internal.component.external.model.ImmutableCapabilities;
 import org.gradle.internal.component.local.model.BuildableLocalConfigurationMetadata;
 import org.gradle.internal.component.local.model.DefaultLibraryComponentSelector;
 import org.gradle.internal.component.local.model.DefaultLocalComponentMetadata;
-import org.gradle.internal.component.local.model.OpaqueComponentIdentifier;
 import org.gradle.internal.component.local.model.RootConfigurationMetadata;
 import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
@@ -162,7 +161,7 @@ public class DefaultLibraryLocalComponentMetadata extends DefaultLocalComponentM
      */
     private LocalOriginDependencyMetadata dependencyMetadataFor(ComponentSelector selector, String usageConfigurationName, String mappedUsageConfiguration) {
         return new LocalComponentDependencyMetadata(
-            new OpaqueComponentIdentifier("TODO"),
+            () -> "TODO",
             selector, usageConfigurationName, null, ImmutableAttributes.EMPTY, mappedUsageConfiguration,
                 ImmutableList.<IvyArtifactName>of(),
             EXCLUDE_RULES,
