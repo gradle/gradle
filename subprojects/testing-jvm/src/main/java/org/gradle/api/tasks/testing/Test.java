@@ -1177,7 +1177,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     @Nullable
     private String getEffectiveExecutable() {
         if (javaLauncher.isPresent()) {
-            // This will fail on Java < 7, however toolchain integration is not planned for Java 6 support
+            // The below line is OK because it will only be exercised in the Gradle daemon and not in the worker running tests.
             return javaLauncher.get().getExecutablePath().toString();
         }
         final String executable = getExecutable();
