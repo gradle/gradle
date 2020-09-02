@@ -70,12 +70,6 @@ dependencies {
     integTestImplementation(project(":build-option"))
     integTestImplementation(libs.jansi)
     integTestImplementation(libs.ansiControlSequenceUtil)
-    integTestImplementation(libs.jettyWebApp) {
-        because("tests use HttpServlet directly")
-    }
-    integTestImplementation(libs.jettyWebApp) {
-        because("leaks via a Groovy compilation bug")
-    }
     integTestImplementation(testFixtures(project(":security")))
 
     testFixturesApi(project(":base-services")) {

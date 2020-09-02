@@ -36,7 +36,6 @@ dependencies {
     testImplementation(libs.servletApi)
 
     integTestImplementation(libs.jetty)
-    integTestImplementation(libs.jettyWebApp)
 
     integTestDistributionRuntimeOnly(project(":distributions-basics"))
 }
