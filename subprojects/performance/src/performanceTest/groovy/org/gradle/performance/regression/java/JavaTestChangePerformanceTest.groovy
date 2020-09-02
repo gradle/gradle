@@ -17,7 +17,7 @@
 package org.gradle.performance.regression.java
 
 import org.gradle.performance.AbstractCrossVersionGradleProfilerPerformanceTest
-import org.gradle.performance.mutator.ApplyNonAbiChangeToJavaSourceFileMutator
+import org.gradle.profiler.mutations.ApplyNonAbiChangeToJavaSourceFileMutator
 import spock.lang.Unroll
 
 import static org.gradle.performance.generator.JavaTestProject.LARGE_JAVA_MULTI_PROJECT
@@ -35,7 +35,7 @@ class JavaTestChangePerformanceTest extends AbstractCrossVersionGradleProfilerPe
         runner.runs = runs
         runner.tasksToRun = ['test']
         runner.targetVersions = ["6.7-20200824220048+0000"]
-        runner.addBuildMutator { new ApplyNonAbiChangeToJavaSourceFileMutator(it.projectDir, testProject.config.fileToChangeByScenario['test']) }
+        runner.addBuildMutator { new ApplyNonAbiChangeToJavaSourceFileMutator(new File(it.projectDir, testProject.config.fileToChangeByScenario['test'])) }
 
         when:
         def result = runner.run()

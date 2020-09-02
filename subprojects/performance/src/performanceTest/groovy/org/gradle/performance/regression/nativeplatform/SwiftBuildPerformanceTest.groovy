@@ -18,7 +18,8 @@ package org.gradle.performance.regression.nativeplatform
 
 import org.gradle.initialization.ParallelismBuildOptions
 import org.gradle.performance.AbstractCrossVersionGradleProfilerPerformanceTest
-import org.gradle.performance.mutator.AbstractFileChangeMutator
+import org.gradle.profiler.BuildContext
+import org.gradle.profiler.mutations.AbstractFileChangeMutator
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Unroll
@@ -56,7 +57,7 @@ class SwiftBuildPerformanceTest extends AbstractCrossVersionGradleProfilerPerfor
         runner.testProject = testProject
         runner.tasksToRun = ["assemble"]
         runner.gradleOpts = ["-Xms$maxMemory", "-Xmx$maxMemory"]
-        runner.addBuildMutator { invocationSettings -> new ChangeSwiftFileMutator(invocationSettings.projectDir, fileToChange) }
+        runner.addBuildMutator { invocationSettings -> new ChangeSwiftFileMutator(new File(invocationSettings.projectDir, fileToChange)) }
 
         when:
         def result = runner.run()
@@ -71,17 +72,22 @@ class SwiftBuildPerformanceTest extends AbstractCrossVersionGradleProfilerPerfor
     }
 
     private static class ChangeSwiftFileMutator extends AbstractFileChangeMutator {
-        ChangeSwiftFileMutator(File projectDir, String sourceFilePath) {
-            super(projectDir, sourceFilePath)
-            if (!sourceFilePath.endsWith('.swift')) {
+        ChangeSwiftFileMutator(File sourceFile) {
+            super(sourceFile)
+            if (!sourceFile.absolutePath.endsWith('.swift')) {
                 throw new IllegalArgumentException('Can only modify Swift source')
             }
         }
 
+//        @Override
+//        protected void applyChangeTo(StringBuilder text) {
+//            def location = text.indexOf("public init() { }")
+//            text.insert(location, "var ${uniqueText} : Int = 0\n    ")
+//        }
+
         @Override
-        protected void applyChangeTo(StringBuilder text) {
-            def location = text.indexOf("public init() { }")
-            text.insert(location, "var ${uniqueText} : Int = 0\n    ")
+        protected void applyChangeTo(BuildContext context, StringBuilder text) {
+
         }
     }
 

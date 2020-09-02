@@ -76,7 +76,7 @@ class AbstractTaskOutputCachingPerformanceTest extends AbstractCrossVersionGradl
     }
 
     boolean isRunWithCache(BuildContext context) {
-        context.iteration >= firstWarmupWithCache && context.phase == Phase.MEASURE
+        context.iteration >= firstWarmupWithCache || context.phase == Phase.MEASURE
     }
 
     boolean isFirstRunWithCache(BuildContext context) {
