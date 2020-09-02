@@ -68,8 +68,7 @@ import org.gradle.internal.scopeids.PersistentScopeIdLoader;
 import org.gradle.internal.scopeids.ScopeIdsServices;
 import org.gradle.internal.scopeids.id.UserScopeId;
 import org.gradle.internal.scopeids.id.WorkspaceScopeId;
-import org.gradle.internal.service.DefaultServiceRegistry;
-import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.time.Clock;
 import org.gradle.internal.work.AsyncWorkTracker;
 import org.gradle.internal.work.DefaultAsyncWorkTracker;
@@ -78,29 +77,43 @@ import org.gradle.process.internal.ExecFactory;
 
 import java.io.Closeable;
 import java.io.File;
+import java.util.List;
 
 /**
  * Contains the services for a single build session, which could be a single build or multiple builds when in continuous mode.
  */
-public class BuildSessionScopeServices extends DefaultServiceRegistry {
+public class BuildSessionScopeServices {
 
-    public BuildSessionScopeServices(ServiceRegistry parent, CrossBuildSessionScopeServices crossBuildSessionScopeServices, StartParameter startParameter, BuildRequestMetaData buildRequestMetaData, ClassPath injectedPluginClassPath, BuildCancellationToken buildCancellationToken, BuildClientMetaData buildClientMetaData, BuildEventConsumer buildEventConsumer) {
-        super(parent, crossBuildSessionScopeServices.getServices());
-        register(registration -> {
-            add(StartParameter.class, startParameter);
-            for (PluginServiceRegistry pluginServiceRegistry : parent.getAll(PluginServiceRegistry.class)) {
-                pluginServiceRegistry.registerBuildSessionServices(registration);
-            }
-        });
-        add(InjectedPluginClasspath.class, new InjectedPluginClasspath(injectedPluginClassPath));
-        add(BuildCancellationToken.class, buildCancellationToken);
-        add(BuildRequestMetaData.class, buildRequestMetaData);
-        add(BuildClientMetaData.class, buildClientMetaData);
-        add(BuildEventConsumer.class, buildEventConsumer);
-        addProvider(new CacheRepositoryServices(startParameter.getGradleUserHomeDir(), startParameter.getProjectCacheDir()));
+    private final StartParameter startParameter;
+    private final BuildRequestMetaData buildRequestMetaData;
+    private final ClassPath injectedPluginClassPath;
+    private final BuildCancellationToken buildCancellationToken;
+    private final BuildClientMetaData buildClientMetaData;
+    private final BuildEventConsumer buildEventConsumer;
+
+    public BuildSessionScopeServices(StartParameter startParameter, BuildRequestMetaData buildRequestMetaData, ClassPath injectedPluginClassPath, BuildCancellationToken buildCancellationToken, BuildClientMetaData buildClientMetaData, BuildEventConsumer buildEventConsumer) {
+        this.startParameter = startParameter;
+        this.buildRequestMetaData = buildRequestMetaData;
+        this.injectedPluginClassPath = injectedPluginClassPath;
+        this.buildCancellationToken = buildCancellationToken;
+        this.buildClientMetaData = buildClientMetaData;
+        this.buildEventConsumer = buildEventConsumer;
+    }
+
+    void configure(ServiceRegistration registration, List<PluginServiceRegistry> pluginServiceRegistries) {
+        registration.add(StartParameter.class, startParameter);
+        for (PluginServiceRegistry pluginServiceRegistry : pluginServiceRegistries) {
+            pluginServiceRegistry.registerBuildSessionServices(registration);
+        }
+        registration.add(InjectedPluginClasspath.class, new InjectedPluginClasspath(injectedPluginClassPath));
+        registration.add(BuildCancellationToken.class, buildCancellationToken);
+        registration.add(BuildRequestMetaData.class, buildRequestMetaData);
+        registration.add(BuildClientMetaData.class, buildClientMetaData);
+        registration.add(BuildEventConsumer.class, buildEventConsumer);
+        registration.addProvider(new CacheRepositoryServices(startParameter.getGradleUserHomeDir(), startParameter.getProjectCacheDir()));
 
         // Must be no higher than this scope as needs cache repository services.
-        addProvider(new ScopeIdsServices());
+        registration.addProvider(new ScopeIdsServices());
     }
 
     PendingChangesManager createPendingChangesManager(ListenerManager listenerManager) {

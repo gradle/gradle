@@ -26,6 +26,7 @@ import org.gradle.configuration.internal.ListenerBuildOperationDecorator;
 import org.gradle.configuration.internal.UserCodeApplicationContext;
 import org.gradle.initialization.DefaultGradleLauncherFactory;
 import org.gradle.initialization.GradleLauncherFactory;
+import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.DefaultParallelismConfiguration;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.ListenerManager;
@@ -42,8 +43,8 @@ import org.gradle.internal.operations.notify.BuildOperationNotificationBridge;
 import org.gradle.internal.operations.notify.BuildOperationNotificationValve;
 import org.gradle.internal.operations.trace.BuildOperationTrace;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
-import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.internal.time.Clock;
 import org.gradle.internal.work.DefaultWorkerLeaseService;
 import org.gradle.internal.work.WorkerLeaseService;
@@ -58,13 +59,17 @@ import java.io.Closeable;
  * Having the GradleBuild task reuse the outer session is complicated because it may use a different Gradle user home.
  * See https://github.com/gradle/gradle/issues/4559.
  *
- * This set of services is effectively a mixin, that gets applied to each build session scope.
+ * This set of services is added as a parent of each build session scope.
  */
 public class CrossBuildSessionScopeServices implements Closeable {
-    private final Services services;
+    private final ServiceRegistry services;
 
     public CrossBuildSessionScopeServices(ServiceRegistry parent, StartParameter startParameter) {
-        this.services = new Services(parent, startParameter);
+        this.services = ServiceRegistryBuilder.builder()
+            .displayName("cross session services")
+            .parent(parent)
+            .provider(new Services(startParameter))
+            .build();
         // Trigger listener to wire itself in
         services.get(BuildOperationTrace.class);
     }
@@ -75,15 +80,14 @@ public class CrossBuildSessionScopeServices implements Closeable {
 
     @Override
     public void close() {
-        services.close();
+        CompositeStoppable.stoppable(services).stop();
     }
 
-    private class Services extends DefaultServiceRegistry {
+    private class Services {
 
         private final StartParameter startParameter;
 
-        public Services(ServiceRegistry parent, StartParameter startParameter) {
-            super(parent);
+        public Services(StartParameter startParameter) {
             this.startParameter = startParameter;
         }
 

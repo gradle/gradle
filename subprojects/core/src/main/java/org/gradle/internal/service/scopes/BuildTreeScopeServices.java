@@ -24,25 +24,33 @@ import org.gradle.initialization.exception.DefaultExceptionAnalyser;
 import org.gradle.initialization.exception.ExceptionAnalyser;
 import org.gradle.initialization.exception.MultipleBuildFailuresExceptionAnalyser;
 import org.gradle.initialization.exception.StackTraceSanitizingExceptionAnalyser;
+import org.gradle.internal.buildtree.BuildTreeState;
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager;
 import org.gradle.internal.event.ListenerManager;
-import org.gradle.internal.service.DefaultServiceRegistry;
-import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.work.WorkerLeaseService;
+
+import java.util.List;
 
 /**
  * Contains the singleton services for a single build tree which consists of one or more builds.
  */
-public class BuildTreeScopeServices extends DefaultServiceRegistry {
-    public BuildTreeScopeServices(final ServiceRegistry parent, BuildType buildType) {
-        super(parent);
-        register(registration -> {
-            for (PluginServiceRegistry pluginServiceRegistry : parent.getAll(PluginServiceRegistry.class)) {
-                pluginServiceRegistry.registerBuildTreeServices(registration);
-            }
-            registration.add(BuildType.class, buildType);
-            registration.add(GradleEnterprisePluginManager.class);
-        });
+public class BuildTreeScopeServices {
+    private final BuildTreeState buildTree;
+    private final BuildType buildType;
+
+    public BuildTreeScopeServices(BuildTreeState buildTree, BuildType buildType) {
+        this.buildTree = buildTree;
+        this.buildType = buildType;
+    }
+
+    protected void configure(ServiceRegistration registration, List<PluginServiceRegistry> pluginServiceRegistries) {
+        for (PluginServiceRegistry pluginServiceRegistry : pluginServiceRegistries) {
+            pluginServiceRegistry.registerBuildTreeServices(registration);
+        }
+        registration.add(BuildTreeState.class, buildTree);
+        registration.add(BuildType.class, buildType);
+        registration.add(GradleEnterprisePluginManager.class);
     }
 
     protected ListenerManager createListenerManager(ListenerManager parent) {

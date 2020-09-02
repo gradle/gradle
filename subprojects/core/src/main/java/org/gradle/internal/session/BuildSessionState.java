@@ -24,6 +24,7 @@ import org.gradle.initialization.BuildRequestMetaData;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.internal.service.scopes.BuildSessionScopeServices;
 import org.gradle.internal.service.scopes.CrossBuildSessionScopeServices;
 import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
@@ -36,7 +37,7 @@ import java.io.Closeable;
 public class BuildSessionState implements Closeable {
     private final GradleUserHomeScopeServiceRegistry userHomeScopeServiceRegistry;
     private final ServiceRegistry userHomeServices;
-    private final BuildSessionScopeServices sessionScopeServices;
+    private final ServiceRegistry sessionScopeServices;
 
     public BuildSessionState(GradleUserHomeScopeServiceRegistry userHomeScopeServiceRegistry,
                              CrossBuildSessionScopeServices crossBuildSessionServices,
@@ -48,7 +49,12 @@ public class BuildSessionState implements Closeable {
                              BuildEventConsumer buildEventConsumer) {
         this.userHomeScopeServiceRegistry = userHomeScopeServiceRegistry;
         userHomeServices = userHomeScopeServiceRegistry.getServicesFor(startParameter.getGradleUserHomeDir());
-        sessionScopeServices = new BuildSessionScopeServices(userHomeServices, crossBuildSessionServices, startParameter, requestMetaData, injectedPluginClassPath, buildCancellationToken, buildClientMetaData, buildEventConsumer);
+        sessionScopeServices = ServiceRegistryBuilder.builder()
+            .displayName("build session services")
+            .parent(userHomeServices)
+            .parent(crossBuildSessionServices.getServices())
+            .provider(new BuildSessionScopeServices(startParameter, requestMetaData, injectedPluginClassPath, buildCancellationToken, buildClientMetaData, buildEventConsumer))
+            .build();
     }
 
     public ServiceRegistry getServices() {
