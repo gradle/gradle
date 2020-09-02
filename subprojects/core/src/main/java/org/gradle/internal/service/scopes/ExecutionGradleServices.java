@@ -47,7 +47,7 @@ import org.gradle.internal.execution.steps.BroadcastChangingOutputsStep;
 import org.gradle.internal.execution.steps.CacheStep;
 import org.gradle.internal.execution.steps.CancelExecutionStep;
 import org.gradle.internal.execution.steps.CaptureStateBeforeExecutionStep;
-import org.gradle.internal.execution.steps.CleanupOutputsStep;
+import org.gradle.internal.execution.steps.CleanupNonIncrementalOutputsStep;
 import org.gradle.internal.execution.steps.CreateOutputsStep;
 import org.gradle.internal.execution.steps.ExecuteStep;
 import org.gradle.internal.execution.steps.LoadExecutionStateStep;
@@ -168,7 +168,7 @@ public class ExecutionGradleServices {
             new TimeoutStep<>(timeoutHandler,
             new CancelExecutionStep<>(cancellationToken,
             new ResolveInputChangesStep<>(
-            new CleanupOutputsStep<>(deleter, outputChangeListener,
+            new CleanupNonIncrementalOutputsStep<>(deleter, outputChangeListener,
             new ExecuteStep<>(
         )))))))))))))))))))));
         // @formatter:on
