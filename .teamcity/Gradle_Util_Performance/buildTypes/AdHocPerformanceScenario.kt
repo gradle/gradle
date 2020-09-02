@@ -60,7 +60,7 @@ abstract class AdHocPerformanceScenario(os: Os) : BuildType({
                     os
                 ) +
                     buildToolGradleParameters(isContinue = false) +
-                    builtInRemoteBuildCacheNode.gradleParameters(Os.LINUX)
+                    builtInRemoteBuildCacheNode.gradleParameters(os)
                 ).joinToString(separator = " ")
         }
         checkCleanM2(os)

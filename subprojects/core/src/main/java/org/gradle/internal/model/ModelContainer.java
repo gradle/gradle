@@ -16,32 +16,28 @@
 
 package org.gradle.internal.model;
 
-import org.gradle.internal.Factory;
-
 import javax.annotation.Nullable;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 /**
  * Encapsulates some mutable model, and provides synchronized access to the model.
  */
-public interface ModelContainer {
+public interface ModelContainer<T> {
 
     /**
-     * Runs the given action against the public mutable model. Applies best effort synchronization to prevent concurrent access to a particular project from multiple threads.
+     * Runs the given function to calculate a value from the public mutable model. Applies best effort synchronization to prevent concurrent access to a particular project from multiple threads.
      * However, it is currently easy for state to leak from one project to another so this is not a strong guarantee.
      *
      * <p>It is usually a better option to use {@link #newCalculatedValue(Object)} instead of this method.</p>
-     *
-     * <p>Note also that the mutable state should be passed to the action, but is not yet. This is to help with migration.
      */
-    <T> T withMutableState(Factory<? extends T> factory);
+    <S> S fromMutableState(Function<? super T, ? extends S> factory);
 
     /**
      * Runs the given action against the public mutable model. Applies best effort synchronization to prevent concurrent access to a particular project from multiple threads.
      * However, it is currently easy for state to leak from one project to another so this is not a strong guarantee.
-     *
-     * <p>Note also that the mutable state should be passed to the action, but is not yet. This is to help with migration.
      */
-    void withMutableState(Runnable runnable);
+    void applyToMutableState(Consumer<? super T> action);
 
     /**
      * Returns whether or not the current thread has access to the mutable model.
@@ -51,5 +47,5 @@ public interface ModelContainer {
     /**
      * Creates a new container for a value that is calculated from the mutable state of this container, and then reused by multiple threads.
      */
-    <T> CalculatedModelValue<T> newCalculatedValue(@Nullable T initialValue);
+    <S> CalculatedModelValue<S> newCalculatedValue(@Nullable S initialValue);
 }

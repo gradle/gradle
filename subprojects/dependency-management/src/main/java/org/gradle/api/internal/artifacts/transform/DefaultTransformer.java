@@ -122,7 +122,7 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction<?>> 
         FileLookup fileLookup,
         PropertyWalker parameterPropertyWalker,
         InstantiationScheme actionInstantiationScheme,
-        ModelContainer owner,
+        ModelContainer<?> owner,
         ServiceLookup internalServices
     ) {
         super(implementationClass, fromAttributes);

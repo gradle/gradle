@@ -26,6 +26,7 @@ class JavaLibraryOutgoingVariantsIntegrationTest extends AbstractIntegrationSpec
         repo.module("test", "api", "1.0").publish()
         repo.module("test", "compile", "1.0").publish()
         repo.module("test", "compile-only", "1.0").publish()
+        repo.module("test", "compile-only-api", "1.0").publish()
         repo.module("test", "runtime", "1.0").publish()
         repo.module("test", "implementation", "1.0").publish()
         repo.module("test", "runtime-only", "1.0").publish()
@@ -50,6 +51,7 @@ project(':java') {
         compile project(':other-java')
         compile files('file-dep.jar')
         compileOnly 'test:compile-only:1.0'
+        compileOnlyApi 'test:compile-only-api:1.0'
         runtime 'test:runtime:1.0'
         implementation 'test:implementation:1.0'
         runtimeOnly 'test:runtime-only:1.0'
@@ -123,9 +125,10 @@ project(':consumer') {
 
         then:
         result.assertTasksExecuted(":other-java:compileJava", ":java:compileJava", ":consumer:resolve")
-        outputContains("files: [main, file-dep.jar, api-1.0.jar, compile-1.0.jar, main, runtime-1.0.jar]")
+        outputContains("files: [main, file-dep.jar, api-1.0.jar, compile-1.0.jar, main, compile-only-api-1.0.jar, runtime-1.0.jar]")
         outputContains("file-dep.jar {artifactType=jar}")
         outputContains("compile-1.0.jar (test:compile:1.0) {artifactType=jar, org.gradle.status=release}")
+        outputContains("compile-only-api-1.0.jar (test:compile-only-api:1.0) {artifactType=jar, org.gradle.status=release}")
         outputContains("main (project :other-java) {artifactType=java-classes-directory, org.gradle.category=library, org.gradle.dependency.bundling=external, ${defaultTargetPlatform()}, org.gradle.libraryelements=classes, org.gradle.usage=java-api}")
         outputContains("main (project :java) {artifactType=java-classes-directory, org.gradle.category=library, org.gradle.dependency.bundling=external, ${defaultTargetPlatform()}, org.gradle.libraryelements=classes, org.gradle.usage=java-api}")
 
@@ -141,9 +144,10 @@ project(':consumer') {
 
         then:
         result.assertTasksExecuted(":other-java:compileJava", ":java:compileJava", ":consumer:resolve")
-        outputContains("files: [main, file-dep.jar, api-1.0.jar, compile-1.0.jar, main, runtime-1.0.jar]")
+        outputContains("files: [main, file-dep.jar, api-1.0.jar, compile-1.0.jar, main, compile-only-api-1.0.jar, runtime-1.0.jar]")
         outputContains("file-dep.jar {artifactType=jar, org.gradle.libraryelements=jar, org.gradle.usage=java-runtime}")
         outputContains("compile-1.0.jar (test:compile:1.0) {artifactType=jar, org.gradle.category=library, org.gradle.libraryelements=jar, org.gradle.status=release, org.gradle.usage=java-api}")
+        outputContains("compile-only-api-1.0.jar (test:compile-only-api:1.0) {artifactType=jar, org.gradle.category=library, org.gradle.libraryelements=jar, org.gradle.status=release, org.gradle.usage=java-api}")
         outputContains("main (project :other-java) {artifactType=java-classes-directory, org.gradle.category=library, org.gradle.dependency.bundling=external, ${defaultTargetPlatform()}, org.gradle.libraryelements=classes, org.gradle.usage=java-api}")
         outputContains("main (project :java) {artifactType=java-classes-directory, org.gradle.category=library, org.gradle.dependency.bundling=external, ${defaultTargetPlatform()}, org.gradle.libraryelements=classes, org.gradle.usage=java-api}")
     }

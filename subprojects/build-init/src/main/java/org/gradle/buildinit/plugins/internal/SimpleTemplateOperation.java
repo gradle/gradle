@@ -17,6 +17,7 @@
 package org.gradle.buildinit.plugins.internal;
 
 import com.google.common.base.Charsets;
+import com.google.common.io.FileWriteMode;
 import com.google.common.io.Files;
 import com.google.common.io.Resources;
 import groovy.text.SimpleTemplateEngine;
@@ -56,7 +57,7 @@ public class SimpleTemplateOperation implements TemplateOperation {
             SimpleTemplateEngine templateEngine = new SimpleTemplateEngine();
             String templateText = Resources.asCharSource(templateURL, CharsetToolkit.getDefaultSystemCharset()).read();
             Template template = templateEngine.createTemplate(templateText);
-            try (Writer writer = Files.asCharSink(target, Charsets.UTF_8).openStream()) {
+            try (Writer writer = Files.asCharSink(target, Charsets.UTF_8, FileWriteMode.APPEND).openStream()) {
                 template.make(bindings).writeTo(writer);
             }
         } catch (Exception ex) {

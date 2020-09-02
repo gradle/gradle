@@ -21,14 +21,11 @@ import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.RedirectStdOutAndErr
 import org.junit.Rule
-import spock.lang.IgnoreIf
+import spock.lang.Requires
 import spock.lang.Specification
 import spock.lang.Unroll
 
-// Ignored for file system watching since
-// - For file system watching, we start an isolated daemon, which by definition is not an in process daemon, so the test doesn't make much sense.
-// - The daemon then leaves back some running daemons which write to the registry and cause an error for `verifyTestFilesCleanup`.
-@IgnoreIf({ GradleContextualExecuter.watchFs })
+@Requires({ GradleContextualExecuter.embedded })
 class InProcessGradleExecuterIntegrationTest extends Specification {
     @Rule
     RedirectStdOutAndErr outputs = new RedirectStdOutAndErr()
@@ -153,5 +150,9 @@ class InProcessGradleExecuterIntegrationTest extends Specification {
 
     def stripped(String output) {
         return LogContent.of(output).withNormalizedEol()
+    }
+
+    def cleanup() {
+        executer.cleanup()
     }
 }

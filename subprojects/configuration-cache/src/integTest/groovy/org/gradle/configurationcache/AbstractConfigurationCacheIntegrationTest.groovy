@@ -17,13 +17,11 @@
 package org.gradle.configurationcache
 
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheMaxProblemsOption
-import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheProblemsOption
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheOption
+import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheProblemsOption
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 
-import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheBuildOperationsFixture
 import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheProblemsFixture
 
 import org.intellij.lang.annotations.Language
@@ -80,10 +78,6 @@ class AbstractConfigurationCacheIntegrationTest extends AbstractIntegrationSpec 
 
     String relativePath(String path) {
         return path.replace('/', File.separator)
-    }
-
-    protected ConfigurationCacheBuildOperationsFixture newConfigurationCacheFixture() {
-        return new ConfigurationCacheBuildOperationsFixture(new BuildOperationsFixture(executer, temporaryFolder))
     }
 
     protected void assertTestsExecuted(String testClass, String... testNames) {

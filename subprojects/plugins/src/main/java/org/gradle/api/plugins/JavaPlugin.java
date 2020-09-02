@@ -128,8 +128,8 @@ public class JavaPlugin implements Plugin<Project> {
     public static final String IMPLEMENTATION_CONFIGURATION_NAME = "implementation";
 
     /**
-     * The name of the configuration used by consumers to get the API elements of a component, that is to say
-     * the dependencies which are required to compile against that component.
+     * The name of the configuration to define the API elements of a component.
+     * That is, the dependencies which are required to compile against that component.
      *
      * @since 3.4
      */
@@ -149,6 +149,15 @@ public class JavaPlugin implements Plugin<Project> {
      * but not at runtime.
      */
     public static final String COMPILE_ONLY_CONFIGURATION_NAME = "compileOnly";
+
+    /**
+     * The name of the configuration to define the API elements of a component that are required to compile a component,
+     * but not at runtime.
+     *
+     * @since 6.7
+     */
+    @Incubating
+    public static final String COMPILE_ONLY_API_CONFIGURATION_NAME = "compileOnlyApi";
 
     /**
      * The name of the "runtime" configuration. This configuration is deprecated and doesn't represent a correct view of

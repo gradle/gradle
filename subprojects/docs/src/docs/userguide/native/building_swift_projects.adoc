@@ -170,8 +170,8 @@ You can override the convention values by using the following syntax:
 
 .Setting Swift source set
 ====
-include::sample[dir="snippets/swift/basic/groovy",files="build.gradle[tags=swift-source-set]"]
-include::sample[dir="snippets/swift/basic/kotlin",files="build.gradle.kts[tags=swift-source-set]"]
+include::sample[dir="snippets/swift/basic/groovy/common",files="build.gradle[tags=swift-source-set]"]
+include::sample[dir="snippets/swift/basic/kotlin/common",files="build.gradle.kts[tags=swift-source-set]"]
 ====
 
 Now Gradle will only search directly in _Sources/Common_ for the source.

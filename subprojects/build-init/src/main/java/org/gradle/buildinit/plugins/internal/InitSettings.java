@@ -16,6 +16,7 @@
 
 package org.gradle.buildinit.plugins.internal;
 
+import org.gradle.api.file.Directory;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
 
@@ -25,13 +26,15 @@ public class InitSettings {
     private final BuildInitTestFramework testFramework;
     private final String projectName;
     private final String subprojectName;
+    private final Directory target;
 
-    public InitSettings(String projectName, String subprojectName, BuildInitDsl dsl, String packageName, BuildInitTestFramework testFramework) {
+    public InitSettings(String projectName, String subprojectName, BuildInitDsl dsl, String packageName, BuildInitTestFramework testFramework, Directory target) {
         this.projectName = projectName;
         this.subprojectName = subprojectName;
         this.dsl = dsl;
         this.packageName = packageName;
         this.testFramework = testFramework;
+        this.target = target;
     }
 
     public String getProjectName() {
@@ -52,5 +55,9 @@ public class InitSettings {
 
     public BuildInitTestFramework getTestFramework() {
         return testFramework;
+    }
+
+    public Directory getTarget() {
+        return target;
     }
 }

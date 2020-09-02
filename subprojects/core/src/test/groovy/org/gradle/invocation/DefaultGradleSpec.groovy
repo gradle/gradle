@@ -55,6 +55,8 @@ import org.gradle.util.Path
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
+import java.util.function.Consumer
+
 class DefaultGradleSpec extends Specification {
     ServiceRegistryFactory serviceRegistryFactory = Stub(ServiceRegistryFactory)
     ListenerManager listenerManager = Spy(TestListenerManager)
@@ -432,7 +434,7 @@ class DefaultGradleSpec extends Specification {
         projectRegistry.addProject(project)
         _ * project.getProjectRegistry() >> projectRegistry
         _ * project.getMutationState() >> projectState
-        _ * projectState.withMutableState(_) >> { Runnable runnable -> runnable.run() }
+        _ * projectState.applyToMutableState(_) >> { Consumer consumer -> consumer.accept(project) }
         return project
     }
 

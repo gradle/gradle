@@ -85,11 +85,20 @@ public class JvmPluginsHelper {
         apiConfiguration.setCanBeResolved(false);
         apiConfiguration.setCanBeConsumed(false);
 
+        Configuration compileOnlyApiConfiguration = configurations.maybeCreate(sourceSet.getCompileOnlyApiConfigurationName());
+        compileOnlyApiConfiguration.setVisible(false);
+        compileOnlyApiConfiguration.setDescription("Compile only API dependencies for " + sourceSet + ".");
+        compileOnlyApiConfiguration.setCanBeConsumed(false);
+        compileOnlyApiConfiguration.setCanBeResolved(false);
+
         Configuration apiElementsConfiguration = configurations.getByName(sourceSet.getApiElementsConfigurationName());
-        apiElementsConfiguration.extendsFrom(apiConfiguration);
+        apiElementsConfiguration.extendsFrom(apiConfiguration, compileOnlyApiConfiguration);
 
         Configuration implementationConfiguration = configurations.getByName(sourceSet.getImplementationConfigurationName());
         implementationConfiguration.extendsFrom(apiConfiguration);
+
+        Configuration compileClasspathConfiguration = configurations.getByName(sourceSet.getCompileClasspathConfigurationName());
+        compileClasspathConfiguration.extendsFrom(compileOnlyApiConfiguration);
 
         @SuppressWarnings("deprecation")
         Configuration compileConfiguration = configurations.getByName(sourceSet.getCompileConfigurationName());

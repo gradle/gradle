@@ -1,0 +1,6 @@
+description = 'The shared API for the application'
+
+task libs {
+    group = 'build'
+    description = 'Builds the JAR'
+}

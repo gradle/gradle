@@ -560,7 +560,7 @@ abstract class AbstractMavenPublishJavaIntegTest extends AbstractMavenPublishInt
             dependencies {
                 $gradleConfiguration project(':b')
             }
-        """
+        """, plugin
         settingsFile << '''
             include "b"
         '''
@@ -579,7 +579,11 @@ abstract class AbstractMavenPublishJavaIntegTest extends AbstractMavenPublishInt
         then:
         javaLibrary.assertPublished()
         if (mavenScope == 'compile') {
-            javaLibrary.assertApiDependencies('org.gradle.test:b:1.2')
+            if (gradleConfiguration == 'compileOnlyApi') {
+                assertCompileOnlyApiDependencies('org.gradle.test:b:1.2')
+            } else {
+                javaLibrary.assertApiDependencies('org.gradle.test:b:1.2')
+            }
         } else {
             javaLibrary.assertRuntimeDependencies('org.gradle.test:b:1.2')
         }
@@ -592,11 +596,21 @@ abstract class AbstractMavenPublishJavaIntegTest extends AbstractMavenPublishInt
         'java'         | 'runtimeOnly'       | 'runtime'  | false
 
         'java-library' | 'api'               | 'compile'  | false
+        'java-library' | 'compileOnlyApi'    | 'compile'  | false
         'java-library' | 'compile'           | 'compile'  | true
         'java-library' | 'runtime'           | 'compile'  | true
         'java-library' | 'runtimeOnly'       | 'runtime'  | false
         'java-library' | 'implementation'    | 'runtime'  | false
 
+    }
+
+    void assertCompileOnlyApiDependencies(String... expected) {
+        javaLibrary.features.each { feature ->
+            javaLibrary.assertDependencies(feature, 'apiElements', 'compile', [], expected)
+            expected.each {
+                assert !javaLibrary.parsedModuleMetadata.variant('runtimeElements').dependencies*.coords.contains(it)
+            }
+        }
     }
 
     def "can publish java-library with capabilities"() {
@@ -1293,13 +1307,14 @@ include(':platform')
   - This publication must publish at least one variant""")
     }
 
-    def createBuildScripts(def append) {
+    def createBuildScripts(def append, String plugin = 'java-library') {
         settingsFile << "rootProject.name = 'publishTest'"
 
         buildFile << """
-            apply plugin: 'maven-publish'
-            apply plugin: 'java-library'
-
+            plugins {
+                id('maven-publish')
+                id('$plugin')
+            }
             sourceSets {
                 ${features().findAll { it != MavenJavaModule.MAIN_FEATURE }.collect { "${it}SourceSet" }.join('\n')}
             }

@@ -35,7 +35,6 @@ import org.gradle.api.invocation.Gradle;
 import org.gradle.api.plugins.scala.ScalaBasePlugin;
 import org.gradle.api.tasks.ScalaRuntime;
 import org.gradle.internal.Cast;
-import org.gradle.internal.Factory;
 import org.gradle.language.scala.internal.DefaultScalaPlatform;
 import org.gradle.plugins.ide.idea.IdeaPlugin;
 import org.gradle.plugins.ide.idea.model.Dependency;
@@ -46,7 +45,6 @@ import org.gradle.plugins.ide.idea.model.ModuleLibrary;
 import org.gradle.plugins.ide.idea.model.ProjectLibrary;
 import org.gradle.util.VersionNumber;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Collection;
 import java.util.List;
@@ -113,14 +111,7 @@ public class IdeaScalaConfigurer {
         for (final Project scalaProject : scalaProjects) {
             final IdeaModule ideaModule = scalaProject.getExtensions().getByType(IdeaModel.class).getModule();
             final Iterable<File> files = getIdeaModuleLibraryDependenciesAsFiles(ideaModule);
-            ProjectLibrary library = ((ProjectInternal)scalaProject).getMutationState().withMutableState(new Factory<ProjectLibrary>() {
-                @Nullable
-                @Override
-                public ProjectLibrary create() {
-                    return createScalaSdkLibrary(scalaProject, files, useScalaSdk, ideaModule);
-                }
-            });
-
+            ProjectLibrary library = ((ProjectInternal) scalaProject).getMutationState().fromMutableState(p -> createScalaSdkLibrary(scalaProject, files, useScalaSdk, ideaModule));
             if (library != null) {
                 ProjectLibrary duplicate = Iterables.find(scalaCompilerLibraries.values(), Predicates.equalTo(library), null);
                 scalaCompilerLibraries.put(scalaProject.getPath(), duplicate == null ? library : duplicate);
@@ -133,7 +124,7 @@ public class IdeaScalaConfigurer {
         // could make resolveDependencies() cache its result for later use by GenerateIdeaModule
         Set<Dependency> dependencies = ideaModule.resolveDependencies();
         List<File> files = Lists.newArrayList();
-        for(ModuleLibrary moduleLibrary : Iterables.filter(dependencies, ModuleLibrary.class)) {
+        for (ModuleLibrary moduleLibrary : Iterables.filter(dependencies, ModuleLibrary.class)) {
             for (FilePath filePath : Iterables.filter(moduleLibrary.getClasses(), FilePath.class)) {
                 files.add(filePath.getFile());
             }

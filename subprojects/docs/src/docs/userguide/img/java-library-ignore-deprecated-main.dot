@@ -6,11 +6,14 @@ digraph configurations {
 
    "apiElements" [shape="box", label=<<B>apiElements</B>(C)>, color="pink", bgcolor="pink", style="filled"]
    "apiElements" -> "api"
+   "apiElements" -> "compileOnlyApi"
 
    "api" [shape="box", label=<<B>api</B>>, color="chartreuse3", bgcolor="chartreuse3", style="filled"]
+   "compileOnlyApi" [shape="box", label=<<B>compileOnlyApi</B>>, color="chartreuse3", bgcolor="chartreuse3", style="filled"]
 
    "compileClasspath" [shape="box", label=<<B>compileClasspath</B>(R)>, color="lightblue", bgcolor="lightblue", style="filled"]
    "compileClasspath" -> "compileOnly"
+   "compileClasspath" -> "compileOnlyApi"
    "compileOnly" [shape="box", label=<<B>compileOnly</B>>, color="chartreuse3", bgcolor="chartreuse3", style="filled"]
    "compileClasspath" -> "implementation"
    "implementation" [shape="box", label=<<B>implementation</B>>, color="chartreuse3", bgcolor="chartreuse3", style="filled"]

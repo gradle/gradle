@@ -26,6 +26,7 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.Pair;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.model.CalculatedModelValue;
+import org.gradle.internal.model.ModelContainer;
 import org.gradle.internal.resources.ResourceLock;
 import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.util.Path;
@@ -37,6 +38,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 public class DefaultProjectStateRegistry implements ProjectStateRegistry {
@@ -219,16 +221,20 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
         }
 
         @Override
-        public void withMutableState(Runnable action) {
-            withMutableState(Factories.toFactory(action));
+        public void applyToMutableState(Consumer<? super ProjectInternal> action) {
+            fromMutableState(p -> {
+                action.accept(p);
+                return null;
+            });
         }
 
         @Override
-        public <T> T withMutableState(final Factory<? extends T> factory) {
+        public <S> S fromMutableState(Function<? super ProjectInternal, ? extends S> function) {
             Thread currentOwner = ownerOfAllProjects.get();
             if (currentOwner != null) {
                 if (currentOwner == Thread.currentThread()) {
-                    return factory.create();
+                    // we hold the lock for all projects, can run the function
+                    return function.apply(getMutableModel());
                 }
                 throw new IllegalStateException(String.format("Cannot acquire state lock for %s as another thread (%s) currently holds the state lock for all projects.", project, currentOwner));
             }
@@ -237,33 +243,28 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
             if (currentLocks.contains(projectLock)) {
                 // if we already hold the project lock for this project
                 if (currentLocks.size() == 1) {
-                    // the lock for this project is the only lock we hold
-                    return factory.create();
+                    // the lock for this project is the only lock we hold, can run the function
+                    return function.apply(getMutableModel());
                 } else {
                     currentLocks = Lists.newArrayList(currentLocks);
                     currentLocks.remove(projectLock);
                     // release any other project locks we might happen to hold
-                    return workerLeaseService.withoutLocks(currentLocks, factory);
+                    return workerLeaseService.withoutLocks(currentLocks, () -> function.apply(getMutableModel()));
                 }
             } else {
                 // we don't currently hold the project lock
                 if (!currentLocks.isEmpty()) {
                     // we hold other project locks that we should release first
-                    return workerLeaseService.withoutLocks(currentLocks, new Factory<T>() {
-                        @Override
-                        public T create() {
-                            return withProjectLock(projectLock, factory);
-                        }
-                    });
+                    return workerLeaseService.withoutLocks(currentLocks, () -> withProjectLock(projectLock, function));
                 } else {
                     // we just need to get the lock for this project
-                    return withProjectLock(projectLock, factory);
+                    return withProjectLock(projectLock, function);
                 }
             }
         }
 
-        private <T> T withProjectLock(ResourceLock projectLock, final Factory<? extends T> factory) {
-            return workerLeaseService.withLocks(Collections.singleton(projectLock), factory);
+        private <S> S withProjectLock(ResourceLock projectLock, final Function<? super ProjectInternal, ? extends S> function) {
+            return workerLeaseService.withLocks(Collections.singleton(projectLock), () -> function.apply(getMutableModel()));
         }
 
         @Override
@@ -279,7 +280,7 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
 
     private static class CalculatedModelValueImpl<T> implements CalculatedModelValue<T> {
         private final WorkerLeaseService workerLeaseService;
-        private final ProjectStateImpl owner;
+        private final ModelContainer<?> owner;
         private final ReentrantLock lock = new ReentrantLock();
         private volatile T value;
 

@@ -16,19 +16,13 @@
 
 package org.gradle.buildinit.plugins.internal;
 
-import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.util.GFileUtils;
 
 public class ResourceDirsGenerator implements BuildContentGenerator {
-    private final PathToFileResolver fileResolver;
-
-    public ResourceDirsGenerator(PathToFileResolver fileResolver) {
-        this.fileResolver = fileResolver;
-    }
 
     @Override
     public void generate(InitSettings settings) {
-        GFileUtils.mkdirs(fileResolver.resolve(settings.getSubprojectName() + "/src/main/resources"));
-        GFileUtils.mkdirs(fileResolver.resolve(settings.getSubprojectName() + "/src/test/resources"));
+        GFileUtils.mkdirs(settings.getTarget().dir(settings.getSubprojectName() + "/src/main/resources").getAsFile());
+        GFileUtils.mkdirs(settings.getTarget().dir(settings.getSubprojectName() + "/src/test/resources").getAsFile());
     }
 }

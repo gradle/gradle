@@ -40,10 +40,6 @@ class TestWorkerLeaseService implements WorkerLeaseService {
     }
 
     @Override
-    void stop() {
-    }
-
-    @Override
     int getMaxWorkerCount() {
         return 0
     }

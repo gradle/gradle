@@ -43,7 +43,7 @@ public class JavaApplicationProjectInitDescriptor extends JavaProjectInitDescrip
         super.configureBuildScript(settings, buildScriptBuilder);
         buildScriptBuilder
             .plugin(
-                "Apply the application plugin to add support for building a CLI application.",
+                "Apply the application plugin to add support for building a CLI application in Java.",
                 "application")
             .implementationDependency("This dependency is used by the application.",
                 "com.google.guava:guava:" + libraryVersionProvider.getVersion("guava"))

@@ -17,12 +17,13 @@
 package org.gradle.internal.work;
 
 import org.gradle.internal.Factory;
+import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.resources.ResourceLock;
 import org.gradle.util.Path;
 
 import java.util.Collection;
 
-public class StopShieldingWorkerLeaseService implements WorkerLeaseService {
+public class StopShieldingWorkerLeaseService implements WorkerLeaseService, Stoppable {
 
     private final WorkerLeaseService delegate;
 

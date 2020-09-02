@@ -69,7 +69,6 @@ class PerformanceTestBuildTypeTest {
             "\"-PteamCityToken=%teamcity.user.bot-gradle.token%\"",
             "-Dorg.gradle.workers.max=%maxParallelForks%",
             "-PmaxParallelForks=%maxParallelForks%",
-            "-Dorg.gradle.unsafe.vfs.drop=true",
             "-s",
             "--daemon",
             "",
