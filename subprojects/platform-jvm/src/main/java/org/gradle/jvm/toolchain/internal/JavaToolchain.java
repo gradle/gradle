@@ -80,7 +80,7 @@ public class JavaToolchain implements Describable, JavaToolMetadata {
     }
 
     @Internal
-    public Path getJavaHome() {
+    public Path getInstallationPath() {
         return javaHome;
     }
 
@@ -96,7 +96,7 @@ public class JavaToolchain implements Describable, JavaToolMetadata {
     }
 
     public Path findExecutable(String toolname) {
-        return getJavaHome().resolve(getBinaryPath(toolname));
+        return getInstallationPath().resolve(getBinaryPath(toolname));
     }
 
     private Path computeEnclosingJavaHome(Path home) {

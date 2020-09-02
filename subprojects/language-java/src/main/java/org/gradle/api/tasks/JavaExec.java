@@ -760,7 +760,7 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
     @Nullable
     private String getEffectiveExecutable() {
         if (javaLauncher.isPresent()) {
-            return javaLauncher.get().getExecutable().toString();
+            return javaLauncher.get().getExecutablePath().toString();
         }
         final String executable = getExecutable();
         if (executable != null) {

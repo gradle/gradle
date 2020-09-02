@@ -1178,7 +1178,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     private String getEffectiveExecutable() {
         if (javaLauncher.isPresent()) {
             // This will fail on Java < 7, however toolchain integration is not planned for Java 6 support
-            return javaLauncher.get().getExecutable().toString();
+            return javaLauncher.get().getExecutablePath().toString();
         }
         final String executable = getExecutable();
         return executable == null ? Jvm.current().getJavaExecutable().getAbsolutePath() : executable;

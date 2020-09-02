@@ -47,7 +47,7 @@ public class DefaultToolchainJavaCompiler implements JavaCompiler {
 
     @Override
     @Internal
-    public Path getExecutable() {
+    public Path getExecutablePath() {
         return javaToolchain.findExecutable("javac");
     }
 

@@ -40,5 +40,5 @@ public interface JavaCompiler {
      *
      * @return the path to the executable
      */
-    Path getExecutable();
+    Path getExecutablePath();
 }

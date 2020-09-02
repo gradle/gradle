@@ -35,9 +35,11 @@ public interface JavaToolMetadata {
     JavaLanguageVersion getLanguageVersion();
 
     /**
-     * The path to JAVA_HOME this tool belongs to.
+     * The path to installation this tool belongs to.
+     * <p>
+     * This value matches what would be the content of {@code JAVA_HOME} for the given installation.
      *
-     * @return the JAVA_HOME path
+     * @return the installation path
      */
-    Path getJavaHome();
+    Path getInstallationPath();
 }

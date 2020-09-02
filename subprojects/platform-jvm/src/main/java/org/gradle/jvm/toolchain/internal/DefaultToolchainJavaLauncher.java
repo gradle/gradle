@@ -32,7 +32,7 @@ public class DefaultToolchainJavaLauncher implements JavaLauncher {
 
     @Override
     @Internal
-    public Path getExecutable() {
+    public Path getExecutablePath() {
         return javaToolchain.findExecutable("java");
     }
 

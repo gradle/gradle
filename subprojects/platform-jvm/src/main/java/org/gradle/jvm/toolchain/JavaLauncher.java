@@ -40,5 +40,5 @@ public interface JavaLauncher {
      *
      * @return the path to the executable
      */
-    Path getExecutable();
+    Path getExecutablePath();
 }

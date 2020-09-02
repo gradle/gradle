@@ -35,7 +35,7 @@ public class JavadocToolAdapter implements JavadocTool {
     }
 
     public WorkResult execute(JavadocSpec spec) {
-        spec.setExecutable(getExecutable().toString());
+        spec.setExecutable(getExecutablePath().toString());
         return generator.execute(spec);
     }
 
@@ -45,7 +45,7 @@ public class JavadocToolAdapter implements JavadocTool {
     }
 
     @Override
-    public Path getExecutable() {
+    public Path getExecutablePath() {
         return toolchain.findExecutable("javadoc");
     }
 }

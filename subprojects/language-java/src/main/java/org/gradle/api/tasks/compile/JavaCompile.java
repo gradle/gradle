@@ -353,7 +353,7 @@ public class JavaCompile extends AbstractCompile implements HasCompileOptions {
         if (javaCompiler.isPresent()) {
             compileOptions.setFork(true);
             final JavaToolMetadata toolchain = javaCompiler.get().getMetadata();
-            compileOptions.getForkOptions().setJavaHome(toolchain.getJavaHome().toFile());
+            compileOptions.getForkOptions().setJavaHome(toolchain.getInstallationPath().toFile());
         }
         final DefaultJavaCompileSpec spec = new DefaultJavaCompileSpecFactory(compileOptions).create();
         spec.setDestinationDir(getDestinationDirectory().getAsFile().get());

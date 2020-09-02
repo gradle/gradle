@@ -42,7 +42,7 @@ class JavaToolchainQueryServiceTest extends Specification {
 
         then:
         toolchain.languageVersion.equals(versionToFind)
-        toolchain.getJavaHome().toString() == systemSpecificAbsolutePath(expectedPath)
+        toolchain.getInstallationPath().toString() == systemSpecificAbsolutePath(expectedPath)
 
         where:
         versionToFind               | expectedPath
@@ -64,7 +64,7 @@ class JavaToolchainQueryServiceTest extends Specification {
 
         then:
         toolchain.languageVersion.equals(versionToFind)
-        toolchain.getJavaHome().toString() == systemSpecificAbsolutePath(expectedPath)
+        toolchain.getInstallationPath().toString() == systemSpecificAbsolutePath(expectedPath)
 
         where:
         versionToFind               | expectedPath
