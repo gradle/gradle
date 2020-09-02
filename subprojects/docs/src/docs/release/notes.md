@@ -101,7 +101,27 @@ gradle mAL:cT
 
 Note, that even though the kebab case name matching works with tasks too, the recommendation is still to use camel case for them. 
 
-To learn more about name abbreviation, check out the [user guide](userguide/command_line_interface.html#task_name_abbreviation).  
+To learn more about name abbreviation, check out the [user guide](userguide/command_line_interface.html#task_name_abbreviation).
+
+## Support for version ranges in repository content filtering
+
+With [repository content filtering](userguide/declaring_repositories.html#sec:repository-content-filtering), builds can control which repositories are queried for which dependency.
+This feature provides performance and security benefits.
+
+With this release, when including or excluding a specific dependency version, the build author can use a version range:
+
+```
+repositories {
+    maven {
+        url = 'http://some-url'
+        content {
+             excludeVersion('com.google.guava', 'guava', '[19.0,)')
+       }
+    }
+}
+```
+
+In this case, no `guava` version after `19.0` will be searched for in the referenced Maven repository.
 
 ## Gradle init improvements
 
