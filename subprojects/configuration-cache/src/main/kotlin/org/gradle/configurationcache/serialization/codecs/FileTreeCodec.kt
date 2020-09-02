@@ -40,7 +40,6 @@ import org.gradle.configurationcache.serialization.WriteContext
 import org.gradle.configurationcache.serialization.decodePreservingIdentity
 import org.gradle.configurationcache.serialization.encodePreservingIdentityOf
 import org.gradle.configurationcache.serialization.readNonNull
-import org.gradle.internal.nativeintegration.filesystem.FileSystem
 import java.io.File
 
 
@@ -72,8 +71,7 @@ internal
 class FileTreeCodec(
     private val fileCollectionFactory: FileCollectionFactory,
     private val directoryFileTreeFactory: DirectoryFileTreeFactory,
-    private val fileOperations: FileOperations,
-    private val fileSystem: FileSystem
+    private val fileOperations: FileOperations
 ) : Codec<FileTreeInternal> {
 
     override suspend fun WriteContext.encode(value: FileTreeInternal) {

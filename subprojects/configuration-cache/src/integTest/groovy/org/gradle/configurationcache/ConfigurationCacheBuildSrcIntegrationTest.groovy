@@ -22,7 +22,7 @@ import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.TaskAction
 
 class ConfigurationCacheBuildSrcIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
-    def "can use tasks defined in buildSrc"() {
+    def "can use task types defined in buildSrc"() {
         given:
         file("buildSrc/settings.gradle") << """
             include 'ignored' // include some content
