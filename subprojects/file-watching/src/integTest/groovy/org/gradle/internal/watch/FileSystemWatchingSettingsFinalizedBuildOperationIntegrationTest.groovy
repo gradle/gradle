@@ -14,18 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.watch.options
+package org.gradle.internal.watch
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
-import org.gradle.integtests.fixtures.FileSystemWatchingFixture
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.operations.trace.BuildOperationRecord
+import org.gradle.internal.watch.options.FileSystemWatchingSettingsFinalizedProgressDetails
 import spock.lang.IgnoreIf
 
 @IgnoreIf({ GradleContextualExecuter.watchFs })
-class FileSystemWatchingSettingsFinalizedBuildOperationIntegTest extends AbstractIntegrationSpec implements FileSystemWatchingFixture {
+class FileSystemWatchingSettingsFinalizedBuildOperationIntegrationTest extends AbstractFileSystemWatchingIntegrationTest {
 
     def operations = new BuildOperationsFixture(executer, temporaryFolder)
 
