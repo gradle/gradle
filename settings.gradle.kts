@@ -157,8 +157,6 @@ include("performance")
 include("build-scan-performance")
 include("configuration-cache-report")
 
-val upperCaseLetters = "\\p{Upper}".toRegex()
-
 rootProject.name = "gradle"
 
 for (project in rootProject.children) {

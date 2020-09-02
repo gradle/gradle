@@ -26,8 +26,6 @@ pluginManagement {
 
 apply(from = "../gradle/shared-with-buildSrc/mirrors.settings.gradle.kts")
 
-val upperCaseLetters = "\\p{Upper}".toRegex()
-
 rootProject.name = "buildSrc"
 
 // Platform: defines shared dependency versions
