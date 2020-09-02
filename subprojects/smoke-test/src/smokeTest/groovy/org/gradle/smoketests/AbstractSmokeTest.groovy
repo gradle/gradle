@@ -129,7 +129,7 @@ abstract class AbstractSmokeTest extends Specification {
 
         // https://plugins.gradle.org/plugin/com.jfrog.artifactory
         static artifactoryPlugin = "4.17.2"
-        static artifactoryRepoOSSVersion = "7.7.3"
+        static artifactoryRepoOSSVersion = "6.16.0"
 
         // https://plugins.gradle.org/plugin/io.freefair.aspectj
         static aspectj = "5.1.1"
