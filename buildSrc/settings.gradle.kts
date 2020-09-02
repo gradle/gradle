@@ -65,7 +65,6 @@ include("publishing")
 
 for (project in rootProject.children) {
     project.projectDir = file("subprojects/${project.name}")
-    project.buildFileName = "${project.name}.gradle.kts"
     assert(project.projectDir.isDirectory)
     assert(project.buildFile.isFile)
 }

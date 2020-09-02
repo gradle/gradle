@@ -168,7 +168,7 @@ val groovyBuildScriptProjects = hashSetOf(
 )
 
 fun buildFileNameFor(projectDirName: String) =
-    "$projectDirName${buildFileExtensionFor(projectDirName)}"
+    "build${buildFileExtensionFor(projectDirName)}"
 
 fun buildFileExtensionFor(projectDirName: String) =
     if (projectDirName in groovyBuildScriptProjects) ".gradle" else ".gradle.kts"
