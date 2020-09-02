@@ -30,7 +30,7 @@ import org.gradle.internal.fingerprint.overlap.OverlappingOutputs
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 
-class CleanupOutputsStepTest extends StepSpec<InputChangesContext> implements FingerprinterFixture {
+class CleanupNonIncrementalOutputsStepTest extends StepSpec<InputChangesContext> implements FingerprinterFixture {
     @Rule
     TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
     def afterPreviousExecution = Mock(AfterPreviousExecutionState)
@@ -39,7 +39,7 @@ class CleanupOutputsStepTest extends StepSpec<InputChangesContext> implements Fi
     def outputChangeListener = Mock(OutputChangeListener)
     def deleter = TestFiles.deleter()
 
-    def step = new CleanupOutputsStep<>(deleter, outputChangeListener, delegate)
+    def step = new CleanupNonIncrementalOutputsStep<>(deleter, outputChangeListener, delegate)
 
     @Override
     protected InputChangesContext createContext() {

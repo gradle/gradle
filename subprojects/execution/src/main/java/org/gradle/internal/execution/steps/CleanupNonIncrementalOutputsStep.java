@@ -33,13 +33,16 @@ import java.io.UncheckedIOException;
 import java.util.HashSet;
 import java.util.Set;
 
-public class CleanupOutputsStep<C extends InputChangesContext, R extends Result> implements Step<C, R> {
+/**
+ * Cleans up any previous outputs when work is executed non-incrementally.
+ */
+public class CleanupNonIncrementalOutputsStep<C extends InputChangesContext, R extends Result> implements Step<C, R> {
 
     private final Deleter deleter;
     private final OutputChangeListener outputChangeListener;
     private final Step<? super C, ? extends R> delegate;
 
-    public CleanupOutputsStep(
+    public CleanupNonIncrementalOutputsStep(
         Deleter deleter,
         OutputChangeListener outputChangeListener,
         Step<? super C, ? extends R> delegate
