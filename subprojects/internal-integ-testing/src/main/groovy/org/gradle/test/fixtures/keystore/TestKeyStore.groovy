@@ -39,7 +39,9 @@ class TestKeyStore {
 
      keytool -importkeystore -srckeystore <JDK cacerts file location> -destkeystore <resource>/test-key-store/trustStore
 
-     Note that default password for JDK cacerts is "changeit".
+     Note:
+      1. Use JDK8 keytool command to make sure compatibility.
+      2. Default password for JDK cacerts is "changeit".
 
      The current trustStore-adoptopenjdk-8 is created from AdoptOpenJDK8 cacerts.
      */
