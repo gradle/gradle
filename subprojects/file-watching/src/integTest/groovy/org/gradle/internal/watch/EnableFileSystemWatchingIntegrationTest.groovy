@@ -16,7 +16,10 @@
 
 package org.gradle.internal.watch
 
+import net.rubygrapefruit.platform.internal.jni.NativeLogger
 import org.gradle.initialization.StartParameterBuildOptions
+import org.gradle.integtests.fixtures.daemon.DaemonFixture
+import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
 import org.gradle.internal.service.scopes.VirtualFileSystemServices
 import spock.lang.Unroll
 
@@ -106,6 +109,11 @@ class EnableFileSystemWatchingIntegrationTest extends AbstractFileSystemWatching
     }
 
     def "debug logging can be enabled"() {
+        executer.beforeExecute {
+            executer.requireDaemon()
+            executer.requireIsolatedDaemons()
+        }
+
         buildFile << """
             tasks.register("change") {
                 def output = file("output.txt")
@@ -121,13 +129,27 @@ class EnableFileSystemWatchingIntegrationTest extends AbstractFileSystemWatching
         run("change", "--watch-fs", "--debug", "-D${StartParameterBuildOptions.WatchFileSystemDebugLoggingOption.GRADLE_PROPERTY}=true")
         waitForChangesToBePickedUp()
         then:
-        output.contains("net.rubygrapefruit.platform.internal.jni.NativeLogger")
+        output.contains(NativeLogger.name)
+
+        when:
+        def logLineCountBeforeChange = daemon.logLineCount
+        file("output.txt").text = "Changed"
+        waitForChangesToBePickedUp()
+        then:
+        daemon.logContains(logLineCountBeforeChange, NativeLogger.name)
 
         when:
         run("change", "--watch-fs", "--debug", "-D${StartParameterBuildOptions.WatchFileSystemDebugLoggingOption.GRADLE_PROPERTY}=false")
         waitForChangesToBePickedUp()
         then:
-        !output.contains("net.rubygrapefruit.platform.internal.jni.NativeLogger")
+        !output.contains(NativeLogger.name)
+
+        when:
+        logLineCountBeforeChange = daemon.logLineCount
+        file("output.txt").text = "Changed"
+        waitForChangesToBePickedUp()
+        then:
+        !daemon.logContains(logLineCountBeforeChange, NativeLogger.name)
     }
 
     @Unroll
@@ -184,5 +206,9 @@ class EnableFileSystemWatchingIntegrationTest extends AbstractFileSystemWatching
 
         where:
         drop << [true, false]
+    }
+
+    private DaemonFixture getDaemon() {
+        new DaemonLogsAnalyzer(executer.daemonBaseDir).daemon
     }
 }
