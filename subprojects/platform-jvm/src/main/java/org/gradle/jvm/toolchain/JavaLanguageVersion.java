@@ -28,11 +28,7 @@ import org.gradle.jvm.toolchain.internal.DefaultJavaLanguageVersion;
 public interface JavaLanguageVersion extends Comparable<JavaLanguageVersion> {
 
     static JavaLanguageVersion of(int version) {
-        JavaLanguageVersion langVersion = DefaultJavaLanguageVersion.KNOWN_VERSIONS.get(version);
-        if (langVersion == null) {
-            langVersion = new DefaultJavaLanguageVersion(version);
-        }
-        return langVersion;
+        return DefaultJavaLanguageVersion.of(version);
     }
 
     static JavaLanguageVersion of(String version) {

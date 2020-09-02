@@ -19,17 +19,15 @@ package org.gradle.jvm.toolchain.internal
 import org.gradle.jvm.toolchain.JavaLanguageVersion
 import spock.lang.Specification
 
-import java.util.Map.Entry
-
 class DefaultJavaLanguageVersionTest extends Specification {
 
     def 'defines known versions'() {
         given:
-        Map<Integer, JavaLanguageVersion> knownVersions = DefaultJavaLanguageVersion.KNOWN_VERSIONS
+        JavaLanguageVersion[] knownVersions = DefaultJavaLanguageVersion.KNOWN_VERSIONS
 
         expect:
-        for (Entry<Integer, JavaLanguageVersion> entry : knownVersions.entrySet()) {
-            assert entry.value.asInt() == entry.key
+        for (int i = DefaultJavaLanguageVersion.LOWER_CACHED_VERSION; i <= DefaultJavaLanguageVersion.HIGHER_CACHED_VERSION; i++) {
+            assert knownVersions[i - DefaultJavaLanguageVersion.LOWER_CACHED_VERSION].asInt() == i
         }
     }
 
@@ -38,7 +36,7 @@ class DefaultJavaLanguageVersionTest extends Specification {
         def value = new Random().nextInt()
 
         when:
-        def version = new DefaultJavaLanguageVersion(value)
+        def version = DefaultJavaLanguageVersion.of(value)
 
         then:
         version.asInt() == value
@@ -53,8 +51,8 @@ class DefaultJavaLanguageVersionTest extends Specification {
         def secondValue = rand.nextInt()
 
         when:
-        def firstVersion = new DefaultJavaLanguageVersion(firstValue)
-        def secondVersion = new DefaultJavaLanguageVersion(secondValue)
+        def firstVersion = DefaultJavaLanguageVersion.of(firstValue)
+        def secondVersion = DefaultJavaLanguageVersion.of(secondValue)
 
         then:
         firstVersion.canCompileOrRun(secondVersion) == firstVersion >= secondVersion

@@ -16,29 +16,37 @@
 
 package org.gradle.jvm.toolchain.internal;
 
-import com.google.common.collect.ImmutableMap;
 import org.gradle.jvm.toolchain.JavaLanguageVersion;
 
 import java.io.Serializable;
-import java.util.Map;
 
 public class DefaultJavaLanguageVersion implements JavaLanguageVersion, Serializable {
 
-    public static final Map<Integer, JavaLanguageVersion> KNOWN_VERSIONS;
+    static final int LOWER_CACHED_VERSION = 4;
+    static final int HIGHER_CACHED_VERSION = 19;
+    static final JavaLanguageVersion[] KNOWN_VERSIONS;
 
     static {
-        ImmutableMap.Builder<Integer, JavaLanguageVersion> builder = ImmutableMap.builder();
-        for (int version = 4; version < 18; version++) {
-            builder.put(version, new DefaultJavaLanguageVersion(version));
+        KNOWN_VERSIONS = new JavaLanguageVersion[HIGHER_CACHED_VERSION - LOWER_CACHED_VERSION + 1];
+        for (int version = LOWER_CACHED_VERSION; version <= HIGHER_CACHED_VERSION; version++) {
+            KNOWN_VERSIONS[version - LOWER_CACHED_VERSION] = new DefaultJavaLanguageVersion(version);
         }
-        KNOWN_VERSIONS = builder.build();
+    }
+
+    public static JavaLanguageVersion of(int version) {
+        if (version >= LOWER_CACHED_VERSION && version <= HIGHER_CACHED_VERSION) {
+            return KNOWN_VERSIONS[version - LOWER_CACHED_VERSION];
+        } else {
+            return new DefaultJavaLanguageVersion(version);
+        }
     }
 
     private final int version;
 
-    public DefaultJavaLanguageVersion(int version) {
+    private DefaultJavaLanguageVersion(int version) {
         this.version = version;
     }
+
     @Override
     public int asInt() {
         return version;
