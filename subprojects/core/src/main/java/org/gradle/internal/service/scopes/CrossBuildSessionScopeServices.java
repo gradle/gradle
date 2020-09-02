@@ -17,7 +17,6 @@
 package org.gradle.internal.service.scopes;
 
 import org.gradle.StartParameter;
-import org.gradle.api.Action;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.DefaultCollectionCallbackActionDecorator;
 import org.gradle.concurrent.ParallelismConfiguration;
@@ -27,27 +26,17 @@ import org.gradle.configuration.internal.ListenerBuildOperationDecorator;
 import org.gradle.configuration.internal.UserCodeApplicationContext;
 import org.gradle.initialization.DefaultGradleLauncherFactory;
 import org.gradle.initialization.GradleLauncherFactory;
-import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.DefaultParallelismConfiguration;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.logging.sink.OutputEventListenerManager;
-import org.gradle.internal.operations.BuildOperation;
-import org.gradle.internal.operations.BuildOperationContext;
-import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationIdFactory;
 import org.gradle.internal.operations.BuildOperationListenerManager;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
-import org.gradle.internal.operations.BuildOperationQueue;
-import org.gradle.internal.operations.BuildOperationRef;
-import org.gradle.internal.operations.BuildOperationState;
-import org.gradle.internal.operations.BuildOperationWorker;
-import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.internal.operations.DefaultBuildOperationExecutor;
 import org.gradle.internal.operations.DefaultBuildOperationQueueFactory;
-import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.operations.logging.LoggingBuildOperationProgressBroadcaster;
 import org.gradle.internal.operations.notify.BuildOperationNotificationBridge;
 import org.gradle.internal.operations.notify.BuildOperationNotificationValve;
@@ -57,12 +46,9 @@ import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.time.Clock;
 import org.gradle.internal.work.DefaultWorkerLeaseService;
-import org.gradle.internal.work.StopShieldingWorkerLeaseService;
 import org.gradle.internal.work.WorkerLeaseService;
 
-import javax.annotation.Nullable;
 import java.io.Closeable;
-import java.io.IOException;
 
 /**
  * Services to be shared across build sessions.
@@ -72,113 +58,24 @@ import java.io.IOException;
  * Having the GradleBuild task reuse the outer session is complicated because it may use a different Gradle user home.
  * See https://github.com/gradle/gradle/issues/4559.
  *
- * This set of services is effectively a mixin, that gets applied to each build session scope services.
- * It, importantly, is not the parent of build session scope services.
+ * This set of services is effectively a mixin, that gets applied to each build session scope.
  */
 public class CrossBuildSessionScopeServices implements Closeable {
-    private final BuildOperationTrace buildOperationTrace;
-    private final BuildOperationNotificationBridge buildOperationNotificationBridge;
-    private final LoggingBuildOperationProgressBroadcaster loggingBuildOperationProgressBroadcaster;
-    private final BuildOperationListenerManager buildOperationListenerManager;
-
     private final Services services;
 
     public CrossBuildSessionScopeServices(ServiceRegistry parent, StartParameter startParameter) {
         this.services = new Services(parent, startParameter);
-
-        this.buildOperationListenerManager = parent.get(BuildOperationListenerManager.class);
-
-        ListenerManager generalListenerManager = parent.get(ListenerManager.class);
-        this.buildOperationTrace = new BuildOperationTrace(startParameter, buildOperationListenerManager);
-        this.buildOperationNotificationBridge = new BuildOperationNotificationBridge(buildOperationListenerManager, generalListenerManager);
-        this.loggingBuildOperationProgressBroadcaster = new LoggingBuildOperationProgressBroadcaster(parent.get(OutputEventListenerManager.class), parent.get(BuildOperationProgressEventEmitter.class));
+        // Trigger listener to wire itself in
+        services.get(BuildOperationTrace.class);
     }
 
-    GradleLauncherFactory createGradleLauncherFactory() {
-        return services.get(GradleLauncherFactory.class);
-    }
-
-    WorkerLeaseService createWorkerLeaseService() {
-        return new StopShieldingWorkerLeaseService(services.get(WorkerLeaseService.class));
-    }
-
-    BuildOperationListenerManager createBuildOperationListenerManager() {
-        return buildOperationListenerManager;
-    }
-
-    LoggingBuildOperationProgressBroadcaster createLoggingBuildOperationProgressBroadcaster() {
-        return loggingBuildOperationProgressBroadcaster;
-    }
-
-    BuildOperationExecutor createBuildOperationExecutor() {
-        // Wrap to prevent exposing Stoppable, as we don't want to stop at this scope
-        BuildOperationExecutor delegate = services.get(BuildOperationExecutor.class);
-        return new BuildOperationExecutor() {
-            @Override
-            public <O extends RunnableBuildOperation> void runAll(Action<BuildOperationQueue<O>> schedulingAction) {
-                delegate.runAll(schedulingAction);
-            }
-
-            @Override
-            public <O extends BuildOperation> void runAll(BuildOperationWorker<O> worker, Action<BuildOperationQueue<O>> schedulingAction) {
-                delegate.runAll(worker, schedulingAction);
-            }
-
-            @Override
-            public void run(RunnableBuildOperation buildOperation) {
-                delegate.run(buildOperation);
-            }
-
-            @Override
-            public <T> T call(CallableBuildOperation<T> buildOperation) {
-                return delegate.call(buildOperation);
-            }
-
-            @Override
-            public <O extends BuildOperation> void execute(O buildOperation, BuildOperationWorker<O> worker, @Nullable BuildOperationState defaultParent) {
-                delegate.execute(buildOperation, worker, defaultParent);
-            }
-
-            @Override
-            public BuildOperationContext start(BuildOperationDescriptor.Builder descriptor) {
-                return delegate.start(descriptor);
-            }
-
-            @Override
-            public BuildOperationRef getCurrentOperation() {
-                return delegate.getCurrentOperation();
-            }
-        };
-    }
-
-    ListenerBuildOperationDecorator createListenerBuildOperationDecorator() {
-        return services.get(ListenerBuildOperationDecorator.class);
-    }
-
-    UserCodeApplicationContext createUserCodeApplicationContext() {
-        return services.get(UserCodeApplicationContext.class);
-    }
-
-    BuildOperationNotificationBridge createBuildOperationNotificationBridge() {
-        return buildOperationNotificationBridge;
-    }
-
-    BuildOperationNotificationValve createBuildOperationNotificationValve() {
-        return buildOperationNotificationBridge.getValve();
-    }
-
-    CollectionCallbackActionDecorator createDomainObjectCollectioncallbackActionDecorator(BuildOperationExecutor buildOperationExecutor, UserCodeApplicationContext userCodeApplicationContext) {
-        return services.get(CollectionCallbackActionDecorator.class);
+    public ServiceRegistry getServices() {
+        return services;
     }
 
     @Override
-    public void close() throws IOException {
-        new CompositeStoppable().add(
-            buildOperationTrace,
-            buildOperationNotificationBridge,
-            loggingBuildOperationProgressBroadcaster,
-            services
-        ).stop();
+    public void close() {
+        services.close();
     }
 
     private class Services extends DefaultServiceRegistry {
@@ -211,7 +108,8 @@ public class CrossBuildSessionScopeServices implements Closeable {
             WorkerLeaseService workerLeaseService,
             ExecutorFactory executorFactory,
             ParallelismConfiguration parallelismConfiguration,
-            BuildOperationIdFactory buildOperationIdFactory
+            BuildOperationIdFactory buildOperationIdFactory,
+            BuildOperationListenerManager buildOperationListenerManager
         ) {
             return new DefaultBuildOperationExecutor(
                 buildOperationListenerManager.getBroadcaster(),
@@ -234,6 +132,22 @@ public class CrossBuildSessionScopeServices implements Closeable {
 
         CollectionCallbackActionDecorator createDomainObjectCollectioncallbackActionDecorator(BuildOperationExecutor buildOperationExecutor, UserCodeApplicationContext userCodeApplicationContext) {
             return new DefaultCollectionCallbackActionDecorator(buildOperationExecutor, userCodeApplicationContext);
+        }
+
+        LoggingBuildOperationProgressBroadcaster createLoggingBuildOperationProgressBroadcaster(OutputEventListenerManager outputEventListenerManager, BuildOperationProgressEventEmitter buildOperationProgressEventEmitter) {
+            return new LoggingBuildOperationProgressBroadcaster(outputEventListenerManager, buildOperationProgressEventEmitter);
+        }
+
+        BuildOperationTrace createBuildOperationTrace(BuildOperationListenerManager buildOperationListenerManager) {
+            return new BuildOperationTrace(startParameter, buildOperationListenerManager);
+        }
+
+        BuildOperationNotificationBridge createBuildOperationNotificationBridge(BuildOperationListenerManager buildOperationListenerManager, ListenerManager generalListenerManager) {
+            return new BuildOperationNotificationBridge(buildOperationListenerManager, generalListenerManager);
+        }
+
+        BuildOperationNotificationValve createBuildOperationNotificationValve(BuildOperationNotificationBridge buildOperationNotificationBridge) {
+            return buildOperationNotificationBridge.getValve();
         }
     }
 }

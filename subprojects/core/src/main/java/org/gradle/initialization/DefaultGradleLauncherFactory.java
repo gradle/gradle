@@ -42,14 +42,13 @@ import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler;
 import org.gradle.internal.featurelifecycle.ScriptUsageLocationReporter;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.BuildScopeListenerManagerAction;
 import org.gradle.internal.service.scopes.BuildScopeServices;
-import org.gradle.internal.service.scopes.BuildSessionScopeServices;
 import org.gradle.internal.service.scopes.BuildTreeScopeServices;
 import org.gradle.internal.service.scopes.CrossBuildSessionScopeServices;
 import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
+import org.gradle.internal.session.BuildSessionState;
 import org.gradle.internal.time.Time;
 import org.gradle.invocation.DefaultGradle;
 
@@ -176,16 +175,10 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
         @Override
         public GradleLauncher nestedBuildTree(BuildDefinition buildDefinition, NestedRootBuild build) {
             StartParameter startParameter = buildDefinition.getStartParameter();
-            final ServiceRegistry userHomeServices = userHomeDirServiceRegistry.getServicesFor(startParameter.getGradleUserHomeDir());
             BuildRequestMetaData buildRequestMetaData = new DefaultBuildRequestMetaData(Time.currentTimeMillis());
-            BuildSessionScopeServices sessionScopeServices = new BuildSessionScopeServices(userHomeServices, crossBuildSessionScopeServices, startParameter, buildRequestMetaData, ClassPath.EMPTY, buildCancellationToken, buildRequestMetaData.getClient(), new NoOpBuildEventConsumer());
-            BuildTreeScopeServices buildTreeScopeServices = new BuildTreeScopeServices(sessionScopeServices, BuildType.TASKS);
-            return doNewInstance(buildDefinition, build, parent, buildTreeScopeServices, ImmutableList.of(buildTreeScopeServices, sessionScopeServices, new Stoppable() {
-                @Override
-                public void stop() {
-                    userHomeDirServiceRegistry.release(userHomeServices);
-                }
-            }));
+            BuildSessionState buildSessionState = new BuildSessionState(userHomeDirServiceRegistry, crossBuildSessionScopeServices, startParameter, buildRequestMetaData, ClassPath.EMPTY, buildCancellationToken, buildRequestMetaData.getClient(), new NoOpBuildEventConsumer());
+            BuildTreeScopeServices buildTreeScopeServices = new BuildTreeScopeServices(buildSessionState.getServices(), BuildType.TASKS);
+            return doNewInstance(buildDefinition, build, parent, buildTreeScopeServices, ImmutableList.of(buildTreeScopeServices, buildSessionState));
         }
 
         private void setParent(DefaultGradleLauncher parent) {

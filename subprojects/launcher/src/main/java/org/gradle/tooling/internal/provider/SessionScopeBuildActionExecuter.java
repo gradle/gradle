@@ -19,14 +19,12 @@ package org.gradle.tooling.internal.provider;
 import org.gradle.StartParameter;
 import org.gradle.initialization.BuildRequestContext;
 import org.gradle.initialization.SessionLifecycleListener;
-import org.gradle.internal.concurrent.CompositeStoppable;
-import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.internal.service.scopes.BuildSessionScopeServices;
 import org.gradle.internal.service.scopes.CrossBuildSessionScopeServices;
 import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
+import org.gradle.internal.session.BuildSessionState;
 import org.gradle.launcher.exec.BuildActionExecuter;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.BuildActionResult;
@@ -47,38 +45,16 @@ public class SessionScopeBuildActionExecuter implements BuildActionExecuter<Buil
     @Override
     public BuildActionResult execute(BuildAction action, BuildRequestContext requestContext, BuildActionParameters actionParameters, ServiceRegistry contextServices) {
         StartParameter startParameter = action.getStartParameter();
-        final ServiceRegistry userHomeServices = userHomeServiceRegistry.getServicesFor(startParameter.getGradleUserHomeDir());
-        CrossBuildSessionScopeServices crossBuildSessionScopeServices = new CrossBuildSessionScopeServices(contextServices, startParameter);
-
-        try {
-            ServiceRegistry buildSessionScopeServices = new BuildSessionScopeServices(
-                userHomeServices,
-                crossBuildSessionScopeServices,
-                startParameter,
-                requestContext,
-                actionParameters.getInjectedPluginClasspath(),
-                requestContext.getCancellationToken(),
-                requestContext.getClient(),
-                requestContext.getEventConsumer()
-            );
-            try {
-                SessionLifecycleListener sessionLifecycleListener = buildSessionScopeServices.get(ListenerManager.class).getBroadcaster(SessionLifecycleListener.class);
+        try (CrossBuildSessionScopeServices crossBuildSessionScopeServices = new CrossBuildSessionScopeServices(contextServices, startParameter)) {
+            try (BuildSessionState buildSessionState = new BuildSessionState(userHomeServiceRegistry, crossBuildSessionScopeServices, startParameter, requestContext, actionParameters.getInjectedPluginClasspath(), requestContext.getCancellationToken(), requestContext.getClient(), requestContext.getEventConsumer())) {
+                SessionLifecycleListener sessionLifecycleListener = buildSessionState.getServices().get(ListenerManager.class).getBroadcaster(SessionLifecycleListener.class);
                 try {
                     sessionLifecycleListener.afterStart();
-                    return delegate.execute(action, requestContext, actionParameters, buildSessionScopeServices);
+                    return delegate.execute(action, requestContext, actionParameters, buildSessionState.getServices());
                 } finally {
                     sessionLifecycleListener.beforeComplete();
                 }
-            } finally {
-                CompositeStoppable.stoppable(buildSessionScopeServices).stop();
             }
-        } finally {
-            new CompositeStoppable().add(new Stoppable() {
-                @Override
-                public void stop() {
-                    userHomeServiceRegistry.release(userHomeServices);
-                }
-            }, crossBuildSessionScopeServices).stop();
         }
     }
 }

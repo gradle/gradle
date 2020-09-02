@@ -56,11 +56,11 @@ import org.gradle.internal.resources.DefaultResourceLockCoordinationService;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
-import org.gradle.internal.service.scopes.BuildSessionScopeServices;
 import org.gradle.internal.service.scopes.BuildTreeScopeServices;
 import org.gradle.internal.service.scopes.CrossBuildSessionScopeServices;
 import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
+import org.gradle.internal.session.BuildSessionState;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.invocation.DefaultGradle;
@@ -104,9 +104,9 @@ public class ProjectBuilderImpl {
 
         BuildRequestMetaData buildRequestMetaData = new DefaultBuildRequestMetaData(Time.currentTimeMillis());
         CrossBuildSessionScopeServices crossBuildSessionScopeServices = new CrossBuildSessionScopeServices(getGlobalServices(), startParameter);
-        ServiceRegistry userHomeServices = getUserHomeServices(userHomeDir);
-        BuildSessionScopeServices buildSessionScopeServices = new BuildSessionScopeServices(userHomeServices, crossBuildSessionScopeServices, startParameter, buildRequestMetaData, ClassPath.EMPTY, new DefaultBuildCancellationToken(), buildRequestMetaData.getClient(), new NoOpBuildEventConsumer());
-        BuildTreeScopeServices buildTreeScopeServices = new BuildTreeScopeServices(buildSessionScopeServices, BuildType.TASKS);
+        GradleUserHomeScopeServiceRegistry userHomeServices = getUserHomeServices();
+        BuildSessionState buildSessionState = new BuildSessionState(userHomeServices, crossBuildSessionScopeServices, startParameter, buildRequestMetaData, ClassPath.EMPTY, new DefaultBuildCancellationToken(), buildRequestMetaData.getClient(), new NoOpBuildEventConsumer());
+        BuildTreeScopeServices buildTreeScopeServices = new BuildTreeScopeServices(buildSessionState.getServices(), BuildType.TASKS);
         TestBuildScopeServices buildServices = new TestBuildScopeServices(buildTreeScopeServices, homeDir);
         TestRootBuild build = new TestRootBuild(projectDir);
         buildServices.add(BuildState.class, build);
@@ -137,10 +137,9 @@ public class ProjectBuilderImpl {
         return project;
     }
 
-    private ServiceRegistry getUserHomeServices(File userHomeDir) {
+    private GradleUserHomeScopeServiceRegistry getUserHomeServices() {
         ServiceRegistry globalServices = getGlobalServices();
-        GradleUserHomeScopeServiceRegistry userHomeScopeServiceRegistry = globalServices.get(GradleUserHomeScopeServiceRegistry.class);
-        return userHomeScopeServiceRegistry.getServicesFor(userHomeDir);
+        return globalServices.get(GradleUserHomeScopeServiceRegistry.class);
     }
 
     public synchronized static ServiceRegistry getGlobalServices() {
