@@ -54,25 +54,25 @@ public interface JavaLanguageVersion extends Comparable<JavaLanguageVersion> {
     String asString();
 
     /**
-     * Indicates if this version can interoperate with the other version.
+     * Indicates if this version can compile or run code based on the passed in language version.
      * <p>
-     * For example, Java 14 interoperates with Java 11, but not the opposite.
+     * For example, Java 14 can compile or run code from Java 11, but not the opposite.
      *
-     * @param other the language version to interoperate with
+     * @param other the language version to check
      *
-     * @return {@code true} if this version can interoperate with the other version, {@code false} otherwise
+     * @return {@code true} if this version can compile or run code from the other version, {@code false} otherwise
      */
-    boolean interoperatesWith(JavaLanguageVersion other);
+    boolean canCompileOrRun(JavaLanguageVersion other);
 
     /**
-     * Indicates if this version can interoperate with the other version.
+     * Indicates if this version can compile or run code based on the passed in language version.
      * <p>
-     * For example, Java 14 interoperates with Java 11, but not the opposite.
+     * For example, Java 14 can compile or run code from Java 11, but not the opposite.
      *
-     * @param otherVersion the language version to interoperate with, as an {@code int}
+     * @param otherVersion the language version to check, as an {@code int}
      *
-     * @return {@code true} if this version can interoperate with the other version, {@code false} otherwise
+     * @return {@code true} if this version can compile or run code from the other version, {@code false} otherwise
      */
-    boolean interoperatesWith(int otherVersion);
+    boolean canCompileOrRun(int otherVersion);
 
 }

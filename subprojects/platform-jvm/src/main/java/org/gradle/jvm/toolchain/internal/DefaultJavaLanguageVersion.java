@@ -50,7 +50,7 @@ public class DefaultJavaLanguageVersion implements JavaLanguageVersion, Serializ
     }
 
     @Override
-    public boolean interoperatesWith(JavaLanguageVersion other) {
+    public boolean canCompileOrRun(JavaLanguageVersion other) {
         return compareTo(other) >= 0;
     }
 
@@ -60,7 +60,7 @@ public class DefaultJavaLanguageVersion implements JavaLanguageVersion, Serializ
     }
 
     @Override
-    public boolean interoperatesWith(int otherVersion) {
+    public boolean canCompileOrRun(int otherVersion) {
         return version >= otherVersion;
     }
 

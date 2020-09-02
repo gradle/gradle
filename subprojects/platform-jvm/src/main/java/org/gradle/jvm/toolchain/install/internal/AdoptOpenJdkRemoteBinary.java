@@ -49,7 +49,7 @@ public class AdoptOpenJdkRemoteBinary {
     }
 
     private boolean canProvidesMatchingJdk(JavaToolchainSpec spec) {
-        return getLanguageVersion(spec).interoperatesWith(8);
+        return getLanguageVersion(spec).canCompileOrRun(8);
     }
 
     URI toDownloadUri(JavaToolchainSpec spec) {

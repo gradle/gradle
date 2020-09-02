@@ -57,7 +57,7 @@ class DefaultJavaLanguageVersionTest extends Specification {
         def secondVersion = new DefaultJavaLanguageVersion(secondValue)
 
         then:
-        firstVersion.interoperatesWith(secondVersion) == firstVersion >= secondVersion
-        secondVersion.interoperatesWith(firstVersion) == secondVersion >= firstVersion
+        firstVersion.canCompileOrRun(secondVersion) == firstVersion >= secondVersion
+        secondVersion.canCompileOrRun(firstVersion) == secondVersion >= firstVersion
     }
 }
