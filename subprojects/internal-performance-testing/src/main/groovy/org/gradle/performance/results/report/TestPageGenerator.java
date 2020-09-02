@@ -292,7 +292,7 @@ public class TestPageGenerator extends HtmlPageGenerator<PerformanceTestHistory>
             cleanTasks.add("clean" + StringUtils.capitalize(scenario.getTestProject()));
         }
 
-        return String.format("To reproduce, run ./gradlew %s %s cleanPerformanceAdhocTest :%s:performanceAdhocTest --scenarios '%s' -x prepareSamples",
+        return String.format("To reproduce, run ./gradlew %s %s cleanPerformanceAdhocTest :%s:performanceAdhocTest --scenarios '%s'",
             Joiner.on(' ').join(cleanTasks),
             Joiner.on(' ').join(templates),
             projectName,
