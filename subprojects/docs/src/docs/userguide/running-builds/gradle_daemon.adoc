@@ -234,7 +234,7 @@ This enables watching the file system for all builds, unless explicitly disabled
 Limitations::
 File system watching currently has the following limitations:
 - If you have symlinks in your build, you won’t get the performance benefits for those locations.
-- On Windows, we don’t support SUBST and network drives (they might work, but we don’t test them yet).
+- On Windows, we don’t support network drives (they might work, but we don’t test them yet).
 
 Enable verbose logging::
 You can instruct Gradle to some more information about the state of the virtual file system, and the events received from the file system using the `org.gradle.vfs.verbose` flag.
