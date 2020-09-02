@@ -13,6 +13,7 @@ import configurations.FunctionalTest
 import configurations.Gradleception
 import configurations.SanityCheck
 import configurations.SmokeTests
+import configurations.TestPerformanceTest
 import jetbrains.buildServer.configs.kotlin.v2019_2.BuildType
 
 enum class StageNames(override val stageName: String, override val description: String, override val uuid: String) : StageName {
@@ -73,6 +74,7 @@ data class CIBuildModel(
         ),
         Stage(StageNames.READY_FOR_RELEASE,
             trigger = Trigger.daily,
+            specificBuilds = listOf(SpecificBuild.TestPerformanceTest),
             functionalTests = listOf(
                 TestCoverage(7, TestType.parallel, Os.LINUX, JvmCategory.MAX_VERSION),
                 TestCoverage(8, TestType.soak, Os.LINUX, JvmCategory.MAX_VERSION),
@@ -315,6 +317,11 @@ enum class SpecificBuild {
     Gradleception {
         override fun create(model: CIBuildModel, stage: Stage): BuildType {
             return Gradleception(model, stage)
+        }
+    },
+    TestPerformanceTest {
+        override fun create(model: CIBuildModel, stage: Stage): BuildType {
+            return TestPerformanceTest(model, stage)
         }
     },
     SmokeTestsMinJavaVersion {
