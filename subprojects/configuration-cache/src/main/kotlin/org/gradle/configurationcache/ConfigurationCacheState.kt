@@ -37,9 +37,9 @@ import org.gradle.configurationcache.serialization.writeCollection
 import org.gradle.configurationcache.serialization.writeFile
 import org.gradle.execution.plan.Node
 import org.gradle.internal.build.event.BuildEventListenerRegistryInternal
-import org.gradle.internal.cleanup.BuildOutputCleanupRegistry
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginAdapter
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager
+import org.gradle.internal.execution.workspace.BuildOutputCleanupRegistry
 import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.Encoder
 import org.gradle.tooling.events.OperationCompletionListener
