@@ -1,0 +1,6 @@
+project project1 is INTERNAL to this build
+project project2 is INTERNAL to this build
+project project3 is external to this build
+/project1/build/classes/java/main
+/project2/build/classes/java/main
+/repo/org.example/project3/1.0/project3-1.0.jar

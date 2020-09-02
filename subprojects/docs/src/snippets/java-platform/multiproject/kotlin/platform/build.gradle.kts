@@ -1,6 +1,7 @@
 plugins {
     `java-platform`
     `maven-publish`
+    id("myproject.identity-conventions")
 }
 
 // tag::project-constraints[]
