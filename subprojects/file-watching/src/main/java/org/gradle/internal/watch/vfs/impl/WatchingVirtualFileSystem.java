@@ -93,7 +93,7 @@ public class WatchingVirtualFileSystem implements BuildLifecycleAwareVirtualFile
     }
 
     @Override
-    public void afterBuildStarted(boolean watchingEnabled, boolean verboseVfsLogging, boolean debugWatchLogging, BuildOperationRunner buildOperationRunner) {
+    public void afterBuildStarted(boolean watchingEnabled, VfsLogging vfsLogging, WatchLogging watchLogging, BuildOperationRunner buildOperationRunner) {
         reasonForNotWatchingFiles = null;
         rootReference.update(currentRoot -> buildOperationRunner.call(new CallableBuildOperation<SnapshotHierarchy>() {
             @Override
@@ -114,7 +114,7 @@ public class WatchingVirtualFileSystem implements BuildLifecycleAwareVirtualFile
                             newRoot = currentRoot;
                         }
                         statisticsSinceLastBuild = new DefaultFileSystemWatchingStatistics(statistics, newRoot);
-                        if (verboseVfsLogging) {
+                        if (vfsLogging == VfsLogging.VERBOSE) {
                             LOGGER.warn("Received {} file system events since last build while watching {} hierarchies",
                                 statisticsSinceLastBuild.getNumberOfReceivedEvents(),
                                 statisticsSinceLastBuild.getNumberOfWatchedHierarchies());
@@ -126,7 +126,7 @@ public class WatchingVirtualFileSystem implements BuildLifecycleAwareVirtualFile
                         }
                     }
                     if (watchRegistry != null) {
-                        watchRegistry.setDebugLoggingEnabled(debugWatchLogging);
+                        watchRegistry.setDebugLoggingEnabled(watchLogging == WatchLogging.DEBUG);
                     }
                     context.setResult(new BuildStartedFileSystemWatchingBuildOperationType.Result() {
                                           @Override
@@ -175,7 +175,7 @@ public class WatchingVirtualFileSystem implements BuildLifecycleAwareVirtualFile
     }
 
     @Override
-    public void beforeBuildFinished(boolean watchingEnabled, boolean verboseVfsLogging, boolean debugWatchLogging, BuildOperationRunner buildOperationRunner, int maximumNumberOfWatchedHierarchies) {
+    public void beforeBuildFinished(boolean watchingEnabled, VfsLogging vfsLogging, WatchLogging watchLogging, BuildOperationRunner buildOperationRunner, int maximumNumberOfWatchedHierarchies) {
         rootReference.update(currentRoot -> buildOperationRunner.call(new CallableBuildOperation<SnapshotHierarchy>() {
             @Override
             public SnapshotHierarchy call(BuildOperationContext context) {
@@ -199,7 +199,7 @@ public class WatchingVirtualFileSystem implements BuildLifecycleAwareVirtualFile
                             newRoot = withWatcherChangeErrorHandling(currentRoot, () -> watchRegistry.buildFinished(currentRoot, maximumNumberOfWatchedHierarchies));
                         }
                         statisticsDuringBuild = new DefaultFileSystemWatchingStatistics(statistics, newRoot);
-                        if (verboseVfsLogging) {
+                        if (vfsLogging == VfsLogging.VERBOSE) {
                             LOGGER.warn("Received {} file system events during the current build while watching {} hierarchies",
                                 statisticsDuringBuild.getNumberOfReceivedEvents(),
                                 statisticsDuringBuild.getNumberOfWatchedHierarchies());

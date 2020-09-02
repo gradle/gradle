@@ -27,6 +27,8 @@ import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.service.scopes.VirtualFileSystemServices;
 import org.gradle.internal.vfs.VirtualFileSystem;
 import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem;
+import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem.VfsLogging;
+import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem.WatchLogging;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,8 +49,12 @@ public class FileSystemWatchingBuildActionRunner implements BuildActionRunner {
         BuildOperationRunner buildOperationRunner = gradle.getServices().get(BuildOperationRunner.class);
 
         boolean watchFileSystem = startParameter.isWatchFileSystem();
-        boolean verboseVfsLogging = startParameter.isVfsVerboseLogging();
-        boolean debugWatchLogging = startParameter.isWatchFileSystemDebugLogging();
+        VfsLogging verboseVfsLogging = startParameter.isVfsVerboseLogging()
+            ? VfsLogging.VERBOSE
+            : VfsLogging.NORMAL;
+        WatchLogging debugWatchLogging = startParameter.isWatchFileSystemDebugLogging()
+            ? WatchLogging.DEBUG
+            : WatchLogging.NORMAL;
 
         logMessageForDeprecatedWatchFileSystemProperty(startParameter);
         logMessageForDeprecatedVfsRetentionProperty(startParameter);
