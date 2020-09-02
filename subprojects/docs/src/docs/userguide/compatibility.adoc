@@ -17,7 +17,7 @@
 The sections below describe Gradle's compatibility with several integrations. Other versions not listed here may or may not work.
 
 == Java
-A Java version between 8 and 14 is required to execute Gradle. Java 15 and later versions are not yet supported.
+A Java version between 8 and 15 is required to execute Gradle. Java 16 and later versions are not yet supported.
 
 Java 6 and 7 can still be used for <<building_java_projects.adoc#sec:java_cross_compilation,compilation and forked test execution>>.
 
