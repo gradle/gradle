@@ -17,7 +17,6 @@
 package org.gradle.smoketests
 
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
-import org.gradle.integtests.fixtures.android.AndroidHome
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.GradleRunner
 import org.gradle.util.GradleVersion
@@ -28,7 +27,7 @@ import static org.gradle.testkit.runner.TaskOutcome.UP_TO_DATE
 
 class KotlinPluginSmokeTest extends AbstractSmokeTest {
 
-    private static final String NO_CONFIGURATION_CACHE_ITERATION_MATCHER = ".*kotlin=1\\.3\\.[2-6].*"
+    static final String NO_CONFIGURATION_CACHE_ITERATION_MATCHER = ".*kotlin=1\\.3\\.[2-6].*"
 
     // TODO:configuration-cache remove once fixed upstream
     @Override
@@ -65,52 +64,6 @@ class KotlinPluginSmokeTest extends AbstractSmokeTest {
         [version, workers] << [
             TestedVersions.kotlin.versions,
             [true, false]
-        ].combinations()
-    }
-
-    @Unroll
-    @UnsupportedWithConfigurationCache(iterationMatchers = [NO_CONFIGURATION_CACHE_ITERATION_MATCHER, AGP_3_ITERATION_MATCHER, AGP_4_0_ITERATION_MATCHER])
-    def "kotlin android on sample '#sampleName' (kotlin=#kotlinPluginVersion, agp=#androidPluginVersion, workers=#workers)"() {
-        given:
-        AndroidHome.assertIsSet()
-        useSample(sampleName)
-
-        def buildFileName = sampleName.endsWith("kotlin-dsl")
-            ? "build.gradle.kts"
-            : "build.gradle"
-        [buildFileName, "app/$buildFileName"].each { sampleBuildFileName ->
-            replaceVariablesInFile(
-                file(sampleBuildFileName),
-                kotlinVersion: kotlinPluginVersion,
-                androidPluginVersion: androidPluginVersion,
-                androidBuildToolsVersion: TestedVersions.androidTools)
-        }
-
-        when:
-        def result = useAgpVersion(androidPluginVersion, runner(workers, 'clean', ':app:testDebugUnitTestCoverage')).build()
-
-        then:
-        result.task(':app:testDebugUnitTestCoverage').outcome == SUCCESS
-
-        if (kotlinPluginVersion == TestedVersions.kotlin.latest()
-            && androidPluginVersion == TestedVersions.androidGradle.latest()) {
-            // TODO: re-enable once the Kotlin plugin fixes how it extends configurations
-            // expectNoDeprecationWarnings(result)
-        }
-
-        where:
-// To run a specific combination, set the values here, uncomment the following four lines
-//  and comment out the lines coming after
-//        kotlinPluginVersion = TestedVersions.kotlin.versions.last()
-//        androidPluginVersion = TestedVersions.androidGradle.versions.last()
-//        workers = false
-//        sampleName = 'android-kotlin-example'
-
-        [kotlinPluginVersion, androidPluginVersion, workers, sampleName] << [
-            TestedVersions.kotlin.versions,
-            TestedVersions.androidGradle.versions,
-            [true, false],
-            ["android-kotlin-example", "android-kotlin-example-kotlin-dsl"]
         ].combinations()
     }
 
