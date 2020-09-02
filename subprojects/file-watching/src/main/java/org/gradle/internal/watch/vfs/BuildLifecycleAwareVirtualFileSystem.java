@@ -46,10 +46,10 @@ public interface BuildLifecycleAwareVirtualFileSystem extends VirtualFileSystem 
     void beforeBuildFinished(boolean watchingEnabled, VfsLogging vfsLogging, WatchLogging watchLogging, BuildOperationRunner buildOperationRunner, int maximumNumberOfWatchedHierarchies);
 
     enum VfsLogging {
-        VERBOSE, NORMAL
+        NORMAL, VERBOSE
     }
 
     enum WatchLogging {
-        DEBUG, NORMAL
+        NORMAL, DEBUG
     }
 }

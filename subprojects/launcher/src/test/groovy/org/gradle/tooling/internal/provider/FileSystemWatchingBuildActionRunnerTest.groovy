@@ -47,11 +47,11 @@ class FileSystemWatchingBuildActionRunnerTest extends Specification {
     def delegate = Mock(BuildActionRunner)
     def buildAction = Mock(BuildAction)
 
-    def "watching virtual file system is informed about watching the file system being #watchFsEnabledString (VFS logging: #verboseLogging, watch logging: #debugLogging)"() {
+    def "watching virtual file system is informed about watching the file system being #watchFsEnabledString (VFS logging: #vfsLogging, watch logging: #watchLogging)"() {
         _ * startParameter.getSystemPropertiesArgs() >> [:]
         _ * startParameter.isWatchFileSystem() >> watchFsEnabled
-        _ * startParameter.isWatchFileSystemDebugLogging() >> watchLogging
-        _ * startParameter.isVfsVerboseLogging() >> vfsLogging
+        _ * startParameter.isWatchFileSystemDebugLogging() >> (watchLogging == WatchLogging.DEBUG)
+        _ * startParameter.isVfsVerboseLogging() >> (vfsLogging == VfsLogging.VERBOSE)
 
         def runner = new FileSystemWatchingBuildActionRunner(delegate)
 
