@@ -111,7 +111,7 @@ public class AdoptOpenJdkRemoteBinary {
     }
 
     private String getServerBaseUri() {
-        String baseUri = System.getProperty("org.gradle.jvm.toolchain.install.internal.adoptopenjdk.baseUri", "https://api.adoptopenjdk.net/");
+        String baseUri = System.getProperty("org.gradle.jvm.toolchain.install.adoptopenjdk.baseUri", "https://api.adoptopenjdk.net/");
         if (!baseUri.endsWith("/")) {
             baseUri += "/";
         }
