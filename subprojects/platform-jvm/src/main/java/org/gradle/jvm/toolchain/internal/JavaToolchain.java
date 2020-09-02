@@ -23,7 +23,7 @@ import org.gradle.internal.os.OperatingSystem;
 import org.gradle.jvm.toolchain.JavaCompiler;
 import org.gradle.jvm.toolchain.JavaLanguageVersion;
 import org.gradle.jvm.toolchain.JavaLauncher;
-import org.gradle.jvm.toolchain.JavaToolMetadata;
+import org.gradle.jvm.toolchain.JavaInstallationMetadata;
 import org.gradle.jvm.toolchain.JavadocTool;
 import org.gradle.util.VersionNumber;
 
@@ -31,7 +31,7 @@ import javax.inject.Inject;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-public class JavaToolchain implements Describable, JavaToolMetadata {
+public class JavaToolchain implements Describable, JavaInstallationMetadata {
 
     private final boolean isJdk;
     private final JavaCompilerFactory compilerFactory;

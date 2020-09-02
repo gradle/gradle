@@ -26,7 +26,7 @@ import java.nio.file.Path;
  * @since 6.7
  */
 @Incubating
-public interface JavaToolMetadata {
+public interface JavaInstallationMetadata {
     /**
      * Returns the language version of the JVM to which this tool belongs
      *

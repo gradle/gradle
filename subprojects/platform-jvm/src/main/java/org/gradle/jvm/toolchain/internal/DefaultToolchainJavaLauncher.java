@@ -18,7 +18,7 @@ package org.gradle.jvm.toolchain.internal;
 
 import org.gradle.api.tasks.Internal;
 import org.gradle.jvm.toolchain.JavaLauncher;
-import org.gradle.jvm.toolchain.JavaToolMetadata;
+import org.gradle.jvm.toolchain.JavaInstallationMetadata;
 
 import java.nio.file.Path;
 
@@ -37,7 +37,7 @@ public class DefaultToolchainJavaLauncher implements JavaLauncher {
     }
 
     @Override
-    public JavaToolMetadata getMetadata() {
+    public JavaInstallationMetadata getMetadata() {
         return javaToolchain;
     }
 }

@@ -69,7 +69,7 @@ import org.gradle.jvm.platform.JavaPlatform;
 import org.gradle.jvm.platform.internal.DefaultJavaPlatform;
 import org.gradle.jvm.toolchain.JavaCompiler;
 import org.gradle.jvm.toolchain.JavaToolChain;
-import org.gradle.jvm.toolchain.JavaToolMetadata;
+import org.gradle.jvm.toolchain.JavaInstallationMetadata;
 import org.gradle.jvm.toolchain.internal.DefaultToolchainJavaCompiler;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.language.base.internal.compile.CompilerUtil;
@@ -352,7 +352,7 @@ public class JavaCompile extends AbstractCompile implements HasCompileOptions {
 
         if (javaCompiler.isPresent()) {
             compileOptions.setFork(true);
-            final JavaToolMetadata toolchain = javaCompiler.get().getMetadata();
+            final JavaInstallationMetadata toolchain = javaCompiler.get().getMetadata();
             compileOptions.getForkOptions().setJavaHome(toolchain.getInstallationPath().toFile());
         }
         final DefaultJavaCompileSpec spec = new DefaultJavaCompileSpecFactory(compileOptions).create();
@@ -375,7 +375,7 @@ public class JavaCompile extends AbstractCompile implements HasCompileOptions {
 
     private void configureCompatibilityOptions(DefaultJavaCompileSpec spec) {
         if (javaCompiler.isPresent()) {
-            final JavaToolMetadata toolchain = javaCompiler.get().getMetadata();
+            final JavaInstallationMetadata toolchain = javaCompiler.get().getMetadata();
             spec.setTargetCompatibility(toolchain.getLanguageVersion().asString());
             spec.setSourceCompatibility(toolchain.getLanguageVersion().asString());
         } else if (compileOptions.getRelease().isPresent()) {

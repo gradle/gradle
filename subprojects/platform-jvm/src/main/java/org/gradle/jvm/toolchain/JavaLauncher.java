@@ -33,7 +33,7 @@ public interface JavaLauncher {
      *
      * @return the tool metadata
      */
-    JavaToolMetadata getMetadata();
+    JavaInstallationMetadata getMetadata();
 
     /**
      * Returns the path to the executable for this tool

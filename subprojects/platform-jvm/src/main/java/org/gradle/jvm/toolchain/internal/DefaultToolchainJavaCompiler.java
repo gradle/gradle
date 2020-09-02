@@ -20,7 +20,7 @@ import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.jvm.toolchain.JavaCompiler;
-import org.gradle.jvm.toolchain.JavaToolMetadata;
+import org.gradle.jvm.toolchain.JavaInstallationMetadata;
 import org.gradle.language.base.internal.compile.CompileSpec;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,7 +41,7 @@ public class DefaultToolchainJavaCompiler implements JavaCompiler {
 
     @Override
     @Nested
-    public JavaToolMetadata getMetadata() {
+    public JavaInstallationMetadata getMetadata() {
         return javaToolchain;
     }
 

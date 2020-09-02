@@ -17,7 +17,7 @@
 package org.gradle.api.tasks.javadoc.internal;
 
 import org.gradle.api.tasks.WorkResult;
-import org.gradle.jvm.toolchain.JavaToolMetadata;
+import org.gradle.jvm.toolchain.JavaInstallationMetadata;
 import org.gradle.jvm.toolchain.JavadocTool;
 import org.gradle.jvm.toolchain.internal.JavaToolchain;
 import org.gradle.process.internal.ExecActionFactory;
@@ -40,7 +40,7 @@ public class JavadocToolAdapter implements JavadocTool {
     }
 
     @Override
-    public JavaToolMetadata getMetadata() {
+    public JavaInstallationMetadata getMetadata() {
         return toolchain;
     }
 
