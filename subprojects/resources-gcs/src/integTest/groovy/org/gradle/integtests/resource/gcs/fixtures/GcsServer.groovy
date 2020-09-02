@@ -450,7 +450,7 @@ class GcsServer extends HttpServer implements RepositoryServer {
         expectations << expectation
         addHandler(new AbstractHandler() {
             @Override
-            void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+            synchronized void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
 
                 if (requestMatches(httpStub, request)) {
                     assertRequest(httpStub, request)
