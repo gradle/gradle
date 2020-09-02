@@ -55,7 +55,6 @@ dependencies {
 
     integTestImplementation(project(":native"))
     integTestImplementation(libs.jetty)
-    integTestImplementation(libs.jettyWebApp)
 
     testRuntimeOnly(project(":distributions-core")) {
         because("ProjectBuilder tests load services from a Gradle distribution.")

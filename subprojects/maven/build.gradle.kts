@@ -59,7 +59,6 @@ dependencies {
     testImplementation(testFixtures(project(":dependency-management")))
 
     integTestImplementation(project(":ear"))
-    integTestImplementation(libs.jettyWebApp)
 
     testFixturesApi(project(":base-services")) {
         because("Test fixtures export the Action class")

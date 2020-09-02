@@ -42,7 +42,5 @@ dependencies {
 
     testImplementation(libs.commonsIo)
 
-    integTestImplementation(libs.jettyWebApp)
-
     integTestDistributionRuntimeOnly(project(":distributions-core"))
 }

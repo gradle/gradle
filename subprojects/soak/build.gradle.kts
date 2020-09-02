@@ -32,7 +32,6 @@ dependencies {
     integTestImplementation(project(":file-watching"))
     integTestImplementation(libs.slf4jApi)
     integTestImplementation(libs.jetty)
-    integTestImplementation(libs.jettyWebApp)
 
     integTestDistributionRuntimeOnly(project(":distributions-full"))
 }

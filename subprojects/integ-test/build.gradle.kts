@@ -20,7 +20,7 @@ dependencies {
     integTestImplementation(libs.guava)
     integTestImplementation(libs.ant)
     integTestImplementation(libs.jsoup)
-    integTestImplementation(libs.jettyWebApp)
+
     integTestImplementation(libs.sampleCheck) {
         exclude(group = "org.codehaus.groovy", module = "groovy-all")
         exclude(module = "slf4j-simple")

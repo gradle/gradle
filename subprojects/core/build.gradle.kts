@@ -143,7 +143,6 @@ dependencies {
     integTestImplementation(libs.jansi)
     integTestImplementation(libs.jetbrainsAnnotations)
     integTestImplementation(libs.jetty)
-    integTestImplementation(libs.jettyWebApp)
     integTestImplementation(libs.littleproxy)
     integTestImplementation(testFixtures(project(":native")))
 

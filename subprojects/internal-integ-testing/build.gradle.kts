@@ -21,6 +21,10 @@ plugins {
 }
 
 dependencies {
+    api(libs.jettyWebApp) {
+        because("Part of the public API via HttpServer")
+    }
+
     implementation(project(":base-services"))
     implementation(project(":messaging"))
     implementation(project(":native"))
@@ -51,7 +55,7 @@ dependencies {
     implementation(libs.commonsIo)
     implementation(libs.jetty)
     implementation(libs.jettySecurity)
-    implementation(libs.jettyWebApp)
+
     implementation(libs.littleproxy)
     implementation(libs.gcs)
     implementation(libs.inject)
