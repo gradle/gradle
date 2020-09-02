@@ -213,8 +213,8 @@ This can be done by using a substitution rule:
 
 .Substitute a platform dependency with a regular dependency
 ====
-include::sample[dir="snippets/dependencyManagement/customizingResolution-attributeSubstitutionRule/groovy",files="build.gradle[tags=substitution_rule]"]
-include::sample[dir="snippets/dependencyManagement/customizingResolution-attributeSubstitutionRule/kotlin",files="build.gradle.kts[tags=substitution_rule]"]
+include::sample[dir="snippets/dependencyManagement/customizingResolution-attributeSubstitutionRule/groovy",files="consumer/build.gradle[tags=substitution_rule]"]
+include::sample[dir="snippets/dependencyManagement/customizingResolution-attributeSubstitutionRule/kotlin",files="consumer/build.gradle.kts[tags=substitution_rule]"]
 ====
 
 The same rule _without_ the `platform` keyword would try to substitute _regular dependencies_ with a regular dependency, which is not what you want, so it's important to understand that the substitution rules apply on a _dependency specification_: it matches the requested dependency (`substitute XXX`) with a substitute (`using YYY`).
@@ -224,8 +224,8 @@ The following rule is _strictly equivalent_ to the rule above:
 
 .Substitute a platform dependency with a regular dependency using the variant notation
 ====
-include::sample[dir="snippets/dependencyManagement/customizingResolution-attributeSubstitutionRule/groovy",files="build.gradle[tags=substitution_rule_alternative]"]
-include::sample[dir="snippets/dependencyManagement/customizingResolution-attributeSubstitutionRule/kotlin",files="build.gradle.kts[tags=substitution_rule_alternative]"]
+include::sample[dir="snippets/dependencyManagement/customizingResolution-attributeSubstitutionRule/groovy",files="consumer/build.gradle[tags=substitution_rule_alternative]"]
+include::sample[dir="snippets/dependencyManagement/customizingResolution-attributeSubstitutionRule/kotlin",files="consumer/build.gradle.kts[tags=substitution_rule_alternative]"]
 ====
 
 Please refer to the link:{javadocPath}/org/gradle/api/artifacts/DependencySubstitutions.html#variant-org.gradle.api.artifacts.component.ComponentSelector-org.gradle.api.Action-[Substitution DSL API docs] for a complete reference of the variant substitution API.
