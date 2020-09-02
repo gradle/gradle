@@ -16,12 +16,23 @@
 
 package org.gradle.jvm.toolchain.internal;
 
+import com.google.common.collect.ImmutableMap;
 import org.gradle.jvm.toolchain.JavaLanguageVersion;
 
 import java.io.Serializable;
-import java.util.Objects;
+import java.util.Map;
 
 public class DefaultJavaLanguageVersion implements JavaLanguageVersion, Serializable {
+
+    public static final Map<Integer, JavaLanguageVersion> KNOWN_VERSIONS;
+
+    static {
+        ImmutableMap.Builder<Integer, JavaLanguageVersion> builder = ImmutableMap.builder();
+        for (int version = 4; version < 18; version++) {
+            builder.put(version, new DefaultJavaLanguageVersion(version));
+        }
+        KNOWN_VERSIONS = builder.build();
+    }
 
     private final int version;
 
@@ -30,7 +41,7 @@ public class DefaultJavaLanguageVersion implements JavaLanguageVersion, Serializ
     }
     @Override
     public int asInt() {
-        return 0;
+        return version;
     }
 
     @Override
@@ -67,7 +78,7 @@ public class DefaultJavaLanguageVersion implements JavaLanguageVersion, Serializ
 
     @Override
     public int hashCode() {
-        return Objects.hash(version);
+        return version;
     }
 
     @Override
