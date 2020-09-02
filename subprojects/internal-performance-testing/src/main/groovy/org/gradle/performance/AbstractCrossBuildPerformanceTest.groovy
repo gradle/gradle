@@ -30,9 +30,11 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
+import static org.gradle.performance.results.ResultsStoreHelper.createResultsStoreWhenDatabaseAvailable
+
 @CleanupTestDirectory
 class AbstractCrossBuildPerformanceTest extends Specification {
-    private static final CrossBuildResultsStore RESULT_STORE = new CrossBuildResultsStore()
+    private static final RESULTS_STORE = createResultsStoreWhenDatabaseAvailable { new CrossBuildResultsStore() }
 
     protected final IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext()
 
@@ -46,8 +48,8 @@ class AbstractCrossBuildPerformanceTest extends Specification {
 
     def setup() {
         def gradleProfilerReporter = new GradleProfilerReporter(temporaryFolder.testDirectory)
-        def compositeReporter = CompositeDataReporter.of(RESULT_STORE, gradleProfilerReporter)
-        runner = new CrossBuildGradleProfilerPerformanceTestRunner(new GradleProfilerBuildExperimentRunner(gradleProfilerReporter.getResultCollector()), RESULT_STORE, compositeReporter, buildContext) {
+        def compositeReporter = CompositeDataReporter.of(RESULTS_STORE, gradleProfilerReporter)
+        runner = new CrossBuildGradleProfilerPerformanceTestRunner(new GradleProfilerBuildExperimentRunner(gradleProfilerReporter.getResultCollector()), RESULTS_STORE, compositeReporter, buildContext) {
             @Override
             protected void defaultSpec(BuildExperimentSpec.Builder builder) {
                 super.defaultSpec(builder)
@@ -75,7 +77,7 @@ class AbstractCrossBuildPerformanceTest extends Specification {
     static {
         // TODO - find a better way to cleanup
         System.addShutdownHook {
-            ((Closeable) RESULT_STORE).close()
+            ((Closeable) RESULTS_STORE).close()
         }
     }
 }
