@@ -17,6 +17,7 @@
 package org.gradle.api.tasks.compile
 
 import org.gradle.api.JavaVersion
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.tasks.compile.CommandLineJavaCompileSpec
 import org.gradle.internal.jvm.Jvm
 import org.gradle.jvm.toolchain.JavaCompiler
@@ -86,7 +87,7 @@ class JavaCompileTest extends AbstractProjectBuilderSpec {
         def probe = Mock(JavaInstallationProbe.ProbeResult)
         probe.getJavaVersion() >> JavaVersion.VERSION_12
         probe.getJavaHome() >> javaHome.toPath()
-        def toolchain = new JavaToolchain(probe, Mock(JavaCompilerFactory), Mock(ToolchainToolFactory))
+        def toolchain = new JavaToolchain(probe, Mock(JavaCompilerFactory), Mock(ToolchainToolFactory), TestFiles.fileFactory())
         javaCompile.setDestinationDir(new File("tmp"))
 
         when:

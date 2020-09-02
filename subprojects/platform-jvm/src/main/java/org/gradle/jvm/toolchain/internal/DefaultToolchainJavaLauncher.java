@@ -16,11 +16,10 @@
 
 package org.gradle.jvm.toolchain.internal;
 
+import org.gradle.api.file.RegularFile;
 import org.gradle.api.tasks.Internal;
 import org.gradle.jvm.toolchain.JavaLauncher;
 import org.gradle.jvm.toolchain.JavaInstallationMetadata;
-
-import java.nio.file.Path;
 
 public class DefaultToolchainJavaLauncher implements JavaLauncher {
 
@@ -32,7 +31,7 @@ public class DefaultToolchainJavaLauncher implements JavaLauncher {
 
     @Override
     @Internal
-    public Path getExecutablePath() {
+    public RegularFile getExecutablePath() {
         return javaToolchain.findExecutable("java");
     }
 

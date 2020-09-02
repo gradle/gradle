@@ -17,6 +17,9 @@
 package org.gradle.jvm.toolchain.internal;
 
 import org.gradle.api.Describable;
+import org.gradle.api.file.Directory;
+import org.gradle.api.file.RegularFile;
+import org.gradle.api.internal.file.FileFactory;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.internal.os.OperatingSystem;
@@ -29,24 +32,23 @@ import org.gradle.util.VersionNumber;
 
 import javax.inject.Inject;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 
 public class JavaToolchain implements Describable, JavaInstallationMetadata {
 
     private final boolean isJdk;
     private final JavaCompilerFactory compilerFactory;
     private final ToolchainToolFactory toolFactory;
-    private final Path javaHome;
+    private final Directory javaHome;
     private final VersionNumber implementationVersion;
     private final JavaLanguageVersion javaVersion;
 
     @Inject
-    public JavaToolchain(JavaInstallationProbe.ProbeResult probe, JavaCompilerFactory compilerFactory, ToolchainToolFactory toolFactory) {
-        this(probe.getJavaHome(), new DefaultJavaLanguageVersion(Integer.parseInt(probe.getJavaVersion().getMajorVersion())), probe.getImplementationJavaVersion(), probe.getInstallType() == JavaInstallationProbe.InstallType.IS_JDK, compilerFactory, toolFactory);
+    public JavaToolchain(JavaInstallationProbe.ProbeResult probe, JavaCompilerFactory compilerFactory, ToolchainToolFactory toolFactory, FileFactory fileFactory) {
+        this(probe.getJavaHome(), new DefaultJavaLanguageVersion(Integer.parseInt(probe.getJavaVersion().getMajorVersion())), probe.getImplementationJavaVersion(), probe.getInstallType() == JavaInstallationProbe.InstallType.IS_JDK, compilerFactory, toolFactory, fileFactory);
     }
 
-    JavaToolchain(Path javaHome, JavaLanguageVersion version, String implementationJavaVersion, boolean isJdk, JavaCompilerFactory compilerFactory, ToolchainToolFactory toolFactory) {
-        this.javaHome = computeEnclosingJavaHome(javaHome);
+    JavaToolchain(Path javaHome, JavaLanguageVersion version, String implementationJavaVersion, boolean isJdk, JavaCompilerFactory compilerFactory, ToolchainToolFactory toolFactory, FileFactory fileFactory) {
+        this.javaHome = fileFactory.dir(computeEnclosingJavaHome(javaHome).toFile());
         this.javaVersion = version;
         this.isJdk = isJdk;
         this.compilerFactory = compilerFactory;
@@ -80,7 +82,7 @@ public class JavaToolchain implements Describable, JavaInstallationMetadata {
     }
 
     @Internal
-    public Path getInstallationPath() {
+    public Directory getInstallationPath() {
         return javaHome;
     }
 
@@ -95,8 +97,8 @@ public class JavaToolchain implements Describable, JavaInstallationMetadata {
         return javaHome.toString();
     }
 
-    public Path findExecutable(String toolname) {
-        return getInstallationPath().resolve(getBinaryPath(toolname));
+    public RegularFile findExecutable(String toolname) {
+        return getInstallationPath().file(getBinaryPath(toolname));
     }
 
     private Path computeEnclosingJavaHome(Path home) {
@@ -108,7 +110,7 @@ public class JavaToolchain implements Describable, JavaInstallationMetadata {
         return home;
     }
 
-    private Path getBinaryPath(String java) {
-        return Paths.get("bin/", OperatingSystem.current().getExecutableName(java));
+    private String getBinaryPath(String java) {
+        return "bin/" + OperatingSystem.current().getExecutableName(java);
     }
 }

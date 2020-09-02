@@ -17,8 +17,7 @@
 package org.gradle.jvm.toolchain;
 
 import org.gradle.api.Incubating;
-
-import java.nio.file.Path;
+import org.gradle.api.file.RegularFile;
 
 /**
  * A java executable used to execute applications or run tests.
@@ -40,5 +39,5 @@ public interface JavaLauncher {
      *
      * @return the path to the executable
      */
-    Path getExecutablePath();
+    RegularFile getExecutablePath();
 }

@@ -16,6 +16,7 @@
 
 package org.gradle.jvm.toolchain.internal;
 
+import org.gradle.api.file.RegularFile;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.WorkResult;
@@ -24,8 +25,6 @@ import org.gradle.jvm.toolchain.JavaInstallationMetadata;
 import org.gradle.language.base.internal.compile.CompileSpec;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.nio.file.Path;
 
 public class DefaultToolchainJavaCompiler implements JavaCompiler {
 
@@ -47,7 +46,7 @@ public class DefaultToolchainJavaCompiler implements JavaCompiler {
 
     @Override
     @Internal
-    public Path getExecutablePath() {
+    public RegularFile getExecutablePath() {
         return javaToolchain.findExecutable("javac");
     }
 

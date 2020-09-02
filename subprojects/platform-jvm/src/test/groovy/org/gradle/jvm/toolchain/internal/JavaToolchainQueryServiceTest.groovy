@@ -17,6 +17,7 @@
 package org.gradle.jvm.toolchain.internal
 
 import org.gradle.api.JavaVersion
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.jvm.toolchain.JavaLanguageVersion
 import org.gradle.jvm.toolchain.JavaToolchainSpec
 import org.gradle.jvm.toolchain.install.internal.JavaToolchainProvisioningService
@@ -132,9 +133,9 @@ class JavaToolchainQueryServiceTest extends Specification {
     private JavaToolchainFactory newToolchainFactory() {
         def compilerFactory = Mock(JavaCompilerFactory)
         def toolFactory = Mock(ToolchainToolFactory)
-        def toolchainFactory = new JavaToolchainFactory(Mock(JavaInstallationProbe), compilerFactory, toolFactory) {
+        def toolchainFactory = new JavaToolchainFactory(Mock(JavaInstallationProbe), compilerFactory, toolFactory, TestFiles.fileFactory()) {
             JavaToolchain newInstance(File javaHome) {
-                return new JavaToolchain(newProbe(javaHome), compilerFactory, toolFactory)
+                return new JavaToolchain(newProbe(javaHome), compilerFactory, toolFactory, TestFiles.fileFactory())
             }
         }
         toolchainFactory
@@ -143,7 +144,7 @@ class JavaToolchainQueryServiceTest extends Specification {
     def newProbe(File javaHome) {
         Mock(JavaInstallationProbe.ProbeResult) {
             getJavaVersion() >> JavaVersion.toVersion(javaHome.name)
-            getJavaHome() >> javaHome.toPath()
+            getJavaHome() >> javaHome.absoluteFile.toPath()
             getImplementationJavaVersion() >> javaHome.name.replace("zzz", "999")
         }
     }
@@ -152,7 +153,7 @@ class JavaToolchainQueryServiceTest extends Specification {
         def supplier = new InstallationSupplier() {
             @Override
             Set<InstallationLocation> get() {
-                installations.collect { new InstallationLocation(new File("/path/${it}"), "test") } as Set
+                installations.collect { new InstallationLocation(new File("/path/${it}").absoluteFile, "test") } as Set
             }
         }
         def registry = new SharedJavaInstallationRegistry([supplier]) {

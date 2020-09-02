@@ -17,8 +17,7 @@
 package org.gradle.jvm.toolchain;
 
 import org.gradle.api.Incubating;
-
-import java.nio.file.Path;
+import org.gradle.api.file.RegularFile;
 
 /**
  * Generates HTML API documentation for Java classes.
@@ -41,5 +40,5 @@ public interface JavadocTool {
      *
      * @return the path to the executable
      */
-    Path getExecutablePath();
+    RegularFile getExecutablePath();
 }

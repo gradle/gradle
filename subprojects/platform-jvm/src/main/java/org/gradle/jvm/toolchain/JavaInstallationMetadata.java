@@ -17,11 +17,14 @@
 package org.gradle.jvm.toolchain;
 
 import org.gradle.api.Incubating;
-
-import java.nio.file.Path;
+import org.gradle.api.file.Directory;
 
 /**
  * Metadata about a Java tool obtained from a toolchain.
+ *
+ * @see JavaLauncher
+ * @see JavaCompiler
+ * @see JavadocTool
  *
  * @since 6.7
  */
@@ -41,5 +44,5 @@ public interface JavaInstallationMetadata {
      *
      * @return the installation path
      */
-    Path getInstallationPath();
+    Directory getInstallationPath();
 }

@@ -16,13 +16,12 @@
 
 package org.gradle.api.tasks.javadoc.internal;
 
+import org.gradle.api.file.RegularFile;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.jvm.toolchain.JavaInstallationMetadata;
 import org.gradle.jvm.toolchain.JavadocTool;
 import org.gradle.jvm.toolchain.internal.JavaToolchain;
 import org.gradle.process.internal.ExecActionFactory;
-
-import java.nio.file.Path;
 
 public class JavadocToolAdapter implements JavadocTool {
 
@@ -45,7 +44,7 @@ public class JavadocToolAdapter implements JavadocTool {
     }
 
     @Override
-    public Path getExecutablePath() {
+    public RegularFile getExecutablePath() {
         return toolchain.findExecutable("javadoc");
     }
 }
