@@ -517,6 +517,11 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
             return false;
         }
 
+        @Override
+        public boolean isExternalVariant() {
+            return false;
+        }
+
         private boolean include(DefaultLocalConfigurationMetadata configuration) {
             return hierarchy.contains(configuration.getName());
         }

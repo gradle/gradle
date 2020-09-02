@@ -51,14 +51,22 @@ class LazyRuleAwareWithBaseConfigurationMetadata implements ModuleConfigurationM
     private CapabilitiesMetadata computedCapabilities;
     private ImmutableList<? extends ComponentArtifactMetadata> computedArtifacts;
     private final ImmutableAttributes componentLevelAttributes;
+    private final boolean externalVariant;
 
-    LazyRuleAwareWithBaseConfigurationMetadata(String name, @Nullable ModuleConfigurationMetadata base, ModuleComponentIdentifier componentId, ImmutableAttributes componentLevelAttributes, VariantMetadataRules variantMetadataRules, ImmutableList<ExcludeMetadata> excludes) {
+    LazyRuleAwareWithBaseConfigurationMetadata(String name,
+                                               @Nullable ModuleConfigurationMetadata base,
+                                               ModuleComponentIdentifier componentId,
+                                               ImmutableAttributes componentLevelAttributes,
+                                               VariantMetadataRules variantMetadataRules,
+                                               ImmutableList<ExcludeMetadata> excludes,
+                                               boolean externalVariant) {
         this.name = name;
         this.base = base;
         this.componentId = componentId;
         this.variantMetadataRules = variantMetadataRules;
         this.componentLevelAttributes = componentLevelAttributes;
         this.excludes = excludes;
+        this.externalVariant = externalVariant;
     }
 
     @Override
@@ -156,5 +164,10 @@ class LazyRuleAwareWithBaseConfigurationMetadata implements ModuleConfigurationM
     @Override
     public List<String> getConsumptionAlternatives() {
         return ImmutableList.of();
+    }
+
+    @Override
+    public boolean isExternalVariant() {
+        return externalVariant;
     }
 }

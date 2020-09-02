@@ -101,5 +101,6 @@ class VariantMetadataSpec {
 
     void availableAt(String url, String group, String name, String version) {
         availableAt = new AvailableAtSpec(url, group, name, version)
+        noArtifacts = true
     }
 }

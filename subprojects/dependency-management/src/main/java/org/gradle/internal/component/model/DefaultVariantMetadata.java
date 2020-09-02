@@ -69,4 +69,9 @@ public class DefaultVariantMetadata implements VariantResolveMetadata {
     public CapabilitiesMetadata getCapabilities() {
         return capabilitiesMetadata;
     }
+
+    @Override
+    public boolean isExternalVariant() {
+        return false;
+    }
 }
