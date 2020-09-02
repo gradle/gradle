@@ -346,7 +346,10 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
 
         @Override
         public void visit(Service service) {
-            delegate.add(serviceType.cast(service.get()));
+            T instance = serviceType.cast(service.get());
+            if (!delegate.contains(instance)) {
+                delegate.add(instance);
+            }
         }
     }
 
@@ -359,7 +362,9 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
 
         @Override
         public void visit(Service service) {
-            delegate.add(service);
+            if (!delegate.contains(service)) {
+                delegate.add(service);
+            }
         }
     }
 
@@ -486,7 +491,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
         }
 
         private class ProviderAnalyser {
-            private Set<Class<?>> seen = new HashSet<Class<?>>(4, 0.5f);
+            private final Set<Class<?>> seen = new HashSet<Class<?>>(4, 0.5f);
 
             public void addProviderForClassHierarchy(Class<?> serviceType, ServiceProvider serviceProvider) {
                 analyseType(serviceType, serviceProvider);
