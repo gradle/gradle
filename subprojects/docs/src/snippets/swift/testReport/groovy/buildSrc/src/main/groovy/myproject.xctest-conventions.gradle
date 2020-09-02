@@ -21,10 +21,8 @@ configurations {
             attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.DOCUMENTATION))
             attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named(DocsType, 'test-report-data'))
         }
-        afterEvaluate {
-            tasks.withType(XCTest).each {
-                outgoing.artifact(it.binaryResultsDirectory)
-            }
+        tasks.withType(XCTest) {
+            outgoing.artifact(it.binaryResultsDirectory)
         }
     }
 }
