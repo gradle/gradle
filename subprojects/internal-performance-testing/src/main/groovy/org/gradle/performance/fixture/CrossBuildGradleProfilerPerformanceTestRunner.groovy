@@ -28,7 +28,7 @@ import java.util.function.Function
 
 @CompileStatic
 class CrossBuildGradleProfilerPerformanceTestRunner<R extends CrossBuildPerformanceResults> extends AbstractCrossBuildPerformanceTestRunner {
-    CrossBuildGradleProfilerPerformanceTestRunner(GradleProfilerBuildExperimentRunner experimentRunner, ResultsStore resultsStore, DataReporter<R> dataReporter, IntegrationTestBuildContext buildContext) {
+    CrossBuildGradleProfilerPerformanceTestRunner(AbstractGradleProfilerBuildExperimentRunner experimentRunner, ResultsStore resultsStore, DataReporter<R> dataReporter, IntegrationTestBuildContext buildContext) {
         super(experimentRunner, resultsStore, dataReporter, buildContext)
     }
 
@@ -38,7 +38,9 @@ class CrossBuildGradleProfilerPerformanceTestRunner<R extends CrossBuildPerforma
     @Override
     protected void defaultSpec(BuildExperimentSpec.Builder builder) {
         super.defaultSpec(builder)
-        builder.measuredBuildOperations.addAll(measuredBuildOperations)
+        if (builder instanceof GradleBuildExperimentSpec.GradleBuilder) {
+            ((GradleBuildExperimentSpec.GradleBuilder) builder).measuredBuildOperations.addAll(measuredBuildOperations)
+        }
         builder.buildMutators.addAll(buildMutators)
     }
 

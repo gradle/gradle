@@ -18,16 +18,12 @@ package org.gradle.performance.fixture;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import joptsimple.OptionParser;
 import org.gradle.integtests.fixtures.executer.GradleDistribution;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.jvm.Jvm;
-import org.gradle.performance.measure.Duration;
-import org.gradle.performance.measure.MeasuredOperation;
 import org.gradle.performance.results.MeasuredOperationList;
 import org.gradle.profiler.BenchmarkResultCollector;
 import org.gradle.profiler.BuildAction;
-import org.gradle.profiler.BuildMutator;
 import org.gradle.profiler.BuildMutatorFactory;
 import org.gradle.profiler.DaemonControl;
 import org.gradle.profiler.GradleBuildConfiguration;
@@ -37,8 +33,6 @@ import org.gradle.profiler.GradleScenarioDefinition;
 import org.gradle.profiler.GradleScenarioInvoker;
 import org.gradle.profiler.InvocationSettings;
 import org.gradle.profiler.Logging;
-import org.gradle.profiler.Profiler;
-import org.gradle.profiler.ProfilerFactory;
 import org.gradle.profiler.RunTasksAction;
 import org.gradle.profiler.instrument.PidInstrumentation;
 import org.gradle.profiler.report.CsvGenerator;
@@ -47,12 +41,9 @@ import org.gradle.profiler.result.Sample;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 /**
@@ -60,35 +51,13 @@ import java.util.stream.Collectors;
  *
  * This runner uses Gradle profiler to execute the actual experiment.
  */
-public class GradleProfilerBuildExperimentRunner extends AbstractBuildExperimentRunner {
+public class GradleBuildExperimentRunner extends AbstractGradleProfilerBuildExperimentRunner {
     private static final String GRADLE_USER_HOME_NAME = "gradleUserHome";
-    private final ProfilerFlameGraphGenerator flameGraphGenerator;
-    private final BenchmarkResultCollector resultCollector;
-    private final Profiler profiler;
 
-    public GradleProfilerBuildExperimentRunner(BenchmarkResultCollector resultCollector) {
-        String jfrProfileTargetDir = org.gradle.performance.fixture.Profiler.getJfrProfileTargetDir();
-        this.flameGraphGenerator = jfrProfileTargetDir == null
-            ? ProfilerFlameGraphGenerator.NOOP
-            : new JfrFlameGraphGenerator(new File(jfrProfileTargetDir));
-        this.profiler = jfrProfileTargetDir == null
-            ? Profiler.NONE
-            : ProfilerFactory.of(Arrays.asList("jfr")).createFromOptions(new OptionParser().parse());
-        this.resultCollector = resultCollector;
+    public GradleBuildExperimentRunner(BenchmarkResultCollector resultCollector) {
+        super(resultCollector);
     }
 
-    protected ProfilerFlameGraphGenerator getFlameGraphGenerator() {
-        return flameGraphGenerator;
-    }
-
-    protected BenchmarkResultCollector getResultCollector() {
-        return resultCollector;
-    }
-
-    protected Profiler getProfiler() {
-        return profiler;
-
-    }
 
     @Override
     public void doRun(BuildExperimentSpec experiment, MeasuredOperationList results) {
@@ -112,7 +81,7 @@ public class GradleProfilerBuildExperimentRunner extends AbstractBuildExperiment
         List<Sample<GradleBuildInvocationResult>> buildOperationSamples = scenarioDefinition.getMeasuredBuildOperations().stream()
             .map(GradleBuildInvocationResult::sampleBuildOperation)
             .collect(Collectors.toList());
-        Consumer<GradleBuildInvocationResult> scenarioReporter = resultCollector.scenario(
+        Consumer<GradleBuildInvocationResult> scenarioReporter = getResultCollector().scenario(
             scenarioDefinition,
             ImmutableList.<Sample<? super GradleBuildInvocationResult>>builder()
                 .add(GradleBuildInvocationResult.EXECUTION_TIME)
@@ -123,19 +92,12 @@ public class GradleProfilerBuildExperimentRunner extends AbstractBuildExperiment
         try {
             GradleScenarioInvoker scenarioInvoker = createScenarioInvoker(new File(buildSpec.getWorkingDirectory(), GRADLE_USER_HOME_NAME));
             AtomicInteger iterationCount = new AtomicInteger(0);
-            int warmUpCount = scenarioDefinition.getWarmUpCount();
             Logging.setupLogging(workingDirectory);
-            scenarioInvoker.doRun(scenarioDefinition, invocationSettings, invocationResult -> {
-                int currentIteration = iterationCount.incrementAndGet();
-                if (currentIteration > warmUpCount) {
-                    MeasuredOperation measuredOperation = new MeasuredOperation();
-                    measuredOperation.setTotalTime(Duration.millis(invocationResult.getExecutionTime().toMillis()));
-                    results.add(measuredOperation);
-                }
-                scenarioReporter.accept(invocationResult);
-            });
-            flameGraphGenerator.generateGraphs(experiment);
-            flameGraphGenerator.generateDifferentialGraphs();
+            scenarioInvoker.doRun(scenarioDefinition,
+                invocationSettings,
+                consumerFor(scenarioDefinition, iterationCount, results, scenarioReporter));
+            getFlameGraphGenerator().generateGraphs(experiment);
+            getFlameGraphGenerator().generateDifferentialGraphs();
         } catch (IOException | InterruptedException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         } finally {
@@ -154,7 +116,7 @@ public class GradleProfilerBuildExperimentRunner extends AbstractBuildExperiment
     }
 
     private InvocationSettings createInvocationSettings(GradleInvocationSpec invocationSpec, GradleBuildExperimentSpec experiment) {
-        File outputDir = flameGraphGenerator.getJfrOutputDirectory(experiment);
+        File outputDir = getFlameGraphGenerator().getJfrOutputDirectory(experiment);
         GradleBuildInvoker daemonInvoker = invocationSpec.getUseToolingApi() ? GradleBuildInvoker.ToolingApi : GradleBuildInvoker.Cli;
         GradleBuildInvoker invoker = invocationSpec.isUseDaemon()
             ? daemonInvoker
@@ -163,7 +125,7 @@ public class GradleProfilerBuildExperimentRunner extends AbstractBuildExperiment
             : GradleBuildInvoker.CliNoDaemon);
         return new InvocationSettings(
             invocationSpec.getWorkingDirectory(),
-            profiler,
+            getProfiler(),
             true,
             outputDir,
             invoker,
@@ -207,7 +169,5 @@ public class GradleProfilerBuildExperimentRunner extends AbstractBuildExperiment
         );
     }
 
-    protected static Supplier<BuildMutator> toMutatorSupplierForSettings(InvocationSettings invocationSettings, Function<InvocationSettings, BuildMutator> mutatorFunction) {
-        return () -> mutatorFunction.apply(invocationSettings);
-    }
+
 }

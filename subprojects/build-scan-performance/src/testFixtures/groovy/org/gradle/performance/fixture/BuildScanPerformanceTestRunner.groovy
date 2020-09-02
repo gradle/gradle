@@ -28,7 +28,7 @@ import org.gradle.util.GradleVersion
 class BuildScanPerformanceTestRunner extends CrossBuildGradleProfilerPerformanceTestRunner {
     private final String pluginCommitSha
 
-    BuildScanPerformanceTestRunner(GradleProfilerBuildExperimentRunner experimentRunner, ResultsStore resultsStore, DataReporter<CrossBuildPerformanceResults> dataReporter, String pluginCommitSha, IntegrationTestBuildContext buildContext) {
+    BuildScanPerformanceTestRunner(GradleBuildExperimentRunner experimentRunner, ResultsStore resultsStore, DataReporter<CrossBuildPerformanceResults> dataReporter, String pluginCommitSha, IntegrationTestBuildContext buildContext) {
         super(experimentRunner, resultsStore, dataReporter, buildContext)
         this.pluginCommitSha = pluginCommitSha
         this.testGroup = "build scan plugin"

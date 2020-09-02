@@ -18,7 +18,6 @@ package org.gradle.performance
 
 import org.apache.commons.io.FileUtils
 import org.gradle.performance.categories.PerformanceRegressionTest
-import org.gradle.performance.fixture.BuildExperimentListener
 import org.gradle.profiler.BuildContext
 import org.gradle.profiler.BuildMutator
 import org.gradle.profiler.InvocationSettings
@@ -45,17 +44,6 @@ class BuildScanPluginPerformanceTest extends AbstractBuildScanPluginPerformanceT
         def jobArgs = ['--continue', '-Dscan.capture-task-input-files'] + scenarioArgs
         def opts = ['-Xms4096m', '-Xmx4096m']
 
-        def buildExperimentListeners = [
-            new InjectBuildScanPlugin(pluginVersionNumber),
-            new SaveScanSpoolFile(scenario)
-        ]
-
-        if (manageCacheState) {
-            buildExperimentListeners << new ManageLocalCacheState()
-        }
-
-        def buildExperimentListener = BuildExperimentListener.compose(*buildExperimentListeners)
-
         runner.testId = "large java project with and without plugin application ($scenario)"
         runner.baseline {
             warmUpCount WARMUPS
@@ -69,7 +57,11 @@ class BuildScanPluginPerformanceTest extends AbstractBuildScanPluginPerformanceT
                 if (withFailure) {
                     expectFailure()
                 }
-                listener(buildExperimentListener)
+                addBuildMutator { invocationSettings -> new InjectBuildScanPlugin(invocationSettings.projectDir, pluginVersionNumber) }
+                addBuildMutator { invocationSettings -> new SaveScanSpoolFile(invocationSettings, scenario) }
+                if (manageCacheState) {
+                    addBuildMutator { new ManageLocalCacheState() }
+                }
             }
         }
 
@@ -86,7 +78,11 @@ class BuildScanPluginPerformanceTest extends AbstractBuildScanPluginPerformanceT
                 if (withFailure) {
                     expectFailure()
                 }
-                listener(buildExperimentListener)
+                addBuildMutator { invocationSettings -> new InjectBuildScanPlugin(invocationSettings.projectDir, pluginVersionNumber) }
+                addBuildMutator { invocationSettings -> new SaveScanSpoolFile(invocationSettings, scenario) }
+                if (manageCacheState) {
+                    addBuildMutator { new ManageLocalCacheState() }
+                }
             }
         }
 

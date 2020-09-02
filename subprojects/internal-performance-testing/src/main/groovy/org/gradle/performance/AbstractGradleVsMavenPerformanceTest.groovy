@@ -50,25 +50,11 @@ class AbstractGradleVsMavenPerformanceTest extends Specification {
         protected void defaultSpec(BuildExperimentSpec.Builder builder) {
             super.defaultSpec(builder)
             builder.workingDirectory = temporaryFolder.testDirectory
-            AbstractGradleVsMavenPerformanceTest.this.defaultSpec(builder)
-        }
-
-        @Override
-        protected void finalizeSpec(BuildExperimentSpec.Builder builder) {
-            super.finalizeSpec(builder)
-            AbstractGradleVsMavenPerformanceTest.this.finalizeSpec(builder)
         }
     }
 
     @Rule
     PerformanceTestIdProvider performanceTestIdProvider = new PerformanceTestIdProvider(runner)
-
-    protected void defaultSpec(BuildExperimentSpec.Builder builder) {
-    }
-
-    protected void finalizeSpec(BuildExperimentSpec.Builder builder) {
-        builder.listener = runner.buildExperimentListener
-    }
 
     static {
         // TODO - find a better way to cleanup

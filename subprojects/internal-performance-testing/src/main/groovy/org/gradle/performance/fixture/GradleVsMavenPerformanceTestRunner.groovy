@@ -40,7 +40,6 @@ class GradleVsMavenPerformanceTestRunner extends CrossBuildGradleProfilerPerform
     List<Object> jvmOpts = []
     List<Object> mvnArgs = []
 
-    BuildExperimentListener buildExperimentListener
     InvocationCustomizer invocationCustomizer
 
     int warmUpRuns = 4
@@ -58,7 +57,6 @@ class GradleVsMavenPerformanceTestRunner extends CrossBuildGradleProfilerPerform
     @Override
     protected void defaultSpec(BuildExperimentSpec.Builder builder) {
         super.defaultSpec(builder)
-        builder.setListener(buildExperimentListener)
         builder.setInvocationCustomizer(invocationCustomizer)
         if (builder instanceof GradleBuildExperimentSpec.GradleBuilder) {
             ((GradleInvocationSpec.InvocationBuilder) builder.invocation).distribution(gradleDistribution)
@@ -72,14 +70,14 @@ class GradleVsMavenPerformanceTestRunner extends CrossBuildGradleProfilerPerform
             warmUpCount = warmUpRuns
             invocationCount = runs
             projectName(testProject).displayName("Gradle $commonBaseDisplayName").invocation {
-                tasksToRun(gradleTasks).cleanTasks(gradleCleanTasks).gradleOpts(jvmOpts.collect {it.toString()})
+                tasksToRun(gradleTasks).cleanTasks(gradleCleanTasks).gradleOpts(jvmOpts.collect { it.toString() })
             }
         }
         mavenBuildSpec {
             warmUpCount = warmUpRuns
             invocationCount = runs
             projectName(testProject).displayName("Maven $commonBaseDisplayName").invocation {
-                tasksToRun(equivalentMavenTasks).cleanTasks(equivalentMavenCleanTasks).mavenOpts(jvmOpts.collect {it.toString()}).args(mvnArgs.collect {it.toString()})
+                tasksToRun(equivalentMavenTasks).cleanTasks(equivalentMavenCleanTasks).mavenOpts(jvmOpts.collect { it.toString() }).args(mvnArgs.collect { it.toString() })
             }
         }
         super.run()

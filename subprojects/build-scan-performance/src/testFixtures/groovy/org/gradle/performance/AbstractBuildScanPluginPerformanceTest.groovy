@@ -21,7 +21,7 @@ import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.performance.fixture.BuildExperimentSpec
 import org.gradle.performance.fixture.BuildScanPerformanceTestRunner
 import org.gradle.performance.fixture.CrossBuildGradleProfilerPerformanceTestRunner
-import org.gradle.performance.fixture.GradleProfilerBuildExperimentRunner
+import org.gradle.performance.fixture.GradleBuildExperimentRunner
 import org.gradle.performance.measure.Amount
 import org.gradle.performance.measure.MeasuredOperation
 import org.gradle.performance.results.BaselineVersion
@@ -57,7 +57,7 @@ class AbstractBuildScanPluginPerformanceTest extends Specification {
         assert buildStampJsonData.commitId
         def pluginCommitId = buildStampJsonData.commitId as String
         def gradleProfilerReporter = new GradleProfilerReporter(tmpDir.testDirectory)
-        runner = new BuildScanPerformanceTestRunner(new GradleProfilerBuildExperimentRunner(gradleProfilerReporter.resultCollector), resultStore, resultStore, pluginCommitId, buildContext) {
+        runner = new BuildScanPerformanceTestRunner(new GradleBuildExperimentRunner(gradleProfilerReporter.resultCollector), resultStore, resultStore, pluginCommitId, buildContext) {
             @Override
             protected void defaultSpec(BuildExperimentSpec.Builder builder) {
                 super.defaultSpec(builder)

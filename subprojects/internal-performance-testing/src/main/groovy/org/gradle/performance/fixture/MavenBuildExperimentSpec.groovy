@@ -62,7 +62,6 @@ class MavenBuildExperimentSpec extends BuildExperimentSpec {
         Integer invocationCount
         InvocationCustomizer invocationCustomizer
         final List<Function<InvocationSettings, BuildMutator>> buildMutators = []
-        final List<String> measuredBuildOperations = []
 
         MavenBuilder invocation(@DelegatesTo(MavenInvocationSpec.InvocationBuilder) Closure<?> conf) {
             invocation.with(conf)
@@ -112,8 +111,7 @@ class MavenBuildExperimentSpec extends BuildExperimentSpec {
                 warmUpCount,
                 invocationCount,
                 invocationCustomizer,
-                ImmutableList.copyOf(buildMutators),
-                ImmutableList.copyOf(measuredBuildOperations)
+                ImmutableList.copyOf(buildMutators)
             )
         }
 

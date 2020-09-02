@@ -16,12 +16,26 @@
 
 package org.gradle.performance.fixture;
 
+import joptsimple.OptionParser;
 import org.apache.commons.io.FileUtils;
+import org.gradle.performance.measure.Duration;
+import org.gradle.performance.measure.MeasuredOperation;
 import org.gradle.performance.results.MeasuredOperationList;
+import org.gradle.profiler.BenchmarkResultCollector;
+import org.gradle.profiler.BuildMutator;
+import org.gradle.profiler.InvocationSettings;
+import org.gradle.profiler.ProfilerFactory;
+import org.gradle.profiler.ScenarioDefinition;
+import org.gradle.profiler.result.BuildInvocationResult;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.util.Arrays;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 /**
  * Runs a single build experiment.
@@ -29,7 +43,34 @@ import java.io.UncheckedIOException;
  * As part of a performance scenario, multiple experiments need to be run and compared.
  * For example for a cross-version scenario, experiments for each version will be run.
  */
-public abstract class AbstractBuildExperimentRunner implements BuildExperimentRunner {
+public abstract class AbstractGradleProfilerBuildExperimentRunner implements BuildExperimentRunner {
+    private final ProfilerFlameGraphGenerator flameGraphGenerator;
+    private final BenchmarkResultCollector resultCollector;
+    private final org.gradle.profiler.Profiler profiler;
+
+    public AbstractGradleProfilerBuildExperimentRunner(BenchmarkResultCollector resultCollector) {
+        String jfrProfileTargetDir = org.gradle.performance.fixture.Profiler.getJfrProfileTargetDir();
+        this.flameGraphGenerator = jfrProfileTargetDir == null
+            ? ProfilerFlameGraphGenerator.NOOP
+            : new JfrFlameGraphGenerator(new File(jfrProfileTargetDir));
+        this.profiler = jfrProfileTargetDir == null
+            ? org.gradle.profiler.Profiler.NONE
+            : ProfilerFactory.of(Arrays.asList("jfr")).createFromOptions(new OptionParser().parse());
+        this.resultCollector = resultCollector;
+    }
+
+    protected ProfilerFlameGraphGenerator getFlameGraphGenerator() {
+        return flameGraphGenerator;
+    }
+
+    protected BenchmarkResultCollector getResultCollector() {
+        return resultCollector;
+    }
+
+    protected org.gradle.profiler.Profiler getProfiler() {
+        return profiler;
+
+    }
 
     @Override
     public void run(BuildExperimentSpec experiment, MeasuredOperationList results) {
@@ -97,5 +138,24 @@ public abstract class AbstractBuildExperimentRunner implements BuildExperimentRu
             return ((GradleInvocationSpec) invocation).getBuildWillRunInDaemon();
         }
         return false;
+    }
+
+    protected <T extends BuildInvocationResult> Consumer<T> consumerFor(ScenarioDefinition scenarioDefinition,
+                                                                        AtomicInteger iterationCount,
+                                                                        MeasuredOperationList results,
+                                                                        Consumer<T> scenarioReporter) {
+        return invocationResult -> {
+            int currentIteration = iterationCount.incrementAndGet();
+            if (currentIteration > scenarioDefinition.getWarmUpCount()) {
+                MeasuredOperation measuredOperation = new MeasuredOperation();
+                measuredOperation.setTotalTime(Duration.millis(invocationResult.getExecutionTime().toMillis()));
+                results.add(measuredOperation);
+            }
+            scenarioReporter.accept(invocationResult);
+        };
+    }
+
+    protected static Supplier<BuildMutator> toMutatorSupplierForSettings(InvocationSettings invocationSettings, Function<InvocationSettings, BuildMutator> mutatorFunction) {
+        return () -> mutatorFunction.apply(invocationSettings);
     }
 }

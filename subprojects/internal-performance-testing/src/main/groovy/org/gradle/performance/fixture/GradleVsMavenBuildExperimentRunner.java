@@ -16,129 +16,25 @@
 
 package org.gradle.performance.fixture;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
-import org.gradle.internal.UncheckedException;
-import org.gradle.performance.measure.Duration;
-import org.gradle.performance.measure.MeasuredOperation;
 import org.gradle.performance.results.MeasuredOperationList;
 import org.gradle.profiler.BenchmarkResultCollector;
-import org.gradle.profiler.BuildInvoker;
-import org.gradle.profiler.BuildMutatorFactory;
-import org.gradle.profiler.InvocationSettings;
-import org.gradle.profiler.Logging;
-import org.gradle.profiler.MavenScenarioDefinition;
-import org.gradle.profiler.MavenScenarioInvoker;
-import org.gradle.profiler.ScenarioDefinition;
-import org.gradle.profiler.report.CsvGenerator;
-import org.gradle.profiler.result.BuildInvocationResult;
-import org.gradle.profiler.result.Sample;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Consumer;
-import java.util.stream.Collectors;
+public class GradleVsMavenBuildExperimentRunner extends AbstractGradleProfilerBuildExperimentRunner {
+    private final GradleBuildExperimentRunner gradleRunner;
+    private final MavenBuildExeprimentRunner mavenRunner;
 
-public class GradleVsMavenBuildExperimentRunner extends GradleProfilerBuildExperimentRunner {
     public GradleVsMavenBuildExperimentRunner(BenchmarkResultCollector resultCollector) {
         super(resultCollector);
+        this.gradleRunner = new GradleBuildExperimentRunner(resultCollector);
+        this.mavenRunner = new MavenBuildExeprimentRunner(resultCollector);
     }
 
     @Override
     public void doRun(BuildExperimentSpec experiment, MeasuredOperationList results) {
         if (experiment instanceof MavenBuildExperimentSpec) {
-            runMavenExperiment((MavenBuildExperimentSpec) experiment, results);
+            mavenRunner.doRun(experiment, results);
         } else {
-            super.doRun(experiment, results);
+            gradleRunner.doRun(experiment, results);
         }
-    }
-
-    private void runMavenExperiment(MavenBuildExperimentSpec experimentSpec, MeasuredOperationList results) {
-        MavenInvocationSpec invocationSpec = experimentSpec.getInvocation();
-        File workingDirectory = invocationSpec.getWorkingDirectory();
-
-        InvocationSettings invocationSettings = createInvocationSettings(experimentSpec);
-        MavenScenarioDefinition scenarioDefinition = createScenarioDefinition(experimentSpec, invocationSettings);
-
-        try {
-            MavenScenarioInvoker scenarioInvoker = new MavenScenarioInvoker();
-            AtomicInteger iterationCount = new AtomicInteger(0);
-            int warmUpCount = scenarioDefinition.getWarmUpCount();
-            Logging.setupLogging(workingDirectory);
-
-            Consumer<BuildInvocationResult> scenarioReporter = getResultCollector().scenario(
-                scenarioDefinition,
-                ImmutableList.<Sample<? super BuildInvocationResult>>builder()
-                    .add(BuildInvocationResult.EXECUTION_TIME)
-                    .build()
-            );
-            scenarioInvoker.run(scenarioDefinition, invocationSettings, new BenchmarkResultCollector() {
-                @Override
-                public <T extends BuildInvocationResult> Consumer<T> scenario(ScenarioDefinition scenario, List<Sample<? super T>> samples) {
-                    return invocationResult -> {
-                        int currentIteration = iterationCount.incrementAndGet();
-                        if (currentIteration > warmUpCount) {
-                            MeasuredOperation measuredOperation = new MeasuredOperation();
-                            measuredOperation.setTotalTime(Duration.millis(invocationResult.getExecutionTime().toMillis()));
-                            results.add(measuredOperation);
-                        }
-                        scenarioReporter.accept(invocationResult);
-                    };
-                }
-            });
-            getFlameGraphGenerator().generateGraphs(experimentSpec);
-            getFlameGraphGenerator().generateDifferentialGraphs();
-        } catch (IOException | InterruptedException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
-        } finally {
-            try {
-                Logging.resetLogging();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
-    private InvocationSettings createInvocationSettings(MavenBuildExperimentSpec experimentSpec) {
-        File outputDir = getFlameGraphGenerator().getJfrOutputDirectory(experimentSpec);
-        return new InvocationSettings(
-            experimentSpec.getInvocation().getWorkingDirectory(),
-            getProfiler(),
-            true,
-            outputDir,
-            new BuildInvoker() {
-                @Override
-                public String toString() {
-                    return "Maven";
-                }
-            },
-            false,
-            null,
-            ImmutableList.of(experimentSpec.getInvocation().getMavenVersion()),
-            experimentSpec.getInvocation().getTasksToRun(),
-            ImmutableMap.of(),
-            null,
-            warmupsForExperiment(experimentSpec),
-            invocationsForExperiment(experimentSpec),
-            false,
-            ImmutableList.of(),
-            CsvGenerator.Format.LONG);
-    }
-
-    private MavenScenarioDefinition createScenarioDefinition(MavenBuildExperimentSpec experimentSpec, InvocationSettings invocationSettings) {
-        return new MavenScenarioDefinition(
-            experimentSpec.getDisplayName(),
-            experimentSpec.getDisplayName(),
-            experimentSpec.getInvocation().getTasksToRun(),
-            new BuildMutatorFactory(experimentSpec.getBuildMutators().stream()
-                .map(mutatorFunction -> toMutatorSupplierForSettings(invocationSettings, mutatorFunction))
-                .collect(Collectors.toList())
-            ),
-            invocationSettings.getWarmUpCount(),
-            invocationSettings.getBuildCount(),
-            invocationSettings.getOutputDir()
-        );
     }
 }

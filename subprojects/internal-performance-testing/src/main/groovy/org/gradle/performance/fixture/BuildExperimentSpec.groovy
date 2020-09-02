@@ -77,8 +77,6 @@ abstract class BuildExperimentSpec {
 
         List<Function<InvocationSettings, BuildMutator>> getBuildMutators()
 
-        List<String> getMeasuredBuildOperations()
-
         InvocationSpec.Builder getInvocation()
 
         BuildExperimentSpec build()
