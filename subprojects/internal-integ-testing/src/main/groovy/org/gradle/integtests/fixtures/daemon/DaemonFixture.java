@@ -53,6 +53,13 @@ public interface DaemonFixture {
     boolean logContains(long fromLine, String searchString);
 
     /**
+     * Returns the number of lines in the daemon log.
+     *
+     * Works without reading the whole log file into memory.
+     */
+    long getLogLineCount();
+
+    /**
      * Returns the TCP port used by this daemon.
      */
     int getPort();

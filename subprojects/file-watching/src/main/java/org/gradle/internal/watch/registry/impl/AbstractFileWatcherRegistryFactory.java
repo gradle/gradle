@@ -45,6 +45,7 @@ public abstract class AbstractFileWatcherRegistryFactory<T extends AbstractFileE
             FileWatcher watcher = createFileWatcher(fileEvents);
             FileWatcherUpdater fileWatcherUpdater = createFileWatcherUpdater(watcher, watchFilter);
             return new DefaultFileWatcherRegistry(
+                fileEventFunctions,
                 watcher,
                 handler,
                 fileWatcherUpdater,
