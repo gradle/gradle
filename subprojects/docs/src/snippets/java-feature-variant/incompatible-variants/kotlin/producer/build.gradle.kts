@@ -6,6 +6,9 @@ repositories {
     jcenter()
 }
 
+group = "org.gradle.demo"
+version = "1.0"
+
 // tag::producer[]
 java {
     registerFeature("mysqlSupport") {

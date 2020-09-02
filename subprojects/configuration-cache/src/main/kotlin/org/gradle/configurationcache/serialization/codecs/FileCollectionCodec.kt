@@ -143,6 +143,8 @@ class CollectingVisitor : FileCollectionStructureVisitor {
                 false
             }
             is ProviderBackedFileCollection -> {
+                // Guard against file collection created from a task provider such as `layout.files(compileJava)`
+                // being referenced from a different task.
                 val provider = fileCollection.provider
                 if (provider !is TaskProvider<*>) {
                     elements.add(ProviderBackedFileCollectionSpec(provider))

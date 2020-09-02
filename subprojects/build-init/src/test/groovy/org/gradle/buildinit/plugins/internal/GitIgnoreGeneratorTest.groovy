@@ -16,7 +16,8 @@
 
 package org.gradle.buildinit.plugins.internal
 
-import org.gradle.api.internal.file.TestFiles/**/
+import org.gradle.api.file.Directory
+import org.gradle.api.file.RegularFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
@@ -29,29 +30,36 @@ class GitIgnoreGeneratorTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
-    def fileResolver = TestFiles.resolver(tmpDir.testDirectory)
+    InitSettings settings = Mock()
+    File gitignoreFile = tmpDir.file(".gitignore")
+
+    def setup() {
+        Directory target = Mock()
+        RegularFile ignoreFile = Mock()
+        1 * settings.target >> target
+        1 * target.file('.gitignore') >> ignoreFile
+        1 * ignoreFile.asFile >> gitignoreFile
+    }
 
     def "generates .gitignore file"() {
         setup:
-        def generator = new GitIgnoreGenerator(fileResolver)
+        def generator = new GitIgnoreGenerator()
 
         when:
-        generator.generate(null)
+        generator.generate(settings)
 
         then:
-        def gitignoreFile = tmpDir.file(".gitignore")
         gitignoreFile.file
         gitignoreFile.text == toPlatformLineSeparators("${getGeneratedGitignoreContent()}")
     }
 
     def "appends .gitignore file if it already exists"() {
         setup:
-        def generator = new GitIgnoreGenerator(fileResolver)
-        def gitignoreFile = tmpDir.file(".gitignore")
+        def generator = new GitIgnoreGenerator()
         gitignoreFile << 'ignoredFolder/'
 
         when:
-        generator.generate(null)
+        generator.generate(settings)
 
         then:
         gitignoreFile.file
@@ -62,12 +70,11 @@ ${getGeneratedGitignoreContent()}""")
     @Unroll
     def "avoid adding duplicated entries when .gitignore file already exists [#entry]"() {
         setup:
-        def generator = new GitIgnoreGenerator(fileResolver)
-        def gitignoreFile = tmpDir.file(".gitignore")
+        def generator = new GitIgnoreGenerator()
         gitignoreFile << entry
 
         when:
-        generator.generate(null)
+        generator.generate(settings)
 
         then:
         gitignoreFile.file

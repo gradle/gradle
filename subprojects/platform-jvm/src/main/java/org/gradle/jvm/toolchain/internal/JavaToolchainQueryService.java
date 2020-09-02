@@ -16,10 +16,15 @@
 
 package org.gradle.jvm.toolchain.internal;
 
+import org.gradle.api.Action;
 import org.gradle.api.internal.provider.DefaultProvider;
 import org.gradle.api.internal.provider.Providers;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
+import org.gradle.jvm.toolchain.JavaCompiler;
+import org.gradle.jvm.toolchain.JavaLauncher;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
+import org.gradle.jvm.toolchain.JavadocTool;
 import org.gradle.jvm.toolchain.install.internal.JavaToolchainProvisioningService;
 
 import javax.inject.Inject;
@@ -32,12 +37,26 @@ public class JavaToolchainQueryService {
     private final SharedJavaInstallationRegistry registry;
     private final JavaToolchainFactory toolchainFactory;
     private final JavaToolchainProvisioningService installService;
+    private final ObjectFactory objectFactory;
 
     @Inject
-    public JavaToolchainQueryService(SharedJavaInstallationRegistry registry, JavaToolchainFactory toolchainFactory, JavaToolchainProvisioningService provisioningService) {
+    public JavaToolchainQueryService(SharedJavaInstallationRegistry registry, JavaToolchainFactory toolchainFactory, JavaToolchainProvisioningService provisioningService, ObjectFactory objectFactory) {
         this.registry = registry;
         this.toolchainFactory = toolchainFactory;
         this.installService = provisioningService;
+        this.objectFactory = objectFactory;
+    }
+
+    Provider<JavaCompiler> compilerFrom(Action<? super JavaToolchainSpec> config) {
+        return findMatchingToolchain(configureToolchainSpec(config)).map(JavaToolchain::getJavaCompiler);
+    }
+
+    Provider<JavaLauncher> launcherFrom(Action<? super JavaToolchainSpec> config) {
+        return findMatchingToolchain(configureToolchainSpec(config)).map(JavaToolchain::getJavaLauncher);
+    }
+
+    Provider<JavadocTool> javadocToolFrom(Action<? super JavaToolchainSpec> config) {
+        return findMatchingToolchain(configureToolchainSpec(config)).map(JavaToolchain::getJavadocTool);
     }
 
     public Provider<JavaToolchain> findMatchingToolchain(JavaToolchainSpec filter) {
@@ -45,6 +64,12 @@ public class JavaToolchainQueryService {
             return Providers.notDefined();
         }
         return new DefaultProvider<>(() -> query(filter));
+    }
+
+    private DefaultToolchainSpec configureToolchainSpec(Action<? super JavaToolchainSpec> config) {
+        DefaultToolchainSpec toolchainSpec = objectFactory.newInstance(DefaultToolchainSpec.class);
+        config.execute(toolchainSpec);
+        return toolchainSpec;
     }
 
     private JavaToolchain query(JavaToolchainSpec filter) {
@@ -69,5 +94,4 @@ public class JavaToolchainQueryService {
     private JavaToolchain asToolchain(File javaHome) {
         return toolchainFactory.newInstance(javaHome);
     }
-
 }

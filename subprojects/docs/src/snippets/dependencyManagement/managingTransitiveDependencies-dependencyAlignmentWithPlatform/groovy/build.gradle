@@ -1,17 +1,2 @@
-allprojects {
-    group = 'com.acme'
-    version = '1.0'
-}
-
-subprojects {
-    apply plugin: 'maven-publish'
-
-
-    publishing {
-        repositories {
-            maven {
-                url "${rootProject.buildDir}/repo"
-            }
-        }
-    }
-}
+group = 'com.acme'
+version = '1.0'

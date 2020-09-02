@@ -20,8 +20,8 @@ import org.gradle.integtests.fixtures.versions.AndroidGradlePluginVersions
 import org.gradle.performance.fixture.GradleBuildExperimentSpec
 import org.gradle.performance.fixture.GradleProfilerCrossVersionPerformanceTestRunner
 import org.gradle.profiler.InvocationSettings
-import org.gradle.profiler.mutations.ApplyAbiChangeToJavaSourceFileMutator
-import org.gradle.profiler.mutations.ApplyNonAbiChangeToJavaSourceFileMutator
+import org.gradle.profiler.mutations.ApplyAbiChangeToSourceFileMutator
+import org.gradle.profiler.mutations.ApplyNonAbiChangeToSourceFileMutator
 
 class AndroidTestProject {
 
@@ -64,7 +64,7 @@ class IncrementalAndroidTestProject extends AndroidTestProject {
     static final SANTA_TRACKER_KOTLIN = new IncrementalAndroidTestProject(
         templateName: 'santaTrackerAndroidBuild',
         memory: '1g',
-        pathToChange: 'snowballrun/src/main/java/com/google/android/apps/santatracker/doodles/snowballrun/BackgroundActor.java',
+        pathToChange: 'common/src/main/java/com/google/android/apps/santatracker/AudioPlayer.kt',
         taskToRunForChange: ':santa-tracker:assembleDebug'
     )
 
@@ -104,7 +104,7 @@ class IncrementalAndroidTestProject extends AndroidTestProject {
         configure(runner)
         runner.tasksToRun = [taskToRunForChange]
         runner.addBuildMutator { invocationSettings ->
-            new ApplyAbiChangeToJavaSourceFileMutator(getFileToChange(invocationSettings))
+            new ApplyAbiChangeToSourceFileMutator(getFileToChange(invocationSettings))
         }
     }
 
@@ -114,7 +114,7 @@ class IncrementalAndroidTestProject extends AndroidTestProject {
             tasksToRun(taskToRunForChange)
         }
         builder.addBuildMutator { invocationSettings ->
-            new ApplyAbiChangeToJavaSourceFileMutator(getFileToChange(invocationSettings))
+            new ApplyAbiChangeToSourceFileMutator(getFileToChange(invocationSettings))
         }
     }
 
@@ -122,7 +122,7 @@ class IncrementalAndroidTestProject extends AndroidTestProject {
         configure(runner)
         runner.tasksToRun = [taskToRunForChange]
         runner.addBuildMutator { invocationSettings ->
-            new ApplyNonAbiChangeToJavaSourceFileMutator(getFileToChange(invocationSettings))
+            new ApplyNonAbiChangeToSourceFileMutator(getFileToChange(invocationSettings))
         }
     }
 
@@ -132,7 +132,7 @@ class IncrementalAndroidTestProject extends AndroidTestProject {
             tasksToRun(taskToRunForChange)
         }
         builder.addBuildMutator { invocationSettings ->
-            new ApplyNonAbiChangeToJavaSourceFileMutator(getFileToChange(invocationSettings))
+            new ApplyNonAbiChangeToSourceFileMutator(getFileToChange(invocationSettings))
         }
     }
 

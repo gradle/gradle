@@ -71,6 +71,7 @@ tasks {
 
 fun KotlinCompile.configureKotlinCompilerForGradleBuild() {
     kotlinOptions {
+        incremental = true
         apiVersion = "1.3"
         languageVersion = "1.3"
         freeCompilerArgs += listOf(

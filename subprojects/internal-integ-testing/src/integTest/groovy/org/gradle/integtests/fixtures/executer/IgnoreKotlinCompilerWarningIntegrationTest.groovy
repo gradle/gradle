@@ -76,7 +76,6 @@ java.rmi.UnmarshalException: Error unmarshaling return header; nested exception 
 \tat org.gradle.internal.execution.steps.CancelExecutionStep.execute(CancelExecutionStep.java:43)
 \tat org.gradle.internal.execution.steps.TimeoutStep.executeWithoutTimeout(TimeoutStep.java:73)
 \tat org.gradle.internal.execution.steps.TimeoutStep.execute(TimeoutStep.java:54)
-\tat org.gradle.internal.execution.steps.CatchExceptionStep.execute(CatchExceptionStep.java:34)
 \tat org.gradle.internal.execution.steps.CreateOutputsStep.execute(CreateOutputsStep.java:44)
 \tat org.gradle.internal.execution.steps.SnapshotOutputsStep.execute(SnapshotOutputsStep.java:54)
 \tat org.gradle.internal.execution.steps.SnapshotOutputsStep.execute(SnapshotOutputsStep.java:38)

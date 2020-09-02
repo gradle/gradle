@@ -155,7 +155,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
 
     private final JavaForkOptions forkOptions;
     private final ModularitySpec modularity;
-    private Property<JavaLauncher> javaLauncher;
+    private final Property<JavaLauncher> javaLauncher;
 
     private FileCollection testClassesDirs;
     private final PatternFilterable patternSet;

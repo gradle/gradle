@@ -47,7 +47,6 @@ import org.gradle.internal.execution.steps.BroadcastChangingOutputsStep;
 import org.gradle.internal.execution.steps.CacheStep;
 import org.gradle.internal.execution.steps.CancelExecutionStep;
 import org.gradle.internal.execution.steps.CaptureStateBeforeExecutionStep;
-import org.gradle.internal.execution.steps.CatchExceptionStep;
 import org.gradle.internal.execution.steps.CleanupOutputsStep;
 import org.gradle.internal.execution.steps.CreateOutputsStep;
 import org.gradle.internal.execution.steps.ExecuteStep;
@@ -166,13 +165,12 @@ public class ExecutionGradleServices {
             new BroadcastChangingOutputsStep<>(outputChangeListener,
             new SnapshotOutputsStep<>(buildOperationExecutor, buildInvocationScopeId.getId(),
             new CreateOutputsStep<>(
-            new CatchExceptionStep<>(
             new TimeoutStep<>(timeoutHandler,
             new CancelExecutionStep<>(cancellationToken,
             new ResolveInputChangesStep<>(
             new CleanupOutputsStep<>(deleter, outputChangeListener,
             new ExecuteStep<>(
-        ))))))))))))))))))))));
+        )))))))))))))))))))));
         // @formatter:on
     }
 

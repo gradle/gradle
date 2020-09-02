@@ -23,6 +23,7 @@ import org.gradle.api.file.FileTree;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.plugins.GroovyBasePlugin;
+import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.tasks.GroovySourceSet;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.TaskContainer;
@@ -41,7 +42,7 @@ public abstract class PrecompiledGroovyPluginsPlugin implements Plugin<Project> 
         project.getPluginManager().apply(GroovyBasePlugin.class);
         project.getPluginManager().apply(JavaGradlePluginPlugin.class);
 
-        project.getDependencies().add("compileOnlyApi", project.getDependencies().localGroovy());
+        project.getDependencies().add(JavaPlugin.COMPILE_ONLY_API_CONFIGURATION_NAME, project.getDependencies().localGroovy());
         project.afterEvaluate(this::exposeScriptsAsPlugins);
     }
 

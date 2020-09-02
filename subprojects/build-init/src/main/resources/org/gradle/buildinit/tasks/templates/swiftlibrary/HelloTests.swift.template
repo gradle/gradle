@@ -11,6 +11,6 @@ class HelloTests: XCTestCase {
     ]
 
     func testGreeting() {
-        XCTAssertEqual("Hello, World!", Greeter().greeting())
+        XCTAssertEqual("Hello, World!", Hello().greeting())
     }
 }

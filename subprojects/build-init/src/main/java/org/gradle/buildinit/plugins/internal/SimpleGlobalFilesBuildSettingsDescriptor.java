@@ -38,6 +38,6 @@ public class SimpleGlobalFilesBuildSettingsDescriptor implements BuildContentGen
         if (settings.getSubprojectName() != null) {
             builder.methodInvocation(null, "include", settings.getSubprojectName());
         }
-        builder.create().generate();
+        builder.create(settings.getTarget()).generate();
     }
 }

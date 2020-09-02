@@ -80,7 +80,6 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
     private static final Logger LOGGER = Logging.getLogger(JavaGradlePluginPlugin.class);
     @Deprecated
     static final String COMPILE_CONFIGURATION = "compile";
-    static final String API_CONFIGURATION = JavaPlugin.API_CONFIGURATION_NAME;
     static final String JAR_TASK = "jar";
     static final String PROCESS_RESOURCES_TASK = "processResources";
     static final String GRADLE_PLUGINS = "gradle-plugins";
@@ -159,13 +158,8 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
     }
 
     private void applyDependencies(Project project) {
-        String compileOnlyApiName = "compileOnlyApi";
-        Configuration compileOnlyApi = project.getConfigurations().maybeCreate(compileOnlyApiName);
-        project.getConfigurations().getByName(JavaPlugin.COMPILE_CLASSPATH_CONFIGURATION_NAME).extendsFrom(compileOnlyApi);
-        project.getConfigurations().getByName(JavaPlugin.API_ELEMENTS_CONFIGURATION_NAME).extendsFrom(compileOnlyApi);
-
         DependencyHandler dependencies = project.getDependencies();
-        dependencies.add(compileOnlyApiName, dependencies.gradleApi());
+        dependencies.add(JavaPlugin.COMPILE_ONLY_API_CONFIGURATION_NAME, dependencies.gradleApi());
         dependencies.add(JavaPlugin.TEST_IMPLEMENTATION_CONFIGURATION_NAME, dependencies.gradleApi());
     }
 

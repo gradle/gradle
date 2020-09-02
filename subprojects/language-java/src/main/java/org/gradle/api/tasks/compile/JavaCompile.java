@@ -106,15 +106,15 @@ public class JavaCompile extends AbstractCompile implements HasCompileOptions {
     private final FileCollection stableSources = getProject().files((Callable<Object[]>) () -> new Object[]{getSource(), getSources()});
     private final ModularitySpec modularity;
     private File sourceClassesMappingFile;
-    private Property<JavaCompiler> javaCompiler;
+    private final Property<JavaCompiler> javaCompiler;
 
     public JavaCompile() {
         Project project = getProject();
-        ObjectFactory objects = project.getObjects();
-        compileOptions = objects.newInstance(CompileOptions.class);
+        ObjectFactory objectFactory = project.getObjects();
+        compileOptions = objectFactory.newInstance(CompileOptions.class);
         CompilerForkUtils.doNotCacheIfForkingViaExecutable(compileOptions, getOutputs());
-        modularity = objects.newInstance(DefaultModularitySpec.class);
-        javaCompiler = objects.property(JavaCompiler.class);
+        modularity = objectFactory.newInstance(DefaultModularitySpec.class);
+        javaCompiler = objectFactory.property(JavaCompiler.class);
         javaCompiler.finalizeValueOnRead();
     }
 

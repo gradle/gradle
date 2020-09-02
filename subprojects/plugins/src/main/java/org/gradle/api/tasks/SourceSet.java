@@ -304,6 +304,16 @@ public interface SourceSet extends ExtensionAware {
     String getCompileOnlyConfigurationName();
 
     /**
+     * Returns the name of the 'compile only api' configuration for this source set.
+     *
+     * @return The 'compile only api' configuration name
+     *
+     * @since 6.7
+     */
+    @Incubating
+    String getCompileOnlyApiConfigurationName();
+
+    /**
      * Returns the name of the compile classpath configuration for this source set.
      *
      * @return The compile classpath configuration
