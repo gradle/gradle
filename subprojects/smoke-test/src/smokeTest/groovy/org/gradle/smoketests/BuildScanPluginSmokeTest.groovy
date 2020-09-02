@@ -24,7 +24,7 @@ import org.gradle.util.VersionNumber
 import org.junit.Assume
 import spock.lang.Unroll
 
-
+// https://plugins.gradle.org/plugin/com.gradle.enterprise
 class BuildScanPluginSmokeTest extends AbstractSmokeTest {
 
     private static final List<String> UNSUPPORTED = [

@@ -69,14 +69,6 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
         then:
         result.task(':shadowJar').outcome == SUCCESS
 
-        if (version == TestedVersions.shadow.latest()) {
-            expectDeprecationWarnings(result,
-                "Property 'transformers.\$0.serviceEntries' is not annotated with an input or output annotation. " +
-                    "This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. " +
-                    "See https://docs.gradle.org/${GradleVersion.current().version}/userguide/more_about_tasks.html#sec:up_to_date_checks for more details."
-            )
-        }
-
         where:
         version << TestedVersions.shadow
     }
