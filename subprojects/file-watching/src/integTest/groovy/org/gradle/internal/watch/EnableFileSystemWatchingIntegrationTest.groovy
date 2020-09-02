@@ -76,12 +76,12 @@ class EnableFileSystemWatchingIntegrationTest extends AbstractFileSystemWatching
         "--no-watch-fs"   | DISABLED_MESSAGE
     }
 
-    def "verbose logging can be enabled"() {
+    def "verbose VFS logging can be enabled"() {
         buildFile << """
             apply plugin: "java"
         """
         when:
-        run("assemble", "--watch-fs", "-D${StartParameterBuildOptions.WatchFileSystemVerboseLoggingOption.GRADLE_PROPERTY}=true")
+        run("assemble", "--watch-fs", "-D${StartParameterBuildOptions.VerboseVfsLoggingOption.GRADLE_PROPERTY}=true")
         then:
         !(result.output =~ /Received \d+ file system events since last build while watching \d+ hierarchies/)
         !(result.output =~ /Virtual file system retained information about \d+ files, \d+ directories and \d+ missing files since last build/)
@@ -89,7 +89,7 @@ class EnableFileSystemWatchingIntegrationTest extends AbstractFileSystemWatching
         result.output =~ /Virtual file system retains information about \d+ files, \d+ directories and \d+ missing files until next build/
 
         when:
-        run("assemble", "--watch-fs", "-D${StartParameterBuildOptions.WatchFileSystemVerboseLoggingOption.GRADLE_PROPERTY}=true")
+        run("assemble", "--watch-fs", "-D${StartParameterBuildOptions.VerboseVfsLoggingOption.GRADLE_PROPERTY}=true")
         then:
         result.output =~ /Received \d+ file system events since last build while watching \d+ hierarchies/
         result.output =~ /Virtual file system retained information about \d+ files, \d+ directories and \d+ missing files since last build/
@@ -97,12 +97,37 @@ class EnableFileSystemWatchingIntegrationTest extends AbstractFileSystemWatching
         result.output =~ /Virtual file system retains information about \d+ files, \d+ directories and \d+ missing files until next build/
 
         when:
-        run("assemble", "--watch-fs", "-D${StartParameterBuildOptions.WatchFileSystemVerboseLoggingOption.GRADLE_PROPERTY}=false")
+        run("assemble", "--watch-fs", "-D${StartParameterBuildOptions.VerboseVfsLoggingOption.GRADLE_PROPERTY}=false")
         then:
         !(result.output =~ /Received \d+ file system events since last build while watching \d+ hierarchies/)
         !(result.output =~ /Virtual file system retained information about \d+ files, \d+ directories and \d+ missing files since last build/)
         !(result.output =~ /Received \d+ file system events during the current build while watching \d+ hierarchies/)
         !(result.output =~ /Virtual file system retains information about \d+ files, \d+ directories and \d+ missing files until next build/)
+    }
+
+    def "debug logging can be enabled"() {
+        buildFile << """
+            tasks.register("change") {
+                def output = file("output.txt")
+                outputs.file(output)
+                outputs.upToDateWhen { false }
+                doLast {
+                    output.text = Math.random() as String
+                }
+            }
+        """
+
+        when:
+        run("change", "--watch-fs", "--debug", "-D${StartParameterBuildOptions.WatchFileSystemDebugLoggingOption.GRADLE_PROPERTY}=true")
+        waitForChangesToBePickedUp()
+        then:
+        output.contains("net.rubygrapefruit.platform.internal.jni.NativeLogger")
+
+        when:
+        run("change", "--watch-fs", "--debug", "-D${StartParameterBuildOptions.WatchFileSystemDebugLoggingOption.GRADLE_PROPERTY}=false")
+        waitForChangesToBePickedUp()
+        then:
+        !output.contains("net.rubygrapefruit.platform.internal.jni.NativeLogger")
     }
 
     @Unroll

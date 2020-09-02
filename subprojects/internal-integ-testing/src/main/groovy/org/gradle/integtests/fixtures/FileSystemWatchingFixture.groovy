@@ -39,7 +39,7 @@ trait FileSystemWatchingFixture {
     }
 
     VerboseVfsLogAccessor enableVerboseVfsLogs() {
-        executer.withArgument(FileSystemWatchingHelper.verboseLoggingArgument)
+        executer.withArgument(FileSystemWatchingHelper.verboseVfsLoggingArgument)
         new VerboseVfsLogAccessor(this as AbstractIntegrationSpec)
     }
 

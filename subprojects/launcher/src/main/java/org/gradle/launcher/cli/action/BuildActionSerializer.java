@@ -116,8 +116,9 @@ public class BuildActionSerializer {
             encoder.writeBoolean(startParameter.isBuildCacheEnabled());
             encoder.writeBoolean(startParameter.isBuildCacheDebugLogging());
             encoder.writeBoolean(startParameter.isWatchFileSystem());
-            encoder.writeBoolean(startParameter.isWatchFileSystemVerboseLogging());
+            encoder.writeBoolean(startParameter.isWatchFileSystemDebugLogging());
             encoder.writeBoolean(startParameter.isWatchFileSystemUsingDeprecatedOption());
+            encoder.writeBoolean(startParameter.isVerboseVfsLogging());
             encoder.writeBoolean(startParameter.isConfigurationCache());
             encoder.writeString(startParameter.getConfigurationCacheProblems().name());
             encoder.writeSmallInt(startParameter.getConfigurationCacheMaxProblems());
@@ -195,8 +196,9 @@ public class BuildActionSerializer {
             startParameter.setBuildCacheEnabled(decoder.readBoolean());
             startParameter.setBuildCacheDebugLogging(decoder.readBoolean());
             startParameter.setWatchFileSystem(decoder.readBoolean());
-            startParameter.setWatchFileSystemVerboseLogging(decoder.readBoolean());
+            startParameter.setWatchFileSystemDebugLogging(decoder.readBoolean());
             startParameter.setWatchFileSystemUsingDeprecatedOption(decoder.readBoolean());
+            startParameter.setVerboseVfsLogging(decoder.readBoolean());
             startParameter.setConfigurationCache(decoder.readBoolean());
             startParameter.setConfigurationCacheProblems(ConfigurationCacheProblemsOption.Value.valueOf(decoder.readString()));
             startParameter.setConfigurationCacheMaxProblems(decoder.readSmallInt());
