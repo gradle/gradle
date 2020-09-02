@@ -240,20 +240,6 @@ class SamplesMavenPublishIntegrationTest extends AbstractSampleIntegrationTest {
         dsl << ['groovy', 'kotlin']
     }
 
-    @UsesSample("maven-publish/pomGeneration")
-    def pomGeneration() {
-        given:
-        inDirectory(sampleProject.dir.file('groovy'))
-
-        when:
-        succeeds "generatePomFileForMavenCustomPublication"
-
-        then:
-        def pom = sampleProject.dir.file("groovy/build/generated-pom.xml").assertExists()
-        def parsedPom = new org.gradle.test.fixtures.maven.MavenPom(pom)
-        parsedPom.name == "Example"
-    }
-
     @Unroll
     @UsesSample("maven-publish/distribution")
     def "publishes distribution archives with #dsl dsl"() {

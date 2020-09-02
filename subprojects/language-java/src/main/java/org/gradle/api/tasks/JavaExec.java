@@ -115,7 +115,7 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
     private final Property<String> mainClass;
     private final ModularitySpec modularity;
     private final Property<ExecResult> execResult;
-    private Property<JavaLauncher> javaLauncher;
+    private final Property<JavaLauncher> javaLauncher;
 
     public JavaExec() {
         ObjectFactory objectFactory = getObjectFactory();
@@ -753,7 +753,7 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
      * @since 6.7
      */
     @Incubating
-    @Internal // getJavaVersion() is used as @Input
+    @Internal("getJavaVersion() is used as @Input")
     public Property<JavaLauncher> getJavaLauncher() {
         return javaLauncher;
     }

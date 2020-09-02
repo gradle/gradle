@@ -25,6 +25,7 @@ import org.gradle.profiler.BuildContext
 import org.gradle.profiler.BuildMutator
 import org.gradle.profiler.mutations.ApplyAbiChangeToJavaSourceFileMutator
 import org.gradle.profiler.mutations.ApplyNonAbiChangeToJavaSourceFileMutator
+import org.gradle.test.fixtures.keystore.TestKeyStore
 import spock.lang.Unroll
 
 import java.util.zip.GZIPInputStream
@@ -49,6 +50,28 @@ class TaskOutputCachingJavaPerformanceTest extends AbstractTaskOutputCachingPerf
         pushToRemote = true
         runner.addBuildMutator { cleanLocalCache() }
         runner.addBuildMutator() { touchCacheArtifacts() }
+
+        when:
+        def result = runner.run()
+
+        then:
+        result.assertCurrentVersionHasNotRegressed()
+
+        where:
+        [testProject, tasks] << scenarios
+    }
+
+    def "clean #tasks on #testProject with remote https cache"() {
+        setupTestProject(testProject, tasks)
+        protocol = "https"
+        pushToRemote = true
+        runner.addBuildExperimentListener(cleanLocalCache())
+        runner.addBuildExperimentListener(touchCacheArtifacts())
+
+        def keyStore = TestKeyStore.init(temporaryFolder.file('ssl-keystore'))
+        keyStore.enableSslWithServerCert(buildCacheServer)
+
+        runner.gradleOpts.addAll(keyStore.serverAndClientCertArgs)
 
         when:
         def result = runner.run()
