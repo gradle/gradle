@@ -41,6 +41,7 @@ dependencies {
     implementation(project(":testing-base"))
     implementation(project(":testing-jvm"))
     implementation(project(":snapshots"))
+    implementation(project(":execution"))
 
     implementation(libs.slf4jApi)
     implementation(libs.groovy)

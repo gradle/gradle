@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.cleanup;
+package org.gradle.internal.execution.workspace;
 
 import org.gradle.api.file.FileCollection;
 
