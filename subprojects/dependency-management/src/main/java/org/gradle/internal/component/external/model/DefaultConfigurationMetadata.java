@@ -55,8 +55,9 @@ public class DefaultConfigurationMetadata extends AbstractConfigurationMetadata 
                                         VariantMetadataRules componentMetadataRules,
                                         ImmutableList<ExcludeMetadata> excludes,
                                         ImmutableAttributes componentLevelAttributes,
-                                        boolean mavenArtifactDiscovery) {
-        super(componentId, name, transitive, visible, artifacts, hierarchy, excludes, componentLevelAttributes, (ImmutableList<ModuleDependencyMetadata>) null, ImmutableCapabilities.EMPTY, mavenArtifactDiscovery);
+                                        boolean mavenArtifactDiscovery,
+                                        boolean externalVariant) {
+        super(componentId, name, transitive, visible, artifacts, hierarchy, excludes, componentLevelAttributes, (ImmutableList<ModuleDependencyMetadata>) null, ImmutableCapabilities.EMPTY, mavenArtifactDiscovery, externalVariant);
         this.componentMetadataRules = componentMetadataRules;
         this.dependencyFilter = DependencyFilter.ALL;
     }
@@ -73,8 +74,9 @@ public class DefaultConfigurationMetadata extends AbstractConfigurationMetadata 
                                          Factory<List<ModuleDependencyMetadata>> configDependenciesFactory,
                                          DependencyFilter dependencyFilter,
                                          CapabilitiesMetadata capabilities,
-                                         boolean mavenArtifactDiscovery) {
-        super(componentId, name, transitive, visible, artifacts, hierarchy, excludes, attributes, configDependenciesFactory, ImmutableCapabilities.of(capabilities), mavenArtifactDiscovery);
+                                         boolean mavenArtifactDiscovery,
+                                         boolean externalVariant) {
+        super(componentId, name, transitive, visible, artifacts, hierarchy, excludes, attributes, configDependenciesFactory, ImmutableCapabilities.of(capabilities), mavenArtifactDiscovery, externalVariant);
         this.componentMetadataRules = componentMetadataRules;
         this.dependencyFilter = dependencyFilter;
     }
@@ -298,7 +300,8 @@ public class DefaultConfigurationMetadata extends AbstractConfigurationMetadata 
                     lazyConfigDependencies(),
                     dependencyFilter,
                     capabilities == null ? DefaultConfigurationMetadata.this.getCapabilities() : capabilities,
-                    DefaultConfigurationMetadata.super.requiresMavenArtifactDiscovery()
+                    DefaultConfigurationMetadata.super.requiresMavenArtifactDiscovery(),
+                    isExternalVariant()
             );
         }
     }

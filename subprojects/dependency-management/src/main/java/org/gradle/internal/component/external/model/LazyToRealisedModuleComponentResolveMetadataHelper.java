@@ -94,7 +94,7 @@ public class LazyToRealisedModuleComponentResolveMetadataHelper {
 
             if (baseName == null || baseVariant != null) {
                 AbstractRealisedModuleComponentResolveMetadata.ImmutableRealisedVariantImpl variant = applyRules(new AbstractMutableModuleComponentResolveMetadata.ImmutableVariantImpl(
-                        componentMetadata.getId(), additionalVariant.getName(), attributes, dependencies, dependencyConstraints, files, capabilities),
+                        componentMetadata.getId(), additionalVariant.getName(), attributes, dependencies, dependencyConstraints, files, capabilities, baseVariant.isExternalVariant()),
                     variantMetadataRules, componentMetadata.getId());
                 builder.add(variant);
             } else if (!additionalVariant.isLenient()) {
@@ -112,7 +112,7 @@ public class LazyToRealisedModuleComponentResolveMetadataHelper {
         List<GradleDependencyMetadata> dependencies = variantMetadataRules.applyDependencyMetadataRules(variant, convertDependencies(variant.getDependencies(), variant.getDependencyConstraints(), force));
         return new AbstractRealisedModuleComponentResolveMetadata.ImmutableRealisedVariantImpl(id, variant.getName(), attributes,
             variant.getDependencies(), variant.getDependencyConstraints(), files,
-            ImmutableCapabilities.of(capabilitiesMetadata.getCapabilities()), dependencies);
+            ImmutableCapabilities.of(capabilitiesMetadata.getCapabilities()), dependencies, variant.isExternalVariant());
     }
 
     private static List<GradleDependencyMetadata> convertDependencies(List<? extends ComponentVariant.Dependency> dependencies, List<? extends ComponentVariant.DependencyConstraint> dependencyConstraints, boolean force) {

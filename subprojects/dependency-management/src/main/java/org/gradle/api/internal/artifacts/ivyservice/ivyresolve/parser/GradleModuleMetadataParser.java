@@ -191,6 +191,7 @@ public class GradleModuleMetadataParser {
         List<ModuleDependency> dependencies = Collections.emptyList();
         List<ModuleDependencyConstraint> dependencyConstraints = Collections.emptyList();
         List<VariantCapability> capabilities = Collections.emptyList();
+        boolean availableExternally = false;
 
         reader.beginObject();
         while (reader.peek() != END_OBJECT) {
@@ -215,8 +216,7 @@ public class GradleModuleMetadataParser {
                     capabilities = consumeCapabilities(reader, true);
                     break;
                 case "available-at":
-                    // For now just collect this as another dependency
-                    // TODO - collect this information and merge the metadata from the other module
+                    availableExternally = true;
                     dependencies = consumeVariantLocation(reader);
                     break;
                 default:
@@ -228,6 +228,15 @@ public class GradleModuleMetadataParser {
         reader.endObject();
 
         MutableComponentVariant variant = metadata.addVariant(variantName, attributes);
+        variant.setAvailableExternally(availableExternally);
+        if (availableExternally) {
+            if (!dependencyConstraints.isEmpty()) {
+                throw new RuntimeException("A variant declared with available-at cannot declare dependency constraints");
+            }
+            if (!files.isEmpty()) {
+                throw new RuntimeException("A variant declared with available-at cannot declare files");
+            }
+        }
         populateVariant(files, dependencies, dependencyConstraints, capabilities, variant);
     }
 

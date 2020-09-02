@@ -141,6 +141,7 @@ public class ModuleMetadataSerializer {
                 writeVariantConstraints(variant.getDependencyConstraints());
                 writeVariantFiles(variant.getFiles());
                 writeVariantCapabilities(variant.getCapabilities().getCapabilities());
+                encoder.writeBoolean(variant.isExternalVariant());
             }
         }
 
@@ -217,6 +218,7 @@ public class ModuleMetadataSerializer {
         private void writeSharedInfo(ModuleComponentResolveMetadata metadata) throws IOException {
             encoder.writeBoolean(metadata.isMissing());
             encoder.writeBoolean(metadata.isChanging());
+            encoder.writeBoolean(metadata.isExternalVariant());
             encoder.writeString(metadata.getStatus());
             writeStringList(metadata.getStatusScheme());
             moduleSourcesSerializer.write(encoder, metadata.getSources());
@@ -432,6 +434,7 @@ public class ModuleMetadataSerializer {
         private void readSharedInfo(MutableModuleComponentResolveMetadata metadata) throws IOException {
             metadata.setMissing(decoder.readBoolean());
             metadata.setChanging(decoder.readBoolean());
+            metadata.setExternalVariant(decoder.readBoolean());
             metadata.setStatus(decoder.readString());
             metadata.setStatusScheme(readStringList());
             metadata.setSources(moduleSourcesSerializer.read(decoder));
@@ -465,6 +468,8 @@ public class ModuleMetadataSerializer {
                 readVariantConstraints(variant);
                 readVariantFiles(variant);
                 readVariantCapabilities(variant);
+                boolean externalVariant = decoder.readBoolean();
+                variant.setAvailableExternally(externalVariant);
             }
         }
 

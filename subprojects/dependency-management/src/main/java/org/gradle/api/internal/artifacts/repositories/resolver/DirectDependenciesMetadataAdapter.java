@@ -46,4 +46,5 @@ public class DirectDependenciesMetadataAdapter extends AbstractDependenciesMetad
     protected boolean isEndorsingStrictVersions(DirectDependencyMetadata details) {
         return details.isEndorsingStrictVersions();
     }
+
 }

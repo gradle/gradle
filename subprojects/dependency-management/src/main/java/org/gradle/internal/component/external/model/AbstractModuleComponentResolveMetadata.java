@@ -48,6 +48,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
     private final ImmutableList<? extends VirtualComponentIdentifier> platformOwners;
     private final AttributesSchemaInternal schema;
     private final VariantDerivationStrategy variantDerivationStrategy;
+    private final boolean externalVariant;
 
     public AbstractModuleComponentResolveMetadata(AbstractMutableModuleComponentResolveMetadata metadata) {
         this.componentIdentifier = metadata.getId();
@@ -62,6 +63,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
         variants = metadata.getVariants();
         platformOwners = metadata.getPlatformOwners() == null ? ImmutableList.of() : ImmutableList.copyOf(metadata.getPlatformOwners());
         variantDerivationStrategy = metadata.getVariantDerivationStrategy();
+        externalVariant = metadata.isExternalVariant();
     }
 
     public AbstractModuleComponentResolveMetadata(AbstractModuleComponentResolveMetadata metadata, ImmutableList<? extends ComponentVariant> variants) {
@@ -77,6 +79,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
         this.variants = variants;
         this.platformOwners = metadata.getPlatformOwners();
         this.variantDerivationStrategy = metadata.getVariantDerivationStrategy();
+        this.externalVariant = metadata.isExternalVariant();
     }
 
     public AbstractModuleComponentResolveMetadata(AbstractModuleComponentResolveMetadata metadata) {
@@ -92,6 +95,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
         variants = metadata.variants;
         platformOwners = metadata.platformOwners;
         variantDerivationStrategy = metadata.getVariantDerivationStrategy();
+        externalVariant = metadata.isExternalVariant();
     }
 
     public AbstractModuleComponentResolveMetadata(AbstractModuleComponentResolveMetadata metadata, ModuleSources sources, VariantDerivationStrategy derivationStrategy) {
@@ -107,6 +111,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
         platformOwners = metadata.platformOwners;
         moduleSources = ImmutableModuleSources.of(sources);
         variantDerivationStrategy = derivationStrategy;
+        externalVariant = metadata.externalVariant;
     }
 
     private static ImmutableAttributes extractAttributes(AbstractMutableModuleComponentResolveMetadata metadata) {
@@ -199,6 +204,11 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
     }
 
     @Override
+    public boolean isExternalVariant() {
+        return externalVariant;
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (this == o) {
             return true;
@@ -210,6 +220,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
         AbstractModuleComponentResolveMetadata that = (AbstractModuleComponentResolveMetadata) o;
         return changing == that.changing
             && missing == that.missing
+            && externalVariant == that.externalVariant
             && Objects.equal(moduleVersionIdentifier, that.moduleVersionIdentifier)
             && Objects.equal(componentIdentifier, that.componentIdentifier)
             && Objects.equal(statusScheme, that.statusScheme)
@@ -225,6 +236,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
             componentIdentifier,
             changing,
             missing,
+            externalVariant,
             statusScheme,
             moduleSources,
             attributes,

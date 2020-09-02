@@ -43,6 +43,8 @@ public interface VariantResolveMetadata {
 
     CapabilitiesMetadata getCapabilities();
 
+    boolean isExternalVariant();
+
     interface Identifier {
     }
 }

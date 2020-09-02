@@ -72,6 +72,10 @@ public interface MutableModuleComponentResolveMetadata {
 
     void setAttributes(AttributeContainer attributes);
 
+    boolean isExternalVariant();
+
+    void setExternalVariant(boolean externalVariant);
+
     /**
      * Creates an artifact for this module. Does not mutate this metadata.
      */

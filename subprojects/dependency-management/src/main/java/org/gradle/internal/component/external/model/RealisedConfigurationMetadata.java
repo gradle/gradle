@@ -34,8 +34,9 @@ public class RealisedConfigurationMetadata extends AbstractConfigurationMetadata
                                          ImmutableAttributes componentLevelAttributes,
                                          ImmutableCapabilities capabilities,
                                          boolean mavenArtifactDiscovery,
-                                         boolean addedByRule) {
-        this(componentId, name, transitive, visible, hierarchy, artifacts, excludes, componentLevelAttributes, capabilities, mavenArtifactDiscovery, null, addedByRule);
+                                         boolean addedByRule,
+                                         boolean externalVariant) {
+        this(componentId, name, transitive, visible, hierarchy, artifacts, excludes, componentLevelAttributes, capabilities, mavenArtifactDiscovery, null, addedByRule, externalVariant);
     }
 
     public RealisedConfigurationMetadata(ModuleComponentIdentifier componentId,
@@ -49,8 +50,9 @@ public class RealisedConfigurationMetadata extends AbstractConfigurationMetadata
                                          ImmutableCapabilities capabilities,
                                          boolean mavenArtifactDiscovery,
                                          ImmutableList<ModuleDependencyMetadata> configDependencies,
-                                         boolean addedByRule) {
-        super(componentId, name, transitive, visible, artifacts, hierarchy, excludes, attributes, configDependencies, capabilities, mavenArtifactDiscovery);
+                                         boolean addedByRule,
+                                         boolean externalVariant) {
+        super(componentId, name, transitive, visible, artifacts, hierarchy, excludes, attributes, configDependencies, capabilities, mavenArtifactDiscovery, externalVariant);
         this.addedByRule = addedByRule;
     }
 
@@ -72,7 +74,8 @@ public class RealisedConfigurationMetadata extends AbstractConfigurationMetadata
             ImmutableCapabilities.of(getCapabilities().getCapabilities()),
             requiresMavenArtifactDiscovery(),
             dependencies,
-            addedByRule
+            addedByRule,
+            isExternalVariant()
         );
     }
 

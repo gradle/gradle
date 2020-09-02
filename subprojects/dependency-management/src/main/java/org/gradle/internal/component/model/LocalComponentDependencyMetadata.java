@@ -204,6 +204,10 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
         return endorsing;
     }
 
+    private boolean isExternalVariant() {
+        return false;
+    }
+
     @Override
     public String getReason() {
         return reason;
