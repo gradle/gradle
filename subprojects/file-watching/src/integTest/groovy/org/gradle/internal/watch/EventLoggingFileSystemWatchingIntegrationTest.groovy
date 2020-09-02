@@ -17,7 +17,6 @@
 package org.gradle.internal.watch
 
 import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
-import org.gradle.test.fixtures.ConcurrentTestUtil
 
 class EventLoggingFileSystemWatchingIntegrationTest extends AbstractFileSystemWatchingIntegrationTest {
 
