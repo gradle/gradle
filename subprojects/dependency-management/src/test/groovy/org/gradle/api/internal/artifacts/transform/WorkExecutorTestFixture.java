@@ -17,12 +17,14 @@
 package org.gradle.api.internal.artifacts.transform;
 
 import org.apache.commons.io.FileUtils;
+import org.gradle.api.internal.file.TestFiles;
 import org.gradle.caching.internal.controller.BuildCacheCommandFactory;
 import org.gradle.caching.internal.controller.BuildCacheController;
 import org.gradle.caching.internal.controller.BuildCacheLoadCommand;
 import org.gradle.caching.internal.controller.BuildCacheStoreCommand;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.DefaultBuildCancellationToken;
+import org.gradle.internal.cleanup.DefaultBuildOutputCleanupRegistry;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager;
 import org.gradle.internal.execution.CachingResult;
@@ -136,6 +138,7 @@ public class WorkExecutorTestFixture {
             cancellationToken,
             buildInvocationScopeId,
             new TestBuildOperationExecutor(),
+            new DefaultBuildOutputCleanupRegistry(TestFiles.fileCollectionFactory()),
             new GradleEnterprisePluginManager(),
             classLoaderHierarchyHasher,
             deleter,

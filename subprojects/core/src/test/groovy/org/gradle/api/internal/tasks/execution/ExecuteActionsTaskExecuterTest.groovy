@@ -36,18 +36,21 @@ import org.gradle.api.tasks.TaskExecutionException
 import org.gradle.caching.internal.controller.BuildCacheController
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.initialization.DefaultBuildCancellationToken
+import org.gradle.internal.cleanup.DefaultBuildOutputCleanupRegistry
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.exceptions.DefaultMultiCauseException
 import org.gradle.internal.exceptions.MultiCauseException
 import org.gradle.internal.execution.OutputChangeListener
 import org.gradle.internal.execution.history.AfterPreviousExecutionState
 import org.gradle.internal.execution.history.ExecutionHistoryStore
+import org.gradle.internal.execution.history.OutputFilesRepository
 import org.gradle.internal.execution.history.changes.DefaultExecutionStateChangeDetector
 import org.gradle.internal.execution.impl.DefaultWorkExecutor
 import org.gradle.internal.execution.steps.BroadcastChangingOutputsStep
 import org.gradle.internal.execution.steps.CancelExecutionStep
 import org.gradle.internal.execution.steps.CaptureStateBeforeExecutionStep
 import org.gradle.internal.execution.steps.CleanupNonIncrementalOutputsStep
+import org.gradle.internal.execution.steps.CleanupStaleOutputsStep
 import org.gradle.internal.execution.steps.ExecuteStep
 import org.gradle.internal.execution.steps.LoadExecutionStateStep
 import org.gradle.internal.execution.steps.ResolveCachingStateStep
@@ -143,9 +146,14 @@ class ExecuteActionsTaskExecuterTest extends Specification {
     def fileOperations = Stub(FileOperations)
     def deleter = TestFiles.deleter()
     def validationWarningReporter = Stub(ValidateStep.ValidationWarningReporter)
+    def cleanupRegistry = new DefaultBuildOutputCleanupRegistry(fileCollectionFactory)
+    def outputFilesRepository = Stub(OutputFilesRepository) {
+        isGeneratedByGradle(_ as File) >> true
+    }
 
     // @formatter:off
     def workExecutor = new DefaultWorkExecutor<>(
+        new CleanupStaleOutputsStep<>(buildOperationExecutor, cleanupRegistry, deleter, outputChangeListener, outputFilesRepository,
         new LoadExecutionStateStep<>(
         new SkipEmptyWorkStep<>(
         new ValidateStep<>(validationWarningReporter,
@@ -159,7 +167,7 @@ class ExecuteActionsTaskExecuterTest extends Specification {
         new ResolveInputChangesStep<>(
         new CleanupNonIncrementalOutputsStep<>(deleter, outputChangeListener,
         new ExecuteStep<>(
-    ))))))))))))))
+    )))))))))))))))
     // @formatter:on
 
     def executer = new ExecuteActionsTaskExecuter(
