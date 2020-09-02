@@ -58,11 +58,9 @@ class ContinuousBuildFileWatchingIntegrationTest extends AbstractContinuousInteg
 
         when:
         sourceFile.text = "class Thing { public void doStuff() {} }"
-        waitForChangesToBePickedUp()
 
         then:
         succeeds()
-        vfsLogs.getReceivedFileSystemEventsSinceLastBuild() >= 1
         vfsLogs.getRetainedFilesSinceLastBuild() >= numberOfFilesInVfs - 1
         vfsLogs.getRetainedFilesInCurrentBuild() >= numberOfFilesInVfs
         executedAndNotSkipped(":compileJava")
