@@ -46,6 +46,7 @@ class EventLoggingFileSystemWatchingIntegrationTest extends AbstractFileSystemWa
         waitForChangesToBePickedUp()
         def daemon = new DaemonLogsAnalyzer(executer.daemonBaseDir).daemon
         then:
+        // The first modification removes the VFS entry, so the second modification doesn't have an effect on the VFS.
         daemon.log.count("Handling VFS change MODIFIED ${file().absolutePath}") == 1
     }
 }
