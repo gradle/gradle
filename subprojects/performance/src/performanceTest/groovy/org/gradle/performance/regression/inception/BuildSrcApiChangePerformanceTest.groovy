@@ -44,7 +44,7 @@ import static org.gradle.test.fixtures.server.http.MavenHttpPluginRepository.PLU
  */
 @Issue('https://github.com/gradle/gradle-private/issues/1313')
 @Category(SlowPerformanceRegressionTest)
-class GradleInceptionPerformanceTest extends AbstractCrossVersionGradleProfilerPerformanceTest {
+class BuildSrcApiChangePerformanceTest extends AbstractCrossVersionGradleProfilerPerformanceTest {
 
     static List<String> extraGradleBuildArguments() {
         ["-D${PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY}=${gradlePluginRepositoryMirrorUrl()}",
