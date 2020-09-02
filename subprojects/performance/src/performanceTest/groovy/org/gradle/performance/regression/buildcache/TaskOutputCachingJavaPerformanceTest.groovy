@@ -21,9 +21,6 @@ import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream
 import org.gradle.internal.hash.Hashing
 import org.gradle.performance.fixture.BuildExperimentInvocationInfo
 import org.gradle.performance.fixture.BuildExperimentListenerAdapter
-import org.gradle.performance.fixture.GradleInvocationSpec
-import org.gradle.performance.fixture.InvocationCustomizer
-import org.gradle.performance.fixture.InvocationSpec
 import org.gradle.performance.generator.JavaTestProject
 import org.gradle.performance.mutator.ApplyAbiChangeToJavaSourceFileMutator
 import org.gradle.performance.mutator.ApplyNonAbiChangeToJavaSourceFileMutator
@@ -65,7 +62,6 @@ class TaskOutputCachingJavaPerformanceTest extends AbstractTaskOutputCachingPerf
 
     def "clean #tasks on #testProject with remote https cache"() {
         setupTestProject(testProject, tasks)
-        firstWarmupWithCache = 2 // Do one run without the cache to populate the dependency cache from maven central
         protocol = "https"
         pushToRemote = true
         runner.addBuildExperimentListener(cleanLocalCache())
@@ -74,24 +70,7 @@ class TaskOutputCachingJavaPerformanceTest extends AbstractTaskOutputCachingPerf
         def keyStore = TestKeyStore.init(temporaryFolder.file('ssl-keystore'))
         keyStore.enableSslWithServerCert(buildCacheServer)
 
-        runner.addInvocationCustomizer(new InvocationCustomizer() {
-            @Override
-            <T extends InvocationSpec> T customize(BuildExperimentInvocationInfo invocationInfo, T invocationSpec) {
-                GradleInvocationSpec gradleInvocation = invocationSpec as GradleInvocationSpec
-                if (isRunWithCache(invocationInfo)) {
-                    gradleInvocation.withBuilder().gradleOpts(*keyStore.serverAndClientCertArgs).build() as T
-                } else {
-                    gradleInvocation.withBuilder()
-                    // We need a different daemon for the other runs because of the certificate Gradle JVM args
-                    // so we disable the daemon completely in order not to confuse the performance test
-                        .useDaemon(false)
-                    // We run one iteration without the cache to download artifacts from Maven central.
-                    // We can't download with the cache since we set the trust store and Maven central uses https.
-                        .args("--no-build-cache")
-                        .build() as T
-                }
-            }
-        })
+        runner.gradleOpts.addAll(keyStore.serverAndClientCertArgs)
 
         when:
         def result = runner.run()
