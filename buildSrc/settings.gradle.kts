@@ -65,8 +65,6 @@ include("publishing")
 
 for (project in rootProject.children) {
     project.projectDir = file("subprojects/${project.name}")
-    assert(project.projectDir.isDirectory)
-    assert(project.buildFile.isFile)
 }
 
 fun remoteBuildCacheEnabled(settings: Settings) = settings.buildCache.remote?.isEnabled == true

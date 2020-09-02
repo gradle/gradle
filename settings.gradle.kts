@@ -161,27 +161,10 @@ val upperCaseLetters = "\\p{Upper}".toRegex()
 
 rootProject.name = "gradle"
 
-// List of sub-projects that have a Groovy DSL build script.
-// The intent is for this list to diminish until it disappears.
-val groovyBuildScriptProjects = hashSetOf(
-    "docs"
-)
-
-fun buildFileNameFor(projectDirName: String) =
-    "build${buildFileExtensionFor(projectDirName)}"
-
-fun buildFileExtensionFor(projectDirName: String) =
-    if (projectDirName in groovyBuildScriptProjects) ".gradle" else ".gradle.kts"
-
 for (project in rootProject.children) {
     project.projectDir = file("subprojects/${project.name}")
-    project.buildFileName = buildFileNameFor(project.name)
-    require(project.projectDir.isDirectory) {
-        "Project directory ${project.projectDir} for project ${project.name} does not exist."
-    }
-    require(project.buildFile.isFile) {
-        "Build file ${project.buildFile} for project ${project.name} does not exist."
-    }
+    // TODO convert docs/build.gradle to Kotlin DSL https://github.com/gradle/gradle/issues/14393
+    project.buildFileName = "build.gradle${if (project.name == "docs") "" else ".kts"}"
 }
 
 FeaturePreviews.Feature.values().forEach { feature ->
