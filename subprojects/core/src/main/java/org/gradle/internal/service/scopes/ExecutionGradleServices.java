@@ -48,6 +48,7 @@ import org.gradle.internal.execution.steps.CacheStep;
 import org.gradle.internal.execution.steps.CancelExecutionStep;
 import org.gradle.internal.execution.steps.CaptureStateBeforeExecutionStep;
 import org.gradle.internal.execution.steps.CleanupNonIncrementalOutputsStep;
+import org.gradle.internal.execution.steps.CleanupStaleOutputsStep;
 import org.gradle.internal.execution.steps.CreateOutputsStep;
 import org.gradle.internal.execution.steps.ExecuteStep;
 import org.gradle.internal.execution.steps.LoadExecutionStateStep;
@@ -64,6 +65,7 @@ import org.gradle.internal.execution.steps.ValidateStep;
 import org.gradle.internal.execution.steps.legacy.MarkSnapshottingInputsFinishedStep;
 import org.gradle.internal.execution.steps.legacy.MarkSnapshottingInputsStartedStep;
 import org.gradle.internal.execution.timeout.TimeoutHandler;
+import org.gradle.internal.execution.workspace.BuildOutputCleanupRegistry;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.fingerprint.overlap.OverlappingOutputDetector;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
@@ -137,6 +139,7 @@ public class ExecutionGradleServices {
         BuildCancellationToken cancellationToken,
         BuildInvocationScopeId buildInvocationScopeId,
         BuildOperationExecutor buildOperationExecutor,
+        BuildOutputCleanupRegistry cleanupRegistry,
         GradleEnterprisePluginManager gradleEnterprisePluginManager,
         ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
         Deleter deleter,
@@ -150,6 +153,7 @@ public class ExecutionGradleServices {
     ) {
         // @formatter:off
         return new DefaultWorkExecutor<>(
+            new CleanupStaleOutputsStep<>(buildOperationExecutor, cleanupRegistry,  deleter, outputChangeListener, outputFilesRepository,
             new LoadExecutionStateStep<>(
             new MarkSnapshottingInputsStartedStep<>(
             new SkipEmptyWorkStep<>(
@@ -170,7 +174,7 @@ public class ExecutionGradleServices {
             new ResolveInputChangesStep<>(
             new CleanupNonIncrementalOutputsStep<>(deleter, outputChangeListener,
             new ExecuteStep<>(
-        )))))))))))))))))))));
+        ))))))))))))))))))))));
         // @formatter:on
     }
 

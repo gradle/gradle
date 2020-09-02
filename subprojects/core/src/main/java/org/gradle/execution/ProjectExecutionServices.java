@@ -29,7 +29,6 @@ import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.execution.CatchExceptionTaskExecuter;
-import org.gradle.api.internal.tasks.execution.CleanupStaleOutputsExecuter;
 import org.gradle.api.internal.tasks.execution.DefaultEmptySourceTaskSkipper;
 import org.gradle.api.internal.tasks.execution.DefaultTaskCacheabilityResolver;
 import org.gradle.api.internal.tasks.execution.DefaultTaskSnapshotter;
@@ -53,7 +52,6 @@ import org.gradle.internal.execution.ExecutionRequestContext;
 import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.WorkExecutor;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
-import org.gradle.internal.execution.history.OutputFilesRepository;
 import org.gradle.internal.execution.workspace.BuildOutputCleanupRegistry;
 import org.gradle.internal.file.DefaultReservedFileSystemLocationRegistry;
 import org.gradle.internal.file.Deleter;
@@ -110,21 +108,16 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
         AsyncWorkTracker asyncWorkTracker,
         BuildCacheController buildCacheController,
         BuildOperationExecutor buildOperationExecutor,
-        BuildOutputCleanupRegistry cleanupRegistry,
         GradleEnterprisePluginManager gradleEnterprisePluginManager,
         ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
-        Deleter deleter,
         EmptySourceTaskSkipper emptySourceTaskSkipper,
         ExecutionHistoryStore executionHistoryStore,
         FileCollectionFactory fileCollectionFactory,
         FileCollectionFingerprinterRegistry fingerprinterRegistry,
         FileOperations fileOperations,
         ListenerManager listenerManager,
-        OutputChangeListener outputChangeListener,
-        OutputFilesRepository outputFilesRepository,
         PropertyWalker propertyWalker,
         ReservedFileSystemLocationRegistry reservedFileSystemLocationRegistry,
-        StartParameter startParameter,
         TaskActionListener actionListener,
         TaskCacheabilityResolver taskCacheabilityResolver,
         TaskExecutionGraphInternal taskExecutionGraph,
@@ -155,14 +148,6 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
             emptySourceTaskSkipper,
             fileCollectionFactory,
             fileOperations
-        );
-        executer = new CleanupStaleOutputsExecuter(
-            buildOperationExecutor,
-            cleanupRegistry,
-            deleter,
-            outputChangeListener,
-            outputFilesRepository,
-            executer
         );
         executer = new FinalizePropertiesTaskExecuter(executer);
         executer = new ResolveTaskExecutionModeExecuter(repository, fileCollectionFactory, propertyWalker, executer);
