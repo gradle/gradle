@@ -875,6 +875,55 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
         outputContains("result = [thing3-1.2.jar.red.green, thing1-1.2.jar.red.green, thing2-1.2.jar.red.green]")
     }
 
+    def "buildSrc output may require transform output"() {
+        withColorVariants(mavenRepo.module("test", "test", "12")).publish()
+
+        file("buildSrc/settings.gradle") << """
+            include 'producer'
+        """
+        def buildSrcBuildFile = file("buildSrc/build.gradle")
+        setupBuildWithSimpleColorTransform(buildSrcBuildFile)
+        buildSrcBuildFile << """
+            repositories {
+                maven { url = '${mavenRepo.uri}' }
+            }
+            dependencies {
+                artifactTypes {
+                    blue {
+                        attributes.attribute(color, 'blue')
+                    }
+                }
+            }
+            dependencies { implementation project(':producer') }
+            dependencies { implementation files('thing.blue') }
+            dependencies { implementation 'test:test:12' }
+            jar.dependsOn(resolve)
+        """
+
+        file("buildSrc/thing.blue").createFile()
+        def fixture = newConfigurationCacheFixture()
+
+        when:
+        configurationCacheRun()
+
+        then:
+        fixture.assertStateStored()
+        result.assertTaskExecuted(":buildSrc:producer:producer")
+        result.assertTaskExecuted(":buildSrc:resolve")
+        result.assertTaskExecuted(":help")
+        outputContains("processing producer.jar")
+        outputContains("processing test-12.jar")
+        outputContains("processing thing.blue")
+
+        when:
+        configurationCacheRun()
+
+        then:
+        fixture.assertStateLoaded()
+        result.assertTasksExecuted(":help")
+        outputDoesNotContain("processing")
+    }
+
     def "reports failure to transform prebuilt file dependency"() {
         settingsFile << """
             include 'a'
