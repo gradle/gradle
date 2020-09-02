@@ -18,36 +18,34 @@ package org.gradle.internal.watch
 
 import org.gradle.integtests.fixtures.AbstractContinuousIntegrationTest
 import org.gradle.integtests.fixtures.FileSystemWatchingFixture
+import org.gradle.integtests.fixtures.FileSystemWatchingHelper
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import org.gradle.internal.service.scopes.VirtualFileSystemServices
+import spock.lang.IgnoreIf
 
-import static org.junit.Assume.assumeFalse
-
+@IgnoreIf({ GradleContextualExecuter.noDaemon || GradleContextualExecuter.watchFs }) // See AbstractFileSystemWatchingIntegrationTest
 class ContinuousBuildFileWatchingIntegrationTest extends AbstractContinuousIntegrationTest implements FileSystemWatchingFixture {
 
     def setup() {
-        assumeFalse("No shared state without a daemon", GradleContextualExecuter.noDaemon)
-        assumeFalse("The test manually enables file system watching", GradleContextualExecuter.watchFs)
-
         executer.requireIsolatedDaemons()
+        // Do not drop the VFS in the first build, since there is only one continuous build invocation.
+        // FileSystemWatchingFixture automatically sets the argument for the first build.
+        executer.withArgument(FileSystemWatchingHelper.getDropVfsArgument(false))
         executer.beforeExecute {
             withWatchFs()
-            withVerboseVfsLog()
-            // Do not drop the VFS in the first build, since there is only one continuous build invocation.
-            withArgument("-D${VirtualFileSystemServices.VFS_DROP_PROPERTY}=false")
         }
     }
 
     def "file system watching picks up changes causing a continuous build to rebuild"() {
         def numberOfFilesInVfs = 4 // source file, class file, JAR manifest, JAR file
+        def vfsLogs = enableVerboseVfsLogs()
 
         when:
-        def sourceFile = file("src/main/java/Thing.java")
         buildFile << """
             plugins {
                 id('java')
             }
         """
+        def sourceFile = file("src/main/java/Thing.java")
         sourceFile << "class Thing {}"
 
         then:
