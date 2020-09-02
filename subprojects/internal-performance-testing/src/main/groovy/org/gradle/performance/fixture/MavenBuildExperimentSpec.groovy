@@ -38,10 +38,9 @@ class MavenBuildExperimentSpec extends BuildExperimentSpec {
                              Integer invocationCount,
                              BuildExperimentListener listener,
                              InvocationCustomizer invocationCustomizer,
-                             ImmutableList<Function<InvocationSettings, BuildMutator>> buildMutators,
-                             ImmutableList<String> measuredBuildOperations
+                             ImmutableList<Function<InvocationSettings, BuildMutator>> buildMutators
     ) {
-        super(displayName, projectName, workingDirectory, warmUpCount, invocationCount, listener, invocationCustomizer, buildMutators, measuredBuildOperations)
+        super(displayName, projectName, workingDirectory, warmUpCount, invocationCount, listener, invocationCustomizer, buildMutators)
         this.invocation = mavenInvocation
     }
 
@@ -103,12 +102,6 @@ class MavenBuildExperimentSpec extends BuildExperimentSpec {
 
         MavenBuilder addBuildMutator(Function<InvocationSettings, BuildMutator> buildMutator) {
             this.buildMutators.add(buildMutator)
-            this
-        }
-
-        MavenBuilder measuredBuildOperations(List<String> measuredBuildOperations) {
-            this.measuredBuildOperations.clear()
-            this.measuredBuildOperations.addAll(measuredBuildOperations)
             this
         }
 

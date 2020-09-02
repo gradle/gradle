@@ -25,6 +25,7 @@ import java.util.function.Function
 
 class GradleBuildExperimentSpec extends BuildExperimentSpec {
     final GradleInvocationSpec invocation
+    final ImmutableList<String> measuredBuildOperations
 
     GradleBuildExperimentSpec(String displayName,
                               String projectName,
@@ -36,7 +37,8 @@ class GradleBuildExperimentSpec extends BuildExperimentSpec {
                               InvocationCustomizer invocationCustomizer,
                               ImmutableList<Function<InvocationSettings, BuildMutator>> buildMutators,
                               ImmutableList<String> measuredBuildOperations) {
-        super(displayName, projectName, workingDirectory, warmUpCount, invocationCount, listener, invocationCustomizer, buildMutators, measuredBuildOperations)
+        super(displayName, projectName, workingDirectory, warmUpCount, invocationCount, listener, invocationCustomizer, buildMutators)
+        this.measuredBuildOperations = measuredBuildOperations
         this.invocation = invocation
     }
 

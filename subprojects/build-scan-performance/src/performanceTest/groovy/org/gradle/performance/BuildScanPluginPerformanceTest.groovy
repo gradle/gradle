@@ -217,7 +217,6 @@ class BuildScanPluginPerformanceTest extends AbstractBuildScanPluginPerformanceT
                         apply plugin: 'com.gradle.enterprise'
                     }
                     """ + settingsScript.text
-
         }
     }
 }

@@ -39,7 +39,6 @@ abstract class BuildExperimentSpec {
     final BuildExperimentListener listener
     final InvocationCustomizer invocationCustomizer
     final ImmutableList<Function<InvocationSettings, BuildMutator>> buildMutators
-    final ImmutableList<String> measuredBuildOperations
 
     BuildExperimentSpec(String displayName,
                         String projectName,
@@ -48,8 +47,7 @@ abstract class BuildExperimentSpec {
                         Integer invocationCount,
                         BuildExperimentListener listener,
                         InvocationCustomizer invocationCustomizer,
-                        List<Function<InvocationSettings, BuildMutator>> buildMutators,
-                        Collection<String> measuredBuildOperations
+                        List<Function<InvocationSettings, BuildMutator>> buildMutators
     ) {
         this.displayName = displayName
         this.projectName = projectName
