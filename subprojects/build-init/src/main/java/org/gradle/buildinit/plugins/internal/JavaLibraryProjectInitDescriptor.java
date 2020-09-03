@@ -72,6 +72,9 @@ public class JavaLibraryProjectInitDescriptor extends JavaProjectInitDescriptor 
 
     @Override
     protected void configureBuildScript(InitSettings settings, BuildScriptBuilder buildScriptBuilder) {
+        buildScriptBuilder.plugin(
+            "Apply the java-library plugin for API and implementation separation.",
+            "java-library");
         buildScriptBuilder.dependency(
             "api",
             "This dependency is exported to consumers, that is to say found on their compile classpath.",

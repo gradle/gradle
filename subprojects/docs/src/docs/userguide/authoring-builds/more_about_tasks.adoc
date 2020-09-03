@@ -114,8 +114,8 @@ You can access tasks from any project using the task's path using the `tasks.get
 
 .Accessing tasks by path
 ====
-include::sample[dir="snippets/tasks/accessUsingPath/groovy",files="build.gradle[]"]
-include::sample[dir="snippets/tasks/accessUsingPath/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/tasks/accessUsingPath/groovy",files="project-a/build.gradle[];build.gradle[]"]
+include::sample[dir="snippets/tasks/accessUsingPath/kotlin",files="project-a/build.gradle.kts[];build.gradle.kts[]"]
 
 .Output of **`gradle -q hello`**
 ----

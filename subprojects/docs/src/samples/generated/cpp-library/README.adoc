@@ -62,7 +62,7 @@ Enter selection (default: Groovy) [1..2] 1
 Project name (default: demo):
 
 > Task :init
-https://docs.gradle.org/6.7-20200825220000+0000/userguide/building_cpp_projects.html
+https://docs.gradle.org/6.7-20200901220000+0000/userguide/building_cpp_projects.html
 
 BUILD SUCCESSFUL
 2 actionable tasks: 2 executed
@@ -86,7 +86,7 @@ The `init` task generates the new project with the following structure:
         ├── main
         │   └── cpp // <5>
         │   │   └── hello.cpp
-        │   └── headers
+        │   └── headers  
         │       └── app.h
         └── test
             └── cpp // <6>
@@ -111,7 +111,7 @@ The `init` task generates the new project with the following structure:
         ├── main
         │   └── cpp // <5>
         │   │   └── hello.cpp
-        │   └── headers
+        │   └── headers  
         │       └── app.h
         └── test
             └── cpp // <6>
@@ -182,7 +182,7 @@ include::{samplesPath}/generated/cpp-library/tests/build.out[]
 
 NOTE: The first time you run the wrapper script, `gradlew`, there may be a delay while that version of `gradle` is downloaded and stored locally in your `~/.gradle/wrapper/dists` folder.
 
-The `build` task compiles the {cpp} sources, links the object files into a shared library, and runs the tests.
+The `build` task compiles the C++ sources, links the object files into a shared library, and runs the tests.
 To build a static library, please refer to the https://github.com/gradle/native-samples/tree/master/cpp/static-library[static library sample].
 
 NOTE: Dependencies on other projects isn't covered in this guide.

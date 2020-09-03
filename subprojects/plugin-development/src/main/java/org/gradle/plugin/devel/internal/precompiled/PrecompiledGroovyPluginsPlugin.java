@@ -41,7 +41,6 @@ public abstract class PrecompiledGroovyPluginsPlugin implements Plugin<Project> 
         project.getPluginManager().apply(GroovyBasePlugin.class);
         project.getPluginManager().apply(JavaGradlePluginPlugin.class);
 
-        project.getDependencies().add("compileOnlyApi", project.getDependencies().localGroovy());
         project.afterEvaluate(this::exposeScriptsAsPlugins);
     }
 

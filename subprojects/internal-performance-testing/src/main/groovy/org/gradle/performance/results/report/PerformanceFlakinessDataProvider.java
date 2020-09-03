@@ -81,12 +81,12 @@ public interface PerformanceFlakinessDataProvider {
 
         @Override
         public BigDecimal getFlakinessRate(String scenario) {
-            return null;
+            return BigDecimal.ZERO;
         }
 
         @Override
         public BigDecimal getFailureThreshold(String scenario) {
-            return null;
+            return BigDecimal.ZERO;
         }
 
         @Override

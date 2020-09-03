@@ -16,6 +16,7 @@
 package org.gradle.performance.results;
 
 import com.google.common.base.Splitter;
+import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,6 +35,12 @@ public class ResultsStoreHelper {
             return ImmutableList.copyOf(Splitter.on(",").split(string));
         }
         return Collections.emptyList();
+    }
+
+    public static <T extends PerformanceTestResult> WritableResultsStore<T> createResultsStoreWhenDatabaseAvailable(Supplier<WritableResultsStore<T>> supplier) {
+        return PerformanceDatabase.isAvailable()
+            ? supplier.get()
+            : NoResultsStore.getInstance();
     }
 
     /**

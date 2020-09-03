@@ -19,6 +19,7 @@ package org.gradle.performance.results.report;
 import org.gradle.api.GradleException;
 import org.gradle.performance.results.AllResultsStore;
 import org.gradle.performance.results.CrossVersionResultsStore;
+import org.gradle.performance.results.PerformanceDatabase;
 import org.gradle.performance.results.ScenarioBuildResultData;
 
 import java.util.Set;
@@ -36,8 +37,12 @@ public class DefaultReportGenerator extends AbstractReportGenerator<AllResultsSt
 
     @Override
     protected PerformanceFlakinessDataProvider getFlakinessDataProvider() {
-        try (CrossVersionResultsStore resultsStore = new CrossVersionResultsStore()) {
-            return new DefaultPerformanceFlakinessDataProvider(resultsStore);
+        if (PerformanceDatabase.isAvailable()) {
+            try (CrossVersionResultsStore resultsStore = new CrossVersionResultsStore()) {
+                return new DefaultPerformanceFlakinessDataProvider(resultsStore);
+            }
+        } else {
+            return super.getFlakinessDataProvider();
         }
     }
 

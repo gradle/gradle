@@ -24,7 +24,6 @@ import org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependency
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.initialization.ProjectAccessListener
 import org.gradle.internal.component.local.model.DefaultProjectComponentSelector
-import org.gradle.internal.component.local.model.OpaqueComponentIdentifier
 import org.gradle.internal.component.model.LocalOriginDependencyMetadata
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Path
@@ -34,7 +33,12 @@ import org.junit.Rule
 class ProjectDependencyDescriptorFactoryTest extends AbstractDependencyDescriptorFactoryInternalSpec {
 
     private ProjectIvyDependencyDescriptorFactory projectDependencyDescriptorFactory = new ProjectIvyDependencyDescriptorFactory(excludeRuleConverterStub)
-    private final ComponentIdentifier componentId = new OpaqueComponentIdentifier("foo")
+    private final ComponentIdentifier componentId = new ComponentIdentifier() {
+        @Override
+        String getDisplayName() {
+            return "example"
+        }
+    }
 
     @Rule
     TestNameTestDirectoryProvider temporaryFolder = TestNameTestDirectoryProvider.newInstance(getClass())

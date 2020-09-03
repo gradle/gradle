@@ -47,7 +47,6 @@ import org.gradle.internal.execution.impl.DefaultWorkExecutor
 import org.gradle.internal.execution.steps.BroadcastChangingOutputsStep
 import org.gradle.internal.execution.steps.CancelExecutionStep
 import org.gradle.internal.execution.steps.CaptureStateBeforeExecutionStep
-import org.gradle.internal.execution.steps.CatchExceptionStep
 import org.gradle.internal.execution.steps.CleanupOutputsStep
 import org.gradle.internal.execution.steps.ExecuteStep
 import org.gradle.internal.execution.steps.LoadExecutionStateStep
@@ -156,12 +155,11 @@ class ExecuteActionsTaskExecuterTest extends Specification {
         new SkipUpToDateStep<>(
         new BroadcastChangingOutputsStep<>(outputChangeListener,
         new SnapshotOutputsStep<>(buildOperationExecutor, buildId,
-        new CatchExceptionStep<>(
         new CancelExecutionStep<>(cancellationToken,
         new ResolveInputChangesStep<>(
         new CleanupOutputsStep<>(deleter, outputChangeListener,
         new ExecuteStep<>(
-    )))))))))))))))
+    ))))))))))))))
     // @formatter:on
 
     def executer = new ExecuteActionsTaskExecuter(

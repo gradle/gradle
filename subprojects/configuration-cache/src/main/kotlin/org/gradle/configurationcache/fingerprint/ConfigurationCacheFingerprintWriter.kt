@@ -23,10 +23,16 @@ import org.gradle.api.execution.internal.TaskInputsListener
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.Expiry
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ChangingValueDependencyResolutionListener
+import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.FileCollectionInternal
+import org.gradle.api.internal.file.FileCollectionStructureVisitor
+import org.gradle.api.internal.file.FileTreeInternal
+import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
+import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree
 import org.gradle.api.internal.provider.ValueSourceProviderFactory
 import org.gradle.api.internal.provider.sources.FileContentValueSource
 import org.gradle.api.provider.ValueSourceParameters
+import org.gradle.api.tasks.util.PatternSet
 import org.gradle.configurationcache.UndeclaredBuildInputListener
 import org.gradle.configurationcache.extensions.uncheckedCast
 import org.gradle.configurationcache.fingerprint.ConfigurationCacheFingerprint.InputFile
@@ -43,7 +49,9 @@ import java.io.File
 internal
 class ConfigurationCacheFingerprintWriter(
     private val host: Host,
-    private val writeContext: DefaultWriteContext
+    private val writeContext: DefaultWriteContext,
+    private val fileCollectionFactory: FileCollectionFactory,
+    private val directoryFileTreeFactory: DirectoryFileTreeFactory
 ) : ValueSourceProviderFactory.Listener, TaskInputsListener, ScriptExecutionListener, UndeclaredBuildInputListener, ChangingValueDependencyResolutionListener, FileResourceListener {
 
     interface Host {
@@ -198,7 +206,7 @@ class ConfigurationCacheFingerprintWriter(
         write(
             ConfigurationCacheFingerprint.TaskInputs(
                 task.identityPath.path,
-                fileSystemInputs,
+                simplify(fileSystemInputs),
                 host.fingerprintOf(fileSystemInputs, task)
             )
         )
@@ -216,6 +224,30 @@ class ConfigurationCacheFingerprintWriter(
         writeContext.runWriteOperation {
             write(value)
         }
+    }
+
+    private
+    fun simplify(source: FileCollectionInternal): FileCollectionInternal {
+        // Transform the collection into a sequence of files or directory trees and remove dynamic behaviour
+        val elements = mutableListOf<Any>()
+        source.visitStructure(object : FileCollectionStructureVisitor {
+            override fun visitCollection(source: FileCollectionInternal.Source, contents: Iterable<File>) {
+                elements.addAll(contents)
+            }
+
+            override fun visitGenericFileTree(fileTree: FileTreeInternal, sourceTree: FileSystemMirroringFileTree) {
+                elements.addAll(fileTree)
+            }
+
+            override fun visitFileTree(root: File, patterns: PatternSet, fileTree: FileTreeInternal) {
+                elements.add(directoryFileTreeFactory.create(root, patterns))
+            }
+
+            override fun visitFileTreeBackedByFile(file: File, fileTree: FileTreeInternal, sourceTree: FileSystemMirroringFileTree) {
+                elements.add(file)
+            }
+        })
+        return fileCollectionFactory.resolving(elements)
     }
 }
 

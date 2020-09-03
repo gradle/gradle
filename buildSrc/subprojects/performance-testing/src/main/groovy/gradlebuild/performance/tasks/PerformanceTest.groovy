@@ -18,8 +18,8 @@ package gradlebuild.performance.tasks
 
 import com.google.common.collect.Sets
 import gradlebuild.integrationtests.tasks.DistributionTest
-import gradlebuild.performance.reporter.PerformanceReporter
 import gradlebuild.performance.ScenarioBuildResultData
+import gradlebuild.performance.reporter.PerformanceReporter
 import groovy.json.JsonOutput
 import groovy.transform.CompileStatic
 import org.apache.commons.io.FileUtils
@@ -176,6 +176,7 @@ abstract class PerformanceTest extends DistributionTest {
         this.flamegraphs = Boolean.parseBoolean(flamegraphs)
     }
 
+    @Optional
     @Input
     String getDatabaseUrl() {
         return databaseParameters.get("org.gradle.performance.db.url")

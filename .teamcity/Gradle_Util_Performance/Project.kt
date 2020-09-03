@@ -20,4 +20,8 @@ object Project : Project({
     buildType(AdHocPerformanceTestCoordinatorLinux)
     buildType(AdHocPerformanceTestCoordinatorWindows)
     buildType(AdHocPerformanceTestCoordinatorMacOS)
+
+    params {
+        param("env.GRADLE_ENTERPRISE_ACCESS_KEY", "%ge.gradle.org.access.key%")
+    }
 })

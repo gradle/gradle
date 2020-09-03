@@ -1,1 +1,0 @@
-GET     /:name                @controllers.hello.HelloController.index(name)

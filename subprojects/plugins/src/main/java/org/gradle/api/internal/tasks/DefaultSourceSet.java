@@ -160,6 +160,11 @@ public abstract class DefaultSourceSet implements SourceSet {
     }
 
     @Override
+    public String getCompileOnlyApiConfigurationName() {
+        return configurationNameOf(JavaPlugin.COMPILE_ONLY_API_CONFIGURATION_NAME);
+    }
+
+    @Override
     public String getCompileClasspathConfigurationName() {
         return configurationNameOf(JavaPlugin.COMPILE_CLASSPATH_CONFIGURATION_NAME);
     }

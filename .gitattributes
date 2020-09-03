@@ -42,3 +42,4 @@
 *.ttf           binary
 *.pyc           binary
 *.gpg           binary
+*.bin           binary

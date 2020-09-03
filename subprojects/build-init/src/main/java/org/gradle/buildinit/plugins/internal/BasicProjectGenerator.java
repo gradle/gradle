@@ -45,7 +45,7 @@ public class BasicProjectGenerator implements ProjectGenerator {
         scriptBuilderFactory.script(settings.getDsl(), "build")
             .fileComment("This is a general purpose Gradle build.\n"
                 + "Learn how to create Gradle builds at " + documentationRegistry.getGuideFor("creating-new-gradle-builds"))
-            .create()
+            .create(settings.getTarget())
             .generate();
     }
 

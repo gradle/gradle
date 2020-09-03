@@ -1,7 +1,7 @@
-> Task :lib:compileTestCpp
 > Task :lib:compileDebugCpp
 > Task :lib:linkDebug
 > Task :lib:assemble
+> Task :lib:compileTestCpp
 > Task :lib:linkTest
 > Task :lib:installTest
 > Task :lib:runTest

@@ -17,7 +17,6 @@
 package org.gradle.buildinit.plugins.internal;
 
 import org.gradle.api.UncheckedIOException;
-import org.gradle.api.internal.file.FileResolver;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -25,15 +24,10 @@ import java.io.IOException;
 import java.io.PrintWriter;
 
 public class GitAttributesGenerator implements BuildContentGenerator {
-    private final FileResolver fileResolver;
-
-    public GitAttributesGenerator(FileResolver fileResolver) {
-        this.fileResolver = fileResolver;
-    }
 
     @Override
     public void generate(InitSettings settings) {
-        File file = fileResolver.resolve(".gitattributes");
+        File file = settings.getTarget().file(".gitattributes").getAsFile();
         try {
             try (PrintWriter writer = new PrintWriter(new FileWriter(file))) {
                 writer.println("#");

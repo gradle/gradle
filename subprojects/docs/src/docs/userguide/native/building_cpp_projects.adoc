@@ -191,8 +191,8 @@ You can override the convention values by using the following syntax:
 
 .Setting {cpp} source set
 ====
-include::sample[dir="snippets/cpp/basic/groovy",files="build.gradle[tags=cpp-source-set]"]
-include::sample[dir="snippets/cpp/basic/kotlin",files="build.gradle.kts[tags=cpp-source-set]"]
+include::sample[dir="snippets/cpp/basic/groovy/common",files="build.gradle[tags=cpp-source-set]"]
+include::sample[dir="snippets/cpp/basic/kotlin/common",files="build.gradle.kts[tags=cpp-source-set]"]
 ====
 
 Now Gradle will only search directly in _src_ for the source and private headers and in _include_ for public headers.

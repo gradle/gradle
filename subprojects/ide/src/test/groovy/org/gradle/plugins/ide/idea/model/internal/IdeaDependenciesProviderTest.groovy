@@ -28,7 +28,7 @@ import org.gradle.util.TestUtil
 
 class IdeaDependenciesProviderTest extends AbstractProjectBuilderSpec {
     private final project = TestUtil.createRootProject(temporaryFolder.testDirectory)
-    private final childProject = TestUtil.createChildProject(project, "child", new File("."))
+    private final childProject = TestUtil.createChildProject(project, "child", temporaryFolder.testDirectory.file("child"))
     private final artifactRegistry = Stub(IdeArtifactRegistry)
     private final dependenciesProvider = new IdeaDependenciesProvider(project, artifactRegistry, project.services.get(ProjectStateRegistry), NullGradleApiSourcesResolver.INSTANCE)
 

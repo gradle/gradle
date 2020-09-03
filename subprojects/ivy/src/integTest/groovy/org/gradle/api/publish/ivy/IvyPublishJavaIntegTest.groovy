@@ -87,8 +87,10 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
             include "b"
         '''
         buildFile << """
-            apply plugin: "$plugin"
-            apply plugin: "ivy-publish"
+            plugins {
+                id("$plugin")
+                id("ivy-publish")
+            }
 
             group = 'org.gradle.test'
             version = '1.9'
@@ -126,7 +128,9 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         if (ivyConfiguration == 'compile') {
             javaLibrary.assertApiDependencies('org.gradle.test:b:1.2')
         }
-        javaLibrary.assertRuntimeDependencies('org.gradle.test:b:1.2')
+        if (gradleConfiguration != 'compileOnlyApi') {
+            javaLibrary.assertRuntimeDependencies('org.gradle.test:b:1.2')
+        }
 
         where:
         plugin         | gradleConfiguration | ivyConfiguration | deprecatedConfiguration
@@ -136,6 +140,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         'java'         | 'runtimeOnly'       | 'runtime'        | false
 
         'java-library' | 'api'               | 'compile'        | false
+        'java-library' | 'compileOnlyApi'    | 'compile'        | false
         'java-library' | 'compile'           | 'compile'        | true
         'java-library' | 'runtime'           | 'compile'        | true
         'java-library' | 'runtimeOnly'       | 'runtime'        | false

@@ -51,7 +51,7 @@ class ArtifactTransformWithDependenciesIntegrationTest extends AbstractHttpDepen
     }
 
     void setupBuildWithNoSteps(@DelegatesTo(Builder) Closure cl = {}) {
-        setupBuildWithColorAttributes(cl)
+        setupBuildWithColorAttributes(buildFile, cl)
         buildFile << """
 
 allprojects {

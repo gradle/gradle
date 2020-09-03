@@ -33,6 +33,8 @@ import org.junit.Rule
 import org.junit.experimental.categories.Category
 import spock.lang.Specification
 
+import static org.gradle.performance.results.ResultsStoreHelper.createResultsStoreWhenDatabaseAvailable
+
 /**
  * A base class for cross version performance tests.
  *
@@ -43,7 +45,7 @@ import spock.lang.Specification
 @CleanupTestDirectory
 class AbstractCrossVersionGradleProfilerPerformanceTest extends Specification {
 
-    private static def resultStore = new CrossVersionResultsStore()
+    private static final RESULTS_STORE = createResultsStoreWhenDatabaseAvailable { new CrossVersionResultsStore() }
 
     @Rule
     TestNameTestDirectoryProvider temporaryFolder = new PerformanceTestDirectoryProvider(getClass())
@@ -59,8 +61,8 @@ class AbstractCrossVersionGradleProfilerPerformanceTest extends Specification {
         def gradleProfilerReporter = new GradleProfilerReporter(temporaryFolder.testDirectory)
         runner = new GradleProfilerCrossVersionPerformanceTestRunner(
             new GradleProfilerBuildExperimentRunner(gradleProfilerReporter.getResultCollector()),
-            resultStore,
-            CompositeDataReporter.of(gradleProfilerReporter, resultStore),
+            RESULTS_STORE,
+            CompositeDataReporter.of(gradleProfilerReporter, RESULTS_STORE),
             new ReleasedVersionDistributions(buildContext),
             buildContext
         )
@@ -76,7 +78,7 @@ class AbstractCrossVersionGradleProfilerPerformanceTest extends Specification {
     static {
         // TODO - find a better way to cleanup
         System.addShutdownHook {
-            resultStore.close()
+            RESULTS_STORE.close()
         }
     }
 }

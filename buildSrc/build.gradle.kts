@@ -255,6 +255,12 @@ fun Project.applyKotlinProjectConventions() {
     apply(plugin = "org.gradle.kotlin.kotlin-dsl")
     apply(plugin = "org.gradle.kotlin-dsl.ktlint-convention")
 
+    tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
+        kotlinOptions {
+            incremental = true
+        }
+    }
+
     plugins.withType<KotlinDslPlugin> {
         configure<KotlinDslPluginOptions> {
             experimentalWarning.set(false)

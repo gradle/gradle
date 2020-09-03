@@ -16,6 +16,8 @@
 
 package org.gradle.buildinit.plugins.internal.maven
 
+import org.gradle.api.file.Directory
+import org.gradle.api.file.RegularFile
 import org.gradle.api.internal.artifacts.mvnsettings.DefaultMavenSettingsProvider
 import org.gradle.api.internal.artifacts.mvnsettings.MavenFileLocations
 import org.gradle.buildinit.plugins.internal.BuildScriptBuilderFactory
@@ -118,6 +120,15 @@ class MavenProjectsCreatorSpec extends Specification {
 
     def "creates multi module project with same artifactId"() {
         given:
+        Directory target = Mock() {
+            _ * getAsFile() >> temp.testDirectory
+            _ * file(_) >> { String path ->
+                Mock(RegularFile) {
+                    _ * getAsFile() >> temp.file(path)
+                }
+            }
+        }
+
         def parentPom = temp.file("pom.xml")
         parentPom.text = """\
 <project>
@@ -166,7 +177,7 @@ class MavenProjectsCreatorSpec extends Specification {
 </project>
 """
         def mavenProjects = creator.create(settings.buildSettings(), parentPom)
-        def converter = new Maven2Gradle(mavenProjects, temp.testDirectory, BuildInitDsl.GROOVY, Stub(BuildScriptBuilderFactory))
+        def converter = new Maven2Gradle(mavenProjects, target, BuildInitDsl.GROOVY, Stub(BuildScriptBuilderFactory))
 
         expect:
         converter.convert()

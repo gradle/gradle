@@ -1,0 +1,6 @@
+project project1 is external to this build
+project project2 is external to this build
+project project3 is external to this build
+/repo/org.example/project1/1.0/project1-1.0.jar
+/repo/org.example/project2/1.0/project2-1.0.jar
+/repo/org.example/project3/1.0/project3-1.0.jar

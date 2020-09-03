@@ -16,20 +16,33 @@
 
 package org.gradle.internal.component.local.model
 
+import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.util.Matchers
 import spock.lang.Specification
 
 class ComponentFileArtifactIdentifierTest extends Specification {
+
+    static class DummyComponentIdentifier implements ComponentIdentifier {
+        @Override
+        String getDisplayName() {
+            return "example"
+        }
+
+        String toString() {
+            return getDisplayName()
+        }
+    }
+
     def "has useful string representation"() {
-        def componentId = new OpaqueComponentIdentifier("comp")
+        def componentId = new DummyComponentIdentifier()
 
         expect:
-        new ComponentFileArtifactIdentifier(componentId, "thing").toString() == "thing (comp)"
+        new ComponentFileArtifactIdentifier(componentId, "thing").toString() == "thing (example)"
     }
 
     def "identifiers are equal when display names are equal"() {
-        def componentId = new OpaqueComponentIdentifier("comp")
-        def otherId = new OpaqueComponentIdentifier("comp 2")
+        def componentId = new DummyComponentIdentifier()
+        def otherId = new DummyComponentIdentifier()
 
         def id = new ComponentFileArtifactIdentifier(componentId, "one")
         def sameId = new ComponentFileArtifactIdentifier(componentId, "one")

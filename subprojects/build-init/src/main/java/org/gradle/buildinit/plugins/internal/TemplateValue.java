@@ -82,6 +82,10 @@ public class TemplateValue {
         return value;
     }
 
+    public String getRaw() {
+        return value;
+    }
+
     @Override
     public String toString() {
         return ">>>" + value + "<<<";

@@ -1,5 +1,5 @@
 plugins {
-    `java-library`
+    id("myproject.java-library-conventions")
 }
 
 // tag::dependencies[]
@@ -13,10 +13,3 @@ dependencies {
 }
 // end::dependencies[]
 
-publishing {
-    publications {
-        create("maven", MavenPublication::class.java) {
-            from(components["java"])
-        }
-    }
-}
