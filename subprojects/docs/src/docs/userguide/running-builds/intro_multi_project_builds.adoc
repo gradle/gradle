@@ -51,7 +51,7 @@ Gradle looks down the hierarchy, starting with the _current dir_, for tasks with
 One thing is very important to note.
 Gradle _always_ evaluates _every_ project of the multi-project build and creates all existing task objects.
 Then, according to the task name arguments and the current directory, Gradle filters the tasks which should be executed.
-Because of Gradle's <<sharing_build_logic_between_subprojects#sec:cross_project_configuration,cross project configuration>>, _every_ project has to be evaluated before _any_ task gets executed.
+Because of Gradle's <<sharing_build_logic_between_subprojects#sec:convention_plugins_vs_cross_configuration,cross project configuration>>, _every_ project has to be evaluated before _any_ task gets executed.
 
 When you're using the Gradle wrapper, executing a task for a specific subproject by running Gradle from the subproject's directory
 doesn't work well because you have to specify the path to the wrapper script if you're not in the project root.

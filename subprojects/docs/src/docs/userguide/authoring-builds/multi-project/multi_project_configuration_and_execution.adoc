@@ -69,7 +69,7 @@ The consequence of coupling during the configuration phase is that if gradle is 
 The consequence of coupling during execution phase is that if gradle is invoked with the parallel option, one project task runs too late to influence a task of a project building in parallel.
 Gradle does not attempt to detect coupling and warn the user, as there are too many possibilities to introduce coupling.
 
-A very common way for projects to be coupled is by using <<sharing_build_logic_between_subprojects#sec:cross_project_configuration,configuration injection>>.
+A very common way for projects to be coupled is by using <<sharing_build_logic_between_subprojects#sec:convention_plugins_vs_cross_configuration,configuration injection>>.
 It may not be immediately apparent, but using key Gradle features like the `allprojects` and `subprojects` keywords automatically cause your projects to be coupled.
 This is because these keywords are used in a `build.gradle` file, which defines a project.
 Often this is a “root project” that does nothing more than define common configuration, but as far as Gradle is concerned this root project is still a fully-fledged project, and by using `allprojects` that project is effectively coupled to all other projects.

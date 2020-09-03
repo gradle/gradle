@@ -430,7 +430,7 @@ Note that you can't use this technique if you want to apply such a plugin either
 [[sec:kotlin_cross_project_configuration]]
 === Cross-configuring projects
 
-<<sharing_build_logic_between_subprojects#sec:cross_project_configuration,Cross project configuration>> is a mechanism by which you can configure a project from another project's build script. A common example is when you configure subprojects in the root project build script.
+<<sharing_build_logic_between_subprojects#sec:convention_plugins_vs_cross_configuration,Cross project configuration>> is a mechanism by which you can configure a project from another project's build script. A common example is when you configure subprojects in the root project build script.
 
 Taking this approach means that you won't be able to use type-safe accessors for model elements contributed by the plugins. You will instead have to rely on string literals and the standard Gradle APIs.
 
