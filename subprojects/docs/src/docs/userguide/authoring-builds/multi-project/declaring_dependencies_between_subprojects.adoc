@@ -93,20 +93,6 @@ It also adds the dependencies of the other project to the classpath.
 You can trigger a `gradle :api:compile`. First the `shared` project is built and then the `api` project is built.
 Project dependencies enable partial multi-project builds.
 
-If you come from Maven land you might be perfectly happy with this.
-If you come from Ivy land, you might expect some more fine grained control.
-Gradle offers this to you:
-
-.Fine grained control over dependencies
-====
-include::sample[dir="snippets/multiproject/dependencies-javaWithCustomConf/groovy",files="api/build.gradle[];services/person-service/build.gradle[]"]
-include::sample[dir="snippets/multiproject/dependencies-javaWithCustomConf/kotlin",files="api/build.gradle.kts[];services/person-service/build.gradle.kts[]"]
-====
-
-The Java plugin adds per default a jar to your project libraries which contains all the classes.
-In this example we create an _additional_ library containing only the interfaces of the `api` project.
-We assign this library to a new _dependency configuration_.
-For the person service we declare that the project should be compiled only against the `api` interfaces but tested with all classes from `api`.
 
 [[sec:depending_on_output_of_another_project]]
 == Depending on output produced by another project
@@ -139,3 +125,10 @@ include::sample[dir="snippets/multiproject/dependencies-outgoingArtifact/kotlin/
 ====
 
 In the example above, the consumer now declares a dependency on the outputs of the `producer` project.
+
+
+== Depending on other artifacts between projects
+
+Depending on the main output artifact from another project is only one example.
+Gradle has one of the most powerful <<core_dependency_management#sec:dependency-mgmt-in-gradle,dependency management engines>> that allows you to share arbitrary artifacts between projects and let Gradle build them on demand.
+For more details see the section on <<cross_project_publications#cross_project_publications,sharing outputs between projects>>.
