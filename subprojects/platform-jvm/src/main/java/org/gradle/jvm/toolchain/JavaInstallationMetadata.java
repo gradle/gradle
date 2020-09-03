@@ -18,6 +18,8 @@ package org.gradle.jvm.toolchain;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.file.Directory;
+import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Internal;
 
 /**
  * Metadata about a Java tool obtained from a toolchain.
@@ -35,6 +37,7 @@ public interface JavaInstallationMetadata {
      *
      * @return the {@code JavaLanguageVersion}
      */
+    @Input
     JavaLanguageVersion getLanguageVersion();
 
     /**
@@ -44,5 +47,6 @@ public interface JavaInstallationMetadata {
      *
      * @return the installation path
      */
+    @Internal
     Directory getInstallationPath();
 }

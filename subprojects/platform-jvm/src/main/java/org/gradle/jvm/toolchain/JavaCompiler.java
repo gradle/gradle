@@ -18,6 +18,8 @@ package org.gradle.jvm.toolchain;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.file.RegularFile;
+import org.gradle.api.tasks.Internal;
+import org.gradle.api.tasks.Nested;
 
 /**
  * A java compiler used by compile tasks.
@@ -32,6 +34,7 @@ public interface JavaCompiler {
      *
      * @return the tool metadata
      */
+    @Nested
     JavaInstallationMetadata getMetadata();
 
     /**
@@ -39,5 +42,6 @@ public interface JavaCompiler {
      *
      * @return the path to the executable
      */
+    @Internal
     RegularFile getExecutablePath();
 }

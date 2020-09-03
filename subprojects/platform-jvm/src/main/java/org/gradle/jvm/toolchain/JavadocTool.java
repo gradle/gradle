@@ -18,6 +18,8 @@ package org.gradle.jvm.toolchain;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.file.RegularFile;
+import org.gradle.api.tasks.Internal;
+import org.gradle.api.tasks.Nested;
 
 /**
  * Generates HTML API documentation for Java classes.
@@ -33,6 +35,7 @@ public interface JavadocTool {
      *
      * @return the tool metadata
      */
+    @Nested
     JavaInstallationMetadata getMetadata();
 
     /**
@@ -40,5 +43,6 @@ public interface JavadocTool {
      *
      * @return the path to the executable
      */
+    @Internal
     RegularFile getExecutablePath();
 }
