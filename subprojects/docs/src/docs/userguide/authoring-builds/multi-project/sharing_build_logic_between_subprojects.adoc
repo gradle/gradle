@@ -17,7 +17,7 @@
 [[sec:convention_plugins]]
 == Convention Plugins
 
-Usually subprojects in a multi-project build share some common traits.
+Usually, subprojects in a multi-project build share some common traits.
 For example, several subprojects may contain _code_ in a particular programming language while another subproject may be
 dedicated for _documentation_.
 Code quality rules apply to all of the _code_ subprojects but not the _documentation_ subproject.
