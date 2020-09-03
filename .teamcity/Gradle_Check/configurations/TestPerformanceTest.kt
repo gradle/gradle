@@ -44,6 +44,15 @@ class TestPerformanceTest(model: CIBuildModel, stage: Stage) : BaseGradleBuildTy
         }
     }
 
+    fun BuildSteps.movePerformanceResults(postfix: String) {
+        script {
+            name = "MOVE_TEST_RESULTS"
+            scriptContent = """
+                cp subprojects/performance/build/test-results-performanceAdhocTest.zip subprojects/performance/build/test-results-performanceAdhocTest-$postfix.zip
+            """.trimIndent()
+        }
+    }
+
     fun BuildSteps.adHocPerformanceTest(scenario: String) {
         gradleStep(listOf(
             "performance:performanceAdHocTest",
@@ -51,6 +60,7 @@ class TestPerformanceTest(model: CIBuildModel, stage: Stage) : BaseGradleBuildTy
             """--scenarios "$scenario" --warmups 2 --runs 2 --checks none""",
             """"-PtestJavaHome=${individualPerformanceTestJavaHome(os)}""""
         ))
+        movePerformanceResults("[^\\p{Alpha}]".toRegex().replace(scenario, ""))
     }
 
     uuid = "${model.projectPrefix}TestPerformanceTest"
@@ -74,4 +84,6 @@ class TestPerformanceTest(model: CIBuildModel, stage: Stage) : BaseGradleBuildTy
 
         checkCleanM2(os)
     }
+
+    applyDefaultDependencies(model, this, true)
 })
