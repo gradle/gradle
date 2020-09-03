@@ -21,9 +21,8 @@ import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
 import org.gradle.performance.ResultSpecification
 import org.gradle.performance.measure.Duration
-import org.gradle.performance.results.DataReporter
 import org.gradle.performance.results.MeasuredOperationList
-import org.gradle.performance.results.ResultsStore
+import org.gradle.performance.results.WritableResultsStore
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Requires
 import org.gradle.util.SetSystemProperties
@@ -31,8 +30,6 @@ import org.gradle.util.TestPrecondition
 import org.junit.Rule
 
 class GradleInternalCrossVersionPerformanceTestRunnerTest extends ResultSpecification {
-    private static interface ReporterAndStore extends DataReporter, ResultsStore {}
-
     private static final String MOST_RECENT_RELEASE = "2.10"
 
     @Rule
@@ -45,7 +42,7 @@ class GradleInternalCrossVersionPerformanceTestRunnerTest extends ResultSpecific
 
     final buildContext = IntegrationTestBuildContext.INSTANCE
     final experimentRunner = Mock(BuildExperimentRunner)
-    final reporter = Mock(ReporterAndStore)
+    final reporter = Mock(WritableResultsStore)
     final currentGradle = Stub(GradleDistribution)
     final releases = Stub(ReleasedVersionDistributions)
 

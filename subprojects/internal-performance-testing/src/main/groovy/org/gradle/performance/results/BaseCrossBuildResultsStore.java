@@ -38,7 +38,7 @@ import static org.gradle.performance.results.ResultsStoreHelper.split;
 import static org.gradle.performance.results.ResultsStoreHelper.toArray;
 import static org.gradle.performance.results.ResultsStoreHelper.toList;
 
-public class BaseCrossBuildResultsStore<R extends CrossBuildPerformanceResults> implements ResultsStore, DataReporter<R>, Closeable {
+public class BaseCrossBuildResultsStore<R extends CrossBuildPerformanceResults> implements WritableResultsStore<R>, Closeable {
 
     private final PerformanceDatabase db;
     private final String resultType;
