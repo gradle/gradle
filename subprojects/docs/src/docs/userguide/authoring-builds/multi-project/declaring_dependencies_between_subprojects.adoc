@@ -76,7 +76,6 @@ As mentioned in <<declaring_dependencies.adoc#sub:project_dependencies,Project d
 We have the projects `shared`, `api` and `person-service`.
 The `person-service` project has a dependency on the other two projects.
 The `api` project has a dependency on the `shared` project.
-`services` is also a project, but we use it just as a container.
 It has no build script and gets nothing injected by another build script.
 We use the `:` separator to define a project path.
 Consult the DSL documentation of link:{groovyDslPath}++/org.gradle.api.initialization.Settings.html#org.gradle.api.initialization.Settings:include(java.lang.String[])++[Settings.include(java.lang.String[\])] for more information about defining project paths.
