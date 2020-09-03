@@ -57,7 +57,7 @@ import org.gradle.internal.resources.DefaultResourceLockCoordinationService;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
-import org.gradle.internal.service.scopes.CrossBuildSessionScopeServices;
+import org.gradle.internal.session.CrossBuildSessionState;
 import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.internal.session.BuildSessionState;
@@ -103,9 +103,9 @@ public class ProjectBuilderImpl {
         NativeServices.initialize(userHomeDir);
 
         BuildRequestMetaData buildRequestMetaData = new DefaultBuildRequestMetaData(Time.currentTimeMillis());
-        CrossBuildSessionScopeServices crossBuildSessionScopeServices = new CrossBuildSessionScopeServices(getGlobalServices(), startParameter);
+        CrossBuildSessionState crossBuildSessionState = new CrossBuildSessionState(getGlobalServices(), startParameter);
         GradleUserHomeScopeServiceRegistry userHomeServices = getUserHomeServices();
-        BuildSessionState buildSessionState = new BuildSessionState(userHomeServices, crossBuildSessionScopeServices, startParameter, buildRequestMetaData, ClassPath.EMPTY, new DefaultBuildCancellationToken(), buildRequestMetaData.getClient(), new NoOpBuildEventConsumer());
+        BuildSessionState buildSessionState = new BuildSessionState(userHomeServices, crossBuildSessionState, startParameter, buildRequestMetaData, ClassPath.EMPTY, new DefaultBuildCancellationToken(), buildRequestMetaData.getClient(), new NoOpBuildEventConsumer());
         BuildTreeState buildTreeState = new BuildTreeState(buildSessionState.getServices(), BuildType.TASKS);
         TestBuildScopeServices buildServices = new TestBuildScopeServices(buildTreeState.getServices(), homeDir);
         TestRootBuild build = new TestRootBuild(projectDir);

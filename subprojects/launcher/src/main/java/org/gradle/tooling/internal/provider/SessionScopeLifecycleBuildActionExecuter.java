@@ -22,7 +22,7 @@ import org.gradle.initialization.SessionLifecycleListener;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.internal.service.scopes.CrossBuildSessionScopeServices;
+import org.gradle.internal.session.CrossBuildSessionState;
 import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
 import org.gradle.internal.session.BuildSessionState;
 import org.gradle.launcher.exec.BuildActionExecuter;
@@ -45,8 +45,8 @@ public class SessionScopeLifecycleBuildActionExecuter implements BuildActionExec
     @Override
     public BuildActionResult execute(BuildAction action, BuildActionParameters actionParameters, BuildRequestContext requestContext) {
         StartParameter startParameter = action.getStartParameter();
-        try (CrossBuildSessionScopeServices crossBuildSessionScopeServices = new CrossBuildSessionScopeServices(globalServices, startParameter)) {
-            try (BuildSessionState buildSessionState = new BuildSessionState(userHomeServiceRegistry, crossBuildSessionScopeServices, startParameter, requestContext, actionParameters.getInjectedPluginClasspath(), requestContext.getCancellationToken(), requestContext.getClient(), requestContext.getEventConsumer())) {
+        try (CrossBuildSessionState crossBuildSessionState = new CrossBuildSessionState(globalServices, startParameter)) {
+            try (BuildSessionState buildSessionState = new BuildSessionState(userHomeServiceRegistry, crossBuildSessionState, startParameter, requestContext, actionParameters.getInjectedPluginClasspath(), requestContext.getCancellationToken(), requestContext.getClient(), requestContext.getEventConsumer())) {
                 return buildSessionState.run(context -> {
                     SessionLifecycleListener sessionLifecycleListener = context.getServices().get(ListenerManager.class).getBroadcaster(SessionLifecycleListener.class);
                     try {

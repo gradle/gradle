@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.service.scopes;
+package org.gradle.internal.session;
 
 import org.gradle.StartParameter;
 import org.gradle.api.internal.FeaturePreviews;
@@ -69,6 +69,8 @@ import org.gradle.internal.scopeids.ScopeIdsServices;
 import org.gradle.internal.scopeids.id.UserScopeId;
 import org.gradle.internal.scopeids.id.WorkspaceScopeId;
 import org.gradle.internal.service.ServiceRegistration;
+import org.gradle.internal.service.scopes.PluginServiceRegistry;
+import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.time.Clock;
 import org.gradle.internal.work.AsyncWorkTracker;
 import org.gradle.internal.work.DefaultAsyncWorkTracker;

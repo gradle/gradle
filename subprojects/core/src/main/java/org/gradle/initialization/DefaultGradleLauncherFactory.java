@@ -45,7 +45,7 @@ import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.scopes.BuildScopeListenerManagerAction;
 import org.gradle.internal.service.scopes.BuildScopeServices;
-import org.gradle.internal.service.scopes.CrossBuildSessionScopeServices;
+import org.gradle.internal.session.CrossBuildSessionState;
 import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.internal.session.BuildSessionState;
@@ -57,15 +57,15 @@ import java.util.List;
 
 public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
     private final GradleUserHomeScopeServiceRegistry userHomeDirServiceRegistry;
-    private final CrossBuildSessionScopeServices crossBuildSessionScopeServices;
+    private final CrossBuildSessionState crossBuildSessionState;
     private DefaultGradleLauncher rootBuild;
 
     public DefaultGradleLauncherFactory(
         GradleUserHomeScopeServiceRegistry userHomeDirServiceRegistry,
-        CrossBuildSessionScopeServices crossBuildSessionScopeServices
+        CrossBuildSessionState crossBuildSessionState
     ) {
         this.userHomeDirServiceRegistry = userHomeDirServiceRegistry;
-        this.crossBuildSessionScopeServices = crossBuildSessionScopeServices;
+        this.crossBuildSessionState = crossBuildSessionState;
     }
 
     @Override
@@ -171,7 +171,7 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
         public GradleLauncher nestedBuildTree(BuildDefinition buildDefinition, NestedRootBuild build) {
             StartParameter startParameter = buildDefinition.getStartParameter();
             BuildRequestMetaData buildRequestMetaData = new DefaultBuildRequestMetaData(Time.currentTimeMillis());
-            BuildSessionState buildSessionState = new BuildSessionState(userHomeDirServiceRegistry, crossBuildSessionScopeServices, startParameter, buildRequestMetaData, ClassPath.EMPTY, buildCancellationToken, buildRequestMetaData.getClient(), new NoOpBuildEventConsumer());
+            BuildSessionState buildSessionState = new BuildSessionState(userHomeDirServiceRegistry, crossBuildSessionState, startParameter, buildRequestMetaData, ClassPath.EMPTY, buildCancellationToken, buildRequestMetaData.getClient(), new NoOpBuildEventConsumer());
             BuildTreeState nestedBuildTree = new BuildTreeState(buildSessionState.getServices(), BuildType.TASKS);
             return doNewInstance(buildDefinition, build, parent, nestedBuildTree, ImmutableList.of(nestedBuildTree, buildSessionState));
         }

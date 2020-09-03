@@ -20,7 +20,6 @@ import org.gradle.api.internal.BuildType;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
-import org.gradle.internal.service.scopes.BuildTreeScopeServices;
 
 import java.io.Closeable;
 import java.util.function.Function;

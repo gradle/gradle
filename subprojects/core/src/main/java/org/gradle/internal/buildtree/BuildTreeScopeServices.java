@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.service.scopes;
+package org.gradle.internal.buildtree;
 
 import org.gradle.api.internal.BuildType;
 import org.gradle.api.internal.project.DefaultProjectStateRegistry;
@@ -24,10 +24,11 @@ import org.gradle.initialization.exception.DefaultExceptionAnalyser;
 import org.gradle.initialization.exception.ExceptionAnalyser;
 import org.gradle.initialization.exception.MultipleBuildFailuresExceptionAnalyser;
 import org.gradle.initialization.exception.StackTraceSanitizingExceptionAnalyser;
-import org.gradle.internal.buildtree.BuildTreeState;
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.service.ServiceRegistration;
+import org.gradle.internal.service.scopes.PluginServiceRegistry;
+import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.work.WorkerLeaseService;
 
 import java.util.List;

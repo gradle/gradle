@@ -25,8 +25,6 @@ import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
-import org.gradle.internal.service.scopes.BuildSessionScopeServices;
-import org.gradle.internal.service.scopes.CrossBuildSessionScopeServices;
 import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
 
 import java.io.Closeable;
@@ -41,7 +39,7 @@ public class BuildSessionState implements Closeable {
     private final ServiceRegistry sessionScopeServices;
 
     public BuildSessionState(GradleUserHomeScopeServiceRegistry userHomeScopeServiceRegistry,
-                             CrossBuildSessionScopeServices crossBuildSessionServices,
+                             CrossBuildSessionState crossBuildSessionServices,
                              StartParameter startParameter,
                              BuildRequestMetaData requestMetaData,
                              ClassPath injectedPluginClassPath,

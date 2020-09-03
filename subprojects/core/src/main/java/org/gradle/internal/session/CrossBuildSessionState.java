@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.service.scopes;
+package org.gradle.internal.session;
 
 import org.gradle.StartParameter;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
@@ -45,6 +45,7 @@ import org.gradle.internal.operations.trace.BuildOperationTrace;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
+import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
 import org.gradle.internal.time.Clock;
 import org.gradle.internal.work.DefaultWorkerLeaseService;
 import org.gradle.internal.work.WorkerLeaseService;
@@ -61,10 +62,10 @@ import java.io.Closeable;
  *
  * This set of services is added as a parent of each build session scope.
  */
-public class CrossBuildSessionScopeServices implements Closeable {
+public class CrossBuildSessionState implements Closeable {
     private final ServiceRegistry services;
 
-    public CrossBuildSessionScopeServices(ServiceRegistry parent, StartParameter startParameter) {
+    public CrossBuildSessionState(ServiceRegistry parent, StartParameter startParameter) {
         this.services = ServiceRegistryBuilder.builder()
             .displayName("cross session services")
             .parent(parent)
@@ -98,7 +99,7 @@ public class CrossBuildSessionScopeServices implements Closeable {
         GradleLauncherFactory createGradleLauncherFactory(GradleUserHomeScopeServiceRegistry userHomeDirServiceRegistry) {
             return new DefaultGradleLauncherFactory(
                 userHomeDirServiceRegistry,
-                CrossBuildSessionScopeServices.this
+                CrossBuildSessionState.this
             );
         }
 
