@@ -17,16 +17,15 @@
 package org.gradle.launcher.exec;
 
 import org.gradle.api.internal.BuildDefinition;
-import org.gradle.initialization.BuildRequestContext;
+import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.RootBuildState;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.invocation.BuildActionRunner;
 import org.gradle.internal.operations.notify.BuildOperationNotificationValve;
-import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
 
-public class InProcessBuildActionExecuter implements BuildActionExecuter<BuildActionParameters> {
+public class InProcessBuildActionExecuter implements BuildActionExecuter<BuildActionParameters, BuildTreeContext> {
     private final BuildActionRunner buildActionRunner;
 
     public InProcessBuildActionExecuter(BuildActionRunner buildActionRunner) {
@@ -34,10 +33,10 @@ public class InProcessBuildActionExecuter implements BuildActionExecuter<BuildAc
     }
 
     @Override
-    public BuildActionResult execute(final BuildAction action, final BuildRequestContext buildRequestContext, BuildActionParameters actionParameters, ServiceRegistry contextServices) {
-        BuildStateRegistry buildRegistry = contextServices.get(BuildStateRegistry.class);
-        final PayloadSerializer payloadSerializer = contextServices.get(PayloadSerializer.class);
-        BuildOperationNotificationValve buildOperationNotificationValve = contextServices.get(BuildOperationNotificationValve.class);
+    public BuildActionResult execute(BuildAction action, BuildActionParameters actionParameters, BuildTreeContext buildTree) {
+        BuildStateRegistry buildRegistry = buildTree.getBuildTreeServices().get(BuildStateRegistry.class);
+        final PayloadSerializer payloadSerializer = buildTree.getBuildTreeServices().get(PayloadSerializer.class);
+        BuildOperationNotificationValve buildOperationNotificationValve = buildTree.getBuildTreeServices().get(BuildOperationNotificationValve.class);
 
         buildOperationNotificationValve.start();
         try {
@@ -47,7 +46,7 @@ public class InProcessBuildActionExecuter implements BuildActionExecuter<BuildAc
                 if (result.getBuildFailure() == null) {
                     return BuildActionResult.of(payloadSerializer.serialize(result.getClientResult()));
                 }
-                if (buildRequestContext.getCancellationToken().isCancellationRequested()) {
+                if (buildTree.getBuildTreeServices().get(BuildCancellationToken.class).isCancellationRequested()) {
                     return BuildActionResult.cancelled(payloadSerializer.serialize(result.getBuildFailure()));
                 }
                 return BuildActionResult.failed(payloadSerializer.serialize(result.getClientFailure()));

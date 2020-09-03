@@ -34,10 +34,12 @@ import org.gradle.internal.logging.text.TestStyledTextOutputFactory
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.Scopes
+import org.gradle.internal.session.BuildSessionState
 import org.gradle.internal.time.Clock
 import org.gradle.internal.time.Time
 import org.gradle.launcher.exec.BuildActionExecuter
 import org.gradle.launcher.exec.BuildActionParameters
+import org.gradle.launcher.exec.BuildSessionContext
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.util.DisconnectableInputStream
 import org.gradle.util.RedirectStdIn
@@ -64,11 +66,14 @@ class ContinuousBuildActionExecuterTest extends ConcurrentSpec {
     def inputsListeners = new DefaultTaskInputsListeners(listenerManager)
     def buildSessionScopeServices = Stub(ServiceRegistry)
     def deploymentRegistry = Mock(DeploymentRegistryInternal)
+    def buildSession = Mock(BuildSessionState)
+    def buildSessionContext = new BuildSessionContext(requestContext, buildSession)
     def executer = executer()
 
     private File file = new File('file')
 
     def setup() {
+        buildSession.services >> buildSessionScopeServices
         buildSessionScopeServices.get(ListenerManager) >> listenerManager.createChild(Scopes.BuildSession)
         buildSessionScopeServices.get(BuildStartedTime) >> buildExecutionTimer
         buildSessionScopeServices.get(Clock) >> Time.clock()
@@ -83,7 +88,7 @@ class ContinuousBuildActionExecuterTest extends ConcurrentSpec {
         executeBuild()
 
         then:
-        1 * delegate.execute(action, requestContext, actionParameters, _)
+        1 * delegate.execute(action, actionParameters, buildSessionContext)
         1 * deploymentRegistry.runningDeployments >> []
         0 * waiterFactory._
     }
@@ -91,7 +96,7 @@ class ContinuousBuildActionExecuterTest extends ConcurrentSpec {
     def "allows exceptions to propagate for single builds"() {
         when:
         singleBuild()
-        1 * delegate.execute(action, requestContext, actionParameters, _) >> {
+        1 * delegate.execute(action, actionParameters, buildSessionContext) >> {
             throw new RuntimeException("!")
         }
         executeBuild()
@@ -108,7 +113,7 @@ class ContinuousBuildActionExecuterTest extends ConcurrentSpec {
         executeBuild()
 
         then:
-        1 * delegate.execute(action, requestContext, actionParameters, _)
+        1 * delegate.execute(action, actionParameters, buildSessionContext)
         1 * deploymentRegistry.runningDeployments >> []
         0 * waiterFactory._
         System.in instanceof DisconnectableInputStream
@@ -118,7 +123,7 @@ class ContinuousBuildActionExecuterTest extends ConcurrentSpec {
     def "waits for waiter"() {
         when:
         continuousBuild()
-        1 * delegate.execute(action, requestContext, actionParameters, _) >> {
+        1 * delegate.execute(action, actionParameters, buildSessionContext) >> {
             declareInput(file)
         }
         executeBuild()
@@ -132,7 +137,7 @@ class ContinuousBuildActionExecuterTest extends ConcurrentSpec {
     def "exits if there are no file system inputs"() {
         when:
         continuousBuild()
-        1 * delegate.execute(action, requestContext, actionParameters, _)
+        1 * delegate.execute(action, actionParameters, buildSessionContext)
         executeBuild()
 
         then:
@@ -153,7 +158,7 @@ class ContinuousBuildActionExecuterTest extends ConcurrentSpec {
     }
 
     private void executeBuild() {
-        executer.execute(action, requestContext, actionParameters, buildSessionScopeServices)
+        executer.execute(action, actionParameters, buildSessionContext)
     }
 
     private void declareInput(File file) {

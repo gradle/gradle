@@ -23,9 +23,9 @@ import org.gradle.internal.build.event.BuildEventSubscriptions
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.operations.BuildOperationListener
 import org.gradle.internal.operations.BuildOperationListenerManager
-import org.gradle.internal.service.ServiceRegistry
 import org.gradle.launcher.exec.BuildActionExecuter
 import org.gradle.launcher.exec.BuildActionParameters
+import org.gradle.launcher.exec.BuildSessionContext
 import org.gradle.tooling.events.OperationType
 import spock.lang.Specification
 
@@ -44,7 +44,9 @@ class SubscribableBuildActionExecuterSpec extends Specification {
             getEventConsumer() >> consumer
         }
         def buildActionParameters = Stub(BuildActionParameters)
-        def serviceRegistry = Stub(ServiceRegistry)
+        def buildSessionContext = Stub(BuildSessionContext) {
+            getRequestContext() >> buildRequestContext
+        }
 
         def listener1 = Stub(BuildOperationListener)
         def listener2 = Stub(BuildOperationListener)
@@ -55,7 +57,7 @@ class SubscribableBuildActionExecuterSpec extends Specification {
         def runner = new SubscribableBuildActionExecuter(listenerManager, buildOperationListenerManager, factory, delegate)
 
         when:
-        runner.execute(buildAction, buildRequestContext, buildActionParameters, serviceRegistry)
+        runner.execute(buildAction, buildActionParameters, buildSessionContext)
 
         then:
         1 * listenerManager.addListener(listener1)
@@ -64,7 +66,7 @@ class SubscribableBuildActionExecuterSpec extends Specification {
         1 * buildOperationListenerManager.addListener(listener2)
 
         then:
-        1 * delegate.execute(buildAction, buildRequestContext, buildActionParameters, serviceRegistry)
+        1 * delegate.execute(buildAction, buildActionParameters, buildSessionContext)
 
         then:
         1 * listenerManager.removeListener(listener1)

@@ -43,17 +43,17 @@ import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.os.OperatingSystem;
-import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.time.Clock;
 import org.gradle.launcher.exec.BuildActionExecuter;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.BuildActionResult;
+import org.gradle.launcher.exec.BuildSessionContext;
 import org.gradle.util.DisconnectableInputStream;
 
 import java.util.function.Supplier;
 
-public class ContinuousBuildActionExecuter implements BuildActionExecuter<BuildActionParameters> {
-    private final BuildActionExecuter<BuildActionParameters> delegate;
+public class ContinuousBuildActionExecuter implements BuildActionExecuter<BuildActionParameters, BuildSessionContext> {
+    private final BuildActionExecuter<BuildActionParameters, BuildSessionContext> delegate;
     private final TaskInputsListeners inputsListeners;
     private final OperatingSystem operatingSystem;
     private final FileSystemChangeWaiterFactory changeWaiterFactory;
@@ -65,7 +65,7 @@ public class ContinuousBuildActionExecuter implements BuildActionExecuter<BuildA
         TaskInputsListeners inputsListeners,
         StyledTextOutputFactory styledTextOutputFactory,
         ExecutorFactory executorFactory,
-        BuildActionExecuter<BuildActionParameters> delegate
+        BuildActionExecuter<BuildActionParameters, BuildSessionContext> delegate
     ) {
         this.inputsListeners = inputsListeners;
         this.operatingSystem = OperatingSystem.current();
@@ -76,18 +76,19 @@ public class ContinuousBuildActionExecuter implements BuildActionExecuter<BuildA
     }
 
     @Override
-    public BuildActionResult execute(BuildAction action, BuildRequestContext requestContext, final BuildActionParameters actionParameters, ServiceRegistry buildSessionScopeServices) {
+    public BuildActionResult execute(BuildAction action, BuildActionParameters actionParameters, BuildSessionContext buildSession) {
+        BuildRequestContext requestContext = buildSession.getRequestContext();
         BuildCancellationToken cancellationToken = requestContext.getCancellationToken();
         if (actionParameters.isContinuous()) {
             DefaultContinuousExecutionGate alwaysOpenExecutionGate = new DefaultContinuousExecutionGate();
             final CancellableOperationManager cancellableOperationManager = createCancellableOperationManager(requestContext, cancellationToken);
-            return executeMultipleBuilds(action, requestContext, actionParameters, buildSessionScopeServices, cancellableOperationManager, alwaysOpenExecutionGate);
+            return executeMultipleBuilds(action, requestContext, actionParameters, buildSession, cancellableOperationManager, alwaysOpenExecutionGate);
         } else {
             try {
-                return delegate.execute(action, requestContext, actionParameters, buildSessionScopeServices);
+                return delegate.execute(action, actionParameters, buildSession);
             } finally {
                 final CancellableOperationManager cancellableOperationManager = createCancellableOperationManager(requestContext, cancellationToken);
-                waitForDeployments(action, requestContext, actionParameters, buildSessionScopeServices, cancellableOperationManager);
+                waitForDeployments(action, requestContext, actionParameters, buildSession, cancellableOperationManager);
             }
         }
     }
@@ -106,31 +107,31 @@ public class ContinuousBuildActionExecuter implements BuildActionExecuter<BuildA
         return cancellableOperationManager;
     }
 
-    private void waitForDeployments(BuildAction action, BuildRequestContext requestContext, final BuildActionParameters actionParameters, ServiceRegistry buildSessionScopeServices, CancellableOperationManager cancellableOperationManager) {
-        final DeploymentRegistryInternal deploymentRegistry = buildSessionScopeServices.get(DeploymentRegistryInternal.class);
+    private void waitForDeployments(BuildAction action, BuildRequestContext requestContext, BuildActionParameters actionParameters, BuildSessionContext buildSession, CancellableOperationManager cancellableOperationManager) {
+        final DeploymentRegistryInternal deploymentRegistry = buildSession.getBuildSessionServices().get(DeploymentRegistryInternal.class);
         if (!deploymentRegistry.getRunningDeployments().isEmpty()) {
             // Deployments are considered outOfDate until initial execution with file watching
             for (Deployment deployment : deploymentRegistry.getRunningDeployments()) {
                 ((DeploymentInternal) deployment).outOfDate();
             }
             logger.println().println("Reloadable deployment detected. Entering continuous build.");
-            resetBuildStartedTime(buildSessionScopeServices);
+            resetBuildStartedTime(buildSession);
             ContinuousExecutionGate deploymentRequestExecutionGate = deploymentRegistry.getExecutionGate();
-            executeMultipleBuilds(action, requestContext, actionParameters, buildSessionScopeServices, cancellableOperationManager, deploymentRequestExecutionGate);
+            executeMultipleBuilds(action, requestContext, actionParameters, buildSession, cancellableOperationManager, deploymentRequestExecutionGate);
         }
         cancellableOperationManager.closeInput();
     }
 
-    private BuildActionResult executeMultipleBuilds(BuildAction action, final BuildRequestContext requestContext, final BuildActionParameters actionParameters, final ServiceRegistry buildSessionScopeServices,
+    private BuildActionResult executeMultipleBuilds(BuildAction action, BuildRequestContext requestContext, BuildActionParameters actionParameters, BuildSessionContext buildSession,
                                                     CancellableOperationManager cancellableOperationManager, ContinuousExecutionGate continuousExecutionGate) {
         BuildCancellationToken cancellationToken = requestContext.getCancellationToken();
 
         BuildActionResult lastResult;
         while (true) {
-            PendingChangesListener pendingChangesListener = buildSessionScopeServices.get(ListenerManager.class).getBroadcaster(PendingChangesListener.class);
+            PendingChangesListener pendingChangesListener = buildSession.getBuildSessionServices().get(ListenerManager.class).getBroadcaster(PendingChangesListener.class);
             final FileSystemChangeWaiter waiter = changeWaiterFactory.createChangeWaiter(new SingleFirePendingChangesListener(pendingChangesListener), cancellationToken, continuousExecutionGate);
             try {
-                lastResult = executeBuildAndAccumulateInputs(action, requestContext, actionParameters, waiter, buildSessionScopeServices);
+                lastResult = executeBuildAndAccumulateInputs(action, actionParameters, waiter, buildSession);
 
                 if (!waiter.isWatching()) {
                     logger.println().withStyle(StyledTextOutput.Style.Failure).println("Exiting continuous build as no executed tasks declared file system inputs.");
@@ -155,7 +156,7 @@ public class ContinuousBuildActionExecuter implements BuildActionExecuter<BuildA
                 break;
             } else {
                 logger.println("Change detected, executing build...").println();
-                resetBuildStartedTime(buildSessionScopeServices);
+                resetBuildStartedTime(buildSession);
             }
         }
 
@@ -163,9 +164,9 @@ public class ContinuousBuildActionExecuter implements BuildActionExecuter<BuildA
         return lastResult;
     }
 
-    private void resetBuildStartedTime(ServiceRegistry buildSessionScopeServices) {
-        BuildStartedTime buildStartedTime = buildSessionScopeServices.get(BuildStartedTime.class);
-        Clock clock = buildSessionScopeServices.get(Clock.class);
+    private void resetBuildStartedTime(BuildSessionContext buildSession) {
+        BuildStartedTime buildStartedTime = buildSession.getBuildSessionServices().get(BuildStartedTime.class);
+        Clock clock = buildSession.getBuildSessionServices().get(Clock.class);
         buildStartedTime.reset(clock.getCurrentTime());
     }
 
@@ -183,14 +184,13 @@ public class ContinuousBuildActionExecuter implements BuildActionExecuter<BuildA
 
     private BuildActionResult executeBuildAndAccumulateInputs(
         BuildAction action,
-        BuildRequestContext requestContext,
         BuildActionParameters actionParameters,
-        final FileSystemChangeWaiter waiter,
-        ServiceRegistry buildSessionScopeServices
+        FileSystemChangeWaiter waiter,
+        BuildSessionContext buildSession
     ) {
         return withTaskInputsListener(
             (task, fileSystemInputs) -> waiter.watch(FileSystemSubset.of(fileSystemInputs)),
-            () -> delegate.execute(action, requestContext, actionParameters, buildSessionScopeServices)
+            () -> delegate.execute(action, actionParameters, buildSession)
         );
     }
 

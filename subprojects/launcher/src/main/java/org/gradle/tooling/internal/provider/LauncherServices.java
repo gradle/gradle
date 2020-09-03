@@ -29,6 +29,7 @@ import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.operations.BuildOperationListenerManager;
 import org.gradle.internal.service.ServiceRegistration;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
 import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
 import org.gradle.internal.time.Time;
@@ -70,6 +71,7 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
                                           ExecutorFactory executorFactory,
                                           LoggingManagerInternal loggingManager,
                                           GradleUserHomeScopeServiceRegistry userHomeServiceRegistry,
+                                          ServiceRegistry globalServices,
                                           FileSystemChangeWaiterFactory fileSystemChangeWaiterFactory
         ) {
             // @formatter:off
@@ -78,7 +80,7 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
                 new SessionFailureReportingActionExecuter(styledTextOutputFactory, Time.clock(),
                 new StartParamsValidatingActionExecuter(
                 new GradleThreadBuildActionExecuter(
-                new SessionScopeBuildActionExecuter(userHomeServiceRegistry,
+                new SessionScopeBuildActionExecuter(userHomeServiceRegistry, globalServices,
                 new SubscribableBuildActionExecuter(listenerManager, buildOperationListenerManager, listenerFactory,
                 new ContinuousBuildActionExecuter(fileSystemChangeWaiterFactory, inputsListeners, styledTextOutputFactory, executorFactory,
                 new BuildTreeScopeBuildActionExecuter(
