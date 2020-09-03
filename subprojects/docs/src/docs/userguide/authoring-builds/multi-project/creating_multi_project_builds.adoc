@@ -14,7 +14,7 @@
 [[multi_project_builds]]
 = Multi-Project Builds in Gradle
 
-A multi-project build in Gradle consists of one root project, and one or more subprojects that may also have subprojects.
+A multi-project build in Gradle consists of one root project, and one or more subprojects.
 
 [[sec:creating_multi_project_builds]]
 == Creating a multi-project build
