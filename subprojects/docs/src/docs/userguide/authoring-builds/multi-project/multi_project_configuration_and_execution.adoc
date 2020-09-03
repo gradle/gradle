@@ -14,7 +14,7 @@
 
 
 [[configuration_and_execution]]
-= Configuration and execution
+= Configuration time and execution time
 
 <<build_lifecycle.adoc#sec:build_phases,Build phases>> describes the phases of every Gradle build.
 Let's zoom into the configuration and execution phases of a multi-project build.
