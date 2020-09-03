@@ -59,7 +59,7 @@ include::sample[dir="snippets/multiproject/basic-multiproject/groovy",files="set
 include::sample[dir="snippets/multiproject/basic-multiproject/kotlin",files="settings.gradle.kts[]"]
 ====
 
-In this case, Gradle when invoked will look for a build file in the `app` directory.
+In this case, Gradle will look for a build file in the `app` directory.
 
 We can view the structure of a multi-project build by running the `gradle projects` command.
 ----
