@@ -19,22 +19,18 @@ package org.gradle.launcher.exec;
 import org.gradle.api.internal.BuildType;
 import org.gradle.internal.buildtree.BuildTreeState;
 import org.gradle.internal.invocation.BuildAction;
+import org.gradle.internal.session.BuildSessionContext;
 
 /**
  * A {@link BuildActionExecuter} responsible for establishing the build tree for a single invocation of a {@link BuildAction}.
  */
-public class BuildTreeScopeBuildActionExecuter implements BuildActionExecuter<BuildActionParameters, BuildSessionContext> {
-    private final BuildActionExecuter<BuildActionParameters, BuildTreeContext> delegate;
-
-    public BuildTreeScopeBuildActionExecuter(BuildActionExecuter<BuildActionParameters, BuildTreeContext> delegate) {
-        this.delegate = delegate;
-    }
-
+public class BuildTreeScopeLifecycleBuildActionExecuter implements BuildActionExecuter<BuildActionParameters, BuildSessionContext> {
     @Override
     public BuildActionResult execute(BuildAction action, BuildActionParameters actionParameters, BuildSessionContext buildSession) {
         BuildType buildType = action.isRunTasks() ? BuildType.TASKS : BuildType.MODEL;
-        try (BuildTreeState buildTree = new BuildTreeState(buildSession.getBuildSessionServices(), buildType)) {
-            return delegate.execute(action, actionParameters, new BuildTreeContext(buildTree));
+        try (BuildTreeState buildTree = new BuildTreeState(buildSession.getServices(), buildType)) {
+            return buildTree.run(context ->
+                context.getBuildTreeServices().get(BuildTreeBuildActionExecutor.class).execute(action, actionParameters, context));
         }
     }
 }

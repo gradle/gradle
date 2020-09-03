@@ -29,20 +29,17 @@ import org.gradle.launcher.exec.BuildActionExecuter;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.BuildActionResult;
 import org.gradle.launcher.exec.BuildExecuter;
-import org.gradle.launcher.exec.BuildSessionContext;
 
 /**
  * A {@link BuildExecuter} responsible for establishing the session to execute a {@link BuildAction} within.
  */
-public class SessionScopeBuildActionExecuter implements BuildActionExecuter<BuildActionParameters, BuildRequestContext> {
+public class SessionScopeLifecycleBuildActionExecuter implements BuildActionExecuter<BuildActionParameters, BuildRequestContext> {
     private final ServiceRegistry globalServices;
-    private final BuildActionExecuter<BuildActionParameters, BuildSessionContext> delegate;
     private final GradleUserHomeScopeServiceRegistry userHomeServiceRegistry;
 
-    public SessionScopeBuildActionExecuter(GradleUserHomeScopeServiceRegistry userHomeServiceRegistry, ServiceRegistry globalServices, BuildActionExecuter<BuildActionParameters, BuildSessionContext> delegate) {
+    public SessionScopeLifecycleBuildActionExecuter(GradleUserHomeScopeServiceRegistry userHomeServiceRegistry, ServiceRegistry globalServices) {
         this.userHomeServiceRegistry = userHomeServiceRegistry;
         this.globalServices = globalServices;
-        this.delegate = delegate;
     }
 
     @Override
@@ -50,13 +47,15 @@ public class SessionScopeBuildActionExecuter implements BuildActionExecuter<Buil
         StartParameter startParameter = action.getStartParameter();
         try (CrossBuildSessionScopeServices crossBuildSessionScopeServices = new CrossBuildSessionScopeServices(globalServices, startParameter)) {
             try (BuildSessionState buildSessionState = new BuildSessionState(userHomeServiceRegistry, crossBuildSessionScopeServices, startParameter, requestContext, actionParameters.getInjectedPluginClasspath(), requestContext.getCancellationToken(), requestContext.getClient(), requestContext.getEventConsumer())) {
-                SessionLifecycleListener sessionLifecycleListener = buildSessionState.getServices().get(ListenerManager.class).getBroadcaster(SessionLifecycleListener.class);
-                try {
-                    sessionLifecycleListener.afterStart();
-                    return delegate.execute(action, actionParameters, new BuildSessionContext(requestContext, buildSessionState));
-                } finally {
-                    sessionLifecycleListener.beforeComplete();
-                }
+                return buildSessionState.run(context -> {
+                    SessionLifecycleListener sessionLifecycleListener = context.getServices().get(ListenerManager.class).getBroadcaster(SessionLifecycleListener.class);
+                    try {
+                        sessionLifecycleListener.afterStart();
+                        return context.getServices().get(SessionScopeBuildActionExecutor.class).execute(action, actionParameters, context);
+                    } finally {
+                        sessionLifecycleListener.beforeComplete();
+                    }
+                });
             }
         }
     }

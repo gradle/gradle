@@ -17,15 +17,14 @@
 package org.gradle.tooling.internal.provider
 
 import org.gradle.initialization.BuildEventConsumer
-import org.gradle.initialization.BuildRequestContext
 import org.gradle.internal.build.event.BuildEventListenerFactory
 import org.gradle.internal.build.event.BuildEventSubscriptions
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.operations.BuildOperationListener
 import org.gradle.internal.operations.BuildOperationListenerManager
+import org.gradle.internal.session.BuildSessionContext
 import org.gradle.launcher.exec.BuildActionExecuter
 import org.gradle.launcher.exec.BuildActionParameters
-import org.gradle.launcher.exec.BuildSessionContext
 import org.gradle.tooling.events.OperationType
 import spock.lang.Specification
 
@@ -40,13 +39,8 @@ class SubscribableBuildActionExecuterSpec extends Specification {
             getClientSubscriptions() >> new BuildEventSubscriptions(EnumSet.allOf(OperationType))
         }
         def consumer = Stub(BuildEventConsumer)
-        def buildRequestContext = Stub(BuildRequestContext) {
-            getEventConsumer() >> consumer
-        }
         def buildActionParameters = Stub(BuildActionParameters)
-        def buildSessionContext = Stub(BuildSessionContext) {
-            getRequestContext() >> buildRequestContext
-        }
+        def buildSessionContext = Stub(BuildSessionContext)
 
         def listener1 = Stub(BuildOperationListener)
         def listener2 = Stub(BuildOperationListener)
@@ -54,7 +48,7 @@ class SubscribableBuildActionExecuterSpec extends Specification {
             createListeners(_, consumer) >> [listener1, listener2]
         }
 
-        def runner = new SubscribableBuildActionExecuter(listenerManager, buildOperationListenerManager, factory, delegate)
+        def runner = new SubscribableBuildActionExecuter(listenerManager, buildOperationListenerManager, factory, consumer, delegate)
 
         when:
         runner.execute(buildAction, buildActionParameters, buildSessionContext)

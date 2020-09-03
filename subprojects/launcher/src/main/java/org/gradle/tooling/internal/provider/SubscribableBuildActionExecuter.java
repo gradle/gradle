@@ -23,10 +23,10 @@ import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.operations.BuildOperationListener;
 import org.gradle.internal.operations.BuildOperationListenerManager;
+import org.gradle.internal.session.BuildSessionContext;
 import org.gradle.launcher.exec.BuildActionExecuter;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.BuildActionResult;
-import org.gradle.launcher.exec.BuildSessionContext;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -34,24 +34,29 @@ import java.util.List;
 /**
  * Attaches build operation listeners to forward relevant operations back to the client.
  */
-public class SubscribableBuildActionExecuter implements BuildActionExecuter<BuildActionParameters, BuildSessionContext> {
+public class SubscribableBuildActionExecuter implements SessionScopeBuildActionExecutor {
+    private final BuildEventConsumer eventConsumer;
     private final BuildActionExecuter<BuildActionParameters, BuildSessionContext> delegate;
     private final ListenerManager listenerManager;
     private final BuildOperationListenerManager buildOperationListenerManager;
     private final List<Object> listeners = new ArrayList<>();
     private final BuildEventListenerFactory factory;
 
-    public SubscribableBuildActionExecuter(ListenerManager listenerManager, BuildOperationListenerManager buildOperationListenerManager, BuildEventListenerFactory factory, BuildActionExecuter<BuildActionParameters, BuildSessionContext> delegate) {
+    public SubscribableBuildActionExecuter(ListenerManager listenerManager,
+                                           BuildOperationListenerManager buildOperationListenerManager,
+                                           BuildEventListenerFactory factory,
+                                           BuildEventConsumer eventConsumer,
+                                           BuildActionExecuter<BuildActionParameters, BuildSessionContext> delegate) {
         this.listenerManager = listenerManager;
         this.buildOperationListenerManager = buildOperationListenerManager;
         this.factory = factory;
+        this.eventConsumer = eventConsumer;
         this.delegate = delegate;
     }
 
     @Override
     public BuildActionResult execute(BuildAction action, BuildActionParameters actionParameters, BuildSessionContext buildSession) {
         if (action instanceof SubscribableBuildAction) {
-            BuildEventConsumer eventConsumer = buildSession.getRequestContext().getEventConsumer();
             SubscribableBuildAction subscribableBuildAction = (SubscribableBuildAction) action;
             registerListenersForClientSubscriptions(subscribableBuildAction.getClientSubscriptions(), eventConsumer);
         }

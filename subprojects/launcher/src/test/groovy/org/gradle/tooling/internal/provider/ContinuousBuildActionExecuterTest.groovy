@@ -26,20 +26,16 @@ import org.gradle.initialization.DefaultBuildRequestContext
 import org.gradle.initialization.NoOpBuildEventConsumer
 import org.gradle.internal.buildevents.BuildStartedTime
 import org.gradle.internal.event.DefaultListenerManager
-import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.filewatch.FileSystemChangeWaiter
 import org.gradle.internal.filewatch.FileSystemChangeWaiterFactory
 import org.gradle.internal.invocation.BuildAction
 import org.gradle.internal.logging.text.TestStyledTextOutputFactory
-import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.Scopes
-import org.gradle.internal.session.BuildSessionState
-import org.gradle.internal.time.Clock
+import org.gradle.internal.session.BuildSessionContext
 import org.gradle.internal.time.Time
 import org.gradle.launcher.exec.BuildActionExecuter
 import org.gradle.launcher.exec.BuildActionParameters
-import org.gradle.launcher.exec.BuildSessionContext
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.util.DisconnectableInputStream
 import org.gradle.util.RedirectStdIn
@@ -64,21 +60,14 @@ class ContinuousBuildActionExecuterTest extends ConcurrentSpec {
     def waiter = Mock(FileSystemChangeWaiter)
     def listenerManager = new DefaultListenerManager(Scope.Global)
     def inputsListeners = new DefaultTaskInputsListeners(listenerManager)
-    def buildSessionScopeServices = Stub(ServiceRegistry)
     def deploymentRegistry = Mock(DeploymentRegistryInternal)
-    def buildSession = Mock(BuildSessionState)
-    def buildSessionContext = new BuildSessionContext(requestContext, buildSession)
+    def buildSessionContext = Mock(BuildSessionContext)
     def executer = executer()
 
     private File file = new File('file')
 
     def setup() {
-        buildSession.services >> buildSessionScopeServices
-        buildSessionScopeServices.get(ListenerManager) >> listenerManager.createChild(Scopes.BuildSession)
-        buildSessionScopeServices.get(BuildStartedTime) >> buildExecutionTimer
-        buildSessionScopeServices.get(Clock) >> Time.clock()
         waiterFactory.createChangeWaiter(_, _, _) >> waiter
-        buildSessionScopeServices.get(DeploymentRegistryInternal) >> deploymentRegistry
         waiter.isWatching() >> true
     }
 
@@ -166,6 +155,6 @@ class ContinuousBuildActionExecuterTest extends ConcurrentSpec {
     }
 
     private ContinuousBuildActionExecuter executer() {
-        new ContinuousBuildActionExecuter(waiterFactory, inputsListeners, new TestStyledTextOutputFactory(), executorFactory, delegate)
+        new ContinuousBuildActionExecuter(waiterFactory, inputsListeners, new TestStyledTextOutputFactory(), executorFactory, requestContext, cancellationToken, deploymentRegistry, listenerManager.createChild(Scopes.BuildSession), buildExecutionTimer, Time.clock(), delegate)
     }
 }

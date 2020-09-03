@@ -14,19 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.launcher.exec;
+package org.gradle.internal.session;
 
-import org.gradle.internal.buildtree.BuildTreeState;
 import org.gradle.internal.service.ServiceRegistry;
 
-public class BuildTreeContext {
-    private final BuildTreeState buildTree;
-
-    public BuildTreeContext(BuildTreeState buildTree) {
-        this.buildTree = buildTree;
-    }
-
-    public ServiceRegistry getBuildTreeServices() {
-        return buildTree.getServices();
-    }
+public interface BuildSessionContext {
+    ServiceRegistry getServices();
 }

@@ -30,6 +30,7 @@ import org.gradle.internal.service.scopes.CrossBuildSessionScopeServices;
 import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
 
 import java.io.Closeable;
+import java.util.function.Function;
 
 /**
  * Encapsulates the state for a build session.
@@ -59,6 +60,18 @@ public class BuildSessionState implements Closeable {
 
     public ServiceRegistry getServices() {
         return sessionScopeServices;
+    }
+
+    /**
+     * Runs the given action against the build session state. Should be called once only for a given session instance.
+     */
+    public <T> T run(Function<BuildSessionContext, T> action) {
+        return action.apply(new BuildSessionContext() {
+            @Override
+            public ServiceRegistry getServices() {
+                return sessionScopeServices;
+            }
+        });
     }
 
     @Override

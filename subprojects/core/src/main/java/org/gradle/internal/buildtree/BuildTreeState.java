@@ -23,6 +23,7 @@ import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.internal.service.scopes.BuildTreeScopeServices;
 
 import java.io.Closeable;
+import java.util.function.Function;
 
 /**
  * Encapsulates the state for a particular build tree.
@@ -40,6 +41,13 @@ public class BuildTreeState implements Closeable {
 
     public ServiceRegistry getServices() {
         return services;
+    }
+
+    /**
+     * Runs the given action against the state of this build tree.
+     */
+    public <T> T run(Function<BuildTreeContext, T> action) {
+        return action.apply(() -> services);
     }
 
     @Override

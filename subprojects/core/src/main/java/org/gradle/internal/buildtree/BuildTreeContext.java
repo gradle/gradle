@@ -14,26 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.launcher.exec;
+package org.gradle.internal.buildtree;
 
-import org.gradle.initialization.BuildRequestContext;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.internal.session.BuildSessionState;
 
-public class BuildSessionContext {
-    private final BuildRequestContext requestContext;
-    private final BuildSessionState buildSession;
-
-    public BuildSessionContext(BuildRequestContext requestContext, BuildSessionState buildSession) {
-        this.requestContext = requestContext;
-        this.buildSession = buildSession;
-    }
-
-    public ServiceRegistry getBuildSessionServices() {
-        return buildSession.getServices();
-    }
-
-    public BuildRequestContext getRequestContext() {
-        return requestContext;
-    }
+public interface BuildTreeContext {
+    ServiceRegistry getBuildTreeServices();
 }
