@@ -19,7 +19,7 @@ Only the smallest of projects has a single build file and source tree, unless it
 
 Gradle supports this scenario through _multi-project_ builds.
 
-For details about authoring _multi-project_ builds, consult the <<multi_project_builds#,Authoring Multi-Project Builds section of the user manual>>.
+For details about authoring _multi-project_ builds, consult the <<creating_multi_project_builds#multi_project_builds,Authoring Multi-Project Builds section of the user manual>>.
 
 
 [[sec:identifying_project_structure]]
@@ -51,7 +51,7 @@ Gradle looks down the hierarchy, starting with the _current dir_, for tasks with
 One thing is very important to note.
 Gradle _always_ evaluates _every_ project of the multi-project build and creates all existing task objects.
 Then, according to the task name arguments and the current directory, Gradle filters the tasks which should be executed.
-Because of Gradle's <<multi_project_builds#sec:cross_project_configuration,cross project configuration>>, _every_ project has to be evaluated before _any_ task gets executed.
+Because of Gradle's <<sharing_build_logic_between_subprojects#sec:cross_project_configuration,cross project configuration>>, _every_ project has to be evaluated before _any_ task gets executed.
 
 When you're using the Gradle wrapper, executing a task for a specific subproject by running Gradle from the subproject's directory
 doesn't work well because you have to specify the path to the wrapper script if you're not in the project root.
@@ -77,7 +77,7 @@ just use the `tasks` task, e.g. `gradle :services:webservice:tasks`.
 
 Regardless of which technique you use to execute tasks, Gradle will take care of building any subprojects that the target depends on.
 You don't have to worry about the inter-project dependencies yourself.
-If you're interested in how this is configured, you can read about writing multi-project builds <<multi_project_builds.adoc#multi_project_builds,later in the user manual>>.
+If you're interested in how this is configured, you can read about writing multi-project builds <<creating_multi_project_builds.adoc#multi_project_builds,later in the user manual>>.
 
 
 That's all you really need to know about multi-project builds as a build user.
