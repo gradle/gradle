@@ -95,6 +95,7 @@ dependencies {
         api(libs.jetbrainsAnnotations)  { version { strictly("13.0") }}
         api(libs.jgit)                  { version { strictly("5.7.0.202003110725-r") }}
         api(libs.joda)                  { version { strictly("2.10.4") }}
+        api(libs.joptSimple)            { version { strictly("5.0.4"); because("needed to create profiler in Gradle profiler API") }}
         api(libs.jsch)                  { version { strictly("0.1.55") }}
         api(libs.jsr305)                { version { strictly("3.0.2") }}
         api(libs.julToSlf4j)            { version { strictly(slf4jVersion) }}
@@ -172,6 +173,5 @@ dependencies {
         api(libs.sshdSftp)              { version { strictly(sshdVersion) }}
         api(libs.testcontainersSpock)   { version { strictly("1.12.5") }}
         api(libs.xmlunit)               { version { strictly("1.6") }}
-        api(libs.joptSimple)           { version { strictly("5.0.4"); because("needed to create profiler in Gradle profiler API") }}
     }
 }
