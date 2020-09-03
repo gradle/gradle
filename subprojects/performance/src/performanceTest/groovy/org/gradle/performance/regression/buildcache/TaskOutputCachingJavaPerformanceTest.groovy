@@ -62,7 +62,7 @@ class TaskOutputCachingJavaPerformanceTest extends AbstractTaskOutputCachingPerf
     }
 
     def "clean #tasks on #testProject with remote https cache"() {
-        setupTestProject(testProject, tasks)
+        setupTestProject(runner, testProject, tasks)
         protocol = "https"
         pushToRemote = true
         runner.addBuildMutator { cleanLocalCache() }

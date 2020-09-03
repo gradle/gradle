@@ -39,8 +39,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-public class MavenBuildExeprimentRunner extends AbstractGradleProfilerBuildExperimentRunner {
-    public MavenBuildExeprimentRunner(BenchmarkResultCollector resultCollector) {
+public class MavenBuildExperimentRunner extends AbstractGradleProfilerBuildExperimentRunner {
+    public MavenBuildExperimentRunner(BenchmarkResultCollector resultCollector) {
         super(resultCollector);
     }
 

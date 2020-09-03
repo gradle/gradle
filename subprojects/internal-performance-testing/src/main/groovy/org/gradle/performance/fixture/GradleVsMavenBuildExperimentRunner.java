@@ -21,12 +21,12 @@ import org.gradle.profiler.BenchmarkResultCollector;
 
 public class GradleVsMavenBuildExperimentRunner extends AbstractGradleProfilerBuildExperimentRunner {
     private final GradleBuildExperimentRunner gradleRunner;
-    private final MavenBuildExeprimentRunner mavenRunner;
+    private final MavenBuildExperimentRunner mavenRunner;
 
     public GradleVsMavenBuildExperimentRunner(BenchmarkResultCollector resultCollector) {
         super(resultCollector);
         this.gradleRunner = new GradleBuildExperimentRunner(resultCollector);
-        this.mavenRunner = new MavenBuildExeprimentRunner(resultCollector);
+        this.mavenRunner = new MavenBuildExperimentRunner(resultCollector);
     }
 
     @Override

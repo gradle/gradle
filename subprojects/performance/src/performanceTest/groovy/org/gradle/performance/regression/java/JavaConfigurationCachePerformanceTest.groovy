@@ -94,7 +94,7 @@ class JavaConfigurationCachePerformanceTest extends AbstractCrossVersionGradlePr
                     def tag = action == storing
                         ? "Calculating task graph as no configuration cache is available"
                         : "Reusing configuration cache"
-                    File buildLog = new File(invocationSettings.projectDir, "log.txt")
+                    File buildLog = new File(invocationSettings.projectDir, "profile.log")
 
                     def found = Files.lines(buildLog.toPath()).withCloseable { lines ->
                         lines.anyMatch { line -> line.contains(tag) }
