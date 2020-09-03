@@ -30,7 +30,7 @@ import org.gradle.tooling.BuildActionExecuter
  *
  */
 @CompileStatic
-public abstract class AbstractAndroidStudioMockupCrossVersionPerformanceTest extends AbstractToolingApiCrossVersionPerformanceTest {
+abstract class AbstractAndroidStudioMockupCrossVersionPerformanceTest extends AbstractToolingApiCrossVersionPerformanceTest {
 
     @Override
     void experiment(String projectName, @DelegatesTo(AndroidStudioExperiment) Closure<?> spec) {
@@ -41,7 +41,7 @@ public abstract class AbstractAndroidStudioMockupCrossVersionPerformanceTest ext
         clone.call(experiment)
     }
 
-    public class AndroidStudioExperiment extends AbstractToolingApiCrossVersionPerformanceTest.ToolingApiExperiment {
+    class AndroidStudioExperiment extends AbstractToolingApiCrossVersionPerformanceTest.ToolingApiExperiment {
 
         AndroidStudioExperiment(String projectName) {
             super(projectName)

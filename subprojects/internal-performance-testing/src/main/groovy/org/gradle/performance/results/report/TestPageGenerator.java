@@ -30,7 +30,6 @@ import org.gradle.performance.results.ScenarioDefinition;
 import org.gradle.performance.util.Git;
 
 import javax.annotation.Nullable;
-import java.io.IOException;
 import java.io.Writer;
 import java.util.Collections;
 import java.util.Date;
@@ -50,7 +49,7 @@ public class TestPageGenerator extends HtmlPageGenerator<PerformanceTestHistory>
     }
 
     @Override
-    public void render(final PerformanceTestHistory testHistory, Writer writer) throws IOException {
+    public void render(final PerformanceTestHistory testHistory, Writer writer) {
         // TODO: Add test name to the report
         // @formatter:off
         new MetricsHtml(writer) {{
@@ -292,7 +291,7 @@ public class TestPageGenerator extends HtmlPageGenerator<PerformanceTestHistory>
             cleanTasks.add("clean" + StringUtils.capitalize(scenario.getTestProject()));
         }
 
-        return String.format("To reproduce, run ./gradlew %s %s cleanPerformanceAdhocTest :%s:performanceAdhocTest --scenarios '%s' -x prepareSamples",
+        return String.format("To reproduce, run ./gradlew %s %s cleanPerformanceAdhocTest :%s:performanceAdhocTest --scenarios '%s' --baselines force-defaults",
             Joiner.on(' ').join(cleanTasks),
             Joiner.on(' ').join(templates),
             projectName,
