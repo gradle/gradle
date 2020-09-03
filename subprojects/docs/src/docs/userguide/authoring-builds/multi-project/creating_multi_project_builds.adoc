@@ -78,7 +78,7 @@ include::{snippetsPath}/multiproject/basic-multiproject/groovy/app/src/main/java
 ----
 ====
 
-Finally, we can run the application by executing the `run` task from the <<application_plugin#,application plugin>>.
+We can then run the application by executing the `run` task from the <<application_plugin#,application plugin>>.
 ----
 > gradle -q run
 include::{snippetsPath}/multiproject/basic-multiproject/tests/run.out[]
