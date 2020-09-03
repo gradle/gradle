@@ -80,7 +80,7 @@ object Config {
 
     const val performanceTestReportsDir = "performance-tests/report"
 
-    const val performanceTestResultsJson = "perf-results.json"
+    const val performanceTestResultsJson = "performance-tests/perf-results.json"
 
     const val teamCityUrl = "https://builds.gradle.org/"
 }
@@ -320,7 +320,7 @@ class PerformanceTestPlugin : Plugin<Project> {
     ): TaskProvider<out DistributedPerformanceTest> {
         val performanceTest = tasks.register(name, clazz) {
             configureForAnyPerformanceTestTask(this, performanceSourceSet)
-            scenarioList = layout.buildDirectory.file(Config.performanceTestScenarioListFileName).get().asFile
+            scenarioList = layout.buildDirectory.file("$name/${Config.performanceTestScenarioListFileName}").get().asFile
             buildTypeId = stringPropertyOrNull(PropertyNames.buildTypeId)
             workerTestTaskName = stringPropertyOrNull(PropertyNames.workerTestTaskName) ?: "fullPerformanceTest"
             teamCityUrl = Config.teamCityUrl
@@ -431,7 +431,7 @@ class PerformanceTestPlugin : Plugin<Project> {
             group = "verification"
             buildId = System.getenv("BUILD_ID")
             reportDir = layout.buildDirectory.file("${task.name}/${Config.performanceTestReportsDir}").get().asFile
-            resultsJson = layout.buildDirectory.file(Config.performanceTestResultsJson).get().asFile
+            resultsJson = layout.buildDirectory.file("${task.name}/${Config.performanceTestResultsJson}").get().asFile
             addDatabaseParameters(propertiesForPerformanceDb())
             testClassesDirs = performanceSourceSet.output.classesDirs
             classpath = performanceSourceSet.runtimeClasspath
