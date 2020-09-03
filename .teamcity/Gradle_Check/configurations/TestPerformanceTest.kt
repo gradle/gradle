@@ -74,4 +74,6 @@ class TestPerformanceTest(model: CIBuildModel, stage: Stage) : BaseGradleBuildTy
 
         checkCleanM2(os)
     }
+
+    applyDefaultDependencies(model, this, true)
 })
