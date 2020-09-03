@@ -24,6 +24,6 @@ dependencies {
 tasks.register('testReport', TestReport) {
     destinationDir = file("$buildDir/reports/allTests")
     // Use test results from testReportData configuration
-    getTestResultDirs().from(configurations.testReportData)
+    testResultDirs.from(configurations.testReportData)
 }
 // end::test-report[]
