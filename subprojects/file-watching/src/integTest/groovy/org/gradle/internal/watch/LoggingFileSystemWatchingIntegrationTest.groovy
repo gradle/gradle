@@ -24,6 +24,10 @@ import org.gradle.test.fixtures.ConcurrentTestUtil
 
 class LoggingFileSystemWatchingIntegrationTest extends AbstractFileSystemWatchingIntegrationTest {
 
+    def setup() {
+        executer.requireDaemon()
+    }
+
     def "verbose VFS logging can be enabled"() {
         buildFile << """
             apply plugin: "java"
@@ -54,8 +58,6 @@ class LoggingFileSystemWatchingIntegrationTest extends AbstractFileSystemWatchin
     }
 
     def "debug logging can be enabled"() {
-        executer.requireDaemon()
-
         buildFile << """
             tasks.register("change") {
                 def output = file("output.txt")
@@ -95,8 +97,6 @@ class LoggingFileSystemWatchingIntegrationTest extends AbstractFileSystemWatchin
     }
 
     def "logs handled events between builds only if something changed in the VFS"() {
-        executer.requireDaemon()
-
         buildFile << """
             plugins {
                 id('java')
@@ -104,9 +104,12 @@ class LoggingFileSystemWatchingIntegrationTest extends AbstractFileSystemWatchin
         """
         def sourceFile = file("src/main/java/MyClass.java")
         sourceFile.text = "public class MyClass { }"
-        def vfsLogs = enableVerboseVfsLogs()
 
         when:
+        // We do a warmup run so even on Windows, the VFS really contains all the files we expect it to contain.
+        withWatchFs().run("assemble")
+        waitForChangesToBePickedUp()
+        def vfsLogs = enableVerboseVfsLogs()
         withWatchFs().run("assemble")
         then:
         vfsLogs.retainedFilesInCurrentBuild >= 4
