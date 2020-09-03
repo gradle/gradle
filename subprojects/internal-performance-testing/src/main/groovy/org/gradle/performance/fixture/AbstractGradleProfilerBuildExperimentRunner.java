@@ -69,7 +69,6 @@ public abstract class AbstractGradleProfilerBuildExperimentRunner implements Bui
 
     protected org.gradle.profiler.Profiler getProfiler() {
         return profiler;
-
     }
 
     @Override

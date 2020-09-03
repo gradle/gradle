@@ -51,7 +51,7 @@ import static org.gradle.performance.results.ResultsStoreHelper.toArray;
 /**
  * A {@link DataReporter} implementation that stores results in an H2 relational database.
  */
-public class CrossVersionResultsStore implements DataReporter<CrossVersionPerformanceResults>, ResultsStore {
+public class CrossVersionResultsStore implements WritableResultsStore<CrossVersionPerformanceResults> {
     private static final String FLAKINESS_RATE_SQL =
         "SELECT TESTID, AVG(\n" +
             "  CASE WHEN DIFFCONFIDENCE > 0.97 THEN 1.0\n" +
