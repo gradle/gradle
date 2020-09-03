@@ -428,7 +428,7 @@ class GcsServer extends HttpServer implements RepositoryServer {
         add(httpStub, stubAction(httpStub))
     }
 
-    private HttpServer.ActionSupport stubAction(HttpStub httpStub) {
+    private static HttpServer.ActionSupport stubAction(HttpStub httpStub) {
         new HttpServer.ActionSupport("Generic stub handler") {
             void handle(HttpServletRequest request, HttpServletResponse response) {
                 if (httpStub.request.body) {
@@ -450,7 +450,7 @@ class GcsServer extends HttpServer implements RepositoryServer {
         expectations << expectation
         addHandler(new AbstractHandler() {
             @Override
-            synchronized void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+            void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
 
                 if (requestMatches(httpStub, request)) {
                     assertRequest(httpStub, request)
