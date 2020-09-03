@@ -24,7 +24,7 @@ Code quality rules apply to all of the _code_ subprojects but not the _documenta
 At the same time, the subprojects that share one common trait may serve different purposes - they may produce different _artifact types_ that further differentiate them, for example:
 
 - _public libraries_ - libraries that are published to some repository
-- _internal libraries_ - libraries on which other subprojects depend internally within the project
+- _internal libraries_ - libraries on which other subprojects depend on internally within the project
 - _command line applications_ - applications with specific packaging requirements
 - _web services_ - applications with specific packaging requirements that are different from above
 - etc
