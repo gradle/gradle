@@ -18,6 +18,7 @@ package org.gradle.integtests.samples.java
 
 import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
 import org.gradle.integtests.fixtures.Sample
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
@@ -104,6 +105,7 @@ class SamplesJavaTestingIntegrationTest extends AbstractSampleIntegrationTest {
     }
 
     @Unroll
+    @ToBeFixedForConfigurationCache(because = "kotlin-dsl plugin applied in buildSrc")
     @UsesSample("testing/testReport")
     def "can create a custom TestReport task with #dsl dsl"() {
         given:
