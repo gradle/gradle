@@ -50,7 +50,7 @@ This is a structure of a multi-project build that contains a single subproject c
 =====
 ====
 
-This is also the recommended project structure for starting any Gradle project.
+This is the recommended project structure for starting any Gradle project.
 The <<build_init_plugin#,build init plugin>> also generates skeleton projects that follow this structure - a root project with a single subproject.
 
 Note that the root project does not have a Gradle build file, only a settings file that defines the subprojects to include.
