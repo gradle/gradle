@@ -61,8 +61,8 @@ doing so will make it harder to understand the logic of a particular subproject.
 With cross configuration, build logic can be injected into a subproject and this is not obvious when looking at the subproject's
 build script.
 In the long run, cross configuration usually grows complex with more and more conditional logic and a higher maintenance burden.
-Cross configuration can also introduce <<sec:decoupled_projects,configuration-time coupling between projects>>, which can prevent optimizations like
-<<sec:configuration_on_demand,configuration-on-demand>> from working properly.
+Cross configuration can also introduce <<multi_project_configuration_and_execution#sec:decoupled_projects,configuration-time coupling between projects>>, which can prevent optimizations like
+<<multi_project_configuration_and_execution#sec:configuration_on_demand,configuration-on-demand>> from working properly.
 
 There are two most common uses of cross-configuration that can be better modelled using convention plugins:
 
