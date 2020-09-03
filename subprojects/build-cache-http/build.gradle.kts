@@ -33,6 +33,7 @@ dependencies {
     implementation(libs.inject)
 
     testImplementation(testFixtures(project(":core")))
+    testImplementation(libs.servletApi)
 
     integTestImplementation(libs.jetty)
 

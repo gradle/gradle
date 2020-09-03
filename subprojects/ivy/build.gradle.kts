@@ -52,7 +52,6 @@ dependencies {
 
     integTestImplementation(project(":ear"))
     integTestImplementation(libs.slf4jApi)
-    integTestImplementation(libs.jetty)
 
     integTestRuntimeOnly(project(":resources-s3"))
     integTestRuntimeOnly(project(":resources-sftp"))

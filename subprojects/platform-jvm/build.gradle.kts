@@ -53,3 +53,10 @@ strictCompile {
 }
 
 integrationTestUsesSampleDir("subprojects/platform-jvm/src/main")
+
+classycle {
+    excludePatterns.set(listOf(
+        // Needed for the factory methods in the interface
+        "org/gradle/jvm/toolchain/JavaLanguageVersion**"
+    ))
+}

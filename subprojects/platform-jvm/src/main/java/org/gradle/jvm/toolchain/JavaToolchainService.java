@@ -31,26 +31,50 @@ import org.gradle.api.provider.Provider;
 public interface JavaToolchainService {
 
     /**
-     * Obtain a {@link JavaCompiler} matching the {@link JavaToolchainSpec}
+     * Obtain a {@link JavaCompiler} matching the {@link JavaToolchainSpec}, as configured by the provided action.
      *
      * @param config The configuration of the {@code JavaToolchainSpec}
      * @return A {@code Provider<JavaCompiler>}
      */
-    Provider<JavaCompiler> compilerFrom(Action<? super JavaToolchainSpec> config);
+    Provider<JavaCompiler> compilerFor(Action<? super JavaToolchainSpec> config);
 
     /**
-     * Obtain a {@link JavaLauncher} matching the {@link JavaToolchainSpec}
+     * Obtain a {@link JavaCompiler} matching the {@link JavaToolchainSpec}.
+     *
+     * @param spec The {@code JavaToolchainSpec}
+     * @return A {@code Provider<JavaCompiler>}
+     */
+    Provider<JavaCompiler> compilerFor(JavaToolchainSpec spec);
+
+    /**
+     * Obtain a {@link JavaLauncher} matching the {@link JavaToolchainSpec}, as configured by the provided action.
      *
      * @param config The configuration of the {@code JavaToolchainSpec}
      * @return A {@code Provider<JavaLauncher>}
      */
-    Provider<JavaLauncher> launcherFrom(Action<? super JavaToolchainSpec> config);
+    Provider<JavaLauncher> launcherFor(Action<? super JavaToolchainSpec> config);
 
     /**
-     * Obtain a {@link JavadocTool} matching the {@link JavaToolchainSpec}
+     * Obtain a {@link JavaLauncher} matching the {@link JavaToolchainSpec}.
+     *
+     * @param spec The {@code JavaToolchainSpec}
+     * @return A {@code Provider<JavaLauncher>}
+     */
+    Provider<JavaLauncher> launcherFor(JavaToolchainSpec spec);
+
+    /**
+     * Obtain a {@link JavadocTool} matching the {@link JavaToolchainSpec}, as configured by the provided action.
      *
      * @param config The configuration of the {@code JavaToolchainSpec}
      * @return A {@code Provider<JavadocTool>}
      */
-    Provider<JavadocTool> javadocToolFrom(Action<? super JavaToolchainSpec> config);
+    Provider<JavadocTool> javadocToolFor(Action<? super JavaToolchainSpec> config);
+
+    /**
+     * Obtain a {@link JavadocTool} matching the {@link JavaToolchainSpec}.
+     *
+     * @param spec The {@code JavaToolchainSpec}
+     * @return A {@code Provider<JavadocTool>}
+     */
+    Provider<JavadocTool> javadocToolFor(JavaToolchainSpec spec);
 }
