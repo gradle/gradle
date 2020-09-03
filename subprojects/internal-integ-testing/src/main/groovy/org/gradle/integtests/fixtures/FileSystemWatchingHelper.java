@@ -37,11 +37,15 @@ public class FileSystemWatchingHelper {
     }
 
     public static String getDropVfsArgument() {
-        return systemProperty(VFS_DROP_PROPERTY, true);
+        return getDropVfsArgument(true);
     }
 
-    public static String getVerboseLoggingArgument() {
-        return systemProperty(StartParameterBuildOptions.WatchFileSystemVerboseLoggingOption.GRADLE_PROPERTY, true);
+    public static String getDropVfsArgument(boolean drop) {
+        return systemProperty(VFS_DROP_PROPERTY, drop);
+    }
+
+    public static String getVerboseVfsLoggingArgument() {
+        return systemProperty(StartParameterBuildOptions.VfsVerboseLoggingOption.GRADLE_PROPERTY, true);
     }
 
     private static String systemProperty(String key, Object value) {

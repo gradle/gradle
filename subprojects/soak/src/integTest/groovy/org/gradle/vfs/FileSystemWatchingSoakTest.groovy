@@ -24,8 +24,6 @@ import org.gradle.internal.watch.registry.FileWatcherRegistry
 import org.gradle.test.fixtures.file.TestFile
 import org.junit.Assert
 
-import java.nio.file.Files
-
 class FileSystemWatchingSoakTest extends DaemonIntegrationSpec implements FileSystemWatchingFixture {
 
     private static final int NUMBER_OF_SUBPROJECTS = 50
@@ -78,7 +76,7 @@ class FileSystemWatchingSoakTest extends DaemonIntegrationSpec implements FileSy
         daemon.assertIdle()
 
         expect:
-        long endOfDaemonLog = getLinesInDaemonLog(daemon)
+        long endOfDaemonLog = daemon.logLineCount
         50.times { iteration ->
             // when:
             changeSourceFiles(iteration, numberOfChangesBetweenBuilds)
@@ -98,7 +96,7 @@ class FileSystemWatchingSoakTest extends DaemonIntegrationSpec implements FileSy
             }
             assert vfsLogs.receivedFileSystemEventsSinceLastBuild >= minimumExpectedFileSystemEvents(numberOfChangesBetweenBuilds, 1)
             retainedFilesInLastBuild = vfsLogs.retainedFilesInCurrentBuild
-            endOfDaemonLog = getLinesInDaemonLog(daemon)
+            endOfDaemonLog = daemon.logLineCount
         }
     }
 
@@ -147,10 +145,6 @@ class FileSystemWatchingSoakTest extends DaemonIntegrationSpec implements FileSy
             println "Detected overflow in watcher, no files will be retained for the next build"
         }
         overflowDetected
-    }
-
-    private static long getLinesInDaemonLog(DaemonFixture daemon) {
-        Files.lines(daemon.logFile.toPath()).withCloseable { lines -> lines.count() }
     }
 
     private static void waitBetweenChangesToAvoidOverflow() {

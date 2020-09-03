@@ -28,6 +28,10 @@ trait FileSystemWatchingFixture {
         executer.withArgument(FileSystemWatchingHelper.dropVfsArgument)
     }
 
+    AbstractIntegrationSpec doNotDropVfs() {
+
+    }
+
     AbstractIntegrationSpec withWatchFs() {
         executer.withArgument(FileSystemWatchingHelper.enableFsWatchingArgument)
         this as AbstractIntegrationSpec
@@ -39,7 +43,7 @@ trait FileSystemWatchingFixture {
     }
 
     VerboseVfsLogAccessor enableVerboseVfsLogs() {
-        executer.withArgument(FileSystemWatchingHelper.verboseLoggingArgument)
+        executer.withArgument(FileSystemWatchingHelper.verboseVfsLoggingArgument)
         new VerboseVfsLogAccessor(this as AbstractIntegrationSpec)
     }
 

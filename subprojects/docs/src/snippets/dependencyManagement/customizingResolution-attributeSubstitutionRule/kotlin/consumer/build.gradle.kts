@@ -1,11 +1,5 @@
 plugins {
-    `java-library`
-}
-
-allprojects {
-    repositories {
-        jcenter()
-    }
+    id("myproject.java-library-conventions")
 }
 
 // tag::dependencies[]

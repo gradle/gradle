@@ -107,7 +107,7 @@ public abstract class SwiftProjectInitDescriptor extends LanguageLibraryProjectI
     protected void configureTargetMachineDefinition(ScriptBlockBuilder buildScriptBuilder) {
         if (OperatingSystem.current().isWindows()) {
             buildScriptBuilder.methodInvocation("Swift tool chain does not support Windows. The following targets macOS and Linux:", "targetMachines.add", buildScriptBuilder.propertyExpression("machines.macOS.x86_64"));
-            buildScriptBuilder.methodInvocation("Set the target operating system and architecture for this library", "targetMachines.add", buildScriptBuilder.propertyExpression("machines.linux.x86_64"));
+            buildScriptBuilder.methodInvocation(null, "targetMachines.add", buildScriptBuilder.propertyExpression("machines.linux.x86_64"));
         } else {
             buildScriptBuilder.methodInvocation("Set the target operating system and architecture for this library", "targetMachines.add", buildScriptBuilder.propertyExpression(getHostTargetMachineDefinition()));
         }

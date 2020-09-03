@@ -22,6 +22,7 @@ import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.CallableBuildOperation;
+import org.gradle.internal.snapshot.FileSystemNode;
 import org.gradle.internal.snapshot.SnapshotHierarchy;
 import org.gradle.internal.vfs.impl.VfsRootReference;
 import org.gradle.internal.watch.WatchingNotSupportedException;
@@ -93,7 +94,7 @@ public class WatchingVirtualFileSystem implements BuildLifecycleAwareVirtualFile
     }
 
     @Override
-    public void afterBuildStarted(boolean watchingEnabled, boolean verboseLogging, BuildOperationRunner buildOperationRunner) {
+    public void afterBuildStarted(boolean watchingEnabled, VfsLogging vfsLogging, WatchLogging watchLogging, BuildOperationRunner buildOperationRunner) {
         reasonForNotWatchingFiles = null;
         rootReference.update(currentRoot -> buildOperationRunner.call(new CallableBuildOperation<SnapshotHierarchy>() {
             @Override
@@ -114,7 +115,7 @@ public class WatchingVirtualFileSystem implements BuildLifecycleAwareVirtualFile
                             newRoot = currentRoot;
                         }
                         statisticsSinceLastBuild = new DefaultFileSystemWatchingStatistics(statistics, newRoot);
-                        if (verboseLogging) {
+                        if (vfsLogging == VfsLogging.VERBOSE) {
                             LOGGER.warn("Received {} file system events since last build while watching {} hierarchies",
                                 statisticsSinceLastBuild.getNumberOfReceivedEvents(),
                                 statisticsSinceLastBuild.getNumberOfWatchedHierarchies());
@@ -124,6 +125,9 @@ public class WatchingVirtualFileSystem implements BuildLifecycleAwareVirtualFile
                                 statisticsSinceLastBuild.getRetainedMissingFiles()
                             );
                         }
+                    }
+                    if (watchRegistry != null) {
+                        watchRegistry.setDebugLoggingEnabled(watchLogging == WatchLogging.DEBUG);
                     }
                     context.setResult(new BuildStartedFileSystemWatchingBuildOperationType.Result() {
                                           @Override
@@ -172,7 +176,7 @@ public class WatchingVirtualFileSystem implements BuildLifecycleAwareVirtualFile
     }
 
     @Override
-    public void beforeBuildFinished(boolean watchingEnabled, boolean verboseLogging, BuildOperationRunner buildOperationRunner, int maximumNumberOfWatchedHierarchies) {
+    public void beforeBuildFinished(boolean watchingEnabled, VfsLogging vfsLogging, WatchLogging watchLogging, BuildOperationRunner buildOperationRunner, int maximumNumberOfWatchedHierarchies) {
         rootReference.update(currentRoot -> buildOperationRunner.call(new CallableBuildOperation<SnapshotHierarchy>() {
             @Override
             public SnapshotHierarchy call(BuildOperationContext context) {
@@ -196,7 +200,7 @@ public class WatchingVirtualFileSystem implements BuildLifecycleAwareVirtualFile
                             newRoot = withWatcherChangeErrorHandling(currentRoot, () -> watchRegistry.buildFinished(currentRoot, maximumNumberOfWatchedHierarchies));
                         }
                         statisticsDuringBuild = new DefaultFileSystemWatchingStatistics(statistics, newRoot);
-                        if (verboseLogging) {
+                        if (vfsLogging == VfsLogging.VERBOSE) {
                             LOGGER.warn("Received {} file system events during the current build while watching {} hierarchies",
                                 statisticsDuringBuild.getNumberOfReceivedEvents(),
                                 statisticsDuringBuild.getNumberOfWatchedHierarchies());
@@ -248,10 +252,9 @@ public class WatchingVirtualFileSystem implements BuildLifecycleAwareVirtualFile
                 @Override
                 public void handleChange(FileWatcherRegistry.Type type, Path path) {
                     try {
-                        LOGGER.debug("Handling VFS change {} {}", type, path);
                         String absolutePath = path.toString();
                         if (!locationsWrittenByCurrentBuild.wasLocationWritten(absolutePath)) {
-                            update((root, diffListener) -> root.invalidate(absolutePath, diffListener));
+                            update((root, diffListener) -> root.invalidate(absolutePath, new VfsChangeLoggingNodeDiffListener(type, path, diffListener)));
                         }
                     } catch (Exception e) {
                         LOGGER.error("Error while processing file events", e);
@@ -270,6 +273,38 @@ public class WatchingVirtualFileSystem implements BuildLifecycleAwareVirtualFile
         } catch (Exception ex) {
             logWatchingError(ex, FILE_WATCHING_ERROR_MESSAGE_DURING_BUILD);
             closeUnderLock();
+        }
+    }
+
+    private static class VfsChangeLoggingNodeDiffListener implements SnapshotHierarchy.NodeDiffListener {
+        private final FileWatcherRegistry.Type type;
+        private final Path path;
+        private final SnapshotHierarchy.NodeDiffListener delegate;
+        private boolean alreadyLogged;
+
+        public VfsChangeLoggingNodeDiffListener(FileWatcherRegistry.Type type, Path path, SnapshotHierarchy.NodeDiffListener delegate) {
+            this.type = type;
+            this.path = path;
+            this.delegate = delegate;
+        }
+
+        @Override
+        public void nodeRemoved(FileSystemNode node) {
+            maybeLogVfsChangeMessage();
+            delegate.nodeRemoved(node);
+        }
+
+        @Override
+        public void nodeAdded(FileSystemNode node) {
+            maybeLogVfsChangeMessage();
+            delegate.nodeAdded(node);
+        }
+
+        private void maybeLogVfsChangeMessage() {
+            if (!alreadyLogged) {
+                alreadyLogged = true;
+                LOGGER.debug("Handling VFS change {} {}", type, path);
+            }
         }
     }
 

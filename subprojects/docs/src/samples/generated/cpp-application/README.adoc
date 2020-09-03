@@ -62,7 +62,7 @@ Enter selection (default: Groovy) [1..2] 1
 Project name (default: demo):
 
 > Task :init
-https://docs.gradle.org/6.7-20200825220000+0000/userguide/building_cpp_projects.html
+https://docs.gradle.org/6.7-20200901220000+0000/userguide/building_cpp_projects.html
 
 BUILD SUCCESSFUL
 2 actionable tasks: 2 executed
@@ -86,7 +86,7 @@ The `init` task generates the new project with the following structure:
         ├── main
         │   └── cpp // <5>
         │   │   └── app.cpp
-        │   └── headers
+        │   └── headers  
         │       └── app.h
         └── test
             └── cpp // <6>
@@ -111,7 +111,7 @@ The `init` task generates the new project with the following structure:
         ├── main
         │   └── cpp // <5>
         │   │   └── app.cpp
-        │   └── headers
+        │   └── headers  
         │       └── app.h
         └── test
             └── cpp // <6>

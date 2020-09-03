@@ -64,6 +64,11 @@ abstract class AbstractDaemonFixture implements DaemonFixture {
         }
     }
 
+    @Override
+    long getLogLineCount() {
+        return Files.lines(logFile.toPath()).withCloseable { lines -> lines.count() }
+    }
+
     void becomesIdle() {
         waitForState(Idle)
     }

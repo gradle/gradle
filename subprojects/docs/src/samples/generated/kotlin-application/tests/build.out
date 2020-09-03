@@ -1,5 +1,5 @@
-> Task :app:compileKotlin
 > Task :app:compileJava NO-SOURCE
+> Task :app:compileKotlin
 > Task :app:processResources NO-SOURCE
 > Task :app:classes UP-TO-DATE
 > Task :app:inspectClassesForKotlinIC
@@ -8,8 +8,8 @@
 > Task :app:distTar
 > Task :app:distZip
 > Task :app:assemble
-> Task :app:compileTestKotlin
 > Task :app:compileTestJava NO-SOURCE
+> Task :app:compileTestKotlin
 > Task :app:processTestResources NO-SOURCE
 > Task :app:testClasses UP-TO-DATE
 > Task :app:test

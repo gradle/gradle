@@ -73,6 +73,7 @@ Let's say the `app` subproject is a Java application by applying the <<applicati
 include::sample[dir="snippets/multiproject/basic-multiproject/groovy",files="app/build.gradle[]"]
 include::sample[dir="snippets/multiproject/basic-multiproject/kotlin",files="app/build.gradle.kts[]"]
 .app/src/main/java/com/example/Hello.java
+[source, java]
 ----
 include::{snippetsPath}/multiproject/basic-multiproject/groovy/app/src/main/java/com/example/Hello.java[]
 ----
