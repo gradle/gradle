@@ -375,9 +375,21 @@ public class JavaCompile extends AbstractCompile implements HasCompileOptions {
 
     private void configureCompatibilityOptions(DefaultJavaCompileSpec spec) {
         if (javaCompiler.isPresent()) {
-            final JavaInstallationMetadata toolchain = javaCompiler.get().getMetadata();
-            spec.setTargetCompatibility(toolchain.getLanguageVersion().asString());
-            spec.setSourceCompatibility(toolchain.getLanguageVersion().asString());
+            if (compileOptions.getRelease().isPresent()) {
+                spec.setRelease(compileOptions.getRelease().get());
+            } else {
+                final JavaInstallationMetadata toolchain = javaCompiler.get().getMetadata();
+                if (super.getSourceCompatibility() != null) {
+                    spec.setSourceCompatibility(getSourceCompatibility());
+                } else {
+                    spec.setSourceCompatibility(toolchain.getLanguageVersion().asString());
+                }
+                if (super.getTargetCompatibility() != null) {
+                    spec.setTargetCompatibility(getTargetCompatibility());
+                } else {
+                    spec.setTargetCompatibility(toolchain.getLanguageVersion().asString());
+                }
+            }
         } else if (compileOptions.getRelease().isPresent()) {
             spec.setRelease(compileOptions.getRelease().get());
         } else {

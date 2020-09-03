@@ -16,16 +16,13 @@
 
 package org.gradle.api.tasks.compile
 
-import org.gradle.api.JavaVersion
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.tasks.compile.CommandLineJavaCompileSpec
 import org.gradle.internal.jvm.Jvm
 import org.gradle.jvm.toolchain.JavaCompiler
+import org.gradle.jvm.toolchain.JavaInstallationMetadata
+import org.gradle.jvm.toolchain.JavaLanguageVersion
 import org.gradle.jvm.toolchain.JavaToolChain
-import org.gradle.jvm.toolchain.internal.JavaCompilerFactory
-import org.gradle.jvm.toolchain.internal.JavaInstallationProbe
-import org.gradle.jvm.toolchain.internal.JavaToolchain
-import org.gradle.jvm.toolchain.internal.ToolchainToolFactory
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import spock.lang.Issue
 
@@ -81,17 +78,69 @@ class JavaCompileTest extends AbstractProjectBuilderSpec {
         e.message == "Must not use `exectuable` property on `ForkOptions` together with `javaCompiler` property"
     }
 
-    def "spec is configured using the toolchain compiler via command line"() {
-        def javaCompile = project.tasks.create("compileJava", JavaCompile)
+    def 'uses release property combined with toolchain compiler'() {
+        def javaCompile = project.tasks.create('compileJava', JavaCompile)
+        javaCompile.destinationDirectory.fileValue(new File('somewhere'))
         def javaHome = Jvm.current().javaHome
-        def probe = Mock(JavaInstallationProbe.ProbeResult)
-        probe.getJavaVersion() >> JavaVersion.VERSION_12
-        probe.getJavaHome() >> javaHome.toPath()
-        def toolchain = new JavaToolchain(probe, Mock(JavaCompilerFactory), Mock(ToolchainToolFactory), TestFiles.fileFactory())
-        javaCompile.setDestinationDir(new File("tmp"))
+        def metadata = Mock(JavaInstallationMetadata)
+        def compiler = Mock(JavaCompiler)
+
+        metadata.languageVersion >> JavaLanguageVersion.of(15)
+        metadata.installationPath >> TestFiles.fileFactory().dir(javaHome)
+        compiler.metadata >> metadata
+
+        given:
+        javaCompile.javaCompiler.set(compiler)
+        javaCompile.options.release.set(9)
 
         when:
-        javaCompile.javaCompiler.set(toolchain.javaCompiler)
+        def spec = javaCompile.createSpec()
+
+        then:
+        spec.release == 9
+        spec.getSourceCompatibility() == null
+        spec.getTargetCompatibility() == null
+        spec.compileOptions.forkOptions.javaHome == javaHome
+    }
+
+    def 'uses custom source and target compatibility combined with toolchain compiler'() {
+        def javaCompile = project.tasks.create('compileJava', JavaCompile)
+        javaCompile.destinationDirectory.fileValue(new File('somewhere'))
+        def javaHome = Jvm.current().javaHome
+        def metadata = Mock(JavaInstallationMetadata)
+        def compiler = Mock(JavaCompiler)
+
+        metadata.languageVersion >> JavaLanguageVersion.of(15)
+        metadata.installationPath >> TestFiles.fileFactory().dir(javaHome)
+        compiler.metadata >> metadata
+
+        given:
+        javaCompile.javaCompiler.set(compiler)
+        javaCompile.setSourceCompatibility('11')
+        javaCompile.setTargetCompatibility('14')
+
+        when:
+        def spec = javaCompile.createSpec()
+
+        then:
+        spec.getSourceCompatibility() == '11'
+        spec.getTargetCompatibility() == '14'
+        spec.compileOptions.forkOptions.javaHome == javaHome
+    }
+
+    def "spec is configured using the toolchain compiler via command line"() {
+        def javaCompile = project.tasks.create("compileJava", JavaCompile)
+        javaCompile.setDestinationDir(new File("tmp"))
+        def javaHome = Jvm.current().javaHome
+        def metadata = Mock(JavaInstallationMetadata)
+        def compiler = Mock(JavaCompiler)
+
+        metadata.languageVersion >> JavaLanguageVersion.of(12)
+        metadata.installationPath >> TestFiles.fileFactory().dir(javaHome)
+        compiler.metadata >> metadata
+
+        when:
+        javaCompile.javaCompiler.set(compiler)
         def spec = javaCompile.createSpec()
 
         then:
