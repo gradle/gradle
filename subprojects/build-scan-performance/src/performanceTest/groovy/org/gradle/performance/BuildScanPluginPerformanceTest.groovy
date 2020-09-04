@@ -119,11 +119,8 @@ class BuildScanPluginPerformanceTest extends AbstractBuildScanPluginPerformanceT
         @Override
         void beforeBuild(BuildContext context) {
             def projectTestDir = new TestFile(projectDir)
-            def settingsFile = projectTestDir.file('settings.gradle')
-            if (settingsFile.exists()) {
-                return
-            }
             def cacheDir = projectTestDir.file('local-build-cache')
+            def settingsFile = projectTestDir.file('settings.gradle')
             settingsFile << """
                     buildCache {
                         local {
