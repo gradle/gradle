@@ -101,7 +101,7 @@ public class CompositeProjectInitDescriptor implements BuildInitializer {
         descriptor.generate(settings);
     }
 
-    public List<String> generateWithExternalComments(InitSettings settings) {
+    public Map<String, List<String>> generateWithExternalComments(InitSettings settings) {
         if (!(descriptor instanceof LanguageSpecificAdaptor)) {
             throw new UnsupportedOperationException();
         }

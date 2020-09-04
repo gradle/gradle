@@ -22,11 +22,17 @@ import org.gradle.buildinit.plugins.internal.modifiers.ComponentType;
 import org.gradle.buildinit.plugins.internal.modifiers.Language;
 import org.gradle.buildinit.plugins.internal.modifiers.ModularizationOption;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
 public class LanguageSpecificAdaptor implements ProjectGenerator {
+    private static final List<String> SAMPLE_CONVENTION_PLUGINS = Arrays.asList("common", "application", "library");
+
     private final BuildScriptBuilderFactory scriptBuilderFactory;
     private final TemplateOperationFactory templateOperationFactory;
     private final LanguageSpecificProjectGenerator descriptor;
@@ -85,17 +91,58 @@ public class LanguageSpecificAdaptor implements ProjectGenerator {
         return descriptor.supportsPackage();
     }
 
-    @Override
-    public void generate(InitSettings settings) {
-        BuildScriptBuilder buildScriptBuilder = scriptBuilderFactory.script(settings.getDsl(), settings.getSubprojectName() + "/build");
-        descriptor.generate(settings, buildScriptBuilder, new TemplateFactory(settings, descriptor.getLanguage(), templateOperationFactory));
-        buildScriptBuilder.create(settings.getTarget()).generate();
+    public Map<String, List<String>> generateWithExternalComments(InitSettings settings) {
+        HashMap<String, List<String>> comments = new HashMap<>();
+        for(BuildScriptBuilder buildScriptBuilder : allBuildScriptBuilder(settings)) {
+            buildScriptBuilder.withExternalComments().create(settings.getTarget()).generate();
+            comments.put(buildScriptBuilder.getFileNameWithoutExtension(), buildScriptBuilder.extractComments());
+        }
+        return comments;
     }
 
-    public List<String> generateWithExternalComments(InitSettings settings) {
-        BuildScriptBuilder buildScriptBuilder = scriptBuilderFactory.scriptWithExternalComments(settings.getDsl(), settings.getSubprojectName() + "/build");
-        descriptor.generate(settings, buildScriptBuilder, new TemplateFactory(settings, descriptor.getLanguage(), templateOperationFactory));
-        buildScriptBuilder.create(settings.getTarget()).generate();
-        return buildScriptBuilder.extractComments();
+    @Override
+    public void generate(InitSettings settings) {
+        for(BuildScriptBuilder buildScriptBuilder : allBuildScriptBuilder(settings)) {
+            buildScriptBuilder.create(settings.getTarget()).generate();
+        }
+    }
+
+    private List<BuildScriptBuilder> allBuildScriptBuilder(InitSettings settings) {
+        List<BuildScriptBuilder> operations = new ArrayList<>();
+
+        if (settings.getModularizationOption() == ModularizationOption.WITH_LIBRARY_PROJECTS) {
+            generateBuildSrcSetup(settings);
+            for(String conventionPluginName: SAMPLE_CONVENTION_PLUGINS) {
+                operations.add(conventionPluginScriptBuilder(conventionPluginName, settings));
+            }
+        }
+
+        for (String subproject : settings.getSubprojects()) {
+            operations.add(projectBuildScriptBuilder(subproject, settings, subproject + "/build"));
+        }
+
+        TemplateFactory templateFactory = new TemplateFactory(settings, descriptor.getLanguage(), templateOperationFactory);
+        descriptor.generateSources(settings, templateFactory);
+
+        return operations;
+    }
+
+    private void generateBuildSrcSetup(InitSettings settings) {
+        BuildScriptBuilder buildSrcScriptBuilder = scriptBuilderFactory.script(settings.getDsl(), "buildSrc/build");
+        buildSrcScriptBuilder.conventionPluginSupport("Support convention plugins written in " + settings.getDsl().toString() + ". Convention plugins are build scripts in 'src/main' that automatically become available as plugins in the main build.");
+        buildSrcScriptBuilder.create(settings.getTarget()).generate();
+    }
+
+    private BuildScriptBuilder projectBuildScriptBuilder(String projectName, InitSettings settings, String buildFile) {
+        BuildScriptBuilder buildScriptBuilder = scriptBuilderFactory.script(settings.getDsl(), buildFile);
+        descriptor.generateProjectBuildScript(projectName, settings, buildScriptBuilder);
+        return buildScriptBuilder;
+    }
+
+    private BuildScriptBuilder conventionPluginScriptBuilder(String conventionPluginName, InitSettings settings) {
+        BuildScriptBuilder buildScriptBuilder = scriptBuilderFactory.script(settings.getDsl(),
+            "buildSrc/src/main/" + settings.getDsl().name().toLowerCase() + "/" + settings.getPackageName() + "." + getLanguage().getName() + "-" + conventionPluginName + "-conventions");
+        descriptor.generateConventionPluginBuildScript(conventionPluginName, settings, buildScriptBuilder);
+        return buildScriptBuilder;
     }
 }

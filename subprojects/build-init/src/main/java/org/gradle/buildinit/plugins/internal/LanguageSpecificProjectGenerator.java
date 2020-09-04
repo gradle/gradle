@@ -41,5 +41,9 @@ public interface LanguageSpecificProjectGenerator {
 
     boolean supportsPackage();
 
-    void generate(InitSettings settings, BuildScriptBuilder buildScriptBuilder, TemplateFactory templateFactory);
+    void generateProjectBuildScript(String projectName, InitSettings settings, BuildScriptBuilder buildScriptBuilder);
+
+    void generateConventionPluginBuildScript(String conventionPluginName, InitSettings settings, BuildScriptBuilder buildScriptBuilder);
+
+    void generateSources(InitSettings settings, TemplateFactory templateFactory);
 }

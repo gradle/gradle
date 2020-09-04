@@ -47,15 +47,23 @@ public class BuildScriptBuilder {
 
     private final BuildInitDsl dsl;
     private final String fileNameWithoutExtension;
-    private final boolean externalComments;
+    private boolean externalComments;
 
     private final List<String> headerLines = new ArrayList<>();
     private final TopLevelBlock block = new TopLevelBlock();
 
-    public BuildScriptBuilder(BuildInitDsl dsl, String fileNameWithoutExtension, boolean externalComments) {
+    public BuildScriptBuilder(BuildInitDsl dsl, String fileNameWithoutExtension) {
         this.dsl = dsl;
         this.fileNameWithoutExtension = fileNameWithoutExtension;
-        this.externalComments = externalComments;
+    }
+
+    public BuildScriptBuilder withExternalComments() {
+        this.externalComments = true;
+        return this;
+    }
+
+    public String getFileNameWithoutExtension() {
+        return fileNameWithoutExtension;
     }
 
     /**
