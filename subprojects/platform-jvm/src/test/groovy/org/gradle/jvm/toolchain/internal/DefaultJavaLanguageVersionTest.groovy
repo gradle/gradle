@@ -31,24 +31,32 @@ class DefaultJavaLanguageVersionTest extends Specification {
         }
     }
 
+    def 'special cases versions 1 to 4'() {
+        given:
+        def values = 1..4
+
+        expect:
+        values.forEach {
+            assert DefaultJavaLanguageVersion.of(it).toString() == "1.$it"
+        }
+    }
+
     def 'behaves as an integer wrapper'() {
         given:
-        def value = new Random().nextInt()
+        def value = getVersion()
 
         when:
         def version = DefaultJavaLanguageVersion.of(value)
 
         then:
         version.asInt() == value
-        version.asString() == String.valueOf(value)
         version.toString() == String.valueOf(value)
     }
 
     def 'compatibility relates to sort order'() {
         given:
-        def rand = new Random()
-        def firstValue = rand.nextInt()
-        def secondValue = rand.nextInt()
+        def firstValue = getVersion()
+        def secondValue = getVersion()
 
         when:
         def firstVersion = DefaultJavaLanguageVersion.of(firstValue)
@@ -57,5 +65,9 @@ class DefaultJavaLanguageVersionTest extends Specification {
         then:
         firstVersion.canCompileOrRun(secondVersion) == firstVersion >= secondVersion
         secondVersion.canCompileOrRun(firstVersion) == secondVersion >= firstVersion
+    }
+
+    private static int getVersion() {
+        Math.max(Math.abs(new Random().nextInt()), 5)
     }
 }

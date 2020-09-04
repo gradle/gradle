@@ -258,7 +258,7 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
 
         then:
         javaCompileTask.javaCompiler.isPresent()
-        javaCompileTask.sourceCompatibility == javaCompileTask.javaCompiler.get().metadata.languageVersion.asString()
+        javaCompileTask.sourceCompatibility == javaCompileTask.javaCompiler.get().metadata.languageVersion.toString()
     }
 
     private void setupProjectWithToolchain(Jvm someJdk) {

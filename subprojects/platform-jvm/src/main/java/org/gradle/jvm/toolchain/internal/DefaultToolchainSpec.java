@@ -43,7 +43,7 @@ public class DefaultToolchainSpec implements JavaToolchainSpec {
 
     @Override
     public String getDisplayName() {
-        return "{languageVersion=" + languageVersion.map(JavaLanguageVersion::asString).getOrElse("unspecified") + "}";
+        return "{languageVersion=" + languageVersion.map(JavaLanguageVersion::toString).getOrElse("unspecified") + "}";
     }
 
 }
