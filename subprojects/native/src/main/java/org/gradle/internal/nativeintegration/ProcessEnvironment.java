@@ -16,6 +16,8 @@
 package org.gradle.internal.nativeintegration;
 
 import org.gradle.internal.scan.UsedByScanPlugin;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.io.File;
 import java.util.Map;
@@ -26,6 +28,7 @@ import java.util.Map;
  * <p>Implementations are not thread-safe.</p>
  */
 @UsedByScanPlugin("test-distribution")
+@ServiceScope(Scope.Global.class)
 public interface ProcessEnvironment {
     /**
      * Sets the environment of this process, if possible.
