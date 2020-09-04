@@ -18,8 +18,10 @@ package org.gradle.buildinit.tasks;
 
 import org.gradle.api.DefaultTask;
 import org.gradle.api.GradleException;
+import org.gradle.api.Incubating;
 import org.gradle.api.file.Directory;
 import org.gradle.api.internal.tasks.userinput.UserInputHandler;
+import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
@@ -34,6 +36,7 @@ import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
 import org.gradle.buildinit.plugins.internal.modifiers.ComponentType;
 import org.gradle.buildinit.plugins.internal.modifiers.Language;
+import org.gradle.buildinit.plugins.internal.modifiers.ModularizationOption;
 import org.gradle.internal.logging.text.TreeFormatter;
 
 import javax.annotation.Nullable;
@@ -48,6 +51,7 @@ import static org.gradle.buildinit.plugins.internal.PackageNameBuilder.toPackage
 public class InitBuild extends DefaultTask {
     private final Directory projectDir = getProject().getLayout().getProjectDirectory();
     private String type;
+    private final Property<String> modularize = getProject().getObjects().property(String.class);
     private String dsl;
     private String testFramework;
     private String projectName;
@@ -64,6 +68,32 @@ public class InitBuild extends DefaultTask {
     @Input
     public String getType() {
         return isNullOrEmpty(type) ? detectType() : type;
+    }
+
+    /**
+     * Should the build be modularized already (i.e. have multiple subprojects)
+     *
+     * This property can be set via command-line option '--modularized'.
+     *
+     * @since 6.7
+     */
+    @Incubating
+    @Input
+    @Optional
+    @Option(option = "modularize", description = "Should the build include library projects?")
+    public Property<String> getModularize() {
+        return modularize;
+    }
+
+    /**
+     * Available options to split a new projects into multiple subprojects.
+     *
+     * @since 6.7
+     */
+    @Incubating
+    @OptionValues("modularize")
+    public List<String> getAvailableModularizationOptions() {
+        return ModularizationOption.listSupported();
     }
 
     /**
@@ -153,6 +183,9 @@ public class InitBuild extends DefaultTask {
         } else {
             initDescriptor = projectLayoutRegistry.get(type);
         }
+
+        ModularizationOption modularizationOption = modularize.isPresent() ? ModularizationOption.byId(modularize.get()) : inputHandler.selectOption("Should the build include library projects?",
+            initDescriptor.getModularizationOptions(), ModularizationOption.SINGLE_PROJECT);
 
         BuildInitDsl dsl;
         if (isNullOrEmpty(this.dsl)) {

@@ -276,6 +276,11 @@ include("child")
                     groovy
                     kotlin
 
+     --modularize     Should the build include library projects?
+                      Available values are:
+                           single-project
+                           with-library-projects
+
      --package     Set the package for source files.
 
      --project-name     Set the project name.
