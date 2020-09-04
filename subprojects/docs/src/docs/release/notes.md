@@ -105,7 +105,7 @@ To learn more about name abbreviation, check out the [user guide](userguide/comm
 
 ## Support for version ranges in repository content filtering
 
-With [repository content filtering](userguide/declaring_repositories.html#sec:repository-content-filtering), builds can control which repositories are queried for which dependency.
+Builds can control which repositories are queried for which dependency for better performance and security using [repository content filtering](userguide/declaring_repositories.html#sec:repository-content-filtering).
 This feature provides performance and security benefits.
 
 With this release, when including or excluding a specific dependency version, the build author can use a version range:
