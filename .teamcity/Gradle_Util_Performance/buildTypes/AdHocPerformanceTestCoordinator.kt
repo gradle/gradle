@@ -28,10 +28,10 @@ import common.performanceTestCommandLine
 import jetbrains.buildServer.configs.kotlin.v2019_2.BuildType
 
 open class AdHocPerformanceTestCoordinator(os: Os) : BuildType({
-    val id = "Gradle_Util_Performance_PerformanceTestCoordinator${os.name.toLowerCase().capitalize()}"
+    val id = "Gradle_Util_Performance_PerformanceTestCoordinator$os"
     this.uuid = id
     id(id)
-    name = "AdHoc Performance Test Coordinator - ${os.name.toLowerCase().capitalize()}"
+    name = "AdHoc Performance Test Coordinator - $os"
 
     applyPerformanceTestSettings(os = os, timeout = 420)
 
@@ -48,7 +48,7 @@ open class AdHocPerformanceTestCoordinator(os: Os) : BuildType({
             gradleParams = (
                 buildToolGradleParameters(isContinue = false) +
                     performanceTestCommandLine(task = "clean :performance:distributedPerformanceTest", baselines = "%performance.baselines%", os = os) +
-                    distributedPerformanceTestParameters("Gradle_Check_IndividualPerformanceScenarioWorkers${os.name.toLowerCase().capitalize()}") +
+                    distributedPerformanceTestParameters("Gradle_Check_IndividualPerformanceScenarioWorkers$os") +
                     builtInRemoteBuildCacheNode.gradleParameters(os)
                 ).joinToString(separator = " ")
         }

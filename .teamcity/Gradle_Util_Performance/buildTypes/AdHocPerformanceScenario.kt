@@ -15,9 +15,9 @@ import jetbrains.buildServer.configs.kotlin.v2019_2.BuildType
 import jetbrains.buildServer.configs.kotlin.v2019_2.ParameterDisplay
 
 abstract class AdHocPerformanceScenario(os: Os) : BuildType({
-    val id = "Gradle_Util_Performance_AdHocPerformanceScenario${os.name.toLowerCase().capitalize()}"
+    val id = "Gradle_Util_Performance_AdHocPerformanceScenario$os"
     this.uuid = id
-    name = "AdHoc Performance Scenario - ${os.name.toLowerCase().capitalize()}"
+    name = "AdHoc Performance Scenario - $os"
     id(id)
 
     applyPerformanceTestSettings(os = os, timeout = 420)
@@ -32,13 +32,16 @@ abstract class AdHocPerformanceScenario(os: Os) : BuildType({
         text("warmups", "3", display = ParameterDisplay.PROMPT, allowEmpty = false)
         text("scenario", "", display = ParameterDisplay.PROMPT, allowEmpty = false)
 
-        if (os != Os.WINDOWS) {
-            param("flamegraphs", "--flamegraphs true")
-            param("env.FG_HOME_DIR", "/opt/FlameGraph")
-            param("env.PATH", "%env.PATH%:/opt/swift/4.2.3/usr/bin")
-            param("env.HP_HOME_DIR", "/opt/honest-profiler")
-        } else {
-            param("flamegraphs", "--flamegraphs false")
+        when (os) {
+            Os.WINDOWS -> {
+                param("flamegraphs", "--flamegraphs false")
+            }
+            else -> {
+                param("flamegraphs", "--flamegraphs true")
+                param("env.FG_HOME_DIR", "/opt/FlameGraph")
+                param("env.PATH", "%env.PATH%:/opt/swift/4.2.3/usr/bin")
+                param("env.HP_HOME_DIR", "/opt/honest-profiler")
+            }
         }
 
         param("additional.gradle.parameters", "")
