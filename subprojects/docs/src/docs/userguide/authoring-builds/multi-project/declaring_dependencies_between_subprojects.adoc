@@ -113,6 +113,11 @@ You can then map the task provider to its output file and Gradle will automatica
 ====
 include::sample[dir="snippets/multiproject/dependencies-outgoingArtifact/groovy/producer",files="build.gradle[]"]
 include::sample[dir="snippets/multiproject/dependencies-outgoingArtifact/kotlin/producer",files="build.gradle.kts[]"]
+.buildSrc/src/main/java/BuildInfo.java
+[source, java]
+----
+include::{snippetsPath}/multiproject/dependencies-outgoingArtifact/groovy/buildSrc/src/main/java/BuildInfo.java[tags=task]
+----
 ====
 
 The consuming project is supposed to be able to read the properties file at runtime.
