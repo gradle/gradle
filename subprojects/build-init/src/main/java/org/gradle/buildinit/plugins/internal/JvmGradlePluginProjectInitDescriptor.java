@@ -23,7 +23,7 @@ import org.gradle.util.GUtil;
 
 import java.util.Optional;
 
-public abstract class JvmGradlePluginProjectInitDescriptor extends JvmProjectInitDescriptor {
+public abstract class JvmGradlePluginProjectInitDescriptor extends LanguageLibraryProjectInitDescriptor {
     private final DocumentationRegistry documentationRegistry;
 
     public JvmGradlePluginProjectInitDescriptor(DocumentationRegistry documentationRegistry) {
@@ -36,8 +36,13 @@ public abstract class JvmGradlePluginProjectInitDescriptor extends JvmProjectIni
     }
 
     @Override
+    public boolean supportsPackage() {
+        return true;
+    }
+
+    @Override
     public void generateProjectBuildScript(String projectName, InitSettings settings, BuildScriptBuilder buildScriptBuilder) {
-        super.generateProjectBuildScript(projectName, settings, buildScriptBuilder);
+        buildScriptBuilder.repositories().jcenter("Use JCenter for resolving dependencies.");
 
         String pluginId = settings.getPackageName() + ".greeting";
         String pluginClassName = StringUtils.capitalize(GUtil.toCamelCase(settings.getProjectName())) + "Plugin";
@@ -64,6 +69,10 @@ public abstract class JvmGradlePluginProjectInitDescriptor extends JvmProjectIni
             b.propertyAssignment(null, "classpath", buildScriptBuilder.propertyExpression(functionalTestSourceSet, "runtimeClasspath"), true);
         });
         buildScriptBuilder.taskMethodInvocation("Run the functional tests as part of `check`", "check", "Task", "dependsOn", functionalTest);
+    }
+
+    @Override
+    public void generateConventionPluginBuildScript(String conventionPluginName, InitSettings settings, BuildScriptBuilder buildScriptBuilder) {
     }
 
     @Override
