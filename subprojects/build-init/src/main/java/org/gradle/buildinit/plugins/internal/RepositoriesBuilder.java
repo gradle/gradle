@@ -24,4 +24,6 @@ public interface RepositoriesBuilder {
     void maven(@Nullable String comment, String url);
 
     void jcenter(@Nullable String comment);
+
+    void gradlePluginPortal(@Nullable String comment);
 }
