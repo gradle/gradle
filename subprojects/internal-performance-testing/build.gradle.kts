@@ -70,7 +70,7 @@ dependencies {
     implementation(libs.jclToSlf4j)
     implementation(libs.flightrecorder)
     implementation(libs.mina)
-
+    implementation(libs.joptSimple)
     implementation(testFixtures(project(":core")))
     implementation(testFixtures(project(":tooling-api")))
 

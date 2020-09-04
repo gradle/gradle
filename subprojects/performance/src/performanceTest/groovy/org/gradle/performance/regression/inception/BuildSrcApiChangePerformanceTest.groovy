@@ -15,10 +15,10 @@
  */
 package org.gradle.performance.regression.inception
 
-import org.gradle.performance.AbstractCrossVersionGradleInternalPerformanceTest
+import org.gradle.performance.AbstractCrossVersionGradleProfilerPerformanceTest
 import org.gradle.performance.categories.SlowPerformanceRegressionTest
-import org.gradle.performance.fixture.BuildExperimentInvocationInfo
-import org.gradle.performance.fixture.BuildExperimentListenerAdapter
+import org.gradle.profiler.BuildContext
+import org.gradle.profiler.BuildMutator
 import org.gradle.util.GradleVersion
 import org.junit.experimental.categories.Category
 import spock.lang.Issue
@@ -44,7 +44,7 @@ import static org.gradle.test.fixtures.server.http.MavenHttpPluginRepository.PLU
  */
 @Issue('https://github.com/gradle/gradle-private/issues/1313')
 @Category(SlowPerformanceRegressionTest)
-class GradleInceptionPerformanceTest extends AbstractCrossVersionGradleInternalPerformanceTest {
+class BuildSrcApiChangePerformanceTest extends AbstractCrossVersionGradleProfilerPerformanceTest {
 
     static List<String> extraGradleBuildArguments() {
         ["-D${PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY}=${gradlePluginRepositoryMirrorUrl()}",
@@ -69,19 +69,21 @@ class GradleInceptionPerformanceTest extends AbstractCrossVersionGradleInternalP
 
         and:
         def changingClassFilePath = "buildSrc/${buildSrcProjectDir}src/main/groovy/ChangingClass.groovy"
-        runner.addBuildExperimentListener(new BuildExperimentListenerAdapter() {
-            @Override
-            void beforeInvocation(BuildExperimentInvocationInfo invocationInfo) {
-                new File(invocationInfo.projectDir, changingClassFilePath).tap {
-                    parentFile.mkdirs()
-                    text = """
+        runner.addBuildMutator { invocationSettings ->
+            new BuildMutator() {
+                @Override
+                void beforeBuild(BuildContext context) {
+                    new File(invocationSettings.projectDir, changingClassFilePath).tap {
+                        parentFile.mkdirs()
+                        text = """
                         class ChangingClass {
-                            void changingMethod${invocationInfo.phase}${invocationInfo.iterationNumber}() {}
+                            void changingMethod${context.phase}${context.iteration}() {}
                         }
                     """.stripIndent()
+                    }
                 }
             }
-        })
+        }
 
         when:
         def result = runner.run()
@@ -90,9 +92,9 @@ class GradleInceptionPerformanceTest extends AbstractCrossVersionGradleInternalP
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject                         | buildSrcProjectDir   | runs
-        MEDIUM_MONOLITHIC_JAVA_PROJECT      | ""                   | 40
-        LARGE_JAVA_MULTI_PROJECT            | ""                   | 20
-        LARGE_JAVA_MULTI_PROJECT_KOTLIN_DSL | ""                   | 10
+        testProject                         | buildSrcProjectDir | runs
+        MEDIUM_MONOLITHIC_JAVA_PROJECT      | ""                 | 40
+        LARGE_JAVA_MULTI_PROJECT            | ""                 | 20
+        LARGE_JAVA_MULTI_PROJECT_KOTLIN_DSL | ""                 | 10
     }
 }

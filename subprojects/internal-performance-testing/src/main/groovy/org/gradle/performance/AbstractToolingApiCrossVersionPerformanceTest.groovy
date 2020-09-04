@@ -148,7 +148,7 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
     private static class ToolingApiBuildExperimentSpec extends BuildExperimentSpec {
 
         ToolingApiBuildExperimentSpec(String version, TestFile workingDir, ToolingApiExperiment experiment) {
-            super(version, experiment.projectName, workingDir, experiment.warmUpCount ?: 10, experiment.invocationCount ?: 40, null, null)
+            super(version, experiment.projectName, workingDir, experiment.warmUpCount ?: 10, experiment.invocationCount ?: 40, null, [])
         }
 
         @Override

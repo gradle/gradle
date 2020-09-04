@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,16 +16,15 @@
 
 package org.gradle.performance.mutator
 
-class ApplyAbiChangeToJavaSourceFileMutator extends AbstractJavaSourceFileMutator {
+import org.gradle.profiler.BuildContext
 
-    ApplyAbiChangeToJavaSourceFileMutator(String sourceFilePath) {
-        super(sourceFilePath)
+class ApplyNonAbiChangeToGroovySourceFileMutator extends AbstractGroovySourceFileMutator {
+    ApplyNonAbiChangeToGroovySourceFileMutator(File sourceFile) {
+        super(sourceFile)
     }
 
     @Override
-    protected void applyChangeAt(StringBuilder text, int lastMethodEndPos) {
-        String method = "_m" + uniqueText + "()"
-        text.insert(lastMethodEndPos + 1, "\npublic void " + method + " { }")
-        text.insert(lastMethodEndPos, method + ";")
+    protected void applyChangeAt(BuildContext context, StringBuilder text, int lastMethodEndPos) {
+        text.insert(lastMethodEndPos, "System.out.println(\"${context.getUniqueBuildId()}\");")
     }
 }
