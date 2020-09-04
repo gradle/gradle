@@ -298,8 +298,11 @@ public class GradleScopeServices extends DefaultServiceRegistry {
         return instantiator.newInstance(DefaultBuildServicesRegistry.class, factory, instantiatorFactory, services, listenerManager, isolatableFactory, sharedResourceLeaseRegistry);
     }
 
-    protected BuildOutputCleanupRegistry createBuildOutputCleanupRegistry(FileCollectionFactory fileCollectionFactory) {
-        return new DefaultBuildOutputCleanupRegistry(fileCollectionFactory);
+    protected BuildOutputCleanupRegistry createBuildOutputCleanupRegistry(GradleInternal gradle, FileCollectionFactory fileCollectionFactory) {
+        DefaultBuildOutputCleanupRegistry cleanupRegistry = new DefaultBuildOutputCleanupRegistry(fileCollectionFactory);
+        // Content in the Gradle user home is safe to delete
+        cleanupRegistry.registerOutputs(gradle.getGradleUserHomeDir());
+        return cleanupRegistry;
     }
 
     protected ConfigurationTargetIdentifier createConfigurationTargetIdentifier(GradleInternal gradle) {
