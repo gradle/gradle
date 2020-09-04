@@ -247,6 +247,20 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         configuredJavadocTool.isPresent()
     }
 
+    void 'wires toolchain to java compile source compatibility if toolchain is configured'() {
+        given:
+        def someJdk = Jvm.current()
+        setupProjectWithToolchain(someJdk)
+        project.java.sourceCompatibility = JavaVersion.VERSION_1_1
+
+        when:
+        def javaCompileTask = project.tasks.named("compileJava", JavaCompile).get()
+
+        then:
+        javaCompileTask.javaCompiler.isPresent()
+        javaCompileTask.sourceCompatibility == javaCompileTask.javaCompiler.get().metadata.languageVersion.asString()
+    }
+
     private void setupProjectWithToolchain(Jvm someJdk) {
         project.pluginManager.apply(JavaPlugin)
         project.java.toolchain.languageVersion = JavaLanguageVersion.of(someJdk.javaVersion.majorVersion)

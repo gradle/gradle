@@ -318,6 +318,8 @@ public class JavaBasePlugin implements Plugin<Project> {
                 JavaCompile javaCompile = (JavaCompile) compile;
                 if (javaCompile.getOptions().getRelease().isPresent()) {
                     return JavaVersion.toVersion(javaCompile.getOptions().getRelease().get()).toString();
+                } else if (javaCompile.getJavaCompiler().isPresent()) {
+                    return javaCompile.getJavaCompiler().get().getMetadata().getLanguageVersion().asString();
                 }
             }
             return javaVersionSupplier.get().toString();
