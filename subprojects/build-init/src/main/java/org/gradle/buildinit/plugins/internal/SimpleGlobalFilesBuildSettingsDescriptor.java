@@ -35,8 +35,8 @@ public class SimpleGlobalFilesBuildSettingsDescriptor implements BuildContentGen
                     + "Detailed information about configuring a multi-project build in Gradle can be found\n"
                     + "in the user manual at " + documentationRegistry.getDocumentationFor("creating_multi_project_builds"));
         builder.propertyAssignment(null, "rootProject.name", settings.getProjectName());
-        if (settings.getSubprojectName() != null) {
-            builder.methodInvocation(null, "include", settings.getSubprojectName());
+        if (!settings.getSubprojects().isEmpty()) {
+            builder.methodInvocation(null, "include", settings.getSubprojects().toArray());
         }
         builder.create(settings.getTarget()).generate();
     }
