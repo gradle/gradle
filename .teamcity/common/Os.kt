@@ -53,7 +53,7 @@ enum class Os(
 
     fun escapeKeyValuePair(key: String, value: String) = if (this == WINDOWS) """$key="$value"""" else """"$key=$value""""
 
-    override fun toString() = name.toLowerCase().capitalize()
+    fun asName() = name.toLowerCase().capitalize()
 
     fun buildJavaHome() = javaHome(JvmVersion.java11, JvmVendor.openjdk)
 

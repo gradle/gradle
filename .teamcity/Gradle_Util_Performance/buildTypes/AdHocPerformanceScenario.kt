@@ -15,9 +15,9 @@ import jetbrains.buildServer.configs.kotlin.v2019_2.BuildType
 import jetbrains.buildServer.configs.kotlin.v2019_2.ParameterDisplay
 
 abstract class AdHocPerformanceScenario(os: Os) : BuildType({
-    val id = "Gradle_Util_Performance_AdHocPerformanceScenario$os"
+    val id = "Gradle_Util_Performance_AdHocPerformanceScenario${os.asName()}"
     this.uuid = id
-    name = "AdHoc Performance Scenario - $os"
+    name = "AdHoc Performance Scenario - ${os.asName()}"
     id(id)
 
     applyPerformanceTestSettings(os = os, timeout = 420)

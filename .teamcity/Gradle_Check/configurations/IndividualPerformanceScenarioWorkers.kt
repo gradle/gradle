@@ -14,9 +14,9 @@ import jetbrains.buildServer.configs.kotlin.v2019_2.AbsoluteId
 import model.CIBuildModel
 
 class IndividualPerformanceScenarioWorkers(model: CIBuildModel, os: Os = Os.LINUX) : BaseGradleBuildType(model, init = {
-    uuid = model.projectPrefix + "IndividualPerformanceScenarioWorkers$os"
+    uuid = model.projectPrefix + "IndividualPerformanceScenarioWorkers${os.asName()}"
     id = AbsoluteId(uuid)
-    name = "Individual Performance Scenario Workers - $os"
+    name = "Individual Performance Scenario Workers - ${os.asName()}"
 
     applyPerformanceTestSettings(os = os, timeout = 420)
     artifactRules = individualPerformanceTestArtifactRules
