@@ -24,6 +24,11 @@ import spock.lang.Unroll
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
 class KotlinPluginAndroidGroovyDSLSmokeTest extends AbstractSmokeTest {
+    // TODO:configuration-cache remove once fixed upstream
+    @Override
+    protected int maxConfigurationCacheProblems() {
+        return 200
+    }
 
     @Unroll
     @UnsupportedWithConfigurationCache(iterationMatchers = [KotlinPluginSmokeTest.NO_CONFIGURATION_CACHE_ITERATION_MATCHER, AGP_3_ITERATION_MATCHER, AGP_4_0_ITERATION_MATCHER])
