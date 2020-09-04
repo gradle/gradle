@@ -16,9 +16,6 @@
 
 package org.gradle.configurationcache.serialization.codecs
 
-import org.gradle.api.file.ArchiveOperations
-import org.gradle.api.file.FileSystemOperations
-import org.gradle.api.file.ProjectLayout
 import org.gradle.api.internal.artifacts.transform.ArtifactTransformActionScheme
 import org.gradle.api.internal.artifacts.transform.ArtifactTransformListener
 import org.gradle.api.internal.artifacts.transform.ArtifactTransformParameterScheme
@@ -30,15 +27,11 @@ import org.gradle.api.internal.file.FileLookup
 import org.gradle.api.internal.file.FileOperations
 import org.gradle.api.internal.file.FilePropertyFactory
 import org.gradle.api.internal.file.FileResolver
-import org.gradle.api.internal.file.TemporaryFileProvider
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
 import org.gradle.api.internal.provider.PropertyFactory
 import org.gradle.api.internal.provider.ValueSourceProviderFactory
-import org.gradle.api.model.ObjectFactory
-import org.gradle.api.provider.ProviderFactory
 import org.gradle.api.services.internal.BuildServiceRegistryInternal
 import org.gradle.api.tasks.util.PatternSet
-import org.gradle.api.tasks.util.internal.PatternSpecFactory
 import org.gradle.configurationcache.problems.DocumentationSection.NotYetImplementedJavaSerialization
 import org.gradle.configurationcache.serialization.codecs.jos.JavaObjectSerializationCodec
 import org.gradle.configurationcache.serialization.codecs.transform.ChainedTransformationNodeCodec
@@ -51,19 +44,15 @@ import org.gradle.configurationcache.serialization.codecs.transform.Transformati
 import org.gradle.configurationcache.serialization.codecs.transform.TransformationNodeReferenceCodec
 import org.gradle.configurationcache.serialization.codecs.transform.TransformationStepCodec
 import org.gradle.configurationcache.serialization.codecs.transform.TransformedExternalArtifactSetCodec
-import org.gradle.configurationcache.serialization.ownerServiceCodec
 import org.gradle.configurationcache.serialization.reentrant
 import org.gradle.configurationcache.serialization.unsupported
 import org.gradle.execution.plan.TaskNodeFactory
-import org.gradle.initialization.BuildRequestMetaData
 import org.gradle.internal.Factory
 import org.gradle.internal.event.ListenerManager
-import org.gradle.internal.execution.OutputChangeListener
 import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import org.gradle.internal.isolation.IsolatableFactory
 import org.gradle.internal.operations.BuildOperationExecutor
-import org.gradle.internal.operations.BuildOperationListenerManager
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.serialize.BaseSerializerFactory.BIG_DECIMAL_SERIALIZER
 import org.gradle.internal.serialize.BaseSerializerFactory.BIG_INTEGER_SERIALIZER
@@ -81,11 +70,6 @@ import org.gradle.internal.serialize.BaseSerializerFactory.SHORT_SERIALIZER
 import org.gradle.internal.serialize.BaseSerializerFactory.STRING_SERIALIZER
 import org.gradle.internal.snapshot.ValueSnapshotter
 import org.gradle.internal.state.ManagedFactoryRegistry
-import org.gradle.jvm.toolchain.internal.JavaCompilerFactory
-import org.gradle.process.ExecOperations
-import org.gradle.process.internal.ExecActionFactory
-import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
-import org.gradle.workers.WorkerExecutor
 import java.io.Externalizable
 
 
@@ -172,27 +156,6 @@ class Codecs(
         bind(BooleanValueSnapshotCodec)
         bind(NullValueSnapshotCodec)
 
-        bind(ownerServiceCodec<ProviderFactory>())
-        bind(ownerServiceCodec<ObjectFactory>())
-        bind(ownerServiceCodec<WorkerExecutor>())
-        bind(ownerServiceCodec<ProjectLayout>())
-        bind(ownerServiceCodec<PatternSpecFactory>())
-        bind(ownerServiceCodec<FileResolver>())
-        bind(ownerServiceCodec<Instantiator>())
-        bind(ownerServiceCodec<FileCollectionFactory>())
-        bind(ownerServiceCodec<FileSystemOperations>())
-        bind(ownerServiceCodec<FileOperations>())
-        bind(ownerServiceCodec<ArchiveOperations>())
-        bind(ownerServiceCodec<BuildOperationExecutor>())
-        bind(ownerServiceCodec<ToolingModelBuilderRegistry>())
-        bind(ownerServiceCodec<ExecOperations>())
-        bind(ownerServiceCodec<ExecActionFactory>())
-        bind(ownerServiceCodec<BuildOperationListenerManager>())
-        bind(ownerServiceCodec<BuildRequestMetaData>())
-        bind(ownerServiceCodec<ListenerManager>())
-        bind(ownerServiceCodec<TemporaryFileProvider>())
-        bind(ownerServiceCodec<OutputChangeListener>())
-        bind(ownerServiceCodec<JavaCompilerFactory>())
         bind(ServicesCodec())
 
         bind(ProxyCodec)

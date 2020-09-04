@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.service.scopes;
+package org.gradle.internal.buildtree;
 
 import org.gradle.api.internal.BuildType;
 import org.gradle.api.internal.project.DefaultProjectStateRegistry;
@@ -26,23 +26,32 @@ import org.gradle.initialization.exception.MultipleBuildFailuresExceptionAnalyse
 import org.gradle.initialization.exception.StackTraceSanitizingExceptionAnalyser;
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager;
 import org.gradle.internal.event.ListenerManager;
-import org.gradle.internal.service.DefaultServiceRegistry;
-import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.service.ServiceRegistration;
+import org.gradle.internal.service.scopes.PluginServiceRegistry;
+import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.work.WorkerLeaseService;
+
+import java.util.List;
 
 /**
  * Contains the singleton services for a single build tree which consists of one or more builds.
  */
-public class BuildTreeScopeServices extends DefaultServiceRegistry {
-    public BuildTreeScopeServices(final ServiceRegistry parent, BuildType buildType) {
-        super(parent);
-        register(registration -> {
-            for (PluginServiceRegistry pluginServiceRegistry : parent.getAll(PluginServiceRegistry.class)) {
-                pluginServiceRegistry.registerBuildTreeServices(registration);
-            }
-            registration.add(BuildType.class, buildType);
-            registration.add(GradleEnterprisePluginManager.class);
-        });
+public class BuildTreeScopeServices {
+    private final BuildTreeState buildTree;
+    private final BuildType buildType;
+
+    public BuildTreeScopeServices(BuildTreeState buildTree, BuildType buildType) {
+        this.buildTree = buildTree;
+        this.buildType = buildType;
+    }
+
+    protected void configure(ServiceRegistration registration, List<PluginServiceRegistry> pluginServiceRegistries) {
+        for (PluginServiceRegistry pluginServiceRegistry : pluginServiceRegistries) {
+            pluginServiceRegistry.registerBuildTreeServices(registration);
+        }
+        registration.add(BuildTreeState.class, buildTree);
+        registration.add(BuildType.class, buildType);
+        registration.add(GradleEnterprisePluginManager.class);
     }
 
     protected ListenerManager createListenerManager(ListenerManager parent) {

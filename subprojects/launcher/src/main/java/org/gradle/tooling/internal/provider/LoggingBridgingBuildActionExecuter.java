@@ -24,7 +24,6 @@ import org.gradle.internal.logging.events.OutputEvent;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.events.ProgressCompleteEvent;
 import org.gradle.internal.logging.events.ProgressStartEvent;
-import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.launcher.exec.BuildActionExecuter;
 import org.gradle.launcher.exec.BuildActionResult;
 import org.gradle.tooling.internal.protocol.ProgressListenerVersion1;
@@ -35,17 +34,18 @@ import java.io.OutputStream;
 /**
  * A {@link org.gradle.launcher.exec.BuildActionExecuter} which routes Gradle logging to those listeners specified in the {@link ProviderOperationParameters} provided with a tooling api build request.
  */
-public class LoggingBridgingBuildActionExecuter implements BuildActionExecuter<ProviderOperationParameters> {
+public class LoggingBridgingBuildActionExecuter implements BuildActionExecuter<ConnectionOperationParameters, BuildRequestContext> {
     private final LoggingManagerInternal loggingManager;
-    private final BuildActionExecuter<ProviderOperationParameters> executer;
+    private final BuildActionExecuter<ConnectionOperationParameters, BuildRequestContext> executer;
 
-    public LoggingBridgingBuildActionExecuter(BuildActionExecuter<ProviderOperationParameters> executer, LoggingManagerInternal loggingManager) {
+    public LoggingBridgingBuildActionExecuter(BuildActionExecuter<ConnectionOperationParameters, BuildRequestContext> executer, LoggingManagerInternal loggingManager) {
         this.executer = executer;
         this.loggingManager = loggingManager;
     }
 
     @Override
-    public BuildActionResult execute(BuildAction action, BuildRequestContext buildRequestContext, ProviderOperationParameters actionParameters, ServiceRegistry contextServices) {
+    public BuildActionResult execute(BuildAction action, ConnectionOperationParameters parameters, BuildRequestContext buildRequestContext) {
+        ProviderOperationParameters actionParameters = parameters.getOperationParameters();
         if (Boolean.TRUE.equals(actionParameters.isColorOutput()) && actionParameters.getStandardOutput() != null) {
             loggingManager.attachConsole(actionParameters.getStandardOutput(), notNull(actionParameters.getStandardError()), ConsoleOutput.Rich);
         } else if (actionParameters.getStandardOutput() != null || actionParameters.getStandardError() != null) {
@@ -57,7 +57,7 @@ public class LoggingBridgingBuildActionExecuter implements BuildActionExecuter<P
         loggingManager.setLevelInternal(actionParameters.getBuildLogLevel());
         loggingManager.start();
         try {
-            return executer.execute(action, buildRequestContext, actionParameters, contextServices);
+            return executer.execute(action, parameters, buildRequestContext);
         } finally {
             loggingManager.stop();
         }

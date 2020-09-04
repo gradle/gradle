@@ -22,4 +22,5 @@ public interface Scopes {
     interface BuildTree extends BuildSession {}
     interface Build extends BuildTree {}
     interface Gradle extends Build {}
+    interface Project extends Gradle {}
 }

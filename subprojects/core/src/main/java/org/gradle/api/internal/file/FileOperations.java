@@ -26,11 +26,14 @@ import org.gradle.api.file.FileTree;
 import org.gradle.api.resources.ResourceHandler;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.io.File;
 import java.net.URI;
 import java.util.Map;
 
+@ServiceScope(Scopes.Build.class)
 public interface FileOperations {
     File file(Object path);
 

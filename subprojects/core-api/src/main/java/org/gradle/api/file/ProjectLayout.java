@@ -19,6 +19,8 @@ package org.gradle.api.file;
 import org.gradle.api.Project;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
+import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.io.File;
 
@@ -29,6 +31,7 @@ import java.io.File;
  *
  * @since 4.1
  */
+@ServiceScope(Scopes.Project.class)
 public interface ProjectLayout {
     /**
      * Returns the project directory.

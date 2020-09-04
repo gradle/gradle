@@ -27,20 +27,16 @@ import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.logging.progress.ProgressLogger;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
-import org.gradle.internal.service.scopes.Scopes;
-import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.time.Clock;
 
 import javax.annotation.Nullable;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@ServiceScope(Scopes.BuildSession.class)
 public class DefaultBuildOperationExecutor implements BuildOperationExecutor, Stoppable {
     private static final String LINE_SEPARATOR = SystemProperties.getInstance().getLineSeparator();
 
     private final BuildOperationRunner runner;
-    private final Clock clock;
     private final BuildOperationQueueFactory buildOperationQueueFactory;
     private final ManagedExecutor fixedSizePool;
     private final CurrentBuildOperationRef currentBuildOperationRef = CurrentBuildOperationRef.instance();
@@ -66,7 +62,6 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
             clock,
             currentBuildOperationRef
         );
-        this.clock = clock;
         this.buildOperationQueueFactory = buildOperationQueueFactory;
         this.fixedSizePool = executorFactory.create("Build operations", parallelismConfiguration.getMaxWorkerCount());
     }
@@ -115,10 +110,6 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
         return (BuildOperationState) currentBuildOperationRef.get();
     }
 
-    private void setCurrentBuildOperation(@Nullable BuildOperationState parentState) {
-        currentBuildOperationRef.set(parentState);
-    }
-
     private <O extends BuildOperation> void executeInParallel(BuildOperationQueue.QueueWorker<O> worker, Action<BuildOperationQueue<O>> queueAction) {
         BuildOperationQueue<O> queue = buildOperationQueueFactory.create(fixedSizePool, worker);
 
@@ -141,18 +132,6 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
         } else if (failures.size() > 1) {
             throw new DefaultMultiCauseException(formatMultipleFailureMessage(failures), failures);
         }
-    }
-
-    /**
-     * Artificially create a running root operation.
-     * Main use case is ProjectBuilder, useful for some of our test fixtures too.
-     */
-    protected void createRunningRootOperation(String displayName) {
-        assert getCurrentBuildOperation() == null;
-        OperationIdentifier rootBuildOpId = new OperationIdentifier(DefaultBuildOperationIdFactory.ROOT_BUILD_OPERATION_ID_VALUE);
-        BuildOperationState operation = new BuildOperationState(BuildOperationDescriptor.displayName(displayName).build(rootBuildOpId, null), clock.getCurrentTime());
-        operation.setRunning(true);
-        setCurrentBuildOperation(operation);
     }
 
     private static String formatMultipleFailureMessage(List<GradleException> failures) {

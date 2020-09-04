@@ -20,7 +20,6 @@ import org.gradle.internal.SystemProperties;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.invocation.BuildAction;
-import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
 import org.gradle.launcher.exec.BuildActionExecuter;
 import org.gradle.launcher.exec.BuildActionParameters;
@@ -29,23 +28,22 @@ import org.gradle.launcher.exec.DefaultBuildActionParameters;
 import org.gradle.tooling.internal.protocol.ModelIdentifier;
 import org.gradle.tooling.internal.provider.connection.ProviderOperationParameters;
 
-public class DaemonBuildActionExecuter implements BuildActionExecuter<ProviderOperationParameters> {
-    private final BuildActionExecuter<BuildActionParameters> executer;
-    private final DaemonParameters daemonParameters;
+public class DaemonBuildActionExecuter implements BuildActionExecuter<ConnectionOperationParameters, BuildRequestContext> {
+    private final BuildActionExecuter<BuildActionParameters, BuildRequestContext> executer;
 
-    public DaemonBuildActionExecuter(BuildActionExecuter<BuildActionParameters> executer, DaemonParameters daemonParameters) {
+    public DaemonBuildActionExecuter(BuildActionExecuter<BuildActionParameters, BuildRequestContext> executer) {
         this.executer = executer;
-        this.daemonParameters = daemonParameters;
     }
 
     @Override
-    public BuildActionResult execute(BuildAction action, BuildRequestContext buildRequestContext, ProviderOperationParameters parameters, ServiceRegistry contextServices) {
+    public BuildActionResult execute(BuildAction action, ConnectionOperationParameters parameters, BuildRequestContext buildRequestContext) {
         boolean continuous = action.getStartParameter() != null && action.getStartParameter().isContinuous() && isNotBuildingModel(action);
-        ClassPath classPath = DefaultClassPath.of(parameters.getInjectedPluginClasspath());
+        ProviderOperationParameters operationParameters = parameters.getOperationParameters();
+        ClassPath classPath = DefaultClassPath.of(operationParameters.getInjectedPluginClasspath());
 
-        BuildActionParameters actionParameters = new DefaultBuildActionParameters(daemonParameters.getEffectiveSystemProperties(),
-            daemonParameters.getEnvironmentVariables(), SystemProperties.getInstance().getCurrentDir(), parameters.getBuildLogLevel(), daemonParameters.isEnabled(), continuous, classPath);
-        return executer.execute(action, buildRequestContext, actionParameters, contextServices);
+        DaemonParameters daemonParameters = parameters.getDaemonParameters();
+        BuildActionParameters actionParameters = new DefaultBuildActionParameters(daemonParameters.getEffectiveSystemProperties(), daemonParameters.getEnvironmentVariables(), SystemProperties.getInstance().getCurrentDir(), operationParameters.getBuildLogLevel(), daemonParameters.isEnabled(), continuous, classPath);
+        return executer.execute(action, actionParameters, buildRequestContext);
     }
 
     private boolean isNotBuildingModel(BuildAction action) {

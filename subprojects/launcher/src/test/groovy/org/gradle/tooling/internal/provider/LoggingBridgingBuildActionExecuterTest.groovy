@@ -18,31 +18,30 @@ package org.gradle.tooling.internal.provider
 import org.gradle.api.logging.LogLevel
 import org.gradle.initialization.BuildRequestContext
 import org.gradle.internal.invocation.BuildAction
-import org.gradle.internal.service.ServiceRegistry
-import org.gradle.launcher.exec.BuildActionExecuter
 import org.gradle.internal.logging.LoggingManagerInternal
+import org.gradle.launcher.exec.BuildActionExecuter
 import org.gradle.tooling.internal.provider.connection.ProviderOperationParameters
 import spock.lang.Specification
 
 class LoggingBridgingBuildActionExecuterTest extends Specification {
-    final BuildActionExecuter<ProviderOperationParameters> target = Mock()
+    final BuildActionExecuter<ConnectionOperationParameters, BuildRequestContext> target = Mock()
     final LoggingManagerInternal loggingManager = Mock()
     final BuildAction action = Mock()
     final BuildRequestContext buildRequestContext = Mock()
-    final ProviderOperationParameters parameters = Mock()
-    final ServiceRegistry contextServices = Mock()
+    final ConnectionOperationParameters parameters = Stub()
+    final ProviderOperationParameters providerParameters = Stub()
 
     //declared type-lessly to work around groovy eclipse plugin bug
     final executer = new LoggingBridgingBuildActionExecuter(target, loggingManager)
 
     def configuresLoggingWhileActionIsExecuting() {
         when:
-        executer.execute(action, buildRequestContext, parameters, contextServices)
+        executer.execute(action, parameters, buildRequestContext)
 
         then:
         1 * loggingManager.addOutputEventListener(!null)
         1 * loggingManager.start()
-        1 * target.execute(action, buildRequestContext, parameters, contextServices)
+        1 * target.execute(action, parameters, buildRequestContext)
         1 * loggingManager.stop()
     }
 
@@ -50,22 +49,23 @@ class LoggingBridgingBuildActionExecuterTest extends Specification {
         def failure = new RuntimeException()
 
         when:
-        executer.execute(action, buildRequestContext, parameters, contextServices)
+        executer.execute(action, parameters, buildRequestContext)
 
         then:
         RuntimeException e = thrown()
         e == failure
         1 * loggingManager.start()
-        1 * target.execute(action, buildRequestContext, parameters, contextServices) >> {throw failure}
+        1 * target.execute(action, parameters, buildRequestContext) >> { throw failure }
         1 * loggingManager.stop()
     }
 
     def "sets log level accordingly"() {
         given:
-        parameters.getBuildLogLevel() >> LogLevel.QUIET
+        parameters.operationParameters >> providerParameters
+        providerParameters.getBuildLogLevel() >> LogLevel.QUIET
 
         when:
-        executer.execute(action, buildRequestContext, parameters, contextServices)
+        executer.execute(action, parameters, buildRequestContext)
 
         then:
         1 * loggingManager.setLevelInternal(LogLevel.QUIET)

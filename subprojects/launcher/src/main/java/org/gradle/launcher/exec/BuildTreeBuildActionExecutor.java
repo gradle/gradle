@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,7 @@
 
 package org.gradle.launcher.exec;
 
-import org.gradle.initialization.BuildRequestContext;
+import org.gradle.internal.buildtree.BuildTreeContext;
 
-/**
- * Marker interface that can be used to obtain the action executer responsible for actually running builds.
- */
-public interface BuildExecuter extends BuildActionExecuter<BuildActionParameters, BuildRequestContext> {
-
+public interface BuildTreeBuildActionExecutor extends BuildActionExecuter<BuildActionParameters, BuildTreeContext> {
 }

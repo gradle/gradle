@@ -18,23 +18,22 @@ package org.gradle.tooling.internal.provider;
 import org.gradle.initialization.BuildRequestContext;
 import org.gradle.internal.concurrent.GradleThread;
 import org.gradle.internal.invocation.BuildAction;
-import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.launcher.exec.BuildActionExecuter;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.BuildActionResult;
 
-public class GradleThreadBuildActionExecuter implements BuildActionExecuter<BuildActionParameters> {
-    private final BuildActionExecuter<BuildActionParameters> delegate;
+public class GradleThreadBuildActionExecuter implements BuildActionExecuter<BuildActionParameters, BuildRequestContext> {
+    private final BuildActionExecuter<BuildActionParameters, BuildRequestContext> delegate;
 
-    public GradleThreadBuildActionExecuter(BuildActionExecuter<BuildActionParameters> delegate) {
+    public GradleThreadBuildActionExecuter(BuildActionExecuter<BuildActionParameters, BuildRequestContext> delegate) {
         this.delegate = delegate;
     }
 
     @Override
-    public BuildActionResult execute(BuildAction action, BuildRequestContext requestContext, BuildActionParameters actionParameters, ServiceRegistry contextServices) {
+    public BuildActionResult execute(BuildAction action, BuildActionParameters actionParameters, BuildRequestContext requestContext) {
         GradleThread.setManaged();
         try {
-            return delegate.execute(action, requestContext, actionParameters, contextServices);
+            return delegate.execute(action, actionParameters, requestContext);
         } finally {
             GradleThread.setUnmanaged();
         }

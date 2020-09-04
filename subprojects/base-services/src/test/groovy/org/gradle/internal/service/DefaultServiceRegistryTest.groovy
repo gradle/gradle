@@ -28,7 +28,7 @@ import java.lang.reflect.Type
 import java.util.concurrent.Callable
 
 class DefaultServiceRegistryTest extends Specification {
-    def TestRegistry registry = new TestRegistry()
+    TestRegistry registry = new TestRegistry()
 
     def throwsExceptionForUnknownService() {
         when:
@@ -757,6 +757,19 @@ class DefaultServiceRegistryTest extends Specification {
         registry.getAll(Number) == [12]
     }
 
+    def removesDuplicateServicesWhenParentIsReachableViaMultiplePaths() {
+        def root = new DefaultServiceRegistry()
+        root.add(String, "root")
+        def parent1 = new DefaultServiceRegistry(root)
+        parent1.add(String, "p1")
+        def parent2 = new DefaultServiceRegistry(root)
+        parent2.add(String, "p2")
+        def registry = new DefaultServiceRegistry(parent1, parent2)
+
+        expect:
+        registry.getAll(String) == ["p1", "root", "p2"]
+    }
+
     def canGetAllServicesOfAGivenTypeUsingCollectionType() {
         registry.addProvider(new Object() {
             String createOtherString() {
@@ -849,6 +862,27 @@ class DefaultServiceRegistryTest extends Specification {
         registry.get(ServiceWithMultipleDependencies).services.size() == 2
         registry.get(ServiceWithMultipleDependencies).services == registry.getAll(TestServiceImpl)
         registry.get(ServiceWithMultipleDependencies).services == [registry.get(TestService), parent.get(TestService)]
+    }
+
+    def removesDuplicateinjectedServicesOfAGivenTypeWhenParentIsReachableFromMultiplePaths() {
+        def root = new DefaultServiceRegistry()
+        root.add(TestServiceImpl, new TestServiceImpl())
+        def parent1 = new DefaultServiceRegistry(root)
+        parent1.register { ServiceRegistration registration ->
+            registration.add(TestServiceImpl)
+        }
+        def parent2 = new DefaultServiceRegistry(root)
+        parent2.register { ServiceRegistration registration ->
+            registration.add(TestServiceImpl)
+        }
+        def registry = new DefaultServiceRegistry(parent1, parent2)
+        registry.register { ServiceRegistration registration ->
+            registration.add(ServiceWithMultipleDependencies)
+        }
+
+        expect:
+        registry.get(ServiceWithMultipleDependencies).services.size() == 3
+        registry.get(ServiceWithMultipleDependencies).services == [parent1.get(TestService), root.get(TestService), parent2.get(TestService)]
     }
 
     def injectsEmptyListWhenNoServicesOfGivenType() {

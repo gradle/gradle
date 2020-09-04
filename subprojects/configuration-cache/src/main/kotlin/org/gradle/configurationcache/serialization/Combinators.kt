@@ -40,11 +40,6 @@ fun <T> singleton(value: T): Codec<T> =
 
 
 internal
-inline fun <reified T> ownerServiceCodec() =
-    codec<T>({ }, { ownerService() })
-
-
-internal
 inline fun <reified T : Any> unsupported(documentationSection: DocumentationSection = DocumentationSection.RequirementsDisallowedTypes): Codec<T> = codec(
     encode = { value ->
         logUnsupported("serialize", T::class, value.javaClass, documentationSection)

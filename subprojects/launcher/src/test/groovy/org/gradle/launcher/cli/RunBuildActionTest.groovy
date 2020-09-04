@@ -32,7 +32,7 @@ import org.gradle.tooling.internal.provider.serialization.SerializedPayload
 import spock.lang.Specification
 
 class RunBuildActionTest extends Specification {
-    final BuildActionExecuter<BuildActionParameters> client = Mock()
+    final BuildActionExecuter<BuildActionParameters, BuildRequestContext> client = Mock()
     final StartParameterInternal startParameter = Mock()
     final BuildClientMetaData clientMetaData = Mock()
     final long startTime = 90
@@ -48,13 +48,12 @@ class RunBuildActionTest extends Specification {
         then:
         startParameter.logLevel >> LogLevel.ERROR
         1 * sharedServices.get(ConsoleDetector) >> Stub(ConsoleDetector)
-        1 * client.execute({ !null }, { !null }, { !null }, { !null }) >> { ExecuteBuildAction action, BuildRequestContext context, BuildActionParameters build, ServiceRegistry services ->
+        1 * client.execute({ !null }, { !null }, { !null }) >> { ExecuteBuildAction action, BuildActionParameters build, BuildRequestContext context ->
             assert action.startParameter == startParameter
             assert context.cancellationToken instanceof DefaultBuildCancellationToken
             assert context.client == clientMetaData
             assert context.startTime == startTime
             assert build == parameters
-            assert services == sharedServices
             return BuildActionResult.of(null)
         }
         1 * stoppable.stop()
@@ -71,7 +70,7 @@ class RunBuildActionTest extends Specification {
         and:
         startParameter.logLevel >> LogLevel.ERROR
         1 * sharedServices.get(ConsoleDetector) >> Stub(ConsoleDetector)
-        1 * client.execute(_, _, _, _) >> {
+        1 * client.execute(_, _, _) >> {
             return BuildActionResult.failed(new SerializedPayload("thing", []))
         }
         1 * stoppable.stop()
