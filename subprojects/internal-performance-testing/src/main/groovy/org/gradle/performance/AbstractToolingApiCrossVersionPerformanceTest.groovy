@@ -22,12 +22,9 @@ import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
-import org.gradle.integtests.tooling.fixture.ExternalToolingApiDistribution
 import org.gradle.integtests.tooling.fixture.ToolingApi
 import org.gradle.integtests.tooling.fixture.ToolingApiClasspathProvider
-import org.gradle.integtests.tooling.fixture.ToolingApiDistribution
 import org.gradle.integtests.tooling.fixture.ToolingApiDistributionResolver
-import org.gradle.internal.classloader.ClasspathUtil
 import org.gradle.internal.concurrent.CompositeStoppable
 import org.gradle.internal.concurrent.Stoppable
 import org.gradle.internal.jvm.Jvm
@@ -86,8 +83,6 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
 
     protected ToolingApiExperiment experiment
 
-    protected ClassLoader tapiClassLoader
-
     @Shared
     private Logger logger
 
@@ -97,10 +92,6 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
     File repositoryMirrorScript = RepoScriptBlockUtil.createMirrorInitScript()
 
     Profiler profiler
-
-    public <T> Class<T> tapiClass(Class<T> clazz) {
-        tapiClassLoader.loadClass(clazz.name)
-    }
 
     def setupSpec() {
         logger = LoggerFactory.getLogger(getClass())
@@ -131,7 +122,6 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
         String testClassName
         List<String> targetVersions = []
         String minimumBaseVersion
-        List<File> extraTestClassPath = []
         Closure<?> action
         Integer invocationCount
         Integer warmUpCount
@@ -207,15 +197,7 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
                     def workingDirProvider = copyTemplateTo(projectDir, experimentSpec.workingDirectory, version)
                     GradleDistribution dist = 'current' == version ? CURRENT : buildContext.distribution(version)
                     println "Testing ${dist.version}..."
-                    def toolingApiDistribution = new PerformanceTestToolingApiDistribution(resolver.resolve(dist == CURRENT ? dist.version.baseVersion.version : dist.version.version), workingDirProvider.testDirectory)
-                    List<File> testClassPath = [*experiment.extraTestClassPath]
-                    // add TAPI test fixtures to classpath
-                    testClassPath << ClasspathUtil.getClasspathForClass(ToolingApi)
-                    tapiClassLoader = getTestClassLoader([:], toolingApiDistribution, testClassPath) {
-                    }
-                    def tapiClazz = tapiClassLoader.loadClass(ToolingApi.name)
-                    assert tapiClazz != ToolingApi
-                    def toolingApi = tapiClazz.newInstance(new PerformanceTestGradleDistribution(dist, workingDirProvider.testDirectory), workingDirProvider)
+                    def toolingApi = new ToolingApi(new PerformanceTestGradleDistribution(dist, workingDirProvider.testDirectory), workingDirProvider)
                     toolingApi.requireIsolatedDaemons()
                     toolingApi.requireIsolatedUserHome()
 
@@ -300,7 +282,7 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
         }
 
         public asPerformanceTestConnection(Object connection, ToolingApiBuildExperimentSpec spec) {
-            Proxy.newProxyInstance(tapiClassLoader, [tapiClassLoader.loadClass(ProjectConnection.name)] as Class[]) { proxy, method, args ->
+            Proxy.newProxyInstance(getClass().getClassLoader(), [ProjectConnection] as Class[]) { proxy, method, args ->
                 switch (method.name) {
                     case "model": return withAdditionalArgs(connection.model(args[0]), spec)
                     case "getModel":
@@ -318,7 +300,7 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
         }
 
         public withAdditionalArgs(operation, ToolingApiBuildExperimentSpec spec) {
-            Proxy.newProxyInstance(tapiClassLoader, operation.class.interfaces) { proxy, method, args ->
+            Proxy.newProxyInstance(operation.getClass().classLoader, operation.getClass().interfaces) { proxy, method, args ->
                 Stoppable stoppable = new CompositeStoppable()
                 if (method.name in ["run", "get"]) {
                     def params = operation.operationParamsBuilder
@@ -341,21 +323,6 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
                     stoppable.stop()
                 }
             }
-        }
-    }
-
-    private static class PerformanceTestToolingApiDistribution extends ExternalToolingApiDistribution {
-
-        PerformanceTestToolingApiDistribution(ToolingApiDistribution delegate, File testDir) {
-            super(delegate.version.version, copyClasspath(delegate, testDir))
-        }
-
-        private static List<File> copyClasspath(ToolingApiDistribution delegate, File testDir) {
-            File tapiDir = new File(testDir, "tooling-api")
-            delegate.classpath.each {
-                GFileUtils.copyFile(it, new File(tapiDir, it.name))
-            }
-            tapiDir.listFiles()
         }
     }
 }

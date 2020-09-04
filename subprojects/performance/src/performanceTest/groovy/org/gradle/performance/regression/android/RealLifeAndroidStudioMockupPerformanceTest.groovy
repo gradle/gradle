@@ -16,10 +16,16 @@
 
 package org.gradle.performance.regression.android
 
-import org.gradle.performance.AbstractAndroidStudioMockupCrossVersionPerformanceTest
+import org.gradle.integtests.fixtures.android.AndroidHome
+import org.gradle.performance.AbstractToolingApiCrossVersionPerformanceTest
+import org.gradle.performance.android.SyncAction
 import spock.lang.Unroll
 
-class RealLifeAndroidStudioMockupPerformanceTest extends AbstractAndroidStudioMockupCrossVersionPerformanceTest {
+class RealLifeAndroidStudioMockupPerformanceTest extends AbstractToolingApiCrossVersionPerformanceTest {
+
+    def setup() {
+        AndroidHome.assertIsSet()
+    }
 
     @Unroll
     def "get IDE model on #testProject for Android Studio"() {
@@ -29,8 +35,10 @@ class RealLifeAndroidStudioMockupPerformanceTest extends AbstractAndroidStudioMo
             // AGP 3.5 requires 5.4.1+
             minimumBaseVersion = "5.4.1"
             targetVersions = ["6.7-20200824220048+0000"]
-            action('org.gradle.performance.android.SyncAction') {
-                jvmArguments = ["-Xms5g", "-Xmx5g"]
+            action {
+                SyncAction.withProjectConnection(delegate) {
+                    it.jvmArguments = ["-Xms5g", "-Xmx5g"]
+                }
             }
             invocationCount = iterations
             warmUpCount = iterations

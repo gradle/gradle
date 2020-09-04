@@ -38,7 +38,7 @@ class JavaIDEModelPerformanceTest extends AbstractToolingApiCrossVersionPerforma
             invocationCount = iterations
             warmUpCount = iterations
             action {
-                def model = model(tapiClass(EclipseProject)).setJvmArguments("-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}").get()
+                def model = model(EclipseProject).setJvmArguments("-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}").get()
                 // we must actually do something to highlight some performance issues
                 forEachEclipseProject(model) {
                     buildCommands.each {
@@ -98,7 +98,7 @@ class JavaIDEModelPerformanceTest extends AbstractToolingApiCrossVersionPerforma
             invocationCount = iterations
             warmUpCount = iterations
             action {
-                def model = model(tapiClass(IdeaProject)).setJvmArguments("-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}").get()
+                def model = model(IdeaProject).setJvmArguments("-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}").get()
                 // we must actually do something to highlight some performance issues
                 model.with {
                     name
@@ -122,7 +122,7 @@ class JavaIDEModelPerformanceTest extends AbstractToolingApiCrossVersionPerforma
                         }
                         it.dependencies.each {
                             it.scope.scope
-                            if (tapiClass(ExternalDependency).isAssignableFrom(it.class)) {
+                            if (ExternalDependency.isAssignableFrom(it.class)) {
                                 it.gradleModuleVersion.group
                                 it.gradleModuleVersion.name
                                 it.gradleModuleVersion.version
