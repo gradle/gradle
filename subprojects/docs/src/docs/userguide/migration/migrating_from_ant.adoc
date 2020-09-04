@@ -384,7 +384,7 @@ Fortunately, Gradle's multi-project support can handle fairly diverse project st
 
 We will suggest one process for migration here and hope that it either works for your case or at least gives you some ideas. It breaks down like this:
 
- 1. Start by learning <<multi_project_builds#multi_project_builds,how Gradle configures multi-project builds>>.
+ 1. Start by learning <<creating_multi_project_builds#multi_project_builds,how Gradle configures multi-project builds>>.
  2. Create a Gradle build script in each project of the build, setting their contents to this line:
 +
 [source.multi-language-sample,groovy]
@@ -419,7 +419,7 @@ include::sample[dir="snippets/antMigration/multiProject/groovy",files="web/build
 include::sample[dir="snippets/antMigration/multiProject/kotlin",files="web/build.gradle.kts[]"]
 ====
 +
-This is not as robust or powerful as Gradle's <<multi_project_builds#sec:project_jar_dependencies,project dependencies>>, but it solves the immediate problem without big changes to the build. Just be careful to remove or override any dependencies on tasks that delegate to other subprojects, like the `buildRequiredProjects` task.
+This is not as robust or powerful as Gradle's <<declaring_dependencies_between_subprojects#sec:project_jar_dependencies,project dependencies>>, but it solves the immediate problem without big changes to the build. Just be careful to remove or override any dependencies on tasks that delegate to other subprojects, like the `buildRequiredProjects` task.
  5. Identify the projects that have no dependencies on other projects and migrate them to idiomatic Gradle builds scripts.
 +
 Just follow the advice in the rest of this guide to migrate individual project builds. As mentioned elsewhere, you should ideally use Gradle standard plugins where possible. This may mean that you need to add an extra copy task to each build that copies the generated artifacts to the location expected by the rest of the Ant builds.

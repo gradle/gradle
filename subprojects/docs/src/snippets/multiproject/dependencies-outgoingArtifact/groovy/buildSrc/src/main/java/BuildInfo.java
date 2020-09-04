@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Properties;
 
+// tag::task[]
 public abstract class BuildInfo extends DefaultTask {
 
     @Input
@@ -27,3 +28,4 @@ public abstract class BuildInfo extends DefaultTask {
         }
     }
 }
+// end::task[]

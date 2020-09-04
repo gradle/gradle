@@ -37,7 +37,7 @@ Gradle determines the subset of the tasks, created and configured during the con
 
 Beside the build script files, Gradle defines a settings file. The settings file is determined by Gradle via a naming convention. The default name for this file is `settings.gradle`. Later in this chapter we explain how Gradle looks for a settings file.
 
-The settings file is executed during the initialization phase. A multi-project build must have a `settings.gradle` file in the root project of the multi-project hierarchy. It is required because the settings file defines which projects are taking part in the multi-project build (see <<multi_project_builds.adoc#multi_project_builds,Authoring Multi-Project Builds>>). For a single-project build, a settings file is optional. Besides defining the included projects, you might need it to add libraries to your build script classpath (see <<organizing_gradle_projects.adoc#organizing_gradle_projects,Organizing Gradle Projects>>). Let's first do some introspection with a single project build:
+The settings file is executed during the initialization phase. A multi-project build must have a `settings.gradle` file in the root project of the multi-project hierarchy. It is required because the settings file defines which projects are taking part in the multi-project build (see <<creating_multi_project_builds.adoc#multi_project_builds,Authoring Multi-Project Builds>>). For a single-project build, a settings file is optional. Besides defining the included projects, you might need it to add libraries to your build script classpath (see <<organizing_gradle_projects.adoc#organizing_gradle_projects,Organizing Gradle Projects>>). Let's first do some introspection with a single project build:
 
 .Single project build
 ====
@@ -62,7 +62,7 @@ For a build script, the property access and method calls are delegated to a proj
 [[sec:lifecycle_multi_project_builds]]
 == Multi-project builds
 
-A multi-project build is a build where you build more than one project during a single execution of Gradle. You have to declare the projects taking part in the multi-project build in the settings file. There is much more to say about multi-project builds in the chapter dedicated to this topic (see <<multi_project_builds.adoc#multi_project_builds,Authoring Multi-Project Builds>>).
+A multi-project build is a build where you build more than one project during a single execution of Gradle. You have to declare the projects taking part in the multi-project build in the settings file. There is much more to say about multi-project builds in the chapter dedicated to this topic (see <<creating_multi_project_builds.adoc#multi_project_builds,Authoring Multi-Project Builds>>).
 
 
 [[sub:project_locations]]
@@ -125,14 +125,14 @@ Look at the link:{javadocPath}/org/gradle/api/initialization/ProjectDescriptor.h
 [[sec:initialization]]
 == Initialization
 
-How does Gradle know whether to do a single or multi-project build? If you trigger a multi-project build from a directory with a settings file, things are easy. But Gradle also allows you to execute the build from within any subproject taking part in the build.footnote:[Gradle supports partial multi-project builds (see <<multi_project_builds.adoc#multi_project_builds,Authoring Multi-Project Builds>>).] If you execute Gradle from within a project with no `settings.gradle` file, Gradle looks for a `settings.gradle` file in the following way:
+How does Gradle know whether to do a single or multi-project build? If you trigger a multi-project build from a directory with a settings file, things are easy. But Gradle also allows you to execute the build from within any subproject taking part in the build.footnote:[Gradle supports partial multi-project builds (see <<intro_multi_project_builds.adoc#,Executing Multi-Project Builds>>).] If you execute Gradle from within a project with no `settings.gradle` file, Gradle looks for a `settings.gradle` file in the following way:
 
 * It looks in a directory called `master` which has the same nesting level as the current dir.
 * If not found yet, it searches parent directories.
 * If not found yet, the build is executed as a single project build.
 * If a `settings.gradle` file is found, Gradle checks if the current project is part of the multi-project hierarchy defined in the found `settings.gradle` file. If not, the build is executed as a single project build. Otherwise a multi-project build is executed.
 
-What is the purpose of this behavior? Gradle needs to determine whether the project you are in is a subproject of a multi-project build or not. Of course, if it is a subproject, only the subproject and its dependent projects are built, but Gradle needs to create the build configuration for the whole multi-project build (see <<multi_project_builds.adoc#multi_project_builds,Authoring Multi-Project Builds>>). If the current project contains a `settings.gradle` file, the build is always executed as:
+What is the purpose of this behavior? Gradle needs to determine whether the project you are in is a subproject of a multi-project build or not. Of course, if it is a subproject, only the subproject and its dependent projects are built, but Gradle needs to create the build configuration for the whole multi-project build (see <<multi_project_configuration_and_execution.adoc#configuration_and_execution,Configuration and Execution>>). If the current project contains a `settings.gradle` file, the build is always executed as:
 
 * a single project build, if the `settings.gradle` file does not define a multi-project hierarchy
 * a multi-project build, if the `settings.gradle` file does define a multi-project hierarchy.
@@ -144,7 +144,7 @@ Gradle creates a Project object for every project taking part in the build. For 
 [[sec:configuration_and_execution_of_a_single_project_build]]
 == Configuration and execution of a single project build
 
-For a single project build, the workflow of the _after initialization_ phases are pretty simple. The build script is executed against the project object that was created during the initialization phase. Then Gradle looks for tasks with names equal to those passed as command line arguments. If these task names exist, they are executed as a separate build in the order you have passed them. The configuration and execution for multi-project builds is discussed in <<multi_project_builds.adoc#multi_project_builds,Authoring Multi-Project Builds>>.
+For a single project build, the workflow of the _after initialization_ phases are pretty simple. The build script is executed against the project object that was created during the initialization phase. Then Gradle looks for tasks with names equal to those passed as command line arguments. If these task names exist, they are executed as a separate build in the order you have passed them. The configuration and execution for multi-project builds is discussed in <<multi_project_configuration_and_execution.adoc#configuration_and_execution,Configuration and Execution>>.
 
 [[build_lifecycle_events]]
 == Responding to the lifecycle in the build script
