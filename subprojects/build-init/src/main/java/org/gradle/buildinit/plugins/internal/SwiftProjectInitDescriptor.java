@@ -123,11 +123,11 @@ public abstract class SwiftProjectInitDescriptor extends LanguageLibraryProjectI
             throw new IllegalArgumentException("Project name cannot be empty for a Swift project");
         }
 
-        String moduleName = toModuleName(settings.getSubprojectName());
+        String moduleName = toModuleName(settings.getSubprojects().get(0));
 
         return templateOperationFactory.newTemplateOperation()
             .withTemplate(template)
-            .withTarget(settings.getTarget().file(settings.getSubprojectName() + "/src/" + sourceSetName + "/" + sourceDir + "/" + targetFileName).getAsFile())
+            .withTarget(settings.getTarget().file(settings.getSubprojects().get(0) + "/src/" + sourceSetName + "/" + sourceDir + "/" + targetFileName).getAsFile())
             .withBinding("projectName", settings.getProjectName())
             .withBinding("moduleName", moduleName)
             .create();
