@@ -49,19 +49,13 @@ val watchFsTest = "watchFsTest"
 
 val soakTest = "soakTest"
 
-val ignoredSubprojects = listOf(
-    "soak", // soak test
-    "distributions-integ-tests", // test build distributions
-    "architecture-test" // sanity check
-)
-
 val forceRealizeDependencyManagementTest = "forceRealizeDependencyManagementTest"
 
 
 setupTimeoutMonitorOnCI()
 setupGlobalState()
 
-subprojects.filter { it.name !in ignoredSubprojects }.forEach { it.registerLifecycleTasks() }
+subprojects.forEach { it.registerLifecycleTasks() }
 
 
 tasks.registerDistributionsPromotionTasks()
