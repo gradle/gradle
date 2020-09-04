@@ -101,7 +101,7 @@ class MultiProjectJvmApplicationInitIntegrationTest extends AbstractIntegrationS
         outputContains("Hello, World!")
 
         where:
-        [jvmLanguage, scriptDsl] << [[JAVA], ScriptDslFixture.SCRIPT_DSLS].combinations()
+        [jvmLanguage, scriptDsl] << [[JAVA, GROOVY], ScriptDslFixture.SCRIPT_DSLS].combinations()
     }
 
     void assertTestPassed(String subprojectName, String className, String name) {
