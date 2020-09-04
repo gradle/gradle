@@ -262,7 +262,7 @@ Things:
 
     def "formats item with file value"() {
         def file = new File("thing")
-        fileResolver.resolveAsRelativePath(file) >> "path/thing"
+        fileResolver.resolveForDisplay(file) >> "path/thing"
 
         when:
         builder.item(file)
@@ -283,7 +283,7 @@ Things:
 
     def "formats item with title and file value"() {
         def file = new File("thing")
-        fileResolver.resolveAsRelativePath(file) >> "path/thing"
+        fileResolver.resolveForDisplay(file) >> "path/thing"
 
         when:
         builder.item("the title", file)
