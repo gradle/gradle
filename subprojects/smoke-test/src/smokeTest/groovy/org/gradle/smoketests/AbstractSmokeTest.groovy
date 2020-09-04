@@ -56,40 +56,40 @@ abstract class AbstractSmokeTest extends Specification {
          */
 
         // https://plugins.gradle.org/plugin/nebula.dependency-recommender
-        static nebulaDependencyRecommender = "9.0.2"
+        static nebulaDependencyRecommender = "9.1.1"
 
         // https://plugins.gradle.org/plugin/nebula.plugin-plugin
-        static nebulaPluginPlugin = "14.4.0"
+        static nebulaPluginPlugin = "14.5.0"
 
         // https://plugins.gradle.org/plugin/nebula.lint
-        static nebulaLint = "16.8.1"
+        static nebulaLint = "16.9.1"
 
         // https://plugins.gradle.org/plugin/nebula.dependency-lock
-        static nebulaDependencyLock = Versions.of("7.0.1", "7.8.0", "8.0.0", "8.8.0", "9.0.0")
+        static nebulaDependencyLock = Versions.of("7.8.0", "8.8.0", "9.4.1", "10.1.0")
 
         // https://plugins.gradle.org/plugin/nebula.resolution-rules
-        static nebulaResolutionRules = "7.6.0"
+        static nebulaResolutionRules = "7.7.6"
 
         // https://plugins.gradle.org/plugin/com.github.johnrengelman.shadow
-        static shadow = Versions.of("4.0.4", "5.2.0")
+        static shadow = Versions.of("4.0.4", "5.2.0", "6.0.0")
 
         // https://github.com/asciidoctor/asciidoctor-gradle-plugin/releases
         static asciidoctor = Versions.of("2.3.0", "3.0.0", "3.2.0")
 
         // https://plugins.gradle.org/plugin/com.github.spotbugs
-        static spotbugs = "4.2.0"
+        static spotbugs = "4.5.0"
 
         // https://plugins.gradle.org/plugin/com.bmuschko.docker-java-application
-        static docker = "6.6.0"
+        static docker = "6.6.1"
 
         // https://plugins.gradle.org/plugin/com.bmuschko.tomcat
         static tomcat = "2.5"
 
         // https://plugins.gradle.org/plugin/io.spring.dependency-management
-        static springDependencyManagement = "1.0.9.RELEASE"
+        static springDependencyManagement = "1.0.10.RELEASE"
 
         // https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-gradle-plugin
-        static springBoot = "2.3.0.RELEASE"
+        static springBoot = "2.3.3.RELEASE"
 
         // https://developer.android.com/studio/releases/build-tools
         static androidTools = "29.0.3"
@@ -112,7 +112,7 @@ abstract class AbstractSmokeTest extends Specification {
         static grgit = "4.0.2"
 
         // https://plugins.gradle.org/plugin/com.github.ben-manes.versions
-        static gradleVersions = "0.28.0"
+        static gradleVersions = "0.29.0"
 
         // https://plugins.gradle.org/plugin/org.gradle.playframework
         static playframework = "0.9"
@@ -121,18 +121,18 @@ abstract class AbstractSmokeTest extends Specification {
         static errorProne = "1.2.1"
 
         // https://plugins.gradle.org/plugin/com.google.protobuf
-        static protobufPlugin = "0.8.12"
-        static protobufTools = "3.11.1"
+        static protobufPlugin = "0.8.13"
+        static protobufTools = "3.13.0"
 
         // https://plugins.gradle.org/plugin/org.gradle.test-retry
-        static testRetryPlugin = "1.1.5"
+        static testRetryPlugin = "1.1.9"
 
         // https://plugins.gradle.org/plugin/com.jfrog.artifactory
-        static artifactoryPlugin = "4.15.2"
+        static artifactoryPlugin = "4.17.2"
         static artifactoryRepoOSSVersion = "6.16.0"
 
         // https://plugins.gradle.org/plugin/io.freefair.aspectj
-        static aspectj = "5.1.0"
+        static aspectj = "5.1.1"
     }
 
     static class Versions implements Iterable<String> {
