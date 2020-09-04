@@ -65,7 +65,7 @@ public class PomProjectInitDescriptor implements BuildConverter {
 
     @Override
     public Set<ModularizationOption> getModularizationOptions() {
-        return Collections.emptySet();
+        return Collections.singleton(ModularizationOption.SINGLE_PROJECT);
     }
 
     @Override

@@ -184,8 +184,15 @@ public class InitBuild extends DefaultTask {
             initDescriptor = projectLayoutRegistry.get(type);
         }
 
-        ModularizationOption modularizationOption = modularize.isPresent() ? ModularizationOption.byId(modularize.get()) : inputHandler.selectOption("Should the build include library projects?",
-            initDescriptor.getModularizationOptions(), ModularizationOption.SINGLE_PROJECT);
+        ModularizationOption modularizationOption;
+        if (modularize.isPresent()) {
+            modularizationOption = ModularizationOption.byId(modularize.get());
+        } else if (initDescriptor.getModularizationOptions().size() == 1) {
+            modularizationOption = initDescriptor.getModularizationOptions().iterator().next();
+        } else {
+            modularizationOption = inputHandler.selectOption("Should the build include library projects?",
+                initDescriptor.getModularizationOptions(), ModularizationOption.SINGLE_PROJECT);
+        }
 
         BuildInitDsl dsl;
         if (isNullOrEmpty(this.dsl)) {
