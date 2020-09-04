@@ -56,8 +56,8 @@ public class KotlinApplicationProjectInitDescriptor extends JvmProjectInitDescri
     }
 
     @Override
-    public void generate(InitSettings settings, BuildScriptBuilder buildScriptBuilder, TemplateFactory templateFactory) {
-        super.generate(settings, buildScriptBuilder, templateFactory);
+    public void generateProjectBuildScript(String projectName, InitSettings settings, BuildScriptBuilder buildScriptBuilder) {
+        super.generateProjectBuildScript(projectName, settings, buildScriptBuilder);
 
         new KotlinProjectInitDescriptor(libraryVersionProvider).generate(buildScriptBuilder);
 
@@ -67,7 +67,10 @@ public class KotlinApplicationProjectInitDescriptor extends JvmProjectInitDescri
             .block(null,
                 "application",
                 b -> b.propertyAssignment("Define the main class for the application.", "mainClass", withPackage(settings, "AppKt"), false));
+    }
 
+    @Override
+    public void generateSources(InitSettings settings, TemplateFactory templateFactory) {
         TemplateOperation kotlinSourceTemplate = templateFactory.fromSourceTemplate("kotlinapp/App.kt.template", "main");
         TemplateOperation kotlinTestTemplate = templateFactory.fromSourceTemplate("kotlinapp/AppTest.kt.template", "test");
         templateFactory.whenNoSourcesAvailable(kotlinSourceTemplate, kotlinTestTemplate).generate();

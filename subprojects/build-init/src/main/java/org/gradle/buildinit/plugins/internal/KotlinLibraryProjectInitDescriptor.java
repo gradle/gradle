@@ -56,15 +56,18 @@ public class KotlinLibraryProjectInitDescriptor extends JvmProjectInitDescriptor
     }
 
     @Override
-    public void generate(InitSettings settings, BuildScriptBuilder buildScriptBuilder, TemplateFactory templateFactory) {
-        super.generate(settings, buildScriptBuilder, templateFactory);
+    public void generateProjectBuildScript(String projectName, InitSettings settings, BuildScriptBuilder buildScriptBuilder) {
+        super.generateProjectBuildScript(projectName, settings, buildScriptBuilder);
 
         new KotlinProjectInitDescriptor(libraryVersionProvider).generate(buildScriptBuilder);
 
         buildScriptBuilder
             .fileComment("This generated file contains a sample Kotlin library project to get you started.")
             .plugin("Apply the java-library plugin for API and implementation separation.", "java-library");
+    }
 
+    @Override
+    public void generateSources(InitSettings settings, TemplateFactory templateFactory) {
         TemplateOperation kotlinSourceTemplate = templateFactory.fromSourceTemplate("kotlinlibrary/Library.kt.template", "main");
         TemplateOperation kotlinTestTemplate = templateFactory.fromSourceTemplate("kotlinlibrary/LibraryTest.kt.template", "test");
         templateFactory.whenNoSourcesAvailable(kotlinSourceTemplate, kotlinTestTemplate).generate();

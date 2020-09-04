@@ -39,8 +39,8 @@ abstract public class ScalaProjectInitDescriptor extends JvmProjectInitDescripto
     }
 
     @Override
-    public void generate(InitSettings settings, BuildScriptBuilder buildScriptBuilder, TemplateFactory templateFactory) {
-        super.generate(settings, buildScriptBuilder, templateFactory);
+    public void generateProjectBuildScript(String projectName, InitSettings settings, BuildScriptBuilder buildScriptBuilder) {
+        super.generateProjectBuildScript(projectName, settings, buildScriptBuilder);
 
         String scalaVersion = libraryVersionProvider.getVersion("scala");
         String scalaLibraryVersion = libraryVersionProvider.getVersion("scala-library");
@@ -63,7 +63,10 @@ abstract public class ScalaProjectInitDescriptor extends JvmProjectInitDescripto
             .testRuntimeOnlyDependency("Need scala-xml at test runtime",
                 "org.scala-lang.modules:scala-xml_" + scalaVersion + ":" + scalaXmlVersion);
         configureBuildScript(settings, buildScriptBuilder);
+    }
 
+    @Override
+    public void generateSources(InitSettings settings, TemplateFactory templateFactory) {
         TemplateOperation sourceTemplate = sourceTemplateOperation(templateFactory);
         TemplateOperation testSourceTemplate = testTemplateOperation(templateFactory);
         templateFactory.whenNoSourcesAvailable(sourceTemplate, testSourceTemplate).generate();

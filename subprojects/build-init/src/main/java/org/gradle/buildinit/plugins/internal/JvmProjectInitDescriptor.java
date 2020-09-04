@@ -16,14 +16,29 @@
 
 package org.gradle.buildinit.plugins.internal;
 
+import org.gradle.buildinit.plugins.internal.modifiers.ModularizationOption;
+
 public abstract class JvmProjectInitDescriptor extends LanguageLibraryProjectInitDescriptor {
     @Override
     public boolean supportsPackage() {
         return true;
     }
 
-    @Override
-    public void generate(InitSettings settings, BuildScriptBuilder buildScriptBuilder, TemplateFactory templateFactory) {
+    private void addJcenter(BuildScriptBuilder buildScriptBuilder) {
         buildScriptBuilder.repositories().jcenter("Use JCenter for resolving dependencies.");
+    }
+
+    @Override
+    public void generateProjectBuildScript(String projectName, InitSettings settings, BuildScriptBuilder buildScriptBuilder) {
+        if (settings.getModularizationOption() == ModularizationOption.SINGLE_PROJECT) {
+            addJcenter(buildScriptBuilder);
+        }
+    }
+
+    @Override
+    public void generateConventionPluginBuildScript(String conventionPluginName, InitSettings settings, BuildScriptBuilder buildScriptBuilder) {
+        if (conventionPluginName.equals("common")) {
+            addJcenter(buildScriptBuilder);
+        }
     }
 }

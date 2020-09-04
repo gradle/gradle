@@ -52,8 +52,8 @@ public class KotlinGradlePluginProjectInitDescriptor extends JvmGradlePluginProj
     }
 
     @Override
-    public void generate(InitSettings settings, BuildScriptBuilder buildScriptBuilder, TemplateFactory templateFactory) {
-        super.generate(settings, buildScriptBuilder, templateFactory);
+    public void generateProjectBuildScript(String projectName, InitSettings settings, BuildScriptBuilder buildScriptBuilder) {
+        super.generateProjectBuildScript(projectName, settings, buildScriptBuilder);
 
         new KotlinProjectInitDescriptor(libraryVersionProvider).generate(buildScriptBuilder);
     }

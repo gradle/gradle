@@ -36,13 +36,11 @@ public abstract class JvmGradlePluginProjectInitDescriptor extends JvmProjectIni
     }
 
     @Override
-    public void generate(InitSettings settings, BuildScriptBuilder buildScriptBuilder, TemplateFactory templateFactory) {
-        super.generate(settings, buildScriptBuilder, templateFactory);
+    public void generateProjectBuildScript(String projectName, InitSettings settings, BuildScriptBuilder buildScriptBuilder) {
+        super.generateProjectBuildScript(projectName, settings, buildScriptBuilder);
 
         String pluginId = settings.getPackageName() + ".greeting";
         String pluginClassName = StringUtils.capitalize(GUtil.toCamelCase(settings.getProjectName())) + "Plugin";
-        String testClassName = pluginClassName + "Test";
-        String functionalTestClassName = pluginClassName + "FunctionalTest";
 
         buildScriptBuilder
             .fileComment("This generated file contains a sample Gradle plugin project to get you started.")
@@ -66,6 +64,14 @@ public abstract class JvmGradlePluginProjectInitDescriptor extends JvmProjectIni
             b.propertyAssignment(null, "classpath", buildScriptBuilder.propertyExpression(functionalTestSourceSet, "runtimeClasspath"), true);
         });
         buildScriptBuilder.taskMethodInvocation("Run the functional tests as part of `check`", "check", "Task", "dependsOn", functionalTest);
+    }
+
+    @Override
+    public void generateSources(InitSettings settings, TemplateFactory templateFactory) {
+        String pluginId = settings.getPackageName() + ".greeting";
+        String pluginClassName = StringUtils.capitalize(GUtil.toCamelCase(settings.getProjectName())) + "Plugin";
+        String testClassName = pluginClassName + "Test";
+        String functionalTestClassName = pluginClassName + "FunctionalTest";
 
         TemplateOperation sourceTemplate = sourceTemplate(settings, templateFactory, pluginId, pluginClassName);
         TemplateOperation testTemplate = testTemplate(settings, templateFactory, pluginId, testClassName);

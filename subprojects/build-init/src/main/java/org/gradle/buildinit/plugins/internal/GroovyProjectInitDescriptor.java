@@ -41,8 +41,8 @@ public abstract class GroovyProjectInitDescriptor extends JvmProjectInitDescript
     }
 
     @Override
-    public void generate(InitSettings settings, BuildScriptBuilder buildScriptBuilder, TemplateFactory templateFactory) {
-        super.generate(settings, buildScriptBuilder, templateFactory);
+    public void generateProjectBuildScript(String projectName, InitSettings settings, BuildScriptBuilder buildScriptBuilder) {
+        super.generateProjectBuildScript(projectName, settings, buildScriptBuilder);
 
         buildScriptBuilder
             .fileComment("This generated file contains a sample Groovy project to get you started.")
@@ -54,7 +54,10 @@ public abstract class GroovyProjectInitDescriptor extends JvmProjectInitDescript
             .testImplementationDependency("Use the awesome Spock testing and specification framework",
                 "org.spockframework:spock-core:" + libraryVersionProvider.getVersion("spock"));
         configureBuildScript(settings, buildScriptBuilder);
+    }
 
+    @Override
+    public void generateSources(InitSettings settings, TemplateFactory templateFactory) {
         TemplateOperation sourceTemplate = sourceTemplateOperation(templateFactory);
         TemplateOperation testSourceTemplate = testTemplateOperation(templateFactory);
         templateFactory.whenNoSourcesAvailable(sourceTemplate, testSourceTemplate).generate();
