@@ -226,8 +226,6 @@ fun TaskContainer.configureCIIntegrationTestDistributionLifecycleTasks() {
     }
 
     named(noDaemonTest) {
-        description = "Run all integration tests in no-daemon execution mode: each Gradle execution started in a test forks a new daemon"
-        group = ciGroup
         dependsOn("noDaemonIntegTest")
     }
 
