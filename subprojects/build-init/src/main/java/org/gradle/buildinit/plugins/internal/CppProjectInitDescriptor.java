@@ -42,16 +42,24 @@ public abstract class CppProjectInitDescriptor extends LanguageLibraryProjectIni
     }
 
     @Override
-    public void generate(InitSettings settings, BuildScriptBuilder buildScriptBuilder, TemplateFactory templateFactory) {
+    public void generateProjectBuildScript(String projectName, InitSettings settings, BuildScriptBuilder buildScriptBuilder) {
         buildScriptBuilder
             .fileComment("This generated file contains a sample C++ project to get you started.")
             .fileComment("For more details take a look at the Building C++ applications and libraries chapter in the Gradle")
             .fileComment("User Manual available at " + documentationRegistry.getDocumentationFor("building_cpp_projects"));
         configureBuildScript(settings, buildScriptBuilder);
+    }
 
+    @Override
+    public void generateConventionPluginBuildScript(String conventionPluginName, InitSettings settings, BuildScriptBuilder buildScriptBuilder) {
+    }
+
+    @Override
+    public void generateSources(InitSettings settings, TemplateFactory templateFactory) {
         TemplateOperation sourceTemplate = sourceTemplateOperation(settings);
         TemplateOperation headerTemplate = headerTemplateOperation(settings);
         TemplateOperation testSourceTemplate = testTemplateOperation(settings);
+
         templateFactory.whenNoSourcesAvailable(sourceTemplate, headerTemplate, testSourceTemplate).generate();
     }
 
