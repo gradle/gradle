@@ -25,6 +25,7 @@ import org.gradle.internal.Try;
 import org.gradle.internal.instantiation.InstantiationScheme;
 import org.gradle.internal.isolated.IsolationScheme;
 import org.gradle.internal.isolation.IsolatableFactory;
+import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.internal.service.ServiceLookup;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.state.Managed;
@@ -97,7 +98,7 @@ public class BuildServiceProvider<T extends BuildService<P>, P extends BuildServ
                 ServiceLookup instantiationServices = isolationScheme.servicesForImplementation(
                     isolatedParameters,
                     internalServices,
-                    ImmutableList.of(LoggingOutput.class),
+                    ImmutableList.of(LoggingOutput.class, ProcessEnvironment.class),
                     serviceType -> false
                 );
                 try {

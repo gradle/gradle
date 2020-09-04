@@ -34,6 +34,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ConfigurationCacheRunner
 import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
+import org.gradle.internal.nativeintegration.ProcessEnvironment
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.process.ExecOperations
 import org.junit.runner.RunWith
@@ -557,7 +558,8 @@ class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
             FileSystemOperations,
             ObjectFactory,
             ProviderFactory,
-            LoggingOutput
+            LoggingOutput,
+            ProcessEnvironment
         ].collect { it.name }
     }
 
