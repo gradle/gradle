@@ -127,7 +127,6 @@ include::sample[dir="snippets/multiproject/dependencies-outgoingArtifact/kotlin/
 In the example above, the consumer now declares a dependency on the outputs of the `producer` project.
 
 
-== Depending on other artifacts between projects
 
 Depending on the main output artifact from another project is only one example.
 Gradle has one of the most powerful <<core_dependency_management#sec:dependency-mgmt-in-gradle,dependency management engines>> that allows you to share arbitrary artifacts between projects and let Gradle build them on demand.
