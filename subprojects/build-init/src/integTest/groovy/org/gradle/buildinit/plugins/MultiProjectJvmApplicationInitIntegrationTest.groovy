@@ -24,6 +24,7 @@ import spock.lang.Unroll
 
 import static org.gradle.buildinit.plugins.internal.modifiers.Language.GROOVY
 import static org.gradle.buildinit.plugins.internal.modifiers.Language.JAVA
+import static org.gradle.buildinit.plugins.internal.modifiers.Language.KOTLIN
 
 class MultiProjectJvmApplicationInitIntegrationTest extends AbstractIntegrationSpec {
     final def targetDir = testDirectory.createDir("some-thing")
@@ -101,7 +102,7 @@ class MultiProjectJvmApplicationInitIntegrationTest extends AbstractIntegrationS
         outputContains("Hello, World!")
 
         where:
-        [jvmLanguage, scriptDsl] << [[JAVA, GROOVY], ScriptDslFixture.SCRIPT_DSLS].combinations()
+        [jvmLanguage, scriptDsl] << [[JAVA, GROOVY, KOTLIN], ScriptDslFixture.SCRIPT_DSLS].combinations()
     }
 
     void assertTestPassed(String subprojectName, String className, String name) {
