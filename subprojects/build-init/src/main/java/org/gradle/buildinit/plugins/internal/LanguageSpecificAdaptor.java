@@ -36,11 +36,13 @@ public class LanguageSpecificAdaptor implements ProjectGenerator {
     private final BuildScriptBuilderFactory scriptBuilderFactory;
     private final TemplateOperationFactory templateOperationFactory;
     private final LanguageSpecificProjectGenerator descriptor;
+    private final TemplateLibraryVersionProvider libraryVersionProvider;
 
-    public LanguageSpecificAdaptor(LanguageSpecificProjectGenerator descriptor, BuildScriptBuilderFactory scriptBuilderFactory, TemplateOperationFactory templateOperationFactory) {
+    public LanguageSpecificAdaptor(LanguageSpecificProjectGenerator descriptor, BuildScriptBuilderFactory scriptBuilderFactory, TemplateOperationFactory templateOperationFactory, TemplateLibraryVersionProvider libraryVersionProvider) {
         this.scriptBuilderFactory = scriptBuilderFactory;
         this.descriptor = descriptor;
         this.templateOperationFactory = templateOperationFactory;
+        this.libraryVersionProvider = libraryVersionProvider;
     }
 
     @Override

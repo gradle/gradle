@@ -41,6 +41,7 @@ import org.gradle.buildinit.plugins.internal.ResourceDirsGenerator;
 import org.gradle.buildinit.plugins.internal.SimpleGlobalFilesBuildSettingsDescriptor;
 import org.gradle.buildinit.plugins.internal.SwiftApplicationProjectInitDescriptor;
 import org.gradle.buildinit.plugins.internal.SwiftLibraryProjectInitDescriptor;
+import org.gradle.buildinit.plugins.internal.TemplateLibraryVersionProvider;
 import org.gradle.buildinit.plugins.internal.TemplateOperationFactory;
 import org.gradle.buildinit.plugins.internal.maven.PomProjectInitDescriptor;
 import org.gradle.buildinit.plugins.internal.model.Description;
@@ -72,21 +73,21 @@ public class ProjectLayoutSetupRegistryFactory {
         BuildInitializer basicType = of(new BasicProjectGenerator(scriptBuilderFactory, documentationRegistry), commonGenerators);
         PomProjectInitDescriptor mavenBuildConverter = new PomProjectInitDescriptor(mavenSettingsProvider, scriptBuilderFactory, documentationRegistry);
         ProjectLayoutSetupRegistry registry = new ProjectLayoutSetupRegistry(basicType, mavenBuildConverter, templateOperationBuilder);
-        registry.add(of(new JvmApplicationProjectInitDescriptor(Description.JAVA_APPLICATION, libraryVersionProvider, documentationRegistry), jvmProjectGenerators));
-        registry.add(of(new JvmLibraryProjectInitDescriptor(Description.JAVA_LIBRARY, libraryVersionProvider, documentationRegistry), jvmProjectGenerators));
-        registry.add(of(new JvmApplicationProjectInitDescriptor(Description.GROOVY, libraryVersionProvider, documentationRegistry), jvmProjectGenerators));
-        registry.add(of(new JvmLibraryProjectInitDescriptor(Description.GROOVY, libraryVersionProvider, documentationRegistry), jvmProjectGenerators));
-        registry.add(of(new JvmApplicationProjectInitDescriptor(Description.SCALA, libraryVersionProvider, documentationRegistry), jvmProjectGenerators));
-        registry.add(of(new JvmLibraryProjectInitDescriptor(Description.SCALA, libraryVersionProvider, documentationRegistry), jvmProjectGenerators));
-        registry.add(of(new JvmApplicationProjectInitDescriptor(Description.KOTLIN, libraryVersionProvider, documentationRegistry), jvmProjectGenerators));
-        registry.add(of(new JvmLibraryProjectInitDescriptor(Description.KOTLIN, libraryVersionProvider, documentationRegistry), jvmProjectGenerators));
-        registry.add(of(new CppApplicationProjectInitDescriptor(templateOperationBuilder, documentationRegistry), commonGenerators));
-        registry.add(of(new CppLibraryProjectInitDescriptor(templateOperationBuilder, documentationRegistry), commonGenerators));
-        registry.add(of(new JavaGradlePluginProjectInitDescriptor(libraryVersionProvider, documentationRegistry), jvmProjectGenerators));
-        registry.add(of(new GroovyGradlePluginProjectInitDescriptor(libraryVersionProvider, documentationRegistry), jvmProjectGenerators));
-        registry.add(of(new KotlinGradlePluginProjectInitDescriptor(libraryVersionProvider, documentationRegistry), jvmProjectGenerators));
-        registry.add(of(new SwiftApplicationProjectInitDescriptor(templateOperationBuilder, documentationRegistry), commonGenerators));
-        registry.add(of(new SwiftLibraryProjectInitDescriptor(templateOperationBuilder, documentationRegistry), commonGenerators));
+        registry.add(of(new JvmApplicationProjectInitDescriptor(Description.JAVA_APPLICATION, libraryVersionProvider, documentationRegistry), jvmProjectGenerators, libraryVersionProvider));
+        registry.add(of(new JvmLibraryProjectInitDescriptor(Description.JAVA_LIBRARY, libraryVersionProvider, documentationRegistry), jvmProjectGenerators, libraryVersionProvider));
+        registry.add(of(new JvmApplicationProjectInitDescriptor(Description.GROOVY, libraryVersionProvider, documentationRegistry), jvmProjectGenerators, libraryVersionProvider));
+        registry.add(of(new JvmLibraryProjectInitDescriptor(Description.GROOVY, libraryVersionProvider, documentationRegistry), jvmProjectGenerators, libraryVersionProvider));
+        registry.add(of(new JvmApplicationProjectInitDescriptor(Description.SCALA, libraryVersionProvider, documentationRegistry), jvmProjectGenerators, libraryVersionProvider));
+        registry.add(of(new JvmLibraryProjectInitDescriptor(Description.SCALA, libraryVersionProvider, documentationRegistry), jvmProjectGenerators, libraryVersionProvider));
+        registry.add(of(new JvmApplicationProjectInitDescriptor(Description.KOTLIN, libraryVersionProvider, documentationRegistry), jvmProjectGenerators, libraryVersionProvider));
+        registry.add(of(new JvmLibraryProjectInitDescriptor(Description.KOTLIN, libraryVersionProvider, documentationRegistry), jvmProjectGenerators, libraryVersionProvider));
+        registry.add(of(new CppApplicationProjectInitDescriptor(templateOperationBuilder, documentationRegistry), commonGenerators, libraryVersionProvider));
+        registry.add(of(new CppLibraryProjectInitDescriptor(templateOperationBuilder, documentationRegistry), commonGenerators, libraryVersionProvider));
+        registry.add(of(new JavaGradlePluginProjectInitDescriptor(libraryVersionProvider, documentationRegistry), jvmProjectGenerators, libraryVersionProvider));
+        registry.add(of(new GroovyGradlePluginProjectInitDescriptor(libraryVersionProvider, documentationRegistry), jvmProjectGenerators, libraryVersionProvider));
+        registry.add(of(new KotlinGradlePluginProjectInitDescriptor(libraryVersionProvider, documentationRegistry), jvmProjectGenerators, libraryVersionProvider));
+        registry.add(of(new SwiftApplicationProjectInitDescriptor(templateOperationBuilder, documentationRegistry), commonGenerators, libraryVersionProvider));
+        registry.add(of(new SwiftLibraryProjectInitDescriptor(templateOperationBuilder, documentationRegistry), commonGenerators, libraryVersionProvider));
         return registry;
     }
 
@@ -94,8 +95,8 @@ public class ProjectLayoutSetupRegistryFactory {
         return new CompositeProjectInitDescriptor(projectGenerator, generators);
     }
 
-    private BuildInitializer of(LanguageSpecificProjectGenerator projectGenerator, List<BuildContentGenerator> generators) {
-        return of(new LanguageSpecificAdaptor(projectGenerator, scriptBuilderFactory, templateOperationBuilder), generators);
+    private BuildInitializer of(LanguageSpecificProjectGenerator projectGenerator, List<BuildContentGenerator> generators, TemplateLibraryVersionProvider libraryVersionProvider) {
+        return of(new LanguageSpecificAdaptor(projectGenerator, scriptBuilderFactory, templateOperationBuilder, libraryVersionProvider), generators);
     }
 
 }
