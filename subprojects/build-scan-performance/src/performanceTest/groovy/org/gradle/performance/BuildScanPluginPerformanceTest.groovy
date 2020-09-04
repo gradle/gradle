@@ -60,7 +60,7 @@ class BuildScanPluginPerformanceTest extends AbstractBuildScanPluginPerformanceT
                 addBuildMutator { invocationSettings -> new InjectBuildScanPlugin(invocationSettings.projectDir, pluginVersionNumber) }
                 addBuildMutator { invocationSettings -> new SaveScanSpoolFile(invocationSettings, scenario) }
                 if (manageCacheState) {
-                    addBuildMutator { new ManageLocalCacheState() }
+                    addBuildMutator { new ManageLocalCacheState(it.projectDir) }
                 }
             }
         }
@@ -81,7 +81,7 @@ class BuildScanPluginPerformanceTest extends AbstractBuildScanPluginPerformanceT
                 addBuildMutator { invocationSettings -> new InjectBuildScanPlugin(invocationSettings.projectDir, pluginVersionNumber) }
                 addBuildMutator { invocationSettings -> new SaveScanSpoolFile(invocationSettings, scenario) }
                 if (manageCacheState) {
-                    addBuildMutator { new ManageLocalCacheState() }
+                    addBuildMutator { new ManageLocalCacheState(it.projectDir) }
                 }
             }
         }
