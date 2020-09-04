@@ -42,7 +42,8 @@ public class DefaultReportGenerator extends AbstractReportGenerator<AllResultsSt
                 return new DefaultPerformanceFlakinessDataProvider(resultsStore);
             }
         } else {
-            return super.getFlakinessDataProvider();        }
+            return super.getFlakinessDataProvider();
+        }
     }
 
     @Override
