@@ -53,11 +53,24 @@ import java.util.stream.Collectors;
  */
 public class GradleBuildExperimentRunner extends AbstractGradleProfilerBuildExperimentRunner {
     private static final String GRADLE_USER_HOME_NAME = "gradleUserHome";
+    private PidInstrumentation pidInstrumentation;
 
     public GradleBuildExperimentRunner(BenchmarkResultCollector resultCollector) {
         super(resultCollector);
+        try {
+            this.pidInstrumentation = new PidInstrumentation();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
+    public PidInstrumentation getPidInstrumentation() {
+        return pidInstrumentation;
+    }
+
+    public void setPidInstrumentation(PidInstrumentation pidInstrumentation) {
+        this.pidInstrumentation = pidInstrumentation;
+    }
 
     @Override
     public void doRun(BuildExperimentSpec experiment, MeasuredOperationList results) {
@@ -111,7 +124,6 @@ public class GradleBuildExperimentRunner extends AbstractGradleProfilerBuildExpe
 
     private GradleScenarioInvoker createScenarioInvoker(File gradleUserHome) throws IOException {
         DaemonControl daemonControl = new DaemonControl(gradleUserHome);
-        PidInstrumentation pidInstrumentation = new PidInstrumentation();
         return new GradleScenarioInvoker(daemonControl, pidInstrumentation);
     }
 

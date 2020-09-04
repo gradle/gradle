@@ -19,9 +19,11 @@ package org.gradle.performance.regression.java
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheOption
 import org.gradle.performance.AbstractCrossVersionGradleProfilerPerformanceTest
 import org.gradle.performance.categories.PerformanceRegressionTest
+import org.gradle.performance.fixture.GradleBuildExperimentRunner
 import org.gradle.profiler.BuildContext
 import org.gradle.profiler.BuildMutator
 import org.gradle.profiler.InvocationSettings
+import org.gradle.profiler.instrument.PidInstrumentation
 import org.junit.experimental.categories.Category
 import spock.lang.Unroll
 
@@ -33,16 +35,34 @@ import static org.junit.Assert.assertTrue
 
 @Category(PerformanceRegressionTest)
 class JavaConfigurationCachePerformanceTest extends AbstractCrossVersionGradleProfilerPerformanceTest {
-
     private File stateDirectory
 
     def setup() {
         stateDirectory = temporaryFolder.file(".gradle/configuration-cache")
     }
 
+    // Disable pid instrumentation in case of configuration cache code daemon
+    // Otherwise it complains: Gradle daemon was reused but should not be reused because init script is not executed properly
+    // https://github.com/gradle/gradle-profiler/pull/238
+    private void disablePidInstrumentationOnCodeDaemon(String daemon) {
+        if (daemon == 'cold') {
+            (runner.experimentRunner as GradleBuildExperimentRunner).with {
+                it.pidInstrumentation = new PidInstrumentation() {
+                    @Override
+                    void calculateGradleArgs(List<String> gradleArgs) {
+                    }
+
+                    @Override
+                    String getPidForLastBuild() {
+                        return UUID.randomUUID().toString()
+                    }
+                }
+            }
+        }
+    }
+
     @Unroll
     def "assemble on #testProject #action configuration cache state with #daemon daemon"() {
-
         given:
         runner.targetVersions = ["6.7-20200827220028+0000"]
         runner.minimumBaseVersion = "6.6"
@@ -51,6 +71,7 @@ class JavaConfigurationCachePerformanceTest extends AbstractCrossVersionGradlePr
         runner.args = ["-D${ConfigurationCacheOption.PROPERTY_NAME}=true"]
 
         and:
+        disablePidInstrumentationOnCodeDaemon(daemon)
         runner.useDaemon = daemon == hot
         runner.addBuildMutator { configurationCacheInvocationListenerFor(it, action, stateDirectory) }
         runner.warmUpRuns = daemon == hot ? 20 : 1
