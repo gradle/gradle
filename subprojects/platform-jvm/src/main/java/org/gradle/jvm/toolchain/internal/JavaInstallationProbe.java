@@ -40,6 +40,8 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.EnumMap;
 
 public class JavaInstallationProbe {
@@ -93,9 +95,9 @@ public class JavaInstallationProbe {
             this.error = error;
         }
 
-        public File getJavaHome() {
+        public Path getJavaHome() {
             assertOk();
-            return new File(metadata.get(SysProp.JAVA_HOME));
+            return Paths.get(metadata.get(SysProp.JAVA_HOME));
         }
 
         public String getImplementationJavaVersion() {

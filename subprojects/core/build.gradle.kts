@@ -146,6 +146,7 @@ dependencies {
     integTestImplementation(libs.littleproxy)
     integTestImplementation(testFixtures(project(":native")))
 
+
     testRuntimeOnly(project(":distributions-core")) {
         because("ProjectBuilder tests load services from a Gradle distribution.")
     }

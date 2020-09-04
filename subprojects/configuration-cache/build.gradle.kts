@@ -83,6 +83,7 @@ dependencies {
     integTestImplementation(libs.guava)
     integTestImplementation(libs.ant)
     integTestImplementation(libs.inject)
+
     integTestImplementation(testFixtures(project(":dependency-management")))
     integTestImplementation(testFixtures(project(":jacoco")))
 

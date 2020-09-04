@@ -16,6 +16,8 @@
 
 package org.gradle.jvm.toolchain.internal;
 
+import org.gradle.api.internal.file.FileFactory;
+
 import javax.inject.Inject;
 import java.io.File;
 
@@ -24,17 +26,19 @@ public class JavaToolchainFactory {
     private final JavaInstallationProbe probeService;
     private final JavaCompilerFactory compilerFactory;
     private final ToolchainToolFactory toolFactory;
+    private final FileFactory fileFactory;
 
     @Inject
-    public JavaToolchainFactory(JavaInstallationProbe probeService, JavaCompilerFactory compilerFactory, ToolchainToolFactory toolFactory) {
+    public JavaToolchainFactory(JavaInstallationProbe probeService, JavaCompilerFactory compilerFactory, ToolchainToolFactory toolFactory, FileFactory fileFactory) {
         this.probeService = probeService;
         this.compilerFactory = compilerFactory;
         this.toolFactory = toolFactory;
+        this.fileFactory = fileFactory;
     }
 
     public JavaToolchain newInstance(File javaHome) {
         final JavaInstallationProbe.ProbeResult probeResult = probeService.checkJdk(javaHome);
-        return new JavaToolchain(probeResult, compilerFactory, toolFactory);
+        return new JavaToolchain(probeResult, compilerFactory, toolFactory, fileFactory);
     }
 
 }

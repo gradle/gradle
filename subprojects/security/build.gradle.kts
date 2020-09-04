@@ -39,6 +39,7 @@ dependencies {
     testFixturesImplementation(project(":base-services"))
     testFixturesImplementation(libs.slf4jApi)
     testFixturesImplementation(libs.jetty)
+    testFixturesImplementation(libs.jettyWebApp)
     testFixturesImplementation(testFixtures(project(":core")))
     testFixturesImplementation(project(":internal-integ-testing"))
 

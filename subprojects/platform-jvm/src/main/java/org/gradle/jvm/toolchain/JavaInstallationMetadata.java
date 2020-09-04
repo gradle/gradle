@@ -17,32 +17,36 @@
 package org.gradle.jvm.toolchain;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.file.RegularFile;
+import org.gradle.api.file.Directory;
+import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
-import org.gradle.api.tasks.Nested;
 
 /**
- * Generates HTML API documentation for Java classes.
+ * Metadata about a Java tool obtained from a toolchain.
+ *
+ * @see JavaLauncher
+ * @see JavaCompiler
+ * @see JavadocTool
  *
  * @since 6.7
  */
 @Incubating
-public interface JavadocTool {
-
-
+public interface JavaInstallationMetadata {
     /**
-     * Returns metadata information about this tool
+     * Returns the language version of the JVM to which this tool belongs
      *
-     * @return the tool metadata
+     * @return the {@code JavaLanguageVersion}
      */
-    @Nested
-    JavaInstallationMetadata getMetadata();
+    @Input
+    JavaLanguageVersion getLanguageVersion();
 
     /**
-     * Returns the path to the executable for this tool
+     * The path to installation this tool belongs to.
+     * <p>
+     * This value matches what would be the content of {@code JAVA_HOME} for the given installation.
      *
-     * @return the path to the executable
+     * @return the installation path
      */
     @Internal
-    RegularFile getExecutablePath();
+    Directory getInstallationPath();
 }

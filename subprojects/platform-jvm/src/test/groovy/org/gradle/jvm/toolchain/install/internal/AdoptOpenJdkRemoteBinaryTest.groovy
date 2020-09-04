@@ -17,9 +17,9 @@
 package org.gradle.jvm.toolchain.install.internal
 
 import net.rubygrapefruit.platform.SystemInfo
-import org.gradle.api.JavaVersion
 import org.gradle.internal.SystemProperties
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.jvm.toolchain.JavaLanguageVersion
 import org.gradle.jvm.toolchain.internal.DefaultToolchainSpec
 import org.gradle.util.TestUtil
 import org.junit.Rule
@@ -152,7 +152,7 @@ class AdoptOpenJdkRemoteBinaryTest extends Specification {
 
     def newSpec(int jdkVersion = 11) {
         def spec = new DefaultToolchainSpec(TestUtil.objectFactory())
-        spec.languageVersion.set(JavaVersion.toVersion(jdkVersion))
+        spec.languageVersion.set(JavaLanguageVersion.of(jdkVersion))
         spec
     }
 }

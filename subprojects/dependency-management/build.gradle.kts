@@ -70,9 +70,6 @@ dependencies {
     integTestImplementation(project(":build-option"))
     integTestImplementation(libs.jansi)
     integTestImplementation(libs.ansiControlSequenceUtil)
-    integTestImplementation(libs.jetty) {
-        because("tests use HttpServlet directly")
-    }
     integTestImplementation(testFixtures(project(":security")))
 
     testFixturesApi(project(":base-services")) {
@@ -101,12 +98,16 @@ dependencies {
     testFixturesImplementation(project(":jvm-services")) {
         because("Groovy compiler bug leaks internals")
     }
+    testFixturesImplementation(libs.jettyWebApp) {
+        because("Groovy compiler bug leaks internals")
+    }
 
     testRuntimeOnly(project(":distributions-core")) {
         because("ProjectBuilder tests load services from a Gradle distribution.")
     }
     integTestDistributionRuntimeOnly(project(":distributions-basics"))
     crossVersionTestDistributionRuntimeOnly(project(":distributions-core"))
+    crossVersionTestImplementation(libs.jettyWebApp)
 }
 
 classycle {

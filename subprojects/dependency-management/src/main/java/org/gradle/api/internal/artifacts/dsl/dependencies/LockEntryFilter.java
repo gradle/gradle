@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.locking;
+package org.gradle.api.internal.artifacts.dsl.dependencies;
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.specs.Spec;
 
-interface LockEntryFilter extends Spec<ModuleComponentIdentifier> {
+public interface LockEntryFilter extends Spec<ModuleComponentIdentifier> {
 }

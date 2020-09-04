@@ -16,22 +16,27 @@
 
 package org.gradle.jvm.toolchain.internal;
 
+import org.gradle.api.file.RegularFile;
 import org.gradle.api.tasks.Internal;
 import org.gradle.jvm.toolchain.JavaLauncher;
-
-import java.io.File;
+import org.gradle.jvm.toolchain.JavaInstallationMetadata;
 
 public class DefaultToolchainJavaLauncher implements JavaLauncher {
 
-    private final String javaExecutable;
+    private final JavaToolchain javaToolchain;
 
-    public DefaultToolchainJavaLauncher(File javaExecutable) {
-        this.javaExecutable = javaExecutable.getAbsolutePath();
+    public DefaultToolchainJavaLauncher(JavaToolchain javaToolchain) {
+        this.javaToolchain = javaToolchain;
     }
 
+    @Override
     @Internal
-    public String getExecutable() {
-        return javaExecutable;
+    public RegularFile getExecutablePath() {
+        return javaToolchain.findExecutable("java");
     }
 
+    @Override
+    public JavaInstallationMetadata getMetadata() {
+        return javaToolchain;
+    }
 }

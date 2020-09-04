@@ -17,6 +17,8 @@
 package org.gradle.integtests.resource.s3.fixtures
 
 import groovy.xml.StreamingMarkupBuilder
+import org.eclipse.jetty.server.Request
+import org.eclipse.jetty.server.handler.AbstractHandler
 import org.gradle.integtests.resource.s3.fixtures.stub.HttpStub
 import org.gradle.integtests.resource.s3.fixtures.stub.StubRequest
 import org.gradle.test.fixtures.file.TestDirectoryProvider
@@ -27,9 +29,8 @@ import org.joda.time.DateTimeZone
 import org.joda.time.format.DateTimeFormat
 import org.joda.time.format.DateTimeFormatter
 import org.joda.time.tz.FixedDateTimeZone
-import org.mortbay.jetty.Request
-import org.mortbay.jetty.handler.AbstractHandler
 
+import javax.servlet.ServletException
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 import java.security.MessageDigest
@@ -472,7 +473,9 @@ class S3Server extends HttpServer implements RepositoryServer {
         HttpServer.HttpExpectOne expectation = new HttpServer.HttpExpectOne(action, [httpStub.request.method], httpStub.request.path)
         expectations << expectation
         addHandler(new AbstractHandler() {
-            void handle(String target, HttpServletRequest request, HttpServletResponse response, int dispatch) {
+            @Override
+            void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+
                 if (requestMatches(httpStub, request)) {
                     assertRequest(httpStub, request)
                     if (expectation.run) {

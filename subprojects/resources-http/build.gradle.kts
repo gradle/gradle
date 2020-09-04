@@ -36,7 +36,7 @@ dependencies {
     implementation(libs.nekohtml)
 
     testImplementation(project(":internal-integ-testing"))
-    testImplementation(libs.jetty)
+    testImplementation(libs.jettyWebApp)
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":logging")))
 

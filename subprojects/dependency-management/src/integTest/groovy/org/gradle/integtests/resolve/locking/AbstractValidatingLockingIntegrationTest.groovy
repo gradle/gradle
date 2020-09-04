@@ -339,4 +339,83 @@ dependencies {
         unique << [true, false]
     }
 
+    @Unroll
+    def 'does not fail when lock file contains entry that is in ignored dependencies (unique: #unique)'() {
+        mavenRepo.module('org', 'foo', '1.0').publish()
+        mavenRepo.module('org', 'bar', '1.0').publish()
+
+        if (unique) {
+            FeaturePreviewsFixture.enableOneLockfilePerProject(settingsFile)
+        }
+        buildFile << """
+dependencyLocking {
+    lockAllConfigurations()
+    lockMode = LockMode.${lockMode()}
+    ignoredDependencies.add('org:bar')
+}
+
+repositories {
+    maven {
+        name 'repo'
+        url '${mavenRepo.uri}'
+    }
+}
+configurations {
+    lockedConf
+}
+
+dependencies {
+    lockedConf 'org:foo:1.+'
+}
+"""
+
+        lockfileFixture.createLockfile('lockedConf',['org:bar:1.0', 'org:foo:1.0'], unique)
+
+        expect:
+        succeeds 'checkDeps'
+
+        where:
+        unique << [true, false]
+    }
+
+    @Unroll
+    def 'does not fail when resolution result contains ignored dependency (unique: #unique)'() {
+        mavenRepo.module('org', 'foo', '1.0').publish()
+        mavenRepo.module('org', 'foo', '1.1').publish()
+        mavenRepo.module('org', 'bar', '1.0').publish()
+        mavenRepo.module('org', 'bar', '1.1').publish()
+        if (unique) {
+            FeaturePreviewsFixture.enableOneLockfilePerProject(settingsFile)
+        }
+        buildFile << """
+dependencyLocking {
+    lockAllConfigurations()
+    lockMode = LockMode.${lockMode()}
+    ignoredDependencies.add('org:bar')
+}
+
+repositories {
+    maven {
+        name 'repo'
+        url '${mavenRepo.uri}'
+    }
+}
+configurations {
+    lockedConf
+}
+
+dependencies {
+    lockedConf 'org:foo:1.+'
+    lockedConf 'org:bar:1.+'
+}
+"""
+
+        lockfileFixture.createLockfile('lockedConf', ['org:foo:1.0'], unique)
+
+        expect:
+        succeeds 'checkDeps'
+
+        where:
+        unique << [true, false]
+    }
 }
