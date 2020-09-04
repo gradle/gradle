@@ -95,7 +95,7 @@ Project dependencies enable partial multi-project builds.
 
 
 [[sec:depending_on_output_of_another_project]]
-== Depending on output produced by another project
+== Depending on artifacts produced by another project
 
 <<#sec:project_jar_dependencies,Project dependencies>> model dependencies between modules.
 Effectively, you are saying that you depend on the main output of another project. In a Java-based project that's usually a JAR file.
