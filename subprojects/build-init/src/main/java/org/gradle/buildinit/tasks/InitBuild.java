@@ -208,7 +208,10 @@ public class InitBuild extends DefaultTask {
         }
 
         BuildInitTestFramework testFramework = null;
-        if (isNullOrEmpty(this.testFramework)) {
+        if (modularizationOption == ModularizationOption.WITH_LIBRARY_PROJECTS) {
+            // currently we only support JUnit5 tests for this combination
+            testFramework = BuildInitTestFramework.JUNIT_JUPITER;
+        } else if (isNullOrEmpty(this.testFramework)) {
             testFramework = initDescriptor.getDefaultTestFramework();
             if (initDescriptor.getTestFrameworks().size() > 1) {
                 testFramework = inputHandler.selectOption("Select test framework", initDescriptor.getTestFrameworks(), testFramework);
