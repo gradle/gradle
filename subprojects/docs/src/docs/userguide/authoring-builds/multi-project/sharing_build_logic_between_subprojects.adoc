@@ -54,7 +54,7 @@ Another, more complex and real-world example of a multi-project build that compo
 is the build of the link:https://github.com/gradle/gradle[Gradle Build Tool] itself.
 
 [[sec:convention_plugins_vs_cross_configuration]]
-== Convention plugins versus cross project configuration
+== Cross project configuration
 
 Another, discouraged, way to share build logic between subproject is _cross project configuration_ via the `subprojects {}` and `allprojects {}` DSL constructs.
 With cross configuration, build logic can be injected into a subproject and this is not obvious when looking at the subproject's
