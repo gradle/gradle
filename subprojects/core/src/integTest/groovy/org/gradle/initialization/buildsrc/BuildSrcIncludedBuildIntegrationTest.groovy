@@ -21,7 +21,6 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.plugin.PluginBuilder
-import spock.lang.Ignore
 
 class BuildSrcIncludedBuildIntegrationTest extends AbstractIntegrationSpec {
     def "buildSrc cannot (yet) define any included builds"() {
@@ -139,7 +138,6 @@ class BuildSrcIncludedBuildIntegrationTest extends AbstractIntegrationSpec {
         outputContains("test-plugin applied to :included")
     }
 
-    @Ignore("this does not work yet and hangs indefinitely")
     @ToBeFixedForConfigurationCache(because="composite build")
     def "buildSrc can depend on dependencies contributed by other included builds"() {
         file("buildSrc/build.gradle") << """
