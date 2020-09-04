@@ -39,21 +39,25 @@ It is roughly structured as follows:
 │   └── 4.9
 ├── init.d // <5>
 │   └── my-setup.gradle
+├── jdks // <6>
+│   ├── ⋮
+│   └── jdk-14.0.2+12
 ├── wrapper
-│   └── dists // <6>
+│   └── dists // <7>
 │       ├── ⋮
 │       ├── gradle-4.8-bin
 │       ├── gradle-4.9-all
 │       └── gradle-4.9-bin
-└── gradle.properties // <7>
+└── gradle.properties // <8>
 ----
 <1> Global cache directory (for everything that's not project-specific)
 <2> Version-specific caches (e.g. to support incremental builds)
 <3> Shared caches (e.g. for artifacts of dependencies)
 <4> Registry and logs of the <<gradle_daemon.adoc#gradle_daemon, Gradle Daemon>>
 <5> Global <<init_scripts.adoc#init_scripts, initialization scripts>>
-<6> Distributions downloaded by the <<gradle_wrapper.adoc#gradle_wrapper,Gradle Wrapper>>
-<7> Global <<build_environment.adoc#sec:gradle_configuration_properties,Gradle configuration properties>>
+<6> JDKs downloaded by the <<toolchains.adoc#provisioning, toolchain support>>
+<7> Distributions downloaded by the <<gradle_wrapper.adoc#gradle_wrapper,Gradle Wrapper>>
+<8> Global <<build_environment.adoc#sec:gradle_configuration_properties,Gradle configuration properties>>
 
 [[dir:gradle_user_home:cache_cleanup]]
 === Cleanup of caches and distributions
@@ -64,10 +68,10 @@ If using `--no-daemon`, it runs in the foreground after the build session with a
 
 The following cleanup strategies are applied periodically (at most every 24 hours):
 
-- Version-specific caches in `caches/<gradle-version>/` are checked for whether they are still in use. If not, directories for release versions are deleted after 30 days of inactivity, snapshot versions after 7 days of inactivity.
-- Shared caches in `caches/` (e.g. `jars-*`) are checked for whether they are still in use. If there's no Gradle version that still uses them, they are deleted.
-- Files in shared caches used by the current Gradle version in `caches/` (e.g. `jars-3` or `modules-2`) are checked for when they were last accessed. Depending on whether the file can be recreated locally or would have to be downloaded from a remote repository again, it will be deleted after 7 or 30 days of not being accessed, respectively.
-- Gradle distributions in `wrapper/dists/` are checked for whether they are still in use, i.e. whether there's a corresponding version-specific cache directory. Unused distributions are deleted.
+- Version-specific caches in `caches/<gradle-version>/` are checked for whether they are still in use.If not, directories for release versions are deleted after 30 days of inactivity, snapshot versions after 7 days of inactivity.
+- Shared caches in `caches/` (e.g. `jars-*`) are checked for whether they are still in use.If there's no Gradle version that still uses them, they are deleted.
+- Files in shared caches used by the current Gradle version in `caches/` (e.g. `jars-3` or `modules-2`) are checked for when they were last accessed.Depending on whether the file can be recreated locally or would have to be downloaded from a remote repository again, it will be deleted after 7 or 30 days of not being accessed, respectively.
+- Gradle distributions in `wrapper/dists/` are checked for whether they are still in use, i.e. whether there's a corresponding version-specific cache directory.Unused distributions are deleted.
 
 
 [[dir:project_root]]
