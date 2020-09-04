@@ -19,6 +19,7 @@ package org.gradle.buildinit.plugins.internal;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
 import org.gradle.buildinit.plugins.internal.modifiers.ComponentType;
 import org.gradle.buildinit.plugins.internal.modifiers.Language;
+import org.gradle.buildinit.plugins.internal.modifiers.ModularizationOption;
 
 import java.util.Optional;
 import java.util.Set;
@@ -29,6 +30,8 @@ public interface LanguageSpecificProjectGenerator {
     ComponentType getComponentType();
 
     Language getLanguage();
+
+    Set<ModularizationOption> getModularizationOptions();
 
     Optional<String> getFurtherReading();
 

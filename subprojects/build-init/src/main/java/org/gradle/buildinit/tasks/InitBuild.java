@@ -243,8 +243,9 @@ public class InitBuild extends DefaultTask {
             throw new GradleException("Package name is not supported for '" + initDescriptor.getId() + "' build type.");
         }
 
-        String subprojectName = initDescriptor.getComponentType().getDefaultProjectName();
-        initDescriptor.generate(new InitSettings(projectName, subprojectName, dsl, packageName, testFramework, projectDir));
+        List<String> subprojectNames = initDescriptor.getComponentType().getDefaultProjectNames();
+        initDescriptor.generate(new InitSettings(projectName, subprojectNames,
+            modularizationOption, dsl, packageName, testFramework, projectDir));
 
         initDescriptor.getFurtherReading().ifPresent(link -> getLogger().lifecycle("Get more help with your project: {}", link));
     }

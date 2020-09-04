@@ -20,9 +20,11 @@ import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
 import org.gradle.buildinit.plugins.internal.modifiers.ComponentType;
 import org.gradle.buildinit.plugins.internal.modifiers.Language;
+import org.gradle.buildinit.plugins.internal.modifiers.ModularizationOption;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
@@ -49,6 +51,11 @@ public class CompositeProjectInitDescriptor implements BuildInitializer {
     @Override
     public Language getLanguage() {
         return descriptor.getLanguage();
+    }
+
+    @Override
+    public Set<ModularizationOption> getModularizationOptions() {
+        return descriptor.getModularizationOptions();
     }
 
     @Override

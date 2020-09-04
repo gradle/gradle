@@ -27,6 +27,7 @@ import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
 import org.gradle.buildinit.plugins.internal.modifiers.ComponentType;
 import org.gradle.buildinit.plugins.internal.modifiers.Language;
+import org.gradle.buildinit.plugins.internal.modifiers.ModularizationOption;
 import org.gradle.util.IncubationLogger;
 
 import java.io.File;
@@ -60,6 +61,11 @@ public class PomProjectInitDescriptor implements BuildConverter {
     @Override
     public Language getLanguage() {
         return Language.NONE;
+    }
+
+    @Override
+    public Set<ModularizationOption> getModularizationOptions() {
+        return Collections.emptySet();
     }
 
     @Override
