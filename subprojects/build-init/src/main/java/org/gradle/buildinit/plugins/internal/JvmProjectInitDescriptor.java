@@ -20,6 +20,7 @@ import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.buildinit.plugins.internal.model.Description;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
 import org.gradle.buildinit.plugins.internal.modifiers.Language;
+import org.gradle.buildinit.plugins.internal.modifiers.ModularizationOption;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,6 +40,22 @@ public abstract class JvmProjectInitDescriptor extends LanguageLibraryProjectIni
         this.description = description;
         this.libraryVersionProvider = libraryVersionProvider;
         this.documentationRegistry = documentationRegistry;
+    }
+
+    protected boolean isSingleProject(InitSettings settings) {
+        return settings.getModularizationOption() == ModularizationOption.SINGLE_PROJECT;
+    }
+
+    protected String applicationConventionPlugin(InitSettings settings) {
+        return settings.getPackageName() + "." + getLanguage().getName() + "-application-conventions";
+    }
+
+    protected String libraryConventionPlugin(InitSettings settings) {
+        return settings.getPackageName() + "." + getLanguage().getName() + "-library-conventions";
+    }
+
+    private String commonConventionPlugin(InitSettings settings) {
+        return settings.getPackageName() + "." + getLanguage().getName() + "-common-conventions";
     }
 
     @Override
@@ -74,25 +91,42 @@ public abstract class JvmProjectInitDescriptor extends LanguageLibraryProjectIni
 
     @Override
     public void generateProjectBuildScript(String projectName, InitSettings settings, BuildScriptBuilder buildScriptBuilder) {
-        addJcenter(buildScriptBuilder);
-        String languagePlugin = description.getPluginName();
-        if (languagePlugin != null) {
-            String pluginVersionProperty = description.getPluginVersionProperty();
-            String pluginVersion = pluginVersionProperty == null ? null : libraryVersionProvider.getVersion(pluginVersionProperty);
-            buildScriptBuilder.plugin("Apply the " + languagePlugin + " Plugin to add support for " + getLanguage(), languagePlugin, pluginVersion);
-        }
+        if (isSingleProject(settings)) {
+            addJcenter(buildScriptBuilder);
+            String languagePlugin = description.getPluginName();
+            if (languagePlugin != null) {
+                String pluginVersionProperty = description.getPluginVersionProperty();
+                String pluginVersion = pluginVersionProperty == null ? null : libraryVersionProvider.getVersion(pluginVersionProperty);
+                buildScriptBuilder.plugin("Apply the " + languagePlugin + " Plugin to add support for " + getLanguage(), languagePlugin, pluginVersion);
+            }
 
-        buildScriptBuilder.fileComment("This generated file contains a sample " + getLanguage() + " " + getComponentType() + " project to get you started.");
-        if (description.getUserManualId() != null) {
-            buildScriptBuilder.fileComment("For more details take a look at the " + description.getChapterName() + " chapter in the Gradle")
-                .fileComment("User Manual available at " + documentationRegistry.getDocumentationFor(description.getUserManualId()));
+            buildScriptBuilder.fileComment("This generated file contains a sample " + getLanguage() + " " + getComponentType() + " project to get you started.");
+            if (description.getUserManualId() != null) {
+                buildScriptBuilder.fileComment("For more details take a look at the " + description.getChapterName() + " chapter in the Gradle")
+                    .fileComment("User Manual available at " + documentationRegistry.getDocumentationFor(description.getUserManualId()));
+            }
+            addStandardDependencies(buildScriptBuilder);
+            addTestFramework(settings.getTestFramework(), buildScriptBuilder);
         }
-        addStandardDependencies(buildScriptBuilder);
-        addTestFramework(settings.getTestFramework(), buildScriptBuilder);
     }
 
     @Override
     public void generateConventionPluginBuildScript(String conventionPluginName, InitSettings settings, BuildScriptBuilder buildScriptBuilder) {
+        if ("common".equals(conventionPluginName)) {
+            addJcenter(buildScriptBuilder);
+            String commonPlugin = description.getPluginName() == null ? "java" : description.getPluginName();
+            buildScriptBuilder.plugin(null, commonPlugin);
+            addStandardDependencies(buildScriptBuilder);
+            addTestFramework(settings.getTestFramework(), buildScriptBuilder);
+        } else {
+            buildScriptBuilder.plugin(null, commonConventionPlugin(settings));
+            if ("library".equals(conventionPluginName)) {
+                applyLibraryPlugin(buildScriptBuilder);
+            }
+            if ("application".equals(conventionPluginName)) {
+                applyApplicationPlugin(buildScriptBuilder);
+            }
+        }
     }
 
     @Override
