@@ -58,7 +58,7 @@ class TestPerformanceTest(model: CIBuildModel, stage: Stage) : BaseGradleBuildTy
             "performance:performanceAdHocTest",
             "--baselines force-defaults",
             """--scenarios "$scenario" --warmups 2 --runs 2 --checks none""",
-            """"-PtestJavaHome=${individualPerformanceTestJavaHome(os)}""""
+            """"-PtestJavaHome=${os.individualPerformanceTestJavaHome()}""""
         ))
         movePerformanceResults("[^\\p{Alpha}]".toRegex().replace(scenario, ""))
     }
