@@ -21,7 +21,7 @@ import org.gradle.test.fixtures.file.TestFile
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl.GROOVY
 
 class BuildScriptBuilderGroovyTest extends AbstractBuildScriptBuilderTest {
-    def builder = new BuildScriptBuilder(GROOVY, "build", false)
+    def builder = new BuildScriptBuilder(GROOVY, "build")
 
     TestFile outputFile = tmpDir.file("build.gradle")
 
