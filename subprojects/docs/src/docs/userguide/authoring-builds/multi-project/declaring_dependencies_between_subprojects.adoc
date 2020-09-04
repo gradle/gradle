@@ -95,7 +95,7 @@ Project dependencies enable partial multi-project builds.
 
 
 [[sec:depending_on_output_of_another_project]]
-== Depending on output produced by another project
+== Depending on artifacts produced by another project
 
 <<#sec:project_jar_dependencies,Project dependencies>> model dependencies between modules.
 Effectively, you are saying that you depend on the main output of another project. In a Java-based project that's usually a JAR file.
@@ -127,7 +127,6 @@ include::sample[dir="snippets/multiproject/dependencies-outgoingArtifact/kotlin/
 In the example above, the consumer now declares a dependency on the outputs of the `producer` project.
 
 
-== Depending on other artifacts between projects
 
 Depending on the main output artifact from another project is only one example.
 Gradle has one of the most powerful <<core_dependency_management#sec:dependency-mgmt-in-gradle,dependency management engines>> that allows you to share arbitrary artifacts between projects and let Gradle build them on demand.
