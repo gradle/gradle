@@ -31,9 +31,9 @@ import org.gradle.internal.build.BuildAddedListener
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.build.IncludedBuildState
 import org.gradle.internal.build.RootBuildState
+import org.gradle.internal.buildtree.BuildTreeState
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.service.ServiceRegistry
-import org.gradle.internal.service.scopes.BuildTreeScopeServices
 import org.gradle.plugin.management.internal.PluginRequests
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Path
@@ -49,11 +49,11 @@ class DefaultIncludedBuildRegistryTest extends Specification {
         getBroadcaster(BuildAddedListener) >> buildAddedListener
     }
     def registry = new DefaultIncludedBuildRegistry(
+        Stub(BuildTreeState),
         includedBuildFactory,
         Stub(IncludedBuildDependencySubstitutionsBuilder),
         Stub(GradleLauncherFactory),
-        listenerManager,
-        Stub(BuildTreeScopeServices)
+        listenerManager
     )
 
     def "is empty by default"() {

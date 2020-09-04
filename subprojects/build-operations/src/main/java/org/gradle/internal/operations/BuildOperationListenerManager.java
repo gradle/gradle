@@ -16,6 +16,9 @@
 
 package org.gradle.internal.operations;
 
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
+
 /**
  * Manages listeners of build operations.
  *
@@ -32,6 +35,7 @@ package org.gradle.internal.operations;
  *
  * @since 3.5
  */
+@ServiceScope(Scope.Global.class)
 public interface BuildOperationListenerManager {
 
     void addListener(BuildOperationListener listener);

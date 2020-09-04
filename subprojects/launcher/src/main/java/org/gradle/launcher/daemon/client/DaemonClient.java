@@ -33,7 +33,6 @@ import org.gradle.internal.logging.ConsoleRenderer;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.internal.remote.internal.Connection;
-import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.diagnostics.DaemonDiagnostics;
 import org.gradle.launcher.daemon.protocol.Build;
@@ -96,7 +95,7 @@ import java.util.UUID;
  * <p>
  * If the daemon returns a {@code null} message before returning a {@link Result} object, it has terminated unexpectedly for some reason.
  */
-public class DaemonClient implements BuildActionExecuter<BuildActionParameters> {
+public class DaemonClient implements BuildActionExecuter<BuildActionParameters, BuildRequestContext> {
     private static final Logger LOGGER = Logging.getLogger(DaemonClient.class);
     private final DaemonConnector connector;
     private final OutputEventListener outputEventListener;
@@ -133,7 +132,7 @@ public class DaemonClient implements BuildActionExecuter<BuildActionParameters> 
      * @param action The action
      */
     @Override
-    public BuildActionResult execute(BuildAction action, BuildRequestContext requestContext, BuildActionParameters parameters, ServiceRegistry contextServices) {
+    public BuildActionResult execute(BuildAction action, BuildActionParameters parameters, BuildRequestContext requestContext) {
         UUID buildId = idGenerator.generateId();
         List<DaemonInitialConnectException> accumulatedExceptions = Lists.newArrayList();
 
@@ -198,7 +197,7 @@ public class DaemonClient implements BuildActionExecuter<BuildActionParameters> 
         } else if (result instanceof DaemonUnavailable) {
             throw new DaemonInitialConnectException("The daemon we connected to was unavailable: " + ((DaemonUnavailable) result).getReason());
         } else if (result instanceof Result) {
-            return (BuildActionResult)((Result) result).getValue();
+            return (BuildActionResult) ((Result) result).getValue();
         } else {
             throw invalidResponse(result, build, diagnostics);
         }

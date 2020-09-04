@@ -331,7 +331,7 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
         parametersConverter.configure(parser);
         Parameters parameters = parametersConverter.convert(parser.parse(getAllArgs()), getWorkingDir());
 
-        BuildActionExecuter<BuildActionParameters> actionExecuter = GLOBAL_SERVICES.get(BuildActionExecuter.class);
+        BuildActionExecuter<BuildActionParameters, BuildRequestContext> actionExecuter = GLOBAL_SERVICES.get(BuildActionExecuter.class);
 
         ListenerManager listenerManager = GLOBAL_SERVICES.get(ListenerManager.class);
         listenerManager.addListener(listener);
@@ -349,7 +349,7 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
             try {
                 startMeasurement();
                 try {
-                    BuildActionResult result = actionExecuter.execute(action, buildRequestContext, buildActionParameters, GLOBAL_SERVICES);
+                    BuildActionResult result = actionExecuter.execute(action, buildActionParameters, buildRequestContext);
                     if (result.getException() != null) {
                         return new BuildResult(null, result.getException());
                     }

@@ -15,9 +15,13 @@
  */
 package org.gradle.initialization;
 
+import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.ServiceScope;
+
 /**
  * A bunch of information about the request which launched a build.
  */
+@ServiceScope(Scopes.BuildSession.class)
 public interface BuildRequestMetaData {
 
     /**

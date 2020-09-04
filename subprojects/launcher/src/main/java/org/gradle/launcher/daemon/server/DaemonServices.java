@@ -156,7 +156,7 @@ public class DaemonServices extends DefaultServiceRegistry {
             new RequestStopIfSingleUsedDaemon(),
             new ResetDeprecationLogger(),
             new WatchForDisconnection(),
-            new ExecuteBuild(buildActionExecuter, runningStats, this)
+            new ExecuteBuild(buildActionExecuter, runningStats)
         );
 
     }

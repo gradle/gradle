@@ -26,7 +26,6 @@ import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
-import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.protocol.Build;
 import org.gradle.launcher.exec.BuildActionParameters;
@@ -46,7 +45,7 @@ public class SingleUseDaemonClient extends DaemonClient {
     }
 
     @Override
-    public BuildActionResult execute(BuildAction action, BuildRequestContext buildRequestContext, BuildActionParameters parameters, ServiceRegistry contextServices) {
+    public BuildActionResult execute(BuildAction action, BuildActionParameters parameters, BuildRequestContext buildRequestContext) {
         LOGGER.lifecycle("{} Please consider using the daemon: {}.", MESSAGE, documentationRegistry.getDocumentationFor("gradle_daemon"));
 
         DaemonClientConnection daemonConnection = getConnector().startSingleUseDaemon();

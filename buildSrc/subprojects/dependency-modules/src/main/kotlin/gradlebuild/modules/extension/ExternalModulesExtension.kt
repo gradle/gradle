@@ -136,6 +136,7 @@ abstract class ExternalModulesExtension {
     val guice = "com.google.inject:guice"
     val httpmime = "org.apache.httpcomponents:httpmime"
     val jacksonKotlin = "com.fasterxml.jackson.module:jackson-module-kotlin"
+    val joptSimple = "net.sf.jopt-simple:jopt-simple"
     val jetty = "org.eclipse.jetty:jetty-http"
     val jettySecurity = "org.eclipse.jetty:jetty-security"
     val jettyWebApp = "org.eclipse.jetty:jetty-webapp"

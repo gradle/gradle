@@ -34,6 +34,8 @@ import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.SetProperty;
 import org.gradle.api.reflect.ObjectInstantiationException;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.util.List;
 import java.util.Map;
@@ -47,6 +49,7 @@ import java.util.Set;
  *
  * @since 4.0
  */
+@ServiceScope(Scope.Global.class)
 public interface ObjectFactory {
     /**
      * Creates a simple immutable {@link Named} object of the given type and name.

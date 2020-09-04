@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,25 +16,27 @@
 
 package org.gradle.performance.mutator
 
-abstract class AbstractJavaSourceFileMutator extends AbstractFileChangeMutator {
+import org.gradle.profiler.BuildContext
+import org.gradle.profiler.mutations.AbstractFileChangeMutator
 
-    AbstractJavaSourceFileMutator(String sourceFilePath) {
-        super(sourceFilePath)
-        if (!sourceFilePath.endsWith(".java") && !sourceFilePath.endsWith('.groovy')) {
-            throw new IllegalArgumentException("Can only modify Java/Groovy source files")
+abstract class AbstractGroovySourceFileMutator extends AbstractFileChangeMutator {
+    AbstractGroovySourceFileMutator(File sourceFile) {
+        super(sourceFile)
+        if (!sourceFile.getName().endsWith(".groovy")) {
+            throw new IllegalArgumentException("Can only modify Groovy source files")
         }
     }
 
     @Override
-    protected void applyChangeTo(StringBuilder text) {
+    protected void applyChangeTo(BuildContext context, StringBuilder text) {
         int lastOpeningPos = text.lastIndexOf("{")
         int insertPos = text.indexOf("}", lastOpeningPos)
         boolean isClassClosing = insertPos == text.lastIndexOf("}")
         if (insertPos < 0 || isClassClosing) {
-            throw new IllegalArgumentException("Cannot parse source file $sourceFilePath to apply changes")
+            throw new IllegalArgumentException("Cannot parse source file $sourceFile to apply changes")
         }
-        applyChangeAt(text, insertPos)
+        applyChangeAt(context, text, insertPos)
     }
 
-    protected abstract void applyChangeAt(StringBuilder text, int lastMethodEndPos)
+    protected abstract void applyChangeAt(BuildContext context, StringBuilder text, int lastMethodEndPos)
 }

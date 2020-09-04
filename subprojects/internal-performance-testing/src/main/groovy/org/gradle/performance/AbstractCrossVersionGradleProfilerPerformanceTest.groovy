@@ -20,7 +20,7 @@ import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
 import org.gradle.performance.categories.PerformanceRegressionTest
-import org.gradle.performance.fixture.GradleProfilerBuildExperimentRunner
+import org.gradle.performance.fixture.GradleBuildExperimentRunner
 import org.gradle.performance.fixture.GradleProfilerCrossVersionPerformanceTestRunner
 import org.gradle.performance.fixture.PerformanceTestDirectoryProvider
 import org.gradle.performance.fixture.PerformanceTestIdProvider
@@ -60,7 +60,7 @@ class AbstractCrossVersionGradleProfilerPerformanceTest extends Specification {
     def setup() {
         def gradleProfilerReporter = new GradleProfilerReporter(temporaryFolder.testDirectory)
         runner = new GradleProfilerCrossVersionPerformanceTestRunner(
-            new GradleProfilerBuildExperimentRunner(gradleProfilerReporter.getResultCollector()),
+            new GradleBuildExperimentRunner(gradleProfilerReporter.getResultCollector()),
             RESULTS_STORE,
             CompositeDataReporter.of(gradleProfilerReporter, RESULTS_STORE),
             new ReleasedVersionDistributions(buildContext),
