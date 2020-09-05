@@ -45,7 +45,7 @@ class FunctionalTest(
 
     applyTestDefaults(model, this, testTasks, notQuick = !testCoverage.isQuick, os = testCoverage.os,
         extraParameters = (
-            listOf(""""-PtestJavaHome=%${testCoverage.os.name.toLowerCase()}.${testCoverage.testJvmVersion}.${testCoverage.vendor}.64bit%"""") +
+            listOf(""""-PtestJavaHome=${testCoverage.os.javaHome(testCoverage.testJvmVersion, testCoverage.vendor)}"""") +
                 buildScanTags.map { buildScanTag(it) } +
                 buildScanValues.map { buildScanCustomValue(it.key, it.value) } +
                 if (enableTestDistribution) "-DenableTestDistribution=true -Dscan.tag.test-distribution -Dgradle.enterprise.url=https://e.grdev.net" else "" +

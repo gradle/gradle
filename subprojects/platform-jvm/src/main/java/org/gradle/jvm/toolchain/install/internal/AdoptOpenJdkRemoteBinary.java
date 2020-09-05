@@ -61,7 +61,7 @@ public class AdoptOpenJdkRemoteBinary {
 
     private URI constructUri(JavaToolchainSpec spec) {
         return URI.create(getServerBaseUri() +
-            "v3/binary/latest/" + getLanguageVersion(spec).asString() +
+            "v3/binary/latest/" + getLanguageVersion(spec).toString() +
             "/" +
             determineReleaseState() +
             "/" +
@@ -72,7 +72,7 @@ public class AdoptOpenJdkRemoteBinary {
     }
 
     public String toFilename(JavaToolchainSpec spec) {
-        return String.format("adoptopenjdk-%s-%s-%s.%s", getLanguageVersion(spec).asString(), determineArch(), determineOs(), determineFileExtension());
+        return String.format("adoptopenjdk-%s-%s-%s.%s", getLanguageVersion(spec).toString(), determineArch(), determineOs(), determineFileExtension());
     }
 
     private String determineFileExtension() {

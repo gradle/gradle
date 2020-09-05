@@ -52,4 +52,12 @@ enum class Os(
     );
 
     fun escapeKeyValuePair(key: String, value: String) = if (this == WINDOWS) """$key="$value"""" else """"$key=$value""""
+
+    fun asName() = name.toLowerCase().capitalize()
+
+    fun buildJavaHome() = javaHome(JvmVersion.java11, JvmVendor.openjdk)
+
+    fun individualPerformanceTestJavaHome() = javaHome(JvmVersion.java8, JvmVendor.oracle)
+
+    fun javaHome(jvmVersion: JvmVersion, vendor: JvmVendor) = "%${name.toLowerCase()}.$jvmVersion.$vendor.64bit%"
 }

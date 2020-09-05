@@ -70,7 +70,7 @@ class ArchivesContinuousIntegrationTest extends AbstractContinuousIntegrationTes
     }
 
     @Unroll
-    def "using compressed files as inputs - #source - readonly #readonly"() {
+    def "using compressed files as inputs - #type #packType #source - readonly #readonly"() {
         given:
         def packDir = file("pack").createDir()
         def outputDir = file("unpack")
