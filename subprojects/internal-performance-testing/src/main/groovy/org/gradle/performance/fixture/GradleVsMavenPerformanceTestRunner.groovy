@@ -28,7 +28,7 @@ import org.gradle.test.fixtures.maven.M2Installation
 import org.gradle.util.GradleVersion
 
 @CompileStatic
-class GradleVsMavenPerformanceTestRunner extends CrossBuildGradleProfilerPerformanceTestRunner<GradleVsMavenBuildPerformanceResults> {
+class GradleVsMavenPerformanceTestRunner extends CrossBuildPerformanceTestRunner<GradleVsMavenBuildPerformanceResults> {
 
     final M2Installation m2
 
@@ -39,8 +39,6 @@ class GradleVsMavenPerformanceTestRunner extends CrossBuildGradleProfilerPerform
     List<String> equivalentMavenCleanTasks = []
     List<Object> jvmOpts = []
     List<Object> mvnArgs = []
-
-    InvocationCustomizer invocationCustomizer
 
     int warmUpRuns = 4
     int runs = 12
@@ -57,7 +55,6 @@ class GradleVsMavenPerformanceTestRunner extends CrossBuildGradleProfilerPerform
     @Override
     protected void defaultSpec(BuildExperimentSpec.Builder builder) {
         super.defaultSpec(builder)
-        builder.setInvocationCustomizer(invocationCustomizer)
         if (builder instanceof GradleBuildExperimentSpec.GradleBuilder) {
             ((GradleInvocationSpec.InvocationBuilder) builder.invocation).distribution(gradleDistribution)
         }

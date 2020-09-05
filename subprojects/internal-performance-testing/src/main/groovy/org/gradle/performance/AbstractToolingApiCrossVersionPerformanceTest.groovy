@@ -35,8 +35,8 @@ import org.gradle.internal.os.OperatingSystem
 import org.gradle.internal.time.Clock
 import org.gradle.internal.time.Time
 import org.gradle.performance.categories.PerformanceRegressionTest
-import org.gradle.performance.fixture.AbstractCrossVersionPerformanceTestRunner
 import org.gradle.performance.fixture.BuildExperimentSpec
+import org.gradle.performance.fixture.CrossVersionPerformanceTestRunner
 import org.gradle.performance.fixture.InvocationSpec
 import org.gradle.performance.fixture.OperationTimer
 import org.gradle.performance.fixture.PerformanceTestDirectoryProvider
@@ -148,7 +148,7 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
     private static class ToolingApiBuildExperimentSpec extends BuildExperimentSpec {
 
         ToolingApiBuildExperimentSpec(String version, TestFile workingDir, ToolingApiExperiment experiment) {
-            super(version, experiment.projectName, workingDir, experiment.warmUpCount ?: 10, experiment.invocationCount ?: 40, null, [])
+            super(version, experiment.projectName, workingDir, experiment.warmUpCount ?: 10, experiment.invocationCount ?: 40, [])
         }
 
         @Override
@@ -201,7 +201,7 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
             )
             def resolver = new ToolingApiDistributionResolver().withDefaultRepository().withExternalToolingApiDistribution()
             try {
-                List<String> baselines = AbstractCrossVersionPerformanceTestRunner.toBaselineVersions(RELEASES, experiment.targetVersions, experiment.minimumBaseVersion).toList()
+                List<String> baselines = CrossVersionPerformanceTestRunner.toBaselineVersions(RELEASES, experiment.targetVersions, experiment.minimumBaseVersion).toList()
                 [*baselines, 'current'].each { String version ->
                     def experimentSpec = new ToolingApiBuildExperimentSpec(version, temporaryFolder.testDirectory, experiment)
                     def workingDirProvider = copyTemplateTo(projectDir, experimentSpec.workingDirectory, version)

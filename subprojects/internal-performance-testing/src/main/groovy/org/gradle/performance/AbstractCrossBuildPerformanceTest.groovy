@@ -18,7 +18,7 @@ package org.gradle.performance
 
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.performance.fixture.BuildExperimentSpec
-import org.gradle.performance.fixture.CrossBuildGradleProfilerPerformanceTestRunner
+import org.gradle.performance.fixture.CrossBuildPerformanceTestRunner
 import org.gradle.performance.fixture.GradleBuildExperimentRunner
 import org.gradle.performance.fixture.PerformanceTestDirectoryProvider
 import org.gradle.performance.fixture.PerformanceTestIdProvider
@@ -44,12 +44,12 @@ class AbstractCrossBuildPerformanceTest extends Specification {
     @Rule
     PerformanceTestIdProvider performanceTestIdProvider = new PerformanceTestIdProvider()
 
-    CrossBuildGradleProfilerPerformanceTestRunner runner
+    CrossBuildPerformanceTestRunner runner
 
     def setup() {
         def gradleProfilerReporter = new GradleProfilerReporter(temporaryFolder.testDirectory)
         def compositeReporter = CompositeDataReporter.of(RESULTS_STORE, gradleProfilerReporter)
-        runner = new CrossBuildGradleProfilerPerformanceTestRunner(new GradleBuildExperimentRunner(gradleProfilerReporter.getResultCollector()), RESULTS_STORE, compositeReporter, buildContext) {
+        runner = new CrossBuildPerformanceTestRunner(new GradleBuildExperimentRunner(gradleProfilerReporter.getResultCollector()), RESULTS_STORE, compositeReporter, buildContext) {
             @Override
             protected void defaultSpec(BuildExperimentSpec.Builder builder) {
                 super.defaultSpec(builder)

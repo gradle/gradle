@@ -20,7 +20,7 @@ import groovy.json.JsonSlurper
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.performance.fixture.BuildExperimentSpec
 import org.gradle.performance.fixture.BuildScanPerformanceTestRunner
-import org.gradle.performance.fixture.CrossBuildGradleProfilerPerformanceTestRunner
+import org.gradle.performance.fixture.CrossBuildPerformanceTestRunner
 import org.gradle.performance.fixture.GradleBuildExperimentRunner
 import org.gradle.performance.measure.Amount
 import org.gradle.performance.measure.MeasuredOperation
@@ -45,7 +45,7 @@ class AbstractBuildScanPluginPerformanceTest extends Specification {
     def resultStore = new BuildScanResultsStore()
 
     protected final IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext()
-    CrossBuildGradleProfilerPerformanceTestRunner runner
+    CrossBuildPerformanceTestRunner runner
 
     @Shared
     String pluginVersionNumber = resolvePluginVersion()

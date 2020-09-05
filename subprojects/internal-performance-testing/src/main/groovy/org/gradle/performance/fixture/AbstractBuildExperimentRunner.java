@@ -42,12 +42,12 @@ import java.util.function.Supplier;
  * As part of a performance scenario, multiple experiments need to be run and compared.
  * For example for a cross-version scenario, experiments for each version will be run.
  */
-public abstract class AbstractGradleProfilerBuildExperimentRunner implements BuildExperimentRunner {
+public abstract class AbstractBuildExperimentRunner implements BuildExperimentRunner {
     private final ProfilerFlameGraphGenerator flameGraphGenerator;
     private final BenchmarkResultCollector resultCollector;
     private final org.gradle.profiler.Profiler profiler;
 
-    public AbstractGradleProfilerBuildExperimentRunner(BenchmarkResultCollector resultCollector) {
+    public AbstractBuildExperimentRunner(BenchmarkResultCollector resultCollector) {
         String jfrProfileTargetDir = org.gradle.performance.fixture.Profiler.getJfrProfileTargetDir();
         this.flameGraphGenerator = jfrProfileTargetDir == null
             ? ProfilerFlameGraphGenerator.NOOP

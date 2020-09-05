@@ -16,6 +16,7 @@
 
 package org.gradle.performance.fixture
 
+import com.google.common.annotations.VisibleForTesting
 import com.google.common.base.Splitter
 import org.apache.commons.io.FileUtils
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
@@ -32,24 +33,33 @@ import org.gradle.performance.results.MeasuredOperationList
 import org.gradle.performance.results.ResultsStore
 import org.gradle.performance.results.ResultsStoreHelper
 import org.gradle.performance.util.Git
+import org.gradle.profiler.BuildMutator
+import org.gradle.profiler.InvocationSettings
 import org.gradle.util.GradleVersion
 import org.junit.Assume
 
+import java.util.function.Function
 import java.util.regex.Pattern
 
 import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.gradlePluginRepositoryMirrorUrl
 import static org.gradle.test.fixtures.server.http.MavenHttpPluginRepository.PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY
 
-class AbstractCrossVersionPerformanceTestRunner extends PerformanceTestSpec {
+/**
+ * Runs cross version performance tests using Gradle profiler.
+ */
+class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
+
     private static final Pattern COMMA_OR_SEMICOLON = Pattern.compile('[;,]')
 
-    GradleDistribution current
-    final IntegrationTestBuildContext buildContext
-    final ResultsStore resultsStore
-    final DataReporter<CrossVersionPerformanceResults> reporter
+    private final IntegrationTestBuildContext buildContext
+    private final ResultsStore resultsStore
+    private final DataReporter<CrossVersionPerformanceResults> reporter
+    private final ReleasedVersionDistributions releases
+    private final Clock clock = Time.clock()
+
     final BuildExperimentRunner experimentRunner
-    final ReleasedVersionDistributions releases
-    final Clock clock = Time.clock()
+
+    GradleDistribution current
 
     String testProject
     File workingDir
@@ -66,13 +76,23 @@ class AbstractCrossVersionPerformanceTestRunner extends PerformanceTestSpec {
      * Minimum base version to be used. For example, a 6.0-nightly target version is OK if minimumBaseVersion is 6.0.
      */
     String minimumBaseVersion
+    private final List<Function<InvocationSettings, BuildMutator>> buildMutators = []
+    private final List<String> measuredBuildOperations = []
 
-    AbstractCrossVersionPerformanceTestRunner(BuildExperimentRunner experimentRunner, ResultsStore resultsStore, DataReporter<CrossVersionPerformanceResults> reporter, ReleasedVersionDistributions releases, IntegrationTestBuildContext buildContext) {
+    CrossVersionPerformanceTestRunner(BuildExperimentRunner experimentRunner, ResultsStore resultsStore, DataReporter<CrossVersionPerformanceResults> reporter, ReleasedVersionDistributions releases, IntegrationTestBuildContext buildContext) {
         this.resultsStore = resultsStore
         this.reporter = reporter
         this.experimentRunner = experimentRunner
         this.releases = releases
         this.buildContext = buildContext
+    }
+
+    void addBuildMutator(Function<InvocationSettings, BuildMutator> buildMutator) {
+        buildMutators.add(buildMutator)
+    }
+
+    List<String> getMeasuredBuildOperations() {
+        return measuredBuildOperations
     }
 
     CrossVersionPerformanceResults run() {
@@ -109,7 +129,7 @@ class AbstractCrossVersionPerformanceTestRunner extends PerformanceTestSpec {
         )
 
         def baselineVersions = toBaselineVersions(releases, targetVersions, minimumBaseVersion).collect { results.baseline(it) }
-        def maxWorkingDirLength = (['current'] + baselineVersions*.version).collect { sanitizeVersionWorkingDir(it) }*.length().max()
+        int maxWorkingDirLength = (['current'] + baselineVersions*.version).collect { sanitizeVersionWorkingDir(it) }*.length().max()
 
         runVersion('current', current, perVersionWorkingDirectory('current', maxWorkingDirLength), results.current)
 
@@ -124,7 +144,7 @@ class AbstractCrossVersionPerformanceTestRunner extends PerformanceTestSpec {
         return results
     }
 
-    protected File perVersionWorkingDirectory(String version, int maxWorkingDirLength) {
+    private File perVersionWorkingDirectory(String version, int maxWorkingDirLength) {
         def perVersion = new File(workingDir, sanitizeVersionWorkingDir(version).padRight(maxWorkingDirLength, '_'))
         if (!perVersion.exists()) {
             perVersion.mkdirs()
@@ -138,7 +158,7 @@ class AbstractCrossVersionPerformanceTestRunner extends PerformanceTestSpec {
         version.replace('+', '')
     }
 
-    static String resolveVersion(String version, ReleasedVersionDistributions releases) {
+    private static String resolveVersion(String version, ReleasedVersionDistributions releases) {
         switch (version) {
             case 'last':
                 return releases.mostRecentRelease.version.version
@@ -161,6 +181,7 @@ class AbstractCrossVersionPerformanceTestRunner extends PerformanceTestSpec {
         }
     }
 
+    @VisibleForTesting
     static Iterable<String> toBaselineVersions(ReleasedVersionDistributions releases, List<String> targetVersions, String minimumBaseVersion) {
         List<String> versions
         def overrideBaselinesProperty = System.getProperty('org.gradle.performance.baselines')
@@ -192,14 +213,14 @@ class AbstractCrossVersionPerformanceTestRunner extends PerformanceTestSpec {
         resolvedVersions
     }
 
-    static boolean addMostRecentRelease(String overrideBaselinesProperty, List<String> versions) {
+    private static boolean addMostRecentRelease(String overrideBaselinesProperty, List<String> versions) {
         if (overrideBaselinesProperty) {
             return false
         }
         return !versions.any { it == 'last' || it == 'nightly' || isRcVersionOrSnapshot(it) }
     }
 
-    static boolean versionMeetsLowerBaseVersionRequirement(String targetVersion, String minimumBaseVersion) {
+    private static boolean versionMeetsLowerBaseVersionRequirement(String targetVersion, String minimumBaseVersion) {
         return minimumBaseVersion == null || GradleVersion.version(targetVersion).baseVersion >= GradleVersion.version(minimumBaseVersion)
     }
 
@@ -216,7 +237,7 @@ class AbstractCrossVersionPerformanceTestRunner extends PerformanceTestSpec {
         versions.collectMany([] as Set) { version -> version == 'defaults' ? targetVersions : [version] } as List
     }
 
-    protected static GradleDistribution findRelease(ReleasedVersionDistributions releases, String requested) {
+    private static GradleDistribution findRelease(ReleasedVersionDistributions releases, String requested) {
         GradleDistribution best = null
         for (GradleDistribution release : releases.all) {
             if (release.version.version == requested) {
@@ -230,13 +251,15 @@ class AbstractCrossVersionPerformanceTestRunner extends PerformanceTestSpec {
         best
     }
 
-    protected void runVersion(String displayName, GradleDistribution dist, File workingDir, MeasuredOperationList results) {
+    private void runVersion(String displayName, GradleDistribution dist, File workingDir, MeasuredOperationList results) {
         def gradleOptsInUse = resolveGradleOpts()
         def builder = GradleBuildExperimentSpec.builder()
             .projectName(testProject)
             .displayName(displayName)
             .warmUpCount(warmUpRuns)
             .invocationCount(runs)
+            .buildMutators(buildMutators)
+            .measuredBuildOperations(measuredBuildOperations)
             .invocation {
                 workingDirectory(workingDir)
                 distribution(dist)
@@ -247,15 +270,11 @@ class AbstractCrossVersionPerformanceTestRunner extends PerformanceTestSpec {
                 useDaemon(this.useDaemon)
             }
         builder.workingDirectory = workingDir
-        configureGradleBuildExperimentSpec(builder)
         def spec = builder.build()
         experimentRunner.run(spec, results)
     }
 
-    protected void configureGradleBuildExperimentSpec(GradleBuildExperimentSpec.GradleBuilder builder) {
-    }
-
-    def resolveGradleOpts() {
+    private List<String> resolveGradleOpts() {
         PerformanceTestJvmOptions.normalizeJvmOptions(this.gradleOpts)
     }
 }

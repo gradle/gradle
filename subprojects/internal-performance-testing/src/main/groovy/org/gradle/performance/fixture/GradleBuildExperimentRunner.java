@@ -51,7 +51,7 @@ import java.util.stream.Collectors;
  *
  * This runner uses Gradle profiler to execute the actual experiment.
  */
-public class GradleBuildExperimentRunner extends AbstractGradleProfilerBuildExperimentRunner {
+public class GradleBuildExperimentRunner extends AbstractBuildExperimentRunner {
     private static final String GRADLE_USER_HOME_NAME = "gradleUserHome";
     private PidInstrumentation pidInstrumentation;
 
@@ -122,7 +122,7 @@ public class GradleBuildExperimentRunner extends AbstractGradleProfilerBuildExpe
         }
     }
 
-    private GradleScenarioInvoker createScenarioInvoker(File gradleUserHome) throws IOException {
+    private GradleScenarioInvoker createScenarioInvoker(File gradleUserHome) {
         DaemonControl daemonControl = new DaemonControl(gradleUserHome);
         return new GradleScenarioInvoker(daemonControl, pidInstrumentation);
     }

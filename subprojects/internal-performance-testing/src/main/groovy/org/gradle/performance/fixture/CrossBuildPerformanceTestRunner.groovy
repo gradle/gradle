@@ -25,17 +25,26 @@ import org.gradle.performance.results.DataReporter
 import org.gradle.performance.results.MeasuredOperationList
 import org.gradle.performance.results.ResultsStore
 import org.gradle.performance.util.Git
+import org.gradle.profiler.BuildMutator
+import org.gradle.profiler.InvocationSettings
 import org.gradle.util.GradleVersion
 
+import java.util.function.Function
+
 @CompileStatic
-abstract class AbstractCrossBuildPerformanceTestRunner<R extends CrossBuildPerformanceResults> extends AbstractGradleBuildPerformanceTestRunner<R> {
-    AbstractCrossBuildPerformanceTestRunner(BuildExperimentRunner experimentRunner, ResultsStore resultsStore, DataReporter<R> dataReporter, IntegrationTestBuildContext buildContext) {
+class CrossBuildPerformanceTestRunner<R extends CrossBuildPerformanceResults> extends AbstractGradleBuildPerformanceTestRunner<R> {
+    CrossBuildPerformanceTestRunner(AbstractBuildExperimentRunner experimentRunner, ResultsStore resultsStore, DataReporter<R> dataReporter, IntegrationTestBuildContext buildContext) {
         super(experimentRunner, resultsStore, dataReporter, buildContext)
     }
 
+    private final List<Function<InvocationSettings, BuildMutator>> buildMutators = []
+    private final List<String> measuredBuildOperations = []
+
     protected void defaultSpec(BuildExperimentSpec.Builder builder) {
         super.defaultSpec(builder)
+        builder.buildMutators.addAll(buildMutators)
         if (builder instanceof GradleBuildExperimentSpec.GradleBuilder) {
+            ((GradleBuildExperimentSpec.GradleBuilder) builder).measuredBuildOperations.addAll(measuredBuildOperations)
             ((GradleBuildExperimentSpec.GradleBuilder) builder).invocation.distribution(gradleDistribution)
         }
     }
@@ -68,5 +77,13 @@ abstract class AbstractCrossBuildPerformanceTestRunner<R extends CrossBuildPerfo
     @Override
     MeasuredOperationList operations(R result, BuildExperimentSpec spec) {
         result.buildResult(spec.displayInfo)
+    }
+
+    void addBuildMutator(Function<InvocationSettings, BuildMutator> buildMutator) {
+        buildMutators.add(buildMutator)
+    }
+
+    List<String> getMeasuredBuildOperations() {
+        return measuredBuildOperations
     }
 }

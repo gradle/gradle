@@ -16,9 +16,9 @@
 
 package org.gradle.performance.regression.corefeature
 
-import org.gradle.performance.AbstractCrossVersionGradleProfilerPerformanceTest
+import org.gradle.performance.AbstractCrossVersionPerformanceTest
 
-class ArchiveTreePerformanceTest extends AbstractCrossVersionGradleProfilerPerformanceTest {
+class ArchiveTreePerformanceTest extends AbstractCrossVersionPerformanceTest {
     def setup() {
         runner.targetVersions = ["6.7-20200824220048+0000"]
     }

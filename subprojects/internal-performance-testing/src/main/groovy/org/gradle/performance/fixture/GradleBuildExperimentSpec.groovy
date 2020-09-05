@@ -33,10 +33,9 @@ class GradleBuildExperimentSpec extends BuildExperimentSpec {
                               GradleInvocationSpec invocation,
                               Integer warmUpCount,
                               Integer invocationCount,
-                              InvocationCustomizer invocationCustomizer,
                               ImmutableList<Function<InvocationSettings, BuildMutator>> buildMutators,
                               ImmutableList<String> measuredBuildOperations) {
-        super(displayName, projectName, workingDirectory, warmUpCount, invocationCount, invocationCustomizer, buildMutators)
+        super(displayName, projectName, workingDirectory, warmUpCount, invocationCount, buildMutators)
         this.measuredBuildOperations = measuredBuildOperations
         this.invocation = invocation
     }
@@ -59,7 +58,6 @@ class GradleBuildExperimentSpec extends BuildExperimentSpec {
         Integer invocationCount
         final List<Function<InvocationSettings, BuildMutator>> buildMutators = []
         final List<String> measuredBuildOperations = []
-        InvocationCustomizer invocationCustomizer
 
         GradleBuilder displayName(String displayName) {
             this.displayName = displayName
@@ -103,17 +101,12 @@ class GradleBuildExperimentSpec extends BuildExperimentSpec {
             this
         }
 
-        GradleBuilder invocationCustomizer(InvocationCustomizer invocationCustomizer) {
-            this.invocationCustomizer = invocationCustomizer
-            this
-        }
-
         BuildExperimentSpec build() {
             assert projectName != null
             assert displayName != null
             assert invocation != null
 
-            new GradleBuildExperimentSpec(displayName, projectName, workingDirectory, invocation.build(), warmUpCount, invocationCount, invocationCustomizer, ImmutableList.copyOf(buildMutators), ImmutableList.copyOf(measuredBuildOperations))
+            new GradleBuildExperimentSpec(displayName, projectName, workingDirectory, invocation.build(), warmUpCount, invocationCount, ImmutableList.copyOf(buildMutators), ImmutableList.copyOf(measuredBuildOperations))
         }
     }
 }
