@@ -50,6 +50,7 @@ public interface JavaLanguageVersion extends Comparable<JavaLanguageVersion> {
      * <p>
      * This method will return {@code 1.<version>} when the version is lower than 5.
      *
+     * @since 6.8
      * @return the version number
      */
     String toString();
