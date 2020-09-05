@@ -37,4 +37,3 @@ apply(from = "$rootDir/gradle/shared-with-buildSrc/code-quality-configuration.gr
 tasks.named("check") {
     dependsOn("codeQuality")
 }
-
