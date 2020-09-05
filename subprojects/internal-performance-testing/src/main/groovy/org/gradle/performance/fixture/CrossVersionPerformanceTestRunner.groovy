@@ -36,11 +36,17 @@ import org.gradle.performance.results.MeasuredOperationList
 import org.gradle.performance.results.ResultsStore
 import org.gradle.performance.results.ResultsStoreHelper
 import org.gradle.performance.util.Git
+import org.gradle.profiler.BuildAction
 import org.gradle.profiler.BuildMutator
+import org.gradle.profiler.GradleInvoker
 import org.gradle.profiler.InvocationSettings
+import org.gradle.profiler.ToolingApiInvoker
+import org.gradle.tooling.LongRunningOperation
+import org.gradle.tooling.ProjectConnection
 import org.gradle.util.GradleVersion
 import org.junit.Assume
 
+import java.util.function.Consumer
 import java.util.function.Function
 import java.util.regex.Pattern
 
@@ -67,6 +73,7 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
     String testProject
     File workingDir
     boolean useDaemon = true
+    boolean useToolingApi = false
 
     List<String> tasksToRun = []
     List<String> cleanTasks = []
@@ -81,6 +88,7 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
     String minimumBaseVersion
     private final List<Function<InvocationSettings, BuildMutator>> buildMutators = []
     private final List<String> measuredBuildOperations = []
+    BuildAction buildAction
 
     CrossVersionPerformanceTestRunner(BuildExperimentRunner experimentRunner, ResultsStore resultsStore, DataReporter<CrossVersionPerformanceResults> reporter, ReleasedVersionDistributions releases, IntegrationTestBuildContext buildContext) {
         this.resultsStore = resultsStore
@@ -276,6 +284,8 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
                 args((this.args + ['-I', RepoScriptBlockUtil.createMirrorInitScript().absolutePath, "-D${PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY}=${gradlePluginRepositoryMirrorUrl()}".toString()]) as String[])
                 gradleOpts(gradleOptsInUse as String[])
                 useDaemon(this.useDaemon)
+                useToolingApi(this.useToolingApi)
+                delegate.buildAction = this.buildAction
             }
         builder.workingDirectory = workingDir
         def spec = builder.build()
@@ -284,5 +294,55 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
 
     private List<String> resolveGradleOpts() {
         PerformanceTestJvmOptions.normalizeJvmOptions(this.gradleOpts)
+    }
+
+    def <T extends LongRunningOperation> ToolingApiAction<T> toolingApi(String displayName, Function<ProjectConnection, T> initialAction) {
+        useToolingApi = true
+        def tapiAction = new ToolingApiAction<T>(displayName, initialAction)
+        this.buildAction = tapiAction
+        return tapiAction
+    }
+}
+
+class ToolingApiAction<T extends LongRunningOperation> implements BuildAction {
+    private final Function<ProjectConnection, T> initialAction
+    private final String displayName
+    private Consumer<T> tapiAction
+
+    ToolingApiAction(String displayName, Function<ProjectConnection, T> initialAction) {
+        this.displayName = displayName
+        this.initialAction = initialAction
+    }
+
+    void run(Consumer<T> tapiAction) {
+        this.tapiAction = tapiAction
+    }
+
+    @Override
+    boolean isDoesSomething() {
+        return true
+    }
+
+    @Override
+    String getDisplayName() {
+        return displayName
+    }
+
+    @Override
+    String getShortDisplayName() {
+        return displayName
+    }
+
+    @Override
+    void run(GradleInvoker buildInvoker, List<String> gradleArgs, List<String> jvmArgs) {
+        // TODO: Add a public API to configure this in a nice way on the Gradle profiler side
+        def toolingApiInvoker = (ToolingApiInvoker) buildInvoker
+        def projectConnection = toolingApiInvoker.projectConnection
+        def longRunningOperation = initialAction.apply(projectConnection)
+        toolingApiInvoker.run(longRunningOperation) { builder ->
+            builder.setJvmArguments(jvmArgs)
+            builder.withArguments(gradleArgs)
+            tapiAction.accept(builder)
+        }
     }
 }
