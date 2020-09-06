@@ -45,6 +45,8 @@ configureJarTasks()
 configureTests()
 failOnEmptySourceFolder()
 
+tasks.registerCITestDistributionLifecycleTasks()
+
 fun configureCompile() {
     java.targetCompatibility = JavaVersion.VERSION_1_8
     java.sourceCompatibility = JavaVersion.VERSION_1_8
@@ -257,5 +259,62 @@ fun failOnEmptySourceFolder() {
                 }
             }
         }
+    }
+}
+
+/**
+ * Test lifecycle tasks that correspond to CIBuildModel.TestType (see .teamcity/Gradle_Check/model/CIBuildModel.kt).
+ */
+fun TaskContainer.registerCITestDistributionLifecycleTasks() {
+    val ciGroup = "CI Lifecycle"
+
+    register("quickTest") {
+        description = "Run all unit, integration and cross-version (against latest release) tests in embedded execution mode"
+        group = ciGroup
+    }
+
+    register("platformTest") {
+        description = "Run all unit, integration and cross-version (against latest release) tests in forking execution mode"
+        group = ciGroup
+    }
+
+    register("quickFeedbackCrossVersionTest") {
+        description = "Run cross-version tests against a limited set of versions"
+        group = ciGroup
+    }
+
+    register("allVersionsCrossVersionTest") {
+        description = "Run cross-version tests against all released versions (latest patch release of each)"
+        group = ciGroup
+    }
+
+    register("allVersionsIntegMultiVersionTest") {
+        description = "Run all multi-version integration tests with all version to cover"
+        group = ciGroup
+    }
+
+    register("parallelTest") {
+        description = "Run all integration tests in parallel execution mode: each Gradle execution started in a test run with --parallel"
+        group = ciGroup
+    }
+
+    register("noDaemonTest") {
+        description = "Run all integration tests in no-daemon execution mode: each Gradle execution started in a test forks a new daemon"
+        group = ciGroup
+    }
+
+    register("configCacheTest") {
+        description = "Run all integration tests with instant execution"
+        group = ciGroup
+    }
+
+    register("watchFsTest") {
+        description = "Run all integration tests with file system watching enabled"
+        group = ciGroup
+    }
+
+    register("forceRealizeDependencyManagementTest") {
+        description = "Runs all integration tests with the dependency management engine in 'force component realization' mode"
+        group = ciGroup
     }
 }
