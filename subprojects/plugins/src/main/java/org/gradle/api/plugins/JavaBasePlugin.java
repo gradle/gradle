@@ -54,7 +54,6 @@ import org.gradle.jvm.toolchain.JavaInstallationRegistry;
 import org.gradle.jvm.toolchain.JavaToolchainService;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.gradle.jvm.toolchain.internal.DefaultJavaToolchainService;
-import org.gradle.jvm.toolchain.internal.JavaToolchain;
 import org.gradle.jvm.toolchain.internal.JavaToolchainQueryService;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.jvm.tasks.ProcessResources;
