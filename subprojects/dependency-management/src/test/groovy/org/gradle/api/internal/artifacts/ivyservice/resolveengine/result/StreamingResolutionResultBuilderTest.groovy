@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result
 
 import org.gradle.api.artifacts.result.ComponentSelectionReason
+import org.gradle.api.artifacts.result.ResolvedVariantResult
 import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
@@ -218,6 +219,12 @@ class StreamingResolutionResultBuilderTest extends Specification {
         _ * edge.selector >> selector
         _ * edge.selected >> selectedId
         _ * edge.failure >> null
+        _ * edge.fromVariant >> Stub(ResolvedVariantResult) {
+            getOwner() >> DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId("org", "from"), "1.0")
+        }
+        _ * edge.selectedVariant >> Stub(ResolvedVariantResult) {
+            getOwner() >> DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId("org", "module"), "1.0")
+        }
         return edge
     }
 
@@ -227,6 +234,12 @@ class StreamingResolutionResultBuilderTest extends Specification {
         _ * edge.requested >> selector.requested
         _ * edge.reason >> requested()
         _ * edge.failure >> new ModuleVersionResolveException(selector.requested, failure)
+        _ * edge.fromVariant >> Stub(ResolvedVariantResult) {
+            getOwner() >> DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId("org", "from"), "1.0")
+        }
+        _ * edge.selectedVariant >> Stub(ResolvedVariantResult) {
+            getOwner() >> DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId("org", "module"), "1.0")
+        }
         return edge
     }
 
