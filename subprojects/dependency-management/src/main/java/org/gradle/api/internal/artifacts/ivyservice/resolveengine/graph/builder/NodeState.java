@@ -1212,11 +1212,26 @@ public class NodeState implements DependencyGraphNode {
         AttributeContainer attributes = desugar(metaData.getAttributes());
         List<Capability> resolvedVariantCapabilities = capabilities.isEmpty() ? Collections.singletonList(component.getImplicitCapability()) : ImmutableList.copyOf(capabilities);
         cachedVariantResult = new DefaultResolvedVariantResult(
+            component.getComponentId(),
             name,
             attributes,
-            resolvedVariantCapabilities
-        );
+            resolvedVariantCapabilities,
+            findExternalVariant());
         return cachedVariantResult;
+    }
+
+    private ResolvedVariantResult findExternalVariant() {
+        if (!metaData.isExternalVariant()) {
+            return null;
+        }
+        // An external variant must have exactly one outgoing edge
+        // corresponding to the dependency to the external module
+        assert outgoingEdges.size() == 1;
+        for (EdgeState outgoingEdge : outgoingEdges) {
+            //noinspection ConstantConditions
+            return outgoingEdge.getSelectedVariant();
+        }
+        return null;
     }
 
     public void updateTransitiveExcludes() {

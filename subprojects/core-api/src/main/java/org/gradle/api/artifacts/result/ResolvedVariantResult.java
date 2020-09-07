@@ -16,10 +16,13 @@
 
 package org.gradle.api.artifacts.result;
 
+import org.gradle.api.Incubating;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.capabilities.Capability;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * The result of successfully resolving a component variant.
@@ -27,6 +30,15 @@ import java.util.List;
  * @since 3.5
  */
 public interface ResolvedVariantResult {
+    /**
+     * The component which owns this variant.
+     * @return the component identifier of this variant
+     *
+     * @since 6.8
+     */
+    @Incubating
+    ComponentIdentifier getOwner();
+
     /**
      * The attributes associated with this variant.
      */
@@ -45,4 +57,16 @@ public interface ResolvedVariantResult {
      * @since 5.3
      */
     List<Capability> getCapabilities();
+
+    /**
+     * If present, this means that this variant is a bridge to another variant
+     * found in another module. This corresponds to variants which are marked
+     * as "available-at" in Gradle Module Metadata.
+     *
+     * @return an optional variant, which if present means it's available externally
+     *
+     * @since 6.8
+     */
+    @Incubating
+    Optional<ResolvedVariantResult> getExternalVariant();
 }
