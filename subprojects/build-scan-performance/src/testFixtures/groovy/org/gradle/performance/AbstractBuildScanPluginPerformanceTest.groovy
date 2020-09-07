@@ -17,7 +17,6 @@
 package org.gradle.performance
 
 import groovy.json.JsonSlurper
-import groovy.transform.CompileStatic
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.performance.fixture.BuildExperimentSpec
 import org.gradle.performance.fixture.BuildScanPerformanceTestRunner
@@ -34,7 +33,6 @@ import spock.lang.AutoCleanup
 import spock.lang.Shared
 import spock.lang.Specification
 
-@CompileStatic
 class AbstractBuildScanPluginPerformanceTest extends Specification {
 
     static String incomingDir = "../../incoming"
