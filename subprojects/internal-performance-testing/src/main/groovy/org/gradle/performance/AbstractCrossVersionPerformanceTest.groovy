@@ -24,7 +24,6 @@ import org.gradle.performance.fixture.CrossVersionPerformanceTestRunner
 import org.gradle.performance.fixture.GradleBuildExperimentRunner
 import org.gradle.performance.fixture.PerformanceTestDirectoryProvider
 import org.gradle.performance.fixture.PerformanceTestIdProvider
-import org.gradle.performance.results.CompositeDataReporter
 import org.gradle.performance.results.CrossVersionResultsStore
 import org.gradle.performance.results.GradleProfilerReporter
 import org.gradle.test.fixtures.file.CleanupTestDirectory
@@ -61,7 +60,7 @@ class AbstractCrossVersionPerformanceTest extends Specification {
         runner = new CrossVersionPerformanceTestRunner(
             new GradleBuildExperimentRunner(gradleProfilerReporter.getResultCollector()),
             RESULTS_STORE,
-            CompositeDataReporter.of(gradleProfilerReporter, RESULTS_STORE),
+            RESULTS_STORE.reportAlso(gradleProfilerReporter),
             new ReleasedVersionDistributions(buildContext),
             buildContext
         )

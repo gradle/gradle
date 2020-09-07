@@ -23,9 +23,9 @@ import org.gradle.performance.fixture.GradleVsMavenBuildExperimentRunner
 import org.gradle.performance.fixture.GradleVsMavenPerformanceTestRunner
 import org.gradle.performance.fixture.PerformanceTestDirectoryProvider
 import org.gradle.performance.fixture.PerformanceTestIdProvider
+import org.gradle.performance.results.GradleProfilerReporter
 import org.gradle.performance.results.GradleVsMavenBuildPerformanceResults
 import org.gradle.performance.results.GradleVsMavenBuildResultsStore
-import org.gradle.profiler.BenchmarkResultCollector
 import org.gradle.performance.results.WritableResultsStore
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -46,13 +46,12 @@ class AbstractGradleVsMavenPerformanceTest extends Specification {
 
     final IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext()
 
-    BenchmarkResultCollector collector = new BenchmarkResultCollector()
-
+    GradleProfilerReporter gradleProfilerReporter = new GradleProfilerReporter(temporaryFolder.testDirectory)
     GradleVsMavenPerformanceTestRunner runner = new GradleVsMavenPerformanceTestRunner(
         temporaryFolder,
-        new GradleVsMavenBuildExperimentRunner(collector),
+        new GradleVsMavenBuildExperimentRunner(gradleProfilerReporter.getResultCollector()),
         RESULT_STORE,
-        RESULT_STORE,
+        RESULT_STORE.reportAlso(gradleProfilerReporter),
         buildContext
     ) {
         @Override
