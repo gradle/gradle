@@ -173,6 +173,41 @@ class BuildSrcIncludedBuildIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @ToBeFixedForConfigurationCache(because="composite build")
+    def "user gets reasonable error when included build fails to compile when buildSrc needs it"() {
+        file("buildSrc/build.gradle") << """
+            plugins {
+                id "groovy-gradle-plugin"
+            }
+            
+            dependencies {
+                implementation("org.gradle.test:included")
+            }
+        """
+
+        file("buildSrc/src/main/groovy/apply-test-plugin.gradle") << """
+            plugins {
+                id("test-plugin")
+            }
+        """
+
+        writePluginTo(file("included"))
+        file("included/src/main/java/Broke.java") << "does not compile!"
+
+        buildFile << """
+            plugins {
+                id "apply-test-plugin"
+            }
+        """
+        settingsFile << """
+            includeBuild("included")
+        """
+        when:
+        fails("help")
+        then:
+        failure.assertHasCause("Compilation failed; see the compiler error output for details.")
+    }
+
+    @ToBeFixedForConfigurationCache(because="composite build")
     def "buildSrc can apply plugins contributed by other included builds and use them in plugins for the root build"() {
         file("buildSrc/build.gradle") << """
             plugins {
