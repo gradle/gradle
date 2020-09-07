@@ -19,6 +19,7 @@ package org.gradle.api.tasks.compile
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractPluginIntegrationTest
 import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.internal.jvm.Jvm
 import org.gradle.util.Requires
 import spock.lang.IgnoreIf
@@ -155,6 +156,122 @@ public class Foo {
         javaClassFile("Foo.class").exists()
     }
 
+
+    @ToBeFixedForConfigurationCache(because = "Storing the configuration causes the execution exception to be triggered")
+    def 'cannot configure both toolchain and source and target compatibility at project level'() {
+        def jdk = Jvm.current()
+        buildFile << """
+            apply plugin: 'java'
+
+            java {
+                sourceCompatibility = JavaVersion.VERSION_14
+                targetCompatibility = JavaVersion.VERSION_14
+                toolchain {
+                    languageVersion = JavaLanguageVersion.of(${jdk.javaVersion.majorVersion})
+                }
+            }
+"""
+
+        file("src/main/java/Foo.java") << "public class Foo {}"
+
+        when:
+        failure = executer
+            .withArgument("-Porg.gradle.java.installations.auto-detect=false")
+            .withArgument("-Porg.gradle.java.installations.paths=" + jdk.javaHome.absolutePath)
+            .withArgument("--info")
+            .withTasks("compileJava")
+            .runWithFailure()
+
+        then:
+        failureHasCause('The new Java toolchain feature cannot be used at the project level in combination with source and/or target compatibility')
+    }
+
+    def 'configuring toolchain and clearing source and target compatibility is supported'() {
+        def jdk = Jvm.current()
+        buildFile << """
+            apply plugin: 'java'
+
+            java {
+                sourceCompatibility = JavaVersion.VERSION_14
+                targetCompatibility = JavaVersion.VERSION_14
+                toolchain {
+                    languageVersion = JavaLanguageVersion.of(${jdk.javaVersion.majorVersion})
+                }
+                sourceCompatibility = null
+                targetCompatibility = null
+            }
+
+            compileJava {
+                def projectSourceCompat = project.java.sourceCompatibility
+                def projectTargetCompat = project.java.targetCompatibility
+                doLast {
+                    logger.lifecycle("project.sourceCompatibility = \$projectSourceCompat")
+                    logger.lifecycle("project.targetCompatibility = \$projectTargetCompat")
+                    logger.lifecycle("task.sourceCompatibility = \$sourceCompatibility")
+                    logger.lifecycle("task.targetCompatibility = \$targetCompatibility")
+                }
+            }
+"""
+
+        file("src/main/java/Foo.java") << "public class Foo {}"
+
+        when:
+        runWithToolchainConfigured(jdk)
+
+        then:
+        outputContains("project.sourceCompatibility = ${jdk.javaVersion}")
+        outputContains("project.targetCompatibility = ${jdk.javaVersion}")
+        outputContains("task.sourceCompatibility = ${jdk.javaVersion.majorVersion}")
+        outputContains("task.targetCompatibility = ${jdk.javaVersion.majorVersion}")
+    }
+
+    @Unroll
+    @Requires(adhoc = { AvailableJavaHomes.getJdk(JavaVersion.VERSION_11) != null })
+    def 'source and target compatibility reflect toolchain usage (source #source, target #target)'() {
+        def jdk11 = AvailableJavaHomes.getJdk(JavaVersion.VERSION_11)
+        buildFile << """
+            apply plugin: 'java'
+
+            java {
+                toolchain {
+                    languageVersion = JavaLanguageVersion.of(11)
+                }
+            }
+
+            compileJava {
+                if ("$source" != 'none')
+                    sourceCompatibility = JavaVersion.toVersion($source)
+                if ("$target" != 'none')
+                    targetCompatibility = JavaVersion.toVersion($target)
+                def projectSourceCompat = project.java.sourceCompatibility
+                def projectTargetCompat = project.java.targetCompatibility
+                doLast {
+                    logger.lifecycle("project.sourceCompatibility = \$projectSourceCompat")
+                    logger.lifecycle("project.targetCompatibility = \$projectTargetCompat")
+                    logger.lifecycle("task.sourceCompatibility = \$sourceCompatibility")
+                    logger.lifecycle("task.targetCompatibility = \$targetCompatibility")
+                }
+            }
+"""
+
+        file("src/main/java/Foo.java") << "public class Foo {}"
+
+        when:
+        runWithToolchainConfigured(jdk11)
+
+        then:
+        outputContains("project.sourceCompatibility = 11")
+        outputContains("project.targetCompatibility = 11")
+        outputContains("task.sourceCompatibility = $sourceOut")
+        outputContains("task.targetCompatibility = $targetOut")
+
+        where:
+        source  | target    | sourceOut | targetOut
+        '9'     | '10'      | '1.9'     | '1.10'
+        '9'     | 'none'    | '1.9'     | '11'
+        'none'  | 'none'    | '11'      | '11'
+
+    }
 
     def runWithToolchainConfigured(Jvm jvm) {
         result = executer

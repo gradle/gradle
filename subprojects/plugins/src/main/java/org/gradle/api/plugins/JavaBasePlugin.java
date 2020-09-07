@@ -19,6 +19,7 @@ package org.gradle.api.plugins;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
@@ -54,6 +55,7 @@ import org.gradle.jvm.toolchain.JavaInstallationRegistry;
 import org.gradle.jvm.toolchain.JavaToolchainService;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.gradle.jvm.toolchain.internal.DefaultJavaToolchainService;
+import org.gradle.jvm.toolchain.internal.DefaultToolchainSpec;
 import org.gradle.jvm.toolchain.internal.JavaToolchainQueryService;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.jvm.tasks.ProcessResources;
@@ -131,10 +133,11 @@ public class JavaBasePlugin implements Plugin<Project> {
     }
 
     private JavaPluginConvention addExtensions(final ProjectInternal project) {
+        DefaultToolchainSpec toolchainSpec = project.getObjects().newInstance(DefaultToolchainSpec.class);
         SourceSetContainer sourceSets = (SourceSetContainer) project.getExtensions().getByName("sourceSets");
-        JavaPluginConvention javaConvention = new DefaultJavaPluginConvention(project, sourceSets);
+        JavaPluginConvention javaConvention = new DefaultJavaPluginConvention(project, sourceSets, toolchainSpec);
         project.getConvention().getPlugins().put("java", javaConvention);
-        project.getExtensions().create(JavaPluginExtension.class, "java", DefaultJavaPluginExtension.class, javaConvention, project, jvmPluginServices);
+        project.getExtensions().create(JavaPluginExtension.class, "java", DefaultJavaPluginExtension.class, javaConvention, project, jvmPluginServices, toolchainSpec);
         project.getExtensions().add(JavaInstallationRegistry.class, "javaInstalls", javaInstallationRegistry);
         project.getExtensions().create(JavaToolchainService.class, "javaToolchains", DefaultJavaToolchainService.class, getJavaToolchainQueryService());
         return javaConvention;
@@ -305,25 +308,36 @@ public class JavaBasePlugin implements Plugin<Project> {
     }
 
     private void configureCompileDefaults(final Project project, final JavaPluginConvention javaConvention) {
+        JavaPluginExtension javaExtension = project.getExtensions().getByType(JavaPluginExtension.class);
+        DefaultJavaPluginConvention defaultJavaPluginConvention = (DefaultJavaPluginConvention) javaConvention;
         project.getTasks().withType(AbstractCompile.class).configureEach(compile -> {
             ConventionMapping conventionMapping = compile.getConventionMapping();
-            conventionMapping.map("sourceCompatibility", determineCompatibility(compile, javaConvention::getSourceCompatibility));
-            conventionMapping.map("targetCompatibility", determineCompatibility(compile, javaConvention::getTargetCompatibility));
+            conventionMapping.map("sourceCompatibility", determineCompatibility(compile, javaExtension, defaultJavaPluginConvention::getSourceCompatibility, defaultJavaPluginConvention::getRawSourceCompatibility));
+            conventionMapping.map("targetCompatibility", determineCompatibility(compile, javaExtension, defaultJavaPluginConvention::getTargetCompatibility, defaultJavaPluginConvention::getRawTargetCompatibility));
         });
     }
 
-    private Callable<String> determineCompatibility(AbstractCompile compile, Supplier<JavaVersion> javaVersionSupplier) {
+    private Callable<String> determineCompatibility(AbstractCompile compile, JavaPluginExtension javaExtension, Supplier<JavaVersion> javaVersionSupplier, Supplier<JavaVersion> rawJavaVersionSupplier) {
         return () -> {
             if (compile instanceof JavaCompile) {
                 JavaCompile javaCompile = (JavaCompile) compile;
                 if (javaCompile.getOptions().getRelease().isPresent()) {
+                    // Release set on the task wins, no need to check *Compat has having both is illegal anyway
                     return JavaVersion.toVersion(javaCompile.getOptions().getRelease().get()).toString();
                 } else if (javaCompile.getJavaCompiler().isPresent()) {
+                    // Toolchains in use
+                    checkToolchainAndCompatibilityUsage(javaExtension, rawJavaVersionSupplier);
                     return javaCompile.getJavaCompiler().get().getMetadata().getLanguageVersion().toString();
                 }
             }
             return javaVersionSupplier.get().toString();
         };
+    }
+
+    private void checkToolchainAndCompatibilityUsage(JavaPluginExtension javaExtension, Supplier<JavaVersion> rawJavaVersionSupplier) {
+        if (((DefaultToolchainSpec) javaExtension.getToolchain()).isConfigured() && rawJavaVersionSupplier.get() != null) {
+            throw new InvalidUserDataException("The new Java toolchain feature cannot be used at the project level in combination with source and/or target compatibility");
+        }
     }
 
     private void configureJavaDoc(final Project project, final JavaPluginConvention convention) {
