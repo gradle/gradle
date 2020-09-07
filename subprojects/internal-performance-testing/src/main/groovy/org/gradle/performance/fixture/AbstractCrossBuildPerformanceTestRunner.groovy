@@ -16,19 +16,27 @@
 
 package org.gradle.performance.fixture
 
+import groovy.transform.CompileStatic
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
 import org.gradle.internal.time.Clock
 import org.gradle.internal.time.Time
+import org.gradle.performance.results.CrossBuildPerformanceResults
 import org.gradle.performance.results.DataReporter
-import org.gradle.performance.results.MeasuredOperationList
-import org.gradle.performance.results.PerformanceTestResult
 import org.gradle.performance.results.ResultsStore
 import org.gradle.performance.results.ResultsStoreHelper
+import org.gradle.profiler.BuildMutator
+import org.gradle.profiler.InvocationSettings
 import org.junit.Assume
 
-abstract class AbstractGradleBuildPerformanceTestRunner<R extends PerformanceTestResult> {
+import java.util.function.Function
+
+@CompileStatic
+abstract class AbstractCrossBuildPerformanceTestRunner<R extends CrossBuildPerformanceResults> {
+    private final List<Function<InvocationSettings, BuildMutator>> buildMutators = []
+    private final List<String> measuredBuildOperations = []
+
     final IntegrationTestBuildContext buildContext
     final GradleDistribution gradleDistribution
     final BuildExperimentRunner experimentRunner
@@ -42,7 +50,7 @@ abstract class AbstractGradleBuildPerformanceTestRunner<R extends PerformanceTes
     final DataReporter<R> reporter
     final ResultsStore resultsStore
 
-    AbstractGradleBuildPerformanceTestRunner(BuildExperimentRunner experimentRunner, ResultsStore resultsStore, DataReporter<R> dataReporter, IntegrationTestBuildContext buildContext) {
+    AbstractCrossBuildPerformanceTestRunner(BuildExperimentRunner experimentRunner, ResultsStore resultsStore, DataReporter<R> dataReporter, IntegrationTestBuildContext buildContext) {
         this.reporter = dataReporter
         this.resultsStore = resultsStore
         this.experimentRunner = experimentRunner
@@ -56,12 +64,22 @@ abstract class AbstractGradleBuildPerformanceTestRunner<R extends PerformanceTes
 
     void buildSpec(@DelegatesTo(GradleBuildExperimentSpec.GradleBuilder) Closure<?> configureAction) {
         def builder = GradleBuildExperimentSpec.builder()
+        configureGradleSpec(builder)
         configureAndAddSpec(builder, configureAction)
+    }
+
+    void addBuildMutator(Function<InvocationSettings, BuildMutator> buildMutator) {
+        buildMutators.add(buildMutator)
+    }
+
+    protected void configureGradleSpec(GradleBuildExperimentSpec.GradleBuilder builder) {
+        builder.measuredBuildOperations.addAll(measuredBuildOperations)
+        builder.invocation.distribution(gradleDistribution)
     }
 
     protected void configureAndAddSpec(BuildExperimentSpec.Builder builder, Closure<?> configureAction) {
         defaultSpec(builder)
-        builder.with(configureAction)
+        builder.with(configureAction as Closure<Object>)
         finalizeSpec(builder)
         def specification = builder.build()
 
@@ -72,21 +90,28 @@ abstract class AbstractGradleBuildPerformanceTestRunner<R extends PerformanceTes
     }
 
     protected void defaultSpec(BuildExperimentSpec.Builder builder) {
+        builder.buildMutators.addAll(buildMutators)
     }
 
     protected void finalizeSpec(BuildExperimentSpec.Builder builder) {
         assert builder.projectName
         assert builder.workingDirectory
         builder.invocation.workingDirectory = new File(builder.workingDirectory, builder.displayName)
+        if (builder instanceof GradleBuildExperimentSpec.GradleBuilder) {
+            finalizeGradleSpec(builder)
+        }
     }
 
-    protected List<String> customizeJvmOptions(List<String> jvmOptions) {
+    protected void finalizeGradleSpec(GradleBuildExperimentSpec.GradleBuilder builder) {
+        def invocation = builder.invocation
+        invocation.gradleOptions = customizeJvmOptions(invocation.gradleOptions)
+    }
+
+    protected static List<String> customizeJvmOptions(List<String> jvmOptions) {
         PerformanceTestJvmOptions.normalizeJvmOptions(jvmOptions)
     }
 
     abstract R newResult()
-
-    abstract MeasuredOperationList operations(R result, BuildExperimentSpec spec)
 
     R run() {
         assert !specs.empty
@@ -107,7 +132,7 @@ abstract class AbstractGradleBuildPerformanceTestRunner<R extends PerformanceTes
 
     void runAllSpecifications(R results) {
         specs.each {
-            def operations = operations(results, it)
+            def operations = results.buildResult(it.displayInfo)
             experimentRunner.run(it, operations)
         }
     }

@@ -17,10 +17,10 @@
 package org.gradle.performance
 
 import groovy.json.JsonSlurper
+import groovy.transform.CompileStatic
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.performance.fixture.BuildExperimentSpec
 import org.gradle.performance.fixture.BuildScanPerformanceTestRunner
-import org.gradle.performance.fixture.CrossBuildPerformanceTestRunner
 import org.gradle.performance.fixture.GradleBuildExperimentRunner
 import org.gradle.performance.measure.Amount
 import org.gradle.performance.measure.MeasuredOperation
@@ -34,6 +34,7 @@ import spock.lang.AutoCleanup
 import spock.lang.Shared
 import spock.lang.Specification
 
+@CompileStatic
 class AbstractBuildScanPluginPerformanceTest extends Specification {
 
     static String incomingDir = "../../incoming"
@@ -45,7 +46,7 @@ class AbstractBuildScanPluginPerformanceTest extends Specification {
     def resultStore = new BuildScanResultsStore()
 
     protected final IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext()
-    CrossBuildPerformanceTestRunner runner
+    BuildScanPerformanceTestRunner runner
 
     @Shared
     String pluginVersionNumber = resolvePluginVersion()

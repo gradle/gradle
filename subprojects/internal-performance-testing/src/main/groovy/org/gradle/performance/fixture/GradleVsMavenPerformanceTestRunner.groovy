@@ -28,7 +28,7 @@ import org.gradle.test.fixtures.maven.M2Installation
 import org.gradle.util.GradleVersion
 
 @CompileStatic
-class GradleVsMavenPerformanceTestRunner extends CrossBuildPerformanceTestRunner<GradleVsMavenBuildPerformanceResults> {
+class GradleVsMavenPerformanceTestRunner extends AbstractCrossBuildPerformanceTestRunner<GradleVsMavenBuildPerformanceResults> {
 
     final M2Installation m2
 
@@ -50,14 +50,6 @@ class GradleVsMavenPerformanceTestRunner extends CrossBuildPerformanceTestRunner
                                        IntegrationTestBuildContext buildContext) {
         super(experimentRunner, resultsStore, dataReporter, buildContext)
         m2 = new M2Installation(testDirectoryProvider)
-    }
-
-    @Override
-    protected void defaultSpec(BuildExperimentSpec.Builder builder) {
-        super.defaultSpec(builder)
-        if (builder instanceof GradleBuildExperimentSpec.GradleBuilder) {
-            ((GradleInvocationSpec.InvocationBuilder) builder.invocation).distribution(gradleDistribution)
-        }
     }
 
     @Override
@@ -86,33 +78,39 @@ class GradleVsMavenPerformanceTestRunner extends CrossBuildPerformanceTestRunner
 
     protected void finalizeSpec(BuildExperimentSpec.Builder builder) {
         super.finalizeSpec(builder)
-        if (builder instanceof GradleBuildExperimentSpec.GradleBuilder) {
-            def invocation = (GradleInvocationSpec.InvocationBuilder) builder.invocation
-            invocation.gradleOptions = customizeJvmOptions(invocation.gradleOptions)
-            if (!builder.displayName.startsWith("Gradle ")) {
-                throw new IllegalArgumentException("Gradle invocation display name must start with 'Gradle '")
+        if (builder instanceof MavenBuildExperimentSpec.MavenBuilder) {
+            finalizeMavenBuildSpec(builder)
+        }
+    }
+
+    private void finalizeMavenBuildSpec(MavenBuildExperimentSpec.MavenBuilder builder) {
+        def invocation = builder.invocation
+        invocation.jvmOpts = customizeJvmOptions(invocation.jvmOpts)
+        if (!invocation.args.find { it.startsWith("-Dmaven.repo.local=") }) {
+            def localRepoPath = m2.mavenRepo().rootDir.absolutePath
+            if (OperatingSystem.current().isWindows()) {
+                localRepoPath = localRepoPath.replace("\\", "\\\\").replace(" ", "\\ ")
+                invocation.args.add("-Dmaven.repo.local=${localRepoPath}".toString())
+            } else {
+                invocation.args.add("-Dmaven.repo.local=${localRepoPath}".toString())
             }
-        } else if (builder instanceof MavenBuildExperimentSpec.MavenBuilder) {
-            def invocation = ((MavenBuildExperimentSpec.MavenBuilder) builder).invocation
-            invocation.jvmOpts = customizeJvmOptions(invocation.jvmOpts)
-            if (!invocation.args.find { it.startsWith("-Dmaven.repo.local=") }) {
-                def localRepoPath = m2.mavenRepo().rootDir.absolutePath
-                if (OperatingSystem.current().isWindows()) {
-                    localRepoPath = localRepoPath.replace("\\", "\\\\").replace(" ", "\\ ")
-                    invocation.args.add("-Dmaven.repo.local=${localRepoPath}".toString())
-                } else {
-                    invocation.args.add("-Dmaven.repo.local=${localRepoPath}".toString())
-                }
+        }
+        if (!invocation.mavenHome) {
+            def home = System.getProperty("MAVEN_HOME")
+            if (home) {
+                invocation.mavenHome(new File(home))
             }
-            if (!invocation.mavenHome) {
-                def home = System.getProperty("MAVEN_HOME")
-                if (home) {
-                    invocation.mavenHome(new File(home))
-                }
-            }
-            if (!builder.displayName.startsWith("Maven ")) {
-                throw new IllegalArgumentException("Maven invocation display name must start with 'Maven '")
-            }
+        }
+        if (!builder.displayName.startsWith("Maven ")) {
+            throw new IllegalArgumentException("Maven invocation display name must start with 'Maven '")
+        }
+    }
+
+    @Override
+    protected void finalizeGradleSpec(GradleBuildExperimentSpec.GradleBuilder builder) {
+        super.finalizeGradleSpec(builder)
+        if (!builder.displayName.startsWith("Gradle ")) {
+            throw new IllegalArgumentException("Gradle invocation display name must start with 'Gradle '")
         }
     }
 

@@ -22,39 +22,14 @@ import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.performance.results.CrossBuildPerformanceResults
 import org.gradle.performance.results.DataReporter
-import org.gradle.performance.results.MeasuredOperationList
 import org.gradle.performance.results.ResultsStore
 import org.gradle.performance.util.Git
-import org.gradle.profiler.BuildMutator
-import org.gradle.profiler.InvocationSettings
 import org.gradle.util.GradleVersion
 
-import java.util.function.Function
-
 @CompileStatic
-class CrossBuildPerformanceTestRunner<R extends CrossBuildPerformanceResults> extends AbstractGradleBuildPerformanceTestRunner<R> {
-    CrossBuildPerformanceTestRunner(AbstractBuildExperimentRunner experimentRunner, ResultsStore resultsStore, DataReporter<R> dataReporter, IntegrationTestBuildContext buildContext) {
+class CrossBuildPerformanceTestRunner extends AbstractCrossBuildPerformanceTestRunner<CrossBuildPerformanceResults> {
+    CrossBuildPerformanceTestRunner(AbstractBuildExperimentRunner experimentRunner, ResultsStore resultsStore, DataReporter<CrossBuildPerformanceResults> dataReporter, IntegrationTestBuildContext buildContext) {
         super(experimentRunner, resultsStore, dataReporter, buildContext)
-    }
-
-    private final List<Function<InvocationSettings, BuildMutator>> buildMutators = []
-    private final List<String> measuredBuildOperations = []
-
-    protected void defaultSpec(BuildExperimentSpec.Builder builder) {
-        super.defaultSpec(builder)
-        builder.buildMutators.addAll(buildMutators)
-        if (builder instanceof GradleBuildExperimentSpec.GradleBuilder) {
-            ((GradleBuildExperimentSpec.GradleBuilder) builder).measuredBuildOperations.addAll(measuredBuildOperations)
-            ((GradleBuildExperimentSpec.GradleBuilder) builder).invocation.distribution(gradleDistribution)
-        }
-    }
-
-    protected void finalizeSpec(BuildExperimentSpec.Builder builder) {
-        super.finalizeSpec(builder)
-        if (builder instanceof GradleBuildExperimentSpec.GradleBuilder) {
-            def invocation = (GradleInvocationSpec.InvocationBuilder) builder.invocation
-            invocation.gradleOptions = customizeJvmOptions(invocation.gradleOptions)
-        }
     }
 
     @Override
@@ -72,18 +47,5 @@ class CrossBuildPerformanceTestRunner<R extends CrossBuildPerformanceResults> ex
             channel: determineChannel(),
             teamCityBuildId: determineTeamCityBuildId()
         )
-    }
-
-    @Override
-    MeasuredOperationList operations(R result, BuildExperimentSpec spec) {
-        result.buildResult(spec.displayInfo)
-    }
-
-    void addBuildMutator(Function<InvocationSettings, BuildMutator> buildMutator) {
-        buildMutators.add(buildMutator)
-    }
-
-    List<String> getMeasuredBuildOperations() {
-        return measuredBuildOperations
     }
 }
