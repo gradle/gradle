@@ -35,7 +35,8 @@ import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.new
 class DependencyResultSerializerTest extends Specification {
 
     def serializer = new DependencyResultSerializer(new ResolvedVariantResultSerializer(
-            new DesugaredAttributeContainerSerializer(AttributeTestUtil.attributesFactory(), TestUtil.objectInstantiator())), DependencyManagementTestUtil.componentSelectionDescriptorFactory())
+        new ComponentIdentifierSerializer(),
+        new DesugaredAttributeContainerSerializer(AttributeTestUtil.attributesFactory(), TestUtil.objectInstantiator())), DependencyManagementTestUtil.componentSelectionDescriptorFactory())
 
     def "serializes successful dependency result"() {
         def requested = DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId("org", "foo"), new DefaultMutableVersionConstraint("1.0"))
