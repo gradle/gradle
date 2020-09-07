@@ -18,49 +18,122 @@ package org.gradle.integtests.tooling
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import org.gradle.internal.jvm.Jvm
-import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 import org.junit.Assume
 import spock.lang.Unroll
 
 class ToolingApiJdkCompatibilityTest extends AbstractIntegrationSpec {
-
-    TestFile projectDir
-
     def setup() {
-        projectDir = temporaryFolder.testDirectory
-        temporaryFolder.testDirectory.file("build.gradle") << ""
-        temporaryFolder.testDirectory.file("settings.gradle") << "rootProject.name = 'target-project'"
+        buildFile << """
+            plugins {
+                id 'java'
+            }
+            
+            repositories {
+                ${jcenterRepository()}
+                maven { url '${buildContext.localRepository.toURI().toURL()}' }
+            }
+            
+            task runTask(type: JavaExec) {
+                classpath = sourceSets.main.runtimeClasspath
+                mainClass = "ToolingApiCompatibilityClient"
+                javaLauncher = javaToolchains.launcherFor {
+                    languageVersion = JavaLanguageVersion.of(Integer.valueOf(project.findProperty("clientJdk")))
+                }
+                enableAssertions = true
+
+                args = [ "help", file("test-project"), project.findProperty("gradleVersion"), project.findProperty("targetJdk") ]
+            }
+            
+            java {
+                disableAutoTargetJvm()
+                toolchain {
+                    languageVersion = JavaLanguageVersion.of(8)
+                }
+                targetCompatibility = project.findProperty("compilerJdk")
+            }
+            
+            dependencies {
+                implementation 'org.gradle:gradle-tooling-api:${distribution.version.baseVersion.version}'
+            }
+        """
+        file("src/main/java/ToolingApiCompatibilityClient.java") << """
+import org.gradle.tooling.GradleConnector;
+import org.gradle.tooling.ProjectConnection;
+
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+
+public class ToolingApiCompatibilityClient {
+    public static void main(String[] args) throws Exception {
+        try {
+            // parameters
+            // 1. action
+            // 2. project directory
+            // 3. target gradle version (or home)
+            // 4. target JDK
+            if (args.length == 4) {
+                String action = args[0];
+                File projectDir = new File(args[1]);
+                String gradleVersion = args[2];
+                File javaHome = new File(args[3]);
+                System.out.println("action = " + action);
+                System.out.println("projectDir = " + projectDir);
+                System.out.println("gradleVersion = " + gradleVersion);
+                System.out.println("javaHome = " + javaHome);
+                if (action.equals("help")) {
+                    runHelp(projectDir, gradleVersion, javaHome);
+                    System.exit(0);
+                }
+            }
+        } finally {
+            System.err.println("something went wrong");
+            System.exit(1);
+        }
+    }
+
+    private static void runHelp(File projectLocation, String gradleVersion, File javaHome) throws Exception {
+        GradleConnector connector = GradleConnector.newConnector();
+        connector.useGradleVersion(gradleVersion);
+
+        ProjectConnection connection = connector.forProjectDirectory(projectLocation).connect();
+
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        ByteArrayOutputStream err = new ByteArrayOutputStream();
+
+        connection.newBuild()
+            .forTasks("help")
+            .setStandardOutput(out)
+            .setStandardError(err)
+            .setJavaHome(javaHome)
+            .run();
+
+        assert out.toString().contains("Hello from");
+        System.err.println(err.toString());
+    }
+}
+"""
+        settingsFile << "rootProject.name = 'client-runner'"
+
+        file("test-project/build.gradle") << "println 'Hello from ' + gradle.gradleVersion"
+        file("test-project/settings.gradle") << "rootProject.name = 'target-project'"
     }
 
     @Unroll
-    @Requires(adhoc = { TestPrecondition.JDK11_OR_LATER.fulfilled && !GradleContextualExecuter.embedded })
-    def "Java #compilerJdkVersion.majorVersion client can launch task on Java #clientJdkVersion.majorVersion with Gradle #gradleVersion on Java #gradleDaemonJdkVersion.majorVersion"(JavaVersion compilerJdkVersion, JavaVersion clientJdkVersion, JavaVersion gradleDaemonJdkVersion, String gradleVersion) {
+    def "tapi client with classes compiled for Java #compilerJdkVersion.majorVersion can launch task with Gradle #gradleVersion on Java #gradleDaemonJdkVersion.majorVersion from Java #clientJdkVersion.majorVersion"(JavaVersion compilerJdkVersion, JavaVersion clientJdkVersion, JavaVersion gradleDaemonJdkVersion, String gradleVersion) {
         setup:
         def tapiClientCompilerJdk = AvailableJavaHomes.getJdk(compilerJdkVersion)
         def gradleDaemonJdk = AvailableJavaHomes.getJdk(gradleDaemonJdkVersion)
         Assume.assumeTrue(tapiClientCompilerJdk && gradleDaemonJdk)
 
-        def classesDir = new File("build/tmp/tapiCompatClasses")
-        classesDir.mkdirs()
-        "compileJava${compilerJdkVersion.majorVersion}TapiClient"(classesDir)
-
-        def classLoader = new URLClassLoader([classesDir.toURI().toURL()] as URL[], getClass().classLoader)
-        def tapiClient = classLoader.loadClass("org.gradle.integtests.tooling.ToolingApiCompatibilityClient")
-
         when:
-        def output = ("current" == gradleVersion)
-            ? tapiClient.runHelp(gradleVersion, projectDir, gradleDaemonJdk.javaHome, distribution.gradleHomeDir.absoluteFile)
-            : tapiClient.runHelp(gradleVersion, projectDir, gradleDaemonJdk.javaHome)
+        succeeds("runTask",
+                "-PclientJdk=" + clientJdkVersion.majorVersion,
+                "-PtargetJdk=" + gradleDaemonJdk.javaHome.absolutePath,
+                "-PcompilerJdk=" + compilerJdkVersion.name(),
+                "-PgradleVersion=" + gradleVersion)
 
         then:
         output.contains("BUILD SUCCESSFUL")
-
-        cleanup:
-        classesDir.deleteDir()
 
         where:
         compilerJdkVersion      | clientJdkVersion      | gradleDaemonJdkVersion  | gradleVersion
@@ -70,8 +143,6 @@ class ToolingApiJdkCompatibilityTest extends AbstractIntegrationSpec {
         JavaVersion.VERSION_1_7 | JavaVersion.current() | JavaVersion.VERSION_1_6 | "2.14.1"
         JavaVersion.VERSION_1_8 | JavaVersion.current() | JavaVersion.VERSION_1_6 | "2.6"
         JavaVersion.VERSION_1_8 | JavaVersion.current() | JavaVersion.VERSION_1_6 | "2.14.1"
-        JavaVersion.VERSION_11  | JavaVersion.current() | JavaVersion.VERSION_1_6 | "2.6"
-        JavaVersion.VERSION_11  | JavaVersion.current() | JavaVersion.VERSION_1_6 | "2.14.1"
 
         JavaVersion.VERSION_1_6 | JavaVersion.current() | JavaVersion.VERSION_1_7 | "2.6"    // minimum supported version for Tooling API
         JavaVersion.VERSION_1_6 | JavaVersion.current() | JavaVersion.VERSION_1_7 | "4.6"    // last version with reported regression
@@ -82,62 +153,24 @@ class ToolingApiJdkCompatibilityTest extends AbstractIntegrationSpec {
         JavaVersion.VERSION_1_8 | JavaVersion.current() | JavaVersion.VERSION_1_7 | "2.6"
         JavaVersion.VERSION_1_8 | JavaVersion.current() | JavaVersion.VERSION_1_7 | "4.6"
         JavaVersion.VERSION_1_8 | JavaVersion.current() | JavaVersion.VERSION_1_7 | "4.10.3"
-        JavaVersion.VERSION_11  | JavaVersion.current() | JavaVersion.VERSION_1_7 | "2.6"
-        JavaVersion.VERSION_11  | JavaVersion.current() | JavaVersion.VERSION_1_7 | "4.6"
-        JavaVersion.VERSION_11  | JavaVersion.current() | JavaVersion.VERSION_1_7 | "4.10.3"
 
         JavaVersion.VERSION_1_6 | JavaVersion.current() | JavaVersion.VERSION_1_8 | "2.6"    // minimum supported version for Tooling API
         JavaVersion.VERSION_1_6 | JavaVersion.current() | JavaVersion.VERSION_1_8 | "4.6"    // last version with reported regression
         JavaVersion.VERSION_1_6 | JavaVersion.current() | JavaVersion.VERSION_1_8 | "4.7"    // first version that had no reported regression
-        JavaVersion.VERSION_1_6 | JavaVersion.current() | JavaVersion.VERSION_1_8 | "current"
+        JavaVersion.VERSION_1_6 | JavaVersion.current() | JavaVersion.VERSION_1_8 | "5.0"
+        JavaVersion.VERSION_1_6 | JavaVersion.current() | JavaVersion.VERSION_1_8 | "5.6.4"
+        JavaVersion.VERSION_1_6 | JavaVersion.current() | JavaVersion.VERSION_1_8 | "6.0"
         JavaVersion.VERSION_1_7 | JavaVersion.current() | JavaVersion.VERSION_1_8 | "2.6"
         JavaVersion.VERSION_1_7 | JavaVersion.current() | JavaVersion.VERSION_1_8 | "4.6"
         JavaVersion.VERSION_1_7 | JavaVersion.current() | JavaVersion.VERSION_1_8 | "4.7"
-        JavaVersion.VERSION_1_7 | JavaVersion.current() | JavaVersion.VERSION_1_8 | "current"
+        JavaVersion.VERSION_1_7 | JavaVersion.current() | JavaVersion.VERSION_1_8 | "5.0"
+        JavaVersion.VERSION_1_7 | JavaVersion.current() | JavaVersion.VERSION_1_8 | "5.6.4"
+        JavaVersion.VERSION_1_7 | JavaVersion.current() | JavaVersion.VERSION_1_8 | "6.0"
         JavaVersion.VERSION_1_8 | JavaVersion.current() | JavaVersion.VERSION_1_8 | "2.6"
         JavaVersion.VERSION_1_8 | JavaVersion.current() | JavaVersion.VERSION_1_8 | "4.6"
         JavaVersion.VERSION_1_8 | JavaVersion.current() | JavaVersion.VERSION_1_8 | "4.7"
-        JavaVersion.VERSION_1_8 | JavaVersion.current() | JavaVersion.VERSION_1_8 | "current"
-        JavaVersion.VERSION_11  | JavaVersion.current() | JavaVersion.VERSION_1_8 | "2.6"
-        JavaVersion.VERSION_11  | JavaVersion.current() | JavaVersion.VERSION_1_8 | "4.6"
-        JavaVersion.VERSION_11  | JavaVersion.current() | JavaVersion.VERSION_1_8 | "4.7"
-        JavaVersion.VERSION_11  | JavaVersion.current() | JavaVersion.VERSION_1_8 | "current"
-    }
-
-    private void compileJava6TapiClient(File targetDir) {
-        // TODO We need to use java 1.8 compiler here with -target 6 argument because GradleConnector is compiled with java 8
-        compileTapiClient(AvailableJavaHomes.getJdk8(), targetDir, '-source 6 -target 6')
-    }
-
-    private void compileJava7TapiClient(File targetDir) {
-        // TODO We need to use java 1.8 compiler here with -target 7 argument because GradleConnector is compiled with java 8
-        compileTapiClient(AvailableJavaHomes.getJdk8(), targetDir, '-source 7 -target 7')
-    }
-
-    private void compileJava8TapiClient(File targetDir) {
-        compileTapiClient(AvailableJavaHomes.getJdk8(), targetDir)
-    }
-
-    private void compileJava11TapiClient(File targetDir) {
-        compileTapiClient(AvailableJavaHomes.getJdk(JavaVersion.VERSION_11), targetDir)
-    }
-
-    private void compileTapiClient(Jvm jvm, File targetDir, String compilerArgs = '') {
-        def classpath = System.getProperty("java.class.path")
-        def options = new File(targetDir, "options")
-        options.text = """-cp
-$classpath
--d
-$targetDir.absolutePath
-${compilerArgs.replace(' ', '\n')}"""
-        def sourcePath = getClass().classLoader.getResource("org/gradle/integtests/tooling/ToolingApiCompatibilityClient.java").file
-        def compilationCommand = "$jvm.javacExecutable.absolutePath @$options.absolutePath $sourcePath"
-
-        def compilationProcess = compilationCommand.execute()
-        ByteArrayOutputStream out = new ByteArrayOutputStream()
-        ByteArrayOutputStream err = new ByteArrayOutputStream()
-        compilationProcess.waitForProcessOutput(out, err)
-        println out
-        println err
+        JavaVersion.VERSION_1_8 | JavaVersion.current() | JavaVersion.VERSION_1_8 | "5.0"
+        JavaVersion.VERSION_1_8 | JavaVersion.current() | JavaVersion.VERSION_1_8 | "5.6.4"
+        JavaVersion.VERSION_1_8 | JavaVersion.current() | JavaVersion.VERSION_1_8 | "6.0"
     }
 }
