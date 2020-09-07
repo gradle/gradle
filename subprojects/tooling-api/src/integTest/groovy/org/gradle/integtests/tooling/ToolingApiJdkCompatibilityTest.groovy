@@ -136,7 +136,7 @@ public class ToolingApiCompatibilityClient {
         succeeds("runTask",
                 "-PclientJdk=" + clientJdkVersion.majorVersion,
                 "-PtargetJdk=" + gradleDaemonJdk.javaHome.absolutePath,
-                "-PcompilerJdk=" + compilerJdkVersion.majorVersion,
+                "-PcompilerJdk=" + compilerJdkVersion.majorVersion, //compilerJdkVersion.name()
                 "-PgradleVersion=" + gradleVersion)
 
         then:
