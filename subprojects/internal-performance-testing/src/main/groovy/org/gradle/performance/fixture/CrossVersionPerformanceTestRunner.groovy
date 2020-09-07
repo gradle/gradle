@@ -50,7 +50,6 @@ import static org.gradle.test.fixtures.server.http.MavenHttpPluginRepository.PLU
 /**
  * Runs cross version performance tests using Gradle profiler.
  */
-@CompileStatic
 class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
 
     private static final Pattern COMMA_OR_SEMICOLON = Pattern.compile('[;,]')
