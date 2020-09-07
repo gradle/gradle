@@ -34,9 +34,7 @@ class GradleVsMavenPerformanceTestRunner extends AbstractCrossBuildPerformanceTe
 
     String testProject
     List<String> gradleTasks
-    List<String> gradleCleanTasks = []
     List<String> equivalentMavenTasks
-    List<String> equivalentMavenCleanTasks = []
     List<Object> jvmOpts = []
     List<Object> mvnArgs = []
 
@@ -59,14 +57,14 @@ class GradleVsMavenPerformanceTestRunner extends AbstractCrossBuildPerformanceTe
             warmUpCount = warmUpRuns
             invocationCount = runs
             projectName(testProject).displayName("Gradle $commonBaseDisplayName").invocation {
-                tasksToRun(gradleTasks).cleanTasks(gradleCleanTasks).gradleOpts(jvmOpts.collect { it.toString() })
+                tasksToRun(gradleTasks).gradleOpts(jvmOpts.collect { it.toString() })
             }
         }
         mavenBuildSpec {
             warmUpCount = warmUpRuns
             invocationCount = runs
             projectName(testProject).displayName("Maven $commonBaseDisplayName").invocation {
-                tasksToRun(equivalentMavenTasks).cleanTasks(equivalentMavenCleanTasks).mavenOpts(jvmOpts.collect { it.toString() }).args(mvnArgs.collect { it.toString() })
+                tasksToRun(equivalentMavenTasks).mavenOpts(jvmOpts.collect { it.toString() }).args(mvnArgs.collect { it.toString() })
             }
         }
         super.run()

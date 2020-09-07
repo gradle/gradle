@@ -122,10 +122,15 @@ public class MavenBuildExperimentRunner extends AbstractBuildExperimentRunner {
     }
 
     private MavenScenarioDefinition createScenarioDefinition(MavenBuildExperimentSpec experimentSpec, InvocationSettings invocationSettings) {
+        MavenInvocationSpec invocation = experimentSpec.getInvocation();
+        List<String> arguments = ImmutableList.<String>builder()
+            .addAll(invocation.getTasksToRun())
+            .addAll(invocation.getArgs())
+            .build();
         return new MavenScenarioDefinition(
             experimentSpec.getDisplayName(),
             experimentSpec.getDisplayName(),
-            experimentSpec.getInvocation().getTasksToRun(),
+            arguments,
             new BuildMutatorFactory(experimentSpec.getBuildMutators().stream()
                 .map(mutatorFunction -> toMutatorSupplierForSettings(invocationSettings, mutatorFunction))
                 .collect(Collectors.toList())
