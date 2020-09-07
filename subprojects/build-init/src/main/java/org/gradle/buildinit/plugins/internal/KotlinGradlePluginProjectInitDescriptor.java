@@ -71,6 +71,7 @@ public class KotlinGradlePluginProjectInitDescriptor extends JvmGradlePluginProj
     @Override
     protected TemplateOperation sourceTemplate(InitSettings settings, TemplateFactory templateFactory, String pluginId, String pluginClassName) {
         return templateFactory.fromSourceTemplate("plugin/kotlin/Plugin.kt.template", t -> {
+            t.subproject(settings.getSubprojects().get(0));
             t.sourceSet("main");
             t.className(pluginClassName);
             t.binding("pluginId", pluginId);
@@ -80,6 +81,7 @@ public class KotlinGradlePluginProjectInitDescriptor extends JvmGradlePluginProj
     @Override
     protected TemplateOperation testTemplate(InitSettings settings, TemplateFactory templateFactory, String pluginId, String testClassName) {
         return templateFactory.fromSourceTemplate("plugin/kotlin/kotlintest/PluginTest.kt.template", t -> {
+            t.subproject(settings.getSubprojects().get(0));
             t.sourceSet("test");
             t.className(testClassName);
             t.binding("pluginId", pluginId);
@@ -89,6 +91,7 @@ public class KotlinGradlePluginProjectInitDescriptor extends JvmGradlePluginProj
     @Override
     protected TemplateOperation functionalTestTemplate(InitSettings settings, TemplateFactory templateFactory, String pluginId, String testClassName) {
         return templateFactory.fromSourceTemplate("plugin/kotlin/kotlintest/PluginFunctionalTest.kt.template", t -> {
+            t.subproject(settings.getSubprojects().get(0));
             t.sourceSet("functionalTest");
             t.className(testClassName);
             t.binding("pluginId", pluginId);
