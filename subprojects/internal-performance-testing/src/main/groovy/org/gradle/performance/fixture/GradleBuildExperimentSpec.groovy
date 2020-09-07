@@ -17,12 +17,14 @@
 package org.gradle.performance.fixture
 
 import com.google.common.collect.ImmutableList
+import groovy.transform.CompileStatic
 import org.gradle.performance.results.BuildDisplayInfo
 import org.gradle.profiler.BuildMutator
 import org.gradle.profiler.InvocationSettings
 
 import java.util.function.Function
 
+@CompileStatic
 class GradleBuildExperimentSpec extends BuildExperimentSpec {
     final GradleInvocationSpec invocation
     final ImmutableList<String> measuredBuildOperations
@@ -80,7 +82,7 @@ class GradleBuildExperimentSpec extends BuildExperimentSpec {
         }
 
         GradleBuilder invocation(@DelegatesTo(GradleInvocationSpec.InvocationBuilder) Closure<?> conf) {
-            invocation.with(conf)
+            invocation.with(conf as Closure<Object>)
             this
         }
 

@@ -31,11 +31,11 @@ class MavenInstallationDownloader {
     private final static Lock LOCK = new ReentrantLock()
     private final File installsRoot
 
-    public MavenInstallationDownloader(File installsRoot) {
+    MavenInstallationDownloader(File installsRoot) {
         this.installsRoot = installsRoot
     }
 
-    public MavenInstallation getMavenInstallation(String mavenVersion) {
+    MavenInstallation getMavenInstallation(String mavenVersion) {
         LOCK.lock()
         try {
             def home = mavenInstallDirectory(installsRoot, mavenVersion)

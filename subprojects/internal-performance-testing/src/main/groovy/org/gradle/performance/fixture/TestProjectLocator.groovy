@@ -16,6 +16,9 @@
 
 package org.gradle.performance.fixture
 
+import groovy.transform.CompileStatic
+
+@CompileStatic
 class TestProjectLocator {
 
     File findProjectDir(String name) {

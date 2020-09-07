@@ -16,9 +16,11 @@
 
 package org.gradle.performance.fixture;
 
+import groovy.transform.CompileStatic;
 import org.gradle.api.Action;
 import org.gradle.performance.measure.MeasuredOperation;
 
+@CompileStatic
 public class OperationTimer {
     public MeasuredOperation measure(final Action<? super MeasuredOperation> action) {
         final MeasuredOperation result = new MeasuredOperation();

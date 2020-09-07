@@ -18,6 +18,7 @@ package org.gradle.performance.fixture;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import groovy.transform.CompileStatic;
 import org.gradle.internal.UncheckedException;
 import org.gradle.performance.results.MeasuredOperationList;
 import org.gradle.profiler.BenchmarkResultCollector;
@@ -39,6 +40,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
+@CompileStatic
 public class MavenBuildExperimentRunner extends AbstractBuildExperimentRunner {
     public MavenBuildExperimentRunner(BenchmarkResultCollector resultCollector) {
         super(resultCollector);

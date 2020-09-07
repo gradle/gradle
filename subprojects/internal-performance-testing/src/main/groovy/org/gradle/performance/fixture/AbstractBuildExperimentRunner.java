@@ -16,6 +16,7 @@
 
 package org.gradle.performance.fixture;
 
+import groovy.transform.CompileStatic;
 import joptsimple.OptionParser;
 import org.apache.commons.io.FileUtils;
 import org.gradle.performance.measure.Duration;
@@ -42,6 +43,7 @@ import java.util.function.Supplier;
  * As part of a performance scenario, multiple experiments need to be run and compared.
  * For example for a cross-version scenario, experiments for each version will be run.
  */
+@CompileStatic
 public abstract class AbstractBuildExperimentRunner implements BuildExperimentRunner {
     private final ProfilerFlameGraphGenerator flameGraphGenerator;
     private final BenchmarkResultCollector resultCollector;

@@ -150,7 +150,7 @@ class MavenInvocationSpec implements InvocationSpec {
         }
 
         MavenInvocationSpec build() {
-            def mavenInstallation
+            MavenInstallation mavenInstallation = null
             if (mavenVersion != null && mavenHome != null) {
                 assertMavenHomeAndVersionMatch()
             } else if (mavenHome != null) {

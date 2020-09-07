@@ -62,7 +62,7 @@ class MavenBuildExperimentSpec extends BuildExperimentSpec {
         final List<Function<InvocationSettings, BuildMutator>> buildMutators = []
 
         MavenBuilder invocation(@DelegatesTo(MavenInvocationSpec.InvocationBuilder) Closure<?> conf) {
-            invocation.with(conf)
+            invocation.with(conf as Closure<Object>)
             this
         }
 

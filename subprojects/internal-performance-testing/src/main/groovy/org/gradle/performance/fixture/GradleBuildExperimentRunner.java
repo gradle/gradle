@@ -18,6 +18,7 @@ package org.gradle.performance.fixture;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import groovy.transform.CompileStatic;
 import org.gradle.integtests.fixtures.executer.GradleDistribution;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.jvm.Jvm;
@@ -51,6 +52,7 @@ import java.util.stream.Collectors;
  *
  * This runner uses Gradle profiler to execute the actual experiment.
  */
+@CompileStatic
 public class GradleBuildExperimentRunner extends AbstractBuildExperimentRunner {
     private static final String GRADLE_USER_HOME_NAME = "gradleUserHome";
     private PidInstrumentation pidInstrumentation;

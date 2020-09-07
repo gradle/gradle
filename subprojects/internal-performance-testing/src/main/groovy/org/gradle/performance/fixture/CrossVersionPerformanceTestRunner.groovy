@@ -18,6 +18,9 @@ package org.gradle.performance.fixture
 
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.base.Splitter
+import com.google.common.collect.ImmutableList
+import groovy.transform.CompileStatic
+import groovy.transform.TypeCheckingMode
 import org.apache.commons.io.FileUtils
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.executer.GradleDistribution
@@ -47,6 +50,7 @@ import static org.gradle.test.fixtures.server.http.MavenHttpPluginRepository.PLU
 /**
  * Runs cross version performance tests using Gradle profiler.
  */
+@CompileStatic
 class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
 
     private static final Pattern COMMA_OR_SEMICOLON = Pattern.compile('[;,]')
@@ -129,7 +133,11 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
         )
 
         def baselineVersions = toBaselineVersions(releases, targetVersions, minimumBaseVersion).collect { results.baseline(it) }
-        int maxWorkingDirLength = (['current'] + baselineVersions*.version).collect { sanitizeVersionWorkingDir(it) }*.length().max()
+        def allVersions = ImmutableList.<String>builder()
+            .add('current')
+            .addAll(baselineVersions*.version as List<String>)
+            .build()
+        int maxWorkingDirLength = (allVersions).collect { sanitizeVersionWorkingDir(it) }*.length().max()
 
         runVersion('current', current, perVersionWorkingDirectory('current', maxWorkingDirLength), results.current)
 
@@ -224,6 +232,7 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
         return minimumBaseVersion == null || GradleVersion.version(targetVersion).baseVersion >= GradleVersion.version(minimumBaseVersion)
     }
 
+    @CompileStatic(TypeCheckingMode.SKIP)
     private static boolean isRcVersionOrSnapshot(String version) {
         GradleVersion versionObject = GradleVersion.version(version)
         // there is no public API for checking for RC version, this is an internal way
@@ -265,7 +274,7 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
                 distribution(dist)
                 tasksToRun(this.tasksToRun as String[])
                 cleanTasks(this.cleanTasks as String[])
-                args((this.args + ['-I', RepoScriptBlockUtil.createMirrorInitScript().absolutePath, "-D${PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY}=${gradlePluginRepositoryMirrorUrl()}"]) as String[])
+                args((this.args + ['-I', RepoScriptBlockUtil.createMirrorInitScript().absolutePath, "-D${PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY}=${gradlePluginRepositoryMirrorUrl()}".toString()]) as String[])
                 gradleOpts(gradleOptsInUse as String[])
                 useDaemon(this.useDaemon)
             }
