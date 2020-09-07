@@ -16,10 +16,10 @@
 
 package org.gradle.performance.regression.corefeature
 
-import org.gradle.performance.AbstractCrossVersionGradleProfilerPerformanceTest
+import org.gradle.performance.AbstractCrossVersionPerformanceTest
 import spock.lang.Unroll
 
-class VerboseTestOutputPerformanceTest extends AbstractCrossVersionGradleProfilerPerformanceTest {
+class VerboseTestOutputPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
     @Unroll
     def "cleanTest test on #testProject with verbose test output"() {

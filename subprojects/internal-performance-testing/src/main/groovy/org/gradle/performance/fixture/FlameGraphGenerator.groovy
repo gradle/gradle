@@ -32,7 +32,7 @@ class FlameGraphGenerator {
     private final File diffScript = createScript("difffolded")
 
     private static File createScript(String scriptName) {
-        URL scriptResource = JfrProfiler.getResource(scriptName + ".pl")
+        URL scriptResource = FlameGraphGenerator.getResource(scriptName + ".pl")
         File script = File.createTempFile(scriptName, ".pl")
         Resources.asByteSource(scriptResource).copyTo(Files.asByteSink(script))
         script.deleteOnExit()

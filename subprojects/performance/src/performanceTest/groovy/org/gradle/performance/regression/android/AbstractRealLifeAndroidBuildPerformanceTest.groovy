@@ -18,11 +18,11 @@ package org.gradle.performance.regression.android
 
 import org.gradle.integtests.fixtures.versions.AndroidGradlePluginVersions
 import org.gradle.internal.scan.config.fixtures.ApplyGradleEnterprisePluginFixture
-import org.gradle.performance.AbstractCrossVersionGradleProfilerPerformanceTest
+import org.gradle.performance.AbstractCrossVersionPerformanceTest
 import org.gradle.profiler.BuildMutator
 import org.gradle.profiler.ScenarioContext
 
-class AbstractRealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionGradleProfilerPerformanceTest {
+class AbstractRealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
     static final String SANTA_AGP_TARGET_VERSION = "3.6"
 
     def setup() {

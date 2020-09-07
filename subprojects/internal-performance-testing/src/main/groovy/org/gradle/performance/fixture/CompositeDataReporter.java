@@ -16,6 +16,7 @@
 
 package org.gradle.performance.fixture;
 
+import groovy.transform.CompileStatic;
 import org.gradle.performance.results.CrossVersionPerformanceResults;
 import org.gradle.performance.results.DataReporter;
 
@@ -25,6 +26,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+@CompileStatic
 public class CompositeDataReporter implements DataReporter<CrossVersionPerformanceResults>, Closeable {
     private final List<DataReporter<CrossVersionPerformanceResults>> reporters;
     private final Set<String> testIds = new HashSet<>();

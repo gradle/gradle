@@ -18,7 +18,10 @@ package org.gradle.performance.fixture;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import groovy.transform.CompileStatic;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.nativeintegration.ProcessEnvironment;
+import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.performance.results.MeasuredOperationList;
 import org.gradle.profiler.BenchmarkResultCollector;
 import org.gradle.profiler.BuildInvoker;
@@ -39,7 +42,11 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-public class MavenBuildExperimentRunner extends AbstractGradleProfilerBuildExperimentRunner {
+@CompileStatic
+public class MavenBuildExperimentRunner extends AbstractBuildExperimentRunner {
+
+    private static final String MAVEN_HOME_ENV_NAME = "MAVEN_HOME";
+
     public MavenBuildExperimentRunner(BenchmarkResultCollector resultCollector) {
         super(resultCollector);
     }
@@ -54,6 +61,9 @@ public class MavenBuildExperimentRunner extends AbstractGradleProfilerBuildExper
         InvocationSettings invocationSettings = createInvocationSettings(experimentSpec);
         MavenScenarioDefinition scenarioDefinition = createScenarioDefinition(experimentSpec, invocationSettings);
 
+        String oldMavenHome = System.getenv(MAVEN_HOME_ENV_NAME);
+        ProcessEnvironment processEnvironment = NativeServices.getInstance().get(ProcessEnvironment.class);
+        processEnvironment.setEnvironmentVariable(MAVEN_HOME_ENV_NAME, experimentSpec.getInvocation().getInstallation().getHome().getAbsolutePath());
         try {
             MavenScenarioInvoker scenarioInvoker = new MavenScenarioInvoker();
             AtomicInteger iterationCount = new AtomicInteger(0);
@@ -81,6 +91,7 @@ public class MavenBuildExperimentRunner extends AbstractGradleProfilerBuildExper
             } catch (IOException e) {
                 e.printStackTrace();
             }
+            processEnvironment.setEnvironmentVariable(MAVEN_HOME_ENV_NAME, oldMavenHome);
         }
     }
 
@@ -111,10 +122,15 @@ public class MavenBuildExperimentRunner extends AbstractGradleProfilerBuildExper
     }
 
     private MavenScenarioDefinition createScenarioDefinition(MavenBuildExperimentSpec experimentSpec, InvocationSettings invocationSettings) {
+        MavenInvocationSpec invocation = experimentSpec.getInvocation();
+        List<String> arguments = ImmutableList.<String>builder()
+            .addAll(invocation.getTasksToRun())
+            .addAll(invocation.getArgs())
+            .build();
         return new MavenScenarioDefinition(
             experimentSpec.getDisplayName(),
             experimentSpec.getDisplayName(),
-            experimentSpec.getInvocation().getTasksToRun(),
+            arguments,
             new BuildMutatorFactory(experimentSpec.getBuildMutators().stream()
                 .map(mutatorFunction -> toMutatorSupplierForSettings(invocationSettings, mutatorFunction))
                 .collect(Collectors.toList())

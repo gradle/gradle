@@ -16,7 +16,7 @@
 
 package org.gradle.performance.regression.java
 
-import org.gradle.performance.AbstractCrossVersionGradleProfilerPerformanceTest
+import org.gradle.performance.AbstractCrossVersionPerformanceTest
 import org.gradle.performance.categories.SlowPerformanceRegressionTest
 import org.gradle.profiler.mutations.AbstractCleanupMutator
 import org.gradle.profiler.mutations.ClearGradleUserHomeMutator
@@ -29,7 +29,7 @@ import static org.gradle.performance.generator.JavaTestProject.LARGE_JAVA_MULTI_
 import static org.gradle.performance.generator.JavaTestProject.LARGE_MONOLITHIC_JAVA_PROJECT
 
 @Category(SlowPerformanceRegressionTest)
-class JavaFirstUsePerformanceTest extends AbstractCrossVersionGradleProfilerPerformanceTest {
+class JavaFirstUsePerformanceTest extends AbstractCrossVersionPerformanceTest {
 
     def setup() {
         runner.targetVersions = ["6.7-20200910233038+0000"]

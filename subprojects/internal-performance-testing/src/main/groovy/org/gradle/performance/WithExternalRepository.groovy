@@ -21,7 +21,7 @@ import org.apache.mina.util.AvailablePortFinder
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.util.resource.Resource
 import org.eclipse.jetty.webapp.WebAppContext
-import org.gradle.performance.fixture.AbstractCrossVersionPerformanceTestRunner
+import org.gradle.performance.fixture.CrossVersionPerformanceTestRunner
 import org.gradle.performance.fixture.TestProjectLocator
 
 @CompileStatic
@@ -33,7 +33,7 @@ trait WithExternalRepository {
         new File(new TestProjectLocator().findProjectDir(runner.testProject), 'repository')
     }
 
-    abstract AbstractCrossVersionPerformanceTestRunner getRunner()
+    abstract CrossVersionPerformanceTestRunner getRunner()
 
     WebAppContext createContext() {
         def context = new WebAppContext()
@@ -51,7 +51,7 @@ trait WithExternalRepository {
             context.setBaseResource(Resource.newResource(repoDir.getAbsolutePath()))
             server.insertHandler(context)
             server.start()
-        } catch (IllegalArgumentException ex) {
+        } catch (IllegalArgumentException ignored) {
             server = null // repository not found, probably running on coordinator. If not, error will be caught later
         }
     }

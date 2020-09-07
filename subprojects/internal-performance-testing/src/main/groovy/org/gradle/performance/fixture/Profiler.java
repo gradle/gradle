@@ -16,11 +16,13 @@
 
 package org.gradle.performance.fixture;
 
+import groovy.transform.CompileStatic;
 import org.gradle.internal.jvm.Jvm;
 
 import java.io.File;
 import java.util.List;
 
+@CompileStatic
 public abstract class Profiler {
     private static final String TARGET_DIR_KEY = "org.gradle.performance.flameGraphTargetDir";
 

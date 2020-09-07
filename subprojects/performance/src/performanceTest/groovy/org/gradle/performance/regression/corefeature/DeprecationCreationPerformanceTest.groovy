@@ -16,11 +16,11 @@
 
 package org.gradle.performance.regression.corefeature
 
-import org.gradle.performance.AbstractCrossVersionGradleProfilerPerformanceTest
+import org.gradle.performance.AbstractCrossVersionPerformanceTest
 import spock.lang.Ignore
 
 @Ignore('https://github.com/gradle/gradle-private/issues/3202')
-class DeprecationCreationPerformanceTest extends AbstractCrossVersionGradleProfilerPerformanceTest {
+class DeprecationCreationPerformanceTest extends AbstractCrossVersionPerformanceTest {
     def "create many deprecation warnings"() {
         given:
         runner.testProject = "generateLotsOfDeprecationWarnings"

@@ -25,7 +25,7 @@ import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 import spock.lang.Specification
 
-import static org.gradle.performance.fixture.AbstractCrossVersionPerformanceTestRunner.toBaselineVersions
+import static CrossVersionPerformanceTestRunner.toBaselineVersions
 
 class CrossVersionPerformanceTestRunnerTest extends Specification {
     @Rule
@@ -37,7 +37,7 @@ class CrossVersionPerformanceTestRunnerTest extends Specification {
         _ * distributions.all >> ['2.14.1', '3.5.1', '4.10.2', '6.1'].collect { dist(it) }
     }
 
-    private GradleDistribution dist(String version) {
+    private static GradleDistribution dist(String version) {
         new DefaultGradleDistribution(GradleVersion.version(version), null, null)
     }
 
