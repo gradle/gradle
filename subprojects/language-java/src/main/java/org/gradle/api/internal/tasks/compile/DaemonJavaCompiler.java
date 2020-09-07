@@ -76,7 +76,7 @@ public class DaemonJavaCompiler extends AbstractDaemonCompiler<JavaCompileSpec> 
         if (forkOptions.getExecutable() != null) {
             return new File(forkOptions.getExecutable());
         } else if (forkOptions.getJavaHome() != null) {
-            return new File(forkOptions.getJavaHome(), "bin/java");
+            return Jvm.forHome(forkOptions.getJavaHome()).getJavaExecutable();
         }
         return Jvm.current().getJavaExecutable();
     }
