@@ -29,10 +29,11 @@ plugins {
     id("gradlebuild.classycle")
     id("gradlebuild.integration-tests")
     id("gradlebuild.cross-version-tests")
+    id("gradlebuild.ci-lifecycle")
 }
 
 apply(from = "$rootDir/gradle/shared-with-buildSrc/code-quality-configuration.gradle.kts")
 
-tasks.named("check").configure {
+tasks.named("check") {
     dependsOn("codeQuality")
 }

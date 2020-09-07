@@ -75,6 +75,13 @@ public interface FileWatcherRegistry extends Closeable {
     FileWatchingStatistics getAndResetStatistics();
 
     /**
+     * Configures debug logging.
+     *
+     * When enabled, {@link net.rubygrapefruit.platform.internal.jni.NativeLogger} will emit {@link java.util.logging.Level#FINEST} logs.
+     */
+    void setDebugLoggingEnabled(boolean debugLoggingEnabled);
+
+    /**
      * Close the watcher registry. Stops watching without handling the changes.
      */
     @Override

@@ -55,6 +55,7 @@ class ConfigurationCacheBuildSrcChangesIntegrationTest extends AbstractConfigura
         }
 
         then:
+        outputContains changeFixture.expectedCacheInvalidationMessage
         outputContains changeFixture.expectedOutputAfterChange
         configurationCache.assertStateStored()
 

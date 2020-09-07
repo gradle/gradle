@@ -35,6 +35,7 @@ import org.gradle.initialization.GradlePropertiesController
 import org.gradle.internal.jvm.Jvm
 import org.gradle.jvm.ClassDirectoryBinarySpec
 import org.gradle.jvm.toolchain.JavaInstallationRegistry
+import org.gradle.jvm.toolchain.JavaLanguageVersion
 import org.gradle.language.base.ProjectSourceSet
 import org.gradle.language.java.JavaSourceSet
 import org.gradle.language.jvm.JvmResourceSet
@@ -230,7 +231,7 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         def configuredJavaLauncher = testTask.javaLauncher.get()
 
         then:
-        configuredJavaLauncher.javaExecutable.contains(someJdk.javaVersion.getMajorVersion())
+        configuredJavaLauncher.executablePath.toString().contains(someJdk.javaVersion.getMajorVersion())
     }
 
     void "wires toolchain for javadoc if toolchain is configured"() {
@@ -246,9 +247,23 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         configuredJavadocTool.isPresent()
     }
 
+    void 'wires toolchain to java compile source compatibility if toolchain is configured'() {
+        given:
+        def someJdk = Jvm.current()
+        setupProjectWithToolchain(someJdk)
+        project.java.sourceCompatibility = JavaVersion.VERSION_1_1
+
+        when:
+        def javaCompileTask = project.tasks.named("compileJava", JavaCompile).get()
+
+        then:
+        javaCompileTask.javaCompiler.isPresent()
+        javaCompileTask.sourceCompatibility == javaCompileTask.javaCompiler.get().metadata.languageVersion.toString()
+    }
+
     private void setupProjectWithToolchain(Jvm someJdk) {
         project.pluginManager.apply(JavaPlugin)
-        project.java.toolchain.languageVersion = someJdk.javaVersion
+        project.java.toolchain.languageVersion = JavaLanguageVersion.of(someJdk.javaVersion.majorVersion)
         // workaround for https://github.com/gradle/gradle/issues/13122
         ((DefaultProject) project).getServices().get(GradlePropertiesController.class).loadGradlePropertiesFrom(project.projectDir)
     }

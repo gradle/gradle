@@ -17,34 +17,38 @@
 package org.gradle.jvm.toolchain.internal;
 
 import org.gradle.api.Describable;
-import org.gradle.api.JavaVersion;
+import org.gradle.api.file.Directory;
+import org.gradle.api.file.RegularFile;
+import org.gradle.api.internal.file.FileFactory;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.jvm.toolchain.JavaCompiler;
+import org.gradle.jvm.toolchain.JavaLanguageVersion;
 import org.gradle.jvm.toolchain.JavaLauncher;
+import org.gradle.jvm.toolchain.JavaInstallationMetadata;
 import org.gradle.jvm.toolchain.JavadocTool;
 import org.gradle.util.VersionNumber;
 
 import javax.inject.Inject;
-import java.io.File;
+import java.nio.file.Path;
 
-public class JavaToolchain implements Describable {
+public class JavaToolchain implements Describable, JavaInstallationMetadata {
 
     private final boolean isJdk;
     private final JavaCompilerFactory compilerFactory;
     private final ToolchainToolFactory toolFactory;
-    private final File javaHome;
+    private final Directory javaHome;
     private final VersionNumber implementationVersion;
-    private final JavaVersion javaVersion;
+    private final JavaLanguageVersion javaVersion;
 
     @Inject
-    public JavaToolchain(JavaInstallationProbe.ProbeResult probe, JavaCompilerFactory compilerFactory, ToolchainToolFactory toolFactory) {
-        this(probe.getJavaHome(), probe.getJavaVersion(), probe.getImplementationJavaVersion(), probe.getInstallType() == JavaInstallationProbe.InstallType.IS_JDK, compilerFactory, toolFactory);
+    public JavaToolchain(JavaInstallationProbe.ProbeResult probe, JavaCompilerFactory compilerFactory, ToolchainToolFactory toolFactory, FileFactory fileFactory) {
+        this(probe.getJavaHome(), JavaLanguageVersion.of(Integer.parseInt(probe.getJavaVersion().getMajorVersion())), probe.getImplementationJavaVersion(), probe.getInstallType() == JavaInstallationProbe.InstallType.IS_JDK, compilerFactory, toolFactory, fileFactory);
     }
 
-    JavaToolchain(File javaHome, JavaVersion version, String implementationJavaVersion, boolean isJdk, JavaCompilerFactory compilerFactory, ToolchainToolFactory toolFactory) {
-        this.javaHome = computeEnclosingJavaHome(javaHome);
+    JavaToolchain(Path javaHome, JavaLanguageVersion version, String implementationJavaVersion, boolean isJdk, JavaCompilerFactory compilerFactory, ToolchainToolFactory toolFactory, FileFactory fileFactory) {
+        this.javaHome = fileFactory.dir(computeEnclosingJavaHome(javaHome).toFile());
         this.javaVersion = version;
         this.isJdk = isJdk;
         this.compilerFactory = compilerFactory;
@@ -59,7 +63,7 @@ public class JavaToolchain implements Describable {
 
     @Internal
     public JavaLauncher getJavaLauncher() {
-        return new DefaultToolchainJavaLauncher(findExecutable("java"));
+        return new DefaultToolchainJavaLauncher(this);
     }
 
     @Internal
@@ -68,7 +72,7 @@ public class JavaToolchain implements Describable {
     }
 
     @Input
-    public JavaVersion getJavaMajorVersion() {
+    public JavaLanguageVersion getLanguageVersion() {
         return javaVersion;
     }
 
@@ -78,7 +82,7 @@ public class JavaToolchain implements Describable {
     }
 
     @Internal
-    public File getJavaHome() {
+    public Directory getInstallationPath() {
         return javaHome;
     }
 
@@ -90,18 +94,18 @@ public class JavaToolchain implements Describable {
     @Internal
     @Override
     public String getDisplayName() {
-        return javaHome.getAbsolutePath();
+        return javaHome.toString();
     }
 
-    public File findExecutable(String toolname) {
-        return new File(getJavaHome(), getBinaryPath(toolname));
+    public RegularFile findExecutable(String toolname) {
+        return getInstallationPath().file(getBinaryPath(toolname));
     }
 
-    private File computeEnclosingJavaHome(File home) {
-        final File parentFile = home.getParentFile();
-        final boolean isEmbeddedJre = home.getName().equalsIgnoreCase("jre");
-        if (isEmbeddedJre && new File(parentFile, getBinaryPath("java")).exists()) {
-            return parentFile;
+    private Path computeEnclosingJavaHome(Path home) {
+        final Path parentPath = home.getParent();
+        final boolean isEmbeddedJre = home.getFileName().toString().equalsIgnoreCase("jre");
+        if (isEmbeddedJre && parentPath.resolve(getBinaryPath("java")).toFile().exists()) {
+            return parentPath;
         }
         return home;
     }

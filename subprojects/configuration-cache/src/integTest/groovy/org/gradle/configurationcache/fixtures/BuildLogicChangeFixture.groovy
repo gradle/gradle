@@ -134,6 +134,20 @@ class BuildLogicChangeFixture {
         }
     }
 
+    String getExpectedCacheInvalidationMessage() {
+        "configuration cache cannot be reused because an input to task ':${projectDir.name}:$invalidatedTaskName' has changed."
+    }
+
+    String getInvalidatedTaskName() {
+        switch (kind) {
+            case Kind.CHANGE_RESOURCE:
+            case Kind.ADD_RESOURCE:
+                return 'processResources'
+            default:
+                return "compile$language"
+        }
+    }
+
     String getExpectedOutputBeforeChange() {
         ORIGINAL_GREETING
     }

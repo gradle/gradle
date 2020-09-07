@@ -29,36 +29,22 @@ class JavadocToolchainIntegrationTest extends AbstractIntegrationSpec {
     @IgnoreIf({ AvailableJavaHomes.getJdk(JavaVersion.VERSION_11) == null })
     def "can manually set javadoc tool via  #type toolchain on javadoc task #jdk"() {
         buildFile << """
-            import org.gradle.jvm.toolchain.internal.JavaToolchainQueryService
-            import org.gradle.jvm.toolchain.internal.DefaultToolchainSpec
-
             plugins {
                 id 'java'
             }
 
-            abstract class ApplyTestToolchain implements Plugin<Project> {
-                @javax.inject.Inject
-                abstract JavaToolchainQueryService getQueryService()
-
-                void apply(Project project) {
-                    def filter = project.objects.newInstance(DefaultToolchainSpec)
-                    filter.languageVersion = JavaVersion.${jdk.javaVersion.name()}
-                    def toolchain = getQueryService().findMatchingToolchain(filter)
-
-                    project.tasks.withType(JavaCompile) {
-                        javaCompiler = toolchain.map({it.javaCompiler})
-                    }
-                    project.tasks.withType(Javadoc) {
-                        javadocTool = toolchain.map({it.javadocTool})
-                    }
+            javadoc {
+                javadocTool = javaToolchains.javadocToolFor {
+                    languageVersion = JavaLanguageVersion.of(${jdk.javaVersion.majorVersion})
                 }
             }
-
-            apply plugin: ApplyTestToolchain
 
             // need to do as separate task as -version stop javadoc generation
             task javadocVersionOutput(type: Javadoc) {
                 options.jFlags("-version")
+                javadocTool = javaToolchains.javadocToolFor {
+                    languageVersion = JavaLanguageVersion.of(${jdk.javaVersion.majorVersion})
+                }
             }
 
         """
@@ -94,7 +80,7 @@ class JavadocToolchainIntegrationTest extends AbstractIntegrationSpec {
 
             java {
                 toolchain {
-                    languageVersion = JavaVersion.toVersion(${someJdk.javaVersion.majorVersion})
+                    languageVersion = JavaLanguageVersion.of(${someJdk.javaVersion.majorVersion})
                 }
             }
 

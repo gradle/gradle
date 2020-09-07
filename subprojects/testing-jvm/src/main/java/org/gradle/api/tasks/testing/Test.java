@@ -75,7 +75,6 @@ import org.gradle.internal.scan.UsedByScanPlugin;
 import org.gradle.internal.time.Clock;
 import org.gradle.internal.work.WorkerLeaseRegistry;
 import org.gradle.jvm.toolchain.JavaLauncher;
-import org.gradle.jvm.toolchain.internal.DefaultToolchainJavaLauncher;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.JavaDebugOptions;
 import org.gradle.process.JavaForkOptions;
@@ -155,7 +154,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
 
     private final JavaForkOptions forkOptions;
     private final ModularitySpec modularity;
-    private Property<JavaLauncher> javaLauncher;
+    private final Property<JavaLauncher> javaLauncher;
 
     private FileCollection testClassesDirs;
     private final PatternFilterable patternSet;
@@ -1178,7 +1177,8 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     @Nullable
     private String getEffectiveExecutable() {
         if (javaLauncher.isPresent()) {
-            return ((DefaultToolchainJavaLauncher) javaLauncher.get()).getExecutable();
+            // The below line is OK because it will only be exercised in the Gradle daemon and not in the worker running tests.
+            return javaLauncher.get().getExecutablePath().toString();
         }
         final String executable = getExecutable();
         return executable == null ? Jvm.current().getJavaExecutable().getAbsolutePath() : executable;

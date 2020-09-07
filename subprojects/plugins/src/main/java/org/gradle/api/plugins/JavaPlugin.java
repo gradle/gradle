@@ -21,6 +21,7 @@ import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
+import org.gradle.api.artifacts.ArtifactView;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.ConfigurationPublications;
@@ -35,6 +36,7 @@ import org.gradle.api.component.SoftwareComponentFactory;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.ArtifactAttributes;
 import org.gradle.api.internal.artifacts.dsl.LazyPublishArtifact;
+import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
 import org.gradle.api.internal.component.BuildableJavaComponent;
 import org.gradle.api.internal.component.ComponentRegistry;
 import org.gradle.api.internal.plugins.DefaultArtifactPublicationSet;
@@ -50,6 +52,7 @@ import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.internal.cleanup.BuildOutputCleanupRegistry;
+import org.gradle.internal.component.local.model.OpaqueComponentIdentifier;
 import org.gradle.internal.deprecation.DeprecatableConfiguration;
 import org.gradle.language.jvm.tasks.ProcessResources;
 
@@ -128,8 +131,8 @@ public class JavaPlugin implements Plugin<Project> {
     public static final String IMPLEMENTATION_CONFIGURATION_NAME = "implementation";
 
     /**
-     * The name of the configuration used by consumers to get the API elements of a component, that is to say
-     * the dependencies which are required to compile against that component.
+     * The name of the configuration to define the API elements of a component.
+     * That is, the dependencies which are required to compile against that component.
      *
      * @since 3.4
      */
@@ -149,6 +152,15 @@ public class JavaPlugin implements Plugin<Project> {
      * but not at runtime.
      */
     public static final String COMPILE_ONLY_CONFIGURATION_NAME = "compileOnly";
+
+    /**
+     * The name of the configuration to define the API elements of a component that are required to compile a component,
+     * but not at runtime.
+     *
+     * @since 6.7
+     */
+    @Incubating
+    public static final String COMPILE_ONLY_API_CONFIGURATION_NAME = "compileOnlyApi";
 
     /**
      * The name of the "runtime" configuration. This configuration is deprecated and doesn't represent a correct view of
@@ -493,11 +505,17 @@ public class JavaPlugin implements Plugin<Project> {
         public FileCollection getRuntimeClasspath() {
             ProjectInternal project = convention.getProject();
             SourceSet mainSourceSet = mainSourceSetOf(convention);
-            FileCollection runtimeClasspath = mainSourceSet.getRuntimeClasspath();
-            FileCollection gradleApi = project.getConfigurations().detachedConfiguration(project.getDependencies().gradleApi(), project.getDependencies().localGroovy());
+            Configuration runtimeClasspath = project.getConfigurations().getByName(mainSourceSet.getRuntimeClasspathConfigurationName());
+            ArtifactView view = runtimeClasspath.getIncoming().artifactView(config -> {
+                config.componentFilter(componentId -> {
+                    if (componentId instanceof OpaqueComponentIdentifier) {
+                        return !(((OpaqueComponentIdentifier) componentId).getClassPathNotation() == DependencyFactory.ClassPathNotation.GRADLE_API);
+                    }
+                    return true;
+                });
+            });
             Configuration runtimeElements = project.getConfigurations().getByName(mainSourceSet.getRuntimeElementsConfigurationName());
-            FileCollection mainSourceSetArtifact = runtimeElements.getOutgoing().getArtifacts().getFiles();
-            return mainSourceSetArtifact.plus(runtimeClasspath.minus(mainSourceSet.getOutput()).minus(gradleApi));
+            return runtimeElements.getOutgoing().getArtifacts().getFiles().plus(view.getFiles());
         }
 
         @Override

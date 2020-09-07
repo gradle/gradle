@@ -17,6 +17,8 @@
 package org.gradle.jvm.toolchain.internal
 
 import org.gradle.api.JavaVersion
+import org.gradle.api.internal.file.TestFiles
+import org.gradle.jvm.toolchain.JavaLanguageVersion
 import org.gradle.jvm.toolchain.JavaToolchainSpec
 import org.gradle.jvm.toolchain.install.internal.JavaToolchainProvisioningService
 import org.gradle.util.TestUtil
@@ -40,13 +42,13 @@ class JavaToolchainQueryServiceTest extends Specification {
         def toolchain = queryService.findMatchingToolchain(filter).get()
 
         then:
-        toolchain.javaMajorVersion == versionToFind
-        toolchain.getJavaHome().absolutePath == systemSpecificAbsolutePath(expectedPath)
+        toolchain.languageVersion.equals(versionToFind)
+        toolchain.getInstallationPath().toString() == systemSpecificAbsolutePath(expectedPath)
 
         where:
-        versionToFind           | expectedPath
-        JavaVersion.VERSION_1_9 | "/path/9"
-        JavaVersion.VERSION_12  | "/path/12"
+        versionToFind               | expectedPath
+        JavaLanguageVersion.of(9)   | "/path/9"
+        JavaLanguageVersion.of(12)  | "/path/12"
     }
 
     @Unroll
@@ -62,14 +64,14 @@ class JavaToolchainQueryServiceTest extends Specification {
         def toolchain = queryService.findMatchingToolchain(filter).get()
 
         then:
-        toolchain.javaMajorVersion == versionToFind
-        toolchain.getJavaHome().absolutePath == systemSpecificAbsolutePath(expectedPath)
+        toolchain.languageVersion.equals(versionToFind)
+        toolchain.getInstallationPath().toString() == systemSpecificAbsolutePath(expectedPath)
 
         where:
-        versionToFind           | expectedPath
-        JavaVersion.VERSION_1_7 | "/path/7.9"
-        JavaVersion.VERSION_1_8 | "/path/8.0.zzz.j9" // zzz resolves to a real toolversion 999
-        JavaVersion.VERSION_14  | "/path/14.0.2+12"
+        versionToFind               | expectedPath
+        JavaLanguageVersion.of(7)   | "/path/7.9"
+        JavaLanguageVersion.of(8)   | "/path/8.0.zzz.j9" // zzz resolves to a real toolversion 999
+        JavaLanguageVersion.of(14)  | "/path/14.0.2+12"
     }
 
     def "returns failing provider if no toolchain matches"() {
@@ -82,7 +84,7 @@ class JavaToolchainQueryServiceTest extends Specification {
 
         when:
         def filter = new DefaultToolchainSpec(TestUtil.objectFactory())
-        filter.languageVersion.set(JavaVersion.VERSION_12)
+        filter.languageVersion.set(JavaLanguageVersion.of(12))
         def toolchain = queryService.findMatchingToolchain(filter)
         toolchain.get()
 
@@ -120,7 +122,7 @@ class JavaToolchainQueryServiceTest extends Specification {
 
         when:
         def filter = new DefaultToolchainSpec(TestUtil.objectFactory())
-        filter.languageVersion.set(JavaVersion.VERSION_12)
+        filter.languageVersion.set(JavaLanguageVersion.of(12))
         def toolchain = queryService.findMatchingToolchain(filter)
         toolchain.get()
 
@@ -131,9 +133,9 @@ class JavaToolchainQueryServiceTest extends Specification {
     private JavaToolchainFactory newToolchainFactory() {
         def compilerFactory = Mock(JavaCompilerFactory)
         def toolFactory = Mock(ToolchainToolFactory)
-        def toolchainFactory = new JavaToolchainFactory(Mock(JavaInstallationProbe), compilerFactory, toolFactory) {
+        def toolchainFactory = new JavaToolchainFactory(Mock(JavaInstallationProbe), compilerFactory, toolFactory, TestFiles.fileFactory()) {
             JavaToolchain newInstance(File javaHome) {
-                return new JavaToolchain(newProbe(javaHome), compilerFactory, toolFactory)
+                return new JavaToolchain(newProbe(javaHome), compilerFactory, toolFactory, TestFiles.fileFactory())
             }
         }
         toolchainFactory
@@ -142,7 +144,7 @@ class JavaToolchainQueryServiceTest extends Specification {
     def newProbe(File javaHome) {
         Mock(JavaInstallationProbe.ProbeResult) {
             getJavaVersion() >> JavaVersion.toVersion(javaHome.name)
-            getJavaHome() >> javaHome
+            getJavaHome() >> javaHome.absoluteFile.toPath()
             getImplementationJavaVersion() >> javaHome.name.replace("zzz", "999")
         }
     }
@@ -151,7 +153,7 @@ class JavaToolchainQueryServiceTest extends Specification {
         def supplier = new InstallationSupplier() {
             @Override
             Set<InstallationLocation> get() {
-                installations.collect { new InstallationLocation(new File("/path/${it}"), "test") } as Set
+                installations.collect { new InstallationLocation(new File("/path/${it}").absoluteFile, "test") } as Set
             }
         }
         def registry = new SharedJavaInstallationRegistry([supplier]) {

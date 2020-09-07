@@ -23,7 +23,6 @@ import org.gradle.api.artifacts.result.ResolvedArtifactResult
 import org.gradle.api.file.FileCopyDetails
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
-import org.gradle.internal.component.local.model.OpaqueComponentIdentifier
 import spock.lang.Specification
 
 import static org.gradle.internal.component.local.model.TestComponentIdentifiers.newProjectId
@@ -47,7 +46,12 @@ class PlayDistributionPluginRenameArtifactFilesTest extends Specification {
 
         String nonProjectFileName = 'dependency.jar'
         File nonProjectFile = new File(nonProjectFileName)
-        ResolvedArtifactResult nonProjectArtifact = resolvedArtifact(nonProjectFile, new OpaqueComponentIdentifier("non-project"))
+        ResolvedArtifactResult nonProjectArtifact = resolvedArtifact(nonProjectFile, new ComponentIdentifier() {
+            @Override
+            String getDisplayName() {
+                return "non-project"
+            }
+        })
         FileCopyDetails nonProjectFcd = Mock()
         nonProjectFcd.getFile() >> nonProjectFile
 

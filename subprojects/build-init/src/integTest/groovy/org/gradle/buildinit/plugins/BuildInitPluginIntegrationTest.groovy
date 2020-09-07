@@ -217,6 +217,7 @@ include("child")
   - 'kotlin-gradle-plugin'
   - 'kotlin-library'
   - 'pom'
+  - 'scala-application'
   - 'scala-library'""")
     }
 
@@ -303,6 +304,7 @@ include("child")
                      kotlin-gradle-plugin
                      kotlin-library
                      pom
+                     scala-application
                      scala-library""")
     }
 

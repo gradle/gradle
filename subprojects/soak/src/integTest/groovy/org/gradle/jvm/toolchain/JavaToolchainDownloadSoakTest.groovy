@@ -26,7 +26,7 @@ class JavaToolchainDownloadSoakTest extends AbstractIntegrationSpec {
 
             java {
                 toolchain {
-                    languageVersion = JavaVersion.VERSION_14
+                    languageVersion = JavaLanguageVersion.of(14)
                 }
             }
         """

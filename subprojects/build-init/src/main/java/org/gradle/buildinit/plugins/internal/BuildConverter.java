@@ -16,6 +16,8 @@
 
 package org.gradle.buildinit.plugins.internal;
 
+import org.gradle.api.file.Directory;
+
 /**
  * Converts some existing build to a Gradle build.
  */
@@ -23,7 +25,7 @@ public interface BuildConverter extends BuildInitializer {
     /**
      * Can this converter be applied to the contents of the current directory?
      */
-    boolean canApplyToCurrentDirectory();
+    boolean canApplyToCurrentDirectory(Directory current);
 
     String getSourceBuildDescription();
 }

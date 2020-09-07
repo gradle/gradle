@@ -16,9 +16,13 @@
 
 package org.gradle.tooling.provider.model;
 
+import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.ServiceScope;
+
 /**
  * A registry of tooling model builders. Adding a builder to this registry makes a model (or models) available via the tooling API.
  */
+@ServiceScope(Scopes.Build.class)
 public interface ToolingModelBuilderRegistry {
     void register(ToolingModelBuilder builder);
 

@@ -18,6 +18,7 @@ package org.gradle.buildinit.tasks;
 
 import org.gradle.api.DefaultTask;
 import org.gradle.api.GradleException;
+import org.gradle.api.file.Directory;
 import org.gradle.api.internal.tasks.userinput.UserInputHandler;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
@@ -45,7 +46,7 @@ import static org.gradle.buildinit.plugins.internal.PackageNameBuilder.toPackage
  * Generates a Gradle project structure.
  */
 public class InitBuild extends DefaultTask {
-    private final String projectDirName = getProject().getProjectDir().getName();
+    private final Directory projectDir = getProject().getLayout().getProjectDirectory();
     private String type;
     private String dsl;
     private String testFramework;
@@ -87,7 +88,7 @@ public class InitBuild extends DefaultTask {
      */
     @Input
     public String getProjectName() {
-        return projectName == null ? projectDirName : projectName;
+        return projectName == null ? projectDir.getAsFile().getName() : projectName;
     }
 
     /**
@@ -130,7 +131,7 @@ public class InitBuild extends DefaultTask {
         BuildInitializer initDescriptor = null;
         if (isNullOrEmpty(type)) {
             BuildConverter converter = projectLayoutRegistry.getBuildConverter();
-            if (converter.canApplyToCurrentDirectory()) {
+            if (converter.canApplyToCurrentDirectory(projectDir)) {
                 if (inputHandler.askYesNoQuestion("Found a " + converter.getSourceBuildDescription() + " build. Generate a Gradle build from this?", true)) {
                     initDescriptor = converter;
                 }
@@ -210,7 +211,7 @@ public class InitBuild extends DefaultTask {
         }
 
         String subprojectName = initDescriptor.getComponentType().getDefaultProjectName();
-        initDescriptor.generate(new InitSettings(projectName, subprojectName, dsl, packageName, testFramework));
+        initDescriptor.generate(new InitSettings(projectName, subprojectName, dsl, packageName, testFramework, projectDir));
 
         initDescriptor.getFurtherReading().ifPresent(link -> getLogger().lifecycle("Get more help with your project: {}", link));
     }
@@ -221,7 +222,6 @@ public class InitBuild extends DefaultTask {
     }
 
     @OptionValues("type")
-    @SuppressWarnings("unused")
     public List<String> getAvailableBuildTypes() {
         return getProjectLayoutRegistry().getAllTypes();
     }
@@ -242,7 +242,6 @@ public class InitBuild extends DefaultTask {
      * @since 4.5
      */
     @OptionValues("dsl")
-    @SuppressWarnings("unused")
     public List<String> getAvailableDSLs() {
         return BuildInitDsl.listSupported();
     }
@@ -259,7 +258,6 @@ public class InitBuild extends DefaultTask {
      * Available test frameworks.
      */
     @OptionValues("test-framework")
-    @SuppressWarnings("unused")
     public List<String> getAvailableTestFrameworks() {
         return BuildInitTestFramework.listSupported();
     }
@@ -291,7 +289,7 @@ public class InitBuild extends DefaultTask {
     private String detectType() {
         ProjectLayoutSetupRegistry projectLayoutRegistry = getProjectLayoutRegistry();
         BuildConverter buildConverter = projectLayoutRegistry.getBuildConverter();
-        if (buildConverter.canApplyToCurrentDirectory()) {
+        if (buildConverter.canApplyToCurrentDirectory(projectDir)) {
             return buildConverter.getId();
         }
         return projectLayoutRegistry.getDefault().getId();

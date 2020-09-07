@@ -1,3 +1,3 @@
 rootProject.name = "attribute-dependency-substitution"
 
-include("lib")
+include("lib", "consumer")

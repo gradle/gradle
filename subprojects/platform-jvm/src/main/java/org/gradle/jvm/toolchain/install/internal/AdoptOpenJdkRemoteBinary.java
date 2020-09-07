@@ -17,8 +17,9 @@
 package org.gradle.jvm.toolchain.install.internal;
 
 import net.rubygrapefruit.platform.SystemInfo;
-import org.gradle.api.JavaVersion;
+import org.gradle.api.provider.ProviderFactory;
 import org.gradle.internal.os.OperatingSystem;
+import org.gradle.jvm.toolchain.JavaLanguageVersion;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
 
 import javax.inject.Inject;
@@ -31,12 +32,14 @@ public class AdoptOpenJdkRemoteBinary {
     private final SystemInfo systemInfo;
     private final OperatingSystem operatingSystem;
     private final AdoptOpenJdkDownloader downloader;
+    private final ProviderFactory providerFactory;
 
     @Inject
-    public AdoptOpenJdkRemoteBinary(SystemInfo systemInfo, OperatingSystem operatingSystem, AdoptOpenJdkDownloader downloader) {
+    public AdoptOpenJdkRemoteBinary(SystemInfo systemInfo, OperatingSystem operatingSystem, AdoptOpenJdkDownloader downloader, ProviderFactory providerFactory) {
         this.systemInfo = systemInfo;
         this.operatingSystem = operatingSystem;
         this.downloader = downloader;
+        this.providerFactory = providerFactory;
     }
 
     public Optional<File> download(JavaToolchainSpec spec, File destinationFile) {
@@ -49,7 +52,7 @@ public class AdoptOpenJdkRemoteBinary {
     }
 
     private boolean canProvidesMatchingJdk(JavaToolchainSpec spec) {
-        return getLanguageVersion(spec).isJava8Compatible();
+        return getLanguageVersion(spec).canCompileOrRun(8);
     }
 
     URI toDownloadUri(JavaToolchainSpec spec) {
@@ -58,7 +61,7 @@ public class AdoptOpenJdkRemoteBinary {
 
     private URI constructUri(JavaToolchainSpec spec) {
         return URI.create(getServerBaseUri() +
-            "v3/binary/latest/" + getLanguageVersion(spec).getMajorVersion() +
+            "v3/binary/latest/" + getLanguageVersion(spec).toString() +
             "/" +
             determineReleaseState() +
             "/" +
@@ -69,7 +72,7 @@ public class AdoptOpenJdkRemoteBinary {
     }
 
     public String toFilename(JavaToolchainSpec spec) {
-        return String.format("adoptopenjdk-%s-%s-%s.%s", getLanguageVersion(spec), determineArch(), determineOs(), determineFileExtension());
+        return String.format("adoptopenjdk-%s-%s-%s.%s", getLanguageVersion(spec).toString(), determineArch(), determineOs(), determineFileExtension());
     }
 
     private String determineFileExtension() {
@@ -79,7 +82,7 @@ public class AdoptOpenJdkRemoteBinary {
         return "tar.gz";
     }
 
-    private JavaVersion getLanguageVersion(JavaToolchainSpec spec) {
+    private JavaLanguageVersion getLanguageVersion(JavaToolchainSpec spec) {
         return spec.getLanguageVersion().get();
     }
 
@@ -111,7 +114,7 @@ public class AdoptOpenJdkRemoteBinary {
     }
 
     private String getServerBaseUri() {
-        String baseUri = System.getProperty("org.gradle.jvm.toolchain.install.internal.adoptopenjdk.baseUri", "https://api.adoptopenjdk.net/");
+        String baseUri = providerFactory.gradleProperty("org.gradle.jvm.toolchain.install.adoptopenjdk.baseUri").getOrElse("https://api.adoptopenjdk.net/");
         if (!baseUri.endsWith("/")) {
             baseUri += "/";
         }

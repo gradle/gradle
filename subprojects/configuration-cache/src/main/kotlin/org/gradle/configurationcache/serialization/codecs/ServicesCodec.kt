@@ -16,6 +16,7 @@
 
 package org.gradle.configurationcache.serialization.codecs
 
+import org.gradle.api.internal.GeneratedSubclasses
 import org.gradle.configurationcache.serialization.ReadContext
 import org.gradle.configurationcache.serialization.WriteContext
 import org.gradle.internal.service.scopes.ServiceScope
@@ -24,7 +25,7 @@ import org.gradle.internal.service.scopes.ServiceScope
 class ServicesCodec : EncodingProducer, Decoding {
     override fun encodingForType(type: Class<*>): Encoding? {
         // TODO - perhaps query the isolate owner to see whether the value is in fact a service
-        val serviceType = serviceType(type)
+        val serviceType = serviceType(GeneratedSubclasses.unpack(type))
         return if (serviceType != null) {
             OwnerServiceEncoding(serviceType)
         } else {
@@ -42,6 +43,9 @@ class ServicesCodec : EncodingProducer, Decoding {
             if (serviceType != null) {
                 return serviceType
             }
+        }
+        if (type.superclass != null) {
+            return serviceType(type.superclass)
         }
         return null
     }

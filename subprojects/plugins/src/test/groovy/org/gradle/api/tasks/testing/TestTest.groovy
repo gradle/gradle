@@ -40,6 +40,10 @@ import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.work.WorkerLeaseRegistry
 import org.gradle.jvm.toolchain.JavaLauncher
 import org.gradle.jvm.toolchain.internal.DefaultToolchainJavaLauncher
+import org.gradle.jvm.toolchain.internal.JavaCompilerFactory
+import org.gradle.jvm.toolchain.internal.JavaInstallationProbe
+import org.gradle.jvm.toolchain.internal.JavaToolchain
+import org.gradle.jvm.toolchain.internal.ToolchainToolFactory
 import org.gradle.process.CommandLineArgumentProvider
 import org.gradle.process.internal.worker.WorkerProcessBuilder
 
@@ -280,7 +284,11 @@ class TestTest extends AbstractConventionTaskTest {
     }
 
     def "java version is determined with toolchain if set"() {
-        def launcher = new DefaultToolchainJavaLauncher(Jvm.current().javaExecutable)
+        def probe = Mock(JavaInstallationProbe.ProbeResult)
+        probe.getJavaVersion() >> Jvm.current().javaVersion
+        probe.getJavaHome() >> Jvm.current().javaHome.toPath()
+        def toolchain = new JavaToolchain(probe, Mock(JavaCompilerFactory), Mock(ToolchainToolFactory), TestFiles.fileFactory())
+        def launcher = new DefaultToolchainJavaLauncher(toolchain)
 
         when:
         test.javaLauncher.set(launcher)

@@ -138,6 +138,13 @@ class NameMatcherTest extends Specification {
         matches("soNa", "sona", "someName")
     }
 
+    def "prefers kebab case match over case insensitive camel case match"() {
+        expect:
+        matches("sN", "some-name", "sand")
+        matches("sN", "some-name-with", "sand")
+        matches("sN", "some-name-with-extra", "sand")
+    }
+
     def "does not select items when no matches"() {
         expect:
         doesNotMatch("name")

@@ -28,6 +28,10 @@ trait FileSystemWatchingFixture {
         executer.withArgument(FileSystemWatchingHelper.dropVfsArgument)
     }
 
+    AbstractIntegrationSpec doNotDropVfs() {
+
+    }
+
     AbstractIntegrationSpec withWatchFs() {
         executer.withArgument(FileSystemWatchingHelper.enableFsWatchingArgument)
         this as AbstractIntegrationSpec
@@ -38,17 +42,13 @@ trait FileSystemWatchingFixture {
         this as AbstractIntegrationSpec
     }
 
-    AbstractIntegrationSpec withVerboseVfsLog() {
-        executer.withArgument(FileSystemWatchingHelper.verboseLoggingArgument)
-        this as AbstractIntegrationSpec
+    VerboseVfsLogAccessor enableVerboseVfsLogs() {
+        executer.withArgument(FileSystemWatchingHelper.verboseVfsLoggingArgument)
+        new VerboseVfsLogAccessor(this as AbstractIntegrationSpec)
     }
 
     void waitForChangesToBePickedUp() {
         FileSystemWatchingHelper.waitForChangesToBePickedUp()
-    }
-
-    VerboseVfsLogAccessor getVfsLogs() {
-        return new VerboseVfsLogAccessor(this as AbstractIntegrationSpec)
     }
 
     protected static class VerboseVfsLogAccessor {
@@ -60,7 +60,7 @@ trait FileSystemWatchingFixture {
 
         int getReceivedFileSystemEventsInCurrentBuild() {
             def duringBuildStatusLine = spec.result.getPostBuildOutputLineThatContains(" file system events during the current build")
-            def numberMatcher = duringBuildStatusLine =~ /Received (\d+) file system events during the current build/
+            def numberMatcher = duringBuildStatusLine =~ /Received (\d+) file system events during the current build while watching \d+ hierarchies/
             return numberMatcher[0][1] as int
         }
 
@@ -72,7 +72,7 @@ trait FileSystemWatchingFixture {
 
         int getReceivedFileSystemEventsSinceLastBuild() {
             String eventsSinceLastBuild = spec.result.getOutputLineThatContains("file system events since last build")
-            def numberMatcher = eventsSinceLastBuild =~ /Received (\d+) file system events since last build/
+            def numberMatcher = eventsSinceLastBuild =~ /Received (\d+) file system events since last build while watching \d+ hierarchies/
             return numberMatcher[0][1] as int
         }
 

@@ -16,10 +16,11 @@
 
 package org.gradle.caching.http.internal
 
+import org.eclipse.jetty.servlet.FilterHolder
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.util.GradleVersion
-import org.mortbay.jetty.servlet.FilterHolder
 
+import javax.servlet.DispatcherType
 import javax.servlet.Filter
 import javax.servlet.FilterChain
 import javax.servlet.FilterConfig
@@ -57,7 +58,7 @@ class HttpBuildCacheRequestHeadersIntegrationTest extends AbstractIntegrationSpe
 
             @Override
             void destroy() {}
-        }), "/*", 1)
+        }), "/*", EnumSet.of(DispatcherType.REQUEST))
 
         settingsFile << withHttpBuildCacheServer()
 

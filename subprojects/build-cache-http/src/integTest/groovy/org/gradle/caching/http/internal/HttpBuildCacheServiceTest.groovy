@@ -303,7 +303,8 @@ class HttpBuildCacheServiceTest extends Specification {
         server.expect("/cache/${key.hashCode}", false, [method], new HttpServer.ActionSupport("return ${httpCode} broken") {
             @Override
             void handle(HttpServletRequest request, HttpServletResponse response) {
-                response.sendError(httpCode, "broken")
+                //noinspection GrDeprecatedAPIUsage
+                response.setStatus(httpCode, "broken")
             }
         })
     }

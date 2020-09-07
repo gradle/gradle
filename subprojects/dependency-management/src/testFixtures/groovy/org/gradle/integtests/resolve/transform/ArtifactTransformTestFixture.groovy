@@ -43,15 +43,15 @@ trait ArtifactTransformTestFixture extends TasksWithInputsAndOutputs {
      * By default each variant will contain a single file, this can be configured using the supplied {@link Builder}.
      * Caller will need to register transforms that produce 'green' from 'blue'
      */
-    void setupBuildWithColorAttributes(@DelegatesTo(Builder) Closure cl = {}) {
+    void setupBuildWithColorAttributes(TestFile buildFile = getBuildFile(), @DelegatesTo(Builder) Closure cl = {}) {
         def builder = new Builder()
         builder.produceFiles()
         cl.delegate = builder
         cl.call()
-        setupBuildWithColorAttributes(builder)
+        setupBuildWithColorAttributes(buildFile, builder)
     }
 
-    void setupBuildWithColorAttributes(Builder builder) {
+    void setupBuildWithColorAttributes(TestFile buildFile = getBuildFile(), Builder builder) {
 
         buildFile << """
 import ${javax.inject.Inject.name}
@@ -62,6 +62,7 @@ def color = Attribute.of('color', String)
 allprojects {
     configurations {
         implementation {
+            canBeResolved = true
             attributes.attribute(color, 'blue')
         }
     }
@@ -121,9 +122,9 @@ class JarProducer extends DefaultTask {
     }
 }
 """
-        taskTypeWithOutputFileProperty()
-        taskTypeWithOutputDirectoryProperty()
-        taskTypeLogsArtifactCollectionDetails()
+        taskTypeWithOutputFileProperty(buildFile)
+        taskTypeWithOutputDirectoryProperty(buildFile)
+        taskTypeLogsArtifactCollectionDetails(buildFile)
     }
 
     /**
@@ -235,8 +236,8 @@ class JarProducer extends DefaultTask {
      * Each project produces a 'blue' variant, and has a `resolve` task that resolves the 'green' variant and a transform that converts 'blue' to 'green'.
      * By default the 'blue' variant will contain a single file, and the transform will produce a single 'green' file from this.
      */
-    void setupBuildWithSimpleColorTransform() {
-        setupBuildWithColorTransformAction()
+    void setupBuildWithSimpleColorTransform(TestFile buildFile = getBuildFile()) {
+        setupBuildWithColorTransformAction(buildFile)
         buildFile << """
             abstract class MakeGreen implements TransformAction<TransformParameters.None> {
                 @InputArtifact
@@ -335,8 +336,8 @@ class JarProducer extends DefaultTask {
      * By default the variant will contain a single file, this can be configured using the supplied {@link Builder}.
      * Caller will need to provide an implementation of 'MakeGreen' transform action
      */
-    void setupBuildWithColorTransformAction(@DelegatesTo(Builder) Closure cl = {}) {
-        setupBuildWithColorAttributes(cl)
+    void setupBuildWithColorTransformAction(TestFile buildFile = getBuildFile(), @DelegatesTo(Builder) Closure cl = {}) {
+        setupBuildWithColorAttributes(buildFile, cl)
         buildFile << """
 allprojects {
     dependencies {
@@ -347,6 +348,10 @@ allprojects {
     }
 }
 """
+    }
+
+    void setupBuildWithColorTransformAction(@DelegatesTo(Builder) Closure cl) {
+        setupBuildWithColorTransformAction(buildFile, cl)
     }
 
     /**

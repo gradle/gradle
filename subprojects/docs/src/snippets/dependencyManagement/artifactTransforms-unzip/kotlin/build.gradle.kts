@@ -57,14 +57,11 @@ dependencies {
 }
 // end::artifact-transform-registration[]
 
-
-allprojects {
-    dependencies {
-        attributesSchema {
-            attribute(usage)
-        }
+dependencies {
+    attributesSchema {
+        attribute(usage)
     }
-    configurations.create("compile") {
-        attributes.attribute(usage, "api")
-    }
+}
+configurations.create("compile") {
+    attributes.attribute(usage, "api")
 }

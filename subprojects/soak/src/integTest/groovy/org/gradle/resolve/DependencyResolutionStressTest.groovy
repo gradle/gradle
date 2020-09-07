@@ -16,6 +16,12 @@
 
 package org.gradle.resolve
 
+import org.eclipse.jetty.http.HttpHeader
+import org.eclipse.jetty.server.Request
+import org.eclipse.jetty.server.Server
+import org.eclipse.jetty.server.ServerConnector
+import org.eclipse.jetty.server.handler.AbstractHandler
+import org.eclipse.jetty.server.handler.HandlerCollection
 import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.GradleExecuter
@@ -25,13 +31,9 @@ import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import org.junit.rules.ExternalResource
-import org.mortbay.jetty.Connector
-import org.mortbay.jetty.HttpHeaders
-import org.mortbay.jetty.Server
-import org.mortbay.jetty.handler.AbstractHandler
-import org.mortbay.jetty.nio.SelectChannelConnector
 import spock.lang.Specification
 
+import javax.servlet.ServletException
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 import java.util.zip.ZipEntry
@@ -106,14 +108,15 @@ task check {
         private static final String METADATA_FILE_PATH = '/org.gradle/changing/1.0/ivy-1.0.xml'
         private static final String JAR_FILE_PATH = '/org.gradle/changing/1.0/changing-1.0.jar'
         private final Server server = new Server(0)
-        private final SelectChannelConnector connector = new SelectChannelConnector()
+        private final ServerConnector connector = new ServerConnector(server)
         private final Resources resources = new Resources()
 
         @Override
         protected void before() {
-            server.setConnectors([connector] as Connector[])
-            server.addHandler(new AbstractHandler() {
-                void handle(String target, HttpServletRequest request, HttpServletResponse response, int dispatch) {
+            server.addConnector(connector)
+            def handler = new AbstractHandler() {
+                @Override
+                void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
                     println "* Handling $request.method $request.pathInfo"
                     if (request.method == GET_METHOD && request.pathInfo == METADATA_FILE_PATH) {
                         handleGetIvy(response)
@@ -129,7 +132,8 @@ task check {
                         request.handled = true
                     }
                 }
-            })
+            }
+            server.setHandler(new HandlerCollection(false, handler))
             server.start()
         }
 
@@ -162,8 +166,8 @@ task check {
             provideHeadersForResource(response, resources.jar)
         }
 
-        private void provideHeadersForResource(HttpServletResponse response, Resource resource) {
-            response.setDateHeader(HttpHeaders.LAST_MODIFIED, resource.lastModified)
+        private static void provideHeadersForResource(HttpServletResponse response, Resource resource) {
+            response.setDateHeader(HttpHeader.LAST_MODIFIED.asString(), resource.lastModified)
             response.setContentLength(resource.contentLength)
             response.setContentType(resource.contentType)
         }

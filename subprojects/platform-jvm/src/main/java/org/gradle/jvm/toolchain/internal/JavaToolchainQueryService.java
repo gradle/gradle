@@ -16,6 +16,7 @@
 
 package org.gradle.jvm.toolchain.internal;
 
+import org.gradle.api.Transformer;
 import org.gradle.api.internal.provider.DefaultProvider;
 import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.provider.Provider;
@@ -40,7 +41,11 @@ public class JavaToolchainQueryService {
         this.installService = provisioningService;
     }
 
-    public Provider<JavaToolchain> findMatchingToolchain(JavaToolchainSpec filter) {
+    <T> Provider<T> toolFor(JavaToolchainSpec spec, Transformer<T, JavaToolchain> toolFunction) {
+        return findMatchingToolchain(spec).map(toolFunction);
+    }
+
+    Provider<JavaToolchain> findMatchingToolchain(JavaToolchainSpec filter) {
         if (!((DefaultToolchainSpec) filter).isConfigured()) {
             return Providers.notDefined();
         }
@@ -63,11 +68,10 @@ public class JavaToolchainQueryService {
     }
 
     private Predicate<JavaToolchain> matchingToolchain(JavaToolchainSpec spec) {
-        return toolchain -> toolchain.getJavaMajorVersion() == spec.getLanguageVersion().get();
+        return toolchain -> toolchain.getLanguageVersion().equals(spec.getLanguageVersion().get());
     }
 
     private JavaToolchain asToolchain(File javaHome) {
         return toolchainFactory.newInstance(javaHome);
     }
-
 }

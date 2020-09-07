@@ -1,4 +1,0 @@
-allprojects {
-    group = "org.gradle.demo"
-    version = "1.0"
-}

@@ -69,8 +69,8 @@ import org.gradle.jvm.platform.JavaPlatform;
 import org.gradle.jvm.platform.internal.DefaultJavaPlatform;
 import org.gradle.jvm.toolchain.JavaCompiler;
 import org.gradle.jvm.toolchain.JavaToolChain;
+import org.gradle.jvm.toolchain.JavaInstallationMetadata;
 import org.gradle.jvm.toolchain.internal.DefaultToolchainJavaCompiler;
-import org.gradle.jvm.toolchain.internal.JavaToolchain;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.language.base.internal.compile.CompilerUtil;
 import org.gradle.work.Incremental;
@@ -106,15 +106,15 @@ public class JavaCompile extends AbstractCompile implements HasCompileOptions {
     private final FileCollection stableSources = getProject().files((Callable<Object[]>) () -> new Object[]{getSource(), getSources()});
     private final ModularitySpec modularity;
     private File sourceClassesMappingFile;
-    private Property<JavaCompiler> javaCompiler;
+    private final Property<JavaCompiler> javaCompiler;
 
     public JavaCompile() {
         Project project = getProject();
-        ObjectFactory objects = project.getObjects();
-        compileOptions = objects.newInstance(CompileOptions.class);
+        ObjectFactory objectFactory = project.getObjects();
+        compileOptions = objectFactory.newInstance(CompileOptions.class);
         CompilerForkUtils.doNotCacheIfForkingViaExecutable(compileOptions, getOutputs());
-        modularity = objects.newInstance(DefaultModularitySpec.class);
-        javaCompiler = objects.property(JavaCompiler.class);
+        modularity = objectFactory.newInstance(DefaultModularitySpec.class);
+        javaCompiler = objectFactory.property(JavaCompiler.class);
         javaCompiler.finalizeValueOnRead();
     }
 
@@ -352,8 +352,8 @@ public class JavaCompile extends AbstractCompile implements HasCompileOptions {
 
         if (javaCompiler.isPresent()) {
             compileOptions.setFork(true);
-            final JavaToolchain toolchain = ((DefaultToolchainJavaCompiler) javaCompiler.get()).getJavaToolchain();
-            compileOptions.getForkOptions().setJavaHome(toolchain.getJavaHome());
+            final JavaInstallationMetadata toolchain = javaCompiler.get().getMetadata();
+            compileOptions.getForkOptions().setJavaHome(toolchain.getInstallationPath().getAsFile());
         }
         final DefaultJavaCompileSpec spec = new DefaultJavaCompileSpecFactory(compileOptions).create();
         spec.setDestinationDir(getDestinationDirectory().getAsFile().get());
@@ -375,9 +375,21 @@ public class JavaCompile extends AbstractCompile implements HasCompileOptions {
 
     private void configureCompatibilityOptions(DefaultJavaCompileSpec spec) {
         if (javaCompiler.isPresent()) {
-            final JavaToolchain toolchain = ((DefaultToolchainJavaCompiler) javaCompiler.get()).getJavaToolchain();
-            spec.setTargetCompatibility(toolchain.getJavaMajorVersion().getMajorVersion());
-            spec.setSourceCompatibility(toolchain.getJavaMajorVersion().getMajorVersion());
+            if (compileOptions.getRelease().isPresent()) {
+                spec.setRelease(compileOptions.getRelease().get());
+            } else {
+                final JavaInstallationMetadata toolchain = javaCompiler.get().getMetadata();
+                if (super.getSourceCompatibility() != null) {
+                    spec.setSourceCompatibility(getSourceCompatibility());
+                } else {
+                    spec.setSourceCompatibility(toolchain.getLanguageVersion().toString());
+                }
+                if (super.getTargetCompatibility() != null) {
+                    spec.setTargetCompatibility(getTargetCompatibility());
+                } else {
+                    spec.setTargetCompatibility(toolchain.getLanguageVersion().toString());
+                }
+            }
         } else if (compileOptions.getRelease().isPresent()) {
             spec.setRelease(compileOptions.getRelease().get());
         } else {

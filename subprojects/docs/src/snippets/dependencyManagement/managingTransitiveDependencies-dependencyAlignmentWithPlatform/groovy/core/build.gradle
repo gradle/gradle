@@ -1,5 +1,5 @@
 plugins {
-    id 'java-library'
+    id 'myproject.java-library-conventions'
 }
 
 // tag::dependencies[]
@@ -12,11 +12,3 @@ dependencies {
     implementation(project(":utils"))
 }
 // end::dependencies[]
-
-publishing {
-    publications {
-        maven(MavenPublication) {
-            from components.java
-        }
-    }
-}

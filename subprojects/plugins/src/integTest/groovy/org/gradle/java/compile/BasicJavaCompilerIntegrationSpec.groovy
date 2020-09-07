@@ -18,7 +18,9 @@
 package org.gradle.java.compile
 
 import org.gradle.api.Action
+import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.test.fixtures.file.ClassFile
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -142,6 +144,71 @@ public class FxApp extends Application {
 
         expect:
         succeeds("compileJava")
+    }
+
+    @Requires(adhoc = { AvailableJavaHomes.getJdk(JavaVersion.VERSION_11) != null })
+    def 'ignores project level compatibility when using toolchain'() {
+        given:
+        goodCode()
+        buildFile << """
+java.sourceCompatibility = JavaVersion.VERSION_14
+java.targetCompatibility = JavaVersion.VERSION_15
+java.toolchain {
+    languageVersion = JavaLanguageVersion.of(11)
+}
+
+compileJava {
+    doFirst {
+        assert configurations.apiElements.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == 11
+        assert configurations.runtimeElements.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == 11
+        assert configurations.compileClasspath.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == 11
+        assert configurations.runtimeClasspath.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == 11
+    }
+}
+"""
+    }
+
+    @Requires(adhoc = { AvailableJavaHomes.getJdk(JavaVersion.VERSION_11) != null })
+    def 'honors task level compatibility when using toolchain'() {
+        given:
+        goodCode()
+        buildFile << """
+java.toolchain {
+    languageVersion = JavaLanguageVersion.of(11)
+}
+
+compileJava {
+    sourceCompatibility = JavaVersion.VERSION_9
+    targetCompatibility = JavaVersion.VERSION_9
+
+    doFirst {
+        assert configurations.apiElements.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == 9
+        assert configurations.runtimeElements.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == 9
+        assert configurations.compileClasspath.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == 9
+        assert configurations.runtimeClasspath.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == 9
+    }
+}
+"""
+    }
+
+    @Requires(adhoc = { AvailableJavaHomes.getJdk(JavaVersion.VERSION_14) != null })
+    def 'computes target jvm version when using toolchain'() {
+        given:
+        goodCode()
+        buildFile << """
+java.toolchain {
+    languageVersion = JavaLanguageVersion.of(14)
+}
+
+compileJava {
+    doFirst {
+        assert configurations.apiElements.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == 14
+        assert configurations.runtimeElements.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == 14
+        assert configurations.compileClasspath.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == 14
+        assert configurations.runtimeClasspath.attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) == 14
+    }
+}
+"""
     }
 
     @Requires(TestPrecondition.JDK9_OR_LATER)

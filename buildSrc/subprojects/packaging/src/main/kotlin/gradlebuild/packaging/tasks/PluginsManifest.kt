@@ -61,13 +61,12 @@ abstract class PluginsManifest : DefaultTask() {
     }
 
     private
-    fun FileCollection.toGradleModuleNameProvider() = elements.map { it.filter { it.isGradleModule() }.map { it.toGradleModuleName() }.sorted() }
+    fun FileCollection.toGradleModuleNameProvider() = elements.map { it.mapNotNull { it.toGradleModuleName() }.sorted() }
 
     private
-    fun FileSystemLocation.isGradleModule() = asFile.name.startsWith("gradle-")
-
-    private
-    fun FileSystemLocation.toGradleModuleName() = asFile.name.substring(0, asFile.name.lastIndexOf('-'))
+    fun FileSystemLocation.toGradleModuleName(): String? = asFile.name
+        .takeIf { it.startsWith("gradle-") }
+        ?.run { substring(0, lastIndexOf('-')) }
 
     private
     fun Iterable<String>.joinForProperties() = sorted().joinToString(",")

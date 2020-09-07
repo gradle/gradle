@@ -29,7 +29,7 @@ import org.gradle.profiler.BuildMutator
 import org.gradle.profiler.InvocationSettings
 import org.gradle.profiler.ScenarioContext
 import org.gradle.profiler.mutations.AbstractCleanupMutator
-import org.gradle.profiler.mutations.ClearInstantExecutionStateMutator
+import org.gradle.profiler.mutations.ClearConfigurationCacheStateMutator
 import org.gradle.profiler.mutations.ClearProjectCacheMutator
 import org.junit.experimental.categories.Category
 import spock.lang.Unroll
@@ -121,7 +121,7 @@ class FasterIncrementalAndroidBuildsPerformanceTest extends AbstractCrossBuildPe
             builder.invocationCount(60)
             applyEnterprisePlugin(builder)
             builder.addBuildMutator { InvocationSettings invocationSettings ->
-                new ClearInstantExecutionStateMutator(invocationSettings.projectDir, AbstractCleanupMutator.CleanupSchedule.SCENARIO)
+                new ClearConfigurationCacheStateMutator(invocationSettings.projectDir, AbstractCleanupMutator.CleanupSchedule.SCENARIO)
             }
             builder.addBuildMutator { InvocationSettings invocationSettings ->
                 new ClearProjectCacheMutator(invocationSettings.projectDir, AbstractCleanupMutator.CleanupSchedule.SCENARIO)
