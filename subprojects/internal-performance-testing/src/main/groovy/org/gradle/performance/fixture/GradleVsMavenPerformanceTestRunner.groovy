@@ -96,7 +96,7 @@ class GradleVsMavenPerformanceTestRunner extends AbstractCrossBuildPerformanceTe
             }
         }
         if (!invocation.mavenHome) {
-            def home = System.getProperty("MAVEN_HOME")
+            def home = System.getenv("MAVEN_HOME")
             if (home) {
                 invocation.mavenHome(new File(home))
             }
