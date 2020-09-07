@@ -71,4 +71,42 @@ public interface IncludedBuildControllers {
     void finishBuild(Collection<? super Throwable> failures);
 
     IncludedBuildController getBuildController(BuildIdentifier buildIdentifier);
+
+    class BuildSrcIncludedBuildControllers implements IncludedBuildControllers {
+        private final IncludedBuildControllers delegate;
+
+        public BuildSrcIncludedBuildControllers(IncludedBuildControllers delegate) {
+            this.delegate = delegate;
+        }
+
+        @Override
+        public void rootBuildOperationStarted() {
+            delegate.rootBuildOperationStarted();
+        }
+
+        @Override
+        public void populateTaskGraphs() {
+            delegate.populateTaskGraphs();
+        }
+
+        @Override
+        public void startTaskExecution() {
+            delegate.startTaskExecution();
+        }
+
+        @Override
+        public void awaitTaskCompletion(Collection<? super Throwable> taskFailures) {
+            delegate.awaitTaskCompletion(taskFailures);
+        }
+
+        @Override
+        public void finishBuild(Collection<? super Throwable> failures) {
+            // Do nothing
+        }
+
+        @Override
+        public IncludedBuildController getBuildController(BuildIdentifier buildIdentifier) {
+            return delegate.getBuildController(buildIdentifier);
+        }
+    }
 }

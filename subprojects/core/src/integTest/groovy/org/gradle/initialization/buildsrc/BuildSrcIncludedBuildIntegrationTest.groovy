@@ -16,12 +16,11 @@
 
 package org.gradle.initialization.buildsrc
 
-import groovy.transform.NotYetImplemented
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.plugin.PluginBuilder
-import spock.lang.Ignore
 
 class BuildSrcIncludedBuildIntegrationTest extends AbstractIntegrationSpec {
     def "buildSrc cannot (yet) define any included builds"() {
@@ -114,32 +113,6 @@ class BuildSrcIncludedBuildIntegrationTest extends AbstractIntegrationSpec {
         outputContains("test-plugin applied to :buildSrc")
     }
 
-    @NotYetImplemented
-    def "plugins from buildSrc can be used by other included builds"() {
-        file("included/build.gradle") << """
-            plugins {
-                id "test-plugin"
-            }
-        """
-
-        writePluginTo(file("buildSrc"))
-
-
-        buildFile << """
-            task executeIncluded {
-                dependsOn gradle.includedBuild("included").task(":help")
-            }
-        """
-        settingsFile << """
-            includeBuild("included")
-        """
-        when:
-        succeeds("executeIncluded")
-        then:
-        outputContains("test-plugin applied to :included")
-    }
-
-    @Ignore("this does not work yet and hangs indefinitely")
     @ToBeFixedForConfigurationCache(because="composite build")
     def "buildSrc can depend on dependencies contributed by other included builds"() {
         file("buildSrc/build.gradle") << """
@@ -172,6 +145,40 @@ class BuildSrcIncludedBuildIntegrationTest extends AbstractIntegrationSpec {
         succeeds("help")
         then:
         outputContains("test-plugin applied to :")
+    }
+
+    def "user gets reasonable error when included build fails to compile when buildSrc needs it"() {
+        file("buildSrc/build.gradle") << """
+            plugins {
+                id "groovy-gradle-plugin"
+            }
+            
+            dependencies {
+                implementation("org.gradle.test:included")
+            }
+        """
+
+        file("buildSrc/src/main/groovy/apply-test-plugin.gradle") << """
+            plugins {
+                id("test-plugin")
+            }
+        """
+
+        writePluginTo(file("included"))
+        file("included/src/main/java/Broke.java") << "does not compile!"
+
+        buildFile << """
+            plugins {
+                id "apply-test-plugin"
+            }
+        """
+        settingsFile << """
+            includeBuild("included")
+        """
+        when:
+        fails("help")
+        then:
+        failure.assertHasCause("Compilation failed; see the compiler error output for details.")
     }
 
     @ToBeFixedForConfigurationCache(because="composite build")
