@@ -19,7 +19,7 @@ package org.gradle.configurationcache.inputs.undeclared
 class UndeclaredBuildInputsKotlinBuildScriptIntegrationTest extends AbstractUndeclaredBuildInputsIntegrationTest implements KotlinPluginImplementation {
     @Override
     String getLocation() {
-        return "build file 'build.gradle.kts'"
+        return "Build file 'build.gradle.kts'"
     }
 
     @Override

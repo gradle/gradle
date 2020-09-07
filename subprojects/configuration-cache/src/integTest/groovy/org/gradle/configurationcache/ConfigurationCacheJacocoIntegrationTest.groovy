@@ -34,16 +34,16 @@ class ConfigurationCacheJacocoIntegrationTest extends AbstractConfigurationCache
         def configurationCache = newConfigurationCacheFixture()
         def expectedStoreProblemCount = 4
         def expectedStoreProblems = [
-            "field 'val\$testTaskProvider' from type 'org.gradle.testing.jacoco.plugins.JacocoPlugin\$11': cannot serialize object of type 'org.gradle.api.tasks.testing.Test', a subtype of 'org.gradle.api.Task', as these are not supported with the configuration cache.",
-            "field 'project' from type 'org.gradle.testing.jacoco.plugins.JacocoPluginExtension': cannot serialize object of type 'org.gradle.api.internal.project.DefaultProject', a subtype of 'org.gradle.api.Project', as these are not supported with the configuration cache.",
-            "field 'project' from type 'org.gradle.testing.jacoco.plugins.JacocoPlugin': cannot serialize object of type 'org.gradle.api.internal.project.DefaultProject', a subtype of 'org.gradle.api.Project', as these are not supported with the configuration cache."
+            "Task `:jacocoTestReport` of type `org.gradle.testing.jacoco.tasks.JacocoReport`: cannot serialize object of type 'org.gradle.api.internal.project.DefaultProject', a subtype of 'org.gradle.api.Project', as these are not supported with the configuration cache.",
+            "Task `:jacocoTestReport` of type `org.gradle.testing.jacoco.tasks.JacocoReport`: cannot serialize object of type 'org.gradle.api.tasks.testing.Test', a subtype of 'org.gradle.api.Task', as these are not supported with the configuration cache.",
+            "Task `:test` of type `org.gradle.api.tasks.testing.Test`: cannot serialize object of type 'org.gradle.api.internal.project.DefaultProject', a subtype of 'org.gradle.api.Project', as these are not supported with the configuration cache."
         ]
         def expectedLoadProblemCount = 5
         def expectedLoadProblems = [
-            "field 'val\$testTaskProvider' from type 'org.gradle.testing.jacoco.plugins.JacocoPlugin\$11': cannot deserialize object of type 'org.gradle.api.Task' as these are not supported with the configuration cache.",
-            "field 'val\$testTaskProvider' from type 'org.gradle.testing.jacoco.plugins.JacocoPlugin\$11': value 'undefined' is not assignable to 'org.gradle.api.tasks.TaskProvider'",
-            "field 'project' from type 'org.gradle.testing.jacoco.plugins.JacocoPluginExtension': cannot deserialize object of type 'org.gradle.api.Project' as these are not supported with the configuration cache.",
-            "field 'project' from type 'org.gradle.testing.jacoco.plugins.JacocoPlugin': cannot deserialize object of type 'org.gradle.api.Project' as these are not supported with the configuration cache."
+            "Task `:jacocoTestReport` of type `org.gradle.testing.jacoco.tasks.JacocoReport`: cannot deserialize object of type 'org.gradle.api.Project' as these are not supported with the configuration cache.",
+            "Task `:jacocoTestReport` of type `org.gradle.testing.jacoco.tasks.JacocoReport`: cannot deserialize object of type 'org.gradle.api.Task' as these are not supported with the configuration cache.",
+            "Task `:jacocoTestReport` of type `org.gradle.testing.jacoco.tasks.JacocoReport`: value 'undefined' is not assignable to 'org.gradle.api.tasks.TaskProvider'",
+            "Task `:test` of type `org.gradle.api.tasks.testing.Test`: cannot deserialize object of type 'org.gradle.api.Project' as these are not supported with the configuration cache."
         ]
 
         when:

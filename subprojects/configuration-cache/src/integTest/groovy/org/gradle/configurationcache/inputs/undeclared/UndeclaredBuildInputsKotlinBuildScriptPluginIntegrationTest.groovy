@@ -21,7 +21,7 @@ import spock.lang.Ignore
 class UndeclaredBuildInputsKotlinBuildScriptPluginIntegrationTest extends AbstractUndeclaredBuildInputsIntegrationTest implements KotlinPluginImplementation {
     @Override
     String getLocation() {
-        return "plugin class 'Build_gradle\$SneakyPlugin'"
+        return "Plugin class 'Build_gradle\$SneakyPlugin'"
     }
 
     @Override

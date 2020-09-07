@@ -115,19 +115,33 @@ sealed class PropertyTrace {
     class Bean(
         val type: Class<*>,
         val trace: PropertyTrace
-    ) : PropertyTrace()
+    ) : PropertyTrace() {
+        override val containingUserCode: String
+            get() = trace.containingUserCode
+    }
 
     class Property(
         val kind: PropertyKind,
         val name: String,
         val trace: PropertyTrace
-    ) : PropertyTrace()
+    ) : PropertyTrace() {
+        override val containingUserCode: String
+            get() = trace.containingUserCode
+    }
 
     override fun toString(): String =
         StringBuilder().apply {
             sequence.forEach {
                 appendStringOf(it)
             }
+        }.toString()
+
+    /**
+     * The user code where the problem occurred. User code should generally be some coarse-grained entity such as a plugin or script.
+     */
+    open val containingUserCode: String
+        get() = StringBuilder().apply {
+            appendStringOf(this@PropertyTrace)
         }.toString()
 
     private

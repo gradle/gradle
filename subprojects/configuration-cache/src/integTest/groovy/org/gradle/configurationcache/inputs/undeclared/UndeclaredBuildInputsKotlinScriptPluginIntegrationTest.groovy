@@ -21,7 +21,7 @@ class UndeclaredBuildInputsKotlinScriptPluginIntegrationTest extends AbstractUnd
 
     @Override
     String getLocation() {
-        return "script 'plugin.gradle.kts'"
+        return "Script 'plugin.gradle.kts'"
     }
 
     @Override
