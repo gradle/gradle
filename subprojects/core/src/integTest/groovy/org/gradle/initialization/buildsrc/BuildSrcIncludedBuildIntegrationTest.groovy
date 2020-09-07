@@ -147,7 +147,6 @@ class BuildSrcIncludedBuildIntegrationTest extends AbstractIntegrationSpec {
         outputContains("test-plugin applied to :")
     }
 
-    @ToBeFixedForConfigurationCache(because="composite build")
     def "user gets reasonable error when included build fails to compile when buildSrc needs it"() {
         file("buildSrc/build.gradle") << """
             plugins {
