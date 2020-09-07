@@ -32,9 +32,6 @@ val propagatedEnvironmentVariables = listOf(
     // For Android tests
     "ANDROID_HOME",
 
-    // Used by Maven vs. Gradle performance scenarios
-    "MAVEN_HOME",
-
     // Used by Visual Studio
     "USERNAME",
     "USER",

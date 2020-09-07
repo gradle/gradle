@@ -95,12 +95,6 @@ class GradleVsMavenPerformanceTestRunner extends AbstractCrossBuildPerformanceTe
                 invocation.args.add("-Dmaven.repo.local=${localRepoPath}".toString())
             }
         }
-        if (!invocation.mavenHome) {
-            def home = System.getenv("MAVEN_HOME")
-            if (home) {
-                invocation.mavenHome(new File(home))
-            }
-        }
         if (!builder.displayName.startsWith("Maven ")) {
             throw new IllegalArgumentException("Maven invocation display name must start with 'Maven '")
         }
