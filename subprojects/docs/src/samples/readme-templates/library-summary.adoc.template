@@ -1,0 +1,12 @@
+* Run the build and view the test report
+* Customize the Jar files the build produces
+
+Now you could complete this exercise by trying to compile some ${language.raw} code that uses the library you just built.
+
+== Next steps
+
+Building a library is just one aspect of reusing code across project boundaries. From here, you may be interested in:
+
+ - link:{userManualPath}/artifact_dependencies_tutorial.html[Consuming JVM libraries]
+ - link:{userManualPath}/publishing_setup.html[Publishing JVM libraries]
+ - link:{userManualPath}/multi_project_builds.html[Working with multi-project builds]
