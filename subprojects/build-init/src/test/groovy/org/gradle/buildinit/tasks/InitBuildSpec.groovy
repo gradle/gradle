@@ -22,6 +22,7 @@ import org.gradle.buildinit.plugins.internal.BuildInitializer
 import org.gradle.buildinit.plugins.internal.ProjectLayoutSetupRegistry
 import org.gradle.buildinit.plugins.internal.modifiers.ComponentType
 import org.gradle.buildinit.plugins.internal.modifiers.Language
+import org.gradle.buildinit.plugins.internal.modifiers.ModularizationOption
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
 import org.gradle.util.TextUtil
@@ -62,6 +63,7 @@ class InitBuildSpec extends Specification {
         projectLayoutRegistry.default >> projectSetupDescriptor
         projectLayoutRegistry.getLanguagesFor(ComponentType.BASIC) >> [Language.NONE]
         projectLayoutRegistry.get(ComponentType.BASIC, Language.NONE) >> projectSetupDescriptor
+        projectSetupDescriptor.modularizationOptions >> [ModularizationOption.SINGLE_PROJECT]
         projectSetupDescriptor.componentType >> ComponentType.BASIC
         projectSetupDescriptor.dsls >> [GROOVY]
         projectSetupDescriptor.defaultDsl >> GROOVY
@@ -79,6 +81,7 @@ class InitBuildSpec extends Specification {
     def "creates project with specified type and dsl and test framework"() {
         given:
         projectLayoutRegistry.get("java-library") >> projectSetupDescriptor
+        projectSetupDescriptor.modularizationOptions >> [ModularizationOption.SINGLE_PROJECT]
         projectSetupDescriptor.testFrameworks >> [SPOCK]
         projectSetupDescriptor.dsls >> [GROOVY, KOTLIN]
         projectSetupDescriptor.furtherReading >> Optional.empty()
@@ -98,6 +101,7 @@ class InitBuildSpec extends Specification {
         given:
         projectLayoutRegistry.get("some-type") >> projectSetupDescriptor
         projectSetupDescriptor.id >> "some-type"
+        projectSetupDescriptor.modularizationOptions >> [ModularizationOption.SINGLE_PROJECT]
         projectSetupDescriptor.dsls >> [GROOVY]
         projectSetupDescriptor.testFrameworks >> [NONE, JUNIT]
         init.type = "some-type"
@@ -117,6 +121,7 @@ class InitBuildSpec extends Specification {
         given:
         projectLayoutRegistry.get("some-type") >> projectSetupDescriptor
         projectSetupDescriptor.id >> "some-type"
+        projectSetupDescriptor.modularizationOptions >> [ModularizationOption.SINGLE_PROJECT]
         projectSetupDescriptor.dsls >> [GROOVY]
         init.type = "some-type"
         init.dsl = "kotlin"
@@ -133,6 +138,7 @@ class InitBuildSpec extends Specification {
         given:
         projectLayoutRegistry.get("some-type") >> projectSetupDescriptor
         projectSetupDescriptor.id >> "some-type"
+        projectSetupDescriptor.modularizationOptions >> [ModularizationOption.SINGLE_PROJECT]
         projectSetupDescriptor.dsls >> [GROOVY]
         projectSetupDescriptor.testFrameworks >> [NONE]
         projectSetupDescriptor.supportsProjectName()
@@ -151,6 +157,7 @@ class InitBuildSpec extends Specification {
         given:
         projectLayoutRegistry.get("some-type") >> projectSetupDescriptor
         projectSetupDescriptor.id >> "some-type"
+        projectSetupDescriptor.modularizationOptions >> [ModularizationOption.SINGLE_PROJECT]
         projectSetupDescriptor.dsls >> [GROOVY]
         projectSetupDescriptor.testFrameworks >> [NONE]
         projectSetupDescriptor.supportsPackage()
