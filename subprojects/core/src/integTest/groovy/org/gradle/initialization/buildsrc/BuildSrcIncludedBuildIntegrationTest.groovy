@@ -16,7 +16,7 @@
 
 package org.gradle.initialization.buildsrc
 
-import groovy.transform.NotYetImplemented
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.file.TestFile
@@ -111,31 +111,6 @@ class BuildSrcIncludedBuildIntegrationTest extends AbstractIntegrationSpec {
         succeeds("help")
         then:
         outputContains("test-plugin applied to :buildSrc")
-    }
-
-    @NotYetImplemented
-    def "plugins from buildSrc can be used by other included builds"() {
-        file("included/build.gradle") << """
-            plugins {
-                id "test-plugin"
-            }
-        """
-
-        writePluginTo(file("buildSrc"))
-
-
-        buildFile << """
-            task executeIncluded {
-                dependsOn gradle.includedBuild("included").task(":help")
-            }
-        """
-        settingsFile << """
-            includeBuild("included")
-        """
-        when:
-        succeeds("executeIncluded")
-        then:
-        outputContains("test-plugin applied to :included")
     }
 
     @ToBeFixedForConfigurationCache(because="composite build")
