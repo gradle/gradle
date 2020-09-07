@@ -17,7 +17,7 @@
 package org.gradle.api.tasks.compile
 
 import org.gradle.api.internal.file.TestFiles
-import org.gradle.api.internal.tasks.compile.CommandLineJavaCompileSpec
+import org.gradle.api.internal.tasks.compile.DefaultJavaCompileSpec
 import org.gradle.internal.jvm.Jvm
 import org.gradle.jvm.toolchain.JavaCompiler
 import org.gradle.jvm.toolchain.JavaInstallationMetadata
@@ -128,7 +128,7 @@ class JavaCompileTest extends AbstractProjectBuilderSpec {
         spec.compileOptions.forkOptions.javaHome == javaHome
     }
 
-    def "spec is configured using the toolchain compiler via command line"() {
+    def "spec is configured using the toolchain compiler in-process using the current jvm as toolchain"() {
         def javaCompile = project.tasks.create("compileJava", JavaCompile)
         javaCompile.setDestinationDir(new File("tmp"))
         def javaHome = Jvm.current().javaHome
@@ -144,7 +144,7 @@ class JavaCompileTest extends AbstractProjectBuilderSpec {
         def spec = javaCompile.createSpec()
 
         then:
-        spec instanceof CommandLineJavaCompileSpec
+        spec instanceof DefaultJavaCompileSpec
         spec.compileOptions.forkOptions.javaHome == javaHome
         spec.getSourceCompatibility() == "12"
         spec.getTargetCompatibility() == "12"

@@ -23,6 +23,7 @@ import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.deployment.internal.DeploymentRegistry;
+import org.gradle.internal.jvm.Jvm;
 import org.gradle.process.internal.JavaExecHandleBuilder;
 import org.gradle.process.internal.JavaExecHandleFactory;
 
@@ -68,6 +69,7 @@ public class RunApplication extends DefaultTask {
         JavaApplicationHandle handle = registry.get(getPath(), JavaApplicationHandle.class);
         if (handle == null) {
             JavaExecHandleBuilder builder = getExecActionFactory().newJavaExec();
+            builder.setExecutable(Jvm.current().getJavaExecutable());
             builder.setClasspath(classpath);
             builder.setMain(mainClassName);
             builder.setArgs(arguments);

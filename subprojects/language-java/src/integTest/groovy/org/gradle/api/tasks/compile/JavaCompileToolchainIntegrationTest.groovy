@@ -54,8 +54,9 @@ class JavaCompileToolchainIntegrationTest extends AbstractPluginIntegrationTest 
         'current'      | Jvm.current()
     }
 
+    @Requires(adhoc = { AvailableJavaHomes.getJdk(JavaVersion.VERSION_14) != null })
     def "can set explicit toolchain used by JavaCompile"() {
-        def someJdk = AvailableJavaHomes.getDifferentJdk()
+        def someJdk = AvailableJavaHomes.getJdk(JavaVersion.VERSION_14)
         buildFile << """
             apply plugin: "java"
 
@@ -72,7 +73,32 @@ class JavaCompileToolchainIntegrationTest extends AbstractPluginIntegrationTest 
         runWithToolchainConfigured(someJdk)
 
         then:
+        outputDoesNotContain("Compiling with Java command line compiler")
         outputContains("Compiling with toolchain '${someJdk.javaHome.absolutePath}'.")
+        javaClassFile("Foo.class").exists()
+    }
+
+    @Requires(adhoc = { AvailableJavaHomes.getJdk(JavaVersion.VERSION_1_7) != null })
+    def "can use toolchains to compile java 1.7 code"() {
+        def java7jdk = AvailableJavaHomes.getJdk(JavaVersion.VERSION_1_7)
+        buildFile << """
+            apply plugin: "java"
+
+            java {
+                toolchain {
+                    languageVersion = JavaLanguageVersion.of(7)
+                }
+            }
+        """
+
+        file("src/main/java/Foo.java") << "public class Foo {}"
+
+        when:
+        runWithToolchainConfigured(java7jdk)
+
+        then:
+        outputContains("Compiling with Java command line compiler")
+        outputContains("Compiling with toolchain '${java7jdk.javaHome.absolutePath}'.")
         javaClassFile("Foo.class").exists()
     }
 
@@ -104,6 +130,31 @@ public class Foo {
         outputContains("Compiling with toolchain '${jdk11.javaHome.absolutePath}'.")
         javaClassFile("Foo.class").exists()
     }
+
+    @Requires(adhoc = { AvailableJavaHomes.getJdk(JavaVersion.VERSION_1_8) != null })
+    def "can use compile daemon with tools jar"() {
+        def jdk8 = AvailableJavaHomes.getJdk(JavaVersion.VERSION_1_8)
+        buildFile << """
+            apply plugin: "java"
+
+            java {
+                toolchain {
+                    languageVersion = JavaLanguageVersion.of(8)
+                }
+            }
+        """
+
+        file("src/main/java/Foo.java") << "public class Foo {}"
+
+        when:
+        runWithToolchainConfigured(jdk8)
+
+        then:
+        outputDoesNotContain("Compiling with Java command line compiler")
+        outputContains("Compiling with toolchain '${jdk8.javaHome.absolutePath}'.")
+        javaClassFile("Foo.class").exists()
+    }
+
 
     def runWithToolchainConfigured(Jvm jvm) {
         result = executer
