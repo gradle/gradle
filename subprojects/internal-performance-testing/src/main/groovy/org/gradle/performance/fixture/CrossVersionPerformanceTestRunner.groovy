@@ -136,7 +136,7 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
             .add('current')
             .addAll(baselineVersions*.version as List<String>)
             .build()
-        int maxWorkingDirLength = (allVersions).collect { sanitizeVersionWorkingDir(it) }*.length().max()
+        int maxWorkingDirLength = allVersions.collect { sanitizeVersionWorkingDir(it) }*.length().max()
 
         runVersion('current', current, perVersionWorkingDirectory('current', maxWorkingDirLength), results.current)
 
