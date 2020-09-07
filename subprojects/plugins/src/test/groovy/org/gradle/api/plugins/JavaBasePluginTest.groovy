@@ -223,15 +223,15 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
 
     void "source and target compatibility are configured if toolchain is configured"() {
         given:
-        setupProjectWithToolchain(JavaVersion.VERSION_14)
+        setupProjectWithToolchain(Jvm.current().javaVersion)
 
         when:
         project.sourceSets.create('custom')
 
         then:
         def compileTask = project.tasks.compileJava
-        compileTask.getSourceCompatibility() == "14"
-        compileTask.getTargetCompatibility() == "14"
+        compileTask.getSourceCompatibility() == Jvm.current().javaVersion.majorVersion
+        compileTask.getTargetCompatibility() == Jvm.current().javaVersion.majorVersion
     }
 
     void "wires toolchain for test if toolchain is configured"() {
