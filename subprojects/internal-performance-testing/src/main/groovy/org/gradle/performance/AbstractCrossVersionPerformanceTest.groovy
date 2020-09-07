@@ -20,11 +20,10 @@ import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
 import org.gradle.performance.categories.PerformanceRegressionTest
+import org.gradle.performance.fixture.CrossVersionPerformanceTestRunner
 import org.gradle.performance.fixture.GradleBuildExperimentRunner
-import org.gradle.performance.fixture.GradleProfilerCrossVersionPerformanceTestRunner
 import org.gradle.performance.fixture.PerformanceTestDirectoryProvider
 import org.gradle.performance.fixture.PerformanceTestIdProvider
-import org.gradle.performance.results.CompositeDataReporter
 import org.gradle.performance.results.CrossVersionResultsStore
 import org.gradle.performance.results.GradleProfilerReporter
 import org.gradle.test.fixtures.file.CleanupTestDirectory
@@ -39,11 +38,10 @@ import static org.gradle.performance.results.ResultsStoreHelper.createResultsSto
  * A base class for cross version performance tests.
  *
  * This base class uses Gradle profiler as a backend for running the performance tests.
- * This should replace {@link AbstractCrossVersionGradleInternalPerformanceTest} in the long run, so we only need to maintain the infrastructure once.
  */
 @Category(PerformanceRegressionTest)
 @CleanupTestDirectory
-class AbstractCrossVersionGradleProfilerPerformanceTest extends Specification {
+class AbstractCrossVersionPerformanceTest extends Specification {
 
     private static final RESULTS_STORE = createResultsStoreWhenDatabaseAvailable { new CrossVersionResultsStore() }
 
@@ -52,17 +50,17 @@ class AbstractCrossVersionGradleProfilerPerformanceTest extends Specification {
 
     private final IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext()
 
-    private GradleProfilerCrossVersionPerformanceTestRunner runner
+    private CrossVersionPerformanceTestRunner runner
 
     @Rule
     PerformanceTestIdProvider performanceTestIdProvider = new PerformanceTestIdProvider()
 
     def setup() {
         def gradleProfilerReporter = new GradleProfilerReporter(temporaryFolder.testDirectory)
-        runner = new GradleProfilerCrossVersionPerformanceTestRunner(
+        runner = new CrossVersionPerformanceTestRunner(
             new GradleBuildExperimentRunner(gradleProfilerReporter.getResultCollector()),
             RESULTS_STORE,
-            CompositeDataReporter.of(gradleProfilerReporter, RESULTS_STORE),
+            RESULTS_STORE.reportAlso(gradleProfilerReporter),
             new ReleasedVersionDistributions(buildContext),
             buildContext
         )
@@ -71,7 +69,7 @@ class AbstractCrossVersionGradleProfilerPerformanceTest extends Specification {
         performanceTestIdProvider.testSpec = runner
     }
 
-    GradleProfilerCrossVersionPerformanceTestRunner getRunner() {
+    CrossVersionPerformanceTestRunner getRunner() {
         runner
     }
 

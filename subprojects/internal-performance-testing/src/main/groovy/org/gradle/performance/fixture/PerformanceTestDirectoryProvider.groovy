@@ -16,9 +16,11 @@
 
 package org.gradle.performance.fixture
 
+import groovy.transform.CompileStatic
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 
+@CompileStatic
 class PerformanceTestDirectoryProvider extends TestNameTestDirectoryProvider {
     PerformanceTestDirectoryProvider(Class<?> klass) {
         // NOTE: the space in the directory name is intentional

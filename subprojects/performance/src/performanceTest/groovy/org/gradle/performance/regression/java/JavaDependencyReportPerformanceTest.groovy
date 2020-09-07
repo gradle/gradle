@@ -16,13 +16,13 @@
 
 package org.gradle.performance.regression.java
 
-import org.gradle.performance.AbstractCrossVersionGradleProfilerPerformanceTest
+import org.gradle.performance.AbstractCrossVersionPerformanceTest
 import spock.lang.Unroll
 
 import static org.gradle.performance.generator.JavaTestProject.LARGE_JAVA_MULTI_PROJECT
 import static org.gradle.performance.generator.JavaTestProject.LARGE_MONOLITHIC_JAVA_PROJECT
 
-class JavaDependencyReportPerformanceTest extends AbstractCrossVersionGradleProfilerPerformanceTest {
+class JavaDependencyReportPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
     @Unroll
     def "generate dependency report for #testProject"() {

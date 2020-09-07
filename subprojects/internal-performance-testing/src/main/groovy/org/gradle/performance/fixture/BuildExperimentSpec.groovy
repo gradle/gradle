@@ -36,7 +36,6 @@ abstract class BuildExperimentSpec {
     final Integer warmUpCount
     @Nullable
     final Integer invocationCount
-    final InvocationCustomizer invocationCustomizer
     final ImmutableList<Function<InvocationSettings, BuildMutator>> buildMutators
 
     BuildExperimentSpec(String displayName,
@@ -44,7 +43,6 @@ abstract class BuildExperimentSpec {
                         File workingDirectory,
                         Integer warmUpCount,
                         Integer invocationCount,
-                        InvocationCustomizer invocationCustomizer,
                         List<Function<InvocationSettings, BuildMutator>> buildMutators
     ) {
         this.displayName = displayName
@@ -52,7 +50,6 @@ abstract class BuildExperimentSpec {
         this.workingDirectory = workingDirectory
         this.warmUpCount = warmUpCount
         this.invocationCount = invocationCount
-        this.invocationCustomizer = invocationCustomizer
         this.buildMutators = ImmutableList.copyOf(buildMutators)
     }
 
@@ -70,10 +67,6 @@ abstract class BuildExperimentSpec {
         File getWorkingDirectory()
 
         void setWorkingDirectory(File workingDirectory)
-
-        InvocationCustomizer getInvocationCustomizer()
-
-        void setInvocationCustomizer(InvocationCustomizer invocationCustomizer)
 
         List<Function<InvocationSettings, BuildMutator>> getBuildMutators()
 

@@ -16,10 +16,12 @@
 
 package org.gradle.performance.fixture;
 
+import groovy.transform.CompileStatic;
 import org.gradle.performance.results.MeasuredOperationList;
 import org.gradle.profiler.BenchmarkResultCollector;
 
-public class GradleVsMavenBuildExperimentRunner extends AbstractGradleProfilerBuildExperimentRunner {
+@CompileStatic
+public class GradleVsMavenBuildExperimentRunner extends AbstractBuildExperimentRunner {
     private final GradleBuildExperimentRunner gradleRunner;
     private final MavenBuildExperimentRunner mavenRunner;
 

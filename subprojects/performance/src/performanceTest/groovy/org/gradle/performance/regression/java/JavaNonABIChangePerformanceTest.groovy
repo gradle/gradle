@@ -16,7 +16,7 @@
 
 package org.gradle.performance.regression.java
 
-import org.gradle.performance.AbstractCrossVersionGradleProfilerPerformanceTest
+import org.gradle.performance.AbstractCrossVersionPerformanceTest
 import org.gradle.performance.mutator.ApplyNonAbiChangeToGroovySourceFileMutator
 import org.gradle.profiler.mutations.ApplyNonAbiChangeToJavaSourceFileMutator
 import spock.lang.Unroll
@@ -26,7 +26,7 @@ import static org.gradle.performance.generator.JavaTestProject.LARGE_JAVA_MULTI_
 import static org.gradle.performance.generator.JavaTestProject.LARGE_MONOLITHIC_GROOVY_PROJECT
 import static org.gradle.performance.generator.JavaTestProject.LARGE_MONOLITHIC_JAVA_PROJECT
 
-class JavaNonABIChangePerformanceTest extends AbstractCrossVersionGradleProfilerPerformanceTest {
+class JavaNonABIChangePerformanceTest extends AbstractCrossVersionPerformanceTest {
 
     @Unroll
     def "assemble for non-abi change on #testProject"() {
