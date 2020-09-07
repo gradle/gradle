@@ -25,6 +25,7 @@ import org.gradle.internal.classloader.FilteringClassLoader;
 import org.gradle.internal.classloader.VisitableURLClassLoader;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
+import org.gradle.internal.jvm.Jvm;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.play.internal.spec.PlayCompileSpec;
 import org.gradle.process.JavaForkOptions;
@@ -68,6 +69,7 @@ public class DaemonPlayCompiler<T extends PlayCompileSpec> extends AbstractDaemo
         BaseForkOptions forkOptions = spec.getForkOptions();
         JavaForkOptions javaForkOptions = new BaseForkOptionsConverter(forkOptionsFactory).transform(forkOptions);
         javaForkOptions.setWorkingDir(daemonWorkingDir);
+        javaForkOptions.setExecutable(Jvm.current().getJavaExecutable());
 
         ClassPath playCompilerClasspath = classPathRegistry.getClassPath("PLAY-COMPILER").plus(DefaultClassPath.of(compilerClasspath));
 

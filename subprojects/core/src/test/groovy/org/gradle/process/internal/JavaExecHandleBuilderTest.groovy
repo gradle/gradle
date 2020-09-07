@@ -57,6 +57,7 @@ class JavaExecHandleBuilderTest extends Specification {
         builder.minHeapSize = "64m"
         builder.maxHeapSize = "1g"
         builder.defaultCharacterEncoding = inputEncoding
+        builder.setExecutable(Jvm.current().getJavaExecutable().getAbsolutePath())
 
         when:
         List jvmArgs = builder.getAllJvmArgs()
