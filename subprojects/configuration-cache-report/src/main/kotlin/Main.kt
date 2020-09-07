@@ -132,9 +132,9 @@ fun reportPageModelFromJsModel(jsModel: JsModel): ConfigurationCacheReportPage.M
             ProblemNode.Label("Problems grouped by message"),
             problemNodesByMessage(problems)
         ),
-        taskTree = treeModelFor(
-            ProblemNode.Label("Problems grouped by task"),
-            problemNodesByTask(problems)
+        locationTree = treeModelFor(
+            ProblemNode.Label("Problems grouped by location"),
+            problemNodesByLocation(problems)
         )
     )
 }
@@ -142,19 +142,17 @@ fun reportPageModelFromJsModel(jsModel: JsModel): ConfigurationCacheReportPage.M
 
 private
 fun problemNodesByMessage(problems: List<ImportedProblem>): Sequence<MutableList<ProblemNode>> =
-    problems.asSequence().map { imported ->
+    problems.asSequence().map { problem ->
         mutableListOf<ProblemNode>().apply {
             add(
                 errorOrWarningNodeFor(
-                    imported.problem,
-                    messageNodeFor(imported),
-                    docLinkFor(imported.problem)
+                    problem.problem,
+                    messageNodeFor(problem),
+                    docLinkFor(problem.problem)
                 )
             )
-            imported.trace.forEach { part ->
-                add(part)
-            }
-            exceptionNodeFor(imported.problem)?.let {
+            addAll(problem.trace)
+            exceptionNodeFor(problem.problem)?.let {
                 add(it)
             }
         }
@@ -162,14 +160,20 @@ fun problemNodesByMessage(problems: List<ImportedProblem>): Sequence<MutableList
 
 
 private
-fun problemNodesByTask(problems: List<ImportedProblem>): Sequence<List<ProblemNode>> =
-    problems.asSequence().map { imported ->
-        imported.trace.asReversed().mapIndexed { index, node ->
-            when (index) {
-                0 -> errorOrWarningNodeFor(imported.problem, node, null)
-                else -> node
+fun problemNodesByLocation(problems: List<ImportedProblem>): Sequence<List<ProblemNode>> =
+    problems.asSequence().map { problem ->
+        mutableListOf<ProblemNode>().apply {
+            addAll(problem.trace.asReversed())
+            add(
+                errorOrWarningNodeFor(
+                    problem.problem,
+                    messageNodeFor(problem),
+                    docLinkFor(problem.problem))
+            )
+            exceptionNodeFor(problem.problem)?.let {
+                add(it)
             }
-        } + exceptionOrMessageNodeFor(imported)
+        }
     }
 
 
@@ -215,12 +219,6 @@ fun errorOrWarningNodeFor(problem: JsProblem, label: ProblemNode, docLink: Probl
     problem.error?.let {
         ProblemNode.Error(label, docLink)
     } ?: ProblemNode.Warning(label, docLink)
-
-
-private
-fun exceptionOrMessageNodeFor(importedProblem: ImportedProblem) =
-    exceptionNodeFor(importedProblem.problem)
-        ?: messageNodeFor(importedProblem)
 
 
 private
