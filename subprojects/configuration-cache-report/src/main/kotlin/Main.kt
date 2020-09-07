@@ -89,6 +89,18 @@ external interface JsTraceProperty : JsTrace {
 
 
 private
+external interface JSBuildLogic : JsTrace {
+    val location: String
+}
+
+
+private
+external interface JSBuildLogicClass : JsTrace {
+    val type: String
+}
+
+
+private
 external interface JsMessageFragment {
     val text: String?
     val name: String?
@@ -187,6 +199,12 @@ fun toProblemNode(trace: JsTrace): ProblemNode = when (trace.kind) {
     }
     "OutputProperty" -> trace.unsafeCast<JsTraceProperty>().run {
         ProblemNode.Property("output property", name, task)
+    }
+    "BuildLogic" -> trace.unsafeCast<JSBuildLogic>().run {
+        ProblemNode.BuildLogic(location)
+    }
+    "BuildLogicClass" -> trace.unsafeCast<JSBuildLogicClass>().run {
+        ProblemNode.BuildLogicClass(type)
     }
     else -> ProblemNode.Label("Gradle runtime")
 }
