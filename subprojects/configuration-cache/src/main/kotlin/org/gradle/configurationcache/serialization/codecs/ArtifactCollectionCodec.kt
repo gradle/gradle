@@ -209,8 +209,8 @@ class FixedArtifactCollection(
                             result.add(
                                 DefaultResolvedArtifactResult(
                                     resolvedArtifact.id,
-                                    displayName,
                                     element.variantAttributes,
+                                    displayName,
                                     Artifact::class.java,
                                     output
                                 )
@@ -226,8 +226,8 @@ class FixedArtifactCollection(
                         result.add(
                             DefaultResolvedArtifactResult(
                                 artifactId,
-                                displayName,
                                 element.targetVariantAttributes,
+                                displayName,
                                 Artifact::class.java,
                                 file
                             )
@@ -241,8 +241,8 @@ class FixedArtifactCollection(
                         result.add(
                             DefaultResolvedArtifactResult(
                                 artifactId,
-                                displayName,
                                 element.variantAttributes,
+                                displayName,
                                 Artifact::class.java,
                                 output
                             )

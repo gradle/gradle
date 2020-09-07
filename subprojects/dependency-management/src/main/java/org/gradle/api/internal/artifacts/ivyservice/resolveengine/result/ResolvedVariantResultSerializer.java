@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.capabilities.Capability;
@@ -36,9 +37,11 @@ class ResolvedVariantResultSerializer implements Serializer<ResolvedVariantResul
     private final Map<ResolvedVariantResult, Integer> written = Maps.newHashMap();
     private final List<ResolvedVariantResult> read = Lists.newArrayList();
 
+    private final ComponentIdentifierSerializer componentIdentifierSerializer;
     private final AttributeContainerSerializer attributeContainerSerializer;
 
-    ResolvedVariantResultSerializer(AttributeContainerSerializer attributeContainerSerializer) {
+    ResolvedVariantResultSerializer(ComponentIdentifierSerializer componentIdentifierSerializer, AttributeContainerSerializer attributeContainerSerializer) {
+        this.componentIdentifierSerializer = componentIdentifierSerializer;
         this.attributeContainerSerializer = attributeContainerSerializer;
     }
 
@@ -49,11 +52,14 @@ class ResolvedVariantResultSerializer implements Serializer<ResolvedVariantResul
             return null;
         }
         if (index == read.size()) {
+            ComponentIdentifier owner = componentIdentifierSerializer.read(decoder);
             String variantName = decoder.readString();
             AttributeContainer attributes = attributeContainerSerializer.read(decoder);
             List<Capability> capabilities = readCapabilities(decoder);
-            DefaultResolvedVariantResult result = new DefaultResolvedVariantResult(Describables.of(variantName), attributes, capabilities);
-            read.add(result);
+            read.add(null);
+            ResolvedVariantResult externalVariant = read(decoder);
+            DefaultResolvedVariantResult result = new DefaultResolvedVariantResult(owner, Describables.of(variantName), attributes, capabilities, externalVariant);
+            this.read.set(index, result);
             return result;
         }
         return read.get(index);
@@ -85,9 +91,11 @@ class ResolvedVariantResultSerializer implements Serializer<ResolvedVariantResul
             index = written.size();
             written.put(variant, index);
             encoder.writeSmallInt(index);
+            componentIdentifierSerializer.write(encoder, variant.getOwner());
             encoder.writeString(variant.getDisplayName());
             attributeContainerSerializer.write(encoder, variant.getAttributes());
             writeCapabilities(encoder, variant.getCapabilities());
+            write(encoder, variant.getExternalVariant().orElse(null));
         } else {
             encoder.writeSmallInt(index);
         }

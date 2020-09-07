@@ -52,12 +52,15 @@ class ResolutionResultDataBuilder {
         new DefaultResolvedDependencyResult(componentSelector, false, newModule(group, module, selectedVersion), newVariant("variant"), newModule())
     }
 
-    static ResolvedVariantResult newVariant(String name = 'default', Map<String, String> attributes = [:]) {
+    static ResolvedVariantResult newVariant(String name = 'default', Map<String, String> attributes = [:], String ownerGroup = 'com', String ownerModule = 'foo', String ownerVersion = '1.0') {
         def mutableAttributes = AttributeTestUtil.attributesFactory().mutable()
         attributes.each {
             mutableAttributes.attribute(Attribute.of(it.key, String), it.value)
         }
-        return new DefaultResolvedVariantResult(Describables.of(name), mutableAttributes, [])
+        def ownerId = DefaultModuleComponentIdentifier.newId(
+            newId(ownerGroup, ownerModule, ownerVersion)
+        )
+        return new DefaultResolvedVariantResult(ownerId, Describables.of(name), mutableAttributes, [], null)
     }
 
     static ModuleComponentSelector newSelector(String group, String module, String version) {

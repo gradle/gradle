@@ -158,4 +158,64 @@ class GradleModuleMetadataAvailableAtIntegrationTest extends AbstractModuleDepen
         }
     }
 
+    def "resolution result can tell if a dependency is for an available-at variant"() {
+        given:
+        repository {
+            'org:moduleA:1.0' {
+                variants(["api", "runtime"]) {
+                    availableAt("../../external/1.0/external-1.0.module", "org", "external", "1.0")
+                }
+            }
+            'org:external:1.0'()
+        }
+
+        buildFile << """
+            dependencies {
+                conf("org:moduleA:1.0")
+            }
+
+            tasks.named("checkDeps") {
+                doLast {
+                    def result = configurations.conf.incoming.resolutionResult
+                    boolean found = false
+                    result.allComponents {
+                        if (id instanceof ModuleComponentIdentifier && id.module == 'moduleA') {
+                            found = true
+                            assert variant.owner.module == 'moduleA'
+                            assert variants.size() == 1
+                            def externalVariant = variants[0].externalVariant
+                            assert externalVariant.present
+                            assert externalVariant.get().owner.module == 'external'
+                        } else {
+                            variants.each {
+                                assert !it.externalVariant.present
+                            }
+                        }
+                    }
+                    assert found
+                }
+            }
+        """
+
+        when:
+        repositoryInteractions {
+            'org:moduleA:1.0' {
+                expectGetMetadata()
+            }
+            'org:external:1.0' {
+                expectResolve()
+            }
+        }
+        run ":checkDeps"
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module("org:moduleA:1.0") {
+                    noArtifacts()
+                    module("org:external:1.0")
+                }
+            }
+        }
+    }
 }
