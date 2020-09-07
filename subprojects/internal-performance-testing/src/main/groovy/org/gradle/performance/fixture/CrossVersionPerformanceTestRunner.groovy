@@ -88,7 +88,7 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
     String minimumBaseVersion
     private final List<Function<InvocationSettings, BuildMutator>> buildMutators = []
     private final List<String> measuredBuildOperations = []
-    BuildAction buildAction
+    private BuildAction buildAction
 
     CrossVersionPerformanceTestRunner(BuildExperimentRunner experimentRunner, ResultsStore resultsStore, DataReporter<CrossVersionPerformanceResults> reporter, ReleasedVersionDistributions releases, IntegrationTestBuildContext buildContext) {
         this.resultsStore = resultsStore
@@ -285,7 +285,7 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
                 gradleOpts(gradleOptsInUse as String[])
                 useDaemon(this.useDaemon)
                 useToolingApi(this.useToolingApi)
-                delegate.buildAction = this.buildAction
+                buildAction(this.buildAction)
             }
         builder.workingDirectory = workingDir
         def spec = builder.build()
