@@ -17,8 +17,8 @@
 package gradlebuild
 
 import gradlebuild.basics.BuildEnvironment
+import java.time.Duration
 import java.util.Timer
-import java.util.concurrent.TimeUnit
 import kotlin.concurrent.timerTask
 
 // Lifecycle tasks used to to fan out the build into multiple builds in a CI pipeline.
@@ -33,58 +33,19 @@ val quickTest = "quickTest"
 
 val platformTest = "platformTest"
 
-val quickFeedbackCrossVersionTest = "quickFeedbackCrossVersionTest"
-
 val allVersionsCrossVersionTest = "allVersionsCrossVersionTest"
 
 val allVersionsIntegMultiVersionTest = "allVersionsIntegMultiVersionTest"
 
-val parallelTest = "parallelTest"
-
-val noDaemonTest = "noDaemonTest"
-
-val configCacheTest = "configCacheTest"
-
-val watchFsTest = "watchFsTest"
-
 val soakTest = "soakTest"
-
-val ignoredSubprojects = listOf(
-    "soak", // soak test
-    "distributions-integ-tests", // test build distributions
-    "architecture-test" // sanity check
-)
-
-val forceRealizeDependencyManagementTest = "forceRealizeDependencyManagementTest"
 
 
 setupTimeoutMonitorOnCI()
 setupGlobalState()
 
-subprojects.filter { it.name !in ignoredSubprojects }.forEach { it.registerLifecycleTasks() }
-
-
 tasks.registerDistributionsPromotionTasks()
 
-
-fun Project.registerLifecycleTasks() {
-    tasks.registerCITestDistributionLifecycleTasks()
-    plugins.withId("gradlebuild.java-library") {
-        tasks.registerEarlyFeedbackLifecycleTasks()
-        tasks.named(quickTest) {
-            dependsOn("test")
-        }
-        tasks.named(platformTest) {
-            dependsOn("test")
-        }
-    }
-    plugins.withId("gradlebuild.integration-tests") {
-        tasks.configureCIIntegrationTestDistributionLifecycleTasks()
-    }
-    plugins.withId("gradlebuild.cross-version-tests") {
-        tasks.configureCICrossVersionTestDistributionLifecycleTasks()
-    }
-}
+tasks.registerEarlyFeedbackRootLifecycleTasks()
 
 /**
  * Print all stacktraces of running JVMs on the machine upon timeout. Helps us diagnose deadlock issues.
@@ -107,9 +68,9 @@ fun setupTimeoutMonitorOnCI() {
 
 fun determineTimeoutMillis() =
     if (isRequestedTask(compileAllBuild) || isRequestedTask(sanityCheck) || isRequestedTask(quickTest)) {
-        TimeUnit.MINUTES.toMillis(30)
+        Duration.ofMinutes(30).toMillis()
     } else {
-        TimeUnit.MINUTES.toMillis(165) // 2h45m
+        Duration.ofHours(2).plusMinutes(45).toMillis()
     }
 
 fun setupGlobalState() {
@@ -127,21 +88,18 @@ fun needsToUseTestVersionsAll() = isRequestedTask(allVersionsCrossVersionTest)
     || isRequestedTask(allVersionsIntegMultiVersionTest)
     || isRequestedTask(soakTest)
 
-/**
- * Basic compile and check lifecycle tasks.
- */
-fun TaskContainer.registerEarlyFeedbackLifecycleTasks() {
+fun TaskContainer.registerEarlyFeedbackRootLifecycleTasks() {
     register(compileAllBuild) {
         description = "Initialize CI Pipeline by priming the cache before fanning out"
         group = ciGroup
-        dependsOn(":base-services:createBuildReceipt", "compileAll")
+        dependsOn(":base-services:createBuildReceipt")
     }
 
     register(sanityCheck) {
         description = "Run all basic checks (without tests) - to be run locally and on CI for early feedback"
         group = "verification"
         dependsOn(
-            "compileAll", ":docs:checkstyleApi", "codeQuality", ":internal-build-reports:allIncubationReportsZip",
+            ":docs:checkstyleApi", ":internal-build-reports:allIncubationReportsZip",
             ":architecture-test:checkBinaryCompatibility", ":docs:javadocAll",
             ":architecture-test:test", ":tooling-api:toolingApiShadedJar")
     }
@@ -156,115 +114,6 @@ fun TaskContainer.registerDistributionsPromotionTasks() {
         group = "build"
         dependsOn(":distributions-full:verifyIsProductionBuildEnvironment", ":distributions-full:buildDists",
             ":distributions-integ-tests:forkingIntegTest", ":docs:releaseNotes", ":docs:incubationReport", ":docs:checkDeadInternalLinks")
-    }
-}
-
-/**
- * Test lifecycle tasks that correspond to CIBuildModel.TestType (see .teamcity/Gradle_Check/model/CIBuildModel.kt).
- */
-fun TaskContainer.registerCITestDistributionLifecycleTasks() {
-    register(quickTest) {
-        description = "Run all unit, integration and cross-version (against latest release) tests in embedded execution mode"
-        group = ciGroup
-    }
-
-    register(platformTest) {
-        description = "Run all unit, integration and cross-version (against latest release) tests in forking execution mode"
-        group = ciGroup
-    }
-
-    register(quickFeedbackCrossVersionTest) {
-        description = "Run cross-version tests against a limited set of versions"
-        group = ciGroup
-    }
-
-    register(allVersionsCrossVersionTest) {
-        description = "Run cross-version tests against all released versions (latest patch release of each)"
-        group = ciGroup
-    }
-
-    register(allVersionsIntegMultiVersionTest) {
-        description = "Run all multi-version integration tests with all version to cover"
-        group = ciGroup
-    }
-
-    register(parallelTest) {
-        description = "Run all integration tests in parallel execution mode: each Gradle execution started in a test run with --parallel"
-        group = ciGroup
-    }
-
-    register(noDaemonTest) {
-        description = "Run all integration tests in no-daemon execution mode: each Gradle execution started in a test forks a new daemon"
-        group = ciGroup
-    }
-
-    register(configCacheTest) {
-        description = "Run all integration tests with instant execution"
-        group = ciGroup
-    }
-
-    register(watchFsTest) {
-        description = "Run all integration tests with file system watching enabled"
-        group = ciGroup
-    }
-
-    register(forceRealizeDependencyManagementTest) {
-        description = "Runs all integration tests with the dependency management engine in 'force component realization' mode"
-        group = ciGroup
-    }
-}
-
-fun TaskContainer.configureCIIntegrationTestDistributionLifecycleTasks() {
-    named(quickTest) {
-        dependsOn("embeddedIntegTest")
-    }
-
-    named(platformTest) {
-        dependsOn("forkingIntegTest")
-    }
-
-    named(allVersionsIntegMultiVersionTest) {
-        dependsOn("integMultiVersionTest")
-    }
-
-    named(parallelTest) {
-        dependsOn("parallelIntegTest")
-    }
-
-    named(noDaemonTest) {
-        description = "Run all integration tests in no-daemon execution mode: each Gradle execution started in a test forks a new daemon"
-        group = ciGroup
-        dependsOn("noDaemonIntegTest")
-    }
-
-    named(configCacheTest) {
-        dependsOn("configCacheIntegTest")
-    }
-
-    named(watchFsTest) {
-        dependsOn("watchFsIntegTest")
-    }
-
-    named(forceRealizeDependencyManagementTest) {
-        dependsOn("integForceRealizeTest")
-    }
-}
-
-fun TaskContainer.configureCICrossVersionTestDistributionLifecycleTasks() {
-    named(quickTest) {
-        dependsOn("embeddedCrossVersionTest")
-    }
-
-    named(platformTest) {
-        dependsOn("forkingCrossVersionTest")
-    }
-
-    named(quickFeedbackCrossVersionTest) {
-        dependsOn("quickFeedbackCrossVersionTests")
-    }
-
-    named(allVersionsCrossVersionTest) {
-        dependsOn("allVersionsCrossVersionTests")
     }
 }
 
