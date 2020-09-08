@@ -30,7 +30,7 @@ public abstract class AbstractNativeComponentSpec extends BaseComponentSpec impl
 
     @Override
     public String getBaseName() {
-        return GUtil.elvis(baseName, getName());
+        return GUtil.getOrDefault(baseName, this::getName);
     }
 
     @Override
