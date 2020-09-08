@@ -19,20 +19,22 @@ import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.junit.Assume
+import spock.lang.Ignore
 import spock.lang.Unroll
 
+@Ignore
 class ToolingApiJdkCompatibilityTest extends AbstractIntegrationSpec {
     def setup() {
         buildFile << """
             plugins {
                 id 'java'
             }
-            
+
             repositories {
                 ${jcenterRepository()}
                 maven { url '${buildContext.localRepository.toURI().toURL()}' }
             }
-            
+
             task runTask(type: JavaExec) {
                 classpath = sourceSets.main.runtimeClasspath
                 mainClass = "ToolingApiCompatibilityClient"
@@ -43,7 +45,7 @@ class ToolingApiJdkCompatibilityTest extends AbstractIntegrationSpec {
 
                 args = [ "help", file("test-project"), project.findProperty("gradleVersion"), project.findProperty("targetJdk") ]
             }
-            
+
             java {
                 disableAutoTargetJvm()
                 toolchain {
@@ -51,7 +53,7 @@ class ToolingApiJdkCompatibilityTest extends AbstractIntegrationSpec {
                 }
                 targetCompatibility = project.findProperty("compilerJdk")
             }
-            
+
             dependencies {
                 implementation 'org.gradle:gradle-tooling-api:${distribution.version.baseVersion.version}'
             }
