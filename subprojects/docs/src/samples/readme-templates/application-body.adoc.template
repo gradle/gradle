@@ -9,7 +9,7 @@ The `run` task tells Gradle to execute the `main` method in the class assigned t
 \$ ./gradlew run
 
 > Task :${subprojectName.raw}:run
-Hello world.
+Hello world!
 
 BUILD SUCCESSFUL
 2 actionable tasks: 2 executed
