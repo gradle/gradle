@@ -65,6 +65,11 @@ public abstract class AbstractFileResolver implements FileResolver {
     }
 
     @Override
+    public String resolveForDisplay(Object path) {
+        return resolveAsRelativePath(path);
+    }
+
+    @Override
     public File resolve(Object path, PathValidation validation) {
         File file = doResolve(path);
 

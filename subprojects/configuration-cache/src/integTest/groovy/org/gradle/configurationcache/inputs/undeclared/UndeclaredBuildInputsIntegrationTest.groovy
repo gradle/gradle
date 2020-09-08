@@ -38,7 +38,7 @@ class UndeclaredBuildInputsIntegrationTest extends AbstractConfigurationCacheInt
 
         then:
         problems.assertFailureHasProblems(failure) {
-            withProblem("build file 'build.gradle': read system property 'CI'")
+            withProblem("Build file 'build.gradle': read system property 'CI'")
         }
         failure.assertHasFileName("Build file '${buildFile.absolutePath}'")
         failure.assertHasLineNumber(3)
@@ -68,7 +68,7 @@ class UndeclaredBuildInputsIntegrationTest extends AbstractConfigurationCacheInt
 
         then:
         problems.assertFailureHasProblems(failure) {
-            withProblem("build file 'build.gradle': read system property 'CI1'")
+            withProblem("Build file 'build.gradle': read system property 'CI1'")
         }
         failure.assertHasFileName("Build file '${buildFile.absolutePath}'")
         failure.assertHasLineNumber(4)
@@ -103,7 +103,7 @@ class UndeclaredBuildInputsIntegrationTest extends AbstractConfigurationCacheInt
 
         then:
         problems.assertFailureHasProblems(failure) {
-            withProblem("build file 'build.gradle': read system property 'CI1'")
+            withProblem("Build file 'build.gradle': read system property 'CI1'")
         }
         failure.assertHasFileName("Build file '${buildFile.absolutePath}'")
         failure.assertHasLineNumber(2)
@@ -134,8 +134,8 @@ class UndeclaredBuildInputsIntegrationTest extends AbstractConfigurationCacheInt
 
         then:
         problems.assertFailureHasProblems(failure) {
-            withProblem("build file '${relativePath('buildSrc/build.gradle')}': read system property 'CI'")
-            withProblem("build file '${relativePath('buildSrc/build.gradle')}': read system property 'CI2'")
+            withProblem("Build file '${relativePath('buildSrc/build.gradle')}': read system property 'CI'")
+            withProblem("Build file '${relativePath('buildSrc/build.gradle')}': read system property 'CI2'")
         }
         failure.assertHasFileName("Build file '${buildSrcBuildFile}'")
         failure.assertHasLineNumber(2)
@@ -182,7 +182,7 @@ class UndeclaredBuildInputsIntegrationTest extends AbstractConfigurationCacheInt
 
         then:
         problems.assertFailureHasProblems(failure) {
-            withProblem("plugin class 'SneakyPlugin': read system property 'CI'")
+            withProblem("Plugin class 'SneakyPlugin': read system property 'CI'")
         }
 
         where:
@@ -225,7 +225,7 @@ class UndeclaredBuildInputsIntegrationTest extends AbstractConfigurationCacheInt
         then:
         configurationCache.assertStateStored()
         problems.assertResultHasProblems(result) {
-            withProblem("plugin class 'SneakyPlugin': read system property 'CI'")
+            withProblem("Plugin class 'SneakyPlugin': read system property 'CI'")
         }
 
         when:

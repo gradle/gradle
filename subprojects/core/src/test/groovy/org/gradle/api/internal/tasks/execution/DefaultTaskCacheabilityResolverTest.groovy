@@ -146,7 +146,7 @@ class DefaultTaskCacheabilityResolverTest extends Specification {
         reason.category == CachingDisabledReasonCategory.OVERLAPPING_OUTPUTS
         reason.message == "Gradle does not know how file 'relative/path' was created (output property 'someProperty'). Task output caching requires exclusive access to output paths to guarantee correctness."
 
-        1 * relativeFilePathResolver.resolveAsRelativePath(overlappingOutputs.overlappedFilePath) >> "relative/path"
+        1 * relativeFilePathResolver.resolveForDisplay(overlappingOutputs.overlappedFilePath) >> "relative/path"
     }
 
     static def spec(Spec<TaskInternal> spec, String description = "test cacheIf()") {

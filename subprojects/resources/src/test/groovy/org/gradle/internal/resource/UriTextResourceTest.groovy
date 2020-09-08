@@ -242,7 +242,7 @@ class UriTextResourceTest extends Specification {
 
     def usesFilePathToBuildDisplayNameWhenUsingFile() {
         given:
-        resolver.resolveAsRelativePath(file) >> "a/b/file"
+        resolver.resolveForDisplay(file) >> "a/b/file"
 
         when:
         UriTextResource resource = new UriTextResource("<file-type>", file, resolver)
@@ -255,7 +255,7 @@ class UriTextResourceTest extends Specification {
 
     def usesFilePathToBuildDisplayNameWhenUsingFileUri() {
         given:
-        resolver.resolveAsRelativePath(file) >> "a/b/file"
+        resolver.resolveForDisplay(file) >> "a/b/file"
 
         when:
         UriTextResource resource = new UriTextResource("<file-type>", fileUri, resolver)

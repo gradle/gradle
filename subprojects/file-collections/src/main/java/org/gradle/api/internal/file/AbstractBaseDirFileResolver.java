@@ -16,17 +16,41 @@
 
 package org.gradle.api.internal.file;
 
-import org.gradle.util.GFileUtils;
 import org.gradle.util.GUtil;
 
 import java.io.File;
+import java.nio.file.Path;
 
 public abstract class AbstractBaseDirFileResolver extends AbstractFileResolver {
     protected abstract File getBaseDir();
 
     @Override
     public String resolveAsRelativePath(Object path) {
-        return GFileUtils.relativePathOf(resolve(path), getBaseDir());
+        Path baseDir = getBaseDir().toPath();
+        Path file = resolve(path).toPath();
+        if (file.equals(baseDir)) {
+            return ".";
+        } else {
+            return baseDir.relativize(file).toString();
+        }
+    }
+
+    @Override
+    public String resolveForDisplay(Object path) {
+        Path file = resolve(path).toPath();
+        Path baseDir = getBaseDir().toPath();
+        if (file.equals(baseDir)) {
+            return ".";
+        }
+        Path parent = baseDir.getParent();
+        if (parent == null) {
+            parent = baseDir;
+        }
+        if (file.startsWith(parent)) {
+            return baseDir.relativize(file).toString();
+        } else {
+            return file.toString();
+        }
     }
 
     @Override

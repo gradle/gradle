@@ -19,7 +19,7 @@ Only the smallest of projects has a single build file and source tree, unless it
 
 Gradle supports this scenario through _multi-project_ builds.
 
-For details about authoring _multi-project_ builds, consult the <<creating_multi_project_builds#multi_project_builds,Authoring Multi-Project Builds section of the user manual>>.
+For details about authoring _multi-project_ builds, consult the <<multi_project_builds#multi_project_builds,Authoring Multi-Project Builds section of the user manual>>.
 
 
 [[sec:identifying_project_structure]]
@@ -77,7 +77,7 @@ just use the `tasks` task, e.g. `gradle :services:webservice:tasks`.
 
 Regardless of which technique you use to execute tasks, Gradle will take care of building any subprojects that the target depends on.
 You don't have to worry about the inter-project dependencies yourself.
-If you're interested in how this is configured, you can read about writing multi-project builds <<creating_multi_project_builds.adoc#multi_project_builds,later in the user manual>>.
+If you're interested in how this is configured, you can read about writing multi-project builds <<multi_project_builds.adoc#multi_project_builds,later in the user manual>>.
 
 
 That's all you really need to know about multi-project builds as a build user.

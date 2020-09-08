@@ -21,7 +21,7 @@ import spock.lang.Ignore
 class UndeclaredBuildInputsDynamicGroovyBuildScriptPluginIntegrationTest extends AbstractUndeclaredBuildInputsIntegrationTest implements GroovyPluginImplementation {
     @Override
     String getLocation() {
-        return "plugin class 'SneakyPlugin'"
+        return "Plugin class 'SneakyPlugin'"
     }
 
     @Override

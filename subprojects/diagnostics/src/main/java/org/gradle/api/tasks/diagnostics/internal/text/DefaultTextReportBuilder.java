@@ -54,7 +54,7 @@ public class DefaultTextReportBuilder implements TextReportBuilder {
 
     @Override
     public void item(String title, File value) {
-        item(title, fileResolver.resolveAsRelativePath(value));
+        item(title, fileResolver.resolveForDisplay(value));
     }
 
     @Override
@@ -70,7 +70,7 @@ public class DefaultTextReportBuilder implements TextReportBuilder {
 
     @Override
     public void item(File value) {
-        item(fileResolver.resolveAsRelativePath(value));
+        item(fileResolver.resolveForDisplay(value));
     }
 
     @Override
