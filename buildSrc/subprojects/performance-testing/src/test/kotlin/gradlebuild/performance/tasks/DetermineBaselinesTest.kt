@@ -16,7 +16,6 @@
 
 package gradlebuild.performance.tasks
 
-import gradlebuild.ModuleIdentityPlugin
 import gradlebuild.basics.kotlindsl.execAndGetStdout
 import gradlebuild.identity.extension.ModuleIdentityExtension
 import io.mockk.every
@@ -37,7 +36,7 @@ class DetermineBaselinesTest {
 
     @Before
     fun setUp() {
-        project.apply<ModuleIdentityPlugin>()
+        project.apply(plugin = "gradlebuild.module-identity")
 
         // mock project.execAndGetStdout
         mockkStatic("gradlebuild.basics.kotlindsl.Kotlin_dsl_upstream_candidatesKt")
