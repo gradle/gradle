@@ -97,7 +97,7 @@ public abstract class JvmProjectInitDescriptor extends LanguageLibraryProjectIni
             if (languagePlugin != null) {
                 String pluginVersionProperty = description.getPluginVersionProperty();
                 String pluginVersion = pluginVersionProperty == null ? null : libraryVersionProvider.getVersion(pluginVersionProperty);
-                buildScriptBuilder.plugin("Apply the " + languagePlugin + " Plugin to add support for " + getLanguage(), languagePlugin, pluginVersion);
+                buildScriptBuilder.plugin("Apply the " + languagePlugin + " Plugin to add support for " + getLanguage() + ".", languagePlugin, pluginVersion);
             }
 
             buildScriptBuilder.fileComment("This generated file contains a sample " + getLanguage() + " " + getComponentType() + " project to get you started.");
@@ -114,12 +114,12 @@ public abstract class JvmProjectInitDescriptor extends LanguageLibraryProjectIni
     public void generateConventionPluginBuildScript(String conventionPluginName, InitSettings settings, BuildScriptBuilder buildScriptBuilder) {
         if ("common".equals(conventionPluginName)) {
             addJcenter(buildScriptBuilder);
-            String commonPlugin = description.getPluginName() == null ? "java" : description.getPluginName();
-            buildScriptBuilder.plugin(null, commonPlugin);
+            String languagePlugin = description.getPluginName() == null ? "java" : description.getPluginName();
+            buildScriptBuilder.plugin("Apply the " + languagePlugin + " Plugin to add support for " + getLanguage() + ".", languagePlugin);
             addStandardDependencies(buildScriptBuilder);
             addTestFramework(settings.getTestFramework(), buildScriptBuilder);
         } else {
-            buildScriptBuilder.plugin(null, commonConventionPlugin(settings));
+            buildScriptBuilder.plugin("Apply the common convention plugin for shared build configuration between library and application projects.", commonConventionPlugin(settings));
             if ("library".equals(conventionPluginName)) {
                 applyLibraryPlugin(buildScriptBuilder);
             }
