@@ -75,7 +75,7 @@ public abstract class JvmGradlePluginProjectInitDescriptor extends JvmProjectIni
 
     @Override
     public Optional<String> getFurtherReading() {
-        return Optional.of(documentationRegistry.getTopicGuidesFor("Plugin%20Development"));
+        return Optional.of(documentationRegistry.getDocumentationFor("custom_plugins"));
     }
 
     protected abstract TemplateOperation sourceTemplate(InitSettings settings, TemplateFactory templateFactory, String pluginId, String pluginClassName);

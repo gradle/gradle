@@ -440,4 +440,4 @@ This chapter has covered the major topics that are specific to migrating Ant bui
  * Learn how to <<organizing_gradle_projects#organizing_gradle_projects,structure your builds effectively>>
  * <<logging#logging,Configure Gradle's logging>> and use it from your builds
 
-As a final note, this guide has only touched on a few of Gradle's features and we encourage you to learn about the rest from the other chapters of the user manual and from our tutorial-style {guidesUrl}/[Gradle Guides].
+As a final note, this guide has only touched on a few of Gradle's features and we encourage you to learn about the rest from the other chapters of the user manual and from our link:../samples/index.html[step-by-step samples].
