@@ -278,8 +278,9 @@ include::sample[dir="snippets/dependencyManagement/dependencyLocking-lockingSing
 include::sample[dir="snippets/dependencyManagement/dependencyLocking-lockingSingleFilePerProject/kotlin",files="build.gradle.kts[tags=ignore-dependencies]"]
 ====
 
-The notation is a `<group>:<name>` dependency notation, where `*` can be used as a trailing wildcard.
+The notation is a `<group>:<name>` dependency notation, where `\*` can be used as a trailing wildcard.
 See <<#selectively_updating_lock_state_entries,the description>> on updating lock files for more details.
+Note that the value `*:*` is not accepted as it is equivalent to disabling locking.
 
 Ignoring dependencies will have the following effects:
 
