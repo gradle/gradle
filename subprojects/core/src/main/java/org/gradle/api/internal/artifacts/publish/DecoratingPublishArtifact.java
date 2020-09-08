@@ -48,17 +48,17 @@ public class DecoratingPublishArtifact extends AbstractPublishArtifact implement
 
     @Override
     public String getName() {
-        return GUtil.elvis(name, publishArtifact.getName());
+        return GUtil.getOrDefault(name, publishArtifact::getName);
     }
 
     @Override
     public String getExtension() {
-        return GUtil.elvis(extension, publishArtifact.getExtension());
+        return GUtil.getOrDefault(extension, publishArtifact::getExtension);
     }
 
     @Override
     public String getType() {
-        return GUtil.elvis(type, publishArtifact.getType());
+        return GUtil.getOrDefault(type, publishArtifact::getType);
     }
 
     @Override

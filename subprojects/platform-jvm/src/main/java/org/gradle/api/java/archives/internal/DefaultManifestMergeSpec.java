@@ -92,8 +92,8 @@ public class DefaultManifestMergeSpec implements ManifestMergeSpec {
         Set<String> allSections = Sets.union(baseManifest.getSections().keySet(), toMergeManifest.getSections().keySet());
         for (String section : allSections) {
             mergeSection(section, mergedManifest,
-                    GUtil.elvis(baseManifest.getSections().get(section), new DefaultAttributes()),
-                    GUtil.elvis(toMergeManifest.getSections().get(section), new DefaultAttributes()));
+                    GUtil.getOrDefault(baseManifest.getSections().get(section), DefaultAttributes::new),
+                    GUtil.getOrDefault(toMergeManifest.getSections().get(section), DefaultAttributes::new));
         }
         return mergedManifest;
     }

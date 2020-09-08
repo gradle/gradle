@@ -62,27 +62,27 @@ public class ArchivePublishArtifact extends AbstractPublishArtifact implements C
 
     @Override
     public String getExtension() {
-        return GUtil.elvis(extension, archiveTask.getArchiveExtension().getOrNull());
+        return GUtil.getOrDefault(extension, () -> archiveTask.getArchiveExtension().getOrNull());
     }
 
     @Override
     public String getType() {
-        return GUtil.elvis(type, archiveTask.getArchiveExtension().getOrNull());
+        return GUtil.getOrDefault(type, () -> archiveTask.getArchiveExtension().getOrNull());
     }
 
     @Override
     public String getClassifier() {
-        return GUtil.elvis(classifier, archiveTask.getArchiveClassifier().getOrNull());
+        return GUtil.getOrDefault(classifier, () -> archiveTask.getArchiveClassifier().getOrNull());
     }
 
     @Override
     public File getFile() {
-        return GUtil.elvis(file, archiveTask.getArchiveFile().get().getAsFile());
+        return GUtil.getOrDefault(file, () -> archiveTask.getArchiveFile().get().getAsFile());
     }
 
     @Override
     public Date getDate() {
-        return GUtil.elvis(date, new Date(archiveTask.getArchiveFile().get().getAsFile().lastModified()));
+        return GUtil.getOrDefault(date, () -> new Date(archiveTask.getArchiveFile().get().getAsFile().lastModified()));
     }
 
     public AbstractArchiveTask getArchiveTask() {

@@ -75,7 +75,7 @@ public class JavadocExecHandleBuilder {
 
         ExecAction execAction = execActionFactory.newExecAction();
         execAction.workingDir(execDirectory);
-        execAction.executable(GUtil.elvis(executable, Jvm.current().getJavadocExecutable()));
+        execAction.executable(GUtil.getOrDefault(executable, () -> Jvm.current().getJavadocExecutable()));
         execAction.args("@" + optionsFile.getAbsolutePath());
 
         options.contributeCommandLineOptions(execAction);
