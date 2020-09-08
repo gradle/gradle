@@ -152,7 +152,7 @@ Once Gradle is <<installation#installation,installed on your system>>, all you h
 
 from the root project directory and let Gradle do its thing.
 That basically consists of parsing the existing POMs and generating the corresponding Gradle build scripts.
-Gradle will also create a settings script if you're migrating a <<creating_multi_project_builds#multi_project_builds,multi-project build>>.
+Gradle will also create a settings script if you're migrating a <<multi_project_builds#multi_project_builds,multi-project build>>.
 
 You'll find that the new Gradle build includes the following:
 
@@ -369,7 +369,7 @@ NOTE: You can use this feature to apply the `<dependencyManagement>` information
 [[migmvn:multimodule_builds]]
 == Migrating multi-module builds (project aggregation)
 
-Maven's multi-module builds map nicely to Gradle's <<creating_multi_project_builds#multi_project_builds,multi-project builds>>.
+Maven's multi-module builds map nicely to Gradle's <<multi_project_builds#multi_project_builds,multi-project builds>>.
 Try the corresponding link:../samples/sample_jvm_multi_project_build.html[sample] to see how a basic multi-project Gradle build is set up.
 
 To migrate a multi-module Maven build, simply follow these steps:

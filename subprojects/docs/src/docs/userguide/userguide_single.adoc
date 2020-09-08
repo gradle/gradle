@@ -84,7 +84,7 @@ include::build_lifecycle.adoc[leveloffset=+2]
 
 include::logging.adoc[leveloffset=+2]
 
-include::creating_multi_project_builds.adoc[leveloffset=+2]
+include::multi_project_builds.adoc[leveloffset=+2]
 
 include::sharing_build_logic_between_subprojects.adoc[leveloffset=+2]
 

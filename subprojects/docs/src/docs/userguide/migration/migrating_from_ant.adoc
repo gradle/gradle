@@ -384,7 +384,7 @@ Fortunately, Gradle's multi-project support can handle fairly diverse project st
 
 We will suggest one process for migration here and hope that it either works for your case or at least gives you some ideas. It breaks down like this:
 
- 1. Start by learning <<creating_multi_project_builds#multi_project_builds,how Gradle configures multi-project builds>>.
+ 1. Start by learning <<multi_project_builds#multi_project_builds,how Gradle configures multi-project builds>>.
  2. Create a Gradle build script in each project of the build, setting their contents to this line:
 +
 [source.multi-language-sample,groovy]
