@@ -4,7 +4,7 @@
 ${packageDecl.statement}
 class App {
     String getGreeting() {
-        return 'Hello world.'
+        return 'Hello World!'
     }
 
     static void main(String[] args) {
