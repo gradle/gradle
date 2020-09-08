@@ -281,7 +281,7 @@ include::sample[dir="snippets/java/multiproject/kotlin/api",files="build.gradle.
 ====
 
 At runtime, the build automatically ensures that project dependencies are built in the correct order and added to the classpath for compilation.
-The chapter <<creating_multi_project_builds.adoc#multi_project_builds,Authoring Multi-Project Builds>> discusses how to set up and configure multi-project builds in more detail.
+The chapter <<multi_project_builds.adoc#multi_project_builds,Authoring Multi-Project Builds>> discusses how to set up and configure multi-project builds in more detail.
 
 For more information see the API documentation for link:{javadocPath}/org/gradle/api/artifacts/ProjectDependency.html[ProjectDependency].
 

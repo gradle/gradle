@@ -338,4 +338,4 @@ Building a library is just one aspect of reusing code across project boundaries.
 
  - link:{userManualPath}/artifact_dependencies_tutorial.html[Consuming JVM libraries]
  - link:{userManualPath}/publishing_setup.html[Publishing JVM libraries]
- - link:{userManualPath}/creating_multi_project_builds.html[Creating multi-project builds]
+ - link:{userManualPath}/multi_project_builds.html[Creating multi-project builds]
