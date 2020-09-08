@@ -49,7 +49,7 @@ public class DefaultPhasedActionResultListener implements PhasedActionResultList
 
     private <T> void onComplete(Object result, @Nullable IntermediateResultHandler<T> handler) {
         if (handler != null) {
-            handler.onComplete(Cast.uncheckedNonnullCast(result));
+            handler.onComplete(Cast.<T>uncheckedNonnullCast(result));
         }
     }
 }

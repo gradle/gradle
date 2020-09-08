@@ -33,4 +33,10 @@ abstract class UnitTestAndCompileExtension(private val java: JavaPluginExtension
         java.sourceCompatibility = JavaVersion.VERSION_1_6
         java.disableAutoTargetJvm()
     }
+
+    fun usedInToolingApi() {
+        java.targetCompatibility = JavaVersion.VERSION_1_6
+        java.sourceCompatibility = JavaVersion.VERSION_1_6
+        java.disableAutoTargetJvm()
+    }
 }

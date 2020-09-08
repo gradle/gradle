@@ -44,10 +44,21 @@ class ToolingApiJdkCompatibilityTest extends AbstractIntegrationSpec {
                 args = [ "help", file("test-project"), project.findProperty("gradleVersion"), project.findProperty("targetJdk") ]
             }
 
+            task buildAction(type: JavaExec) {
+                classpath = sourceSets.main.runtimeClasspath
+                mainClass = "ToolingApiCompatibilityClient"
+                javaLauncher = javaToolchains.launcherFor {
+                    languageVersion = JavaLanguageVersion.of(Integer.valueOf(project.findProperty("clientJdk")))
+                }
+                enableAssertions = true
+
+                args = [ "action", file("test-project"), project.findProperty("gradleVersion"), project.findProperty("targetJdk") ]
+            }
+
             java {
                 disableAutoTargetJvm()
                 toolchain {
-                    languageVersion = JavaLanguageVersion.of(8)
+                    languageVersion = JavaLanguageVersion.of(project.findProperty("compilerJdk"))
                 }
             }
 
@@ -87,6 +98,9 @@ public class ToolingApiCompatibilityClient {
                 if (action.equals("help")) {
                     runHelp(projectDir, gradleVersion, javaHome);
                     System.exit(0);
+                } else if (action.equals("action")) {
+                    buildAction(projectDir, gradleVersion, javaHome);
+                    System.exit(0);
                 }
             }
         } catch(Throwable t) {
@@ -117,8 +131,47 @@ public class ToolingApiCompatibilityClient {
         assert out.toString().contains("Hello from");
         System.err.println(err.toString());
     }
+
+   private static void buildAction(File projectLocation, String gradleVersion, File javaHome) throws Exception {
+        GradleConnector connector = GradleConnector.newConnector();
+        connector.useGradleVersion(gradleVersion);
+
+        ProjectConnection connection = connector.forProjectDirectory(projectLocation).connect();
+
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        ByteArrayOutputStream err = new ByteArrayOutputStream();
+
+        try {
+            String result = connection.action(new ToolingApiCompatibilityBuildAction())
+                .setStandardOutput(out)
+                .setStandardError(err)
+                .setJavaHome(javaHome)
+                .run();
+            assert result.contains("Build action result");
+        } catch(Exception e) {
+            e.printStackTrace();
+            throw e;
+        } finally {
+            System.out.println(out.toString());
+            System.err.println(err.toString());
+        }
+   }
 }
 """
+
+        file("src/main/java/ToolingApiCompatibilityBuildAction.java") << """
+import org.gradle.tooling.BuildAction;
+import org.gradle.tooling.BuildController;
+
+public class ToolingApiCompatibilityBuildAction implements BuildAction<String> {
+
+    @Override
+    public String execute(BuildController controller) {
+        return "Build action result: " + controller.toString();
+    }
+}
+"""
+
         settingsFile << "rootProject.name = 'client-runner'"
 
         file("test-project/build.gradle") << "println 'Hello from ' + gradle.gradleVersion"
@@ -136,7 +189,7 @@ public class ToolingApiCompatibilityClient {
         succeeds("runTask",
                 "-PclientJdk=" + clientJdkVersion.majorVersion,
                 "-PtargetJdk=" + gradleDaemonJdk.javaHome.absolutePath,
-                "-PcompilerJdk=" + compilerJdkVersion.majorVersion, //compilerJdkVersion.name()
+                "-PcompilerJdk=" + compilerJdkVersion.majorVersion,
                 "-PgradleVersion=" + gradleVersion)
 
         then:
@@ -179,5 +232,62 @@ public class ToolingApiCompatibilityClient {
         JavaVersion.VERSION_1_8 | JavaVersion.current() | JavaVersion.VERSION_1_8 | "5.0"
         JavaVersion.VERSION_1_8 | JavaVersion.current() | JavaVersion.VERSION_1_8 | "5.6.4"
         JavaVersion.VERSION_1_8 | JavaVersion.current() | JavaVersion.VERSION_1_8 | "6.0"
+    }
+
+    @Unroll
+    def "tapi client with classes compiled for Java #compilerJdkVersion.majorVersion can run build action with Gradle #gradleVersion on Java #gradleDaemonJdkVersion.majorVersion from Java #clientJdkVersion.majorVersion"(JavaVersion compilerJdkVersion, JavaVersion clientJdkVersion, JavaVersion gradleDaemonJdkVersion, String gradleVersion) {
+        setup:
+        def tapiClientCompilerJdk = AvailableJavaHomes.getJdk(compilerJdkVersion)
+        def gradleDaemonJdk = AvailableJavaHomes.getJdk(gradleDaemonJdkVersion)
+        Assume.assumeTrue(tapiClientCompilerJdk && AvailableJavaHomes.getJdk(clientJdkVersion) && gradleDaemonJdk)
+
+        if (compilerJdkVersion == JavaVersion.VERSION_1_6 && clientJdkVersion in [JavaVersion.VERSION_1_8, JavaVersion.VERSION_11] && gradleDaemonJdkVersion == JavaVersion.VERSION_1_6 && gradleVersion == "2.14.1") {
+            executer.expectDeprecationWarning("Support for running Gradle using Java 6 has been deprecated and will be removed in Gradle 3.0")
+        }
+
+        when:
+        succeeds("buildAction",
+            "-PclientJdk=" + clientJdkVersion.majorVersion,
+            "-PtargetJdk=" + gradleDaemonJdk.javaHome.absolutePath,
+            "-PcompilerJdk=" + compilerJdkVersion.majorVersion,
+            "-PgradleVersion=" + gradleVersion)
+
+        then:
+        output.contains("BUILD SUCCESSFUL")
+
+        where:
+        compilerJdkVersion      | clientJdkVersion        | gradleDaemonJdkVersion  | gradleVersion
+        JavaVersion.VERSION_1_6 | JavaVersion.VERSION_1_8 | JavaVersion.VERSION_1_6 | "2.6"
+        JavaVersion.VERSION_1_6 | JavaVersion.VERSION_1_8 | JavaVersion.VERSION_1_6 | "2.14.1"
+        JavaVersion.VERSION_1_6 | JavaVersion.VERSION_1_8 | JavaVersion.VERSION_1_7 | "2.6"
+        JavaVersion.VERSION_1_6 | JavaVersion.VERSION_1_8 | JavaVersion.VERSION_1_7 | "4.10.3"
+        JavaVersion.VERSION_1_6 | JavaVersion.VERSION_1_8 | JavaVersion.VERSION_1_8 | "2.6"
+        JavaVersion.VERSION_1_6 | JavaVersion.VERSION_1_8 | JavaVersion.VERSION_1_8 | "6.6.1"
+        JavaVersion.VERSION_1_6 | JavaVersion.VERSION_1_8 | JavaVersion.VERSION_11  | "5.0"
+        JavaVersion.VERSION_1_6 | JavaVersion.VERSION_1_8 | JavaVersion.VERSION_11  | "6.6.1"
+        JavaVersion.VERSION_1_6 | JavaVersion.VERSION_11  | JavaVersion.VERSION_1_6 | "2.6"
+        JavaVersion.VERSION_1_6 | JavaVersion.VERSION_11  | JavaVersion.VERSION_1_6 | "2.14.1"
+        JavaVersion.VERSION_1_6 | JavaVersion.VERSION_11  | JavaVersion.VERSION_1_7 | "2.6"
+        JavaVersion.VERSION_1_6 | JavaVersion.VERSION_11  | JavaVersion.VERSION_1_7 | "4.10.3"
+        JavaVersion.VERSION_1_6 | JavaVersion.VERSION_11  | JavaVersion.VERSION_1_8 | "2.6"
+        JavaVersion.VERSION_1_6 | JavaVersion.VERSION_11  | JavaVersion.VERSION_1_8 | "6.6.1"
+        JavaVersion.VERSION_1_6 | JavaVersion.VERSION_11  | JavaVersion.VERSION_11  | "5.0"
+        JavaVersion.VERSION_1_6 | JavaVersion.VERSION_11  | JavaVersion.VERSION_11  | "6.6.1"
+        JavaVersion.VERSION_1_7 | JavaVersion.VERSION_1_8 | JavaVersion.VERSION_1_7 | "2.6"
+        JavaVersion.VERSION_1_7 | JavaVersion.VERSION_1_8 | JavaVersion.VERSION_1_7 | "4.10.3"
+        JavaVersion.VERSION_1_7 | JavaVersion.VERSION_1_8 | JavaVersion.VERSION_1_8 | "2.6"
+        JavaVersion.VERSION_1_7 | JavaVersion.VERSION_1_8 | JavaVersion.VERSION_1_8 | "6.6.1"
+        JavaVersion.VERSION_1_7 | JavaVersion.VERSION_11  | JavaVersion.VERSION_1_7 | "2.6"
+        JavaVersion.VERSION_1_7 | JavaVersion.VERSION_11  | JavaVersion.VERSION_1_7 | "4.10.3"
+        JavaVersion.VERSION_1_7 | JavaVersion.VERSION_11  | JavaVersion.VERSION_1_8 | "2.6"
+        JavaVersion.VERSION_1_7 | JavaVersion.VERSION_11  | JavaVersion.VERSION_1_8 | "6.6.1"
+        JavaVersion.VERSION_1_7 | JavaVersion.VERSION_11  | JavaVersion.VERSION_11  | "5.0"
+        JavaVersion.VERSION_1_7 | JavaVersion.VERSION_11  | JavaVersion.VERSION_11  | "6.6.1"
+        JavaVersion.VERSION_1_8 | JavaVersion.VERSION_1_8 | JavaVersion.VERSION_11  | "5.0"
+        JavaVersion.VERSION_1_8 | JavaVersion.VERSION_1_8 | JavaVersion.VERSION_11  | "6.6.1"
+        JavaVersion.VERSION_1_8 | JavaVersion.VERSION_11  | JavaVersion.VERSION_1_8 | "2.6"
+        JavaVersion.VERSION_1_8 | JavaVersion.VERSION_11  | JavaVersion.VERSION_1_8 | "6.6.1"
+        JavaVersion.VERSION_1_8 | JavaVersion.VERSION_11  | JavaVersion.VERSION_11  | "5.0"
+        JavaVersion.VERSION_1_8 | JavaVersion.VERSION_11  | JavaVersion.VERSION_11  | "6.6.1"
     }
 }
