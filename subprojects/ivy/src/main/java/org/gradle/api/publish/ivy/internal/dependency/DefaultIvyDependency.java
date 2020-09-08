@@ -105,4 +105,9 @@ public class DefaultIvyDependency implements IvyDependencyInternal {
     public ImmutableAttributes getAttributes() {
         return attributes;
     }
+
+    @Override
+    public String getProjectPath() {
+        return null;
+    }
 }

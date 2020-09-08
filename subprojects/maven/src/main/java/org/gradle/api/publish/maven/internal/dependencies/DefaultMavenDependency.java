@@ -77,9 +77,14 @@ public class DefaultMavenDependency implements MavenDependencyInternal {
     public Collection<DependencyArtifact> getArtifacts() {
         return artifacts;
     }
-    
+
     @Override
     public Collection<ExcludeRule> getExcludeRules() {
         return excludeRules;
+    }
+
+    @Override
+    public String getProjectPath() {
+        return null;
     }
 }
