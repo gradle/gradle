@@ -36,6 +36,8 @@ plugins {
 
 extensions.create<UnitTestAndCompileExtension>("gradlebuildJava", java)
 
+apply(from = "$rootDir/gradle/shared-with-buildSrc/fail-on-empty-source-dirs.gradle.kts")
+
 removeTeamcityTempProperty()
 addDependencies()
 configureClasspathManifestGeneration()

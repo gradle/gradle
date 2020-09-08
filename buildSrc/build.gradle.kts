@@ -66,6 +66,7 @@ subprojects {
         }
 
         apply(from = "../../../gradle/shared-with-buildSrc/code-quality-configuration.gradle.kts")
+        apply(from = "../../../gradle/shared-with-buildSrc/fail-on-empty-source-dirs.gradle.kts")
     }
 }
 
@@ -268,4 +269,3 @@ fun Project.applyKotlinProjectConventions() {
         }
     }
 }
-
