@@ -985,7 +985,7 @@ class GradleModuleMetadataWriterTest extends Specification {
         def publication = publication(component, id, mappingStrategy)
 
         mappingStrategy.findStrategyForVariant(_) >> variantMappingStrategy
-        variantMappingStrategy.maybeResolveVersion(_ as String, _ as String) >> { String group, String name ->
+        variantMappingStrategy.maybeResolveVersion(_ as String, _ as String, _) >> { String group, String name, String projectPath ->
             DefaultModuleVersionIdentifier.newId(group, name, 'v99')
         }
 

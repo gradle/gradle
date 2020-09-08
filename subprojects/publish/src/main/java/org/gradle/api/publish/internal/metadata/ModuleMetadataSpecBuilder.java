@@ -285,7 +285,7 @@ class ModuleMetadataSpecBuilder {
         String name = dependency.getName();
         String resolvedVersion = null;
         if (versionMappingStrategy != null) {
-            ModuleVersionIdentifier resolvedVersionId = versionMappingStrategy.maybeResolveVersion(group, name);
+            ModuleVersionIdentifier resolvedVersionId = versionMappingStrategy.maybeResolveVersion(group, name, null);
             if (resolvedVersionId != null) {
                 group = resolvedVersionId.getGroup();
                 name = resolvedVersionId.getName();
@@ -309,7 +309,8 @@ class ModuleMetadataSpecBuilder {
             ModuleVersionIdentifier resolved =
                 versionMappingStrategy.maybeResolveVersion(
                     identifier.getGroup(),
-                    identifier.getName()
+                    identifier.getName(),
+                    projectDependency.getDependencyProject().getPath()
                 );
             if (resolved != null) {
                 identifier = resolved;
@@ -373,23 +374,26 @@ class ModuleMetadataSpecBuilder {
         return dependencyConstraints;
     }
 
-    private ModuleMetadataSpec.DependencyConstraint dependencyConstraintFor(DependencyConstraint dependencyConstraint, VariantVersionMappingStrategyInternal variantVersionMappingStrategy) {
+    private ModuleMetadataSpec.DependencyConstraint dependencyConstraintFor(DependencyConstraint dependencyConstraint,
+                                                                            VariantVersionMappingStrategyInternal variantVersionMappingStrategy) {
         String group;
         String module;
         String resolvedVersion = null;
+        String projectPath = null;
         if (dependencyConstraint instanceof DefaultProjectDependencyConstraint) {
             DefaultProjectDependencyConstraint dependency = (DefaultProjectDependencyConstraint) dependencyConstraint;
             ProjectDependency projectDependency = dependency.getProjectDependency();
             ModuleVersionIdentifier identifier = moduleIdentifierFor(projectDependency);
             group = identifier.getGroup();
             module = identifier.getName();
+            projectPath = projectDependency.getDependencyProject().getPath();
             resolvedVersion = identifier.getVersion();
         } else {
             group = dependencyConstraint.getGroup();
             module = dependencyConstraint.getName();
         }
         ModuleVersionIdentifier resolvedVersionId = variantVersionMappingStrategy != null
-            ? variantVersionMappingStrategy.maybeResolveVersion(group, module)
+            ? variantVersionMappingStrategy.maybeResolveVersion(group, module, projectPath)
             : null;
         String effectiveGroup = resolvedVersionId != null ? resolvedVersionId.getGroup() : group;
         String effectiveModule = resolvedVersionId != null ? resolvedVersionId.getName() : module;

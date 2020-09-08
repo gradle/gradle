@@ -52,7 +52,7 @@ class MavenPomFileGeneratorTest extends Specification {
     def rangeMapper = Stub(VersionRangeMapper)
     def strategy = Stub(VersionMappingStrategyInternal) {
         findStrategyForVariant(_) >> Stub(VariantVersionMappingStrategyInternal) {
-            maybeResolveVersion(_, _) >> null
+            maybeResolveVersion(_, _, _) >> null
         }
     }
     def generator = new MavenPomFileGenerator(projectIdentity, rangeMapper, strategy, ImmutableAttributes.EMPTY, ImmutableAttributes.EMPTY, false)

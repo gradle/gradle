@@ -18,6 +18,8 @@ package org.gradle.api.publish.internal.versionmapping;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.publish.VariantVersionMappingStrategy;
 
+import javax.annotation.Nullable;
+
 public interface VariantVersionMappingStrategyInternal extends VariantVersionMappingStrategy {
-    ModuleVersionIdentifier maybeResolveVersion(String group, String module);
+    ModuleVersionIdentifier maybeResolveVersion(String group, String module, @Nullable String projectPath);
 }
