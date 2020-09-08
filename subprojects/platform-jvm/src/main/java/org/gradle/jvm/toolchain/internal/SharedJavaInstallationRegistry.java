@@ -25,7 +25,6 @@ import org.gradle.api.logging.Logging;
 import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -47,12 +46,8 @@ public class SharedJavaInstallationRegistry {
     }
 
     @VisibleForTesting
-    static SharedJavaInstallationRegistry withLogger(Logger logger) {
-        return new SharedJavaInstallationRegistry(Collections.emptyList(), logger);
-    }
-
-    void add(InstallationSupplier provider) {
-        suppliers.add(provider);
+    static SharedJavaInstallationRegistry withLogger(List<InstallationSupplier> suppliers, Logger logger) {
+        return new SharedJavaInstallationRegistry(suppliers, logger);
     }
 
     public Set<File> listInstallations() {
