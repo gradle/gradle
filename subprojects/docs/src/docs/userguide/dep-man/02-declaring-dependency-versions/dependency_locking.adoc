@@ -260,9 +260,10 @@ include::sample[dir="snippets/dependencyManagement/dependencyLocking-lockingSing
 [[ignoring_dependencies]]
 == Ignoring specific dependencies from the lock state
 
-In some scenarios, projects use dependency locking to prevent unwanted dependency updates more than for the reproducibility aspect.
-In that context, it is convenient to be able to ignore some dependencies for the lock state.
-An example is company internal dependencies that should always use the most recent version.
+Dependency locking can be used in cases where reproducibility is not the main goal.
+As a build author, you may want to have different frequency of dependency version updates, based on their origin for example.
+In that case, it might be convenient to ignore some dependencies because you always want to use the latest version for those.
+An example is the internal dependencies in an organization which should always use the latest version as opposed to third party dependencies which have a different upgrade cycle.
 
 [WARNING]
 ====

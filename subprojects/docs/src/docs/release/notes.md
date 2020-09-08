@@ -127,6 +127,25 @@ repositories {
 
 In this case, no `guava` version after `19.0` will be searched for in the referenced Maven repository.
 
+## Ability to ignore dependencies in dependency lock state
+
+Dependency locking can be used in cases where reproducibility is not the main goal.
+As a build author, you may want to have different frequency of dependency version updates, based on their origin for example.
+In that case, it might be convenient to ignore some dependencies because you always want to use the latest version for those.
+An example is the internal dependencies in an organization which should always use the latest version as opposed to third party dependencies which have a different upgrade cycle.
+
+With this release, the `dependencyLocking` extension allows you to specify ignored dependencies:
+
+```
+dependencyLocking {
+    ignoredDependencies.add("com.example:*")
+}
+```
+
+With the above, any dependency in the `com.example` group will be ignored by the lock state validation or writing.
+
+See the documentation for more details on [ignored dependencies in locking](userguide/dependency_locking.html#ignoring_dependencies).
+
 ## Gradle init improvements
 
 <-- TBD: add something if we think it is worth mentioning, see #14219 and #14210 -->
