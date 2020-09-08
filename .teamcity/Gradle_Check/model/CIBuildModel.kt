@@ -25,8 +25,7 @@ enum class StageNames(override val stageName: String, override val description: 
     HISTORICAL_PERFORMANCE("Historical Performance", "Once a week: Run performance tests for multiple Gradle versions", "HistoricalPerformance"),
     EXPERIMENTAL("Experimental", "On demand: Run experimental tests", "Experimental"),
     EXPERIMENTAL_VFS_RETENTION("Experimental FS Watching", "On demand checks to run tests with file system watching enabled", "ExperimentalVfsRetention"),
-    EXPERIMENTAL_JDK15("Experimental JDK15", "On demand checks to run tests with JDK15", "ExperimentalJDK15"),
-    EXPERIMENTAL_JDK16("Experimental JDK16", "On demand checks to run tests with JDK16", "ExperimentalJDK16"),
+    EXPERIMENTAL_JDK("Experimental JDK", "On demand checks to run tests with latest experimental JDK", "ExperimentalJDK")
 }
 
 data class CIBuildModel(
@@ -118,53 +117,29 @@ data class CIBuildModel(
                 TestCoverage(32, TestType.watchFs, Os.MACOS, JvmCategory.MAX_VERSION, withoutDependencies = true),
                 TestCoverage(37, TestType.watchFs, Os.MACOS, JvmCategory.MIN_VERSION, withoutDependencies = true)
             )),
-        Stage(StageNames.EXPERIMENTAL_JDK15,
+        Stage(StageNames.EXPERIMENTAL_JDK,
             trigger = Trigger.never,
             runsIndependent = true,
             specificBuilds = listOf(
-                SpecificBuild.SmokeTestsJDK15,
-                SpecificBuild.ConfigCacheSmokeTestsJDK15
+                SpecificBuild.SmokeTestsExperimentalJDK,
+                SpecificBuild.ConfigCacheSmokeTestsExperimentalJDK
             ),
             functionalTests = listOf(
-                TestCoverage(40, TestType.quick, Os.LINUX, JvmCategory.OPENJDK15),
-                TestCoverage(41, TestType.quick, Os.WINDOWS, JvmCategory.OPENJDK15),
-                TestCoverage(42, TestType.platform, Os.LINUX, JvmCategory.OPENJDK15),
-                TestCoverage(43, TestType.platform, Os.WINDOWS, JvmCategory.OPENJDK15),
-                TestCoverage(44, TestType.configCache, Os.LINUX, JvmCategory.OPENJDK15),
-                TestCoverage(45, TestType.quickFeedbackCrossVersion, Os.LINUX, JvmCategory.OPENJDK15),
-                TestCoverage(46, TestType.quickFeedbackCrossVersion, Os.WINDOWS, JvmCategory.OPENJDK15),
-                TestCoverage(47, TestType.parallel, Os.LINUX, JvmCategory.OPENJDK15),
-                TestCoverage(48, TestType.soak, Os.LINUX, JvmCategory.OPENJDK15),
-                TestCoverage(49, TestType.soak, Os.WINDOWS, JvmCategory.OPENJDK15),
-                TestCoverage(50, TestType.soak, Os.MACOS, JvmCategory.OPENJDK15),
-                TestCoverage(51, TestType.allVersionsCrossVersion, Os.LINUX, JvmCategory.OPENJDK15),
-                TestCoverage(52, TestType.allVersionsCrossVersion, Os.WINDOWS, JvmCategory.OPENJDK15),
-                TestCoverage(53, TestType.noDaemon, Os.LINUX, JvmCategory.OPENJDK15),
-                TestCoverage(54, TestType.noDaemon, Os.WINDOWS, JvmCategory.OPENJDK15)
-            )),
-        Stage(StageNames.EXPERIMENTAL_JDK16,
-            trigger = Trigger.never,
-            runsIndependent = true,
-            specificBuilds = listOf(
-                SpecificBuild.SmokeTestsJDK16,
-                SpecificBuild.ConfigCacheSmokeTestsJDK16
-            ),
-            functionalTests = listOf(
-                TestCoverage(55, TestType.quick, Os.LINUX, JvmCategory.OPENJDK16),
-                TestCoverage(56, TestType.quick, Os.WINDOWS, JvmCategory.OPENJDK16),
-                TestCoverage(57, TestType.platform, Os.LINUX, JvmCategory.OPENJDK16),
-                TestCoverage(58, TestType.platform, Os.WINDOWS, JvmCategory.OPENJDK16),
-                TestCoverage(59, TestType.configCache, Os.LINUX, JvmCategory.OPENJDK16),
-                TestCoverage(60, TestType.quickFeedbackCrossVersion, Os.LINUX, JvmCategory.OPENJDK16),
-                TestCoverage(61, TestType.quickFeedbackCrossVersion, Os.WINDOWS, JvmCategory.OPENJDK16),
-                TestCoverage(62, TestType.parallel, Os.LINUX, JvmCategory.OPENJDK16),
-                TestCoverage(63, TestType.soak, Os.LINUX, JvmCategory.OPENJDK16),
-                TestCoverage(64, TestType.soak, Os.WINDOWS, JvmCategory.OPENJDK16),
-                TestCoverage(65, TestType.soak, Os.MACOS, JvmCategory.OPENJDK16),
-                TestCoverage(66, TestType.allVersionsCrossVersion, Os.LINUX, JvmCategory.OPENJDK16),
-                TestCoverage(67, TestType.allVersionsCrossVersion, Os.WINDOWS, JvmCategory.OPENJDK16),
-                TestCoverage(68, TestType.noDaemon, Os.LINUX, JvmCategory.OPENJDK16),
-                TestCoverage(69, TestType.noDaemon, Os.WINDOWS, JvmCategory.OPENJDK16)
+                TestCoverage(55, TestType.quick, Os.LINUX, JvmCategory.EXPERIMENTAL_VERSION),
+                TestCoverage(56, TestType.quick, Os.WINDOWS, JvmCategory.EXPERIMENTAL_VERSION),
+                TestCoverage(57, TestType.platform, Os.LINUX, JvmCategory.EXPERIMENTAL_VERSION),
+                TestCoverage(58, TestType.platform, Os.WINDOWS, JvmCategory.EXPERIMENTAL_VERSION),
+                TestCoverage(59, TestType.configCache, Os.LINUX, JvmCategory.EXPERIMENTAL_VERSION),
+                TestCoverage(60, TestType.quickFeedbackCrossVersion, Os.LINUX, JvmCategory.EXPERIMENTAL_VERSION),
+                TestCoverage(61, TestType.quickFeedbackCrossVersion, Os.WINDOWS, JvmCategory.EXPERIMENTAL_VERSION),
+                TestCoverage(62, TestType.parallel, Os.LINUX, JvmCategory.EXPERIMENTAL_VERSION),
+                TestCoverage(63, TestType.soak, Os.LINUX, JvmCategory.EXPERIMENTAL_VERSION),
+                TestCoverage(64, TestType.soak, Os.WINDOWS, JvmCategory.EXPERIMENTAL_VERSION),
+                TestCoverage(65, TestType.soak, Os.MACOS, JvmCategory.EXPERIMENTAL_VERSION),
+                TestCoverage(66, TestType.allVersionsCrossVersion, Os.LINUX, JvmCategory.EXPERIMENTAL_VERSION),
+                TestCoverage(67, TestType.allVersionsCrossVersion, Os.WINDOWS, JvmCategory.EXPERIMENTAL_VERSION),
+                TestCoverage(68, TestType.noDaemon, Os.LINUX, JvmCategory.EXPERIMENTAL_VERSION),
+                TestCoverage(69, TestType.noDaemon, Os.WINDOWS, JvmCategory.EXPERIMENTAL_VERSION)
             ))
     ),
     val subprojects: GradleSubprojectProvider
@@ -344,24 +319,14 @@ enum class SpecificBuild {
             return SmokeTests(model, stage, JvmCategory.MAX_VERSION, "configCacheSmokeTest")
         }
     },
-    SmokeTestsJDK15 {
+    SmokeTestsExperimentalJDK {
         override fun create(model: CIBuildModel, stage: Stage): BuildType {
-            return SmokeTests(model, stage, JvmCategory.OPENJDK15)
+            return SmokeTests(model, stage, JvmCategory.EXPERIMENTAL_VERSION)
         }
     },
-    ConfigCacheSmokeTestsJDK15 {
+    ConfigCacheSmokeTestsExperimentalJDK {
         override fun create(model: CIBuildModel, stage: Stage): BuildType {
-            return SmokeTests(model, stage, JvmCategory.OPENJDK15, "configCacheSmokeTest")
-        }
-    },
-    SmokeTestsJDK16 {
-        override fun create(model: CIBuildModel, stage: Stage): BuildType {
-            return SmokeTests(model, stage, JvmCategory.OPENJDK16)
-        }
-    },
-    ConfigCacheSmokeTestsJDK16 {
-        override fun create(model: CIBuildModel, stage: Stage): BuildType {
-            return SmokeTests(model, stage, JvmCategory.OPENJDK16, "configCacheSmokeTest")
+            return SmokeTests(model, stage, JvmCategory.EXPERIMENTAL_VERSION, "configCacheSmokeTest")
         }
     };
 
