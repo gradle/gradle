@@ -43,7 +43,7 @@ class UndeclaredBuildInputsTestKitInjectedJavaPluginIntegrationTest extends Abst
 
     @Override
     String getLocation() {
-        return "plugin 'sneaky'"
+        return "Plugin 'sneaky'"
     }
 
     @Rule

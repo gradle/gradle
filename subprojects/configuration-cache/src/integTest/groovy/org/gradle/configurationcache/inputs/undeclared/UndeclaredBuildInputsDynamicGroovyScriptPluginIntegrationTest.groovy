@@ -21,7 +21,7 @@ class UndeclaredBuildInputsDynamicGroovyScriptPluginIntegrationTest extends Abst
 
     @Override
     String getLocation() {
-        return "script 'plugin.gradle'"
+        return "Script 'plugin.gradle'"
     }
 
     @Override

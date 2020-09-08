@@ -668,7 +668,7 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
 
         then:
         problems.assertResultHasProblems(result) {
-            withUniqueProblems("field 'value' from type 'SomeTask': $problem")
+            withUniqueProblems("Task `:broken` of type `SomeTask`: $problem")
             withProblemsWithStackTraceCount(1)
         }
 

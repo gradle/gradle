@@ -19,7 +19,7 @@ package org.gradle.configurationcache.inputs.undeclared
 class UndeclaredBuildInputsDynamicGroovySettingsScriptIntegrationTest extends AbstractUndeclaredBuildInputsIntegrationTest implements GroovyPluginImplementation {
     @Override
     String getLocation() {
-        return "settings file 'settings.gradle'"
+        return "Settings file 'settings.gradle'"
     }
 
     @Override

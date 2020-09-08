@@ -19,7 +19,7 @@ package org.gradle.configurationcache.inputs.undeclared
 class UndeclaredBuildInputsKotlinSettingsScriptIntegrationTest extends AbstractUndeclaredBuildInputsIntegrationTest implements KotlinPluginImplementation {
     @Override
     String getLocation() {
-        return "settings file 'settings.gradle.kts'"
+        return "Settings file 'settings.gradle.kts'"
     }
 
     @Override

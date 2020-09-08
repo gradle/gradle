@@ -103,7 +103,7 @@ public class UriTextResource implements TextResource {
     @Override
     public DisplayName getShortDisplayName() {
         if (sourceFile != null) {
-            return Describables.quoted(description, resolver.resolveAsRelativePath(sourceFile));
+            return Describables.quoted(description, resolver.resolveForDisplay(sourceFile));
         } else {
             return Describables.quoted(description, sourceUri);
         }
