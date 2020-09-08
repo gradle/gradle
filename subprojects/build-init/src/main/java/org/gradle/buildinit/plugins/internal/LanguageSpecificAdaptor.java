@@ -110,26 +110,26 @@ public class LanguageSpecificAdaptor implements ProjectGenerator {
     }
 
     private List<BuildScriptBuilder> allBuildScriptBuilder(InitSettings settings) {
-        List<BuildScriptBuilder> operations = new ArrayList<>();
+        List<BuildScriptBuilder> builder = new ArrayList<>();
 
         if (settings.getModularizationOption() == ModularizationOption.WITH_LIBRARY_PROJECTS) {
-            generateBuildSrcSetup(settings);
+            builder.add(buildSrcSetup(settings));
             for(String conventionPluginName: SAMPLE_CONVENTION_PLUGINS) {
-                operations.add(conventionPluginScriptBuilder(conventionPluginName, settings));
+                builder.add(conventionPluginScriptBuilder(conventionPluginName, settings));
             }
         }
 
         for (String subproject : settings.getSubprojects()) {
-            operations.add(projectBuildScriptBuilder(subproject, settings, subproject + "/build"));
+            builder.add(projectBuildScriptBuilder(subproject, settings, subproject + "/build"));
         }
 
         TemplateFactory templateFactory = new TemplateFactory(settings, descriptor.getLanguage(), templateOperationFactory);
         descriptor.generateSources(settings, templateFactory);
 
-        return operations;
+        return builder;
     }
 
-    private void generateBuildSrcSetup(InitSettings settings) {
+    private BuildScriptBuilder buildSrcSetup(InitSettings settings) {
         BuildScriptBuilder buildSrcScriptBuilder = scriptBuilderFactory.script(settings.getDsl(), "buildSrc/build");
         buildSrcScriptBuilder.conventionPluginSupport("Support convention plugins written in " + settings.getDsl().toString() + ". Convention plugins are build scripts in 'src/main' that automatically become available as plugins in the main build.");
         if (getLanguage() == Language.KOTLIN) {
@@ -140,7 +140,7 @@ public class LanguageSpecificAdaptor implements ProjectGenerator {
             }
             buildSrcScriptBuilder.implementationDependency(null, kotlinPluginCoordinates);
         }
-        buildSrcScriptBuilder.create(settings.getTarget()).generate();
+        return buildSrcScriptBuilder;
     }
 
     private BuildScriptBuilder projectBuildScriptBuilder(String projectName, InitSettings settings, String buildFile) {
