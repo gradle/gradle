@@ -102,7 +102,7 @@ class MultiProjectJvmApplicationInitIntegrationTest extends AbstractIntegrationS
         succeeds "run"
 
         then:
-        outputContains("Hello, World!")
+        outputContains("Hello World!")
 
         where:
         [jvmLanguage, scriptDsl] << [[JAVA, GROOVY, KOTLIN, SCALA], ScriptDslFixture.SCRIPT_DSLS].combinations()
