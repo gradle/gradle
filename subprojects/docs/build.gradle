@@ -232,6 +232,24 @@ samples {
                 from(templates.javaUtilitiesLibraryAsSubproject)
             }
         }
+        jvmMultiProjectWithToolchains {
+            sampleDirectory = samplesRoot.dir("java/jvm-multi-project-with-toolchains")
+            displayName = "Using toolchains"
+            description = "Use toolchains to configure the JVM to use for compilation and testing."
+            category = "Java"
+
+            common {
+                from(templates.javaApplicationAsSubproject)
+                from(templates.javaJunit5TestForApplication)
+                from(templates.javaJunit5IntegrationTestForApplication)
+
+                from(templates.javaListLibraryAsSubproject)
+                from(templates.javaJunit5TestForListLibrary)
+                from(templates.javaJunit5IntegrationTestForUtilitiesLibrary)
+
+                from(templates.javaUtilitiesLibraryAsSubproject)
+            }
+        }
         buildingJavaModules {
             sampleDirectory = samplesRoot.dir("java/modules-multi-project")
             description = "Build Java Modules and a modular Java application."
