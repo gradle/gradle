@@ -229,9 +229,10 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         project.sourceSets.create('custom')
 
         then:
-        def compileTask = project.tasks.compileJava
-        compileTask.getSourceCompatibility() == Jvm.current().javaVersion.majorVersion
-        compileTask.getTargetCompatibility() == Jvm.current().javaVersion.majorVersion
+        project.tasks.compileJava.getSourceCompatibility() == Jvm.current().javaVersion.majorVersion
+        project.tasks.compileJava.getTargetCompatibility() == Jvm.current().javaVersion.majorVersion
+        project.tasks.compileCustomJava.getSourceCompatibility() == Jvm.current().javaVersion.majorVersion
+        project.tasks.compileCustomJava.getTargetCompatibility() == Jvm.current().javaVersion.majorVersion
     }
 
     void "wires toolchain for test if toolchain is configured"() {
