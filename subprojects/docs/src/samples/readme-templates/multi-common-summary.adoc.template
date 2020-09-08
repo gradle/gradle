@@ -1,0 +1,12 @@
+* Create a modular software project by combining multiple subprojects
+* Share build configuration logic between subprojects using convention plugins in `buildSrc`
+* Run similar named tasks in all subprojects
+* Run a task in a specific subproject
+* Build, bundle and run the application
+
+== Next steps
+
+When your project grows, you might be interested in more details about multi-project builds and dependency management:
+
+ - link:{userManualPath}/creating_multi_project_builds.html[Working with multi-project builds]
+ - link:{userManualPath}/core_dependency_management.html[Dependency management in Gradle]

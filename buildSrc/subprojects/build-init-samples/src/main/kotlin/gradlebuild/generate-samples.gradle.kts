@@ -23,6 +23,7 @@ import org.gradle.buildinit.plugins.internal.modifiers.Language.SCALA
 import org.gradle.buildinit.plugins.internal.modifiers.Language.KOTLIN
 import org.gradle.buildinit.plugins.internal.modifiers.Language.SWIFT
 import org.gradle.buildinit.plugins.internal.modifiers.Language.CPP
+import org.gradle.buildinit.plugins.internal.modifiers.ModularizationOption
 import org.gradle.docs.samples.Dsl
 
 plugins {
@@ -30,28 +31,37 @@ plugins {
 }
 
 val singleProjectSampleLanguages = listOf(JAVA, GROOVY, SCALA, KOTLIN, SWIFT, CPP)
+val multiProjectApplicationSampleLanguages = listOf(JAVA, GROOVY, SCALA, KOTLIN)
 
 singleProjectSampleLanguages.forEach { language ->
-    setupGeneratorTask(language, "library")
-    setupGeneratorTask(language, "application")
+    setupGeneratorTask(language, "library", ModularizationOption.SINGLE_PROJECT)
+    setupGeneratorTask(language, "application", ModularizationOption.SINGLE_PROJECT)
 }
 
-fun setupGeneratorTask(language: Language, kind: String) {
+multiProjectApplicationSampleLanguages.forEach { language ->
+    setupGeneratorTask(language, "application", ModularizationOption.WITH_LIBRARY_PROJECTS)
+}
+
+fun setupGeneratorTask(language: Language, kind: String, modularizationOption: ModularizationOption) {
     val buildInitType = "${language.name}-$kind"
     val capName = language.name.capitalize()
     val capKind = kind.capitalize().replace("y", "ie") + "s"
     val languageDisplayName = language.toString().replace("C++", "{cpp}")
-    val sampleName = "building$capName$capKind"
+    val sampleName = "building$capName$capKind" + if (modularizationOption.isMulti()) "MultiProject" else ""
+    val multiProjectSuffix = if (modularizationOption.isMulti()) " with Libraries" else ""
     val generateSampleTask = project.tasks.register<GenerateSample>("generateSample${sampleName.capitalize()}") {
         readmeTemplates.convention(layout.projectDirectory.dir("src/samples/readme-templates"))
-        target.convention(project.layout.buildDirectory.dir("generated-samples/$buildInitType"))
+        target.convention(layout.buildDirectory.dir("generated-samples/$buildInitType" + if (modularizationOption.isMulti()) "-with-libraries" else ""))
         type.set(buildInitType)
+        modularization.set(modularizationOption)
     }
     samples.publishedSamples.create(sampleName) {
         dsls.set(setOf(Dsl.GROOVY, Dsl.KOTLIN))
         sampleDirectory.set(generateSampleTask.flatMap { it.target })
-        displayName.set("Building $languageDisplayName $capKind")
-        description.set("Setup a $languageDisplayName library project step-by-step.")
+        displayName.set("Building $languageDisplayName $capKind$multiProjectSuffix")
+        description.set("Setup a $languageDisplayName $kind project$multiProjectSuffix step-by-step.")
         category.set(language.toString())
     }
 }
+
+fun ModularizationOption.isMulti() = this == ModularizationOption.WITH_LIBRARY_PROJECTS
