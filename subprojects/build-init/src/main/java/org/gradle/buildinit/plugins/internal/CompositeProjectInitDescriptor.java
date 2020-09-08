@@ -106,7 +106,11 @@ public class CompositeProjectInitDescriptor implements BuildInitializer {
             throw new UnsupportedOperationException();
         }
         for (BuildContentGenerator generator : generators) {
-            generator.generate(settings);
+            if (generator instanceof SimpleGlobalFilesBuildSettingsDescriptor) {
+                ((SimpleGlobalFilesBuildSettingsDescriptor) generator).generateWithoutComments(settings);
+            } else {
+                generator.generate(settings);
+            }
         }
         return ((LanguageSpecificAdaptor) descriptor).generateWithExternalComments(settings);
     }

@@ -27,8 +27,16 @@ public class SimpleGlobalFilesBuildSettingsDescriptor implements BuildContentGen
         this.documentationRegistry = documentationRegistry;
     }
 
+    public void generateWithoutComments(InitSettings settings) {
+        builder(settings).withExternalComments().create(settings.getTarget()).generate();
+    }
+
     @Override
     public void generate(InitSettings settings) {
+        builder(settings).create(settings.getTarget()).generate();
+    }
+
+    private BuildScriptBuilder builder(InitSettings settings) {
         BuildScriptBuilder builder = scriptBuilderFactory.script(settings.getDsl(), "settings");
         builder.fileComment(
                 "The settings file is used to specify which projects to include in your build.\n\n"
@@ -38,6 +46,6 @@ public class SimpleGlobalFilesBuildSettingsDescriptor implements BuildContentGen
         if (!settings.getSubprojects().isEmpty()) {
             builder.methodInvocation(null, "include", settings.getSubprojects().toArray());
         }
-        builder.create(settings.getTarget()).generate();
+        return builder;
     }
 }
