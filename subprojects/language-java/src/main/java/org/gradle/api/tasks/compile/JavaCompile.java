@@ -68,14 +68,15 @@ import org.gradle.jvm.internal.toolchain.JavaToolChainInternal;
 import org.gradle.jvm.platform.JavaPlatform;
 import org.gradle.jvm.platform.internal.DefaultJavaPlatform;
 import org.gradle.jvm.toolchain.JavaCompiler;
-import org.gradle.jvm.toolchain.JavaToolChain;
 import org.gradle.jvm.toolchain.JavaInstallationMetadata;
+import org.gradle.jvm.toolchain.JavaToolChain;
 import org.gradle.jvm.toolchain.internal.DefaultToolchainJavaCompiler;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.language.base.internal.compile.CompilerUtil;
 import org.gradle.work.Incremental;
 import org.gradle.work.InputChanges;
 
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.util.List;
@@ -350,12 +351,8 @@ public class JavaCompile extends AbstractCompile implements HasCompileOptions {
         JavaModuleDetector javaModuleDetector = getJavaModuleDetector();
         boolean isModule = JavaModuleDetector.isModuleSource(modularity.getInferModulePath().get(), sourcesRoots);
 
-        if (javaCompiler.isPresent()) {
-            compileOptions.setFork(true);
-            final JavaInstallationMetadata toolchain = javaCompiler.get().getMetadata();
-            compileOptions.getForkOptions().setJavaHome(toolchain.getInstallationPath().getAsFile());
-        }
-        final DefaultJavaCompileSpec spec = new DefaultJavaCompileSpecFactory(compileOptions).create();
+        final DefaultJavaCompileSpec spec = createBaseSpec();
+
         spec.setDestinationDir(getDestinationDirectory().getAsFile().get());
         spec.setWorkingDir(getProjectLayout().getProjectDirectory().getAsFile());
         spec.setTempDir(getTemporaryDir());
@@ -367,18 +364,43 @@ public class JavaCompile extends AbstractCompile implements HasCompileOptions {
         spec.setAnnotationProcessorPath(compileOptions.getAnnotationProcessorPath() == null ? ImmutableList.of() : ImmutableList.copyOf(compileOptions.getAnnotationProcessorPath()));
         configureCompatibilityOptions(spec);
         spec.setSourcesRoots(sourcesRoots);
-        if (((JavaToolChainInternal) getToolChain()).getJavaVersion().compareTo(JavaVersion.VERSION_1_8) < 0) {
+        if (!isToolchainCompatibleWithJava8()) {
             spec.getCompileOptions().setHeaderOutputDirectory(null);
         }
         return spec;
     }
 
-    private void configureCompatibilityOptions(DefaultJavaCompileSpec spec) {
+    private boolean isToolchainCompatibleWithJava8() {
         if (javaCompiler.isPresent()) {
+            return getToolchain().getLanguageVersion().canCompileOrRun(8);
+        }
+        return ((JavaToolChainInternal) getToolChain()).getJavaVersion().isJava8Compatible();
+    }
+
+    private DefaultJavaCompileSpec createBaseSpec() {
+        final ForkOptions forkOptions = compileOptions.getForkOptions();
+        if (javaCompiler.isPresent()) {
+            applyToolchain(forkOptions);
+        }
+        return new DefaultJavaCompileSpecFactory(compileOptions, getToolchain()).create();
+    }
+
+    private void applyToolchain(ForkOptions forkOptions) {
+        final JavaInstallationMetadata metadata = getToolchain();
+        forkOptions.setJavaHome(metadata.getInstallationPath().getAsFile());
+    }
+
+    @Nullable
+    private JavaInstallationMetadata getToolchain() {
+        return javaCompiler.map(JavaCompiler::getMetadata).getOrNull();
+    }
+
+    private void configureCompatibilityOptions(DefaultJavaCompileSpec spec) {
+        final JavaInstallationMetadata toolchain = getToolchain();
+        if (toolchain != null) {
             if (compileOptions.getRelease().isPresent()) {
                 spec.setRelease(compileOptions.getRelease().get());
             } else {
-                final JavaInstallationMetadata toolchain = javaCompiler.get().getMetadata();
                 if (super.getSourceCompatibility() != null) {
                     spec.setSourceCompatibility(getSourceCompatibility());
                 } else {

@@ -20,6 +20,7 @@ import org.gradle.api.internal.tasks.compile.daemon.AbstractDaemonCompiler;
 import org.gradle.api.tasks.compile.ForkOptions;
 import org.gradle.internal.classloader.VisitableURLClassLoader;
 import org.gradle.internal.classpath.ClassPath;
+import org.gradle.internal.jvm.Jvm;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.process.internal.JavaForkOptionsFactory;
@@ -58,6 +59,7 @@ public class DaemonJavaCompiler extends AbstractDaemonCompiler<JavaCompileSpec> 
         ForkOptions forkOptions = spec.getCompileOptions().getForkOptions();
         JavaForkOptions javaForkOptions = new BaseForkOptionsConverter(forkOptionsFactory).transform(forkOptions);
         javaForkOptions.setWorkingDir(daemonWorkingDir);
+        javaForkOptions.setExecutable(findSuitableExecutable(spec));
 
         ClassPath compilerClasspath = classPathRegistry.getClassPath("JAVA-COMPILER");
         FlatClassLoaderStructure classLoaderStructure = new FlatClassLoaderStructure(new VisitableURLClassLoader.Spec("compiler", compilerClasspath.getAsURLs()));
@@ -67,6 +69,16 @@ public class DaemonJavaCompiler extends AbstractDaemonCompiler<JavaCompileSpec> 
             .withClassLoaderStructure(classLoaderStructure)
             .keepAliveMode(KeepAliveMode.SESSION)
             .build();
+    }
+
+    private File findSuitableExecutable(JavaCompileSpec spec) {
+        final ForkOptions forkOptions = spec.getCompileOptions().getForkOptions();
+        if (forkOptions.getExecutable() != null) {
+            return new File(forkOptions.getExecutable());
+        } else if (forkOptions.getJavaHome() != null) {
+            return Jvm.forHome(forkOptions.getJavaHome()).getJavaExecutable();
+        }
+        return Jvm.current().getJavaExecutable();
     }
 
     public static class JavaCompilerParameters extends CompilerParameters {

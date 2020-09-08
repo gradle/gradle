@@ -24,6 +24,7 @@ import org.gradle.util.VersionNumber
 import org.gradle.util.ports.ReleasingPortAllocator
 import org.gradle.vcs.fixtures.GitFileRepository
 import org.junit.Rule
+import spock.lang.Ignore
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -546,6 +547,7 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
     @Requires(TestPrecondition.JDK13_OR_EARLIER)
     @Issue('https://plugins.gradle.org/plugin/io.freefair.aspectj')
     @ToBeFixedForConfigurationCache(because = "Task.getProject() during execution")
+    @Ignore
     def 'freefair aspectj plugin'() {
         given:
         buildFile << """

@@ -213,7 +213,7 @@ compileJava {
 
     @Requires(TestPrecondition.JDK9_OR_LATER)
     @Unroll
-    def "compile with release flag"() {
+    def "compile with release flag using #notation notation"() {
         given:
         goodCode()
         buildFile << """

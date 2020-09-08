@@ -23,6 +23,8 @@ import org.gradle.api.java.archives.Manifest
 import org.gradle.api.java.archives.internal.DefaultManifest
 import org.gradle.api.plugins.internal.DefaultJavaPluginConvention
 import org.gradle.api.tasks.SourceSetContainer
+import org.gradle.jvm.toolchain.JavaLanguageVersion
+import org.gradle.jvm.toolchain.internal.DefaultToolchainSpec
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
 import org.junit.Rule
@@ -37,11 +39,12 @@ class DefaultJavaPluginConventionTest extends Specification {
     public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     def project = TestUtil.create(tmpDir).rootProject()
     def sourceSets = Stub(SourceSetContainer)
+    def toolchainSpec = TestUtil.objectFactory().newInstance(DefaultToolchainSpec)
     private JavaPluginConvention convention
 
     def setup() {
         project.pluginManager.apply(ReportingBasePlugin)
-        convention = new DefaultJavaPluginConvention(project, sourceSets)
+        convention = new DefaultJavaPluginConvention(project, sourceSets, toolchainSpec)
     }
 
     def defaultValues() {
@@ -58,6 +61,16 @@ class DefaultJavaPluginConventionTest extends Specification {
         expect:
         convention.sourceCompatibility == currentJvmVersion
         convention.targetCompatibility == currentJvmVersion
+    }
+
+    def 'source ansd target compatibility default to toolchain spec when it is configured'() {
+        given:
+        toolchainSpec.languageVersion.set(JavaLanguageVersion.of(14))
+
+        expect:
+        convention.sourceCompatibility == JavaVersion.VERSION_14
+        convention.targetCompatibility == JavaVersion.VERSION_14
+
     }
 
     @Test

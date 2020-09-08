@@ -25,7 +25,6 @@ import org.gradle.internal.classloader.FilteringClassLoader;
 import org.gradle.internal.classloader.VisitableURLClassLoader;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
-import org.gradle.internal.jvm.JavaInfo;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.reflect.DirectInstantiator;
 
@@ -65,16 +64,16 @@ public class JdkTools {
 
     private Class<JavaCompiler.CompilationTask> incrementalCompileTaskClass;
 
-    JdkTools(JavaInfo javaInfo, List<File> compilerPlugins) {
+    JdkTools(Jvm jvm, List<File> compilerPlugins) {
         DefaultClassLoaderFactory defaultClassLoaderFactory = new DefaultClassLoaderFactory();
-        JavaVersion javaVersion = Jvm.current().getJavaVersion();
+        JavaVersion javaVersion = jvm.getJavaVersion();
         boolean java9Compatible = javaVersion.isJava9Compatible();
         ClassLoader filteringClassLoader = getSystemFilteringClassLoader(defaultClassLoaderFactory);
         if (!java9Compatible) {
-            File toolsJar = javaInfo.getToolsJar();
+            File toolsJar = jvm.getToolsJar();
             if (toolsJar == null) {
                 throw new IllegalStateException("Could not find tools.jar. Please check that "
-                    + javaInfo.getJavaHome().getAbsolutePath()
+                    + jvm.getJavaHome().getAbsolutePath()
                     + " contains a valid JDK installation.");
             }
             ClassPath defaultClassPath = DefaultClassPath.of(toolsJar).plus(compilerPlugins);

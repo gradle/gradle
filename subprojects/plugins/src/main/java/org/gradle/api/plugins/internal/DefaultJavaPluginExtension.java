@@ -35,7 +35,6 @@ import org.gradle.api.tasks.TaskContainer;
 import org.gradle.internal.component.external.model.ProjectDerivedCapability;
 import org.gradle.internal.jvm.DefaultModularitySpec;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
-import org.gradle.jvm.toolchain.internal.DefaultToolchainSpec;
 
 import java.util.regex.Pattern;
 
@@ -55,18 +54,19 @@ public class DefaultJavaPluginExtension implements JavaPluginExtension {
     private final Project project;
     private final ModularitySpec modularity;
     private final JvmPluginServices jvmPluginServices;
-    private JavaToolchainSpec toolchain;
+    private final JavaToolchainSpec toolchain;
 
     public DefaultJavaPluginExtension(JavaPluginConvention convention,
                                       Project project,
-                                      JvmPluginServices jvmPluginServices) {
+                                      JvmPluginServices jvmPluginServices,
+                                      JavaToolchainSpec toolchainSpec) {
         this.convention = convention;
         this.objectFactory = project.getObjects();
         this.components = project.getComponents();
         this.project = project;
         this.modularity = objectFactory.newInstance(DefaultModularitySpec.class);
         this.jvmPluginServices = jvmPluginServices;
-        this.toolchain = objectFactory.newInstance(DefaultToolchainSpec.class);
+        this.toolchain = toolchainSpec;
     }
 
     @Override

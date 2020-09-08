@@ -16,6 +16,7 @@
 package org.gradle.api.plugins
 
 import org.gradle.api.DefaultTask
+import org.gradle.api.InvalidUserDataException
 import org.gradle.api.JavaVersion
 import org.gradle.api.attributes.CompatibilityCheckDetails
 import org.gradle.api.attributes.MultipleCandidatesDetails
@@ -210,7 +211,7 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
     void "wires toolchain for sourceset if toolchain is configured"() {
         given:
         def someJdk = Jvm.current()
-        setupProjectWithToolchain(someJdk)
+        setupProjectWithToolchain(someJdk.javaVersion)
 
         when:
         project.sourceSets.create('custom')
@@ -221,10 +222,24 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         configuredToolchain.displayName.contains(someJdk.javaVersion.getMajorVersion())
     }
 
+    void "source and target compatibility are configured if toolchain is configured"() {
+        given:
+        setupProjectWithToolchain(Jvm.current().javaVersion)
+
+        when:
+        project.sourceSets.create('custom')
+
+        then:
+        project.tasks.compileJava.getSourceCompatibility() == Jvm.current().javaVersion.majorVersion
+        project.tasks.compileJava.getTargetCompatibility() == Jvm.current().javaVersion.majorVersion
+        project.tasks.compileCustomJava.getSourceCompatibility() == Jvm.current().javaVersion.majorVersion
+        project.tasks.compileCustomJava.getTargetCompatibility() == Jvm.current().javaVersion.majorVersion
+    }
+
     void "wires toolchain for test if toolchain is configured"() {
         given:
         def someJdk = Jvm.current()
-        setupProjectWithToolchain(someJdk)
+        setupProjectWithToolchain(someJdk.javaVersion)
 
         when:
         def testTask = project.tasks.named("test", Test).get()
@@ -237,7 +252,7 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
     void "wires toolchain for javadoc if toolchain is configured"() {
         given:
         def someJdk = Jvm.current()
-        setupProjectWithToolchain(someJdk)
+        setupProjectWithToolchain(someJdk.javaVersion)
 
         when:
         def javadocTask = project.tasks.named("javadoc", Javadoc).get()
@@ -247,23 +262,26 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         configuredJavadocTool.isPresent()
     }
 
-    void 'wires toolchain to java compile source compatibility if toolchain is configured'() {
+    void 'cannot set java compile source compatibility if toolchain is configured'() {
         given:
         def someJdk = Jvm.current()
-        setupProjectWithToolchain(someJdk)
+        setupProjectWithToolchain(someJdk.javaVersion)
         project.java.sourceCompatibility = JavaVersion.VERSION_1_1
 
         when:
         def javaCompileTask = project.tasks.named("compileJava", JavaCompile).get()
 
+        javaCompileTask.sourceCompatibility // accessing the property throws
+
+
         then:
-        javaCompileTask.javaCompiler.isPresent()
-        javaCompileTask.sourceCompatibility == javaCompileTask.javaCompiler.get().metadata.languageVersion.toString()
+        def error = thrown(InvalidUserDataException)
+        error.message == 'The new Java toolchain feature cannot be used at the project level in combination with source and/or target compatibility'
     }
 
-    private void setupProjectWithToolchain(Jvm someJdk) {
+    private void setupProjectWithToolchain(JavaVersion version) {
         project.pluginManager.apply(JavaPlugin)
-        project.java.toolchain.languageVersion = JavaLanguageVersion.of(someJdk.javaVersion.majorVersion)
+        project.java.toolchain.languageVersion = JavaLanguageVersion.of(version.majorVersion)
         // workaround for https://github.com/gradle/gradle/issues/13122
         ((DefaultProject) project).getServices().get(GradlePropertiesController.class).loadGradlePropertiesFrom(project.projectDir)
     }
