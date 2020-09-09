@@ -16,9 +16,11 @@
 
 package org.gradle.jvm.toolchain.install.internal
 
-
+import org.gradle.api.internal.provider.Providers
+import org.gradle.api.provider.ProviderFactory
 import org.gradle.cache.FileLock
 import org.gradle.jvm.toolchain.JavaToolchainSpec
+import org.gradle.util.TestUtil
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import spock.lang.Specification
@@ -33,12 +35,13 @@ class DefaultJavaToolchainProvisioningServiceTest extends Specification {
         def lock = Mock(FileLock)
         def binary = Mock(AdoptOpenJdkRemoteBinary)
         def spec = Mock(JavaToolchainSpec)
+        def providerFactory = createProviderFactory("true")
 
         given:
         binary.toFilename(spec) >> 'jdk-123.zip'
         def downloadLocation = Mock(File)
         cache.getDownloadLocation(_ as String) >> downloadLocation
-        def provisioningService = new DefaultJavaToolchainProvisioningService(binary, cache)
+        def provisioningService = new DefaultJavaToolchainProvisioningService(binary, cache, providerFactory)
 
         when:
         provisioningService.tryInstall(spec)
@@ -58,6 +61,7 @@ class DefaultJavaToolchainProvisioningServiceTest extends Specification {
         def lock = Mock(FileLock)
         def binary = Mock(AdoptOpenJdkRemoteBinary)
         def spec = Mock(JavaToolchainSpec)
+        def providerFactory = createProviderFactory("true")
 
         given:
         cache.acquireWriteLock(_, _) >> lock
@@ -65,13 +69,35 @@ class DefaultJavaToolchainProvisioningServiceTest extends Specification {
         def downloadLocation = temporaryFolder.newFile("jdk.zip")
         downloadLocation.createNewFile()
         cache.getDownloadLocation(_ as String) >> downloadLocation
-        def provisioningService = new DefaultJavaToolchainProvisioningService(binary, cache)
+        def provisioningService = new DefaultJavaToolchainProvisioningService(binary, cache, providerFactory)
 
         when:
         provisioningService.tryInstall(spec)
 
         then:
         0 * binary.download(_, _)
+    }
+
+    def "auto download can be disabled"() {
+        def cache = Mock(JdkCacheDirectory)
+        def binary = Mock(AdoptOpenJdkRemoteBinary)
+        def spec = Mock(JavaToolchainSpec)
+        def providerFactory = createProviderFactory("false")
+
+        given:
+        def provisioningService = new DefaultJavaToolchainProvisioningService(binary, cache, providerFactory)
+
+        when:
+        def result = provisioningService.tryInstall(spec)
+
+        then:
+        result.isEmpty()
+    }
+
+    ProviderFactory createProviderFactory(String propertyValue) {
+        def providerFactory = Mock(ProviderFactory)
+        providerFactory.gradleProperty("org.gradle.java.installations.auto-download") >> Providers.ofNullable(propertyValue)
+        providerFactory
     }
 
 }

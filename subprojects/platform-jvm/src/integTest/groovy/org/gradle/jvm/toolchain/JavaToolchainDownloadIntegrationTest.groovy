@@ -52,4 +52,36 @@ class JavaToolchainDownloadIntegrationTest extends AbstractIntegrationSpec {
             .assertThatCause(CoreMatchers.startsWith("Could not read 'https://api.adoptopenjdk.net/v3/binary/latest/99/ga/"))
     }
 
+    @ToBeFixedForConfigurationCache(because = "Fails the build with an additional error")
+    def 'toolchain selection that requires downloading fails when it is disabled'() {
+        buildFile << """
+            apply plugin: "java"
+
+            java {
+                toolchain {
+                    languageVersion = JavaLanguageVersion.of(14)
+                }
+            }
+        """
+
+        propertiesFile << """
+            org.gradle.java.installations.auto-download=false
+        """
+
+        file("src/main/java/Foo.java") << "public class Foo {}"
+
+        when:
+        failure = executer
+            .withArguments("-Porg.gradle.java.installations.auto-detect=false")
+            .withTasks("compileJava")
+            .requireOwnGradleUserHomeDir()
+            .runWithFailure()
+        result = failure
+
+        then:
+        failure.assertHasDescription("Execution failed for task ':compileJava'.")
+            .assertHasCause("Failed to calculate the value of task ':compileJava' property 'javaCompiler'")
+            .assertHasCause("No compatible toolchains found for request filter: {languageVersion=14}")
+    }
+
 }
