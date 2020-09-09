@@ -207,6 +207,7 @@ class ExceptionPlaceholder implements Serializable {
         }
 
         try {
+            System.out.println("Trying to reconstruct = " + type);
             // try to reconstruct the exception
             Class<?> clazz = classNameTransformer.transform(type);
             if (clazz != null && causes.size() <= 1) {
@@ -216,12 +217,7 @@ class ExceptionPlaceholder implements Serializable {
                     reconstructed.initCause(causes.get(0));
                 }
                 reconstructed.setStackTrace(stackTrace);
-                if (!suppressed.isEmpty()) {
-                    for (Throwable throwable : suppressed) {
-                        //noinspection Since15
-                        reconstructed.addSuppressed(throwable);
-                    }
-                }
+                registerSuppressedExceptions(suppressed, reconstructed);
                 return reconstructed;
             }
         } catch (UncheckedException ignore) {
@@ -248,10 +244,22 @@ class ExceptionPlaceholder implements Serializable {
             placeholder = new DefaultMultiCauseException(message, causes);
         }
         placeholder.setStackTrace(stackTrace);
+        System.out.println("Hello");
+        registerSuppressedExceptions(suppressed, placeholder);
         return placeholder;
     }
 
-    private List<? extends Throwable> extractCauses(Throwable throwable) {
+    private static void registerSuppressedExceptions(List<Throwable> suppressed, Throwable reconstructed) {
+        if (!suppressed.isEmpty()) {
+            for (Throwable throwable : suppressed) {
+                System.out.println("throwable = " + throwable.getMessage());
+                //noinspection Since15
+                reconstructed.addSuppressed(throwable);
+            }
+        }
+    }
+
+    private static List<? extends Throwable> extractCauses(Throwable throwable) {
         if (throwable instanceof MultiCauseException) {
             return ((MultiCauseException) throwable).getCauses();
         } else {
