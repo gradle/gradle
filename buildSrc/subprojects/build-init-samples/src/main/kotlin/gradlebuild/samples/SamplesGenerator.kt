@@ -21,41 +21,62 @@ import org.gradle.buildinit.plugins.internal.CompositeProjectInitDescriptor
 import org.gradle.buildinit.plugins.internal.InitSettings
 import org.gradle.buildinit.plugins.internal.ProjectLayoutSetupRegistry
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl
+import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework
 import org.gradle.buildinit.plugins.internal.modifiers.ComponentType
 import org.gradle.buildinit.plugins.internal.modifiers.Language
+import org.gradle.buildinit.plugins.internal.modifiers.ModularizationOption
 
 import java.util.stream.Collectors
 
 
 object SamplesGenerator {
 
-    fun generate(type: String, templateFolder: Directory, target: Directory, projectLayoutSetupRegistry: ProjectLayoutSetupRegistry) {
+    fun generate(type: String, modularization: ModularizationOption, templateFolder: Directory, target: Directory, projectLayoutSetupRegistry: ProjectLayoutSetupRegistry) {
         val descriptor = projectLayoutSetupRegistry[type] as CompositeProjectInitDescriptor
         val projectName = "demo"
         val packageName = if (descriptor.supportsPackage()) projectName else null
-        val testFramework = descriptor.defaultTestFramework
-        val groovyDslSettings = InitSettings(projectName, descriptor.componentType.defaultProjectName, BuildInitDsl.GROOVY, packageName, testFramework, target.dir("groovy"))
-        val kotlinDslSettings = InitSettings(projectName, descriptor.componentType.defaultProjectName, BuildInitDsl.KOTLIN, packageName, testFramework, target.dir("kotlin"))
-        val comments: List<String> = descriptor.generateWithExternalComments(groovyDslSettings)
+        val testFramework = if (modularization == ModularizationOption.WITH_LIBRARY_PROJECTS) BuildInitTestFramework.JUNIT_JUPITER else descriptor.defaultTestFramework
+        val groovyDslSettings = InitSettings(projectName, descriptor.componentType.defaultProjectNames, modularization, BuildInitDsl.GROOVY, packageName, testFramework, target.dir("groovy"))
+        val kotlinDslSettings = InitSettings(projectName, descriptor.componentType.defaultProjectNames, modularization, BuildInitDsl.KOTLIN, packageName, testFramework, target.dir("kotlin"))
 
-        descriptor.generateWithExternalComments(kotlinDslSettings)
         val specificContentId = if (descriptor.language === Language.CPP || descriptor.language === Language.SWIFT) {
             "native-" + descriptor.componentType.toString()
         } else {
             descriptor.componentType.toString()
         }
-        generateReadmeFragment(templateFolder, "common-body", groovyDslSettings, comments, descriptor, projectLayoutSetupRegistry)
-        generateReadmeFragment(templateFolder, "$specificContentId-body", groovyDslSettings, comments, descriptor, projectLayoutSetupRegistry)
-        if (descriptor.language === Language.JAVA && descriptor.componentType === ComponentType.LIBRARY) {
-            generateReadmeFragment(templateFolder, "$specificContentId-api-docs", groovyDslSettings, comments, descriptor, projectLayoutSetupRegistry)
+
+        val comments = descriptor.generateWithExternalComments(groovyDslSettings)
+        descriptor.generateWithExternalComments(kotlinDslSettings)
+
+        if (modularization == ModularizationOption.SINGLE_PROJECT) {
+            generateSingleProjectReadme(specificContentId, templateFolder, groovyDslSettings, comments, descriptor, projectLayoutSetupRegistry)
+        } else {
+            generateMultiProjectReadme(specificContentId, templateFolder, groovyDslSettings, comments, descriptor, projectLayoutSetupRegistry)
         }
-        generateReadmeFragment(templateFolder, "common-summary", groovyDslSettings, comments, descriptor, projectLayoutSetupRegistry)
-        generateReadmeFragment(templateFolder, "$specificContentId-summary", groovyDslSettings, comments, descriptor, projectLayoutSetupRegistry)
-        generateOutput(templateFolder, specificContentId, groovyDslSettings, descriptor, projectLayoutSetupRegistry)
     }
 
     private
-    fun generateReadmeFragment(templateFolder: Directory, templateFragment: String, settings: InitSettings, comments: List<String>, descriptor: CompositeProjectInitDescriptor, projectLayoutSetupRegistry: ProjectLayoutSetupRegistry) {
+    fun generateSingleProjectReadme(specificContentId: String, templateFolder: Directory, settings: InitSettings, comments: Map<String, List<String>>, descriptor: CompositeProjectInitDescriptor, projectLayoutSetupRegistry: ProjectLayoutSetupRegistry) {
+        generateReadmeFragment(templateFolder, "common-body", settings, comments, descriptor, projectLayoutSetupRegistry)
+        generateReadmeFragment(templateFolder, "$specificContentId-body", settings, comments, descriptor, projectLayoutSetupRegistry)
+        if (descriptor.language === Language.JAVA && descriptor.componentType === ComponentType.LIBRARY) {
+            generateReadmeFragment(templateFolder, "$specificContentId-api-docs", settings, comments, descriptor, projectLayoutSetupRegistry)
+        }
+        generateReadmeFragment(templateFolder, "common-summary", settings, comments, descriptor, projectLayoutSetupRegistry)
+        generateReadmeFragment(templateFolder, "$specificContentId-summary", settings, comments, descriptor, projectLayoutSetupRegistry)
+        generateOutput(templateFolder, specificContentId, settings, descriptor, projectLayoutSetupRegistry)
+    }
+
+    private
+    fun generateMultiProjectReadme(specificContentId: String, templateFolder: Directory, settings: InitSettings, comments: Map<String, List<String>>, descriptor: CompositeProjectInitDescriptor, projectLayoutSetupRegistry: ProjectLayoutSetupRegistry) {
+        generateReadmeFragment(templateFolder, "multi-common-body", settings, comments, descriptor, projectLayoutSetupRegistry)
+        generateReadmeFragment(templateFolder, "$specificContentId-body", settings, comments, descriptor, projectLayoutSetupRegistry)
+        generateReadmeFragment(templateFolder, "common-summary", settings, comments, descriptor, projectLayoutSetupRegistry)
+        generateReadmeFragment(templateFolder, "multi-common-summary", settings, comments, descriptor, projectLayoutSetupRegistry)
+    }
+
+    private
+    fun generateReadmeFragment(templateFolder: Directory, templateFragment: String, settings: InitSettings, comments: Map<String, List<String>>, descriptor: CompositeProjectInitDescriptor, projectLayoutSetupRegistry: ProjectLayoutSetupRegistry) {
 
         val languages = projectLayoutSetupRegistry.getLanguagesFor(descriptor.componentType)
         var exampleClass = if (descriptor.componentType === ComponentType.LIBRARY) "Library" else "App"
@@ -91,7 +112,7 @@ object SamplesGenerator {
         │           └── $exampleClass$testFileSuffix.${descriptor.language.extension}"""
             }
         }
-        val buildFileComments = comments.stream().map { c: String -> "<" + (comments.indexOf(c) + 1) + "> " + c }.collect(Collectors.joining("\n"))
+        val buildFileComments = comments.values.first().stream().map { c: String -> "<" + (comments.values.first().indexOf(c) + 1) + "> " + c }.collect(Collectors.joining("\n"))
         val testFrameworkChoice = if (descriptor.testFrameworks.size > 1) """
 Select test framework:
   1: JUnit 4
@@ -116,17 +137,23 @@ Enter selection (default: JUnit 4) [1..4]
                 ""
             }
         }
+        val languagePluginDocsLink = if (descriptor.language === Language.KOTLIN)
+            "link:https://kotlinlang.org/docs/reference/using-gradle.html[Kotlin Gradle plugin]"
+        else
+            "link:{userManualPath}/${descriptor.language.name}_plugin.html[${descriptor.language} Plugin]"
+
         projectLayoutSetupRegistry.templateOperationFactory.newTemplateOperation()
             .withTemplate(templateFolder.template("$templateFragment.adoc"))
             .withTarget(settings.target.file("../README.adoc").asFile)
             .withBinding("language", descriptor.language.toString())
             .withBinding("languageLC", descriptor.language.name.toLowerCase())
+            .withBinding("languageExtension", descriptor.language.extension)
             .withBinding("languageIndex", "" + (languages.indexOf(descriptor.language) + 1))
             .withBinding("componentType", descriptor.componentType.name.toLowerCase())
             .withBinding("componentTypeIndex", "" + (descriptor.componentType.ordinal + 1))
             .withBinding("packageNameChoice", packageNameChoice)
             .withBinding("furtherReading", furtherReading)
-            .withBinding("subprojectName", settings.subprojectName)
+            .withBinding("subprojectName", settings.subprojects.first())
             .withBinding("toolChain", toolChain)
             .withBinding("exampleClass", exampleClass)
             .withBinding("sourceFile", sourceFile)
@@ -137,31 +164,33 @@ Enter selection (default: JUnit 4) [1..4]
             .withBinding("buildFileComments", buildFileComments)
             .withBinding("testFrameworkChoice", testFrameworkChoice)
             .withBinding("tasksExecuted", "" + tasksExecuted(descriptor))
+            .withBinding("languagePluginDocsLink", "" + languagePluginDocsLink)
             .create().generate()
     }
 
     private
-    fun generateOutput(templateFolder: Directory, templateFragment: String, baseSettings: InitSettings, descriptor: CompositeProjectInitDescriptor, projectLayoutSetupRegistry: ProjectLayoutSetupRegistry) {
+    fun generateOutput(templateFolder: Directory, templateFragment: String, settings: InitSettings, descriptor: CompositeProjectInitDescriptor, projectLayoutSetupRegistry: ProjectLayoutSetupRegistry) {
+        val subprojectName = settings.subprojects.first()
         val languageName = descriptor.language.name.substring(0, 1).toUpperCase() + descriptor.language.name.substring(1)
         val extraCompileJava = if (descriptor.language != Language.JAVA) """
-     > Task :${baseSettings.subprojectName}:compileJava NO-SOURCE
+     > Task :$subprojectName:compileJava NO-SOURCE
 
      """.trimIndent() else ""
         val extraCompileTestJava = if (descriptor.language != Language.JAVA) """
-     > Task :${baseSettings.subprojectName}:compileTestJava NO-SOURCE
+     > Task :$subprojectName:compileTestJava NO-SOURCE
 
      """.trimIndent() else ""
         val nativeTestTaskPrefix = if (descriptor.language === Language.SWIFT) "xc" else "run"
         val classesUpToDate = if (descriptor.language === Language.KOTLIN) " UP-TO-DATE" else ""
         val inspectClassesForKotlinICTask = if (descriptor.language === Language.KOTLIN) """
-     > Task :${baseSettings.subprojectName}:inspectClassesForKotlinIC
+     > Task :$subprojectName:inspectClassesForKotlinIC
 
      """.trimIndent() else ""
         projectLayoutSetupRegistry.templateOperationFactory.newTemplateOperation()
             .withTemplate(templateFolder.template("$templateFragment-build.out"))
-            .withTarget(baseSettings.target.file("../tests/build.out").asFile)
+            .withTarget(settings.target.file("../tests/build.out").asFile)
             .withBinding("language", languageName)
-            .withBinding("subprojectName", baseSettings.subprojectName)
+            .withBinding("subprojectName", subprojectName)
             .withBinding("extraCompileJava", extraCompileJava)
             .withBinding("extraCompileTestJava", extraCompileTestJava)
             .withBinding("nativeTestTaskPrefix", nativeTestTaskPrefix)
@@ -171,7 +200,7 @@ Enter selection (default: JUnit 4) [1..4]
             .create().generate()
         projectLayoutSetupRegistry.templateOperationFactory.newTemplateOperation()
             .withTemplate(templateFolder.template("build.sample.conf"))
-            .withTarget(baseSettings.target.file("../tests/build.sample.conf").asFile)
+            .withTarget(settings.target.file("../tests/build.sample.conf").asFile)
             .create().generate()
     }
 
