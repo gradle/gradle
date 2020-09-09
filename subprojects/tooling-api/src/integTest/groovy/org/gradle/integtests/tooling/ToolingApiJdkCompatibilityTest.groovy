@@ -23,6 +23,9 @@ import spock.lang.Unroll
 
 class ToolingApiJdkCompatibilityTest extends AbstractIntegrationSpec {
     def setupProject(File compilerJavaHome) {
+
+        String gradleUserHome = executer.gradleUserHomeDir.absolutePath.replaceAll("\\\\\\\\", "/").replaceAll("\\\\", "/")
+        String compilerJavaHomePath = compilerJavaHome.absolutePath.replaceAll("\\\\\\\\", "/").replaceAll("\\\\", "/")
         buildFile << """
             plugins {
                 id 'java'
@@ -72,7 +75,7 @@ class ToolingApiJdkCompatibilityTest extends AbstractIntegrationSpec {
             }
         """
         settingsFile << "rootProject.name = 'client-runner'"
-        file('gradle.properties') << "org.gradle.java.installations.paths=$compilerJavaHome.absolutePath"
+        file('gradle.properties') << "org.gradle.java.installations.paths=${compilerJavaHomePath}"
         file("test-project/build.gradle") << "println 'Hello from ' + gradle.gradleVersion"
         file("test-project/settings.gradle") << "rootProject.name = 'target-project'"
         file("src/main/java/ToolingApiCompatibilityClient.java") << """
@@ -120,7 +123,7 @@ public class ToolingApiCompatibilityClient {
         GradleConnector connector = GradleConnector.newConnector();
         connector.useGradleVersion(gradleVersion);
 
-        ProjectConnection connection = connector.forProjectDirectory(projectLocation).useGradleUserHomeDir(new File("$executer.gradleUserHomeDir.absolutePath")).connect();
+        ProjectConnection connection = connector.forProjectDirectory(projectLocation).useGradleUserHomeDir(new File("$gradleUserHome")).connect();
 
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         ByteArrayOutputStream err = new ByteArrayOutputStream();
@@ -140,7 +143,7 @@ public class ToolingApiCompatibilityClient {
         GradleConnector connector = GradleConnector.newConnector();
         connector.useGradleVersion(gradleVersion);
 
-        ProjectConnection connection = connector.forProjectDirectory(projectLocation).useGradleUserHomeDir(new File("$executer.gradleUserHomeDir.absolutePath")).connect();
+        ProjectConnection connection = connector.forProjectDirectory(projectLocation).useGradleUserHomeDir(new File("$gradleUserHome")).connect();
 
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         ByteArrayOutputStream err = new ByteArrayOutputStream();
