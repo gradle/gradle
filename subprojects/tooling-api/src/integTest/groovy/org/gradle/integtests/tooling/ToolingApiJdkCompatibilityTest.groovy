@@ -23,8 +23,9 @@ import org.junit.Assume
 import spock.lang.Unroll
 
 class ToolingApiJdkCompatibilityTest extends AbstractIntegrationSpec {
-    def setupProject(File compilerJavaHome) {
-        String compilerJavaHomePath = TextUtil.normaliseFileSeparators(compilerJavaHome.absolutePath)
+    def setup() {
+        def compilerJdk = AvailableJavaHomes.getJdk(JavaVersion.VERSION_1_6)
+        String compilerJavaHomePath = TextUtil.normaliseFileSeparators(compilerJdk.javaHome.absolutePath)
         buildFile << """
             plugins {
                 id 'java'
@@ -60,13 +61,8 @@ class ToolingApiJdkCompatibilityTest extends AbstractIntegrationSpec {
             java {
                 disableAutoTargetJvm()
                 toolchain {
-                    languageVersion = JavaLanguageVersion.of(project.findProperty("compilerJdk"))
+                    languageVersion = JavaLanguageVersion.of(6)
                 }
-            }
-
-            compileJava {
-                sourceCompatibility = project.findProperty("compilerJdk")
-                targetCompatibility = project.findProperty("compilerJdk")
             }
 
             dependencies {
@@ -182,117 +178,80 @@ public class ToolingApiCompatibilityBuildAction implements BuildAction<String> {
     }
 
     @Unroll
-    def "tapi client with classes compiled for Java #compilerJdkVersion.majorVersion can launch task with Gradle #gradleVersion on Java #gradleDaemonJdkVersion.majorVersion from Java #clientJdkVersion.majorVersion"(JavaVersion compilerJdkVersion, JavaVersion clientJdkVersion, JavaVersion gradleDaemonJdkVersion, String gradleVersion) {
+    def "tapi client can launch task with Gradle #gradleVersion on Java #gradleDaemonJdkVersion.majorVersion from Java #clientJdkVersion.majorVersion"(JavaVersion clientJdkVersion, JavaVersion gradleDaemonJdkVersion, String gradleVersion) {
         setup:
-        def tapiClientCompilerJdk = AvailableJavaHomes.getJdk(compilerJdkVersion)
+        def tapiClientCompilerJdk = AvailableJavaHomes.getJdk(JavaVersion.VERSION_1_6)
         def gradleDaemonJdk = AvailableJavaHomes.getJdk(gradleDaemonJdkVersion)
         Assume.assumeTrue(tapiClientCompilerJdk && gradleDaemonJdk)
-        setupProject(tapiClientCompilerJdk.getJavaHome())
 
         when:
         succeeds("runTask",
                 "-PclientJdk=" + clientJdkVersion.majorVersion,
                 "-PtargetJdk=" + gradleDaemonJdk.javaHome.absolutePath,
-                "-PcompilerJdk=" + compilerJdkVersion.majorVersion,
                 "-PgradleVersion=" + gradleVersion)
 
         then:
         output.contains("BUILD SUCCESSFUL")
 
         where:
-        compilerJdkVersion      | clientJdkVersion      | gradleDaemonJdkVersion  | gradleVersion
-        JavaVersion.VERSION_1_6 | JavaVersion.current() | JavaVersion.VERSION_1_6 | "2.6"    // minimum supported version for Tooling API
-        JavaVersion.VERSION_1_6 | JavaVersion.current() | JavaVersion.VERSION_1_6 | "2.14.1" // last Gradle version that can run on Java 1.6
-        JavaVersion.VERSION_1_7 | JavaVersion.current() | JavaVersion.VERSION_1_6 | "2.6"
-        JavaVersion.VERSION_1_7 | JavaVersion.current() | JavaVersion.VERSION_1_6 | "2.14.1"
-        JavaVersion.VERSION_1_8 | JavaVersion.current() | JavaVersion.VERSION_1_6 | "2.6"
-        JavaVersion.VERSION_1_8 | JavaVersion.current() | JavaVersion.VERSION_1_6 | "2.14.1"
+        clientJdkVersion      | gradleDaemonJdkVersion  | gradleVersion
+        JavaVersion.current() | JavaVersion.VERSION_1_6 | "2.6"    // minimum supported version for Tooling API
+        JavaVersion.current() | JavaVersion.VERSION_1_6 | "2.14.1" // last Gradle version that can run on Java 1.6
 
-        JavaVersion.VERSION_1_6 | JavaVersion.current() | JavaVersion.VERSION_1_7 | "2.6"    // minimum supported version for Tooling API
-        JavaVersion.VERSION_1_6 | JavaVersion.current() | JavaVersion.VERSION_1_7 | "4.6"    // last version with reported regression
-        JavaVersion.VERSION_1_6 | JavaVersion.current() | JavaVersion.VERSION_1_7 | "4.10.3" // last Gradle version that can run on Java 1.7
-        JavaVersion.VERSION_1_7 | JavaVersion.current() | JavaVersion.VERSION_1_7 | "2.6"
-        JavaVersion.VERSION_1_7 | JavaVersion.current() | JavaVersion.VERSION_1_7 | "4.6"
-        JavaVersion.VERSION_1_7 | JavaVersion.current() | JavaVersion.VERSION_1_7 | "4.10.3"
-        JavaVersion.VERSION_1_8 | JavaVersion.current() | JavaVersion.VERSION_1_7 | "2.6"
-        JavaVersion.VERSION_1_8 | JavaVersion.current() | JavaVersion.VERSION_1_7 | "4.6"
-        JavaVersion.VERSION_1_8 | JavaVersion.current() | JavaVersion.VERSION_1_7 | "4.10.3"
+        JavaVersion.current() | JavaVersion.VERSION_1_7 | "2.6"    // minimum supported version for Tooling API
+        JavaVersion.current() | JavaVersion.VERSION_1_7 | "4.6"    // last version with reported regression
+        JavaVersion.current() | JavaVersion.VERSION_1_7 | "4.10.3" // last Gradle version that can run on Java 1.7
 
-        JavaVersion.VERSION_1_6 | JavaVersion.current() | JavaVersion.VERSION_1_8 | "2.6"    // minimum supported version for Tooling API
-        JavaVersion.VERSION_1_6 | JavaVersion.current() | JavaVersion.VERSION_1_8 | "4.6"    // last version with reported regression
-        JavaVersion.VERSION_1_6 | JavaVersion.current() | JavaVersion.VERSION_1_8 | "4.7"    // first version that had no reported regression
-        JavaVersion.VERSION_1_6 | JavaVersion.current() | JavaVersion.VERSION_1_8 | "5.0"
-        JavaVersion.VERSION_1_6 | JavaVersion.current() | JavaVersion.VERSION_1_8 | "5.6.4"
-        JavaVersion.VERSION_1_6 | JavaVersion.current() | JavaVersion.VERSION_1_8 | "6.0"
-        JavaVersion.VERSION_1_7 | JavaVersion.current() | JavaVersion.VERSION_1_8 | "2.6"
-        JavaVersion.VERSION_1_7 | JavaVersion.current() | JavaVersion.VERSION_1_8 | "4.6"
-        JavaVersion.VERSION_1_7 | JavaVersion.current() | JavaVersion.VERSION_1_8 | "4.7"
-        JavaVersion.VERSION_1_7 | JavaVersion.current() | JavaVersion.VERSION_1_8 | "5.0"
-        JavaVersion.VERSION_1_7 | JavaVersion.current() | JavaVersion.VERSION_1_8 | "5.6.4"
-        JavaVersion.VERSION_1_7 | JavaVersion.current() | JavaVersion.VERSION_1_8 | "6.0"
-        JavaVersion.VERSION_1_8 | JavaVersion.current() | JavaVersion.VERSION_1_8 | "2.6"
-        JavaVersion.VERSION_1_8 | JavaVersion.current() | JavaVersion.VERSION_1_8 | "4.6"
-        JavaVersion.VERSION_1_8 | JavaVersion.current() | JavaVersion.VERSION_1_8 | "4.7"
-        JavaVersion.VERSION_1_8 | JavaVersion.current() | JavaVersion.VERSION_1_8 | "5.0"
-        JavaVersion.VERSION_1_8 | JavaVersion.current() | JavaVersion.VERSION_1_8 | "5.6.4"
-        JavaVersion.VERSION_1_8 | JavaVersion.current() | JavaVersion.VERSION_1_8 | "6.0"
+        JavaVersion.current() | JavaVersion.VERSION_1_8 | "2.6"    // minimum supported version for Tooling API
+        JavaVersion.current() | JavaVersion.VERSION_1_8 | "4.6"    // last version with reported regression
+        JavaVersion.current() | JavaVersion.VERSION_1_8 | "4.7"    // first version that had no reported regression
+        JavaVersion.current() | JavaVersion.VERSION_1_8 | "4.10.3"
+        JavaVersion.current() | JavaVersion.VERSION_1_8 | "5.0"
+        JavaVersion.current() | JavaVersion.VERSION_1_8 | "5.6.4"
+        JavaVersion.current() | JavaVersion.VERSION_1_8 | "6.0"
     }
 
     @Unroll
-    def "tapi client with classes compiled for Java #compilerJdkVersion.majorVersion can run build action with Gradle #gradleVersion on Java #gradleDaemonJdkVersion.majorVersion from Java #clientJdkVersion.majorVersion"(JavaVersion compilerJdkVersion, JavaVersion clientJdkVersion, JavaVersion gradleDaemonJdkVersion, String gradleVersion) {
+    def "tapi client can run build action with Gradle #gradleVersion on Java #gradleDaemonJdkVersion.majorVersion from Java #clientJdkVersion.majorVersion"(JavaVersion clientJdkVersion, JavaVersion gradleDaemonJdkVersion, String gradleVersion) {
         setup:
-        def tapiClientCompilerJdk = AvailableJavaHomes.getJdk(compilerJdkVersion)
+        def tapiClientCompilerJdk = AvailableJavaHomes.getJdk(JavaVersion.VERSION_1_6)
         def gradleDaemonJdk = AvailableJavaHomes.getJdk(gradleDaemonJdkVersion)
         Assume.assumeTrue(tapiClientCompilerJdk && gradleDaemonJdk)
-        setupProject(tapiClientCompilerJdk.getJavaHome())
-
-        if (compilerJdkVersion == JavaVersion.VERSION_1_6 && clientJdkVersion in [JavaVersion.VERSION_1_8, JavaVersion.VERSION_11] && gradleDaemonJdkVersion == JavaVersion.VERSION_1_6 && gradleVersion == "2.14.1") {
+        if (gradleDaemonJdkVersion == JavaVersion.VERSION_1_6 && gradleVersion == "2.14.1") {
             executer.expectDeprecationWarning("Support for running Gradle using Java 6 has been deprecated and will be removed in Gradle 3.0")
         }
 
         when:
         succeeds("buildAction",
-            "-PclientJdk=" + clientJdkVersion.majorVersion,
-            "-PtargetJdk=" + gradleDaemonJdk.javaHome.absolutePath,
-            "-PcompilerJdk=" + compilerJdkVersion.majorVersion,
-            "-PgradleVersion=" + gradleVersion)
+                "-PclientJdk=" + clientJdkVersion.majorVersion,
+                "-PtargetJdk=" + gradleDaemonJdk.javaHome.absolutePath,
+                "-PgradleVersion=" + gradleVersion)
 
         then:
         output.contains("BUILD SUCCESSFUL")
 
         where:
-        compilerJdkVersion      | clientJdkVersion        | gradleDaemonJdkVersion  | gradleVersion
-        JavaVersion.VERSION_1_6 | JavaVersion.VERSION_1_8 | JavaVersion.VERSION_1_6 | "2.6"
-        JavaVersion.VERSION_1_6 | JavaVersion.VERSION_1_8 | JavaVersion.VERSION_1_6 | "2.14.1"
-        JavaVersion.VERSION_1_6 | JavaVersion.VERSION_1_8 | JavaVersion.VERSION_1_7 | "2.6"
-        JavaVersion.VERSION_1_6 | JavaVersion.VERSION_1_8 | JavaVersion.VERSION_1_7 | "4.10.3"
-        JavaVersion.VERSION_1_6 | JavaVersion.VERSION_1_8 | JavaVersion.VERSION_1_8 | "2.6"
-        JavaVersion.VERSION_1_6 | JavaVersion.VERSION_1_8 | JavaVersion.VERSION_1_8 | "6.6.1"
-        JavaVersion.VERSION_1_6 | JavaVersion.VERSION_1_8 | JavaVersion.VERSION_11  | "5.0"
-        JavaVersion.VERSION_1_6 | JavaVersion.VERSION_1_8 | JavaVersion.VERSION_11  | "6.6.1"
-        JavaVersion.VERSION_1_6 | JavaVersion.VERSION_11  | JavaVersion.VERSION_1_6 | "2.6"
-        JavaVersion.VERSION_1_6 | JavaVersion.VERSION_11  | JavaVersion.VERSION_1_6 | "2.14.1"
-        JavaVersion.VERSION_1_6 | JavaVersion.VERSION_11  | JavaVersion.VERSION_1_7 | "2.6"
-        JavaVersion.VERSION_1_6 | JavaVersion.VERSION_11  | JavaVersion.VERSION_1_7 | "4.10.3"
-        JavaVersion.VERSION_1_6 | JavaVersion.VERSION_11  | JavaVersion.VERSION_1_8 | "2.6"
-        JavaVersion.VERSION_1_6 | JavaVersion.VERSION_11  | JavaVersion.VERSION_1_8 | "6.6.1"
-        JavaVersion.VERSION_1_6 | JavaVersion.VERSION_11  | JavaVersion.VERSION_11  | "5.0"
-        JavaVersion.VERSION_1_6 | JavaVersion.VERSION_11  | JavaVersion.VERSION_11  | "6.6.1"
-        JavaVersion.VERSION_1_7 | JavaVersion.VERSION_1_8 | JavaVersion.VERSION_1_7 | "2.6"
-        JavaVersion.VERSION_1_7 | JavaVersion.VERSION_1_8 | JavaVersion.VERSION_1_7 | "4.10.3"
-        JavaVersion.VERSION_1_7 | JavaVersion.VERSION_1_8 | JavaVersion.VERSION_1_8 | "2.6"
-        JavaVersion.VERSION_1_7 | JavaVersion.VERSION_1_8 | JavaVersion.VERSION_1_8 | "6.6.1"
-        JavaVersion.VERSION_1_7 | JavaVersion.VERSION_11  | JavaVersion.VERSION_1_7 | "2.6"
-        JavaVersion.VERSION_1_7 | JavaVersion.VERSION_11  | JavaVersion.VERSION_1_7 | "4.10.3"
-        JavaVersion.VERSION_1_7 | JavaVersion.VERSION_11  | JavaVersion.VERSION_1_8 | "2.6"
-        JavaVersion.VERSION_1_7 | JavaVersion.VERSION_11  | JavaVersion.VERSION_1_8 | "6.6.1"
-        JavaVersion.VERSION_1_7 | JavaVersion.VERSION_11  | JavaVersion.VERSION_11  | "5.0"
-        JavaVersion.VERSION_1_7 | JavaVersion.VERSION_11  | JavaVersion.VERSION_11  | "6.6.1"
-        JavaVersion.VERSION_1_8 | JavaVersion.VERSION_1_8 | JavaVersion.VERSION_11  | "5.0"
-        JavaVersion.VERSION_1_8 | JavaVersion.VERSION_1_8 | JavaVersion.VERSION_11  | "6.6.1"
-        JavaVersion.VERSION_1_8 | JavaVersion.VERSION_11  | JavaVersion.VERSION_1_8 | "2.6"
-        JavaVersion.VERSION_1_8 | JavaVersion.VERSION_11  | JavaVersion.VERSION_1_8 | "6.6.1"
-        JavaVersion.VERSION_1_8 | JavaVersion.VERSION_11  | JavaVersion.VERSION_11  | "5.0"
-        JavaVersion.VERSION_1_8 | JavaVersion.VERSION_11  | JavaVersion.VERSION_11  | "6.6.1"
+        clientJdkVersion        | gradleDaemonJdkVersion  | gradleVersion
+        JavaVersion.VERSION_1_8 | JavaVersion.VERSION_1_6 | "2.6"
+        JavaVersion.VERSION_1_8 | JavaVersion.VERSION_1_6 | "2.14.1"
+
+        JavaVersion.VERSION_1_8 | JavaVersion.VERSION_1_7 | "4.6"
+        JavaVersion.VERSION_1_8 | JavaVersion.VERSION_1_7 | "4.10.3"
+
+        JavaVersion.VERSION_1_8 | JavaVersion.VERSION_1_8 | "2.6"
+        JavaVersion.VERSION_1_8 | JavaVersion.VERSION_1_8 | "6.6.1"
+
+        JavaVersion.VERSION_1_8 | JavaVersion.VERSION_11  | "5.0"
+        JavaVersion.VERSION_1_8 | JavaVersion.VERSION_11  | "6.6.1"
+
+        JavaVersion.VERSION_11  | JavaVersion.VERSION_1_6 | "2.6"
+        JavaVersion.VERSION_11  | JavaVersion.VERSION_1_6 | "2.14.1"
+
+        JavaVersion.VERSION_11  | JavaVersion.VERSION_1_7 | "2.6"
+        JavaVersion.VERSION_11  | JavaVersion.VERSION_1_7 | "4.6"
+        JavaVersion.VERSION_11  | JavaVersion.VERSION_1_7 | "4.10.3"
+
+        JavaVersion.VERSION_11  | JavaVersion.VERSION_1_8 | "2.6"
+        JavaVersion.VERSION_11  | JavaVersion.VERSION_1_8 | "6.6.1"
     }
 }
