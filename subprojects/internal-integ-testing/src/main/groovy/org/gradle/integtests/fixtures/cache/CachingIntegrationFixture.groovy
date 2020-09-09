@@ -32,4 +32,11 @@ trait CachingIntegrationFixture {
     TestFile getMetadataCacheDir() {
         return executer.gradleUserHomeDir.file(GLOBAL_CACHE_DIR_NAME).file(CacheLayout.ROOT.key)
     }
+
+    void markForArtifactCacheCleanup() {
+        executer.withArgument("-Dorg.gradle.internal.cleanup.external.max.age=-1")
+        def gcFile = executer.gradleUserHomeDir.file(GLOBAL_CACHE_DIR_NAME).file(CacheLayout.ROOT.key).file("gc.properties")
+        gcFile.createFile()
+        assert gcFile.setLastModified(0)
+    }
 }
