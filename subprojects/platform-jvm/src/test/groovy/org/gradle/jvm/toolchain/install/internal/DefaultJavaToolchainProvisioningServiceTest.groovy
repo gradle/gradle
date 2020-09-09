@@ -20,7 +20,6 @@ import org.gradle.api.internal.provider.Providers
 import org.gradle.api.provider.ProviderFactory
 import org.gradle.cache.FileLock
 import org.gradle.jvm.toolchain.JavaToolchainSpec
-import org.gradle.util.TestUtil
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import spock.lang.Specification
@@ -91,13 +90,13 @@ class DefaultJavaToolchainProvisioningServiceTest extends Specification {
         def result = provisioningService.tryInstall(spec)
 
         then:
-        result.isEmpty()
+        !result.isPresent()
     }
 
     ProviderFactory createProviderFactory(String propertyValue) {
-        def providerFactory = Mock(ProviderFactory)
-        providerFactory.gradleProperty("org.gradle.java.installations.auto-download") >> Providers.ofNullable(propertyValue)
-        providerFactory
+        return Mock(ProviderFactory) {
+            gradleProperty("org.gradle.java.installations.auto-download") >> Providers.ofNullable(propertyValue)
+        }
     }
 
 }

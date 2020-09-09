@@ -30,6 +30,8 @@ import java.util.Optional;
 
 public class DefaultJavaToolchainProvisioningService implements JavaToolchainProvisioningService {
 
+    public static final String AUTO_DOWNLOAD = "org.gradle.java.installations.auto-download";
+
     @Contextual
     private static class MissingToolchainException extends GradleException {
 
@@ -47,7 +49,7 @@ public class DefaultJavaToolchainProvisioningService implements JavaToolchainPro
     public DefaultJavaToolchainProvisioningService(AdoptOpenJdkRemoteBinary openJdkBinary, JdkCacheDirectory cacheDirProvider, ProviderFactory factory) {
         this.openJdkBinary = openJdkBinary;
         this.cacheDirProvider = cacheDirProvider;
-        this.downloadEnabled = factory.gradleProperty("org.gradle.java.installations.auto-download").forUseAtConfigurationTime().map(Boolean::parseBoolean);
+        this.downloadEnabled = factory.gradleProperty(AUTO_DOWNLOAD).forUseAtConfigurationTime().map(Boolean::parseBoolean);
     }
 
     public Optional<File> tryInstall(JavaToolchainSpec spec) {
