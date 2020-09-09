@@ -15,11 +15,14 @@
 [[toolchains]]
 = Toolchains for JVM projects
 
-Choosing the right Java version and Java Virtual machine for a project is an essential choice.
-This chapter is dedicated to explaining how to instruct Gradle which JVM/JDK to use for a particular build, how to set up your environment to make use of it and what other features can help you and your team to work using the same setup.
+By default, Gradle uses the same Java version for running Gradle itself and building JVM projects.
+
+This is not always desirable.
+Building projects with different Java versions on different developer machines and CI servers may lead to unexpected issues Additionally, you may want to build a project using a Java version that running Gradle is not compatible with.
 
 A Java Toolchain (from now on referred to simply as toolchain) is a set of tools, usually taken from a local JRE/JDK installation that are used to configure different aspects of a build.
-Compile tasks may use `javac` as their compiler, test and exec tasks may use the `java` command while `javadoc` will be used to generate documentation.
+Compile tasks may use `javac` as their compiler, test and exec tasks may use the `java` command while
+`javadoc` will be used to generate documentation.
 
 == Consuming Toolchains
 
@@ -32,15 +35,10 @@ include::sample[dir="samples/java/jvm-multi-project-with-toolchains/kotlin/",fil
 
 Executing the build (e.g. using `gradle check`) will now handle several things for you and others running your build
 
-
-1. Setup all compile and test tasks with the corresponding Java installation
+1. Setup all compile and test tasks to use the defined toolchain and not the JVM that Gradle is running with
 2. Gradle detects <<sec:auto_detection,locally installed JVMs>>
 3. Gradle chooses a JRE/JDK matching the requirements of the build (in this case a JVM supporting Java 14)
 4. If no matching JVM is found, it will automatically download a matching JDK from https://adoptopenjdk.net/[AdoptOpenJDK]
-
-By default, defining a toolchain automatically applies matching defaults for `sourceCompatibility`/`targetCompatibility`
-and the usage of the `-release` flag.
-You may still want to override those values if you need more control over the exact compatibility level.
 
 === Specify custom toolchains for individual tasks
 
@@ -48,24 +46,21 @@ In case you want to tweak which toolchain is used for a specific task, you can s
 For example, a `Test` task exposes a `JavaLauncher` property that defines which java executable to use to launch the tests.
 
 In the example below, we configure the default toolchain to use JDK8 for compiling and testing.
-Additionally, we introduce a new Test task that is going to run our unit tests but using a JRE or JDK 14 (whatever is available).
-Depending on the task, a JRE might be enough while for other tasks (e.g. compilation), a JDK is required.
+Additionally, we introduce a new Test task that is going to run our unit tests but using a JDK 14. Depending on the task, a JRE might be enough while for other tasks (e.g. compilation), a JDK is required.
 By default, Gradle prefers installed JDKs over JREs.
 
-====
-include::sample[dir="samples/java/jvm-multi-project-with-toolchains/groovy/",files="list/build.gradle[tags=customToolchain]"]
-include::sample[dir="samples/java/jvm-multi-project-with-toolchains/kotlin",files="list/build.gradle.kts[tags=customToolchain]"]
-====
+Toolchains tool providers can be obtained from the link:{javadocPath}/org/gradle/jvm/toolchain/JavaToolchainService.html[`javaToolchains`] extension.
 
-Toolchains tool providers can be obtained from the `javaToolchains` extension.
-(TODO: link) Three tools are available:
+Three tools are available:
 
 * A `JavaCompiler` which is the tool used by the `JavaCompile` task
 * A `JavaLauncher` which is the tool used by the `JavaExec` or `Test` tasks
 * A `JavadocTool` which is the tool used by the `Javadoc` task
 
-For plugin authors, custom tasks that require a tool should expose a `Property<>` with the desired tool as generic type.
-By injecting the `JavaToolchainService` in the plugin, it is also possible to wire a convention in those properties by obtaining the `JavaToolchainSpec` from the `java` extension on the project.
+====
+include::sample[dir="samples/java/jvm-multi-project-with-toolchains/groovy/",files="list/build.gradle[tags=customToolchain]"]
+include::sample[dir="samples/java/jvm-multi-project-with-toolchains/kotlin",files="list/build.gradle.kts[tags=customToolchain]"]
+====
 
 [[sec:auto_detection]]
 === Auto detection of installed toolchains
