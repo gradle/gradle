@@ -22,7 +22,7 @@ import org.junit.Assume
 import spock.lang.Unroll
 
 class ToolingApiJdkCompatibilityTest extends AbstractIntegrationSpec {
-    def setup() {
+    def setupProject(File compilerJavaHome) {
         buildFile << """
             plugins {
                 id 'java'
@@ -71,6 +71,10 @@ class ToolingApiJdkCompatibilityTest extends AbstractIntegrationSpec {
                 implementation 'org.gradle:gradle-tooling-api:${distribution.version.baseVersion.version}'
             }
         """
+        settingsFile << "rootProject.name = 'client-runner'"
+        file('gradle.properties') << "org.gradle.java.installations.paths=$compilerJavaHome.absolutePath"
+        file("test-project/build.gradle") << "println 'Hello from ' + gradle.gradleVersion"
+        file("test-project/settings.gradle") << "rootProject.name = 'target-project'"
         file("src/main/java/ToolingApiCompatibilityClient.java") << """
 import org.gradle.tooling.GradleConnector;
 import org.gradle.tooling.ProjectConnection;
@@ -158,7 +162,6 @@ public class ToolingApiCompatibilityClient {
    }
 }
 """
-
         file("src/main/java/ToolingApiCompatibilityBuildAction.java") << """
 import org.gradle.tooling.BuildAction;
 import org.gradle.tooling.BuildController;
@@ -171,11 +174,6 @@ public class ToolingApiCompatibilityBuildAction implements BuildAction<String> {
     }
 }
 """
-
-        settingsFile << "rootProject.name = 'client-runner'"
-
-        file("test-project/build.gradle") << "println 'Hello from ' + gradle.gradleVersion"
-        file("test-project/settings.gradle") << "rootProject.name = 'target-project'"
     }
 
     @Unroll
@@ -184,6 +182,7 @@ public class ToolingApiCompatibilityBuildAction implements BuildAction<String> {
         def tapiClientCompilerJdk = AvailableJavaHomes.getJdk(compilerJdkVersion)
         def gradleDaemonJdk = AvailableJavaHomes.getJdk(gradleDaemonJdkVersion)
         Assume.assumeTrue(tapiClientCompilerJdk && gradleDaemonJdk)
+        setupProject(tapiClientCompilerJdk.getJavaHome())
 
         when:
         succeeds("runTask",
@@ -240,6 +239,7 @@ public class ToolingApiCompatibilityBuildAction implements BuildAction<String> {
         def tapiClientCompilerJdk = AvailableJavaHomes.getJdk(compilerJdkVersion)
         def gradleDaemonJdk = AvailableJavaHomes.getJdk(gradleDaemonJdkVersion)
         Assume.assumeTrue(tapiClientCompilerJdk && AvailableJavaHomes.getJdk(clientJdkVersion) && gradleDaemonJdk)
+        setupProject(tapiClientCompilerJdk.getJavaHome())
 
         if (compilerJdkVersion == JavaVersion.VERSION_1_6 && clientJdkVersion in [JavaVersion.VERSION_1_8, JavaVersion.VERSION_11] && gradleDaemonJdkVersion == JavaVersion.VERSION_1_6 && gradleVersion == "2.14.1") {
             executer.expectDeprecationWarning("Support for running Gradle using Java 6 has been deprecated and will be removed in Gradle 3.0")
