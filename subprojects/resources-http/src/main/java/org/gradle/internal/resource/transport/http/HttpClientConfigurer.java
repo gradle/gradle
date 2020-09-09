@@ -63,6 +63,7 @@ import org.gradle.authentication.Authentication;
 import org.gradle.authentication.http.BasicAuthentication;
 import org.gradle.authentication.http.DigestAuthentication;
 import org.gradle.authentication.http.HttpHeaderAuthentication;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.authentication.AllSchemesAuthentication;
 import org.gradle.internal.authentication.AuthenticationInternal;
 import org.gradle.internal.jvm.Jvm;
@@ -74,7 +75,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.SSLContext;
 import java.net.ProxySelector;
+import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 
@@ -89,11 +93,30 @@ public class HttpClientConfigurer {
         String httpsProtocols = System.getProperty(HTTPS_PROTOCOLS);
         if (httpsProtocols != null) {
             SSL_PROTOCOLS = httpsProtocols.split(",");
-        } else if (JavaVersion.current().isJava7() || (JavaVersion.current().isJava8() && Jvm.current().isIbmJvm())) {
-            SSL_PROTOCOLS = new String[]{"TLSv1", "TLSv1.1", "TLSv1.2"};
+        } else if (JavaVersion.current().isJava8() && Jvm.current().isIbmJvm()) {
+            SSL_PROTOCOLS = new String[]{"TLSv1.2"};
+        } else if (jdkSupportsTLSProtocol("TLSv1.3")) {
+            SSL_PROTOCOLS = new String[]{"TLSv1.2", "TLSv1.3"};
         } else {
-            SSL_PROTOCOLS = null;
+            SSL_PROTOCOLS = new String[]{"TLSv1.2"};
         }
+    }
+
+    private static boolean jdkSupportsTLSProtocol(@SuppressWarnings("SameParameterValue") final String protocol) {
+        try {
+            for (String supportedProtocol : SSLContext.getDefault().getSupportedSSLParameters().getProtocols()) {
+                if (protocol.equals(supportedProtocol)) {
+                    return true;
+                }
+            }
+            return false;
+        } catch (NoSuchAlgorithmException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        }
+    }
+
+    static Collection<String> supportedTlsVersions() {
+        return Arrays.asList(SSL_PROTOCOLS);
     }
 
     private final HttpSettings httpSettings;
@@ -135,7 +158,7 @@ public class HttpClientConfigurer {
     }
 
     private void configureCredentials(HttpClientBuilder builder, CredentialsProvider credentialsProvider, Collection<Authentication> authentications) {
-        if(authentications.size() > 0) {
+        if (authentications.size() > 0) {
             useCredentials(credentialsProvider, authentications);
 
             // Use preemptive authorisation if no other authorisation has been established

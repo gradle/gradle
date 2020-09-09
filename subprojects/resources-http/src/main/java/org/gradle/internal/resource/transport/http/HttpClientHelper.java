@@ -28,6 +28,7 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
+import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.internal.UncheckedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,6 +36,7 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import javax.net.ssl.SSLHandshakeException;
 import java.io.Closeable;
 import java.io.IOException;
 import java.net.URI;
@@ -52,6 +54,7 @@ public class HttpClientHelper implements Closeable {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpClientHelper.class);
     private CloseableHttpClient client;
+    private final DocumentationRegistry documentationRegistry;
     private final HttpSettings settings;
 
     /**
@@ -63,7 +66,12 @@ public class HttpClientHelper implements Closeable {
      */
     private final ConcurrentLinkedQueue<HttpContext> sharedContext;
 
-    public HttpClientHelper(HttpSettings settings) {
+    /**
+     * Use {@link HttpClientHelper.Factory#create(HttpSettings)} to instantiate instances.
+     */
+    @VisibleForTesting
+    HttpClientHelper(DocumentationRegistry documentationRegistry, HttpSettings settings) {
+        this.documentationRegistry = documentationRegistry;
         this.settings = settings;
         if (!settings.getAuthenticationSettings().isEmpty()) {
             sharedContext = new ConcurrentLinkedQueue<HttpContext>();
@@ -98,7 +106,28 @@ public class HttpClientHelper implements Closeable {
         } catch (FailureFromRedirectLocation e) {
             throw new HttpRequestException(String.format("Could not %s '%s'.", method, stripUserCredentials(e.getLastRedirectLocation())), e.getCause());
         } catch (IOException e) {
-            throw new HttpRequestException(String.format("Could not %s '%s'.", method, stripUserCredentials(request.getURI())), e);
+            Exception cause = e;
+            if (e instanceof SSLHandshakeException) {
+                SSLHandshakeException sslException = (SSLHandshakeException) e;
+                final String confidence;
+                if (sslException.getMessage() != null && sslException.getMessage().contains("protocol_version")) {
+                    // If we're handling an SSLHandshakeException with the error of 'protocol_version' we know that the server doesn't support this protocol.
+                    confidence = "The server does not";
+                } else {
+                    // Sometimes the SSLHandshakeException doesn't include the 'protocol_version', even though this is the cause of the error.
+                    // Tell the user this but with less confidence.
+                    confidence = "The server may not";
+                }
+                String message = String.format(
+                    confidence + " support the client's requested TLS protocol versions: (%s). " +
+                        "You may need to configure the client to allow other protocols to be used. " +
+                        "See: %s",
+                    String.join(", ", HttpClientConfigurer.supportedTlsVersions()),
+                    documentationRegistry.getDocumentationFor("build_environment", "gradle_system_properties")
+                );
+                cause = new HttpRequestException(message, cause);
+            }
+            throw new HttpRequestException(String.format("Could not %s '%s'.", method, stripUserCredentials(request.getURI())), cause);
         }
     }
 
@@ -235,6 +264,22 @@ public class HttpClientHelper implements Closeable {
 
         private URI getLastRedirectLocation() {
             return lastRedirectLocation;
+        }
+    }
+
+    /**
+     * Factory for creating the {@link HttpClientHelper}
+     */
+    @FunctionalInterface
+    public interface Factory {
+        HttpClientHelper create(HttpSettings settings);
+
+        /**
+         * Method should only be used for DI registry and testing.
+         * For other uses of {@link HttpClientHelper}, inject an instance of {@link Factory} to create one.
+         */
+        static Factory createFactory(DocumentationRegistry documentationRegistry) {
+            return settings -> new HttpClientHelper(documentationRegistry, settings);
         }
     }
 
