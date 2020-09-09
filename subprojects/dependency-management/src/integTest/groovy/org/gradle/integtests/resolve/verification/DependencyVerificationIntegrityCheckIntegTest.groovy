@@ -773,51 +773,6 @@ This can indicate that a dependency has been compromised. Please carefully verif
         stop << [true, false]
     }
 
-    @ToBeFixedForConfigurationCache
-    @Unroll
-    def "deleting local artifacts fails verification (stop in between = #stop)"() {
-        createMetadataFile {
-            addChecksum("org:foo", "sha1", "16e066e005a935ac60f06216115436ab97c5da02")
-            addChecksum("org:foo", "sha1", "85a7b8a2eb6bb1c4cdbbfe5e6c8dc3757de22c02", "pom", "pom")
-        }
-        uncheckedModule("org", "foo")
-
-        given:
-        terseConsoleOutput(false)
-        javaLibrary()
-        buildFile << """
-            dependencies {
-                implementation "org:foo:1.0"
-            }
-        """
-
-        when:
-        succeeds ':compileJava'
-
-        then:
-        noExceptionThrown()
-        if (stop) {
-            executer.stop()
-        }
-
-        when:
-        def group = new File(CacheLayout.FILE_STORE.getPath(metadataCacheDir), "org")
-        def module = new File(group, "foo")
-        def version = new File(module, "1.0")
-        def originHash = new File(version, "85a7b8a2eb6bb1c4cdbbfe5e6c8dc3757de22c02")
-        def artifactFile = new File(originHash, "foo-1.0.pom")
-        artifactFile.delete()
-
-        fails ':compileJava'
-
-        then:
-        failure.assertHasCause """Dependency verification failed for configuration ':compileClasspath':
-  - On artifact foo-1.0.pom (org:foo:1.0) in repository 'maven': artifact file has been deleted from local cache so verification cannot be performed"""
-
-        where:
-        stop << [true, false]
-    }
-
     def "can skip verification of metadata"() {
         createMetadataFile {
             noMetadataVerification()
@@ -1045,4 +1000,60 @@ This can indicate that a dependency has been compromised. Please carefully verif
         where:
         terse << [true, false]
     }
+
+    @ToBeFixedForConfigurationCache
+    def "handles artifacts cleaned by the cache cleanup"() {
+
+        createMetadataFile {
+            addChecksum("org:foo", "sha1", "16e066e005a935ac60f06216115436ab97c5da02")
+            addChecksum("org:foo", "sha1", "85a7b8a2eb6bb1c4cdbbfe5e6c8dc3757de22c02", "pom", "pom")
+        }
+        def mod = mavenHttpRepo.module('org', 'foo', '1.0')
+            .publish()
+
+        given:
+        terseConsoleOutput(false)
+        javaLibrary()
+        buildFile << """
+            dependencies {
+                implementation "org:foo:1.0"
+            }
+        """
+
+        when:
+        mod.pom.expectGet()
+        mod.artifact.expectGet()
+
+        then:
+        succeeds ':compileJava'
+
+        when:
+        markForArtifactCacheCleanup()
+
+        then:
+        succeeds ':help'
+
+        when:
+        mod.pom.expectGet()
+        mod.artifact.expectGet()
+
+        then:
+        succeeds ':compileJava'
+
+        when:
+        markForArtifactCacheCleanup()
+        mod.publishWithChangedContent()
+        succeeds ':help'
+
+        then:
+        mod.pom.expectGet()
+        mod.artifact.expectGet()
+        fails ':compileJava'
+
+        failure.assertHasCause """Dependency verification failed for configuration ':compileClasspath':
+  - On artifact foo-1.0.jar (org:foo:1.0) in repository 'maven': expected a 'sha1' checksum of '16e066e005a935ac60f06216115436ab97c5da02' but was '062082db6574cbe2c0b473616611582ad9f14035'
+  - On artifact foo-1.0.pom (org:foo:1.0) in repository 'maven': expected a 'sha1' checksum of '85a7b8a2eb6bb1c4cdbbfe5e6c8dc3757de22c02' but was 'ebf499f1591331d7cb0acfd6726ee3a172f5f82c'
+"""
+    }
+
 }
