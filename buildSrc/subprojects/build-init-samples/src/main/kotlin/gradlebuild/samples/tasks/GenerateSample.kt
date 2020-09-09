@@ -28,6 +28,7 @@ import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
 import org.gradle.buildinit.plugins.internal.ProjectLayoutSetupRegistry
+import org.gradle.buildinit.plugins.internal.modifiers.ModularizationOption
 import javax.inject.Inject
 
 
@@ -35,6 +36,9 @@ abstract class GenerateSample : DefaultTask() {
 
     @get:Input
     abstract val type: Property<String>
+
+    @get:Input
+    abstract val modularization: Property<ModularizationOption>
 
     @get:InputDirectory
     @get:PathSensitive(PathSensitivity.NAME_ONLY)
@@ -50,6 +54,6 @@ abstract class GenerateSample : DefaultTask() {
     @TaskAction
     fun setupProjectLayout() {
         val projectLayoutSetupRegistry = projectLayoutRegistry
-        SamplesGenerator.generate(type.get(), readmeTemplates.get(), target.get(), projectLayoutSetupRegistry)
+        SamplesGenerator.generate(type.get(), modularization.get(), readmeTemplates.get(), target.get(), projectLayoutSetupRegistry)
     }
 }

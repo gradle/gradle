@@ -124,12 +124,6 @@ samples {
             target = "utilities"
         }
 
-        groovySpockTestForListLibrary {
-            target = "list"
-        }
-        groovySpockTestForApplication {
-            target = "application"
-        }
         javaJunit5TestForApplication {
             target = "application"
         }
@@ -159,7 +153,6 @@ samples {
             target = "application"
         }
 
-        groovyApplication
         groovyListLibrary
         groovyUtilitiesLibrary
         groovyListLibraryInMyLibrary {
@@ -169,18 +162,6 @@ samples {
         groovyUtilitiesLibraryInMyLibrary {
             sourceDirectory = groovyUtilitiesLibrary.sourceDirectory
             target = "my-library"
-        }
-        groovyApplicationInApplication {
-            sourceDirectory = groovyApplication.sourceDirectory
-            target = "application"
-        }
-        groovyListLibraryInList {
-            sourceDirectory = groovyListLibrary.sourceDirectory
-            target = "list"
-        }
-        groovyUtilitiesLibraryInUtilities {
-            sourceDirectory = groovyUtilitiesLibrary.sourceDirectory
-            target = "utilities"
         }
 
         projectInfoPlugin
@@ -251,32 +232,6 @@ samples {
                 from(templates.javaUtilitiesLibraryAsSubproject)
             }
         }
-        javaMultiProjectWithSpockTests {
-            sampleDirectory = samplesRoot.dir("java/multi-project-with-spock-tests")
-            displayName = "Testing with Spock"
-            description = "Test a Java application and library with link:https://github.com/spockframework/spock[Spock]."
-            category = "Java"
-            common {
-                from(templates.javaApplicationAsSubproject)
-                from(templates.javaListLibraryAsSubproject)
-                from(templates.javaUtilitiesLibraryAsSubproject)
-                from(templates.groovySpockTestForApplication)
-                from(templates.groovySpockTestForListLibrary)
-            }
-        }
-        javaMultiProjectWithJUnit5Tests {
-            sampleDirectory = samplesRoot.dir("java/multi-project-with-junit-5-tests")
-            displayName = "Testing with JUnit5"
-            description = "Test a Java application and library with link:https://junit.org/junit5[JUnit5]."
-            category = "Java"
-            common {
-                from(templates.javaApplicationAsSubproject)
-                from(templates.javaListLibraryAsSubproject)
-                from(templates.javaUtilitiesLibraryAsSubproject)
-                from(templates.javaJunit5TestForApplication)
-                from(templates.javaJunit5TestForListLibrary)
-            }
-        }
         buildingJavaModules {
             sampleDirectory = samplesRoot.dir("java/modules-multi-project")
             description = "Build Java Modules and a modular Java application."
@@ -342,20 +297,6 @@ samples {
                 from(templates.javaUtilitiesLibraryInMyLibrary)
             }
         }
-
-        groovyMultiProjectWithSpockTests {
-            sampleDirectory = samplesRoot.dir("groovy/multi-project-with-spock-tests")
-            displayName = "Testing with Spock"
-            description = "Test a Groovy application and library with link:https://github.com/spockframework/spock[Spock]."
-            category = "Groovy"
-            common {
-                from(templates.groovyApplicationInApplication)
-                from(templates.groovyListLibraryInList)
-                from(templates.groovyUtilitiesLibraryInUtilities)
-                from(templates.groovySpockTestForApplication)
-                from(templates.groovySpockTestForListLibrary)
-            }
-        }
         publishingGroovyLibraries {
             sampleDirectory = samplesRoot.dir("groovy/library-publishing")
             description = "Publish a Groovy library to a binary repository."
@@ -405,18 +346,6 @@ samples {
                 from(templates.javaApplicationAsSubproject)
                 from(templates.javaUtilitiesLibraryAsSubproject)
                 from(templates.javaListLibraryAsSubproject)
-            }
-        }
-
-        jvmMultiProjectBuild {
-            sampleDirectory = samplesRoot.dir("build-organization/jvm-multi-project-build")
-            displayName = "Structuring a multi-project build"
-            description = "Use dependencies and share build logic in a multi-project JVM build."
-            category = "Build organization"
-            common {
-                from(templates.javaApplicationAsSubproject)
-                from(templates.javaListLibraryAsSubproject)
-                from(templates.javaUtilitiesLibraryAsSubproject)
             }
         }
 
