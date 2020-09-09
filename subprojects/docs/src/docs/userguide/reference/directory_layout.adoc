@@ -55,7 +55,7 @@ It is roughly structured as follows:
 <3> Shared caches (e.g. for artifacts of dependencies)
 <4> Registry and logs of the <<gradle_daemon.adoc#gradle_daemon, Gradle Daemon>>
 <5> Global <<init_scripts.adoc#init_scripts, initialization scripts>>
-<6> JDKs downloaded by the <<toolchains.adoc#provisioning, toolchain support>>
+<6> JDKs downloaded by the <<toolchains.adoc#sec:provisioning, toolchain support>>
 <7> Distributions downloaded by the <<gradle_wrapper.adoc#gradle_wrapper,Gradle Wrapper>>
 <8> Global <<build_environment.adoc#sec:gradle_configuration_properties,Gradle configuration properties>>
 
