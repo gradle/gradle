@@ -45,16 +45,22 @@ import java.util.function.Supplier;
  */
 @CompileStatic
 public abstract class AbstractBuildExperimentRunner implements BuildExperimentRunner {
+    private static final String PROFILER_TARGET_DIR_KEY = "org.gradle.performance.flameGraphTargetDir";
+
     private final ProfilerFlameGraphGenerator flameGraphGenerator;
     private final BenchmarkResultCollector resultCollector;
     private final org.gradle.profiler.Profiler profiler;
 
+    public static String getProfilerTargetDir() {
+        return System.getProperty(PROFILER_TARGET_DIR_KEY);
+    }
+
     public AbstractBuildExperimentRunner(BenchmarkResultCollector resultCollector) {
-        String jfrProfileTargetDir = org.gradle.performance.fixture.Profiler.getJfrProfileTargetDir();
-        this.flameGraphGenerator = jfrProfileTargetDir == null
+        String profilerTargetDir = getProfilerTargetDir();
+        this.flameGraphGenerator = profilerTargetDir == null
             ? ProfilerFlameGraphGenerator.NOOP
-            : new JfrFlameGraphGenerator(new File(jfrProfileTargetDir));
-        this.profiler = createProfiler(jfrProfileTargetDir);
+            : new JfrFlameGraphGenerator(new File(profilerTargetDir));
+        this.profiler = createProfiler(profilerTargetDir);
         this.resultCollector = resultCollector;
     }
 
