@@ -275,7 +275,7 @@ These are then grouped into two sections:
 There cannot be any mismatched attributes as the variant would not be a candidate then.
 Similarly, the set of displayed variants also excludes the ones that have been disambiguated.
 
-In the example above, the fix does not lie in attribute matching but in <<dependency_capability_conflict.adoc#sec:selecting-between-candidates,capability matching>>, which are shown next to the variant name.
+In the example above, the fix does not lie in attribute matching but in <<dependency_capability_conflict.adoc#sub:selecting-between-candidates,capability matching>>, which are shown next to the variant name.
 Because these two variants effectively provide the same attributes and capabilities, they cannot be disambiguated.
 So in this case, the fix is most likely to provide different capabilities on the producer side (`project :lib`) and express a capability choice on the consumer side (`project :ui`).
 
