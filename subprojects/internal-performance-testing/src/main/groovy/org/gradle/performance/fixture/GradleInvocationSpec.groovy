@@ -26,7 +26,6 @@ import org.gradle.profiler.RunTasksAction
 @CompileStatic
 @EqualsAndHashCode
 class GradleInvocationSpec implements InvocationSpec {
-
     final GradleDistribution gradleDistribution
     final File workingDirectory
     final List<String> tasksToRun
@@ -37,6 +36,7 @@ class GradleInvocationSpec implements InvocationSpec {
     final boolean useDaemon
     final boolean useToolingApi
     final boolean expectFailure
+    final File buildLog
 
     GradleInvocationSpec(
         GradleDistribution gradleDistribution,
@@ -48,7 +48,8 @@ class GradleInvocationSpec implements InvocationSpec {
         boolean useDaemon,
         boolean useToolingApi,
         boolean expectFailure,
-        BuildAction buildAction
+        BuildAction buildAction,
+        File buildLog
     ) {
         this.gradleDistribution = gradleDistribution
         this.workingDirectory = workingDirectory
@@ -60,6 +61,7 @@ class GradleInvocationSpec implements InvocationSpec {
         this.useToolingApi = useToolingApi
         this.expectFailure = expectFailure
         this.buildAction = buildAction
+        this.buildLog = buildLog
     }
 
     boolean getBuildWillRunInDaemon() {
@@ -81,6 +83,7 @@ class GradleInvocationSpec implements InvocationSpec {
         builder.useDaemon = useDaemon
         builder.useToolingApi = useToolingApi
         builder.expectFailure = expectFailure
+        builder.buildLog(buildLog)
         builder
     }
 
@@ -107,7 +110,7 @@ class GradleInvocationSpec implements InvocationSpec {
         boolean useDaemon = true
         boolean useToolingApi
         boolean expectFailure
-
+        File buildLog
 
         InvocationBuilder distribution(GradleDistribution gradleDistribution) {
             this.gradleDistribution = gradleDistribution
@@ -143,6 +146,7 @@ class GradleInvocationSpec implements InvocationSpec {
             this.gradleOptions.addAll(Arrays.asList(gradleOpts))
             this
         }
+
         InvocationBuilder gradleOpts(Iterable<String> gradleOpts) {
             this.gradleOptions.addAll(gradleOpts)
             this
@@ -176,6 +180,11 @@ class GradleInvocationSpec implements InvocationSpec {
             gradleOpts("-D${ParallelismBuildOptions.MaxWorkersOption.GRADLE_PROPERTY}=1")
         }
 
+        InvocationBuilder buildLog(File buildLog) {
+            this.buildLog = buildLog
+            this
+        }
+
         @Override
         InvocationSpec.Builder expectFailure() {
             expectFailure = true
@@ -186,7 +195,18 @@ class GradleInvocationSpec implements InvocationSpec {
             assert gradleDistribution != null
             assert workingDirectory != null
 
-            return new GradleInvocationSpec(gradleDistribution, workingDirectory, tasksToRun.asImmutable(), args.asImmutable(), gradleOptions.asImmutable(), cleanTasks.asImmutable(), useDaemon, useToolingApi, expectFailure, buildAction ?: new RunTasksAction(tasksToRun))
+            return new GradleInvocationSpec(
+                gradleDistribution,
+                workingDirectory,
+                tasksToRun.asImmutable(),
+                args.asImmutable(),
+                gradleOptions.asImmutable(),
+                cleanTasks.asImmutable(),
+                useDaemon,
+                useToolingApi,
+                expectFailure,
+                buildAction ?: new RunTasksAction(tasksToRun),
+                buildLog)
         }
 
     }

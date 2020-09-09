@@ -1,5 +1,5 @@
-import gradlebuild.performance.tasks.PerformanceTest
 import gradlebuild.performance.generator.tasks.JvmProjectGeneratorTask
+import gradlebuild.performance.tasks.PerformanceTest
 
 /*
  * Copyright 2016 the original author or authors.
@@ -56,6 +56,16 @@ val generateTemplate = tasks.register<JvmProjectGeneratorTask>("javaProject") {
         "manyPlugins" to true,
         "manyScripts" to true
     )
+    doLast {
+        File(destDir, "build.gradle").appendText("""
+// gradle-profiler doesn't support expectFailure
+subprojects {
+    afterEvaluate {
+        test.ignoreFailures = true
+    }
+}
+""")
+    }
 }
 
 tasks.withType<PerformanceTest>().configureEach {

@@ -70,7 +70,7 @@ class AndroidSantaTrackerSmokeTest extends AbstractAndroidSantaTrackerSmokeTest 
         given:
         def checkoutDir = temporaryFolder.createDir("checkout")
         setupCopyOfSantaTracker(checkoutDir, 'Java', agpVersion)
-        def buildContext = new DefaultScenarioContext(UUID.randomUUID(), "nonAbiChange", checkoutDir).withBuild(Phase.MEASURE, 0)
+        def buildContext = new DefaultScenarioContext(UUID.randomUUID(), "nonAbiChange").withBuild(Phase.MEASURE, 0)
 
         and:
         def pathToClass = "com/google/android/apps/santatracker/map/BottomSheetBehavior"
