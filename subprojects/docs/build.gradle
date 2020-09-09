@@ -342,7 +342,6 @@ samples {
             description = "Reuse convention plugins in both main build and build logic build"
             category = "Build organization"
             common {
-                from(templates.gradlePluginInJavaInBuildSrc)
                 from(templates.javaApplicationAsSubproject)
                 from(templates.javaUtilitiesLibraryAsSubproject)
                 from(templates.javaListLibraryAsSubproject)

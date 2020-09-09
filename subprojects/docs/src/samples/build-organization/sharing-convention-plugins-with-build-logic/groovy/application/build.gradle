@@ -1,8 +1,8 @@
 // tag::plugins[]
 plugins {
     id 'myproject.java-conventions'
-    // com.example.plugin.greeting is implemented in the buildSrc project that has myproject.java-conventions applied as well
-    id 'com.example.plugin.greeting'
+    // myproject.greeting is implemented in the buildSrc project that has myproject.java-conventions applied as well
+    id 'myproject.greeting'
     id 'application'
 }
 // end::plugins[]
