@@ -238,7 +238,7 @@ public class ToolingApiCompatibilityBuildAction implements BuildAction<String> {
         setup:
         def tapiClientCompilerJdk = AvailableJavaHomes.getJdk(compilerJdkVersion)
         def gradleDaemonJdk = AvailableJavaHomes.getJdk(gradleDaemonJdkVersion)
-        Assume.assumeTrue(tapiClientCompilerJdk && AvailableJavaHomes.getJdk(clientJdkVersion) && gradleDaemonJdk)
+        Assume.assumeTrue(tapiClientCompilerJdk && gradleDaemonJdk)
         setupProject(tapiClientCompilerJdk.getJavaHome())
 
         if (compilerJdkVersion == JavaVersion.VERSION_1_6 && clientJdkVersion in [JavaVersion.VERSION_1_8, JavaVersion.VERSION_11] && gradleDaemonJdkVersion == JavaVersion.VERSION_1_6 && gradleVersion == "2.14.1") {
