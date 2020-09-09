@@ -32,6 +32,37 @@ For Java, Groovy, Kotlin and Android compatibility, see the [full compatibility 
 
 Gradle now supports running on [JDK15](https://openjdk.java.net/projects/jdk/15/). 
 
+## Toolchains for JVM projects
+
+By default, Gradle uses the same Java version for running Gradle itself and building JVM projects. 
+
+This is not always desirable. Building projects with different Java versions on different developer machines and CI servers may lead to unexpected issues Additionally, you may want to build a project using a Java version that running Gradle is not compatible with.
+
+Before this release, it required [several steps](userguide/building_java_projects.html#compiling_and_testing_java_67) to configure a different Java version for compilation, testing, generating Javadoc, and executing applications.  
+
+This release introduces a new concept called Java Toolchains to Gradle. A Java Toolchain (from now on referred to simply as toolchain) is a set of tools (e.g. a java compiler), taken from a local JRE/JDK installation and used to configure the build.
+
+But instead of manually specifying this for the various tasks, toolchains provide a holistic set of requirements that define what the build needs.
+
+Setting up a toolchain can be done through the `java` extensions:
+
+```
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(14)
+    }
+}
+```
+
+Compile tasks use `javac` as their compiler, test and exec tasks may use the `java` command while `javadoc` will be used to generate documentation. All taken from the selected toolchain above.
+
+TODO: GIF
+
+With this, Gradle handles setting up the build and environment accordingly. It will detect locally installed Java versions to run the build according to the specified requirements. By default, Gradle supports common installation locations on various operating systems as well as popular package managers like asdf-vm, jabba and SDKMAN!. If no matching Java version is available locally, it will download a matching JDK from AdoptOpenJDK.
+
+Learn more about this new feature in the [Java Toolchain documentation](userguide/jvm/toolchains.html) and the [toolchain sample](samples/sample_jvm_multi_project_with_toolchains.html).
+
+
 ## File system watching is ready for production use
 
 In an [incremental build](userguide/more_about_tasks.html#sec:up_to_date_checks), input and output files are checked to determine what needs to be rebuilt.
