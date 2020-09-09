@@ -26,9 +26,11 @@ import java.util.Set;
 public abstract class AutoDetectingInstallationSupplier implements InstallationSupplier {
 
     private final ProviderFactory factory;
+    private final Provider<Boolean> detectionEnabled;
 
     @Inject
     public AutoDetectingInstallationSupplier(ProviderFactory factory) {
+        this.detectionEnabled = factory.gradleProperty("org.gradle.java.installations.auto-detect").forUseAtConfigurationTime().map(Boolean::parseBoolean);
         this.factory = factory;
     }
 
@@ -47,8 +49,7 @@ public abstract class AutoDetectingInstallationSupplier implements InstallationS
     protected abstract Set<InstallationLocation> findCandidates();
 
     private boolean isAutoDetectionEnabled() {
-        final Provider<String> autoDetectionEnabled = factory.gradleProperty("org.gradle.java.installations.auto-detect").forUseAtConfigurationTime();
-        return Boolean.parseBoolean(autoDetectionEnabled.getOrElse("true"));
+        return detectionEnabled.getOrElse(true);
     }
 
 }
