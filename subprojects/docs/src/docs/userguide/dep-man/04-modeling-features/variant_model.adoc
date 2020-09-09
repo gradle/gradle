@@ -255,7 +255,7 @@ An ambiguous variant selection looks somewhat like the following:
                   - Provides org.gradle.dependency.bundling 'external'
                   - Provides org.gradle.jvm.version '11'
                   - Required org.gradle.libraryelements 'classes' and found value 'jar'.
-                  - Provides 'java-api'
+                  - Provides org.gradle.usage 'java-api'
           - Variant 'feature2ApiElements' capability org.test:test-capability:1.0:
               - Unmatched attribute:
                   - Found org.gradle.category 'library' but wasn't required.
