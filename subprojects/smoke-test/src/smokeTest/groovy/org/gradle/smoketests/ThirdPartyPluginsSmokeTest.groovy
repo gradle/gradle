@@ -24,7 +24,6 @@ import org.gradle.util.VersionNumber
 import org.gradle.util.ports.ReleasingPortAllocator
 import org.gradle.vcs.fixtures.GitFileRepository
 import org.junit.Rule
-import spock.lang.Ignore
 import spock.lang.Issue
 import spock.lang.Unroll
 
