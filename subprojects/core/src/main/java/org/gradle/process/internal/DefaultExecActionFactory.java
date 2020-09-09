@@ -123,7 +123,11 @@ public class DefaultExecActionFactory implements ExecFactory {
 
     @Override
     public JavaForkOptionsInternal newJavaForkOptions() {
-        return new DefaultJavaForkOptions(fileResolver, fileCollectionFactory, new DefaultJavaDebugOptions());
+        final DefaultJavaForkOptions forkOptions = new DefaultJavaForkOptions(fileResolver, fileCollectionFactory, new DefaultJavaDebugOptions());
+        if (forkOptions.getExecutable() == null) {
+            forkOptions.setExecutable(Jvm.current().getJavaExecutable());
+        }
+        return forkOptions;
     }
 
     @Override
