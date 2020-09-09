@@ -13,10 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.plugins.jvm;
+package org.gradle.api.plugins.jvm.internal;
 
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.Task;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.tasks.TaskProvider;
@@ -31,7 +30,6 @@ import java.util.function.Function;
  *
  * @since 6.7
  */
-@Incubating
 public interface JvmLanguageSourceDirectoryBuilder {
     /**
      * The description of the source directory set.
@@ -63,7 +61,6 @@ public interface JvmLanguageSourceDirectoryBuilder {
      * A builder for compilation tasks.
      * @since 6.7
      */
-    @Incubating
     interface CompileTaskDetails {
         /**
          * Returns the source directory of the compile task: this is the directory

@@ -13,9 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.plugins.jvm;
+package org.gradle.api.plugins.jvm.internal;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.tasks.SourceSet;
 
@@ -26,7 +25,6 @@ import org.gradle.api.tasks.SourceSet;
  *
  * @since 6.7
  */
-@Incubating
 public
 interface JvmEcosystemAttributesDetails {
     /**

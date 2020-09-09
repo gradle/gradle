@@ -13,10 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.plugins.jvm;
+package org.gradle.api.plugins.jvm.internal;
 
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.attributes.HasConfigurableAttributes;
@@ -31,7 +30,6 @@ import org.gradle.internal.HasInternalProtocol;
  *
  * @since 6.7
  */
-@Incubating
 @NonNullApi
 @HasInternalProtocol
 @SuppressWarnings("UnusedReturnValue")

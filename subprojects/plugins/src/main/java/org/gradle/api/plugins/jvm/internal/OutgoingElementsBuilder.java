@@ -13,10 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.plugins.jvm;
+package org.gradle.api.plugins.jvm.internal;
 
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.provider.Provider;
@@ -32,7 +31,6 @@ import java.util.List;
  * @since 6.7
  */
 @SuppressWarnings("UnusedReturnValue")
-@Incubating
 public interface OutgoingElementsBuilder {
     /**
      * Sets the description for this outgoing elements

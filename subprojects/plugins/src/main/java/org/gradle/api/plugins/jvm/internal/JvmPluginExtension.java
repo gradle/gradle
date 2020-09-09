@@ -13,15 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.plugins;
+package org.gradle.api.plugins.jvm.internal;
 
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.plugins.jvm.JvmVariantBuilder;
-import org.gradle.api.plugins.jvm.JvmEcosystemUtilities;
-import org.gradle.api.plugins.jvm.OutgoingElementsBuilder;
-import org.gradle.api.plugins.jvm.ResolvableConfigurationBuilder;
 
 /**
  * This extension is shared by JVM plugins (Java, Groovy, Scala, ...)
@@ -29,7 +24,6 @@ import org.gradle.api.plugins.jvm.ResolvableConfigurationBuilder;
  *
  * @since 6.7
  */
-@Incubating
 public interface JvmPluginExtension {
     /**
      * Provides access to the several handy JVM related utilities.
