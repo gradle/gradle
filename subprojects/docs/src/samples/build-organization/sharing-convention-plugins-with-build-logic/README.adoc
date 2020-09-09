@@ -15,9 +15,9 @@ Let's use the following project structure:
 │   └── build.gradle
 ├── build-conventions
 │   ├── java-conventions
-│   │   ├── src
-│   │   │   ...
-│   │   └── build.gradle
+│   ├── src
+│   │   ...
+│   ├── build.gradle
 │   └── settings.gradle
 ├── buildSrc
 │   ├── src
@@ -44,10 +44,9 @@ Let's use the following project structure:
 │   │   └── main
 │   └── build.gradle.kts
 ├── build-conventions
-│   ├── java-conventions
-│   │   ├── src
-│   │   │   ...
-│   │   └── build.gradle.kts
+│   ├── src
+│   │   ...
+│   ├── build.gradle.kts
 │   └── settings.gradle.kts
 ├── buildSrc
 │   ├── src
