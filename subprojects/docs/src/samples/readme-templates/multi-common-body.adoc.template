@@ -1,3 +1,5 @@
+NOTE: You can open this sample inside an IDE using the https://www.jetbrains.com/help/idea/gradle.html#gradle_import_project_start[IntelliJ native importer] or https://projects.eclipse.org/projects/tools.buildship[Eclipse Buildship].
+
 To prepare your software project for growth, you can organize a Gradle project into multiple subprojects to modularize the software you are building.
 In this guide, you'll learn how to structure such a project on the example of a ${language.raw} ${componentType.raw}.
 However, the general concepts apply for any software you are building with Gradle.
