@@ -1,0 +1,35 @@
+plugins {
+    id 'java-gradle-plugin'
+    id 'myproject.java-conventions'
+}
+
+repositories {
+    jcenter()
+}
+
+dependencies {
+    testImplementation 'junit:junit:4.13'
+}
+
+gradlePlugin {
+    plugins {
+        greeting {
+            id = 'com.example.plugin.greeting'
+            implementationClass = 'com.example.plugin.GreetingPlugin'
+        }
+    }
+}
+
+def functionalTest = sourceSets.create('functionalTest')
+gradlePlugin.testSourceSets(functionalTest)
+
+configurations[functionalTest.implementationConfigurationName].extendsFrom(configurations.testImplementation)
+
+def functionalTestTask = tasks.register('functionalTest', Test) {
+    testClassesDirs = functionalTest.output.classesDirs
+    classpath = configurations[functionalTest.runtimeClasspathConfigurationName] + functionalTest.output
+}
+
+tasks.check.configure {
+    dependsOn(functionalTestTask)
+}

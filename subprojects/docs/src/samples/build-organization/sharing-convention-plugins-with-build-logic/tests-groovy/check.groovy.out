@@ -1,0 +1,58 @@
+> Task :build-conventions:java-conventions:extractPluginRequests
+> Task :build-conventions:java-conventions:generatePluginAdapters
+> Task :build-conventions:java-conventions:compileJava
+> Task :build-conventions:java-conventions:compileGroovy NO-SOURCE
+> Task :build-conventions:java-conventions:compileGroovyPlugins
+> Task :build-conventions:java-conventions:pluginDescriptors
+> Task :build-conventions:java-conventions:processResources
+> Task :build-conventions:java-conventions:classes
+> Task :build-conventions:java-conventions:jar
+> Task :buildSrc:compileJava
+> Task :buildSrc:compileGroovy NO-SOURCE
+> Task :buildSrc:pluginDescriptors
+> Task :buildSrc:processResources
+> Task :buildSrc:classes
+> Task :buildSrc:jar
+> Task :buildSrc:assemble
+> Task :buildSrc:compileFunctionalTestJava
+> Task :buildSrc:compileFunctionalTestGroovy NO-SOURCE
+> Task :buildSrc:processFunctionalTestResources NO-SOURCE
+> Task :buildSrc:functionalTestClasses
+> Task :buildSrc:pluginUnderTestMetadata
+> Task :buildSrc:functionalTest
+> Task :buildSrc:compileTestJava
+> Task :buildSrc:compileTestGroovy NO-SOURCE
+> Task :buildSrc:processTestResources NO-SOURCE
+> Task :buildSrc:testClasses
+
+> Task :buildSrc:test
+
+> Task :buildSrc:validatePlugins
+> Task :buildSrc:check
+> Task :buildSrc:build
+> Task :list:compileJava
+> Task :utilities:compileJava
+> Task :application:compileJava
+> Task :application:processResources NO-SOURCE
+> Task :application:classes
+> Task :application:compileTestJava NO-SOURCE
+> Task :application:processTestResources NO-SOURCE
+> Task :application:testClasses UP-TO-DATE
+> Task :list:processResources NO-SOURCE
+> Task :list:classes
+> Task :list:jar
+> Task :utilities:processResources NO-SOURCE
+> Task :utilities:classes
+> Task :utilities:jar
+> Task :application:test NO-SOURCE
+> Task :application:check UP-TO-DATE
+> Task :list:compileTestJava NO-SOURCE
+> Task :list:processTestResources NO-SOURCE
+> Task :list:testClasses UP-TO-DATE
+> Task :list:test NO-SOURCE
+> Task :list:check UP-TO-DATE
+> Task :utilities:compileTestJava NO-SOURCE
+> Task :utilities:processTestResources NO-SOURCE
+> Task :utilities:testClasses UP-TO-DATE
+> Task :utilities:test NO-SOURCE
+> Task :utilities:check UP-TO-DATE
