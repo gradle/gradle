@@ -17,6 +17,7 @@
 package org.gradle.jvm.toolchain.install.internal;
 
 import net.rubygrapefruit.platform.SystemInfo;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.jvm.toolchain.JavaLanguageVersion;
@@ -32,14 +33,14 @@ public class AdoptOpenJdkRemoteBinary {
     private final SystemInfo systemInfo;
     private final OperatingSystem operatingSystem;
     private final AdoptOpenJdkDownloader downloader;
-    private final ProviderFactory providerFactory;
+    private final Provider<String> rootUrl;
 
     @Inject
     public AdoptOpenJdkRemoteBinary(SystemInfo systemInfo, OperatingSystem operatingSystem, AdoptOpenJdkDownloader downloader, ProviderFactory providerFactory) {
         this.systemInfo = systemInfo;
         this.operatingSystem = operatingSystem;
         this.downloader = downloader;
-        this.providerFactory = providerFactory;
+        rootUrl = providerFactory.gradleProperty("org.gradle.jvm.toolchain.install.adoptopenjdk.baseUri").forUseAtConfigurationTime();
     }
 
     public Optional<File> download(JavaToolchainSpec spec, File destinationFile) {
@@ -114,7 +115,7 @@ public class AdoptOpenJdkRemoteBinary {
     }
 
     private String getServerBaseUri() {
-        String baseUri = providerFactory.gradleProperty("org.gradle.jvm.toolchain.install.adoptopenjdk.baseUri").getOrElse("https://api.adoptopenjdk.net/");
+        String baseUri = rootUrl.getOrElse("https://api.adoptopenjdk.net/");
         if (!baseUri.endsWith("/")) {
             baseUri += "/";
         }
