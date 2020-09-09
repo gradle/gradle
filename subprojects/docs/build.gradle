@@ -9,7 +9,7 @@ plugins {
     // TODO: Apply asciidoctor in documentation plugin instead.
     id 'org.asciidoctor.convert'
     id 'gradlebuild.documentation'
-    id 'org.gradle.samples' version "0.16.8"
+    id 'gradlebuild.generate-samples'
 }
 
 repositories { handler ->
@@ -120,12 +120,6 @@ samples {
             target = "utilities"
         }
 
-        groovySpockTestForListLibrary {
-            target = "list"
-        }
-        groovySpockTestForApplication {
-            target = "application"
-        }
         javaJunit5TestForApplication {
             target = "application"
         }
@@ -155,7 +149,6 @@ samples {
             target = "application"
         }
 
-        groovyApplication
         groovyListLibrary
         groovyUtilitiesLibrary
         groovyListLibraryInMyLibrary {
@@ -165,18 +158,6 @@ samples {
         groovyUtilitiesLibraryInMyLibrary {
             sourceDirectory = groovyUtilitiesLibrary.sourceDirectory
             target = "my-library"
-        }
-        groovyApplicationInApplication {
-            sourceDirectory = groovyApplication.sourceDirectory
-            target = "application"
-        }
-        groovyListLibraryInList {
-            sourceDirectory = groovyListLibrary.sourceDirectory
-            target = "list"
-        }
-        groovyUtilitiesLibraryInUtilities {
-            sourceDirectory = groovyUtilitiesLibrary.sourceDirectory
-            target = "utilities"
         }
 
         projectInfoPlugin
@@ -212,72 +193,6 @@ samples {
     }
 
     publishedSamples {
-        // Libraries - Guide-style samples generated from 'build init'
-        buildingJavaLibraries {
-            sampleDirectory = samplesRoot.dir("generated/java-library")
-            description = "Setup a Java library project step-by-step."
-            category = "Java"
-        }
-        buildingGroovyLibraries {
-            sampleDirectory = samplesRoot.dir("generated/groovy-library")
-            description = "Setup a Groovy library project step-by-step."
-            category = "Groovy"
-        }
-        buildingKotlinLibraries {
-            sampleDirectory = samplesRoot.dir("generated/kotlin-library")
-            description = "Setup a Kotlin library project step-by-step."
-            category = "Kotlin"
-        }
-        buildingScalaLibraries {
-            sampleDirectory = samplesRoot.dir("generated/scala-library")
-            description = "Setup a Scala library project step-by-step."
-            category = "Scala"
-        }
-        buildingCppLibraries {
-            displayName = "Building {cpp} Libraries"
-            sampleDirectory = samplesRoot.dir("generated/cpp-library")
-            description = "Setup a C++ library project step-by-step."
-            category = "C++"
-        }
-        buildingSwiftLibraries {
-            sampleDirectory = samplesRoot.dir("generated/swift-library")
-            description = "Setup a Swift library project step-by-step."
-            category = "Swift"
-        }
-
-        // Applications - Guide-style samples generated from 'build init'
-        buildingJavaApplications {
-            sampleDirectory = samplesRoot.dir("generated/java-application")
-            description = "Setup a Java application project step-by-step."
-            category = "Java"
-        }
-        buildingGroovyApplications {
-            sampleDirectory = samplesRoot.dir("generated/groovy-application")
-            description = "Setup a Groovy application project step-by-step."
-            category = "Groovy"
-        }
-        buildingKotlinApplications {
-            sampleDirectory = samplesRoot.dir("generated/kotlin-application")
-            description = "Setup a Kotlin application project step-by-step."
-            category = "Kotlin"
-        }
-        buildingScalaApplications {
-            sampleDirectory = samplesRoot.dir("generated/scala-application")
-            description = "Setup a Scala library project step-by-step."
-            category = "Scala"
-        }
-        buildingCppApplications {
-            displayName = "Building {cpp} Applications"
-            sampleDirectory = samplesRoot.dir("generated/cpp-application")
-            description = "Setup a C++ application project step-by-step."
-            category = "C++"
-        }
-        buildingSwiftApplications {
-            sampleDirectory = samplesRoot.dir("generated/swift-application")
-            description = "Setup a Swift application project step-by-step."
-            category = "Swift"
-        }
-
         buildingAndroidApps {
             sampleDirectory = samplesRoot.dir("android-application")
             description = "Build a simple Android app."
@@ -311,32 +226,6 @@ samples {
                 from(templates.javaJunit5IntegrationTestForUtilitiesLibrary)
 
                 from(templates.javaUtilitiesLibraryAsSubproject)
-            }
-        }
-        javaMultiProjectWithSpockTests {
-            sampleDirectory = samplesRoot.dir("java/multi-project-with-spock-tests")
-            displayName = "Testing with Spock"
-            description = "Test a Java application and library with link:https://github.com/spockframework/spock[Spock]."
-            category = "Java"
-            common {
-                from(templates.javaApplicationAsSubproject)
-                from(templates.javaListLibraryAsSubproject)
-                from(templates.javaUtilitiesLibraryAsSubproject)
-                from(templates.groovySpockTestForApplication)
-                from(templates.groovySpockTestForListLibrary)
-            }
-        }
-        javaMultiProjectWithJUnit5Tests {
-            sampleDirectory = samplesRoot.dir("java/multi-project-with-junit-5-tests")
-            displayName = "Testing with JUnit5"
-            description = "Test a Java application and library with link:https://junit.org/junit5[JUnit5]."
-            category = "Java"
-            common {
-                from(templates.javaApplicationAsSubproject)
-                from(templates.javaListLibraryAsSubproject)
-                from(templates.javaUtilitiesLibraryAsSubproject)
-                from(templates.javaJunit5TestForApplication)
-                from(templates.javaJunit5TestForListLibrary)
             }
         }
         buildingJavaModules {
@@ -404,20 +293,6 @@ samples {
                 from(templates.javaUtilitiesLibraryInMyLibrary)
             }
         }
-
-        groovyMultiProjectWithSpockTests {
-            sampleDirectory = samplesRoot.dir("groovy/multi-project-with-spock-tests")
-            displayName = "Testing with Spock"
-            description = "Test a Groovy application and library with link:https://github.com/spockframework/spock[Spock]."
-            category = "Groovy"
-            common {
-                from(templates.groovyApplicationInApplication)
-                from(templates.groovyListLibraryInList)
-                from(templates.groovyUtilitiesLibraryInUtilities)
-                from(templates.groovySpockTestForApplication)
-                from(templates.groovySpockTestForListLibrary)
-            }
-        }
         publishingGroovyLibraries {
             sampleDirectory = samplesRoot.dir("groovy/library-publishing")
             description = "Publish a Groovy library to a binary repository."
@@ -454,18 +329,6 @@ samples {
             category = "Build organization"
             common {
                 from(templates.precompiledScriptPluginUtils)
-            }
-        }
-
-        jvmMultiProjectBuild {
-            sampleDirectory = samplesRoot.dir("build-organization/jvm-multi-project-build")
-            displayName = "Structuring a multi-project build"
-            description = "Use dependencies and share build logic in a multi-project JVM build."
-            category = "Build organization"
-            common {
-                from(templates.javaApplicationAsSubproject)
-                from(templates.javaListLibraryAsSubproject)
-                from(templates.javaUtilitiesLibraryAsSubproject)
             }
         }
 

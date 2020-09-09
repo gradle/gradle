@@ -16,18 +16,20 @@
 package org.gradle.api.plugins.jvm.internal;
 
 import org.gradle.api.Action;
-import org.gradle.api.NonNullApi;
 import org.gradle.api.artifacts.Configuration;
 
 /**
- * Provides helpers to model JVM components, cross-project JVM publications
- * or resolvable configurations.
+ * This extension is shared by JVM plugins (Java, Groovy, Scala, ...)
+ * and can be used to configure JVM specific behavior.
  *
  * @since 6.7
  */
-@NonNullApi
-@SuppressWarnings("UnusedReturnValue")
-public interface JvmModelingServices {
+public interface JvmPluginExtension {
+    /**
+     * Provides access to the several handy JVM related utilities.
+     */
+    JvmEcosystemUtilities getUtilities();
+
     /**
      * Creates an outgoing configuration and configures it with reasonable defaults.
      * @param name the name of the outgoing configurtion
@@ -37,7 +39,9 @@ public interface JvmModelingServices {
     Configuration createOutgoingElements(String name, Action<? super OutgoingElementsBuilder> configuration);
 
     /**
-     * Creates an incoming configuration for resolution of a dependency graph.
+     * Creates a configuration which can be used to resolve dependencies for the JVM
+     * ecosystem. It may also be used to create configuration for declaring dependencies,
+     * also known as "bucket" configurations (see ResolvableConfigurationBuilder.usingDependencyBucket).
      *
      * The action is used to configure the created <i>resolvable</i> configuration.
      *
@@ -48,7 +52,7 @@ public interface JvmModelingServices {
     Configuration createResolvableConfiguration(String name, Action<? super ResolvableConfigurationBuilder> action);
 
     /**
-     * Creates a generic "java component", which implies creation of an underlying source set,
+     * Creates a generic "JVM variant", which implies creation of an underlying source set,
      * compile tasks, jar tasks, possibly javadocs and sources jars and allows configuring if such
      * a component has to be published externally.
      *

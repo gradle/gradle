@@ -1,0 +1,3 @@
+* Run the build and view the test report
+* Execute a ${language.raw} application using the `run` task from the `application` plugin
+* Bundle the application in an archive

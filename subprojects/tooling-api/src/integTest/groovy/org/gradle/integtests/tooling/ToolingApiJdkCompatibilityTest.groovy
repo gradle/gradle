@@ -19,10 +19,8 @@ import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.junit.Assume
-import spock.lang.Ignore
 import spock.lang.Unroll
 
-@Ignore
 class ToolingApiJdkCompatibilityTest extends AbstractIntegrationSpec {
     def setup() {
         buildFile << """
@@ -51,6 +49,10 @@ class ToolingApiJdkCompatibilityTest extends AbstractIntegrationSpec {
                 toolchain {
                     languageVersion = JavaLanguageVersion.of(8)
                 }
+            }
+
+            compileJava {
+                sourceCompatibility = project.findProperty("compilerJdk")
                 targetCompatibility = project.findProperty("compilerJdk")
             }
 
@@ -87,6 +89,9 @@ public class ToolingApiCompatibilityClient {
                     System.exit(0);
                 }
             }
+        } catch(Throwable t) {
+            System.err.println("Caught throwable: " + t.getMessage());
+            t.printStackTrace();
         } finally {
             System.err.println("something went wrong");
             System.exit(1);
@@ -131,7 +136,7 @@ public class ToolingApiCompatibilityClient {
         succeeds("runTask",
                 "-PclientJdk=" + clientJdkVersion.majorVersion,
                 "-PtargetJdk=" + gradleDaemonJdk.javaHome.absolutePath,
-                "-PcompilerJdk=" + compilerJdkVersion.name(),
+                "-PcompilerJdk=" + compilerJdkVersion.majorVersion,
                 "-PgradleVersion=" + gradleVersion)
 
         then:
