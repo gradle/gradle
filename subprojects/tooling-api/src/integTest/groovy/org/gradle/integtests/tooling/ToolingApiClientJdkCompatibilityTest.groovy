@@ -22,7 +22,7 @@ import org.gradle.util.TextUtil
 import org.junit.Assume
 import spock.lang.Unroll
 
-class ToolingApiJdkCompatibilityTest extends AbstractIntegrationSpec {
+class ToolingApiClientJdkCompatibilityTest extends AbstractIntegrationSpec {
     def setup() {
         def compilerJdk = AvailableJavaHomes.getJdk(JavaVersion.VERSION_1_6)
         String compilerJavaHomePath = TextUtil.normaliseFileSeparators(compilerJdk.javaHome.absolutePath)
@@ -177,8 +177,12 @@ public class ToolingApiCompatibilityBuildAction implements BuildAction<String> {
 """
     }
 
+    JavaVersion getClientJdkVersion() {
+        return JavaVersion.current()
+    }
+
     @Unroll
-    def "tapi client can launch task with Gradle #gradleVersion on Java #gradleDaemonJdkVersion.majorVersion from Java #clientJdkVersion.majorVersion"(JavaVersion clientJdkVersion, JavaVersion gradleDaemonJdkVersion, String gradleVersion) {
+    def "tapi client can launch task with Gradle #gradleVersion on Java #gradleDaemonJdkVersion.majorVersion"(JavaVersion gradleDaemonJdkVersion, String gradleVersion) {
         setup:
         def tapiClientCompilerJdk = AvailableJavaHomes.getJdk(JavaVersion.VERSION_1_6)
         def gradleDaemonJdk = AvailableJavaHomes.getJdk(gradleDaemonJdkVersion)
@@ -194,29 +198,30 @@ public class ToolingApiCompatibilityBuildAction implements BuildAction<String> {
         output.contains("BUILD SUCCESSFUL")
 
         where:
-        clientJdkVersion      | gradleDaemonJdkVersion  | gradleVersion
-        JavaVersion.current() | JavaVersion.VERSION_1_6 | "2.6"    // minimum supported version for Tooling API
-        JavaVersion.current() | JavaVersion.VERSION_1_6 | "2.14.1" // last Gradle version that can run on Java 1.6
+        gradleDaemonJdkVersion  | gradleVersion
+        JavaVersion.VERSION_1_6 | "2.6"    // minimum supported version for Tooling API
+        JavaVersion.VERSION_1_6 | "2.14.1" // last Gradle version that can run on Java 1.6
 
-        JavaVersion.current() | JavaVersion.VERSION_1_7 | "2.6"    // minimum supported version for Tooling API
-        JavaVersion.current() | JavaVersion.VERSION_1_7 | "4.6"    // last version with reported regression
-        JavaVersion.current() | JavaVersion.VERSION_1_7 | "4.10.3" // last Gradle version that can run on Java 1.7
+        JavaVersion.VERSION_1_7 | "2.6"    // minimum supported version for Tooling API
+        JavaVersion.VERSION_1_7 | "4.6"    // last version with reported regression
+        JavaVersion.VERSION_1_7 | "4.10.3" // last Gradle version that can run on Java 1.7
 
-        JavaVersion.current() | JavaVersion.VERSION_1_8 | "2.6"    // minimum supported version for Tooling API
-        JavaVersion.current() | JavaVersion.VERSION_1_8 | "4.6"    // last version with reported regression
-        JavaVersion.current() | JavaVersion.VERSION_1_8 | "4.7"    // first version that had no reported regression
-        JavaVersion.current() | JavaVersion.VERSION_1_8 | "4.10.3"
-        JavaVersion.current() | JavaVersion.VERSION_1_8 | "5.0"
-        JavaVersion.current() | JavaVersion.VERSION_1_8 | "5.6.4"
-        JavaVersion.current() | JavaVersion.VERSION_1_8 | "6.0"
+        JavaVersion.VERSION_1_8 | "2.6"    // minimum supported version for Tooling API
+        JavaVersion.VERSION_1_8 | "4.6"    // last version with reported regression
+        JavaVersion.VERSION_1_8 | "4.7"    // first version that had no reported regression
+        JavaVersion.VERSION_1_8 | "4.10.3"
+        JavaVersion.VERSION_1_8 | "5.0"
+        JavaVersion.VERSION_1_8 | "5.6.4"
+        JavaVersion.VERSION_1_8 | "6.0"
     }
 
     @Unroll
-    def "tapi client can run build action with Gradle #gradleVersion on Java #gradleDaemonJdkVersion.majorVersion from Java #clientJdkVersion.majorVersion"(JavaVersion clientJdkVersion, JavaVersion gradleDaemonJdkVersion, String gradleVersion) {
+    def "tapi client can run build action with Gradle #gradleVersion on Java #gradleDaemonJdkVersion.majorVersion"(JavaVersion gradleDaemonJdkVersion, String gradleVersion) {
         setup:
         def tapiClientCompilerJdk = AvailableJavaHomes.getJdk(JavaVersion.VERSION_1_6)
         def gradleDaemonJdk = AvailableJavaHomes.getJdk(gradleDaemonJdkVersion)
         Assume.assumeTrue(tapiClientCompilerJdk && gradleDaemonJdk)
+
         if (gradleDaemonJdkVersion == JavaVersion.VERSION_1_6 && gradleVersion == "2.14.1") {
             executer.expectDeprecationWarning("Support for running Gradle using Java 6 has been deprecated and will be removed in Gradle 3.0")
         }
@@ -231,27 +236,20 @@ public class ToolingApiCompatibilityBuildAction implements BuildAction<String> {
         output.contains("BUILD SUCCESSFUL")
 
         where:
-        clientJdkVersion        | gradleDaemonJdkVersion  | gradleVersion
-        JavaVersion.VERSION_1_8 | JavaVersion.VERSION_1_6 | "2.6"
-        JavaVersion.VERSION_1_8 | JavaVersion.VERSION_1_6 | "2.14.1"
+        gradleDaemonJdkVersion  | gradleVersion
+        JavaVersion.VERSION_1_6 | "2.6"    // minimum supported version for Tooling API
+        JavaVersion.VERSION_1_6 | "2.14.1" // last Gradle version that can run on Java 1.6
 
-        JavaVersion.VERSION_1_8 | JavaVersion.VERSION_1_7 | "4.6"
-        JavaVersion.VERSION_1_8 | JavaVersion.VERSION_1_7 | "4.10.3"
+        JavaVersion.VERSION_1_7 | "2.6"    // minimum supported version for Tooling API
+        JavaVersion.VERSION_1_7 | "4.6"    // last version with reported regression
+        JavaVersion.VERSION_1_7 | "4.10.3" // last Gradle version that can run on Java 1.7
 
-        JavaVersion.VERSION_1_8 | JavaVersion.VERSION_1_8 | "2.6"
-        JavaVersion.VERSION_1_8 | JavaVersion.VERSION_1_8 | "6.6.1"
-
-        JavaVersion.VERSION_1_8 | JavaVersion.VERSION_11  | "5.0"
-        JavaVersion.VERSION_1_8 | JavaVersion.VERSION_11  | "6.6.1"
-
-        JavaVersion.VERSION_11  | JavaVersion.VERSION_1_6 | "2.6"
-        JavaVersion.VERSION_11  | JavaVersion.VERSION_1_6 | "2.14.1"
-
-        JavaVersion.VERSION_11  | JavaVersion.VERSION_1_7 | "2.6"
-        JavaVersion.VERSION_11  | JavaVersion.VERSION_1_7 | "4.6"
-        JavaVersion.VERSION_11  | JavaVersion.VERSION_1_7 | "4.10.3"
-
-        JavaVersion.VERSION_11  | JavaVersion.VERSION_1_8 | "2.6"
-        JavaVersion.VERSION_11  | JavaVersion.VERSION_1_8 | "6.6.1"
+        JavaVersion.VERSION_1_8 | "2.6"    // minimum supported version for Tooling API
+        JavaVersion.VERSION_1_8 | "4.6"    // last version with reported regression
+        JavaVersion.VERSION_1_8 | "4.7"    // first version that had no reported regression
+        JavaVersion.VERSION_1_8 | "4.10.3"
+        JavaVersion.VERSION_1_8 | "5.0"
+        JavaVersion.VERSION_1_8 | "5.6.4"
+        JavaVersion.VERSION_1_8 | "6.0"
     }
 }
