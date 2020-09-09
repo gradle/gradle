@@ -13,10 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.plugins.jvm;
+package org.gradle.api.plugins.jvm.internal;
 
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.provider.Provider;
@@ -28,11 +27,8 @@ import java.util.List;
 /**
  * A builder to construct an "outgoing elements" configuration, that is to say something
  * which is consumable by other components (other projects or external projects)
- *
- * @since 6.8
  */
 @SuppressWarnings("UnusedReturnValue")
-@Incubating
 public interface OutgoingElementsBuilder {
     /**
      * Sets the description for this outgoing elements

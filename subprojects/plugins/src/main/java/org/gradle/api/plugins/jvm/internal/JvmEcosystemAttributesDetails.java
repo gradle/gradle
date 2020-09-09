@@ -13,9 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.plugins.jvm;
+package org.gradle.api.plugins.jvm.internal;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.tasks.TaskProvider;
 
@@ -23,10 +22,7 @@ import org.gradle.api.tasks.TaskProvider;
  * Allows configuration of attributes used for JVM related components.
  * This can be used both on the producer side, to explain what it provides,
  * or on the consumer side, to express requirements.
- *
- * @since 6.8
  */
-@Incubating
 public
 interface JvmEcosystemAttributesDetails {
     /**
