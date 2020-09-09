@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.plugins.jvm.internal;
+package org.gradle.api.plugins.jvm;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.Task;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.tasks.TaskProvider;
@@ -25,8 +26,9 @@ import java.util.function.Function;
  * A source directory set builder which assumes that the sources are generated
  * by a task.
  *
- * @since 6.7
+ * @since 6.8
  */
+@Incubating
 public interface JvmLanguageGeneratedSourceDirectoryBuilder extends JvmLanguageSourceDirectoryBuilder {
     /**
      * Registers a source generation task

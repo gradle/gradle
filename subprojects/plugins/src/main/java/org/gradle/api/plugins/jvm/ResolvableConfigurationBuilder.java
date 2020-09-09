@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.plugins.jvm.internal;
+package org.gradle.api.plugins.jvm;
 
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.provider.Provider;
 
@@ -26,8 +27,9 @@ import java.util.List;
  * An incoming configuration builder. Such a configuration is meant
  * to be resolved.
  *
- * @since 6.7
+ * @since 6.8
  */
+@Incubating
 public interface ResolvableConfigurationBuilder {
 
     /**

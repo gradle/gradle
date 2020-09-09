@@ -17,6 +17,11 @@ package org.gradle.api.plugins.jvm.internal;
 
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.plugins.JvmPluginExtension;
+import org.gradle.api.plugins.jvm.JvmEcosystemUtilities;
+import org.gradle.api.plugins.jvm.JvmVariantBuilder;
+import org.gradle.api.plugins.jvm.OutgoingElementsBuilder;
+import org.gradle.api.plugins.jvm.ResolvableConfigurationBuilder;
 
 import javax.inject.Inject;
 

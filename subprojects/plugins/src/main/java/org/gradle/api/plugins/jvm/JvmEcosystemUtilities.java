@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.plugins.jvm.internal;
+package org.gradle.api.plugins.jvm;
 
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.attributes.HasConfigurableAttributes;
@@ -28,8 +29,9 @@ import org.gradle.internal.HasInternalProtocol;
  * to either replicate what the Gradle JVM plugins are doing, or integrate with
  * the existing Jvm plugins.
  *
- * @since 6.7
+ * @since 6.8
  */
+@Incubating
 @NonNullApi
 @HasInternalProtocol
 @SuppressWarnings("UnusedReturnValue")

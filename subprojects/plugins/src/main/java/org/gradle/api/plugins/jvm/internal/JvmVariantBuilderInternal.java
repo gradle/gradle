@@ -16,6 +16,7 @@
 package org.gradle.api.plugins.jvm.internal;
 
 import org.gradle.api.capabilities.Capability;
+import org.gradle.api.plugins.jvm.JvmVariantBuilder;
 
 public interface JvmVariantBuilderInternal extends JvmVariantBuilder {
     /**

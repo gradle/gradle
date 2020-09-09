@@ -23,6 +23,8 @@ import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.DefaultSourceSetOutput;
 import org.gradle.api.plugins.JavaPlugin;
+import org.gradle.api.plugins.jvm.JvmLanguageGeneratedSourceDirectoryBuilder;
+import org.gradle.api.plugins.jvm.JvmLanguageSourceDirectoryBuilder;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.TaskProvider;

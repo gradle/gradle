@@ -27,6 +27,7 @@ import org.gradle.api.internal.artifacts.dsl.ComponentMetadataHandlerInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.DefaultSourceSetContainer;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.plugins.jvm.internal.DefaultJvmPluginExtension;
 import org.gradle.api.plugins.jvm.internal.JvmPluginServices;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.internal.component.external.model.JavaEcosystemVariantDerivationStrategy;
@@ -58,6 +59,7 @@ public class JvmEcosystemPlugin implements Plugin<Project> {
         SourceSetContainer sourceSets = createSourceSets(p);
         configureVariantDerivationStrategy(p);
         configureSchema(p);
+        createJvmExtension(p);
         jvmPluginServices.inject(p, sourceSets);
     }
 
@@ -65,6 +67,10 @@ public class JvmEcosystemPlugin implements Plugin<Project> {
         DefaultSourceSetContainer sourceSets = objectFactory.newInstance(DefaultSourceSetContainer.class);
         p.getExtensions().add(SourceSetContainer.class, "sourceSets", sourceSets);
         return sourceSets;
+    }
+
+    private void createJvmExtension(ProjectInternal p) {
+        p.getExtensions().create(JvmPluginExtension.class, "jvm", DefaultJvmPluginExtension.class, jvmPluginServices);
     }
 
     private void configureVariantDerivationStrategy(ProjectInternal project) {

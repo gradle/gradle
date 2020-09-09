@@ -23,6 +23,7 @@ import org.gradle.api.attributes.Usage;
 import org.gradle.api.attributes.java.TargetJvmVersion;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.plugins.jvm.JvmEcosystemAttributesDetails;
 
 import javax.inject.Inject;
 

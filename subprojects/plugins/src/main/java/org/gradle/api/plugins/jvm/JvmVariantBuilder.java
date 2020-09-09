@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.plugins.jvm.internal;
+package org.gradle.api.plugins.jvm;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.internal.HasInternalProtocol;
 
@@ -22,8 +23,9 @@ import org.gradle.internal.HasInternalProtocol;
  * A Java component builder, allowing the automatic creation of a number of configurations,
  * tasks, ...
  *
- * @since 6.7
+ * @since 6.8
  */
+@Incubating
 @HasInternalProtocol
 public interface JvmVariantBuilder {
     /**

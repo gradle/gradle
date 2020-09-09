@@ -19,6 +19,7 @@ import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.plugins.jvm.JvmEcosystemAttributesDetails;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Cast;
 

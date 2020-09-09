@@ -18,12 +18,15 @@ package org.gradle.api.plugins.jvm.internal;
 import org.gradle.api.Action;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.plugins.jvm.JvmVariantBuilder;
+import org.gradle.api.plugins.jvm.OutgoingElementsBuilder;
+import org.gradle.api.plugins.jvm.ResolvableConfigurationBuilder;
 
 /**
  * Provides helpers to model JVM components, cross-project JVM publications
  * or resolvable configurations.
  *
- * @since 6.7
+ * @since 6.8
  */
 @NonNullApi
 @SuppressWarnings("UnusedReturnValue")
