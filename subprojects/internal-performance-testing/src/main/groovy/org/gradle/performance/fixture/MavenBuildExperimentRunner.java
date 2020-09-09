@@ -111,15 +111,11 @@ public class MavenBuildExperimentRunner extends AbstractBuildExperimentRunner {
                         return "Maven";
                     }
                 })
-            .setDryRun(false)
-            .setScenarioFile(null)
             .setVersions(ImmutableList.of(experimentSpec.getInvocation().getMavenVersion()))
             .setTargets(experimentSpec.getInvocation().getTasksToRun())
             .setSysProperties(emptyMap())
-            .setGradleUserHome(null)
             .setWarmupCount(warmupsForExperiment(experimentSpec))
             .setIterations(invocationsForExperiment(experimentSpec))
-            .setMeasureConfigTime(false)
             .setMeasuredBuildOperations(emptyList())
             .setCsvFormat(CsvGenerator.Format.LONG)
             .build();

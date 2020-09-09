@@ -38,17 +38,19 @@ class GradleInvocationSpec implements InvocationSpec {
     final boolean expectFailure
     final File buildLog
 
-    GradleInvocationSpec(GradleDistribution gradleDistribution,
-                         File workingDirectory,
-                         List<String> tasksToRun,
-                         List<String> args,
-                         List<String> jvmOpts,
-                         List<String> cleanTasks,
-                         boolean useDaemon,
-                         boolean useToolingApi,
-                         boolean expectFailure,
-                         BuildAction buildAction,
-                         File buildLog) {
+    GradleInvocationSpec(
+        GradleDistribution gradleDistribution,
+        File workingDirectory,
+        List<String> tasksToRun,
+        List<String> args,
+        List<String> jvmOpts,
+        List<String> cleanTasks,
+        boolean useDaemon,
+        boolean useToolingApi,
+        boolean expectFailure,
+        BuildAction buildAction,
+        File buildLog
+    ) {
         this.gradleDistribution = gradleDistribution
         this.workingDirectory = workingDirectory
         this.tasksToRun = tasksToRun

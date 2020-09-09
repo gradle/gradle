@@ -21,7 +21,7 @@ import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.performance.fixture.BuildExperimentSpec
 import org.gradle.performance.fixture.BuildScanPerformanceTestRunner
 import org.gradle.performance.fixture.GradleBuildExperimentRunner
-import org.gradle.performance.fixture.GradleInvocationSpec
+import org.gradle.performance.fixture.GradleBuildExperimentSpec
 import org.gradle.performance.measure.Amount
 import org.gradle.performance.measure.MeasuredOperation
 import org.gradle.performance.results.BaselineVersion
@@ -62,7 +62,11 @@ class AbstractBuildScanPluginPerformanceTest extends Specification {
             protected void defaultSpec(BuildExperimentSpec.Builder builder) {
                 super.defaultSpec(builder)
                 builder.workingDirectory = tmpDir.testDirectory
-                (builder.invocation as GradleInvocationSpec.InvocationBuilder).buildLog(new File(builder.workingDirectory, "build.log"))
+            }
+            @Override
+            protected void configureGradleSpec(GradleBuildExperimentSpec.GradleBuilder builder) {
+                super.configureGradleSpec(builder)
+                builder.invocation.buildLog(new File(builder.workingDirectory, "build.log"))
             }
         }
     }
