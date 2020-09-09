@@ -22,8 +22,10 @@ import org.gradle.util.TextUtil
 import org.junit.Assume
 import spock.lang.Unroll
 
-class ToolingApiClientJdkCompatibilityTest extends AbstractIntegrationSpec {
+abstract class ToolingApiClientJdkCompatibilityTest extends AbstractIntegrationSpec {
     def setup() {
+        System.out.println("TAPI client is using Java " + clientJdkVersion)
+
         def compilerJdk = AvailableJavaHomes.getJdk(JavaVersion.VERSION_1_6)
         String compilerJavaHomePath = TextUtil.normaliseFileSeparators(compilerJdk.javaHome.absolutePath)
         buildFile << """
@@ -177,9 +179,7 @@ public class ToolingApiCompatibilityBuildAction implements BuildAction<String> {
 """
     }
 
-    JavaVersion getClientJdkVersion() {
-        return JavaVersion.current()
-    }
+    abstract JavaVersion getClientJdkVersion()
 
     @Unroll
     def "tapi client can launch task with Gradle #gradleVersion on Java #gradleDaemonJdkVersion.majorVersion"(JavaVersion gradleDaemonJdkVersion, String gradleVersion) {
