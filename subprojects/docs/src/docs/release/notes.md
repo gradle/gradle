@@ -63,7 +63,18 @@ _Build time improvements using [Santa Tracker Android](https://github.com/gradle
 
 ## Configuration cache improvements
 
-TBD - load from cache performance improvements and reduced memory consumption for Android builds
+Gradle 6.6 introduced [configuration caching](userguide/configuration_cache.html) as an experimental feature.
+This release comes with performance and usability improvements for the configuration cache.
+
+Loading from the configuration cache is now faster and memory consumption during builds has been reduced, especially for Kotlin and Android builds.
+
+Starting with this Gradle version the configuration cache gets discarded when the build fails because problems have been found.
+Previous versions kept the cached state, creating confusing situations that required manual cache invalidation.
+The problem report is now more helpful.
+It reports the source of problems more accurately, pointing at the offending location in plugins and scripts.
+Finally, support for composite builds used for build logic has landed.
+
+Read about this feature and its impact [on the Gradle blog](https://blog.gradle.org/introducing-configuration-caching). Track progress of configuration cache support by [core plugins](https://github.com/gradle/gradle/issues/13454) and [community plugins](https://github.com/gradle/gradle/issues/13490).
 
 ## Compile-only API dependencies can be declared for JVM libraries
 
