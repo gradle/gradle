@@ -1,7 +1,9 @@
+// tag::plugins[]
 plugins {
     id("java-gradle-plugin")
     id("myproject.java-conventions")
 }
+// end::plugins[]
 
 repositories {
     jcenter()

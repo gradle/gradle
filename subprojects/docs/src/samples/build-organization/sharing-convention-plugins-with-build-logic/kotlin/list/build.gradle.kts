@@ -1,4 +1,6 @@
+// tag::plugins[]
 plugins {
     id("myproject.java-conventions")
-    `java-library`
+    id("java-library")
 }
+// end::plugins[]
