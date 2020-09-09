@@ -1,0 +1,7 @@
+
+== Summary
+
+That's it! You've now successfully configured and built a ${language.raw} ${componentType.raw} project with Gradle.
+You've learned how to:
+
+* Initialize a project that produces a ${language.raw} ${componentType.raw}

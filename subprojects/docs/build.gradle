@@ -9,7 +9,7 @@ plugins {
     // TODO: Apply asciidoctor in documentation plugin instead.
     id 'org.asciidoctor.convert'
     id 'gradlebuild.documentation'
-    id 'org.gradle.samples' version "0.16.8"
+    id 'gradlebuild.generate-samples'
 }
 
 repositories { handler ->
@@ -212,72 +212,6 @@ samples {
     }
 
     publishedSamples {
-        // Libraries - Guide-style samples generated from 'build init'
-        buildingJavaLibraries {
-            sampleDirectory = samplesRoot.dir("generated/java-library")
-            description = "Setup a Java library project step-by-step."
-            category = "Java"
-        }
-        buildingGroovyLibraries {
-            sampleDirectory = samplesRoot.dir("generated/groovy-library")
-            description = "Setup a Groovy library project step-by-step."
-            category = "Groovy"
-        }
-        buildingKotlinLibraries {
-            sampleDirectory = samplesRoot.dir("generated/kotlin-library")
-            description = "Setup a Kotlin library project step-by-step."
-            category = "Kotlin"
-        }
-        buildingScalaLibraries {
-            sampleDirectory = samplesRoot.dir("generated/scala-library")
-            description = "Setup a Scala library project step-by-step."
-            category = "Scala"
-        }
-        buildingCppLibraries {
-            displayName = "Building {cpp} Libraries"
-            sampleDirectory = samplesRoot.dir("generated/cpp-library")
-            description = "Setup a C++ library project step-by-step."
-            category = "C++"
-        }
-        buildingSwiftLibraries {
-            sampleDirectory = samplesRoot.dir("generated/swift-library")
-            description = "Setup a Swift library project step-by-step."
-            category = "Swift"
-        }
-
-        // Applications - Guide-style samples generated from 'build init'
-        buildingJavaApplications {
-            sampleDirectory = samplesRoot.dir("generated/java-application")
-            description = "Setup a Java application project step-by-step."
-            category = "Java"
-        }
-        buildingGroovyApplications {
-            sampleDirectory = samplesRoot.dir("generated/groovy-application")
-            description = "Setup a Groovy application project step-by-step."
-            category = "Groovy"
-        }
-        buildingKotlinApplications {
-            sampleDirectory = samplesRoot.dir("generated/kotlin-application")
-            description = "Setup a Kotlin application project step-by-step."
-            category = "Kotlin"
-        }
-        buildingScalaApplications {
-            sampleDirectory = samplesRoot.dir("generated/scala-application")
-            description = "Setup a Scala library project step-by-step."
-            category = "Scala"
-        }
-        buildingCppApplications {
-            displayName = "Building {cpp} Applications"
-            sampleDirectory = samplesRoot.dir("generated/cpp-application")
-            description = "Setup a C++ application project step-by-step."
-            category = "C++"
-        }
-        buildingSwiftApplications {
-            sampleDirectory = samplesRoot.dir("generated/swift-application")
-            description = "Setup a Swift application project step-by-step."
-            category = "Swift"
-        }
-
         buildingAndroidApps {
             sampleDirectory = samplesRoot.dir("android-application")
             description = "Build a simple Android app."
