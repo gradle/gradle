@@ -96,7 +96,7 @@ public class LazyConsumerActionExecutor implements ConsumerActionExecutor {
     }
 
     private void sendStopWhenIdleMessageToDaemons() {
-        ConsumerOperationParameters.Builder builder = ConsumerOperationParameters.builder();
+        final ConsumerOperationParameters.Builder builder = ConsumerOperationParameters.builder();
         builder.setCancellationToken(new DefaultCancellationTokenSource().token());
         builder.setParameters(connectionParameters);
         builder.setEntryPoint("Request daemon shutdown when idle");

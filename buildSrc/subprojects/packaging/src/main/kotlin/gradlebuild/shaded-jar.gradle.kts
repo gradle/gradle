@@ -146,7 +146,7 @@ fun addShadedJarVariant(shadedJarTask: TaskProvider<ShadedJar>) {
             attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.LIBRARY))
             attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements.JAR))
             attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling.SHADOWED))
-            attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, 8)
+            attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, 6)
         }
         extendsFrom(shadedImplementation)
         outgoing.artifact(shadedJarTask) {
