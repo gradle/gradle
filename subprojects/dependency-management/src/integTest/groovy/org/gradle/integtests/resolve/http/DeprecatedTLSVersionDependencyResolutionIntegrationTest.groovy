@@ -67,6 +67,7 @@ class DeprecatedTLSVersionDependencyResolutionIntegrationTest extends AbstractHt
         keyStore.enableSslWithServerCert(mavenHttpRepo.server) {
             it.addExcludeProtocols("TLSv1.2", "TLSv1.3")
             it.setIncludeProtocols("TLSv1", "TLSv1.1")
+            it.setExcludeCipherSuites()
         }
         keyStore.configureServerCert(executer)
         def module = mavenHttpRepo.module('group', 'projectA', '1.2').publish()
