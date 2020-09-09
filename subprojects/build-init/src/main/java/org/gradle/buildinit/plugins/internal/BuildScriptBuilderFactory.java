@@ -21,10 +21,7 @@ import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
 public class BuildScriptBuilderFactory {
 
     public BuildScriptBuilder script(BuildInitDsl dsl, String pathWithoutExtension) {
-        return new BuildScriptBuilder(dsl, pathWithoutExtension, false);
+        return new BuildScriptBuilder(dsl, pathWithoutExtension);
     }
 
-    public BuildScriptBuilder scriptWithExternalComments(BuildInitDsl dsl, String pathWithoutExtension) {
-        return new BuildScriptBuilder(dsl, pathWithoutExtension, true);
-    }
 }

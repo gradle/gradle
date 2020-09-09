@@ -59,8 +59,7 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
         dslFixture.buildFile.assertContents(
             allOf(
                 containsString("This is a general purpose Gradle build"),
-                containsString("Learn how to create Gradle builds at")))
-        outputContains("Get more help with your project: ")
+                containsString("Learn more about Gradle by exploring our samples at")))
 
         expect:
         succeeds 'help'
@@ -275,6 +274,11 @@ include("child")
                Available values are:
                     groovy
                     kotlin
+
+     --modularize     Should the build include library projects?
+                      Available values are:
+                           single-project
+                           with-library-projects
 
      --package     Set the package for source files.
 

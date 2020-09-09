@@ -21,6 +21,7 @@ import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
 import org.gradle.buildinit.plugins.internal.modifiers.ComponentType;
 import org.gradle.buildinit.plugins.internal.modifiers.Language;
+import org.gradle.buildinit.plugins.internal.modifiers.ModularizationOption;
 
 import java.util.Collections;
 import java.util.Optional;
@@ -44,7 +45,7 @@ public class BasicProjectGenerator implements ProjectGenerator {
     public void generate(InitSettings settings) {
         scriptBuilderFactory.script(settings.getDsl(), "build")
             .fileComment("This is a general purpose Gradle build.\n"
-                + "Learn how to create Gradle builds at " + documentationRegistry.getGuideFor("creating-new-gradle-builds"))
+                + "Learn more about Gradle by exploring our samples at " + documentationRegistry.getSampleIndex())
             .create(settings.getTarget())
             .generate();
     }
@@ -57,6 +58,11 @@ public class BasicProjectGenerator implements ProjectGenerator {
     @Override
     public Language getLanguage() {
         return Language.NONE;
+    }
+
+    @Override
+    public Set<ModularizationOption> getModularizationOptions() {
+        return Collections.singleton(ModularizationOption.SINGLE_PROJECT);
     }
 
     @Override
@@ -81,6 +87,6 @@ public class BasicProjectGenerator implements ProjectGenerator {
 
     @Override
     public Optional<String> getFurtherReading() {
-        return Optional.of(documentationRegistry.getGuideFor("creating-new-gradle-builds"));
+        return Optional.empty();
     }
 }

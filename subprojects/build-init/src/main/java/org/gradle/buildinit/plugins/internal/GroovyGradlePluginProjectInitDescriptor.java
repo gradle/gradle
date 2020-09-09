@@ -52,8 +52,8 @@ public class GroovyGradlePluginProjectInitDescriptor extends JvmGradlePluginProj
     }
 
     @Override
-    public void generate(InitSettings settings, BuildScriptBuilder buildScriptBuilder, TemplateFactory templateFactory) {
-        super.generate(settings, buildScriptBuilder, templateFactory);
+    public void generateProjectBuildScript(String projectName, InitSettings settings, BuildScriptBuilder buildScriptBuilder) {
+        super.generateProjectBuildScript(projectName, settings, buildScriptBuilder);
         buildScriptBuilder.plugin("Apply the Groovy plugin to add support for Groovy", "groovy");
         buildScriptBuilder.testImplementationDependency("Use the awesome Spock testing and specification framework",
             "org.spockframework:spock-core:" + libraryVersionProvider.getVersion("spock"));
@@ -62,6 +62,7 @@ public class GroovyGradlePluginProjectInitDescriptor extends JvmGradlePluginProj
     @Override
     protected TemplateOperation sourceTemplate(InitSettings settings, TemplateFactory templateFactory, String pluginId, String pluginClassName) {
         return templateFactory.fromSourceTemplate("plugin/groovy/Plugin.groovy.template", t -> {
+            t.subproject(settings.getSubprojects().get(0));
             t.sourceSet("main");
             t.className(pluginClassName);
             t.binding("pluginId", pluginId);
@@ -71,6 +72,7 @@ public class GroovyGradlePluginProjectInitDescriptor extends JvmGradlePluginProj
     @Override
     protected TemplateOperation testTemplate(InitSettings settings, TemplateFactory templateFactory, String pluginId, String testClassName) {
         return templateFactory.fromSourceTemplate("plugin/groovy/spock/PluginTest.groovy.template", t -> {
+            t.subproject(settings.getSubprojects().get(0));
             t.sourceSet("test");
             t.className(testClassName);
             t.binding("pluginId", pluginId);
@@ -80,6 +82,7 @@ public class GroovyGradlePluginProjectInitDescriptor extends JvmGradlePluginProj
     @Override
     protected TemplateOperation functionalTestTemplate(InitSettings settings, TemplateFactory templateFactory, String pluginId, String testClassName) {
         return templateFactory.fromSourceTemplate("plugin/groovy/spock/PluginFunctionalTest.groovy.template", t -> {
+            t.subproject(settings.getSubprojects().get(0));
             t.sourceSet("functionalTest");
             t.className(testClassName);
             t.binding("pluginId", pluginId);

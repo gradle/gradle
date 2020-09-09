@@ -43,13 +43,20 @@ public abstract class SwiftProjectInitDescriptor extends LanguageLibraryProjectI
     }
 
     @Override
-    public void generate(InitSettings settings, BuildScriptBuilder buildScriptBuilder, TemplateFactory templateFactory) {
+    public void generateProjectBuildScript(String projectName, InitSettings settings, BuildScriptBuilder buildScriptBuilder) {
         buildScriptBuilder
             .fileComment("This generated file contains a sample Swift project to get you started.")
             .fileComment("For more details take a look at the Building Swift applications and libraries chapter in the Gradle")
             .fileComment("User Manual available at " + documentationRegistry.getDocumentationFor("building_swift_projects"));
         configureBuildScript(settings, buildScriptBuilder);
+    }
 
+    @Override
+    public void generateConventionPluginBuildScript(String conventionPluginName, InitSettings settings, BuildScriptBuilder buildScriptBuilder) {
+    }
+
+    @Override
+    public void generateSources(InitSettings settings, TemplateFactory templateFactory) {
         TemplateOperation sourceTemplate = sourceTemplateOperation(settings);
         TemplateOperation testSourceTemplate = testTemplateOperation(settings);
         TemplateOperation testEntryPointTemplate = testEntryPointTemplateOperation(settings);
@@ -123,11 +130,11 @@ public abstract class SwiftProjectInitDescriptor extends LanguageLibraryProjectI
             throw new IllegalArgumentException("Project name cannot be empty for a Swift project");
         }
 
-        String moduleName = toModuleName(settings.getSubprojectName());
+        String moduleName = toModuleName(settings.getSubprojects().get(0));
 
         return templateOperationFactory.newTemplateOperation()
             .withTemplate(template)
-            .withTarget(settings.getTarget().file(settings.getSubprojectName() + "/src/" + sourceSetName + "/" + sourceDir + "/" + targetFileName).getAsFile())
+            .withTarget(settings.getTarget().file(settings.getSubprojects().get(0) + "/src/" + sourceSetName + "/" + sourceDir + "/" + targetFileName).getAsFile())
             .withBinding("projectName", settings.getProjectName())
             .withBinding("moduleName", moduleName)
             .create();

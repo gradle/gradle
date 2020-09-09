@@ -47,15 +47,23 @@ public class BuildScriptBuilder {
 
     private final BuildInitDsl dsl;
     private final String fileNameWithoutExtension;
-    private final boolean externalComments;
+    private boolean externalComments;
 
     private final List<String> headerLines = new ArrayList<>();
     private final TopLevelBlock block = new TopLevelBlock();
 
-    public BuildScriptBuilder(BuildInitDsl dsl, String fileNameWithoutExtension, boolean externalComments) {
+    public BuildScriptBuilder(BuildInitDsl dsl, String fileNameWithoutExtension) {
         this.dsl = dsl;
         this.fileNameWithoutExtension = fileNameWithoutExtension;
-        this.externalComments = externalComments;
+    }
+
+    public BuildScriptBuilder withExternalComments() {
+        this.externalComments = true;
+        return this;
+    }
+
+    public String getFileNameWithoutExtension() {
+        return fileNameWithoutExtension;
     }
 
     /**
@@ -85,6 +93,7 @@ public class BuildScriptBuilder {
      */
     public BuildScriptBuilder conventionPluginSupport(@Nullable String comment) {
         Syntax syntax = syntaxFor(dsl);
+        block.repositories.gradlePluginPortal("Use the plugin portal to apply community plugins in convention plugins.");
         syntax.configureConventionPlugin(comment, block.plugins, block.repositories);
         return this;
     }
@@ -874,6 +883,11 @@ public class BuildScriptBuilder {
         }
 
         @Override
+        public void gradlePluginPortal(@Nullable String comment) {
+            add(new MethodInvocation(comment, new MethodInvocationExpression("gradlePluginPortal")));
+        }
+
+        @Override
         public void maven(String comment, String url) {
             add(new MavenRepoExpression(comment, url));
         }
@@ -1431,7 +1445,6 @@ public class BuildScriptBuilder {
         @Override
         public void configureConventionPlugin(@Nullable String comment, BlockStatement plugins, RepositoriesBlock repositories) {
             plugins.add(new PluginSpec("kotlin-dsl", null, comment));
-            repositories.jcenter(null);
         }
     }
 

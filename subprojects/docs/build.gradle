@@ -179,11 +179,6 @@ samples {
             target = "utilities"
         }
 
-        // These are currently unused, but we plan to integrate these into the 'init plugin' in some form an then have a larger multi-project sample for each JVM language generated
-        kotlinApplication
-        kotlinListLibrary
-        kotlinUtilitiesLibrary
-
         projectInfoPlugin
 
         precompiledScriptPluginUtils {
