@@ -38,6 +38,7 @@ import org.gradle.profiler.RunTasksAction;
 import org.gradle.profiler.instrument.PidInstrumentation;
 import org.gradle.profiler.report.CsvGenerator;
 import org.gradle.profiler.result.Sample;
+import org.gradle.tooling.internal.consumer.ConnectorServices;
 
 import java.io.File;
 import java.io.IOException;
@@ -121,6 +122,7 @@ public class GradleBuildExperimentRunner extends AbstractBuildExperimentRunner {
             } catch (IOException e) {
                 e.printStackTrace();
             }
+            ConnectorServices.reset();
         }
     }
 
@@ -165,7 +167,7 @@ public class GradleBuildExperimentRunner extends AbstractBuildExperimentRunner {
             experimentSpec.getDisplayName(),
             (GradleBuildInvoker) invocationSettings.getInvoker(),
             new GradleBuildConfiguration(gradleDistribution.getVersion(), gradleDistribution.getGradleHomeDir(), Jvm.current().getJavaHome(), invocationSpec.getJvmOpts(), false),
-            new RunTasksAction(invocationSettings.getTargets()),
+            experimentSpec.getInvocation().getBuildAction(),
             cleanTasks.isEmpty()
                 ? BuildAction.NO_OP
                 : new RunTasksAction(cleanTasks),

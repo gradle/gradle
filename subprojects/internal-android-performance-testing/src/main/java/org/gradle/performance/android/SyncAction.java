@@ -36,18 +36,27 @@ public class SyncAction {
         BuildActionExecuter<Map<String, AndroidProject>> modelBuilder = connect.action(new GetModel());
         modelBuilder.setStandardOutput(System.out);
         modelBuilder.setStandardError(System.err);
-        modelBuilder.forTasks("generateDebugSources");
-        modelBuilder.addProgressListener(noOpListener());
-        modelBuilder.withArguments("-Dcom.android.build.gradle.overrideVersionCheck=true",
-            "-Pandroid.injected.build.model.only=true",
-            "-Pandroid.injected.build.model.only.versioned=3",
-            "-Pandroid.builder.sdkDownload=true",
-            "-s");
         modelBuilder.setJvmArguments("-Xmx2g");
         if (modelBuilderAction != null) {
             modelBuilderAction.execute(modelBuilder);
         }
 
+        withModelBuilder(modelBuilder);
+
+        syncTimer.stop();
+        System.out.println("Sync took " + syncTimer.duration());
+    }
+
+    // DO NOT change the signature of this method: it is a convention used in
+    // our internal performance testing infrastructure
+    public static void withModelBuilder(BuildActionExecuter<Map<String, AndroidProject>> modelBuilder) {
+        modelBuilder.forTasks("generateDebugSources");
+        modelBuilder.addProgressListener(noOpListener());
+        modelBuilder.addArguments("-Dcom.android.build.gradle.overrideVersionCheck=true",
+            "-Pandroid.injected.build.model.only=true",
+            "-Pandroid.injected.build.model.only.versioned=3",
+            "-Pandroid.builder.sdkDownload=true",
+            "-s");
         Timer actionTimer = new Timer();
         Map<String, AndroidProject> models = modelBuilder.run();
         actionTimer.stop();
@@ -56,8 +65,6 @@ public class SyncAction {
         System.out.println("Received models: " + models.size());
 
         new Inspector().inspectModel(models);
-        syncTimer.stop();
-        System.out.println("Sync took " + syncTimer.duration());
     }
 
     private static ProgressListener noOpListener() {

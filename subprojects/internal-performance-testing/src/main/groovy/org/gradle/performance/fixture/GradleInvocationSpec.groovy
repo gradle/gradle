@@ -20,6 +20,8 @@ import groovy.transform.CompileStatic
 import groovy.transform.EqualsAndHashCode
 import org.gradle.initialization.ParallelismBuildOptions
 import org.gradle.integtests.fixtures.executer.GradleDistribution
+import org.gradle.profiler.BuildAction
+import org.gradle.profiler.RunTasksAction
 
 @CompileStatic
 @EqualsAndHashCode
@@ -28,6 +30,7 @@ class GradleInvocationSpec implements InvocationSpec {
     final GradleDistribution gradleDistribution
     final File workingDirectory
     final List<String> tasksToRun
+    final BuildAction buildAction
     final List<String> args
     final List<String> jvmOpts
     final List<String> cleanTasks
@@ -35,7 +38,18 @@ class GradleInvocationSpec implements InvocationSpec {
     final boolean useToolingApi
     final boolean expectFailure
 
-    GradleInvocationSpec(GradleDistribution gradleDistribution, File workingDirectory, List<String> tasksToRun, List<String> args, List<String> jvmOpts, List<String> cleanTasks, boolean useDaemon, boolean useToolingApi, boolean expectFailure) {
+    GradleInvocationSpec(
+        GradleDistribution gradleDistribution,
+        File workingDirectory,
+        List<String> tasksToRun,
+        List<String> args,
+        List<String> jvmOpts,
+        List<String> cleanTasks,
+        boolean useDaemon,
+        boolean useToolingApi,
+        boolean expectFailure,
+        BuildAction buildAction
+    ) {
         this.gradleDistribution = gradleDistribution
         this.workingDirectory = workingDirectory
         this.tasksToRun = tasksToRun
@@ -45,6 +59,7 @@ class GradleInvocationSpec implements InvocationSpec {
         this.useDaemon = useDaemon
         this.useToolingApi = useToolingApi
         this.expectFailure = expectFailure
+        this.buildAction = buildAction
     }
 
     boolean getBuildWillRunInDaemon() {
@@ -85,6 +100,7 @@ class GradleInvocationSpec implements InvocationSpec {
         GradleDistribution gradleDistribution
         File workingDirectory
         List<String> tasksToRun = []
+        BuildAction buildAction
         List<String> args = []
         List<String> gradleOptions = []
         List<String> cleanTasks = []
@@ -110,6 +126,11 @@ class GradleInvocationSpec implements InvocationSpec {
 
         InvocationBuilder tasksToRun(Iterable<String> taskToRun) {
             this.tasksToRun.addAll(taskToRun)
+            this
+        }
+
+        InvocationBuilder buildAction(BuildAction buildAction) {
+            this.buildAction = buildAction
             this
         }
 
@@ -165,7 +186,7 @@ class GradleInvocationSpec implements InvocationSpec {
             assert gradleDistribution != null
             assert workingDirectory != null
 
-            return new GradleInvocationSpec(gradleDistribution, workingDirectory, tasksToRun.asImmutable(), args.asImmutable(), gradleOptions.asImmutable(), cleanTasks.asImmutable(), useDaemon, useToolingApi, expectFailure)
+            return new GradleInvocationSpec(gradleDistribution, workingDirectory, tasksToRun.asImmutable(), args.asImmutable(), gradleOptions.asImmutable(), cleanTasks.asImmutable(), useDaemon, useToolingApi, expectFailure, buildAction ?: new RunTasksAction(tasksToRun))
         }
 
     }

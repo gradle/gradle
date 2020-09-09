@@ -496,15 +496,3 @@ tasks.withType(JvmProjectGeneratorTask).configureEach {
     }
     templateArgs['projectDependencies'] = true
 }
-
-// The Android Studio performance tests use custom model classes which need to be found in
-// a dedicated project in order for the classpath to be setup properly
-def androidRemoteProjects = tasks.withType(RemoteProject).matching { it.name =~ /Android/ }
-androidRemoteProjects.configureEach {
-    // TODO: This should use a proper dependency
-    def buildClassPath = tasks.findByPath(':internal-android-performance-testing:buildClassPath')
-    dependsOn buildClassPath
-    doLast {
-        file("$outputDirectory/tapi-classpath.txt") << buildClassPath.outputFile.get().getAsFile().text
-    }
-}
