@@ -40,7 +40,7 @@ Executing the build (e.g. using `gradle check`) will now handle several things f
 3. Gradle chooses a JRE/JDK matching the requirements of the build (in this case a JVM supporting Java 14)
 4. If no matching JVM is found, it will automatically download a matching JDK from https://adoptopenjdk.net/[AdoptOpenJDK]
 
-=== Specify custom toolchains for individual tasks
+== Specify custom toolchains for individual tasks
 
 In case you want to tweak which toolchain is used for a specific task, you can specify the exact tool a task is using.
 For example, a `Test` task exposes a `JavaLauncher` property that defines which java executable to use to launch the tests.
@@ -80,7 +80,7 @@ Supported Package Managers:
 * https://github.com/shyiko/jabba[Jabba]
 * https://sdkman.io/[SDKMAN!]
 
-==== How to disable auto-detection
+=== How to disable auto-detection
 
 In order to disable auto-detection, you can use the `org.gradle.java.installations.auto-detect` gradle property.
 Either start gradle using `-Porg.gradle.java.installations.auto-detect=false` or put
