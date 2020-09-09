@@ -17,7 +17,6 @@
 package org.gradle.performance.fixture;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import groovy.transform.CompileStatic;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
@@ -41,6 +40,9 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
+
+import static java.util.Collections.emptyList;
+import static java.util.Collections.emptyMap;
 
 @CompileStatic
 public class MavenBuildExperimentRunner extends AbstractBuildExperimentRunner {
@@ -77,7 +79,7 @@ public class MavenBuildExperimentRunner extends AbstractBuildExperimentRunner {
             );
             scenarioInvoker.run(scenarioDefinition, invocationSettings, new BenchmarkResultCollector() {
                 @Override
-                public <T extends BuildInvocationResult> Consumer<T> scenario(ScenarioDefinition scenario, List<Sample<? super T>> samples) {
+                public <S extends ScenarioDefinition, T extends BuildInvocationResult> Consumer<T> scenario(S scenario, List<Sample<? super T>> samples) {
                     return (Consumer<T>) consumerFor(scenarioDefinition, iterationCount, results, scenarioReporter);
                 }
             });
@@ -97,28 +99,30 @@ public class MavenBuildExperimentRunner extends AbstractBuildExperimentRunner {
 
     private InvocationSettings createInvocationSettings(MavenBuildExperimentSpec experimentSpec) {
         File outputDir = getFlameGraphGenerator().getJfrOutputDirectory(experimentSpec);
-        return new InvocationSettings(
-            experimentSpec.getInvocation().getWorkingDirectory(),
-            getProfiler(),
-            true,
-            outputDir,
-            new BuildInvoker() {
-                @Override
-                public String toString() {
-                    return "Maven";
-                }
-            },
-            false,
-            null,
-            ImmutableList.of(experimentSpec.getInvocation().getMavenVersion()),
-            experimentSpec.getInvocation().getTasksToRun(),
-            ImmutableMap.of(),
-            null,
-            warmupsForExperiment(experimentSpec),
-            invocationsForExperiment(experimentSpec),
-            false,
-            ImmutableList.of(),
-            CsvGenerator.Format.LONG);
+        return new InvocationSettings.InvocationSettingsBuilder()
+            .setProjectDir(experimentSpec.getInvocation().getWorkingDirectory())
+            .setProfiler(getProfiler())
+            .setBenchmark(true)
+            .setOutputDir(outputDir)
+            .setInvoker(
+                new BuildInvoker() {
+                    @Override
+                    public String toString() {
+                        return "Maven";
+                    }
+                })
+            .setDryRun(false)
+            .setScenarioFile(null)
+            .setVersions(ImmutableList.of(experimentSpec.getInvocation().getMavenVersion()))
+            .setTargets(experimentSpec.getInvocation().getTasksToRun())
+            .setSysProperties(emptyMap())
+            .setGradleUserHome(null)
+            .setWarmupCount(warmupsForExperiment(experimentSpec))
+            .setIterations(invocationsForExperiment(experimentSpec))
+            .setMeasureConfigTime(false)
+            .setMeasuredBuildOperations(emptyList())
+            .setCsvFormat(CsvGenerator.Format.LONG)
+            .build();
     }
 
     private MavenScenarioDefinition createScenarioDefinition(MavenBuildExperimentSpec experimentSpec, InvocationSettings invocationSettings) {
