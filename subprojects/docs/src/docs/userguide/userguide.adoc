@@ -37,9 +37,9 @@ Gradle is an open-source build automation tool focused on flexibility and perfor
 == New projects with Gradle
 
 Getting started with Gradle is easy!
-First, follow our guide to <<installation.adoc#, download and install Gradle>>, then check out Gradle link:{website}/guides/#getting-started[getting started guides] to create your first build.
+First, follow our guide to <<installation.adoc#, download and install Gradle>>, then check out link:../samples/index.html[our samples] to create your first build.
 
-If you're currently using Maven, see a visual link:{website}/maven-vs-gradle/[Gradle vs Maven comparison] and follow the guide for link:https://guides.gradle.org/migrating-from-maven/[migrating from Maven to Gradle].
+If you're currently using Maven, see a visual link:{website}/maven-vs-gradle/[Gradle vs Maven comparison] and follow the guide for <<migrating_from_maven.adoc#,migrating from Maven to Gradle>>.
 
 == Using existing Gradle builds
 

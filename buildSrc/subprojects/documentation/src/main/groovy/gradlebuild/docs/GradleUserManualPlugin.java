@@ -160,7 +160,6 @@ public class GradleUserManualPlugin implements Plugin<Project> {
 
             attributes.put("antManual", "https://ant.apache.org/manual");
             attributes.put("docsUrl", "https://docs.gradle.org");
-            attributes.put("guidesUrl", "https://guides.gradle.org");
 
             // TODO: This breaks if the version is changed later.
             attributes.put("gradleVersion", project.getVersion().toString());

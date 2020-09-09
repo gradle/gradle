@@ -59,8 +59,7 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
         dslFixture.buildFile.assertContents(
             allOf(
                 containsString("This is a general purpose Gradle build"),
-                containsString("Learn how to create Gradle builds at")))
-        outputContains("Get more help with your project: ")
+                containsString("Learn more about Gradle by exploring our samples at")))
 
         expect:
         succeeds 'help'

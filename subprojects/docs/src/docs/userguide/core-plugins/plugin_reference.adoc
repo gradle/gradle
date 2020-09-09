@@ -118,7 +118,7 @@ Generates Xcode workspace and project files for the build that can be opened by 
 Provides common lifecycle tasks, such as `clean`, and other features common to most builds.
 
 <<build_init_plugin.adoc#,Build Init>>::
-Generates a new Gradle build of a specified type, such as a Java library. It can also generate a build script from a Maven POM — see https://guides.gradle.org/migrating-from-maven/[_Migrating from Maven to Gradle_] for more details.
+Generates a new Gradle build of a specified type, such as a Java library. It can also generate a build script from a Maven POM — see <<migrating_from_maven.adoc#,Migrating from Maven to Gradle>> for more details.
 
 <<signing_plugin.adoc#,Signing>>::
 Provides support for digitally signing generated files and artifacts.

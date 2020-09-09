@@ -37,14 +37,22 @@ In order to create a new build or add a Wrapper to an existing build, you will n
 
 Actively using Gradle is a great way to learn about it, so once you've installed Gradle, try one of the introductory hands-on tutorials:
 
- * {guidesUrl}/creating-new-gradle-builds/[Creating a basic Gradle build]
- * {guidesUrl}/building-android-apps/[Building Android apps]
- * {guidesUrl}/building-java-libraries/[Building Java libraries]
- * {guidesUrl}/building-kotlin-jvm-libraries/[Building Kotlin JVM libraries]
- * {guidesUrl}/building-cpp-libraries/[Building C++ libraries]
- * {guidesUrl}/creating-build-scans/[Creating build scans]
+ * link:../samples/sample_building_android_apps.html[Building Android apps]
+ * link:../samples/sample_building_java_applications.html[Building Java applications]
+ * link:../samples/sample_building_java_libraries.html[Building Java libraries]
+ * link:../samples/sample_building_groovy_applications.html[Building Groovy applications]
+ * link:../samples/sample_building_groovy_libraries.html[Building Groovy libraries]
+ * link:../samples/sample_building_scala_applications.html[Building Scala applications]
+ * link:../samples/sample_building_scala_libraries.html[Building Scala libraries]
+ * link:../samples/sample_building_kotlin_applications.html[Building Kotlin JVM applications]
+ * link:../samples/sample_building_kotlin_libraries.html[Building Kotlin JVM libraries]
+ * link:../samples/sample_building_cpp_applications.html[Building C++ applications]
+ * link:../samples/sample_building_cpp_libraries.html[Building C++ libraries]
+ * link:../samples/sample_building_swift_applications.html[Building Swift applications]
+ * link:../samples/sample_building_swift_libraries.html[Building Swift libraries]
+ * link:https://scans.gradle.com/[Creating build scans]
 
-There are also many other {guidesUrl}/[tutorials and guides] available, which you can filter by category — for example {guidesUrl}/?q=Fundamentals[Fundamentals].
+There are more samples available on the link:../samples/index.html[samples pages].
 
 == Command line vs IDEs
 
@@ -93,7 +101,7 @@ Here are some useful first steps on your journey to mastering Gradle:
  5. Familiarize yourself with the <<plugin_reference#plugin_reference,core plugins>> that come packaged with Gradle, as they provide a lot of useful functionality out of the box.
  6. Learn how to <<authoring_maintainable_build_scripts#authoring_maintainable_build_scripts,author maintainable build scripts>> and <<organizing_gradle_projects#organizing_gradle_projects,best organize your Gradle projects>>.
 
-The user manual contains a lot of other useful information and you can find more tutorials on various Gradle features among the link:{guidesUrl}/[Gradle Guides].
+The user manual contains a lot of other useful information and you can find samples demonstrating various Gradle features on the link:../samples/index.html[samples pages].
 
 == Integrating 3rd-party tools with Gradle
 

@@ -124,7 +124,7 @@ These allows you to add your own properties to a project or task that you can th
 +
 Conventions are a powerful way to simplify builds so that users can understand and use them more easily. This can be seen with builds that use standard project structures and naming conventions, such as <<building_java_projects#building_java_projects,Java builds>>. You can write your own plugins that provide conventions — they just need to configure default values for the relevant aspects of a build.
 
- * {guidesUrl}/implementing-gradle-plugins/#modeling_dsl_like_apis[A custom model].
+ * https://guides.gradle.org/implementing-gradle-plugins/#modeling_dsl_like_apis[A custom model].
 +
 Gradle allows you to introduce new concepts into a build beyond tasks, files and dependency configurations. You can see this with most language plugins, which add the concept of <<building_java_projects#sec:java_source_sets,_source sets_>> to a build. Appropriate modeling of a build process can greatly improve a build's ease of use and its efficiency.
 

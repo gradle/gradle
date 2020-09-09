@@ -44,7 +44,7 @@ public class BasicProjectGenerator implements ProjectGenerator {
     public void generate(InitSettings settings) {
         scriptBuilderFactory.script(settings.getDsl(), "build")
             .fileComment("This is a general purpose Gradle build.\n"
-                + "Learn how to create Gradle builds at " + documentationRegistry.getGuideFor("creating-new-gradle-builds"))
+                + "Learn more about Gradle by exploring our samples at " + documentationRegistry.getSampleIndex())
             .create(settings.getTarget())
             .generate();
     }
@@ -81,6 +81,6 @@ public class BasicProjectGenerator implements ProjectGenerator {
 
     @Override
     public Optional<String> getFurtherReading() {
-        return Optional.of(documentationRegistry.getGuideFor("creating-new-gradle-builds"));
+        return Optional.empty();
     }
 }
