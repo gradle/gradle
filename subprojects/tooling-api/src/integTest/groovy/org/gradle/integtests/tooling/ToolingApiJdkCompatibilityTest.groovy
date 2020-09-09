@@ -18,14 +18,13 @@ package org.gradle.integtests.tooling
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.util.TextUtil
 import org.junit.Assume
 import spock.lang.Unroll
 
 class ToolingApiJdkCompatibilityTest extends AbstractIntegrationSpec {
     def setupProject(File compilerJavaHome) {
-
-        String gradleUserHome = executer.gradleUserHomeDir.absolutePath.replaceAll("\\\\\\\\", "/").replaceAll("\\\\", "/")
-        String compilerJavaHomePath = compilerJavaHome.absolutePath.replaceAll("\\\\\\\\", "/").replaceAll("\\\\", "/")
+        String compilerJavaHomePath = TextUtil.normaliseFileSeparators(compilerJavaHome.absolutePath)
         buildFile << """
             plugins {
                 id 'java'
@@ -44,7 +43,7 @@ class ToolingApiJdkCompatibilityTest extends AbstractIntegrationSpec {
                 }
                 enableAssertions = true
 
-                args = [ "help", file("test-project"), project.findProperty("gradleVersion"), project.findProperty("targetJdk") ]
+                args = [ "help", file("test-project"), project.findProperty("gradleVersion"), project.findProperty("targetJdk"), gradle.gradleUserHomeDir ]
             }
 
             task buildAction(type: JavaExec) {
@@ -55,7 +54,7 @@ class ToolingApiJdkCompatibilityTest extends AbstractIntegrationSpec {
                 }
                 enableAssertions = true
 
-                args = [ "action", file("test-project"), project.findProperty("gradleVersion"), project.findProperty("targetJdk") ]
+                args = [ "action", file("test-project"), project.findProperty("gradleVersion"), project.findProperty("targetJdk"), gradle.gradleUserHomeDir ]
             }
 
             java {
@@ -93,20 +92,23 @@ public class ToolingApiCompatibilityClient {
             // 2. project directory
             // 3. target gradle version (or home)
             // 4. target JDK
-            if (args.length == 4) {
+            // 5. gradle user home
+            if (args.length == 5) {
                 String action = args[0];
                 File projectDir = new File(args[1]);
                 String gradleVersion = args[2];
                 File javaHome = new File(args[3]);
+                File gradleUserHome = new File(args[4]);
                 System.out.println("action = " + action);
                 System.out.println("projectDir = " + projectDir);
                 System.out.println("gradleVersion = " + gradleVersion);
                 System.out.println("javaHome = " + javaHome);
+                System.out.println("gradleUserHome = " + gradleUserHome);
                 if (action.equals("help")) {
-                    runHelp(projectDir, gradleVersion, javaHome);
+                    runHelp(projectDir, gradleVersion, javaHome, gradleUserHome);
                     System.exit(0);
                 } else if (action.equals("action")) {
-                    buildAction(projectDir, gradleVersion, javaHome);
+                    buildAction(projectDir, gradleVersion, javaHome, gradleUserHome);
                     System.exit(0);
                 }
             }
@@ -119,11 +121,11 @@ public class ToolingApiCompatibilityClient {
         }
     }
 
-    private static void runHelp(File projectLocation, String gradleVersion, File javaHome) throws Exception {
+    private static void runHelp(File projectLocation, String gradleVersion, File javaHome, File gradleUserHome) throws Exception {
         GradleConnector connector = GradleConnector.newConnector();
         connector.useGradleVersion(gradleVersion);
 
-        ProjectConnection connection = connector.forProjectDirectory(projectLocation).useGradleUserHomeDir(new File("$gradleUserHome")).connect();
+        ProjectConnection connection = connector.forProjectDirectory(projectLocation).useGradleUserHomeDir(gradleUserHome).connect();
 
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         ByteArrayOutputStream err = new ByteArrayOutputStream();
@@ -139,11 +141,11 @@ public class ToolingApiCompatibilityClient {
         System.err.println(err.toString());
     }
 
-   private static void buildAction(File projectLocation, String gradleVersion, File javaHome) throws Exception {
+   private static void buildAction(File projectLocation, String gradleVersion, File javaHome, File gradleUserHome) throws Exception {
         GradleConnector connector = GradleConnector.newConnector();
         connector.useGradleVersion(gradleVersion);
 
-        ProjectConnection connection = connector.forProjectDirectory(projectLocation).useGradleUserHomeDir(new File("$gradleUserHome")).connect();
+        ProjectConnection connection = connector.forProjectDirectory(projectLocation).useGradleUserHomeDir(gradleUserHome).connect();
 
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         ByteArrayOutputStream err = new ByteArrayOutputStream();
