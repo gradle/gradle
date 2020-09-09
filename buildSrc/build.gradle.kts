@@ -265,6 +265,15 @@ fun Project.applyKotlinProjectConventions() {
         configure<KotlinDslPluginOptions> {
             experimentalWarning.set(false)
         }
+
+        tasks.configureEach {
+            if (this.name == "generatePrecompiledScriptPluginAccessors") {
+                this.outputs.upToDateWhen {
+                    // There seems to be something wrong with up-to-date checking with this task
+                    false
+                }
+            }
+        }
     }
 
     configure<org.jlleitschuh.gradle.ktlint.KtlintExtension> {
