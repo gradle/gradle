@@ -120,7 +120,7 @@ public class ToolingApiCompatibilityClient {
         GradleConnector connector = GradleConnector.newConnector();
         connector.useGradleVersion(gradleVersion);
 
-        ProjectConnection connection = connector.forProjectDirectory(projectLocation).connect();
+        ProjectConnection connection = connector.forProjectDirectory(projectLocation).useGradleUserHomeDir(new File("$executer.gradleUserHomeDir.absolutePath")).connect();
 
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         ByteArrayOutputStream err = new ByteArrayOutputStream();
@@ -140,7 +140,7 @@ public class ToolingApiCompatibilityClient {
         GradleConnector connector = GradleConnector.newConnector();
         connector.useGradleVersion(gradleVersion);
 
-        ProjectConnection connection = connector.forProjectDirectory(projectLocation).connect();
+        ProjectConnection connection = connector.forProjectDirectory(projectLocation).useGradleUserHomeDir(new File("$executer.gradleUserHomeDir.absolutePath")).connect();
 
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         ByteArrayOutputStream err = new ByteArrayOutputStream();
