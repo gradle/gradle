@@ -72,7 +72,6 @@ Starting with this Gradle version the configuration cache gets discarded when th
 Previous versions kept the cached state, creating confusing situations that required manual cache invalidation.
 The problem report is now more helpful.
 It reports the source of problems more accurately, pointing at the offending location in plugins and scripts.
-Finally, support for composite builds used for build logic has landed.
 
 Read about this feature and its impact [on the Gradle blog](https://blog.gradle.org/introducing-configuration-caching). Track progress of configuration cache support by [core plugins](https://github.com/gradle/gradle/issues/13454) and [community plugins](https://github.com/gradle/gradle/issues/13490).
 
