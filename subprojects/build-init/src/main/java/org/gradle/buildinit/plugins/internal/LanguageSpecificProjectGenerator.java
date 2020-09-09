@@ -19,6 +19,7 @@ package org.gradle.buildinit.plugins.internal;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
 import org.gradle.buildinit.plugins.internal.modifiers.ComponentType;
 import org.gradle.buildinit.plugins.internal.modifiers.Language;
+import org.gradle.buildinit.plugins.internal.modifiers.ModularizationOption;
 
 import java.util.Optional;
 import java.util.Set;
@@ -30,6 +31,8 @@ public interface LanguageSpecificProjectGenerator {
 
     Language getLanguage();
 
+    Set<ModularizationOption> getModularizationOptions();
+
     Optional<String> getFurtherReading();
 
     Set<BuildInitTestFramework> getTestFrameworks();
@@ -38,5 +41,9 @@ public interface LanguageSpecificProjectGenerator {
 
     boolean supportsPackage();
 
-    void generate(InitSettings settings, BuildScriptBuilder buildScriptBuilder, TemplateFactory templateFactory);
+    void generateProjectBuildScript(String projectName, InitSettings settings, BuildScriptBuilder buildScriptBuilder);
+
+    void generateConventionPluginBuildScript(String conventionPluginName, InitSettings settings, BuildScriptBuilder buildScriptBuilder);
+
+    void generateSources(InitSettings settings, TemplateFactory templateFactory);
 }

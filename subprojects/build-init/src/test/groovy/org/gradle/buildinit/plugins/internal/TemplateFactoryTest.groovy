@@ -22,6 +22,7 @@ import org.gradle.api.internal.file.FileTreeInternal
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework
 import org.gradle.buildinit.plugins.internal.modifiers.Language
+import org.gradle.buildinit.plugins.internal.modifiers.ModularizationOption
 import spock.lang.Specification
 
 class TemplateFactoryTest extends Specification {
@@ -34,7 +35,7 @@ class TemplateFactoryTest extends Specification {
     def "generates from template within sourceSet"() {
         setup:
         def targetAsFile = new File(target)
-        def settings = new InitSettings("project", "app", BuildInitDsl.GROOVY, "", BuildInitTestFramework.NONE, targetDir)
+        def settings = new InitSettings("project", ["app"], ModularizationOption.SINGLE_PROJECT, BuildInitDsl.GROOVY, "", BuildInitTestFramework.NONE, targetDir)
         def factory = new TemplateFactory(settings, Language.withName(language), templateOperationFactory)
 
         when:
@@ -46,6 +47,7 @@ class TemplateFactoryTest extends Specification {
         1 * templateOperationFactory.newTemplateOperation() >> templateOperationBuilder
         1 * templateOperationBuilder.withTemplate("someTemplate/SomeClazz.somelang.template") >> templateOperationBuilder
         1 * templateOperationBuilder.withTarget(targetAsFile) >> templateOperationBuilder
+        1 * templateOperationBuilder.withBinding("basePackageName", "") >> templateOperationBuilder
         1 * templateOperationBuilder.withBinding("packageDecl", "") >> templateOperationBuilder
         1 * templateOperationBuilder.withBinding("className", "") >> templateOperationBuilder
         1 * templateOperationBuilder.create() >> Mock(TemplateOperation)
@@ -60,7 +62,7 @@ class TemplateFactoryTest extends Specification {
     def "generates source file with package from template"() {
         setup:
         def targetAsFile = new File(target)
-        def settings = new InitSettings("project", "app", BuildInitDsl.GROOVY, "my.lib", BuildInitTestFramework.NONE, targetDir)
+        def settings = new InitSettings("project", ["app"], ModularizationOption.SINGLE_PROJECT, BuildInitDsl.GROOVY, "my.lib", BuildInitTestFramework.NONE, targetDir)
         def factory = new TemplateFactory(settings, Language.withName(language), templateOperationFactory)
 
         when:
@@ -72,6 +74,7 @@ class TemplateFactoryTest extends Specification {
         1 * templateOperationFactory.newTemplateOperation() >> templateOperationBuilder
         1 * templateOperationBuilder.withTemplate("someTemplate/SomeClazz.somelang.template") >> templateOperationBuilder
         1 * templateOperationBuilder.withTarget(targetAsFile) >> templateOperationBuilder
+        1 * templateOperationBuilder.withBinding("basePackageName", "my.lib") >> templateOperationBuilder
         1 * templateOperationBuilder.withBinding("packageDecl", "package my.lib") >> templateOperationBuilder
         1 * templateOperationBuilder.withBinding("className", "") >> templateOperationBuilder
         1 * templateOperationBuilder.create() >> Mock(TemplateOperation)
@@ -86,12 +89,13 @@ class TemplateFactoryTest extends Specification {
     def "can specify output class name"() {
         setup:
         def targetAsFile = new File(target)
-        def settings = new InitSettings("project", "app", BuildInitDsl.GROOVY, packageName, BuildInitTestFramework.NONE, targetDir)
+        def settings = new InitSettings("project", ["app"], ModularizationOption.SINGLE_PROJECT, BuildInitDsl.GROOVY, packageName, BuildInitTestFramework.NONE, targetDir)
         def factory = new TemplateFactory(settings, Language.withName("somelang"), templateOperationFactory)
 
         when:
         factory.fromSourceTemplate("someTemplate/SomeClazz.somelang.template") {
-            it.className = className
+            it.subproject("app")
+            it.className(className)
         }
 
         then:
@@ -100,6 +104,7 @@ class TemplateFactoryTest extends Specification {
         1 * templateOperationFactory.newTemplateOperation() >> templateOperationBuilder
         1 * templateOperationBuilder.withTemplate("someTemplate/SomeClazz.somelang.template") >> templateOperationBuilder
         1 * templateOperationBuilder.withTarget(targetAsFile) >> templateOperationBuilder
+        1 * templateOperationBuilder.withBinding("basePackageName", _) >> templateOperationBuilder
         1 * templateOperationBuilder.withBinding("packageDecl", _) >> templateOperationBuilder
         1 * templateOperationBuilder.withBinding("className", className) >> templateOperationBuilder
         1 * templateOperationBuilder.create() >> Mock(TemplateOperation)
@@ -117,7 +122,7 @@ class TemplateFactoryTest extends Specification {
         def mainSourceFileTree = Mock(FileTreeInternal)
         def testSourceFileTree  = Mock(FileTreeInternal)
         def delegate = Mock(TemplateOperation)
-        def settings = new InitSettings("project", "app", BuildInitDsl.GROOVY, "my.lib", BuildInitTestFramework.NONE, targetDir)
+        def settings = new InitSettings("project", ["app"], ModularizationOption.SINGLE_PROJECT, BuildInitDsl.GROOVY, "my.lib", BuildInitTestFramework.NONE, targetDir)
         def factory = new TemplateFactory(settings, Language.withName("somelang"), templateOperationFactory)
 
         when:

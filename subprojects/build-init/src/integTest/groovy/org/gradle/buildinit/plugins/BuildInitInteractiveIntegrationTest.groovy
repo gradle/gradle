@@ -93,6 +93,14 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
         }
         handle.stdinPipe.write(("3" + TextUtil.platformLineSeparator).bytes)
 
+        // Select 'Single project'
+        ConcurrentTestUtil.poll(60) {
+            assert handle.standardOutput.contains("Should the build include library projects?:")
+            assert handle.standardOutput.contains("1: Single project")
+            assert handle.standardOutput.contains("2: Add library projects")
+        }
+        handle.stdinPipe.write(("1" + TextUtil.platformLineSeparator).bytes)
+
         // Select 'kotlin' DSL
         ConcurrentTestUtil.poll(60) {
             assert handle.standardOutput.contains(dslPrompt)

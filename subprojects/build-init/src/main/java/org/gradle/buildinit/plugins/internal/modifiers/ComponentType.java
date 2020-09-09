@@ -16,9 +16,12 @@
 
 package org.gradle.buildinit.plugins.internal.modifiers;
 
+import java.util.Arrays;
+import java.util.List;
+
 public enum ComponentType {
-    BASIC(null),
-    APPLICATION("app"),
+    BASIC(),
+    APPLICATION("app", "list", "utilities"),
     LIBRARY("lib"),
     GRADLE_PLUGIN("plugin") {
         @Override
@@ -27,14 +30,14 @@ public enum ComponentType {
         }
     };
 
-    private final String defaultProjectName;
+    private final List<String> defaultProjectNames;
 
-    ComponentType(String defaultProjectName) {
-        this.defaultProjectName = defaultProjectName;
+    ComponentType(String... defaultProjectNames) {
+        this.defaultProjectNames = Arrays.asList(defaultProjectNames);
     }
 
-    public String getDefaultProjectName() {
-        return defaultProjectName;
+    public List<String> getDefaultProjectNames() {
+        return defaultProjectNames;
     }
 
     @Override

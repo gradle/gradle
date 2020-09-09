@@ -62,7 +62,7 @@ class JavaApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
         run("run")
 
         then:
-        outputContains("Hello world")
+        outputContains("Hello World!")
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
@@ -165,7 +165,7 @@ class JavaApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
         run("run")
 
         then:
-        outputContains("Hello world")
+        outputContains("Hello World!")
 
         where:
         [scriptDsl, testFramework] << [ScriptDslFixture.SCRIPT_DSLS, [BuildInitTestFramework.JUNIT, BuildInitTestFramework.TESTNG]].combinations()
@@ -194,7 +194,7 @@ class JavaApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
         run("run")
 
         then:
-        outputContains("Hello world")
+        outputContains("Hello World!")
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS

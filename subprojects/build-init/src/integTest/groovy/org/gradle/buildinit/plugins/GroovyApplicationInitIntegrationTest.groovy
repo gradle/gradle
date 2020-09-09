@@ -49,7 +49,7 @@ class GroovyApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
         run("run")
 
         then:
-        outputContains("Hello world")
+        outputContains("Hello World!")
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
@@ -112,7 +112,7 @@ class GroovyApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
         run("run")
 
         then:
-        outputContains("Hello world")
+        outputContains("Hello World!")
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
