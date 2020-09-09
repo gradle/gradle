@@ -95,9 +95,9 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
 
         // Select 'Single project'
         ConcurrentTestUtil.poll(60) {
-            assert handle.standardOutput.contains("Should the build include library projects?:")
-            assert handle.standardOutput.contains("1: Single project")
-            assert handle.standardOutput.contains("2: Add library projects")
+            assert handle.standardOutput.contains("Split functionality across multiple subprojects?:")
+            assert handle.standardOutput.contains("1: no - only one application project")
+            assert handle.standardOutput.contains("2: yes - application and library projects")
         }
         handle.stdinPipe.write(("1" + TextUtil.platformLineSeparator).bytes)
 

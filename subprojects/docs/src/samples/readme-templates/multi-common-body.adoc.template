@@ -48,10 +48,10 @@ Select type of project to generate:
   4: Gradle plugin
 Enter selection (default: basic) [1..4] ${componentTypeIndex.raw}
 
-Should the build include library projects?:
-  1: Single project
-  2: Add library projects
-Enter selection (default: Single project) [1..2] 2
+Split functionality across multiple subprojects?:
+   1: no - only one application project
+   2: yes - application and library projects
+Enter selection (default: no - only one application project) [1..2] 2
 
 Select implementation language:
   1: C++
