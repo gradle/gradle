@@ -110,6 +110,7 @@ All taken from the selected toolchain above.
 
 Using the snippet above, Gradle handles setting up the build and environment accordingly.
 It will detect locally installed Java versions to run the build according to the specified requirements.
+
 By default, Gradle supports common installation locations on various operating systems as well as popular package managers like asdf-vm, jabba and SDKMAN!.
 If no matching Java version is available locally, it will download a matching JDK from AdoptOpenJDK.
 
@@ -122,11 +123,7 @@ Learn more about this new feature in the [Java Toolchain documentation](userguid
 Gradle now supports running on and building with [Java 15](https://openjdk.java.net/projects/jdk/15/). 
 
 <a name="managing-build-complexity"></a>
-## Managing build complexity
-
-### buildSrc with included builds
-
-TODO
+## Managing build complexity 
 
 ### Abbreviation of kebab-case project names
 
@@ -177,6 +174,16 @@ Enter selection [1..2] 2
 ```  
 
 For [Maven-to-Gradle conversion](userguide/migrating_from_maven.html), this release adds support for generating Kotlin DSL scripts.
+
+### Included builds are now visible to buildSrc
+
+We recommend that builds use the specially named [buildSrc](userguide/organizing_gradle_projects.html#sec:build_sources) build to organize imperative and common build logic. Sometimes, you'd like to also apply common build logic to the `buildSrc` itself.
+
+In the past, `buildSrc` had a limitation that prevented it from participating in [composite builds](userguide/composite_builds.html#composite_build_intro) as a full member. `buildSrc` was unable to substitute any dependency for an included build. In this release, it's now possible to share build logic between `buildSrc` and the root build or any other included build. This makes it easier to share common repository declarations between `buildSrc` and other builds or to apply common conventions to both `buildSrc` and other builds. 
+
+This is a step along the way to making `buildSrc` behave as a regular included build.  
+
+[See this sample](samples/sample_sharing_convention_plugins_with_build_logic.html) which demonstrates sharing common build logic between the root build and `buildSrc` using a second included build (`build-conventions`). 
 
 ## New dependency management features
 
