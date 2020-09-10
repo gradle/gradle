@@ -598,6 +598,7 @@ $append
     // Ideally we should warn when such things happen (linting).
     @Unroll
     @Issue("https://github.com/gradle/gradle/issues/14039")
+    @ToBeFixedForConfigurationCache
     def "substituted project dependencies are also substituted in the generated Ivy file"() {
         createBuildScripts("""
             dependencies {
