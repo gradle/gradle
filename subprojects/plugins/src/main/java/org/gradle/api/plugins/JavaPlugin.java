@@ -509,7 +509,8 @@ public class JavaPlugin implements Plugin<Project> {
             ArtifactView view = runtimeClasspath.getIncoming().artifactView(config -> {
                 config.componentFilter(componentId -> {
                     if (componentId instanceof OpaqueComponentIdentifier) {
-                        return !(((OpaqueComponentIdentifier) componentId).getClassPathNotation() == DependencyFactory.ClassPathNotation.GRADLE_API);
+                        DependencyFactory.ClassPathNotation classPathNotation = ((OpaqueComponentIdentifier) componentId).getClassPathNotation();
+                        return classPathNotation != DependencyFactory.ClassPathNotation.GRADLE_API && classPathNotation != DependencyFactory.ClassPathNotation.LOCAL_GROOVY;
                     }
                     return true;
                 });
