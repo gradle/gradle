@@ -71,9 +71,9 @@ public class InitBuild extends DefaultTask {
     }
 
     /**
-     * Should the build be modularized already (i.e. have multiple subprojects)
+     * Should the build be split into multiple subprojects?
      *
-     * This property can be set via command-line option '--modularized'.
+     * This property can be set via command-line option '--split-project'.
      *
      * @since 6.7
      */
