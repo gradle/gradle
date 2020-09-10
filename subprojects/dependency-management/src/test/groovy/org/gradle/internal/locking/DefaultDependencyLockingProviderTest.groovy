@@ -298,6 +298,7 @@ empty=
         'invalid'       | 'invalid'
         ',org:foo'      | ''
         'org:foo:1.0'   | 'org:foo:1.0'
+        '*:*'           | '*:*'
     }
 
     private DefaultDependencyLockingProvider newProvider() {

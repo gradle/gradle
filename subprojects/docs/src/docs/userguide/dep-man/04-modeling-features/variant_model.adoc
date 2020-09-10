@@ -255,7 +255,7 @@ An ambiguous variant selection looks somewhat like the following:
                   - Provides org.gradle.dependency.bundling 'external'
                   - Provides org.gradle.jvm.version '11'
                   - Required org.gradle.libraryelements 'classes' and found value 'jar'.
-                  - Provides 'java-api'
+                  - Provides org.gradle.usage 'java-api'
           - Variant 'feature2ApiElements' capability org.test:test-capability:1.0:
               - Unmatched attribute:
                   - Found org.gradle.category 'library' but wasn't required.
@@ -275,7 +275,7 @@ These are then grouped into two sections:
 There cannot be any mismatched attributes as the variant would not be a candidate then.
 Similarly, the set of displayed variants also excludes the ones that have been disambiguated.
 
-In the example above, the fix does not lie in attribute matching but in <<dependency_constraints.adoc#sec:adding-constraints-transitive-deps,capability matching>>, which are shown next to the variant name.
+In the example above, the fix does not lie in attribute matching but in <<dependency_capability_conflict.adoc#sub:selecting-between-candidates,capability matching>>, which are shown next to the variant name.
 Because these two variants effectively provide the same attributes and capabilities, they cannot be disambiguated.
 So in this case, the fix is most likely to provide different capabilities on the producer side (`project :lib`) and express a capability choice on the consumer side (`project :ui`).
 

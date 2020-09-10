@@ -244,6 +244,7 @@ Once you have activated the feature preview (see above), you can simply follow t
 
 Then after confirming the single lock file per project contains the lock state for a given configuration, the matching per configuration lock file can be removed from `gradle/dependency-locks`.
 
+[[configuring_the_per_project_lock_file_name_and_location]]
 === Configuring the per project lock file name and location
 
 When using the single lock file per project, you can configure its name and location.
@@ -255,6 +256,41 @@ One trivial example in the JVM ecosystem is the Scala version that is often foun
 include::sample[dir="snippets/dependencyManagement/dependencyLocking-lockingSingleFilePerProject/groovy",files="build.gradle[tags=locking-file-name]"]
 include::sample[dir="snippets/dependencyManagement/dependencyLocking-lockingSingleFilePerProject/kotlin",files="build.gradle.kts[tags=locking-file-name]"]
 ====
+
+[[ignoring_dependencies]]
+== Ignoring specific dependencies from the lock state
+
+Dependency locking can be used in cases where reproducibility is not the main goal.
+As a build author, you may want to have different frequency of dependency version updates, based on their origin for example.
+In that case, it might be convenient to ignore some dependencies because you always want to use the latest version for those.
+An example is the internal dependencies in an organization which should always use the latest version as opposed to third party dependencies which have a different upgrade cycle.
+
+[WARNING]
+====
+This feature can break reproducibility and should be used with caution.
+There are scenarios that are better served with leveraging  <<#fine_tuning_dependency_locking_behaviour_with_lock_mode,different lock modes>> or <<#configuring_the_per_project_lock_file_name_and_location,using different names for lock files>>.
+====
+
+You can configure ignored dependencies in the `dependencyLocking` project extension:
+
+.Ignoring dependencies for the lock state
+====
+include::sample[dir="snippets/dependencyManagement/dependencyLocking-lockingSingleFilePerProject/groovy",files="build.gradle[tags=ignore-dependencies]"]
+include::sample[dir="snippets/dependencyManagement/dependencyLocking-lockingSingleFilePerProject/kotlin",files="build.gradle.kts[tags=ignore-dependencies]"]
+====
+
+The notation is a `<group>:<name>` dependency notation, where `\*` can be used as a trailing wildcard.
+See <<#selectively_updating_lock_state_entries,the description>> on updating lock files for more details.
+Note that the value `*:*` is not accepted as it is equivalent to disabling locking.
+
+Ignoring dependencies will have the following effects:
+
+* An ignored dependency applies to all locked configurations. The setting is project scoped.
+* Ignoring a dependency does not mean lock state ignores its transitive dependencies.
+* There is no validation that an ignored dependency is present in any configuration resolution.
+* If the dependency is present in lock state, loading it will filter out the dependency.
+* If the dependency is present in the resolution result, it will be ignored when validating that resolution matches the lock state.
+* Finally, if the dependency is present in the resolution result and the lock state is persisted, it will be absent from the written lock state.
 
 [[locking_limitations]]
 == Locking limitations

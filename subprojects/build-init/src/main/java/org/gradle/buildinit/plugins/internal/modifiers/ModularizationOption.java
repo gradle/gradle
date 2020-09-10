@@ -20,8 +20,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public enum ModularizationOption implements WithIdentifier {
-    SINGLE_PROJECT("Single project"),
-    WITH_LIBRARY_PROJECTS("Add library projects");
+    SINGLE_PROJECT("no - only one application project"),
+    WITH_LIBRARY_PROJECTS("yes - application and library projects");
 
     public static ModularizationOption byId(String id) {
         for (ModularizationOption option : values()) {

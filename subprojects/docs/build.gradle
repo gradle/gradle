@@ -99,6 +99,10 @@ samples {
         gradlePluginInJava {
             target = "greeting-plugin"
         }
+        gradlePluginInJavaInBuildSrc {
+            sourceDirectory = gradlePluginInJava.sourceDirectory
+            target = "buildSrc"
+        }
         buildSrcPluginJavaModuleTransform
 
         javaApplication
@@ -233,6 +237,24 @@ samples {
                 from(templates.javaUtilitiesLibraryAsSubproject)
             }
         }
+        jvmMultiProjectWithToolchains {
+            sampleDirectory = samplesRoot.dir("java/jvm-multi-project-with-toolchains")
+            displayName = "Using toolchains"
+            description = "Use toolchains to configure the JVM to use for compilation and testing."
+            category = "Java"
+
+            common {
+                from(templates.javaApplicationAsSubproject)
+                from(templates.javaJunit5TestForApplication)
+                from(templates.javaJunit5IntegrationTestForApplication)
+
+                from(templates.javaListLibraryAsSubproject)
+                from(templates.javaJunit5TestForListLibrary)
+                from(templates.javaJunit5IntegrationTestForUtilitiesLibrary)
+
+                from(templates.javaUtilitiesLibraryAsSubproject)
+            }
+        }
         buildingJavaModules {
             sampleDirectory = samplesRoot.dir("java/modules-multi-project")
             description = "Build Java Modules and a modular Java application."
@@ -334,6 +356,18 @@ samples {
             category = "Build organization"
             common {
                 from(templates.precompiledScriptPluginUtils)
+            }
+        }
+
+        sharingConventionPluginsWithBuildLogic {
+            sampleDirectory = samplesRoot.dir("build-organization/sharing-convention-plugins-with-build-logic")
+            displayName = "Sharing convention plugins with build logic build"
+            description = "Reuse convention plugins in both main build and build logic build"
+            category = "Build organization"
+            common {
+                from(templates.javaApplicationAsSubproject)
+                from(templates.javaUtilitiesLibraryAsSubproject)
+                from(templates.javaListLibraryAsSubproject)
             }
         }
 
