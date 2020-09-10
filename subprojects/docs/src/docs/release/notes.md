@@ -178,36 +178,6 @@ Enter selection [1..2] 2
 
 For [Maven-to-Gradle conversion](userguide/migrating_from_maven.html), this release adds support for generating Kotlin DSL scripts.
 
-## Documentation and samples
-
-### New samples
-
-The [sample index](samples/index.html) includes new samples, with step-by-step instructions on how to get started with Gradle for different project types and programming languages:
-
-- Building an application with libraries:
-[Java](samples/sample_building_java_applications_multi_project.html),
-[Groovy](samples/sample_building_groovy_applications_multi_project.html),
-[Scala](samples/sample_building_scala_applications_multi_project.html),
-[Kotlin](samples/sample_building_kotlin_applications_multi_project.html)
-- Building a simple application:
-[Java](samples/sample_building_java_applications.html),
-[Groovy](samples/sample_building_groovy_applications.html),
-[Scala](samples/sample_building_scala_applications.html),
-[Kotlin](samples/sample_building_kotlin_applications.html),
-[C++](samples/sample_building_cpp_applications.html),
-[Swift](samples/sample_building_swift_applications.html)
-- Building a single library:
-[Java](samples/sample_building_java_libraries.html),
-[Groovy](samples/sample_building_groovy_libraries.html),
-[Scala](samples/sample_building_scala_libraries.html),
-[Kotlin](samples/sample_building_kotlin_libraries.html),
-[C++](samples/sample_building_cpp_libraries.html),
-[Swift](samples/sample_building_swift_libraries.html)
-
-### Authoring multi-project builds 
-
-We've reworked our documentation for [authoring multi-project builds](userguide/multi_project_builds.html). We also have some [new guidance on how to share build logic between subprojects](userguide/sharing_build_logic_between_subprojects.html#sec:convention_plugins) with [convention plugins](samples/sample_convention_plugins.html).
-
 ## New dependency management features
 
 ### Compile-only API dependencies for JVM libraries
@@ -274,6 +244,36 @@ dependencyLocking {
 With the above, any dependency in the `com.example` group will be ignored by the lock state validation or writing.
 
 See the documentation for more details on [ignored dependencies in locking](userguide/dependency_locking.html#ignoring_dependencies).
+
+## Documentation and samples
+
+### New samples
+
+The [sample index](samples/index.html) includes new samples, with step-by-step instructions on how to get started with Gradle for different project types and programming languages:
+
+- Building an application with libraries:
+[Java](samples/sample_building_java_applications_multi_project.html),
+[Groovy](samples/sample_building_groovy_applications_multi_project.html),
+[Scala](samples/sample_building_scala_applications_multi_project.html),
+[Kotlin](samples/sample_building_kotlin_applications_multi_project.html)
+- Building a simple application:
+[Java](samples/sample_building_java_applications.html),
+[Groovy](samples/sample_building_groovy_applications.html),
+[Scala](samples/sample_building_scala_applications.html),
+[Kotlin](samples/sample_building_kotlin_applications.html),
+[C++](samples/sample_building_cpp_applications.html),
+[Swift](samples/sample_building_swift_applications.html)
+- Building a single library:
+[Java](samples/sample_building_java_libraries.html),
+[Groovy](samples/sample_building_groovy_libraries.html),
+[Scala](samples/sample_building_scala_libraries.html),
+[Kotlin](samples/sample_building_kotlin_libraries.html),
+[C++](samples/sample_building_cpp_libraries.html),
+[Swift](samples/sample_building_swift_libraries.html)
+
+### Authoring multi-project builds 
+
+We've reworked our documentation for [authoring multi-project builds](userguide/multi_project_builds.html). We also have some [new guidance on how to share build logic between subprojects](userguide/sharing_build_logic_between_subprojects.html#sec:convention_plugins) with [convention plugins](samples/sample_convention_plugins.html).
 
 ## Promoted features
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
