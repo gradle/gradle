@@ -45,8 +45,8 @@ public class IntegrationTestSamplesExecutor extends CommandExecutor {
     public IntegrationTestSamplesExecutor(File workingDir, boolean expectFailure) {
         this.workingDir = workingDir;
         this.expectFailure = expectFailure;
-        GradleDistribution distribution = new UnderDevelopmentGradleDistribution(getBuildContext());
-        this.gradle = new GradleContextualExecuter(distribution, new TestNameTestDirectoryProvider(IntegrationTestSamplesExecutor.class), getBuildContext());
+        GradleDistribution distribution = new UnderDevelopmentGradleDistribution(IntegrationTestBuildContext.INSTANCE);
+        this.gradle = new GradleContextualExecuter(distribution, new TestNameTestDirectoryProvider(IntegrationTestSamplesExecutor.class), IntegrationTestBuildContext.INSTANCE);
     }
 
     @Override
@@ -78,10 +78,6 @@ public class IntegrationTestSamplesExecutor extends CommandExecutor {
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
-    }
-
-    private static IntegrationTestBuildContext getBuildContext() {
-        return IntegrationTestBuildContext.INSTANCE;
     }
 
     private static String capitalize(String s) {
