@@ -5,8 +5,11 @@ Now you could complete this exercise by trying to compile some ${language.raw} c
 
 == Next steps
 
-Building a library is just one aspect of reusing code across project boundaries. From here, you may be interested in:
+Building a library is just one aspect of reusing code across project boundaries.
+From here, you may be interested in:
 
- - link:{userManualPath}/artifact_dependencies_tutorial.html[Consuming JVM libraries]
+ - link:{userManualPath}/building_java_projects.html[Building Java & JVM projects]
+ - link:{userManualPath}/java_library_plugin.html[Java Library Plugin documentation]
+ - Consuming JVM libraries using link:{userManualPath}/core_dependency_management.html[dependency management]
  - link:{userManualPath}/publishing_setup.html[Publishing JVM libraries]
  - link:{userManualPath}/multi_project_builds.html[Working with multi-project builds]

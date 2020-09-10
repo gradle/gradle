@@ -243,10 +243,11 @@ public class InitBuild extends DefaultTask {
         }
 
         List<String> subprojectNames = initDescriptor.getComponentType().getDefaultProjectNames();
-        initDescriptor.generate(new InitSettings(projectName, subprojectNames,
-            modularizationOption, dsl, packageName, testFramework, projectDir));
+        InitSettings settings = new InitSettings(projectName, subprojectNames,
+            modularizationOption, dsl, packageName, testFramework, projectDir);
+        initDescriptor.generate(settings);
 
-        initDescriptor.getFurtherReading().ifPresent(link -> getLogger().lifecycle("Get more help with your project: {}", link));
+        initDescriptor.getFurtherReading(settings).ifPresent(link -> getLogger().lifecycle("Get more help with your project: {}", link));
     }
 
     @Option(option = "type", description = "Set the type of project to generate.")

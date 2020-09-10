@@ -89,7 +89,7 @@ public abstract class JvmGradlePluginProjectInitDescriptor extends LanguageLibra
     }
 
     @Override
-    public Optional<String> getFurtherReading() {
+    public Optional<String> getFurtherReading(InitSettings settings) {
         return Optional.of(documentationRegistry.getDocumentationFor("custom_plugins"));
     }
 

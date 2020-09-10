@@ -34,21 +34,10 @@ import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFrame
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework.TESTNG;
 
 public class Description {
-    public final static Description JAVA_APPLICATION = new Description(
+    public final static Description JAVA = new Description(
         Language.JAVA,
         JUNIT,
         Arrays.asList(JUNIT, JUNIT_JUPITER, TESTNG, SPOCK),
-        "Java Quickstart",
-        "tutorial_java_projects",
-        null, null
-    );
-
-    public final static Description JAVA_LIBRARY = new Description(
-        Language.JAVA,
-        JUNIT,
-        Arrays.asList(JUNIT, JUNIT_JUPITER, TESTNG, SPOCK),
-        "Java Libraries",
-        "java_library_plugin",
         null, null
     );
 
@@ -56,8 +45,6 @@ public class Description {
         Language.GROOVY,
         SPOCK,
         Collections.singletonList(SPOCK),
-        "Groovy Quickstart",
-        "tutorial_groovy_projects",
         "groovy", null
     );
 
@@ -65,8 +52,6 @@ public class Description {
         Language.SCALA,
         SCALATEST,
         Collections.singletonList(SCALATEST),
-        "Scala plugin",
-        "scala_plugin",
         "scala", null
     );
 
@@ -74,26 +59,20 @@ public class Description {
         Language.KOTLIN,
         KOTLINTEST,
         Collections.singletonList(KOTLINTEST),
-        null,
-        null,
         "org.jetbrains.kotlin.jvm", "kotlin"
     );
 
     private final Language language;
     private final BuildInitTestFramework defaultTestFramework;
     private final Set<BuildInitTestFramework> supportedTestFrameworks;
-    private final String chapterName;
-    private final String userManualId;
     private final String pluginName;
     private final String pluginVersionProperty;
 
     private Description(Language language, BuildInitTestFramework defaultTestFramework, List<BuildInitTestFramework> supportedTestFrameworks,
-                        String chapterName, String userManualId, String pluginName, String pluginVersionProperty) {
+                        String pluginName, String pluginVersionProperty) {
         this.language = language;
         this.defaultTestFramework = defaultTestFramework;
         this.supportedTestFrameworks = new TreeSet<>(supportedTestFrameworks);
-        this.chapterName = chapterName;
-        this.userManualId = userManualId;
         this.pluginName = pluginName;
         this.pluginVersionProperty = pluginVersionProperty;
     }
@@ -108,16 +87,6 @@ public class Description {
 
     public Set<BuildInitTestFramework> getSupportedTestFrameworks() {
         return supportedTestFrameworks;
-    }
-
-    @Nullable
-    public String getChapterName() {
-        return chapterName;
-    }
-
-    @Nullable
-    public String getUserManualId() {
-        return userManualId;
     }
 
     @Nullable

@@ -19,6 +19,7 @@ package org.gradle.buildinit.tasks
 import org.gradle.api.GradleException
 import org.gradle.buildinit.plugins.internal.BuildConverter
 import org.gradle.buildinit.plugins.internal.BuildInitializer
+import org.gradle.buildinit.plugins.internal.InitSettings
 import org.gradle.buildinit.plugins.internal.ProjectLayoutSetupRegistry
 import org.gradle.buildinit.plugins.internal.modifiers.ComponentType
 import org.gradle.buildinit.plugins.internal.modifiers.Language
@@ -69,7 +70,7 @@ class InitBuildSpec extends Specification {
         projectSetupDescriptor.defaultDsl >> GROOVY
         projectSetupDescriptor.testFrameworks >> [NONE]
         projectSetupDescriptor.defaultTestFramework >> NONE
-        projectSetupDescriptor.furtherReading >> Optional.empty()
+        projectSetupDescriptor.getFurtherReading(_ as InitSettings) >> Optional.empty()
 
         when:
         init.setupProjectLayout()
@@ -84,7 +85,7 @@ class InitBuildSpec extends Specification {
         projectSetupDescriptor.modularizationOptions >> [ModularizationOption.SINGLE_PROJECT]
         projectSetupDescriptor.testFrameworks >> [SPOCK]
         projectSetupDescriptor.dsls >> [GROOVY, KOTLIN]
-        projectSetupDescriptor.furtherReading >> Optional.empty()
+        projectSetupDescriptor.getFurtherReading(_ as InitSettings) >> Optional.empty()
         projectSetupDescriptor.componentType >> ComponentType.LIBRARY
         init.type = "java-library"
         init.dsl = "kotlin"

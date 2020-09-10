@@ -78,5 +78,5 @@ public interface BuildInitializer extends BuildContentGenerator {
     /**
      * Returns a collection of further reading related to this type of build (may be empty).
      */
-    Optional<String> getFurtherReading();
+    Optional<String> getFurtherReading(InitSettings settings);
 }

@@ -47,4 +47,8 @@ public class DocumentationRegistry {
     public String getSampleIndex() {
         return String.format("https://docs.gradle.org/%s/samples", gradleVersion.getVersion());
     }
+
+    public String getSampleFor(String id) {
+        return String.format("https://docs.gradle.org/%s/samples/sample_%s.html", gradleVersion.getVersion(), id);
+    }
 }

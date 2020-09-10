@@ -33,7 +33,7 @@ public interface LanguageSpecificProjectGenerator {
 
     Set<ModularizationOption> getModularizationOptions();
 
-    Optional<String> getFurtherReading();
+    Optional<String> getFurtherReading(InitSettings settings);
 
     Set<BuildInitTestFramework> getTestFrameworks();
 

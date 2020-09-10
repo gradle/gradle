@@ -122,7 +122,7 @@ public class PomProjectInitDescriptor implements BuildConverter {
     }
 
     @Override
-    public Optional<String> getFurtherReading() {
+    public Optional<String> getFurtherReading(InitSettings settings) {
         return Optional.of(documentationRegistry.getDocumentationFor("migrating_from_maven"));
     }
 }

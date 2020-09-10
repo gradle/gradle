@@ -73,8 +73,8 @@ public class ProjectLayoutSetupRegistryFactory {
         BuildInitializer basicType = of(new BasicProjectGenerator(scriptBuilderFactory, documentationRegistry), commonGenerators);
         PomProjectInitDescriptor mavenBuildConverter = new PomProjectInitDescriptor(mavenSettingsProvider, scriptBuilderFactory, documentationRegistry);
         ProjectLayoutSetupRegistry registry = new ProjectLayoutSetupRegistry(basicType, mavenBuildConverter, templateOperationBuilder);
-        registry.add(of(new JvmApplicationProjectInitDescriptor(Description.JAVA_APPLICATION, libraryVersionProvider, documentationRegistry), jvmProjectGenerators, libraryVersionProvider));
-        registry.add(of(new JvmLibraryProjectInitDescriptor(Description.JAVA_LIBRARY, libraryVersionProvider, documentationRegistry), jvmProjectGenerators, libraryVersionProvider));
+        registry.add(of(new JvmApplicationProjectInitDescriptor(Description.JAVA, libraryVersionProvider, documentationRegistry), jvmProjectGenerators, libraryVersionProvider));
+        registry.add(of(new JvmLibraryProjectInitDescriptor(Description.JAVA, libraryVersionProvider, documentationRegistry), jvmProjectGenerators, libraryVersionProvider));
         registry.add(of(new JvmApplicationProjectInitDescriptor(Description.GROOVY, libraryVersionProvider, documentationRegistry), jvmProjectGenerators, libraryVersionProvider));
         registry.add(of(new JvmLibraryProjectInitDescriptor(Description.GROOVY, libraryVersionProvider, documentationRegistry), jvmProjectGenerators, libraryVersionProvider));
         registry.add(of(new JvmApplicationProjectInitDescriptor(Description.SCALA, libraryVersionProvider, documentationRegistry), jvmProjectGenerators, libraryVersionProvider));
