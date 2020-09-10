@@ -23,14 +23,19 @@ import gradlebuild.performance.reporter.PerformanceReporter
 import groovy.json.JsonOutput
 import groovy.transform.CompileStatic
 import org.apache.commons.io.FileUtils
+import org.gradle.api.Task
+import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.LocalState
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputDirectory
+import org.gradle.api.tasks.PathSensitive
+import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.options.Option
 import org.gradle.process.CommandLineArgumentProvider
@@ -215,7 +220,16 @@ abstract class PerformanceTest extends DistributionTest {
 
     @Optional
     @Input
-    abstract Property<String> getTestProject()
+    abstract Property<String> getTestProjectName()
+
+    @PathSensitive(PathSensitivity.RELATIVE)
+    @InputFiles
+    abstract ConfigurableFileCollection getTestProjectFiles()
+
+    void setTestProjectGenerationTask(Task testProjectGenerationTask) {
+        getTestProjectName().set(testProjectGenerationTask.name)
+        getTestProjectFiles().setFrom(testProjectGenerationTask)
+    }
 
     void addDatabaseParameters(Map<String, String> databaseConnectionParameters) {
         this.databaseParameters.putAll(databaseConnectionParameters)
@@ -257,7 +271,7 @@ abstract class PerformanceTest extends DistributionTest {
 
         private void addExecutionParameters(List<String> result) {
             addSystemPropertyIfExist(result, "org.gradle.performance.scenarios", scenarios)
-            addSystemPropertyIfExist(result, "org.gradle.performance.testProject", getTestProject().getOrNull())
+            addSystemPropertyIfExist(result, "org.gradle.performance.testProject", getTestProjectName().getOrNull())
             addSystemPropertyIfExist(result, "org.gradle.performance.baselines", determinedBaselines.getOrNull())
             addSystemPropertyIfExist(result, "org.gradle.performance.execution.warmups", warmups)
             addSystemPropertyIfExist(result, "org.gradle.performance.execution.runs", runs)

@@ -252,8 +252,7 @@ class PerformanceTestPlugin : Plugin<Project> {
                     performanceReporter = createPerformanceReporter()
                     channel = "adhoc"
                     outputs.doNotCacheIf("Is adhoc performance test") { true }
-                    testProject.set(sampleGenerator.name)
-                    dependsOn(sampleGenerator)
+                    setTestProjectGenerationTask(sampleGenerator)
                 }
             }
         }
