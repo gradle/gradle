@@ -67,6 +67,7 @@ class ConfigurationCacheReport {
         }
     }
 
+    @Suppress("DEPRECATION") // TODO Fix once we build with Kotlin 1.4
     private
     fun BufferedWriter.writeReportFileText(htmlReader: BufferedReader, cacheAction: String, problems: List<PropertyProblem>) {
         var dataWritten = false
@@ -89,6 +90,7 @@ class ConfigurationCacheReport {
      * The text is laid out in such a way as to allow extracting the pure JSON model
      * by looking for `// begin-report-data` and `// end-report-data`.
      */
+    @Suppress("DEPRECATION") // TODO Fix once we build with Kotlin 1.4
     private
     fun BufferedWriter.writeJsReportData(cacheAction: String, problems: List<PropertyProblem>) {
         appendln("function configurationCacheProblems() { return (")
@@ -98,6 +100,7 @@ class ConfigurationCacheReport {
         appendln(");}")
     }
 
+    @Suppress("DEPRECATION") // TODO Fix once we build with Kotlin 1.4
     private
     fun BufferedWriter.writeJsonModelFor(cacheAction: String, problems: List<PropertyProblem>) {
         val documentationRegistry = DocumentationRegistry()
