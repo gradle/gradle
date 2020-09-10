@@ -71,12 +71,12 @@ The [sample index](samples) includes new samples, with step-by-step instructions
 [Scala](samples/sample_building_scala_applications_multi_project.html),
 [Kotlin](samples/sample_building_kotlin_applications_multi_project.html)
 - Building an isolated library:
-[Java](samples/sample_building_java_library.html),
-[Groovy](samples/sample_building_groovy_library.html),
-[Scala](samples/sample_building_scala_library.html),
-[Kotlin](samples/sample_building_kotlin_library.html),
-[C++](samples/sample_building_cpp_library.html),
-[Swift](samples/sample_building_swift_library.html)
+[Java](samples/sample_building_java_libraries.html),
+[Groovy](samples/sample_building_groovy_libraries.html),
+[Scala](samples/sample_building_scala_libraries.html),
+[Kotlin](samples/sample_building_kotlin_libraries.html),
+[C++](samples/sample_building_cpp_libraries.html),
+[Swift](samples/sample_building_swift_libraries.html)
 
 ## `gradle init` improvements
 
