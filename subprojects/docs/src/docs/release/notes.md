@@ -1,21 +1,12 @@
 The Gradle team is excited to announce Gradle @version@.
 
-With this release [file system watching is ready for production use](#file-system-watching-is-ready-for-production-use).
-If you are suffering from long build times in incremental builds, turn this feature on to speed them up.
-We have seen ~20% improvements on incremental builds for large projects.
+This release continues on the series of performance improvements, particularly for incremental builds. File-system watching introduced in Gradle 6.5 is [now ready for production use](#file-system-watching-is-ready-for-production-use). You can expect up to 20% build speed improvements on large projects when turning this feature on. Additionally, the experimental [configuration cache](#configuration-cache-improvements) has been improved to make troubleshooting easier for early adopters.
 
-This release of Gradle not only fully supports the latest Java release - [JDK 15](#support-for-java-15) -
-but finally adds support for declaring [Java toolchains](#toolchains-for-jvm-projects), including automatic download of JDKs.
-Furthermore, Java (and Groovy, Scala, Kotlin) library author can now declare [compile only API dependencies](#compile-only-api-dependencies-for-jvm-libraries) when using the `java-library` plugin.
+This release introduces [Java toolchain APIs](#toolchains-for-jvm-projects) that make it much easier to build JVM projects using a different version of Java than the one Gradle is running on. Gradle itself can now run on [Java 15](#support-for-java-15). 
 
-When Gradle projects grow, a build may quickly become complex.
-With that in mind, we have started to work on usability improvements and giving better guidelines for working with Gradle builds and organizing build logic.
-In this release, we made it more comfortable to [call tasks from the command line when using _kebab-case_ project names](#abbreviation-of-kebab-case-project-names)
-and, to help you with organizing build logic, added [new options to `gradle init`](#gradle-init-improvements) and [samples](#new-samples) that walk you step-by-step through recommended build structures. 
+Gradle's dependency management includes support for [compile only API dependencies](#compile-only-api-dependencies-for-jvm-libraries), [version ranges in repository content filtering](#version-ranges-in-repository-content-filtering) and the ability to [ignore selected dependencies in dependency locking](#ignore-dependencies-in-dependency-lock-state). 
 
-Furthermore, dependency management gets more features with the [support for version ranges in repository content filtering](#version-ranges-in-repository-content-filtering)
-and the [ability to ignore selected dependencies in the dependency lock state](#ignore-dependencies-in-dependency-lock-state).
-The experimental [configuration cache](#configuration-cache-improvements) has been improved further.
+This release also includes additional guidance and new samples for [managing build complexity over time](#managing-build-complexity). When starting new projects, [`gradle init`](#gradle-init) now generates sample projects that follow our latest recommendations and best practices. 
 
 We would like to thank the following community contributors to this release of Gradle:
 
@@ -33,7 +24,7 @@ We would like to thank the following community contributors to this release of G
 [Thad House](https://github.com/ThadHouse),
 and [Michał Mlak](https://github.com/Miehau).
 
-## Upgrade Instructions
+## Upgrade instructions
 
 Switch your build to use Gradle @version@ by updating your wrapper:
 
@@ -45,8 +36,9 @@ For Java, Groovy, Kotlin and Android compatibility, see the [full compatibility 
 
 <!-- Do not add breaking changes or deprecations here! Add them to the upgrade guide instead. -->
 
-## Performance improvements
+## Incremental build performance 
 
+<a name="file-system-watching-is-ready-for-production-use"></a>
 ### File system watching is ready for production use
 
 In an [incremental build](userguide/more_about_tasks.html#sec:up_to_date_checks), input and output files are checked to determine what needs to be rebuilt.
@@ -65,10 +57,9 @@ org.gradle.vfs.watch=true
 
 Read more about this new feature and its impact [on the Gradle blog](https://blog.gradle.org/introducing-file-system-watching)!
 
-![Build time improvements using Santa Tracker Android with file-system watching enabled, Linux with OpenJDK 8.](https://blog.gradle.org/images/introducing-file-system-watching/watch-fs-santa-tracker-linux.png)
+<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAvUAAAHUCAIAAAA1OEDUAAAvMklEQVR42u3dCXxTZb7/8Sdb0yZpky4x3du0BVogKbYMRNqyCgWkFYdaBZzR+Q/q/HFU/CuK6Oh1uaMj48y919GZl4LMMCKCdRkUWdywC0tbFqlQoIBAFwJdaEu6JW3zf9GjuZ3SFpCqgJ/3a17zOvmdJyfxeXLgy3Oek8jcbrcAAAC4isjpAgAAQL4BAAAg3wAAAJBvAAAAyDcAAADkGwAAQL4BAAAg3wAAAJBvAAAAyDcAAADkGwAAQL4BAAAg3wAAAJBvAAAAyDcAAADkGwAAQL4BAAAg3wAAAJBvAAAAyDcAAADkGwAAQL4BAAAg3wAAAJBvAAAAyDcAAAAXSDlQB3I4HFu2bKmqqpLL5ZGRkWPGjPHy8hJCNDc35+XlVVZWyuVys9mckpKiVCr7qQMAAFwimdvtHpADffjhhwqFIjU11eVyffbZZyaTKS0tTQixYcMGl8s1btw4l8v1ySefREVF2Wy2fuoAAACXaMCmTE6dOjVx4kRfX18hxODBg8vKyoQQTqezvLw8IyPDz89PCGG1Wnfu3Gmz2fqqe47mcrmWL19us9lKS0sdDkdISMj48eOLi4sPHTqkVquTk5Pj4+OFELW1tQUFBTU1NRqNJjExMSEhgREFAAADtv4mLCzs4MGDra2tDofjyJEjYWFh0kUrt9ut1+ulNnq9vqmpqbOzs696j2NWVFSkp6dnZmbW19evWbPG398/OzvbYrHk5+c3NTUJITZu3GgymebMmWOz2QoKCux2OyMKAAAGLN+MHTu2urp6xYoVb775phBi1KhRQoj29vazc0TfLqxRqVRSsa96j2MmJSUZDAaj0RgTE6PVai0Wi06ns1qtMpmsrq7O5XI5HI6wsDBvb+/o6Ohp06ZptVpGFAAADNj1qc2bNwcFBWVmZrpcrs2bNxcWFl76ehq5XO4JQGq12lNXKBQul0ulUlmt1k2bNkVFRUVGRprN5r5WKJ84caKqqorBBgDgMhcaGhoSEnK55JuGhoby8vLZs2dL629GjRq1YcOGUaNGSYFDyiLdp3P6ql/s69pstvj4+GPHjpWUlBQWFmZmZkpvoIeQLnxoAAD4iRiY61PSTVie6RZpw+12+/n5yeXy+vp6qV5fX6/T6eRyeV/1i3rRM2fO7N+/32AwJCYm3nTTTSqVSlrUDAAAyDcDQK/X+/v7b9u2rampqbGxsbi4OCIiQqFQKJXKqKiooqKixsbGurq6PXv2xMXFSVM1vdYvVn5+/t69e9va2qqrq1taWgwGAyMKAAAG5vqUTCabOnXq1q1b3377ben7/a677jppV1paWm5ubk5OjvQ9fsnJyf3XL5yvr+/UqVMLCwu3bdvm4+NjtVpjYmIYUQAAMGDf7wcAAHCZ4CcR8I2j1bUb95QeOVlDV6CHhLDgqYlDgw1+dAWAKwW/r4lvvFf0JeEGvSqttG/4ch/9AIB8gyuPvb6RTkA/EYdOAEC+AQAAIN8AAACQbwAAAMg3AACAfAMAAEC+AQAAIN8AAACQbwAAAMg3AACAfAMAAHAF4/c1caWyDTLf9LPEvvbuOlr+1pYdQgiNl9cky5ChYSF6jbero6O8tv6LfWVl9lOeludtAAAg3wCXBWd7hxDCx0t1T/rYIF+dVFTI5YOCjYOCjW9v21l85PiFNAAAkG+AH87+SvvrjuYexWvN4ddGRwghdn5dLoRIGRIrZZfjNXV5+w+b9L6TLPEyIWYkWXYdrejo7DxvA/oZAMg3wA+nvrmlvrmle0Uhl/981AghREXt6aPVtUKIqKAAadc7hbulH0iPCPQfEmry8VKZ9L5VpxvO26DHiz45a7pG7fX1qdqNe/ZNTRwaFmBwtnd8eaxi3c6vIoL8pUp7R+e+Svva4j2tLpf0rCGhpnEJg4INvgq5os7RtPtoxZayI66uGSYAAPkG6M+10eEGrY8QInf/YanimYBpc7VLG57MIe06b4NeBRv87pyYopCfXZ6vUijGDI4J1Gnjgo2eSrI5wkuheCO/UAgxbuig6SOGeZ4b6q8P9ddbI0Nf+TiP+SEA+J5w/xSuErKuJCHN65Qcr5SK+yrt0sbEYYO9VcqooICEsGAhRHWj41Sj40Ia9MrHS1VaaX8jv/DzvQelypBQk72+cVVB8Yc7v2rvSi3DI0K8VSqlQjF5eHzXAc/8Ye3HT7+zfm/FCSFEeKC/NTKMUQOA7wnzN7hKDIsIucbPVwix5cCRTrdbKhYdOhoRYBgVFy39Tyo2NLeszC90d7U5b4NetThdK/OLOt3ukuNVwyNCjX5nV/D8M6/wdNPZ9UBRxgBLRKhMJgv01dY5mlRKRdcxW087mtxCrNv11SF79dnEc8bBqAEA+Qboz7ihg6XbpgoPH+1eb2hp7XS75TKZp3Kmta29033hDc7V0dnpiVBNbW1GoevacEqV5m83VApFi9N1rKYuKiggLti4MHPy/qqTR0/V7vj6uOdyGADg+8D1KVwNYk3GyEB/IUTxkWMtTpenPtmaMNkSL5fJvjxW8UZe4Qc7S1qcrvAAw93Xp/h4qS6kwaV7I6/w4Imz36YTqNOmDI6Zm/qzR29M98wVAQC+D8zf4GowYdjZlTdutzv/wGFPUSZEWnysEKLW0bSqoFiab+nodM8cafX19k6MCt9e9nX/DbaVfX3h76HbBNC/aWxpXfb5FpPeNyEseEiIyWwK8vFSzRo14lTDGekmLwAA+QboKSzAMCj4GiFEaaW99kyTp65SKr2UPT/hnlU1Om/1eRtc+nuLNgZaIkOFENvLjm7eV7Z5X1myOSL7umQhxKBgI/kGAMg3QO8mdK28EULk7T/cve5sb69udBj9dIE67eyUkXuOV/n5eF9viZf2VtbVn7fBRb2NXqdvOjs7U4ecnSIy+une3b67yekM6loELYRwfLtMBwBAvgH+TZCvbnhEiBRHjpyq6bH3X8V7fjXeppDLE6PCE6PCPfXSSvv+rjvDz9vgEh2vPb390NHRcdFDQkyPzkz31GvOOHZ9ze8/AAD5BujN+KGDZF0rX3pM3kjK7Kf+Z8Pm8UMHxVxj1Hl7tThdNWcc2w8d3X20wn1hDS5G7wtw3i3cfay6dlRcdIhBL5OJOkdzyfGqgoOHW7mFCgC+N7J+vuQDPymPvPk+nYB+/GHOTDoBwJWC+8MBAAD5BgAAgHwDAABAvgEAACDfAAAAkG8AAAD5BgAAgHwDAABAvgEAACDfAAAAkG8AAAD5BgAAgHwDAABAvgEAACDfAAAAkG8AAAD5BgAAgHwDAABAvgEAACDfAAAAkG8AAAD5BgAAgHwDAABAvgEAACDfAAAAkG8AAAD5BgAAgHwDAABAvgEAACDfAAAAkG8AAAD5BgAAgHwDAABAvgEAACDfAAAAkG8AAADINwAAgHwDAABwJVDSBQAwUL46XvmPzVu+PFpBV6CH0YNjfj0xNfqaQLrih8H8DQAMmP/56FPCDXq1/eCRZZ/l0w/kGwC48hw9VUsnoJ+IQyeQbwAAAMg3AAAA5BsAAEC+AQAAIN8AAACQbwAAAC7RQH6/X2tr686dO48dO+bj4zNz5kyp2NzcnJeXV1lZKZfLzWZzSkqKUqnspw4AAHCJBmz+xuVyrV27tqWlZcKECVOnTvXUc3NznU5nVlZWRkaG3W4vLi7uvw4AAHCJBmzKZPfu3f7+/pMmTepedDqd5eXlGRkZfn5+Qgir1bpz506bzdZXvXtaWr58uc1mKy0tdTgcISEh48ePLy4uPnTokFqtTk5Ojo+PF0LU1tYWFBTU1NRoNJrExMSEhARGFAAADFi+OXLkSEhIyJo1a5qbm0NDQ8eOHevt7e1wONxut16vl9ro9fqmpqbOzs6+6nL5v80nVVRUpKenu1yujz/+eM2aNcnJydnZ2UeOHMnPz4+IiNBqtRs3boyNjZ0yZYrdbv/kk0/8/f2Dg4MZVAAAyDcDoKOjo6GhQaFQTJgwQa1Wf/bZZ7m5uVOmTGlvbz/7Gt8urFGpVEKI9i691r28vLofNikpyWAwCCFiYmLKy8stFos02VNUVFRXV+fl5eVwOMLCwry9vaOjo6dNm6bVahlRAPhuTHq/aUnDR8WZrzH4bTt4+I//2uTZFWMy3pLys8TocD+Nj6OldX+lPWfrjj3HevmlLaVc/spdt0m/Ivkfa9Zu2X+YjsUVnG9cLpcQIjU11Wg0CiFsNtvatWul4qXwTOeoVCq1Wu2pKxQKl8ulUqmsVuumTZuioqIiIyPNZnNfK5RPnDhRVVXFYAOXYseOHXTCVWzatcN/O32iSqGQHsqEzLMrJT7udzfPkMu+qRi0GtvgmNGDY/60dtPG3Xt7HCdrzEh+Ipvz6FKEhoaGhIRcLvlGChaybz/90qqa5uZmqS5lEWmGRmrcV/1iX9dms8XHxx87dqykpKSwsDAzM9PX1/fcZiFd+ND0b82BcjoB/UhOTqYTzm9d7pX4rqcnWRbMuF7aLiz7+qvjlbuPfvMHglKhuP+GSXKZzC1EzpbifRUnBoeabk35mUwmmz91/Oa9B9pc7f/7h62/fu7Y0XwKOI8uBwOWb3Q63alTp0wmkxDizJkzQgjpapFcLq+vr9doNEKI+vp6nU4nl8v9/Px6rV/Ui545c6aysjI+Pt5gMFit1rfffrusrCwpKYlBBYALZ/Tz/U36uLP/1OzoeHL12qJDR7vvNWh8DtmrhRAHq+x//3yLEKJg/6HwAP+0oYN8vLzigq/ZW/6/s+P3Tp+kVio73W7PZE+vchb+Xz8f76+OVy7/vOBXE1IGhZpana7New+8uik3PjxYqrja27cePPLK+s1NbW3Ss34WF519dnIoSKVQnDjd8NlX+9cW7e6eroCBzzfSsphdu3YFBQVptdrt27cPGjRImo+JiooqKiqaMGFCe3v7nj174uLipDzUa/1i5efnd3R0xMXFNTQ0tLS0SIt1AAAXbnLiUO+uqfRlnxb0CDdCiJozjsUr3+1RbHE5pQ1ne4enOGH4kJGxUa0u1xd7D6aPGHbe142+JugPt81Sdl0RUyuVN/5sRKi/4VpzhKcy2TrUW6l6JudDIUT2mJHzrk/zPDc22BgbbBw7dPADy1e3d3QwiPge882wYcNaW1s//vhjIURkZOSYMWOkelpaWm5ubk5OjvQ9fp6pub7qF87X13fq1KmFhYXbtm3z8fGxWq0xMTGMKABclOuGxAoh3G53m8v1yl1zo4yBzW3OLQcOL/skr7GltUdjlUIxwhwxbuiQs7fNnqw+ZD8l1XXe6t+kjxdCrMzd7nVhiw103ur80kOf790/KPiaW1NHSTM0ZSdO5mzdEaDT/Z9JKSqFIjUhTqtWuzo6fjHuOiFEeU3d46veb25zPjBj8pj42CGhprFDB31Wsp9BxPeYb2Qy2cguPere3t5Tpkw5t31f9W9OIZXqrrvu8jxM7uJ5eMcdd0gb4V0YRQD4zoINftLGfTd88wVmeo3PtGuHDwkNvm/ZKmf7NxeAIoICls2/3fOsshMnn1rzgdvtlh7Ouz7NX6s5XlP3ztYds9MuaAmOo7X12ZwPO93uvH1lqQmDwgP9hRBPr/nwZEOjEGJoREhawiCZTBYSoLefblSrlNJkkv10g1uIVz/J3fX1cSFEZe1pRhDfb74BAFxxZDKZn8ZH2th28MjG3Xv1Gp9fjr8uQKeNMQVNThy6bseeXp/o6uj08/E51XCmK4uETks6+/0dL330WXtn5wW+tKujs/PbeNTQ3CLlm8aWFqnS2PzNhlqpdLS27iuvGhoReq05cvm9vyosO/rV8cpNX+5rcToZQfSF39cEgJ92xOn6/6rT9U++9a+C/Yc+2lny4tpvvvkmyRzpaXayvvG3S99csHz1Sx99dqaldWh4yJLbswxajVIuX3DD9TIhPvtq/5dHB/42TOnO3Gdy1hUfPnb25mF/w8xRIx7PumHlgnnTu0IV0CvmbwDgp8vtdjta23TeZ79gzP1tsezEN6tqfH28PS2d7e0Hq04KIfaVV3kplXdPGatVq1Pj41wdHdIX3kwcHj9xeHz3g/9HdmZjS2vWkr9efNzqqbZrmXOUMdA2OGZkbLQ1OlznrV4w4/pj1bXdb+ACyDcAgLMOVNqTY6NMej+jn29149nrTYNCrpF2VTeesQ2OeejGdCHE+p0lyz7N7/FcH7VXxzlrkAfcsIjQsUMHn/12oR17VhcUrS4ommwdunDm2XeVFBNFvgH5BgDQ0wc7vkyOjVLI5c/Omfn2lmK1SvWLcd/82vEX+w4etldr1F5KuTzruuROt/tAlT0iMGB21+1OQog9R8urGx2Pvfle9wNOsiRMtJydyHkjd1uvv+HQj16/N6ejs/Om0deevack0P+/PvyksaUlPMhf2tXQ3MwIgnwDAOhpy/7DH+7YMyPZar4m6OGZUz319bu+Kiz7Wgix9OO836SPU8jlnlgjeXvrjgNdV6zqDjV1r8eHffN98Yfsp3Z/PQArcvZX2j/aWTI9yfKzuOiVC+Z56hW1pz/ZU8oIgnwDAOjF/6z7tLTiRObIxOhrgjrdnV+frPlwxx5PdHh3+84jp6pnjU5KiAjVeavPtLQerDr5QfGX2w4eGfB3Iutj/c1/ffjJ3uNV05MtMaYgIWQn6xtz9x18v3BXcxu3UKGPz5Ln2wvwE/fIm+/TCejHH+bMpBPOa8rTf6YT0I9NTzxAJ/wwuD8cAACQbwAAAMg3AAAA5BsAAADyDQAAAPkGAACQbwAAAMg3AAAA5BsAAADyDQAAAPkGAACQbwAAAMg3AAAA5BsAAADyDQAAAPkGAACQbwAAAMg3AAAA5BsAAADyDQAAAPkGAACQbwAAAMg3AAAA5BsAAADyDQAAAPkGAACQbwAAAMg3AAAA5BsAAADyDQAAAPkGAACQbwAAAMg3AAAA5BsAAADyDQAAAPkGAACAfAMAAMg3AAAA5BsAAADyDQAAAPkGAACAfAMAAMg3AAAA5BsAAADyDQAAAPkGAACAfAMAAMg3AAAA5BsAAADyDQAAAPkGAACAfAMAAMg3AAAA5BsAAADyDQAAAPkGAACAfAMAAMg3AAAA5BsAAADyDQAAAPkGAACAfAMAAMg3AAAA5BsAAADyDQAAAPkGAACAfAMAAHCWcsCPuKNLVlZWQECAEKK5uTkvL6+yslIul5vN5pSUFKVS2U8dAADgEg3w/E1jY+OePXu6V3Jzc51OZ1ZWVkZGht1uLy4u7r8OAABwiQZ4yqSgoGDw4MF79+6VHjqdzvLy8oyMDD8/PyGE1WrduXOnzWbrq+45jsvlWr58uc1mKy0tdTgcISEh48ePLy4uPnTokFqtTk5Ojo+PF0LU1tYWFBTU1NRoNJrExMSEhARGFAAADOT8zZEjRxobGy0Wi6ficDjcbrder5ce6vX6pqamzs7Ovuo9DlhRUZGenp6ZmVlfX79mzRp/f//s7GyLxZKfn9/U1CSE2Lhxo8lkmjNnjs1mKygosNvtjCgAABiwfONyubZu3TpmzBiFQuEptre3n50j+nZhjUqlkop91XscMykpyWAwGI3GmJgYrVZrsVh0Op3VapXJZHV1dS6Xy+FwhIWFeXt7R0dHT5s2TavVMqIAAGDArk/t2LHDaDRGRERIMysDE77kck8AUqvVnrpCoXC5XCqVymq1btq0KSoqKjIy0mw297VC+cSJE1VVVQw2cInnOJ0AcB5930JDQ0NCQi6XfFNXV1daWpqVldXz6F2BQ8oi3adz+qpf7OvabLb4+Phjx46VlJQUFhZmZmb6+vqe2yykCx+a/q05UE4noB/Jycl0wvmty6UPwHl0ORiYfFNSUuJyuVatWuWp5OTkWK3WkSNHyuXy+vp6jUYjhKivr9fpdHK53M/Pr9f6Rb3omTNnKisr4+PjDQaD1Wp9++23y8rKkpKSGFQAAMg3AyAtLS01NVXabmpqeuutt37+858HBATI5fKoqKiioqIJEya0t7fv2bMnLi5OmqrptX6x8vPzOzo64uLiGhoaWlpaDAYDIwoAAAYm33SfepHWF8u7SNEnNzc3JydH+h4/z9RcX/UL5+vrO3Xq1MLCwm3btvn4+Fit1piYGEYUAADI3G43vQAhxCNvvk8noB9/mDOTTjivKU//mU5APzY98QCd8MPg96cAAAD5BgAAgHwDAABAvgEAACDfAAAAkG8AAAD5BgAAgHwDAABAvgEAACDfAAAAkG8AAAD5BgAAgHwDAABAvgEAACDfAAAAkG8AAAD5BgAAgHwDAABAvgEAACDfAAAAkG8AAAD5BgAAgHwDAABAvgEAACDfAAAAkG8AAAD5BgAAgHwDAABAvgEAACDfAAAAkG8AAAD5BgAAgHwDAABAvgEAACDfAAAAkG8AAADINwAAgHwDAABAvgEAACDfAAAAkG8AAADINwAAgHwDAABAvgEAACDfAAAAkG8AAADINwAAgHwDAABAvgEAACDfAAAAkG8AAADINwAAgHwDAABAvgEAACDfAAAAkG8AAADINwAAgHwDAABAvgEAACDfAAAAkG8AAADINwAAgHwDAABAvgEAACDfAAAAkG8AAADINwAAAOQbAABAvgEAACDfAAAAkG8AAADINwAAAOQbAABAvgEAALhyKAfqQPX19du2bbPb7QqFIioq6rrrrlOpVEKI5ubmvLy8yspKuVxuNptTUlKUSmU/dQAAgEs0MPM37e3t69ev12q1N99887Rp06qqqrZv3y7tys3NdTqdWVlZGRkZdru9uLi4/zoAAMAlGpgpk5MnTzY1NaWkpMjlcq1WO3z48H379gkhnE5neXl5RkaGn5+fEMJqte7cudNms/VV9xzQ5XItX77cZrOVlpY6HI6QkJDx48cXFxcfOnRIrVYnJyfHx8cLIWprawsKCmpqajQaTWJiYkJCAiMKAAAGZv4mJCTkl7/8pVz+zdGam5ul4OJwONxut16vl+p6vb6pqamzs7Oveo/DVlRUpKenZ2Zm1tfXr1mzxt/fPzs722Kx5OfnNzU1CSE2btxoMpnmzJljs9kKCgrsdjsjCgAABibfyOVyLy8vabuxsXHfvn2JiYnSdauzc0TfLqyRVuS0d+m13uOwSUlJBoPBaDTGxMRotVqLxaLT6axWq0wmq6urc7lcDocjLCzM29s7Ojp62rRpWq2WEQUAAAO8pLe1tXXDhg1Dhw4NCQkZkNjkCUBqtdpTVygULpdLpVJZrdZNmzZFRUVFRkaazea+ViifOHGiqqqKwQYuxY4dO+gEgPPo+xYaGjogEWIg8017e/uGDRuCgoJGjRr1zdG7AoeURbpP5/RVv9hXtNls8fHxx44dKykpKSwszMzM9PX1PbdZSBc+NP1bc6CcTkA/kpOT6YTzW5dLH4Dz6HIwYN9/09nZ+cknn3h7e48fP95T9PPzk8vl9fX10sP6+nqdTieXy/uqX9QrnjlzZv/+/QaDITEx8aabblKpVGVlZYwoAAAYsHyTm5vb2to6YcIEt9vd0cXtdiuVyqioqKKiosbGxrq6uj179sTFxUlTNb3WL1Z+fv7evXvb2tqqq6tbWloMBgMjCgAABub61OnTpw8ePCiE+Mc//uEpTpo0KTY2Ni0tLTc3NycnR/oeP8/UXF/1C+fr6zt16tTCwsJt27b5+PhYrdaYmBhGFAAAyNxuN70AIcQjb75PJ6Aff5gzk044rylP/5lOQD82PfEAnfDD4PenAAAA+QYAAIB8AwAAQL4BAAAg3wAAAJBvAAAA+QYAAIB8AwAAQL4BAAAg3wAAAJBvAAAA+QYAAIB8AwAAQL4BAAAg3wAAAJBvAAAA+QYAAIB8AwAAQL4BAAAg3wAAAJBvAAAA+QYAAIB8AwAAQL4BAAAg3wAAAJBvAAAA+QYAAIB8AwAAQL4BAAAg3wAAAJBvAAAA+QYAAIB8AwAAQL4BAAAg3wAAAJBvAAAAyDcAAIB8AwAAQL4BAAAg3wAAAJBvAAAAyDcAAIB8AwAAQL4BAAAg3wAAAJBvAAAAyDcAAIB8AwAAQL4BAAAg3wAAAJBvAAAAyDcAAIB8AwAAQL4BAAAg3wAAAJBvAAAAyDcAAIB8AwAAQL4BAAAg3wAAAJBvAAAAyDcAAIB8AwAAQL4BAAAg3wAAAJBvAAAAyDcAAADkGwAAQL4BAAAg3wAAAJBvAAAAyDcAAADkGwAAQL4BAAAg3wAAAPxYlD/WCzc3N+fl5VVWVsrlcrPZnJKSolQqGQ8AAHDpfrT5m9zcXKfTmZWVlZGRYbfbi4uLGQwAADAgfpwpE6fTWV5enpGR4efnJ4SwWq07d+602WyeBi6Xa/ny5TabrbS01OFwhISEjB8/vri4+NChQ2q1Ojk5OT4+XghRW1tbUFBQU1Oj0WgSExMTEhIYUQAA8OPM3zgcDrfbrdfrpYd6vb6pqamzs7NHs4qKivT09MzMzPr6+jVr1vj7+2dnZ1sslvz8/KamJiHExo0bTSbTnDlzbDZbQUGB3W5nRAEAwI+Tb9rb28/OHX274EalUnmK3SUlJRkMBqPRGBMTo9VqLRaLTqezWq0ymayurs7lcjkcjrCwMG9v7+jo6GnTpmm1WkYUAABc1kt65XK5JwCp1WpPXaFQuFwulUpltVo3bdoUFRUVGRlpNpv7WqH8ahcGu3+T/t/jdAL6MXLkSDrhvAIy59IJ4Dy6FHd1uVLzjRREpIxy7nTOhbPZbPHx8ceOHSspKSksLMzMzPT19f3+Ogv4SZszkz4ALtUTD9AHP4wf5/qUn5+fXC6vr6+XHtbX1+t0Os9szQU6c+bM/v37DQZDYmLiTTfdpFKpysrKGFEAAPDj5BulUhkVFVVUVNTY2FhXV7dnz564uLjvcJz8/Py9e/e2tbVVV1e3tLQYDAZGFAAA/Gjrb9LS0nJzc3NycqTv90tOTr7YI/j6+k6dOrWwsHDbtm0+Pj5WqzUmJoYRBQAAMrfbTS8AAICrCb8/BQAAyDcAAADkGwAAAPINAAAA+QYAAIB8AwAAyDfA5SgrK0vWRalURkdH//a3v62qqure4NVXX12zZs13Pn5wcPBDDz3U6y6bzZaVlXVRR1uwYEF0dDSjhsv8bOru+eef5/TBlUhJF+BKZzabV6xY0dnZ+fXXX7/00ksjR4787LPP4uPjpb0ffPCB0WjMzs6mo4ALPJu6V4gUIN8APw6NRpOamiqEGDt27C233DJmzJjbb799+/btnnxDFwEXezYBVzquT+Gq4u3t/cQTTxQWFhYXF0uV7tPgjY2N8+fPDwkJ0ev1EydOLCoqkuput/vFF1+MjY3VaDQjRoxYu3Zt92M2NDTcdtttvr6+gYGBCxYskH7u/lyrV6+2WCze3t4Wi+Wjjz6Sip2dnY899pjRaNTpdLfeemtdXR1jhCtRcHDwE088cf/99wcGBhqNxvnz5zudTk4fkG+AH470r8+CgoJzd/3mN79Zt27d3/72t7Vr1yoUismTJ584cUII8dRTT/3ud7979NFHP/3006FDh2ZlZX311VeeZ73++usmk+mdd9655557XnrppWefffbcI//zn/+cPXt2Zmbmxo0bbTbbjTfeuGvXLiHEn/70p+eee27evHnvvvuu2WxeuXIlA4Qr1B//+Me2trZVq1bdd999f/3rX5ctWybVOX1wmXIDV7JZs2YNGzasR1Gj0SxatEjaHj169KxZs6TtwMDAhx9+WNq22+1z584tKipyu92jRo16/PHHpXpTU5NSqXzhhRekhyaT6ZZbbvEcef78+QEBAU6ns/uROzs7Q0NDZ8+eLbXp6OgYMmTIHXfc4XK5jEbjr3/9a8/Tb7vttqioKEYNl+3Z1OMviHHjxnlOhJkzZ3paJicnZ2dnS9ucPrg8sf4GV2dql8lkvU7tvP766+Hh4RkZGdHR0W+88YZU9yzWkdYfBAYG1tbWeirh4eGe7RkzZrzyyivl5eXdf6y+tLS0qqrK83eDXC5PS0vbunXr8ePHq6urb7zxRk/LwMBARgeXsx7ri/V6vWc7Nja2++WqU6dOcfqA61PAD+fkyZMtLS3BwcHn7lq5cuWdd965ZMkSs9mcmJj43nvvSfXq6up77703JiZGrVbLZLKTJ0/2dXDpT9geDaQ/6LvfW7t06dLTp0/b7XYhhMlkYlBwpZDWF3tYLJZ+/hXB6YPLGfM3uNp88cUXQogxY8acu0ur1f6+S2lp6QsvvDBr1qy8vLyUlJQZM2YolcpVq1YNHjzYx8ennxtiq6urhRDXXHNN96Kvr68QYunSpcnJyZ6iSqXSaDRCiO7/lgWuPpw+uDwxf4OrSlNT05NPPjmyS49dZWVlqampW7duFUIkJCS8/PLLbrd79+7dNTU1hYWF99xzz+jRo/39/YUQra2t3Z9YXl7u2V63bl1AQEBkZGT3BsOHD9fr9QcOHBjxLaPRGBERERkZaTKZ/vWvf/X4pypw1eD0wWWL+Rtc8Zqbm/Pz8zs6OsrKyv785z/X19e/88475zYzm811dXXz5s177rnngoKCVqxYoVKpxo4dGxAQEBoa+vzzz6tUKqfT+Ze//KWhoaGlpcXzxJycnAULFkyfPn3Lli2vvvrqk08+qVKpuh9ZrVY/9dRTDz74oFKpnD59elVV1cKFC7Ozs5csWfLwww8vXLgwMDBw3Lhxn3766erVqyMiIhgyXOZnU/dKeHh4P1MynD64fLHEGlfHHR9KpdJsNt97770VFRXdG3S/f6qiomLOnDkBAQFarXb06NHr16+X6rt27UpLS9NoNJGRkS+//HJSUtLkyZM9N4AsWrTolltu0el0/v7+DzzwgMvlOvfIbrd72bJlCQkJKpUqPDx88eLFra2t0r0hjz32WGBgoFarvfnmmx944AFuAMEVdP+UEOLBBx+UTgRpQ3LDDTd4bq3i9MHlSeZZIwYAAHB1YP0NAAAg3wAAAJBvAAAAyDcAAADkGwAAAPINAAAg3wAAAJBvAAAAyDcAAADkGwAAAPINAAAg3wAAAJBvAAAAyDcAAADkGwAAAPINAAAg3wAAAJBvAAAAyDcAAADkGwAAAPINAAAg3wAAAJBvAAAAyDcAAADkGwAAAPINAAAg3wAAAJBvAAAAyDcAAADkGwAAAPINgH+TlZUlO8ff//53IcSrr766Zs0aqZnNZsvKyqK7voPg4OCHHnqo113dexgA+QbAQDKbzXn/bvr06UKIDz74YMOGDT/ue1u6dKlMJquvr78M++3S39vl0MPAT5OSLgCuehqNJjU1tde/femc7xU9DPxYmL8Bfrr6uSa1evVqi8Xi7e1tsVg++uijcxs0NjbOnz8/JCREr9dPnDixqKhICDF79uyQkJDOzk6pTU5Ojkwm27FjR1/tg4KC7rzzTiGEv7//bbfd1s9LBwcHL1q06Je//KVerzcYDPfcc4/T6Xz00UeNRqO/v392dnZtbW2Pd7h48eLQ0FDPw4kTJ06dOtXz0GQyPf7440IIt9v94osvxsbGajSaESNGrF27VmrQ63t75ZVXhgwZotForFbr6tWrPUdra2u77777AgMDjUbj/PnznU7nuT0cHBz8xBNP3H///ec26+joWLRokdFo1Ol02dnZixYtCg8P5/MJXBI3gKvarFmzhg0b1uuu0aNHz5o169ztFStWyGSyxYsXb968ed68eUqlcufOnT2eO3v27MjIyPfff3/z5s3XX3+9Xq+vqqr68MMPhRBffPGF1OYXv/hFXFxcP+2PHz/+/PPPCyG+/PLL6urqfl7aZDKp1epnnnlm06ZNCxcuFEIMHjx45syZ69ev/9vf/qbT6e6+++4e7/Dzzz8XQhw8eNDtdjc0NKhUKrVa3dTU5Ha79+/f73mfTz75pI+Pz2uvvbZly5bZs2erVKqSkhK3233ue1uyZIlKpfr973+fl5f3u9/9TiaTvf/++9J78/Lyuvvuuzdu3Pj0009LMejcXjWZTD4+Pr02+8///E+ZTLZw4cINGzYsWrRIoVCEhYXx0QUuBfkGuPrzTY9/1XiiQK/5prOzMzQ0dPbs2VK9o6NjyJAhd9xxR4/DBgYGPvzww9K23W6fO3duUVGRy+UyGo333nuv2+1ub28PCAh4/PHH+2nvdrtfe+01IcTp06f7f2mTyTRv3jzPqw8bNiw0NNTpdEoP77rrrkGDBvV4h06nU6fTvfbaa263OycnJzo6OjAwcO3atdKL+vr6Sk8fNWqU5002NTUplcoXXnhBetj9vbW1ten1+gcffNBz/JtuumnatGnSe5s5c6annpycnJ2d3Wu+6bWZ0+kMCAi4/fbbPbvmzp1LvgEuEetvgKuf2WxesWKF52FISEg/jUtLS6uqqjypSC6Xp6Wlbd26tUez1NTU119/PTw8PCMjIzo6+o033pDq2dnZ77777n//93/n5eXV1dXdeuut/be/8JcODAz0tAwPDw8ODlapVJ7/ourq6h5HU6lU48aN++KLL+bNm7du3boZM2Y0NDSsW7cuIyMjPz9//Pjx0tO3b9/ueYpGowkMDDz3UpcQoqSkpKGhofsVrjfffNPlcknbsbGxnnpwcPCpU6d67dtemx0/fryuru7GG2/07AoKCuJDC7D+BsB5SOuLPbr/LXsu6S/d7neVL1269PTp0zNmzPBUKioqVq5ceeeddy5ZssRsNicmJr733nvS0+fOnVtZWblly5a1a9cOHz582LBhUr2v9hfy0hd4qf3c4pQpU6SLUOvXr7/hhhsyMjKkBT15eXnp6elSm+rq6nvvvTcmJkatVstkspMnT/Z6/Lq6OiGE0Wj0VLy9vX19fS/8zfTVTEpmJpOJDyowgJi/AfBvpL+zly5dmpyc3H0uRKPRPPvss9JDk8kkrUT5/e9/X1pa+sILL8yaNSsvLy8lJeW6666LjY3Nycn54IMPfvWrX3mOoNVqe21/IS/9nf9bJk+efP/997/99tuNjY3jx493Op1z587dtGnTkSNHpkyZIrWZMWOGUqlctWrV4MGDfXx8oqOjez2UwWAQQtTU1Ax4h0vTab1OGgFg/gbAwBg+fLherz9w4MCIbxmNxoiICLPZ7KkcPXo0NTVVunKUkJDw8ssvu93u3bt3S0eYM2fOsmXLDh8+7Lk4VVZW1ld7uVzumcno66W/839LQkJCRETE448/PmnSJG9vbz8/v7Fjxy5evDg6OnrQoEFSXiksLLznnntGjx7t7+8vhGhtbf3fPx+7vTeLxeLr67tx40bP3kceeeT222+/9A6XrrVJS7MlfV3eAsD8DYDvSK1WP/XUUw8++KBSqZw+fXpVVdXChQuzs7OXLFniaWM2m+vq6ubNm/fcc88FBQWtWLFCpVKNHTtW2nvbbbc988wzI0eO9FwI66d9VFSUEGL58uUTJ04cMWLEeV/6O0zhvP766w8++KD0MCMjY8GCBXfddZf0MCAgIDQ09Pnnn1epVE6n8y9/+UtDQ0NLS4u0t8d7e+SRR5566qnAwMDU1NQvvvjixRdfXLly5aV3uEKheOihhxYuXBgUFDRu3LhPP/30rbfe6n5nO4DvgiXWAPeH99h2u93Lli1LSEhQqVTh4eGLFy9ubW3t8dyKioo5c+YEBARotdrRo0evX7+++97g4OA//vGPF9K+o6MjOztbo9Hcdddd/by0yWR65JFHPEdLT0+fNGmS5+GTTz6p1+t7/W986623pDW80sPDhw9LX8zjabBr1660tDSNRhMZGfnyyy8nJSVNnjy5r/f2pz/9KSYmxsvLy2KxrFq1ynNjVPf7qm644YZx48b1ev9UX806OjoWL14cGBio0WiysrJmz54dGxvLRxe4FLILXAcHABeosLDQZrMdP36cL6m7QG1tbSqVSrocJoSYMGGCRqNZt24dPQN8Z1yfAjBg7HZ7Xl7e008/ffPNNxNuLtzDDz+8b9++Bx54wM/P79133928efOmTZvoFuBSsL4YwIDZvn377bffHh4e/te//pXeuHCPPfZYTEzMr3/96/T09Nzc3Pfff3/y5Ml0C3ApuD4FAACuNszfAAAA8g0AAAD5BgAAgHwDAABAvgEAACDfAAAA8g0AAAD5BgAAgHwDAABAvgEAACDfAAAA8g0AAAD5BgAAgHwDAABAvgEAACDfAAAA8g0AAAD5BgAAgHwDAABAvgEAACDfAAAA8g0AAAD5BgAA4HLy/wFpKTuIVjMFbwAAAABJRU5ErkJggg==" alt="Build time improvements using Santa Tracker Android with file-system watching enabled, Linux with OpenJDK 8."/>
 
-_Build time improvements using [Santa Tracker Android](https://github.com/gradle/santa-tracker-performance) with file-system watching enabled, Linux with OpenJDK 8._
-
+<a name="configuration-cache-improvements"></a>
 ### Configuration cache improvements
 
 Gradle 6.6 introduced [configuration caching](userguide/configuration_cache.html) as an experimental feature.
@@ -82,12 +73,13 @@ Note that you can still [ignore](userguide/configuration_cache.html#config_cache
 The problem report is now more helpful.
 It reports the source of problems more accurately, pointing at the offending location in plugins and scripts in more cases.
 
-Loading from the configuration cache is now faster and memory consumption during builds has been reduced, especially for Kotlin and Android builds.
+Loading from the configuration cache is also faster and memory consumption during builds has been reduced, especially for Kotlin and Android builds.
 
 Read about this feature and its impact [on the Gradle blog](https://blog.gradle.org/introducing-configuration-caching). Track progress of configuration cache support by [core plugins](https://github.com/gradle/gradle/issues/13454) and [community plugins](https://github.com/gradle/gradle/issues/13490).
 
-## New JVM ecosystem feature
+## New JVM ecosystem features
 
+<a name="toolchains-for-jvm-projects"></a>
 ### Toolchains for JVM projects
 
 By default, Gradle uses the same Java version for running Gradle itself and building JVM projects. 
@@ -127,7 +119,96 @@ Learn more about this new feature in the [Java Toolchain documentation](userguid
 
 ### Support for Java 15
 
-Gradle now supports running on [JDK15](https://openjdk.java.net/projects/jdk/15/). 
+Gradle now supports running on and building with [Java 15](https://openjdk.java.net/projects/jdk/15/). 
+
+<a name="managing-build-complexity"></a>
+## Managing build complexity
+
+### buildSrc with included builds
+
+TODO
+
+### Abbreviation of kebab-case project names
+
+Gradle allows you to [abbreviate project and task names from the command-line](userguide/command_line_interface.html#task_name_abbreviation). For example, you can execute the task `compileTestJava` by running `gradle cTJ`.
+
+Up until this release, fuzzy name matching only worked for camel-case names (e.g. `compileTestJava`). This is the recommended convention for task names, but it is unusual for project names. In the Java world, directory names are usually all lowercase by convention and in Gradle, project names usually follow the name of the directory the project is in.
+
+Many projects worked around this limitation by using kebab-case project directories (e.g. `my-awesome-lib`) and by defining different, camel-case project names in their settings scripts. This added unnecessary complexity to the build.
+
+This release changes the fuzzy name matching to support for kebab-case names. Now, you can execute the task `compileTestJava` in the project `my-awesome-lib` with the following command:
+```
+gradle mAL:cT
+```
+
+Note that even though the kebab-case name matching works with tasks too, our recommendation is still to use camel-case for them. 
+
+<a name="gradle-init"></a>
+### Bootstrapping new projects with `gradle init` 
+
+The built-in [`init` task](userguide/build_init_plugin.html) can be used to quickly create a new Gradle build or convert a Maven build to a Gradle build.
+
+In this release, the projects generated by `gradle init` have been updated to use the latest recommended build authoring practices. Some of the generated builds demonstrate the use of `buildSrc` for sharing common build logic.
+
+For new projects, you can now generate a multi-project build for JVM languages.
+In order to generate a multi-project build, choose `application`, select one of the JVM languages and then choose `application and library projects`:
+
+```
+Select type of project to generate:
+  1: basic
+  2: application
+  3: library
+  4: Gradle plugin
+Enter selection (default: basic) [1..4] 2
+
+Select implementation language:
+  1: C++
+  2: Groovy
+  3: Java
+  4: Kotlin
+  5: Scala
+  6: Swift
+Enter selection (default: Java) [1..6] 3
+
+Split functionality across multiple subprojects?:
+   1: no - only one application project
+   2: yes - application and library projects
+Enter selection [1..2] 2
+```  
+
+For [Maven-to-Gradle conversion](userguide/migrating_from_maven.html), this release adds support for generating Kotlin DSL scripts.
+
+## Documentation and samples
+
+### New samples
+
+The [sample index](samples/index.html) includes new samples, with step-by-step instructions on how to get started with Gradle for different project types and programming languages:
+
+- Building an application with libraries:
+[Java](samples/sample_building_java_applications_multi_project.html),
+[Groovy](samples/sample_building_groovy_applications_multi_project.html),
+[Scala](samples/sample_building_scala_applications_multi_project.html),
+[Kotlin](samples/sample_building_kotlin_applications_multi_project.html)
+- Building a simple application:
+[Java](samples/sample_building_java_applications.html),
+[Groovy](samples/sample_building_groovy_applications.html),
+[Scala](samples/sample_building_scala_applications.html),
+[Kotlin](samples/sample_building_kotlin_applications.html),
+[C++](samples/sample_building_cpp_applications.html),
+[Swift](samples/sample_building_swift_applications.html)
+- Building a single library:
+[Java](samples/sample_building_java_libraries.html),
+[Groovy](samples/sample_building_groovy_libraries.html),
+[Scala](samples/sample_building_scala_libraries.html),
+[Kotlin](samples/sample_building_kotlin_libraries.html),
+[C++](samples/sample_building_cpp_libraries.html),
+[Swift](samples/sample_building_swift_libraries.html)
+
+### Authoring multi-project builds 
+
+We've reworked our documentation for [authoring multi-project builds](userguide/multi_project_builds.html). We also have some [new guidance on how to share build logic between subprojects](userguide/sharing_build_logic_between_subprojects.html#sec:convention_plugins) with [convention plugins](samples/sample_convention_plugins.html).
+
+## New dependency management features
 
 ### Compile-only API dependencies for JVM libraries
 
@@ -154,84 +235,6 @@ dependencies {
 ```
 
 The behavior of `compileOnlyApi` dependencies is preserved for published libraries when published with [Gradle Module Metadata](userguide/publishing_gradle_module_metadata.html#).
-
-## Usability and guidance
-
-### Abbreviation of kebab-case project names
-
-When running Gradle builds, you can abbreviate project and task names. For example, you can execute the `compileTest` task by running `gradle cT`.
-
-Until this release, the name abbreviation only worked for camel case names (e.g. `compileTest`). This format is recommended for task names, but it is unusual for project names. In the Java world the folder names are lower case by convention. 
-
-Many projects - including Gradle - overcome that by using kebab case project directories (e.g. `my-awesome-lib`) and by defining different, camel case project names in the build scripts. This difference leads to unnecessary extra complexity in the build.
-
-This release fixes the issue by adding support for kebab case names in the name matching. Now, you can execute the `compileTest` task in the `my-awesome-lib` subproject with the following command:
-```
-gradle mAL:cT
-```
-
-Note, that even though the kebab case name matching works with tasks too, the recommendation is still to use camel case for them. 
-
-To learn more about name abbreviation, check out the [user guide](userguide/command_line_interface.html#task_name_abbreviation).
-
-### `gradle init` improvements
-
-The built-in `init` task can be used to quickly create a new Gradle build or convert a Maven build to a Gradle build.
-In this release, the projects generated by `gradle init` have been updated to use the recommended build authoring practices.
-The task now also offers additional options.
-For new projects, one can now generate a multi-project build for JVM languages.
-In order to generate a multi-project build, choose `application`, select one of the JVM languages and then choose `application and library projects`:
-
-```
-Select type of project to generate:
-  1: basic
-  2: application
-  3: library
-  4: Gradle plugin
-Enter selection (default: basic) [1..4] 2
-
-Select implementation language:
-  1: C++
-  2: Groovy
-  3: Java
-  4: Kotlin
-  5: Scala
-  6: Swift
-Enter selection (default: Java) [1..6] 3
-
-Split functionality across multiple subprojects?:
-   1: no - only one application project
-   2: yes - application and library projects
-Enter selection [1..2] 2
-```  
-
-For [Maven-to-Gradle conversion](userguide/migrating_from_maven), this release adds support for Kotlin DSL scripts and uses buildSrc directory for shared logic.
-
-### New samples
-
-The [sample index](samples) includes new samples, with step-by-step instructions on how to get started with Gradle for different project types and programming languages:
-
-- Building a monolithic application:
-[Java](samples/sample_building_java_applications.html),
-[Groovy](samples/sample_building_groovy_applications.html),
-[Scala](samples/sample_building_scala_applications.html),
-[Kotlin](samples/sample_building_kotlin_applications.html),
-[C++](samples/sample_building_cpp_applications.html),
-[Swift](samples/sample_building_swift_applications.html)
-- Building an application with libraries:
-[Java](samples/sample_building_java_applications_multi_project.html),
-[Groovy](samples/sample_building_groovy_applications_multi_project.html),
-[Scala](samples/sample_building_scala_applications_multi_project.html),
-[Kotlin](samples/sample_building_kotlin_applications_multi_project.html)
-- Building an isolated library:
-[Java](samples/sample_building_java_libraries.html),
-[Groovy](samples/sample_building_groovy_libraries.html),
-[Scala](samples/sample_building_scala_libraries.html),
-[Kotlin](samples/sample_building_kotlin_libraries.html),
-[C++](samples/sample_building_cpp_libraries.html),
-[Swift](samples/sample_building_swift_libraries.html)
-
-## Dependency Management improvements
 
 ### Version ranges in repository content filtering
 
