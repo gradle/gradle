@@ -87,6 +87,6 @@ public class BasicProjectGenerator implements ProjectGenerator {
 
     @Override
     public Optional<String> getFurtherReading(InitSettings settings) {
-        return Optional.empty();
+        return Optional.of("Learn more about Gradle by exploring our samples at " + documentationRegistry.getSampleIndex());
     }
 }
