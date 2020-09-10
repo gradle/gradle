@@ -23,18 +23,17 @@ import org.gradle.integtests.fixtures.logging.ConfigurationCacheOutputNormalizer
 import org.gradle.integtests.fixtures.logging.DependencyInsightOutputNormalizer;
 import org.gradle.integtests.fixtures.logging.GradleWelcomeOutputNormalizer;
 import org.gradle.integtests.fixtures.logging.NativeComponentReportOutputNormalizer;
-import org.gradle.integtests.fixtures.logging.SampleOutputNormalizer;
 import org.gradle.integtests.fixtures.logging.PlayComponentReportOutputNormalizer;
+import org.gradle.integtests.fixtures.logging.SampleOutputNormalizer;
 import org.gradle.integtests.fixtures.mirror.SetMirrorsSampleModifier;
 import org.gradle.samples.test.normalizer.FileSeparatorOutputNormalizer;
-import org.gradle.samples.test.normalizer.JavaObjectSerializationOutputNormalizer;
 import org.gradle.samples.test.normalizer.GradleOutputNormalizer;
-import org.gradle.samples.test.runner.GradleSamplesRunner;
+import org.gradle.samples.test.normalizer.JavaObjectSerializationOutputNormalizer;
 import org.gradle.samples.test.runner.SampleModifiers;
 import org.gradle.samples.test.runner.SamplesOutputNormalizers;
 import org.junit.runner.RunWith;
 
-@RunWith(GradleSamplesRunner.class)
+@RunWith(IntegrationTestSamplesRunner.class)
 @SamplesOutputNormalizers({
     SampleOutputNormalizer.class,
     JavaObjectSerializationOutputNormalizer.class,
