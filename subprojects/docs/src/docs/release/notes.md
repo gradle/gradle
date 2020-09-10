@@ -1,5 +1,22 @@
 The Gradle team is excited to announce Gradle @version@.
 
+With this release [file system watching is ready for production use](#file-system-watching-is-ready-for-production-use).
+If you are suffering from long build times in incremental builds, turn this feature on to speed them up.
+We have seen ~20% improvements on incremental builds for large projects.
+
+This release of Gradle not only fully supports the latest Java release - [JDK 15](#support-for-java-15) -
+but finally adds support for declaring [Java toolchains](#toolchains-for-jvm-projects), including automatic download of JDKs.
+Furthermore, Java (and Groovy, Scala, Kotlin) library author can now declare [compile only API dependencies](#compile-only-api-dependencies-for-jvm-libraries) when using the `java-library` plugin.
+
+When Gradle projects grow, a build may quickly become complex.
+With that in mind, we have started to work on usability improvements and giving better guidelines for working with Gradle builds and organizing build logic.
+In this release, we made it more comfortable to [call tasks from the command line when using _kebab-case_ project names](#abbreviation-of-kebab-case-project-names)
+and, to help you with organizing build logic, added [new options to `gradle init`](#gradle-init-improvements) and [samples](#new-samples) that walk you step-by-step through recommended build structures. 
+
+Furthermore, dependency management gets more features with the [support for version ranges in repository content filtering](#version-ranges-in-repository-content-filtering)
+and the [ability to ignore selected dependencies in the dependency lock state](#ignore-dependencies-in-dependency-lock-state).
+The experimental [configuration cache](#configuration-cache-improvements) has been improved further.
+
 We would like to thank the following community contributors to this release of Gradle:
 
 [Roberto Perez Alcolea](https://github.com/rpalcolea),
