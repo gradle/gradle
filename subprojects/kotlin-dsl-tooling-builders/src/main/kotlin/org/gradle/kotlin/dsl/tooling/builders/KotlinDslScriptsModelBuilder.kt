@@ -235,6 +235,7 @@ data class KotlinDslScriptsParameter(
 
 internal
 fun <T : Any> commonPrefixOf(lists: List<List<T>>): List<T> =
+    @Suppress("DEPRECATION") // TODO Fix once we build with Kotlin 1.4
     lists.minBy { it.size }?.let { maxCommonPrefix ->
         maxCommonPrefix.indices.asSequence().takeWhile { index ->
             lists.all { list -> list[index] == maxCommonPrefix[index] }
