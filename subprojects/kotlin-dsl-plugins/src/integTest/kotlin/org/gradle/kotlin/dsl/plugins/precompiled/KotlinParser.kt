@@ -17,7 +17,7 @@
 package org.gradle.kotlin.dsl.plugins.precompiled
 
 import org.jetbrains.kotlin.cli.common.CLIConfigurationKeys
-import org.jetbrains.kotlin.cli.common.messages.CompilerMessageLocation
+import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSourceLocation
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 
@@ -72,7 +72,7 @@ object KotlinParser {
     object TestMessageCollector : MessageCollector {
         override fun clear() = Unit
         override fun hasErrors(): Boolean = false
-        override fun report(severity: CompilerMessageSeverity, message: String, location: CompilerMessageLocation?) {
+        override fun report(severity: CompilerMessageSeverity, message: String, location: CompilerMessageSourceLocation?) {
             println("$severity: $message")
         }
     }

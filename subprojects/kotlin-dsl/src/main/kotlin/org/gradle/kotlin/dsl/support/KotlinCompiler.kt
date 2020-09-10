@@ -23,7 +23,7 @@ import org.jetbrains.kotlin.cli.common.CLIConfigurationKeys
 import org.jetbrains.kotlin.cli.common.config.addKotlinSourceRoot
 import org.jetbrains.kotlin.cli.common.config.addKotlinSourceRoots
 
-import org.jetbrains.kotlin.cli.common.messages.CompilerMessageLocation
+import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSourceLocation
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.jetbrains.kotlin.cli.common.messages.MessageUtil
@@ -387,7 +387,7 @@ fun messageCollectorFor(log: Logger, pathTranslation: (String) -> String = { it 
 
 
 internal
-data class ScriptCompilationError(val message: String, val location: CompilerMessageLocation?)
+data class ScriptCompilationError(val message: String, val location: CompilerMessageSourceLocation?)
 
 
 internal
@@ -418,7 +418,7 @@ data class ScriptCompilationException(val errors: List<ScriptCompilationError>) 
         } ?: error.message
 
     private
-    fun errorAt(location: CompilerMessageLocation, message: String): String {
+    fun errorAt(location: CompilerMessageSourceLocation, message: String): String {
         val columnIndent = " ".repeat(5 + maxLineNumberStringLength + 1 + location.column)
         return "Line ${lineNumber(location)}: ${location.lineContent}\n" +
             "^ $message".lines().joinToString(
@@ -427,7 +427,7 @@ data class ScriptCompilationException(val errors: List<ScriptCompilationError>) 
     }
 
     private
-    fun lineNumber(location: CompilerMessageLocation) =
+    fun lineNumber(location: CompilerMessageSourceLocation) =
         location.line.toString().padStart(maxLineNumberStringLength, '0')
 
     private
@@ -460,7 +460,7 @@ class LoggingMessageCollector(
 
     override fun clear() = errors.clear()
 
-    override fun report(severity: CompilerMessageSeverity, message: String, location: CompilerMessageLocation?) {
+    override fun report(severity: CompilerMessageSeverity, message: String, location: CompilerMessageSourceLocation?) {
 
         fun msg() =
             location?.run {
