@@ -207,7 +207,6 @@ class ExceptionPlaceholder implements Serializable {
         }
 
         try {
-            System.out.println("Trying to reconstruct = " + type);
             // try to reconstruct the exception
             Class<?> clazz = classNameTransformer.transform(type);
             if (clazz != null && causes.size() <= 1) {
@@ -244,7 +243,6 @@ class ExceptionPlaceholder implements Serializable {
             placeholder = new DefaultMultiCauseException(message, causes);
         }
         placeholder.setStackTrace(stackTrace);
-        System.out.println("Hello");
         registerSuppressedExceptions(suppressed, placeholder);
         return placeholder;
     }
@@ -252,7 +250,6 @@ class ExceptionPlaceholder implements Serializable {
     private static void registerSuppressedExceptions(List<Throwable> suppressed, Throwable reconstructed) {
         if (!suppressed.isEmpty()) {
             for (Throwable throwable : suppressed) {
-                System.out.println("throwable = " + throwable.getMessage());
                 //noinspection Since15
                 reconstructed.addSuppressed(throwable);
             }
