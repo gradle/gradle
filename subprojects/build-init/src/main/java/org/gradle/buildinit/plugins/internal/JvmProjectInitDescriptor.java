@@ -219,7 +219,7 @@ public abstract class JvmProjectInitDescriptor extends LanguageLibraryProjectIni
                         "org.junit.jupiter:junit-jupiter-api:" + libraryVersionProvider.getVersion("junit-jupiter")
                     ).testRuntimeOnlyDependency(
                     "Use JUnit Jupiter Engine for testing.",
-                    "org.junit.jupiter:junit-jupiter-engine:" + libraryVersionProvider.getVersion("junit-jupiter")
+                    "org.junit.jupiter:junit-jupiter-engine"
                 ).taskMethodInvocation(
                     "Use junit platform for unit tests.",
                     "test", "Test", "useJUnitPlatform"
