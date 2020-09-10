@@ -187,6 +187,10 @@ abstract class PerformanceTest extends DistributionTest {
         return databaseParameters
     }
 
+    @Optional
+    @Input
+    abstract Property<String> getTestProject()
+
     void addDatabaseParameters(Map<String, String> databaseConnectionParameters) {
         this.databaseParameters.putAll(databaseConnectionParameters)
     }
@@ -227,6 +231,7 @@ abstract class PerformanceTest extends DistributionTest {
 
         private void addExecutionParameters(List<String> result) {
             addSystemPropertyIfExist(result, "org.gradle.performance.scenarios", scenarios)
+            addSystemPropertyIfExist(result, "org.gradle.performance.testProject", getTestProject().getOrNull())
             addSystemPropertyIfExist(result, "org.gradle.performance.baselines", determinedBaselines.getOrNull())
             addSystemPropertyIfExist(result, "org.gradle.performance.execution.warmups", warmups)
             addSystemPropertyIfExist(result, "org.gradle.performance.execution.runs", runs)

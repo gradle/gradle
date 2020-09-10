@@ -244,6 +244,19 @@ class PerformanceTestPlugin : Plugin<Project> {
             channel = "adhoc"
             outputs.doNotCacheIf("Is adhoc performance test") { true }
         }
+
+        configureSampleGenerators {
+            all {
+                val sampleGenerator = this
+                create("${sampleGenerator.name}PerformanceAdHocTest") {
+                    performanceReporter = createPerformanceReporter()
+                    channel = "adhoc"
+                    outputs.doNotCacheIf("Is adhoc performance test") { true }
+                    testProject.set(sampleGenerator.name)
+                    dependsOn(sampleGenerator)
+                }
+            }
+        }
     }
 
     private

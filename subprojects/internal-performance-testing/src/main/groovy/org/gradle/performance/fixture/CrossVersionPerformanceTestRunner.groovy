@@ -59,6 +59,7 @@ import static org.gradle.test.fixtures.server.http.MavenHttpPluginRepository.PLU
 class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
 
     private static final Pattern COMMA_OR_SEMICOLON = Pattern.compile('[;,]')
+    public static final String TEST_PROJECT_PROPERTY_NAME = "org.gradle.performance.testProject"
 
     private final IntegrationTestBuildContext buildContext
     private final ResultsStore resultsStore
@@ -96,6 +97,7 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
         this.experimentRunner = experimentRunner
         this.releases = releases
         this.buildContext = buildContext
+        loadConfiguredTestProject()
     }
 
     void addBuildMutator(Function<InvocationSettings, BuildMutator> buildMutator) {
@@ -104,6 +106,13 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
 
     List<String> getMeasuredBuildOperations() {
         return measuredBuildOperations
+    }
+
+    void loadConfiguredTestProject() {
+        def testProjectFromSystemProperty = System.getProperty(TEST_PROJECT_PROPERTY_NAME)
+        if (testProjectFromSystemProperty != null && !testProjectFromSystemProperty.empty) {
+            testProject = testProjectFromSystemProperty
+        }
     }
 
     CrossVersionPerformanceResults run() {
