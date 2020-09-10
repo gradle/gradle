@@ -113,7 +113,20 @@ For [Maven-to-Gradle conversion](userguide/migrating_from_maven), this release a
 
 ## Configuration cache improvements
 
-TBD - load from cache performance improvements and reduced memory consumption for Android builds
+Gradle 6.6 introduced [configuration caching](userguide/configuration_cache.html) as an experimental feature.
+This release comes with usability and performance improvements for the configuration cache.
+
+Early adopters of configuration cache can use the command line output and HTML report for [troubleshooting](userguide/configuration_cache.html#config_cache:troubleshooting).
+Previously, the configuration cache state was saved despite reported problems, which in some situation required manual cache invalidation.
+In this release, the configuration cache gets discarded when the build fails because of configuration cache problems.
+Note that you can still [ignore](userguide/configuration_cache.html#config_cache:usage:ignore_problems) known problems.
+
+The problem report is now more helpful.
+It reports the source of problems more accurately, pointing at the offending location in plugins and scripts in more cases.
+
+Loading from the configuration cache is now faster and memory consumption during builds has been reduced, especially for Kotlin and Android builds.
+
+Read about this feature and its impact [on the Gradle blog](https://blog.gradle.org/introducing-configuration-caching). Track progress of configuration cache support by [core plugins](https://github.com/gradle/gradle/issues/13454) and [community plugins](https://github.com/gradle/gradle/issues/13490).
 
 ## Compile-only API dependencies can be declared for JVM libraries
 
