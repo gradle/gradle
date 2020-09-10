@@ -33,9 +33,9 @@ JetBrains supports building https://blog.jetbrains.com/clion/2018/05/clion-start
 
 We have dedicated guides showing you how to integrate a Gradle project with the following CI platforms:
 
- * https://guides.gradle.org/executing-gradle-builds-on-jenkins[Jenkins]
- * https://guides.gradle.org/executing-gradle-builds-on-teamcity[TeamCity]
- * https://guides.gradle.org/executing-gradle-builds-on-travisci[Travis CI]
+ * <<jenkins.adoc#,Jenkins>>
+ * <<teamcity.adoc#,TeamCity>>
+ * <<travis-ci.adoc#,Travis CI>>
 
 Even if you don't use one of the above, you can almost certainly configure your CI platform to use the <<gradle_wrapper.adoc#,Gradle Wrapper>> scripts.
 
@@ -86,7 +86,7 @@ The Tooling API always uses the Gradle daemon. This means that subsequent calls 
 [[sec:embedding_quickstart]]
 === Quickstart
 
-As the Tooling API is an interface for developers, the Javadoc is the main documentation for it. 
+As the Tooling API is an interface for developers, the Javadoc is the main documentation for it.
 
 To use the Tooling API, add the following repository and dependency declarations to your build script:
 
