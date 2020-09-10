@@ -66,8 +66,8 @@ public class LanguageSpecificAdaptor implements ProjectGenerator {
     }
 
     @Override
-    public Optional<String> getFurtherReading() {
-        return descriptor.getFurtherReading();
+    public Optional<String> getFurtherReading(InitSettings settings) {
+        return descriptor.getFurtherReading(settings);
     }
 
     @Override

@@ -84,9 +84,9 @@ public abstract class JvmProjectInitDescriptor extends LanguageLibraryProjectIni
     }
 
     @Override
-    public Optional<String> getFurtherReading() {
-        return description.getUserManualId() == null ? Optional.empty() :
-            Optional.of(documentationRegistry.getDocumentationFor(description.getUserManualId()));
+    public Optional<String> getFurtherReading(InitSettings settings) {
+        String multi = isSingleProject(settings) ? "" : "_multi_project";
+        return Optional.of(documentationRegistry.getSampleFor("building_" + getLanguage().getName() + "_" + getComponentType().pluralName() + multi));
     }
 
     @Override
@@ -101,10 +101,9 @@ public abstract class JvmProjectInitDescriptor extends LanguageLibraryProjectIni
             }
 
             buildScriptBuilder.fileComment("This generated file contains a sample " + getLanguage() + " " + getComponentType() + " project to get you started.");
-            if (description.getUserManualId() != null) {
-                buildScriptBuilder.fileComment("For more details take a look at the " + description.getChapterName() + " chapter in the Gradle")
-                    .fileComment("User Manual available at " + documentationRegistry.getDocumentationFor(description.getUserManualId()));
-            }
+            buildScriptBuilder.fileComment("For more details take a look at the 'Building Java & JVM projects' chapter in the Gradle")
+                .fileComment("User Manual available at " + documentationRegistry.getDocumentationFor("building_java_projects"));
+
             addStandardDependencies(buildScriptBuilder);
             addTestFramework(settings.getTestFramework(), buildScriptBuilder);
         }

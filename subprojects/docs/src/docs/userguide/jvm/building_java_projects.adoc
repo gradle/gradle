@@ -27,6 +27,15 @@ However the described features are shared by all JVM plugins.
 Specifics of the different plugins are available in their dedicated documentation.
 ====
 
+[NOTE]
+====
+There are a number of hands-on samples that you can explore for
+link:../samples/index.html#java[Java],
+link:../samples/index.html#groovy[Groovy],
+link:../samples/index.html#scala[Scala] and
+link:../samples/index.html#kotlin[Kotlin]
+====
+
 == Introduction
 
 The simplest build script for a Java project applies the <<java_library_plugin.adoc#,Java Library Plugin>> and optionally sets the project version and Java compatibility versions:

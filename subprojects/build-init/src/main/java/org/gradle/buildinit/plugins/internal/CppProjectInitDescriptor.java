@@ -74,8 +74,8 @@ public abstract class CppProjectInitDescriptor extends LanguageLibraryProjectIni
     }
 
     @Override
-    public Optional<String> getFurtherReading() {
-        return Optional.of(documentationRegistry.getDocumentationFor("building_cpp_projects"));
+    public Optional<String> getFurtherReading(InitSettings settings) {
+        return Optional.of(documentationRegistry.getSampleFor("building_cpp_" + getComponentType().pluralName()));
     }
 
     protected abstract TemplateOperation sourceTemplateOperation(InitSettings settings);

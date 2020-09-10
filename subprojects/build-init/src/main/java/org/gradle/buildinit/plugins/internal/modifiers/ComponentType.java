@@ -44,4 +44,8 @@ public enum ComponentType {
     public String toString() {
         return Names.displayNameFor(this);
     }
+
+    public String pluralName() {
+        return (toString() + "s").replace("ys", "ies");
+    }
 }

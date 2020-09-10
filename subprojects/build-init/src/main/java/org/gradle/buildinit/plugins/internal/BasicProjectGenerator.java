@@ -86,7 +86,7 @@ public class BasicProjectGenerator implements ProjectGenerator {
     }
 
     @Override
-    public Optional<String> getFurtherReading() {
+    public Optional<String> getFurtherReading(InitSettings settings) {
         return Optional.empty();
     }
 }
