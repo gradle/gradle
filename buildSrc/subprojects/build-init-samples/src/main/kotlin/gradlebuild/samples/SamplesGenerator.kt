@@ -122,9 +122,9 @@ Select test framework:
 Enter selection (default: JUnit 4) [1..4]
 """ else ""
         val packageNameChoice = if (descriptor.supportsPackage()) "Source package (default: demo):\n" else ""
-        val furtherReading = if (descriptor.furtherReading.isPresent) """
+        val furtherReading = if (descriptor.getFurtherReading(settings).isPresent) """
             > Task :init
-            ${descriptor.furtherReading.get()}
+            ${descriptor.getFurtherReading(settings).get()}
             """.trimIndent() else ""
         val toolChain = when {
             descriptor.language === Language.SWIFT -> {
