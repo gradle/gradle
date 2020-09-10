@@ -1,7 +1,5 @@
 The Gradle team is excited to announce Gradle @version@.
 
-This release features [1](), [2](), ... [n](), and more.
-
 We would like to thank the following community contributors to this release of Gradle:
 
 [Roberto Perez Alcolea](https://github.com/rpalcolea),
@@ -18,11 +16,6 @@ We would like to thank the following community contributors to this release of G
 [Thad House](https://github.com/ThadHouse),
 and [Michał Mlak](https://github.com/Miehau).
 
-<!--
-Include only their name, impactful features should be called out separately below.
- [Some person](https://github.com/some-person)
--->
-
 ## Upgrade Instructions
 
 Switch your build to use Gradle @version@ by updating your wrapper:
@@ -35,9 +28,9 @@ For Java, Groovy, Kotlin and Android compatibility, see the [full compatibility 
 
 <!-- Do not add breaking changes or deprecations here! Add them to the upgrade guide instead. -->
 
-## Support for JDK15
+## Support for Java 15
 
-TODO: Expand this section
+Gradle now supports running on [JDK15](https://openjdk.java.net/projects/jdk/15/). 
 
 ## File system watching is ready for production use
 
@@ -90,7 +83,7 @@ There are versions of the samples for different types of projects and programmin
 [C++](samples/sample_building_cpp_library.html),
 [Swift](samples/sample_building_swift_library.html)
 
-## Initialize well-structured Gradle projects with 'init'
+## Initialize well-structured Gradle projects with `gradle init`
 
 When you start a new software project, a tool that helps you to set up an initial project structure is very helpful to get you going in the right direction.
 Gradle offers such a tool in form of the `init` task.
@@ -211,10 +204,6 @@ dependencyLocking {
 With the above, any dependency in the `com.example` group will be ignored by the lock state validation or writing.
 
 See the documentation for more details on [ignored dependencies in locking](userguide/dependency_locking.html#ignoring_dependencies).
-
-## Gradle init improvements
-
-<-- TBD: add something if we think it is worth mentioning, see #14219 and #14210 -->
 
 ## Promoted features
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
