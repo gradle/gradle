@@ -89,7 +89,7 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
         }
         List<String> lockedDependenciesToUpdate = startParameter.getLockedDependenciesToUpdate();
         partialUpdate = !lockedDependenciesToUpdate.isEmpty();
-        updateLockEntryFilter = LockEntryFilterFactory.forParameter(lockedDependenciesToUpdate, "Update lock");
+        updateLockEntryFilter = LockEntryFilterFactory.forParameter(lockedDependenciesToUpdate, "Update lock", true);
         uniqueLockStateEnabled = featurePreviews.isFeatureEnabled(ONE_LOCKFILE_PER_PROJECT);
         lockMode = propertyFactory.property(LockMode.class);
         lockMode.convention(LockMode.DEFAULT);
@@ -144,7 +144,7 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
 
     private LockEntryFilter getIgnoredEntryFilter() {
         if (ignoredEntryFilter == null) {
-            ignoredEntryFilter = LockEntryFilterFactory.forParameter(ignoredDependencies.getOrElse(Collections.emptyList()), "Ignored dependencies");
+            ignoredEntryFilter = LockEntryFilterFactory.forParameter(ignoredDependencies.getOrElse(Collections.emptyList()), "Ignored dependencies", false);
         }
         return ignoredEntryFilter;
     }

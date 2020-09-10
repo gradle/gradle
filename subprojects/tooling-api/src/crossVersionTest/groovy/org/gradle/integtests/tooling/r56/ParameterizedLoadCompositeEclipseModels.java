@@ -38,7 +38,7 @@ public class ParameterizedLoadCompositeEclipseModels<T> implements BuildAction<C
 
     @Override
     public Collection<T> execute(BuildController controller) {
-        Collection<T> models = new ArrayList<>();
+        Collection<T> models = new ArrayList<T>();
         collectRootModels(controller, controller.getBuildModel(), models);
         return models;
     }

@@ -62,7 +62,7 @@ class DefaultBuildActionExecuter<T> extends AbstractLongRunningOperation<Default
 
     @Override
     public T run() throws GradleConnectionException {
-        BlockingResultHandler<Object> handler = new BlockingResultHandler<>(Object.class);
+        BlockingResultHandler<Object> handler = new BlockingResultHandler<Object>(Object.class);
         run(handler);
         return Cast.uncheckedNonnullCast(handler.getResult());
     }

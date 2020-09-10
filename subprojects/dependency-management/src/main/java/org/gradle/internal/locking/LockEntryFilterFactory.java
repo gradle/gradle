@@ -32,15 +32,15 @@ class LockEntryFilterFactory {
     private static final String WILDCARD_SUFFIX = "*";
     public static final String MODULE_SEPARATOR = ":";
 
-    static LockEntryFilter forParameter(List<String> lockedDependenciesToUpdate, String context) {
-        if (lockedDependenciesToUpdate.isEmpty()) {
+    static LockEntryFilter forParameter(List<String> dependencyNotations, String context, boolean allowFullWildcard) {
+        if (dependencyNotations.isEmpty()) {
             return FILTERS_NONE;
         }
         HashSet<LockEntryFilter> lockEntryFilters = new HashSet<>();
-        for (String lockExcludes : lockedDependenciesToUpdate) {
+        for (String lockExcludes : dependencyNotations) {
             for (String lockExclude : lockExcludes.split(",")) {
                 String[] split = lockExclude.split(MODULE_SEPARATOR);
-                validateNotation(lockExclude, split, context);
+                validateNotation(lockExclude, split, allowFullWildcard, context);
 
                 lockEntryFilters.add(createFilter(split[0], split[1]));
             }
@@ -68,7 +68,7 @@ class LockEntryFilterFactory {
         return new GroupModuleLockEntryFilter(group, module);
     }
 
-    private static void validateNotation(String lockExclude, String[] split, String context) {
+    private static void validateNotation(String lockExclude, String[] split, boolean allowFullWildcard, String context) {
         if (split.length != 2) {
             throwInvalid(lockExclude, context);
         }
@@ -76,6 +76,10 @@ class LockEntryFilterFactory {
         String module = split[1];
 
         if ((group.contains(WILDCARD_SUFFIX) && !group.endsWith(WILDCARD_SUFFIX)) || (module.contains(WILDCARD_SUFFIX) && !module.endsWith(WILDCARD_SUFFIX))) {
+            throwInvalid(lockExclude, context);
+        }
+
+        if (!allowFullWildcard && group.equals(WILDCARD_SUFFIX) && module.equals(WILDCARD_SUFFIX)) {
             throwInvalid(lockExclude, context);
         }
 

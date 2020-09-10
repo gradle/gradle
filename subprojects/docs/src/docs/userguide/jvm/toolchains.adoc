@@ -1,0 +1,147 @@
+// Copyright 2020 the original author or authors.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[toolchains]]
+= Toolchains for JVM projects
+
+By default, Gradle uses the same Java version for running Gradle itself and building JVM projects.
+
+This is not always desirable.
+Building projects with different Java versions on different developer machines and CI servers may lead to unexpected issues.
+Additionally, you may want to build a project using a Java version that is not supported for running Gradle.
+
+A Java Toolchain (from now on referred to simply as toolchain) is a set of tools, usually taken from a local JRE/JDK installation that are used to configure different aspects of a build.
+Compile tasks may use `javac` as their compiler, test and exec tasks may use the `java` command while `javadoc` will be used to generate documentation.
+
+[[sec:consuming]]
+== Consuming Toolchains
+
+A build can globally define what toolchain it targets by stating the Java Language version it needs:
+
+====
+include::sample[dir="samples/java/jvm-multi-project-with-toolchains/groovy/",files="buildSrc/src/main/groovy/myproject.java-conventions.gradle[tags=toolchain]"]
+include::sample[dir="samples/java/jvm-multi-project-with-toolchains/kotlin/",files="buildSrc/src/main/kotlin/myproject.java-conventions.gradle.kts[tags=toolchain]"]
+====
+
+Executing the build (e.g. using `gradle check`) will now handle several things for you and others running your build
+
+1. Setup all compile, test and javadoc tasks to use the defined toolchain which may be different than the one Gradle itself uses
+2. Gradle detects <<#sec:auto_detection,locally installed JVMs>>
+3. Gradle chooses a JRE/JDK matching the requirements of the build (in this case a JVM supporting Java 14)
+4. If no matching JVM is found, it will automatically download a matching JDK from https://adoptopenjdk.net/[AdoptOpenJDK]
+
+== Specify custom toolchains for individual tasks
+
+In case you want to tweak which toolchain is used for a specific task, you can specify the exact tool a task is using.
+For example, a `Test` task exposes a `JavaLauncher` property that defines which java executable to use to launch the tests.
+
+In the example below, we configure the default toolchain to use JDK8 for compiling and testing.
+Additionally, we introduce a new Test task that is going to run our unit tests but using a JDK 14.
+
+====
+include::sample[dir="samples/java/jvm-multi-project-with-toolchains/groovy/",files="list/build.gradle[tags=customToolchain]"]
+include::sample[dir="samples/java/jvm-multi-project-with-toolchains/kotlin",files="list/build.gradle.kts[tags=customToolchain]"]
+====
+
+Depending on the task, a JRE might be enough while for other tasks (e.g. compilation), a JDK is required.
+By default, Gradle prefers installed JDKs over JREs.
+
+Toolchains tool providers can be obtained from the link:{javadocPath}/org/gradle/jvm/toolchain/JavaToolchainService.html[`javaToolchains`] extension.
+
+Three tools are available:
+
+* A `JavaCompiler` which is the tool used by the `JavaCompile` task
+* A `JavaLauncher` which is the tool used by the `JavaExec` or `Test` tasks
+* A `JavadocTool` which is the tool used by the `Javadoc` task
+
+[[sec:auto_detection]]
+== Auto detection of installed toolchains
+
+By default, Gradle automatically detects local JRE/JDK installations so no further configuration is required by the user.
+The following is a list of common package managers and locations that are supported by the JVM auto detection.
+
+Operation-system specific locations:
+
+* Linux
+* MacOs
+* Windows
+
+Supported Package Managers:
+
+* https://asdf-vm.com/#/[Asdf-vm]
+* https://github.com/shyiko/jabba[Jabba]
+* https://sdkman.io/[SDKMAN!]
+
+[[sub:disable_auto_detect]]
+=== How to disable auto-detection
+
+In order to disable auto-detection, you can use the `org.gradle.java.installations.auto-detect` Gradle property:
+
+* Either start gradle using `-Porg.gradle.java.installations.auto-detect=false`
+* Or put `org.gradle.java.installations.auto-detect=false` into your `gradle.properties` file.
+
+[[sec:provisioning]]
+== Auto Provisioning
+
+If no toolchain is found matching the requirements of the build, Gradle will automatically download a matching JDK from AdoptOpenJDK. By default, it will request a HotSpot JDK matching the current operating system and architecture.
+Provisioning JDKs are installed in the <<directory_layout.adoc#dir:gradle_user_home,Gradle User Home directory>>.
+
+By default, the public https://api.adoptopenjdk.net/[AdoptOpenJDK APIs] are used to determine and download a matching JDK.
+In case you want to use another server that is compatible with v3 of the AdoptOpenJDK API, you can point Gradle to use a different host.
+For that you use the Gradle property as in the example below:
+
+----
+org.gradle.jvm.toolchain.install.adoptopenjdk.baseUri=https://api.company.net/
+----
+
+[[sub:disable_auto_provision]]
+=== How to disable auto provisioning
+
+In order to disable auto-provisioning, you can use the `org.gradle.java.installations.auto-download` Gradle property:
+
+* Either start gradle using `-Porg.gradle.java.installations.auto-download=false`
+* Or put `org.gradle.java.installations.auto-download=false` into a `gradle.properties` file.
+
+[[sec:custom_loc]]
+== Custom Toolchain locations
+
+If auto-detecting local toolchains is not sufficient or disabled, there are additional ways you can let Gradle know about installed toolchains.
+
+If your setup already provides environment variables pointing to installed JVMs, you can also let Gradle know about which environment variables to take into account.
+Assuming the environment variables `JDK8` and `JRE14` point to valid java installations, the following instructs Gradle to resolve those environment variables and consider those installations when looking for a matching toolchain.
+
+----
+org.gradle.java.installations.fromEnv=JDK8,JRE14
+----
+
+Additionally, you can provide a comma-separated list of paths to specific installations using the `org.gradle.java.installations.paths` property.
+For example, using the following in your `gradle.properties` will let Gradle know which directories to look at when detecting JVMs.
+Gradle will treat these directories as possible installations but will not descend into any nested directories.
+
+----
+org.gradle.java.installations.paths=/custom/path/jdk1.8,/shared/jre11
+----
+
+[[sec:plugins]]
+== Toolchains for plugin authors
+
+For plugin authors, custom tasks that require a tool from the JDK should expose a `Property<T>` with the desired tool as generic type.
+By injecting the `JavaToolchainService` in the plugin, it is also possible to wire a convention in those properties by obtaining the `JavaToolchainSpec` from the `java` extension on the project.
+
+```
+JavaPluginExtension extension = project.getExtensions().getByType(JavaPluginExtension.class);
+JavaToolchainService service = project.getExtensions().getByType(JavaToolchainService.class);
+Provider<JavaCompiler> defaultCompiler = service.compilerFor(extension.getToolchain()).orElse(Providers.notDefined());
+myTask.getJavaCompiler().convention(defaultCompiler);
+```

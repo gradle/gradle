@@ -218,7 +218,7 @@ class DependencyLockingArtifactVisitorTest extends Specification {
         given:
         def identifier = newId(mid, '1.1')
         def ignoredIdentifier = newId(DefaultModuleIdentifier.newId('org', 'ignored'), '1.0')
-        startWithState([identifier], LockEntryFilterFactory.forParameter(['org:ignored'], "Update lock"))
+        startWithState([identifier], LockEntryFilterFactory.forParameter(['org:ignored'], "Update lock", true))
         addVisitedNode(identifier)
         addVisitedNode(ignoredIdentifier)
 

@@ -51,7 +51,7 @@ import static org.gradle.buildinit.plugins.internal.PackageNameBuilder.toPackage
 public class InitBuild extends DefaultTask {
     private final Directory projectDir = getProject().getLayout().getProjectDirectory();
     private String type;
-    private final Property<String> modularize = getProject().getObjects().property(String.class);
+    private final Property<Boolean> splitProject = getProject().getObjects().property(Boolean.class);
     private String dsl;
     private String testFramework;
     private String projectName;
@@ -71,29 +71,18 @@ public class InitBuild extends DefaultTask {
     }
 
     /**
-     * Should the build be modularized already (i.e. have multiple subprojects)
+     * Should the build be split into multiple subprojects?
      *
-     * This property can be set via command-line option '--modularized'.
+     * This property can be set via command-line option '--split-project'.
      *
      * @since 6.7
      */
     @Incubating
     @Input
     @Optional
-    @Option(option = "modularize", description = "Should the build include library projects?")
-    public Property<String> getModularize() {
-        return modularize;
-    }
-
-    /**
-     * Available options to split a new projects into multiple subprojects.
-     *
-     * @since 6.7
-     */
-    @Incubating
-    @OptionValues("modularize")
-    public List<String> getAvailableModularizationOptions() {
-        return ModularizationOption.listSupported();
+    @Option(option = "split-project", description = "Split functionality across multiple subprojects?")
+    public Property<Boolean> getSplitProject() {
+        return splitProject;
     }
 
     /**
@@ -185,12 +174,12 @@ public class InitBuild extends DefaultTask {
         }
 
         ModularizationOption modularizationOption;
-        if (modularize.isPresent()) {
-            modularizationOption = ModularizationOption.byId(modularize.get());
+        if (splitProject.isPresent()) {
+            modularizationOption = splitProject.get() ? ModularizationOption.WITH_LIBRARY_PROJECTS : ModularizationOption.SINGLE_PROJECT;
         } else if (initDescriptor.getModularizationOptions().size() == 1) {
             modularizationOption = initDescriptor.getModularizationOptions().iterator().next();
         } else {
-            modularizationOption = inputHandler.selectOption("Should the build include library projects?",
+            modularizationOption = inputHandler.selectOption("Split functionality across multiple subprojects?",
                 initDescriptor.getModularizationOptions(), ModularizationOption.SINGLE_PROJECT);
         }
 
