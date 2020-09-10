@@ -23,6 +23,7 @@ import gradlebuild.performance.reporter.PerformanceReporter
 import groovy.json.JsonOutput
 import groovy.transform.CompileStatic
 import org.apache.commons.io.FileUtils
+import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Input
@@ -127,11 +128,36 @@ abstract class PerformanceTest extends DistributionTest {
     @Override
     @TaskAction
     void executeTests() {
+        if (getScenarios() == null) {
+            moveMethodFiltersToScenarios()
+        }
         try {
             super.executeTests()
         } finally {
             performanceReporter.report(this)
         }
+    }
+
+    private void moveMethodFiltersToScenarios() {
+        DefaultTestFilter filter = getFilter() as DefaultTestFilter
+        List<String> scenarios = []
+        Set<String> onlyClassFilters = filter.getCommandLineIncludePatterns().collect { includePattern ->
+            def lastDot = includePattern.lastIndexOf(".")
+            if (lastDot == -1) {
+                return includePattern
+            } else {
+                def className = includePattern.substring(0, lastDot)
+                def methodName = includePattern.substring(lastDot + 1)
+                if (Character.isLowerCase(methodName.charAt(0))) {
+                    scenarios.add(methodName)
+                    return className
+                } else {
+                    return includePattern
+                }
+            }
+        } as Set
+        filter.setCommandLineIncludePatterns(onlyClassFilters)
+        setScenarios(scenarios.join(";"))
     }
 
     @Option(option = "scenarios", description = "A semicolon-separated list of performance test scenario ids to run.")
