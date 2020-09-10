@@ -605,7 +605,6 @@ class MavenPublishResolvedVersionsJavaIntegTest extends AbstractMavenPublishInte
     // for a first level dependency? However it may be that you implicitly get a
     // substitution rule (via a plugin for example) that you are not aware of.
     // Ideally we should warn when such things happen (linting).
-    @Unroll
     @Issue("https://github.com/gradle/gradle/issues/14039")
     def "substituted project dependencies are also substituted in the generated POM file"() {
         createBuildScripts("""
