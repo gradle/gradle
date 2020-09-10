@@ -77,7 +77,8 @@ plugins {
 }
 
 dependencies {
-  compileOnlyApi("com.google.errorprone:error_prone_annotations:2.4.0")
+  compileOnlyApi(
+    "com.google.errorprone:error_prone_annotations:2.4.0")
 }
 ```
 
@@ -128,7 +129,7 @@ Enter selection (default: Java) [1..6] 3
 Split functionality across multiple subprojects?:
    1: no - only one application project
    2: yes - application and library projects
-Enter selection (default: no - only one application project) [1..2] 2
+Enter selection [1..2] 2
 ```  
 
 For [Maven-to-Gradle conversion](userguide/migrating_from_maven), this release adds support for Kotlin DSL scripts and uses buildSrc directory for shared logic.
