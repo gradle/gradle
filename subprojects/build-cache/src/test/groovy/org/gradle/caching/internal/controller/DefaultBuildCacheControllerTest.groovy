@@ -83,7 +83,7 @@ class DefaultBuildCacheControllerTest extends Specification {
 
     interface Local extends BuildCacheService, LocalBuildCacheService {}
 
-    BuildCacheController getController(boolean disableRemoteOnError = false) {
+    BuildCacheController getController(boolean disableRemoteOnError = true) {
         new DefaultBuildCacheController(
             new BuildCacheServicesConfiguration(
                 local,
