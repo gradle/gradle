@@ -254,6 +254,12 @@ class PerformanceTestPlugin : Plugin<Project> {
                     outputs.doNotCacheIf("Is adhoc performance test") { true }
                     setTestProjectGenerationTask(sampleGenerator)
                 }
+                val channelSuffix = if (OperatingSystem.current().isLinux) "" else "-${OperatingSystem.current().familyName.toLowerCase()}"
+                create("${sampleGenerator.name}PerformanceTest") {
+                    performanceReporter = createPerformanceReporter()
+                    channel = "commits$channelSuffix"
+                    setTestProjectGenerationTask(sampleGenerator)
+                }
             }
         }
     }
@@ -402,8 +408,7 @@ class PerformanceTestPlugin : Plugin<Project> {
             finalizedBy(testResultsZipTask)
         }
 
-        // TODO: Make this lazy, see https://github.com/gradle/gradle-native/issues/718
-        tasks.getByName("clean${name.capitalize()}") {
+        tasks.named("clean${name.capitalize()}") {
             delete(performanceTest)
             dependsOn(testResultsZipTask.map { "clean${it.name.capitalize()}" }) // Avoid realizing because of issue
         }
