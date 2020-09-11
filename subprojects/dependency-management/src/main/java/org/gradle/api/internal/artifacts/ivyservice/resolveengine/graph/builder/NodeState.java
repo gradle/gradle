@@ -666,7 +666,17 @@ public class NodeState implements DependencyGraphNode {
 
     private ExcludeSpec computeModuleResolutionFilter(List<EdgeState> incomingEdges) {
         if (metaData.isExternalVariant()) {
+            // If the current node represents an external variant, we must not consider its excludes
+            // because it's some form of "delegation"
             return moduleExclusions.nothing();
+        }
+        if (incomingEdges.size() == 1) {
+            // At the same time if the current node _comes from_ a delegated variant (available-at)
+            // then we need to take the exclusion filter from the origin node instead
+            NodeState from = incomingEdges.get(0).getFrom();
+            if (from.getMetadata().isExternalVariant()) {
+                return computeModuleResolutionFilter(from.getIncomingEdges());
+            }
         }
         ExcludeSpec nodeExclusions = computeNodeExclusions();
         if (incomingEdges.isEmpty()) {
