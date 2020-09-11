@@ -101,7 +101,7 @@ class HttpBuildCacheServiceErrorHandlingIntegrationTest extends AbstractIntegrat
         withBuildCache().run("customTask", "customTask2")
 
         then:
-        output =~ /Could not load entry .* from remote build cache: Loading entry from '.+' response status 500: Internal Server Error/
+        output =~ /Could not load entry .* from remote build cache: Loading entry from '.+' response status 500: Server Error/
 
         and:
         requestCounter.get() == 1
@@ -121,9 +121,9 @@ class HttpBuildCacheServiceErrorHandlingIntegrationTest extends AbstractIntegrat
         withBuildCache().run("-D${BuildCacheControllerFactory.REMOTE_CONTINUE_ON_ERROR_PROPERTY}=true", "customTask", "customTask2")
 
         then:
-        output =~ /Could not load entry .* from remote build cache: Loading entry from '.+' response status 500: Internal Server Error/
+        output =~ /Could not load entry .* from remote build cache: Loading entry from '.+' response status 500: Server Error/
 
         and:
-        requestCounter.get() == 4 // [MISS, STORE] * 2
+        requestCounter.get() == 4 // {MISS,STORE} * 2
     }
 }

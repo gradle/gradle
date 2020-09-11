@@ -97,7 +97,7 @@ class HttpBuildCacheServer extends ExternalResource implements HttpServerFixture
             }
         }
 
-        webapp.addFilter(new FilterHolder(filter), "/*", 1)
+        webapp.addFilter(new FilterHolder(filter), "/*", EnumSet.of(DispatcherType.REQUEST))
         this
     }
 
