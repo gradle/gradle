@@ -121,7 +121,9 @@ class GradleModuleMetadataAvailableAtIntegrationTest extends AbstractModuleDepen
                     availableAt("../../external/1.0/external-1.0.module", "org", "external", "1.0")
                 }
             }
-            'org:external:1.0'()
+            'org:external:1.0' {
+                dependsOn('org:do_not_reach:1.0')
+            }
         }
 
         buildFile << """
