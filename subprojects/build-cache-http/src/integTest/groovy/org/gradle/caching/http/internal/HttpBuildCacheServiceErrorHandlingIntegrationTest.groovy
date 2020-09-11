@@ -16,13 +16,16 @@
 
 package org.gradle.caching.http.internal
 
+import org.gradle.caching.internal.services.BuildCacheControllerFactory
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+
+import java.util.concurrent.atomic.AtomicInteger
 
 import static org.gradle.internal.resource.transport.http.JavaSystemPropertiesHttpTimeoutSettings.SOCKET_TIMEOUT_SYSTEM_PROPERTY
 
 class HttpBuildCacheServiceErrorHandlingIntegrationTest extends AbstractIntegrationSpec implements HttpBuildCacheFixture {
     def setup() {
-        buildFile << """   
+        buildFile << """
             import org.gradle.api.*
             apply plugin: 'base'
 
@@ -30,10 +33,10 @@ class HttpBuildCacheServiceErrorHandlingIntegrationTest extends AbstractIntegrat
             class CustomTask extends DefaultTask {
                 @Input
                 Long fileSize = 1024
-            
+
                 @OutputFile
                 File outputFile
-            
+
                 @TaskAction
                 void createFile() {
                     outputFile.withOutputStream { OutputStream out ->
@@ -46,9 +49,13 @@ class HttpBuildCacheServiceErrorHandlingIntegrationTest extends AbstractIntegrat
                     }
                 }
             }
-            
+
             task customTask(type: CustomTask) {
                 outputFile = file('build/outputFile.bin')
+            }
+
+            task customTask2(type: CustomTask) {
+                outputFile = file('build/outputFile2.bin')
             }
         """.stripIndent()
     }
@@ -78,5 +85,45 @@ class HttpBuildCacheServiceErrorHandlingIntegrationTest extends AbstractIntegrat
 
         then:
         output =~ /Could not load entry .* from remote build cache: Read timed out/
+    }
+
+    def "build cache is deactivated if response is not successful"() {
+        def requestCounter = new AtomicInteger()
+        httpBuildCacheServer.addResponder { req, res ->
+            requestCounter.incrementAndGet()
+            res.sendError(500)
+            false
+        }
+        settingsFile << withHttpBuildCacheServer()
+
+        when:
+        executer.withStacktraceDisabled()
+        withBuildCache().run("customTask", "customTask2")
+
+        then:
+        output =~ /Could not load entry .* from remote build cache: Loading entry from '.+' response status 500: Server Error/
+
+        and:
+        requestCounter.get() == 1
+    }
+
+    def "build cache is not deactivated if response is not successful and continue-on-error is disabled"() {
+        def requestCounter = new AtomicInteger()
+        httpBuildCacheServer.addResponder { req, res ->
+            requestCounter.incrementAndGet()
+            res.sendError(500)
+            false
+        }
+        settingsFile << withHttpBuildCacheServer()
+
+        when:
+        executer.withStacktraceDisabled()
+        withBuildCache().run("-D${BuildCacheControllerFactory.REMOTE_CONTINUE_ON_ERROR_PROPERTY}=true", "customTask", "customTask2")
+
+        then:
+        output =~ /Could not load entry .* from remote build cache: Loading entry from '.+' response status 500: Server Error/
+
+        and:
+        requestCounter.get() == 4 // {MISS,STORE} * 2
     }
 }

@@ -71,12 +71,13 @@ public class DefaultBuildCacheController implements BuildCacheController {
         BuildOperationExecutor buildOperationExecutor,
         File gradleUserHomeDir,
         boolean logStackTraces,
-        boolean emitDebugLogging
+        boolean emitDebugLogging,
+        boolean disableRemoteOnError
     ) {
         this.buildOperationExecutor = buildOperationExecutor;
         this.emitDebugLogging = emitDebugLogging;
         this.local = toLocalHandle(config.getLocal(), config.isLocalPush());
-        this.remote = toRemoteHandle(config.getRemote(), config.isRemotePush(), buildOperationExecutor, logStackTraces);
+        this.remote = toRemoteHandle(config.getRemote(), config.isRemotePush(), buildOperationExecutor, logStackTraces, disableRemoteOnError);
         this.tmp = toTempFileStore(config.getLocal(), gradleUserHomeDir);
     }
 
@@ -227,10 +228,10 @@ public class DefaultBuildCacheController implements BuildCacheController {
         }
     }
 
-    private static BuildCacheServiceHandle toRemoteHandle(@Nullable BuildCacheService service, boolean push, BuildOperationExecutor buildOperationExecutor, boolean logStackTraces) {
+    private static BuildCacheServiceHandle toRemoteHandle(@Nullable BuildCacheService service, boolean push, BuildOperationExecutor buildOperationExecutor, boolean logStackTraces, boolean disableOnError) {
         return service == null
             ? NullBuildCacheServiceHandle.INSTANCE
-            : new OpFiringBuildCacheServiceHandle(service, push, BuildCacheServiceRole.REMOTE, buildOperationExecutor, logStackTraces);
+            : new OpFiringBuildCacheServiceHandle(service, push, BuildCacheServiceRole.REMOTE, buildOperationExecutor, logStackTraces, disableOnError);
     }
 
     private static LocalBuildCacheServiceHandle toLocalHandle(@Nullable LocalBuildCacheService local, boolean localPush) {
