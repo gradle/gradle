@@ -9,7 +9,6 @@ import org.hamcrest.CoreMatchers.containsString
 import org.junit.Assert.assertFalse
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Assert.assertTrue
-import org.junit.Ignore
 import org.junit.Test
 
 
@@ -205,7 +204,6 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
         build("clean", "--rerun-tasks")
     }
 
-    @Ignore("wip")
     @Test
     @ToBeFixedForConfigurationCache(because = "Kotlin Gradle Plugin")
     fun `accessors are available after renaming precompiled script plugin from project dependency`() {
