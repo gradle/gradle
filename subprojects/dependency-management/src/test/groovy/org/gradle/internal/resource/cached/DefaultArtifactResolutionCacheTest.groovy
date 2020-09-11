@@ -17,8 +17,8 @@
 package org.gradle.internal.resource.cached
 
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheLockingManagerStub
+import org.gradle.internal.file.FileAccessTracker
 import org.gradle.internal.hash.HashCode
-import org.gradle.internal.resource.local.FileAccessTracker
 import org.gradle.internal.resource.metadata.DefaultExternalResourceMetaData
 import org.gradle.internal.serialize.BaseSerializerFactory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider

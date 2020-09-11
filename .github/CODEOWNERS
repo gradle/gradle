@@ -1,0 +1,16 @@
+# Execution team
+subprojects/base-annotations/       @gradle/execution
+subprojects/build-cache/            @gradle/execution
+subprojects/build-cache-base/       @gradle/execution
+subprojects/build-cache-http/       @gradle/execution
+subprojects/build-cache-packaging/  @gradle/execution
+subprojects/build-operations/       @gradle/execution
+subprojects/execution/              @gradle/execution
+subprojects/file-watching/          @gradle/execution
+subprojects/files/                  @gradle/execution
+subprojects/hashing/                @gradle/execution
+subprojects/normalization-java/     @gradle/execution
+subprojects/snapshots/              @gradle/execution
+
+# Release notes
+subprojects/docs/src/docs/release/notes.md @pioterj

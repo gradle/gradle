@@ -56,7 +56,7 @@ import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
-import org.gradle.internal.vfs.VirtualFileSystem;
+import org.gradle.internal.vfs.FileSystemAccess;
 import org.gradle.util.GradleVersion;
 import org.gradle.util.Path;
 
@@ -143,10 +143,10 @@ public final class BuildCacheServices extends AbstractPluginServiceRegistry {
             BuildCacheCommandFactory createBuildCacheCommandFactory(
                 BuildCacheEntryPacker packer,
                 OriginMetadataFactory originMetadataFactory,
-                VirtualFileSystem virtualFileSystem,
+                FileSystemAccess fileSystemAccess,
                 StringInterner stringInterner
             ) {
-                return new DefaultBuildCacheCommandFactory(packer, originMetadataFactory, virtualFileSystem, stringInterner);
+                return new DefaultBuildCacheCommandFactory(packer, originMetadataFactory, fileSystemAccess, stringInterner);
             }
 
             BuildCacheController createBuildCacheController(

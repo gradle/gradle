@@ -17,6 +17,8 @@ package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.ArtifactBuilder
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import spock.lang.IgnoreIf
 
 class CustomPluginIntegrationTest extends AbstractIntegrationSpec {
     void "can reference plugin in buildSrc by id"() {
@@ -125,6 +127,7 @@ task test
         succeeds('test')
     }
 
+    @IgnoreIf({ GradleContextualExecuter.embedded }) // Requires a Gradle distribution on the test-under-test classpath, but gradleApi() does not offer the full distribution
     def "can integration test plugin"() {
         given:
         file('src/main/groovy/CustomPlugin.groovy') << """
@@ -170,6 +173,7 @@ dependencies {
         succeeds('test')
     }
 
+    @IgnoreIf({ GradleContextualExecuter.embedded }) // Requires a Gradle distribution on the test-under-test classpath, but gradleApi() does not offer the full distribution
     def "can use java plugin from custom plugin and its integration tests"() {
         given:
         file('src/main/groovy/CustomPlugin.groovy') << """

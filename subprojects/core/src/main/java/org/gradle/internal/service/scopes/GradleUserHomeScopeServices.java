@@ -71,7 +71,7 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.remote.MessagingServer;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.internal.vfs.VirtualFileSystem;
+import org.gradle.internal.vfs.FileSystemAccess;
 import org.gradle.process.internal.ExecFactory;
 import org.gradle.process.internal.JavaExecHandleFactory;
 import org.gradle.process.internal.health.memory.MemoryManager;
@@ -105,7 +105,7 @@ public class GradleUserHomeScopeServices extends WorkerSharedUserHomeScopeServic
     }
 
     ListenerManager createListenerManager(ListenerManager parent) {
-        return parent.createChild(Scopes.UserHome);
+        return parent.createChild(Scopes.UserHome.class);
     }
 
     GradleUserHomeScopeFileTimeStampInspector createFileTimestampInspector(CacheScopeMapping cacheScopeMapping, ListenerManager listenerManager) {
@@ -154,7 +154,7 @@ public class GradleUserHomeScopeServices extends WorkerSharedUserHomeScopeServic
         CacheRepository cacheRepository,
         ClasspathTransformerCacheFactory classpathTransformerCacheFactory,
         FileAccessTimeJournal fileAccessTimeJournal,
-        VirtualFileSystem virtualFileSystem,
+        FileSystemAccess fileSystemAccess,
         ClasspathWalker classpathWalker,
         ClasspathBuilder classpathBuilder,
         ExecutorFactory executorFactory,
@@ -166,7 +166,7 @@ public class GradleUserHomeScopeServices extends WorkerSharedUserHomeScopeServic
             fileAccessTimeJournal,
             classpathWalker,
             classpathBuilder,
-            virtualFileSystem,
+            fileSystemAccess,
             executorFactory,
             globalCacheLocations);
     }
@@ -212,8 +212,8 @@ public class GradleUserHomeScopeServices extends WorkerSharedUserHomeScopeServic
         return new DefaultGeneratedGradleJarCache(cacheRepository, gradleVersion);
     }
 
-    FileContentCacheFactory createFileContentCacheFactory(ListenerManager listenerManager, VirtualFileSystem virtualFileSystem, CacheRepository cacheRepository, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
-        return new DefaultFileContentCacheFactory(listenerManager, virtualFileSystem, cacheRepository, inMemoryCacheDecoratorFactory, null);
+    FileContentCacheFactory createFileContentCacheFactory(ListenerManager listenerManager, FileSystemAccess fileSystemAccess, CacheRepository cacheRepository, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
+        return new DefaultFileContentCacheFactory(listenerManager, fileSystemAccess, cacheRepository, inMemoryCacheDecoratorFactory, null);
     }
 
     FileAccessTimeJournal createFileAccessTimeJournal(CacheRepository cacheRepository, InMemoryCacheDecoratorFactory cacheDecoratorFactory) {

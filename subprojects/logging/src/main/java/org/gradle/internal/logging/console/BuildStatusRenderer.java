@@ -51,7 +51,7 @@ public class BuildStatusRenderer implements OutputEventListener {
     private final ConsoleMetaData consoleMetaData;
     private OperationIdentifier buildProgressOperationId;
     private Phase currentPhase;
-    private Set<OperationIdentifier> currentPhaseChildren = new HashSet<OperationIdentifier>();
+    private final Set<OperationIdentifier> currentPhaseChildren = new HashSet<OperationIdentifier>();
     private long currentTimePeriod;
 
     // What actually shows up on the console

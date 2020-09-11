@@ -2,7 +2,7 @@ package configurations
 
 import Gradle_Check.configurations.masterReleaseBranchFilter
 import Gradle_Check.configurations.triggerExcludes
-import common.Os
+import common.Os.LINUX
 import common.applyDefaultSettings
 import common.buildToolGradleParameters
 import common.gradleWrapper
@@ -29,7 +29,7 @@ class StagePasses(model: CIBuildModel, stage: Stage, prevStage: Stage?, stagePro
     name = stage.stageName.stageName + " (Trigger)"
 
     applyDefaultSettings()
-    artifactRules = "build/build-receipt.properties"
+    artifactRules = "subprojects/base-services/build/generated-resources/build-receipt/org/gradle/build-receipt.properties"
 
     features {
         publishBuildStatusToGithub(model)
@@ -63,7 +63,7 @@ class StagePasses(model: CIBuildModel, stage: Stage, prevStage: Stage?, stagePro
     }
 
     params {
-        param("env.JAVA_HOME", buildJavaHome())
+        param("env.JAVA_HOME", LINUX.buildJavaHome())
     }
 
     val baseBuildType = this
@@ -71,13 +71,13 @@ class StagePasses(model: CIBuildModel, stage: Stage, prevStage: Stage?, stagePro
 
     val defaultGradleParameters = (
         buildToolGradleParameters() +
-            baseBuildType.buildCache.gradleParameters(Os.linux) +
+            baseBuildType.buildCache.gradleParameters(LINUX) +
             buildScanTags.map(::buildScanTag)
         ).joinToString(" ")
     steps {
         gradleWrapper {
             name = "GRADLE_RUNNER"
-            tasks = "createBuildReceipt" + if (stage.stageName == StageNames.READY_FOR_NIGHTLY) " updateBranchStatus" else ""
+            tasks = ":base-services:createBuildReceipt" + if (stage.stageName == StageNames.READY_FOR_NIGHTLY) " updateBranchStatus -PgithubToken=%github.bot-teamcity.token%" else ""
             gradleParams = defaultGradleParameters
         }
         script {

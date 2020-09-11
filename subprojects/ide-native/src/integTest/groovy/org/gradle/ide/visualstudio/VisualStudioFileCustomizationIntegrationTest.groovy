@@ -17,7 +17,7 @@
 package org.gradle.ide.visualstudio
 
 import org.gradle.ide.visualstudio.fixtures.AbstractVisualStudioIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
@@ -54,7 +54,7 @@ class VisualStudioFileCustomizationIntegrationTest extends AbstractVisualStudioI
     }
 
     @IgnoreIf({GradleContextualExecuter.daemon || GradleContextualExecuter.noDaemon})
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can specify location of generated files"() {
         when:
         hostGradleWrapperFile << "dummy wrapper"
@@ -102,7 +102,7 @@ class VisualStudioFileCustomizationIntegrationTest extends AbstractVisualStudioI
         mainSolution.file.assertDoesNotExist()
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can add xml configuration to generated project files"() {
         when:
         buildFile << """
@@ -127,7 +127,7 @@ class VisualStudioFileCustomizationIntegrationTest extends AbstractVisualStudioI
         projectFile.globals.ProjectName[0].text() == "mainExe"
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can add xml configuration to generated filter files"() {
         when:
         buildFile << '''
@@ -149,7 +149,7 @@ class VisualStudioFileCustomizationIntegrationTest extends AbstractVisualStudioI
         filtersFile.xml.ExtraContent[0].text() == "Filter - mainExe"
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can add text content to generated solution files"() {
         when:
         buildFile << '''
@@ -180,7 +180,7 @@ EndGlobal
         solutionFile.content.contains "Project-list: mainExe"
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can configure gradle command line"() {
         when:
         buildFile << """

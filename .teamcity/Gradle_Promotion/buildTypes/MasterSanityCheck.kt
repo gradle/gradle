@@ -24,7 +24,7 @@ object MasterSanityCheck : BuildType({
     steps {
         gradleWrapper {
             tasks = "tasks"
-            gradleParams = "-Igradle/buildScanInit.gradle"
+            gradleParams = ""
             param("org.jfrog.artifactory.selectedDeployableServer.defaultModuleVersionConfiguration", "GLOBAL")
         }
     }
@@ -36,6 +36,6 @@ object MasterSanityCheck : BuildType({
     }
 
     requirements {
-        requiresOs(Os.linux)
+        requiresOs(Os.LINUX)
     }
 })

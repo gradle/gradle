@@ -16,7 +16,7 @@
 
 package org.gradle.smoketests
 
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Issue
@@ -25,7 +25,7 @@ import spock.lang.Unroll
 class NebulaPluginsSmokeTest extends AbstractSmokeTest {
 
     @Issue('https://plugins.gradle.org/plugin/nebula.dependency-recommender')
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def 'nebula recommender plugin'() {
         when:
         buildFile << """
@@ -51,7 +51,7 @@ class NebulaPluginsSmokeTest extends AbstractSmokeTest {
     }
 
     @Issue('https://plugins.gradle.org/plugin/nebula.plugin-plugin')
-    @ToBeFixedForInstantExecution(because = "Gradle.addBuildListener")
+    @ToBeFixedForConfigurationCache(because = "Gradle.addBuildListener")
     def 'nebula plugin plugin'() {
         when:
         buildFile << """
@@ -76,7 +76,7 @@ class NebulaPluginsSmokeTest extends AbstractSmokeTest {
     }
 
     @Issue('https://plugins.gradle.org/plugin/nebula.lint')
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def 'nebula lint plugin'() {
         given:
         buildFile << """
@@ -119,7 +119,7 @@ testCompile('junit:junit:4.7')""")
     }
 
     @Issue('https://plugins.gradle.org/plugin/nebula.dependency-lock')
-    @ToBeFixedForInstantExecution(because = ":buildEnvironment")
+    @ToBeFixedForConfigurationCache(because = ":buildEnvironment")
     def 'nebula dependency lock plugin'() {
         when:
         buildFile << """
@@ -134,7 +134,7 @@ testCompile('junit:junit:4.7')""")
 
     @Issue("gradle/gradle#3798")
     @Unroll
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "nebula dependency lock plugin version #version binary compatibility"() {
         when:
         buildFile << """
@@ -199,7 +199,7 @@ testCompile('junit:junit:4.7')""")
 
     @Issue('https://plugins.gradle.org/plugin/nebula.resolution-rules')
     @Requires(TestPrecondition.JDK11_OR_EARLIER)
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def 'nebula resolution rules plugin'() {
         when:
         file('rules.json') << """

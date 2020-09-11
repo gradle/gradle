@@ -15,12 +15,18 @@
  */
 package org.gradle.api.tasks.testing.testng
 
-
+import org.gradle.api.file.Directory
+import org.gradle.api.file.ProjectLayout
 import spock.lang.Specification
 
 class TestNGOptionsTest extends Specification {
 
-    TestNGOptions testngOptions  = new TestNGOptions(new File("projectDir"))
+    def layout = Stub(ProjectLayout) {
+        getProjectDirectory() >> Stub(Directory) {
+            getAsFile() >> new File("projectDir")
+        }
+    }
+    TestNGOptions testngOptions  = new TestNGOptions(layout)
 
     String[] groups = ['fast', 'unit']
 

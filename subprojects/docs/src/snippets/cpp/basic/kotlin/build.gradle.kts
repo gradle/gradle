@@ -56,15 +56,3 @@ application {
     targetMachines.set(listOf(machines.windows.x86, machines.windows.x86_64, machines.macOS.x86_64, machines.linux.x86_64))
 }
 // end::cpp-select-target-machines[]
-
-project(":common") {
-    apply(plugin = "cpp-library")
-    
-    // tag::cpp-source-set[]
-    extensions.configure<CppLibrary> {
-        source.from(file("src"))
-        privateHeaders.from(file("src"))
-        publicHeaders.from(file("include"))
-    }
-    // end::cpp-source-set[]
-}

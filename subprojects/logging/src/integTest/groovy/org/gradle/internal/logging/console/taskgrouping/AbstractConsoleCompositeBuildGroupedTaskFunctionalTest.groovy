@@ -16,12 +16,9 @@
 
 package org.gradle.internal.logging.console.taskgrouping
 
-import org.gradle.integtests.fixtures.ToBeFixedForFileSystemWatching
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.console.AbstractConsoleGroupedTaskFunctionalTest
-import org.gradle.util.TestPrecondition
 
-@ToBeFixedForFileSystemWatching(because = "https://github.com/gradle/gradle/issues/13366", failsOnlyIf = TestPrecondition.WINDOWS)
 abstract class AbstractConsoleCompositeBuildGroupedTaskFunctionalTest extends AbstractConsoleGroupedTaskFunctionalTest {
     private static final String PROJECT_A_NAME = 'projectA'
     private static final String PROJECT_B_NAME = 'projectB'
@@ -66,7 +63,7 @@ abstract class AbstractConsoleCompositeBuildGroupedTaskFunctionalTest extends Ab
         file("$PROJECT_B_NAME/src/main/java/MyClass.java") << javaSourceFile()
     }
 
-    @ToBeFixedForInstantExecution(because = "composite builds")
+    @ToBeFixedForConfigurationCache(because = "composite builds")
     def "can group task output in composite build"() {
         when:
         def result = executer.inDirectory(file(PROJECT_B_NAME)).withTasks('compileJava').run()
@@ -76,7 +73,7 @@ abstract class AbstractConsoleCompositeBuildGroupedTaskFunctionalTest extends Ab
         result.groupedOutput.task(':byeWorld').output == BYE_WORLD_MESSAGE
     }
 
-    @ToBeFixedForInstantExecution(because = "composite builds")
+    @ToBeFixedForConfigurationCache(because = "composite builds")
     def "does not execute task actions when dry run specified on composite build"() {
         when:
         def result = executer.inDirectory(file(PROJECT_B_NAME)).withArgument("--dry-run").withTasks('compileJava').run()

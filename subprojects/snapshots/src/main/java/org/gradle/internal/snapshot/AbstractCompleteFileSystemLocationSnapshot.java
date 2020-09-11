@@ -66,6 +66,11 @@ public abstract class AbstractCompleteFileSystemLocationSnapshot implements Comp
     }
 
     @Override
+    public boolean hasDescendants() {
+        return true;
+    }
+
+    @Override
     public FileSystemNode asFileSystemNode(String pathToParent) {
         return getPathToParent().equals(pathToParent)
             ? this
@@ -91,6 +96,15 @@ public abstract class AbstractCompleteFileSystemLocationSnapshot implements Comp
 
     protected Optional<MetadataSnapshot> getChildSnapshot(VfsRelativePath relativePath, CaseSensitivity caseSensitivity) {
         return Optional.of(missingSnapshotForAbsolutePath(relativePath.getAbsolutePath()));
+    }
+
+    @Override
+    public ReadOnlyFileSystemNode getNode(VfsRelativePath relativePath, CaseSensitivity caseSensitivity) {
+        return getChildNode(relativePath, caseSensitivity);
+    }
+
+    protected ReadOnlyFileSystemNode getChildNode(VfsRelativePath relativePath, CaseSensitivity caseSensitivity) {
+        return missingSnapshotForAbsolutePath(relativePath.getAbsolutePath());
     }
 
     /**
@@ -124,6 +138,16 @@ public abstract class AbstractCompleteFileSystemLocationSnapshot implements Comp
         @Override
         public Optional<MetadataSnapshot> getSnapshot(VfsRelativePath relativePath, CaseSensitivity caseSensitivity) {
             return delegate.getSnapshot(relativePath, caseSensitivity);
+        }
+
+        @Override
+        public boolean hasDescendants() {
+            return delegate.hasDescendants();
+        }
+
+        @Override
+        public ReadOnlyFileSystemNode getNode(VfsRelativePath relativePath, CaseSensitivity caseSensitivity) {
+            return delegate.getNode(relativePath, caseSensitivity);
         }
 
         @Override

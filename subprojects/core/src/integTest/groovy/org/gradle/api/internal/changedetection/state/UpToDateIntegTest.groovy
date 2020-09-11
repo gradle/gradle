@@ -68,6 +68,39 @@ public abstract class CreateEmptyDirectory extends DefaultTask {
         result.assertTaskSkipped(":createEmpty")
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/13554")
+    def "removing an empty output directory is detected even when it existed before the first task execution"() {
+        buildFile << """
+            task createEmptyDir {
+                outputs.dir("empty")
+                doLast {
+                    // do nothing, since Gradle does create the empty directory for us.
+                }
+            }
+        """
+        def emptyDir = file('empty').createDir()
+        def emptyDirTask = ':createEmptyDir'
+
+        when:
+        run emptyDirTask
+        then:
+        executedAndNotSkipped emptyDirTask
+        emptyDir.directory
+
+        when:
+        run emptyDirTask
+        then:
+        skipped emptyDirTask
+        emptyDir.directory
+
+        when:
+        emptyDir.deleteDir()
+        run emptyDirTask
+        then:
+        executedAndNotSkipped emptyDirTask
+        emptyDir.directory
+    }
+
     @Issue("https://issues.gradle.org/browse/GRADLE-834")
     def "task without actions is reported as up-to-date when it's up-to-date"() {
         file("src/main/java/Main.java") << "public class Main {}"

@@ -27,6 +27,7 @@ import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.tasks.compile.CleaningJavaCompiler;
 import org.gradle.api.internal.tasks.compile.CompilerForkUtils;
+import org.gradle.api.internal.tasks.compile.HasCompileOptions;
 import org.gradle.api.internal.tasks.scala.DefaultScalaJavaJointCompileSpec;
 import org.gradle.api.internal.tasks.scala.DefaultScalaJavaJointCompileSpecFactory;
 import org.gradle.api.internal.tasks.scala.ScalaCompileSpec;
@@ -46,6 +47,7 @@ import org.gradle.api.tasks.compile.CompileOptions;
 import org.gradle.api.tasks.scala.IncrementalCompileOptions;
 import org.gradle.internal.buildevents.BuildStartedTime;
 import org.gradle.internal.file.Deleter;
+import org.gradle.internal.jvm.Jvm;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.util.GFileUtils;
 
@@ -59,7 +61,7 @@ import java.util.Map;
 /**
  * An abstract Scala compile task sharing common functionality for compiling scala.
  */
-public abstract class AbstractScalaCompile extends AbstractCompile {
+public abstract class AbstractScalaCompile extends AbstractCompile implements HasCompileOptions {
     protected static final Logger LOGGER = Logging.getLogger(AbstractScalaCompile.class);
     private final BaseScalaCompileOptions scalaCompileOptions;
     private final CompileOptions compileOptions;
@@ -75,6 +77,7 @@ public abstract class AbstractScalaCompile extends AbstractCompile {
         this.scalaCompileOptions.setIncrementalOptions(objectFactory.newInstance(IncrementalCompileOptions.class));
 
         CompilerForkUtils.doNotCacheIfForkingViaExecutable(compileOptions, getOutputs());
+        compileOptions.getForkOptions().setExecutable(Jvm.current().getJavaExecutable().getAbsolutePath());
     }
 
     /**

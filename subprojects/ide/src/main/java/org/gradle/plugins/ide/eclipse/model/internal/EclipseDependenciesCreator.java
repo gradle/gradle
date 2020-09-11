@@ -42,6 +42,7 @@ import org.gradle.plugins.ide.eclipse.model.AbstractLibrary;
 import org.gradle.plugins.ide.eclipse.model.EclipseClasspath;
 import org.gradle.plugins.ide.eclipse.model.FileReference;
 import org.gradle.plugins.ide.eclipse.model.Library;
+import org.gradle.plugins.ide.eclipse.model.UnresolvedLibrary;
 import org.gradle.plugins.ide.eclipse.model.Variable;
 import org.gradle.plugins.ide.internal.IdeArtifactRegistry;
 import org.gradle.plugins.ide.internal.resolver.IdeDependencySet;
@@ -147,7 +148,9 @@ public class EclipseDependenciesCreator {
         @Override
         public void visitUnresolvedDependency(UnresolvedDependencyResult unresolvedDependency) {
             File unresolvedFile = unresolvedIdeDependencyHandler.asFile(unresolvedDependency, project.getProjectDir());
-            files.add(createLibraryEntry(unresolvedFile, null, null, classpath, null, pathToSourceSets, false, false));
+            UnresolvedLibrary unresolvedLib = (UnresolvedLibrary) createUnresolvedLibraryEntry(unresolvedFile, classpath, pathToSourceSets, false, false);
+            unresolvedLib.setAttemptedSelector(unresolvedDependency.getAttempted());
+            files.add(unresolvedLib);
             unresolvedIdeDependencyHandler.log(unresolvedDependency);
         }
 
@@ -202,13 +205,28 @@ public class EclipseDependenciesCreator {
         }
 
         private AbstractLibrary createLibraryEntry(File binary, File source, File javadoc, EclipseClasspath classpath, ModuleVersionIdentifier id, Multimap<String, String> pathToSourceSets, boolean testDependency, boolean asJavaModule) {
+            return createLibraryEntry(binary, source, javadoc, classpath, id, pathToSourceSets, testDependency, asJavaModule, true);
+        }
+
+        private AbstractLibrary createUnresolvedLibraryEntry(File binary, EclipseClasspath classpath, Multimap<String, String> pathToSourceSets, boolean testDependency, boolean asJavaModule) {
+            return createLibraryEntry(binary, null, null, classpath, null, pathToSourceSets, testDependency, asJavaModule, false);
+        }
+
+        private AbstractLibrary createLibraryEntry(File binary, File source, File javadoc, EclipseClasspath classpath, ModuleVersionIdentifier id, Multimap<String, String> pathToSourceSets, boolean testDependency, boolean asJavaModule, boolean resolved) {
             FileReferenceFactory referenceFactory = classpath.getFileReferenceFactory();
 
             FileReference binaryRef = referenceFactory.fromFile(binary);
             FileReference sourceRef = referenceFactory.fromFile(source);
             FileReference javadocRef = referenceFactory.fromFile(javadoc);
 
-            final AbstractLibrary out = binaryRef.isRelativeToPathVariable() ? new Variable(binaryRef) : new Library(binaryRef);
+            final AbstractLibrary out;
+            if (binaryRef.isRelativeToPathVariable()) {
+                out = new Variable(binaryRef);
+            } else if (resolved) {
+                out = new Library(binaryRef);
+            } else {
+                out = new UnresolvedLibrary(binaryRef);
+            }
 
             out.setJavadocPath(javadocRef);
             out.setSourcePath(sourceRef);

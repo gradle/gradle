@@ -20,10 +20,12 @@ import org.gradle.api.Project
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.ProjectLayout
+import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.artifacts.dependencies.DefaultSelfResolvingDependency
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.initialization.ScriptHandlerInternal
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.internal.properties.GradleProperties
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.InputDirectory
@@ -35,16 +37,18 @@ import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
 import org.gradle.groovy.scripts.TextResourceScriptSource
 import org.gradle.initialization.ClassLoaderScopeRegistry
+import org.gradle.initialization.DefaultGradlePropertiesController
+import org.gradle.initialization.GradlePropertiesController
 import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.concurrent.CompositeStoppable.stoppable
 import org.gradle.internal.exceptions.LocationAwareException
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.resource.TextFileResourceLoader
 import org.gradle.kotlin.dsl.accessors.AccessorFormats
+import org.gradle.kotlin.dsl.accessors.ProjectSchemaProvider
 import org.gradle.kotlin.dsl.accessors.TypedProjectSchema
 import org.gradle.kotlin.dsl.accessors.buildAccessorsFor
 import org.gradle.kotlin.dsl.accessors.hashCodeFor
-import org.gradle.kotlin.dsl.accessors.schemaFor
 import org.gradle.kotlin.dsl.concurrent.AsyncIOScopeFactory
 import org.gradle.kotlin.dsl.concurrent.IO
 import org.gradle.kotlin.dsl.concurrent.writeFile
@@ -79,7 +83,10 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
     val asyncIOScopeFactory: AsyncIOScopeFactory,
 
     private
-    val textFileResourceLoader: TextFileResourceLoader
+    val textFileResourceLoader: TextFileResourceLoader,
+
+    private
+    val projectSchemaProvider: ProjectSchemaProvider
 
 ) : ClassPathSensitiveCodeGenerationTask() {
 
@@ -251,7 +258,10 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
     private
     fun scriptSourceFor(plugin: PrecompiledScriptPlugin) =
         TextResourceScriptSource(
-            textFileResourceLoader.loadFile("Precompiled script plugin", plugin.scriptFile)
+            textFileResourceLoader.loadFile(
+                "Precompiled script plugin",
+                plugin.scriptFile
+            )
         )
 
     private
@@ -280,7 +290,8 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
         val schemaBuilder = SyntheticProjectSchemaBuilder(
             gradleUserHomeDir = gradleUserHomeDir,
             rootProjectDir = uniqueTempDirectory(),
-            rootProjectClassPath = (classPathFiles + runtimeClassPathFiles).files
+            rootProjectClassPath = (classPathFiles + runtimeClassPathFiles).files,
+            projectSchemaProvider = projectSchemaProvider
         )
         return pluginGroupsPerRequests.flatMap { (uniquePluginRequests, scriptPlugins) ->
             try {
@@ -354,14 +365,15 @@ internal
 class SyntheticProjectSchemaBuilder(
     gradleUserHomeDir: File,
     rootProjectDir: File,
-    rootProjectClassPath: Collection<File>
+    rootProjectClassPath: Collection<File>,
+    private val projectSchemaProvider: ProjectSchemaProvider
 ) {
 
     private
     val rootProject = buildRootProject(gradleUserHomeDir, rootProjectDir, rootProjectClassPath)
 
     fun schemaFor(plugins: PluginRequests): TypedProjectSchema =
-        schemaFor(childProjectWith(plugins))
+        projectSchemaProvider.schemaFor(childProjectWith(plugins))
 
     private
     fun childProjectWith(pluginRequests: PluginRequests): Project {
@@ -387,12 +399,31 @@ class SyntheticProjectSchemaBuilder(
             .withGradleUserHomeDir(gradleUserHomeDir)
             .withProjectDir(projectDir)
             .build()
+            .withEmptyGradleProperties()
 
         addScriptClassPathDependencyTo(project, rootProjectClassPath)
 
         applyPluginsTo(project, PluginRequests.EMPTY)
 
         return project
+    }
+
+    private
+    fun Project.withEmptyGradleProperties(): Project {
+        gradle.run {
+            require(this is GradleInternal)
+            services[GradlePropertiesController::class.java].run {
+                require(this is DefaultGradlePropertiesController)
+                overrideWith(EmptyGradleProperties)
+            }
+        }
+        return this
+    }
+
+    private
+    object EmptyGradleProperties : GradleProperties {
+        override fun find(propertyName: String?) = null
+        override fun mergeProperties(properties: Map<String, String>) = properties.toMap()
     }
 
     private

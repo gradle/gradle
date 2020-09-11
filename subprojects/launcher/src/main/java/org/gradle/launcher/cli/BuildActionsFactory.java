@@ -23,6 +23,7 @@ import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
 import org.gradle.configuration.GradleLauncherMetaData;
+import org.gradle.initialization.BuildRequestContext;
 import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.classpath.ClassPath;
@@ -173,7 +174,7 @@ class BuildActionsFactory implements CommandLineAction {
         return builder.provider(new DaemonClientGlobalServices()).build();
     }
 
-    private Runnable runBuildAndCloseServices(StartParameterInternal startParameter, DaemonParameters daemonParameters, BuildActionExecuter<BuildActionParameters> executer, ServiceRegistry sharedServices, Object... stopBeforeSharedServices) {
+    private Runnable runBuildAndCloseServices(StartParameterInternal startParameter, DaemonParameters daemonParameters, BuildActionExecuter<BuildActionParameters, BuildRequestContext> executer, ServiceRegistry sharedServices, Object... stopBeforeSharedServices) {
         BuildActionParameters parameters = createBuildActionParameters(startParameter, daemonParameters);
         Stoppable stoppable = new CompositeStoppable().add(stopBeforeSharedServices).add(sharedServices);
         return new RunBuildAction(executer, startParameter, clientMetaData(), getBuildStartTime(), parameters, sharedServices, stoppable);

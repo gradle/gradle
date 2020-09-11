@@ -27,6 +27,7 @@ import org.gradle.api.artifacts.component.ComponentSelector
 import org.gradle.api.internal.FeaturePreviews
 import org.gradle.api.internal.artifacts.ComponentSelectorConverter
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
+import org.gradle.api.internal.artifacts.DependencyManagementTestUtil
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal
@@ -108,7 +109,7 @@ class DependencyGraphBuilderTest extends Specification {
             args[0].execute(queue)
         }
     }
-    def dependencySubstitutionApplicator = new DefaultDependencySubstitutionApplicator(Mock(Action), TestUtil.instantiatorFactory().decorateScheme().instantiator())
+    def dependencySubstitutionApplicator = new DefaultDependencySubstitutionApplicator(DependencyManagementTestUtil.componentSelectionDescriptorFactory(), Mock(Action), TestUtil.instantiatorFactory().decorateScheme().instantiator())
     def componentSelectorConverter = Mock(ComponentSelectorConverter) {
         getModule(_) >> { ComponentSelector selector ->
             DefaultModuleIdentifier.newId(selector.group, selector.module)

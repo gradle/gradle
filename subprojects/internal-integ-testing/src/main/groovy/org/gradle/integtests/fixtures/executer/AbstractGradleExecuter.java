@@ -15,10 +15,13 @@
  */
 package org.gradle.integtests.fixtures.executer;
 
+import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
+import com.google.common.io.ByteStreams;
 import com.google.common.io.CharSource;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
@@ -56,14 +59,18 @@ import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.testfixtures.internal.NativeServicesTestFixture;
 import org.gradle.util.ClosureBackedAction;
 import org.gradle.util.CollectionUtils;
+import org.gradle.util.GFileUtils;
 import org.gradle.util.GradleVersion;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
+import java.net.URL;
 import java.nio.charset.Charset;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -73,6 +80,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.joining;
 import static org.gradle.api.internal.artifacts.BaseRepositoryFactory.PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY;
@@ -121,6 +130,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     protected final IntegrationTestBuildContext buildContext;
 
     private final Set<File> isolatedDaemonBaseDirs = new HashSet<>();
+    private final Set<File> daemonCrashLogsBeforeTest;
     private final Set<GradleHandle> running = new HashSet<>();
     private final List<ExecutionResult> results = new ArrayList<>();
     private final List<String> args = new ArrayList<>();
@@ -196,10 +206,11 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         this.distribution = distribution;
         this.testDirectoryProvider = testDirectoryProvider;
         this.gradleVersion = gradleVersion;
-        logger = Logging.getLogger(getClass());
+        this.logger = Logging.getLogger(getClass());
         this.buildContext = buildContext;
-        gradleUserHomeDir = buildContext.getGradleUserHomeDir();
-        daemonBaseDir = buildContext.getDaemonBaseDir();
+        this.gradleUserHomeDir = buildContext.getGradleUserHomeDir();
+        this.daemonBaseDir = buildContext.getDaemonBaseDir();
+        this.daemonCrashLogsBeforeTest = ImmutableSet.copyOf(DaemonLogsAnalyzer.findCrashLogs(daemonBaseDir));
     }
 
     protected Logger getLogger() {
@@ -374,6 +385,9 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         }
         if (requireDaemon) {
             executer.requireDaemon();
+        }
+        if (!checkDaemonCrash) {
+            executer.noDaemonCrashChecks();
         }
 
         executer.startBuildProcessInDebugger(debug);
@@ -843,6 +857,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     public void cleanup() {
         stopRunningBuilds();
         cleanupIsolatedDaemons();
+        checkForDaemonCrashesInSharedLocations();
         assertVisitedExecutionResults();
     }
 
@@ -870,6 +885,25 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
 
         if (checkDaemonCrash) {
             analyzers.forEach(DaemonLogsAnalyzer::assertNoCrashedDaemon);
+        }
+    }
+
+    private void checkForDaemonCrashesInSharedLocations() {
+        checkForDaemonCrashes(getWorkingDir(), it -> true);
+        checkForDaemonCrashes(buildContext.getDaemonBaseDir(), crashLog -> !daemonCrashLogsBeforeTest.contains(crashLog));
+    }
+
+    private void checkForDaemonCrashes(File dirToSearch, Predicate<File> crashLogFilter) {
+        if (checkDaemonCrash) {
+            List<File> crashLogs = DaemonLogsAnalyzer.findCrashLogs(dirToSearch).stream()
+                .filter(crashLogFilter)
+                .collect(Collectors.toList());
+            if (!crashLogs.isEmpty()) {
+                throw new AssertionError(String.format(
+                    "Found crash logs: '%s'",
+                    crashLogs.stream().map(File::getAbsolutePath).collect(joining("', '"))
+                ));
+            }
         }
     }
 
@@ -1108,12 +1142,14 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         }
         beforeExecute.execute(this);
         assertCanExecute();
+        assert !(usesSharedDaemons() && (args.contains("--stop") || tasks.contains("--stop"))) : "--stop cannot be used with daemons that are shared with other tests, since this will cause other tests to fail.";
         collectStateBeforeExecution();
     }
 
     private void afterBuildCleanup(ExecutionResult result) {
         afterExecute.execute(this);
         results.add(result);
+        checkForDaemonCrashes(getWorkingDir(), it -> true);
     }
 
     protected GradleHandle createGradleHandle() {
@@ -1388,6 +1424,36 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     @Override
     public GradleExecuter withFullDeprecationStackTraceDisabled() {
         fullDeprecationStackTrace = false;
+        return this;
+    }
+
+    @Override
+    public GradleExecuter withFileLeakDetection(String... args) {
+        String leakDetectorUrl = "https://repo1.maven.org/maven2/org/kohsuke/file-leak-detector/1.13/file-leak-detector-1.13-jar-with-dependencies.jar";
+        this.beforeExecute(executer -> {
+            File leakDetectorJar = new File(this.gradleUserHomeDir, "file-leak-detector-1.13-jar-with-dependencies.jar");
+            if (!leakDetectorJar.exists()) {
+                // Need to download the jar
+                GFileUtils.parentMkdirs(leakDetectorJar);
+                GFileUtils.touch(leakDetectorJar);
+                try (OutputStream out = Files.newOutputStream(leakDetectorJar.toPath());
+                     InputStream in = new URL(leakDetectorUrl).openStream()) {
+                    ByteStreams.copy(in, out);
+                } catch (IOException e) {
+                    throw new RuntimeException("Couldn't download " + leakDetectorUrl, e);
+                }
+            }
+
+            String joinedArgs;
+            if (args.length == 0) {
+                // Default arguments to pass to the java agent
+                joinedArgs = "http=19999";
+            } else {
+                joinedArgs = Joiner.on(',').join(args);
+            }
+            withBuildJvmOpts("-javaagent:" + leakDetectorJar + "=" + joinedArgs);
+        });
+
         return this;
     }
 

@@ -16,7 +16,7 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
 class FlatDirJvmLibraryArtifactResolutionIntegrationTest extends AbstractDependencyResolutionTest {
     JvmLibraryArtifactResolveTestFixture fixture
@@ -30,7 +30,7 @@ repositories {
         fixture = new JvmLibraryArtifactResolveTestFixture(buildFile)
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "resolves and does not cache source and javadoc artifacts"() {
         publishModule()
         fixture.expectSourceArtifact("sources")

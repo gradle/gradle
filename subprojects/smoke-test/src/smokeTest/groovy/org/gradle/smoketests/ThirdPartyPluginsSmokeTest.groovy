@@ -16,7 +16,7 @@
 
 package org.gradle.smoketests
 
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.util.GradleVersion
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -37,7 +37,7 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
 
     @Unroll
     @Issue('https://plugins.gradle.org/plugin/com.github.johnrengelman.shadow')
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def 'shadow plugin #version'() {
         given:
         buildFile << """
@@ -69,20 +69,12 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
         then:
         result.task(':shadowJar').outcome == SUCCESS
 
-        if (version == TestedVersions.shadow.latest()) {
-            expectDeprecationWarnings(result,
-                "Property 'transformers.\$0.serviceEntries' is not annotated with an input or output annotation. " +
-                    "This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. " +
-                    "See https://docs.gradle.org/${GradleVersion.current().version}/userguide/more_about_tasks.html#sec:up_to_date_checks for more details."
-            )
-        }
-
         where:
         version << TestedVersions.shadow
     }
 
     @Issue('https://github.com/asciidoctor/asciidoctor-gradle-plugin/releases')
-    @ToBeFixedForInstantExecution(because = "Task.getProject() during execution")
+    @ToBeFixedForConfigurationCache(because = "Task.getProject() during execution")
     def 'asciidoctor legacy plugin'() {
         given:
         buildFile << """
@@ -125,7 +117,7 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
 
     @Issue('https://github.com/asciidoctor/asciidoctor-gradle-plugin/releases')
     @Unroll
-    @ToBeFixedForInstantExecution(because = "Task.getProject() during execution")
+    @ToBeFixedForConfigurationCache(because = "Task.getProject() during execution")
     def 'asciidoctor plugin #version'() {
         given:
         def version3 = VersionNumber.parse("3.0.0")
@@ -185,7 +177,7 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
                 id "com.bmuschko.docker-java-application" version "${TestedVersions.docker}"
             }
 
-            mainClassName = 'org.gradle.JettyMain'
+            application.mainClass = 'org.gradle.JettyMain'
 
             docker {
                 javaApplication {
@@ -206,7 +198,7 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
     }
 
     @Issue('https://plugins.gradle.org/plugin/io.spring.dependency-management')
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def 'spring dependency management plugin'() {
         given:
         buildFile << """
@@ -239,7 +231,7 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
     }
 
     @Issue('https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-gradle-plugin')
-    @ToBeFixedForInstantExecution(because = "plugin uses task conventions")
+    @ToBeFixedForConfigurationCache(because = "plugin uses task conventions")
     def 'spring boot plugin'() {
         given:
         buildFile << """
@@ -278,7 +270,7 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
     }
 
     @Issue('https://plugins.gradle.org/plugin/com.bmuschko.tomcat')
-    @ToBeFixedForInstantExecution(because = "Task.getProject() during execution")
+    @ToBeFixedForConfigurationCache(because = "Task.getProject() during execution")
     def 'tomcat plugin'() {
         given:
         def httpPort = portAllocator.assignPort()
@@ -344,7 +336,7 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
     }
 
     @Issue('https://plugins.gradle.org/plugin/org.ajoberstar.grgit')
-    @ToBeFixedForInstantExecution(because = "Gradle.buildFinished")
+    @ToBeFixedForConfigurationCache(because = "Gradle.buildFinished")
     def 'org.ajoberstar.grgit plugin'() {
         given:
         GitFileRepository.init(testProjectDir.root)
@@ -410,7 +402,7 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
 
     @Issue('https://plugins.gradle.org/plugin/com.github.spotbugs')
     @Requires(TestPrecondition.JDK11_OR_EARLIER)
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def 'spotbugs plugin'() {
         given:
         buildFile << """
@@ -497,7 +489,7 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
     }
 
     @Issue("https://plugins.gradle.org/plugin/com.google.protobuf")
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "protobuf plugin"() {
         given:
         buildFile << """
@@ -553,7 +545,7 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
     // Latest AspectJ 1.9.5 is not compatible with JDK14
     @Requires(TestPrecondition.JDK13_OR_EARLIER)
     @Issue('https://plugins.gradle.org/plugin/io.freefair.aspectj')
-    @ToBeFixedForInstantExecution(because = "Task.getProject() during execution")
+    @ToBeFixedForConfigurationCache(because = "Task.getProject() during execution")
     def 'freefair aspectj plugin'() {
         given:
         buildFile << """

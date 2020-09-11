@@ -168,7 +168,7 @@ class TaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
-        executer.expectDocumentedDeprecationWarning("Registering a task with type AbstractTask has been deprecated. This will fail with an error in Gradle 7.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_6.html#abstract_task_deprecated")
+        executer.expectDocumentedDeprecationWarning("Registering task ':thing' with type 'AbstractTask' has been deprecated. This will fail with an error in Gradle 7.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_6.html#abstract_task_deprecated")
         succeeds("thing")
     }
 
@@ -181,7 +181,7 @@ class TaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
-        executer.expectDocumentedDeprecationWarning("Registering a task with type TaskInternal has been deprecated. This will fail with an error in Gradle 7.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_6.html#abstract_task_deprecated")
+        executer.expectDocumentedDeprecationWarning("Registering task ':thing' with type 'TaskInternal' has been deprecated. This will fail with an error in Gradle 7.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_6.html#abstract_task_deprecated")
         succeeds("thing")
     }
 
@@ -195,7 +195,7 @@ class TaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
-        executer.expectDocumentedDeprecationWarning("Registering a task with a type that directly extends AbstractTask has been deprecated. This will fail with an error in Gradle 7.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_6.html#abstract_task_deprecated")
+        executer.expectDocumentedDeprecationWarning("Registering task ':thing' with a type (CustomTask) that directly extends AbstractTask has been deprecated. This will fail with an error in Gradle 7.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_6.html#abstract_task_deprecated")
         succeeds("thing")
     }
 

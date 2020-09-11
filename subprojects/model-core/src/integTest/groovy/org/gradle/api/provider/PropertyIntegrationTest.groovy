@@ -17,7 +17,7 @@
 package org.gradle.api.provider
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import spock.lang.IgnoreIf
 import spock.lang.Issue
@@ -220,7 +220,7 @@ task thing {
         output.contains("prop = null")
     }
 
-    @ToBeFixedForInstantExecution(because = "gradle/instant-execution#268")
+    @ToBeFixedForConfigurationCache(because = "gradle/configuration-cache#268")
     def "reports failure due to broken @Input task property"() {
         taskTypeWritesPropertyValueToFile()
         buildFile << """
@@ -241,7 +241,7 @@ task thing(type: SomeTask) {
         failure.assertHasCause("broken")
     }
 
-    @ToBeFixedForInstantExecution(because = "configuration cache captures provider value")
+    @ToBeFixedForConfigurationCache(because = "configuration cache captures provider value")
     def "task @Input property calculation is called once only when task executes"() {
         taskTypeWritesPropertyValueToFile()
         buildFile << """
@@ -276,7 +276,7 @@ task thing(type: SomeTask) {
         output.count("calculating value") == 0
     }
 
-    @ToBeFixedForInstantExecution(because = "gradle/instant-execution#270")
+    @ToBeFixedForConfigurationCache(because = "gradle/configuration-cache#270")
     def "does not calculate task @Input property value when task is skipped due to @SkipWhenEmpty on another property"() {
         buildFile << """
 

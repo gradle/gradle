@@ -20,7 +20,7 @@ import org.gradle.api.tasks.PathSensitivity
 import org.gradle.initialization.StartParameterBuildOptions
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import spock.lang.Unroll
 
 import java.util.regex.Pattern
@@ -1208,7 +1208,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         annotation << ["Classpath", "CompileClasspath"]
     }
 
-    @ToBeFixedForInstantExecution(because = "classpath normalization configuration is not serialized")
+    @ToBeFixedForConfigurationCache(because = "classpath normalization configuration is not serialized")
     def "honors runtime classpath normalization for input artifact"() {
         settingsFile << "include 'a', 'b', 'c'"
         setupBuildWithColorTransformAction {

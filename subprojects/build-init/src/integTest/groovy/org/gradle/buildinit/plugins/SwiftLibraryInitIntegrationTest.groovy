@@ -18,7 +18,7 @@ package org.gradle.buildinit.plugins
 
 
 import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.nativeplatform.fixtures.AvailableToolChains
 import org.gradle.nativeplatform.fixtures.AvailableToolChains.InstalledToolChain
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
@@ -43,18 +43,21 @@ class SwiftLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
         swiftcToolChain.resetEnvironment()
     }
 
+    @Override
+    String subprojectName() { 'lib' }
+
     @Unroll
-    @ToBeFixedForInstantExecution(because = "swift-library plugin")
+    @ToBeFixedForConfigurationCache(because = "swift-library plugin")
     def "creates sample source if no source present with #scriptDsl build scripts"() {
         when:
         run('init', '--type', 'swift-library', '--dsl', scriptDsl.id)
 
         then:
-        targetDir.file("src/main/swift").assertHasDescendants(SAMPLE_LIBRARY_CLASS)
-        targetDir.file("src/test/swift").assertHasDescendants(SAMPLE_LIBRARY_TEST_CLASS, LINUX_MAIN_DOT_SWIFT)
+        subprojectDir.file("src/main/swift").assertHasDescendants(SAMPLE_LIBRARY_CLASS)
+        subprojectDir.file("src/test/swift").assertHasDescendants(SAMPLE_LIBRARY_TEST_CLASS, LINUX_MAIN_DOT_SWIFT)
 
         and:
-        targetDir.file("src/test/swift/${SAMPLE_LIBRARY_TEST_CLASS}").text.contains("@testable import SomeThing")
+        subprojectDir.file("src/test/swift/${SAMPLE_LIBRARY_TEST_CLASS}").text.contains("@testable import Lib")
 
 
         and:
@@ -64,24 +67,24 @@ class SwiftLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
         succeeds("build")
 
         and:
-        library("build/lib/main/debug/SomeThing").assertExists()
+        library("${subprojectName()}/build/lib/main/debug/Lib").assertExists()
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution(because = "swift-library plugin")
+    @ToBeFixedForConfigurationCache(because = "swift-library plugin")
     def "creates sample source if project name is specified with #scriptDsl build scripts"() {
         when:
         run('init', '--type', 'swift-library', '--project-name', 'greeting', '--dsl', scriptDsl.id)
 
         then:
-        targetDir.file("src/main/swift").assertHasDescendants(SAMPLE_LIBRARY_CLASS)
-        targetDir.file("src/test/swift").assertHasDescendants(SAMPLE_LIBRARY_TEST_CLASS, LINUX_MAIN_DOT_SWIFT)
+        subprojectDir.file("src/main/swift").assertHasDescendants(SAMPLE_LIBRARY_CLASS)
+        subprojectDir.file("src/test/swift").assertHasDescendants(SAMPLE_LIBRARY_TEST_CLASS, LINUX_MAIN_DOT_SWIFT)
 
         and:
-        targetDir.file("src/test/swift/${SAMPLE_LIBRARY_TEST_CLASS}").text.contains("@testable import Greeting")
+        subprojectDir.file("src/test/swift/${SAMPLE_LIBRARY_TEST_CLASS}").text.contains("@testable import Lib")
 
 
         and:
@@ -91,7 +94,7 @@ class SwiftLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
         succeeds("build")
 
         and:
-        library("build/lib/main/debug/Greeting").assertExists()
+        library("${subprojectName()}/build/lib/main/debug/Lib").assertExists()
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
@@ -99,29 +102,28 @@ class SwiftLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
 
 
     @Unroll
-    @ToBeFixedForInstantExecution(because = "swift-library plugin")
+    @ToBeFixedForConfigurationCache(because = "swift-library plugin")
     def "source generation is skipped when cpp sources detected with #scriptDsl build scripts"() {
         setup:
-        targetDir.file("src/main/swift/hola.swift") << """
+        subprojectDir.file("src/main/swift/hola.swift") << """
             public func hola() -> String {
                 return "Hola, Mundo!"
             }
         """
-        targetDir.file("src/test/swift/HolaTests.swift") << """
+        subprojectDir.file("src/test/swift/HolaTests.swift") << """
             import XCTest
-            @testable import Hello
-            
+            @testable import Lib
             class HolaTests: XCTestCase {
                 public static var allTests = [
                     ("testGreeting", testGreeting),
                 ]
-            
+
                 func testGreeting() {
                     XCTAssertEqual("Hola, Mundo!", hola())
                 }
             }
         """
-        targetDir.file("src/test/swift/${LINUX_MAIN_DOT_SWIFT}") << """
+        subprojectDir.file("src/test/swift/${LINUX_MAIN_DOT_SWIFT}") << """
             import XCTest
 
             XCTMain([testCase(HolaTests.allTests)])
@@ -131,23 +133,23 @@ class SwiftLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
         run('init', '--type', 'swift-library', '--project-name', 'hello', '--dsl', scriptDsl.id)
 
         then:
-        targetDir.file("src/main/swift").assertHasDescendants("hola.swift")
-        targetDir.file("src/test/swift").assertHasDescendants("HolaTests.swift", LINUX_MAIN_DOT_SWIFT)
+        subprojectDir.file("src/main/swift").assertHasDescendants("hola.swift")
+        subprojectDir.file("src/test/swift").assertHasDescendants("HolaTests.swift", LINUX_MAIN_DOT_SWIFT)
         dslFixtureFor(scriptDsl).assertGradleFilesGenerated()
 
         and:
-        targetDir.file("src/main/swift/${SAMPLE_LIBRARY_CLASS}").assertDoesNotExist()
-        targetDir.file("src/test/swift/${SAMPLE_LIBRARY_TEST_CLASS}").assertDoesNotExist()
-        targetDir.file("src/test/swift/${LINUX_MAIN_DOT_SWIFT}").text.contains("HolaTests.allTests")
+        subprojectDir.file("src/main/swift/${SAMPLE_LIBRARY_CLASS}").assertDoesNotExist()
+        subprojectDir.file("src/test/swift/${SAMPLE_LIBRARY_TEST_CLASS}").assertDoesNotExist()
+        subprojectDir.file("src/test/swift/${LINUX_MAIN_DOT_SWIFT}").text.contains("HolaTests.allTests")
 
         when:
         run("build")
 
         then:
-        executed(":test")
+        executed(":lib:test")
 
         and:
-        library("build/lib/main/debug/Hello").assertExists()
+        library("${subprojectName()}/build/lib/main/debug/Lib").assertExists()
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS

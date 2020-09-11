@@ -19,8 +19,8 @@ package org.gradle.integtests
 import groovy.transform.NotYetImplemented
 import org.gradle.api.CircularReferenceException
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
-import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import spock.lang.Ignore
 import spock.lang.Issue
 import spock.lang.Timeout
@@ -33,7 +33,7 @@ import static org.hamcrest.CoreMatchers.startsWith
 @Unroll
 class TaskExecutionIntegrationTest extends AbstractIntegrationSpec {
 
-    @UnsupportedWithInstantExecution
+    @UnsupportedWithConfigurationCache
     def taskCanAccessTaskGraph() {
         buildFile << """
     boolean notified = false
@@ -67,7 +67,7 @@ class TaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    @ToBeFixedForInstantExecution(because = "Task.getProject() during execution")
+    @ToBeFixedForConfigurationCache(because = "Task.getProject() during execution")
     def executesAllTasksInASingleBuildAndEachTaskAtMostOnce() {
         buildFile << """
     gradle.taskGraph.whenReady { assert !project.hasProperty('graphReady'); ext.graphReady = true }

@@ -23,6 +23,9 @@ import java.io.File;
 
 public class StartParameterInternal extends StartParameter {
     private boolean watchFileSystem;
+    private boolean watchFileSystemDebugLogging;
+    private boolean watchFileSystemUsingDeprecatedOption;
+    private boolean vfsVerboseLogging;
 
     private boolean configurationCache;
     private ConfigurationCacheProblemsOption.Value configurationCacheProblems = ConfigurationCacheProblemsOption.Value.FAIL;
@@ -44,6 +47,9 @@ public class StartParameterInternal extends StartParameter {
     protected StartParameter prepareNewBuild(StartParameter startParameter) {
         StartParameterInternal p = (StartParameterInternal) super.prepareNewBuild(startParameter);
         p.watchFileSystem = watchFileSystem;
+        p.watchFileSystemDebugLogging = watchFileSystemDebugLogging;
+        p.watchFileSystemUsingDeprecatedOption = watchFileSystemUsingDeprecatedOption;
+        p.vfsVerboseLogging = vfsVerboseLogging;
         p.configurationCache = configurationCache;
         p.configurationCacheProblems = configurationCacheProblems;
         p.configurationCacheMaxProblems = configurationCacheMaxProblems;
@@ -82,6 +88,30 @@ public class StartParameterInternal extends StartParameter {
 
     public void setWatchFileSystem(boolean watchFileSystem) {
         this.watchFileSystem = watchFileSystem;
+    }
+
+    public boolean isWatchFileSystemDebugLogging() {
+        return watchFileSystemDebugLogging;
+    }
+
+    public void setWatchFileSystemDebugLogging(boolean watchFileSystemDebugLogging) {
+        this.watchFileSystemDebugLogging = watchFileSystemDebugLogging;
+    }
+
+    public boolean isWatchFileSystemUsingDeprecatedOption() {
+        return watchFileSystemUsingDeprecatedOption;
+    }
+
+    public void setWatchFileSystemUsingDeprecatedOption(boolean watchFileSystemUsingDeprecatedOption) {
+        this.watchFileSystemUsingDeprecatedOption = watchFileSystemUsingDeprecatedOption;
+    }
+
+    public boolean isVfsVerboseLogging() {
+        return vfsVerboseLogging;
+    }
+
+    public void setVfsVerboseLogging(boolean vfsVerboseLogging) {
+        this.vfsVerboseLogging = vfsVerboseLogging;
     }
 
     public boolean isConfigurationCache() {

@@ -16,7 +16,7 @@
 
 package org.gradle.internal.logging.console
 
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.console.AbstractConsoleGroupedTaskFunctionalTest
 import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.test.fixtures.ConcurrentTestUtil
@@ -32,7 +32,7 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractConsoleGr
         server.start()
     }
 
-    @ToBeFixedForInstantExecution(because = "Gradle.buildFinished", skip =  ToBeFixedForInstantExecution.Skip.LONG_TIMEOUT)
+    @ToBeFixedForConfigurationCache(because = "Gradle.buildFinished", skip =  ToBeFixedForConfigurationCache.Skip.LONG_TIMEOUT)
     def "shows progress bar and percent phase completion"() {
         settingsFile << """
             ${server.callFromBuild('settings')}
@@ -122,7 +122,7 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractConsoleGr
         gradle.waitForFinish()
     }
 
-    @ToBeFixedForInstantExecution(because = "composite builds", skip = ToBeFixedForInstantExecution.Skip.FAILS_TO_CLEANUP)
+    @ToBeFixedForConfigurationCache(because = "composite builds", skip = ToBeFixedForConfigurationCache.Skip.FAILS_TO_CLEANUP)
     def "shows progress bar and percent phase completion with included build"() {
         settingsFile << """
             ${server.callFromBuild('settings')}
@@ -174,12 +174,12 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractConsoleGr
 
         and:
         childBuildScript.waitForAllPendingCalls()
-        assertHasBuildPhase("0% CONFIGURING")
+        assertHasBuildPhase("0% INITIALIZING")
         childBuildScript.releaseAll()
 
         and:
         rootBuildScript.waitForAllPendingCalls()
-        assertHasBuildPhase("75% CONFIGURING")
+        assertHasBuildPhase("0% CONFIGURING")
         rootBuildScript.releaseAll()
 
         and:
@@ -206,7 +206,7 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractConsoleGr
         gradle.waitForFinish()
     }
 
-    @ToBeFixedForInstantExecution(because = "Gradle.buildFinished", skip =  ToBeFixedForInstantExecution.Skip.LONG_TIMEOUT)
+    @ToBeFixedForConfigurationCache(because = "Gradle.buildFinished", skip =  ToBeFixedForConfigurationCache.Skip.LONG_TIMEOUT)
     def "shows progress bar and percent phase completion with buildSrc build"() {
         settingsFile << """
             ${server.callFromBuild('settings')}
@@ -297,7 +297,7 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractConsoleGr
         gradle.waitForFinish()
     }
 
-    @ToBeFixedForInstantExecution(because = "Gradle.buildFinished", skip =  ToBeFixedForInstantExecution.Skip.LONG_TIMEOUT)
+    @ToBeFixedForConfigurationCache(because = "Gradle.buildFinished", skip =  ToBeFixedForConfigurationCache.Skip.LONG_TIMEOUT)
     def "shows progress bar and percent phase completion with artifact transforms"() {
         given:
         settingsFile << """

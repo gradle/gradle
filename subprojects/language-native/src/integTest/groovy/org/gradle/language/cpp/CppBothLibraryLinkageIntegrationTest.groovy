@@ -16,7 +16,7 @@
 
 package org.gradle.language.cpp
 
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.nativeplatform.fixtures.app.CppLib
 import org.gradle.nativeplatform.fixtures.app.SourceElement
 
@@ -54,7 +54,7 @@ class CppBothLibraryLinkageIntegrationTest extends AbstractCppIntegrationTest {
         return new CppLib()
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "creates shared library binary by default when both linkage specified"() {
         def library = new CppLib()
         makeSingleProject()
@@ -71,7 +71,7 @@ class CppBothLibraryLinkageIntegrationTest extends AbstractCppIntegrationTest {
         sharedLibrary('build/lib/main/debug/shared/foo').assertExists()
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can assemble static library followed by shared library"() {
         def library = new CppLib()
         makeSingleProject()

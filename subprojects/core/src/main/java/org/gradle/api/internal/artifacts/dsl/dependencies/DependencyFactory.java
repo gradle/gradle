@@ -34,6 +34,7 @@ public interface DependencyFactory {
         public final String displayName;
 
         ClassPathNotation(String displayName) {
+            assert displayName != null : "display name cannot be null";
             this.displayName = displayName;
         }
     }

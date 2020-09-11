@@ -16,7 +16,7 @@
 
 package org.gradle.language
 
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 
 
@@ -27,7 +27,7 @@ abstract class AbstractNativeDependenciesIntegrationTest extends AbstractInstall
         """
     }
 
-    @ToBeFixedForInstantExecution(bottomSpecs = [
+    @ToBeFixedForConfigurationCache(bottomSpecs = [
         'CppUnitTestDependenciesIntegrationTest',
         'CppApplicationDependenciesIntegrationTest',
         'CppLibraryDependenciesIntegrationTest',
@@ -51,7 +51,7 @@ abstract class AbstractNativeDependenciesIntegrationTest extends AbstractInstall
         result.assertTasksExecuted(libDebugTasks, assembleDevBinaryTasks, assembleDevBinaryTask)
     }
 
-    @ToBeFixedForInstantExecution(bottomSpecs = [
+    @ToBeFixedForConfigurationCache(bottomSpecs = [
         'CppLibraryDependenciesIntegrationTest',
         'CppApplicationDependenciesIntegrationTest',
         'CppUnitTestDependenciesIntegrationTest'

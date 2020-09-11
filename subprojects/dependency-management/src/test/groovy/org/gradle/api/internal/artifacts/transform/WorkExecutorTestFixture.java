@@ -41,7 +41,7 @@ import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
 import org.gradle.internal.service.scopes.ExecutionGradleServices;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshotter;
-import org.gradle.internal.vfs.VirtualFileSystem;
+import org.gradle.internal.vfs.FileSystemAccess;
 
 import java.io.File;
 import java.io.IOException;
@@ -52,7 +52,7 @@ public class WorkExecutorTestFixture {
     private final WorkExecutor<ExecutionRequestContext, CachingResult> workExecutor;
 
     WorkExecutorTestFixture(
-        VirtualFileSystem virtualFileSystem,
+        FileSystemAccess fileSystemAccess,
         ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
         ValueSnapshotter valueSnapshotter
 
@@ -86,17 +86,7 @@ public class WorkExecutorTestFixture {
         BuildInvocationScopeId buildInvocationScopeId = new BuildInvocationScopeId(UniqueId.generate());
         BuildCancellationToken cancellationToken = new DefaultBuildCancellationToken();
         BuildCacheCommandFactory buildCacheCommandFactory = null;
-        OutputChangeListener outputChangeListener = new OutputChangeListener() {
-            @Override
-            public void beforeOutputChange() {
-                virtualFileSystem.invalidateAll();
-            }
-
-            @Override
-            public void beforeOutputChange(Iterable<String> affectedOutputPaths) {
-                virtualFileSystem.update(affectedOutputPaths, () -> {});
-            }
-        };
+        OutputChangeListener outputChangeListener = affectedOutputPaths -> fileSystemAccess.write(affectedOutputPaths, () -> {});
         OutputFilesRepository outputFilesRepository = new OutputFilesRepository() {
             @Override
             public boolean isGeneratedByGradle(File file) {

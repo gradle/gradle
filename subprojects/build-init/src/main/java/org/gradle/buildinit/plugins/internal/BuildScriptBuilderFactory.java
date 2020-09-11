@@ -17,16 +17,11 @@
 package org.gradle.buildinit.plugins.internal;
 
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
-import org.gradle.internal.file.PathToFileResolver;
 
 public class BuildScriptBuilderFactory {
-    private final PathToFileResolver fileResolver;
-
-    public BuildScriptBuilderFactory(PathToFileResolver fileResolver) {
-        this.fileResolver = fileResolver;
-    }
 
     public BuildScriptBuilder script(BuildInitDsl dsl, String pathWithoutExtension) {
-        return new BuildScriptBuilder(dsl, fileResolver, pathWithoutExtension);
+        return new BuildScriptBuilder(dsl, pathWithoutExtension);
     }
+
 }

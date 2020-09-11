@@ -16,11 +16,11 @@
 
 package org.gradle.plugins.ide
 
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
 abstract class AbstractIdeDeduplicationIntegrationTest extends AbstractIdeProjectIntegrationTest {
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "unique project names are not deduplicated"() {
         given:
         project("root") {
@@ -43,7 +43,7 @@ abstract class AbstractIdeDeduplicationIntegrationTest extends AbstractIdeProjec
         projectName("foobar/app") == "app"
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "deduplicates duplicate ide project names"() {
         given:
         project("root") {
@@ -66,7 +66,7 @@ abstract class AbstractIdeDeduplicationIntegrationTest extends AbstractIdeProjec
         projectName("bar/app") == "bar-app"
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "dedups child project with same name as parent project"() {
         given:
         project("root") {
@@ -85,7 +85,7 @@ abstract class AbstractIdeDeduplicationIntegrationTest extends AbstractIdeProjec
 
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "handles calculated name matches existing project name"() {
         given:
         project("root") {
@@ -111,7 +111,7 @@ abstract class AbstractIdeDeduplicationIntegrationTest extends AbstractIdeProjec
         projectName("baz/bar") == "baz-bar"
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "dedups projects with different nested level"() {
         given:
         project("root") {
@@ -134,7 +134,7 @@ abstract class AbstractIdeDeduplicationIntegrationTest extends AbstractIdeProjec
         projectName("services/bar/app") == "bar-app"
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "dedups root project name"() {
         given:
         project("app") {
@@ -149,7 +149,7 @@ abstract class AbstractIdeDeduplicationIntegrationTest extends AbstractIdeProjec
         projectName("app") == "app-app"
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "deduplication works on deduplicated parent module name"() {
         given:
         project("root") {
@@ -176,7 +176,7 @@ abstract class AbstractIdeDeduplicationIntegrationTest extends AbstractIdeProjec
         projectName("foo/services/rest") == "foo-services-rest"
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "allows deduplication with parent not part of the target list"() {
         given:
         project("root") {
@@ -203,7 +203,7 @@ abstract class AbstractIdeDeduplicationIntegrationTest extends AbstractIdeProjec
         projectName("foo/services/rest") == "foo-services-rest"
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "allows deduplication when root project does not apply IDE plugin"() {
         given:
         project("root", false) {
@@ -225,7 +225,7 @@ abstract class AbstractIdeDeduplicationIntegrationTest extends AbstractIdeProjec
         projectName("bar/app") == "bar-app"
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "removes duplicate words from project dedup prefix"() {
         given:
         project("root"){
@@ -262,7 +262,7 @@ abstract class AbstractIdeDeduplicationIntegrationTest extends AbstractIdeProjec
         projectName("impl/myproject/myproject-foo/app") == "impl-myproject-foo-app"
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "will use configured module name"() {
         given:
         project("root") {
@@ -286,7 +286,7 @@ abstract class AbstractIdeDeduplicationIntegrationTest extends AbstractIdeProjec
         projectName("bar/app") == "bar-app"
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "will not de-duplicate module that conflicts with configured module name"() {
         given:
         project("root") {

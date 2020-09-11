@@ -18,9 +18,11 @@ package org.gradle.testing.jacoco.plugins
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testing.jacoco.plugins.fixtures.JavaProjectUnderTest
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 
 class JacocoCachingIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture {
 
@@ -32,9 +34,9 @@ class JacocoCachingIntegrationTest extends AbstractIntegrationSpec implements Di
 
         buildFile << """
             jacocoTestReport.dependsOn test
-            
+
             sourceSets.test.java.outputDir = file("build/classes/test")
-            
+
             test {
                 jacoco {
                     classDumpDir = file("\$buildDir/tmp/jacoco/classpathdumps")
@@ -43,7 +45,8 @@ class JacocoCachingIntegrationTest extends AbstractIntegrationSpec implements Di
         """
     }
 
-    @ToBeFixedForInstantExecution
+    @Requires(TestPrecondition.JDK14_OR_EARLIER) // reevaluate when upgrading JaCoco from current 0.8.5
+    @ToBeFixedForConfigurationCache
     def "jacoco file results are cached"() {
         when:
         withBuildCache().run "test", "jacocoTestReport"
@@ -64,7 +67,8 @@ class JacocoCachingIntegrationTest extends AbstractIntegrationSpec implements Di
         reportFile.assertContentsHaveNotChangedSince(snapshot)
     }
 
-    @ToBeFixedForInstantExecution
+    @Requires(TestPrecondition.JDK14_OR_EARLIER) // reevaluate when upgrading JaCoco from current 0.8.5
+    @ToBeFixedForConfigurationCache
     def "jacoco file results are not cached when sharing output with another task"() {
         javaProjectUnderTest.writeIntegrationTestSourceFiles()
         buildFile << """
@@ -91,7 +95,8 @@ class JacocoCachingIntegrationTest extends AbstractIntegrationSpec implements Di
         executedAndNotSkipped ":test", ":jacocoTestReport"
     }
 
-    @ToBeFixedForInstantExecution
+    @Requires(TestPrecondition.JDK14_OR_EARLIER) // reevaluate when upgrading JaCoco from current 0.8.5
+    @ToBeFixedForConfigurationCache
     def "test execution is cached with different gradle user home"() {
         when:
         withBuildCache().run "test", "jacocoTestReport"
@@ -113,7 +118,7 @@ class JacocoCachingIntegrationTest extends AbstractIntegrationSpec implements Di
         reportFile.assertContentsHaveNotChangedSince(snapshot)
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "test is cached when jacoco is disabled"() {
         buildFile << """
             test {

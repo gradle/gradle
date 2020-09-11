@@ -18,10 +18,10 @@ package org.gradle.integtests.composite
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
 class CompositeBuildNestingIntegrationTest extends AbstractCompositeBuildIntegrationTest {
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can nest included builds"() {
         given:
         dependency(buildA, "org.test:buildB:1.2")
@@ -51,7 +51,7 @@ class CompositeBuildNestingIntegrationTest extends AbstractCompositeBuildIntegra
         result.assertTaskExecuted(":jar")
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "a nested included build is substituted into all other builds"() {
         given:
         dependency(buildA, "org.test:buildB:1.2")
@@ -93,7 +93,7 @@ class CompositeBuildNestingIntegrationTest extends AbstractCompositeBuildIntegra
         result.assertTaskExecuted(":jar")
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "a build can be included by multiple other builds"() {
         given:
         dependency(buildA, "org.test:buildB:1.2")
@@ -124,7 +124,7 @@ class CompositeBuildNestingIntegrationTest extends AbstractCompositeBuildIntegra
         result.assertTaskExecuted(":jar")
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "nested build can contribute to build script classpath"() {
         def buildC = singleProjectBuild("buildC") {
             settingsFile << """
@@ -165,7 +165,7 @@ class CompositeBuildNestingIntegrationTest extends AbstractCompositeBuildIntegra
         includeBuild(buildB)
 
         buildA.settingsFile.text = """
-            pluginManagement { 
+            pluginManagement {
                 resolutionStrategy.eachPlugin { details ->
                     if (details.requested.id.name == 'b') {
                         details.useModule('org.test:buildB:1.2')
@@ -174,7 +174,7 @@ class CompositeBuildNestingIntegrationTest extends AbstractCompositeBuildIntegra
             }
         """ + buildA.settingsFile.text
         buildA.buildFile.text = """
-            plugins { id 'b' version '12' } 
+            plugins { id 'b' version '12' }
         """ + buildA.buildFile.text
 
         when:

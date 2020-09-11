@@ -16,7 +16,7 @@
 
 package org.gradle.language.swift
 
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.language.AbstractNativeLanguageComponentIntegrationTest
 import org.gradle.nativeplatform.OperatingSystemFamily
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
@@ -28,7 +28,7 @@ import org.hamcrest.CoreMatchers
 @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC)
 abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLanguageComponentIntegrationTest {
 
-    @ToBeFixedForInstantExecution(bottomSpecs = [
+    @ToBeFixedForConfigurationCache(bottomSpecs = [
         'SwiftXCTestComponentWithoutComponentIntegrationTest',
         'SwiftXCTestComponentWithBothLibraryLinkageIntegrationTest',
         'SwiftXCTestComponentWithSharedLibraryLinkageIntegrationTest',
@@ -88,7 +88,7 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
     }
 
     @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC_4)
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can build Swift 3 source code on Swift 4 compiler"() {
         given:
         makeSingleProject()
@@ -117,7 +117,7 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
     }
 
     @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC_5)
-    @ToBeFixedForInstantExecution(bottomSpecs = [
+    @ToBeFixedForConfigurationCache(bottomSpecs = [
         'SwiftXCTestComponentWithoutComponentIntegrationTest',
         'SwiftXCTestComponentWithBothLibraryLinkageIntegrationTest',
         'SwiftXCTestComponentWithSharedLibraryLinkageIntegrationTest',
@@ -151,7 +151,7 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
     }
 
     @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC_3)
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "throws exception with meaningful message when building Swift 4 source code on Swift 3 compiler"() {
         given:
         makeSingleProject()
@@ -181,7 +181,7 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
     }
 
     @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC_3)
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "throws exception with meaningful message when building Swift 5 source code on Swift 3 compiler"() {
         given:
         makeSingleProject()
@@ -211,7 +211,7 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
     }
 
     @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC_4)
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "throws exception with meaningful message when building Swift 5 source code on Swift 4 compiler"() {
         given:
         makeSingleProject()
@@ -270,7 +270,7 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
     }
 
     @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC_3)
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can compile Swift 3 component on Swift 3 compiler"() {
         given:
         makeSingleProject()
@@ -295,7 +295,7 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
     }
 
     @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC_4)
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can compile Swift 4 component on Swift 4 compiler"() {
         given:
         makeSingleProject()
@@ -320,7 +320,7 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
     }
 
     @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC_5)
-    @ToBeFixedForInstantExecution(bottomSpecs = [
+    @ToBeFixedForConfigurationCache(bottomSpecs = [
         'SwiftXCTestComponentWithoutComponentIntegrationTest',
         'SwiftXCTestComponentWithBothLibraryLinkageIntegrationTest',
         'SwiftXCTestComponentWithSharedLibraryLinkageIntegrationTest',

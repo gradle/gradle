@@ -84,6 +84,19 @@ public class DefaultConfigurationPublications implements ConfigurationPublicatio
         this.attributes = attributesFactory.mutable(parentAttributes);
     }
 
+    public void collectVariants(ConfigurationInternal.VariantVisitor visitor) {
+        visitor.visitArtifacts(artifacts);
+        PublishArtifactSet allArtifactSet = allArtifacts.getPublishArtifactSet();
+        if (variants == null || variants.isEmpty() || !allArtifactSet.isEmpty()) {
+            visitor.visitOwnVariant(displayName, attributes.asImmutable(), allArtifactSet);
+        }
+        if (variants != null) {
+            for (DefaultVariant variant : variants.withType(DefaultVariant.class)) {
+                variant.visit(visitor);
+            }
+        }
+    }
+
     public OutgoingVariant convertToOutgoingVariant() {
         return new OutgoingVariant() {
             @Override
@@ -186,7 +199,7 @@ public class DefaultConfigurationPublications implements ConfigurationPublicatio
         canCreate = false;
         if (variants != null) {
             for (ConfigurationVariant variant : variants) {
-                ((ConfigurationVariantInternal)variant).preventFurtherMutation();
+                ((ConfigurationVariantInternal) variant).preventFurtherMutation();
             }
         }
     }

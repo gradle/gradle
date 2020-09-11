@@ -17,7 +17,7 @@
 package org.gradle
 
 import org.apache.tools.ant.taskdefs.Expand
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.AntUtil
 import org.gradle.util.Requires
@@ -34,12 +34,17 @@ class SrcDistributionIntegrationSpec extends DistributionIntegrationSpec {
     }
 
     @Override
+    int getMaxDistributionSizeBytes() {
+        return 45 * 1024 * 1024
+    }
+
+    @Override
     int getLibJarsCount() {
         0
     }
 
     @Requires(TestPrecondition.NOT_WINDOWS)
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def sourceZipContents() {
         given:
         // workaround for https://github.com/asciidoctor/asciidoctor-gradle-plugin/issues/270
@@ -54,7 +59,7 @@ class SrcDistributionIntegrationSpec extends DistributionIntegrationSpec {
         executer.with {
             inDirectory(contentsDir)
             usingExecutable('gradlew')
-            withTasks(':distributionsFull:binDistributionZip')
+            withTasks(':distributions-full:binDistributionZip')
             withArguments("-D${PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY}=${gradlePluginRepositoryMirrorUrl()}")
             withEnvironmentVars([BUILD_BRANCH: System.getProperty("gradleBuildBranch"), BUILD_COMMIT_ID: System.getProperty("gradleBuildCommitId")])
             withWarningMode(null)

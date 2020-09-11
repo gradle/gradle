@@ -16,7 +16,7 @@
 
 package org.gradle.testing
 
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testing.fixture.JUnitMultiVersionIntegrationSpec
@@ -32,7 +32,7 @@ import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_VINTAGE_JUPITER
 class TestTaskIntegrationTest extends JUnitMultiVersionIntegrationSpec {
 
     @Issue("GRADLE-2702")
-    @ToBeFixedForInstantExecution(because = "early dependency resolution")
+    @ToBeFixedForConfigurationCache(because = "early dependency resolution")
     def "should not resolve configuration results when there are no tests"() {
         buildFile << """
             apply plugin: 'java'

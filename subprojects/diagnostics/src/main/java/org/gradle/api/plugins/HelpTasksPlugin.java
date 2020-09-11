@@ -19,14 +19,15 @@ package org.gradle.api.plugins;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
+import org.gradle.api.Project;
 import org.gradle.api.internal.component.BuildableJavaComponent;
 import org.gradle.api.internal.component.ComponentRegistry;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.reporting.components.ComponentReport;
 import org.gradle.api.reporting.dependents.DependentComponentsReport;
 import org.gradle.api.reporting.model.ModelReport;
+import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.diagnostics.BuildEnvironmentReportTask;
 import org.gradle.api.tasks.diagnostics.DependencyInsightReportTask;
 import org.gradle.api.tasks.diagnostics.DependencyReportTask;
@@ -39,7 +40,7 @@ import org.gradle.configuration.Help;
 /**
  * Adds various reporting tasks that provide information about the project.
  */
-public class HelpTasksPlugin implements Plugin<ProjectInternal> {
+public class HelpTasksPlugin implements Plugin<Project> {
 
     public static final String HELP_GROUP = "help";
     public static final String PROPERTIES_TASK = "properties";
@@ -57,8 +58,8 @@ public class HelpTasksPlugin implements Plugin<ProjectInternal> {
     public static final String DEPENDENT_COMPONENTS_TASK = "dependentComponents";
 
     @Override
-    public void apply(final ProjectInternal project) {
-        final TaskContainerInternal tasks = project.getTasks();
+    public void apply(final Project project) {
+        final TaskContainer tasks = project.getTasks();
 
         // static classes are used for the actions to avoid implicitly dragging project/tasks into the model registry
         String projectName = project.toString();

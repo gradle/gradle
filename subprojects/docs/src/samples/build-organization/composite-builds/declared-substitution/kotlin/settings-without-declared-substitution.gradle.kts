@@ -1,3 +1,5 @@
-rootProject.name = "app"
+rootProject.name = "declared-substitution"
+
+include("app")
 
 includeBuild("anonymous-library")

@@ -22,7 +22,7 @@ import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
 import org.gradle.api.internal.file.collections.SingleIncludePatternFileTree
 import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.cache.FileAccessTimeJournalFixture
 import org.gradle.integtests.resolve.JvmLibraryArtifactResolveTestFixture
 import org.gradle.test.fixtures.file.TestFile
@@ -101,7 +101,7 @@ class DefaultArtifactCacheLockingManagerIntegrationTest extends AbstractHttpDepe
         findFiles(cacheDir, 'files-*/*').isEmpty()
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "downloads deleted files again when they are referenced"() {
         given:
         buildscriptWithDependency(snapshotModule)
@@ -122,7 +122,7 @@ class DefaultArtifactCacheLockingManagerIntegrationTest extends AbstractHttpDepe
         jarFile.assertExists()
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "marks artifacts as recently used when accessed"() {
         given:
         buildscriptWithDependency(snapshotModule)
@@ -141,7 +141,7 @@ class DefaultArtifactCacheLockingManagerIntegrationTest extends AbstractHttpDepe
         journal.assertExists()
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "redownloads deleted HTTP script plugin resources"() {
         given:
         def uuid = UUID.randomUUID()
@@ -172,7 +172,7 @@ class DefaultArtifactCacheLockingManagerIntegrationTest extends AbstractHttpDepe
         resource.assertExists()
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "redownloads deleted uri backed text resources"() {
         given:
         def uuid = UUID.randomUUID()
@@ -204,7 +204,7 @@ class DefaultArtifactCacheLockingManagerIntegrationTest extends AbstractHttpDepe
         resource.assertExists()
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "redownloads deleted artifacts for artifact query"() {
         given:
         def module = mavenHttpRepo.module('org.example', 'example', '1.0')

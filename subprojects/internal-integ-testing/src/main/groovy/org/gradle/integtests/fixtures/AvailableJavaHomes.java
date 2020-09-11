@@ -194,6 +194,7 @@ public abstract class AvailableJavaHomes {
             NativeServices nativeServices = NativeServicesTestFixture.getInstance();
             FileCanonicalizer fileCanonicalizer = nativeServices.get(FileCanonicalizer.class);
             jvms = new ArrayList<>();
+            jvms.addAll(new DevInfrastructureJvmLocator(fileCanonicalizer).findJvms());
             InstalledJvmLocator installedJvmLocator = new InstalledJvmLocator(OperatingSystem.current(), Jvm.current(), nativeServices.get(WindowsRegistry.class), nativeServices.get(SystemInfo.class), fileCanonicalizer);
             jvms.addAll(new DevInfrastructureJvmLocator(fileCanonicalizer).findJvms());
             jvms.addAll(installedJvmLocator.findJvms());

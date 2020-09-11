@@ -27,10 +27,8 @@ import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvid
 import org.gradle.api.internal.artifacts.configurations.MutationValidator;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.internal.project.ProjectStateRegistry;
-import org.gradle.internal.Factory;
 import org.gradle.internal.component.local.model.BuildableLocalConfigurationMetadata;
 import org.gradle.internal.component.local.model.DefaultLocalComponentMetadata;
 import org.gradle.internal.component.local.model.RootLocalComponentMetadata;
@@ -78,13 +76,12 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
         ProjectComponentIdentifier projectId = module.getProjectId();
         if (projectId != null) {
             ProjectState projectState = projectStateRegistry.stateFor(projectId);
-            return projectState.withMutableState(new Factory<DefaultLocalComponentMetadata>() {
-                @Override
-                public DefaultLocalComponentMetadata create() {
-                    ProjectInternal project = projectState.getMutableModel();
-                    final AttributesSchemaInternal schema = (AttributesSchemaInternal) project.getDependencies().getAttributesSchema();
-                    return getRootComponentMetadata(module, componentIdentifier, moduleVersionIdentifier, schema, dependencyLockingProvider);
-                }
+            if (!projectState.hasMutableState()) {
+                throw new IllegalStateException("Thread should hold project lock for " + projectId);
+            }
+            return projectState.fromMutableState(project -> {
+                AttributesSchemaInternal schema = (AttributesSchemaInternal) project.getDependencies().getAttributesSchema();
+                return getRootComponentMetadata(module, componentIdentifier, moduleVersionIdentifier, schema, dependencyLockingProvider);
             });
         } else {
             return getRootComponentMetadata(module, componentIdentifier, moduleVersionIdentifier, null, dependencyLockingProvider);

@@ -48,6 +48,7 @@ import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.remote.internal.inet.InetAddressFactory;
 import org.gradle.internal.remote.services.MessagingServices;
 import org.gradle.internal.service.ServiceRegistration;
+import org.gradle.internal.service.scopes.Scope.Global;
 import org.gradle.process.internal.DefaultExecActionFactory;
 import org.gradle.process.internal.ExecFactory;
 import org.gradle.process.internal.ExecHandleFactory;
@@ -118,7 +119,7 @@ public class BasicGlobalScopeServices {
     }
 
     ListenerManager createListenerManager() {
-        return new DefaultListenerManager(Scopes.Global);
+        return new DefaultListenerManager(Global.class);
     }
 }
 

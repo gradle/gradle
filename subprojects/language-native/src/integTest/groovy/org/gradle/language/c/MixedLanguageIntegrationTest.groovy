@@ -16,7 +16,7 @@
 
 package org.gradle.language.c
 
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.SourceFile
 import org.gradle.language.AbstractNativeLanguageIntegrationTest
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
@@ -29,7 +29,7 @@ class MixedLanguageIntegrationTest extends AbstractNativeLanguageIntegrationTest
 
     HelloWorldApp helloWorldApp = new MixedLanguageHelloWorldApp(toolChain)
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can have all source files co-located in a common directory"() {
         given:
         buildFile << """
@@ -78,7 +78,7 @@ model {
         mainExecutable.exec().out == helloWorldApp.englishOutput
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "build and execute program with non-conventional source layout"() {
         given:
         buildFile << """

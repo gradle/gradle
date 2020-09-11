@@ -51,7 +51,7 @@ abstract class AbstractTarBuildCacheEntryPackerSpec extends Specification {
     def streamHasher = new DefaultStreamHasher()
     def stringInterner = new StringInterner()
     def packer = new TarBuildCacheEntryPacker(fileSystemSupport, filePermissionAccess, streamHasher, stringInterner)
-    def virtualFileSystem = TestFiles.virtualFileSystem()
+    def fileSystemAccess = TestFiles.fileSystemAccess()
 
     abstract protected FilePermissionAccess createFilePermissionAccess()
     abstract protected Deleter createDeleter()
@@ -118,7 +118,7 @@ abstract class AbstractTarBuildCacheEntryPackerSpec extends Specification {
 
     protected CurrentFileCollectionFingerprint fingerprint(File file, FingerprintingStrategy strategy) {
         MutableReference<CurrentFileCollectionFingerprint> fingerprint = MutableReference.empty()
-        virtualFileSystem.read(file.getAbsolutePath()) { snapshot ->
+        fileSystemAccess.read(file.getAbsolutePath()) { snapshot ->
             fingerprint.set(DefaultCurrentFileCollectionFingerprint.from([snapshot], strategy))
         }
         return fingerprint.get()

@@ -18,7 +18,7 @@ package org.gradle.initialization
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.internal.operations.trace.BuildOperationRecord
 
 class LoadBuildStructureBuildOperationIntegrationTest extends AbstractIntegrationSpec {
@@ -110,7 +110,7 @@ class LoadBuildStructureBuildOperationIntegrationTest extends AbstractIntegratio
         verifyProject(project(':a'), 'a', ':a', [], customSettingsDir.file('a'))
     }
 
-    @ToBeFixedForInstantExecution(because = "composite builds")
+    @ToBeFixedForConfigurationCache(because = "composite builds")
     def "composite participants expose their project structure"() {
         settingsFile << """
         include "a"
@@ -136,17 +136,21 @@ class LoadBuildStructureBuildOperationIntegrationTest extends AbstractIntegratio
 
 
         then:
-        def rootBuildOperation = operations()[0]
+        def buildOperations = operations()
+        buildOperations.size() == 2
+
+        def nestedBuildOperation = operations()[0]
+        nestedBuildOperation.result.buildPath == ":nested"
+        nestedBuildOperation.result.rootProject.path == ":"
+        verifyProject(nestedBuildOperation.result.rootProject, 'nested', ':nested', [':b'], testDirectory.file('nested'))
+        verifyProject(project(":b", nestedBuildOperation), 'b', ':nested:b', [], testDirectory.file('nested/b'))
+
+        def rootBuildOperation = operations()[1]
         rootBuildOperation.result.buildPath == ":"
         rootBuildOperation.result.rootProject.path == ":"
         verifyProject(rootBuildOperation.result.rootProject, 'root', ':', [':a'], testDirectory, 'root.gradle')
         verifyProject(project(":a", rootBuildOperation), 'a')
 
-        def nestedBuildOperation = operations()[1]
-        nestedBuildOperation.result.buildPath == ":nested"
-        nestedBuildOperation.result.rootProject.path == ":"
-        verifyProject(nestedBuildOperation.result.rootProject, 'nested', ':nested', [':b'], testDirectory.file('nested'))
-        verifyProject(project(":b", nestedBuildOperation), 'b', ':nested:b', [], testDirectory.file('nested/b'))
     }
 
     private void verifyProject(def project, String name, String identityPath = null, List<String> children = [], File projectDir = testDirectory.file(name), String buildFileName = 'build.gradle') {

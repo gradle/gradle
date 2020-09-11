@@ -41,6 +41,8 @@ public interface SnapshotHierarchy {
             .map(CompleteFileSystemLocationSnapshot.class::cast);
     }
 
+    boolean hasDescendantsUnder(String absolutePath);
+
     /**
      * Returns a hierarchy augmented by the information of the snapshot at the absolute path.
      */
@@ -60,6 +62,8 @@ public interface SnapshotHierarchy {
     SnapshotHierarchy empty();
 
     void visitSnapshotRoots(SnapshotVisitor snapshotVisitor);
+
+    void visitSnapshotRoots(String absolutePath, SnapshotVisitor snapshotVisitor);
 
     interface SnapshotVisitor {
         void visitSnapshotRoot(CompleteFileSystemLocationSnapshot snapshot);
@@ -112,21 +116,5 @@ public interface SnapshotHierarchy {
          * Only the roots of added/removed hierarchies are reported.
          */
         void changed(Collection<CompleteFileSystemLocationSnapshot> removedSnapshots, Collection<CompleteFileSystemLocationSnapshot> addedSnapshots);
-    }
-
-    /**
-     * Updates the snapshot hierarchy, passing a {@link NodeDiffListener} to the calls on {@link SnapshotHierarchy}.
-     */
-    interface DiffCapturingUpdateFunction {
-        SnapshotHierarchy update(SnapshotHierarchy root, NodeDiffListener diffListener);
-    }
-
-    /**
-     * Passes an {@link NodeDiffListener} to an {@link DiffCapturingUpdateFunction}, so it becomes an {@link org.gradle.internal.snapshot.AtomicSnapshotHierarchyReference.UpdateFunction}.
-     */
-    interface DiffCapturingUpdateFunctionDecorator {
-        DiffCapturingUpdateFunctionDecorator NOOP = updateFunction -> root -> updateFunction.update(root, NodeDiffListener.NOOP);
-
-        AtomicSnapshotHierarchyReference.UpdateFunction decorate(DiffCapturingUpdateFunction updateFunction);
     }
 }

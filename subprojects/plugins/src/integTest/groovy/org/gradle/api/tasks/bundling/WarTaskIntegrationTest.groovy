@@ -17,7 +17,7 @@
 package org.gradle.api.tasks.bundling
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.archives.TestReproducibleArchives
 import org.gradle.test.fixtures.archive.JarTestFixture
 import spock.lang.Issue
@@ -284,7 +284,7 @@ class WarTaskIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("GRADLE-3522")
-    @ToBeFixedForInstantExecution(because = "early dependency resolution")
+    @ToBeFixedForConfigurationCache(because = "early dependency resolution")
     def "war task doesn't trigger dependency resolution early"() {
         when:
         buildFile << """

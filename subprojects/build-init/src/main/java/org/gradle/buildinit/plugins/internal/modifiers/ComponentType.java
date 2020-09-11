@@ -16,19 +16,36 @@
 
 package org.gradle.buildinit.plugins.internal.modifiers;
 
+import java.util.Arrays;
+import java.util.List;
+
 public enum ComponentType {
-    BASIC,
-    APPLICATION,
-    LIBRARY,
-    GRADLE_PLUGIN() {
+    BASIC(),
+    APPLICATION("app", "list", "utilities"),
+    LIBRARY("lib"),
+    GRADLE_PLUGIN("plugin") {
         @Override
         public String toString() {
             return "Gradle plugin";
         }
     };
 
+    private final List<String> defaultProjectNames;
+
+    ComponentType(String... defaultProjectNames) {
+        this.defaultProjectNames = Arrays.asList(defaultProjectNames);
+    }
+
+    public List<String> getDefaultProjectNames() {
+        return defaultProjectNames;
+    }
+
     @Override
     public String toString() {
         return Names.displayNameFor(this);
+    }
+
+    public String pluralName() {
+        return (toString() + "s").replace("ys", "ies");
     }
 }

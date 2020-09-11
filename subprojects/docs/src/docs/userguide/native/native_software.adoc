@@ -168,7 +168,7 @@ Gradle uses the single build worker pool to concurrently compile and link native
 
 By default, the worker pool size is determined by the number of available processors on the build machine (as reported to the build JVM). To explicitly set the number of workers use the `--max-workers` command-line option or `org.gradle.workers.max` system property. There is generally no need to change this setting from its default.
 
-The build worker pool is shared across all build tasks. This means that when using <<multi_project_builds.adoc#sec:parallel_execution,parallel project execution>>, the maximum number of concurrent individual compilation operations does not increase. For example, if the build machine has 4 processing cores and 10 projects are compiling in parallel, Gradle will only use 4 total workers, not 40.
+The build worker pool is shared across all build tasks. This means that when using <<multi_project_configuration_and_execution.adoc#sec:parallel_execution,parallel project execution>>, the maximum number of concurrent individual compilation operations does not increase. For example, if the build machine has 4 processing cores and 10 projects are compiling in parallel, Gradle will only use 4 total workers, not 40.
 
 [[sec:building_a_library]]
 == Building a library
@@ -662,9 +662,14 @@ For a component produced in a different Gradle project, the notation is similar.
 === Example: Declaring project dependencies
 
 [source.multi-language-sample,groovy]
-.build.gradle
+.lib/build.gradle
 ----
-include::{snippetsPath}/native-binaries/multi-project/groovy/build.gradle[tag=project-dependencies]
+include::{snippetsPath}/native-binaries/multi-project/groovy/lib/build.gradle[]
+----
+[source.multi-language-sample,groovy]
+.exe/build.gradle
+----
+include::{snippetsPath}/native-binaries/multi-project/groovy/exe/build.gradle[]
 ----
 
 

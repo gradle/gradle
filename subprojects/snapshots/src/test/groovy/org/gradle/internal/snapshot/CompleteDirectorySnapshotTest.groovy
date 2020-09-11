@@ -69,7 +69,7 @@ class CompleteDirectorySnapshotTest extends AbstractSnapshotWithChildrenTest<Fil
         vfsSpec << onlyDirectChildren(SAME_PATH)
     }
 
-    def "invalidate descendant #vfsSpec.absolutePath of child #vfsSpec.selectedChildPath creates a partial directory snapshot with the invalidated child (#vfsSpec)"() {
+    def "invalidate descendant #vfsSpec.searchedPath of child #vfsSpec.selectedChildPath creates a partial directory snapshot with the invalidated child (#vfsSpec)"() {
         setupTest(vfsSpec)
         def invalidatedChild = mockChild(selectedChild.pathToParent)
 
@@ -91,7 +91,7 @@ class CompleteDirectorySnapshotTest extends AbstractSnapshotWithChildrenTest<Fil
         vfsSpec << onlyDirectChildren(CHILD_IS_PREFIX)
     }
 
-    def "completely invalidating descendant #vfsSpec.absolutePath of child #vfsSpec.selectedChildPath creates a partial directory snapshot without the child (#vfsSpec)"() {
+    def "completely invalidating descendant #vfsSpec.searchedPath of child #vfsSpec.selectedChildPath creates a partial directory snapshot without the child (#vfsSpec)"() {
         setupTest(vfsSpec)
 
         when:
@@ -112,7 +112,7 @@ class CompleteDirectorySnapshotTest extends AbstractSnapshotWithChildrenTest<Fil
         vfsSpec << onlyDirectChildren(CHILD_IS_PREFIX)
     }
 
-    def "storing for path #vfsSpec.absolutePath adds no information (#vfsSpec)"() {
+    def "storing for path #vfsSpec.searchedPath adds no information (#vfsSpec)"() {
         setupTest(vfsSpec)
 
         expect:
@@ -124,7 +124,7 @@ class CompleteDirectorySnapshotTest extends AbstractSnapshotWithChildrenTest<Fil
         vfsSpec << onlyDirectChildren(NO_COMMON_PREFIX + SAME_PATH + CHILD_IS_PREFIX)
     }
 
-    def "querying the snapshot for non-existent child #vfsSpec.absolutePath yields a missing file (#vfsSpec)"() {
+    def "querying the snapshot for non-existent child #vfsSpec.searchedPath yields a missing file (#vfsSpec)"() {
         setupTest(vfsSpec)
 
         when:
@@ -137,7 +137,20 @@ class CompleteDirectorySnapshotTest extends AbstractSnapshotWithChildrenTest<Fil
         vfsSpec << onlyDirectChildren(NO_COMMON_PREFIX)
     }
 
-    def "querying the snapshot for child #vfsSpec.absolutePath yields the child (#vfsSpec)"() {
+    def "querying the node for non-existent child #vfsSpec.searchedPath yields a missing file (#vfsSpec)"() {
+        setupTest(vfsSpec)
+
+        when:
+        CompleteFileSystemLocationSnapshot foundSnapshot = initialRoot.getNode(searchedPath, CASE_SENSITIVE) as CompleteFileSystemLocationSnapshot
+        then:
+        foundSnapshot.type == FileType.Missing
+        foundSnapshot.absolutePath == searchedPath.absolutePath
+
+        where:
+        vfsSpec << onlyDirectChildren(NO_COMMON_PREFIX)
+    }
+
+    def "querying the snapshot for child #vfsSpec.searchedPath yields the child (#vfsSpec)"() {
         setupTest(vfsSpec)
 
         when:
@@ -151,7 +164,20 @@ class CompleteDirectorySnapshotTest extends AbstractSnapshotWithChildrenTest<Fil
         vfsSpec << onlyDirectChildren(SAME_PATH)
     }
 
-    def "querying a snapshot in child #vfsSpec.absolutePath yields the found snapshot (#vfsSpec)"() {
+    def "querying the node for child #vfsSpec.searchedPath yields the child (#vfsSpec)"() {
+        setupTest(vfsSpec)
+
+        when:
+        CompleteFileSystemLocationSnapshot foundSnapshot = initialRoot.getNode(searchedPath, CASE_SENSITIVE) as CompleteFileSystemLocationSnapshot
+        then:
+        foundSnapshot == selectedChild
+        interaction { noMoreInteractions() }
+
+        where:
+        vfsSpec << onlyDirectChildren(SAME_PATH)
+    }
+
+    def "querying a snapshot in child #vfsSpec.searchedPath yields the found snapshot (#vfsSpec)"() {
         setupTest(vfsSpec)
         def grandChild = Mock(CompleteFileSystemLocationSnapshot)
 
@@ -168,7 +194,24 @@ class CompleteDirectorySnapshotTest extends AbstractSnapshotWithChildrenTest<Fil
         vfsSpec << onlyDirectChildren(CHILD_IS_PREFIX)
     }
 
-    def "querying a non-existent snapshot in child #vfsSpec.absolutePath yields a missing snapshot (#vfsSpec)"() {
+    def "querying a node in child #vfsSpec.searchedPath yields the found node (#vfsSpec)"() {
+        setupTest(vfsSpec)
+        def grandChild = Mock(CompleteFileSystemLocationSnapshot)
+
+        when:
+        CompleteFileSystemLocationSnapshot foundSnapshot = initialRoot.getNode(searchedPath, CASE_SENSITIVE) as CompleteFileSystemLocationSnapshot
+        then:
+        foundSnapshot == grandChild
+        interaction {
+            getDescendantNodeOfSelectedChild(grandChild)
+            noMoreInteractions()
+        }
+
+        where:
+        vfsSpec << onlyDirectChildren(CHILD_IS_PREFIX)
+    }
+
+    def "querying a non-existent snapshot in child #vfsSpec.searchedPath yields a missing snapshot (#vfsSpec)"() {
         setupTest(vfsSpec)
 
         when:
@@ -178,6 +221,23 @@ class CompleteDirectorySnapshotTest extends AbstractSnapshotWithChildrenTest<Fil
         foundSnapshot.absolutePath == searchedPath.absolutePath
         interaction {
             getDescendantSnapshotOfSelectedChild(null)
+            noMoreInteractions()
+        }
+
+        where:
+        vfsSpec << onlyDirectChildren(CHILD_IS_PREFIX)
+    }
+
+    def "querying a non-existent node in child #vfsSpec.searchedPath yields a missing snapshot (#vfsSpec)"() {
+        setupTest(vfsSpec)
+
+        when:
+        CompleteFileSystemLocationSnapshot foundSnapshot = initialRoot.getNode(searchedPath, CASE_SENSITIVE) as CompleteFileSystemLocationSnapshot
+        then:
+        foundSnapshot.type == FileType.Missing
+        foundSnapshot.absolutePath == searchedPath.absolutePath
+        interaction {
+            getDescendantNodeOfSelectedChild(ReadOnlyFileSystemNode.EMPTY)
             noMoreInteractions()
         }
 

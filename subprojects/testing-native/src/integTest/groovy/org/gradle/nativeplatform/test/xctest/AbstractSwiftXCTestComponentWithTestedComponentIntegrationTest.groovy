@@ -16,7 +16,7 @@
 
 package org.gradle.nativeplatform.test.xctest
 
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.language.swift.SwiftVersion
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
@@ -61,7 +61,7 @@ abstract class AbstractSwiftXCTestComponentWithTestedComponentIntegrationTest ex
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "honors Swift source compatibility difference on both tested component (#componentSourceCompatibility) and XCTest component (#xctestSourceCompatibility)"() {
         given:
         assumeSwiftCompilerSupportsLanguageVersion(componentSourceCompatibility)

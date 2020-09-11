@@ -34,6 +34,14 @@ public class TransformationChain implements Transformation {
         this.stepsCount = first.stepsCount() + second.stepsCount();
     }
 
+    public Transformation getFirst() {
+        return first;
+    }
+
+    public Transformation getSecond() {
+        return second;
+    }
+
     @Override
     public boolean endsWith(Transformation otherTransform) {
         int otherStepsCount = otherTransform.stepsCount();
@@ -76,5 +84,11 @@ public class TransformationChain implements Transformation {
     public void visitTransformationSteps(Action<? super TransformationStep> action) {
         first.visitTransformationSteps(action);
         second.visitTransformationSteps(action);
+    }
+
+    @Override
+    public void isolateParameters() {
+        first.isolateParameters();
+        second.isolateParameters();
     }
 }

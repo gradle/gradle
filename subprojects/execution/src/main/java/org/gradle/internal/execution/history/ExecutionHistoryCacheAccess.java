@@ -15,19 +15,12 @@
  */
 package org.gradle.internal.execution.history;
 
-import org.gradle.cache.PersistentIndexedCache;
-import org.gradle.cache.PersistentIndexedCacheParameters;
-import org.gradle.internal.serialize.Serializer;
+import org.gradle.cache.PersistentCache;
+
+import java.util.function.Supplier;
 
 /**
  * Provides access to the persistent execution history store.
  */
-public interface ExecutionHistoryCacheAccess {
-    /**
-     * See {@link org.gradle.cache.PersistentStore#createCache(String, Class, Serializer)} for more details.
-     *
-     * @param maxEntriesToKeepInMemory The max number of entries to keep in memory, scaled according to available heap.
-     * @param cacheInMemoryForShortLivedProcesses When true, entries are cached in memory. When false, entries are cached in memory only when it possible that another build will be run in this process.
-     */
-    <K, V> PersistentIndexedCache<K, V> createCache(PersistentIndexedCacheParameters<K, V> parameters, int maxEntriesToKeepInMemory, boolean cacheInMemoryForShortLivedProcesses);
+public interface ExecutionHistoryCacheAccess extends Supplier<PersistentCache> {
 }

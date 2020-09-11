@@ -16,7 +16,7 @@
 package org.gradle.integtests.resolve.ivy
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
 class IvyDescriptorResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
     def "substitutes system properties into ivy descriptor"() {
@@ -56,7 +56,7 @@ task check {
         succeeds "check"
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "merges values from parent descriptor file that is available locally"() {
         given:
         def parentModule = ivyHttpRepo.module("org.gradle.parent", "parent_module", "1.1").dependsOn("org.gradle.dep", "dep_module", "1.1").publish()
@@ -98,7 +98,7 @@ task check {
         succeeds "check"
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "merges values from parent descriptor file"() {
         given:
         final parentModule = ivyHttpRepo.module("org.gradle.parent", "parent_module", "1.1").dependsOn("org.gradle.dep", "dep_module", "1.1").publish()

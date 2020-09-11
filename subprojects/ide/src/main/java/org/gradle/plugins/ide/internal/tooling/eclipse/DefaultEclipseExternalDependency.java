@@ -31,13 +31,18 @@ public class DefaultEclipseExternalDependency extends DefaultEclipseDependency i
     private final ModuleVersionIdentifier identifier;
     private final GradleModuleVersion moduleVersion;
 
-    public DefaultEclipseExternalDependency(File file, File javadoc, File source, ModuleVersionIdentifier identifier, boolean exported, List<DefaultClasspathAttribute> attributes, List<DefaultAccessRule> accessRules) {
+    private final boolean resolved;
+    private final DefaultEclipseComponentSelector attemptedSelector;
+
+    private DefaultEclipseExternalDependency(File file, File javadoc, File source, ModuleVersionIdentifier identifier, boolean exported, List<DefaultClasspathAttribute> attributes, List<DefaultAccessRule> accessRules, boolean resolved, String attemptedSelector) {
         super(exported, attributes, accessRules);
         this.file = file;
         this.javadoc = javadoc;
         this.source = source;
         this.identifier = identifier;
-        this.moduleVersion = (identifier == null)? null : new DefaultGradleModuleVersion(identifier);
+        this.moduleVersion = (identifier == null) ? null : new DefaultGradleModuleVersion(identifier);
+        this.resolved = resolved;
+        this.attemptedSelector = (attemptedSelector == null) ? null : new DefaultEclipseComponentSelector(attemptedSelector);
     }
 
     public File getFile() {
@@ -58,6 +63,22 @@ public class DefaultEclipseExternalDependency extends DefaultEclipseDependency i
 
     public GradleModuleVersion getGradleModuleVersion() {
         return moduleVersion;
+    }
+
+    public boolean isResolved() {
+        return resolved;
+    }
+
+    public DefaultEclipseComponentSelector getAttemptedSelector() {
+        return attemptedSelector;
+    }
+
+    public static DefaultEclipseExternalDependency createResolved(File file, File javadoc, File source, ModuleVersionIdentifier identifier, boolean exported, List<DefaultClasspathAttribute> attributes, List<DefaultAccessRule> accessRules) {
+        return new DefaultEclipseExternalDependency(file, javadoc, source, identifier, exported, attributes, accessRules, true, null);
+    }
+
+    public static DefaultEclipseExternalDependency createUnresolved(File file, File javadoc, File source, ModuleVersionIdentifier identifier, boolean exported, List<DefaultClasspathAttribute> attributes, List<DefaultAccessRule> accessRules, String attemptedSelector) {
+        return new DefaultEclipseExternalDependency(file, javadoc, source, identifier, exported, attributes, accessRules, false, attemptedSelector);
     }
 
 }

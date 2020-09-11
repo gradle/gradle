@@ -36,7 +36,7 @@ import java.util.Comparator;
 /**
  * Allows the classes and resources of a classpath element such as a jar or directory to be visited.
  */
-@ServiceScope(Scopes.UserHome)
+@ServiceScope(Scopes.UserHome.class)
 public class ClasspathWalker {
     private final Stat stat;
 

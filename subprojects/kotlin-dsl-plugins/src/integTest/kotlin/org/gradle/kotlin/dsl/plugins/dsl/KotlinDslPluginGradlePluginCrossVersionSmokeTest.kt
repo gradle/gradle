@@ -17,13 +17,11 @@
 package org.gradle.kotlin.dsl.plugins.dsl
 
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
-import org.gradle.integtests.fixtures.ToBeFixedForFileSystemWatching
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.fixtures.AbstractPluginTest
 import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.fixtures.file.LeaksFileHandles
-import org.gradle.util.TestPrecondition
 import org.hamcrest.CoreMatchers.allOf
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.MatcherAssert.assertThat
@@ -32,10 +30,6 @@ import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 
 
-@ToBeFixedForFileSystemWatching(
-    because = "https://github.com/gradle/gradle/issues/12184",
-    failsOnlyIf = TestPrecondition.WINDOWS
-)
 @RunWith(Parameterized::class)
 class KotlinDslPluginGradlePluginCrossVersionSmokeTest(
 
@@ -58,13 +52,13 @@ class KotlinDslPluginGradlePluginCrossVersionSmokeTest(
 
     @Test
     @LeaksFileHandles("Kotlin Compiler Daemon working directory")
-    @ToBeFixedForInstantExecution(
-        skip = ToBeFixedForInstantExecution.Skip.FLAKY,
+    @ToBeFixedForConfigurationCache(
+        skip = ToBeFixedForConfigurationCache.Skip.FLAKY,
         because = "OOME and stack overflows with 1.3.30, plus configuration cache does not work for <1.3.70"
     )
     fun `kotlin-dsl plugin in buildSrc and production code using kotlin-gradle-plugin `() {
 
-        assumeNonEmbeddedGradleExecuter()
+        assumeNonEmbeddedGradleExecuter() // newer Kotlin version always leaks on the classpath when running embedded
 
         executer.noDeprecationChecks()
         // Ignore stacktraces when the Kotlin daemon fails

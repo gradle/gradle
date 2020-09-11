@@ -17,17 +17,17 @@
 package org.gradle.api.plugins;
 
 import org.gradle.api.Plugin;
+import org.gradle.api.Project;
 import org.gradle.api.distribution.DistributionContainer;
 import org.gradle.api.distribution.plugins.DistributionPlugin;
 import org.gradle.api.file.CopySpec;
-import org.gradle.api.internal.project.ProjectInternal;
 
 /**
  * A {@link Plugin} which package a Java project as a distribution including the JAR and runtime dependencies.
  */
-public class JavaLibraryDistributionPlugin implements Plugin<ProjectInternal> {
+public class JavaLibraryDistributionPlugin implements Plugin<Project> {
     @Override
-    public void apply(final ProjectInternal project) {
+    public void apply(final Project project) {
         project.getPluginManager().apply(JavaLibraryPlugin.class);
         project.getPluginManager().apply(DistributionPlugin.class);
 

@@ -26,40 +26,44 @@ pluginManagement {
 
 apply(from = "../gradle/shared-with-buildSrc/mirrors.settings.gradle.kts")
 
-val upperCaseLetters = "\\p{Upper}".toRegex()
-
-fun String.toKebabCase() =
-    replace(upperCaseLetters) { "-${it.value.toLowerCase()}" }
-
 rootProject.name = "buildSrc"
 
-// Please preserve alphabetical order
-include("binaryCompatibility")
-include("build")
-include("buildquality")
-include("cleanup")
-include("configuration")
-include("docs")
-include("ide")
-include("integrationTesting")
-include("kotlinDsl")
-include("uberPlugins")
-include("packaging")
-include("plugins")
-include("profiling")
-include("performance")
-include("versioning")
-include("buildPlatform")
+// Platform: defines shared dependency versions
+include("build-platform")
 
-fun buildFileNameFor(projectDirName: String) =
-    "$projectDirName.gradle.kts"
+// Utilities for updating the build itself which are not part of the usual build process
+include("build-update-utils")
+
+// Shared basics for all
+include("basics")
+
+// Compute the identity/version we are building and related details (like current git commit)
+include("module-identity")
+
+// Shared information about external modules
+include("dependency-modules")
+
+// Special purpose build logic for root project - please preserve alphabetical order
+include("cleanup")
+include("idea")
+include("lifecycle")
+
+// Special purpose build logic for subproject - please preserve alphabetical order
+include("binary-compatibility")
+include("build-init-samples")
+include("buildquality")
+include("documentation")
+include("integration-testing")
+include("jvm")
+include("kotlin-dsl")
+include("uber-plugins")
+include("packaging")
+include("performance-testing")
+include("profiling")
+include("publishing")
 
 for (project in rootProject.children) {
-    val projectDirName = project.name.toKebabCase()
-    project.projectDir = file("subprojects/$projectDirName")
-    project.buildFileName = buildFileNameFor(projectDirName)
-    assert(project.projectDir.isDirectory)
-    assert(project.buildFile.isFile)
+    project.projectDir = file("subprojects/${project.name}")
 }
 
 fun remoteBuildCacheEnabled(settings: Settings) = settings.buildCache.remote?.isEnabled == true

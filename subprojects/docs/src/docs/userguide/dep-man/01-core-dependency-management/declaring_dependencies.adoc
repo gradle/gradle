@@ -289,8 +289,8 @@ The following example declares the dependencies on the `utils` and `api` project
 
 .Declaring project dependencies
 ====
-include::sample[dir="snippets/dependencyManagement/declaringDependencies-projectDependencies/groovy",files="build.gradle[tags=project-dependencies]"]
-include::sample[dir="snippets/dependencyManagement/declaringDependencies-projectDependencies/kotlin",files="build.gradle.kts[tags=project-dependencies]"]
+include::sample[dir="snippets/dependencyManagement/declaringDependencies-projectDependencies/groovy",files="web-service/build.gradle[tags=project-dependencies]"]
+include::sample[dir="snippets/dependencyManagement/declaringDependencies-projectDependencies/kotlin",files="web-service/build.gradle.kts[tags=project-dependencies]"]
 ====
 
 === Local forks of module dependencies

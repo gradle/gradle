@@ -16,7 +16,7 @@
 
 package org.gradle.nativeplatform.test.cunit
 
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
@@ -91,7 +91,7 @@ class CUnitDependentComponentsIntegrationSpec extends AbstractInstalledToolChain
         return OperatingSystem.current().getStaticLibraryName("cunit")
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "buildDependentsHello assemble and check all hello binaries"() {
         given:
         useConventionalSourceLocations()
@@ -104,7 +104,7 @@ class CUnitDependentComponentsIntegrationSpec extends AbstractInstalledToolChain
         executed ':helloSharedLibrary', ':helloStaticLibrary', ':helloTestCUnitExe', ':runHelloTestCUnitExe'
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "buildDependentsHelloSharedLibrary assemble and check hello shared library"() {
         given:
         useConventionalSourceLocations()
@@ -118,7 +118,7 @@ class CUnitDependentComponentsIntegrationSpec extends AbstractInstalledToolChain
         notExecuted ':helloTestCUnitExe', ':runHelloTestCUnitExe'
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "buildDependentsHelloStaticLibrary assemble and check hello static library"() {
         given:
         useConventionalSourceLocations()
@@ -131,7 +131,7 @@ class CUnitDependentComponentsIntegrationSpec extends AbstractInstalledToolChain
         executed ':helloStaticLibrary', ':helloTestCUnitExe', ':runHelloTestCUnitExe'
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "buildDependentsHelloTestCUnitExe assemble and run test suite"() {
         given:
         useConventionalSourceLocations()

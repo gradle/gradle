@@ -18,7 +18,7 @@ package org.gradle.language.nativeplatform.internal.incremental;
 
 import com.google.common.collect.ImmutableSet;
 import org.gradle.internal.hash.HashCode;
-import org.gradle.internal.vfs.VirtualFileSystem;
+import org.gradle.internal.vfs.FileSystemAccess;
 import org.gradle.language.nativeplatform.internal.Include;
 import org.gradle.language.nativeplatform.internal.IncludeDirectives;
 import org.gradle.language.nativeplatform.internal.IncludeType;
@@ -45,14 +45,14 @@ public class IncrementalCompileFilesFactory {
     private final IncludeDirectives initialIncludeDirectives;
     private final SourceIncludesParser sourceIncludesParser;
     private final SourceIncludesResolver sourceIncludesResolver;
-    private final VirtualFileSystem virtualFileSystem;
+    private final FileSystemAccess fileSystemAccess;
     private final boolean ignoreUnresolvedHeadersInDependencies;
 
-    public IncrementalCompileFilesFactory(IncludeDirectives initialIncludeDirectives, SourceIncludesParser sourceIncludesParser, SourceIncludesResolver sourceIncludesResolver, VirtualFileSystem virtualFileSystem) {
+    public IncrementalCompileFilesFactory(IncludeDirectives initialIncludeDirectives, SourceIncludesParser sourceIncludesParser, SourceIncludesResolver sourceIncludesResolver, FileSystemAccess fileSystemAccess) {
         this.initialIncludeDirectives = initialIncludeDirectives;
         this.sourceIncludesParser = sourceIncludesParser;
         this.sourceIncludesResolver = sourceIncludesResolver;
-        this.virtualFileSystem = virtualFileSystem;
+        this.fileSystemAccess = fileSystemAccess;
         this.ignoreUnresolvedHeadersInDependencies = Boolean.getBoolean(IGNORE_UNRESOLVED_HEADERS_IN_DEPENDENCIES_PROPERTY_NAME);
     }
 
@@ -88,7 +88,7 @@ public class IncrementalCompileFilesFactory {
          * @return true if this source file requires recompilation, false otherwise.
          */
         private boolean visitSourceFile(File sourceFile) {
-            return virtualFileSystem.readRegularFileContentHash(sourceFile.getAbsolutePath(),
+            return fileSystemAccess.readRegularFileContentHash(sourceFile.getAbsolutePath(),
                 fileContent -> {
                     SourceFileState previousState = previous.getState(sourceFile);
 

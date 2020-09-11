@@ -27,6 +27,7 @@ import org.gradle.internal.snapshot.CompleteDirectorySnapshot
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot
 import org.gradle.internal.snapshot.FileSystemSnapshot
 import org.gradle.internal.snapshot.FileSystemSnapshotVisitor
+import org.gradle.internal.vfs.VirtualFileSystem
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
@@ -42,6 +43,7 @@ class OutputFilterUtilTest extends Specification {
     final TestNameTestDirectoryProvider temporaryFolder = TestNameTestDirectoryProvider.newInstance(getClass())
 
     def virtualFileSystem = TestFiles.virtualFileSystem()
+    def fileSystemAccess = TestFiles.fileSystemAccess(virtualFileSystem)
 
     def "pre-existing directories are filtered"() {
         def outputDir = temporaryFolder.file("outputDir").createDir()
@@ -51,11 +53,11 @@ class OutputFilterUtilTest extends Specification {
         when:
         def filteredOutputs = filterOutputSnapshotAfterExecution(EMPTY_OUTPUT_FINGERPRINT, beforeExecution, beforeExecution)
         then:
-        filteredOutputs.empty
+        collectFiles(filteredOutputs) == [outputDir]
 
         when:
         def outputDirFile = outputDir.file("in-output-dir").createFile()
-        virtualFileSystem.invalidateAll()
+        virtualFileSystem.update(VirtualFileSystem.INVALIDATE_ALL)
         def afterExecution = snapshotOutput(outputDir)
         filteredOutputs = filterOutputSnapshotAfterExecution(EMPTY_OUTPUT_FINGERPRINT, beforeExecution, afterExecution)
         then:
@@ -70,7 +72,7 @@ class OutputFilterUtilTest extends Specification {
         when:
         def filteredOutputs = filterOutputSnapshotAfterExecution(EMPTY_OUTPUT_FINGERPRINT, beforeExecution, beforeExecution)
         then:
-        filteredOutputs.empty
+        collectFiles(filteredOutputs) == [outputDir]
 
         when:
         def outputOfCurrent = outputDir.file("outputOfCurrent").createFile()
@@ -106,7 +108,7 @@ class OutputFilterUtilTest extends Specification {
         def beforeExecution = FileSystemSnapshot.EMPTY
         expect:
         collectFiles(filterOutputSnapshotAfterExecution(EMPTY_OUTPUT_FINGERPRINT, beforeExecution, afterExecution)) == [emptyDir]
-        filterOutputSnapshotAfterExecution(EMPTY_OUTPUT_FINGERPRINT, afterExecution, afterExecution).empty
+        collectFiles(filterOutputSnapshotAfterExecution(EMPTY_OUTPUT_FINGERPRINT, afterExecution, afterExecution)) == [emptyDir]
     }
 
     def "updated files in output directory are part of the output"() {
@@ -138,7 +140,7 @@ class OutputFilterUtilTest extends Specification {
 
         expect:
         collectFiles(filterOutputSnapshotAfterExecution(afterPreviousExecutionFingerprint, beforeExecutionSnapshot, afterExecution)) == [outputDir]
-        filterOutputSnapshotAfterExecution(EMPTY_OUTPUT_FINGERPRINT, afterPreviousExecutionFingerprint, afterExecution).empty
+        collectFiles(filterOutputSnapshotAfterExecution(EMPTY_OUTPUT_FINGERPRINT, afterPreviousExecutionFingerprint, afterExecution)) == [outputDir]
     }
 
     def "overlapping directories are not included"() {
@@ -164,9 +166,9 @@ class OutputFilterUtilTest extends Specification {
     }
 
     private FileSystemSnapshot snapshotOutput(File output) {
-        virtualFileSystem.invalidateAll()
+        virtualFileSystem.update(VirtualFileSystem.INVALIDATE_ALL)
         MutableReference<CompleteFileSystemLocationSnapshot> result = MutableReference.empty()
-        virtualFileSystem.read(output.getAbsolutePath(), result.&set)
+        fileSystemAccess.read(output.getAbsolutePath(), result.&set)
         return result.get()
     }
 

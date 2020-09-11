@@ -18,7 +18,7 @@ package org.gradle.api.publish.maven
 
 import org.gradle.api.attributes.Category
 import org.gradle.api.publish.maven.internal.publication.DefaultMavenPublication
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 import org.gradle.test.fixtures.maven.MavenDependencyExclusion
 import org.gradle.test.fixtures.maven.MavenFileModule
@@ -60,7 +60,7 @@ abstract class AbstractMavenPublishJavaIntegTest extends AbstractMavenPublishInt
         resolveRuntimeArtifacts(javaLibrary) { expectFiles "publishTest-1.9.jar" }
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can publish java-library with dependencies"() {
         given:
         javaLibrary(mavenRepo.module("org.test", "foo", "1.0")).withModuleMetadata().publish()
@@ -560,7 +560,7 @@ abstract class AbstractMavenPublishJavaIntegTest extends AbstractMavenPublishInt
             dependencies {
                 $gradleConfiguration project(':b')
             }
-        """
+        """, plugin
         settingsFile << '''
             include "b"
         '''
@@ -579,7 +579,11 @@ abstract class AbstractMavenPublishJavaIntegTest extends AbstractMavenPublishInt
         then:
         javaLibrary.assertPublished()
         if (mavenScope == 'compile') {
-            javaLibrary.assertApiDependencies('org.gradle.test:b:1.2')
+            if (gradleConfiguration == 'compileOnlyApi') {
+                assertCompileOnlyApiDependencies('org.gradle.test:b:1.2')
+            } else {
+                javaLibrary.assertApiDependencies('org.gradle.test:b:1.2')
+            }
         } else {
             javaLibrary.assertRuntimeDependencies('org.gradle.test:b:1.2')
         }
@@ -592,11 +596,21 @@ abstract class AbstractMavenPublishJavaIntegTest extends AbstractMavenPublishInt
         'java'         | 'runtimeOnly'       | 'runtime'  | false
 
         'java-library' | 'api'               | 'compile'  | false
+        'java-library' | 'compileOnlyApi'    | 'compile'  | false
         'java-library' | 'compile'           | 'compile'  | true
         'java-library' | 'runtime'           | 'compile'  | true
         'java-library' | 'runtimeOnly'       | 'runtime'  | false
         'java-library' | 'implementation'    | 'runtime'  | false
 
+    }
+
+    void assertCompileOnlyApiDependencies(String... expected) {
+        javaLibrary.features.each { feature ->
+            javaLibrary.assertDependencies(feature, 'apiElements', 'compile', [], expected)
+            expected.each {
+                assert !javaLibrary.parsedModuleMetadata.variant('runtimeElements').dependencies*.coords.contains(it)
+            }
+        }
     }
 
     def "can publish java-library with capabilities"() {
@@ -648,7 +662,7 @@ Maven publication 'maven' pom metadata warnings (silence with 'suppressPomMetada
         }
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can publish java-library with capability requests"() {
         given:
         createBuildScripts("""
@@ -789,7 +803,7 @@ Maven publication 'maven' pom metadata warnings (silence with 'suppressPomMetada
     }
 
     @Issue("https://github.com/gradle/gradle/issues/5034, https://github.com/gradle/gradle/issues/5035")
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     void "configuration exclusions are published in generated POM and Gradle metadata"() {
         given:
         createBuildScripts("""
@@ -879,7 +893,7 @@ Maven publication 'maven' pom metadata warnings (silence with 'suppressPomMetada
         }
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can publish java-library with dependencies/constraints with attributes"() {
         given:
         settingsFile << "include 'utils'\n"
@@ -984,7 +998,7 @@ Maven publication 'maven' pom metadata warnings (silence with 'suppressPomMetada
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def 'can publish java library with a #config dependency on a published BOM platform"'() {
         given:
         javaLibrary(mavenRepo.module("org.test", "bom", "1.0")).hasPackaging('pom').dependencyConstraint(mavenRepo.module('org.test', 'bar', '1.1')).withModuleMetadata().publish()
@@ -1095,7 +1109,7 @@ Maven publication 'maven' pom metadata warnings (silence with 'suppressPomMetada
 
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def 'can publish a java library using a virtual platform by ignoring it explicitly'() {
         given:
         javaLibrary(mavenRepo.module("org.test", "bar", "1.0")).withModuleMetadata().publish()
@@ -1146,7 +1160,7 @@ Maven publication 'maven' pom metadata warnings (silence with 'suppressPomMetada
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def 'can publish java library with a #config dependency on a java-platform subproject"'() {
         given:
         javaLibrary(mavenRepo.module("org.test", "bar", "1.0")).withModuleMetadata().publish()
@@ -1293,13 +1307,14 @@ include(':platform')
   - This publication must publish at least one variant""")
     }
 
-    def createBuildScripts(def append) {
+    def createBuildScripts(def append, String plugin = 'java-library') {
         settingsFile << "rootProject.name = 'publishTest'"
 
         buildFile << """
-            apply plugin: 'maven-publish'
-            apply plugin: 'java-library'
-
+            plugins {
+                id('maven-publish')
+                id('$plugin')
+            }
             sourceSets {
                 ${features().findAll { it != MavenJavaModule.MAIN_FEATURE }.collect { "${it}SourceSet" }.join('\n')}
             }

@@ -161,7 +161,7 @@ public class OutgoingVariantsReportTask extends DefaultTask {
     private void formatArtifact(PublishArtifact artifact, Formatter tree) {
         String type = artifact.getType();
         File file = artifact.getFile();
-        tree.text(getFileResolver().resolveAsRelativePath(file));
+        tree.text(getFileResolver().resolveForDisplay(file));
         if (StringUtils.isNotEmpty(type)) {
             tree.append(" (");
             tree.appendValue("artifactType", type);

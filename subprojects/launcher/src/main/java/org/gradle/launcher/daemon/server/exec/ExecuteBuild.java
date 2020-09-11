@@ -20,7 +20,6 @@ import org.gradle.api.logging.Logging;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.BuildRequestContext;
 import org.gradle.initialization.DefaultBuildRequestContext;
-import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.launcher.daemon.logging.DaemonMessages;
 import org.gradle.launcher.daemon.protocol.Build;
 import org.gradle.launcher.daemon.server.api.DaemonCommandExecution;
@@ -38,14 +37,12 @@ public class ExecuteBuild extends BuildCommandOnly {
 
     private static final Logger LOGGER = Logging.getLogger(ExecuteBuild.class);
 
-    final private BuildActionExecuter<BuildActionParameters> actionExecuter;
+    final private BuildActionExecuter<BuildActionParameters, BuildRequestContext> actionExecuter;
     private final DaemonRunningStats runningStats;
-    final private ServiceRegistry contextServices;
 
-    public ExecuteBuild(BuildActionExecuter<BuildActionParameters> actionExecuter, DaemonRunningStats runningStats, ServiceRegistry contextServices) {
+    public ExecuteBuild(BuildActionExecuter<BuildActionParameters, BuildRequestContext> actionExecuter, DaemonRunningStats runningStats) {
         this.actionExecuter = actionExecuter;
         this.runningStats = runningStats;
-        this.contextServices = contextServices;
     }
 
     @Override
@@ -65,7 +62,7 @@ public class ExecuteBuild extends BuildCommandOnly {
                     }
                 });
             }
-            BuildActionResult result = actionExecuter.execute(build.getAction(), buildRequestContext, build.getParameters(), contextServices);
+            BuildActionResult result = actionExecuter.execute(build.getAction(), build.getParameters(), buildRequestContext);
             execution.setResult(result);
         } finally {
             buildEventConsumer.waitForFinish();

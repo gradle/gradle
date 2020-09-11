@@ -16,7 +16,7 @@
 
 package org.gradle.integtests.resolve.verification
 
-import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
+import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.security.fixtures.SigningFixtures
 import org.gradle.security.internal.Fingerprint
 import org.gradle.security.internal.SecuritySupport
@@ -324,7 +324,7 @@ class DependencyVerificationSignatureWriteIntegTest extends AbstractSignatureVer
         keyrings.find { it.publicKey.keyID == keyring.publicKey.keyID }
     }
 
-    @UnsupportedWithInstantExecution
+    @UnsupportedWithConfigurationCache
     def "can generate configuration for dependencies resolved in a buildFinished hook"() {
         createMetadataFile {
             keyServer(keyServerFixture.uri)

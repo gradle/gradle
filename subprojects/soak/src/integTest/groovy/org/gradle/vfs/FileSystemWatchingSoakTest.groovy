@@ -22,8 +22,7 @@ import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.internal.watch.registry.FileWatcherRegistry
 import org.gradle.test.fixtures.file.TestFile
-
-import java.nio.file.Files
+import org.junit.Assert
 
 class FileSystemWatchingSoakTest extends DaemonIntegrationSpec implements FileSystemWatchingFixture {
 
@@ -33,6 +32,7 @@ class FileSystemWatchingSoakTest extends DaemonIntegrationSpec implements FileSy
     private static final double LOST_EVENTS_RATIO_WINDOWS = 0.1
 
     List<TestFile> sourceFiles
+    VerboseVfsLogAccessor vfsLogs
 
     def setup() {
         def subprojects = (1..NUMBER_OF_SUBPROJECTS).collect { "project$it" }
@@ -59,6 +59,7 @@ class FileSystemWatchingSoakTest extends DaemonIntegrationSpec implements FileSy
             withWatchFs()
             // running in parallel, so the soak test doesn't take this long.
             withArgument("--parallel")
+            vfsLogs = enableVerboseVfsLogs()
         }
     }
 
@@ -70,12 +71,12 @@ class FileSystemWatchingSoakTest extends DaemonIntegrationSpec implements FileSy
         // Assemble twice, so everything is up-to-date and nothing is invalidated
         succeeds("assemble")
         def daemon = daemons.daemon
-        def retainedFilesInLastBuild = retainedFilesInCurrentBuild
+        def retainedFilesInLastBuild = vfsLogs.retainedFilesInCurrentBuild
         then:
         daemon.assertIdle()
 
         expect:
-        long endOfDaemonLog = getLinesInDaemonLog(daemon)
+        long endOfDaemonLog = daemon.logLineCount
         50.times { iteration ->
             // when:
             changeSourceFiles(iteration, numberOfChangesBetweenBuilds)
@@ -89,13 +90,13 @@ class FileSystemWatchingSoakTest extends DaemonIntegrationSpec implements FileSy
             boolean overflowDetected = detectOverflow(daemon, endOfDaemonLog)
             if (!overflowDetected) {
                 int expectedNumberOfRetainedFiles = retainedFilesInLastBuild - numberOfChangesBetweenBuilds
-                int retainedFilesAtTheBeginningOfTheCurrentBuild = retainedFilesSinceLastBuild
+                int retainedFilesAtTheBeginningOfTheCurrentBuild = vfsLogs.retainedFilesSinceLastBuild
                 assert retainedFilesAtTheBeginningOfTheCurrentBuild <= expectedNumberOfRetainedFiles
                 assert expectedNumberOfRetainedFiles - 100 <= retainedFilesAtTheBeginningOfTheCurrentBuild
             }
-            assert receivedFileSystemEventsSinceLastBuild >= minimumExpectedFileSystemEvents(numberOfChangesBetweenBuilds, 1)
-            retainedFilesInLastBuild = retainedFilesInCurrentBuild
-            endOfDaemonLog = getLinesInDaemonLog(daemon)
+            assert vfsLogs.receivedFileSystemEventsSinceLastBuild >= minimumExpectedFileSystemEvents(numberOfChangesBetweenBuilds, 1)
+            retainedFilesInLastBuild = vfsLogs.retainedFilesInCurrentBuild
+            endOfDaemonLog = daemon.logLineCount
         }
     }
 
@@ -120,15 +121,15 @@ class FileSystemWatchingSoakTest extends DaemonIntegrationSpec implements FileSy
         }
         boolean overflowDetected = detectOverflow(daemon, 0)
         // This needs to happen here, since retainedFilesInCurrentBuild looks at the log of the last executed build.
-        int expectedNumberOfRetainedFiles = retainedFilesInCurrentBuild - numberOfChangedSourcesFilesPerBatch
+        int expectedNumberOfRetainedFiles = vfsLogs.retainedFilesInCurrentBuild - numberOfChangedSourcesFilesPerBatch
         then:
         succeeds("assemble")
         daemons.daemon.logFile == daemon.logFile
         daemon.assertIdle()
         assertWatchingSucceeded()
-        receivedFileSystemEventsSinceLastBuild >= minimumExpectedFileSystemEvents(numberOfChangedSourcesFilesPerBatch, numberOfChangeBatches)
+        vfsLogs.receivedFileSystemEventsSinceLastBuild >= minimumExpectedFileSystemEvents(numberOfChangedSourcesFilesPerBatch, numberOfChangeBatches)
         if (!overflowDetected) {
-            assert retainedFilesSinceLastBuild == expectedNumberOfRetainedFiles
+            assert vfsLogs.retainedFilesSinceLastBuild == expectedNumberOfRetainedFiles
         }
     }
 
@@ -146,10 +147,6 @@ class FileSystemWatchingSoakTest extends DaemonIntegrationSpec implements FileSy
         overflowDetected
     }
 
-    private static long getLinesInDaemonLog(DaemonFixture daemon) {
-        Files.lines(daemon.logFile.toPath()).withCloseable { lines -> lines.count() }
-    }
-
     private static void waitBetweenChangesToAvoidOverflow() {
             Thread.sleep(150)
     }
@@ -165,7 +162,7 @@ class FileSystemWatchingSoakTest extends DaemonIntegrationSpec implements FileSy
         } else if (currentOs.windows) {
             return numberOfChangedFiles * numberOfChangesPerFile * LOST_EVENTS_RATIO_WINDOWS
         }
-        throw new AssertionError("Test not supported on OS ${currentOs}")
+        Assert.fail("Test not supported on OS ${currentOs}")
     }
 
     private void changeSourceFiles(int iteration, int number) {

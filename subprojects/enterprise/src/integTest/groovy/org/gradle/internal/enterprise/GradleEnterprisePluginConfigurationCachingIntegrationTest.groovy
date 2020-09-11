@@ -26,7 +26,7 @@ import static org.gradle.internal.enterprise.GradleEnterprisePluginConfig.BuildS
 
 // Note: most of the other tests are structure to implicitly also exercise configuration caching
 // This tests some specific aspects, and serves as an early smoke test.
-@IgnoreIf({ GradleContextualExecuter.instant })
+@IgnoreIf({ GradleContextualExecuter.configCache })
 class GradleEnterprisePluginConfigurationCachingIntegrationTest extends AbstractIntegrationSpec {
 
     def plugin = new GradleEnterprisePluginCheckInFixture(testDirectory, mavenRepo, createExecuter())
@@ -117,6 +117,33 @@ class GradleEnterprisePluginConfigurationCachingIntegrationTest extends Abstract
         then:
         plugin.notApplied(output)
         plugin.assertBuildScanRequest(output, SUPPRESSED)
+    }
+
+    def "can use input handler when from cache"() {
+        given:
+        buildFile << """
+            def serviceRef = gradle.serviceRef
+            task read {
+                doLast {
+                    def response =  serviceRef.get()._requiredServices.userInputHandler.askYesNoQuestion("there?")
+                    println "response: \$response"
+                }
+            }
+        """
+
+        when:
+        executer.withForceInteractive(true).withStdIn("yes\n")
+        succeeds "read", "--configuration-cache"
+
+        then:
+        output.contains("response: true")
+
+        when:
+        executer.withForceInteractive(true).withStdIn("no\n")
+        succeeds "read", "--configuration-cache"
+
+        then:
+        output.contains("response: false")
     }
 
     def "exposes correct start parameter"() {

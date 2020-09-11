@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingState
+import org.gradle.api.internal.artifacts.dsl.dependencies.LockEntryFilter
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ComponentResolutionState
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphComponent
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode
@@ -213,6 +214,21 @@ class DependencyLockingArtifactVisitorTest extends Specification {
 
     }
 
+    def 'ignores visited node that is to be ignored'() {
+        given:
+        def identifier = newId(mid, '1.1')
+        def ignoredIdentifier = newId(DefaultModuleIdentifier.newId('org', 'ignored'), '1.0')
+        startWithState([identifier], LockEntryFilterFactory.forParameter(['org:ignored'], "Update lock", true))
+        addVisitedNode(identifier)
+        addVisitedNode(ignoredIdentifier)
+
+        when:
+        def failures = visitor.collectLockingFailures()
+
+        then:
+        failures.isEmpty()
+    }
+
 
     private void addVisitedNode(ModuleComponentIdentifier module) {
         DependencyGraphNode node = Mock()
@@ -245,11 +261,12 @@ class DependencyLockingArtifactVisitorTest extends Specification {
         visitor.startArtifacts(rootNode)
     }
 
-    private startWithState(List<ModuleComponentIdentifier> locks) {
+    private startWithState(List<ModuleComponentIdentifier> locks, LockEntryFilter ignoredEntries = LockEntryFilterFactory.FILTERS_NONE) {
         rootNode.metadata >> metadata
         metadata.dependencyLockingState >> lockState
         lockState.mustValidateLockState() >> true
         lockState.lockedDependencies >> locks
+        lockState.ignoredEntryFilter >> ignoredEntries
 
         visitor.startArtifacts(rootNode)
     }

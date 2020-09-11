@@ -25,6 +25,7 @@ import org.gradle.configuration.internal.DefaultUserCodeApplicationContext
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.testfixtures.CustomPluginWithInjection
 import org.gradle.util.TestUtil
 import org.junit.Rule
 import spock.lang.Specification
@@ -67,14 +68,14 @@ class DefaultPluginContainerTest extends Specification {
 
     def "offers plugin management via plugin id"() {
         when:
-        def p = container.apply(plugin1Class)
+        def plugin = container.apply(plugin1Class)
 
         then:
-        p.is(container.apply("plugin"))
-        p.is(container.apply(plugin1Class))
+        plugin.is(container.apply("plugin"))
+        plugin.is(container.apply(plugin1Class))
 
-        p.is(container.findPlugin(plugin1Class))
-        p.is(container.findPlugin("plugin"))
+        plugin.is(container.findPlugin(plugin1Class))
+        plugin.is(container.findPlugin("plugin"))
 
         !container.findPlugin(UnknownPlugin)
         !container.findPlugin("unknown")
@@ -92,15 +93,41 @@ class DefaultPluginContainerTest extends Specification {
 
     def "offers plugin management via plugin type"() {
         when:
-        def p = container.apply(plugin1Class)
+        def plugin = container.apply(plugin1Class)
 
         then:
-        p.is(container.apply(plugin1Class))
-        p.is(container.findPlugin(plugin1Class))
+        plugin.is(container.apply(plugin1Class))
+        plugin.is(container.findPlugin(plugin1Class))
         container.hasPlugin(plugin1Class)
 
-        !p.is(container.findPlugin(plugin2Class))
+        !plugin.is(container.findPlugin(plugin2Class))
         !container.hasPlugin(plugin2Class)
+    }
+
+    def "offers plugin management via injectable plugin type "() {
+        when:
+        def plugin = container.apply(CustomPluginWithInjection)
+
+        then:
+        container.hasPlugin(CustomPluginWithInjection)
+        container.getPlugin(CustomPluginWithInjection) == plugin
+        container.findPlugin(CustomPluginWithInjection) == plugin
+    }
+
+    def "id-based injectable plugins can be found by their id"() {
+        when:
+        def plugin = container.apply("custom-plugin-with-injection")
+        def executed = false
+
+        then:
+
+        container.withId("custom-plugin-with-injection", {
+            assert it == plugin
+            executed = true
+        })
+        executed
+        container.getPlugin("custom-plugin-with-injection") == plugin
+        container.hasPlugin("custom-plugin-with-injection")
     }
 
     def "does not find plugin by unknown id"() {

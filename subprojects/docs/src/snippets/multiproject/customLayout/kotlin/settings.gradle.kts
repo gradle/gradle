@@ -1,12 +1,12 @@
-include ("projectA", "projectB")
+include ("project-a", "project-b")
 
 // tag::lookup-project[]
 println(rootProject.name)
-println(project(":projectA").name)
+println(project(":project-a").name)
 // end::lookup-project[]
 
 // tag::change-project[]
 rootProject.name = "main"
-project(":projectA").projectDir = File(settingsDir, "../my-project-a")
-project(":projectA").buildFileName = "projectA.gradle"
+project(":project-a").projectDir = file("../my-project-a")
+project(":project-a").buildFileName = "project-a.gradle"
 // end::change-project[]

@@ -17,9 +17,9 @@
 package org.gradle.language.java
 
 import org.gradle.api.tasks.compile.AbstractCompilerContinuousIntegrationTest
-import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
+import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 
-@UnsupportedWithInstantExecution(because = "software model")
+@UnsupportedWithConfigurationCache(because = "software model")
 class JavaCompilerContinuousIntegrationTest extends AbstractCompilerContinuousIntegrationTest {
 
     @Override

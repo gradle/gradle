@@ -22,11 +22,13 @@ import org.gradle.api.NonNullApi;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
+import org.gradle.api.artifacts.ArtifactView;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileCopyDetails;
+import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectPublicationRegistry;
 import org.gradle.api.internal.plugins.PluginDescriptor;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -45,6 +47,7 @@ import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
+import org.gradle.internal.component.local.model.OpaqueComponentIdentifier;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.plugin.devel.GradlePluginDevelopmentExtension;
 import org.gradle.plugin.devel.PluginDeclaration;
@@ -195,13 +198,21 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
             pluginUnderTestMetadataTask.setDescription(PLUGIN_UNDER_TEST_METADATA_TASK_DESCRIPTION);
 
             pluginUnderTestMetadataTask.getOutputDirectory().set(project.getLayout().getBuildDirectory().dir(pluginUnderTestMetadataTask.getName()));
-            pluginUnderTestMetadataTask.getPluginClasspath().from(project.provider(
-                (Callable<Object>) () -> {
-                    Configuration gradlePluginConfiguration = project.getConfigurations().detachedConfiguration(project.getDependencies().gradleApi());
-                    FileCollection gradleApi = gradlePluginConfiguration.getIncoming().getFiles();
-                    return extension.getPluginSourceSet().getRuntimeClasspath().minus(gradleApi);
-                }
-            ));
+
+            pluginUnderTestMetadataTask.getPluginClasspath().from((Callable<FileCollection>) () -> {
+                SourceSet sourceSet = extension.getPluginSourceSet();
+                Configuration runtimeClasspath = project.getConfigurations().getByName(sourceSet.getRuntimeClasspathConfigurationName());
+                ArtifactView view = runtimeClasspath.getIncoming().artifactView(config -> {
+                    config.componentFilter(componentId -> {
+                        if (componentId instanceof OpaqueComponentIdentifier) {
+                            DependencyFactory.ClassPathNotation classPathNotation = ((OpaqueComponentIdentifier) componentId).getClassPathNotation();
+                            return classPathNotation != DependencyFactory.ClassPathNotation.GRADLE_API && classPathNotation != DependencyFactory.ClassPathNotation.LOCAL_GROOVY;
+                        }
+                        return true;
+                    });
+                });
+                return sourceSet.getOutput().plus(view.getFiles());
+            });
         });
     }
 

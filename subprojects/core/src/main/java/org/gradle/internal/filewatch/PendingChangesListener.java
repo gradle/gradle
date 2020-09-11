@@ -19,7 +19,7 @@ package org.gradle.internal.filewatch;
 import org.gradle.internal.service.scopes.EventScope;
 import org.gradle.internal.service.scopes.Scopes;
 
-@EventScope(Scopes.BuildSession)
+@EventScope(Scopes.BuildSession.class)
 public interface PendingChangesListener {
     void onPendingChanges();
 }

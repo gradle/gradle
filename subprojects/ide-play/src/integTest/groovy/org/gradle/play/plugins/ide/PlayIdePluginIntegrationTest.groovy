@@ -16,7 +16,7 @@
 
 package org.gradle.play.plugins.ide
 
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.play.integtest.fixtures.PlayMultiVersionApplicationIntegrationTest
 
 abstract class PlayIdePluginIntegrationTest extends PlayMultiVersionApplicationIntegrationTest {
@@ -25,7 +25,7 @@ abstract class PlayIdePluginIntegrationTest extends PlayMultiVersionApplicationI
     abstract List<File> getIdeFiles()
     abstract String[] getBuildTasks()
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "generates IDE configuration"() {
         applyIdePlugin()
         when:
@@ -37,7 +37,7 @@ abstract class PlayIdePluginIntegrationTest extends PlayMultiVersionApplicationI
         }
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "does not blow up when no IDE plugin is applied"() {
         expect:
         succeeds("tasks")

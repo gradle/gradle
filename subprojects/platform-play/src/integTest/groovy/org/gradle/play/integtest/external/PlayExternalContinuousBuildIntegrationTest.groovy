@@ -16,7 +16,7 @@
 
 package org.gradle.play.integtest.external
 
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.play.integtest.fixtures.external.AbstractMultiVersionPlayExternalContinuousBuildIntegrationTest
 import org.gradle.play.integtest.fixtures.external.BasicPlayApp
 import org.gradle.play.integtest.fixtures.external.PlayApp
@@ -34,7 +34,7 @@ class PlayExternalContinuousBuildIntegrationTest extends AbstractMultiVersionPla
         appIsRunningAndDeployed()
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can run play app multiple times with continuous build" () {
         when:
         succeeds("runPlay")
@@ -61,7 +61,7 @@ class PlayExternalContinuousBuildIntegrationTest extends AbstractMultiVersionPla
         succeeds()
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "build failure prior to launch does not prevent launch on subsequent build" () {
         executer.withStackTraceChecksDisabled()
         def original = file("app/controllers/Application.scala").text

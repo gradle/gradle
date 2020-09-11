@@ -16,6 +16,9 @@
 
 package org.gradle.cache.internal;
 
+import org.gradle.internal.service.scopes.Scope.Global;
+import org.gradle.internal.service.scopes.ServiceScope;
+
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -28,6 +31,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * All other values are referenced only by weak or soft references, allowing them to be collected.
  */
 @ThreadSafe
+@ServiceScope(Global.class)
 public interface CrossBuildInMemoryCacheFactory {
     /**
      * Creates a new cache instance. Keys are always referenced using strong references, values by strong or soft references depending on their usage.

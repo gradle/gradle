@@ -16,7 +16,7 @@
 
 package org.gradle.plugins.javascript.rhino
 
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
 
 class RhinoPluginIntegrationTest extends WellBehavedPluginTest {
@@ -50,7 +50,7 @@ class RhinoPluginIntegrationTest extends WellBehavedPluginTest {
         file("deps/rhino-${RhinoExtension.DEFAULT_RHINO_DEPENDENCY_VERSION}.jar").exists()
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can run rhino exec task"() {
         given:
         file("some.js") << """
@@ -74,7 +74,7 @@ class RhinoPluginIntegrationTest extends WellBehavedPluginTest {
         output.contains "rhino arg: foo"
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "compile failure fails task"() {
         given:
         file("some.js") << " ' "

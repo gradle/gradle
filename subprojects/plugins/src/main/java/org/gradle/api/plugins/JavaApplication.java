@@ -59,22 +59,27 @@ public interface JavaApplication {
     Property<String> getMainModule();
 
     /**
-     * The name of the application's Java module if it should run as a module.
+     * The fully qualified name of the application's main class.
      *
      * @since 6.4
      */
-    @Incubating
     Property<String> getMainClass();
 
     /**
      * The fully qualified name of the application's main class.
+     *
+     * @deprecated Use {@link #getMainClass()} instead.
      */
+    @Deprecated
     @ReplacedBy("mainClass")
     String getMainClassName();
 
     /**
      * The fully qualified name of the application's main class.
+     *
+     * @deprecated Set via {@link #getMainClass()} instead.
      */
+    @Deprecated
     void setMainClassName(String mainClassName);
 
     /**

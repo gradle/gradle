@@ -27,11 +27,13 @@ import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.internal.DisplayName;
+import org.gradle.internal.component.model.VariantResolveMetadata;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.operations.RunnableBuildOperation;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -40,28 +42,35 @@ import java.util.List;
 import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet.EMPTY;
 
 public class ArtifactBackedResolvedVariant implements ResolvedVariant {
+    private final VariantResolveMetadata.Identifier identifier;
     private final DisplayName displayName;
     private final AttributeContainerInternal attributes;
     private final ResolvedArtifactSet artifacts;
 
-    private ArtifactBackedResolvedVariant(DisplayName displayName, AttributeContainerInternal attributes, ResolvedArtifactSet artifacts) {
+    private ArtifactBackedResolvedVariant(@Nullable VariantResolveMetadata.Identifier identifier, DisplayName displayName, AttributeContainerInternal attributes, ResolvedArtifactSet artifacts) {
+        this.identifier = identifier;
         this.displayName = displayName;
         this.attributes = attributes;
         this.artifacts = artifacts;
     }
 
-    public static ResolvedVariant create(DisplayName displayName, AttributeContainerInternal attributes, Collection<? extends ResolvableArtifact> artifacts) {
+    public static ResolvedVariant create(@Nullable VariantResolveMetadata.Identifier identifier, DisplayName displayName, AttributeContainerInternal attributes, Collection<? extends ResolvableArtifact> artifacts) {
         if (artifacts.isEmpty()) {
-            return new ArtifactBackedResolvedVariant(displayName, attributes, EMPTY);
+            return new ArtifactBackedResolvedVariant(identifier, displayName, attributes, EMPTY);
         }
         if (artifacts.size() == 1) {
-            return new ArtifactBackedResolvedVariant(displayName, attributes, new SingleArtifactSet(displayName, attributes, artifacts.iterator().next()));
+            return new ArtifactBackedResolvedVariant(identifier, displayName, attributes, new SingleArtifactSet(displayName, attributes, artifacts.iterator().next()));
         }
         List<SingleArtifactSet> artifactSets = new ArrayList<>(artifacts.size());
         for (ResolvableArtifact artifact : artifacts) {
             artifactSets.add(new SingleArtifactSet(displayName, attributes, artifact));
         }
-        return new ArtifactBackedResolvedVariant(displayName, attributes, CompositeResolvedArtifactSet.of(artifactSets));
+        return new ArtifactBackedResolvedVariant(identifier, displayName, attributes, CompositeResolvedArtifactSet.of(artifactSets));
+    }
+
+    @Override
+    public VariantResolveMetadata.Identifier getIdentifier() {
+        return identifier;
     }
 
     @Override

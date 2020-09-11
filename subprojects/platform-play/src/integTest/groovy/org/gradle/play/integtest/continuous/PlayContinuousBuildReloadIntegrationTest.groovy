@@ -16,7 +16,7 @@
 
 package org.gradle.play.integtest.continuous
 
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.internal.filewatch.PendingChangesManager
 import org.gradle.test.fixtures.ConcurrentTestUtil
 
@@ -56,7 +56,7 @@ class PlayContinuousBuildReloadIntegrationTest extends AbstractPlayReloadIntegra
         pendingChangesMarker = buildOutput.length()
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "should reload modified scala controller and routes and restart server"() {
         when:
         succeeds("runPlayBinary")
@@ -74,7 +74,7 @@ class PlayContinuousBuildReloadIntegrationTest extends AbstractPlayReloadIntegra
         page == 'hello world'
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "should reload with exception when modify scala controller and restart server"() {
         when:
         succeeds("runPlayBinary")
@@ -103,7 +103,7 @@ class PlayContinuousBuildReloadIntegrationTest extends AbstractPlayReloadIntegra
         appIsRunningAndDeployed()
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "should reload modified coffeescript but not restart server"() {
         when:
         succeeds("runPlayBinary")
@@ -129,7 +129,7 @@ alert message
         testMinJs.contains('Hello coffeescript')
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "should detect new javascript files but not restart"() {
         when:
         succeeds("runPlayBinary")
@@ -152,7 +152,7 @@ var message = "Hello JS";
         helloworldMinJs.contains('Hello JS')
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "should reload modified java model and restart server"() {
         when:
         succeeds("runPlayBinary")
@@ -174,7 +174,7 @@ var message = "Hello JS";
         page.contains("<li>Hello foo:1 !</li>")
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "should reload twirl template and restart server"() {
         when:
         succeeds("runPlayBinary")
@@ -194,7 +194,7 @@ var message = "Hello JS";
         page.contains("Welcome to Play with Gradle")
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "should reload with exception when task that depends on runPlayBinary fails"() {
         given:
         buildFile << """

@@ -49,6 +49,7 @@ class DefaultDependencyLockingProviderTest extends Specification {
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
     TestFile lockDir = tmpDir.createDir(LockFileReaderWriter.DEPENDENCY_LOCKING_FOLDER)
+    TestFile uniqueLockFile = tmpDir.file(LockFileReaderWriter.UNIQUE_LOCKFILE_NAME)
 
     FileResolver resolver = Mock()
     StartParameter startParameter = Mock()
@@ -67,7 +68,7 @@ class DefaultDependencyLockingProviderTest extends Specification {
         context.getProjectPath() >> Path.path(':')
         resolver.canResolveRelativePath() >> true
         resolver.resolve(LockFileReaderWriter.DEPENDENCY_LOCKING_FOLDER) >> lockDir
-        resolver.resolve(LockFileReaderWriter.UNIQUE_LOCKFILE_NAME) >> tmpDir.file(LockFileReaderWriter.UNIQUE_LOCKFILE_NAME)
+        resolver.resolve(LockFileReaderWriter.UNIQUE_LOCKFILE_NAME) >> uniqueLockFile
         startParameter.getLockedDependenciesToUpdate() >> []
         provider = newProvider()
     }
@@ -273,6 +274,31 @@ empty=
 
         where:
         unique << [true, false]
+    }
+
+    @Unroll
+    def 'fails with invalid ignored dependencies notation #notation'() {
+        uniqueLockFile << """
+org:foo:1.0=conf
+empty=
+"""
+        featurePreviews.enableFeature(FeaturePreviews.Feature.ONE_LOCKFILE_PER_PROJECT)
+        provider = newProvider()
+        provider.ignoredDependencies.add(notation)
+
+        when:
+        provider.loadLockState('conf')
+
+        then:
+        def ex = thrown(IllegalArgumentException)
+        ex.message == "Ignored dependencies format must be <group>:<artifact> but '$invalid' is invalid."
+
+        where:
+        notation        | invalid
+        'invalid'       | 'invalid'
+        ',org:foo'      | ''
+        'org:foo:1.0'   | 'org:foo:1.0'
+        '*:*'           | '*:*'
     }
 
     private DefaultDependencyLockingProvider newProvider() {

@@ -43,6 +43,7 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.JavaBasePlugin;
 import org.gradle.api.plugins.JavaPluginConvention;
+import org.gradle.api.plugins.jvm.internal.JvmEcosystemUtilities;
 import org.gradle.api.plugins.internal.JvmPluginsHelper;
 import org.gradle.api.reporting.ReportingExtension;
 import org.gradle.api.specs.Spec;
@@ -90,10 +91,12 @@ public class ScalaBasePlugin implements Plugin<Project> {
 
 
     private final ObjectFactory objectFactory;
+    private final JvmEcosystemUtilities jvmEcosystemUtilities;
 
     @Inject
-    public ScalaBasePlugin(ObjectFactory objectFactory) {
+    public ScalaBasePlugin(ObjectFactory objectFactory, JvmEcosystemUtilities jvmEcosystemUtilities) {
         this.objectFactory = objectFactory;
+        this.jvmEcosystemUtilities = jvmEcosystemUtilities;
     }
 
     @Override
@@ -117,7 +120,7 @@ public class ScalaBasePlugin implements Plugin<Project> {
         ConfigurationInternal plugins = (ConfigurationInternal) project.getConfigurations().create(SCALA_COMPILER_PLUGINS_CONFIGURATION_NAME);
         plugins.setTransitive(false);
         plugins.setCanBeConsumed(false);
-        JvmPluginsHelper.configureAttributesForRuntimeClasspath(plugins, objectFactory);
+        jvmEcosystemUtilities.configureAsRuntimeClasspath(plugins);
 
         Configuration zinc = project.getConfigurations().create(ZINC_CONFIGURATION_NAME);
         zinc.setVisible(false);
@@ -174,7 +177,7 @@ public class ScalaBasePlugin implements Plugin<Project> {
                 sourceSet.getAllJava().source(scalaDirectorySet);
                 sourceSet.getAllSource().source(scalaDirectorySet);
 
-                // Explicitly capture only a FileCollection in the lambda below for compatibility with instant-execution.
+                // Explicitly capture only a FileCollection in the lambda below for compatibility with configuration-cache.
                 FileCollection scalaSource = scalaDirectorySet;
                 sourceSet.getResources().getFilter().exclude(
                     spec(element -> scalaSource.contains(element.getFile()))
@@ -234,6 +237,11 @@ public class ScalaBasePlugin implements Plugin<Project> {
                         });
                     }
                 }).getFiles());
+
+                // See https://github.com/gradle/gradle/issues/14434.  We do this so that the incrementalScalaAnalysisForXXX configuration
+                // is resolved during task graph calculation.  It is not an input, but if we leave it to be resolved during task execution,
+                // it can potentially block trying to resolve project dependencies.
+                scalaCompile.dependsOn(scalaCompile.getAnalysisFiles());
             }
         });
         JvmPluginsHelper.configureOutputDirectoryForSourceSet(sourceSet, scalaSourceSet.getScala(), project, scalaCompile, scalaCompile.map(new Transformer<CompileOptions, ScalaCompile>() {

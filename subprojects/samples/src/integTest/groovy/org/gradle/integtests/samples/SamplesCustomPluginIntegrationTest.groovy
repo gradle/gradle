@@ -18,16 +18,19 @@ package org.gradle.integtests.samples
 import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.Sample
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.UsesSample
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.file.TestFile
 import org.junit.Rule
+import spock.lang.IgnoreIf
 import spock.lang.Unroll
 
 class SamplesCustomPluginIntegrationTest extends AbstractSampleIntegrationTest {
     @Rule public final Sample sample = new Sample(temporaryFolder)
 
     @Unroll
+    @IgnoreIf({ GradleContextualExecuter.embedded }) // Requires a Gradle distribution on the test-under-test classpath, but gradleApi() does not offer the full distribution
     @UsesSample("plugins/customPlugin")
     def "can test plugin and task implementation with #dsl dsl"() {
         when:
@@ -42,8 +45,8 @@ class SamplesCustomPluginIntegrationTest extends AbstractSampleIntegrationTest {
         dsl << ['groovy', 'kotlin']
     }
 
-    @ToBeFixedForInstantExecution(
-        iterationMatchers = ".* for javaGradlePlugin producer .*"
+    @ToBeFixedForConfigurationCache(
+        iterationMatchers = ".* for java-gradle-plugin producer .*"
     )
     @Unroll
     @UsesSample("plugins/customPlugin")
@@ -70,10 +73,10 @@ class SamplesCustomPluginIntegrationTest extends AbstractSampleIntegrationTest {
         outputContains('hello from GreetingTask')
 
         where:
-        producerName       | dsl
-        'plugin'           | 'groovy'
-        'javaGradlePlugin' | 'groovy'
-        'plugin'           | 'kotlin'
-        'javaGradlePlugin' | 'kotlin'
+        producerName         | dsl
+        'plugin'             | 'groovy'
+        'java-gradle-plugin' | 'groovy'
+        'plugin'             | 'kotlin'
+        'java-gradle-plugin' | 'kotlin'
     }
 }

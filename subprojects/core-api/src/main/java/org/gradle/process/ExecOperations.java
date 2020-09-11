@@ -18,6 +18,8 @@ package org.gradle.process;
 
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
+import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 /**
  * Process execution operations.
@@ -27,6 +29,7 @@ import org.gradle.api.Incubating;
  * @since 6.0
  */
 @Incubating
+@ServiceScope(Scopes.Build.class)
 public interface ExecOperations {
 
     /**

@@ -16,7 +16,7 @@
 
 package org.gradle.api.publish.maven
 
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 import spock.lang.IgnoreIf
@@ -267,7 +267,7 @@ project(":project2") {
 
     @Issue("https://github.com/gradle/gradle-native/issues/867")
     @IgnoreIf({ GradleContextualExecuter.parallel })
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can resolve non-build dependencies while projects are configured in parallel"() {
         def parallelProjectCount = 20
         using m2
@@ -395,7 +395,7 @@ project(":project2") {
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "publish and resolve java-library with dependency on java-platform (named #platformName)"() {
         given:
         javaLibrary(mavenRepo.module("org.test", "foo", "1.0")).withModuleMetadata().publish()

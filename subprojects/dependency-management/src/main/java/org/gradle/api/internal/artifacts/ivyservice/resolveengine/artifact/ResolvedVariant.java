@@ -16,12 +16,23 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
+import org.gradle.api.Action;
 import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.internal.DisplayName;
+import org.gradle.internal.component.model.VariantResolveMetadata;
+
+import javax.annotation.Nullable;
 
 public interface ResolvedVariant extends HasAttributes {
     DisplayName asDescribable();
+
+    /**
+     * An identifier for this variant, if available. A variant may not have an identifier when it represents some ad hoc set of artifacts, for example artifacts declared on a dependency
+     * using {@link org.gradle.api.artifacts.ModuleDependency#artifact(Action)} or where individual artifacts have been excluded from the variant.
+     */
+    @Nullable
+    VariantResolveMetadata.Identifier getIdentifier();
 
     @Override
     AttributeContainerInternal getAttributes();

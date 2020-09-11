@@ -30,12 +30,9 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.internal.project.ProjectStateRegistry;
-import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.component.local.model.DefaultLocalComponentMetadata;
 import org.gradle.internal.component.local.model.LocalComponentMetadata;
-
-import javax.annotation.Nullable;
 
 /**
  * Provides the metadata for a component consumed from the same build that produces it.
@@ -86,23 +83,14 @@ public class DefaultProjectLocalComponentProvider implements LocalComponentProvi
     }
 
     private LocalComponentMetadata getLocalComponentMetadata(final ProjectComponentIdentifier projectIdentifier) {
-        // TODO - the project model should be reachable from ProjectState without another lookup
-        final ProjectInternal project = projectRegistry.getProject(projectIdentifier.getProjectPath());
-        if (project == null) {
-            throw new IllegalArgumentException(projectIdentifier + " not found.");
-        }
-        final ProjectState projectState = projectStateRegistry.stateFor(project);
-        return projectState.withMutableState(new Factory<LocalComponentMetadata>() {
-            @Nullable
-            @Override
-            public LocalComponentMetadata create() {
-                LocalComponentMetadata metadata = projects.getIfPresent(projectIdentifier);
-                if (metadata == null) {
-                    metadata = getLocalComponentMetadata(projectState, project);
-                    projects.put(projectIdentifier, metadata);
-                }
-                return metadata;
+        ProjectState projectState = projectStateRegistry.stateFor(projectIdentifier);
+        return projectState.fromMutableState(p -> {
+            LocalComponentMetadata metadata = projects.getIfPresent(projectIdentifier);
+            if (metadata == null) {
+                metadata = getLocalComponentMetadata(projectState, p);
+                projects.put(projectIdentifier, metadata);
             }
+            return metadata;
         });
     }
 
@@ -116,5 +104,4 @@ public class DefaultProjectLocalComponentProvider implements LocalComponentProvi
         }
         return metaData;
     }
-
 }

@@ -1,7 +1,6 @@
 # Gradle
 # ------
 .gradle
-.instant-execution-state
 /build
 /buildSrc/build
 /buildSrc/subprojects/*/build

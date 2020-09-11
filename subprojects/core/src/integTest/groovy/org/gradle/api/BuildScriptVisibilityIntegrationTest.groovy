@@ -17,10 +17,10 @@
 package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
 class BuildScriptVisibilityIntegrationTest extends AbstractIntegrationSpec {
-    @ToBeFixedForInstantExecution(because = "test expects scripts evaluation")
+    @ToBeFixedForConfigurationCache(because = "test expects scripts evaluation")
     def "methods defined in project build script are visible to descendant projects"() {
         settingsFile << "include 'child1'"
         buildFile << """
@@ -54,7 +54,7 @@ println "child: " + doSomethingElse(11)
         outputContains("child: [11]")
     }
 
-    @ToBeFixedForInstantExecution(because = "test expects scripts evaluation")
+    @ToBeFixedForConfigurationCache(because = "test expects scripts evaluation")
     def "methods defined in project build script are visible to script plugins applied to project and descendants"() {
         settingsFile << "include 'child1'"
         buildFile << """
@@ -90,7 +90,7 @@ println project.path + " - " + doSomethingElse(12)
         outputContains(":child1 - [12]")
     }
 
-    @ToBeFixedForInstantExecution(because = "test expects scripts evaluation")
+    @ToBeFixedForConfigurationCache(because = "test expects scripts evaluation")
     def "methods defined in project build script are visible to descendant projects when script contains only methods"() {
         settingsFile << "include 'child1'"
         buildFile << """
@@ -112,7 +112,7 @@ println "child: " + doSomething(11)
         outputContains("child: 11")
     }
 
-    @ToBeFixedForInstantExecution(because = "test expects scripts evaluation")
+    @ToBeFixedForConfigurationCache(because = "test expects scripts evaluation")
     def "methods defined in project build script are visible to descendant projects when script contains only methods and model block"() {
         settingsFile << "include 'child1'"
         buildFile << """
@@ -140,7 +140,7 @@ println "child: " + doSomething(11)
         outputContains("child: 11")
     }
 
-    @ToBeFixedForInstantExecution(because = "test expects scripts evaluation")
+    @ToBeFixedForConfigurationCache(because = "test expects scripts evaluation")
     def "properties defined in project build script are not visible to descendant projects"() {
         settingsFile << "include 'child1'"
         buildFile << """
@@ -201,7 +201,7 @@ println "child1 ok"
         outputContains("child1 ok")
     }
 
-    @ToBeFixedForInstantExecution(because = "test expects scripts evaluation")
+    @ToBeFixedForConfigurationCache(because = "test expects scripts evaluation")
     def "properties defined in project build script are not visible to script plugins"() {
         settingsFile << "include 'child1'"
         buildFile << """

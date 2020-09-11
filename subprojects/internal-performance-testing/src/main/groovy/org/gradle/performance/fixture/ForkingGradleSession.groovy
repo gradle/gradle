@@ -79,6 +79,11 @@ class ForkingGradleSession implements GradleSession {
 
     private void run(BuildExperimentInvocationInfo invocationInfo, GradleInvocationSpec invocation, List<String> tasks) {
         String jvmArgs = invocation.jvmOpts.join(' ')
+
+        if (jvmArgs.contains("-XX:+HeapDumpOnOutOfMemoryError")) {
+            jvmArgs += " -XX:+HeapDumpOnOutOfMemoryError"
+        }
+
         Map<String, String> env = [:]
         List<String> args = []
         if (OperatingSystem.current().isWindows()) {
@@ -90,6 +95,7 @@ class ForkingGradleSession implements GradleSession {
         if (invocation.useDaemon) {
             args << "--daemon"
             args << "-Dorg.gradle.jvmargs=${jvmArgs}".toString()
+            env.put('GRADLE_OPTS', '-Xmx128m -Xms128m -XX:+HeapDumpOnOutOfMemoryError')
         } else {
             args << "--no-daemon"
             args << '-Dorg.gradle.jvmargs'

@@ -39,7 +39,7 @@ class DefaultJavaInstallationRegistryTest extends Specification {
 
         then:
         1 * probe.current() >> probeResult
-        _ * probeResult.javaHome >> javaHome
+        _ * probeResult.javaHome >> javaHome.toPath()
 
         and:
         provider.present
@@ -72,7 +72,7 @@ class DefaultJavaInstallationRegistryTest extends Specification {
         then:
         1 * probe.checkJdk(javaHome) >> probeResult
         _ * dir.asFile >> javaHome
-        _ * probeResult.javaHome >> javaHome
+        _ * probeResult.javaHome >> javaHome.toPath()
 
         and:
         result.installationDirectory.asFile == javaHome

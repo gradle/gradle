@@ -24,10 +24,9 @@ import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.result.ComponentSelectionDescriptor;
 import org.gradle.api.internal.artifacts.DependencySubstitutionInternal;
 import org.gradle.api.internal.artifacts.dsl.ComponentSelectorParsers;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorFactory;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.DefaultComponentSelectionDescriptor;
-import org.gradle.internal.Describables;
 import org.gradle.internal.component.model.IvyArtifactName;
 
 import javax.inject.Inject;
@@ -37,13 +36,17 @@ import java.util.List;
 import static org.gradle.api.artifacts.result.ComponentSelectionCause.SELECTED_BY_RULE;
 
 public class DefaultDependencySubstitution implements DependencySubstitutionInternal {
+    private final ComponentSelectionDescriptorFactory componentSelectionDescriptorFactory;
     private final ComponentSelector requested;
     private List<ComponentSelectionDescriptorInternal> ruleDescriptors;
     private ComponentSelector target;
     private final ArtifactSelectionDetailsInternal artifactSelectionDetails;
 
     @Inject
-    public DefaultDependencySubstitution(ComponentSelector requested, List<IvyArtifactName> artifacts) {
+    public DefaultDependencySubstitution(ComponentSelectionDescriptorFactory componentSelectionDescriptorFactory,
+                                         ComponentSelector requested,
+                                         List<IvyArtifactName> artifacts) {
+        this.componentSelectionDescriptorFactory = componentSelectionDescriptorFactory;
         this.requested = requested;
         this.target = requested;
         this.artifactSelectionDetails = new DefaultArtifactSelectionDetails(this, artifacts);
@@ -61,7 +64,7 @@ public class DefaultDependencySubstitution implements DependencySubstitutionInte
 
     @Override
     public void useTarget(Object notation, String reason) {
-        useTarget(notation, new DefaultComponentSelectionDescriptor(SELECTED_BY_RULE, Describables.of(reason)));
+        useTarget(notation, componentSelectionDescriptorFactory.newDescriptor(SELECTED_BY_RULE, reason));
     }
 
     @Override

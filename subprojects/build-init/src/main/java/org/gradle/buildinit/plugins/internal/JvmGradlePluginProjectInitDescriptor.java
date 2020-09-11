@@ -23,7 +23,7 @@ import org.gradle.util.GUtil;
 
 import java.util.Optional;
 
-public abstract class JvmGradlePluginProjectInitDescriptor extends JvmProjectInitDescriptor {
+public abstract class JvmGradlePluginProjectInitDescriptor extends LanguageLibraryProjectInitDescriptor {
     private final DocumentationRegistry documentationRegistry;
 
     public JvmGradlePluginProjectInitDescriptor(DocumentationRegistry documentationRegistry) {
@@ -36,13 +36,16 @@ public abstract class JvmGradlePluginProjectInitDescriptor extends JvmProjectIni
     }
 
     @Override
-    public void generate(InitSettings settings, BuildScriptBuilder buildScriptBuilder, TemplateFactory templateFactory) {
-        super.generate(settings, buildScriptBuilder, templateFactory);
+    public boolean supportsPackage() {
+        return true;
+    }
+
+    @Override
+    public void generateProjectBuildScript(String projectName, InitSettings settings, BuildScriptBuilder buildScriptBuilder) {
+        buildScriptBuilder.repositories().jcenter("Use JCenter for resolving dependencies.");
 
         String pluginId = settings.getPackageName() + ".greeting";
         String pluginClassName = StringUtils.capitalize(GUtil.toCamelCase(settings.getProjectName())) + "Plugin";
-        String testClassName = pluginClassName + "Test";
-        String functionalTestClassName = pluginClassName + "FunctionalTest";
 
         buildScriptBuilder
             .fileComment("This generated file contains a sample Gradle plugin project to get you started.")
@@ -50,12 +53,10 @@ public abstract class JvmGradlePluginProjectInitDescriptor extends JvmProjectIni
             .fileComment("User Manual available at " + documentationRegistry.getDocumentationFor("custom_plugins"));
         buildScriptBuilder.plugin("Apply the Java Gradle plugin development plugin to add support for developing Gradle plugins", "java-gradle-plugin");
 
-        buildScriptBuilder.block(null, "gradlePlugin", b -> {
-            b.containerElement("Define the plugin", "plugins", "greeting", g -> {
-                g.propertyAssignment(null, "id", pluginId);
-                g.propertyAssignment(null, "implementationClass", withPackage(settings, pluginClassName));
-            });
-        });
+        buildScriptBuilder.block(null, "gradlePlugin", b -> b.containerElement("Define the plugin", "plugins", "greeting", null, g -> {
+            g.propertyAssignment(null, "id", pluginId, true);
+            g.propertyAssignment(null, "implementationClass", withPackage(settings, pluginClassName), true);
+        }));
 
         BuildScriptBuilder.Expression functionalTestSourceSet = buildScriptBuilder.createContainerElement("Add a source set for the functional test suite", "sourceSets", "functionalTest", "functionalTestSourceSet");
         buildScriptBuilder.methodInvocation(null, "gradlePlugin.testSourceSets", functionalTestSourceSet);
@@ -64,10 +65,22 @@ public abstract class JvmGradlePluginProjectInitDescriptor extends JvmProjectIni
         BuildScriptBuilder.Expression testConfiguration = buildScriptBuilder.containerElementExpression("configurations", "testImplementation");
         buildScriptBuilder.methodInvocation(null, functionalTestConfiguration, "extendsFrom", testConfiguration);
         BuildScriptBuilder.Expression functionalTest = buildScriptBuilder.taskRegistration("Add a task to run the functional tests", "functionalTest", "Test", b -> {
-            b.propertyAssignment(null, "testClassesDirs", buildScriptBuilder.propertyExpression(functionalTestSourceSet, "output.classesDirs"));
-            b.propertyAssignment(null, "classpath", buildScriptBuilder.propertyExpression(functionalTestSourceSet, "runtimeClasspath"));
+            b.propertyAssignment(null, "testClassesDirs", buildScriptBuilder.propertyExpression(functionalTestSourceSet, "output.classesDirs"), true);
+            b.propertyAssignment(null, "classpath", buildScriptBuilder.propertyExpression(functionalTestSourceSet, "runtimeClasspath"), true);
         });
         buildScriptBuilder.taskMethodInvocation("Run the functional tests as part of `check`", "check", "Task", "dependsOn", functionalTest);
+    }
+
+    @Override
+    public void generateConventionPluginBuildScript(String conventionPluginName, InitSettings settings, BuildScriptBuilder buildScriptBuilder) {
+    }
+
+    @Override
+    public void generateSources(InitSettings settings, TemplateFactory templateFactory) {
+        String pluginId = settings.getPackageName() + ".greeting";
+        String pluginClassName = StringUtils.capitalize(GUtil.toCamelCase(settings.getProjectName())) + "Plugin";
+        String testClassName = pluginClassName + "Test";
+        String functionalTestClassName = pluginClassName + "FunctionalTest";
 
         TemplateOperation sourceTemplate = sourceTemplate(settings, templateFactory, pluginId, pluginClassName);
         TemplateOperation testTemplate = testTemplate(settings, templateFactory, pluginId, testClassName);
@@ -76,8 +89,8 @@ public abstract class JvmGradlePluginProjectInitDescriptor extends JvmProjectIni
     }
 
     @Override
-    public Optional<String> getFurtherReading() {
-        return Optional.of(documentationRegistry.getTopicGuidesFor("Plugin%20Development"));
+    public Optional<String> getFurtherReading(InitSettings settings) {
+        return Optional.of(documentationRegistry.getDocumentationFor("custom_plugins"));
     }
 
     protected abstract TemplateOperation sourceTemplate(InitSettings settings, TemplateFactory templateFactory, String pluginId, String pluginClassName);

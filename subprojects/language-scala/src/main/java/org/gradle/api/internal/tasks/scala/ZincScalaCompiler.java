@@ -83,14 +83,16 @@ public class ZincScalaCompiler implements Compiler<ScalaJavaJointCompileSpec> {
     private final ScalaInstance scalaInstance;
     private final ScalaCompiler scalaCompiler;
     private final AnalysisStoreProvider analysisStoreProvider;
+    private final boolean leakCompilerClasspath;
 
     private final ClearableMapBackedCache<File, DefinesClass> definesClassCache = new ClearableMapBackedCache<>(new ConcurrentHashMap<>());
 
     @Inject
-    public ZincScalaCompiler(ScalaInstance scalaInstance, ScalaCompiler scalaCompiler, AnalysisStoreProvider analysisStoreProvider) {
+    public ZincScalaCompiler(ScalaInstance scalaInstance, ScalaCompiler scalaCompiler, AnalysisStoreProvider analysisStoreProvider, boolean leakCompilerClasspath) {
         this.scalaInstance = scalaInstance;
         this.scalaCompiler = scalaCompiler;
         this.analysisStoreProvider = analysisStoreProvider;
+        this.leakCompilerClasspath = leakCompilerClasspath;
     }
 
     public WorkResult execute(final ScalaJavaJointCompileSpec spec) {
@@ -106,9 +108,16 @@ public class ZincScalaCompiler implements Compiler<ScalaJavaJointCompileSpec> {
         List<String> scalacOptions = new ZincScalaCompilerArgumentsGenerator().generate(spec);
         List<String> javacOptions = new JavaCompilerArgumentsBuilder(spec).includeClasspath(false).noEmptySourcePath().build();
 
+        File[] classpath;
+        if (leakCompilerClasspath) {
+            classpath = Iterables.toArray(Iterables.concat(Arrays.asList(scalaInstance.allJars()), spec.getCompileClasspath()), File.class);
+        } else {
+            classpath = Iterables.toArray(spec.getCompileClasspath(), File.class);
+        }
+
         CompileOptions compileOptions = CompileOptions.create()
                 .withSources(Iterables.toArray(spec.getSourceFiles(), File.class))
-                .withClasspath(Iterables.toArray(Iterables.concat(Arrays.asList(scalaInstance.allJars()), spec.getCompileClasspath()), File.class))
+                .withClasspath(classpath)
                 .withScalacOptions(scalacOptions.toArray(new String[0]))
                 .withClassesDirectory(spec.getDestinationDir())
                 .withJavacOptions(javacOptions.toArray(new String[0]));

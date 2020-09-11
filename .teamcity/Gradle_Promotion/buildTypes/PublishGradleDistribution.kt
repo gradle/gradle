@@ -27,8 +27,8 @@ abstract class PublishGradleDistribution(
     branch: String,
     task: String,
     val triggerName: String,
-    gitUserName: String = "Gradleware Git Bot",
-    gitUserEmail: String = "gradlewaregitbot@gradleware.com",
+    gitUserName: String = "bot-teamcity",
+    gitUserEmail: String = "bot-teamcity@gradle.com",
     extraParameters: String = "",
     vcsRoot: GitVcsRoot = Gradle_Promotion.vcsRoots.Gradle_Promotion__master_
 ) : BasePromotionBuildType(vcsRoot = vcsRoot) {
@@ -36,7 +36,7 @@ abstract class PublishGradleDistribution(
     init {
         artifactRules = """
         incoming-build-receipt/build-receipt.properties => incoming-build-receipt
-        **/build/git-checkout/build/build-receipt.properties
+        **/build/git-checkout/subprojects/base-services/build/generated-resources/build-receipt/org/gradle/build-receipt.properties
         **/build/distributions/*.zip => promote-build-distributions
         **/build/website-checkout/data/releases.xml
         **/build/git-checkout/build/reports/integTest/** => distribution-tests
@@ -47,7 +47,7 @@ abstract class PublishGradleDistribution(
             gradleWrapper {
                 name = "Promote"
                 tasks = task
-                gradleParams = """-PuseBuildReceipt $extraParameters "-PgitUserName=$gitUserName" "-PgitUserEmail=$gitUserEmail" -Igradle/buildScanInit.gradle ${builtInRemoteBuildCacheNode.gradleParameters(Os.linux).joinToString(" ")}"""
+                gradleParams = """-PuseBuildReceipt $extraParameters "-PgitUserName=$gitUserName" "-PgitUserEmail=$gitUserEmail"  ${builtInRemoteBuildCacheNode.gradleParameters(Os.LINUX).joinToString(" ")}"""
             }
         }
         dependencies {
@@ -59,7 +59,7 @@ abstract class PublishGradleDistribution(
         }
 
         requirements {
-            requiresOs(Os.linux)
+            requiresOs(Os.LINUX)
         }
     }
 }

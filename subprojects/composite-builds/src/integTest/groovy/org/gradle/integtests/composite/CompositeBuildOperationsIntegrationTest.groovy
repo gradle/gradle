@@ -20,7 +20,7 @@ import org.gradle.api.internal.tasks.execution.ExecuteTaskBuildOperationType
 import org.gradle.execution.taskgraph.NotifyTaskGraphWhenReadyBuildOperationType
 import org.gradle.initialization.ConfigureBuildBuildOperationType
 import org.gradle.initialization.LoadBuildBuildOperationType
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.internal.operations.trace.BuildOperationRecord
 import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType
@@ -43,7 +43,7 @@ class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildInte
         includedBuilds << buildB
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "generates build operations for tasks in included builds"() {
         given:
         dependency 'org.test:buildB:1.0'
@@ -66,7 +66,7 @@ class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildInte
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "generates build lifecycle operations for included builds with #display"() {
         given:
         dependency "org.test:${dependencyName}:1.0"
@@ -91,14 +91,17 @@ class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildInte
         loadOps[1].details.buildPath == ":${buildName}"
         loadOps[1].parentId == loadOps[0].id
 
+        def buildTreeOp = operations.only(/Prepare build tree/)
+        buildTreeOp.parentId == root.id
+
         def configureOps = operations.all(ConfigureBuildBuildOperationType)
         configureOps.size() == 2
-        configureOps[0].displayName == "Configure build"
-        configureOps[0].details.buildPath == ":"
-        configureOps[0].parentId == root.id
-        configureOps[1].displayName == "Configure build (:${buildName})"
-        configureOps[1].details.buildPath == ":${buildName}"
-        configureOps[1].parentId == configureOps[0].id
+        configureOps[0].displayName == "Configure build (:${buildName})"
+        configureOps[0].details.buildPath == ":${buildName}"
+        configureOps[0].parentId == buildTreeOp.id
+        configureOps[1].displayName == "Configure build"
+        configureOps[1].details.buildPath == ":"
+        configureOps[1].parentId == buildTreeOp.id
 
         def taskGraphOps = operations.all(CalculateTaskGraphBuildOperationType)
         taskGraphOps.size() == 2
@@ -131,7 +134,7 @@ class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildInte
         "rootProject.name='someLib'" | "buildB"  | "someLib"      | "configured root project name"
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "generates build lifecycle operations for included build used as buildscript and production dependency"() {
         given:
         buildA.buildFile.text = """
@@ -161,14 +164,18 @@ class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildInte
         loadOps[1].details.buildPath == ":buildB"
         loadOps[1].parentId == loadOps[0].id
 
+        def buildTreeOp = operations.only(/Prepare build tree/)
+        buildTreeOp.parentId == root.id
+
         def configureOps = operations.all(ConfigureBuildBuildOperationType)
         configureOps.size() == 2
-        configureOps[0].displayName == "Configure build"
-        configureOps[0].details.buildPath == ":"
-        configureOps[0].parentId == root.id
-        configureOps[1].displayName == "Configure build (:buildB)"
-        configureOps[1].details.buildPath == ":buildB"
-        configureOps[1].parentId == configureOps[0].id
+        configureOps[0].displayName == "Configure build (:buildB)"
+        configureOps[0].details.buildPath == ":buildB"
+        configureOps[0].parentId == buildTreeOp.id
+        configureOps[1].displayName == "Configure build"
+        configureOps[1].details.buildPath == ":"
+        configureOps[1].parentId == buildTreeOp.id
+
 
         // The task graph for buildB is calculated multiple times, once for buildscript dependency and again for production dependency
         def taskGraphOps = operations.all(CalculateTaskGraphBuildOperationType)

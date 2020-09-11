@@ -17,6 +17,7 @@
 package org.gradle.api.internal.tasks;
 
 import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.file.Directory;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.CompositeFileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
@@ -25,7 +26,7 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.SourceSetOutput;
 import org.gradle.api.tasks.TaskDependency;
-import org.gradle.api.tasks.compile.AbstractCompile;
+import org.gradle.api.tasks.TaskProvider;
 import org.gradle.internal.logging.text.TreeFormatter;
 
 import javax.annotation.Nullable;
@@ -85,13 +86,14 @@ public class DefaultSourceSetOutput extends CompositeFileCollection implements S
         return classesDirs;
     }
 
+
     /**
      * Adds a new classes directory that compiled classes are assembled into.
      *
-     * @param classesDir the classes dir. Should not be null.
+     * @param directory the classes dir provider. Should not be null.
      */
-    public void addClassesDir(Callable<File> classesDir) {
-        classesDirs.from(classesDir);
+    public void addClassesDir(Provider<Directory> directory) {
+        classesDirs.from(directory);
     }
 
     @Override
@@ -144,11 +146,11 @@ public class DefaultSourceSetOutput extends CompositeFileCollection implements S
         return generatedSourcesDirs;
     }
 
-    public void registerCompileTask(Provider<? extends AbstractCompile> compileTask) {
-        compileTasks.add(compileTask);
+    public void registerClassesContributor(TaskProvider<?> task) {
+        compileTasks.add(task);
     }
 
-    public TaskDependency getCompileDependencies() {
+    public TaskDependency getClassesContributors() {
         return compileTasks;
     }
 

@@ -18,13 +18,13 @@ package org.gradle.language.base
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.Sample
-import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
+import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
 
 @Requires(TestPrecondition.ONLINE)
-@UnsupportedWithInstantExecution(because = "software model")
+@UnsupportedWithConfigurationCache(because = "software model")
 class InternalViewsSampleIntegrationTest extends AbstractIntegrationSpec {
     @Rule
     Sample internalViewsSample = new Sample(temporaryFolder, "customModel/internalViews/groovy")
@@ -42,17 +42,17 @@ class InternalViewsSampleIntegrationTest extends AbstractIntegrationSpec {
                   | Type:   \torg.gradle.platform.base.ComponentSpecContainer
                   | Creator: \tComponentBasePlugin.PluginRules#components(ComponentSpecContainer)
                   | Rules:
-                     ⤷ components { ... } @ build.gradle line 53, column 5
+                     ⤷ components { ... } @ build.gradle line 37, column 5
                      ⤷ MyPlugin#mutateMyComponents(ModelMap<MyComponentInternal>)
                 + my
                       | Type:   \tMyComponent
-                      | Creator: \tcomponents { ... } @ build.gradle line 53, column 5 > create(my)
+                      | Creator: \tcomponents { ... } @ build.gradle line 37, column 5 > create(my)
                       | Rules:
                          ⤷ MyPlugin#mutateMyComponents(ModelMap<MyComponentInternal>) > all()
                     + publicData
                           | Type:   \tjava.lang.String
                           | Value:  \tSome PUBLIC data
-                          | Creator: \tcomponents { ... } @ build.gradle line 53, column 5 > create(my)
+                          | Creator: \tcomponents { ... } @ build.gradle line 37, column 5 > create(my)
             """.stripIndent().trim()
     }
 }

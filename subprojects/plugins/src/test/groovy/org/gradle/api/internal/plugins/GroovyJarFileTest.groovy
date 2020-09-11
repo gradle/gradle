@@ -25,43 +25,65 @@ class GroovyJarFileTest extends Specification {
         GroovyJarFile.parse(new File("groovy-2.0.5.zip")) == null
     }
 
-    def "parse 'groovy' Jar"() {
-        def jar = GroovyJarFile.parse(new File("/lib/groovy-2.0.5.jar"))
+    def "parse 'groovy' Jar"(String fileName, String version, String dependencyNotation) {
+        def jar = GroovyJarFile.parse(new File("$fileName"))
 
         expect:
         jar != null
-        jar.file == new File("/lib/groovy-2.0.5.jar")
+        jar.file == new File("$fileName")
         jar.baseName == "groovy"
-        jar.version == VersionNumber.parse("2.0.5")
+        jar.version == VersionNumber.parse("$version")
         !jar.groovyAll
         !jar.indy
-        jar.dependencyNotation == "org.codehaus.groovy:groovy:2.0.5"
+        jar.dependencyNotation == "$dependencyNotation"
+
+        where:
+        fileName                | version | dependencyNotation
+        "/lib/groovy-2.0.5.jar" | "2.0.5" | "org.codehaus.groovy:groovy:2.0.5"
+        "/lib/groovy-4.0.0.jar" | "4.0.0" | "org.apache.groovy:groovy:4.0.0"
+        "/lib/groovy-4.1.0.jar" | "4.1.0" | "org.apache.groovy:groovy:4.1.0"
+        "/lib/groovy-5.0.2.jar" | "5.0.2" | "org.apache.groovy:groovy:5.0.2"
     }
 
-    def "parse 'groovy-all' Jar"() {
-        def jar = GroovyJarFile.parse(new File("/lib/groovy-all-2.0.5.jar"))
+    def "parse 'groovy-all' Jar"(String fileName, String version, String dependencyNotation) {
+        def jar = GroovyJarFile.parse(new File("$fileName"))
 
         expect:
         jar != null
-        jar.file == new File("/lib/groovy-all-2.0.5.jar")
+        jar.file == new File("$fileName")
         jar.baseName == "groovy-all"
-        jar.version == VersionNumber.parse("2.0.5")
+        jar.version == VersionNumber.parse("$version")
         jar.groovyAll
         !jar.indy
-        jar.dependencyNotation == "org.codehaus.groovy:groovy-all:2.0.5"
+        jar.dependencyNotation == "$dependencyNotation"
 
+        where:
+        fileName                    | version | dependencyNotation
+        "/lib/groovy-all-2.0.5.jar" | "2.0.5" | "org.codehaus.groovy:groovy-all:2.0.5"
+        "/lib/groovy-all-4.0.0.jar" | "4.0.0" | "org.apache.groovy:groovy-all:4.0.0"
+        "/lib/groovy-all-4.1.0.jar" | "4.1.0" | "org.apache.groovy:groovy-all:4.1.0"
+        "/lib/groovy-all-5.0.2.jar" | "5.0.2" | "org.apache.groovy:groovy-all:5.0.2"
     }
 
-    def "parse indy Jar"() {
-        def jar = GroovyJarFile.parse(new File("/lib/groovy-2.0.5-indy.jar"))
+    def "parse indy Jar"(String fileName, String version, String dependencyNotation) {
+        def jar = GroovyJarFile.parse(new File("$fileName"))
 
         expect:
         jar != null
-        jar.file == new File("/lib/groovy-2.0.5-indy.jar")
+        jar.file == new File("$fileName")
         jar.baseName == "groovy"
-        jar.version == VersionNumber.parse("2.0.5")
+        jar.version == VersionNumber.parse("$version")
         !jar.groovyAll
         jar.indy
-        jar.dependencyNotation == "org.codehaus.groovy:groovy:2.0.5:indy"
+        jar.dependencyNotation == "$dependencyNotation"
+
+        where:
+        fileName                     | version | dependencyNotation
+        "/lib/groovy-2.0.5-indy.jar" | "2.0.5" | "org.codehaus.groovy:groovy:2.0.5:indy"
+        "/lib/groovy-4.0.0-indy.jar" | "4.0.0" | "org.apache.groovy:groovy:4.0.0:indy"
+        "/lib/groovy-4.1.0-indy.jar" | "4.1.0" | "org.apache.groovy:groovy:4.1.0:indy"
+        "/lib/groovy-5.0.2-indy.jar" | "5.0.2" | "org.apache.groovy:groovy:5.0.2:indy"
     }
+
+
 }

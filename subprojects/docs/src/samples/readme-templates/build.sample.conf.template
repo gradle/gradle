@@ -1,0 +1,6 @@
+commands: [{
+    executable: gradle
+    args: build
+    expected-output-file: build.out
+    allow-disordered-output: true
+}]

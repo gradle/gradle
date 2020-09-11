@@ -25,11 +25,11 @@ import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.ManagedExecutor;
 import org.gradle.internal.file.FileAccessTimeJournal;
+import org.gradle.internal.file.FileAccessTracker;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.hash.HashCode;
-import org.gradle.internal.resource.local.FileAccessTracker;
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
-import org.gradle.internal.vfs.VirtualFileSystem;
+import org.gradle.internal.vfs.FileSystemAccess;
 
 import java.io.Closeable;
 import java.io.File;
@@ -51,7 +51,7 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
     private final FileAccessTracker fileAccessTracker;
     private final ClasspathWalker classpathWalker;
     private final ClasspathBuilder classpathBuilder;
-    private final VirtualFileSystem virtualFileSystem;
+    private final FileSystemAccess fileSystemAccess;
     private final GlobalCacheLocations globalCacheLocations;
     private final ManagedExecutor executor;
 
@@ -61,13 +61,13 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
         FileAccessTimeJournal fileAccessTimeJournal,
         ClasspathWalker classpathWalker,
         ClasspathBuilder classpathBuilder,
-        VirtualFileSystem virtualFileSystem,
+        FileSystemAccess fileSystemAccess,
         ExecutorFactory executorFactory,
         GlobalCacheLocations globalCacheLocations
     ) {
         this.classpathWalker = classpathWalker;
         this.classpathBuilder = classpathBuilder;
-        this.virtualFileSystem = virtualFileSystem;
+        this.fileSystemAccess = fileSystemAccess;
         this.globalCacheLocations = globalCacheLocations;
         this.cache = classpathTransformerCacheFactory.createCache(cacheRepository, fileAccessTimeJournal);
         this.fileAccessTracker = classpathTransformerCacheFactory.createFileAccessTracker(fileAccessTimeJournal);
@@ -154,7 +154,7 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
     }
 
     private CacheOperation cached(File original, ClasspathFileTransformer transformer, Set<HashCode> seen) {
-        CompleteFileSystemLocationSnapshot snapshot = virtualFileSystem.read(original.getAbsolutePath(), s -> s);
+        CompleteFileSystemLocationSnapshot snapshot = fileSystemAccess.read(original.getAbsolutePath(), s -> s);
         HashCode contentHash = snapshot.getHash();
         if (snapshot.getType() == FileType.Missing) {
             return new EmptyOperation();

@@ -16,8 +16,7 @@
 
 package org.gradle.smoketests
 
-import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
-import org.gradle.integtests.fixtures.android.AndroidHome
+import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.GradleRunner
 import org.gradle.util.GradleVersion
@@ -28,16 +27,16 @@ import static org.gradle.testkit.runner.TaskOutcome.UP_TO_DATE
 
 class KotlinPluginSmokeTest extends AbstractSmokeTest {
 
-    private static final String NO_INSTANT_EXECUTION_ITERATION_MATCHER = ".*kotlin=1\\.3\\.[2-6].*"
+    static final String NO_CONFIGURATION_CACHE_ITERATION_MATCHER = ".*kotlin=1\\.3\\.[2-6].*"
 
-    // TODO:instant-execution remove once fixed upstream
+    // TODO:configuration-cache remove once fixed upstream
     @Override
-    protected int maxInstantExecutionProblems() {
+    protected int maxConfigurationCacheProblems() {
         return 200
     }
 
     @Unroll
-    @UnsupportedWithInstantExecution(iterationMatchers = NO_INSTANT_EXECUTION_ITERATION_MATCHER)
+    @UnsupportedWithConfigurationCache(iterationMatchers = NO_CONFIGURATION_CACHE_ITERATION_MATCHER)
     def 'kotlin jvm (kotlin=#version, workers=#workers)'() {
         given:
         useSample("kotlin-example")
@@ -69,52 +68,7 @@ class KotlinPluginSmokeTest extends AbstractSmokeTest {
     }
 
     @Unroll
-    @UnsupportedWithInstantExecution(iterationMatchers = [NO_INSTANT_EXECUTION_ITERATION_MATCHER, AGP_3_ITERATION_MATCHER, AGP_4_0_ITERATION_MATCHER])
-    def "kotlin android on sample '#sampleName' (kotlin=#kotlinPluginVersion, agp=#androidPluginVersion, workers=#workers)"() {
-        given:
-        AndroidHome.assertIsSet()
-        useSample(sampleName)
-
-        def buildFileName = sampleName.endsWith("kotlin-dsl")
-            ? "build.gradle.kts"
-            : "build.gradle"
-        [buildFileName, "app/$buildFileName"].each { sampleBuildFileName ->
-            replaceVariablesInFile(
-                file(sampleBuildFileName),
-                kotlinVersion: kotlinPluginVersion,
-                androidPluginVersion: androidPluginVersion,
-                androidBuildToolsVersion: TestedVersions.androidTools)
-        }
-
-        when:
-        def result = useAgpVersion(androidPluginVersion, runner(workers, 'clean', ':app:testDebugUnitTestCoverage')).build()
-
-        then:
-        result.task(':app:testDebugUnitTestCoverage').outcome == SUCCESS
-
-        if (kotlinPluginVersion == TestedVersions.kotlin.latest()
-            && androidPluginVersion == TestedVersions.androidGradle.latest()) {
-            expectNoDeprecationWarnings(result)
-        }
-
-        where:
-// To run a specific combination, set the values here, uncomment the following four lines
-//  and comment out the lines coming after
-//        kotlinPluginVersion = TestedVersions.kotlin.versions.last()
-//        androidPluginVersion = TestedVersions.androidGradle.versions.last()
-//        workers = false
-//        sampleName = 'android-kotlin-example'
-
-        [kotlinPluginVersion, androidPluginVersion, workers, sampleName] << [
-            TestedVersions.kotlin.versions,
-            TestedVersions.androidGradle.versions,
-            [true, false],
-            ["android-kotlin-example", "android-kotlin-example-kotlin-dsl"]
-        ].combinations()
-    }
-
-    @Unroll
-    @UnsupportedWithInstantExecution(iterationMatchers = NO_INSTANT_EXECUTION_ITERATION_MATCHER)
+    @UnsupportedWithConfigurationCache(iterationMatchers = NO_CONFIGURATION_CACHE_ITERATION_MATCHER)
     def 'kotlin javascript (kotlin=#version, workers=#workers)'() {
         given:
         useSample("kotlin-js-sample")
@@ -143,7 +97,7 @@ class KotlinPluginSmokeTest extends AbstractSmokeTest {
     }
 
     @Unroll
-    @UnsupportedWithInstantExecution(iterationMatchers = NO_INSTANT_EXECUTION_ITERATION_MATCHER)
+    @UnsupportedWithConfigurationCache(iterationMatchers = NO_CONFIGURATION_CACHE_ITERATION_MATCHER)
     def 'kotlin jvm and groovy plugins combined (kotlin=#kotlinVersion)'() {
         given:
         buildFile << """

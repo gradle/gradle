@@ -26,32 +26,16 @@ class JavaModuleCrossCompileIntegrationTest extends AbstractJavaModuleIntegratio
                 sourceCompatibility = JavaVersion.VERSION_1_8
                 targetCompatibility = JavaVersion.VERSION_1_8
             }
-            // === This code is copied from Gradle code base, we need a public API for all this setup (adding a new directory set with compile task)
-            // === https://github.com/gradle/gradle/issues/727
+            def jvm = extensions.create(org.gradle.api.plugins.jvm.internal.JvmPluginExtension, "jvm", org.gradle.api.plugins.jvm.internal.DefaultJvmPluginExtension)
+
             def main = sourceSets.main
-            def java9 = objects.sourceDirectorySet("java9", "Java 9 Sources")
-            java9.srcDir("src/" + main.name + "/" + java9.name)
-            main.allJava.source(java9)
-            main.allSource.source(java9)
-            def sourceSetChildPath = "classes/" + java9.name + "/" + main.name
-            java9.destinationDirectory.convention(layout.buildDirectory.dir(sourceSetChildPath))
-            def compileJava9 = tasks.register("compileJava9", JavaCompile) {
-                sourceCompatibility = JavaVersion.VERSION_1_9.toString()
-                targetCompatibility = JavaVersion.VERSION_1_9.toString()
-
-                source = java9
-                classpath = main.compileClasspath
-
-                options.compilerArgs += ["--patch-module", "consumer=\${main.java.outputDir.path}"]
-            }
-            def sourceSetOutput = main.output as org.gradle.api.internal.tasks.DefaultSourceSetOutput
-            sourceSetOutput.addClassesDir { java9.destinationDirectory.asFile.get() }
-            sourceSetOutput.registerCompileTask(compileJava9)
-            java9.compiledBy(compileJava9) {
-                it.destinationDirectory
-            }
-            tasks.classes {
-                dependsOn(compileJava9)
+            jvm.utilities.registerJvmLanguageSourceDirectory(main, "java9") {
+                withDescription "Java 9 Sources"
+                compiledWithJava {
+                    sourceCompatibility = '9'
+                    targetCompatibility = '9'
+                    classpath = main.compileClasspath
+                }
             }
         """
     }

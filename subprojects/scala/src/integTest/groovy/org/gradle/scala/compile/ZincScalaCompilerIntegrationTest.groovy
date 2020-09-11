@@ -20,12 +20,13 @@ import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.ScalaCoverage
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.TestResources
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.internal.hash.Hashing
 import org.gradle.test.fixtures.file.ClassFile
 import org.gradle.util.VersionNumber
 import org.junit.Assume
 import org.junit.Rule
+import spock.lang.Issue
 
 import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.mavenCentralRepositoryDefinition
 import static org.gradle.util.TextUtil.escapeString
@@ -206,7 +207,7 @@ compileScala.scalaCompileOptions.failOnError = false
         buildFile <<
             """
 apply plugin: "application"
-mainClassName = "Main"
+application.mainClass = "Main"
 compileScala.scalaCompileOptions.encoding = "ISO8859_7"
 """
 
@@ -340,7 +341,7 @@ class Person(val name: String, val age: Int) {
         return new ClassFile(scalaClassFile(path))
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def compilesScalaCodeIncrementally() {
         setup:
         def person = scalaClassFile("Person.class")
@@ -360,7 +361,7 @@ class Person(val name: String, val age: Int) {
         other.lastModified() == old(other.lastModified())
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def compilesJavaCodeIncrementally() {
         setup:
         def person = scalaClassFile("Person.class")
@@ -380,7 +381,7 @@ class Person(val name: String, val age: Int) {
         other.lastModified() == old(other.lastModified())
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def compilesIncrementallyAcrossProjectBoundaries() {
         setup:
         def person = file("prj1/build/classes/scala/main/Person.class")
@@ -402,7 +403,7 @@ class Person(val name: String, val age: Int) {
 
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def compilesAllScalaCodeWhenForced() {
         setup:
         def person = scalaClassFile("Person.class")
@@ -420,6 +421,35 @@ class Person(val name: String, val age: Int) {
         classHash(person) != old(classHash(person))
         house.lastModified() != old(house.lastModified())
         other.lastModified() != old(other.lastModified())
+    }
+
+    @Issue("gradle/gradle#13535")
+    def doNotPropagateWorkerClasspathToCompilationClasspath() {
+        given:
+        // scala 2.12 is used because for 2.13 this particular case is ok
+        file("build.gradle") << """
+            apply plugin: 'scala'
+
+            ${mavenCentralRepository()}
+
+            dependencies {
+                implementation 'org.scala-lang:scala-library:2.12.11'
+            }
+        """
+
+        file("src/main/scala/ScalaXml.scala") << """
+            import scala.xml.Text
+
+            object ScalaXml {
+              def main(args: Array[String]): Unit = {
+                val text = new Text("test")
+                println(text)
+              }
+            }"""
+
+        expect:
+        fails("compileScala")
+        result.assertHasErrorOutput("object xml is not a member of package scala")
     }
 
     def classHash(File file) {

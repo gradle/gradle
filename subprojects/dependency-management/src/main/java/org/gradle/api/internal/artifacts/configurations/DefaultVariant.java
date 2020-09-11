@@ -45,7 +45,8 @@ public class DefaultVariant implements ConfigurationVariantInternal {
     private final PublishArtifactSet artifacts;
     private Factory<List<PublishArtifact>> lazyArtifacts;
 
-    public DefaultVariant(Describable parentDisplayName, String name,
+    public DefaultVariant(Describable parentDisplayName,
+                          String name,
                           AttributeContainerInternal parentAttributes,
                           NotationParser<Object, ConfigurablePublishArtifact> artifactNotationParser,
                           FileCollectionFactory fileCollectionFactory,
@@ -65,6 +66,10 @@ public class DefaultVariant implements ConfigurationVariantInternal {
 
     public OutgoingVariant convertToOutgoingVariant() {
         return new LeafOutgoingVariant(getAsDescribable(), attributes, getArtifacts());
+    }
+
+    public void visit(ConfigurationInternal.VariantVisitor visitor) {
+        visitor.visitChildVariant(name, getAsDescribable(), attributes.asImmutable(), getArtifacts());
     }
 
     private DisplayName getAsDescribable() {

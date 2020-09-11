@@ -43,13 +43,20 @@ public abstract class SwiftProjectInitDescriptor extends LanguageLibraryProjectI
     }
 
     @Override
-    public void generate(InitSettings settings, BuildScriptBuilder buildScriptBuilder, TemplateFactory templateFactory) {
+    public void generateProjectBuildScript(String projectName, InitSettings settings, BuildScriptBuilder buildScriptBuilder) {
         buildScriptBuilder
             .fileComment("This generated file contains a sample Swift project to get you started.")
             .fileComment("For more details take a look at the Building Swift applications and libraries chapter in the Gradle")
             .fileComment("User Manual available at " + documentationRegistry.getDocumentationFor("building_swift_projects"));
         configureBuildScript(settings, buildScriptBuilder);
+    }
 
+    @Override
+    public void generateConventionPluginBuildScript(String conventionPluginName, InitSettings settings, BuildScriptBuilder buildScriptBuilder) {
+    }
+
+    @Override
+    public void generateSources(InitSettings settings, TemplateFactory templateFactory) {
         TemplateOperation sourceTemplate = sourceTemplateOperation(settings);
         TemplateOperation testSourceTemplate = testTemplateOperation(settings);
         TemplateOperation testEntryPointTemplate = testEntryPointTemplateOperation(settings);
@@ -67,8 +74,8 @@ public abstract class SwiftProjectInitDescriptor extends LanguageLibraryProjectI
     }
 
     @Override
-    public Optional<String> getFurtherReading() {
-        return Optional.of(documentationRegistry.getDocumentationFor("building_swift_projects"));
+    public Optional<String> getFurtherReading(InitSettings settings) {
+        return Optional.of(documentationRegistry.getSampleFor("building_swift_" + getComponentType().pluralName()));
     }
 
     protected abstract TemplateOperation sourceTemplateOperation(InitSettings settings);
@@ -109,11 +116,11 @@ public abstract class SwiftProjectInitDescriptor extends LanguageLibraryProjectI
             buildScriptBuilder.methodInvocation("Swift tool chain does not support Windows. The following targets macOS and Linux:", "targetMachines.add", buildScriptBuilder.propertyExpression("machines.macOS.x86_64"));
             buildScriptBuilder.methodInvocation(null, "targetMachines.add", buildScriptBuilder.propertyExpression("machines.linux.x86_64"));
         } else {
-            buildScriptBuilder.methodInvocation(null, "targetMachines.add", buildScriptBuilder.propertyExpression(getHostTargetMachineDefinition()));
+            buildScriptBuilder.methodInvocation("Set the target operating system and architecture for this library", "targetMachines.add", buildScriptBuilder.propertyExpression(getHostTargetMachineDefinition()));
         }
     }
 
-    TemplateOperation fromSwiftTemplate(String template, InitSettings settings, String sourceSetName, String sourceDir) {
+    TemplateOperation fromSwiftTemplate(String template, InitSettings settings, String sourceSetName, @SuppressWarnings("SameParameterValue") String sourceDir) {
         String targetFileName = template.substring(template.lastIndexOf("/") + 1).replace(".template", "");
         return fromSwiftTemplate(template, targetFileName, settings, sourceSetName, sourceDir);
     }
@@ -123,11 +130,11 @@ public abstract class SwiftProjectInitDescriptor extends LanguageLibraryProjectI
             throw new IllegalArgumentException("Project name cannot be empty for a Swift project");
         }
 
-        String moduleName = toModuleName(settings.getProjectName());
+        String moduleName = toModuleName(settings.getSubprojects().get(0));
 
         return templateOperationFactory.newTemplateOperation()
             .withTemplate(template)
-            .withTarget("src/" + sourceSetName + "/" + sourceDir + "/" + targetFileName)
+            .withTarget(settings.getTarget().file(settings.getSubprojects().get(0) + "/src/" + sourceSetName + "/" + sourceDir + "/" + targetFileName).getAsFile())
             .withBinding("projectName", settings.getProjectName())
             .withBinding("moduleName", moduleName)
             .create();

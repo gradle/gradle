@@ -1,0 +1,12 @@
+plugins {
+    id 'java-library'
+    id 'myproject.publishing-conventions'
+}
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            from components.java
+        }
+    }
+}

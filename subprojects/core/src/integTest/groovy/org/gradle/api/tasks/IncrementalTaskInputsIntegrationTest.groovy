@@ -16,7 +16,7 @@
 
 package org.gradle.api.tasks
 
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.internal.execution.history.changes.ChangeTypeInternal
 import spock.lang.Issue
 import spock.lang.Unroll
@@ -31,9 +31,9 @@ class IncrementalTaskInputsIntegrationTest extends AbstractIncrementalTasksInteg
                 if (System.getProperty('forceFail')) {
                     throw new RuntimeException('failed')
                 }
-    
+
                 incrementalExecution = inputs.incremental
-    
+
                 inputs.outOfDate { change ->
                     if (change.added) {
                         addedFiles << change.file
@@ -41,15 +41,15 @@ class IncrementalTaskInputsIntegrationTest extends AbstractIncrementalTasksInteg
                         modifiedFiles << change.file
                     }
                 }
-    
+
                 inputs.removed { change ->
                     removedFiles << change.file
                 }
-    
+
                 if (!inputs.incremental) {
                     createOutputsNonIncremental()
                 }
-                
+
                 touchOutputs()
             }
         """
@@ -79,7 +79,7 @@ class IncrementalTaskInputsIntegrationTest extends AbstractIncrementalTasksInteg
 
     @Unroll
     @Issue("https://github.com/gradle/gradle/issues/4166")
-    @ToBeFixedForInstantExecution(because = "task wrongly up-to-date")
+    @ToBeFixedForConfigurationCache(because = "task wrongly up-to-date")
     def "file in input dir appears in task inputs for #inputAnnotation"() {
         buildFile << """
             class MyTask extends DefaultTask {
@@ -87,7 +87,7 @@ class IncrementalTaskInputsIntegrationTest extends AbstractIncrementalTasksInteg
                 File input
                 @OutputFile
                 File output
-                
+
                 @TaskAction
                 void doStuff(IncrementalTaskInputs inputs) {
                     def out = []
@@ -97,12 +97,12 @@ class IncrementalTaskInputsIntegrationTest extends AbstractIncrementalTasksInteg
                     assert out.contains('child')
                     output.text = out.join('\\n')
                 }
-            }           
-            
+            }
+
             task myTask(type: MyTask) {
                 input = mkdir(inputDir)
                 output = file("build/output.txt")
-            }          
+            }
         """
         String myTask = ':myTask'
 

@@ -23,6 +23,10 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Resol
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * An artifact set containing transformed external artifacts.
  */
@@ -49,6 +53,18 @@ public class TransformedExternalArtifactSet extends AbstractTransformedArtifactS
 
     @Override
     public void visitDependencies(TaskDependencyResolveContext context) {
+    }
+
+    public List<File> calculateResult() {
+        getTransformation().isolateParameters();
+
+        List<File> files = new ArrayList<>();
+        delegate.visitExternalArtifacts(artifact -> {
+            TransformationSubject subject = TransformationSubject.initial(artifact.getId(), artifact.getFile());
+            TransformationSubject transformed = getTransformation().createInvocation(subject, getDependenciesResolver(), null).invoke().get();
+            files.addAll(transformed.getFiles());
+        });
+        return files;
     }
 
     public void visitArtifacts(Action<ResolvableArtifact> visitor) {

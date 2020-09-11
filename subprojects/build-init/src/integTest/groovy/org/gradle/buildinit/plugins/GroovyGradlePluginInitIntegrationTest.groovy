@@ -23,6 +23,10 @@ import spock.lang.Unroll
 
 
 class GroovyGradlePluginInitIntegrationTest extends AbstractInitIntegrationSpec {
+
+    @Override
+    String subprojectName() { 'plugin' }
+
     @Unroll
     @IgnoreIf({ GradleContextualExecuter.embedded }) // This test runs a build that itself runs a build in a test worker with 'gradleApi()' dependency, which needs to pick up Gradle modules from a real distribution
     def "creates sample source if no source present with #scriptDsl build scripts"() {
@@ -30,9 +34,9 @@ class GroovyGradlePluginInitIntegrationTest extends AbstractInitIntegrationSpec 
         run('init', '--type', 'groovy-gradle-plugin', '--dsl', scriptDsl.id)
 
         then:
-        targetDir.file("src/main/groovy").assertHasDescendants("some/thing/SomeThingPlugin.groovy")
-        targetDir.file("src/test/groovy").assertHasDescendants("some/thing/SomeThingPluginTest.groovy")
-        targetDir.file("src/functionalTest/groovy").assertHasDescendants("some/thing/SomeThingPluginFunctionalTest.groovy")
+        subprojectDir.file("src/main/groovy").assertHasDescendants("some/thing/SomeThingPlugin.groovy")
+        subprojectDir.file("src/test/groovy").assertHasDescendants("some/thing/SomeThingPluginTest.groovy")
+        subprojectDir.file("src/functionalTest/groovy").assertHasDescendants("some/thing/SomeThingPluginFunctionalTest.groovy")
 
         and:
         commonJvmFilesGenerated(scriptDsl)

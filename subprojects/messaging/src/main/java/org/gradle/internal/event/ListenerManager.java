@@ -16,7 +16,8 @@
 
 package org.gradle.internal.event;
 
-import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 /**
  * Unified manager for all Gradle events.  Provides a simple way to find all listeners of a given type in the
@@ -27,6 +28,7 @@ import org.gradle.internal.service.scopes.Scopes;
  * <p>Implementations are thread-safe: A listener is notified by at most 1 thread at a time, and so do not need to be thread-safe. All listeners
  * of a given type received events in the same order. Listeners can be added and removed at any time.
  */
+@ServiceScope(Scope.Global.class)
 public interface ListenerManager {
     /**
      * Adds a listener.  A single object can implement multiple interfaces, and all interfaces are registered by a
@@ -112,5 +114,5 @@ public interface ListenerManager {
      *
      * @return The child
      */
-    ListenerManager createChild(Scopes scope);
+    ListenerManager createChild(Class<? extends Scope> scope);
 }

@@ -48,7 +48,9 @@ public interface UnitOfWork extends CacheableEntity, Describable {
         return Optional.empty();
     }
 
-    InputChangeTrackingStrategy getInputChangeTrackingStrategy();
+    default InputChangeTrackingStrategy getInputChangeTrackingStrategy() {
+        return InputChangeTrackingStrategy.NONE;
+    }
 
     void visitImplementations(ImplementationVisitor visitor);
 
@@ -76,7 +78,7 @@ public interface UnitOfWork extends CacheableEntity, Describable {
         void visitOutputProperty(String propertyName, TreeType type, File root);
     }
 
-    void visitLocalState(LocalStateVisitor visitor);
+    default void visitLocalState(LocalStateVisitor visitor) {}
 
     interface LocalStateVisitor {
         void visitLocalStateRoot(File localStateRoot);
@@ -128,7 +130,7 @@ public interface UnitOfWork extends CacheableEntity, Describable {
      *
      * @return {@link Optional#empty()} if the unit of work cannot guarantee that only some files have been changed or an iterable of the paths which were changed by the unit of work.
      */
-    Optional<? extends Iterable<String>> getChangingOutputs();
+    Iterable<String> getChangingOutputs();
 
     /**
      * Whether overlapping outputs should be allowed or ignored.

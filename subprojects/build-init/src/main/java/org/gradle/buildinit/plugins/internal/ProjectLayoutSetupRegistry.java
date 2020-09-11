@@ -27,13 +27,15 @@ import java.util.Map;
 import java.util.TreeMap;
 
 public class ProjectLayoutSetupRegistry {
-    private final Map<String, BuildInitializer> registeredProjectDescriptors = new TreeMap<String, BuildInitializer>();
+    private final Map<String, BuildInitializer> registeredProjectDescriptors = new TreeMap<>();
     private final BuildInitializer defaultType;
     private final BuildConverter converter;
+    private final TemplateOperationFactory templateOperationFactory;
 
-    public ProjectLayoutSetupRegistry(BuildInitializer defaultType, BuildConverter converter) {
+    public ProjectLayoutSetupRegistry(BuildInitializer defaultType, BuildConverter converter, TemplateOperationFactory templateOperationFactory) {
         this.defaultType = defaultType;
         this.converter = converter;
+        this.templateOperationFactory = templateOperationFactory;
         add(defaultType);
         add(converter);
     }
@@ -44,6 +46,10 @@ public class ProjectLayoutSetupRegistry {
         }
 
         registeredProjectDescriptors.put(descriptor.getId(), descriptor);
+    }
+
+    public TemplateOperationFactory getTemplateOperationFactory() {
+        return templateOperationFactory;
     }
 
     public List<ComponentType> getComponentTypes() {
@@ -96,7 +102,7 @@ public class ProjectLayoutSetupRegistry {
     }
 
     public List<String> getAllTypes() {
-        List<String> result = new ArrayList<String>(registeredProjectDescriptors.size());
+        List<String> result = new ArrayList<>(registeredProjectDescriptors.size());
         for (BuildInitializer initDescriptor : registeredProjectDescriptors.values()) {
             result.add(initDescriptor.getId());
         }

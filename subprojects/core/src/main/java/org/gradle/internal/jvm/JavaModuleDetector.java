@@ -34,7 +34,7 @@ import java.util.jar.Manifest;
 import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 
-@ServiceScope(Scopes.UserHome)
+@ServiceScope(Scopes.UserHome.class)
 public class JavaModuleDetector {
 
     private final Spec<? super File> classpathFilter = this::isNotModule;

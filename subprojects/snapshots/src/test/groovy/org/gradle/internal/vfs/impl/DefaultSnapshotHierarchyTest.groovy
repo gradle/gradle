@@ -45,7 +45,7 @@ class DefaultSnapshotHierarchyTest extends Specification {
 
     private static final SnapshotHierarchy EMPTY = DefaultSnapshotHierarchy.empty(CASE_SENSITIVE)
 
-    DirectorySnapshotter directorySnapshotter = new DirectorySnapshotter(TestFiles.fileHasher(), new StringInterner())
+    DirectorySnapshotter directorySnapshotter = new DirectorySnapshotter(TestFiles.fileHasher(), new StringInterner(), [])
 
     def diffListener = new SnapshotHierarchy.NodeDiffListener() {
         @Override
@@ -278,6 +278,42 @@ class DefaultSnapshotHierarchyTest extends Specification {
         flatten(s7) == [parent.path, "1:dir1", "2:dir2", "3:dir3", "3:dir4", "2:dir5", "3:and", "4:more", "1:dir6"]
     }
 
+    def "visits the correct snapshots"() {
+        def parent = tmpDir.createDir()
+        def dir1 = parent.createDir("dir1")
+        def dir1dir2 = dir1.createDir("dir2")
+        def dir1dir2dir3 = dir1dir2.createDir("dir3")
+        def dir1dir2dir4 = dir1dir2.createDir("dir4")
+        def dir1dir5 = dir1.createDir("dir5/and/more")
+        def dir6 = parent.createDir("dir6")
+
+        expect:
+        def s = fileHierarchySet([dir1dir2dir3, dir1dir5, dir1dir2dir4, dir6])
+        flatten(s) == [parent.path, "1:dir1", "2:dir2", "3:dir3", "3:dir4", "2:dir5/and/more", "1:dir6"]
+        s.hasDescendantsUnder(dir1.absolutePath)
+        collectSnapshots(s, dir1.absolutePath)*.absolutePath == [dir1dir2dir3.absolutePath, dir1dir2dir4.absolutePath, dir1dir5.absolutePath]
+
+        def pathWithPostfix = dir1dir2.absolutePath + "a"
+        !s.hasDescendantsUnder(pathWithPostfix)
+        collectSnapshots(s, pathWithPostfix).empty
+
+        def sibling = new File(parent, "dir1/dir")
+        !s.hasDescendantsUnder(sibling.absolutePath)
+        collectSnapshots(s, sibling.absolutePath).empty
+
+        def intermediate = dir1.file("dir5/and")
+        s.hasDescendantsUnder(intermediate.absolutePath)
+        collectSnapshots(s, intermediate.absolutePath)*.absolutePath == [dir1dir5.absolutePath]
+
+
+        def anotherSibling = dir1.file("dir5/and/different")
+        !s.hasDescendantsUnder(anotherSibling.absolutePath)
+        collectSnapshots(s, anotherSibling.absolutePath).empty
+
+        s.hasDescendantsUnder(dir1dir5.absolutePath)
+        collectSnapshots(s, dir1dir5.absolutePath)*.absolutePath == [dir1dir5.absolutePath]
+    }
+
     def "can add directory snapshot in between to forking points"() {
         def parent = tmpDir.createDir()
         def dir1 = parent.createDir("sub/dir1")
@@ -447,11 +483,21 @@ class DefaultSnapshotHierarchyTest extends Specification {
         def set = EMPTY.store("/", new CompleteDirectorySnapshot("/", "", [new RegularFileSnapshot("/root.txt", "root.txt", HashCode.fromInt(1234), DefaultFileMetadata.file(1, 1, AccessType.DIRECT))], HashCode.fromInt(1111), AccessType.DIRECT), diffListener)
         then:
         set.getMetadata("/root.txt").get().type == FileType.RegularFile
+        set.hasDescendantsUnder("/root.txt")
+        collectSnapshots(set, "/root.txt")[0].type == FileType.RegularFile
+        set.hasDescendantsUnder("/")
+        collectSnapshots(set, "/")[0].type == FileType.Directory
 
         when:
         set = set.invalidate("/root.txt", diffListener).store("/", new CompleteDirectorySnapshot("/", "", [new RegularFileSnapshot("/base.txt", "base.txt", HashCode.fromInt(1234), DefaultFileMetadata.file(1, 1, AccessType.DIRECT))], HashCode.fromInt(2222), AccessType.DIRECT), diffListener)
         then:
         set.getMetadata("/base.txt").get().type == FileType.RegularFile
+    }
+
+    Collection<CompleteFileSystemLocationSnapshot> collectSnapshots(SnapshotHierarchy set, String path) {
+        List<CompleteFileSystemLocationSnapshot> result = []
+        set.visitSnapshotRoots(path) { snapshotRoot -> result.add(snapshotRoot)}
+        return result
     }
 
     def "updates are inserted sorted"() {

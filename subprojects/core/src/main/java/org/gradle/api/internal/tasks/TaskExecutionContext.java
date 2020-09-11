@@ -19,7 +19,7 @@ package org.gradle.api.internal.tasks;
 import org.gradle.api.internal.changedetection.TaskExecutionMode;
 import org.gradle.api.internal.tasks.properties.TaskProperties;
 import org.gradle.execution.plan.LocalTaskNode;
-import org.gradle.internal.operations.ExecutingBuildOperation;
+import org.gradle.internal.operations.BuildOperationContext;
 
 import java.util.Optional;
 
@@ -49,14 +49,14 @@ public interface TaskExecutionContext {
     TaskProperties getTaskProperties();
 
     /**
-     * Gets and clears the build operation designed to measure the time taken
+     * Gets and clears the context of the build operation designed to measure the time taken
      * by capturing input snapshotting and cache key calculation.
      */
-    Optional<ExecutingBuildOperation> removeSnapshotTaskInputsBuildOperation();
+    Optional<BuildOperationContext> removeSnapshotTaskInputsBuildOperationContext();
 
     /**
-     * Sets the build operation designed to measure the time taken
+     * Sets the context for the build operation designed to measure the time taken
      * by capturing input snapshotting and cache key calculation.
      */
-    void setSnapshotTaskInputsBuildOperation(ExecutingBuildOperation  operation);
+    void setSnapshotTaskInputsBuildOperationContext(BuildOperationContext operation);
 }

@@ -19,7 +19,7 @@ package org.gradle.ide.visualstudio
 import org.gradle.ide.visualstudio.fixtures.AbstractVisualStudioIntegrationSpec
 import org.gradle.ide.visualstudio.fixtures.ProjectFile
 import org.gradle.ide.visualstudio.fixtures.SolutionFile
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.language.VariantContext
 import org.gradle.nativeplatform.OperatingSystemFamily
 import org.gradle.nativeplatform.fixtures.app.CppSourceElement
@@ -45,7 +45,7 @@ abstract class AbstractVisualStudioProjectIntegrationTest extends AbstractVisual
         """
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "ignores target machine not buildable from project configuration dimensions"() {
         assumeFalse(toolChain.meets(WINDOWS_GCC))
 
@@ -71,7 +71,7 @@ abstract class AbstractVisualStudioProjectIntegrationTest extends AbstractVisual
         solutionFile.assertReferencesProject(projectFile, projectConfigurations)
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "create visual studio solution for component with multiple target machines"() {
         assumeFalse(toolChain.meets(WINDOWS_GCC))
 
@@ -106,7 +106,7 @@ abstract class AbstractVisualStudioProjectIntegrationTest extends AbstractVisual
     }
 
     @Requires(TestPrecondition.MSBUILD)
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "build generated visual studio solution with multiple target machines"() {
         assumeFalse(toolChain.meets(WINDOWS_GCC))
         useMsbuildTool()
@@ -162,7 +162,7 @@ abstract class AbstractVisualStudioProjectIntegrationTest extends AbstractVisual
         succeeds "help"
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can create visual studio project for unbuildable component"() {
         given:
         makeSingleProject()
@@ -186,7 +186,7 @@ abstract class AbstractVisualStudioProjectIntegrationTest extends AbstractVisual
         solutionFile.assertReferencesProject(projectFile, projectConfigurations)
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "warns about unbuildable components in generated visual studio project"() {
         given:
         makeSingleProject()
@@ -204,7 +204,7 @@ abstract class AbstractVisualStudioProjectIntegrationTest extends AbstractVisual
     }
 
     @Requires(TestPrecondition.MSBUILD)
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "returns meaningful errors from visual studio when component product is unbuildable due to operating system"() {
         assumeFalse(toolChain.meets(WINDOWS_GCC))
         useMsbuildTool()
@@ -239,7 +239,7 @@ abstract class AbstractVisualStudioProjectIntegrationTest extends AbstractVisual
     }
 
     @Requires(TestPrecondition.MSBUILD)
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "returns meaningful errors from visual studio when component product is unbuildable due to architecture"() {
         assumeFalse(toolChain.meets(WINDOWS_GCC))
         useMsbuildTool()
@@ -265,7 +265,7 @@ abstract class AbstractVisualStudioProjectIntegrationTest extends AbstractVisual
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can detect the language standard for Visual Studio IntelliSense [#expectedLanguageStandard] #uniqueIndex"() {
         assumeFalse(toolChain.meets(WINDOWS_GCC))
 
@@ -293,15 +293,15 @@ abstract class AbstractVisualStudioProjectIntegrationTest extends AbstractVisual
         where:
         // UniqueIndex: // uniqueIndex: https://github.com/gradle/gradle/issues/8787
         compilerFlag     | expectedLanguageStandard | uniqueIndex
-        '/std:cpp14'     | 'stdcpp14'               | 1
-        '-std:cpp14'     | 'stdcpp14'               | 2
-        '/std:cpp17'     | 'stdcpp17'               | 3
-        '-std:cpp17'     | 'stdcpp17'               | 4
-        '/std:cpplatest' | 'stdcpplatest'           | 5
-        '-std:cpplatest' | 'stdcpplatest'           | 6
+        '/std:c++14'     | 'stdcpp14'               | 1
+        '-std:c++14'     | 'stdcpp14'               | 2
+        '/std:c++17'     | 'stdcpp17'               | 3
+        '-std:c++17'     | 'stdcpp17'               | 4
+        '/std:c++latest' | 'stdcpplatest'           | 5
+        '-std:c++latest' | 'stdcpplatest'           | 6
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can detect different language standard per component for Visual Studio IntelliSense"() {
         assumeFalse(toolChain.meets(WINDOWS_GCC))
 
@@ -311,9 +311,9 @@ abstract class AbstractVisualStudioProjectIntegrationTest extends AbstractVisual
         buildFile << """
             ${componentUnderTestDsl}.binaries.configureEach {
                 if (optimized) {
-                    compileTask.get().compilerArgs.add('/std:cpp17')
+                    compileTask.get().compilerArgs.add('/std:c++17')
                 } else {
-                    compileTask.get().compilerArgs.add('/std:cpp14')
+                    compileTask.get().compilerArgs.add('/std:c++14')
                 }
             }
         """
@@ -330,7 +330,7 @@ abstract class AbstractVisualStudioProjectIntegrationTest extends AbstractVisual
         projectFile.projectConfigurations['release'].languageStandard == 'stdcpp17'
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "does not configure language standard when compiler flag is absent for Visual Studio Intellisense"() {
         assumeFalse(toolChain.meets(WINDOWS_GCC))
 

@@ -16,7 +16,7 @@
 
 package org.gradle.api.publish.maven
 
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 import org.gradle.test.fixtures.maven.MavenLocalRepository
 import org.gradle.util.SetSystemProperties
@@ -58,7 +58,7 @@ class MavenPublishBasicIntegTest extends AbstractMavenPublishIntegTest {
         mavenRepo.module('group', 'root', '1.0').assertNotPublished()
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "publishes empty pom when publication has no added component"() {
         given:
         settingsFile << "rootProject.name = 'empty-project'"

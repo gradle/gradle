@@ -18,7 +18,7 @@ package org.gradle.testing.junit
 
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.TargetCoverage
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.testing.fixture.JUnitMultiVersionIntegrationSpec
 import spock.lang.Issue
 
@@ -99,7 +99,7 @@ dependencies {
 """
     }
 
-    @ToBeFixedForInstantExecution(because = "gradle/instant-execution#270")
+    @ToBeFixedForConfigurationCache(because = "gradle/configuration-cache#270")
     def 'can run spock with @Unroll'() {
         given:
         writeSpockDependencies()
@@ -128,7 +128,7 @@ class UnrollTest extends Specification {
     }
 
     @Issue('https://github.com/gradle/gradle/issues/4358')
-    @ToBeFixedForInstantExecution(because = "gradle/instant-execution#270")
+    @ToBeFixedForConfigurationCache(because = "gradle/configuration-cache#270")
     def 'can run spock test with same method name in super class and base class'() {
         given:
         writeSpockDependencies()

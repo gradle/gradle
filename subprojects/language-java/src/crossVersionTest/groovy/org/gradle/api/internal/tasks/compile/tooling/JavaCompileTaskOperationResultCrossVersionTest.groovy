@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.compile.tooling
 
+
 import org.gradle.integtests.tooling.fixture.ProgressEvents
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
@@ -24,6 +25,7 @@ import org.gradle.language.fixtures.HelperProcessorFixture
 import org.gradle.tooling.events.OperationType
 import org.gradle.tooling.events.task.TaskSuccessResult
 import org.gradle.tooling.events.task.java.JavaCompileTaskOperationResult
+import spock.lang.Issue
 
 import java.time.Duration
 
@@ -81,6 +83,46 @@ class JavaCompileTaskOperationResultCrossVersionTest extends ToolingApiSpecifica
         ((JavaCompileTaskOperationResult) processorOperation.result).annotationProcessorResults.empty
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/13990")
+    @TargetGradleVersion(">=6.7")
+    def "reports annotation processor results for JavaCompile task even when build event listener is used"() {
+        settingsFile << """
+            import javax.inject.Inject
+            import org.gradle.api.services.BuildService
+            import org.gradle.api.services.BuildServiceParameters
+            import org.gradle.tooling.events.OperationCompletionListener
+            import org.gradle.tooling.events.FinishEvent
+            import org.gradle.tooling.events.task.java.JavaCompileTaskOperationResult
+
+            apply plugin: SomePlugin
+
+            abstract class ListenerImpl implements BuildService<BuildServiceParameters.None>, OperationCompletionListener {
+                void onFinish(FinishEvent event) {
+                    // Only generic task details are exposed for now
+                    assert !(event.result instanceof JavaCompileTaskOperationResult)
+                }
+            }
+
+            abstract class SomePlugin implements Plugin<Settings> {
+                @Inject
+                abstract BuildEventsListenerRegistry getRegistry();
+
+                void apply(Settings settings) {
+                    def service = settings.gradle.sharedServices.registerIfAbsent("listener", ListenerImpl) { }
+                    registry.onTaskCompletion(service)
+                }
+            }
+        """
+
+        when:
+        def events = runBuild("compileJava")
+
+        then:
+        def operation = events.operation("Task :compileJava")
+        operation.task
+        operation.result instanceof JavaCompileTaskOperationResult
+    }
+
     @TargetGradleVersion(">=4.6 <5.1")
     def "reports regular success result for older Gradle versions"() {
         when:
@@ -98,6 +140,7 @@ class JavaCompileTaskOperationResultCrossVersionTest extends ToolingApiSpecifica
         withConnection {
             newBuild()
                 .forTasks(task)
+                .setStandardOutput(System.out)
                 .addProgressListener(events, OperationType.TASK)
                 .run()
         }

@@ -24,14 +24,17 @@ class ScalaLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
     public static final String SAMPLE_LIBRARY_CLASS = "some/thing/Library.scala"
     public static final String SAMPLE_LIBRARY_TEST_CLASS = "some/thing/LibrarySuite.scala"
 
+    @Override
+    String subprojectName() { 'lib' }
+
     @Unroll
     def "creates sample source if no source present with #scriptDsl build scripts"() {
         when:
         run('init', '--type', 'scala-library', '--dsl', scriptDsl.id)
 
         then:
-        targetDir.file("src/main/scala").assertHasDescendants(SAMPLE_LIBRARY_CLASS)
-        targetDir.file("src/test/scala").assertHasDescendants(SAMPLE_LIBRARY_TEST_CLASS)
+        subprojectDir.file("src/main/scala").assertHasDescendants(SAMPLE_LIBRARY_CLASS)
+        subprojectDir.file("src/test/scala").assertHasDescendants(SAMPLE_LIBRARY_TEST_CLASS)
 
         and:
         commonJvmFilesGenerated(scriptDsl)
@@ -52,8 +55,8 @@ class ScalaLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
         run('init', '--type', 'scala-library', '--package', 'my.lib', '--dsl', scriptDsl.id)
 
         then:
-        targetDir.file("src/main/scala").assertHasDescendants("my/lib/Library.scala")
-        targetDir.file("src/test/scala").assertHasDescendants("my/lib/LibrarySuite.scala")
+        subprojectDir.file("src/main/scala").assertHasDescendants("my/lib/Library.scala")
+        subprojectDir.file("src/test/scala").assertHasDescendants("my/lib/LibrarySuite.scala")
 
         and:
         commonJvmFilesGenerated(scriptDsl)
@@ -71,13 +74,13 @@ class ScalaLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
     @Unroll
     def "source generation is skipped when scala sources detected with #scriptDsl build scripts"() {
         setup:
-        targetDir.file("src/main/scala/org/acme/SampleMain.scala") << """
+        subprojectDir.file("src/main/scala/org/acme/SampleMain.scala") << """
             package org.acme;
 
             class SampleMain{
             }
     """
-        targetDir.file("src/test/scala/org/acme/SampleMainTest.scala") << """
+        subprojectDir.file("src/test/scala/org/acme/SampleMainTest.scala") << """
                     package org.acme;
 
                     class SampleMainTest{
@@ -88,15 +91,15 @@ class ScalaLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
         run('init', '--type', 'scala-library', '--dsl', scriptDsl.id)
 
         then:
-        targetDir.file("src/main/scala").assertHasDescendants("org/acme/SampleMain.scala")
-        targetDir.file("src/test/scala").assertHasDescendants("org/acme/SampleMainTest.scala")
+        subprojectDir.file("src/main/scala").assertHasDescendants("org/acme/SampleMain.scala")
+        subprojectDir.file("src/test/scala").assertHasDescendants("org/acme/SampleMainTest.scala")
         dslFixtureFor(scriptDsl).assertGradleFilesGenerated()
 
         when:
         run("build")
 
         then:
-        executed(":test")
+        executed(":lib:test")
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS

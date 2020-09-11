@@ -27,15 +27,25 @@ public class SimpleGlobalFilesBuildSettingsDescriptor implements BuildContentGen
         this.documentationRegistry = documentationRegistry;
     }
 
+    public void generateWithoutComments(InitSettings settings) {
+        builder(settings).withExternalComments().create(settings.getTarget()).generate();
+    }
+
     @Override
     public void generate(InitSettings settings) {
-        scriptBuilderFactory.script(settings.getDsl(), "settings")
-            .fileComment(
+        builder(settings).create(settings.getTarget()).generate();
+    }
+
+    private BuildScriptBuilder builder(InitSettings settings) {
+        BuildScriptBuilder builder = scriptBuilderFactory.script(settings.getDsl(), "settings");
+        builder.fileComment(
                 "The settings file is used to specify which projects to include in your build.\n\n"
                     + "Detailed information about configuring a multi-project build in Gradle can be found\n"
-                    + "in the user manual at " + documentationRegistry.getDocumentationFor("multi_project_builds"))
-            .propertyAssignment(null, "rootProject.name", settings.getProjectName())
-            .create()
-            .generate();
+                    + "in the user manual at " + documentationRegistry.getDocumentationFor("multi_project_builds"));
+        builder.propertyAssignment(null, "rootProject.name", settings.getProjectName());
+        if (!settings.getSubprojects().isEmpty()) {
+            builder.methodInvocation(null, "include", settings.getSubprojects().toArray());
+        }
+        return builder;
     }
 }

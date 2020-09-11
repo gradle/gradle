@@ -59,92 +59,37 @@ include::{snippetsPath}/buildlifecycle/basic/tests-kotlin/buildlifecycle.kotlin.
 
 For a build script, the property access and method calls are delegated to a project object. Similarly property access and method calls within the settings file is delegated to a settings object. Look at the link:{groovyDslPath}/org.gradle.api.initialization.Settings.html[Settings] class in the API documentation for more information.
 
-[[sec:lifecycle_multi_project_builds]]
-== Multi-project builds
-
-A multi-project build is a build where you build more than one project during a single execution of Gradle. You have to declare the projects taking part in the multi-project build in the settings file. There is much more to say about multi-project builds in the chapter dedicated to this topic (see <<multi_project_builds.adoc#multi_project_builds,Authoring Multi-Project Builds>>).
-
-
-[[sub:project_locations]]
-=== Project locations
-
-Multi-project builds are always represented by a tree with a single root. Each element in the tree represents a project. A project has a path which denotes the position of the project in the multi-project build tree. In most cases the project path is consistent with the physical location of the project in the file system. However, this behavior is configurable. The project tree is created in the `settings.gradle` file. By default it is assumed that the location of the settings file is also the location of the root project. But you can redefine the location of the root project in the settings file.
-
-[[sub:building_the_tree]]
-=== Building the tree
-
-In the settings file you can use a set of methods to build the project tree. Hierarchical and flat physical layouts get special support.
-
-
-[[sec:hierarchical_layouts]]
-==== Hierarchical layouts
-
-
-.Hierarchical layout
-====
-include::sample[dir="snippets/multiproject/standardLayouts/groovy",files="settings.gradle[tags=hierarchical-layout]"]
-include::sample[dir="snippets/multiproject/standardLayouts/kotlin",files="settings.gradle.kts[tags=hierarchical-layout]"]
-====
-
-The `include` method takes project paths as arguments. The project path is assumed to be equal to the relative physical file system path. For example, a path 'services:api' is mapped by default to a folder 'services/api' (relative from the project root). You only need to specify the leaves of the tree. This means that the inclusion of the path 'services:hotels:api' will result in creating 3 projects: 'services', 'services:hotels' and 'services:hotels:api'.
-More examples of how to work with the project path can be found in the DSL documentation of link:{groovyDslPath}++/org.gradle.api.initialization.Settings.html#org.gradle.api.initialization.Settings:include(java.lang.String[])++[Settings.include(java.lang.String[\])].
-
-[[sec:flat_layouts]]
-==== Flat layouts
-
-
-.Flat layout
-====
-include::sample[dir="snippets/multiproject/standardLayouts/groovy",files="settings.gradle[tags=flat-layout]"]
-include::sample[dir="snippets/multiproject/standardLayouts/kotlin",files="settings.gradle.kts[tags=flat-layout]"]
-====
-
-The `includeFlat` method takes directory names as an argument. These directories need to exist as siblings of the root project directory. The location of these directories are considered as child projects of the root project in the multi-project tree.
-
-[[sub:modifying_element_of_the_project_tree]]
-=== Modifying elements of the project tree
-
-The multi-project tree created in the settings file is made up of so called _project descriptors_. You can modify these descriptors in the settings file at any time. To access a descriptor you can do:
-
-.Lookup of elements of the project tree
-====
-include::sample[dir="snippets/multiproject/customLayout/groovy",files="settings.gradle[tags=lookup-project]"]
-include::sample[dir="snippets/multiproject/customLayout/kotlin",files="settings.gradle.kts[tags=lookup-project]"]
-====
-
-Using this descriptor you can change the name, project directory and build file of a project.
-
-.Modification of elements of the project tree
-====
-include::sample[dir="snippets/multiproject/customLayout/groovy",files="settings.gradle[tags=change-project]"]
-include::sample[dir="snippets/multiproject/customLayout/kotlin",files="settings.gradle.kts[tags=change-project]"]
-====
-
-Look at the link:{javadocPath}/org/gradle/api/initialization/ProjectDescriptor.html[ProjectDescriptor] class in the API documentation for more information.
 
 [[sec:initialization]]
 == Initialization
 
-How does Gradle know whether to do a single or multi-project build? If you trigger a multi-project build from a directory with a settings file, things are easy. But Gradle also allows you to execute the build from within any subproject taking part in the build.footnote:[Gradle supports partial multi-project builds (see <<multi_project_builds.adoc#multi_project_builds,Authoring Multi-Project Builds>>).] If you execute Gradle from within a project with no `settings.gradle` file, Gradle looks for a `settings.gradle` file in the following way:
+How does Gradle know whether to do a single or multi-project build?
+If you trigger a multi-project build from a directory with a `settings.gradle` file, Gradle uses it to configure the build.
+Gradle also allows you to execute the build from within any subproject taking part in the build.footnote:[Gradle supports partial multi-project builds (see <<intro_multi_project_builds.adoc#,Executing Multi-Project Builds>>).]
+If you execute Gradle from within a project with no `settings.gradle` file, Gradle looks for a `settings.gradle` file in the following way:
 
-* It looks in a directory called `master` which has the same nesting level as the current dir.
-* If not found yet, it searches parent directories.
-* If not found yet, the build is executed as a single project build.
-* If a `settings.gradle` file is found, Gradle checks if the current project is part of the multi-project hierarchy defined in the found `settings.gradle` file. If not, the build is executed as a single project build. Otherwise a multi-project build is executed.
+* It looks for `settings.gradle` in parent directories.
+* If not found, the build is executed as a single project build.
+* If a `settings.gradle` file is found, Gradle checks if the current project is part of the multi-project hierarchy defined in the found `settings.gradle` file.
+If not, the build is executed as a single project build. Otherwise a multi-project build is executed.
 
-What is the purpose of this behavior? Gradle needs to determine whether the project you are in is a subproject of a multi-project build or not. Of course, if it is a subproject, only the subproject and its dependent projects are built, but Gradle needs to create the build configuration for the whole multi-project build (see <<multi_project_builds.adoc#multi_project_builds,Authoring Multi-Project Builds>>). If the current project contains a `settings.gradle` file, the build is always executed as:
+What is the purpose of this behavior? Gradle needs to determine whether the project you are in is a subproject of a multi-project build or not.
+Of course, if it is a subproject, only the subproject and its dependent projects are built, but Gradle needs to create the build configuration for the whole multi-project build (see <<multi_project_configuration_and_execution.adoc#configuration_and_execution,Configuration and Execution>>).
+If the current project contains a `settings.gradle` file, the build is always executed as:
 
 * a single project build, if the `settings.gradle` file does not define a multi-project hierarchy
 * a multi-project build, if the `settings.gradle` file does define a multi-project hierarchy.
 
-The automatic search for a `settings.gradle` file only works for multi-project builds with a physical hierarchical or flat layout. For a flat layout you must additionally follow the naming convention described above (“`master`”). Gradle supports arbitrary physical layouts for a multi-project build, but for such arbitrary layouts you need to execute the build from the directory where the settings file is located. For information on how to run partial builds from the root, see <<multi_project_builds.adoc#sec:running_partial_build_from_the_root,Running tasks by their absolute path>>.
+The automatic search for a `settings.gradle` file only works for multi-project builds with a default project layout where project paths match the physical subproject layout on disk.
+Gradle supports arbitrary physical layouts for a multi-project build, but for such arbitrary layouts you need to execute the build from the directory where the settings file is located.
+For information on how to run partial builds from the root, see <<intro_multi_project_builds.adoc#sec:executing_tasks_by_fully_qualified_name,Executing tasks by their fully qualified name>>.
 
 Gradle creates a Project object for every project taking part in the build. For a multi-project build these are the projects specified in the Settings object (plus the root project). Each project object has by default a name equal to the name of its top level directory, and every project except the root project has a parent project. Any project may have child projects.
 
 [[sec:configuration_and_execution_of_a_single_project_build]]
 == Configuration and execution of a single project build
 
-For a single project build, the workflow of the _after initialization_ phases are pretty simple. The build script is executed against the project object that was created during the initialization phase. Then Gradle looks for tasks with names equal to those passed as command line arguments. If these task names exist, they are executed as a separate build in the order you have passed them. The configuration and execution for multi-project builds is discussed in <<multi_project_builds.adoc#multi_project_builds,Authoring Multi-Project Builds>>.
+For a single project build, the workflow of the _after initialization_ phases are pretty simple. The build script is executed against the project object that was created during the initialization phase. Then Gradle looks for tasks with names equal to those passed as command line arguments. If these task names exist, they are executed as a separate build in the order you have passed them. The configuration and execution for multi-project builds is discussed in <<multi_project_configuration_and_execution.adoc#configuration_and_execution,Configuration and Execution>>.
 
 [[build_lifecycle_events]]
 == Responding to the lifecycle in the build script
@@ -161,8 +106,8 @@ Below is an example which adds a `test` task to each project which has a `hasTes
 
 .Adding of test task to each project which has certain property set
 ====
-include::sample[dir="snippets/buildlifecycle/projectEvaluateEvents/groovy",files="build.gradle[tags=after-evaluate];projectA.gradle[]"]
-include::sample[dir="snippets/buildlifecycle/projectEvaluateEvents/kotlin",files="build.gradle.kts[tags=after-evaluate];projectA.gradle.kts[]"]
+include::sample[dir="snippets/buildlifecycle/projectEvaluateEvents/groovy",files="build.gradle[tags=after-evaluate];project-a.gradle[]"]
+include::sample[dir="snippets/buildlifecycle/projectEvaluateEvents/kotlin",files="build.gradle.kts[tags=after-evaluate];project-a.gradle.kts[]"]
 ====
 
 .Output of `gradle -q test`

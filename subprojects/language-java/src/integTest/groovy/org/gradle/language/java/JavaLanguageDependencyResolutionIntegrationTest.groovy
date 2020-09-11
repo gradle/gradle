@@ -17,7 +17,7 @@
 package org.gradle.language.java
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
+import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Unroll
@@ -26,7 +26,7 @@ import static org.gradle.language.java.JavaIntegrationTesting.applyJavaPlugin
 import static org.gradle.language.java.JavaIntegrationTesting.expectJavaLangPluginDeprecationWarnings
 import static org.gradle.util.TextUtil.normaliseLineSeparators
 
-@UnsupportedWithInstantExecution(because = "software model")
+@UnsupportedWithConfigurationCache(because = "software model")
 class JavaLanguageDependencyResolutionIntegrationTest extends AbstractIntegrationSpec {
 
     @Unroll

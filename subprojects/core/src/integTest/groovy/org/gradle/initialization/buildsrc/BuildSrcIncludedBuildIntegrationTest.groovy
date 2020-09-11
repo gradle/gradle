@@ -16,8 +16,11 @@
 
 package org.gradle.initialization.buildsrc
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.fixtures.plugin.PluginBuilder
 
 class BuildSrcIncludedBuildIntegrationTest extends AbstractIntegrationSpec {
     def "buildSrc cannot (yet) define any included builds"() {
@@ -32,4 +35,192 @@ class BuildSrcIncludedBuildIntegrationTest extends AbstractIntegrationSpec {
         then:
         failure.assertHasDescription("Cannot include build 'child' in build 'buildSrc'. This is not supported yet.")
     }
+
+    @ToBeFixedForConfigurationCache(because="composite build")
+    def "buildSrc can apply plugins contributed by other included builds"() {
+        file("buildSrc/build.gradle") << """
+            plugins {
+                id "test-plugin"
+            }
+        """
+
+        writePluginTo(file("included"))
+
+        settingsFile << """
+            includeBuild("included")
+        """
+        when:
+        succeeds("help")
+        then:
+        outputContains("test-plugin applied to :buildSrc")
+    }
+
+    @ToBeFixedForConfigurationCache(because="composite build")
+    def "buildSrc can apply plugins contributed by other included builds from CLI"() {
+        file("buildSrc/build.gradle") << """
+            plugins {
+                id "test-plugin"
+            }
+        """
+
+        writePluginTo(file("included"))
+        when:
+        succeeds("help", "--include-build=included")
+        then:
+        outputContains("test-plugin applied to :buildSrc")
+    }
+
+    @ToBeFixedForConfigurationCache(because="composite build")
+    def "buildSrc can apply settings plugins contributed by other included builds"() {
+        file("buildSrc/settings.gradle") << """
+            plugins {
+                id "test-settings-plugin"
+            }
+        """
+
+        def pluginBuilder = new PluginBuilder(file("included"))
+        pluginBuilder.addSettingsPlugin("println 'test-settings-plugin applied to ' + settings.gradle.publicBuildPath.buildPath")
+        pluginBuilder.prepareToExecute()
+
+        settingsFile << """
+            includeBuild("included")
+        """
+        when:
+        succeeds("help")
+        then:
+        outputContains("test-settings-plugin applied to :buildSrc")
+    }
+
+    @ToBeFixedForConfigurationCache(because="composite build")
+    def "buildSrc can apply plugins contributed by nested included build"() {
+        file("buildSrc/build.gradle") << """
+            plugins {
+                id "test-plugin"
+            }
+        """
+
+        writePluginTo(file("included/nested"))
+
+        settingsFile << """
+            includeBuild("included")
+        """
+        file("included/settings.gradle") << """
+            includeBuild("nested")
+        """
+        when:
+        succeeds("help")
+        then:
+        outputContains("test-plugin applied to :buildSrc")
+    }
+
+    @ToBeFixedForConfigurationCache(because="composite build")
+    def "buildSrc can depend on dependencies contributed by other included builds"() {
+        file("buildSrc/build.gradle") << """
+            plugins {
+                id "groovy-gradle-plugin"
+            }
+            
+            dependencies {
+                implementation("org.gradle.test:included")
+            }
+        """
+
+        file("buildSrc/src/main/groovy/apply-test-plugin.gradle") << """
+            plugins {
+                id("test-plugin")
+            }
+        """
+
+        writePluginTo(file("included"))
+
+        buildFile << """
+            plugins {
+                id "apply-test-plugin"
+            }
+        """
+        settingsFile << """
+            includeBuild("included")
+        """
+        when:
+        succeeds("help")
+        then:
+        outputContains("test-plugin applied to :")
+    }
+
+    def "user gets reasonable error when included build fails to compile when buildSrc needs it"() {
+        file("buildSrc/build.gradle") << """
+            plugins {
+                id "groovy-gradle-plugin"
+            }
+            
+            dependencies {
+                implementation("org.gradle.test:included")
+            }
+        """
+
+        file("buildSrc/src/main/groovy/apply-test-plugin.gradle") << """
+            plugins {
+                id("test-plugin")
+            }
+        """
+
+        writePluginTo(file("included"))
+        file("included/src/main/java/Broke.java") << "does not compile!"
+
+        buildFile << """
+            plugins {
+                id "apply-test-plugin"
+            }
+        """
+        settingsFile << """
+            includeBuild("included")
+        """
+        when:
+        fails("help")
+        then:
+        failure.assertHasCause("Compilation failed; see the compiler error output for details.")
+    }
+
+    @ToBeFixedForConfigurationCache(because="composite build")
+    def "buildSrc can apply plugins contributed by other included builds and use them in plugins for the root build"() {
+        file("buildSrc/build.gradle") << """
+            plugins {
+                id "test-plugin"
+                id "groovy-gradle-plugin"
+            }
+            
+            dependencies {
+                implementation("org.gradle.test:included")
+            }
+        """
+
+        file("buildSrc/src/main/groovy/apply-test-plugin.gradle") << """
+            plugins {
+                id("test-plugin")
+            }
+        """
+
+        writePluginTo(file("included"))
+
+        buildFile << """
+            plugins {
+                id "apply-test-plugin"
+            }
+        """
+        settingsFile << """
+            includeBuild("included")
+        """
+        when:
+        succeeds("help")
+        then:
+        outputContains("test-plugin applied to :buildSrc")
+        outputContains("test-plugin applied to :")
+    }
+
+    private void writePluginTo(TestFile projectDir) {
+        def pluginBuilder = new PluginBuilder(projectDir)
+        pluginBuilder.addPlugin("println 'test-plugin applied to ' + project.gradle.publicBuildPath.buildPath")
+        pluginBuilder.prepareToExecute()
+    }
+
 }

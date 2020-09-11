@@ -17,7 +17,7 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.ivy.IvyFileRepository
 import org.gradle.util.TextUtil
 
@@ -41,7 +41,7 @@ class PublishAndResolveIntegrationTest extends AbstractDependencyResolutionTest 
         """
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can resolve static dependency published by a dependent task in the same project"() {
         given:
         buildFile << """
@@ -54,7 +54,7 @@ class PublishAndResolveIntegrationTest extends AbstractDependencyResolutionTest 
         versionIsCopiedAndExists("api", "1.1")
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can resolve static dependency published by a dependent task in another project in the same build"() {
         settingsFile << """
             include ':child'
@@ -73,7 +73,7 @@ class PublishAndResolveIntegrationTest extends AbstractDependencyResolutionTest 
         versionIsCopiedAndExists("api", "1.1", "child/")
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can resolve static dependency published by UploadArchives task in another project in the same build"() {
         settingsFile << """
             include ':child'
@@ -100,7 +100,7 @@ class PublishAndResolveIntegrationTest extends AbstractDependencyResolutionTest 
         versionIsCopiedAndExists("root", "1.9", "child/")
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can resolve dynamic dependency published by a dependent task"() {
         ivyRepo.module('org.gradle.test', 'api', '1.0').publish()
 
@@ -115,7 +115,7 @@ class PublishAndResolveIntegrationTest extends AbstractDependencyResolutionTest 
         versionIsCopiedAndExists("api", "1.1")
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can resolve dependency published by a custom publishing task"() {
         def tmpRepo = new IvyFileRepository(file("tmp-repo"))
         tmpRepo.module('org.gradle.test', 'api', '1.1').publish()

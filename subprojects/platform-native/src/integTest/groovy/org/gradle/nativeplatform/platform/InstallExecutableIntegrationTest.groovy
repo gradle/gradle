@@ -16,7 +16,7 @@
 
 package org.gradle.nativeplatform.platform
 
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
@@ -47,7 +47,7 @@ model {
         testApp.writeSources(file("src/main"))
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can create installation for a different os than the current one"() {
         String installOS
         if (os.windows) {

@@ -29,7 +29,7 @@ import org.gradle.api.internal.DomainObjectContext
 import org.gradle.api.internal.DynamicObjectAware
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.FileLookup
-import org.gradle.api.internal.project.ProjectStateRegistry
+import org.gradle.api.internal.initialization.RootScriptDomainObjectContext
 import org.gradle.api.internal.tasks.properties.InspectionScheme
 import org.gradle.api.internal.tasks.properties.PropertyWalker
 import org.gradle.api.plugins.ExtensionAware
@@ -64,6 +64,10 @@ class DefaultVariantTransformRegistryTest extends Specification {
     def inspectionScheme = Stub(InspectionScheme) {
         getPropertyWalker() >> propertyWalker
     }
+    def domainObjectContext = Mock(DomainObjectContext) {
+        getModel() >> RootScriptDomainObjectContext.INSTANCE
+    }
+
     def isolatableFactory = new TestIsolatableFactory()
     def classLoaderHierarchyHasher = Mock(ClassLoaderHierarchyHasher)
     def attributesFactory = AttributeTestUtil.attributesFactory()
@@ -76,8 +80,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
         fileCollectionFactory,
         Mock(FileLookup),
         fileCollectionFingerprinterRegistry,
-        Mock(DomainObjectContext),
-        Mock(ProjectStateRegistry),
+        domainObjectContext,
         new ArtifactTransformParameterScheme(
             instantiatorFactory.injectScheme(),
             inspectionScheme

@@ -16,7 +16,7 @@
 package org.gradle.testing.jacoco.plugins
 
 import org.gradle.integtests.fixtures.TargetCoverage
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.testing.jacoco.plugins.fixtures.JacocoCoverage
 import org.gradle.testing.jacoco.plugins.fixtures.JacocoReportFixture
 
@@ -24,7 +24,7 @@ import org.gradle.testing.jacoco.plugins.fixtures.JacocoReportFixture
 @TargetCoverage({ JacocoCoverage.supportedVersionsByJdk })
 class JacocoVersionCompatibilityIntegrationTest extends JacocoMultiVersionIntegrationTest {
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can run versions"() {
         given:
         javaProjectUnderTest.writeSourceFiles()

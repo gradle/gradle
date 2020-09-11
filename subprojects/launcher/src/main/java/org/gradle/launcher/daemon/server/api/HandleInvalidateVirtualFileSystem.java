@@ -17,7 +17,7 @@
 package org.gradle.launcher.daemon.server.api;
 
 import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
-import org.gradle.internal.vfs.VirtualFileSystem;
+import org.gradle.internal.vfs.FileSystemAccess;
 import org.gradle.launcher.daemon.protocol.InvalidateVirtualFileSystem;
 import org.gradle.launcher.daemon.protocol.Success;
 import org.slf4j.Logger;
@@ -38,8 +38,8 @@ public class HandleInvalidateVirtualFileSystem implements DaemonCommandAction {
             InvalidateVirtualFileSystem command = (InvalidateVirtualFileSystem) execution.getCommand();
             gradleUserHomeScopeServiceRegistry.getCurrentServices().ifPresent(currentServices -> {
                 LOGGER.info("Invalidating {}", command.getChangedPaths());
-                VirtualFileSystem virtualFileSystem = currentServices.get(VirtualFileSystem.class);
-                virtualFileSystem.update(command.getChangedPaths(), () -> {});
+                FileSystemAccess fileSystemAccess = currentServices.get(FileSystemAccess.class);
+                fileSystemAccess.write(command.getChangedPaths(), () -> {});
             });
             execution.getConnection().completed(new Success(null));
         } else {

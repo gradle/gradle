@@ -66,7 +66,7 @@ public class DefaultIvyContextManager implements IvyContextManager {
                     releaseIvy(ivy);
                 }
             } finally {
-                depth.set(null);
+                depth.remove();
             }
         } finally {
             IvyContext.popContext();

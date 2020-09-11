@@ -21,15 +21,14 @@ import org.gradle.api.Action;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.tasks.DefaultSourceSetContainer;
 import org.gradle.api.java.archives.Manifest;
 import org.gradle.api.java.archives.internal.DefaultManifest;
-import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.JavaPluginConvention;
 import org.gradle.api.reflect.HasPublicType;
 import org.gradle.api.reflect.TypeOf;
 import org.gradle.api.reporting.ReportingExtension;
 import org.gradle.api.tasks.SourceSetContainer;
+import org.gradle.jvm.toolchain.internal.DefaultToolchainSpec;
 import org.gradle.internal.Actions;
 import org.gradle.testing.base.plugins.TestingBasePlugin;
 
@@ -53,10 +52,12 @@ public class DefaultJavaPluginConvention extends JavaPluginConvention implements
     private JavaVersion targetCompat;
 
     private boolean autoTargetJvm = true;
+    private final DefaultToolchainSpec toolchainSpec;
 
-    public DefaultJavaPluginConvention(ProjectInternal project, ObjectFactory objectFactory) {
+    public DefaultJavaPluginConvention(ProjectInternal project, SourceSetContainer sourceSets, DefaultToolchainSpec toolchainSpec) {
         this.project = project;
-        sourceSets = objectFactory.newInstance(DefaultSourceSetContainer.class);
+        this.sourceSets = sourceSets;
+        this.toolchainSpec = toolchainSpec;
         docsDirName = "docs";
         testResultsDirName = TestingBasePlugin.TEST_RESULTS_DIR_NAME;
         testReportDirName = TestingBasePlugin.TESTS_DIR_NAME;
@@ -93,7 +94,17 @@ public class DefaultJavaPluginConvention extends JavaPluginConvention implements
 
     @Override
     public JavaVersion getSourceCompatibility() {
-        return srcCompat != null ? srcCompat : JavaVersion.current();
+        if (srcCompat != null) {
+            return srcCompat;
+        } else if (toolchainSpec != null && toolchainSpec.isConfigured()) {
+            return JavaVersion.toVersion(toolchainSpec.getLanguageVersion().get().toString());
+        } else {
+            return JavaVersion.current();
+        }
+    }
+
+    public JavaVersion getRawSourceCompatibility() {
+        return srcCompat;
     }
 
     @Override
@@ -109,6 +120,10 @@ public class DefaultJavaPluginConvention extends JavaPluginConvention implements
     @Override
     public JavaVersion getTargetCompatibility() {
         return targetCompat != null ? targetCompat : getSourceCompatibility();
+    }
+
+    public JavaVersion getRawTargetCompatibility() {
+        return targetCompat;
     }
 
     @Override

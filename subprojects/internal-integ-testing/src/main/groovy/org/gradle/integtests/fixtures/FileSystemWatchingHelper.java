@@ -22,7 +22,7 @@ import static org.gradle.internal.service.scopes.VirtualFileSystemServices.VFS_D
 
 public class FileSystemWatchingHelper {
 
-    private static final int WAIT_FOR_CHANGES_PICKED_UP_MILLIS = 80;
+    private static final int WAIT_FOR_CHANGES_PICKED_UP_MILLIS = 120;
 
     public static void waitForChangesToBePickedUp() throws InterruptedException {
         Thread.sleep(WAIT_FOR_CHANGES_PICKED_UP_MILLIS);
@@ -37,7 +37,15 @@ public class FileSystemWatchingHelper {
     }
 
     public static String getDropVfsArgument() {
-        return systemProperty(VFS_DROP_PROPERTY, true);
+        return getDropVfsArgument(true);
+    }
+
+    public static String getDropVfsArgument(boolean drop) {
+        return systemProperty(VFS_DROP_PROPERTY, drop);
+    }
+
+    public static String getVerboseVfsLoggingArgument() {
+        return systemProperty(StartParameterBuildOptions.VfsVerboseLoggingOption.GRADLE_PROPERTY, true);
     }
 
     private static String systemProperty(String key, Object value) {

@@ -18,8 +18,8 @@ package org.gradle.internal.resource.cached;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheLockingManager;
+import org.gradle.internal.file.FileAccessTracker;
 import org.gradle.internal.hash.HashCode;
-import org.gradle.internal.resource.local.FileAccessTracker;
 import org.gradle.internal.resource.metadata.DefaultExternalResourceMetaData;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 import org.gradle.internal.serialize.Decoder;

@@ -126,7 +126,7 @@ public class TaskReportTask extends AbstractReportTask {
 
     private SingleProjectTaskReportModel buildTaskReportModelFor(final TaskDetailsFactory taskDetailsFactory, final Project subproject) {
         ProjectState projectState = getProjectStateRegistry().stateFor(subproject);
-        return projectState.withMutableState(() -> {
+        return projectState.fromMutableState(p -> {
             SingleProjectTaskReportModel subprojectTaskModel = new SingleProjectTaskReportModel(taskDetailsFactory);
             subprojectTaskModel.build(getProjectTaskLister().listProjectTasks(subproject));
             return subprojectTaskModel;

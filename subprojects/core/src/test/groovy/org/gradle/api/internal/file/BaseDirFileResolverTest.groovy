@@ -263,18 +263,38 @@ class BaseDirFileResolverTest {
 
     @Test public void testResolveRelativePathToRelativePath() {
         assertEquals("relative", baseDirConverter.resolveAsRelativePath("relative"))
+        assertEquals("relative", baseDirConverter.resolveForDisplay("relative"))
+
+        assertEquals("relative${File.separator}child".toString(), baseDirConverter.resolveAsRelativePath("relative/child"))
+        assertEquals("relative${File.separator}child".toString(), baseDirConverter.resolveForDisplay("relative/child"))
     }
 
     @Test public void testResolveAbsoluteChildPathToRelativePath() {
         def absoluteFile = new File(baseDir, 'child').absoluteFile
         assertEquals('child', baseDirConverter.resolveAsRelativePath(absoluteFile))
         assertEquals('child', baseDirConverter.resolveAsRelativePath(absoluteFile.absolutePath))
+
+        assertEquals('child', baseDirConverter.resolveForDisplay(absoluteFile))
+
+        def absoluteNestedFile = new File(baseDir, 'child/nested').absoluteFile
+        assertEquals("child${File.separator}nested".toString(), baseDirConverter.resolveAsRelativePath(absoluteNestedFile))
+        assertEquals("child${File.separator}nested".toString(), baseDirConverter.resolveAsRelativePath(absoluteNestedFile.absolutePath))
+
+        assertEquals("child${File.separator}nested".toString(), baseDirConverter.resolveForDisplay(absoluteNestedFile))
     }
 
     @Test public void testResolveAbsoluteSiblingPathToRelativePath() {
         def absoluteFile = new File(baseDir, '../sibling').absoluteFile
         assertEquals("..${File.separator}sibling".toString(), baseDirConverter.resolveAsRelativePath(absoluteFile))
         assertEquals("..${File.separator}sibling".toString(), baseDirConverter.resolveAsRelativePath(absoluteFile.absolutePath))
+
+        assertEquals("..${File.separator}sibling".toString(), baseDirConverter.resolveForDisplay(absoluteFile))
+
+        def absoluteNestedFile = new File(baseDir, '../sibling/nested').absoluteFile
+        assertEquals("..${File.separator}sibling${File.separator}nested".toString(), baseDirConverter.resolveAsRelativePath(absoluteNestedFile))
+        assertEquals("..${File.separator}sibling${File.separator}nested".toString(), baseDirConverter.resolveAsRelativePath(absoluteNestedFile.absolutePath))
+
+        assertEquals("..${File.separator}sibling${File.separator}nested".toString(), baseDirConverter.resolveForDisplay(absoluteNestedFile))
     }
 
     @Test public void testResolveBaseDirToRelativePath() {
@@ -282,11 +302,25 @@ class BaseDirFileResolverTest {
         assertEquals('.', baseDirConverter.resolveAsRelativePath(baseDir.absolutePath))
         assertEquals('.', baseDirConverter.resolveAsRelativePath('.'))
         assertEquals('.', baseDirConverter.resolveAsRelativePath("../$baseDir.name"))
+
+        assertEquals('.', baseDirConverter.resolveForDisplay(baseDir))
     }
 
     @Test public void testResolveParentDirToRelativePath() {
         assertEquals('..', baseDirConverter.resolveAsRelativePath(baseDir.parentFile))
         assertEquals('..', baseDirConverter.resolveAsRelativePath('..'))
+
+        assertEquals('..', baseDirConverter.resolveForDisplay(baseDir.parentFile))
+    }
+
+    @Test public void testAncestorToRelativePath() {
+        def ancestor = baseDir.parentFile.parentFile
+        assertEquals("..${File.separator}..".toString(), baseDirConverter.resolveAsRelativePath(ancestor))
+        assertEquals(ancestor.path, baseDirConverter.resolveForDisplay(ancestor))
+
+        def nested = new File(baseDir.parentFile.parentFile, "file")
+        assertEquals("..${File.separator}..${File.separator}file".toString(), baseDirConverter.resolveAsRelativePath(nested))
+        assertEquals(nested.path, baseDirConverter.resolveForDisplay(nested))
     }
 
     @Test public void testCreateFileResolver() {

@@ -19,7 +19,7 @@ import groovy.lang.Closure;
 import groovy.lang.MissingPropertyException;
 import groovy.text.SimpleTemplateEngine;
 import groovy.text.Template;
-import org.apache.tools.ant.util.ReaderInputStream;
+import org.apache.commons.io.input.ReaderInputStream;
 import org.gradle.api.GradleException;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Transformer;

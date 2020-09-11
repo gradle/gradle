@@ -16,13 +16,13 @@
 
 package org.gradle.api.publish.maven
 
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 import spock.lang.Issue
 
 class MavenPublishArtifactCustomizationIntegTest extends AbstractMavenPublishIntegTest {
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can attach custom artifacts"() {
         given:
         createBuildScripts("""
@@ -101,7 +101,7 @@ class MavenPublishArtifactCustomizationIntegTest extends AbstractMavenPublishInt
      * Fails with module metadata.
      * @see org.gradle.api.publish.maven.internal.publication.DefaultMavenPublication#checkThatArtifactIsPublishedUnmodified
      */
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can modify artifacts added from component"() {
         given:
         createBuildScripts("""
@@ -144,7 +144,7 @@ class MavenPublishArtifactCustomizationIntegTest extends AbstractMavenPublishInt
      * Fails with module metadata.
      * @see org.gradle.api.publish.maven.internal.publication.DefaultMavenPublication#checkThatArtifactIsPublishedUnmodified
      */
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can override artifacts added from component"() {
         given:
         createBuildScripts("""
@@ -202,7 +202,7 @@ class MavenPublishArtifactCustomizationIntegTest extends AbstractMavenPublishInt
         failure.assertHasCause("Cannot publish module metadata where component artifacts are modified.")
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can configure custom artifacts when creating"() {
         given:
         createBuildScripts("""
@@ -273,7 +273,7 @@ class MavenPublishArtifactCustomizationIntegTest extends AbstractMavenPublishInt
         }
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can attach custom file artifacts with map notation"() {
         given:
         createBuildScripts("""
@@ -502,7 +502,7 @@ class MavenPublishArtifactCustomizationIntegTest extends AbstractMavenPublishInt
         executedAndNotSkipped ":myTask", ":publish"
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "reasonable error message when an arbitrary task provider as an artifact has more than one output file"() {
         createBuildScripts("""
             def customTask = tasks.register("myTask") {

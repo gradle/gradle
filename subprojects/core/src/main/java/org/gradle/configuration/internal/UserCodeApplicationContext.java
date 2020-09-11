@@ -26,7 +26,7 @@ import javax.annotation.Nullable;
 /**
  * Assigns and stores an ID for the application of some user code (e.g. scripts and plugins).
  */
-@ServiceScope(Scopes.BuildSession)
+@ServiceScope(Scopes.BuildSession.class)
 public interface UserCodeApplicationContext {
     /**
      * Applies some user code, assigning an ID for this particular application.
@@ -37,29 +37,35 @@ public interface UserCodeApplicationContext {
     void apply(DisplayName displayName, Action<? super UserCodeApplicationId> action);
 
     /**
-     * Returns an action that represents some deferred execution of the current application. While the returned action is running, the details of the current application are restored.
+     * Returns an action that represents some deferred execution of the current user code. While the returned action is running, the details of the current application are restored.
      * Returns the given action when there is no current application.
      */
     <T> Action<T> reapplyCurrentLater(Action<T> action);
 
+    /**
+     * Returns details of the current application, if any.
+     */
     @Nullable
     Application current();
 
     /**
-     * Immutable representation of a user code application.
+     * Immutable representation of the application of some user code.
      */
     interface Application {
         UserCodeApplicationId getId();
 
+        /**
+         * Returns the display name of the user code.
+         */
         DisplayName getDisplayName();
 
         /**
-         * Returns an action that represents some deferred execution of this application. While the returned action is running, the details of this application are restored.
+         * Returns an action that represents some deferred execution of the user code. While the returned action is running, the details of this application are restored.
          */
         <T> Action<T> reapplyLater(Action<T> action);
 
         /**
-         * Runs an action that represents some deferred execution of this application. While the action is running, the details of this application are restored.
+         * Runs an action that represents some deferred execution of the user code. While the action is running, the details of this application are restored.
          */
         void reapply(Runnable runnable);
     }

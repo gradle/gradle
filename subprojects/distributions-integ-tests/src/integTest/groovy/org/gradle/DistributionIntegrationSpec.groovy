@@ -27,6 +27,7 @@ import org.gradle.util.PreconditionVerifier
 import org.junit.Rule
 import spock.lang.Shared
 
+import java.nio.charset.StandardCharsets
 import java.util.zip.ZipEntry
 import java.util.zip.ZipFile
 
@@ -36,7 +37,7 @@ import static org.hamcrest.MatcherAssert.assertThat
 
 abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
 
-    protected static final THIRD_PARTY_LIB_COUNT = 132
+    protected static final THIRD_PARTY_LIB_COUNT = 140
 
     @Rule public final PreconditionVerifier preconditionVerifier = new PreconditionVerifier()
 
@@ -44,11 +45,13 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
 
     abstract String getDistributionLabel()
 
+    abstract int getMaxDistributionSizeBytes()
+
     /**
      * Change this whenever you add or remove subprojects for distribution core modules (lib/).
      */
     int getCoreLibJarsCount() {
-        34
+        35
     }
 
     /**
@@ -67,6 +70,11 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
 
     int getLibJarsCount() {
         coreLibJarsCount + packagedPluginsJarCount + thirdPartyLibJarsCount
+    }
+
+    def "distribution size should not exceed a certain number"() {
+        expect:
+        getZip().size() <= getMaxDistributionSizeBytes()
     }
 
     def "no duplicate entries"() {
@@ -160,7 +168,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
 
         def toolingApiJar = contentsDir.file("lib/gradle-tooling-api-${baseVersion}.jar")
         toolingApiJar.assertIsFile()
-        assert toolingApiJar.length() < 383 * 1024 // tooling api jar is the small plain tooling api jar version and not the fat jar.
+        assert toolingApiJar.length() < 400 * 1024 // tooling api jar is the small plain tooling api jar version and not the fat jar.
 
         // Plugins
         assertIsGradleJar(contentsDir.file("lib/plugins/gradle-dependency-management-${baseVersion}.jar"))
@@ -193,7 +201,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         assert !contentsDir.file("lib/plugins/tools.jar").exists()
     }
 
-    protected void assertDocsExist(TestFile contentsDir, String version) {
+    protected static void assertDocsExist(TestFile contentsDir, String version) {
         // Javadoc
         contentsDir.file('docs/javadoc/index.html').assertIsFile()
         contentsDir.file('docs/javadoc/index.html').assertContents(containsString("Gradle API ${version}"))
@@ -219,11 +227,10 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
 
     private static void assertIsGradleApiMetadataJar(TestFile jar) {
         new JarTestFixture(jar.canonicalFile).with {
-            def apiDeclaration = GUtil.loadProperties(IOUtils.toInputStream(content("gradle-api-declaration.properties")))
+            def apiDeclaration = GUtil.loadProperties(IOUtils.toInputStream(content("gradle-api-declaration.properties"), StandardCharsets.UTF_8))
             assert apiDeclaration.size() == 2
             assert apiDeclaration.getProperty("includes").contains(":org/gradle/api/**:")
             assert apiDeclaration.getProperty("excludes").split(":").size() == 1
         }
     }
-
 }

@@ -104,7 +104,7 @@ Configure your `PATH` environment variable to include the `bin` directory of the
 ❯ export PATH=$PATH:/opt/gradle/gradle-{gradleVersion}/bin
 ----
 
-Alternatively, you could also add the environment variable `GRADLE_HOME` and point this to the unzipped distribution.  Instead of adding a specific version of Gradle to your `PATH`, you can add `__$GRADLE_HOME__/bin` to your `PATH`.  When upgrading to a different version of Gradle, just change the `GRADLE_HOME` environment variable. 
+Alternatively, you could also add the environment variable `GRADLE_HOME` and point this to the unzipped distribution.  Instead of adding a specific version of Gradle to your `PATH`, you can add `__$GRADLE_HOME__/bin` to your `PATH`.  When upgrading to a different version of Gradle, just change the `GRADLE_HOME` environment variable.
 
 ==== Microsoft Windows users
 
@@ -112,7 +112,7 @@ In **File Explorer** right-click on the `This PC` (or `Computer`) icon, then cli
 
 Under `System Variables` select `Path`, then click `Edit`. Add an entry for `C:\Gradle\gradle-{gradleVersion}\bin`. Click OK to save.
 
-Alternatively, you could also add the environment variable `GRADLE_HOME` and point this to the unzipped distribution.  Instead of adding a specific version of Gradle to your `Path`, you can add `__%GRADLE_HOME%__/bin` to your `Path`.  When upgrading to a different version of Gradle, just change the `GRADLE_HOME` environment variable. 
+Alternatively, you could also add the environment variable `GRADLE_HOME` and point this to the unzipped distribution.  Instead of adding a specific version of Gradle to your `Path`, you can add `__%GRADLE_HOME%__/bin` to your `Path`.  When upgrading to a different version of Gradle, just change the `GRADLE_HOME` environment variable.
 
 <<#sec:installation_next_steps,↓ Proceed to next steps>>
 
@@ -143,7 +143,7 @@ You can verify the integrity of the Gradle distribution by downloading the SHA-2
 
 Now that you have Gradle installed, use these resources for getting started:
 
- * Create your first Gradle project by following the link:https://guides.gradle.org/creating-new-gradle-builds/[Creating New Gradle Builds] tutorial.
+ * Create your first Gradle project by following one of our link:../samples/index.html[step-by-step samples].
  * Sign up for a link:{website}/training/intro-to-gradle/[live introductory Gradle training] with a core engineer.
  * Learn how to achieve common tasks through the <<command_line_interface.adoc#command_line_interface,command-line interface>>.
  * <<build_environment.adoc#build_environment,Configure Gradle execution>>, such as use of an HTTP proxy for downloading dependencies.

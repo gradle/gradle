@@ -24,8 +24,11 @@ import org.gradle.integtests.fixtures.RichConsoleStyling;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
 import org.gradle.test.fixtures.file.TestFile;
+import org.gradle.util.TextUtil;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 import java.util.List;
 import java.util.Locale;
@@ -121,6 +124,16 @@ public interface GradleExecuter extends Stoppable {
      */
     GradleExecuter withStdinPipe(PipedOutputStream stdInPipe);
 
+    default GradleExecuter withStdIn(String input) {
+        return withStdinPipe(new PipedOutputStream() {
+            @Override
+            public void connect(PipedInputStream snk) throws IOException {
+                super.connect(snk);
+                write(TextUtil.toPlatformLineSeparators(input).getBytes());
+            }
+        });
+    }
+
     /**
      * Executes the requested build, asserting that the build succeeds. Resets the configuration of this executer.
      *
@@ -190,6 +203,19 @@ public interface GradleExecuter extends Stoppable {
     GradleExecuter withFullDeprecationStackTraceDisabled();
 
     /**
+     * Downloads and sets up the JVM arguments for running the Gradle daemon with the file leak detector: https://file-leak-detector.kohsuke.org/
+     *
+     * NOTE: This requires running the test with JDK8 and the forking executer.
+     *
+     * This should not be checked-in on. This is only for local debugging.
+     *
+     * By default, this starts a HTTP server on port 19999, so you can observe which files are open. Passing any arguments disables this behavior.
+     *
+     * @param args the arguments to pass the file leak detector java agent
+     */
+    GradleExecuter withFileLeakDetection(String... args);
+
+    /**
      * Specifies that the executer should only those JVM args explicitly requested using {@link #withBuildJvmOpts(String...)} and {@link #withCommandLineGradleOpts(String...)} (where appropriate) for
      * the build JVM and not attempt to provide any others.
      */
@@ -233,6 +259,7 @@ public interface GradleExecuter extends Stoppable {
 
     /**
      * Sets the path to the read-only dependency cache
+     *
      * @param cacheDir the path to the RO dependency cache
      * @return this executer
      */
@@ -240,6 +267,7 @@ public interface GradleExecuter extends Stoppable {
 
     /**
      * Sets the path to the read-only dependency cache
+     *
      * @param cacheDir the path to the RO dependency cache
      * @return this executer
      */
@@ -302,7 +330,6 @@ public interface GradleExecuter extends Stoppable {
      * or no warning is produced at all, the assertion fails.
      *
      * @see #expectDeprecationWarnings(int)
-     *
      * @deprecated Use {@link #expectDeprecationWarning(String)} instead.
      */
     @Deprecated

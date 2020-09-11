@@ -1,4 +1,6 @@
-rootProject.name = "app"
+rootProject.name = "declared-substitution"
+
+include("app")
 
 // tag::composite_substitution[]
 includeBuild("anonymous-library") {

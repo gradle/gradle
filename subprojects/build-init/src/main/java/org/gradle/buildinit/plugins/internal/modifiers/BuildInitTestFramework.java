@@ -30,7 +30,7 @@ public enum BuildInitTestFramework implements WithIdentifier {
     JUNIT_JUPITER("JUnit Jupiter");
 
     public static List<String> listSupported() {
-        List<String> result = new ArrayList<String>();
+        List<String> result = new ArrayList<>();
         for (BuildInitTestFramework testFramework : values()) {
             if (testFramework != NONE) {
                 result.add(testFramework.getId());

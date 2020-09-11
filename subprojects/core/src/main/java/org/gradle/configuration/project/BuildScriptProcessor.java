@@ -39,12 +39,7 @@ public class BuildScriptProcessor implements ProjectConfigureAction {
         final Timer clock = Time.startTimer();
         try {
             final ScriptPlugin configurer = configurerFactory.create(project.getBuildScriptSource(), project.getBuildscript(), project.getClassLoaderScope(), project.getBaseClassLoaderScope(), true);
-            project.getMutationState().withMutableState(new Runnable() {
-                @Override
-                public void run() {
-                    configurer.apply(project);
-                }
-            });
+            project.getMutationState().applyToMutableState(configurer::apply);
         } finally {
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("Timing: Running the build script took {}", clock.getElapsed());

@@ -15,9 +15,10 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.projectmodule
 
-import org.gradle.api.artifacts.ModuleIdentifier
+
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory
+import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectState
 import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.internal.component.local.model.LocalComponentMetadata
@@ -30,18 +31,22 @@ import org.gradle.internal.resolve.result.BuildableComponentIdResolveResult
 import org.gradle.internal.resolve.result.BuildableComponentResolveResult
 import spock.lang.Specification
 
+import java.util.function.Consumer
+
 import static org.gradle.internal.component.local.model.TestComponentIdentifiers.newProjectId
 
 class ProjectDependencyResolverTest extends Specification {
     final LocalComponentRegistry registry = Mock()
     final ComponentIdentifierFactory componentIdentifierFactory = Mock()
     final ProjectStateRegistry projectRegistry = Stub()
-    final ProjectDependencyResolver resolver = new ProjectDependencyResolver(registry, componentIdentifierFactory, projectRegistry)
+    final ProjectArtifactResolver projectArtifactResolver = Stub()
+    final ProjectArtifactSetResolver projectArtifactSetResolver = Stub()
+    final ProjectDependencyResolver resolver = new ProjectDependencyResolver(registry, componentIdentifierFactory, projectArtifactSetResolver, projectArtifactResolver)
 
     def setup() {
         def projectState = Stub(ProjectState)
         _ * projectRegistry.stateFor(_) >> projectState
-        _ * projectState.withMutableState(_) >> { Runnable action -> action.run() }
+        _ * projectState.applyToMutableState(_) >> { Consumer consumer -> consumer.accept(Stub(ProjectInternal)) }
     }
 
     def "resolves project dependency"() {
@@ -82,7 +87,6 @@ class ProjectDependencyResolverTest extends Specification {
     def "doesn't try to resolve non-project dependency"() {
         def result = Mock(BuildableComponentIdResolveResult)
         def dependencyMetaData = Stub(DependencyMetadata)
-        def targetModuleId = Stub(ModuleIdentifier)
 
         when:
         resolver.resolve(dependencyMetaData, null, null, result)

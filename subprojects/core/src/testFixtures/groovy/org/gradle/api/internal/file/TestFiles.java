@@ -38,10 +38,14 @@ import org.gradle.internal.hash.DefaultStreamHasher;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.resource.local.FileResourceConnector;
 import org.gradle.internal.resource.local.FileResourceRepository;
+import org.gradle.internal.snapshot.CaseSensitivity;
 import org.gradle.internal.snapshot.SnapshotHierarchy;
 import org.gradle.internal.time.Time;
+import org.gradle.internal.vfs.FileSystemAccess;
 import org.gradle.internal.vfs.VirtualFileSystem;
-import org.gradle.internal.vfs.impl.DefaultVirtualFileSystem;
+import org.gradle.internal.vfs.impl.DefaultFileSystemAccess;
+import org.gradle.internal.vfs.impl.DefaultSnapshotHierarchy;
+import org.gradle.internal.vfs.impl.VfsRootReference;
 import org.gradle.process.internal.DefaultExecActionFactory;
 import org.gradle.process.internal.ExecActionFactory;
 import org.gradle.process.internal.ExecFactory;
@@ -187,11 +191,37 @@ public class TestFiles {
     }
 
     public static DefaultFileCollectionSnapshotter fileCollectionSnapshotter() {
-        return new DefaultFileCollectionSnapshotter(virtualFileSystem(), genericFileTreeSnapshotter(), fileSystem());
+        return new DefaultFileCollectionSnapshotter(fileSystemAccess(), genericFileTreeSnapshotter(), fileSystem());
     }
 
     public static VirtualFileSystem virtualFileSystem() {
-        return new DefaultVirtualFileSystem(fileHasher(), new StringInterner(), fileSystem(), fileSystem().isCaseSensitive() ? CASE_SENSITIVE : CASE_INSENSITIVE, SnapshotHierarchy.DiffCapturingUpdateFunctionDecorator.NOOP);
+        CaseSensitivity caseSensitivity = fileSystem().isCaseSensitive() ? CASE_SENSITIVE : CASE_INSENSITIVE;
+        VfsRootReference rootReference = new VfsRootReference(DefaultSnapshotHierarchy.empty(caseSensitivity));
+        return new VirtualFileSystem() {
+            @Override
+            public SnapshotHierarchy getRoot() {
+                return rootReference.getRoot();
+            }
+
+            @Override
+            public void update(UpdateFunction updateFunction) {
+                rootReference.update(root -> updateFunction.update(root, SnapshotHierarchy.NodeDiffListener.NOOP));
+            }
+        };
+    }
+
+    public static FileSystemAccess fileSystemAccess() {
+        return fileSystemAccess(virtualFileSystem());
+    }
+
+    public static FileSystemAccess fileSystemAccess(VirtualFileSystem virtualFileSystem) {
+        return new DefaultFileSystemAccess(
+            fileHasher(),
+            new StringInterner(),
+            fileSystem(),
+            virtualFileSystem,
+            locations -> {}
+        );
     }
 
     public static FileCollectionFactory fileCollectionFactory() {
@@ -230,6 +260,7 @@ public class TestFiles {
         return execFactory(baseDir);
     }
 
+    @SuppressWarnings("deprecation")
     public static Factory<PatternSet> getPatternSetFactory() {
         return PatternSets.getNonCachingPatternSetFactory();
     }

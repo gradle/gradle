@@ -21,8 +21,6 @@ import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.verification.DependencyVerificationMode;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.file.BasicFileResolver;
-import org.gradle.cli.CommandLineOption;
-import org.gradle.cli.CommandLineParser;
 import org.gradle.internal.buildoption.BooleanBuildOption;
 import org.gradle.internal.buildoption.BooleanCommandLineOptionConfiguration;
 import org.gradle.internal.buildoption.BuildOption;
@@ -65,6 +63,9 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         options.add(new BuildCacheOption());
         options.add(new BuildCacheDebugLoggingOption());
         options.add(new WatchFileSystemOption());
+        options.add(new WatchFileSystemDebugLoggingOption());
+        options.add(new DeprecatedWatchFileSystemOption());
+        options.add(new VfsVerboseLoggingOption());
         options.add(new BuildScanOption());
         options.add(new DependencyLockingWriteOption());
         options.add(new DependencyVerificationWriteOption());
@@ -296,7 +297,7 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
 
     public static class WatchFileSystemOption extends BooleanBuildOption<StartParameterInternal> {
         public static final String LONG_OPTION = "watch-fs";
-        public static final String GRADLE_PROPERTY = "org.gradle.unsafe.watch-fs";
+        public static final String GRADLE_PROPERTY = "org.gradle.vfs.watch";
 
         public WatchFileSystemOption() {
             super(GRADLE_PROPERTY, BooleanCommandLineOptionConfiguration.create(
@@ -309,6 +310,47 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         @Override
         public void applyTo(boolean value, StartParameterInternal startParameter, Origin origin) {
             startParameter.setWatchFileSystem(value);
+        }
+    }
+
+    @Deprecated
+    public static class DeprecatedWatchFileSystemOption extends BooleanBuildOption<StartParameterInternal> {
+        public static final String GRADLE_PROPERTY = "org.gradle.unsafe.watch-fs";
+
+        public DeprecatedWatchFileSystemOption() {
+            super(GRADLE_PROPERTY);
+        }
+
+        @Override
+        public void applyTo(boolean value, StartParameterInternal startParameter, Origin origin) {
+            startParameter.setWatchFileSystem(value);
+            startParameter.setWatchFileSystemUsingDeprecatedOption(true);
+        }
+    }
+
+    public static class WatchFileSystemDebugLoggingOption extends BooleanBuildOption<StartParameterInternal> {
+        public static final String GRADLE_PROPERTY = "org.gradle.vfs.watch.debug";
+
+        public WatchFileSystemDebugLoggingOption() {
+            super(GRADLE_PROPERTY);
+        }
+
+        @Override
+        public void applyTo(boolean value, StartParameterInternal startParameter, Origin origin) {
+            startParameter.setWatchFileSystemDebugLogging(value);
+        }
+    }
+
+    public static class VfsVerboseLoggingOption extends BooleanBuildOption<StartParameterInternal> {
+        public static final String GRADLE_PROPERTY = "org.gradle.vfs.verbose";
+
+        public VfsVerboseLoggingOption() {
+            super(GRADLE_PROPERTY);
+        }
+
+        @Override
+        public void applyTo(boolean value, StartParameterInternal startParameter, Origin origin) {
+            startParameter.setVfsVerboseLogging(value);
         }
     }
 
@@ -349,11 +391,6 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         DependencyVerificationWriteOption() {
             super(null, CommandLineOptionConfiguration.create(LONG_OPTION, SHORT_OPTION,
                 "Generates checksums for dependencies used in the project (comma-separated list)").incubating());
-        }
-
-        @Override
-        protected CommandLineOption configureCommandLineOption(CommandLineParser parser, String[] options, String description, boolean deprecated, boolean incubating) {
-            return super.configureCommandLineOption(parser, options, description, deprecated, incubating);
         }
 
         @Override

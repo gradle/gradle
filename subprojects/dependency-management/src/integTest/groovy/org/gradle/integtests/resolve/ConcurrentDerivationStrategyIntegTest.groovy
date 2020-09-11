@@ -17,13 +17,13 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import spock.lang.Issue
 import spock.lang.Unroll
 
 class ConcurrentDerivationStrategyIntegTest extends AbstractIntegrationSpec {
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     @Issue("https://github.com/gradle/gradle/issues/13555")
     @Unroll("consistent resolution using rules=#displayName")
     // If this test becomes flaky it means we broke the code which prevents mutation of in-memory cached module metadata

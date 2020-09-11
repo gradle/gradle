@@ -34,7 +34,7 @@ import org.gradle.internal.hash.HashCode
 import org.gradle.internal.snapshot.CompleteDirectorySnapshot
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot
 import org.gradle.internal.snapshot.RegularFileSnapshot
-import org.gradle.internal.vfs.VirtualFileSystem
+import org.gradle.internal.vfs.FileSystemAccess
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -47,9 +47,9 @@ import static org.gradle.internal.file.TreeType.FILE
 class DefaultBuildCacheCommandFactoryTest extends Specification {
     def packer = Mock(BuildCacheEntryPacker)
     def originFactory = Mock(OriginMetadataFactory)
-    def virtualFileSystem = Mock(VirtualFileSystem)
+    def fileSystemAccess = Mock(FileSystemAccess)
     def stringInterner = new StringInterner()
-    def commandFactory = new DefaultBuildCacheCommandFactory(packer, originFactory, virtualFileSystem, stringInterner)
+    def commandFactory = new DefaultBuildCacheCommandFactory(packer, originFactory, fileSystemAccess, stringInterner)
 
     def key = Mock(BuildCacheKey)
 
@@ -80,17 +80,17 @@ class DefaultBuildCacheCommandFactoryTest extends Specification {
 
         then:
         1 * originFactory.createReader(entity) >> originReader
-        1 * virtualFileSystem.update([outputDir.absolutePath, outputFile.absolutePath], _)
+        1 * fileSystemAccess.write([outputDir.absolutePath, outputFile.absolutePath], _)
 
         then:
         1 * packer.unpack(entity, input, originReader) >> new BuildCacheEntryPacker.UnpackResult(originMetadata, 123L, fileSnapshots)
 
         then:
-        1 * virtualFileSystem.updateWithKnownSnapshot(_ as CompleteDirectorySnapshot) >> { CompleteFileSystemLocationSnapshot snapshot  ->
+        1 * fileSystemAccess.record(_ as CompleteDirectorySnapshot) >> { CompleteFileSystemLocationSnapshot snapshot  ->
             assert snapshot.absolutePath == outputDir.absolutePath
             assert snapshot.name == outputDir.name
         }
-        1 * virtualFileSystem.updateWithKnownSnapshot(_ as RegularFileSnapshot) >> { CompleteFileSystemLocationSnapshot snapshot ->
+        1 * fileSystemAccess.record(_ as RegularFileSnapshot) >> { CompleteFileSystemLocationSnapshot snapshot ->
             assert snapshot.absolutePath == outputFileSnapshot.absolutePath
             assert snapshot.name == outputFileSnapshot.name
             assert snapshot.hash == outputFileSnapshot.hash
@@ -116,7 +116,7 @@ class DefaultBuildCacheCommandFactoryTest extends Specification {
 
         then:
         1 * originFactory.createReader(entity) >> originReader
-        1 * virtualFileSystem.update([outputFile.absolutePath], _)
+        1 * fileSystemAccess.write([outputFile.absolutePath], _)
 
         then:
         1 * packer.unpack(entity, input, originReader) >> {

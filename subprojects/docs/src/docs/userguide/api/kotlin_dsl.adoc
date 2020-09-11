@@ -26,7 +26,7 @@ This chapter provides details of the main Kotlin DSL constructs and how to use i
 
 [TIP]
 ====
-If you are interested in migrating an existing Gradle build to the Kotlin DSL, please also check out the dedicated link:{guidesUrl}/migrating-build-logic-from-groovy-to-kotlin/[migration guide].
+If you are interested in migrating an existing Gradle build to the Kotlin DSL, please also check out the dedicated link:https://guides.gradle.org/migrating-build-logic-from-groovy-to-kotlin/[migration guide].
 ====
 
 
@@ -430,7 +430,7 @@ Note that you can't use this technique if you want to apply such a plugin either
 [[sec:kotlin_cross_project_configuration]]
 === Cross-configuring projects
 
-<<multi_project_builds#sec:cross_project_configuration,Cross project configuration>> is a mechanism by which you can configure a project from another project's build script. A common example is when you configure subprojects in the root project build script.
+<<sharing_build_logic_between_subprojects#sec:convention_plugins_vs_cross_configuration,Cross project configuration>> is a mechanism by which you can configure a project from another project's build script. A common example is when you configure subprojects in the root project build script.
 
 Taking this approach means that you won't be able to use type-safe accessors for model elements contributed by the plugins. You will instead have to rely on string literals and the standard Gradle APIs.
 
@@ -707,7 +707,7 @@ tasks.create("myTask") {
 == The Kotlin DSL Plugin
 
 The Kotlin DSL Plugin provides a convenient way to develop Kotlin-based projects that contribute build logic.
-That includes <<organizing_gradle_projects#sec:build_sources,buildSrc projects>>, <<composite_builds#, included builds>> and link:{guidesUrl}/designing-gradle-plugins/[Gradle plugins].
+That includes <<organizing_gradle_projects#sec:build_sources,buildSrc projects>>, <<composite_builds#,included builds>> and <<custom_plugins#,Gradle plugins>>.
 
 The plugin achieves this by doing the following:
 
@@ -988,7 +988,7 @@ The main reason for this is the slower script compilation for Kotlin DSL.
 * In IntelliJ IDEA, you must link:https://www.jetbrains.com/help/idea/gradle.html#gradle_import[import your project from the Gradle model] in order to get content assist and refactoring support for your Kotlin DSL build scripts.
 * The Kotlin DSL will not support the `model {}` block, which is part of the link:https://blog.gradle.org/state-and-future-of-the-gradle-software-model[discontinued Gradle Software Model].
 However, you _can_ apply model rules from scripts — see the link:{kotlin-dsl-samples}model-rules[model rules] sample for more information.
-* We recommend against enabling the incubating <<multi_project_builds#sec:configuration_on_demand,configuration on demand>> feature as it can lead to very hard-to-diagnose problems.
+* We recommend against enabling the incubating <<multi_project_configuration_and_execution#sec:configuration_on_demand,configuration on demand>> feature as it can lead to very hard-to-diagnose problems.
 
 If you run into trouble or discover a suspected bug, please report the issue in the link:{gradle-issues}[Gradle issue tracker].
 

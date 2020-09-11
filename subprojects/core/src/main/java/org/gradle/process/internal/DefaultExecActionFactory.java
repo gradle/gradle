@@ -39,6 +39,7 @@ import org.gradle.internal.concurrent.DefaultExecutorFactory;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.jvm.JavaModuleDetector;
+import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.nativeintegration.services.FileSystems;
 import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.reflect.Instantiator;
@@ -122,7 +123,11 @@ public class DefaultExecActionFactory implements ExecFactory {
 
     @Override
     public JavaForkOptionsInternal newJavaForkOptions() {
-        return new DefaultJavaForkOptions(fileResolver, fileCollectionFactory, new DefaultJavaDebugOptions());
+        final DefaultJavaForkOptions forkOptions = new DefaultJavaForkOptions(fileResolver, fileCollectionFactory, new DefaultJavaDebugOptions());
+        if (forkOptions.getExecutable() == null) {
+            forkOptions.setExecutable(Jvm.current().getJavaExecutable());
+        }
+        return forkOptions;
     }
 
     @Override
@@ -198,13 +203,17 @@ public class DefaultExecActionFactory implements ExecFactory {
 
         @Override
         public JavaExecAction newDecoratedJavaExecAction() {
-            return instantiator.newInstance(DefaultJavaExecAction.class, fileResolver, fileCollectionFactory, objectFactory, executor, buildCancellationToken, javaModuleDetector, newDecoratedJavaForkOptions());
+            final JavaForkOptionsInternal forkOptions = newDecoratedJavaForkOptions();
+            forkOptions.setExecutable(Jvm.current().getJavaExecutable());
+            return instantiator.newInstance(DefaultJavaExecAction.class, fileResolver, fileCollectionFactory, objectFactory, executor, buildCancellationToken, javaModuleDetector, forkOptions);
         }
 
         @Override
         public JavaForkOptionsInternal newDecoratedJavaForkOptions() {
             JavaDebugOptions javaDebugOptions = objectFactory.newInstance(DefaultJavaDebugOptions.class, objectFactory);
-            return instantiator.newInstance(DefaultJavaForkOptions.class, fileResolver, fileCollectionFactory, javaDebugOptions);
+            final DefaultJavaForkOptions forkOptions = instantiator.newInstance(DefaultJavaForkOptions.class, fileResolver, fileCollectionFactory, javaDebugOptions);
+            forkOptions.setExecutable(Jvm.current().getJavaExecutable());
+            return forkOptions;
         }
     }
 

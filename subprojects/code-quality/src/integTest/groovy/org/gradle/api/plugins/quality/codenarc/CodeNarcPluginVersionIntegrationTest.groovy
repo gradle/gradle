@@ -19,7 +19,7 @@ package org.gradle.api.plugins.quality.codenarc
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetCoverage
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.quality.integtest.fixtures.CodeNarcCoverage
 import org.gradle.test.fixtures.file.TestFile
@@ -57,7 +57,7 @@ class CodeNarcPluginVersionIntegrationTest extends MultiVersionIntegrationSpec {
         writeRuleFile()
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "analyze good code"() {
         goodCode()
 
@@ -68,7 +68,7 @@ class CodeNarcPluginVersionIntegrationTest extends MultiVersionIntegrationSpec {
     }
 
     @IgnoreIf({ GradleContextualExecuter.parallel })
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "is incremental"() {
         given:
         goodCode()
@@ -89,7 +89,7 @@ class CodeNarcPluginVersionIntegrationTest extends MultiVersionIntegrationSpec {
     }
 
     @IgnoreIf({ GradleContextualExecuter.parallel })
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can generate multiple reports"() {
         given:
         buildFile << """
@@ -110,7 +110,7 @@ class CodeNarcPluginVersionIntegrationTest extends MultiVersionIntegrationSpec {
         }
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "analyze bad code"() {
         badCode()
 
@@ -122,7 +122,7 @@ class CodeNarcPluginVersionIntegrationTest extends MultiVersionIntegrationSpec {
         report("test").text.contains("testclass2")
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can ignore failures"() {
         badCode()
         buildFile << """
@@ -139,7 +139,7 @@ class CodeNarcPluginVersionIntegrationTest extends MultiVersionIntegrationSpec {
 
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can configure max violations"() {
         badCode()
         buildFile << """
@@ -155,7 +155,7 @@ class CodeNarcPluginVersionIntegrationTest extends MultiVersionIntegrationSpec {
     }
 
     @Issue("GRADLE-3492")
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can exclude code"() {
         badCode()
         buildFile << """
@@ -173,7 +173,7 @@ class CodeNarcPluginVersionIntegrationTest extends MultiVersionIntegrationSpec {
         succeeds("check")
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "output should be printed in stdout if console type is specified"() {
         when:
         buildFile << '''
@@ -192,7 +192,7 @@ class CodeNarcPluginVersionIntegrationTest extends MultiVersionIntegrationSpec {
 
     @Issue("https://github.com/gradle/gradle/issues/2326")
     @ToBeImplemented
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "check task should not be up-to-date after clean if console type is specified"() {
         given:
         buildFile << '''

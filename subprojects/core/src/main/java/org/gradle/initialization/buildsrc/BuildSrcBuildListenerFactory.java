@@ -26,10 +26,8 @@ import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.initialization.ModelConfigurationListener;
 import org.gradle.internal.Actions;
-import org.gradle.internal.Factory;
 import org.gradle.internal.InternalBuildAdapter;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Collection;
 
@@ -64,7 +62,7 @@ public class BuildSrcBuildListenerFactory {
 
         @Override
         public void projectsLoaded(Gradle gradle) {
-            rootProjectConfiguration.execute((ProjectInternal)gradle.getRootProject());
+            rootProjectConfiguration.execute((ProjectInternal) gradle.getRootProject());
         }
 
         @Override
@@ -76,13 +74,7 @@ public class BuildSrcBuildListenerFactory {
         }
 
         public Collection<File> getRuntimeClasspath() {
-            return rootProjectState.withMutableState(new Factory<Collection<File>>() {
-                @Nullable
-                @Override
-                public Collection<File> create() {
-                    return classpath.getFiles();
-                }
-            });
+            return rootProjectState.fromMutableState(p -> classpath.getFiles());
         }
 
         private BuildableJavaComponent mainComponentOf(GradleInternal gradle) {

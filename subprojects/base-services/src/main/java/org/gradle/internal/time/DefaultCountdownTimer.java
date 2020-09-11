@@ -16,8 +16,6 @@
 
 package org.gradle.internal.time;
 
-import com.google.common.base.Preconditions;
-
 import java.util.concurrent.TimeUnit;
 
 class DefaultCountdownTimer extends DefaultTimer implements CountdownTimer {
@@ -26,7 +24,9 @@ class DefaultCountdownTimer extends DefaultTimer implements CountdownTimer {
 
     DefaultCountdownTimer(TimeSource timeSource, long timeout, TimeUnit unit) {
         super(timeSource);
-        Preconditions.checkArgument(timeout > 0);
+        if (timeout <= 0) {
+            throw new IllegalArgumentException();
+        }
         this.timeoutMillis = unit.toMillis(timeout);
     }
 

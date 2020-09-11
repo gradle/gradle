@@ -28,7 +28,7 @@ import org.gradle.initialization.NotifyProjectsEvaluatedBuildOperationType
 import org.gradle.initialization.NotifyProjectsLoadedBuildOperationType
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.internal.logging.events.StyledTextOutputEvent
 import org.gradle.internal.operations.BuildOperationType
 import org.gradle.internal.operations.trace.BuildOperationRecord
@@ -96,7 +96,7 @@ class ExecuteUserLifecycleListenerBuildOperationIntegrationTest extends Abstract
         }
     }
 
-    @ToBeFixedForInstantExecution(because = "build listener")
+    @ToBeFixedForConfigurationCache(because = "build listener")
     def 'projectsLoaded listeners are attributed to the correct registrant'() {
         given:
         def addGradleListeners = { String source ->
@@ -175,7 +175,7 @@ class ExecuteUserLifecycleListenerBuildOperationIntegrationTest extends Abstract
         verifyHasChildren(parent, settingsPluginAppId, 'settings plugin', expectedGradleOps)
     }
 
-    @ToBeFixedForInstantExecution(because = "build listener")
+    @ToBeFixedForConfigurationCache(because = "build listener")
     def 'projectsEvaluated listeners are attributed to the correct registrant'() {
         given:
         def addGradleListeners = { String source ->
@@ -502,7 +502,7 @@ class ExecuteUserLifecycleListenerBuildOperationIntegrationTest extends Abstract
         verifyHasChildren(rootAfterEvaluated, rootOtherScriptAppId, 'other script', expectedProjectOps)
     }
 
-    @ToBeFixedForInstantExecution(because = "build listener")
+    @ToBeFixedForConfigurationCache(because = "build listener")
     def 'taskGraph whenReady action listeners are attributed to the correct registrant'() {
         given:
         def addGradleListeners = { String source ->
@@ -522,7 +522,7 @@ class ExecuteUserLifecycleListenerBuildOperationIntegrationTest extends Abstract
             } as Action)
             gradle.taskGraph.whenReady {
                 println "gradle.taskGraph.whenReady(Closure) from $source"
-            }            
+            }
         """
         }
         def expectedGradleOps = [
@@ -627,14 +627,14 @@ class ExecuteUserLifecycleListenerBuildOperationIntegrationTest extends Abstract
         verifyHasChildren(whenReadyEvaluated, initScriptAppId, 'init', expectedGradleOps)
     }
 
-    @ToBeFixedForInstantExecution(because = "composite builds")
+    @ToBeFixedForConfigurationCache(because = "composite builds")
     def 'no extra executions for composite builds'() {
         // This test does two things:
         // - shake out internal listener registration that isn't using InternalListener.
         //   There are a lost of listeners registered through the methods that we've decorated in the composite build code
         // - sanity check application ids for the multi-build case
         given:
-        file('buildSrc/build.gradle') << """            
+        file('buildSrc/build.gradle') << """
         """
         includeBuild()
         file('included/build.gradle') << """
@@ -703,7 +703,7 @@ class ExecuteUserLifecycleListenerBuildOperationIntegrationTest extends Abstract
         verifyHasChildren(subAfterEvaluated, initOtherScriptAppId, 'script file allprojects', [expectedOp('Project.afterEvaluate', 'project.afterEvaluate(Closure)')])
     }
 
-    @ToBeFixedForInstantExecution(because = "build listener")
+    @ToBeFixedForConfigurationCache(because = "build listener")
     def 'decorated listener can be removed'() {
         given:
         initFile << """
@@ -724,7 +724,7 @@ class ExecuteUserLifecycleListenerBuildOperationIntegrationTest extends Abstract
         verifyExpectedNumberOfExecuteListenerChildren(projectsLoaded, 0)
     }
 
-    @ToBeFixedForInstantExecution(because = "GradleBuild")
+    @ToBeFixedForConfigurationCache(because = "GradleBuild")
     def 'application ids are unique across gradleBuild builds'() {
         given:
         initFile << ""

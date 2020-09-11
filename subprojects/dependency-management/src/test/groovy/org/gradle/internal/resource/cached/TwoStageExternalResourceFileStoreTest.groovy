@@ -17,7 +17,7 @@
 package org.gradle.internal.resource.cached
 
 import org.gradle.api.Action
-import org.gradle.internal.resource.local.FileAccessTracker
+import org.gradle.internal.file.FileAccessTracker
 import org.gradle.internal.resource.local.LocallyAvailableResource
 import spock.lang.Specification
 import spock.lang.Subject

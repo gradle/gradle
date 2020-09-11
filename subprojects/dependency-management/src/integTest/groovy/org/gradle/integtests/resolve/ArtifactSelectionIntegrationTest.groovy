@@ -17,7 +17,7 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.FluidDependenciesResolveRunner
 import org.junit.runner.RunWith
 
@@ -167,7 +167,7 @@ allprojects {
         executed ":lib:jar", ":lib:utilClasses", ":lib:utilDir", ":lib:utilJar", ":ui:jar", ":app:resolve"
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can create a view that selects different artifacts from the same dependency graph"() {
         given:
         def m1 = ivyHttpRepo.module('org', 'test', '1.0')
@@ -824,7 +824,7 @@ task show {
         result.assertTasksExecuted(":app:resolveView")
     }
 
-    @ToBeFixedForInstantExecution(because = "broken file collection")
+    @ToBeFixedForConfigurationCache(because = "broken file collection")
     def "fails when no variants match and no view attributes specified"() {
         ivyHttpRepo.module("test","test", "1.2").publish().allowAll()
 

@@ -23,7 +23,7 @@ import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.api.provider.SetProperty
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.TestBuildCache
 import org.gradle.internal.Actions
 import spock.lang.Issue
@@ -392,7 +392,7 @@ public class SomeTask extends DefaultTask {
     File d;
     @OutputDirectory
     public File getD() { return d; }
-    
+
     @TaskAction
     public void go() { }
 }
@@ -637,7 +637,7 @@ task someTask(type: SomeTask) {
                 public Foo() {
                     getInputs().property("a", null).optional(true);
                 }
-                
+
                 @TaskAction
                 public void doSomething() {}
             }
@@ -651,7 +651,7 @@ task someTask(type: SomeTask) {
         succeeds "foo"
     }
 
-    @ToBeFixedForInstantExecution(because = "task references other task")
+    @ToBeFixedForConfigurationCache(because = "task references other task")
     def "input and output properties are not evaluated too often"() {
         buildFile << """
             import javax.inject.Inject
@@ -674,7 +674,7 @@ task someTask(type: SomeTask) {
                 int nestedInputValueCount = 0
 
                 private NestedBean bean = new NestedBean()
-                
+
                 @OutputFile
                 File getOutputFile() {
                     count("outputFile", ++outputFileCount)
@@ -687,42 +687,42 @@ task someTask(type: SomeTask) {
                     count("inputFile", ++inputFileCount)
                     return layout.projectDirectory.file("input.txt").asFile
                 }
-                
+
                 @Input
                 String getInput() {
                     count("inputValue", ++inputValueCount)
                     return "Input"
                 }
-                
+
                 @Nested
                 Object getBean() {
                     count("nestedInput", ++nestedInputCount)
                     return bean
                 }
-                
+
                 @TaskAction
                 void doStuff() {
                     outputFile.text = inputFile.text
                 }
-                
+
                 void count(String name, int currentValue) {
-                    println "Evaluating \${name} \${currentValue}"                
+                    println "Evaluating \${name} \${currentValue}"
                 }
-                                
+
                 class NestedBean {
                     @Input getFirst() {
                         count("nestedInputValue", ++nestedInputValueCount)
                         return "first"
                     }
-                    
+
                     @Input getSecond() {
                         return "second"
                     }
                 }
             }
-            
+
             task myTask(type: CustomTask)
-            
+
             task assertInputCounts {
                 dependsOn myTask
                 doLast {

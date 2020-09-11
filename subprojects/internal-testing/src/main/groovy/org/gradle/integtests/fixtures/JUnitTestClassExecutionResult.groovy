@@ -30,19 +30,17 @@ class JUnitTestClassExecutionResult implements TestClassExecutionResult {
     String testClassName
     boolean checked
     String testClassDisplayName
-    boolean hasDisplayNameAnnotation
     TestResultOutputAssociation outputAssociation
 
-    JUnitTestClassExecutionResult(GPathResult testClassNode, String testClassName, String testClassDisplayName, boolean hasDisplayNameAnnotation, TestResultOutputAssociation outputAssociation) {
+    JUnitTestClassExecutionResult(GPathResult testClassNode, String testClassName, String testClassDisplayName, TestResultOutputAssociation outputAssociation) {
         this.outputAssociation = outputAssociation
         this.testClassNode = testClassNode
         this.testClassName = testClassName
         this.testClassDisplayName = testClassDisplayName
-        this.hasDisplayNameAnnotation = hasDisplayNameAnnotation
     }
 
-    JUnitTestClassExecutionResult(String content, String testClassName, String testClassDisplayName, boolean hasDisplayNameAnnotation, TestResultOutputAssociation outputAssociation) {
-        this(new XmlSlurper().parse(new StringReader(content)), testClassName, testClassDisplayName, hasDisplayNameAnnotation, outputAssociation)
+    JUnitTestClassExecutionResult(String content, String testClassName, String testClassDisplayName, TestResultOutputAssociation outputAssociation) {
+        this(new XmlSlurper().parse(new StringReader(content)), testClassName, testClassDisplayName, outputAssociation)
     }
 
     TestClassExecutionResult assertTestsExecuted(String... testNames) {
@@ -205,15 +203,9 @@ class JUnitTestClassExecutionResult implements TestClassExecutionResult {
     }
 
     private def findTests() {
-        String className
-        if(hasDisplayNameAnnotation) {
-            className = testClassDisplayName
-        } else {
-            className = testClassName
-        }
         if (!checked) {
             Assert.assertThat(testClassNode.name(), CoreMatchers.equalTo('testsuite'))
-            Assert.assertThat(testClassNode.@name.text(), CoreMatchers.equalTo(className))
+            Assert.assertThat(testClassNode.@name.text(), CoreMatchers.equalTo(testClassDisplayName))
             Assert.assertThat(testClassNode.@tests.text(), CoreMatchers.not(CoreMatchers.equalTo('')))
             Assert.assertThat(testClassNode.@skipped.text(), CoreMatchers.not(CoreMatchers.equalTo('')))
             Assert.assertThat(testClassNode.@failures.text(), CoreMatchers.not(CoreMatchers.equalTo('')))

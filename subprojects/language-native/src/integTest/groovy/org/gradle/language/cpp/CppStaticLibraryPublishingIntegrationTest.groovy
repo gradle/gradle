@@ -16,7 +16,7 @@
 
 package org.gradle.language.cpp
 
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.language.VariantContext
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
@@ -30,7 +30,7 @@ import static org.gradle.nativeplatform.OperatingSystemFamily.MACOS
 import static org.gradle.nativeplatform.OperatingSystemFamily.WINDOWS
 
 class CppStaticLibraryPublishingIntegrationTest extends AbstractCppPublishingIntegrationTest {
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can publish a library and its dependencies to a Maven repository when multiple target operating systems are specified"() {
         def app = new CppAppWithLibrariesWithApiDependencies()
         def targetMachines = [machine(WINDOWS, currentArchitecture), machine(LINUX, currentArchitecture), machine(MACOS, currentArchitecture)]
@@ -41,19 +41,19 @@ class CppStaticLibraryPublishingIntegrationTest extends AbstractCppPublishingInt
             subprojects {
                 apply plugin: 'cpp-library'
                 apply plugin: 'maven-publish'
-                
+
                 group = 'some.group'
                 version = '1.2'
                 publishing {
                     repositories { maven { url '${mavenRepo.uri}' } }
                 }
-                
+
                 components.withType(CppComponent) {
                     linkage = [Linkage.STATIC]
                     targetMachines = [machines.windows.architecture('${currentArchitecture}'), machines.linux.architecture('${currentArchitecture}'), machines.macOS.architecture('${currentArchitecture}')]
                 }
             }
-            project(':deck') { 
+            project(':deck') {
                 dependencies {
                     api project(':card')
                     implementation project(':shuffle')
@@ -98,7 +98,7 @@ class CppStaticLibraryPublishingIntegrationTest extends AbstractCppPublishingInt
     }
 
     @RequiresInstalledToolChain(ToolChainRequirement.SUPPORTS_32_AND_64)
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can publish a library and its dependencies to a Maven repository when multiple target architectures are specified"() {
         def app = new CppAppWithLibrariesWithApiDependencies()
         def targetMachines = [machine(currentOsFamilyName, X86), machine(currentOsFamilyName, X86_64)]
@@ -109,19 +109,19 @@ class CppStaticLibraryPublishingIntegrationTest extends AbstractCppPublishingInt
             subprojects {
                 apply plugin: 'cpp-library'
                 apply plugin: 'maven-publish'
-                
+
                 group = 'some.group'
                 version = '1.2'
                 publishing {
                     repositories { maven { url '${mavenRepo.uri}' } }
                 }
-                
+
                 components.withType(CppComponent) {
                     linkage = [Linkage.STATIC]
                     targetMachines = [machines.host().x86, machines.host().x86_64]
                 }
             }
-            project(':deck') { 
+            project(':deck') {
                 dependencies {
                     api project(':card')
                     implementation project(':shuffle')

@@ -36,7 +36,7 @@ class PathNormalizationStrategyTest extends Specification {
     private StringInterner stringInterner = new StringInterner()
 
     public static final String IGNORED = "IGNORED"
-    def virtualFileSystem = TestFiles.virtualFileSystem()
+    def fileSystemAccess = TestFiles.fileSystemAccess()
 
     List<FileSystemSnapshot> roots
     TestFile jarFile1
@@ -74,7 +74,7 @@ class PathNormalizationStrategyTest extends Specification {
 
     private CompleteFileSystemLocationSnapshot snapshot(File file) {
         MutableReference<CompleteFileSystemLocationSnapshot> result = MutableReference.empty()
-        virtualFileSystem.read(file.absolutePath, result.&set)
+        fileSystemAccess.read(file.absolutePath, result.&set)
         return result.get()
     }
 

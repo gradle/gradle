@@ -18,6 +18,8 @@ package org.gradle.workers;
 
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
+import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 /**
  * Allows work to be submitted for asynchronous execution.  This api allows for safe, concurrent execution of work items and enables:
@@ -43,6 +45,7 @@ import org.gradle.api.Incubating;
  *
  * @since 3.5
  */
+@ServiceScope(Scopes.Project.class)
 public interface WorkerExecutor {
     /**
      * Submits a piece of work to be executed asynchronously.

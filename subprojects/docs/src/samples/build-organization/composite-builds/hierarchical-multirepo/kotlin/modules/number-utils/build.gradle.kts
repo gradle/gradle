@@ -1,7 +1,6 @@
 plugins {
-    java
-    idea
-    `ivy-publish`
+    `java-library`
+    `maven-publish`
 }
 
 group = "org.sample"
@@ -21,6 +20,6 @@ publishing {
         }
     }
     publications {
-        create<IvyPublication>("ivy") { from(components["java"]) }
+        create<MavenPublication>("maven") { from(components["java"]) }
     }
 }

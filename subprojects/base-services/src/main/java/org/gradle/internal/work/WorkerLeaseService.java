@@ -17,11 +17,13 @@
 package org.gradle.internal.work;
 
 import org.gradle.internal.Factory;
-import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.resources.ProjectLeaseRegistry;
 import org.gradle.internal.resources.ResourceLock;
+import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.ServiceScope;
 
-public interface WorkerLeaseService extends WorkerLeaseRegistry, ProjectLeaseRegistry, Stoppable {
+@ServiceScope(Scopes.BuildSession.class)
+public interface WorkerLeaseService extends WorkerLeaseRegistry, ProjectLeaseRegistry {
     /**
      * Returns the maximum number of worker leases that this service will grant at any given time. Note that the actual limit may vary over time but will never _exceed_ the value returned by this method.
      */

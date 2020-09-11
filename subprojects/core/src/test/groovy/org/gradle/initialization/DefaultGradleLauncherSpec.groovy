@@ -19,13 +19,11 @@ package org.gradle.initialization
 import org.gradle.BuildListener
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.SettingsInternal
-import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.composite.internal.IncludedBuildControllers
 import org.gradle.configuration.ProjectsPreparer
 import org.gradle.execution.BuildWorkExecutor
 import org.gradle.execution.MultipleBuildFailures
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal
-import org.gradle.initialization.buildsrc.BuildSourceBuilder
 import org.gradle.initialization.exception.ExceptionAnalyser
 import org.gradle.internal.concurrent.Stoppable
 import org.gradle.internal.service.scopes.BuildScopeServices
@@ -41,7 +39,6 @@ class DefaultGradleLauncherSpec extends Specification {
     def buildConfigurerMock = Mock(ProjectsPreparer)
     def buildBroadcaster = Mock(BuildListener)
     def buildExecuter = Mock(BuildWorkExecutor)
-    def buildSourceBuilder = Mock(BuildSourceBuilder)
 
     def settingsMock = Mock(SettingsInternal.class)
     def gradleMock = Mock(GradleInternal.class)
@@ -52,7 +49,7 @@ class DefaultGradleLauncherSpec extends Specification {
     def buildServices = Mock(BuildScopeServices.class)
     def otherService = Mock(Stoppable)
     def includedBuildControllers = Mock(IncludedBuildControllers)
-    def instantExecution = Mock(InstantExecution)
+    def configurationCache = Mock(ConfigurationCache)
     public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
     def failure = new RuntimeException("main")
@@ -69,7 +66,7 @@ class DefaultGradleLauncherSpec extends Specification {
     DefaultGradleLauncher launcher() {
         return new DefaultGradleLauncher(gradleMock, buildConfigurerMock, exceptionAnalyserMock, buildBroadcaster,
             buildCompletionListener, buildFinishedListener, buildExecuter, buildServices, [otherService], includedBuildControllers,
-            settingsPreparerMock, taskExecutionPreparerMock, instantExecution, buildSourceBuilder, Mock(BuildOptionBuildOperationProgressEventsEmitter))
+            settingsPreparerMock, taskExecutionPreparerMock, configurationCache, Mock(BuildOptionBuildOperationProgressEventsEmitter))
     }
 
     void testRunTasks() {
@@ -108,8 +105,6 @@ class DefaultGradleLauncherSpec extends Specification {
         expectBuildListenerCallbacks()
 
         and:
-        def buildSrcClassLoaderScope = Mock(ClassLoaderScope)
-        1 * buildSourceBuilder.buildAndCreateClassLoader(_) >> buildSrcClassLoaderScope
         1 * buildConfigurerMock.prepareProjects(gradleMock)
 
         DefaultGradleLauncher gradleLauncher = launcher()
@@ -126,8 +121,6 @@ class DefaultGradleLauncherSpec extends Specification {
         expectBuildListenerCallbacks()
 
         and:
-        def buildSrcClassLoaderScope = Mock(ClassLoaderScope)
-        1 * buildSourceBuilder.buildAndCreateClassLoader(_) >> buildSrcClassLoaderScope
         1 * buildConfigurerMock.prepareProjects(gradleMock)
 
         then:

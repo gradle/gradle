@@ -18,6 +18,7 @@ package org.gradle.internal.locking;
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingState;
+import org.gradle.api.internal.artifacts.dsl.dependencies.LockEntryFilter;
 
 import java.util.Set;
 
@@ -29,14 +30,17 @@ public class DefaultDependencyLockingState implements DependencyLockingState {
 
     private final boolean strictlyValidate;
     private final Set<ModuleComponentIdentifier> constraints;
+    private final LockEntryFilter ignoredEntryFilter;
 
     private DefaultDependencyLockingState() {
         strictlyValidate = false;
         constraints = emptySet();
+        ignoredEntryFilter = LockEntryFilterFactory.FILTERS_NONE;
     }
-    public DefaultDependencyLockingState(boolean strictlyValidate, Set<ModuleComponentIdentifier> constraints) {
+    public DefaultDependencyLockingState(boolean strictlyValidate, Set<ModuleComponentIdentifier> constraints, LockEntryFilter ignoredEntryFilter) {
         this.strictlyValidate = strictlyValidate;
         this.constraints = constraints;
+        this.ignoredEntryFilter = ignoredEntryFilter;
     }
 
     @Override
@@ -47,5 +51,9 @@ public class DefaultDependencyLockingState implements DependencyLockingState {
     @Override
     public Set<ModuleComponentIdentifier> getLockedDependencies() {
         return constraints;
+    }
+
+    public LockEntryFilter getIgnoredEntryFilter() {
+        return ignoredEntryFilter;
     }
 }

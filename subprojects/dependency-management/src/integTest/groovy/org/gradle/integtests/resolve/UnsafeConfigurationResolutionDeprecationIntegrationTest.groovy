@@ -17,10 +17,10 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
 class UnsafeConfigurationResolutionDeprecationIntegrationTest extends AbstractDependencyResolutionTest {
-    @ToBeFixedForInstantExecution(because = "Task.getProject() during execution")
+    @ToBeFixedForConfigurationCache(because = "Task.getProject() during execution")
     def "deprecation warning when configuration in another project is resolved unsafely"() {
         mavenRepo.module("test", "test-jar", "1.0").publish()
 
@@ -35,20 +35,20 @@ class UnsafeConfigurationResolutionDeprecationIntegrationTest extends AbstractDe
                     println project(':bar').configurations.bar.files
                 }
             }
-            
+
             project(':bar') {
                 repositories {
                     maven { url '${mavenRepo.uri}' }
                 }
-                
+
                 configurations {
                     bar
                 }
-                
+
                 dependencies {
                     bar "test:test-jar:1.0"
                 }
-            }       
+            }
         """
 
         when:
@@ -60,7 +60,7 @@ class UnsafeConfigurationResolutionDeprecationIntegrationTest extends AbstractDe
         outputContains("The configuration :bar:bar was resolved without accessing the project in a safe manner.")
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "exception when configuration is resolved from a non-gradle thread"() {
         mavenRepo.module("test", "test-jar", "1.0").publish()
 
@@ -81,20 +81,20 @@ class UnsafeConfigurationResolutionDeprecationIntegrationTest extends AbstractDe
                     assert file('bar').exists()
                 }
             }
-           
+
             project(':bar') {
                 repositories {
                     maven { url '${mavenRepo.uri}' }
                 }
-                
+
                 configurations {
                     bar
                 }
-                
+
                 dependencies {
                     bar "test:test-jar:1.0"
                 }
-            }    
+            }
         """
 
         when:
@@ -114,24 +114,24 @@ class UnsafeConfigurationResolutionDeprecationIntegrationTest extends AbstractDe
             include ":bar", ":baz"
         """
 
-        buildFile << """   
-            project(':baz') {  
+        buildFile << """
+            project(':baz') {
                 repositories {
                     maven { url '${mavenRepo.uri}' }
                 }
-                
+
                 configurations {
                     baz
                 }
-                
+
                 dependencies {
                     baz "test:test-jar:1.0"
-                }  
-            } 
-            
+                }
+            }
+
             project(':bar') {
                 println project(':baz').configurations.baz.files
-            }       
+            }
         """
 
         when:
@@ -155,16 +155,16 @@ class UnsafeConfigurationResolutionDeprecationIntegrationTest extends AbstractDe
             repositories {
                 maven { url '${mavenRepo.uri}' }
             }
-            
+
             configurations {
                 foo
             }
-            
+
             dependencies {
                 foo "test:test-jar:1.0"
             }
-            
-            println configurations.foo.files      
+
+            println configurations.foo.files
         """
 
         expect:
@@ -183,17 +183,17 @@ class UnsafeConfigurationResolutionDeprecationIntegrationTest extends AbstractDe
             repositories {
                 maven { url '${mavenRepo.uri}' }
             }
-            
+
             configurations {
                 foo
             }
-            
+
             dependencies {
                 foo "test:test-jar:1.0"
             }
-            
+
             afterEvaluate {
-                println configurations.foo.files      
+                println configurations.foo.files
             }
         """
 
@@ -215,16 +215,16 @@ class UnsafeConfigurationResolutionDeprecationIntegrationTest extends AbstractDe
                     repositories {
                         maven { url '${mavenRepo.uri}' }
                     }
-                    
+
                     configurations {
                         foo
                     }
-                    
+
                     dependencies {
                         foo "test:test-jar:1.0"
                     }
-                
-                    println configurations.foo.files      
+
+                    println configurations.foo.files
                 }
             }
         """

@@ -19,7 +19,7 @@ import com.google.common.base.Objects;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.hash.HashCode;
-import org.gradle.internal.vfs.VirtualFileSystem;
+import org.gradle.internal.vfs.FileSystemAccess;
 import org.gradle.language.nativeplatform.internal.Expression;
 import org.gradle.language.nativeplatform.internal.Include;
 import org.gradle.language.nativeplatform.internal.IncludeDirectives;
@@ -43,12 +43,12 @@ import java.util.Set;
 
 public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
     private static final MissingIncludeFile MISSING_INCLUDE_FILE = new MissingIncludeFile();
-    private final VirtualFileSystem virtualFileSystem;
+    private final FileSystemAccess fileSystemAccess;
     private final Map<File, DirectoryContents> includeRoots = new HashMap<File, DirectoryContents>();
     private final FixedIncludePath includePath;
 
-    public DefaultSourceIncludesResolver(List<File> includePaths, VirtualFileSystem virtualFileSystem) {
-        this.virtualFileSystem = virtualFileSystem;
+    public DefaultSourceIncludesResolver(List<File> includePaths, FileSystemAccess fileSystemAccess) {
+        this.fileSystemAccess = fileSystemAccess;
         List<DirectoryContents> includeDirs = new ArrayList<DirectoryContents>(includePaths.size());
         for (File includeDir : includePaths) {
             includeDirs.add(toDir(includeDir));
@@ -348,7 +348,7 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
             return contents.computeIfAbsent(includePath,
                 key -> {
                     File candidate = normalizeIncludePath(searchDir, includePath);
-                    return virtualFileSystem.readRegularFileContentHash(candidate.getAbsolutePath(),
+                    return fileSystemAccess.readRegularFileContentHash(candidate.getAbsolutePath(),
                             contentHash -> (CachedIncludeFile) new SystemIncludeFile(candidate, key, contentHash)
                         ).orElse(MISSING_INCLUDE_FILE);
                 });

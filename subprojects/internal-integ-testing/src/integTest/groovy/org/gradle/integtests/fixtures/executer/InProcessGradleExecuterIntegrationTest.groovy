@@ -17,18 +17,15 @@
 package org.gradle.integtests.fixtures.executer
 
 import org.gradle.api.logging.configuration.ConsoleOutput
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.RedirectStdOutAndErr
 import org.junit.Rule
-import spock.lang.IgnoreIf
+import spock.lang.Requires
 import spock.lang.Specification
 import spock.lang.Unroll
 
-// Ignored for file system watching since
-// - For file system watching, we start an isolated daemon, which by definition is not an in process daemon, so the test doesn't make much sense.
-// - The daemon then leaves back some running daemons which write to the registry and cause an error for `verifyTestFilesCleanup`.
-@IgnoreIf({ GradleContextualExecuter.watchFs })
+@Requires({ GradleContextualExecuter.embedded })
 class InProcessGradleExecuterIntegrationTest extends Specification {
     @Rule
     RedirectStdOutAndErr outputs = new RedirectStdOutAndErr()
@@ -38,7 +35,7 @@ class InProcessGradleExecuterIntegrationTest extends Specification {
     def executer = new GradleContextualExecuter(distribution, temporaryFolder, IntegrationTestBuildContext.INSTANCE)
 
     @Unroll
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can write to System.out and System.err around build invocation with #console console when errors are redirected to stdout"() {
         given:
         temporaryFolder.file("settings.gradle") << '''
@@ -95,7 +92,7 @@ class InProcessGradleExecuterIntegrationTest extends Specification {
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can write to System.out and System.err around build invocation with #console console when errors are written to stderr"() {
         given:
         temporaryFolder.file("settings.gradle") << '''
@@ -153,5 +150,9 @@ class InProcessGradleExecuterIntegrationTest extends Specification {
 
     def stripped(String output) {
         return LogContent.of(output).withNormalizedEol()
+    }
+
+    def cleanup() {
+        executer.cleanup()
     }
 }

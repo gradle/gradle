@@ -24,14 +24,17 @@ class GroovyLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
     public static final String SAMPLE_LIBRARY_CLASS = "some/thing/Library.groovy"
     public static final String SAMPLE_LIBRARY_TEST_CLASS = "some/thing/LibraryTest.groovy"
 
+    @Override
+    String subprojectName() { 'lib' }
+
     @Unroll
     def "creates sample source if no source present with #scriptDsl build scripts"() {
         when:
         run('init', '--type', 'groovy-library', '--dsl', scriptDsl.id)
 
         then:
-        targetDir.file("src/main/groovy").assertHasDescendants(SAMPLE_LIBRARY_CLASS)
-        targetDir.file("src/test/groovy").assertHasDescendants(SAMPLE_LIBRARY_TEST_CLASS)
+        subprojectDir.file("src/main/groovy").assertHasDescendants(SAMPLE_LIBRARY_CLASS)
+        subprojectDir.file("src/test/groovy").assertHasDescendants(SAMPLE_LIBRARY_TEST_CLASS)
 
         and:
         commonJvmFilesGenerated(scriptDsl)
@@ -52,8 +55,8 @@ class GroovyLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
         run('init', '--type', 'groovy-library', '--test-framework', 'spock', '--dsl', scriptDsl.id)
 
         then:
-        targetDir.file("src/main/groovy").assertHasDescendants(SAMPLE_LIBRARY_CLASS)
-        targetDir.file("src/test/groovy").assertHasDescendants(SAMPLE_LIBRARY_TEST_CLASS)
+        subprojectDir.file("src/main/groovy").assertHasDescendants(SAMPLE_LIBRARY_CLASS)
+        subprojectDir.file("src/test/groovy").assertHasDescendants(SAMPLE_LIBRARY_TEST_CLASS)
 
         and:
         commonJvmFilesGenerated(scriptDsl)
@@ -74,8 +77,8 @@ class GroovyLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
         run('init', '--type', 'groovy-library', '--package', 'my.lib', '--dsl', scriptDsl.id)
 
         then:
-        targetDir.file("src/main/groovy").assertHasDescendants("my/lib/Library.groovy")
-        targetDir.file("src/test/groovy").assertHasDescendants("my/lib/LibraryTest.groovy")
+        subprojectDir.file("src/main/groovy").assertHasDescendants("my/lib/Library.groovy")
+        subprojectDir.file("src/test/groovy").assertHasDescendants("my/lib/LibraryTest.groovy")
 
         and:
         commonJvmFilesGenerated(scriptDsl)
@@ -93,13 +96,13 @@ class GroovyLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
     @Unroll
     def "source generation is skipped when groovy sources detected with #scriptDsl build scripts"() {
         setup:
-        targetDir.file("src/main/groovy/org/acme/SampleMain.groovy") << """
+        subprojectDir.file("src/main/groovy/org/acme/SampleMain.groovy") << """
             package org.acme;
 
             class SampleMain {
             }
     """
-        targetDir.file("src/test/groovy/org/acme/SampleMainTest.groovy") << """
+        subprojectDir.file("src/test/groovy/org/acme/SampleMainTest.groovy") << """
                     package org.acme;
 
                     class SampleMainTest {
@@ -109,15 +112,15 @@ class GroovyLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
         run('init', '--type', 'groovy-library', '--dsl', scriptDsl.id)
 
         then:
-        targetDir.file("src/main/groovy").assertHasDescendants("org/acme/SampleMain.groovy")
-        targetDir.file("src/test/groovy").assertHasDescendants("org/acme/SampleMainTest.groovy")
+        subprojectDir.file("src/main/groovy").assertHasDescendants("org/acme/SampleMain.groovy")
+        subprojectDir.file("src/test/groovy").assertHasDescendants("org/acme/SampleMainTest.groovy")
         dslFixtureFor(scriptDsl).assertGradleFilesGenerated()
 
         when:
         run("build")
 
         then:
-        executed(":test")
+        executed(":lib:test")
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS

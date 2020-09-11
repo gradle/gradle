@@ -16,7 +16,7 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.ToBeImplemented
 import spock.lang.Issue
@@ -106,7 +106,7 @@ public class TransformerTask extends DefaultTask {
 '''
     }
 
-    @ToBeFixedForInstantExecution(because = "task wrongly up-to-date")
+    @ToBeFixedForConfigurationCache(because = "task wrongly up-to-date")
     def "skips task when output file is up-to-date"() {
         writeTransformerTask()
 
@@ -567,7 +567,7 @@ task b(type: DirTransformerTask, dependsOn: a) {
         }
     }
 
-    @ToBeFixedForInstantExecution(because = "task wrongly up-to-date")
+    @ToBeFixedForConfigurationCache(because = "task wrongly up-to-date")
     def "skips tasks when input properties have not changed"() {
         buildFile << '''
 public class GeneratorTask extends DefaultTask {
@@ -829,7 +829,7 @@ task b(dependsOn: a)
         result.assertTasksSkipped(":a", ":b")
     }
 
-    @ToBeFixedForInstantExecution(because = "GradleBuild task")
+    @ToBeFixedForConfigurationCache(because = "GradleBuild task")
     def "can share artifacts between builds"() {
         writeTransformerTask()
 
@@ -1076,7 +1076,7 @@ task generate(type: TransformerTask) {
         output.contains "Task 'b2' file 'output.txt' with 'output-file'"
     }
 
-    @ToBeFixedForInstantExecution(because = "ClassNotFoundException: CustomTask")
+    @ToBeFixedForConfigurationCache(because = "ClassNotFoundException: CustomTask")
     def "task loaded with custom classloader is never up-to-date"() {
         file("input.txt").text = "data"
         buildFile << """
@@ -1111,7 +1111,7 @@ task generate(type: TransformerTask) {
         output.contains "The type of task ':customTask' was loaded with an unknown classloader (class 'CustomTask_Decorated')."
     }
 
-    @ToBeFixedForInstantExecution(because = "ClassNotFoundException: CustomTaskAction")
+    @ToBeFixedForConfigurationCache(because = "ClassNotFoundException: CustomTaskAction")
     def "task with custom action loaded with custom classloader is never up-to-date"() {
         file("input.txt").text = "data"
         buildFile << """

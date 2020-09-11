@@ -20,7 +20,7 @@ import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
 import org.gradle.api.internal.artifacts.transform.DefaultTransformationWorkspace
 import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.cache.FileAccessTimeJournalFixture
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
@@ -1015,7 +1015,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         failingTransform << (1..4)
     }
 
-    @ToBeFixedForInstantExecution(because = "resolves external dependency when writing cache entry, rather than when running consuming task, so exception chain is different")
+    @ToBeFixedForConfigurationCache(because = "resolves external dependency when writing cache entry, rather than when running consuming task, so exception chain is different")
     @Unroll
     def "failure in resolution propagates to chain (scheduled: #scheduled)"() {
         given:

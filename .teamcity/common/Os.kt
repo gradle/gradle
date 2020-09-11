@@ -16,6 +16,48 @@
 
 package common
 
-enum class Os(val agentRequirement: String, val ignoredSubprojects: List<String> = emptyList()) {
-    linux("Linux"), windows("Windows"), macos("Mac", listOf("integTest", "native", "plugins", "resources", "scala", "workers", "wrapper", "platformPlay", "toolingNative"))
+private const val killAllGradleProcessesUnixLike = """
+free -m
+ps aux | egrep 'Gradle(Daemon|Worker)'
+ps aux | egrep 'Gradle(Daemon|Worker)' | awk '{print ${'$'}2}' | xargs kill -9
+free -m
+ps aux | egrep 'Gradle(Daemon|Worker)' | awk '{print ${'$'}2}'
+"""
+
+private const val killAllGradleProcessesWindows = """
+wmic OS get FreePhysicalMemory,FreeVirtualMemory,FreeSpaceInPagingFiles /VALUE
+wmic Path win32_process Where "name='java.exe'"
+wmic Path win32_process Where "name='java.exe' AND CommandLine Like '%%%%GradleDaemon%%%%'" Call Terminate
+wmic Path win32_process Where "name='java.exe' AND CommandLine Like '%%%%GradleWorker%%%%'" Call Terminate
+wmic OS get FreePhysicalMemory,FreeVirtualMemory,FreeSpaceInPagingFiles /VALUE
+wmic Path win32_process Where "name='java.exe'"
+"""
+
+enum class Os(
+    val agentRequirement: String,
+    val ignoredSubprojects: List<String> = emptyList(),
+    val androidHome: String,
+    val killAllGradleProcesses: String,
+    val perfTestWorkingDir: String = "%teamcity.build.checkoutDir%"
+) {
+    LINUX("Linux", androidHome = "/opt/android/sdk", killAllGradleProcesses = killAllGradleProcessesUnixLike),
+    WINDOWS("Windows",
+        androidHome = """C:\Program Files\android\sdk""",
+        killAllGradleProcesses = killAllGradleProcessesWindows,
+        perfTestWorkingDir = "P:/"),
+    MACOS("Mac",
+        listOf("integ-test", "native", "plugins", "resources", "scala", "workers", "wrapper", "platform-play", "tooling-native"),
+        androidHome = "/opt/android/sdk",
+        killAllGradleProcesses = killAllGradleProcessesUnixLike
+    );
+
+    fun escapeKeyValuePair(key: String, value: String) = if (this == WINDOWS) """$key="$value"""" else """"$key=$value""""
+
+    fun asName() = name.toLowerCase().capitalize()
+
+    fun buildJavaHome() = javaHome(JvmVersion.java11, JvmVendor.openjdk)
+
+    fun individualPerformanceTestJavaHome() = javaHome(JvmVersion.java8, JvmVendor.oracle)
+
+    fun javaHome(jvmVersion: JvmVersion, vendor: JvmVendor) = "%${name.toLowerCase()}.$jvmVersion.$vendor.64bit%"
 }

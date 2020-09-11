@@ -18,12 +18,16 @@ package org.gradle.api.internal.artifacts.configurations;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ExcludeRule;
+import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.internal.artifacts.ResolveContext;
 import org.gradle.api.internal.artifacts.transform.ExtraExecutionGraphDependenciesResolverFactory;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.internal.DisplayName;
 import org.gradle.internal.deprecation.DeprecatableConfiguration;
 import org.gradle.util.Path;
 
+import java.util.Collection;
 import java.util.Set;
 
 public interface ConfigurationInternal extends ResolveContext, Configuration, DeprecatableConfiguration, DependencyMetaDataProvider {
@@ -31,7 +35,8 @@ public interface ConfigurationInternal extends ResolveContext, Configuration, De
         UNRESOLVED,
         BUILD_DEPENDENCIES_RESOLVED,
         GRAPH_RESOLVED,
-        ARTIFACTS_RESOLVED}
+        ARTIFACTS_RESOLVED
+    }
 
     @Override
     ResolutionStrategyInternal getResolutionStrategy();
@@ -62,6 +67,11 @@ public interface ConfigurationInternal extends ResolveContext, Configuration, De
     OutgoingVariant convertToOutgoingVariant();
 
     /**
+     * Visits the variants of this configuration.
+     */
+    void collectVariants(VariantVisitor visitor);
+
+    /**
      * Registers an action to execute before locking for further mutation.
      */
     void beforeLocking(Action<? super ConfigurationInternal> action);
@@ -75,4 +85,15 @@ public interface ConfigurationInternal extends ResolveContext, Configuration, De
     Set<ExcludeRule> getAllExcludeRules();
 
     ExtraExecutionGraphDependenciesResolverFactory getDependenciesResolver();
+
+    interface VariantVisitor {
+        // The artifacts to use when this configuration is used as a configuration
+        void visitArtifacts(Collection<? extends PublishArtifact> artifacts);
+
+        // This configuration as a variant. May not always be present
+        void visitOwnVariant(DisplayName displayName, ImmutableAttributes attributes, Collection<? extends PublishArtifact> artifacts);
+
+        // A child variant. May not always be present
+        void visitChildVariant(String name, DisplayName displayName, ImmutableAttributes attributes, Collection<? extends PublishArtifact> artifacts);
+    }
 }

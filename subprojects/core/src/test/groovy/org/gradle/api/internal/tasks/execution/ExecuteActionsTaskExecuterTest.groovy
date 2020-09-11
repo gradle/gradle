@@ -47,7 +47,6 @@ import org.gradle.internal.execution.impl.DefaultWorkExecutor
 import org.gradle.internal.execution.steps.BroadcastChangingOutputsStep
 import org.gradle.internal.execution.steps.CancelExecutionStep
 import org.gradle.internal.execution.steps.CaptureStateBeforeExecutionStep
-import org.gradle.internal.execution.steps.CatchExceptionStep
 import org.gradle.internal.execution.steps.CleanupOutputsStep
 import org.gradle.internal.execution.steps.ExecuteStep
 import org.gradle.internal.execution.steps.LoadExecutionStateStep
@@ -111,8 +110,8 @@ class ExecuteActionsTaskExecuterTest extends Specification {
     def buildOperationExecutor = new TestBuildOperationExecutor()
     def asyncWorkTracker = Mock(AsyncWorkTracker)
 
-    def virtualFileSystem = TestFiles.virtualFileSystem()
-    def fileCollectionSnapshotter = new DefaultFileCollectionSnapshotter(virtualFileSystem, TestFiles.genericFileTreeSnapshotter(), TestFiles.fileSystem())
+    def fileSystemAccess = TestFiles.fileSystemAccess()
+    def fileCollectionSnapshotter = new DefaultFileCollectionSnapshotter(fileSystemAccess, TestFiles.genericFileTreeSnapshotter(), TestFiles.fileSystem())
     def fingerprinter = new AbsolutePathFileCollectionFingerprinter(fileCollectionSnapshotter)
     def fingerprinterRegistry = Stub(FileCollectionFingerprinterRegistry) {
         getFingerprinter(_) >> fingerprinter
@@ -156,18 +155,16 @@ class ExecuteActionsTaskExecuterTest extends Specification {
         new SkipUpToDateStep<>(
         new BroadcastChangingOutputsStep<>(outputChangeListener,
         new SnapshotOutputsStep<>(buildOperationExecutor, buildId,
-        new CatchExceptionStep<>(
         new CancelExecutionStep<>(cancellationToken,
         new ResolveInputChangesStep<>(
         new CleanupOutputsStep<>(deleter, outputChangeListener,
         new ExecuteStep<>(
-    )))))))))))))))
+    ))))))))))))))
     // @formatter:on
 
     def executer = new ExecuteActionsTaskExecuter(
         ExecuteActionsTaskExecuter.BuildCacheState.DISABLED,
         ExecuteActionsTaskExecuter.ScanPluginState.NOT_APPLIED,
-        ExecuteActionsTaskExecuter.VfsInvalidationStrategy.COMPLETE,
         taskSnapshotter,
         executionHistoryStore,
         buildOperationExecutorForTaskExecution,

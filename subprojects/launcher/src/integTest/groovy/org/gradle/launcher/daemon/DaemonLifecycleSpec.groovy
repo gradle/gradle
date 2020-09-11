@@ -43,7 +43,7 @@ import static org.gradle.test.fixtures.ConcurrentTestUtil.poll
 class DaemonLifecycleSpec extends DaemonIntegrationSpec {
 
     public static final int BUILD_EXECUTION_TIMEOUT = 40
-    int daemonIdleTimeout = 100
+    int daemonIdleTimeout = 200
     int periodicCheckInterval = 5
     //normally, state transition timeout must be lower than the daemon timeout
     //so that the daemon does not timeout in the middle of the state verification
@@ -130,7 +130,7 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
 
     void waitForBuildToWait(buildNum = 0) {
         run {
-            poll(BUILD_EXECUTION_TIMEOUT) { assert builds[buildNum].standardOutput.contains("waiting for stop file"); }
+            poll(BUILD_EXECUTION_TIMEOUT) { assert builds[buildNum].standardOutput.contains("waiting for stop file") }
         }
     }
 

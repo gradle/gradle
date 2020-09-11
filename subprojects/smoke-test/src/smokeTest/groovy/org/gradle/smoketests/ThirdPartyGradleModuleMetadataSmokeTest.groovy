@@ -17,22 +17,23 @@
 package org.gradle.smoketests
 
 import groovy.json.JsonSlurper
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.testkit.runner.BuildResult
 
 class ThirdPartyGradleModuleMetadataSmokeTest extends AbstractSmokeTest {
 
     /**
-     * Everything is done in one test to safe execution time.
+     * Everything is done in one test to save execution time.
      * Running the producer build takes ~2min.
      */
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def 'produces expected metadata and can be consumed'() {
         given:
         BuildResult result
         useSample("gmm-example")
-        def kotlinVersion = TestedVersions.kotlin.versions.last()
+        // TODO Test Kotlin 1.4
+        def kotlinVersion = TestedVersions.kotlin.latestStartsWith("1.3")
         def androidPluginVersion = AGP_VERSIONS.getLatestOfMinor("4.0")
         def arch = OperatingSystem.current().macOsX ? 'MacosX64' : 'LinuxX64'
 

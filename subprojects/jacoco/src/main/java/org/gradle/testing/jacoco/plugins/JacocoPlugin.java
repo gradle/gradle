@@ -47,7 +47,7 @@ import java.util.concurrent.Callable;
 /**
  * Plugin that provides support for generating Jacoco coverage data.
  */
-public class JacocoPlugin implements Plugin<ProjectInternal> {
+public class JacocoPlugin implements Plugin<Project> {
 
     /**
      * The jacoco version used if none is explicitly specified.
@@ -66,11 +66,12 @@ public class JacocoPlugin implements Plugin<ProjectInternal> {
     }
 
     @Override
-    public void apply(ProjectInternal project) {
+    public void apply(Project project) {
         project.getPluginManager().apply(ReportingBasePlugin.class);
         this.project = project;
         addJacocoConfigurations();
-        JacocoAgentJar agent = instantiator.newInstance(JacocoAgentJar.class, project.getServices().get(FileOperations.class));
+        ProjectInternal projectInternal = (ProjectInternal) project;
+        JacocoAgentJar agent = instantiator.newInstance(JacocoAgentJar.class, projectInternal.getServices().get(FileOperations.class));
         JacocoPluginExtension extension = project.getExtensions().create(PLUGIN_EXTENSION_NAME, JacocoPluginExtension.class, project, agent);
         extension.setToolVersion(DEFAULT_JACOCO_VERSION);
         final ReportingExtension reportingExtension = (ReportingExtension) project.getExtensions().getByName(ReportingExtension.NAME);

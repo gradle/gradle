@@ -16,11 +16,11 @@
 
 package org.gradle.api.internal.tasks;
 
-import org.gradle.api.internal.tasks.compile.JavaCompilerFactory;
 import org.gradle.api.tasks.compile.CompileOptions;
 import org.gradle.api.tasks.compile.ForkOptions;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.jvm.toolchain.JavaToolChain;
+import org.gradle.jvm.toolchain.internal.JavaCompilerFactory;
 import org.gradle.process.internal.ExecActionFactory;
 
 import java.io.File;

@@ -18,7 +18,7 @@ package org.gradle.language.base
 
 import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
+import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.platform.base.ApplicationSpec
 import org.gradle.platform.base.ComponentSpec
 import org.gradle.platform.base.GeneralComponentSpec
@@ -26,7 +26,7 @@ import org.gradle.platform.base.LibrarySpec
 import org.gradle.platform.base.SourceComponentSpec
 import spock.lang.Unroll
 
-@UnsupportedWithInstantExecution(because = "software model")
+@UnsupportedWithConfigurationCache(because = "software model")
 class CustomComponentIntegrationTest extends AbstractIntegrationSpec {
     @Unroll
     def "can declare custom managed #componentSpecType"() {

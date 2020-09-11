@@ -16,7 +16,7 @@
 
 package org.gradle.api.publish.ivy
 
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.test.fixtures.keystore.TestKeyStore
 import org.gradle.test.fixtures.server.http.HttpServer
@@ -45,7 +45,7 @@ class IvyPublishJavaRetriesIntegTest extends AbstractIvyPublishIntegTest {
         server.stop()
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "should publish with intermittent network issues"() {
         given:
         keyStore.enableSslWithServerCert(server)

@@ -16,12 +16,12 @@
 
 package org.gradle.integtests.composite
 
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.file.TestFile
 
 class CompositeBuildArtifactTransformIntegrationTest extends AbstractCompositeBuildIntegrationTest {
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can apply a transform to the outputs of included builds"() {
         def buildB = singleProjectBuild("buildB") {
             buildFile << """
@@ -51,19 +51,19 @@ class CompositeBuildArtifactTransformIntegrationTest extends AbstractCompositeBu
                     java.nio.file.Files.copy(input.toPath(), outputFile.toPath())
                 }
             }
-            
+
             dependencies {
                 implementation 'org.test:buildB:1.2'
                 implementation 'org.test:buildC:1.2'
-                
+
                 registerTransform(XForm) {
                     from.attribute(Attribute.of("artifactType", String), "jar")
                     to.attribute(Attribute.of("artifactType", String), "xform")
                 }
             }
-            
+
             task resolve {
-                def artifacts = configurations.compileClasspath.incoming.artifactView { 
+                def artifacts = configurations.compileClasspath.incoming.artifactView {
                     attributes.attribute(Attribute.of("artifactType", String), "xform")
                 }.artifacts
                 inputs.files artifacts.artifactFiles

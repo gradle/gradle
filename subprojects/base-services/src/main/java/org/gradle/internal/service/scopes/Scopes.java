@@ -16,11 +16,11 @@
 
 package org.gradle.internal.service.scopes;
 
-public enum Scopes {
-    Global,
-    UserHome,
-    BuildSession,
-    BuildTree,
-    Build,
-    Gradle
+public interface Scopes {
+    interface UserHome extends Scope.Global {}
+    interface BuildSession extends UserHome {}
+    interface BuildTree extends BuildSession {}
+    interface Build extends BuildTree {}
+    interface Gradle extends Build {}
+    interface Project extends Gradle {}
 }

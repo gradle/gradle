@@ -17,7 +17,7 @@
 package org.gradle.integtests.composite
 
 import org.gradle.api.internal.tasks.execution.ExecuteTaskBuildOperationType
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
@@ -29,7 +29,7 @@ class CompositeBuildParallelIntegrationTest extends AbstractCompositeBuildIntegr
     @Rule BlockingHttpServer server = new BlockingHttpServer()
 
     @Unroll
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "works when number of included builds exceeds max-workers --max-workers=#maxWorkers"() {
         def totalIncludedBuilds = 5*maxWorkers
         buildA.buildFile << """
@@ -56,7 +56,7 @@ class CompositeBuildParallelIntegrationTest extends AbstractCompositeBuildIntegr
         maxWorkers << [ 1, 2, 4 ]
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can build transitive dependency chain with --max-workers == 1"() {
         def previousBuild = buildA
         ['buildB', 'buildC', 'buildD'].each { buildName ->
@@ -74,7 +74,7 @@ class CompositeBuildParallelIntegrationTest extends AbstractCompositeBuildIntegr
         execute(buildA, "jar", "--max-workers=1")
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "constructs included build artifacts in parallel"() {
         given:
         server.start()
@@ -100,7 +100,7 @@ class CompositeBuildParallelIntegrationTest extends AbstractCompositeBuildIntegr
         execute(buildA, "jar", "--max-workers=4")
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "constructs included build artifacts in parallel with multi-project included build"() {
         given:
         def maxWorkers = 4

@@ -16,11 +16,11 @@
 package org.gradle.integtests.publish.maven
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
+import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.test.fixtures.maven.MavenDependencyExclusion
 import spock.lang.Issue
 
-@UnsupportedWithInstantExecution(because = "legacy maven plugin")
+@UnsupportedWithConfigurationCache(because = "legacy maven plugin")
 class MavenJavaProjectPublishIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {

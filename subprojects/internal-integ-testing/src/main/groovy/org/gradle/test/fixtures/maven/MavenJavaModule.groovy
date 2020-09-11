@@ -71,14 +71,15 @@ class MavenJavaModule extends DelegatingMavenModule<MavenFileModule> implements 
         assertArtifactsPublished(artifactFileExtension)
 
         // Verify Gradle metadata particulars
-        def expectedVariants = []
+        def expectedVariants = [] as TreeSet
         features.each { feature ->
             expectedVariants.addAll([variantName(feature, 'apiElements'), variantName(feature, 'runtimeElements')])
             if (withDocumentation) {
                 expectedVariants.addAll([variantName(feature, 'javadocElements'), variantName(feature, 'sourcesElements')])
             }
         }
-        assert mavenModule.parsedModuleMetadata.variants*.name as Set == expectedVariants as Set
+        def parsedModuleVariants = mavenModule.parsedModuleMetadata.variants*.name as TreeSet
+        assert parsedModuleVariants == expectedVariants
 
         features.each { feature ->
             assertMainVariantsPublished(feature, artifactFileExtension)
@@ -175,7 +176,7 @@ class MavenJavaModule extends DelegatingMavenModule<MavenFileModule> implements 
         }
     }
 
-    private void assertDependencies(String feature, String variant, String mavenScope, List<GradleModuleMetadata.Dependency> additionalGMMDependencies, String... expected) {
+    void assertDependencies(String feature, String variant, String mavenScope, List<GradleModuleMetadata.Dependency> additionalGMMDependencies, String... expected) {
         if (feature != MAIN_FEATURE) {
             // no dependencies for optional features in this test
             assert parsedModuleMetadata.variant(variantName(feature, variant)).dependencies.empty

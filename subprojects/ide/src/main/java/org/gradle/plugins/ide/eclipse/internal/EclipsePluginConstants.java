@@ -28,6 +28,9 @@ public class EclipsePluginConstants {
     public static final String GRADLE_USED_BY_SCOPE_ATTRIBUTE_NAME = "gradle_used_by_scope";
     public static final String GRADLE_SCOPE_ATTRIBUTE_NAME = "gradle_scope";
 
+    public static final String WITHOUT_TEST_CODE_ATTRIBUTE_KEY = "without_test_code";
+    public static final String WITHOUT_TEST_CODE_ATTRIBUTE_VALUE = "true";
+
     private EclipsePluginConstants() {
     }
 

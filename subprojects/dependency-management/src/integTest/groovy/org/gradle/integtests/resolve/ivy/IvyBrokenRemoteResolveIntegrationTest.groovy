@@ -16,10 +16,10 @@
 package org.gradle.integtests.resolve.ivy
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
 class IvyBrokenRemoteResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     void "reports and recovers from missing module"() {
         given:
         def repo = ivyHttpRepo("repo1")
@@ -79,7 +79,7 @@ Required by:
         succeeds('showMissing')
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     void "reports and recovers from multiple missing modules"() {
         given:
         def repo = ivyHttpRepo("repo1")
@@ -136,7 +136,7 @@ Required by:
         succeeds('showMissing')
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     void "reports and recovers from multiple missing transitive modules"() {
         settingsFile << "include 'child1'"
 
@@ -219,7 +219,7 @@ Required by:
         succeeds('showMissing')
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     void "reports and recovers from missing module when dependency declaration references an artifact"() {
         given:
         def repo = ivyHttpRepo("repo1")
@@ -266,7 +266,7 @@ Required by:
         succeeds('showMissing')
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     void "reports and recovers from module missing from multiple repositories"() {
         given:
         def repo1 = ivyHttpRepo("repo1")
@@ -316,7 +316,7 @@ Required by:
         succeeds('showMissing')
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     void "reports and recovers from missing module when no repositories defined"() {
         given:
         buildFile << """
@@ -352,7 +352,7 @@ task showMissing { doLast { println configurations.missing.files } }
         succeeds('showMissing')
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     void "reports and recovers from failed Ivy descriptor download"() {
         given:
         def module = ivyHttpRepo.module('group', 'projectA', '1.3').publish()
@@ -396,7 +396,7 @@ task showBroken { doLast { println configurations.broken.files } }
         succeeds("showBroken")
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     void "reports and caches missing artifact"() {
         given:
         buildFile << """
@@ -440,7 +440,7 @@ Searched in the following locations:
     ${module.jar.uri}""")
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     void "reports and recovers from failed artifact download"() {
         given:
         buildFile << """

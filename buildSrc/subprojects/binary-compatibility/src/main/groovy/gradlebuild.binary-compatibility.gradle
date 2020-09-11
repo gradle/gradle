@@ -14,17 +14,20 @@
  * limitations under the License.
  */
 
-import japicmp.model.JApiChangeStatus
+import gradlebuild.basics.PublicApi
+import gradlebuild.basics.PublicKotlinDslApi
+import gradlebuild.basics.GradleModuleApiAttribute
 import me.champeau.gradle.japicmp.JapicmpTask
-import org.gradle.binarycompatibility.AcceptedApiChanges
-import org.gradle.binarycompatibility.BinaryCompatibilityHelper
-import org.gradle.binarycompatibility.CleanAcceptedApiChanges
-import org.gradle.binarycompatibility.transforms.ExplodeZipAndFindJars
-import org.gradle.binarycompatibility.transforms.FindGradleClasspath
-import org.gradle.binarycompatibility.transforms.FindGradleJar
-import org.gradle.gradlebuild.PublicApi
+import gradlebuild.binarycompatibility.AcceptedApiChanges
+import gradlebuild.binarycompatibility.BinaryCompatibilityHelper
+import gradlebuild.binarycompatibility.CleanAcceptedApiChanges
+import gradlebuild.binarycompatibility.transforms.ExplodeZipAndFindJars
+import gradlebuild.binarycompatibility.transforms.FindGradleClasspath
+import gradlebuild.binarycompatibility.transforms.FindGradleJars
 
-import static org.gradle.api.attributes.Usage.USAGE_ATTRIBUTE
+plugins {
+    id("gradlebuild.module-identity")
+}
 
 repositories {
     ['distributions', 'distributions-snapshots'].each { distUrl ->
@@ -44,13 +47,14 @@ repositories {
     }
 }
 
-ext {
-    apiChangesJsonFile = project.file("src/changes/accepted-public-api-changes.json")
-    acceptedViolations = AcceptedApiChanges.parse(apiChangesJsonFile.text)
-    compatibilityBaselineVersion = Versioning_extensionsKt.getReleasedVersions(project).mostRecentRelease
-}
+def apiChangesJsonFile = project.file("src/changes/accepted-public-api-changes.json")
+def acceptedViolations = AcceptedApiChanges.parse(apiChangesJsonFile.text)
+def compatibilityBaselineVersion = moduleIdentity.releasedVersions.get().mostRecentRelease.version
 
 def ARTIFACT_TYPE = Attribute.of('artifactType', String)
+def RUNTIME_ATTRIBUTE = objects.named(Usage, Usage.JAVA_RUNTIME)
+def DOCUMENTATION_ATTRIBUTE = objects.named(Category, Category.DOCUMENTATION)
+def SOURCES_ATTRIBUTE = objects.named(DocsType, "gradle-source-folders")
 
 configurations {
     baseline
@@ -58,20 +62,36 @@ configurations {
         extendsFrom baseline
         attributes.attribute(ARTIFACT_TYPE, 'gradle-classpath')
     }
+    baselineJars {
+        extendsFrom baseline
+        attributes.attribute(ARTIFACT_TYPE, 'gradle-baseline-jars')
+    }
     currentClasspath {
+        canBeConsumed = false
+        canBeResolved = false
+        visible = false
+    }
+    currentApiClasspath {
         canBeConsumed = false
         canBeResolved = true
         description = "Classpath to check binary compatibility against"
-        attributes.attribute(USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
+        attributes.attribute(GradleModuleApiAttribute.attribute as Attribute<GradleModuleApiAttribute>, GradleModuleApiAttribute.API)
+        extendsFrom(currentClasspath)
+    }
+    currentSources {
+        canBeConsumed = false
+        canBeResolved = true
+        description = "Sources to check binary compatibility against"
+        attributes.attribute(GradleModuleApiAttribute.attribute as Attribute<GradleModuleApiAttribute>, GradleModuleApiAttribute.API)
+        attributes.attribute(Usage.USAGE_ATTRIBUTE as Attribute<Usage>, RUNTIME_ATTRIBUTE)
+        attributes.attribute(Category.CATEGORY_ATTRIBUTE as Attribute<Category>, DOCUMENTATION_ATTRIBUTE)
+        attributes.attribute(DocsType.DOCS_TYPE_ATTRIBUTE as Attribute<DocsType>, SOURCES_ATTRIBUTE)
+        extendsFrom(currentClasspath)
     }
 }
 
-def configurationsContainer = configurations
-def apiSourceFolders = files()
-def oldArchivesFiles = files()
-def newArchivesFiles = files()
 dependencies {
-    baseline "gradle:gradle:${compatibilityBaselineVersion}@zip"
+    baseline("gradle:gradle:${compatibilityBaselineVersion}@zip")
 
     // This transform takes the Gradle zip distribution,
     // and unzips the Gradle jar files that it contains in a directory
@@ -83,52 +103,34 @@ dependencies {
         from.attribute(ARTIFACT_TYPE, 'gradle-libs-dir')
         to.attribute(ARTIFACT_TYPE, 'gradle-classpath')
     }
-
-    // TODO update this to use a dependency on :distributionFull instead of 'rootProject.subprojects { }'
-    rootProject.subprojects { subproject ->
-        plugins.withId('gradlebuild.distribution.api') {
-            apiSourceFolders.from(subproject.sourceSets.main.allJava.sourceDirectories)
-            if (subproject.plugins.hasPlugin("kotlin")) {
-                apiSourceFolders.from(subproject.sourceSets.main.kotlin.sourceDirectories)
-            }
-            newArchivesFiles.from(subproject.jar)
-            // TODO: Current classpath should be derived from the other "Gradle runtime" sources like api-metadata, runtime-api, distribution building, etc...
-            currentClasspath project(subproject.path)
-
-            // This transform uses the result of the exploded zip extraction
-            // and returns a single jar file based on the lookup project name
-            def projectName = subproject.archivesBaseName - 'gradle-'
-            registerTransform(FindGradleJar) {
-                from.attribute(ARTIFACT_TYPE, 'gradle-libs-dir')
-                to.attribute(ARTIFACT_TYPE, projectName)
-                parameters {
-                    target = projectName
-                }
-            }
-            def appendixName = projectName.split('-')*.capitalize().join('')
-            def baselineConf = configurationsContainer.create("japicmp-baseline-${appendixName}") {
-                extendsFrom configurationsContainer.baseline
-                attributes.attribute(ARTIFACT_TYPE, projectName)
-            }
-            oldArchivesFiles.from(baselineConf)
-        }
-    }
 }
 
-def buildVersion = rootProject.buildVersion
-def baseVersion = buildVersion.baseVersion
-def isSnapshot = buildVersion.isSnapshot
 def checkBinaryCompatibility = tasks.register("checkBinaryCompatibility", JapicmpTask) {
-    inputs.files(configurations.currentClasspath)
+    def baseVersion = moduleIdentity.version.map { it.baseVersion.version }
+    def isSnapshot = moduleIdentity.snapshot
     inputs.property('acceptedViolations', acceptedViolations.toAcceptedChangesMap())
     inputs.property("baseline.version", compatibilityBaselineVersion)
     inputs.property("currentVersion", baseVersion)
+    def apiSourceFolders = configurations.currentSources.incoming.artifactView { lenient(true) }.files
     inputs.files("apiSourceFolders", apiSourceFolders)
+    def currentClasspath = configurations.currentApiClasspath.incoming.artifactView { lenient(true) }.files
+    inputs.files(currentClasspath)
 
+    newClasspath = currentClasspath
     oldClasspath = configurations.baselineClasspath
-    newClasspath = configurations.currentClasspath
-    oldArchives = oldArchivesFiles
-    newArchives = newArchivesFiles
+
+    def currentDistributionJars = currentClasspath.filter { it.name.startsWith('gradle-') && it.name.endsWith('.jar') }
+    newArchives = currentDistributionJars
+    oldArchives = configurations.baselineJars
+
+    dependencies.registerTransform(FindGradleJars) {
+        from.attribute(ARTIFACT_TYPE, 'gradle-libs-dir')
+        to.attribute(ARTIFACT_TYPE, 'gradle-baseline-jars')
+        parameters {
+            currentJars.from(currentDistributionJars)
+            currentVersion.set(baseVersion)
+        }
+    }
 
     // binary breaking change checking setup
     onlyModified = false
@@ -138,12 +140,12 @@ def checkBinaryCompatibility = tasks.register("checkBinaryCompatibility", Japicm
         includedClasses = toPatterns(PublicApi.includes + PublicKotlinDslApi.includes)
         excludedClasses = toPatterns(PublicApi.excludes + PublicKotlinDslApi.excludes)
 
-        title = "Binary compatibility report for Gradle ${isSnapshot ? "${baseVersion}-SNAPSHOT" : version} since ${compatibilityBaselineVersion}"
+        title = "Binary compatibility report for Gradle ${isSnapshot.get() ? "${baseVersion.get()}-SNAPSHOT" : version} since ${compatibilityBaselineVersion}"
         destinationDir = file("$buildDir/reports/binary-compatibility")
         reportName = "report.html"
     }
 
-    BinaryCompatibilityHelper.setupJApiCmpRichReportRules(delegate, acceptedViolations, apiSourceFolders, baseVersion)
+    BinaryCompatibilityHelper.setupJApiCmpRichReportRules(delegate, acceptedViolations, apiSourceFolders, baseVersion.get())
 }
 tasks.named("check").configure { dependsOn(checkBinaryCompatibility) }
 

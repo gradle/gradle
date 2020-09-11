@@ -1,1 +1,1 @@
-rootProject.name = "loggingKts"
+rootProject.name = "logging"

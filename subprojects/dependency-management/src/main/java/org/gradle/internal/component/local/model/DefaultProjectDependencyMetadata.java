@@ -75,7 +75,7 @@ public class DefaultProjectDependencyMetadata implements DependencyMetadata {
 
     @Override
     public boolean isConstraint() {
-        return false;
+        return delegate.isConstraint();
     }
 
     @Override

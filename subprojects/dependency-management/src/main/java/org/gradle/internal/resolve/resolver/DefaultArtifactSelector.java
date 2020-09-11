@@ -26,7 +26,6 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.simpl
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
 import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.internal.Describables;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
@@ -72,6 +71,6 @@ public class DefaultArtifactSelector implements ArtifactSelector {
 
     @Override
     public ArtifactSet resolveArtifacts(ComponentResolveMetadata component, Collection<? extends ComponentArtifactMetadata> artifacts, ImmutableAttributes overriddenAttributes) {
-        return DefaultArtifactSet.singleVariant(component.getId(), component.getModuleVersionId(), Describables.of(component.getId()), artifacts, component.getSources(), EXCLUDE_NONE, component.getAttributesSchema(), artifactResolver, allResolvedArtifacts, artifactTypeRegistry, component.getAttributes(), overriddenAttributes);
+        return DefaultArtifactSet.adHocVariant(component.getId(), component.getModuleVersionId(), artifacts, component.getSources(), EXCLUDE_NONE, component.getAttributesSchema(), artifactResolver, allResolvedArtifacts, artifactTypeRegistry, component.getAttributes(), overriddenAttributes);
     }
 }

@@ -17,7 +17,7 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.util.Path
 import spock.lang.Unroll
@@ -59,7 +59,7 @@ abstract class AbstractProjectDependencyConflictResolutionIntegrationSpec extend
     abstract boolean isAutoDependencySubstitution();
 
     @Unroll
-    @ToBeFixedForInstantExecution(bottomSpecs = [
+    @ToBeFixedForConfigurationCache(bottomSpecs = [
         "CompositeBuildProjectDependencyConflictResolutionIntegrationTest",
         "CompositeBuildIncludesMultiProjectProjectDependencyConflictResolutionIntegrationTest"
     ])

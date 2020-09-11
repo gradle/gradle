@@ -1,0 +1,81 @@
+/*
+ * Copyright 2020 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.gradle.jvm.toolchain.install.internal;
+
+import org.apache.commons.io.IOUtils;
+import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
+import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
+import org.gradle.api.resources.MissingResourceException;
+import org.gradle.internal.resource.ExternalResource;
+import org.gradle.internal.resource.ExternalResourceName;
+import org.gradle.internal.resource.ResourceExceptions;
+import org.gradle.internal.verifier.HttpRedirectVerifier;
+import org.gradle.internal.verifier.HttpRedirectVerifierFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URI;
+import java.util.Collections;
+
+public class AdoptOpenJdkDownloader {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(AdoptOpenJdkDownloader.class);
+
+    private final RepositoryTransportFactory repositoryTransportFactory;
+
+    public AdoptOpenJdkDownloader(RepositoryTransportFactory repositoryTransportFactory) {
+        this.repositoryTransportFactory = repositoryTransportFactory;
+    }
+
+    public void download(URI source, File tmpFile) {
+        final ExternalResource resource = getTransport().getRepository().withProgressLogging().resource(new ExternalResourceName(source));
+        try {
+            downloadResource(source, tmpFile, resource);
+        } catch (MissingResourceException e) {
+            throw new MissingResourceException(source, "Unable to download toolchain. " +
+                "This might indicate that the combination " +
+                "(version, architecture, release/early access, ...) for the " +
+                "requested JDK is not available.", e);
+        }
+    }
+
+    private void downloadResource(URI source, File tmpFile, ExternalResource resource) {
+        resource.withContent(inputStream -> {
+            LOGGER.info("Downloading {} to {}", resource.getDisplayName(), tmpFile);
+            copyIntoFile(source, inputStream, tmpFile);
+        });
+    }
+
+    private void copyIntoFile(URI source, InputStream inputStream, File destination) {
+        try (FileOutputStream outputStream = new FileOutputStream(destination)) {
+            IOUtils.copyLarge(inputStream, outputStream);
+        } catch (IOException e) {
+            throw ResourceExceptions.getFailed(source, e);
+        }
+    }
+
+    private RepositoryTransport getTransport() {
+        final HttpRedirectVerifier redirectVerifier = HttpRedirectVerifierFactory.create(null, true, null, null);
+        return repositoryTransportFactory.createTransport("https", "adoptopenjdk toolchains", Collections.emptyList(), redirectVerifier);
+    }
+
+
+}

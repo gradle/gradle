@@ -28,10 +28,14 @@ public class ExecuteStep<C extends InputChangesContext> implements Step<C, Resul
     @Override
     public Result execute(C context) {
         UnitOfWork work = context.getWork();
-        ExecutionOutcome outcome = context.getInputChanges()
-            .map(inputChanges -> determineOutcome(work.execute(inputChanges, context), inputChanges.isIncremental()))
-            .orElseGet(() -> determineOutcome(work.execute(null, context), false));
-        return () -> Try.successful(outcome);
+        try {
+            ExecutionOutcome outcome = context.getInputChanges()
+                .map(inputChanges -> determineOutcome(work.execute(inputChanges, context), inputChanges.isIncremental()))
+                .orElseGet(() -> determineOutcome(work.execute(null, context), false));
+            return () -> Try.successful(outcome);
+        } catch (Throwable t) {
+            return () -> Try.failure(t);
+        }
     }
 
     private static ExecutionOutcome determineOutcome(UnitOfWork.WorkResult result, boolean incremental) {

@@ -29,7 +29,6 @@ import org.gradle.internal.buildevents.BuildStartedTime;
 import org.gradle.internal.event.DefaultListenerManager;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
-import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.time.Clock;
 import org.gradle.launcher.exec.BuildActionExecuter;
@@ -39,32 +38,32 @@ import org.gradle.launcher.exec.BuildActionResult;
 /**
  * Reports any unreported failure that causes the session to finish.
  */
-public class SessionFailureReportingActionExecuter implements BuildActionExecuter<BuildActionParameters> {
-    private final BuildActionExecuter<BuildActionParameters> delegate;
+public class SessionFailureReportingActionExecuter implements BuildActionExecuter<BuildActionParameters, BuildRequestContext> {
+    private final BuildActionExecuter<BuildActionParameters, BuildRequestContext> delegate;
     private final StyledTextOutputFactory styledTextOutputFactory;
     private final Clock clock;
 
-    public SessionFailureReportingActionExecuter(StyledTextOutputFactory styledTextOutputFactory, Clock clock, BuildActionExecuter<BuildActionParameters> delegate) {
+    public SessionFailureReportingActionExecuter(StyledTextOutputFactory styledTextOutputFactory, Clock clock, BuildActionExecuter<BuildActionParameters, BuildRequestContext> delegate) {
         this.styledTextOutputFactory = styledTextOutputFactory;
         this.clock = clock;
         this.delegate = delegate;
     }
 
     @Override
-    public BuildActionResult execute(BuildAction action, BuildRequestContext requestContext, BuildActionParameters actionParameters, ServiceRegistry contextServices) {
+    public BuildActionResult execute(BuildAction action, BuildActionParameters actionParameters, BuildRequestContext requestContext) {
         try {
-            return delegate.execute(action, requestContext, actionParameters, contextServices);
+            return delegate.execute(action, actionParameters, requestContext);
         } catch (Throwable e) {
             // TODO - wire this stuff in properly
 
             // Sanitise the exception and report it
-            ExceptionAnalyser exceptionAnalyser = new MultipleBuildFailuresExceptionAnalyser(new DefaultExceptionAnalyser(new DefaultListenerManager(Scopes.BuildSession)));
+            ExceptionAnalyser exceptionAnalyser = new MultipleBuildFailuresExceptionAnalyser(new DefaultExceptionAnalyser(new DefaultListenerManager(Scopes.BuildSession.class)));
             if (action.getStartParameter().getShowStacktrace() != ShowStacktrace.ALWAYS_FULL) {
                 exceptionAnalyser = new StackTraceSanitizingExceptionAnalyser(exceptionAnalyser);
             }
             RuntimeException failure = exceptionAnalyser.transform(e);
             BuildStartedTime buildStartedTime = BuildStartedTime.startingAt(requestContext.getStartTime());
-            BuildLogger buildLogger = new BuildLogger(Logging.getLogger(SessionScopeBuildActionExecuter.class), styledTextOutputFactory, action.getStartParameter(), requestContext, buildStartedTime, clock);
+            BuildLogger buildLogger = new BuildLogger(Logging.getLogger(SessionScopeLifecycleBuildActionExecuter.class), styledTextOutputFactory, action.getStartParameter(), requestContext, buildStartedTime, clock);
             buildLogger.buildFinished(new BuildResult(null, failure));
             buildLogger.logResult(failure);
             return BuildActionResult.failed(failure);

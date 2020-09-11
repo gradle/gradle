@@ -1,6 +1,7 @@
 package configurations
 
 import common.JvmCategory
+import common.Os.LINUX
 import jetbrains.buildServer.configs.kotlin.v2019_2.AbsoluteId
 import model.CIBuildModel
 import model.Stage
@@ -12,8 +13,8 @@ class SmokeTests(model: CIBuildModel, stage: Stage, testJava: JvmCategory, task:
     description = "Smoke tests against third party plugins to see if they still work with the current Gradle version"
 
     params {
-        param("env.ANDROID_HOME", "/opt/android/sdk")
-        param("env.JAVA_HOME", buildJavaHome())
+        param("env.ANDROID_HOME", LINUX.androidHome)
+        param("env.JAVA_HOME", LINUX.buildJavaHome())
     }
 
     features {
@@ -23,7 +24,7 @@ class SmokeTests(model: CIBuildModel, stage: Stage, testJava: JvmCategory, task:
     applyTestDefaults(
         model,
         this,
-        ":smokeTest:$task",
+        ":smoke-test:$task",
         notQuick = true,
         extraParameters = buildScanTag("SmokeTests") + " -PtestJavaHome=%linux.${testJava.version.name}.${testJava.vendor.name}.64bit%"
     )

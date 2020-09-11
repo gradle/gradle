@@ -86,6 +86,11 @@ class AbstractVariantBackedConfigurationMetadata implements ModuleConfigurationM
     }
 
     @Override
+    public Identifier getIdentifier() {
+        return null;
+    }
+
+    @Override
     public ImmutableSet<String> getHierarchy() {
         return ImmutableSet.of(variant.getName());
     }

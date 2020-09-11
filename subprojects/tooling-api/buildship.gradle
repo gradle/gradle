@@ -18,22 +18,20 @@ import java.util.zip.ZipInputStream
 
 tasks.register("buildshipEclipseProject", CreateBuildshipEclipseProjectTask) {
     description = "Creates an Eclipse plug-in project from the Tooling API fat jar"
-    dependsOn toolingApiShadedJar
-
-    jarFile = toolingApiShadedJar.jarFile.get().asFile
+    dependsOn tasks.named('toolingApiShadedJar')
     projectDirectory = file("$buildDir/buildshipProject")
 }
 
 class CreateBuildshipEclipseProjectTask extends DefaultTask {
-
-    @InputFile
-    File jarFile
 
     @OutputDirectory
     File projectDirectory
 
     @TaskAction
     void generateBuildshipProject() {
+
+        File jarFile = project.tasks.named('toolingApiShadedJar').get().jarFile.get().asFile
+
         // create manifest and place it in the META-INF folder
         def manifestFile = new File(projectDirectory, "META-INF/MANIFEST.MF")
         if (!manifestFile.parentFile.exists()) {

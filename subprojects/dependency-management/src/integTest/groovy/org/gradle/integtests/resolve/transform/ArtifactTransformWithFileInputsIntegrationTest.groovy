@@ -18,7 +18,7 @@ package org.gradle.integtests.resolve.transform
 
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import spock.lang.Unroll
 
 class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyResolutionTest implements ArtifactTransformTestFixture {
@@ -265,7 +265,7 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
         outputContains("result = [b.jar.green, c.jar.green]")
     }
 
-    @ToBeFixedForInstantExecution(because = "included build is used but not detected by problem reporting")
+    @ToBeFixedForConfigurationCache(because = "included build is used but not detected by problem reporting")
     def "transform can receive a file collection containing substituted external dependencies as parameter"() {
         file("tools/settings.gradle") << """
             include 'tool-a', 'tool-b'
@@ -461,7 +461,6 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution(because = "file collection containing a String provider is not serialized correctly")
     def "can use input path sensitivity #pathSensitivity for parameter object"() {
         settingsFile << """
                 include 'a', 'b', 'c'
@@ -516,7 +515,7 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
         PathSensitivity.ABSOLUTE  | [['first/input', 'foo'], ['first/input', 'foo'], ['third/input', 'foo']]
     }
 
-    @ToBeFixedForInstantExecution(because = "classpath normalization configuration is not serialized")
+    @ToBeFixedForConfigurationCache(because = "classpath normalization configuration is not serialized")
     def "can use classpath normalization for parameter object"() {
         settingsFile << """
                 include 'a', 'b', 'c'

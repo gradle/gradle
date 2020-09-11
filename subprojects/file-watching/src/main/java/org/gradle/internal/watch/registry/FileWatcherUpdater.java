@@ -18,34 +18,33 @@ package org.gradle.internal.watch.registry;
 
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.SnapshotHierarchy;
-import org.gradle.internal.watch.WatchingNotSupportedException;
 
+import javax.annotation.CheckReturnValue;
 import java.io.File;
 import java.util.Collection;
 
-public interface FileWatcherUpdater extends SnapshotHierarchy.SnapshotDiffListener {
+public interface FileWatcherUpdater {
     /**
-     * Changes the root project directories, e.g. when the same daemon is used on a different project.
+     * Registers a watchable hierarchy.
      *
-     * The root project directories are used by hierarchical watchers to minimize the number of watched roots
-     * by watching the root projects instead of watching directories inside.
-     *
-     * @throws WatchingNotSupportedException when the native watchers can't be updated.
+     * @see FileWatcherRegistry#registerWatchableHierarchy(File, SnapshotHierarchy)
      */
-    void updateRootProjectDirectories(Collection<File> updatedRootProjectDirectories);
+    void registerWatchableHierarchy(File watchableHierarchy, SnapshotHierarchy root);
 
     /**
-     * {@inheritDoc}.
+     * Updates the watchers after changes to the root.
      *
-     * @throws WatchingNotSupportedException when the native watchers can't be updated.
+     * @see FileWatcherRegistry#virtualFileSystemContentsChanged(Collection, Collection, SnapshotHierarchy)
      */
-    @Override
-    void changed(Collection<CompleteFileSystemLocationSnapshot> removedSnapshots, Collection<CompleteFileSystemLocationSnapshot> addedSnapshots);
+    void virtualFileSystemContentsChanged(Collection<CompleteFileSystemLocationSnapshot> removedSnapshots, Collection<CompleteFileSystemLocationSnapshot> addedSnapshots, SnapshotHierarchy root);
 
     /**
-     * Notifies the updater that the build has been finished, so it can do some internal bookkeeping updates.
+     * Remove everything from the root which can't be kept after the current build finished.
      *
-     * Used by the hierarchical watchers to avoid stop watching root project directories during a build.
+     * @see FileWatcherRegistry#buildFinished(SnapshotHierarchy, int)
      */
-    void buildFinished();
+    @CheckReturnValue
+    SnapshotHierarchy buildFinished(SnapshotHierarchy root, int maximumNumberOfWatchedHierarchies);
+
+    int getNumberOfWatchedHierarchies();
 }

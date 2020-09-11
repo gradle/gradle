@@ -21,10 +21,12 @@ import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.inOrder
 import com.nhaarman.mockito_kotlin.mock
 
+import org.codehaus.groovy.runtime.StringGroovyMethods
+
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.plugins.PluginManager
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
 import org.gradle.kotlin.dsl.fixtures.FoldersDsl
 import org.gradle.kotlin.dsl.fixtures.bytecode.InternalName
@@ -60,7 +62,72 @@ import java.io.File
 @LeaksFileHandles("Kotlin Compiler Daemon working directory")
 class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest() {
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
+    @Test
+    fun `can use type-safe accessors for plugin relying on gradleProperty provider`() {
+
+        withFolders {
+            "buildSrc" {
+                "gradlePropertyPlugin" {
+                    withKotlinDslPlugin()
+                    withFile("src/main/kotlin/gradlePropertyPlugin.gradle.kts", """
+                        val property = providers.gradleProperty("theGradleProperty").forUseAtConfigurationTime()
+                        if (property.isPresent) {
+                            println("property is present in plugin!")
+                        }
+                        extensions.add<Provider<String>>(
+                            "theGradleProperty",
+                            property
+                        )
+                    """)
+                }
+                "gradlePropertyPluginConsumer" {
+                    withKotlinDslPlugin().appendText("""
+                        dependencies {
+                            implementation(project(":gradlePropertyPlugin"))
+                        }
+                    """)
+                    withFile("src/main/kotlin/gradlePropertyPluginConsumer.gradle.kts", """
+                        plugins { id("gradlePropertyPlugin") }
+
+                        if (theGradleProperty.isPresent) {
+                            println("property is present in consumer!")
+                        }
+                    """)
+                }
+
+                withDefaultSettingsIn(relativePath).appendText("""
+                    include("gradlePropertyPlugin")
+                    include("gradlePropertyPluginConsumer")
+                """)
+                withBuildScriptIn(relativePath, """
+                    plugins { `java-library` }
+                    dependencies {
+                        subprojects.forEach {
+                            runtimeOnly(project(it.path))
+                        }
+                    }
+                """)
+            }
+        }
+
+        withBuildScript("""
+            plugins { gradlePropertyPluginConsumer }
+        """)
+
+        build("help", "-PtheGradleProperty=42").apply {
+            assertThat(
+                output.count("property is present in plugin!"),
+                equalTo(1) // not printed when building buildSrc
+            )
+            assertThat(
+                output.count("property is present in consumer!"),
+                equalTo(1)
+            )
+        }
+    }
+
+    @ToBeFixedForConfigurationCache
     @Test
     fun `can use type-safe accessors for applied plugins with CRLF line separators`() {
 
@@ -83,7 +150,7 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
     }
 
     @Test
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     fun `fails the build with help message for plugin spec with version`() {
 
         withDefaultSettings().appendText("""
@@ -107,7 +174,7 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
     }
 
     @Test
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     fun `can use type-safe accessors with same name but different meaning in sibling plugins`() {
 
         val externalPlugins = withExternalPlugins()
@@ -166,8 +233,10 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
     """
 
     @Test
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     fun `can use type-safe accessors for the Kotlin Gradle plugin extensions`() {
+
+        assumeNonEmbeddedGradleExecuter() // Unknown issue with accessing the plugin portal from pre-compiled script plugin in embedded test mode
 
         withKotlinDslPlugin().appendText("""
             dependencies {
@@ -191,7 +260,7 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
     }
 
     @Test
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     fun `can use type-safe accessors for plugins applied by sibling plugin`() {
 
         withKotlinDslPlugin()
@@ -212,7 +281,7 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
     }
 
     @Test
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     fun `can use type-safe accessors from scripts with same name but different ids`() {
 
         val externalPlugins = withExternalPlugins()
@@ -267,7 +336,7 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
     }
 
     @Test
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     fun `can apply sibling plugin whether it has a plugins block or not`() {
 
         withKotlinDslPlugin()
@@ -292,7 +361,7 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
     }
 
     @Test
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     fun `can apply sibling plugin from another package`() {
 
         withKotlinDslPlugin()
@@ -314,7 +383,7 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
     }
 
     @Test
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     fun `generated type-safe accessors are internal`() {
 
         givenPrecompiledKotlinScript("java-project.gradle.kts", """
@@ -371,7 +440,7 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
     }
 
     @Test
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     fun `can use core plugin spec builders`() {
 
         givenPrecompiledKotlinScript("java-project.gradle.kts", """
@@ -396,7 +465,7 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
     }
 
     @Test
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     fun `can use plugin spec builders for plugins in the implementation classpath`() {
 
         // given:
@@ -429,7 +498,7 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
     }
 
     @Test
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     fun `can use plugin specs with jruby-gradle-plugin`() {
 
         withKotlinDslPlugin().appendText("""
@@ -451,7 +520,7 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
     }
 
     @Test
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     fun `plugin application errors are reported but don't cause the build to fail`() {
 
         // given:
@@ -485,14 +554,14 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
     }
 
     @Test
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     fun `can use plugin spec builders in multi-project builds with local and external plugins`() {
 
         testPluginSpecBuildersInMultiProjectBuildWithPluginsFromPackage(null)
     }
 
     @Test
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     fun `can use plugin spec builders in multi-project builds with local and external plugins sharing package name`() {
 
         testPluginSpecBuildersInMultiProjectBuildWithPluginsFromPackage("p")
@@ -653,4 +722,8 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
         }
         return Pair(project, pluginManager)
     }
+
+    private
+    fun CharSequence.count(text: CharSequence): Int =
+        StringGroovyMethods.count(this, text)
 }

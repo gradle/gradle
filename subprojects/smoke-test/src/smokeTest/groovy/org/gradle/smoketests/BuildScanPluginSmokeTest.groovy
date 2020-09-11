@@ -24,7 +24,7 @@ import org.gradle.util.VersionNumber
 import org.junit.Assume
 import spock.lang.Unroll
 
-
+// https://plugins.gradle.org/plugin/com.gradle.enterprise
 class BuildScanPluginSmokeTest extends AbstractSmokeTest {
 
     private static final List<String> UNSUPPORTED = [
@@ -64,7 +64,7 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
     "can use plugin #version"() {
         given:
         def versionNumber = VersionNumber.parse(version)
-        Assume.assumeFalse(GradleContextualExecuter.instant && versionNumber < FIRST_VERSION_SUPPORTING_CONFIGURATION_CACHE)
+        Assume.assumeFalse(GradleContextualExecuter.configCache && versionNumber < FIRST_VERSION_SUPPORTING_CONFIGURATION_CACHE)
 
         when:
         usePluginVersion version

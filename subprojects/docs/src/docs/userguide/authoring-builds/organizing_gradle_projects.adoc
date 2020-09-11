@@ -40,7 +40,6 @@ The following source tree contains Java and Kotlin source files. Java source fil
 ----
 .
 ├── build.gradle
-├── settings.gradle
 └── src
     └── main
         ├── java
@@ -55,7 +54,6 @@ The following source tree contains Java and Kotlin source files. Java source fil
 ----
 .
 ├── build.gradle.kts
-├── settings.gradle.kts
 └── src
     └── main
         ├── java
@@ -73,74 +71,8 @@ It's very common that a project defines and executes different types of tests e.
 Optimally, the test source code for each test type should be stored in dedicated source directories.
 Separated test source code has a positive impact on maintainability and separation of concerns as you can run test types independent from each other.
 
-The following source tree demonstrates how to separate unit from integration tests in a Java-based project.
-
-====
-[.multi-language-sample]
-=====
-[source,groovy]
-----
-.
-├── build.gradle
-├── gradle
-│   └── integration-test.gradle
-├── settings.gradle
-└── src
-    ├── integTest
-    │   └── java
-    │       └── DefaultFileReaderIntegrationTest.java
-    ├── main
-    │   └── java
-    │       ├── DefaultFileReader.java
-    │       ├── FileReader.java
-    │       └── StringUtils.java
-    └── test
-        └── java
-            └── StringUtilsTest.java
-----
-=====
-[.multi-language-sample]
-=====
-[source,kotlin]
-----
-.
-├── build.gradle.kts
-├── gradle
-│   └── integration-test.gradle.kts
-├── settings.gradle.kts
-└── src
-    ├── integTest
-    │   └── java
-    │       └── DefaultFileReaderIntegrationTest.java
-    ├── main
-    │   └── java
-    │       ├── DefaultFileReader.java
-    │       ├── FileReader.java
-    │       └── StringUtils.java
-    └── test
-        └── java
-            └── StringUtilsTest.java
-----
-=====
-====
-
-Gradle models source code directories with the help of the <<building_java_projects.adoc#sec:java_source_sets,source set concept>>.
-By pointing an instance of a source set to one or many source code directories, Gradle will automatically create a corresponding compilation task out-of-the-box.
-
-.Integration test source set
-====
-include::sample[dir="snippets/organizingGradleProjects/separatedTestTypes/groovy",files="gradle/integration-test.gradle[tags=custom-source-set]"]
-include::sample[dir="snippets/organizingGradleProjects/separatedTestTypes/kotlin",files="gradle/integration-test.gradle.kts[tags=custom-source-set]"]
-====
-
-Source sets are only responsible for compiling source code, but do not deal with executing the byte code.
-For the purpose of test execution, a corresponding task of type link:{groovyDslPath}/org.gradle.api.tasks.testing.Test.html[Test] needs to be established.
-
-.Integration test task
-====
-include::sample[dir="snippets/organizingGradleProjects/separatedTestTypes/groovy",files="gradle/integration-test.gradle[tags=test-task]"]
-include::sample[dir="snippets/organizingGradleProjects/separatedTestTypes/kotlin",files="gradle/integration-test.gradle.kts[tags=test-task]"]
-====
+Have a look at the link:../samples/sample_jvm_multi_project_with_additional_test_types.html[sample]
+that demonstrates how a separate integration tests configuration can be added to a Java-based project.
 
 [[sec:use_standard_conventions]]
 == Use standard conventions as much as possible
@@ -175,8 +107,11 @@ A typical Gradle project with a settings file look as such:
 [source,groovy]
 ----
 .
-├── build.gradle
-└── settings.gradle
+├── settings.gradle
+├── subproject-one
+│   └── build.gradle
+└── subproject-two
+    └── build.gradle
 ----
 =====
 [.multi-language-sample]
@@ -184,8 +119,11 @@ A typical Gradle project with a settings file look as such:
 [source,kotlin]
 ----
 .
-├── build.gradle.kts
-└── settings.gradle.kts
+├── settings.gradle.kts
+├── subproject-one
+│   └── build.gradle.kts
+└── subproject-two
+    └── build.gradle.kts
 ----
 =====
 ====
@@ -220,7 +158,6 @@ Optionally, the `buildSrc` directory can host a build script if additional confi
 [source,groovy]
 ----
 .
-├── build.gradle
 ├── buildSrc
 │   ├── build.gradle
 │   └── src
@@ -235,7 +172,11 @@ Optionally, the `buildSrc` directory can host a build script if additional confi
 │               └── com
 │                   └── enterprise
 │                       └── DeploymentPluginTest.java
-└── settings.gradle
+├── settings.gradle
+├── subprojecto-one
+│   └── build.gradle.kts
+└── subproject-two
+    └── build.gradle.kts
 ----
 =====
 [.multi-language-sample]
@@ -243,7 +184,6 @@ Optionally, the `buildSrc` directory can host a build script if additional confi
 [source,kotlin]
 ----
 .
-├── build.gradle.kts
 ├── buildSrc
 │   ├── build.gradle.kts
 │   └── src
@@ -258,7 +198,11 @@ Optionally, the `buildSrc` directory can host a build script if additional confi
 │               └── com
 │                   └── enterprise
 │                       └── DeploymentPluginTest.java
-└── settings.gradle.kts
+├── settings.gradle.kts
+├── subproject-one
+│   └── build.gradle.kts
+└── subproject-two
+    └── build.gradle.kts
 ----
 =====
 ====
@@ -286,9 +230,12 @@ Alternatively, the file can also live in the `GRADLE_USER_HOME` directory if you
 [source,groovy]
 ----
 .
-├── build.gradle
 ├── gradle.properties
 └── settings.gradle
+├── subproject-a
+│   └── build.gradle
+└── subproject-b
+    └── build.gradle
 ----
 =====
 [.multi-language-sample]
@@ -296,9 +243,12 @@ Alternatively, the file can also live in the `GRADLE_USER_HOME` directory if you
 [source,kotlin]
 ----
 .
-├── build.gradle.kts
 ├── gradle.properties
 └── settings.gradle.kts
+├── subproject-a
+│   └── build.gradle.kts
+└── subproject-b
+    └── build.gradle.kts
 ----
 =====
 ====

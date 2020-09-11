@@ -1,29 +1,23 @@
 package org.gradle.kotlin.dsl.plugins.dsl
 
 import org.gradle.api.internal.DocumentationRegistry
-import org.gradle.integtests.fixtures.ToBeFixedForFileSystemWatching
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.kotlin.dsl.fixtures.AbstractPluginTest
 import org.gradle.kotlin.dsl.fixtures.containsMultiLineString
 import org.gradle.kotlin.dsl.fixtures.normalisedPath
 import org.gradle.kotlin.dsl.support.expectedKotlinDslPluginsVersion
 import org.gradle.test.fixtures.file.LeaksFileHandles
-import org.gradle.util.TestPrecondition
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.CoreMatchers.not
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
 
 
-@ToBeFixedForFileSystemWatching(
-    because = "https://github.com/gradle/gradle/issues/12184",
-    failsOnlyIf = TestPrecondition.WINDOWS
-)
 @LeaksFileHandles("Kotlin Compiler Daemon working directory")
 class KotlinDslPluginTest : AbstractPluginTest() {
 
     @Test
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     fun `warns on unexpected kotlin-dsl plugin version`() {
 
         // The test applies the in-development version of the kotlin-dsl
@@ -45,7 +39,7 @@ class KotlinDslPluginTest : AbstractPluginTest() {
     }
 
     @Test
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     fun `gradle kotlin dsl api dependency is added`() {
 
         withKotlinDslPlugin()
@@ -66,8 +60,10 @@ class KotlinDslPluginTest : AbstractPluginTest() {
     }
 
     @Test
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     fun `gradle kotlin dsl api is available for test implementation`() {
+
+        assumeNonEmbeddedGradleExecuter() // Requires a Gradle distribution on the test-under-test classpath, but gradleApi() does not offer the full distribution
 
         withBuildScript("""
 
@@ -121,7 +117,7 @@ class KotlinDslPluginTest : AbstractPluginTest() {
     }
 
     @Test
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     fun `gradle kotlin dsl api is available in test-kit injected plugin classpath`() {
         assumeNonEmbeddedGradleExecuter() // requires a full distribution to run tests with test kit
 
@@ -216,7 +212,7 @@ class KotlinDslPluginTest : AbstractPluginTest() {
     }
 
     @Test
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     fun `sam-with-receiver kotlin compiler plugin is applied to production code`() {
 
         withKotlinDslPlugin()
@@ -245,7 +241,7 @@ class KotlinDslPluginTest : AbstractPluginTest() {
     }
 
     @Test
-    @ToBeFixedForInstantExecution(because = "Kotlin Gradle Plugin")
+    @ToBeFixedForConfigurationCache(because = "Kotlin Gradle Plugin")
     fun `by default experimental Kotlin compiler features are enabled and a warning is issued`() {
 
         withBuildExercisingSamConversionForKotlinFunctions()
@@ -274,7 +270,7 @@ class KotlinDslPluginTest : AbstractPluginTest() {
     }
 
     @Test
-    @ToBeFixedForInstantExecution(because = "Kotlin Gradle Plugin")
+    @ToBeFixedForConfigurationCache(because = "Kotlin Gradle Plugin")
     fun `can explicitly disable experimental Kotlin compiler features warning`() {
 
         withBuildExercisingSamConversionForKotlinFunctions(

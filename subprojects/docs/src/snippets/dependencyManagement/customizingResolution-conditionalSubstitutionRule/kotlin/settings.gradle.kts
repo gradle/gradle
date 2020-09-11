@@ -1,4 +1,6 @@
+rootProject.name = "customizing-resolution-conditional-substitution-rule"
 val projectNames = listOf("project1", "project2", "project3")
+include("consumer")
 
 projectNames.forEach { name ->
     if (isIncluded(name)) {

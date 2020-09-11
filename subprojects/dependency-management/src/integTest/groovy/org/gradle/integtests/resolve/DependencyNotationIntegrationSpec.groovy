@@ -17,13 +17,13 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.hamcrest.CoreMatchers
 import spock.lang.Issue
 
 class DependencyNotationIntegrationSpec extends AbstractIntegrationSpec {
 
-    @ToBeFixedForInstantExecution(because = "unsupported type Dependency")
+    @ToBeFixedForConfigurationCache(because = "unsupported type Dependency")
     def "understands dependency notations"() {
         when:
         buildFile <<  """
@@ -67,7 +67,7 @@ task checkDeps {
         assert configuredDep.version == '1.1'
         assert configuredDep.transitive == false
         assert configuredDep.force == true
-        
+
         assert deps.find { it instanceof ClientModule && it.name == 'moduleOne' && it.group == 'org.foo' }
         assert deps.find { it instanceof ClientModule && it.name == 'moduleTwo' && it.version == '1.0' }
 
@@ -135,11 +135,11 @@ dependencies {
         dependency 'org.foo:bar:1.0'
         dependencies ('org.foo:one:1', 'org.foo:two:1')
         dependency ('high:five:5') { transitive = false }
-        dependency('org.test:lateversion') { 
+        dependency('org.test:lateversion') {
                version {
-                  prefer '1.0' 
-                  strictly '1.1' // intentionally overriding "prefer" 
-               } 
+                  prefer '1.0'
+                  strictly '1.1' // intentionally overriding "prefer"
+               }
            }
     }
 }
@@ -249,11 +249,11 @@ task checkDeps
             configurations {
               conf
             }
-            
+
             dependencies {
-              conf provider { gradleApi() } 
+              conf provider { gradleApi() }
             }
-            
+
             task check {
                 doLast {
                     assert configurations.conf.dependencies.contains(dependencies.gradleApi())
@@ -262,5 +262,30 @@ task checkDeps
         """
         then:
         succeeds "check"
+    }
+
+    @ToBeFixedForConfigurationCache(because = "Dependency report task isn't compatible")
+    def "warns if using a configuration as a dependency"() {
+        given:
+        buildFile << """
+            configurations {
+              conf
+              other
+            }
+
+            dependencies {
+              conf configurations.other
+            }
+
+        """
+
+        when:
+        executer.expectDocumentedDeprecationWarning("Adding a Configuration as a dependency is a confusing behavior which isn't recommended."
+            + " This behaviour has been deprecated and is scheduled to be removed in Gradle 8.0."
+            + " If you're interested in inheriting the dependencies from the Configuration you are adding, you should use Configuration#extendsFrom instead."
+            + " See https://docs.gradle.org/current/dsl/org.gradle.api.artifacts.Configuration.html#org.gradle.api.artifacts.Configuration:extendsFrom(org.gradle.api.artifacts.Configuration[]) for more details.")
+
+        then:
+        succeeds "dependencies", '--configuration', 'conf'
     }
 }

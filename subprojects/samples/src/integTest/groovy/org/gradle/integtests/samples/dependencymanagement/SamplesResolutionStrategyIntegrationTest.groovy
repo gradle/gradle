@@ -18,7 +18,7 @@ package org.gradle.integtests.samples.dependencymanagement
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.Sample
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.test.fixtures.file.TestFile
 import org.junit.Rule
@@ -31,7 +31,7 @@ class SamplesResolutionStrategyIntegrationTest extends AbstractIntegrationSpec {
 
     @Unroll
     @UsesSample("dependencyManagement/customizingResolution-resolutionStrategy")
-    @ToBeFixedForInstantExecution(iterationMatchers = ".*kotlin dsl")
+    @ToBeFixedForConfigurationCache(iterationMatchers = ".*kotlin dsl")
     def "can resolve dependencies in #dsl dsl"() {
         TestFile dslDir = sample.dir.file(dsl)
         executer.inDirectory(dslDir)

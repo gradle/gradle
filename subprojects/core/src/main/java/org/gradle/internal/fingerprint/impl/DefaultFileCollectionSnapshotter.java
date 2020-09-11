@@ -27,19 +27,19 @@ import org.gradle.internal.file.Stat;
 import org.gradle.internal.fingerprint.FileCollectionSnapshotter;
 import org.gradle.internal.fingerprint.GenericFileTreeSnapshotter;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
-import org.gradle.internal.vfs.VirtualFileSystem;
+import org.gradle.internal.vfs.FileSystemAccess;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
 public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshotter {
-    private final VirtualFileSystem virtualFileSystem;
+    private final FileSystemAccess fileSystemAccess;
     private final GenericFileTreeSnapshotter genericFileTreeSnapshotter;
     private final Stat stat;
 
-    public DefaultFileCollectionSnapshotter(VirtualFileSystem virtualFileSystem, GenericFileTreeSnapshotter genericFileTreeSnapshotter, Stat stat) {
-        this.virtualFileSystem = virtualFileSystem;
+    public DefaultFileCollectionSnapshotter(FileSystemAccess fileSystemAccess, GenericFileTreeSnapshotter genericFileTreeSnapshotter, Stat stat) {
+        this.fileSystemAccess = fileSystemAccess;
         this.genericFileTreeSnapshotter = genericFileTreeSnapshotter;
         this.stat = stat;
     }
@@ -58,7 +58,7 @@ public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshott
         @Override
         public void visitCollection(FileCollectionInternal.Source source, Iterable<File> contents) {
             for (File file : contents) {
-                virtualFileSystem.read(file.getAbsolutePath(), roots::add);
+                fileSystemAccess.read(file.getAbsolutePath(), roots::add);
             }
         }
 
@@ -69,7 +69,7 @@ public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshott
 
         @Override
         public void visitFileTree(File root, PatternSet patterns, FileTreeInternal fileTree) {
-            virtualFileSystem.read(
+            fileSystemAccess.read(
                 root.getAbsolutePath(),
                 new PatternSetSnapshottingFilter(patterns, stat),
                 snapshot -> {
@@ -82,7 +82,7 @@ public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshott
 
         @Override
         public void visitFileTreeBackedByFile(File file, FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
-            virtualFileSystem.read(file.getAbsolutePath(), roots::add);
+            fileSystemAccess.read(file.getAbsolutePath(), roots::add);
         }
 
         public List<FileSystemSnapshot> getRoots() {

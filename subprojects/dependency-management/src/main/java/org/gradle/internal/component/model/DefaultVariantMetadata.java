@@ -24,12 +24,16 @@ import org.gradle.internal.DisplayName;
 import javax.annotation.Nullable;
 
 public class DefaultVariantMetadata implements VariantResolveMetadata {
+    private final String name;
+    private final Identifier identifier;
     private final DisplayName displayName;
     private final AttributeContainerInternal attributes;
     private final ImmutableList<? extends ComponentArtifactMetadata> artifacts;
     private final CapabilitiesMetadata capabilitiesMetadata;
 
-    public DefaultVariantMetadata(DisplayName displayName, AttributeContainerInternal attributes, ImmutableList<? extends ComponentArtifactMetadata> artifacts, @Nullable CapabilitiesMetadata capabilitiesMetadata) {
+    public DefaultVariantMetadata(String name, @Nullable Identifier identifier, DisplayName displayName, AttributeContainerInternal attributes, ImmutableList<? extends ComponentArtifactMetadata> artifacts, @Nullable CapabilitiesMetadata capabilitiesMetadata) {
+        this.name = name;
+        this.identifier = identifier;
         this.displayName = displayName;
         this.attributes = attributes;
         this.artifacts = artifacts;
@@ -38,7 +42,12 @@ public class DefaultVariantMetadata implements VariantResolveMetadata {
 
     @Override
     public String getName() {
-        return displayName.getDisplayName();
+        return name;
+    }
+
+    @Override
+    public Identifier getIdentifier() {
+        return identifier;
     }
 
     @Override

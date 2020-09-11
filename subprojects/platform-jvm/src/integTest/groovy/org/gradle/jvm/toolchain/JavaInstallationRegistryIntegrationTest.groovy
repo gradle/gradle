@@ -19,7 +19,7 @@ package org.gradle.jvm.toolchain
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.internal.jvm.Jvm
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -170,7 +170,7 @@ class JavaInstallationRegistryIntegrationTest extends AbstractIntegrationSpec {
 
     @IgnoreIf({ AvailableJavaHomes.differentVersion == null })
     @Requires(TestPrecondition.SYMLINKS)
-    @ToBeFixedForInstantExecution(because = "installationForDirectory(dir) not configuration cache ready")
+    @ToBeFixedForConfigurationCache(because = "installationForDirectory(dir) not configuration cache ready")
     def "notices changes to Java installation between builds"() {
         def jvm = AvailableJavaHomes.differentVersion
 
@@ -200,7 +200,7 @@ class JavaInstallationRegistryIntegrationTest extends AbstractIntegrationSpec {
         outputContains("java version = ${Jvm.current().javaVersion}")
     }
 
-    @ToBeFixedForInstantExecution(because = "gradle/instant-execution#268")
+    @ToBeFixedForConfigurationCache(because = "gradle/configuration-cache#268")
     def "reports unrecognized Java installation"() {
         file("install/bin/java").createFile()
 

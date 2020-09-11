@@ -18,7 +18,7 @@ package org.gradle.integtests.resolve.alignment
 
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import spock.lang.Issue
 
 class AlignmentIntegrationTest extends AbstractAlignmentSpec {
@@ -862,7 +862,7 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
     // We only need to test one flavor
     @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
     @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "virtual platform missing modules are cached across builds"() {
         // Disable daemon, so that the second run executes with the file cache
         // and therefore make sure that we read the "missing" status from disk
@@ -926,7 +926,7 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
 
     // Platforms cannot be published with plain Ivy
     @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "published platform can be found in a different repository"() {
         // Disable daemon, so that the second run executes with the file cache
         // and therefore make sure that we read the "missing" status from disk
@@ -1119,7 +1119,7 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
     }
 
     @Issue("gradle/gradle#7916")
-    @ToBeFixedForInstantExecution(because = ":dependencyInsight")
+    @ToBeFixedForConfigurationCache(because = ":dependencyInsight")
     def "shouldn't fail when a referenced component is a virtual platform"() {
         repository {
             'org:foo:1.0'()
@@ -1160,7 +1160,7 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
     // We only need to test one flavor
     @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
     @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
-    @ToBeFixedForInstantExecution(because = ":dependencyInsight")
+    @ToBeFixedForConfigurationCache(because = ":dependencyInsight")
     def "should manage to realign through two conflicts"() {
         repository {
             path 'start:start:1.0 -> foo:1.0'
@@ -1205,6 +1205,100 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
                         }
                     }
                 }
+            }
+            virtualConfiguration("org:platform:1.1")
+        }
+    }
+
+    // We only need to test one flavor
+    @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
+    @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
+    def 'properly aligns with substitutions in place'() {
+        repository {
+            path 'start:start:1.0 -> foo:1.2'
+
+            path 'foo:1.0 -> bar:1.0'
+            path 'foo:1.2 -> bar:1.2'
+            path 'foo:1.5 -> bar:1.5'
+
+            path 'foo:1.0 -> baz:1.0'
+            path 'foo:1.2 -> baz:1.2'
+            path 'foo:1.5 -> baz:1.5'
+
+            path 'baz:1.0 -> fooBar:1.0'
+            path 'baz:1.2 -> fooBar:1.2'
+            path 'baz:1.5 -> fooBar:1.5'
+
+            'org:bar:1.0'()
+            'org:bar:1.2'()
+            'org:bar:1.5'()
+            'org:fooBar:1.0'()
+            'org:fooBar:1.2'()
+            'org:fooBar:1.5'()
+        }
+
+        given:
+        buildFile << """
+            dependencies {
+              conf 'start:start:1.0'
+              conf 'org:foo:1+'
+            }
+
+            import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.*
+
+            def VERSIONED_COMPARATOR = new DefaultVersionComparator()
+            def VERSION_COMPARATOR = VERSIONED_COMPARATOR.asVersionComparator()
+            def VERSION_SCHEME = new DefaultVersionSelectorScheme(VERSIONED_COMPARATOR)
+
+            configurations.all {
+                resolutionStrategy.dependencySubstitution.all {
+                    def substituteFromVersion = "[1.2,)"
+                    def substituteToVersion = "1.0"
+                    def substitutionReason = "substitution from '\${it.requested.group}:\${it.requested.module}:\$substituteFromVersion' to '\${it.requested.group}:\${it.requested.module}:\$substituteToVersion'"
+                    def selector = VERSION_SCHEME.parseSelector(substituteFromVersion)
+                    if (it.requested.group.startsWith("org") && selector.accept(it.requested.version)) {
+                        it.useTarget("\${it.requested.group}:\${it.requested.module}:\${substituteToVersion}", substitutionReason)
+                    }
+                }
+            }
+"""
+        and:
+        "align the 'org' group only"()
+
+        when:
+
+        repository {
+            'org:foo' {
+                expectVersionListing()
+            }
+        }
+        expectAlignment {
+            module('start') group('start') alignsTo('1.0')
+            module('foo') alignsTo('1.5') byVirtualPlatform()
+            module('bar') tries('1.0') alignsTo('1.5') byVirtualPlatform()
+            module('fooBar') tries('1.0') alignsTo('1.5') byVirtualPlatform()
+            module('baz') tries('1.0') alignsTo('1.5') byVirtualPlatform()
+        }
+        run ':checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module("start:start:1.0") {
+                    edge("org:foo:1.2", "org:foo:1.5") {
+                        byConstraint("belongs to platform org:platform:1.5")
+                        module("org:bar:1.5") {
+                            byConstraint("belongs to platform org:platform:1.5")
+                        }
+                        module("org:baz:1.5") {
+                            module("org:fooBar:1.5") {
+                                byConstraint("belongs to platform org:platform:1.5")
+                            }
+                            byConstraint("belongs to platform org:platform:1.5")
+                        }
+                    }
+                }
+                edge('org:foo:1+', 'org:foo:1.5')
             }
             virtualConfiguration("org:platform:1.1")
         }

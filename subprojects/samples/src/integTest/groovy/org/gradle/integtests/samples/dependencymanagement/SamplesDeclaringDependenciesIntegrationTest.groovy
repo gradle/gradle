@@ -18,7 +18,7 @@ package org.gradle.integtests.samples.dependencymanagement
 
 import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
 import org.gradle.integtests.fixtures.Sample
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.test.fixtures.file.TestFile
 import org.junit.Rule
@@ -97,7 +97,7 @@ class SamplesDeclaringDependenciesIntegrationTest extends AbstractSampleIntegrat
 
     @Unroll
     @UsesSample("dependencyManagement/declaringDependencies-fileDependencies")
-    @ToBeFixedForInstantExecution(iterationMatchers = ".*kotlin dsl")
+    @ToBeFixedForConfigurationCache(iterationMatchers = ".*kotlin dsl")
     def "can use declare and resolve file dependencies with #dsl dsl"() {
         TestFile dslDir = sample.dir.file(dsl)
         executer.inDirectory(dslDir)
@@ -111,18 +111,6 @@ class SamplesDeclaringDependenciesIntegrationTest extends AbstractSampleIntegrat
         dslDir.file('build/libs/log4j.jar').isFile()
         dslDir.file('build/libs/a.exe').isFile()
         dslDir.file('build/libs/b.exe').isFile()
-
-        where:
-        dsl << ['groovy', 'kotlin']
-    }
-
-    @Unroll
-    @UsesSample("dependencyManagement/declaringDependencies-projectDependencies")
-    def "can declare and resolve project dependencies with #dsl dsl"() {
-        executer.inDirectory(sample.dir.file(dsl))
-
-        expect:
-        succeeds('assemble')
 
         where:
         dsl << ['groovy', 'kotlin']

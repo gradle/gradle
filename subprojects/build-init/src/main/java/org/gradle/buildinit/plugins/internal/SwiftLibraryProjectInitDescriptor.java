@@ -57,6 +57,6 @@ public class SwiftLibraryProjectInitDescriptor extends SwiftProjectInitDescripto
                 "swift-library")
             .plugin("Apply the xctest plugin to add support for building and running Swift test executables (Linux) or bundles (macOS)",
                 "xctest")
-            .block("Set the target operating system and architecture for this library", "library", b -> configureTargetMachineDefinition(b));
+            .block(null, "library", this::configureTargetMachineDefinition);
     }
 }

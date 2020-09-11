@@ -17,9 +17,9 @@
 package org.gradle.java
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
+import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 
-@UnsupportedWithInstantExecution(because = "software model")
+@UnsupportedWithConfigurationCache(because = "software model")
 class JavaProjectModelBridgingIntegrationTest extends AbstractIntegrationSpec {
     def "Java plugin source sets are visible in the software model as binaries and source sets"() {
         buildFile << '''

@@ -27,7 +27,7 @@ import org.gradle.internal.service.scopes.Scopes;
  *
  * This listener type is available to services from build tree up to global services.
  */
-@EventScope(Scopes.BuildTree)
+@EventScope(Scopes.BuildTree.class)
 public interface RootBuildLifecycleListener {
     /**
      * Called at the start of the root build, immediately after the creation of the root build services.

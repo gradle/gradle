@@ -21,7 +21,7 @@ package org.gradle.internal.operations;
  *
  * @since 4.0
  */
-public enum BuildOperationCategory {
+public enum BuildOperationCategory implements BuildOperationMetadata {
     /**
      * Configure the root build. May also include nested {@link #CONFIGURE_BUILD} and {@link #RUN_WORK} operations.
      */

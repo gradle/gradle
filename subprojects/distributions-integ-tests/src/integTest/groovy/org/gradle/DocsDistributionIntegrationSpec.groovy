@@ -31,6 +31,11 @@ class DocsDistributionIntegrationSpec extends DistributionIntegrationSpec {
     }
 
     @Override
+    int getMaxDistributionSizeBytes() {
+        return 38 * 1024 * 1024
+    }
+
+    @Override
     int getLibJarsCount() {
         0
     }

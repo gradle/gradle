@@ -18,6 +18,8 @@ package org.gradle.performance.results.report;
 
 import org.apache.commons.lang.StringUtils;
 import org.gradle.performance.results.FileRenderer;
+import org.gradle.performance.results.NoResultsStore;
+import org.gradle.performance.results.PerformanceDatabase;
 import org.gradle.performance.results.PerformanceTestHistory;
 import org.gradle.performance.results.ResultsStore;
 import org.gradle.performance.results.ResultsStoreHelper;
@@ -64,7 +66,7 @@ public abstract class AbstractReportGenerator<R extends ResultsStore> {
             renderScenarioPage(projectName, outputDirectory, testResults);
         }
 
-        copyResource("jquery.min-3.4.1.js", outputDirectory);
+        copyResource("jquery.min-3.5.1.js", outputDirectory);
         copyResource("flot-0.8.1-min.js", outputDirectory);
         copyResource("flot.selection.min.js", outputDirectory);
         copyResource("style.css", outputDirectory);
@@ -89,6 +91,9 @@ public abstract class AbstractReportGenerator<R extends ResultsStore> {
     }
 
     protected ResultsStore getResultsStore() throws ReflectiveOperationException {
+        if (!PerformanceDatabase.isAvailable()) {
+            return NoResultsStore.getInstance();
+        }
         Type superClass = getClass().getGenericSuperclass();
         Class<? extends ResultsStore> resultsStoreClass = (Class<R>) ((ParameterizedType) superClass).getActualTypeArguments()[0];
         return resultsStoreClass.getConstructor().newInstance();

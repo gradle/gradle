@@ -17,7 +17,6 @@
 package org.gradle.buildinit.plugins.internal;
 
 import org.gradle.api.UncheckedIOException;
-import org.gradle.api.internal.file.FileResolver;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -25,26 +24,18 @@ import java.io.IOException;
 import java.io.PrintWriter;
 
 public class GitAttributesGenerator implements BuildContentGenerator {
-    private final FileResolver fileResolver;
-
-    public GitAttributesGenerator(FileResolver fileResolver) {
-        this.fileResolver = fileResolver;
-    }
 
     @Override
     public void generate(InitSettings settings) {
-        File file = fileResolver.resolve(".gitattributes");
+        File file = settings.getTarget().file(".gitattributes").getAsFile();
         try {
-            PrintWriter writer = new PrintWriter(new FileWriter(file));
-            try {
+            try (PrintWriter writer = new PrintWriter(new FileWriter(file))) {
                 writer.println("#");
                 writer.println("# https://help.github.com/articles/dealing-with-line-endings/");
                 writer.println("#");
                 writer.println("# These are explicitly windows files and should use crlf");
                 writer.println("*.bat           text eol=crlf");
                 writer.println();
-            } finally {
-                writer.close();
             }
         } catch (IOException e) {
             throw new UncheckedIOException(e);

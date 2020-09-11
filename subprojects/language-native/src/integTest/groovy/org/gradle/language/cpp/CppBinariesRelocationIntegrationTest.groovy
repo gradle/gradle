@@ -16,7 +16,7 @@
 
 package org.gradle.language.cpp
 
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 
 class CppBinariesRelocationIntegrationTest extends AbstractInstalledToolChainIntegrationSpec implements CppTaskNames {
@@ -50,7 +50,7 @@ class CppBinariesRelocationIntegrationTest extends AbstractInstalledToolChainInt
             #else
             #define EXPORT_FUNC
             #endif
-            
+
             void EXPORT_FUNC lib_func();
         """
     }
@@ -72,7 +72,7 @@ class CppBinariesRelocationIntegrationTest extends AbstractInstalledToolChainInt
         """
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can execute application with dependencies when relocated"() {
         def installDir = file("build/install/main/debug")
         def relocatedInstallDir = file("relocated-install")

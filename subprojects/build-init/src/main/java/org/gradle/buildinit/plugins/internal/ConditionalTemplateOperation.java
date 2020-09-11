@@ -17,15 +17,18 @@ package org.gradle.buildinit.plugins.internal;
 
 import org.gradle.internal.Factory;
 
+import java.util.List;
+
 public class ConditionalTemplateOperation implements TemplateOperation {
-    private final TemplateOperation[] optionalOperations;
+    private final List<TemplateOperation> optionalOperations;
     private final Factory<Boolean> condition;
 
-    public ConditionalTemplateOperation(Factory<Boolean> precondition, TemplateOperation... optionalOperations) {
+    public ConditionalTemplateOperation(Factory<Boolean> precondition, List<TemplateOperation> optionalOperations) {
         this.condition = precondition;
         this.optionalOperations = optionalOperations;
     }
 
+    @SuppressWarnings("ConstantConditions")
     @Override
     public void generate() {
         if (condition.create()) {

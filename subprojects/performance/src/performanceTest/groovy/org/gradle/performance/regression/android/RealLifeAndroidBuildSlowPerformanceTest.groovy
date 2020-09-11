@@ -16,12 +16,10 @@
 
 package org.gradle.performance.regression.android
 
-
 import org.gradle.performance.categories.SlowPerformanceRegressionTest
 import org.gradle.profiler.mutations.AbstractCleanupMutator
 import org.gradle.profiler.mutations.ClearArtifactTransformCacheMutator
 import org.junit.experimental.categories.Category
-import spock.lang.Ignore
 import spock.lang.Unroll
 
 import static org.gradle.performance.regression.android.AndroidTestProject.LARGE_ANDROID_BUILD
@@ -31,7 +29,6 @@ import static org.gradle.performance.regression.android.IncrementalAndroidTestPr
 class RealLifeAndroidBuildSlowPerformanceTest extends AbstractRealLifeAndroidBuildPerformanceTest {
 
     @Unroll
-    @Ignore('https://github.com/gradle/gradle-private/issues/3113')
     def "clean #tasks on #testProject with clean transforms cache"() {
         given:
         testProject.configure(runner)

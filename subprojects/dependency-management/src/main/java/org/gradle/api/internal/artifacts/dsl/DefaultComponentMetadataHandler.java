@@ -211,6 +211,11 @@ public class DefaultComponentMetadataHandler implements ComponentMetadataHandler
         metadataRuleContainer.setVariantDerivationStrategy(strategy);
     }
 
+    @Override
+    public VariantDerivationStrategy getVariantDerivationStrategy() {
+        return metadataRuleContainer.getVariantDerivationStrategy();
+    }
+
     static class ComponentMetadataDetailsMatchingSpec implements Spec<ComponentMetadataDetails> {
         private final ModuleIdentifier target;
 

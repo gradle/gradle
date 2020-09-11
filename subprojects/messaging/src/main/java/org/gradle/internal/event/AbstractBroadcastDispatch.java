@@ -19,6 +19,7 @@ package org.gradle.internal.event;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.dispatch.Dispatch;
 import org.gradle.internal.dispatch.MethodInvocation;
+import org.gradle.internal.operations.BuildOperationInvocationException;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -41,6 +42,8 @@ public abstract class AbstractBroadcastDispatch<T> implements Dispatch<MethodInv
         try {
             handler.dispatch(invocation);
         } catch (UncheckedException e) {
+            throw new ListenerNotificationException(invocation, getErrorMessage(), Collections.singletonList(e.getCause()));
+        } catch (BuildOperationInvocationException e) {
             throw new ListenerNotificationException(invocation, getErrorMessage(), Collections.singletonList(e.getCause()));
         } catch (RuntimeException t) {
             throw t;

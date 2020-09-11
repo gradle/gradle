@@ -17,6 +17,8 @@
 package org.gradle.api.internal.tasks.testing.testng
 
 import org.gradle.api.GradleException
+import org.gradle.api.file.Directory
+import org.gradle.api.file.ProjectLayout
 import org.gradle.api.internal.tasks.testing.DefaultTestClassRunInfo
 import org.gradle.api.internal.tasks.testing.TestResultProcessor
 import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter
@@ -44,8 +46,12 @@ class TestNGTestClassProcessorTest extends Specification {
     @Rule TestNameTestDirectoryProvider dir = new TestNameTestDirectoryProvider(getClass())
 
     def processor = Mock(TestResultProcessor)
-
-    def options = Spy(TestNGSpec, constructorArgs:[new TestNGOptions(dir.testDirectory), new DefaultTestFilter()])
+    def layout = Stub(ProjectLayout) {
+        getProjectDirectory() >> Stub(Directory) {
+            getAsFile() >> dir.testDirectory
+        }
+    }
+    def options = Spy(TestNGSpec, constructorArgs:[new TestNGOptions(layout), new DefaultTestFilter()])
 
     @Subject classProcessor = new TestNGTestClassProcessor(dir.testDirectory, options, [], new LongIdGenerator(), Time.clock(), new TestActorFactory())
 

@@ -25,6 +25,8 @@ import org.gradle.internal.Factories;
 import org.gradle.internal.Factory;
 import org.gradle.internal.Pair;
 import org.gradle.internal.build.BuildState;
+import org.gradle.internal.model.CalculatedModelValue;
+import org.gradle.internal.model.ModelContainer;
 import org.gradle.internal.resources.ResourceLock;
 import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.util.Path;
@@ -34,7 +36,10 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 public class DefaultProjectStateRegistry implements ProjectStateRegistry {
     private final WorkerLeaseService workerLeaseService;
@@ -42,12 +47,7 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
     private final Map<Path, ProjectStateImpl> projectsByPath = Maps.newLinkedHashMap();
     private final Map<ProjectComponentIdentifier, ProjectStateImpl> projectsById = Maps.newLinkedHashMap();
     private final Map<Pair<BuildIdentifier, Path>, ProjectStateImpl> projectsByCompId = Maps.newLinkedHashMap();
-    private final static ThreadLocal<Boolean> LENIENT_MUTATION_STATE = new ThreadLocal<Boolean>() {
-        @Override
-        protected Boolean initialValue() {
-            return Boolean.FALSE;
-        }
-    };
+    private final AtomicReference<Thread> ownerOfAllProjects = new AtomicReference<>();
 
     public DefaultProjectStateRegistry(WorkerLeaseService workerLeaseService) {
         this.workerLeaseService = workerLeaseService;
@@ -122,24 +122,23 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
     }
 
     @Override
-    public void withLenientState(Runnable runnable) {
-        withLenientState(Factories.toFactory(runnable));
+    public void withMutableStateOfAllProjects(Runnable runnable) {
+        withMutableStateOfAllProjects(Factories.toFactory(runnable));
     }
 
     @Override
-    public <T> T withLenientState(Factory<T> factory) {
-        Boolean originalState = LENIENT_MUTATION_STATE.get();
-        LENIENT_MUTATION_STATE.set(true);
+    public <T> T withMutableStateOfAllProjects(Factory<T> factory) {
+        if (!ownerOfAllProjects.compareAndSet(null, Thread.currentThread())) {
+            if (ownerOfAllProjects.get() == Thread.currentThread()) {
+                return factory.create();
+            }
+            throw new IllegalStateException(String.format("Another thread (%s) currently holds the state lock for all projects.", ownerOfAllProjects));
+        }
         try {
             return factory.create();
         } finally {
-            LENIENT_MUTATION_STATE.set(originalState);
+            ownerOfAllProjects.set(null);
         }
-    }
-
-    @Override
-    public SafeExclusiveLock newExclusiveOperationLock() {
-        return new SafeExclusiveLockImpl();
     }
 
     private class ProjectStateImpl implements ProjectState {
@@ -222,86 +221,132 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
         }
 
         @Override
-        public void withMutableState(Runnable action) {
-            withMutableState(Factories.toFactory(action));
+        public void applyToMutableState(Consumer<? super ProjectInternal> action) {
+            fromMutableState(p -> {
+                action.accept(p);
+                return null;
+            });
         }
 
         @Override
-        public void withLenientState(Runnable runnable) {
-            DefaultProjectStateRegistry.this.withLenientState(runnable);
-        }
-
-        @Override
-        public <T> T withMutableState(final Factory<? extends T> factory) {
-            if (LENIENT_MUTATION_STATE.get()) {
-                return factory.create();
+        public <S> S fromMutableState(Function<? super ProjectInternal, ? extends S> function) {
+            Thread currentOwner = ownerOfAllProjects.get();
+            if (currentOwner != null) {
+                if (currentOwner == Thread.currentThread()) {
+                    // we hold the lock for all projects, can run the function
+                    return function.apply(getMutableModel());
+                }
+                throw new IllegalStateException(String.format("Cannot acquire state lock for %s as another thread (%s) currently holds the state lock for all projects.", project, currentOwner));
             }
 
             Collection<? extends ResourceLock> currentLocks = workerLeaseService.getCurrentProjectLocks();
             if (currentLocks.contains(projectLock)) {
                 // if we already hold the project lock for this project
                 if (currentLocks.size() == 1) {
-                    // the lock for this project is the only lock we hold
-                    return factory.create();
+                    // the lock for this project is the only lock we hold, can run the function
+                    return function.apply(getMutableModel());
                 } else {
                     currentLocks = Lists.newArrayList(currentLocks);
                     currentLocks.remove(projectLock);
                     // release any other project locks we might happen to hold
-                    return workerLeaseService.withoutLocks(currentLocks, factory);
+                    return workerLeaseService.withoutLocks(currentLocks, () -> function.apply(getMutableModel()));
                 }
             } else {
                 // we don't currently hold the project lock
                 if (!currentLocks.isEmpty()) {
                     // we hold other project locks that we should release first
-                    return workerLeaseService.withoutLocks(currentLocks, new Factory<T>() {
-                        @Nullable
-                        @Override
-                        public T create() {
-                            return withProjectLock(projectLock, factory);
-                        }
-                    });
+                    return workerLeaseService.withoutLocks(currentLocks, () -> withProjectLock(projectLock, function));
                 } else {
                     // we just need to get the lock for this project
-                    return withProjectLock(projectLock, factory);
+                    return withProjectLock(projectLock, function);
                 }
             }
         }
 
-        private <T> T withProjectLock(ResourceLock projectLock, final Factory<? extends T> factory) {
-            return workerLeaseService.withLocks(Collections.singleton(projectLock), factory);
+        private <S> S withProjectLock(ResourceLock projectLock, final Function<? super ProjectInternal, ? extends S> function) {
+            return workerLeaseService.withLocks(Collections.singleton(projectLock), () -> function.apply(getMutableModel()));
         }
 
         @Override
         public boolean hasMutableState() {
-            return LENIENT_MUTATION_STATE.get() || workerLeaseService.getCurrentProjectLocks().contains(projectLock);
+            return ownerOfAllProjects.get() == Thread.currentThread() || workerLeaseService.getCurrentProjectLocks().contains(projectLock);
+        }
+
+        @Override
+        public <T> CalculatedModelValue<T> newCalculatedValue(@Nullable T initialValue) {
+            return new CalculatedModelValueImpl<>(this, workerLeaseService, initialValue);
         }
     }
 
-    private class SafeExclusiveLockImpl implements SafeExclusiveLock {
+    private static class CalculatedModelValueImpl<T> implements CalculatedModelValue<T> {
+        private final WorkerLeaseService workerLeaseService;
+        private final ModelContainer<?> owner;
         private final ReentrantLock lock = new ReentrantLock();
+        private volatile T value;
+
+        public CalculatedModelValueImpl(ProjectStateImpl owner, WorkerLeaseService workerLeaseService, @Nullable T initialValue) {
+            this.workerLeaseService = workerLeaseService;
+            this.value = initialValue;
+            this.owner = owner;
+        }
 
         @Override
-        public void withLock(final Runnable runnable) {
+        public T get() throws IllegalStateException {
+            T currentValue = getOrNull();
+            if (currentValue == null) {
+                throw new IllegalStateException("No calculated value is available for " + owner);
+            }
+            return currentValue;
+        }
+
+        @Override
+        public T getOrNull() {
+            // Grab the current value, ignore updates that may be happening
+            return value;
+        }
+
+        @Override
+        public void set(T newValue) {
+            assertCanMutate();
+            value = newValue;
+        }
+
+        @Override
+        public T update(Function<T, T> updateFunction) {
+            acquireUpdateLock();
+            try {
+                // Do not hold any locks while applying the update
+                T newValue = updateFunction.apply(value);
+                value = newValue;
+                return newValue;
+            } finally {
+                releaseUpdateLock();
+            }
+        }
+
+        private void acquireUpdateLock() {
             // It's important that we do not block waiting for the lock while holding the project mutation lock.
             // Doing so can lead to deadlocks.
-            try {
-                if (lock.tryLock()) {
-                    runnable.run();
-                } else {
-                    // Another thread holds the lock, release the project lock and wait for the other thread to finish
-                    workerLeaseService.withoutProjectLock(new Runnable() {
-                        @Override
-                        public void run() {
-                            lock.lock();
-                        }
-                    });
-                    runnable.run();
-                }
-            } finally {
-                if (lock.isHeldByCurrentThread()) {
-                    lock.unlock();
-                }
+
+            assertCanMutate();
+
+            if (lock.tryLock()) {
+                // Update lock was not contended, can keep holding the project locks
+                return;
             }
+
+            // Another thread holds the update lock, release the project locks and wait for the other thread to finish the update
+            workerLeaseService.withoutProjectLock(lock::lock);
+        }
+
+        private void assertCanMutate() {
+            if (!owner.hasMutableState()) {
+                throw new IllegalStateException("Current thread does not hold the state lock for " + owner);
+            }
+        }
+
+        private void releaseUpdateLock() {
+            lock.unlock();
         }
     }
 }

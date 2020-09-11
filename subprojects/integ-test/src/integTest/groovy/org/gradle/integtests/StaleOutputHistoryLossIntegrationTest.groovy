@@ -19,12 +19,13 @@ package org.gradle.integtests
 import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.StaleOutputJavaProject
-import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
+import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
 import org.gradle.internal.jvm.Jvm
+import org.gradle.util.GradleVersion
 import org.junit.Assume
 import spock.lang.Issue
 import spock.lang.Unroll
@@ -46,6 +47,10 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
         buildFile << "apply plugin: 'base'\n"
         // When adding support for a new JDK version, the previous release might not work with it yet.
         Assume.assumeTrue(releasedVersionDistributions.mostRecentRelease.worksWith(Jvm.current()))
+    }
+
+    GradleVersion getMostRecentReleaseVersion() {
+        releasedVersionDistributions.mostRecentRelease.version
     }
 
     @Issue("https://github.com/gradle/gradle/issues/821")
@@ -127,7 +132,7 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
 
     // We register the output directory before task execution and would have deleted output files at the end of configuration.
     @Issue("https://github.com/gradle/gradle/issues/821")
-    @UnsupportedWithInstantExecution
+    @UnsupportedWithConfigurationCache
     def "production class files are removed even if output directory is reconfigured during execution phase"() {
         given:
         def javaProject = new StaleOutputJavaProject(testDirectory)
@@ -155,7 +160,6 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
         javaProject.redundantClassFileAlternate.assertIsFile()
 
         when:
-        buildFile.text = buildFile.text.replace('compileJava.destinationDir', 'compileJava.destinationDirectory')
         forceDelete(javaProject.redundantSourceFile)
         succeeds JAR_TASK_NAME
 

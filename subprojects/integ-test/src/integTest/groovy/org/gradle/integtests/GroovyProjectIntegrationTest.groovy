@@ -16,11 +16,11 @@
 package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
 class GroovyProjectIntegrationTest extends AbstractIntegrationSpec {
 
-    @ToBeFixedForInstantExecution(because = "gradle/instant-execution#270")
+    @ToBeFixedForConfigurationCache(because = "gradle/configuration-cache#270")
     def handlesJavaSourceOnly() {
         given:
         buildFile << "apply plugin: 'groovy'"

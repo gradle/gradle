@@ -1,14 +1,14 @@
 NOTE: You can open this sample inside an IDE using the https://www.jetbrains.com/help/idea/gradle.html#gradle_import_project_start[IntelliJ native importer] or https://projects.eclipse.org/projects/tools.buildship[Eclipse Buildship].
 
-= Defining and using a composite build
+== Defining and using a composite build
 
 This sample shows how 2 Gradle builds that are normally developed separately and combined using binary integration can be wired together into a composite build with source integration. The `my-utils` multiproject build produces 2 different java libraries, and the `my-app` build produces an executable using functions from those libraries.
 
 Note that the `my-app` build does not have direct dependencies on `my-utils`. Instead, it declares module dependencies on the libraries produced by `my-utils`:
 
 ====
-include::sample[dir="groovy",files="my-app/build.gradle[tags=app_dependencies]"]
-include::sample[dir="kotlin",files="my-app/build.gradle.kts[tags=app_dependencies]"]
+include::sample[dir="groovy",files="my-app/app/build.gradle[tags=app_dependencies]"]
+include::sample[dir="kotlin",files="my-app/app/build.gradle.kts[tags=app_dependencies]"]
 ====
 
 == Using command-line composite build

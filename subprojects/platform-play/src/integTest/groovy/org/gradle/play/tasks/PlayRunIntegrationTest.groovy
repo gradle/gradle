@@ -16,10 +16,12 @@
 
 package org.gradle.play.tasks
 
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.play.integtest.fixtures.PlayApp
 import org.gradle.play.integtest.fixtures.PlayMultiVersionRunApplicationIntegrationTest
 import org.gradle.play.integtest.fixtures.app.BasicPlayApp
+
+import java.util.concurrent.TimeUnit
 
 class PlayRunIntegrationTest extends PlayMultiVersionRunApplicationIntegrationTest {
     PlayApp playApp = new BasicPlayApp(versionNumber)
@@ -35,7 +37,7 @@ class PlayRunIntegrationTest extends PlayMultiVersionRunApplicationIntegrationTe
         """
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "play run container classloader is isolated from the worker process classloader"() {
         withLoadProjectClassController()
 
@@ -52,6 +54,7 @@ class PlayRunIntegrationTest extends PlayMultiVersionRunApplicationIntegrationTe
 
         cleanup:
         build.cancelWithEOT().waitForFinish()
+        TimeUnit.SECONDS.sleep(10)
         runningApp.verifyStopped()
     }
 

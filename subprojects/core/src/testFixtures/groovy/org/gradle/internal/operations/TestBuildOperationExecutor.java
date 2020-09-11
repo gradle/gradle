@@ -68,7 +68,12 @@ public class TestBuildOperationExecutor implements BuildOperationExecutor {
     }
 
     @Override
-    public ExecutingBuildOperation start(BuildOperationDescriptor.Builder descriptor) {
+    public <O extends BuildOperation> void execute(O buildOperation, BuildOperationWorker<O> worker, @Nullable BuildOperationState defaultParent) {
+        log.execute(buildOperation, worker);
+    }
+
+    @Override
+    public BuildOperationContext start(BuildOperationDescriptor.Builder descriptor) {
         return log.start(descriptor);
     }
 
@@ -282,16 +287,25 @@ public class TestBuildOperationExecutor implements BuildOperationExecutor {
             return t;
         }
 
-        private ExecutingBuildOperation start(final BuildOperationDescriptor.Builder descriptor) {
+        private <O extends BuildOperation> void execute(O buildOperation, BuildOperationWorker<O> worker) {
+            Record record = new Record(buildOperation.description().build());
+            records.add(record);
+            TestBuildOperationContext context = new TestBuildOperationContext(record);
+            try {
+                worker.execute(buildOperation, context);
+            } catch (Throwable failure) {
+                if (record.failure == null) {
+                    record.failure = failure;
+                }
+                throw UncheckedException.throwAsUncheckedException(failure);
+            }
+        }
+
+        private BuildOperationContext start(final BuildOperationDescriptor.Builder descriptor) {
             Record record = new Record(descriptor.build());
             records.add(record);
             final TestBuildOperationContext context = new TestBuildOperationContext(record);
-            return new ExecutingBuildOperation() {
-                @Override
-                public BuildOperationDescriptor.Builder description() {
-                    return descriptor;
-                }
-
+            return new BuildOperationContext() {
                 @Override
                 public void failed(@Nullable Throwable failure) {
                     context.failed(failure);

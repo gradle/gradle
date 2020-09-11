@@ -46,8 +46,7 @@ import org.gradle.internal.operations.CallableBuildOperation
 import org.gradle.internal.scripts.CompileScriptBuildOperationType.Details
 import org.gradle.internal.scripts.CompileScriptBuildOperationType.Result
 import org.gradle.internal.scripts.ScriptExecutionListener
-
-import org.gradle.kotlin.dsl.accessors.pluginSpecBuildersClassPath
+import org.gradle.kotlin.dsl.accessors.PluginAccessorClassPathGenerator
 
 import org.gradle.kotlin.dsl.cache.ScriptCache
 import org.gradle.kotlin.dsl.execution.CompiledScript
@@ -61,6 +60,7 @@ import org.gradle.kotlin.dsl.support.EmbeddedKotlinProvider
 import org.gradle.kotlin.dsl.support.ImplicitImports
 import org.gradle.kotlin.dsl.support.KotlinScriptHost
 import org.gradle.kotlin.dsl.support.ScriptCompilationException
+import org.gradle.kotlin.dsl.support.serviceOf
 
 import org.gradle.plugin.management.internal.PluginRequests
 
@@ -155,7 +155,8 @@ class StandardKotlinScriptEvaluator(
 
         override fun pluginAccessorsFor(scriptHost: KotlinScriptHost<*>): ClassPath =
             (scriptHost.target as? Project)?.let {
-                pluginSpecBuildersClassPath(it).bin
+                val pluginAccessorClassPathGenerator = it.serviceOf<PluginAccessorClassPathGenerator>()
+                pluginAccessorClassPathGenerator.pluginSpecBuildersClassPath(it).bin
             } ?: ClassPath.EMPTY
 
         override fun runCompileBuildOperation(scriptPath: String, stage: String, action: () -> String): String =

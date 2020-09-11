@@ -51,7 +51,7 @@ public interface DomainObjectContext {
     /**
      * The container that holds the model for this context, to allow synchronized access to the model.
      */
-    ModelContainer getModel();
+    ModelContainer<?> getModel();
 
     /**
      * The path to the build that is associated with this object.

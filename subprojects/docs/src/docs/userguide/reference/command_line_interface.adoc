@@ -68,8 +68,8 @@ Most builds support a common set of tasks known as <<more_about_tasks#sec:lifecy
 In a <<intro_multi_project_builds.adoc#intro_multi_project_builds, multi-project build>>, subproject tasks can be executed with ":" separating subproject name and task name. The following are equivalent _when run from the root project_.
 
 ----
-$ gradle :mySubproject:taskName
-$ gradle mySubproject:taskName
+$ gradle :my-subproject:taskName
+$ gradle my-subproject:taskName
 ----
 
 You can also run a task for all subprojects using the task name only. For example, this will run the "test" task for all subprojects when invoked from the root project directory.
@@ -81,7 +81,7 @@ $ gradle test
 When invoking Gradle from within a subproject, the project name should be omitted:
 
 ----
-$ cd mySubproject
+$ cd my-subproject
 $ gradle taskName
 ----
 
@@ -136,16 +136,21 @@ When executed with `--continue`, Gradle will execute _every_ task to be executed
 
 If a task fails, any subsequent tasks that were depending on it will not be executed. For example, tests will not run if there is a compilation failure in the code under test; because the test task will depend on the compilation task (either directly or indirectly).
 
-=== Task name abbreviation
+[[sec:name_abbreviation]]
+=== Name abbreviation
 
 When you specify tasks on the command-line, you don’t have to provide the full name of the task. You only need to provide enough of the task name to uniquely identify the task. For example, it's likely `gradle che` is enough for Gradle to identify the `check` task.
 
-You can also abbreviate each word in a camel case task name. For example, you can execute task `compileTest` by running `gradle compTest` or even `gradle cT`.
+The same applies for project names. You can execute the `check` task in the `library` subproject with the `gradle lib:che` command.
 
-.Abbreviated camel case task name
+You can use https://en.wikipedia.org/wiki/Camel_case[camel case] patterns for more complex abbreviations. These patterns are expanded to match camel case and https://en.wikipedia.org/wiki/Kebab_case[kebab case] names. For example the pattern `foBa` (or even `fB`) matches `fooBar` and `foo-bar`.
+
+More concretely, you can run the `compileTest` task in the `my-awesome-library` subproject with the `gradle  mAL:cT` command.
+
+.Abbreviated project and task names
 ----
-$ gradle cT
-include::{snippetsPath}/tutorial/excludeTasks/tests/abbreviateCamelCaseTaskName.out[]
+$ gradle  mAL:cT
+include::{snippetsPath}/tutorial/nameMatching/tests/nameMatching.out[]
 ----
 
 You can also use these abbreviations with the -x command-line option.
@@ -201,7 +206,7 @@ Running `gradle projects` gives you a list of the sub-projects of the selected p
 $ gradle projects
 ----
 
-You also get a project report within build scans. Learn more about https://guides.gradle.org/creating-build-scans/[creating build scans].
+You also get a project report within build scans. Learn more about https://scans.gradle.com/[creating build scans].
 
 [[sec:listing_tasks]]
 === Listing tasks
@@ -339,13 +344,13 @@ Many of these options can be specified in `gradle.properties` so command-line fl
 Toggles the <<build_cache.adoc#build_cache, Gradle build cache>>. Gradle will try to reuse outputs from previous builds. _Default is off_.
 
 `--configure-on-demand`, `--no-configure-on-demand`::
-Toggles <<multi_project_builds.adoc#sec:configuration_on_demand, Configure-on-demand>>. Only relevant projects are configured in this build run. _Default is off_.
+Toggles <<multi_project_configuration_and_execution.adoc#sec:configuration_on_demand, Configure-on-demand>>. Only relevant projects are configured in this build run. _Default is off_.
 
 `--max-workers`::
 Sets maximum number of workers that Gradle may use. _Default is number of processors_.
 
 `--parallel`, `--no-parallel`::
-Build projects in parallel. For limitations of this option, see <<multi_project_builds.adoc#sec:parallel_execution, Parallel Project Execution>>. _Default is off_.
+Build projects in parallel. For limitations of this option, see <<multi_project_configuration_and_execution.adoc#sec:parallel_execution, Parallel Project Execution>>. _Default is off_.
 
 `--priority`::
 Specifies the scheduling priority for the Gradle daemon and all processes launched by it. Values are `normal` or `low`. _Default is normal_.

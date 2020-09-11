@@ -65,13 +65,13 @@ class TypeInspector {
             return;
         }
 
-        Set<Type> preventEndlessRecursiveSetInClassDefinition = new HashSet<>();
+        Set<Type> preventEndlessRecursiveSetInClassDefinition = new HashSet<Type>();
         for (Type superType : type.getGenericInterfaces()) {
             visit(superType, types, preventEndlessRecursiveSetInClassDefinition);
         }
 
         for (Method method : type.getDeclaredMethods()) {
-            Set<Type> methodSet = new HashSet<>();
+            Set<Type> methodSet = new HashSet<Type>();
             visit(method.getGenericReturnType(), types, methodSet);
             for (TypeVariable<Method> typeVariable : method.getTypeParameters()) {
                 visit(typeVariable, types, methodSet);

@@ -1,1 +1,2 @@
-include("api", "shared", "services:personService")
+rootProject.name = "dependencies-java"
+include("api", "shared", "services:person-service")

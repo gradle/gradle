@@ -84,6 +84,10 @@ class ExclusiveRepositoryContentFilteringIntegrationTest extends AbstractHttpDep
             "includeModule('org', 'foo')",
             "includeModuleByRegex('or[g]', 'f[o]+')",
             "includeVersion('org', 'foo', '1.0')",
+            "includeVersion('org', 'foo', '[1.0,)')",
+            "includeVersion('org', 'foo', '[1.0,1.2]')",
+            "includeVersion('org', 'foo', '[1.0,1.2)')",
+            "includeVersion('org', 'foo', '(,1.1]')",
             "includeVersionByRegex('or[g]', 'f[o]+', '1[.].+')",
         ]
     }
@@ -141,6 +145,10 @@ class ExclusiveRepositoryContentFilteringIntegrationTest extends AbstractHttpDep
             "includeModule('org', 'foo')",
             "includeModuleByRegex('or[g]', 'f[o]+')",
             "includeVersion('org', 'foo', '1.0')",
+            "includeVersion('org', 'foo', '[1.0,)')",
+            "includeVersion('org', 'foo', '[1.0,1.2]')",
+            "includeVersion('org', 'foo', '[1.0,1.2)')",
+            "includeVersion('org', 'foo', '(,1.1]')",
             "includeVersionByRegex('or[g]', 'f[o]+', '1[.].+')",
         ]
     }
@@ -204,6 +212,10 @@ class ExclusiveRepositoryContentFilteringIntegrationTest extends AbstractHttpDep
             "includeModule('org', 'foo')",
             "includeModuleByRegex('or[g]', 'f[o]+')",
             "includeVersion('org', 'foo', '1.0')",
+            "includeVersion('org', 'foo', '[1.0,)')",
+            "includeVersion('org', 'foo', '[1.0,1.2]')",
+            "includeVersion('org', 'foo', '[1.0,1.2)')",
+            "includeVersion('org', 'foo', '(,1.1]')",
             "includeVersionByRegex('or[g]', 'f[o]+', '1[.].+')",
         ]
     }

@@ -16,7 +16,7 @@
 
 package org.gradle.language.swift
 
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.nativeplatform.fixtures.app.CppGreeterFunction
 import org.gradle.nativeplatform.fixtures.app.CppGreeterFunctionUsesLogger
 import org.gradle.nativeplatform.fixtures.app.CppGreeterFunctionUsesLoggerApi
@@ -31,7 +31,7 @@ import spock.lang.Unroll
 
 class SwiftApplicationCppInteroperabilityIntegrationTest extends AbstractSwiftMixedLanguageIntegrationTest {
     @Unroll
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can compile and link against a #linkage.toLowerCase() c++ library"() {
         settingsFile << "include 'app', 'cppGreeter'"
         def cppGreeter = new CppGreeterFunction()
@@ -72,7 +72,7 @@ class SwiftApplicationCppInteroperabilityIntegrationTest extends AbstractSwiftMi
         linkage << [SHARED, STATIC]
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can compile and link against a c++ library with both static and shared linkages"() {
         settingsFile << "include 'app', 'cppGreeter'"
         def cppGreeter = new CppGreeterFunction()
@@ -104,7 +104,7 @@ class SwiftApplicationCppInteroperabilityIntegrationTest extends AbstractSwiftMi
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can compile and link against a library with a dependency on a #linkage.toLowerCase() c++ library"() {
         settingsFile << "include 'app', 'greeter', 'cppGreeter'"
         def cppGreeter = new CppGreeterFunction()
@@ -162,7 +162,7 @@ class SwiftApplicationCppInteroperabilityIntegrationTest extends AbstractSwiftMi
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can compile and link against a #linkage.toLowerCase() c++ library with a dependency on another c++ library"() {
         settingsFile << "include 'app', 'greeter', 'cppGreeter', ':logger'"
         def logger = new CppLogger()
@@ -213,7 +213,7 @@ class SwiftApplicationCppInteroperabilityIntegrationTest extends AbstractSwiftMi
         linkage << [SHARED, STATIC]
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can compile and link against a c++ library with an api dependency on another c++ library"() {
         settingsFile << "include 'app', 'greeter', 'cppGreeter', ':logger'"
         def logger = new CppLoggerWithGreeterApi()
@@ -253,7 +253,7 @@ class SwiftApplicationCppInteroperabilityIntegrationTest extends AbstractSwiftMi
         installation("app/build/install/main/debug").exec().out == app.expectedOutput
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "declaring a dependency on a c++ library without public headers does not fail"() {
         settingsFile << "include 'app', 'cppGreeter'"
         def cppGreeter = new CppGreeterFunction()

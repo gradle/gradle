@@ -31,7 +31,6 @@ import org.gradle.internal.execution.history.changes.InputChangesInternal
 import org.gradle.internal.execution.impl.DefaultWorkExecutor
 import org.gradle.internal.execution.steps.BroadcastChangingOutputsStep
 import org.gradle.internal.execution.steps.CaptureStateBeforeExecutionStep
-import org.gradle.internal.execution.steps.CatchExceptionStep
 import org.gradle.internal.execution.steps.CleanupOutputsStep
 import org.gradle.internal.execution.steps.CreateOutputsStep
 import org.gradle.internal.execution.steps.ExecuteStep
@@ -61,6 +60,7 @@ import org.gradle.internal.snapshot.CompositeFileSystemSnapshot
 import org.gradle.internal.snapshot.FileSystemSnapshot
 import org.gradle.internal.snapshot.impl.DefaultValueSnapshotter
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot
+import org.gradle.internal.vfs.VirtualFileSystem
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -81,19 +81,16 @@ class IncrementalExecutionIntegrationTest extends Specification {
     final TestNameTestDirectoryProvider temporaryFolder = TestNameTestDirectoryProvider.newInstance(getClass())
 
     def virtualFileSystem = TestFiles.virtualFileSystem()
-    def snapshotter = new DefaultFileCollectionSnapshotter(virtualFileSystem, TestFiles.genericFileTreeSnapshotter(), TestFiles.fileSystem())
+    def fileSystemAccess = TestFiles.fileSystemAccess(virtualFileSystem)
+    def snapshotter = new DefaultFileCollectionSnapshotter(fileSystemAccess, TestFiles.genericFileTreeSnapshotter(), TestFiles.fileSystem())
     def fingerprinter = new AbsolutePathFileCollectionFingerprinter(snapshotter)
     def outputFingerprinter = new OutputFileCollectionFingerprinter(snapshotter)
     def executionHistoryStore = new TestExecutionHistoryStore()
     def outputChangeListener = new OutputChangeListener() {
-        @Override
-        void beforeOutputChange() {
-            virtualFileSystem.invalidateAll()
-        }
 
         @Override
         void beforeOutputChange(Iterable<String> affectedOutputPaths) {
-            virtualFileSystem.update(affectedOutputPaths) {}
+            fileSystemAccess.write(affectedOutputPaths) {}
         }
     }
     def buildInvocationScopeId = new BuildInvocationScopeId(UniqueId.generate())
@@ -147,11 +144,10 @@ class IncrementalExecutionIntegrationTest extends Specification {
             new StoreExecutionStateStep<>(
             new SnapshotOutputsStep<>(buildOperationExecutor, buildInvocationScopeId.getId(),
             new CreateOutputsStep<>(
-            new CatchExceptionStep<>(
             new ResolveInputChangesStep<>(
             new CleanupOutputsStep<>(deleter, outputChangeListener,
             new ExecuteStep<>(
-        ))))))))))))))))
+        )))))))))))))))
         // @formatter:on
     }
 
@@ -628,7 +624,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
     }
 
     UpToDateResult execute(UnitOfWork unitOfWork) {
-        virtualFileSystem.invalidateAll()
+        virtualFileSystem.update(VirtualFileSystem.INVALIDATE_ALL)
 
         executor.execute(new ExecutionRequestContext() {
             @Override
@@ -846,8 +842,8 @@ class IncrementalExecutionIntegrationTest extends Specification {
                 }
 
                 @Override
-                Optional<? extends Iterable<String>> getChangingOutputs() {
-                    Optional.empty()
+                Iterable<String> getChangingOutputs() {
+                    outputs.values()*.root*.absolutePath
                 }
 
                 @Override

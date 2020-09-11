@@ -10,6 +10,7 @@ import configurations.FunctionalTest
 import configurations.StagePasses
 import jetbrains.buildServer.configs.kotlin.v2019_2.Project
 import jetbrains.buildServer.configs.kotlin.v2019_2.buildSteps.GradleBuildStep
+import jetbrains.buildServer.configs.kotlin.v2019_2.failureConditions.BuildFailureOnText
 import model.CIBuildModel
 import model.GradleSubproject
 import model.Stage
@@ -20,7 +21,6 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.Disabled
 import projects.FunctionalTestProject
 import projects.RootProject
 import projects.StageProject
@@ -56,7 +56,7 @@ class CIConfigIntegrationTests {
         val macOS = readyForRelease.subProjects.find { it.name.contains("Macos") }!!
 
         macOS.buildTypes.forEach { buildType ->
-            assertFalse(Os.macos.ignoredSubprojects.any { subProject ->
+            assertFalse(Os.MACOS.ignoredSubprojects.any { subProject ->
                 buildType.name.endsWith("($subProject)")
             })
         }
@@ -204,9 +204,19 @@ class CIConfigIntegrationTests {
     fun onlyReadyForNightlyTriggerHasUpdateBranchStatus() {
         val triggerNameToTasks = rootProject.buildTypes.map { it.uuid to ((it as StagePasses).steps.items[0] as GradleBuildStep).tasks }.toMap()
         val readyForNightlyId = toTriggerId("MasterAccept")
-        assertEquals("createBuildReceipt updateBranchStatus", triggerNameToTasks[readyForNightlyId])
+        assertEquals(":base-services:createBuildReceipt updateBranchStatus -PgithubToken=%github.bot-teamcity.token%", triggerNameToTasks[readyForNightlyId])
         val otherTaskNames = triggerNameToTasks.filterKeys { it != readyForNightlyId }.values.toSet()
-        assertEquals(setOf("createBuildReceipt"), otherTaskNames)
+        assertEquals(setOf(":base-services:createBuildReceipt"), otherTaskNames)
+    }
+
+    @Test
+    fun buildsContainFailureConditionForPotentialCredentialsLeaks() {
+        val allBuildTypes = rootProject.subProjects.flatMap { it.buildTypes }
+        allBuildTypes.forEach {
+            val credentialLeakCondition = it.failureConditions.items.find { it.type.equals("BuildFailureOnMessage") } as BuildFailureOnText
+            assertTrue(credentialLeakCondition.enabled)
+            assertTrue(credentialLeakCondition.stopBuildOnFailure!!)
+        }
     }
 
     private fun toTriggerId(id: String) = "Gradle_Check_Stage_${id}_Trigger"
@@ -236,14 +246,13 @@ class CIConfigIntegrationTests {
     private fun getSubProjectFolder(subProject: GradleSubproject): File = File("../subprojects/${subProject.asDirectoryName()}")
 
     @Test
-    @Disabled
     fun testsAreCorrectlyConfiguredForAllSubProjects() {
         model.subprojects.subprojects.filter {
             !ignoredSubprojects.contains(it.name)
         }.forEach {
             val dir = getSubProjectFolder(it)
             assertEquals(it.unitTests, File(dir, "src/test").isDirectory, "${it.name}'s unitTests is wrong!")
-            assertEquals(it.functionalTests, if (it.name == "docs") true else File(dir, "src/integTest").isDirectory, "${it.name}'s functionalTests is wrong!")
+            assertEquals(it.functionalTests, File(dir, "src/integTest").isDirectory, "${it.name}'s functionalTests is wrong!")
             assertEquals(it.crossVersionTests, File(dir, "src/crossVersionTest").isDirectory, "${it.name}'s crossVersionTests is wrong!")
         }
     }
@@ -253,8 +262,7 @@ class CIConfigIntegrationTests {
         val projectsWithUnitTests = model.subprojects.subprojects.filter { it.unitTests }
         val projectFoldersWithUnitTests = subProjectFolderList().filter {
             File(it, "src/test").exists() &&
-                it.name != "docs" && // docs:check is part of Sanity Check
-                it.name != "architecture-test" // architectureTest:test is part of Sanity Check
+                it.name != "architecture-test" // architecture-test:test is part of Sanity Check
         }
         assertFalse(projectFoldersWithUnitTests.isEmpty())
         projectFoldersWithUnitTests.forEach {
@@ -310,7 +318,7 @@ class CIConfigIntegrationTests {
 
     @Test
     fun long_ids_are_shortened() {
-        val testCoverage = TestCoverage(1, TestType.quickFeedbackCrossVersion, Os.windows, JvmVersion.java11, JvmVendor.oracle)
+        val testCoverage = TestCoverage(1, TestType.quickFeedbackCrossVersion, Os.WINDOWS, JvmVersion.java11, JvmVendor.oracle)
         val shortenedId = testCoverage.asConfigurationId(model, "veryLongSubprojectNameLongerThanEverythingWeHave")
         assertTrue(shortenedId.length < 80)
         assertEquals("Gradle_Check_QckFdbckCrssVrsn_1_vryLngSbprjctNmLngrThnEvrythngWHv", shortenedId)

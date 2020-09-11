@@ -16,6 +16,7 @@
 
 package org.gradle.buildinit.plugins
 
+import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.util.TextUtil
@@ -27,6 +28,9 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
     String basicType = "1: basic"
     String projectNamePrompt = "Project name (default: some-thing)"
     String convertMavenBuildPrompt = "Found a Maven build. Generate a Gradle build from this?"
+
+    @Override
+    String subprojectName() { 'app' }
 
     def "prompts user when run from an interactive session"() {
         when:
@@ -63,7 +67,7 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
         handle.waitForFinish()
 
         then:
-        dslFixtureFor(BuildInitDsl.KOTLIN).assertGradleFilesGenerated()
+        ScriptDslFixture.of(BuildInitDsl.KOTLIN, targetDir, null).assertGradleFilesGenerated()
     }
 
     def "user can provide details for JVM based build"() {
@@ -73,11 +77,11 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
         executer.withTasks("init")
         def handle = executer.start()
 
-        // Select 'library'
+        // Select 'application'
         ConcurrentTestUtil.poll(60) {
             assert handle.standardOutput.contains(projectTypePrompt)
         }
-        handle.stdinPipe.write(("3" + TextUtil.platformLineSeparator).bytes)
+        handle.stdinPipe.write(("2" + TextUtil.platformLineSeparator).bytes)
 
         // Select 'java'
         ConcurrentTestUtil.poll(60) {
@@ -86,9 +90,16 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
             assert handle.standardOutput.contains("2: Groovy")
             assert handle.standardOutput.contains("3: Java")
             assert handle.standardOutput.contains("4: Kotlin")
-            assert handle.standardOutput.contains("5: Scala")
         }
         handle.stdinPipe.write(("3" + TextUtil.platformLineSeparator).bytes)
+
+        // Select 'Single project'
+        ConcurrentTestUtil.poll(60) {
+            assert handle.standardOutput.contains("Split functionality across multiple subprojects?:")
+            assert handle.standardOutput.contains("1: no - only one application project")
+            assert handle.standardOutput.contains("2: yes - application and library projects")
+        }
+        handle.stdinPipe.write(("1" + TextUtil.platformLineSeparator).bytes)
 
         // Select 'kotlin' DSL
         ConcurrentTestUtil.poll(60) {
@@ -144,7 +155,7 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
         !handle.standardOutput.contains(projectNamePrompt)
 
         then:
-        dslFixtureFor(BuildInitDsl.GROOVY).assertGradleFilesGenerated()
+        rootProjectDslFixtureFor(BuildInitDsl.GROOVY).assertGradleFilesGenerated()
     }
 
     def "user can skip Maven conversion when pom.xml present"() {
@@ -185,6 +196,6 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
         handle.waitForFinish()
 
         then:
-        dslFixtureFor(BuildInitDsl.KOTLIN).assertGradleFilesGenerated()
+        ScriptDslFixture.of(BuildInitDsl.KOTLIN, targetDir, null).assertGradleFilesGenerated()
     }
 }

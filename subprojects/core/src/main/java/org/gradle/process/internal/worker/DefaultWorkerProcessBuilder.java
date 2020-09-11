@@ -19,6 +19,7 @@ package org.gradle.process.internal.worker;
 import org.gradle.api.Action;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.id.IdGenerator;
+import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.remote.Address;
 import org.gradle.internal.remote.ConnectionAcceptor;
@@ -70,6 +71,7 @@ public class DefaultWorkerProcessBuilder implements WorkerProcessBuilder {
 
     DefaultWorkerProcessBuilder(JavaExecHandleFactory execHandleFactory, MessagingServer server, IdGenerator<Long> idGenerator, ApplicationClassesInSystemClassLoaderWorkerImplementationFactory workerImplementationFactory, OutputEventListener outputEventListener, MemoryManager memoryManager) {
         this.javaCommand = execHandleFactory.newJavaExec();
+        this.javaCommand.setExecutable(Jvm.current().getJavaExecutable());
         this.server = server;
         this.idGenerator = idGenerator;
         this.workerImplementationFactory = workerImplementationFactory;

@@ -157,7 +157,7 @@ public abstract class TransformationNode extends Node implements SelfExecutingNo
 
     @Override
     public void resolveDependencies(TaskDependencyResolver dependencyResolver, Action<Node> processHardSuccessor) {
-        processDependencies(processHardSuccessor, dependencyResolver.resolveDependenciesFor(null, transformationStep.getDependencies()));
+        processDependencies(processHardSuccessor, dependencyResolver.resolveDependenciesFor(null, transformationStep));
         processDependencies(processHardSuccessor, dependencyResolver.resolveDependenciesFor(null, dependenciesResolver.computeDependencyNodes(transformationStep)));
     }
 
@@ -262,7 +262,7 @@ public abstract class TransformationNode extends Node implements SelfExecutingNo
             String basicName = subjectName + " with " + transformerName;
             return BuildOperationDescriptor.displayName("Transform " + basicName)
                 .progressDisplayName(TRANSFORMING_PROGRESS_PREFIX + basicName)
-                .operationType(BuildOperationCategory.TRANSFORM)
+                .metadata(BuildOperationCategory.TRANSFORM)
                 .details(new ExecuteScheduledTransformationStepBuildOperationDetails(TransformationNode.this, transformerName, subjectName));
         }
 

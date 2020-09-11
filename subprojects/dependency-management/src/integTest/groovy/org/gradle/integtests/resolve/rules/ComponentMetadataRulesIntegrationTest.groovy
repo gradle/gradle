@@ -17,7 +17,7 @@ package org.gradle.integtests.resolve.rules
 
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 import spock.lang.Issue
 
@@ -221,7 +221,7 @@ dependencies {
         succeeds 'resolve'
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "changes made by a rule are not cached"() {
         repository {
             'org.test:projectA:1.0'()
@@ -432,7 +432,7 @@ dependencies {
     }
 
     @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "rule that accepts IvyModuleDescriptor isn't invoked for Maven component"() {
         given:
         repository {
@@ -508,7 +508,7 @@ dependencies {
         succeeds 'resolve'
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
     def 'rule can access PomModuleDescriptor for Maven component'() {
         given:

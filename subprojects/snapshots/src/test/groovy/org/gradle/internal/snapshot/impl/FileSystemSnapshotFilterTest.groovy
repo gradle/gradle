@@ -30,7 +30,7 @@ import org.gradle.internal.snapshot.FileSystemSnapshot
 import org.gradle.internal.snapshot.FileSystemSnapshotVisitor
 import org.gradle.internal.snapshot.RegularFileSnapshot
 import org.gradle.internal.snapshot.SnapshottingFilter
-import org.gradle.internal.vfs.VirtualFileSystem
+import org.gradle.internal.vfs.FileSystemAccess
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -41,7 +41,7 @@ class FileSystemSnapshotFilterTest extends Specification {
     @Rule
     final TestNameTestDirectoryProvider temporaryFolder = TestNameTestDirectoryProvider.newInstance(getClass())
 
-    VirtualFileSystem virtualFileSystem = TestFiles.virtualFileSystem()
+    FileSystemAccess fileSystemAccess = TestFiles.fileSystemAccess()
     FileSystem fileSystem = TestFiles.fileSystem()
 
     def "filters correctly"() {
@@ -56,7 +56,7 @@ class FileSystemSnapshotFilterTest extends Specification {
         def subdirFile1 = subdir.createFile("subdirFile1")
 
         MutableReference<CompleteFileSystemLocationSnapshot> result = MutableReference.empty()
-        virtualFileSystem.read(root.getAbsolutePath(), snapshottingFilter(new PatternSet()), result.&set)
+        fileSystemAccess.read(root.getAbsolutePath(), snapshottingFilter(new PatternSet()), result.&set)
         def unfiltered = result.get()
 
         expect:
@@ -95,7 +95,7 @@ class FileSystemSnapshotFilterTest extends Specification {
         dir1.createFile("dirFile2")
 
         MutableReference<CompleteFileSystemLocationSnapshot> result = MutableReference.empty()
-        virtualFileSystem.read(root.getAbsolutePath(), snapshottingFilter(new PatternSet()), result.&set)
+        fileSystemAccess.read(root.getAbsolutePath(), snapshottingFilter(new PatternSet()), result.&set)
         def unfiltered = result.get()
 
         expect:

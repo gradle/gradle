@@ -20,6 +20,7 @@ import org.gradle.api.Named;
 
 import java.io.File;
 
+@Deprecated
 public interface LocalJavaInstallation extends Named {
     JavaVersion getJavaVersion();
 

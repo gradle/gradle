@@ -16,7 +16,7 @@
 package org.gradle.integtests.publish.ivy
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
 class IvyWarProjectPublishIntegrationTest extends AbstractIntegrationSpec {
 
@@ -25,7 +25,7 @@ class IvyWarProjectPublishIntegrationTest extends AbstractIntegrationSpec {
         executer.noDeprecationChecks()
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     public void "published WAR only for mixed java and WAR project"() {
         given:
         file("settings.gradle") << "rootProject.name = 'publishTest' "

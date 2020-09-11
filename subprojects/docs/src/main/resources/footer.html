@@ -100,11 +100,11 @@
     }
 
     var currentChapterFileName = window.location.pathname.substr(window.location.pathname.lastIndexOf("/") + 1);
-    if (currentChapterFileName === "index.html") {
+    if (currentChapterFileName === "index.html" || currentChapterFileName === "") {
         currentChapterFileName = window.location.pathname.substr(0, window.location.pathname.lastIndexOf("/"));
         currentChapterFileName = currentChapterFileName.substr(currentChapterFileName.lastIndexOf("/") + 1) + "/index.html";
     }
-    [].forEach.call(document.querySelectorAll(".docs-navigation a[href$='" + currentChapterFileName + "']"), function (link) {
+    [].forEach.call(document.querySelectorAll(".docs-navigation a[href$='/" + currentChapterFileName + "']"), function (link) {
         // Add "active" to all links same as current URL
         link.classList.add("active");
 

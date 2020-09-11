@@ -39,13 +39,10 @@ public abstract class AbstractIntegrationTest {
     public final TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider(getClass());
 
     @Rule
-    public final UnsupportedWithInstantExecutionRule unsupportedWithInstantExecution = new UnsupportedWithInstantExecutionRule();
+    public final UnsupportedWithConfigurationCacheRule unsupportedWithConfigurationCache = new UnsupportedWithConfigurationCacheRule();
 
     @Rule
-    public final ToBeFixedForInstantExecutionRule toBeFixedForInstantExecution = new ToBeFixedForInstantExecutionRule();
-
-    @Rule
-    public final ToBeFixedForFileSystemWatchingRule toBeFixedForFileSystemWatching = new ToBeFixedForFileSystemWatchingRule();
+    public final ToBeFixedForConfigurationCacheRule toBeFixedForConfigurationCache = new ToBeFixedForConfigurationCacheRule();
 
     public final GradleDistribution distribution = new UnderDevelopmentGradleDistribution(getBuildContext());
     public final GradleContextualExecuter executer = createExecuter();

@@ -21,12 +21,12 @@ import org.custommonkey.xmlunit.XMLAssert
 import org.custommonkey.xmlunit.examples.RecursiveElementNameAndTextQualifier
 import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
 import org.gradle.integtests.fixtures.Sample
-import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
+import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.util.Resources
 import org.junit.Rule
 import spock.lang.Unroll
 
-@UnsupportedWithInstantExecution(because = "legacy maven plugin")
+@UnsupportedWithConfigurationCache(because = "legacy maven plugin")
 class SamplesMavenQuickstartIntegrationTest extends AbstractSampleIntegrationTest {
 
     @Rule

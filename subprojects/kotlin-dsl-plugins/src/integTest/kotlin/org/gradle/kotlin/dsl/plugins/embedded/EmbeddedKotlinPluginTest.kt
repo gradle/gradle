@@ -24,7 +24,7 @@ import org.gradle.api.logging.Logger
 
 import com.nhaarman.mockito_kotlin.inOrder
 import com.nhaarman.mockito_kotlin.mock
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
 import org.hamcrest.CoreMatchers.containsString
 
@@ -35,7 +35,7 @@ import org.junit.Test
 class EmbeddedKotlinPluginTest : AbstractPluginTest() {
 
     @Test
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     fun `applies the kotlin plugin`() {
 
         withBuildScript("""
@@ -54,7 +54,7 @@ class EmbeddedKotlinPluginTest : AbstractPluginTest() {
     }
 
     @Test
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     fun `adds stdlib and reflect as compile only dependencies`() {
 
         withBuildScript("""
@@ -88,7 +88,7 @@ class EmbeddedKotlinPluginTest : AbstractPluginTest() {
     }
 
     @Test
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     fun `all embedded kotlin dependencies are resolvable`() {
 
         withBuildScript("""
@@ -118,7 +118,7 @@ class EmbeddedKotlinPluginTest : AbstractPluginTest() {
     }
 
     @Test
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     fun `sources and javadoc of all embedded kotlin dependencies are resolvable`() {
 
         withBuildScript("""
@@ -176,7 +176,7 @@ class EmbeddedKotlinPluginTest : AbstractPluginTest() {
     }
 
     @Test
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     fun `can add embedded dependencies to custom configuration`() {
 
         withBuildScript("""
@@ -203,7 +203,7 @@ class EmbeddedKotlinPluginTest : AbstractPluginTest() {
 
     @Test
     @LeaksFileHandles("Kotlin Compiler Daemon working directory")
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     fun `can be used with embedded artifact-only repository`() {
 
         withDefaultSettings()

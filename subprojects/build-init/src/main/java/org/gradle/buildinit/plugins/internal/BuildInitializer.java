@@ -19,6 +19,7 @@ import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
 import org.gradle.buildinit.plugins.internal.modifiers.ComponentType;
 import org.gradle.buildinit.plugins.internal.modifiers.Language;
+import org.gradle.buildinit.plugins.internal.modifiers.ModularizationOption;
 
 import java.util.Optional;
 import java.util.Set;
@@ -38,6 +39,11 @@ public interface BuildInitializer extends BuildContentGenerator {
      * Which language does the production source files created by this initializer use?
      */
     Language getLanguage();
+
+    /**
+     * Can this type of project be split-up into multiple subprojects?
+     */
+    Set<ModularizationOption> getModularizationOptions();
 
     /**
      * Returns the set of DSLs supported for this type of project.
@@ -72,5 +78,5 @@ public interface BuildInitializer extends BuildContentGenerator {
     /**
      * Returns a collection of further reading related to this type of build (may be empty).
      */
-    Optional<String> getFurtherReading();
+    Optional<String> getFurtherReading(InitSettings settings);
 }

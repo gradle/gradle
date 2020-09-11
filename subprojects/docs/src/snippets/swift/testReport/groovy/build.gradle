@@ -1,23 +1,24 @@
 // tag::test-report[]
-subprojects {
-    apply plugin: 'xctest'
-
-    xctest {
-        binaries.configureEach {
-            runTask.get().configure {
-                // Disable the test report for the individual test task
-                reports.html.enabled = false
-            }
+// A resolvable configuration to collect test reports data
+configurations {
+    testReportData {
+        canBeResolved = true
+        canBeConsumed = false
+        attributes {
+            attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.DOCUMENTATION))
+            attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named(DocsType, 'test-report-data'))
         }
     }
 }
 
+dependencies {
+    testReportData project(':core')
+    testReportData project(':util')
+}
+
 tasks.register('testReport', TestReport) {
     destinationDir = file("$buildDir/reports/allTests")
-
-    // Include the results from the XCTest tasks in all subprojects
-    reportOn subprojects.collect {
-        it.tasks.withType(XCTest)
-    }
+    // Use test results from testReportData configuration
+    testResultDirs.from(configurations.testReportData)
 }
 // end::test-report[]

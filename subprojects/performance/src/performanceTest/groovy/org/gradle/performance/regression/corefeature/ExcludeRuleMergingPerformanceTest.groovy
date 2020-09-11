@@ -25,7 +25,7 @@ class ExcludeRuleMergingPerformanceTest extends AbstractCrossVersionGradleProfil
 
     def setup() {
         runner.minimumBaseVersion = '4.9'
-        runner.targetVersions = ["6.6-20200727234702+0000"]
+        runner.targetVersions = ["6.7-20200824220048+0000"]
     }
 
     def "merge exclude rules"() {

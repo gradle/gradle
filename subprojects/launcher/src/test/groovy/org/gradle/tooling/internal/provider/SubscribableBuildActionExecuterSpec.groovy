@@ -17,13 +17,12 @@
 package org.gradle.tooling.internal.provider
 
 import org.gradle.initialization.BuildEventConsumer
-import org.gradle.initialization.BuildRequestContext
 import org.gradle.internal.build.event.BuildEventListenerFactory
 import org.gradle.internal.build.event.BuildEventSubscriptions
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.operations.BuildOperationListener
 import org.gradle.internal.operations.BuildOperationListenerManager
-import org.gradle.internal.service.ServiceRegistry
+import org.gradle.internal.session.BuildSessionContext
 import org.gradle.launcher.exec.BuildActionExecuter
 import org.gradle.launcher.exec.BuildActionParameters
 import org.gradle.tooling.events.OperationType
@@ -40,22 +39,19 @@ class SubscribableBuildActionExecuterSpec extends Specification {
             getClientSubscriptions() >> new BuildEventSubscriptions(EnumSet.allOf(OperationType))
         }
         def consumer = Stub(BuildEventConsumer)
-        def buildRequestContext = Stub(BuildRequestContext) {
-            getEventConsumer() >> consumer
-        }
         def buildActionParameters = Stub(BuildActionParameters)
-        def serviceRegistry = Stub(ServiceRegistry)
+        def buildSessionContext = Stub(BuildSessionContext)
 
         def listener1 = Stub(BuildOperationListener)
         def listener2 = Stub(BuildOperationListener)
-        def registration = Stub(BuildEventListenerFactory) {
+        def factory = Stub(BuildEventListenerFactory) {
             createListeners(_, consumer) >> [listener1, listener2]
         }
 
-        def runner = new SubscribableBuildActionExecuter(listenerManager, buildOperationListenerManager, [registration], delegate)
+        def runner = new SubscribableBuildActionExecuter(listenerManager, buildOperationListenerManager, factory, consumer, delegate)
 
         when:
-        runner.execute(buildAction, buildRequestContext, buildActionParameters, serviceRegistry)
+        runner.execute(buildAction, buildActionParameters, buildSessionContext)
 
         then:
         1 * listenerManager.addListener(listener1)
@@ -64,7 +60,7 @@ class SubscribableBuildActionExecuterSpec extends Specification {
         1 * buildOperationListenerManager.addListener(listener2)
 
         then:
-        1 * delegate.execute(buildAction, buildRequestContext, buildActionParameters, serviceRegistry)
+        1 * delegate.execute(buildAction, buildActionParameters, buildSessionContext)
 
         then:
         1 * listenerManager.removeListener(listener1)

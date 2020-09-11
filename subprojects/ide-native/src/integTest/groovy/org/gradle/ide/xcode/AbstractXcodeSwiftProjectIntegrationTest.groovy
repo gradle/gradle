@@ -17,7 +17,7 @@
 package org.gradle.ide.xcode
 
 import org.gradle.ide.xcode.fixtures.ProjectFile
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.language.swift.SwiftVersion
 import org.gradle.nativeplatform.fixtures.app.Swift3
 import org.gradle.nativeplatform.fixtures.app.Swift4
@@ -31,7 +31,7 @@ abstract class AbstractXcodeSwiftProjectIntegrationTest extends AbstractXcodeNat
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "detect Swift source compatibility from selected Swift #sourceCompatibility compiler"() {
         assumeSwiftCompilerVersion(sourceCompatibility)
 
@@ -56,7 +56,7 @@ abstract class AbstractXcodeSwiftProjectIntegrationTest extends AbstractXcodeNat
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "take specified Swift source compatibility (#sourceCompatibility) regardless of the selected Swift compiler"() {
         given:
         assumeSwiftCompilerSupportsLanguageVersion(sourceCompatibility)
@@ -83,7 +83,7 @@ abstract class AbstractXcodeSwiftProjectIntegrationTest extends AbstractXcodeNat
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can create xcode project for unbuildable swift component with #sourceCompatibility source compatibility"() {
         given:
         makeSingleProject()

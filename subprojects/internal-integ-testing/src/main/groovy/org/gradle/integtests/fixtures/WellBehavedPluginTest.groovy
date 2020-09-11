@@ -41,7 +41,7 @@ abstract class WellBehavedPluginTest extends AbstractPluginIntegrationTest {
         return "assemble"
     }
 
-    @ToBeFixedForInstantExecution(bottomSpecs = [
+    @ToBeFixedForConfigurationCache(bottomSpecs = [
         "HelpTasksPluginIntegrationTest",
         "BuildDashboardPluginIntegrationTest",
         "GroovyPluginGoodBehaviourTest",
@@ -64,7 +64,7 @@ abstract class WellBehavedPluginTest extends AbstractPluginIntegrationTest {
         succeeds mainTask
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "plugin does not force creation of build dir during configuration"() {
         given:
         applyPlugin()
@@ -76,7 +76,7 @@ abstract class WellBehavedPluginTest extends AbstractPluginIntegrationTest {
         !file("build").exists()
     }
 
-    @ToBeFixedForInstantExecution(bottomSpecs = [
+    @ToBeFixedForConfigurationCache(bottomSpecs = [
         "HelpTasksPluginIntegrationTest",
         "BuildDashboardPluginIntegrationTest",
         "GroovyPluginGoodBehaviourTest",
@@ -137,7 +137,7 @@ abstract class WellBehavedPluginTest extends AbstractPluginIntegrationTest {
             'ivy-publish', 'maven-publish', 'publishing',
             'eclipse', 'idea',
         ])
-        if (GradleContextualExecuter.isInstant() && appliesBasePlugin) {
+        if (GradleContextualExecuter.isConfigCache() && appliesBasePlugin) {
             assert output.count("configuring :") == 2
             outputContains("configuring :help")
             // because capturing registered outputs for stale output cleanup forces configuring clean

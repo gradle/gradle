@@ -16,11 +16,13 @@
 package org.gradle.api.plugins
 
 import org.gradle.api.DefaultTask
+import org.gradle.api.InvalidUserDataException
 import org.gradle.api.JavaVersion
 import org.gradle.api.attributes.CompatibilityCheckDetails
 import org.gradle.api.attributes.MultipleCandidatesDetails
 import org.gradle.api.attributes.Usage
 import org.gradle.api.internal.artifacts.JavaEcosystemSupport
+import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.reporting.ReportingExtension
 import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.SourceSet
@@ -30,8 +32,11 @@ import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.api.tasks.javadoc.Javadoc
 import org.gradle.api.tasks.testing.Test
+import org.gradle.initialization.GradlePropertiesController
+import org.gradle.internal.jvm.Jvm
 import org.gradle.jvm.ClassDirectoryBinarySpec
 import org.gradle.jvm.toolchain.JavaInstallationRegistry
+import org.gradle.jvm.toolchain.JavaLanguageVersion
 import org.gradle.language.base.ProjectSourceSet
 import org.gradle.language.java.JavaSourceSet
 import org.gradle.language.jvm.JvmResourceSet
@@ -60,6 +65,7 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         then:
         project.plugins.hasPlugin(ReportingBasePlugin)
         project.plugins.hasPlugin(BasePlugin)
+        project.plugins.hasPlugin(JvmEcosystemPlugin)
         project.convention.plugins.java instanceof JavaPluginConvention
         project.extensions.sourceSets.is(project.convention.plugins.java.sourceSets)
         project.extensions.java instanceof JavaPluginExtension
@@ -200,6 +206,84 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         then:
         def customClasses = project.tasks['customClasses']
         TaskDependencyMatchers.dependsOn('someTask', 'processCustomResources', 'compileCustomJava').matches(customClasses)
+    }
+
+    void "wires toolchain for sourceset if toolchain is configured"() {
+        given:
+        def someJdk = Jvm.current()
+        setupProjectWithToolchain(someJdk.javaVersion)
+
+        when:
+        project.sourceSets.create('custom')
+
+        then:
+        def compileTask = project.tasks.named("compileCustomJava", JavaCompile).get()
+        def configuredToolchain = compileTask.javaCompiler.get().javaToolchain
+        configuredToolchain.displayName.contains(someJdk.javaVersion.getMajorVersion())
+    }
+
+    void "source and target compatibility are configured if toolchain is configured"() {
+        given:
+        setupProjectWithToolchain(Jvm.current().javaVersion)
+
+        when:
+        project.sourceSets.create('custom')
+
+        then:
+        project.tasks.compileJava.getSourceCompatibility() == Jvm.current().javaVersion.majorVersion
+        project.tasks.compileJava.getTargetCompatibility() == Jvm.current().javaVersion.majorVersion
+        project.tasks.compileCustomJava.getSourceCompatibility() == Jvm.current().javaVersion.majorVersion
+        project.tasks.compileCustomJava.getTargetCompatibility() == Jvm.current().javaVersion.majorVersion
+    }
+
+    void "wires toolchain for test if toolchain is configured"() {
+        given:
+        def someJdk = Jvm.current()
+        setupProjectWithToolchain(someJdk.javaVersion)
+
+        when:
+        def testTask = project.tasks.named("test", Test).get()
+        def configuredJavaLauncher = testTask.javaLauncher.get()
+
+        then:
+        configuredJavaLauncher.executablePath.toString().contains(someJdk.javaVersion.getMajorVersion())
+    }
+
+    void "wires toolchain for javadoc if toolchain is configured"() {
+        given:
+        def someJdk = Jvm.current()
+        setupProjectWithToolchain(someJdk.javaVersion)
+
+        when:
+        def javadocTask = project.tasks.named("javadoc", Javadoc).get()
+        def configuredJavadocTool = javadocTask.javadocTool
+
+        then:
+        configuredJavadocTool.isPresent()
+    }
+
+    void 'cannot set java compile source compatibility if toolchain is configured'() {
+        given:
+        def someJdk = Jvm.current()
+        setupProjectWithToolchain(someJdk.javaVersion)
+        project.java.sourceCompatibility = JavaVersion.VERSION_1_1
+
+        when:
+        def javaCompileTask = project.tasks.named("compileJava", JavaCompile).get()
+
+        javaCompileTask.sourceCompatibility // accessing the property throws
+
+
+        then:
+        def error = thrown(InvalidUserDataException)
+        error.message == 'The new Java toolchain feature cannot be used at the project level in combination with source and/or target compatibility'
+    }
+
+    private void setupProjectWithToolchain(JavaVersion version) {
+        project.pluginManager.apply(JavaPlugin)
+        project.java.toolchain.languageVersion = JavaLanguageVersion.of(version.majorVersion)
+        // workaround for https://github.com/gradle/gradle/issues/13122
+        ((DefaultProject) project).getServices().get(GradlePropertiesController.class).loadGradlePropertiesFrom(project.projectDir)
     }
 
     void tasksReflectChangesToSourceSetConfiguration() {

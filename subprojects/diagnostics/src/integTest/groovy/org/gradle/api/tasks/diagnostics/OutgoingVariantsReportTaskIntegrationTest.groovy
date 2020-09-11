@@ -18,7 +18,7 @@ package org.gradle.api.tasks.diagnostics
 
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
 class OutgoingVariantsReportTaskIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
@@ -27,7 +27,7 @@ class OutgoingVariantsReportTaskIntegrationTest extends AbstractIntegrationSpec 
         """
     }
 
-    @ToBeFixedForInstantExecution(because = ":outgoingVariants")
+    @ToBeFixedForConfigurationCache(because = ":outgoingVariants")
     def "reports outgoing variants of a Java Library"() {
         buildFile << """
             plugins { id 'java-library' }
@@ -110,7 +110,7 @@ Secondary variants (*)
         hasSecondaryVariantsLegend()
     }
 
-    @ToBeFixedForInstantExecution(because = ":outgoingVariants")
+    @ToBeFixedForConfigurationCache(because = ":outgoingVariants")
     def "reports outgoing variants of a Java Library with documentation"() {
         buildFile << """
             plugins { id 'java-library' }
@@ -229,7 +229,7 @@ Artifacts
         hasSecondaryVariantsLegend()
     }
 
-    @ToBeFixedForInstantExecution(because = ":outgoingVariants")
+    @ToBeFixedForConfigurationCache(because = ":outgoingVariants")
     def "reports a single outgoing variant of a Java Library"() {
         buildFile << """
             plugins { id 'java-library' }
@@ -285,7 +285,7 @@ Secondary variants (*)
         hasSecondaryVariantsLegend()
     }
 
-    @ToBeFixedForInstantExecution(because = ":outgoingVariants")
+    @ToBeFixedForConfigurationCache(because = ":outgoingVariants")
     def "lists all variant names when using a wrong variant name"() {
         buildFile << """
             plugins { id 'java-library' }
@@ -305,7 +305,7 @@ Here are the available outgoing variants: apiElements, archives, compile, compil
 
     }
 
-    @ToBeFixedForInstantExecution(because = ":outgoingVariants")
+    @ToBeFixedForConfigurationCache(because = ":outgoingVariants")
     def "can show all variants"() {
         buildFile << """
             plugins { id 'java-library' }
@@ -442,7 +442,7 @@ Artifacts
         hasSecondaryVariantsLegend()
     }
 
-    @ToBeFixedForInstantExecution(because = ":outgoingVariants")
+    @ToBeFixedForConfigurationCache(because = ":outgoingVariants")
     def "can show a legacy variant only"() {
         buildFile << """
             plugins { id 'java-library' }
@@ -465,7 +465,7 @@ Description = Dependencies for source set 'main' (deprecated, use 'implementatio
         doesNotHaveSecondaryVariantsLegend()
     }
 
-    @ToBeFixedForInstantExecution(because = ":outgoingVariants")
+    @ToBeFixedForConfigurationCache(because = ":outgoingVariants")
     def "prints explicit capabilities"() {
         buildFile << """
             plugins { id 'java-library' }
@@ -492,7 +492,7 @@ Capabilities
 """
     }
 
-    @ToBeFixedForInstantExecution(because = ":outgoingVariants")
+    @ToBeFixedForConfigurationCache(because = ":outgoingVariants")
     def "reports artifacts without explicit type"() {
         buildFile << """
             plugins { id 'java-library' }

@@ -19,10 +19,8 @@ package org.gradle.api.publish.maven
 
 import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
 import org.gradle.integtests.fixtures.Sample
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.UsesSample
-import org.gradle.test.fixtures.maven.MavenFileModule
-import org.gradle.util.TextUtil
 import org.junit.Rule
 import spock.lang.Unroll
 
@@ -90,7 +88,7 @@ class SamplesMavenPublishIntegrationTest extends AbstractSampleIntegrationTest {
 
         and:
         def fileRepo = maven(sampleDir.file("build/repos/releases"))
-        def module = fileRepo.module("org.gradle.sample", "javaProject", "1.0").withModuleMetadata()
+        def module = fileRepo.module("org.gradle.sample", "java-project", "1.0").withModuleMetadata()
 
         when:
         succeeds "publish"
@@ -98,10 +96,10 @@ class SamplesMavenPublishIntegrationTest extends AbstractSampleIntegrationTest {
         then:
         module.assertPublished()
         module.assertArtifactsPublished(
-            "javaProject-1.0.jar",
-            "javaProject-1.0-javadoc.jar",
-            "javaProject-1.0.pom",
-            "javaProject-1.0.module")
+            "java-project-1.0.jar",
+            "java-project-1.0-javadoc.jar",
+            "java-project-1.0.pom",
+            "java-project-1.0.module")
         module.parsedPom.packaging == null
         module.parsedPom.scopes.runtime.assertDependsOn("commons-collections:commons-collections:3.2.2")
 
@@ -110,32 +108,21 @@ class SamplesMavenPublishIntegrationTest extends AbstractSampleIntegrationTest {
     }
 
     @Unroll
-    @UsesSample("maven-publish/multiple-publications")
-    def "multiple publications with #dsl dsl"() {
+    @UsesSample("maven-publish/customize-identity")
+    def "customize publication identity with #dsl dsl"() {
         given:
         def sampleDir = sampleProject.dir.file(dsl)
         inDirectory(sampleDir)
 
         and:
         def fileRepo = maven(sampleDir.file("build/repo"))
-        def project1sample = fileRepo.module("org.gradle.sample", "project1-sample", "1.1").withModuleMetadata()
-        def project2api = fileRepo.module("org.gradle.sample", "project2-api", "2.3") // publication without component
-        def project2impl = fileRepo.module("org.gradle.sample", "project2-impl", "2.3").withModuleMetadata()
+        def library = fileRepo.module("org.gradle.sample", "library", "1.1").withModuleMetadata()
 
         when:
         succeeds "publish"
 
         then:
-        project1sample.assertPublishedAsJavaModule()
-        verifyPomFile(project1sample, dsl, "output/project1.pom.xml")
-
-        and:
-        project2api.assertPublishedAsJavaModule()
-        verifyPomFile(project2api, dsl, "output/project2-api.pom.xml")
-
-        and:
-        project2impl.assertPublishedAsJavaModule()
-        verifyPomFile(project2impl, dsl, "output/project2-impl.pom.xml")
+        library.assertPublishedAsJavaModule()
 
         where:
         dsl << ['groovy', 'kotlin']
@@ -143,7 +130,7 @@ class SamplesMavenPublishIntegrationTest extends AbstractSampleIntegrationTest {
 
     @Unroll
     @UsesSample("maven-publish/conditional-publishing")
-    @ToBeFixedForInstantExecution(
+    @ToBeFixedForConfigurationCache(
         iterationMatchers = ".* kotlin dsl"
     )
     def "conditional publishing with #dsl dsl"() {
@@ -183,7 +170,7 @@ class SamplesMavenPublishIntegrationTest extends AbstractSampleIntegrationTest {
 
     @Unroll
     @UsesSample("maven-publish/conditional-publishing")
-    @ToBeFixedForInstantExecution(
+    @ToBeFixedForConfigurationCache(
         iterationMatchers = ".* kotlin dsl"
     )
     def "shorthand publish to external repository with #dsl dsl"() {
@@ -204,7 +191,7 @@ class SamplesMavenPublishIntegrationTest extends AbstractSampleIntegrationTest {
 
     @Unroll
     @UsesSample("maven-publish/conditional-publishing")
-    @ToBeFixedForInstantExecution(
+    @ToBeFixedForConfigurationCache(
         iterationMatchers = ".* kotlin dsl"
     )
     def "shorthand publish for development with #dsl dsl"() {
@@ -227,7 +214,7 @@ class SamplesMavenPublishIntegrationTest extends AbstractSampleIntegrationTest {
 
     @Unroll
     @UsesSample("maven-publish/publish-artifact")
-    @ToBeFixedForInstantExecution(
+    @ToBeFixedForConfigurationCache(
         iterationMatchers = ".* kotlin dsl"
     )
     def "publishes rpm artifact with #dsl dsl"() {
@@ -251,20 +238,6 @@ class SamplesMavenPublishIntegrationTest extends AbstractSampleIntegrationTest {
 
         where:
         dsl << ['groovy', 'kotlin']
-    }
-
-    @UsesSample("maven-publish/pomGeneration")
-    def pomGeneration() {
-        given:
-        inDirectory(sampleProject.dir.file('groovy'))
-
-        when:
-        succeeds "generatePomFileForMavenCustomPublication"
-
-        then:
-        def pom = sampleProject.dir.file("groovy/build/generated-pom.xml").assertExists()
-        def parsedPom = new org.gradle.test.fixtures.maven.MavenPom(pom)
-        parsedPom.name == "Example"
     }
 
     @Unroll
@@ -294,13 +267,4 @@ class SamplesMavenPublishIntegrationTest extends AbstractSampleIntegrationTest {
         dsl << ['groovy', 'kotlin']
     }
 
-    private void verifyPomFile(MavenFileModule module, String dsl, String outputFileName) {
-        def actualPomXmlText = module.pomFile.text.replaceFirst('publication="\\d+"', 'publication="«PUBLICATION-TIME-STAMP»"').trim()
-        assert actualPomXmlText == getExpectedPomOutput(sampleProject.dir.file("$dsl/$outputFileName"))
-    }
-
-    String getExpectedPomOutput(File outputFile) {
-        assert outputFile.file
-        outputFile.readLines()[1..-1].join(TextUtil.getPlatformLineSeparator()).trim()
-    }
 }

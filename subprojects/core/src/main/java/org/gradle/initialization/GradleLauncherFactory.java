@@ -17,7 +17,7 @@ package org.gradle.initialization;
 
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.internal.build.RootBuildState;
-import org.gradle.internal.service.scopes.BuildTreeScopeServices;
+import org.gradle.internal.buildtree.BuildTreeState;
 
 /**
  * <p>A {@code GradleLauncherFactory} is responsible for creating a {@link GradleLauncher} instance for a root build.
@@ -27,13 +27,5 @@ import org.gradle.internal.service.scopes.BuildTreeScopeServices;
  * Note: you should be using {@link org.gradle.internal.build.BuildStateRegistry} instead of this interface to create builds.
  */
 public interface GradleLauncherFactory {
-    /**
-     * Creates a new {@link GradleLauncher} instance for a new build request.
-     * Fails if a build is in progress.
-     *
-     * @param buildDefinition The settings for the build.
-     * @param build The build to create the {@link GradleLauncher} for.
-     * @param buildTreeScopeServices The parent service registry for this build.
-     */
-    GradleLauncher newInstance(BuildDefinition buildDefinition, RootBuildState build, BuildTreeScopeServices buildTreeScopeServices);
+    GradleLauncher newInstance(BuildDefinition buildDefinition, RootBuildState build, BuildTreeState owner);
 }

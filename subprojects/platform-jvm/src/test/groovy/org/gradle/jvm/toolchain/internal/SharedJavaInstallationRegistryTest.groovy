@@ -23,7 +23,7 @@ import spock.lang.Unroll
 class SharedJavaInstallationRegistryTest extends Specification {
 
     def registry = new SharedJavaInstallationRegistry(Collections.emptyList())
-    def tempFolder = createTempDir();
+    def tempFolder = createTempDir()
 
     def "registry keeps track of newly added installations"() {
         when:
@@ -42,57 +42,58 @@ class SharedJavaInstallationRegistryTest extends Specification {
         registry.listInstallations() == [tempFolder] as Set
     }
 
+    def "duplicates are detected using canonical form"() {
+        given:
+        registry.add(forDirectory(tempFolder))
+        registry.add(forDirectory(new File(tempFolder, "/.")))
+
+        when:
+        def installations = registry.listInstallations()
+
+        then:
+        installations == [tempFolder] as Set
+    }
+
     def "can be initialized with suppliers"() {
         given:
         def tmpDir2 = createTempDir()
         def tmpDir3 = createTempDir()
 
         when:
-        def registry = new SharedJavaInstallationRegistry([forDirectory(tmpDir2), forDirectory(tmpDir3)]);
+        def registry = new SharedJavaInstallationRegistry([forDirectory(tmpDir2), forDirectory(tmpDir3)])
         registry.add(forDirectory(tempFolder))
 
         then:
         registry.listInstallations().containsAll(tempFolder, tmpDir2, tmpDir2)
     }
 
-    def "registry cannot be mutated after finalizing"() {
+    @SuppressWarnings('GroovyAccessibility')
+    def "registry can be mutated at later point"() {
         given:
-        registry.add(forDirectory(tempFolder))
-        registry.add(forDirectory(tempFolder))
+        def tmpDir2 = createTempDir()
+        def registry = new SharedJavaInstallationRegistry([forDirectory(tmpDir2)])
 
         when:
-        registry.finalizeValue()
+        def before = registry.listInstallations()
         registry.add(forDirectory(tempFolder))
+        def after = registry.listInstallations()
 
         then:
-        def e = thrown(IllegalArgumentException)
-        e.message == "Installation must not be mutated after being finalized"
+        before.containsAll(tmpDir2)
+        after.containsAll(tmpDir2, tempFolder)
     }
 
-    def "accessing the list of installations finalizes it"() {
-        given:
-        registry.add(forDirectory(tempFolder))
-
-        when:
-        registry.listInstallations()
-        registry.add(forDirectory(tempFolder))
-
-        then:
-        def e = thrown(IllegalArgumentException)
-        e.message == "Installation must not be mutated after being finalized"
-    }
-
-    def "list of installations is cached"() {
+    def "list of installations is not cached"() {
         given:
         registry.add(forDirectory(tempFolder))
         registry.add(forDirectory(tempFolder))
 
         when:
-        def installations = registry.listInstallations();
-        def installations2 = registry.listInstallations();
+        def installations = registry.listInstallations()
+        def installations2 = registry.listInstallations()
 
         then:
-        installations.is(installations2)
+        !installations.is(installations2)
     }
 
     @Unroll
@@ -120,14 +121,12 @@ class SharedJavaInstallationRegistryTest extends Specification {
     }
 
     InstallationSupplier forDirectory(File directory) {
-        {
-            it -> Collections.singleton(new InstallationLocation(directory, "testSource"))
-        }
+        { it -> Collections.singleton(new InstallationLocation(directory, "testSource")) }
     }
 
-    def File createTempDir() {
+    File createTempDir() {
         def file = File.createTempDir()
         file.deleteOnExit()
-        file
+        file.canonicalFile
     }
 }

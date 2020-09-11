@@ -16,7 +16,7 @@
 
 package org.gradle.plugins.ide.eclipse
 
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.TestResources
 import org.junit.Rule
 import org.junit.Test
@@ -30,7 +30,7 @@ class EclipseWtpModelIntegrationTest extends AbstractEclipseIntegrationTest {
     String component
 
     @Test
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     void allowsConfiguringEclipseWtp() {
         //given
         file('someExtraSourceDir').mkdirs()
@@ -106,7 +106,7 @@ eclipse {
 
     @Issue("GRADLE-2653")
     @Test
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     void "wtp component respects configuration modifications"() {
         //given
         mavenRepo.module("gradle", "foo").publish()
@@ -139,7 +139,7 @@ configurations.all {
     }
 
     @Test
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     void allowsConfiguringHooksForComponent() {
         //given
         def componentFile = file('.settings/org.eclipse.wst.common.component')
@@ -194,7 +194,7 @@ eclipseWtpComponent.doLast() {
     }
 
     @Test
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     void allowsConfiguringHooksForFacet() {
         //given
         def componentFile = file('.settings/org.eclipse.wst.common.project.facet.core.xml')
@@ -247,7 +247,7 @@ eclipse {
 
     @Issue("GRADLE-2661")
     @Test
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     void "file dependencies respect plus minus configurations"() {
         //when
         runEclipseTask """
@@ -284,7 +284,7 @@ eclipse {
 
     @Test
     @Issue("GRADLE-1881")
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     void "uses eclipse project name for wtp module dependencies"() {
         //given
         def settings = file('settings.gradle')
@@ -324,7 +324,7 @@ project(':contrib') {
 
     @Test
     @Issue("GRADLE-1881")
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     void "does not explode if dependent project does not have eclipse plugin"() {
         //given
         def settings = file('settings.gradle')
@@ -354,7 +354,7 @@ project(':contrib') {
 
     @Test
     @Issue("GRADLE-2030")
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     void "component for war plugin does not contain non-existing source and resource dirs"() {
         //given
         file('xxxSource').createDir()
@@ -385,7 +385,7 @@ project(':contrib') {
 
     @Test
     @Issue("GRADLE-2030")
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     void "component for ear plugin does not contain non-existing source and resource dirs"() {
         //given
         file('xxxSource').createDir()
@@ -419,7 +419,7 @@ project(':contrib') {
     }
 
     @Test
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     void "component for ear plugin contains the app dir"() {
         //given
         file('coolAppDir').createDir()
@@ -440,7 +440,7 @@ project(':contrib') {
 
     @Test
     @Issue("GRADLE-1974")
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     void "may use web libraries container"() {
         //given
         //adding a little bit more stress with a subproject and some web resources:
@@ -473,7 +473,7 @@ project(':contrib') {
 
     @Test
     @Issue("GRADLE-1974")
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     void "the web container is not present without war+wtp combo"() {
         //given
         file("build.gradle") << """
@@ -490,7 +490,7 @@ project(':contrib') {
 
     @Test
     @Issue("GRADLE-1707")
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     void "classpath entries are protected from conflicting component dependency attributes"() {
         //given
         file("build.gradle") << """
@@ -526,7 +526,7 @@ project(':contrib') {
 
     @Test
     @Issue("GRADLE-1412")
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     void "utility project's library and variable classpath entries contain necessary dependency attribute"() {
         //given
         file('libs/myFoo.jar').touch()
@@ -558,7 +558,7 @@ project(':contrib') {
 
     @Test
     @Issue("GRADLE-1412")
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     void "web project's library and variable classpath entries contain necessary dependency attribute"() {
         //given
         file('libs/myFoo.jar').touch()

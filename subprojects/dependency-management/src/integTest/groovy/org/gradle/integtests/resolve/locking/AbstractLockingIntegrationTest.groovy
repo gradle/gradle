@@ -19,7 +19,7 @@ package org.gradle.integtests.resolve.locking
 import org.gradle.api.artifacts.dsl.LockMode
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.integtests.fixtures.FeaturePreviewsFixture
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import spock.lang.Unroll
 
@@ -88,7 +88,7 @@ dependencies {
         unique << [true, false]
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     @Unroll
     def 'does not write-locks for not locked configuration (unique: #unique)'() {
         mavenRepo.module('org', 'foo', '1.0').publish()
@@ -122,7 +122,7 @@ dependencies {
         unique << [true, false]
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     @Unroll
     def 'writes dependency lock file when requested (unique: #unique)'() {
         mavenRepo.module('org', 'foo', '1.0').publish()
@@ -163,7 +163,7 @@ dependencies {
         unique << [true, false]
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     @Unroll
     def "writes dependency lock file for resolved version #version"() {
         mavenRepo.module('org', 'bar', '1.0').publish()
@@ -209,7 +209,7 @@ dependencies {
         "+"         | "2.1"
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     @Unroll
     def "does not lock a configuration that is marked with deactivateDependencyLocking (unique: #unique)"() {
         ['foo', 'foz', 'bar', 'baz'].each { artifact ->
@@ -273,7 +273,7 @@ dependencies {
         unique << [true, false]
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     @Unroll
     def 'upgrades lock file (unique: #unique)'() {
         mavenRepo.module('org', 'foo', '1.0').publish()
@@ -317,7 +317,7 @@ dependencies {
         unique << [true, false]
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def 'does not write duplicates in the lockfile (unique: #unique)'() {
         def foo = mavenRepo.module('org', 'foo', '1.0').publish()
         mavenRepo.module('org', 'bar', '1.0').dependsOn(foo).publish()
@@ -357,7 +357,7 @@ dependencies {
         unique << [true, false]
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     @Unroll
     def 'includes transitive dependencies in the lock file'() {
         def dep = mavenRepo.module('org', 'bar', '1.0').publish()
@@ -397,7 +397,7 @@ dependencies {
         unique << [true, false]
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     @Unroll
     def 'updates part of the lockfile (unique: #unique)'() {
         mavenRepo.module('org', 'foo', '1.0').publish()
@@ -442,7 +442,7 @@ dependencies {
         unique << [true, false]
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     @Unroll
     def 'updates part of the lockfile using wildcard'() {
         mavenRepo.module('org', 'foo', '1.0').publish()
@@ -487,7 +487,7 @@ dependencies {
         unique << [true, false]
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     @Unroll
     def 'updates but ignores irrelevant modules'() {
         mavenRepo.module('org', 'bar', '1.0').publish()
@@ -532,7 +532,7 @@ dependencies {
         unique << [true, false]
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     @Unroll
     def 'updates multiple parts of the lockfile'() {
         mavenRepo.module('org', 'foo', '1.0').publish()
@@ -582,7 +582,7 @@ dependencies {
         unique << [true, false]
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     @Unroll
     def 'writes an empty lock file for an empty configuration (unique: #unique)'() {
         if (unique) {
@@ -614,7 +614,7 @@ configurations {
         unique << [true, false]
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     @Unroll
     def 'overwrites a not empty lock file with an empty one when configuration no longer has dependencies (unique: #unique)'() {
         if (unique) {
@@ -649,7 +649,7 @@ configurations {
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "fails if trying to resolve a locked configuration with #flag"() {
         buildFile << """
 dependencyLocking {
@@ -682,4 +682,99 @@ dependencies {
         'failOnChangingVersions'          | 'changing'
         'failOnNonReproducibleResolution' | 'dynamic'
     }
+
+    @ToBeFixedForConfigurationCache
+    @Unroll
+    def "does not write ignored dependencies to lock file (notation #notation, unique #unique)"() {
+        mavenRepo.module('org', 'foo', '1.0').publish()
+        mavenRepo.module('org', 'bar', '1.0').publish()
+
+        if (unique) {
+            FeaturePreviewsFixture.enableOneLockfilePerProject(settingsFile)
+        }
+        buildFile << """
+dependencyLocking {
+    lockAllConfigurations()
+    lockMode = LockMode.${lockMode()}
+    ignoredDependencies.add('$notation')
+}
+
+repositories {
+    maven {
+        name 'repo'
+        url '${mavenRepo.uri}'
+    }
+}
+configurations {
+    lockedConf
+}
+
+dependencies {
+    lockedConf 'org:foo:1.+'
+    lockedConf 'org:bar:1.+'
+}
+"""
+
+        when:
+        succeeds'dependencies', '--write-locks', '--refresh-dependencies'
+
+        then:
+        lockfileFixture.verifyLockfile('lockedConf', ['org:bar:1.0'], unique)
+
+        where:
+        unique  | notation
+        true    | 'org:foo'
+        false   | '*:foo'
+        true    | 'or*:f*'
+    }
+
+    @ToBeFixedForConfigurationCache
+    @Unroll
+    def 'updates part of the lockfile, with ignored dependencies (unique: #unique)'() {
+        mavenRepo.module('org', 'foo', '1.0').publish()
+        mavenRepo.module('org', 'foo', '1.1').publish()
+        mavenRepo.module('org', 'bar', '1.0').publish()
+        mavenRepo.module('org', 'bar', '1.1').publish()
+        mavenRepo.module('org', 'baz', '1.0').publish()
+        mavenRepo.module('org', 'baz', '1.1').publish()
+
+        lockfileFixture.createLockfile('lockedConf', ['org:foo:1.0', 'org:bar:1.0'], unique)
+
+        if (unique) {
+            FeaturePreviewsFixture.enableOneLockfilePerProject(settingsFile)
+        }
+        buildFile << """
+dependencyLocking {
+    lockAllConfigurations()
+    lockMode = LockMode.${lockMode()}
+    ignoredDependencies.add('org:baz')
+}
+
+repositories {
+    maven {
+        name 'repo'
+        url '${mavenRepo.uri}'
+    }
+}
+configurations {
+    lockedConf
+}
+
+dependencies {
+    lockedConf 'org:foo:[1.0,2.0)'
+    lockedConf 'org:bar:[1.0,2.0)'
+    lockedConf 'org:baz:[1.0,2.0)'
+}
+"""
+
+        when:
+        succeeds 'dependencies', '--update-locks', 'org:foo'
+
+        then:
+        lockfileFixture.verifyLockfile('lockedConf', ['org:foo:1.1', 'org:bar:1.0'], unique)
+
+        where:
+        unique << [true, false]
+    }
+
 }

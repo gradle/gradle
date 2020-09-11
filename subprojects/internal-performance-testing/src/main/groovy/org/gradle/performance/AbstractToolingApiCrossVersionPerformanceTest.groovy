@@ -68,6 +68,8 @@ import spock.lang.Specification
 
 import java.lang.reflect.Proxy
 
+import static org.gradle.performance.results.ResultsStoreHelper.createResultsStoreWhenDatabaseAvailable
+
 /**
  * Base class for all Tooling API performance regression tests. Subclasses can profile arbitrary actions against a {@link ProjectConnection).
  *
@@ -79,7 +81,7 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
     protected final static ReleasedVersionDistributions RELEASES = new ReleasedVersionDistributions()
     protected final static GradleDistribution CURRENT = new UnderDevelopmentGradleDistribution()
 
-    static def resultStore = new CrossVersionResultsStore()
+    private static final RESULTS_STORE = createResultsStoreWhenDatabaseAvailable { new CrossVersionResultsStore() }
     final TestNameTestDirectoryProvider temporaryFolder = new PerformanceTestDirectoryProvider(getClass())
 
     protected ToolingApiExperiment experiment
@@ -119,11 +121,11 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
     static {
         // TODO - find a better way to cleanup
         System.addShutdownHook {
-            ((Closeable) resultStore).close()
+            ((Closeable) RESULTS_STORE).close()
         }
     }
 
-    public class ToolingApiExperiment {
+    class ToolingApiExperiment {
         final String projectName
         String displayName
         String testClassName
@@ -146,7 +148,7 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
     private static class ToolingApiBuildExperimentSpec extends BuildExperimentSpec {
 
         ToolingApiBuildExperimentSpec(String version, TestFile workingDir, ToolingApiExperiment experiment) {
-            super(version, experiment.projectName, workingDir, experiment.warmUpCount ?: 10, experiment.invocationCount ?: 40, null, null)
+            super(version, experiment.projectName, workingDir, experiment.warmUpCount ?: 10, experiment.invocationCount ?: 40, null, [])
         }
 
         @Override
@@ -165,7 +167,7 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
 
         private CrossVersionPerformanceResults run() {
             def testId = experiment.displayName
-            Assume.assumeTrue(TestScenarioSelector.shouldRun(experiment.testClassName, testId, [experiment.projectName].toSet(), resultStore))
+            Assume.assumeTrue(TestScenarioSelector.shouldRun(experiment.testClassName, testId, [experiment.projectName].toSet(), RESULTS_STORE))
             profiler = Profiler.create()
             try {
                 doRun(testId)
@@ -229,7 +231,7 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
 
             results.endTime = clock.getCurrentTime()
 
-            resultStore.report(results)
+            RESULTS_STORE.report(results)
 
             results
         }

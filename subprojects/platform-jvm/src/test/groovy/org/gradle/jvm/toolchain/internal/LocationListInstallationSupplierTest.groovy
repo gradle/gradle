@@ -16,8 +16,8 @@
 
 package org.gradle.jvm.toolchain.internal
 
-import org.gradle.api.internal.provider.DefaultProperty
-import org.gradle.api.internal.provider.PropertyHost
+
+import org.gradle.api.internal.provider.Providers
 import org.gradle.api.provider.ProviderFactory
 import spock.lang.Specification
 
@@ -69,14 +69,12 @@ class LocationListInstallationSupplierTest extends Specification {
     }
 
     private createSupplier(String propertyValue) {
-        def supplier = new LocationListInstallationSupplier(createProviderFactory(propertyValue))
+        new LocationListInstallationSupplier(createProviderFactory(propertyValue))
     }
 
     private ProviderFactory createProviderFactory(String propertyValue) {
         def providerFactory = Mock(ProviderFactory)
-        def provider = new DefaultProperty(PropertyHost.NO_OP, String)
-        provider.set(propertyValue)
-        providerFactory.gradleProperty("org.gradle.java.installations.paths") >> provider
+        providerFactory.gradleProperty("org.gradle.java.installations.paths") >> Providers.ofNullable(propertyValue)
         providerFactory
     }
 

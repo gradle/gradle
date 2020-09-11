@@ -70,7 +70,7 @@ Most differences will be benign, but it's worth identifying them and verifying t
 +
 This will create all the Gradle build files you need, even for <<migmvn:multimodule_builds,multi-module builds>>.
 For simpler Maven projects, the Gradle build will be ready to run!
- . link:{guidesUrl}/creating-build-scans[Create a build scan for the Gradle build].
+ . link:https://scans.gradle.com[Create a build scan for the Gradle build].
 +
 A build scan will make it easier to visualize what's happening in the build.
 For Gradle builds, you'll be able to see the project structure, the dependencies (regular and inter-project ones), what plugins are being used and the console output of the build.
@@ -78,7 +78,7 @@ For Gradle builds, you'll be able to see the project structure, the dependencies
 Your build may fail at this point, but that's ok; the scan will still run. Compare the build scan for the Gradle build to the one for the Maven build and continue down this list to troubleshoot the failures.
 +
 We recommend that you regularly generate build scans during the migration to help you identify and troubleshoot problems.
-If you want, you can also use a Gradle build scan to identify opportunities to link:{guidesUrl}/performance/[improve the performance of the build], after all performance is a big reason for switching to Gradle in the first place.
+If you want, you can also use a Gradle build scan to identify opportunities to https://guides.gradle.org/performance/[improve the performance of the build], after all performance is a big reason for switching to Gradle in the first place.
  . <<migmvn:migrating_deps,Verify your dependencies and fix any problems>>
  . <<migmvn:integration_tests,Configure integration and functional tests>>
 +
@@ -369,8 +369,8 @@ NOTE: You can use this feature to apply the `<dependencyManagement>` information
 [[migmvn:multimodule_builds]]
 == Migrating multi-module builds (project aggregation)
 
-Maven's multi-module builds map nicely to Gradle's <<multi_project_builds#,multi-project builds>>.
-Try the corresponding link:{guidesUrl}/creating-multi-project-builds/[tutorial] to see how a basic multi-project Gradle build is set up.
+Maven's multi-module builds map nicely to Gradle's <<multi_project_builds#multi_project_builds,multi-project builds>>.
+Try the corresponding link:../samples/sample_jvm_multi_project_build.html[sample] to see how a basic multi-project Gradle build is set up.
 
 To migrate a multi-module Maven build, simply follow these steps:
 
@@ -402,7 +402,7 @@ include::sample[dir="snippets/mavenMigration/multiModule/kotlin",files="settings
 include::{snippetsPath}/mavenMigration/multiModule/tests/projects.out[]
 ----
  2. Replace cross-module dependencies with <<declaring_dependencies.adoc#sub:project_dependencies,project dependencies>>.
- 3. Replicate project inheritance with <<multi_project_builds#sec:cross_project_configuration,cross-project configuration>>.
+ 3. Replicate project inheritance with <<sharing_build_logic_between_subprojects#sec:convention_plugins,convention plugins>>.
 +
 This basically involves creating a root project build script that injects shared configuration into the appropriate subprojects.
 
@@ -644,4 +644,4 @@ This chapter has covered the major topics that are specific to migrating Maven b
  * Learn how to <<organizing_gradle_projects#organizing_gradle_projects,structure your builds effectively>>
  * <<logging#logging,Configure Gradle's logging>> and use it from your builds
 
-As a final note, this guide has only touched on a few of Gradle's features and we encourage you to learn about the rest from the other chapters of the user manual and from our tutorial-style link:{guidesUrl}/[Gradle Guides].
+As a final note, this guide has only touched on a few of Gradle's features and we encourage you to learn about the rest from the other chapters of the user manual and from our link:../samples/index.html[step-by-step samples].

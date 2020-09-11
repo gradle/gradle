@@ -17,13 +17,13 @@
 package org.gradle.api.publish.ivy
 
 import groovy.transform.NotYetImplemented
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import spock.lang.Issue
 
 class IvyPublishVersionRangeIntegTest extends AbstractIvyPublishIntegTest {
     def ivyModule = javaLibrary(ivyRepo.module("org.gradle.test", "publishTest", "1.9"))
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     void "version range is mapped to ivy syntax in published ivy descriptor file"() {
         given:
         settingsFile << "rootProject.name = 'publishTest' "

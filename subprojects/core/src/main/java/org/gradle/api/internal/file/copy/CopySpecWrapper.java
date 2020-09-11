@@ -30,6 +30,7 @@ import org.gradle.api.specs.Spec;
 import org.gradle.util.ClosureBackedAction;
 
 import javax.annotation.Nullable;
+import javax.inject.Inject;
 import java.io.FilterReader;
 import java.util.Map;
 import java.util.Set;
@@ -46,6 +47,7 @@ public class CopySpecWrapper implements CopySpec {
     @VisibleForTesting
     final CopySpec delegate;
 
+    @Inject
     public CopySpecWrapper(CopySpec delegate) {
         this.delegate = delegate;
     }

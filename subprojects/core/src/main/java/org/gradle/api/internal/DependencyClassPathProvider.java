@@ -64,14 +64,21 @@ public class DependencyClassPathProvider implements ClassPathProvider {
     }
 
     private ClassPath initGradleApi() {
+        // This gradleApi() method creates a Gradle API classpath based on real jars for embedded test running.
+        // Currently this leaks additional dependencies that may cause unexpected issues.
+        // This method is NOT involved in generating the gradleApi() Jar which is used in a real Gradle run.
         ClassPath classpath = ClassPath.EMPTY;
-        for (String moduleName : Arrays.asList("gradle-worker-processes", "gradle-launcher", "gradle-workers", "gradle-dependency-management", "gradle-plugin-use", "gradle-tooling-api", "gradle-instant-execution")) {
+        for (String moduleName : Arrays.asList("gradle-worker-processes", "gradle-launcher", "gradle-workers", "gradle-dependency-management", "gradle-plugin-use", "gradle-tooling-api", "gradle-configuration-cache")) {
             classpath = classpath.plus(moduleRegistry.getModule(moduleName).getAllRequiredModulesClasspath());
         }
         for (Module pluginModule : pluginModuleRegistry.getApiModules()) {
             classpath = classpath.plus(pluginModule.getClasspath());
         }
-        return classpath;
+        return classpath.removeIf(f ->
+            // Remove dependencies that are not part of the API and cause trouble when they leak.
+            // 'kotlin-sam-with-receiver-compiler-plugin' clashes with 'kotlin-sam-with-receiver' causing a 'SamWithReceiverComponentRegistrar is not compatible with this version of compiler' exception
+            f.getName().startsWith("kotlin-sam-with-receiver-compiler-plugin")
+        );
     }
 
     private ClassPath gradleTestKit() {

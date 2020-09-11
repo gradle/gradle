@@ -1,1 +1,1 @@
-rootProject.name = "compileTaskClasspath"
+rootProject.name = "compile-task-classpath"

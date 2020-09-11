@@ -65,6 +65,8 @@ public interface RepositoryContentDescriptor extends InclusiveRepositoryContentD
 
     /**
      * Declares that a specific module version should be searched for in this repository.
+     * <p>
+     * The version notation supports range notations like {@code [1.0,2.0[}.
      *
      * @param group the group name
      * @param moduleName the module name
@@ -75,6 +77,8 @@ public interface RepositoryContentDescriptor extends InclusiveRepositoryContentD
 
     /**
      * Declares that a specific module version should be searched for in this repository, using regular expressions.
+     * <p>
+     * The version notation for a regex will be matched against a single version and does not support range notations.
      *
      * @param groupRegex the group name regular expression
      * @param moduleNameRegex the module name regular expression
@@ -115,6 +119,8 @@ public interface RepositoryContentDescriptor extends InclusiveRepositoryContentD
 
     /**
      * Declares that a specific module version shouldn't be searched for in this repository.
+     * <p>
+     * The version notation for a regex will be matched against a single version and does not support range notations.
      *
      * @param group the group name
      * @param moduleName the module name
@@ -124,6 +130,8 @@ public interface RepositoryContentDescriptor extends InclusiveRepositoryContentD
 
     /**
      * Declares that a specific module version shouldn't be searched for in this repository, using regular expressions.
+     * <p>
+     * The version notation for a regex will be matched against a single version and does not support range notations.
      *
      * @param groupRegex the group name
      * @param moduleNameRegex the module name

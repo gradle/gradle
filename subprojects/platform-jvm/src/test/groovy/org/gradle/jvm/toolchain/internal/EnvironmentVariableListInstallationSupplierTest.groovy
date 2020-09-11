@@ -17,9 +17,7 @@
 package org.gradle.jvm.toolchain.internal
 
 
-import org.gradle.api.internal.provider.DefaultProperty
-import org.gradle.api.internal.provider.PropertyHost
-import org.gradle.api.provider.Provider
+import org.gradle.api.internal.provider.Providers
 import org.gradle.api.provider.ProviderFactory
 import spock.lang.Specification
 
@@ -83,11 +81,11 @@ class EnvironmentVariableListInstallationSupplierTest extends Specification {
         directoriesAsStablePaths(directories) == stablePaths(["/path/jdk9"])
     }
 
-    private directoriesAsStablePaths(Set<InstallationLocation> actualDirectories) {
+    def directoriesAsStablePaths(Set<InstallationLocation> actualDirectories) {
         actualDirectories*.location.absolutePath.sort()
     }
 
-    private stablePaths(List<String> expectedPaths) {
+    def stablePaths(List<String> expectedPaths) {
         expectedPaths.replaceAll({ String s -> systemSpecificAbsolutePath(s) })
         expectedPaths
     }
@@ -98,17 +96,11 @@ class EnvironmentVariableListInstallationSupplierTest extends Specification {
 
     private ProviderFactory createProviderFactory(String propertyValue) {
         def providerFactory = Mock(ProviderFactory)
-        providerFactory.gradleProperty("org.gradle.java.installations.fromEnv") >> mockProvider(propertyValue)
-        providerFactory.environmentVariable("JDK8") >> mockProvider("/path/jdk8")
-        providerFactory.environmentVariable("JDK9") >> mockProvider("/path/jdk9")
-        providerFactory.environmentVariable("") >> mockProvider(null)
+        providerFactory.gradleProperty("org.gradle.java.installations.fromEnv") >> Providers.ofNullable(propertyValue)
+        providerFactory.environmentVariable("JDK8") >> Providers.of("/path/jdk8")
+        providerFactory.environmentVariable("JDK9") >> Providers.of("/path/jdk9")
+        providerFactory.environmentVariable("") >> Providers.ofNullable(null)
         providerFactory
-    }
-
-    private Provider<String> mockProvider(String value) {
-        def provider = new DefaultProperty(PropertyHost.NO_OP, String)
-        provider.set(value)
-        provider
     }
 
 }

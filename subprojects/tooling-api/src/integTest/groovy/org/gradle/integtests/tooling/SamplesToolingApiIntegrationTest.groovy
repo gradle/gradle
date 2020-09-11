@@ -16,7 +16,7 @@
 package org.gradle.integtests.tooling
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.integtests.fixtures.executer.ExecutionResult
@@ -79,7 +79,7 @@ class SamplesToolingApiIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @UsesSample('toolingApi/customModel/groovy')
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can use tooling API to register custom model"() {
         tweakPluginProject(sample.dir.file('plugin'))
         tweakProject(sample.dir.file('tooling'))

@@ -82,6 +82,7 @@ class ApplyPluginIntegSpec extends AbstractIntegrationSpec {
     }
 
     @Issue("GRADLE-3068")
+    @IgnoreIf({ GradleContextualExecuter.embedded }) // Requires a Gradle distribution on the test-under-test classpath, but gradleApi() does not offer the full distribution
     def "can use gradleApi in test"() {
         given:
         file("src/test/groovy/org/acme/ProjectBuilderTest.groovy") << """

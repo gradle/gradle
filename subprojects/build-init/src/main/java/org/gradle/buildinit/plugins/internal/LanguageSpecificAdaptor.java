@@ -16,26 +16,33 @@
 
 package org.gradle.buildinit.plugins.internal;
 
-import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
 import org.gradle.buildinit.plugins.internal.modifiers.ComponentType;
 import org.gradle.buildinit.plugins.internal.modifiers.Language;
+import org.gradle.buildinit.plugins.internal.modifiers.ModularizationOption;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
 public class LanguageSpecificAdaptor implements ProjectGenerator {
+    private static final List<String> SAMPLE_CONVENTION_PLUGINS = Arrays.asList("common", "application", "library");
+
     private final BuildScriptBuilderFactory scriptBuilderFactory;
-    private final FileCollectionFactory fileCollectionFactory;
     private final TemplateOperationFactory templateOperationFactory;
     private final LanguageSpecificProjectGenerator descriptor;
+    private final TemplateLibraryVersionProvider libraryVersionProvider;
 
-    public LanguageSpecificAdaptor(LanguageSpecificProjectGenerator descriptor, BuildScriptBuilderFactory scriptBuilderFactory, FileCollectionFactory fileCollectionFactory, TemplateOperationFactory templateOperationFactory) {
+    public LanguageSpecificAdaptor(LanguageSpecificProjectGenerator descriptor, BuildScriptBuilderFactory scriptBuilderFactory, TemplateOperationFactory templateOperationFactory, TemplateLibraryVersionProvider libraryVersionProvider) {
         this.scriptBuilderFactory = scriptBuilderFactory;
         this.descriptor = descriptor;
-        this.fileCollectionFactory = fileCollectionFactory;
         this.templateOperationFactory = templateOperationFactory;
+        this.libraryVersionProvider = libraryVersionProvider;
     }
 
     @Override
@@ -54,8 +61,13 @@ public class LanguageSpecificAdaptor implements ProjectGenerator {
     }
 
     @Override
-    public Optional<String> getFurtherReading() {
-        return descriptor.getFurtherReading();
+    public Set<ModularizationOption> getModularizationOptions() {
+        return descriptor.getModularizationOptions();
+    }
+
+    @Override
+    public Optional<String> getFurtherReading(InitSettings settings) {
+        return descriptor.getFurtherReading(settings);
     }
 
     @Override
@@ -81,10 +93,66 @@ public class LanguageSpecificAdaptor implements ProjectGenerator {
         return descriptor.supportsPackage();
     }
 
+    public Map<String, List<String>> generateWithExternalComments(InitSettings settings) {
+        HashMap<String, List<String>> comments = new HashMap<>();
+        for(BuildScriptBuilder buildScriptBuilder : allBuildScriptBuilder(settings)) {
+            buildScriptBuilder.withExternalComments().create(settings.getTarget()).generate();
+            comments.put(buildScriptBuilder.getFileNameWithoutExtension(), buildScriptBuilder.extractComments());
+        }
+        return comments;
+    }
+
     @Override
     public void generate(InitSettings settings) {
-        BuildScriptBuilder buildScriptBuilder = scriptBuilderFactory.script(settings.getDsl(), "build");
-        descriptor.generate(settings, buildScriptBuilder, new TemplateFactory(settings, descriptor.getLanguage(), fileCollectionFactory, templateOperationFactory));
-        buildScriptBuilder.create().generate();
+        for(BuildScriptBuilder buildScriptBuilder : allBuildScriptBuilder(settings)) {
+            buildScriptBuilder.create(settings.getTarget()).generate();
+        }
+    }
+
+    private List<BuildScriptBuilder> allBuildScriptBuilder(InitSettings settings) {
+        List<BuildScriptBuilder> builder = new ArrayList<>();
+
+        if (settings.getModularizationOption() == ModularizationOption.WITH_LIBRARY_PROJECTS) {
+            builder.add(buildSrcSetup(settings));
+            for(String conventionPluginName: SAMPLE_CONVENTION_PLUGINS) {
+                builder.add(conventionPluginScriptBuilder(conventionPluginName, settings));
+            }
+        }
+
+        for (String subproject : settings.getSubprojects()) {
+            builder.add(projectBuildScriptBuilder(subproject, settings, subproject + "/build"));
+        }
+
+        TemplateFactory templateFactory = new TemplateFactory(settings, descriptor.getLanguage(), templateOperationFactory);
+        descriptor.generateSources(settings, templateFactory);
+
+        return builder;
+    }
+
+    private BuildScriptBuilder buildSrcSetup(InitSettings settings) {
+        BuildScriptBuilder buildSrcScriptBuilder = scriptBuilderFactory.script(settings.getDsl(), "buildSrc/build");
+        buildSrcScriptBuilder.conventionPluginSupport("Support convention plugins written in " + settings.getDsl().toString() + ". Convention plugins are build scripts in 'src/main' that automatically become available as plugins in the main build.");
+        if (getLanguage() == Language.KOTLIN) {
+            String kotlinPluginCoordinates = "org.jetbrains.kotlin:kotlin-gradle-plugin";
+            if (settings.getDsl() == BuildInitDsl.GROOVY) {
+                // we don't get a Kotlin version from context without the 'kotlin-dsl' plugin
+                kotlinPluginCoordinates = kotlinPluginCoordinates + ":" + libraryVersionProvider.getVersion("kotlin");
+            }
+            buildSrcScriptBuilder.implementationDependency(null, kotlinPluginCoordinates);
+        }
+        return buildSrcScriptBuilder;
+    }
+
+    private BuildScriptBuilder projectBuildScriptBuilder(String projectName, InitSettings settings, String buildFile) {
+        BuildScriptBuilder buildScriptBuilder = scriptBuilderFactory.script(settings.getDsl(), buildFile);
+        descriptor.generateProjectBuildScript(projectName, settings, buildScriptBuilder);
+        return buildScriptBuilder;
+    }
+
+    private BuildScriptBuilder conventionPluginScriptBuilder(String conventionPluginName, InitSettings settings) {
+        BuildScriptBuilder buildScriptBuilder = scriptBuilderFactory.script(settings.getDsl(),
+            "buildSrc/src/main/" + settings.getDsl().name().toLowerCase() + "/" + settings.getPackageName() + "." + getLanguage().getName() + "-" + conventionPluginName + "-conventions");
+        descriptor.generateConventionPluginBuildScript(conventionPluginName, settings, buildScriptBuilder);
+        return buildScriptBuilder;
     }
 }

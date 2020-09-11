@@ -38,6 +38,7 @@ The Build Init plugin supports generating various build _types_. These are liste
 |<<#sec:groovy_application,groovy-application>>|A command-line application implemented in Groovy
 |<<#sec:groovy_gradle_plugin,groovy-gradle-plugin>>|A Gradle plugin implemented in Groovy
 |<<#sec:groovy_library,groovy-library>>|A Groovy library
+|<<#sec:scala_application,scala-application>>|A Scala application
 |<<#sec:scala_library,scala-library>>|A Scala library
 |<<#sec:cpp_application,cpp-application>>|A command-line application implemented in C++
 |<<#sec:cpp_library,cpp-library>>|A C++ library
@@ -206,6 +207,19 @@ It has the following features:
 * Has directories in the conventional locations for source code
 * Contains a sample class and unit test, if there are no existing source or test files
 
+[[sec:scala_application]]
+=== `scala-application` build type
+
+The “`scala-application`” build type is not inferable. It must be explicitly specified.
+
+It has the following features:
+
+* Uses the “`scala`” plugin to produce an application implemented in Scala
+* Uses the “`jcenter`” dependency repository
+* Uses Scala 2.13
+* Uses http://www.scalatest.org[ScalaTest] for testing
+* Has directories in the conventional locations for source code
+* Contains a sample Scala class and an associated ScalaTest test suite, if there are no existing source or test files
 
 [[sec:scala_library]]
 === `scala-library` build type
@@ -216,12 +230,10 @@ It has the following features:
 
 * Uses the “`scala`” plugin to produce a library implemented in Scala
 * Uses the “`jcenter`” dependency repository
-* Uses Scala 2.11
+* Uses Scala 2.13
 * Uses http://www.scalatest.org[ScalaTest] for testing
 * Has directories in the conventional locations for source code
 * Contains a sample Scala class and an associated ScalaTest test suite, if there are no existing source or test files
-* Uses the Zinc Scala compiler by default
-
 
 [[sec:groovy_library]]
 === `groovy-library` build type

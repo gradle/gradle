@@ -21,7 +21,7 @@ import org.gradle.api.attributes.LibraryElements
 import org.gradle.api.attributes.Usage
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 import spock.lang.Ignore
 import spock.lang.Unroll
@@ -110,7 +110,7 @@ class JavaBundlingResolveIntegrationTest extends AbstractModuleDependencyResolve
         bundling << [Bundling.EMBEDDED, Bundling.SHADOWED]
     }
 
-    @ToBeFixedForInstantExecution(iterationMatchers = [".*selected=null.*"])
+    @ToBeFixedForConfigurationCache(iterationMatchers = [".*selected=null.*"])
     @Unroll
     def "selects the appropriate variant (producer=#bundling, requested=#requested, selected=#selected)"() {
         given:

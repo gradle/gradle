@@ -50,7 +50,7 @@ When set to true, Gradle will reuse task outputs from any previous build, when p
 When set to true, individual input property hashes and the build cache key for each task are logged on the console. Learn more about <<build_cache.adoc#sec:task_output_caching, task output caching>>.
 
 `org.gradle.configureondemand=(true,false)`::
-Enables incubating <<multi_project_builds.adoc#sec:configuration_on_demand, configuration on demand>>, where Gradle will attempt to configure only necessary projects.
+Enables incubating <<multi_project_configuration_and_execution.adoc#sec:configuration_on_demand, configuration on demand>>, where Gradle will attempt to configure only necessary projects.
 
 `org.gradle.console=(auto,plain,rich,verbose)`::
 Customize console output coloring or verbosity. Default depends on how Gradle is invoked. See <<command_line_interface.adoc#sec:command_line_logging, command-line logging>> for additional details.
@@ -79,7 +79,11 @@ When configured, Gradle will fork up to `org.gradle.workers.max` JVMs to execute
 `org.gradle.priority=(low,normal)`::
 Specifies the scheduling priority for the Gradle daemon and all processes launched by it. Default is `normal`. See also <<command_line_interface.adoc#sec:command_line_performance, performance command-line options>>.
 
-`org.gradle.unsafe.watch-fs=(true,false)`::
+`org.gradle.vfs.verbose=(true,false)`::
+Configures verbose logging when <<gradle_daemon.adoc#sec:daemon_watch_fs,watching the file system>>.
+_Default is off_.
+
+`org.gradle.vfs.watch=(true,false)`::
 Toggles <<gradle_daemon.adoc#sec:daemon_watch_fs,watching the file system>>.
 Allows Gradle to re-use information about the file system in the next build.
 _Default is off_.

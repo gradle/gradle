@@ -42,6 +42,7 @@ import org.gradle.api.internal.tasks.testing.junitplatform.JUnitPlatformTestFram
 import org.gradle.api.internal.tasks.testing.testng.TestNGTestFramework;
 import org.gradle.api.jvm.ModularitySpec;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Property;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
@@ -66,12 +67,14 @@ import org.gradle.internal.actor.ActorFactory;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.jvm.DefaultModularitySpec;
 import org.gradle.internal.jvm.JavaModuleDetector;
+import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.jvm.UnsupportedJavaRuntimeException;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.scan.UsedByScanPlugin;
 import org.gradle.internal.time.Clock;
 import org.gradle.internal.work.WorkerLeaseRegistry;
+import org.gradle.jvm.toolchain.JavaLauncher;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.JavaDebugOptions;
 import org.gradle.process.JavaForkOptions;
@@ -90,6 +93,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
+import static com.google.common.base.Preconditions.checkState;
 import static org.gradle.util.ConfigureUtil.configureUsing;
 
 /**
@@ -150,6 +154,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
 
     private final JavaForkOptions forkOptions;
     private final ModularitySpec modularity;
+    private final Property<JavaLauncher> javaLauncher;
 
     private FileCollection testClassesDirs;
     private final PatternFilterable patternSet;
@@ -174,7 +179,9 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
         });
         forkOptions = getForkOptionsFactory().newDecoratedJavaForkOptions();
         forkOptions.setEnableAssertions(true);
+        forkOptions.setExecutable(null);
         modularity = getObjectFactory().newInstance(DefaultModularitySpec.class);
+        javaLauncher = getObjectFactory().property(JavaLauncher.class);
     }
 
     @Inject
@@ -263,7 +270,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
      */
     @Input
     public JavaVersion getJavaVersion() {
-        return getServices().get(JvmVersionDetector.class).getJavaVersion(getExecutable());
+        return getServices().get(JvmVersionDetector.class).getJavaVersion(getEffectiveExecutable());
     }
 
     /**
@@ -591,6 +598,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     @Override
     public Test copyTo(ProcessForkOptions target) {
         forkOptions.copyTo(target);
+        copyToolchainAsExecutable(target);
         return this;
     }
 
@@ -600,7 +608,12 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     @Override
     public Test copyTo(JavaForkOptions target) {
         forkOptions.copyTo(target);
+        copyToolchainAsExecutable(target);
         return this;
+    }
+
+    private void copyToolchainAsExecutable(ProcessForkOptions target) {
+        target.setExecutable(getEffectiveExecutable());
     }
 
     /**
@@ -621,6 +634,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
      */
     @Override
     protected JvmTestExecutionSpec createTestExecutionSpec() {
+        validateToolchainConfiguration();
         JavaForkOptions javaForkOptions = getForkOptionsFactory().newJavaForkOptions();
         copyTo(javaForkOptions);
         JavaModuleDetector javaModuleDetector = getJavaModuleDetector();
@@ -628,6 +642,12 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
         FileCollection classpath = javaModuleDetector.inferClasspath(testIsModule, stableClasspath);
         FileCollection modulePath = javaModuleDetector.inferModulePath(testIsModule, stableClasspath);
         return new JvmTestExecutionSpec(getTestFramework(), classpath, modulePath, getCandidateClassFiles(), isScanForTestClasses(), getTestClassesDirs(), getPath(), getIdentityPath(), getForkEvery(), javaForkOptions, getMaxParallelForks(), getPreviousFailedTestClasses());
+    }
+
+    private void validateToolchainConfiguration() {
+        if (javaLauncher.isPresent()) {
+            checkState(forkOptions.getExecutable() == null, "Must not use `executable` property on `Test` together with `javaLauncher` property");
+        }
     }
 
     private Set<String> getPreviousFailedTestClasses() {
@@ -1142,4 +1162,26 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     void setTestExecuter(TestExecuter<JvmTestExecutionSpec> testExecuter) {
         this.testExecuter = testExecuter;
     }
+
+    /**
+     * Configures the java executable to be used to run the tests.
+     *
+     * @since 6.7
+     */
+    @Incubating
+    @Internal("getJavaVersion() is used as @Input")
+    public Property<JavaLauncher> getJavaLauncher() {
+        return javaLauncher;
+    }
+
+    @Nullable
+    private String getEffectiveExecutable() {
+        if (javaLauncher.isPresent()) {
+            // The below line is OK because it will only be exercised in the Gradle daemon and not in the worker running tests.
+            return javaLauncher.get().getExecutablePath().toString();
+        }
+        final String executable = getExecutable();
+        return executable == null ? Jvm.current().getJavaExecutable().getAbsolutePath() : executable;
+    }
+
 }

@@ -16,7 +16,7 @@
 
 package org.gradle.language.cpp
 
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.CppAppWithLibraries
@@ -57,7 +57,7 @@ class CppLibraryIntegrationTest extends AbstractCppIntegrationTest implements Cp
         return new CppLib()
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "skip compile and link tasks when no source"() {
         given:
         buildFile << """
@@ -71,7 +71,7 @@ class CppLibraryIntegrationTest extends AbstractCppIntegrationTest implements Cp
         result.assertTasksSkipped(tasks.debug.allToLink, ":assemble")
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "build fails when compilation fails"() {
         given:
         buildFile << """
@@ -92,7 +92,7 @@ class CppLibraryIntegrationTest extends AbstractCppIntegrationTest implements Cp
         failure.assertThatCause(containsText("C++ compiler failed while compiling broken.cpp"))
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "finds C and C++ standard library headers"() {
         given:
         buildFile << """
@@ -113,7 +113,7 @@ class CppLibraryIntegrationTest extends AbstractCppIntegrationTest implements Cp
         output.contains("Found all include files for ':compileDebugCpp'")
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "sources are compiled with C++ compiler"() {
         given:
         settingsFile << "rootProject.name = 'hello'"
@@ -131,7 +131,7 @@ class CppLibraryIntegrationTest extends AbstractCppIntegrationTest implements Cp
         sharedLibrary("build/lib/main/debug/hello").assertExists()
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can build debug and release variants of library"() {
         given:
         settingsFile << "rootProject.name = 'hello'"
@@ -162,7 +162,7 @@ class CppLibraryIntegrationTest extends AbstractCppIntegrationTest implements Cp
         !output.contains('compiling with feature enabled')
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can use link file as task dependency"() {
         given:
         settingsFile << "rootProject.name = 'hello'"
@@ -172,7 +172,7 @@ class CppLibraryIntegrationTest extends AbstractCppIntegrationTest implements Cp
         and:
         buildFile << """
             apply plugin: 'cpp-library'
-            
+
             task assembleLinkDebug {
                 dependsOn library.binaries.get { !it.optimized }.map { it.linkFile }
             }
@@ -184,7 +184,7 @@ class CppLibraryIntegrationTest extends AbstractCppIntegrationTest implements Cp
         sharedLibrary("build/lib/main/debug/hello").assertExists()
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can use runtime file as task dependency"() {
         given:
         settingsFile << "rootProject.name = 'hello'"
@@ -194,7 +194,7 @@ class CppLibraryIntegrationTest extends AbstractCppIntegrationTest implements Cp
         and:
         buildFile << """
             apply plugin: 'cpp-library'
-            
+
             task assembleRuntimeDebug {
                 dependsOn library.binaries.get { !it.optimized }.map { it.runtimeFile }
             }
@@ -206,7 +206,7 @@ class CppLibraryIntegrationTest extends AbstractCppIntegrationTest implements Cp
         sharedLibrary("build/lib/main/debug/hello").assertExists()
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can use objects as task dependency"() {
         given:
         settingsFile << "rootProject.name = 'hello'"
@@ -216,7 +216,7 @@ class CppLibraryIntegrationTest extends AbstractCppIntegrationTest implements Cp
         and:
         buildFile << """
             apply plugin: 'cpp-library'
-            
+
             task compileDebug {
                 dependsOn library.binaries.get { !it.optimized }.map { it.objects }
             }
@@ -229,7 +229,7 @@ class CppLibraryIntegrationTest extends AbstractCppIntegrationTest implements Cp
         sharedLibrary("build/lib/main/debug/hello").assertDoesNotExist()
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "build logic can change source layout convention"() {
         def lib = new CppLib()
         settingsFile << "rootProject.name = 'hello'"
@@ -259,7 +259,7 @@ class CppLibraryIntegrationTest extends AbstractCppIntegrationTest implements Cp
         sharedLibrary("build/lib/main/debug/hello").assertExists()
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "build logic can add individual source files"() {
         def lib = new CppLib()
         settingsFile << "rootProject.name = 'hello'"
@@ -288,7 +288,7 @@ class CppLibraryIntegrationTest extends AbstractCppIntegrationTest implements Cp
         sharedLibrary("build/lib/main/debug/hello").assertExists()
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "honors changes to buildDir"() {
         given:
         settingsFile << "rootProject.name = 'hello'"
@@ -310,7 +310,7 @@ class CppLibraryIntegrationTest extends AbstractCppIntegrationTest implements Cp
         sharedLibrary("output/lib/main/debug/hello").assertExists()
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "honors changes to task output locations"() {
         given:
         settingsFile << "rootProject.name = 'hello'"
@@ -320,7 +320,7 @@ class CppLibraryIntegrationTest extends AbstractCppIntegrationTest implements Cp
         and:
         buildFile << """
             apply plugin: 'cpp-library'
-            library.binaries.get { !it.optimized }.configure { 
+            library.binaries.get { !it.optimized }.configure {
                 compileTask.get().objectFileDir = layout.buildDirectory.dir("object-files")
                 def link = linkTask.get()
                 link.linkedFile = layout.buildDirectory.file("shared/main.bin")
@@ -341,7 +341,7 @@ class CppLibraryIntegrationTest extends AbstractCppIntegrationTest implements Cp
         }
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "library can define public and implementation headers"() {
         given:
         settingsFile << "rootProject.name = 'hello'"
@@ -362,7 +362,7 @@ class CppLibraryIntegrationTest extends AbstractCppIntegrationTest implements Cp
         sharedLibrary("build/lib/main/debug/hello").assertExists()
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can compile and link against implementation and api libraries"() {
         settingsFile << "include 'lib1', 'lib2', 'lib3'"
         def app = new CppAppWithLibrariesWithApiDependencies()
@@ -407,7 +407,7 @@ class CppLibraryIntegrationTest extends AbstractCppIntegrationTest implements Cp
         sharedLibrary("lib3/build/lib/main/release/lib3").strippedRuntimeFile.assertExists()
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can compile and link against static implementation and api libraries"() {
         settingsFile << "include 'lib1', 'lib2', 'lib3'"
         def app = new CppAppWithLibrariesWithApiDependencies()
@@ -452,7 +452,7 @@ class CppLibraryIntegrationTest extends AbstractCppIntegrationTest implements Cp
         sharedLibrary("lib1/build/lib/main/release/lib1").strippedRuntimeFile.assertExists()
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "private headers are not visible to consumer"() {
         def lib = new CppLib()
 
@@ -492,7 +492,7 @@ project(':greeter') {
         succeeds(":consumer:compileDebugCpp")
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "implementation dependencies are not visible to consumer"() {
         def app = new CppAppWithLibraries()
 
@@ -529,7 +529,7 @@ project(':greeter') {
         succeeds(":consumer:compileDebugCpp")
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "can change default base name and successfully link against library"() {
         settingsFile << "include 'lib1', 'lib2'"
         def app = new CppAppWithLibraries()
@@ -563,7 +563,7 @@ project(':greeter') {
     }
 
     @RequiresInstalledToolChain(ToolChainRequirement.GCC_COMPATIBLE)
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "system headers are not evaluated when compiler warnings are enabled"() {
         given:
         settingsFile << "rootProject.name = 'hello'"
@@ -575,7 +575,7 @@ project(':greeter') {
         """
         buildFile << """
             apply plugin: 'cpp-library'
-            
+
             library {
                 binaries.configureEach {
                     compileTask.get().compilerArgs.add("-Wall")

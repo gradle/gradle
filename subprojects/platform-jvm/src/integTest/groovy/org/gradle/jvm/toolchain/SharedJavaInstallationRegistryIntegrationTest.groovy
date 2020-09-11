@@ -18,13 +18,11 @@ package org.gradle.jvm.toolchain
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import spock.lang.IgnoreIf
 
-@IgnoreIf({ GradleContextualExecuter.embedded })
 class SharedJavaInstallationRegistryIntegrationTest extends AbstractIntegrationSpec {
 
-    def "installation registry empty without environment setup"() {
+    def "installation registry has no installations without environment setup or auto-detection"() {
         buildFile << """
             import org.gradle.jvm.toolchain.internal.SharedJavaInstallationRegistry;
             import javax.inject.Inject
@@ -44,11 +42,16 @@ class SharedJavaInstallationRegistryIntegrationTest extends AbstractIntegrationS
         """
 
         when:
-        succeeds("show")
+        result = executer
+            .withArgument("-Porg.gradle.java.installations.auto-detect=false")
+            .withTasks("show")
+            .run()
+
         then:
         outputContains("installations:[]")
     }
 
+    @IgnoreIf({ AvailableJavaHomes.availableJvms.size() < 2 })
     def "installation registry is populated by environment"() {
         def firstJavaHome = AvailableJavaHomes.availableJvms[0].javaHome.absolutePath
         def secondJavaHome = AvailableJavaHomes.availableJvms[1].javaHome.absolutePath
@@ -63,7 +66,7 @@ class SharedJavaInstallationRegistryIntegrationTest extends AbstractIntegrationS
 
                 void apply(Project project) {
                     project.tasks.register("show") {
-                        println registry.listInstallations()
+                       registry.listInstallations().each { println it }
                     }
                 }
             }
@@ -76,6 +79,7 @@ class SharedJavaInstallationRegistryIntegrationTest extends AbstractIntegrationS
             .withEnvironmentVars([JDK1: "/unknown/env", JDK2: firstJavaHome])
             .withArgument("-Porg.gradle.java.installations.paths=/unknown/path," + secondJavaHome)
             .withArgument("-Porg.gradle.java.installations.fromEnv=JDK1,JDK2")
+            .withArgument("--info")
             .withTasks("show")
             .run()
         then:

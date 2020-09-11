@@ -17,7 +17,7 @@
 package org.gradle.scala.compile
 
 import org.gradle.api.tasks.compile.AbstractCachedCompileIntegrationTest
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.scala.ScalaCompilationFixture
 import org.gradle.test.fixtures.file.TestFile
 
@@ -35,7 +35,7 @@ class CachedScalaCompileIntegrationTest extends AbstractCachedCompileIntegration
                 id 'application'
             }
 
-            mainClassName = "Hello"
+            application.mainClass = "Hello"
 
             ${mavenCentralRepository()}
 
@@ -54,7 +54,7 @@ class CachedScalaCompileIntegrationTest extends AbstractCachedCompileIntegration
         }
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "joint Java and Scala compilation can be cached"() {
         given:
         buildScript """
@@ -137,7 +137,7 @@ class CachedScalaCompileIntegrationTest extends AbstractCachedCompileIntegration
         compiledScalaClass.exists()
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "incremental compilation works with caching"() {
         def warmupDir = testDirectory.file('warmupCache')
         setupProjectInDirectory(warmupDir)
@@ -196,7 +196,7 @@ class CachedScalaCompileIntegrationTest extends AbstractCachedCompileIntegration
         classes.analysisFile.assertIsFile()
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "stale outputs are cleaned up before the first compilation after loading from cache"() {
         createJavaClass("Class1")
         def source2 = createJavaClass("Class2", "proto")
@@ -240,7 +240,7 @@ class CachedScalaCompileIntegrationTest extends AbstractCachedCompileIntegration
         !class2.exists()
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "zinc handles removal of stale output files after loading from cache"() {
         createJavaClass("Class1")
         def source2 = createJavaClass("Class2")

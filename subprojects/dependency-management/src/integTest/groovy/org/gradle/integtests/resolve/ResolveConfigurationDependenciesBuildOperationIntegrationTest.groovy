@@ -20,7 +20,7 @@ import org.gradle.api.internal.artifacts.configurations.ResolveConfigurationDepe
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.BuildOperationNotificationsFixture
 import org.gradle.integtests.fixtures.BuildOperationsFixture
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.test.fixtures.server.http.AuthScheme
 import org.gradle.test.fixtures.server.http.MavenHttpModule
@@ -35,7 +35,7 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
     @SuppressWarnings("GroovyUnusedDeclaration")
     def operationNotificationsFixture = new BuildOperationNotificationsFixture(executer, temporaryFolder)
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "resolved configurations are exposed via build operation"() {
         setup:
         buildFile << """
@@ -84,7 +84,7 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
         op.result.resolvedDependenciesCount == 4
     }
 
-    @ToBeFixedForInstantExecution(because = "Task.getProject() during execution")
+    @ToBeFixedForConfigurationCache(because = "Task.getProject() during execution")
     def "resolved detached configurations are exposed"() {
         setup:
         buildFile << """
@@ -119,7 +119,7 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
         op.result.resolvedDependenciesCount == 1
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "resolved configurations in composite builds are exposed via build operation"() {
         setup:
         def m1 = mavenHttpRepo.module('org.foo', 'app-dep').publish()
@@ -174,7 +174,7 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
         resolveOperations[1].result.resolvedDependenciesCount == 1
     }
 
-    @ToBeFixedForInstantExecution(because = ":buildEnvironment and composite builds")
+    @ToBeFixedForConfigurationCache(because = ":buildEnvironment and composite builds")
     def "resolved configurations of composite builds as build dependencies are exposed"() {
         setup:
         def m1 = mavenHttpRepo.module('org.foo', 'root-dep').publish()
@@ -274,7 +274,7 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
         "init"          | 'initscript'  | 'init.gradle'
     }
 
-    @ToBeFixedForInstantExecution(because = "composite builds")
+    @ToBeFixedForConfigurationCache(because = "composite builds")
     def "included build classpath configuration resolution result is exposed"() {
         setup:
         def m1 = mavenHttpRepo.module('org.foo', 'some-dep').publish()
@@ -485,7 +485,7 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
         op.result == null
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "resolved components contain their source repository name, even when taken from the cache"() {
         setup:
         def secondMavenHttpRepo = new MavenHttpRepository(server, '/repo-2', new MavenFileRepository(file('maven-repo-2')))
@@ -617,7 +617,7 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
         resolvedComponents.'org.foo:transitive1:1.0'.repoName == 'maven1'
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForConfigurationCache
     def "resolved components contain their source repository id, even when they are structurally identical"() {
         setup:
         buildFile << """

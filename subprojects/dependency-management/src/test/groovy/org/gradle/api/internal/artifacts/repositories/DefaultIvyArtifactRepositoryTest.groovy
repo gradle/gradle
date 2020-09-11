@@ -23,6 +23,7 @@ import org.gradle.api.artifacts.ComponentMetadataSupplierDetails
 import org.gradle.api.artifacts.ComponentMetadataVersionLister
 import org.gradle.api.artifacts.repositories.AuthenticationContainer
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository
+import org.gradle.api.internal.FeaturePreviews
 import org.gradle.api.internal.artifacts.DependencyManagementTestUtil
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.ivyservice.IvyContextManager
@@ -61,12 +62,13 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
     final IvyMutableModuleMetadataFactory metadataFactory = DependencyManagementTestUtil.ivyMetadataFactory()
     final DefaultUrlArtifactRepository.Factory urlArtifactRepositoryFactory = new DefaultUrlArtifactRepository.Factory(fileResolver)
     final ProviderFactory providerFactory = Mock()
+    final FeaturePreviews featurePreviews = new FeaturePreviews()
 
     final DefaultIvyArtifactRepository repository = instantiator.newInstance(DefaultIvyArtifactRepository.class, fileResolver, transportFactory, locallyAvailableResourceFinder,
         artifactIdentifierFileStore, externalResourceFileStore, authenticationContainer, ivyContextManager,
         moduleIdentifierFactory, TestUtil.instantiatorFactory(), Mock(FileResourceRepository), moduleMetadataParser,
         metadataFactory, SnapshotTestUtil.valueSnapshotter(), TestUtil.objectFactory(), urlArtifactRepositoryFactory,
-        TestUtil.checksumService, providerFactory
+        TestUtil.checksumService, providerFactory, featurePreviews
     )
 
     def "default values"() {

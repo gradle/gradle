@@ -160,8 +160,8 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
     public void populate() {
         ensurePopulated();
         if (!hasFiredWhenReady) {
-            // We know that we're running single-threaded here, so we can use lenient project locking
-            projectStateRegistry.withLenientState(() -> buildOperationExecutor.run(new NotifyTaskGraphWhenReady(DefaultTaskExecutionGraph.this, graphListeners.getSource(), gradleInternal)));
+            // We know that we're running single-threaded here, so we can use coarse grained project locks
+            projectStateRegistry.withMutableStateOfAllProjects(() -> buildOperationExecutor.run(new NotifyTaskGraphWhenReady(DefaultTaskExecutionGraph.this, graphListeners.getSource(), gradleInternal)));
             hasFiredWhenReady = true;
         } else if (!graphListeners.isEmpty()) {
             LOGGER.warn("Ignoring listeners of task graph ready event, as this build (" + gradleInternal.getIdentityPath() + ") has already executed work.");
