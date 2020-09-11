@@ -138,7 +138,7 @@ public class DependencyVerifyingModuleComponentRepository implements ModuleCompo
                                     if (artifactFile != null && artifactFile.exists()) {
                                         // it's possible that the file is null if it has been removed from the cache
                                         // for example
-                                        operation.onArtifact(ArtifactVerificationOperation.ArtifactKind.METADATA, artifact, artifactFile, () -> maybeFetchSignatureFile(moduleComponentIdentifier, result.getMetaData().getSources(), artifact), getName(), getId());
+                                        operation.onArtifact(ArtifactVerificationOperation.ArtifactKind.METADATA, artifact, artifactFile, () -> maybeFetchSignatureFile(moduleComponentIdentifier, tmp.getMetaData().getSources(), artifact), getName(), getId());
                                     } else {
                                         ignore.set(true);
                                     }
