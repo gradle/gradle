@@ -6,7 +6,8 @@
 
 == Next steps
 
-When your project grows, you might be interested in more details about multi-project builds and dependency management:
+When your project grows, you might be interested in more details how to configure JVM projects, structuring multi-project builds and dependency management:
 
+ - link:{userManualPath}/building_java_projects.html[Building Java & JVM projects]
  - link:{userManualPath}/multi_project_builds.html[Working with multi-project builds]
  - link:{userManualPath}/core_dependency_management.html[Dependency management in Gradle]

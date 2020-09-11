@@ -17,6 +17,8 @@
 package org.gradle.jvm.toolchain.install.internal;
 
 import org.gradle.api.GradleException;
+import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.ProviderFactory;
 import org.gradle.cache.FileLock;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
@@ -27,6 +29,8 @@ import java.io.File;
 import java.util.Optional;
 
 public class DefaultJavaToolchainProvisioningService implements JavaToolchainProvisioningService {
+
+    public static final String AUTO_DOWNLOAD = "org.gradle.java.installations.auto-download";
 
     @Contextual
     private static class MissingToolchainException extends GradleException {
@@ -39,14 +43,19 @@ public class DefaultJavaToolchainProvisioningService implements JavaToolchainPro
 
     private final AdoptOpenJdkRemoteBinary openJdkBinary;
     private final JdkCacheDirectory cacheDirProvider;
+    private final Provider<Boolean> downloadEnabled;
 
     @Inject
-    public DefaultJavaToolchainProvisioningService(AdoptOpenJdkRemoteBinary openJdkBinary, JdkCacheDirectory cacheDirProvider) {
+    public DefaultJavaToolchainProvisioningService(AdoptOpenJdkRemoteBinary openJdkBinary, JdkCacheDirectory cacheDirProvider, ProviderFactory factory) {
         this.openJdkBinary = openJdkBinary;
         this.cacheDirProvider = cacheDirProvider;
+        this.downloadEnabled = factory.gradleProperty(AUTO_DOWNLOAD).forUseAtConfigurationTime().map(Boolean::parseBoolean);
     }
 
     public Optional<File> tryInstall(JavaToolchainSpec spec) {
+        if (!isAutoDownloadEnabled()) {
+            return Optional.empty();
+        }
         String destinationFilename = openJdkBinary.toFilename(spec);
         File destinationFile = cacheDirProvider.getDownloadLocation(destinationFilename);
         final FileLock fileLock = cacheDirProvider.acquireWriteLock(destinationFile, "Downloading toolchain");
@@ -64,6 +73,10 @@ public class DefaultJavaToolchainProvisioningService implements JavaToolchainPro
             fileLock.close();
         }
 
+    }
+
+    private boolean isAutoDownloadEnabled() {
+        return downloadEnabled.getOrElse(true);
     }
 
 }

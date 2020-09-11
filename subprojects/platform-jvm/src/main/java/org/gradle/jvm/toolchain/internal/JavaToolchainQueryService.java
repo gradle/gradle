@@ -20,7 +20,9 @@ import org.gradle.api.Transformer;
 import org.gradle.api.internal.provider.DefaultProvider;
 import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.ProviderFactory;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
+import org.gradle.jvm.toolchain.install.internal.DefaultJavaToolchainProvisioningService;
 import org.gradle.jvm.toolchain.install.internal.JavaToolchainProvisioningService;
 
 import javax.inject.Inject;
@@ -33,12 +35,16 @@ public class JavaToolchainQueryService {
     private final SharedJavaInstallationRegistry registry;
     private final JavaToolchainFactory toolchainFactory;
     private final JavaToolchainProvisioningService installService;
+    private final Provider<Boolean> detectEnabled;
+    private final Provider<Boolean> downloadEnabled;
 
     @Inject
-    public JavaToolchainQueryService(SharedJavaInstallationRegistry registry, JavaToolchainFactory toolchainFactory, JavaToolchainProvisioningService provisioningService) {
+    public JavaToolchainQueryService(SharedJavaInstallationRegistry registry, JavaToolchainFactory toolchainFactory, JavaToolchainProvisioningService provisioningService, ProviderFactory factory) {
         this.registry = registry;
         this.toolchainFactory = toolchainFactory;
         this.installService = provisioningService;
+        detectEnabled = factory.gradleProperty(AutoDetectingInstallationSupplier.AUTO_DETECT).map(Boolean::parseBoolean);
+        downloadEnabled = factory.gradleProperty(DefaultJavaToolchainProvisioningService.AUTO_DOWNLOAD).map(Boolean::parseBoolean);
     }
 
     <T> Provider<T> toolFor(JavaToolchainSpec spec, Transformer<T, JavaToolchain> toolFunction) {
@@ -64,7 +70,7 @@ public class JavaToolchainQueryService {
     private JavaToolchain downloadToolchain(JavaToolchainSpec spec) {
         final Optional<File> installation = installService.tryInstall(spec);
         return installation.map(this::asToolchain).orElseThrow(() ->
-            new NoToolchainAvailableException(spec));
+            new NoToolchainAvailableException(spec, detectEnabled.getOrElse(true), downloadEnabled.getOrElse(true)));
     }
 
     private Predicate<JavaToolchain> matchingToolchain(JavaToolchainSpec spec) {

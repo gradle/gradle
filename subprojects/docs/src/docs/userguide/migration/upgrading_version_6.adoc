@@ -38,6 +38,20 @@ Some plugins will break with this new version of Gradle, for example because the
 
 === Potential breaking changes
 
+==== buildSrc can now see included builds from the root
+
+Previously, `buildSrc` was built in such a way that included builds were ignored from the root build.
+
+Since Gradle 6.7, `buildSrc` can see any included build from the root build.
+This may cause dependencies to be substituted from an included build in `buildSrc`.
+This may also change the order in which some builds are executed if an included build is needed by `buildSrc`.
+
+==== Updates to default tool integration versions
+
+- PMD has been updated to https://github.com/pmd/pmd/releases/tag/pmd_releases%2F6.26.0[PMD 6.26.0].
+- Checkstyle has been updated to https://checkstyle.sourceforge.io/releasenotes.html#Release_8.35[Checkstyle 8.35].
+- CodeNarc has been updated to https://github.com/CodeNarc/CodeNarc/blob/v1.6.1/CHANGELOG.md[CodeNarc 1.6.1].
+
 === Deprecations
 
 ==== Changing default excludes during the execution phase
@@ -53,12 +67,6 @@ You are only allowed to change Gradle's default excludes in the settings script,
 == Upgrading from 6.5
 
 === Potential breaking changes
-
-==== Updates to default tool integration versions
-
-- PMD has been updated to https://github.com/pmd/pmd/releases/tag/pmd_releases%2F6.26.0[PMD 6.26.0].
-- Checkstyle has been updated to https://checkstyle.sourceforge.io/releasenotes.html#Release_8.35[Checkstyle 8.35].
-- CodeNarc has been updated to https://github.com/CodeNarc/CodeNarc/blob/v1.6.1/CHANGELOG.md[CodeNarc 1.6.1].
 
 ==== Updates to bundled Gradle dependencies
 

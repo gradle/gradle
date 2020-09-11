@@ -27,14 +27,16 @@ import java.util.Set;
 
 public class JabbaInstallationSupplier extends AutoDetectingInstallationSupplier {
 
+    private Provider<String> jabbaHomeDir;
+
     @Inject
     public JabbaInstallationSupplier(ProviderFactory factory) {
         super(factory);
+        jabbaHomeDir = getEnvironmentProperty("JABBA_HOME");
     }
 
     @Override
     protected Set<InstallationLocation> findCandidates() {
-        final Provider<String> jabbaHomeDir = getEnvironmentProperty("JABBA_HOME");
         return jabbaHomeDir.map(findJavaCandidates()).getOrElse(Collections.emptySet());
     }
 

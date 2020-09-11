@@ -37,7 +37,7 @@ public interface ProjectGenerator extends BuildContentGenerator {
 
     Set<ModularizationOption> getModularizationOptions();
 
-    Optional<String> getFurtherReading();
+    Optional<String> getFurtherReading(InitSettings settings);
 
     /**
      * Does a source package name make sense for this type of project?

@@ -18,6 +18,8 @@ package org.gradle.jvm.toolchain.internal
 
 import org.gradle.api.JavaVersion
 import org.gradle.api.internal.file.TestFiles
+import org.gradle.api.internal.provider.Providers
+import org.gradle.api.provider.ProviderFactory
 import org.gradle.jvm.toolchain.JavaLanguageVersion
 import org.gradle.jvm.toolchain.JavaToolchainSpec
 import org.gradle.jvm.toolchain.install.internal.JavaToolchainProvisioningService
@@ -34,7 +36,7 @@ class JavaToolchainQueryServiceTest extends Specification {
         given:
         def registry = createInstallationRegistry()
         def toolchainFactory = newToolchainFactory()
-        def queryService = new JavaToolchainQueryService(registry, toolchainFactory, Mock(JavaToolchainProvisioningService))
+        def queryService = new JavaToolchainQueryService(registry, toolchainFactory, Mock(JavaToolchainProvisioningService), createProviderFactory())
 
         when:
         def filter = new DefaultToolchainSpec(TestUtil.objectFactory())
@@ -56,7 +58,7 @@ class JavaToolchainQueryServiceTest extends Specification {
         given:
         def registry = createInstallationRegistry(["8.0", "8.0.242.hs-adpt", "7.9", "7.7", "14.0.2+12", "8.0.zzz.j9"])
         def toolchainFactory = newToolchainFactory()
-        def queryService = new JavaToolchainQueryService(registry, toolchainFactory, Mock(JavaToolchainProvisioningService))
+        def queryService = new JavaToolchainQueryService(registry, toolchainFactory, Mock(JavaToolchainProvisioningService), createProviderFactory())
 
         when:
         def filter = new DefaultToolchainSpec(TestUtil.objectFactory())
@@ -80,7 +82,7 @@ class JavaToolchainQueryServiceTest extends Specification {
         def toolchainFactory = newToolchainFactory()
         def provisioningService = Mock(JavaToolchainProvisioningService)
         provisioningService.tryInstall(_) >> Optional.empty()
-        def queryService = new JavaToolchainQueryService(registry, toolchainFactory, provisioningService)
+        def queryService = new JavaToolchainQueryService(registry, toolchainFactory, provisioningService, createProviderFactory())
 
         when:
         def filter = new DefaultToolchainSpec(TestUtil.objectFactory())
@@ -90,14 +92,14 @@ class JavaToolchainQueryServiceTest extends Specification {
 
         then:
         def e = thrown(NoToolchainAvailableException)
-        e.message == "No compatible toolchains found for request filter: {languageVersion=12}"
+        e.message == "No compatible toolchains found for request filter: {languageVersion=12} (auto-detect true, auto-download true)"
     }
 
     def "returns no toolchain if filter is not configured"() {
         given:
         def registry = createInstallationRegistry(["8", "9", "10"])
         def toolchainFactory = newToolchainFactory()
-        def queryService = new JavaToolchainQueryService(registry, toolchainFactory, Mock(JavaToolchainProvisioningService))
+        def queryService = new JavaToolchainQueryService(registry, toolchainFactory, Mock(JavaToolchainProvisioningService), createProviderFactory())
 
         when:
         def filter = new DefaultToolchainSpec(TestUtil.objectFactory())
@@ -118,7 +120,7 @@ class JavaToolchainQueryServiceTest extends Specification {
                 Optional.of(new File("/path/12"))
             }
         }
-        def queryService = new JavaToolchainQueryService(registry, toolchainFactory, provisionService)
+        def queryService = new JavaToolchainQueryService(registry, toolchainFactory, provisionService, createProviderFactory())
 
         when:
         def filter = new DefaultToolchainSpec(TestUtil.objectFactory())
@@ -162,5 +164,12 @@ class JavaToolchainQueryServiceTest extends Specification {
             }
         }
         registry
+    }
+
+    ProviderFactory createProviderFactory() {
+        return Mock(ProviderFactory) {
+            gradleProperty("org.gradle.java.installations.auto-detect") >> Providers.ofNullable("true")
+            gradleProperty("org.gradle.java.installations.auto-download") >> Providers.ofNullable("true")
+        }
     }
 }

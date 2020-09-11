@@ -37,7 +37,7 @@ public abstract class LanguageLibraryProjectInitDescriptor implements LanguageSp
     }
 
     @Override
-    public Optional<String> getFurtherReading() {
+    public Optional<String> getFurtherReading(InitSettings settings) {
         return Optional.empty();
     }
 }

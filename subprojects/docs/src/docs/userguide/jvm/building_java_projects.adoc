@@ -17,7 +17,7 @@
 
 Gradle uses a convention-over-configuration approach to building JVM-based projects that borrows several conventions from Apache Maven. In particular, it uses the same default directory structure for source files and resources, and it works with Maven-compatible repositories.
 
-We will look at Java projects in detail in this chapter, but most of the topics apply to other supported JVM languages as well, such as https://guides.gradle.org/building-kotlin-jvm-libraries/[Kotlin], <<groovy_plugin.adoc#groovy_plugin,Groovy>> and <<scala_plugin.adoc#scala_plugin,Scala>>.
+We will look at Java projects in detail in this chapter, but most of the topics apply to other supported JVM languages as well, such as link:https://kotlinlang.org/docs/reference/using-gradle.html#targeting-the-jvm[Kotlin], <<groovy_plugin.adoc#groovy_plugin,Groovy>> and <<scala_plugin.adoc#scala_plugin,Scala>>.
 If you don't have much experience with building JVM-based projects with Gradle, take a look at the link:../samples/index.html#java[Java samples] for step-by-step instructions on how to build various types of basic Java projects.
 
 [NOTE]
@@ -25,6 +25,15 @@ If you don't have much experience with building JVM-based projects with Gradle, 
 The example in this section use the Java Library Plugin.
 However the described features are shared by all JVM plugins.
 Specifics of the different plugins are available in their dedicated documentation.
+====
+
+[NOTE]
+====
+There are a number of hands-on samples that you can explore for
+link:../samples/index.html#java[Java],
+link:../samples/index.html#groovy[Groovy],
+link:../samples/index.html#scala[Scala] and
+link:../samples/index.html#kotlin[Kotlin]
 ====
 
 == Introduction
@@ -483,7 +492,7 @@ Gradle manages this distinction via the <<java_library_plugin.adoc#java_library_
 If the types from a dependency appear in public fields or methods of your library's public classes, then that dependency is exposed via your library's public API and should therefore be added to the _api_ configuration.
 Otherwise, the dependency is an internal implementation detail and should be added to _implementation_.
 
-If you're unsure of the difference between an API and implementation dependency, the <<java_library_plugin.adoc#sec:java_library_recognizing_dependencies,Java Library Plugin chapter>> has a detailed explanation. In addition, you can see a basic, practical example of building a Java library in the corresponding https://guides.gradle.org/building-java-libraries/[_guide_].
+If you're unsure of the difference between an API and implementation dependency, the <<java_library_plugin.adoc#sec:java_library_recognizing_dependencies,Java Library Plugin chapter>> has a detailed explanation. In addition, you can explore a basic, practical link:../samples/sample_building_java_libraries.html[sample of building a Java library].
 
 [[sec:building_java_applications]]
 == Building Java applications

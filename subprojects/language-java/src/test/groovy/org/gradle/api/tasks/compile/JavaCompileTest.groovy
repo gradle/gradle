@@ -146,8 +146,50 @@ class JavaCompileTest extends AbstractProjectBuilderSpec {
         then:
         spec instanceof DefaultJavaCompileSpec
         spec.compileOptions.forkOptions.javaHome == javaHome
-        spec.getSourceCompatibility() == "12"
-        spec.getTargetCompatibility() == "12"
+        spec.getSourceCompatibility() == null
+        spec.getTargetCompatibility() == null
+    }
+
+    def 'spec is configured with the right values for source and target compatibility when set in parallel with a toolchain'() {
+        def javaCompile = project.tasks.create("compileJava", JavaCompile)
+        javaCompile.setDestinationDir(new File("tmp"))
+        def javaHome = Jvm.current().javaHome
+        def metadata = Mock(JavaInstallationMetadata)
+        def compiler = Mock(JavaCompiler)
+
+        metadata.languageVersion >> JavaLanguageVersion.of(12)
+        metadata.installationPath >> TestFiles.fileFactory().dir(javaHome)
+        compiler.metadata >> metadata
+
+        when:
+        javaCompile.javaCompiler.set(compiler)
+        javaCompile.sourceCompatibility = '8'
+        javaCompile.targetCompatibility = '10'
+        def spec = javaCompile.createSpec()
+
+        then:
+        spec.getSourceCompatibility() == '8'
+        spec.getTargetCompatibility() == '10'
+    }
+
+    def 'spec is configured with the right value for release when set in parallel with a toolchain'() {
+        def javaCompile = project.tasks.create("compileJava", JavaCompile)
+        javaCompile.setDestinationDir(new File("tmp"))
+        def javaHome = Jvm.current().javaHome
+        def metadata = Mock(JavaInstallationMetadata)
+        def compiler = Mock(JavaCompiler)
+
+        metadata.languageVersion >> JavaLanguageVersion.of(12)
+        metadata.installationPath >> TestFiles.fileFactory().dir(javaHome)
+        compiler.metadata >> metadata
+
+        when:
+        javaCompile.javaCompiler.set(compiler)
+        javaCompile.options.release.set(10)
+        def spec = javaCompile.createSpec()
+
+        then:
+        spec.release == 10
     }
 
 }

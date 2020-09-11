@@ -48,7 +48,7 @@ fun setupGeneratorTask(language: Language, kind: String, modularizationOption: M
     val capKind = kind.capitalize().replace("y", "ie") + "s"
     val languageDisplayName = language.toString().replace("C++", "{cpp}")
     val sampleName = "building$capName$capKind" + if (modularizationOption.isMulti()) "MultiProject" else ""
-    val multiProjectSuffix = if (modularizationOption.isMulti()) " with Libraries" else ""
+    val multiProjectSuffix = if (modularizationOption.isMulti()) " with libraries" else ""
     val generateSampleTask = project.tasks.register<GenerateSample>("generateSample${sampleName.capitalize()}") {
         readmeTemplates.convention(layout.projectDirectory.dir("src/samples/readme-templates"))
         target.convention(layout.buildDirectory.dir("generated-samples/$buildInitType" + if (modularizationOption.isMulti()) "-with-libraries" else ""))
