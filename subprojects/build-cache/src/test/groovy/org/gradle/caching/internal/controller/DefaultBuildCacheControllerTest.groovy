@@ -83,7 +83,7 @@ class DefaultBuildCacheControllerTest extends Specification {
 
     interface Local extends BuildCacheService, LocalBuildCacheService {}
 
-    BuildCacheController getController() {
+    BuildCacheController getController(boolean disableRemoteOnError = true) {
         new DefaultBuildCacheController(
             new BuildCacheServicesConfiguration(
                 local,
@@ -94,7 +94,8 @@ class DefaultBuildCacheControllerTest extends Specification {
             operations,
             tmpDir.file("dir"),
             false,
-            false
+            false,
+            disableRemoteOnError
         )
     }
 
@@ -237,6 +238,38 @@ class DefaultBuildCacheControllerTest extends Specification {
         }
         0 * remote.load(key, _)
         0 * remote.store(key, _)
+    }
+
+    def "does not stop calling remote on read error if disable-on-error disabled"() {
+        local = null
+
+        when:
+        def controller = getController(false)
+        controller.load(loadCommand)
+        controller.load(loadCommand)
+        controller.store(storeCommand)
+
+        then:
+        1 * remote.load(key, _) >> { throw new RuntimeException() }
+        1 * remote.load(key, _)
+        1 * remote.store(key, _)
+    }
+
+    def "does not stop calling remote on write error if disable-on-error disabled"() {
+        local = null
+
+        when:
+        def controller = getController(false)
+        controller.store(storeCommand)
+        controller.store(storeCommand)
+        controller.load(loadCommand)
+
+        then:
+        1 * remote.store(key, _) >> { BuildCacheKey key, BuildCacheEntryWriter writer ->
+            throw new RuntimeException()
+        }
+        1 * remote.load(key, _)
+        1 * remote.store(key, _)
     }
 
     def "close only closes once"() {
