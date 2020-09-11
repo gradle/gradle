@@ -36,8 +36,8 @@ public class OpFiringBuildCacheServiceHandle extends BaseBuildCacheServiceHandle
 
     private final BuildOperationExecutor buildOperationExecutor;
 
-    public OpFiringBuildCacheServiceHandle(BuildCacheService service, boolean push, BuildCacheServiceRole role, BuildOperationExecutor buildOperationExecutor, boolean logStackTraces) {
-        super(service, push, role, logStackTraces);
+    public OpFiringBuildCacheServiceHandle(BuildCacheService service, boolean push, BuildCacheServiceRole role, BuildOperationExecutor buildOperationExecutor, boolean logStackTraces, boolean disableOnError) {
+        super(service, push, role, logStackTraces, disableOnError);
         this.buildOperationExecutor = buildOperationExecutor;
     }
 

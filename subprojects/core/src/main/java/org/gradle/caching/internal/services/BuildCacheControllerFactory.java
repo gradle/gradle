@@ -50,6 +50,8 @@ import java.util.stream.Collectors;
 
 public final class BuildCacheControllerFactory {
 
+    public static final String REMOTE_CONTINUE_ON_ERROR_PROPERTY = "org.gradle.unsafe.build-cache.remote-continue-on-error";
+
     private static final Logger LOGGER = LoggerFactory.getLogger(BuildCacheControllerFactory.class);
 
     public enum BuildCacheMode {
@@ -120,7 +122,8 @@ public final class BuildCacheControllerFactory {
                         buildOperationExecutor,
                         gradleUserHomeDir,
                         logStackTraces,
-                        emitDebugLogging
+                        emitDebugLogging,
+                        !Boolean.getBoolean(REMOTE_CONTINUE_ON_ERROR_PROPERTY)
                     );
                 }
             }

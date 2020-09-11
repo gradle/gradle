@@ -24,6 +24,15 @@ import org.mortbay.jetty.servlet.FilterHolder
 import org.mortbay.jetty.webapp.WebAppContext
 import org.mortbay.servlet.RestFilter
 
+import javax.servlet.Filter
+import javax.servlet.FilterChain
+import javax.servlet.FilterConfig
+import javax.servlet.ServletException
+import javax.servlet.ServletRequest
+import javax.servlet.ServletResponse
+import javax.servlet.http.HttpServletRequest
+import javax.servlet.http.HttpServletResponse
+
 class HttpBuildCacheServer extends ExternalResource implements HttpServerFixture {
     private final TestDirectoryProvider provider
     private final WebAppContext webapp
@@ -57,6 +66,34 @@ class HttpBuildCacheServer extends ExternalResource implements HttpServerFixture
 
     void dropConnectionForPutAfterBytes(long numBytes) {
         this.dropConnectionForPutBytes = numBytes
+    }
+
+    interface Responder {
+        boolean respond(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException
+    }
+
+    HttpBuildCacheServer addResponder(Responder responder) {
+        def filter = new Filter() {
+            @Override
+            void init(FilterConfig filterConfig) throws ServletException {
+
+            }
+
+            @Override
+            void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
+                if (responder.respond(request as HttpServletRequest, response as HttpServletResponse)) {
+                    chain.doFilter(request, response)
+                }
+            }
+
+            @Override
+            void destroy() {
+
+            }
+        }
+
+        webapp.addFilter(new FilterHolder(filter), "/*", 1)
+        this
     }
 
     @Override
