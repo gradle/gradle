@@ -25,7 +25,7 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.nio.file.Paths;
 
-abstract class IntegrationTestSamplesRunner extends SamplesRunner {
+class IntegrationTestSamplesRunner extends SamplesRunner {
     private static final String SAMPLES_DIR_PROPERTY = "integTest.samplesdir";
 
     public IntegrationTestSamplesRunner(Class<?> testClass) throws InitializationError {
