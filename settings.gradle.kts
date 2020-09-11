@@ -24,8 +24,8 @@ pluginManagement {
 }
 
 plugins {
-    id("com.gradle.enterprise").version("3.3.4")
-    id("com.gradle.enterprise.gradle-enterprise-conventions-plugin").version("0.3")
+    id("com.gradle.enterprise").version("3.4.1")
+    id("com.gradle.enterprise.gradle-enterprise-conventions-plugin").version("0.7.1")
 }
 
 apply(from = "gradle/shared-with-buildSrc/mirrors.settings.gradle.kts")
@@ -156,6 +156,7 @@ include("smokeTest")
 include("performance")
 include("buildScanPerformance")
 include("instantExecutionReport")
+include("buildOperations")
 
 val upperCaseLetters = "\\p{Upper}".toRegex()
 
@@ -193,4 +194,3 @@ FeaturePreviews.Feature.values().forEach { feature ->
         enableFeaturePreview(feature.name)
     }
 }
-

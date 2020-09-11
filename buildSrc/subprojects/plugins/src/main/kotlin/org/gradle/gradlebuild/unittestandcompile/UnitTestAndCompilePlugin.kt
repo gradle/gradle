@@ -246,6 +246,8 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
             }
         }
         tasks.withType<Test>().configureEach {
+            filterEnvironmentVariables()
+
             maxParallelForks = project.maxParallelForks
 
             if (!BuildEnvironment.isIntelliJIDEA) {

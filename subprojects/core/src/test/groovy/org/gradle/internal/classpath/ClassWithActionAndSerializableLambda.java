@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,13 +14,22 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.compile.incremental.recomp;
+package org.gradle.internal.classpath;
 
-import org.gradle.api.tasks.WorkResult;
+import org.gradle.api.Action;
 
-/**
- * A marker interface for incremental compilation result.
- */
-public interface IncrementalCompilationResult extends WorkResult {
-    WorkResult getCompilerResult();
+import java.io.Serializable;
+import java.util.concurrent.Callable;
+
+public class ClassWithActionAndSerializableLambda {
+    public static Action<StringBuilder> action(int value) {
+        return s -> s.append(value);
+    }
+
+    public static SerializableThing thing(int value) {
+        return () -> String.valueOf(value);
+    }
+
+    public interface SerializableThing extends Callable<String>, Serializable {
+    }
 }

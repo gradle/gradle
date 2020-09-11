@@ -50,7 +50,7 @@ class JavaTasksPerformanceTest extends AbstractCrossVersionGradleProfilerPerform
         runner.testProject = testProject
         runner.gradleOpts = ["-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}"]
         runner.tasksToRun = ['tasks', '--all']
-        runner.targetVersions = ["6.5-20200518220104+0000"]
+        runner.targetVersions = ["6.7-20200810220043+0000"]
 
         when:
         def result = runner.run()

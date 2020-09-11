@@ -35,7 +35,7 @@ import static org.hamcrest.CoreMatchers.containsString
 @InjectsPluginClasspath
 @InspectsBuildOutput
 @UsesNativeServices
-@SuppressWarnings('IntegrationTestFixtures')
+@SuppressWarnings('IntegrationTestFixtures') // result.output.contains does mean something different here
 @IgnoreIf({ GradleContextualExecuter.embedded }) // Test causes builds to hang
 class GradleRunnerPluginClasspathInjectionIntegrationTest extends BaseGradleRunnerIntegrationTest {
 

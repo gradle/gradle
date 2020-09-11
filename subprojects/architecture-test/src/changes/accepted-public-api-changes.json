@@ -1,20 +1,3 @@
 {
-    "acceptedApiChanges": [
-        {
-            "type": "org.gradle.api.tasks.JavaExec",
-            "member": "Method org.gradle.api.tasks.JavaExec.getDslExecActionFactory()",
-            "acceptation": "Service is no longer required",
-            "changes": [
-                "Method has been removed"
-            ]
-        },
-        {
-            "type": "org.gradle.api.tasks.JavaExec",
-            "member": "Method org.gradle.api.tasks.JavaExec.getJavaModuleDetector()",
-            "acceptation": "Service is no longer required",
-            "changes": [
-                "Method has been removed"
-            ]
-        }
-    ]
+    "acceptedApiChanges": []
 }

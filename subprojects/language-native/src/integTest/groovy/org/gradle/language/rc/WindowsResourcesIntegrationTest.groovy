@@ -40,6 +40,16 @@ class WindowsResourcesIntegrationTest extends AbstractNativeLanguageIntegrationT
     HelloWorldApp helloWorldApp = new WindowsResourceHelloWorldApp()
 
     @Unroll
+    @Ignore("""
+We got failures saying:
+
+hello.cpp
+C:\\Program Files (x86)\\Windows Kits\\8.1\\Include\\um\\winnt.h(5239): error C2169: '_InterlockedAdd': intrinsic function, cannot be defined
+C:\\Program Files (x86)\\Windows Kits\\8.1\\Include\\um\\winnt.h(5423): error C2169: '_InterlockedAnd64': intrinsic function, cannot be defined
+...
+
+Which seems to come from newer version of VS 2019. Ignore this test for now.
+""")
     def "compile and link executable with #sdk.name (#sdk.version.toString()) [#tc.displayName]"() {
         given:
         buildFile << """
@@ -47,7 +57,7 @@ class WindowsResourcesIntegrationTest extends AbstractNativeLanguageIntegrationT
                 components {
                     main(NativeExecutableSpec)
                 }
-            
+
                 toolChains {
                     ${toolChain.id} {
                         windowsSdkDir "${TextUtil.normaliseFileSeparators(sdk.getBaseDir().absolutePath)}"

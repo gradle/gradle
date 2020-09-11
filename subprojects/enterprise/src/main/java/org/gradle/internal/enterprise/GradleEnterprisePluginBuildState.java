@@ -16,6 +16,7 @@
 
 package org.gradle.internal.enterprise;
 
+import org.gradle.StartParameter;
 import org.gradle.internal.scan.UsedByScanPlugin;
 import org.gradle.launcher.daemon.server.scaninfo.DaemonScanInfo;
 
@@ -40,4 +41,5 @@ public interface GradleEnterprisePluginBuildState {
     @Nullable // if not a daemon build
     DaemonScanInfo getDaemonScanInfo();
 
+    StartParameter getStartParameter();
 }

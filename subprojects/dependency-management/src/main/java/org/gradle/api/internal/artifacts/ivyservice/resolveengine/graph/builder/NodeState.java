@@ -1092,21 +1092,24 @@ public class NodeState implements DependencyGraphNode {
             if (from != backToPendingSource) {
                 // Only remove edges that come from a different node than the source of the dependency going back to pending
                 // The edges from the "From" will be removed first
-                incomingEdge.getSelector().release();
-                from.removeOutgoingEdge(incomingEdge);
+                if (from.removeOutgoingEdge(incomingEdge)) {
+                    incomingEdge.getSelector().release();
+                }
             }
             pendingDependencies.registerConstraintProvider(from);
         }
     }
 
-    private void removeOutgoingEdge(EdgeState edge) {
+    private boolean removeOutgoingEdge(EdgeState edge) {
         if (!removingOutgoingEdges) {
             // don't try to remove an outgoing edge if we're already doing it
             // because removeOutgoingEdges() will clear all of them so it's not required to do it twice
             // and it can cause a concurrent modification exception
             outgoingEdges.remove(edge);
             edge.markUnused();
+            return true;
         }
+        return false;
     }
 
     void forEachCapability(CapabilitiesConflictHandler capabilitiesConflictHandler, Action<? super Capability> action) {

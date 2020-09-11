@@ -217,7 +217,7 @@ include::sample[dir="snippets/dependencyManagement/customizingResolution-attribu
 include::sample[dir="snippets/dependencyManagement/customizingResolution-attributeSubstitutionRule/kotlin",files="build.gradle.kts[tags=substitution_rule]"]
 ====
 
-The same rule _without_ the `platform` keyword would try to substitute _regular dependencies_ with a regular dependency, which is not what you want, so it's important to understand that the substitution rules apply on a _dependency specification_: it matches the requested dependency (`substitute XXX`) with a substitute (`with YYY`).
+The same rule _without_ the `platform` keyword would try to substitute _regular dependencies_ with a regular dependency, which is not what you want, so it's important to understand that the substitution rules apply on a _dependency specification_: it matches the requested dependency (`substitute XXX`) with a substitute (`using YYY`).
 
 You can have attributes on both the requested dependency _or_ the substitute and the substitution is not limited to `platform`: you can actually specify the whole set of dependency attributes using the `variant` notation.
 The following rule is _strictly equivalent_ to the rule above:
@@ -232,7 +232,8 @@ Please refer to the link:{javadocPath}/org/gradle/api/artifacts/DependencySubsti
 
 [WARNING]
 ====
-In <<composite_builds.adoc#composite_build_intro,composite builds>>, the rule that you have to match the exact requested dependency attributes is not applied: when using composites, Gradle will automatically match the requested attributes. In other words, it is implicit that if you include another build, you are substituting _all variants__ of the substituted module with an equivalent variant in the included build.]
+In <<composite_builds.adoc#composite_build_intro,composite builds>>, the rule that you have to match the exact requested dependency attributes is not applied: when using composites, Gradle will automatically match the requested attributes.
+In other words, it is implicit that if you include another build, you are substituting _all variants_ of the substituted module with an equivalent variant in the included build.
 ====
 
 [[sec:substitution_with_capabilities]]

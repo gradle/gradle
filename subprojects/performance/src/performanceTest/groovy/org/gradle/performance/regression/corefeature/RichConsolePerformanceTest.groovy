@@ -38,7 +38,7 @@ class RichConsolePerformanceTest extends AbstractCrossVersionGradleProfilerPerfo
         runner.gradleOpts = ["-Xms${daemonMemory}", "-Xmx${daemonMemory}"]
         runner.warmUpRuns = 5
         runner.runs = 8
-        runner.targetVersions = ["6.5-20200424145747+0000"]
+        runner.targetVersions = ["6.6-20200727234702+0000"]
 
         when:
         def result = runner.run()

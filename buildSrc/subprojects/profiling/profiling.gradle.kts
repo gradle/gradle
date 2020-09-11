@@ -1,5 +1,5 @@
 dependencies {
-    compileOnly("com.gradle:gradle-enterprise-gradle-plugin:3.3.4")
+    compileOnly("com.gradle:gradle-enterprise-gradle-plugin:3.4.1")
 
     implementation(project(":configuration"))
     implementation(project(":docs"))

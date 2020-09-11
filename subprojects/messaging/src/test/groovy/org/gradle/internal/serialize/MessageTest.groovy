@@ -337,6 +337,18 @@ class MessageTest extends Specification {
         looksLike(assertionError, transported)
     }
 
+    def "preserves nested assertion errors"() {
+        def assertionError = new CustomAssertionError("Boom", new CustomAssertionError("Boom cause!"))
+
+        when:
+        def transported = transport(assertionError)
+
+        then:
+        transported instanceof PlaceholderAssertionError
+        looksLike(assertionError, transported)
+        looksLike(assertionError.cause, transported.cause)
+    }
+
     void looksLike(Throwable original, Throwable transported) {
         assert transported instanceof PlaceholderExceptionSupport
         assert transported.exceptionClassName == original.class.name
@@ -484,6 +496,10 @@ class MessageTest extends Specification {
     static class CustomAssertionError extends AssertionError {
         CustomAssertionError(Object message) {
             super(message)
+        }
+
+        CustomAssertionError(String message, Throwable cause) {
+            super(message, cause)
         }
 
         private void readObject(ObjectInputStream outstr) {

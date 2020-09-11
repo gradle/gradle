@@ -198,7 +198,7 @@ class DefaultInstantExecution internal constructor(
     fun writeInstantExecutionState(stateFile: File) {
         service<ProjectStateRegistry>().withLenientState {
             withWriteContextFor(stateFile) {
-                InstantExecutionState(codecs, host, relevantProjectsRegistry).run {
+                instantExecutionState().run {
                     writeState()
                 }
             }
@@ -208,11 +208,15 @@ class DefaultInstantExecution internal constructor(
     private
     fun readInstantExecutionState(stateFile: File) {
         withReadContextFor(stateFile) {
-            InstantExecutionState(codecs, host, relevantProjectsRegistry).run {
+            instantExecutionState().run {
                 readState()
             }
         }
     }
+
+    private
+    fun instantExecutionState() =
+        InstantExecutionState(codecs(), host, relevantProjectsRegistry)
 
     private
     fun startCollectingCacheFingerprint() {
@@ -233,7 +237,7 @@ class DefaultInstantExecution internal constructor(
     private
     fun cacheFingerprintWriterContextFor(outputStream: OutputStream) =
         writerContextFor(outputStream).apply {
-            push(IsolateOwner.OwnerHost(host), codecs.userTypesCodec)
+            push(IsolateOwner.OwnerHost(host), codecs().userTypesCodec)
         }
 
     private
@@ -290,7 +294,7 @@ class DefaultInstantExecution internal constructor(
     fun writeContextFor(
         encoder: Encoder
     ) = DefaultWriteContext(
-        codecs.userTypesCodec,
+        codecs().userTypesCodec,
         encoder,
         scopeRegistryListener,
         logger,
@@ -298,8 +302,10 @@ class DefaultInstantExecution internal constructor(
     )
 
     private
-    fun readContextFor(decoder: KryoBackedDecoder) = DefaultReadContext(
-        codecs.userTypesCodec,
+    fun readContextFor(
+        decoder: KryoBackedDecoder
+    ) = DefaultReadContext(
+        codecs().userTypesCodec,
         decoder,
         service(),
         beanConstructors,
@@ -308,7 +314,7 @@ class DefaultInstantExecution internal constructor(
     )
 
     private
-    val codecs: Codecs by unsafeLazy {
+    fun codecs(): Codecs =
         Codecs(
             directoryFileTreeFactory = service(),
             fileCollectionFactory = service(),
@@ -337,11 +343,10 @@ class DefaultInstantExecution internal constructor(
             fileSystem = service(),
             fileFactory = service()
         )
-    }
 
     private
     inline fun <T : MutableIsolateContext, R> T.withHostIsolate(block: T.() -> R): R =
-        withIsolate(IsolateOwner.OwnerHost(host), codecs.userTypesCodec) {
+        withIsolate(IsolateOwner.OwnerHost(host), codecs().userTypesCodec) {
             block()
         }
 

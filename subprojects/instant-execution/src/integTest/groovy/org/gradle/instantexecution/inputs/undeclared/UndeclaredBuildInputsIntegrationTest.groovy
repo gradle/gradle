@@ -22,6 +22,8 @@ import org.gradle.instantexecution.AbstractInstantExecutionIntegrationTest
 import spock.lang.Issue
 import spock.lang.Unroll
 
+import java.util.function.Supplier
+
 class UndeclaredBuildInputsIntegrationTest extends AbstractInstantExecutionIntegrationTest {
     @Unroll
     def "reports build logic reading a system property set #mechanism.description via the Java API"() {
@@ -339,5 +341,52 @@ class UndeclaredBuildInputsIntegrationTest extends AbstractInstantExecutionInteg
         // The JVM only exposes one of the resources
         output.count("resource = ") == 1
         outputContains("resource = two")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/13325")
+    def "Java plugin can use serializable lambda and action lambda"() {
+        file("buildSrc/src/main/java/SerializableSupplier.java") << """
+            import ${Serializable.name};
+            import ${Supplier.name};
+
+            // An interface with method that creates a serializable lambda instance
+            public interface SerializableSupplier extends Supplier<String>, Serializable {
+                static SerializableSupplier of(String value) {
+                    return () -> value;
+                }
+            }
+        """
+        file("buildSrc/src/main/java/SomePlugin.java") << """
+            import ${Project.name};
+            import ${Plugin.name};
+            import ${Serializable.name};
+
+            // A class with a method that creates a serializable lambda instance and an Action lambda
+            public class SomePlugin implements Plugin<Project> {
+                interface SerializableAction<T> extends Serializable {
+                    void run(T value);
+                }
+
+                public void apply(Project project) {
+                    SerializableSupplier supplier = SerializableSupplier.of("value");
+                    SerializableAction<String> action = v -> { System.out.println("value = " + v); };
+                    project.getTasks().register("task", t1 -> {
+                        t1.doLast(t2 -> {
+                            action.run(supplier.get());
+                        });
+                    });
+                }
+            }
+        """
+        buildFile << """
+            apply plugin: SomePlugin
+        """
+
+        when:
+        instantRun("task")
+        instantRun("task")
+
+        then:
+        outputContains("value = value")
     }
 }

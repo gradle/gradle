@@ -16,6 +16,7 @@
 
 package org.gradle.internal.enterprise.impl;
 
+import org.gradle.StartParameter;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.internal.buildevents.BuildStartedTime;
 import org.gradle.internal.enterprise.GradleEnterprisePluginBuildState;
@@ -81,5 +82,10 @@ public class DefaultGradleEnterprisePluginBuildState implements GradleEnterprise
     @Override
     public DaemonScanInfo getDaemonScanInfo() {
         return (DaemonScanInfo) gradle.getServices().find(DaemonScanInfo.class);
+    }
+
+    @Override
+    public StartParameter getStartParameter() {
+        return gradle.getStartParameter();
     }
 }

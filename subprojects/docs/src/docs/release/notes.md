@@ -26,6 +26,8 @@ Switch your build to use Gradle @version@ by updating your wrapper:
 
 See the [Gradle 6.x upgrade guide](userguide/upgrading_version_6.html#changes_@baseVersion@) to learn about deprecations, breaking changes and other considerations when upgrading to Gradle @version@.
 
+NOTE: Gradle 6.6 has had _one_ patch release, which fixed several issues from the original release. We recommend always using the latest patch release.
+
 For Java, Groovy, Kotlin and Android compatibility, see the [full compatibility notes](userguide/compatibility.html).
 
 ## Performance improvements
@@ -64,7 +66,7 @@ This release brings a number of stability improvements for file-system watching 
 
 For [up-to-date checks](userguide/more_about_tasks.html#sec:up_to_date_checks) and the [build cache](userguide/build_cache.html), Gradle needs to determine if two task input properties have the same value. In order to do so, Gradle first normalizes both inputs and then compares the result. 
 
-Runtime classpath analysis can now inspect manifest and `META-INF` properties files, ignore changes to comments, and selectively ignore attributes or properties that don't impact the runtime classpath.
+Runtime classpath analysis now inspects manifest and `META-INF` properties files, ignoring changes to comments, whitespace and order-differences. Moreover, you can selectively ignore attributes or properties that don't impact the runtime classpath.
 
 ```groovy
 normalization {
@@ -198,7 +200,9 @@ When using [Lazy Properties](userguide/lazy_configuration.html), it’s common t
 ```groovy
 def hello = objects.property(String).convention("Hello")
 def world = objects.property(String).convention("World")
-def helloWorld = hello.zip(world) { left, right -> "${left}, ${right}!".toString() }
+def helloWorld = hello.zip(world) { left, right ->
+   "${left}, ${right}!".toString()
+}
 // ...
 hello.set("Bonjour")
 world.set("le monde")
@@ -206,6 +210,26 @@ println(helloWorld.get()) // prints “Bonjour, le monde!”
 ```
 
 Refer to the [API documentation](javadoc/org/gradle/api/provider/Provider.html#zip-org.gradle.api.provider.Provider-java.util.function.BiFunction-) for details.
+
+## Security improvements
+
+### Removed debug logging of environment variables
+
+Debug level logging may expose sensitive information in the build log output, for example in CI server logs.
+For this reason, Gradle displays a prominent warning when using debug level logging since version 6.4.
+One example of this risk is leaking secret values such as credentials stored in environmental variables.
+
+Previously, when debug level was enabled, Gradle used to log all environment variables when starting a process such as a test, Gradle daemon, or when using `Project.exec`.
+In practice, this means most of the builds logged environment variables on debug level.
+
+As an additional security precaution, Gradle no longer logs environment variables when starting processes starting with this version.
+
+Note that many CI servers, like Jenkins and Teamcity, mask secrets in the captured logs.
+Still, we recommend limiting the usage of debug level logging to environments which do not capture the log output, like your local machine.
+[Build scans](https://scans.gradle.com/) never capture the debug log as part of the console log even when you enabled debug logging.
+
+As an additional measure, you may want to limit the environment variables passed to the test task or other forked processes by explicitly using `ProcessForkOptions.setEnvironment()`.
+This way the forked processes themselves cannot leak secrets from the environment, since they don't have them available anymore. 
 
 ## Promoted features
 

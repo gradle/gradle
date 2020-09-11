@@ -16,9 +16,11 @@
 
 package org.gradle.api.internal.tasks.testing.logging
 
-import spock.lang.Specification
 import org.gradle.api.tasks.testing.logging.TestLogging
+import org.gradle.internal.serialize.PlaceholderAssertionError
 import org.gradle.internal.serialize.PlaceholderException
+import spock.lang.Specification
+import spock.lang.Unroll
 
 class ShortExceptionFormatterTest extends Specification {
     def testDescriptor = new SimpleTestDescriptor()
@@ -45,7 +47,7 @@ class ShortExceptionFormatterTest extends Specification {
 
         expect:
         formatter.format(testDescriptor, [exception]) == """\
-    java.lang.Exception at ShortExceptionFormatterTest.groovy:43
+    java.lang.Exception at ShortExceptionFormatterTest.groovy:45
 """
     }
 
@@ -64,14 +66,19 @@ class ShortExceptionFormatterTest extends Specification {
 """
     }
 
-    def "formats PlaceholderException correctly"() {
-        def exception = new PlaceholderException(Exception.class.name, "oops", null, "java.lang.Exception: oops", null, null)
+    @Unroll
+    def "formats placeholder exceptions correctly"() {
+        given:
         testDescriptor.className = getClass().name
 
         expect:
-        formatter.format(testDescriptor, [exception]) == """\
-    java.lang.Exception at ShortExceptionFormatterTest.groovy:68
-"""
+        formatter.format(testDescriptor, [exception]).contains("java.lang.Exception at ShortExceptionFormatterTest.groovy")
+
+        where:
+        exception << [
+            new PlaceholderException(Exception.class.name, "oops", null, "java.lang.Exception: oops", null, null),
+            new PlaceholderAssertionError(Exception.class.name, "oops", null, "java.lang.Exception: oops", null, null)
+        ]
     }
 
     private createStackTrace() {

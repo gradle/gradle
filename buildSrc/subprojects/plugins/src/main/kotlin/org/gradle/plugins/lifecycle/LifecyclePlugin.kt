@@ -63,7 +63,7 @@ class LifecyclePlugin : Plugin<Project> {
     val noDaemonTest = "noDaemonTest"
 
     private
-    val instantTest = "instantTest"
+    val instantTest = "configCacheTest"
 
     private
     val watchFsTest = "watchFsTest"
