@@ -25,7 +25,8 @@ enum class StageNames(override val stageName: String, override val description: 
     HISTORICAL_PERFORMANCE("Historical Performance", "Once a week: Run performance tests for multiple Gradle versions", "HistoricalPerformance"),
     EXPERIMENTAL("Experimental", "On demand: Run experimental tests", "Experimental"),
     EXPERIMENTAL_VFS_RETENTION("Experimental FS Watching", "On demand checks to run tests with file system watching enabled", "ExperimentalVfsRetention"),
-    EXPERIMENTAL_JDK("Experimental JDK", "On demand checks to run tests with latest experimental JDK", "ExperimentalJDK")
+    EXPERIMENTAL_JDK("Experimental JDK", "On demand checks to run tests with latest experimental JDK", "ExperimentalJDK"),
+    EXPERIMENTAL_PERFORMANCE("Experimental Performance", "Try out new performance test running", "ExperimentalPerformance")
 }
 
 data class CIBuildModel(
@@ -140,7 +141,11 @@ data class CIBuildModel(
                 TestCoverage(67, TestType.allVersionsCrossVersion, Os.WINDOWS, JvmCategory.EXPERIMENTAL_VERSION),
                 TestCoverage(68, TestType.noDaemon, Os.LINUX, JvmCategory.EXPERIMENTAL_VERSION),
                 TestCoverage(69, TestType.noDaemon, Os.WINDOWS, JvmCategory.EXPERIMENTAL_VERSION)
-            ))
+            )),
+        Stage(StageNames.EXPERIMENTAL_PERFORMANCE,
+            trigger = Trigger.never,
+            runsIndependent = true
+        )
     ),
     val subprojects: GradleSubprojectProvider
 )
