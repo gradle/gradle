@@ -80,6 +80,17 @@ class AsdfInstallationSupplierTest extends Specification {
         directories.isEmpty()
     }
 
+    def "supplies no installations for all empty directories"() {
+        given:
+        def supplier = createSupplier(asdfHomeDirectory.absolutePath, asdfHomeDirectory.absolutePath, asdfHomeDirectory.absolutePath)
+
+        when:
+        def directories = supplier.get()
+
+        then:
+        directories.isEmpty()
+    }
+
     def "supplies single installations for single candidate"() {
         given:
         asdfHomeDirectory.createDir("installs/java/11.0.6.hs-adpt")
@@ -90,6 +101,32 @@ class AsdfInstallationSupplierTest extends Specification {
 
         then:
         directoriesAsStablePaths(directories) == stablePaths([new File(asdfHomeDirectory, "installs/java/11.0.6.hs-adpt").absolutePath])
+        directories*.source == ["asdf-vm"]
+    }
+
+    def "supplies single installations for single candidate in ASDF_DATA_DIR"() {
+        given:
+        asdfHomeDirectory.createDir("installs/java/11.0.6.hs-adpt")
+        def supplier = createSupplier(asdfHomeDirectory.absolutePath, null, null)
+
+        when:
+        def directories = supplier.get()
+
+        then:
+        directoriesAsStablePaths(directories) == stablePaths([new File(asdfHomeDirectory, "installs/java/11.0.6.hs-adpt").absolutePath])
+        directories*.source == ["asdf-vm"]
+    }
+
+    def "supplies single installations for single candidate in user.home"() {
+        given:
+        asdfHomeDirectory.createDir(".asdf/installs/java/11.0.6.hs-adpt")
+        def supplier = createSupplier(null, null, asdfHomeDirectory.absolutePath)
+
+        when:
+        def directories = supplier.get()
+
+        then:
+        directoriesAsStablePaths(directories) == stablePaths([new File(asdfHomeDirectory, ".asdf/installs/java/11.0.6.hs-adpt").absolutePath])
         directories*.source == ["asdf-vm"]
     }
 
@@ -145,9 +182,24 @@ class AsdfInstallationSupplierTest extends Specification {
         new AsdfInstallationSupplier(createProviderFactory(propertyValue))
     }
 
+    AsdfInstallationSupplier createSupplier(String asdfDataDir, String asdfDir, String userHome) {
+        new AsdfInstallationSupplier(createProviderFactory(asdfDataDir, asdfDir, userHome))
+    }
+
     ProviderFactory createProviderFactory(String propertyValue) {
         def providerFactory = Mock(ProviderFactory)
         providerFactory.environmentVariable("ASDF_DIR") >> Providers.ofNullable(propertyValue)
+        providerFactory.environmentVariable("ASDF_DATA_DIR") >> Providers.notDefined()
+        providerFactory.systemProperty("user.home") >> Providers.notDefined()
+        providerFactory.gradleProperty("org.gradle.java.installations.auto-detect") >> Providers.ofNullable(null)
+        providerFactory
+    }
+
+    ProviderFactory createProviderFactory(String asdfDataDir, String asdfDir, String userHome) {
+        def providerFactory = Mock(ProviderFactory)
+        providerFactory.environmentVariable("ASDF_DATA_DIR") >> Providers.ofNullable(asdfDataDir)
+        providerFactory.environmentVariable("ASDF_DIR") >> Providers.ofNullable(asdfDir)
+        providerFactory.systemProperty("user.home") >> Providers.ofNullable(userHome)
         providerFactory.gradleProperty("org.gradle.java.installations.auto-detect") >> Providers.ofNullable(null)
         providerFactory
     }
