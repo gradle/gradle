@@ -19,8 +19,6 @@ import org.gradle.samples.executor.CommandExecutor;
 import org.gradle.samples.executor.ExecutionMetadata;
 import org.gradle.samples.model.Command;
 import org.gradle.samples.test.runner.SamplesRunner;
-import org.junit.Rule;
-import org.junit.rules.TemporaryFolder;
 import org.junit.runners.model.InitializationError;
 
 import javax.annotation.Nullable;
@@ -29,17 +27,13 @@ import java.io.File;
 public class IntegrationTestSamplesRunner extends SamplesRunner {
     private static final String SAMPLES_DIR_PROPERTY = "integTest.samplesdir";
 
-    @Rule
-    public TemporaryFolder tempGradleUserHomeDir = new TemporaryFolder();
-
     public IntegrationTestSamplesRunner(Class<?> testClass) throws InitializationError {
         super(testClass);
     }
 
     @Override
     protected CommandExecutor selectExecutor(ExecutionMetadata executionMetadata, File workingDir, Command command) {
-        boolean expectFailure = command.isExpectFailure();
-        return new IntegrationTestSamplesExecutor(workingDir, expectFailure);
+        return new IntegrationTestSamplesExecutor(workingDir, command.isExpectFailure());
     }
 
     @Nullable
