@@ -98,10 +98,14 @@ distributionUrl=https\://services.gradle.org/distributions/gradle-{gradleVersion
 
 Let’s have a look at the following project layout to illustrate the expected Wrapper files:
 
-[listing]
+====
+[.multi-language-sample]
+=====
+[source,groovy]
 ----
 .
-├── build.gradle
+├── a-subproject
+│   └── build.gradle
 ├── settings.gradle
 ├── gradle
 │   └── wrapper
@@ -110,8 +114,28 @@ Let’s have a look at the following project layout to illustrate the expected W
 ├── gradlew
 └── gradlew.bat
 ----
+=====
+[.multi-language-sample]
+=====
+[source,kotlin]
+----
+.
+├── a-subproject
+│   └── build.gradle.kts
+├── settings.gradle.kts
+├── gradle
+│   └── wrapper
+│       ├── gradle-wrapper.jar
+│       └── gradle-wrapper.properties
+├── gradlew
+└── gradlew.bat
+----
+=====
+====
 
-A Gradle project typically provides a `build.gradle` and a `settings.gradle` file. The Wrapper files live alongside in the `gradle` directory and the root directory of the project. The following list explains their purpose.
+A Gradle project typically provides a `settings.gradle(.kts)` file and one `build.gradle(.kts)` file for each subproject.
+The Wrapper files live alongside in the `gradle` directory and the root directory of the project.
+The following list explains their purpose.
 
 `gradle-wrapper.jar`::
 The Wrapper JAR file containing code for downloading the Gradle distribution.

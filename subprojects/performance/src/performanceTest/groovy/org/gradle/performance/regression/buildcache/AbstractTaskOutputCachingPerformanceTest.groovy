@@ -17,19 +17,16 @@
 package org.gradle.performance.regression.buildcache
 
 import org.gradle.initialization.StartParameterBuildOptions
-import org.gradle.performance.AbstractCrossVersionGradleInternalPerformanceTest
-import org.gradle.performance.fixture.BuildExperimentInvocationInfo
-import org.gradle.performance.fixture.BuildExperimentListener
-import org.gradle.performance.fixture.BuildExperimentListenerAdapter
-import org.gradle.performance.measure.MeasuredOperation
+import org.gradle.performance.AbstractCrossVersionPerformanceTest
+import org.gradle.profiler.BuildContext
+import org.gradle.profiler.BuildMutator
+import org.gradle.profiler.InvocationSettings
+import org.gradle.profiler.Phase
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.HttpBuildCacheServer
 import org.junit.Rule
 
-import static org.gradle.performance.fixture.BuildExperimentRunner.Phase.MEASUREMENT
-import static org.gradle.performance.fixture.BuildExperimentRunner.Phase.WARMUP
-
-class AbstractTaskOutputCachingPerformanceTest extends AbstractCrossVersionGradleInternalPerformanceTest{
+class AbstractTaskOutputCachingPerformanceTest extends AbstractCrossVersionPerformanceTest {
     int firstWarmupWithCache = 1
     TestFile cacheDir
     String protocol = "http"
@@ -44,44 +41,46 @@ class AbstractTaskOutputCachingPerformanceTest extends AbstractCrossVersionGradl
         runner.args = ["-D${StartParameterBuildOptions.BuildCacheOption.GRADLE_PROPERTY}=true"]
         buildCacheServer.logRequests = false
         cacheDir = temporaryFolder.file("local-cache")
-        runner.addBuildExperimentListener(new BuildExperimentListenerAdapter() {
-            @Override
-            void beforeInvocation(BuildExperimentInvocationInfo invocationInfo) {
-                if (isRunWithCache(invocationInfo)) {
-                    if (!buildCacheServer.isRunning()) {
-                        buildCacheServer.start()
+        runner.addBuildMutator { invocationSettings ->
+            new BuildMutator() {
+                @Override
+                void beforeBuild(BuildContext context) {
+                    if (isRunWithCache(context)) {
+                        if (!buildCacheServer.isRunning()) {
+                            buildCacheServer.start()
+                        }
+                        def settings = new TestFile(invocationSettings.projectDir).file('settings.gradle')
+                        if (isFirstRunWithCache(context)) {
+                            cacheDir.deleteDir().mkdirs()
+                            buildCacheServer.cacheDir.deleteDir().mkdirs()
+                            settings << remoteCacheSettingsScript
+                        }
+                        assert buildCacheServer.uri.toString().startsWith("${protocol}://")
+                        assert settings.text.contains(buildCacheServer.uri.toString())
                     }
-                    def settings = new TestFile(invocationInfo.projectDir).file('settings.gradle')
-                    if (isFirstRunWithCache(invocationInfo)) {
-                        cacheDir.deleteDir().mkdirs()
-                        buildCacheServer.cacheDir.deleteDir().mkdirs()
-                        settings << remoteCacheSettingsScript
+                }
+
+                @Override
+                void afterBuild(BuildContext context, Throwable error) {
+                    if (isLastRun(context, invocationSettings) && checkIfCacheUsed) {
+                        assert !(buildCacheServer.cacheDir.allDescendants().empty && cacheDir.allDescendants().isEmpty())
+                        assert pushToRemote || buildCacheServer.cacheDir.allDescendants().empty
                     }
-                    assert buildCacheServer.uri.toString().startsWith("${protocol}://")
-                    assert settings.text.contains(buildCacheServer.uri.toString())
                 }
             }
-
-            @Override
-            void afterInvocation(BuildExperimentInvocationInfo invocationInfo, MeasuredOperation operation, BuildExperimentListener.MeasurementCallback measurementCallback) {
-                if (isLastRun(invocationInfo) && checkIfCacheUsed) {
-                    assert !(buildCacheServer.cacheDir.allDescendants().empty && cacheDir.allDescendants().isEmpty())
-                    assert pushToRemote || buildCacheServer.cacheDir.allDescendants().empty
-                }
-            }
-        })
+        }
     }
 
-    static boolean isLastRun(BuildExperimentInvocationInfo invocationInfo) {
-        invocationInfo.iterationNumber == invocationInfo.iterationMax && invocationInfo.phase == MEASUREMENT
+    static boolean isLastRun(BuildContext context, InvocationSettings invocationSettings) {
+        context.iteration == invocationSettings.buildCount && context.phase == Phase.MEASURE
     }
 
-    boolean isRunWithCache(BuildExperimentInvocationInfo invocationInfo) {
-        invocationInfo.iterationNumber >= firstWarmupWithCache || invocationInfo.phase == MEASUREMENT
+    boolean isRunWithCache(BuildContext context) {
+        context.iteration >= firstWarmupWithCache || context.phase == Phase.MEASURE
     }
 
-    boolean isFirstRunWithCache(BuildExperimentInvocationInfo invocationInfo) {
-        invocationInfo.iterationNumber == firstWarmupWithCache && invocationInfo.phase == WARMUP
+    boolean isFirstRunWithCache(BuildContext context) {
+        context.iteration == firstWarmupWithCache && context.phase == Phase.WARM_UP
     }
 
     String getRemoteCacheSettingsScript() {
@@ -92,29 +91,28 @@ class AbstractTaskOutputCachingPerformanceTest extends AbstractCrossVersionGradl
                     directory = '${cacheDir.absoluteFile.toURI()}'
                 }
                 remote(httpCacheClass) {
-                    url = '${buildCacheServer.uri}/' 
+                    url = '${buildCacheServer.uri}/'
                     push = ${pushToRemote}
                 }
             }
         """.stripIndent()
     }
 
-    BuildExperimentListenerAdapter cleanLocalCache() {
-        new BuildExperimentListenerAdapter() {
+    BuildMutator cleanLocalCache() {
+        new BuildMutator() {
             @Override
-            void beforeInvocation(BuildExperimentInvocationInfo invocationInfo) {
+            void beforeBuild(BuildContext context) {
                 cacheDir.deleteDir().mkdirs()
             }
         }
     }
 
-    BuildExperimentListenerAdapter cleanRemoteCache() {
-        new BuildExperimentListenerAdapter() {
+    BuildMutator cleanRemoteCache() {
+        new BuildMutator() {
             @Override
-            void beforeInvocation(BuildExperimentInvocationInfo invocationInfo) {
+            void beforeBuild(BuildContext context) {
                 buildCacheServer.cacheDir.deleteDir().mkdirs()
             }
         }
     }
-
 }

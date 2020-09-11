@@ -2,7 +2,7 @@ package configurations
 
 import Gradle_Check.configurations.masterReleaseBranchFilter
 import Gradle_Check.configurations.triggerExcludes
-import common.Os
+import common.Os.LINUX
 import common.applyDefaultSettings
 import common.buildToolGradleParameters
 import common.gradleWrapper
@@ -63,7 +63,7 @@ class StagePasses(model: CIBuildModel, stage: Stage, prevStage: Stage?, stagePro
     }
 
     params {
-        param("env.JAVA_HOME", buildJavaHome())
+        param("env.JAVA_HOME", LINUX.buildJavaHome())
     }
 
     val baseBuildType = this
@@ -71,7 +71,7 @@ class StagePasses(model: CIBuildModel, stage: Stage, prevStage: Stage?, stagePro
 
     val defaultGradleParameters = (
         buildToolGradleParameters() +
-            baseBuildType.buildCache.gradleParameters(Os.linux) +
+            baseBuildType.buildCache.gradleParameters(LINUX) +
             buildScanTags.map(::buildScanTag)
         ).joinToString(" ")
     steps {

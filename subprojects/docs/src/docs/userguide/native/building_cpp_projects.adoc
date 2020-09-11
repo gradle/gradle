@@ -191,8 +191,8 @@ You can override the convention values by using the following syntax:
 
 .Setting {cpp} source set
 ====
-include::sample[dir="snippets/cpp/basic/groovy",files="build.gradle[tags=cpp-source-set]"]
-include::sample[dir="snippets/cpp/basic/kotlin",files="build.gradle.kts[tags=cpp-source-set]"]
+include::sample[dir="snippets/cpp/basic/groovy/common",files="build.gradle[tags=cpp-source-set]"]
+include::sample[dir="snippets/cpp/basic/kotlin/common",files="build.gradle.kts[tags=cpp-source-set]"]
 ====
 
 Now Gradle will only search directly in _src_ for the source and private headers and in _include_ for public headers.
@@ -261,7 +261,7 @@ If the types from a dependency appear as unresolved symbols of the static librar
 Otherwise, the dependency is an internal implementation detail and should be added to _implementation_.
 
 If you’re unsure of the difference between an API and implementation dependency, the <<cpp_library_plugin.adoc#sec:cpp_library_api_vs_implementation,{cpp} Library Plugin>> chapter has a detailed explanation.
-In addition, you can see a basic, practical example of building a {cpp} library in the corresponding link:{guidesUrl}/building-cpp-libraries[guide].
+In addition, you can see a basic, practical example of building a {cpp} library in the corresponding link:../samples/sample_building_cpp_libraries.html[sample].
 
 [[sec:building_cpp_applications]]
 == Building {cpp} applications
@@ -271,4 +271,4 @@ See the <<cpp_application_plugin.adoc#,{cpp} Application Plugin>> chapter for mo
  * `install` create a directory containing everything needed to run it
  * Shell and Windows Batch scripts to start the application
 
-You can see a basic example of building a {cpp} application in the corresponding link:{guidesUrl}/building-cpp-applications[guide].
+You can see a basic example of building a {cpp} application in the corresponding link:../samples/sample_building_cpp_applications.html[sample].

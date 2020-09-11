@@ -21,13 +21,13 @@ import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl.KOTLI
 
 class BuildScriptBuilderKotlinTest extends AbstractBuildScriptBuilderTest {
 
-    def builder = new BuildScriptBuilder(KOTLIN, fileResolver, "build")
+    def builder = new BuildScriptBuilder(KOTLIN, "build")
 
     TestFile outputFile = tmpDir.file("build.gradle.kts")
 
     def "generates basic kotlin build script"() {
         when:
-        builder.create().generate()
+        builder.create(target).generate()
 
         then:
         assertOutputFile("""/*
@@ -39,7 +39,7 @@ class BuildScriptBuilderKotlinTest extends AbstractBuildScriptBuilderTest {
     def "no spaces at the end of blank comment lines"() {
         when:
         builder.fileComment("\nnot-a-blank\n\nnot-a-blank");
-        builder.create().generate()
+        builder.create(target).generate()
 
         then:
         assertOutputFile("""/*
@@ -56,7 +56,7 @@ class BuildScriptBuilderKotlinTest extends AbstractBuildScriptBuilderTest {
         when:
         builder.fileComment("""This is a sample
 see more at gradle.org""")
-        builder.create().generate()
+        builder.create(target).generate()
 
         then:
         assertOutputFile("""/*
@@ -73,7 +73,7 @@ see more at gradle.org""")
         builder.plugin("Add support for the Java language", "java")
         builder.plugin("Add support for Java libraries", "java-library")
         builder.plugin("Add support for the Kotlin language", "org.jetbrains.kotlin.jvm", "1.3.41")
-        builder.create().generate()
+        builder.create(target).generate()
 
         then:
         assertOutputFile("""/*
@@ -101,7 +101,7 @@ plugins {
         builder.repositories().jcenter("Use JCenter")
 
         when:
-        builder.create().generate()
+        builder.create(target).generate()
 
         then:
         assertOutputFile("""/*
@@ -133,7 +133,7 @@ repositories {
         builder.implementationDependency(null, "a:b:1.2", "a:c:4.5")
         builder.implementationDependency(null, "a:d:4.5")
         builder.implementationDependency("Use Scala to compile", "org.scala-lang:scala-library:2.10")
-        builder.create().generate()
+        builder.create(target).generate()
 
         then:
         assertOutputFile("""/*
@@ -159,7 +159,7 @@ dependencies {
         when:
         builder.testImplementationDependency("use some test kit", "org:test:1.2", "org:test-utils:1.2")
         builder.testRuntimeOnlyDependency("needs some libraries at runtime", "org:test-runtime:1.2")
-        builder.create().generate()
+        builder.create(target).generate()
 
         then:
         assertOutputFile("""/*
@@ -184,7 +184,7 @@ dependencies {
         builder.dependencies().platformDependency("implementation", null, "a:d:1.4")
 
         when:
-        builder.create().generate()
+        builder.create(target).generate()
 
         then:
         assertOutputFile("""/*
@@ -208,7 +208,7 @@ dependencies {
         builder.dependencies().projectDependency("implementation", null, ":p2")
 
         when:
-        builder.create().generate()
+        builder.create(target).generate()
 
         then:
         assertOutputFile("""/*
@@ -234,7 +234,7 @@ dependencies {
             .propertyAssignment("Use a method call", "cathedral", builder.methodInvocationExpression("thing", 123, false))
 
         when:
-        builder.create().generate()
+        builder.create(target).generate()
 
         then:
         assertOutputFile("""/*
@@ -263,7 +263,7 @@ cathedral = thing(123, false)
             .methodInvocation("Use a method call", "cathedral", builder.methodInvocationExpression("thing", [a: 12], 123, false))
 
         when:
-        builder.create().generate()
+        builder.create(target).generate()
 
         then:
         assertOutputFile("""/*
@@ -292,7 +292,7 @@ cathedral(thing(mapOf("a" to 12), 123, false))
         builder.block(null, "other")
 
         when:
-        builder.create().generate()
+        builder.create(target).generate()
 
         then:
         assertOutputFile("""/*
@@ -322,7 +322,7 @@ other {
         builder.propertyAssignment(null, "prop2", builder.propertyExpression(e2, "outputDir"))
 
         when:
-        builder.create().generate()
+        builder.create(target).generate()
 
         then:
         assertOutputFile("""/*
@@ -356,7 +356,7 @@ prop2 = someElement.outputDir
         }
 
         when:
-        builder.create().generate()
+        builder.create(target).generate()
 
         then:
         assertOutputFile("""/*
@@ -394,7 +394,7 @@ foo {
         builder.propertyAssignment(null, "other", e4)
 
         when:
-        builder.create().generate()
+        builder.create(target).generate()
 
         then:
         assertOutputFile("""/*
@@ -428,7 +428,7 @@ other = extendsFrom(things.nested["element2"].outputDir)
             .taskPropertyAssignment("Encoding", "Test", "encoding", "UTF-8")
 
         when:
-        builder.create().generate()
+        builder.create(target).generate()
 
         then:
         assertOutputFile("""/*
@@ -481,7 +481,7 @@ Alternatively:
 """)
 
         when:
-        builder.create().generate()
+        builder.create(target).generate()
 
         then:
         assertOutputFile("""/*
@@ -518,7 +518,7 @@ repositories {
         builder.propertyAssignment(null, "foo", "last")
 
         when:
-        builder.create().generate()
+        builder.create(target).generate()
 
         then:
         assertOutputFile("""/*

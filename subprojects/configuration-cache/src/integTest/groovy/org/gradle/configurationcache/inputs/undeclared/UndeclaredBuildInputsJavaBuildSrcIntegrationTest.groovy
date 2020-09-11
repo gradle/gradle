@@ -19,7 +19,7 @@ package org.gradle.configurationcache.inputs.undeclared
 class UndeclaredBuildInputsJavaBuildSrcIntegrationTest extends AbstractUndeclaredBuildInputsIntegrationTest implements JavaPluginImplementation {
     @Override
     String getLocation() {
-        return "plugin class 'SneakyPlugin'"
+        return "Plugin class 'SneakyPlugin'"
     }
 
     @Override

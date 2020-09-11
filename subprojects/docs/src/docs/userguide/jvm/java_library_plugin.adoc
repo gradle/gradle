@@ -123,7 +123,7 @@ include::sample[dir="snippets/java-library/quickstart/kotlin",files="build.gradl
 [[sec:java_library_configurations_graph]]
 == The Java Library plugin configurations
 
-The following graph describes the main configurations setup when the Java Library plugin is in use.
+The following graph describes how configurations are setup when the Java Library plugin is in use.
 
 image::java-library-ignore-deprecated-main.png[]
 
@@ -151,43 +151,49 @@ The role of each configuration is described in the following tables:
 | Declaring API dependencies
 | no
 | no
-| This is where you should declare dependencies which are transitively exported to consumers, for compile.
+| This is where you declare dependencies which are transitively exported to consumers, for compile time and runtime.
 
 | `implementation`
 | Declaring implementation dependencies
 | no
 | no
-| This is where you should declare dependencies which are purely internal and not meant to be exposed to consumers.
+| This is where you declare dependencies which are purely internal and not meant to be exposed to consumers (they are still exposed to consumers at runtime).
 
 | `compileOnly`
 | Declaring compile only dependencies
 | no
 | no
-| This is where you should declare dependencies which are only required at compile time, but should not leak into the runtime. This typically includes dependencies which are shaded when found at runtime.
+| This is where you declare dependencies which are required at compile time, but not at runtime. This typically includes dependencies which are shaded when found at runtime.
+
+| `compileOnlyApi`
+| Declaring compile only API dependencies
+| no
+| no
+| This is where you declare dependencies which are required at compile time by your module and consumers, but not at runtime. This typically includes dependencies which are shaded when found at runtime.
 
 | `runtimeOnly`
 | Declaring runtime dependencies
 | no
 | no
-| This is where you should declare dependencies which are only required at runtime, and not at compile time.
+| This is where you declare dependencies which are only required at runtime, and not at compile time.
 
 | `testImplementation`
 | Test dependencies
 | no
 | no
-| This is where you should declare dependencies which are used to compile tests.
+| This is where you declare dependencies which are used to compile tests.
 
 | `testCompileOnly`
 | Declaring test compile only dependencies
 | no
 | no
-| This is where you should declare dependencies which are only required at test compile time, but should not leak into the runtime. This typically includes dependencies which are shaded when found at runtime.
+| This is where you declare dependencies which are only required at test compile time, but should not leak into the runtime. This typically includes dependencies which are shaded when found at runtime.
 
 | `testRuntimeOnly`
 | Declaring test runtime dependencies
 | no
 | no
-| This is where you should declare dependencies which are only required at test runtime, and not at test compile time.
+| This is where you declare dependencies which are only required at test runtime, and not at test compile time.
 |===
 
 .Java Library plugin — configurations used by consumers
@@ -304,6 +310,10 @@ Ideally the declarations should be in sync as seen in the following table.
 | `requires static`
 | `compileOnly`
 | Declaring compile only dependencies
+
+| `requires static transitive`
+| `compileOnlyApi`
+| Declaring compile only API dependencies
 |===
 
 Gradle currently does not automatically check if the dependency declarations are in sync.

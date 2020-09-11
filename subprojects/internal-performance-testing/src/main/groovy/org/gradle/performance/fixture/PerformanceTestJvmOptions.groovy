@@ -19,7 +19,6 @@ package org.gradle.performance.fixture
 import groovy.transform.CompileStatic
 import org.gradle.api.JavaVersion
 
-
 @CompileStatic
 class PerformanceTestJvmOptions {
     static List<String> normalizeJvmOptions(List<? extends CharSequence> originalJvmOptions = []) {

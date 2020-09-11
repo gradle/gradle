@@ -16,64 +16,83 @@
 
 package org.gradle.test.fixtures.server.http
 
+import groovy.transform.CompileStatic
 import jcifs.http.NtlmSsp
 import jcifs.smb.NtlmPasswordAuthentication
-import org.mortbay.jetty.HttpHeaders
-import org.mortbay.jetty.Request
-import org.mortbay.jetty.Response
-import org.mortbay.jetty.security.Authenticator
-import org.mortbay.jetty.security.Credential
-import org.mortbay.jetty.security.UserRealm
+import org.eclipse.jetty.http.HttpHeader
+import org.eclipse.jetty.security.ServerAuthException
+import org.eclipse.jetty.security.UserAuthentication
+import org.eclipse.jetty.security.authentication.LoginAuthenticator
+import org.eclipse.jetty.server.Authentication
+import org.eclipse.jetty.server.HttpConnection
+import org.eclipse.jetty.util.security.Credential
 
+import javax.servlet.ServletRequest
+import javax.servlet.ServletResponse
+import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
-import java.security.Principal
 
-class NtlmAuthenticator implements Authenticator {
+@CompileStatic
+class NtlmAuthenticator extends LoginAuthenticator {
     static final String NTLM_AUTH_METHOD = 'NTLM'
 
-    @Override
-    Principal authenticate(UserRealm realm, String pathInContext, Request request, Response response) throws IOException {
-        NtlmConnectionAuthentication connectionAuth = request.connection.associatedObject
-
-        if (connectionAuth == null) {
-            connectionAuth = new NtlmConnectionAuthentication(challenge: new byte[8])
-            new Random().nextBytes(connectionAuth.challenge)
-
-            request.connection.associatedObject = connectionAuth
-        }
-
-        if (connectionAuth.authenticated) {
-            request.authType = authMethod
-            request.userPrincipal = connectionAuth.principal
-
-            return connectionAuth.principal
-        } else {
-            NtlmPasswordAuthentication authentication = NtlmSsp.authenticate(request, response, connectionAuth.challenge)
-
-            if (authentication != null) {
-                Principal principal = realm.authenticate(authentication.username, new TestNtlmCredentials(authentication, connectionAuth.challenge), request)
-
-                if (principal != null) {
-                    request.authType = authMethod
-                    request.userPrincipal = principal
-                    connectionAuth.principal = principal
-
-                    return principal
-                } else {
-                    badCredentials(response)
-                }
-            }
-        }
-    }
+    // There is absolutely no doubt that no one should ever on a map like that
+    // and that a proper implementation of an NTLM authenticator shouldn't do this
+    // but those are test fixtures and I couldn't find a better way to do this
+    // without deeper understanding of the Jetty APIs. Feel free to provide an
+    // alternate solution
+    private final Map<HttpConnection, NtlmConnectionAuthentication> connections = [:]
 
     @Override
     String getAuthMethod() {
         return NTLM_AUTH_METHOD
     }
 
-    private void badCredentials(Response response) {
-        response.setHeader(HttpHeaders.WWW_AUTHENTICATE, authMethod)
-        response.sendError(HttpServletResponse.SC_UNAUTHORIZED)
+    @Override
+    Authentication validateRequest(ServletRequest request, ServletResponse response, boolean mandatory) throws ServerAuthException {
+        HttpServletRequest httpRequest = (HttpServletRequest) request;
+        HttpServletResponse httpResponse = (HttpServletResponse) response
+        NtlmConnectionAuthentication connectionAuth = connections[HttpConnection.currentConnection]
+
+        if (connectionAuth == null) {
+            connectionAuth = new NtlmConnectionAuthentication(challenge: new byte[8])
+            new Random().nextBytes(connectionAuth.challenge)
+            connections[HttpConnection.currentConnection] = connectionAuth
+        }
+
+        if (connectionAuth.failed) {
+            httpResponse.setHeader(HttpHeader.WWW_AUTHENTICATE.asString(), "basic realm=\"" + _loginService.getName() + '"')
+            httpResponse.sendError(HttpServletResponse.SC_UNAUTHORIZED)
+            return Authentication.SEND_CONTINUE
+        } else if (connectionAuth.user != null) {
+           return connectionAuth.user
+        } else {
+            NtlmPasswordAuthentication authentication = NtlmSsp.authenticate(
+                (HttpServletRequest) request,
+                (HttpServletResponse) response,
+                connectionAuth.challenge)
+
+            if (authentication != null) {
+                def userIdentity = login(authentication.username, new TestNtlmCredentials(authentication, connectionAuth.challenge), request)
+
+                if (userIdentity != null) {
+                    def user = new UserAuthentication(getAuthMethod(), userIdentity)
+                    connections[HttpConnection.currentConnection].user = user
+                    return user
+                } else {
+                    httpResponse.setHeader(HttpHeader.WWW_AUTHENTICATE.asString(), "basic realm=\"" + _loginService.getName() + '"')
+                    httpResponse.sendError(HttpServletResponse.SC_UNAUTHORIZED)
+                    connections[HttpConnection.currentConnection].failed = true
+                    return Authentication.SEND_CONTINUE
+                }
+            }
+        }
+        return Authentication.SEND_CONTINUE
+    }
+
+    @Override
+    boolean secureResponse(ServletRequest request, ServletResponse response, boolean mandatory, Authentication.User validatedUser) throws ServerAuthException {
+        return true
     }
 
     private static class TestNtlmCredentials extends Credential {
@@ -91,7 +110,8 @@ class NtlmAuthenticator implements Authenticator {
                 byte[] hash = authentication.getAnsiHash(challenge)
                 byte[] clientChallenge = hash[16..-1]
 
-                return Arrays.equals(hash, NtlmPasswordAuthentication.getLMv2Response(authentication.domain, authentication.username, credentials, challenge, clientChallenge))
+                def response = NtlmPasswordAuthentication.getLMv2Response(authentication.domain, authentication.username, credentials, challenge, clientChallenge)
+                return Arrays.equals(hash, response)
             }
 
             return false
@@ -100,8 +120,10 @@ class NtlmAuthenticator implements Authenticator {
 
     private static class NtlmConnectionAuthentication {
         byte[] challenge
-        Principal principal
+        Authentication.User user
+        boolean failed
 
-        boolean isAuthenticated() { principal != null}
+        boolean isAuthenticated() { user != null}
+
     }
 }

@@ -81,7 +81,7 @@ class DaemonMemoryStatusTest extends Specification {
     }
 
     @Unroll
-    def "knows when gc is thrashing (#rateThreshold <= #rate)"(double rateThreshold, int usageThreshold, double rate, int usage, boolean thrashing) {
+    def "knows when gc is thrashing (#rateThreshold <= #rate) #usageThreshold #usage #thrashing"(double rateThreshold, int usageThreshold, double rate, int usage, boolean thrashing) {
         when:
         def status = create(usageThreshold, 100, 100, rateThreshold)
         stats.getHeapStats() >> {

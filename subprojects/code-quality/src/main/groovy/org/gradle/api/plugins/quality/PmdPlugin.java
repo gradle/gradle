@@ -40,7 +40,7 @@ import java.util.Arrays;
  */
 public class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
 
-    public static final String DEFAULT_PMD_VERSION = "6.23.0";
+    public static final String DEFAULT_PMD_VERSION = "6.26.0";
     private PmdExtension extension;
 
     @Override

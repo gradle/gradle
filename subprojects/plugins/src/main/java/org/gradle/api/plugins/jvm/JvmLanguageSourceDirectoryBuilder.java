@@ -29,7 +29,7 @@ import java.util.function.Function;
  * of a source directory for an existing source set and associate a compile
  * task which produces classes to it.
  *
- * @since 6.7
+ * @since 6.8
  */
 @Incubating
 public interface JvmLanguageSourceDirectoryBuilder {
@@ -61,7 +61,7 @@ public interface JvmLanguageSourceDirectoryBuilder {
 
     /**
      * A builder for compilation tasks.
-     * @since 6.7
+     * @since 6.8
      */
     @Incubating
     interface CompileTaskDetails {

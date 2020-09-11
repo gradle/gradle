@@ -21,6 +21,7 @@ import org.gradle.api.Transformer;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.Cast;
+import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.io.StreamByteBuffer;
 
@@ -151,9 +152,18 @@ public class GUtil {
         }
         return true;
     }
-
-    public static <T> T elvis(@Nullable T object, T defaultValue) {
+    /**
+     * Prefer {@link #getOrDefault(Object, Factory)} if the value is expensive to compute or
+     * would trigger early configuration.
+     */
+    @Nullable
+    public static <T> T elvis(@Nullable T object, @Nullable T defaultValue) {
         return isTrue(object) ? object : defaultValue;
+    }
+
+    @Nullable
+    public static <T> T getOrDefault(@Nullable T object, Factory<T> defaultValueSupplier) {
+        return isTrue(object) ? object : defaultValueSupplier.create();
     }
 
     public static <V, T extends Collection<? super V>> T addToCollection(T dest, boolean failOnNull, Iterable<? extends V> src) {

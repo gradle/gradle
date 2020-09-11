@@ -16,12 +16,16 @@
 
 package org.gradle.api.internal.artifacts.repositories;
 
+import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.artifacts.repositories.descriptor.RepositoryDescriptor;
 import org.gradle.api.model.ObjectFactory;
 
 public abstract class AbstractResolutionAwareArtifactRepository extends AbstractArtifactRepository implements ResolutionAwareRepository {
     protected AbstractResolutionAwareArtifactRepository(ObjectFactory objectFactory) {
-        super(objectFactory);
+        super(objectFactory, null);
+    }
+    protected AbstractResolutionAwareArtifactRepository(ObjectFactory objectFactory, FeaturePreviews featurePreviews) {
+        super(objectFactory, featurePreviews);
     }
 
     private RepositoryDescriptor descriptor;

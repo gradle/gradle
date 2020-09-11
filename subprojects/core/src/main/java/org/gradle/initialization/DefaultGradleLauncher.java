@@ -22,12 +22,10 @@ import org.gradle.BuildListener;
 import org.gradle.BuildResult;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
-import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.composite.internal.IncludedBuildControllers;
 import org.gradle.configuration.ProjectsPreparer;
 import org.gradle.execution.BuildWorkExecutor;
 import org.gradle.execution.MultipleBuildFailures;
-import org.gradle.initialization.buildsrc.BuildSourceBuilder;
 import org.gradle.initialization.exception.ExceptionAnalyser;
 import org.gradle.initialization.layout.BuildLayout;
 import org.gradle.internal.concurrent.CompositeStoppable;
@@ -66,7 +64,6 @@ public class DefaultGradleLauncher implements GradleLauncher {
     private final ConfigurationCache configurationCache;
     private final SettingsPreparer settingsPreparer;
     private final TaskExecutionPreparer taskExecutionPreparer;
-    private final BuildSourceBuilder buildSourceBuilder;
     private final BuildOptionBuildOperationProgressEventsEmitter buildOptionBuildOperationProgressEventsEmitter;
 
     private Stage stage;
@@ -84,7 +81,6 @@ public class DefaultGradleLauncher implements GradleLauncher {
                                  SettingsPreparer settingsPreparer,
                                  TaskExecutionPreparer taskExecutionPreparer,
                                  ConfigurationCache configurationCache,
-                                 BuildSourceBuilder buildSourceBuilder,
                                  BuildOptionBuildOperationProgressEventsEmitter buildOptionBuildOperationProgressEventsEmitter
     ) {
         this.gradle = gradle;
@@ -100,7 +96,6 @@ public class DefaultGradleLauncher implements GradleLauncher {
         this.configurationCache = configurationCache;
         this.settingsPreparer = settingsPreparer;
         this.taskExecutionPreparer = taskExecutionPreparer;
-        this.buildSourceBuilder = buildSourceBuilder;
         this.buildOptionBuildOperationProgressEventsEmitter = buildOptionBuildOperationProgressEventsEmitter;
     }
 
@@ -230,8 +225,6 @@ public class DefaultGradleLauncher implements GradleLauncher {
 
     private void prepareProjects() {
         if (stage == Stage.LoadSettings) {
-            ClassLoaderScope baseProjectClassLoaderScope = buildSourceBuilder.buildAndCreateClassLoader(gradle);
-            gradle.setBaseProjectClassLoaderScope(baseProjectClassLoaderScope);
             projectsPreparer.prepareProjects(gradle);
             stage = Stage.Configure;
         }

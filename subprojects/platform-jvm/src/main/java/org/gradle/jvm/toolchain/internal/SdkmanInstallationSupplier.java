@@ -27,14 +27,16 @@ import java.util.Set;
 
 public class SdkmanInstallationSupplier extends AutoDetectingInstallationSupplier {
 
+    private Provider<String> candidatesDir;
+
     @Inject
     public SdkmanInstallationSupplier(ProviderFactory factory) {
         super(factory);
+        candidatesDir = getEnvironmentProperty("SDKMAN_CANDIDATES_DIR");
     }
 
     @Override
     protected Set<InstallationLocation> findCandidates() {
-        final Provider<String> candidatesDir = getEnvironmentProperty("SDKMAN_CANDIDATES_DIR");
         return candidatesDir.map(findJavaCandidates()).getOrElse(Collections.emptySet());
     }
 

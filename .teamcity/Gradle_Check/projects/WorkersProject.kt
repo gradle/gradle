@@ -11,6 +11,7 @@ class WorkersProject(model: CIBuildModel) : Project({
     this.id = AbsoluteId(uuid)
     this.name = "Workers"
 
-    buildType(IndividualPerformanceScenarioWorkers(model, Os.linux))
-    buildType(IndividualPerformanceScenarioWorkers(model, Os.windows))
+    buildType(IndividualPerformanceScenarioWorkers(model, Os.LINUX))
+    buildType(IndividualPerformanceScenarioWorkers(model, Os.WINDOWS))
+    buildType(IndividualPerformanceScenarioWorkers(model, Os.MACOS))
 })

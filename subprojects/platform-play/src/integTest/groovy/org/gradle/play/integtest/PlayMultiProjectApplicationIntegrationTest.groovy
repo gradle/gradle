@@ -29,6 +29,8 @@ import org.gradle.process.internal.ExecHandleBuilder
 import org.gradle.test.fixtures.archive.JarTestFixture
 import org.gradle.test.fixtures.archive.ZipTestFixture
 
+import java.util.concurrent.TimeUnit
+
 import static org.gradle.play.integtest.fixtures.PlayMultiVersionRunApplicationIntegrationTest.java9AddJavaSqlModuleArgs
 
 class PlayMultiProjectApplicationIntegrationTest extends AbstractIntegrationSpec {
@@ -122,6 +124,7 @@ class PlayMultiProjectApplicationIntegrationTest extends AbstractIntegrationSpec
 
         when: "stopping gradle"
         build.cancelWithEOT().waitForFinish()
+        TimeUnit.SECONDS.sleep(10)
 
         then: "play server is stopped too"
         runningApp.verifyStopped()

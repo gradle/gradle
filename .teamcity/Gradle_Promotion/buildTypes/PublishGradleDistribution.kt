@@ -47,7 +47,7 @@ abstract class PublishGradleDistribution(
             gradleWrapper {
                 name = "Promote"
                 tasks = task
-                gradleParams = """-PuseBuildReceipt $extraParameters "-PgitUserName=$gitUserName" "-PgitUserEmail=$gitUserEmail"  ${builtInRemoteBuildCacheNode.gradleParameters(Os.linux).joinToString(" ")}"""
+                gradleParams = """-PuseBuildReceipt $extraParameters "-PgitUserName=$gitUserName" "-PgitUserEmail=$gitUserEmail"  ${builtInRemoteBuildCacheNode.gradleParameters(Os.LINUX).joinToString(" ")}"""
             }
         }
         dependencies {
@@ -59,7 +59,7 @@ abstract class PublishGradleDistribution(
         }
 
         requirements {
-            requiresOs(Os.linux)
+            requiresOs(Os.LINUX)
         }
     }
 }

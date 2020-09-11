@@ -93,6 +93,14 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
         }
         handle.stdinPipe.write(("3" + TextUtil.platformLineSeparator).bytes)
 
+        // Select 'Single project'
+        ConcurrentTestUtil.poll(60) {
+            assert handle.standardOutput.contains("Split functionality across multiple subprojects?:")
+            assert handle.standardOutput.contains("1: no - only one application project")
+            assert handle.standardOutput.contains("2: yes - application and library projects")
+        }
+        handle.stdinPipe.write(("1" + TextUtil.platformLineSeparator).bytes)
+
         // Select 'kotlin' DSL
         ConcurrentTestUtil.poll(60) {
             assert handle.standardOutput.contains(dslPrompt)

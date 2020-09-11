@@ -16,7 +16,7 @@
 
 package org.gradle.performance.regression.java
 
-import org.gradle.performance.AbstractCrossVersionGradleInternalPerformanceTest
+import org.gradle.performance.AbstractCrossVersionPerformanceTest
 import spock.lang.Unroll
 
 import static org.gradle.performance.generator.JavaTestProject.LARGE_JAVA_MULTI_PROJECT
@@ -24,7 +24,7 @@ import static org.gradle.performance.generator.JavaTestProject.LARGE_MONOLITHIC_
 import static org.gradle.performance.generator.JavaTestProject.MEDIUM_JAVA_COMPOSITE_BUILD
 import static org.gradle.performance.generator.JavaTestProject.MEDIUM_JAVA_PREDEFINED_COMPOSITE_BUILD
 
-class JavaCleanAssemblePerformanceTest extends AbstractCrossVersionGradleInternalPerformanceTest {
+class JavaCleanAssemblePerformanceTest extends AbstractCrossVersionPerformanceTest {
 
     @Unroll
     def "clean assemble on #testProject"() {
@@ -34,7 +34,7 @@ class JavaCleanAssemblePerformanceTest extends AbstractCrossVersionGradleInterna
         runner.warmUpRuns = warmUpRuns
         runner.runs = runs
         runner.tasksToRun = ["clean", "assemble"]
-        runner.targetVersions = ["6.7-20200723220251+0000"]
+        runner.targetVersions = ["6.7-20200824220048+0000"]
         runner.minimumBaseVersion = minimumBaseVersion
 
         when:

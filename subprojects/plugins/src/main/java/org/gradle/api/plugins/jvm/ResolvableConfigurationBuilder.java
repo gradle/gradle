@@ -27,7 +27,7 @@ import java.util.List;
  * An incoming configuration builder. Such a configuration is meant
  * to be resolved.
  *
- * @since 6.7
+ * @since 6.8
  */
 @Incubating
 public interface ResolvableConfigurationBuilder {

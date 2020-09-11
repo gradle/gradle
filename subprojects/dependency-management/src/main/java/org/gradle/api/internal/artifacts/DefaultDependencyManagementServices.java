@@ -146,7 +146,6 @@ import org.gradle.internal.execution.history.changes.ExecutionStateChangeDetecto
 import org.gradle.internal.execution.impl.DefaultWorkExecutor;
 import org.gradle.internal.execution.steps.BroadcastChangingOutputsStep;
 import org.gradle.internal.execution.steps.CaptureStateBeforeExecutionStep;
-import org.gradle.internal.execution.steps.CatchExceptionStep;
 import org.gradle.internal.execution.steps.CleanupOutputsStep;
 import org.gradle.internal.execution.steps.CreateOutputsStep;
 import org.gradle.internal.execution.steps.ExecuteStep;
@@ -282,12 +281,11 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 new StoreExecutionStateStep<>(
                 new SnapshotOutputsStep<>(buildOperationExecutor, fixedUniqueId,
                 new CreateOutputsStep<>(
-                new CatchExceptionStep<>(
                 new TimeoutStep<>(timeoutHandler,
                 new ResolveInputChangesStep<>(
                 new CleanupOutputsStep<>(deleter, outputChangeListener,
                 new ExecuteStep<>(
-            ))))))))))))))));
+            )))))))))))))));
             // @formatter:on
         }
     }
@@ -464,7 +462,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 NamedObjectInstantiator instantiator,
                 DefaultUrlArtifactRepository.Factory urlArtifactRepositoryFactory,
                 ChecksumService checksumService,
-                ProviderFactory providerFactory
+                ProviderFactory providerFactory,
+                FeaturePreviews featurePreviews
         ) {
             return new DefaultBaseRepositoryFactory(
                     localMavenRepositoryLocator,
@@ -488,7 +487,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                     callbackDecorator,
                     urlArtifactRepositoryFactory,
                     checksumService,
-                    providerFactory);
+                    providerFactory,
+                    featurePreviews);
         }
 
         RepositoryHandler createRepositoryHandler(Instantiator instantiator, BaseRepositoryFactory baseRepositoryFactory, CollectionCallbackActionDecorator callbackDecorator) {

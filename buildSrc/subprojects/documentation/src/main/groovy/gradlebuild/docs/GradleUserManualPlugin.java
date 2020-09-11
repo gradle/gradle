@@ -160,12 +160,12 @@ public class GradleUserManualPlugin implements Plugin<Project> {
 
             attributes.put("antManual", "https://ant.apache.org/manual");
             attributes.put("docsUrl", "https://docs.gradle.org");
-            attributes.put("guidesUrl", "https://guides.gradle.org");
 
             // TODO: This breaks if the version is changed later.
             attributes.put("gradleVersion", project.getVersion().toString());
             attributes.put("snippetsPath", "snippets");
-            attributes.put("samplesPath", "samples");
+            // Make sure the 'raw' location of the samples is available in all AsciidoctorTasks to access files with expected outputs in the 'tests' folder for inclusion in READMEs
+            attributes.put("samplesPath", extension.getUserManual().getStagingRoot().dir("raw/samples").get().getAsFile());
             task.attributes(attributes);
         });
 

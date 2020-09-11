@@ -482,7 +482,7 @@ If a build fails, use the HTML report to reason about the reported problems rela
 Continue running more useful tasks.
 +
 This will give you a good overview of the nature of the problems your build and plugins are facing.
-Remember that when turning problems into warnings you might need to <<configuration_cache#config_cache:usage:invalidate, manually invalidating the cache>> in case of troubles.
+Remember that when turning problems into warnings you might need to <<configuration_cache#config_cache:usage:invalidate, manually invalidate the cache>> in case of troubles.
 
 Step back and fix problems iteratively::
 When you feel you know enough about what needs to be fixed, take a step back and start iteratively fixing the most important problems.

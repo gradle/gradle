@@ -57,9 +57,9 @@ public class BuildActionSerializer {
         private final Serializer<ConsoleOutput> consoleOutputSerializer;
         private final Serializer<WarningMode> warningModeSerializer;
         private final Serializer<File> nullableFileSerializer = new NullableFileSerializer();
-        private final Serializer<List<String>> stringListSerializer = new ListSerializer<String>(BaseSerializerFactory.STRING_SERIALIZER);
-        private final Serializer<List<File>> fileListSerializer = new ListSerializer<File>(BaseSerializerFactory.FILE_SERIALIZER);
-        private final Serializer<Set<String>> stringSetSerializer = new SetSerializer<String>(BaseSerializerFactory.STRING_SERIALIZER);
+        private final Serializer<List<String>> stringListSerializer = new ListSerializer<>(BaseSerializerFactory.STRING_SERIALIZER);
+        private final Serializer<List<File>> fileListSerializer = new ListSerializer<>(BaseSerializerFactory.FILE_SERIALIZER);
+        private final Serializer<Set<String>> stringSetSerializer = new SetSerializer<>(BaseSerializerFactory.STRING_SERIALIZER);
 
         ExecuteBuildActionSerializer() {
             BaseSerializerFactory serializerFactory = new BaseSerializerFactory();
@@ -116,6 +116,9 @@ public class BuildActionSerializer {
             encoder.writeBoolean(startParameter.isBuildCacheEnabled());
             encoder.writeBoolean(startParameter.isBuildCacheDebugLogging());
             encoder.writeBoolean(startParameter.isWatchFileSystem());
+            encoder.writeBoolean(startParameter.isWatchFileSystemDebugLogging());
+            encoder.writeBoolean(startParameter.isWatchFileSystemUsingDeprecatedOption());
+            encoder.writeBoolean(startParameter.isVfsVerboseLogging());
             encoder.writeBoolean(startParameter.isConfigurationCache());
             encoder.writeString(startParameter.getConfigurationCacheProblems().name());
             encoder.writeSmallInt(startParameter.getConfigurationCacheMaxProblems());
@@ -193,6 +196,9 @@ public class BuildActionSerializer {
             startParameter.setBuildCacheEnabled(decoder.readBoolean());
             startParameter.setBuildCacheDebugLogging(decoder.readBoolean());
             startParameter.setWatchFileSystem(decoder.readBoolean());
+            startParameter.setWatchFileSystemDebugLogging(decoder.readBoolean());
+            startParameter.setWatchFileSystemUsingDeprecatedOption(decoder.readBoolean());
+            startParameter.setVfsVerboseLogging(decoder.readBoolean());
             startParameter.setConfigurationCache(decoder.readBoolean());
             startParameter.setConfigurationCacheProblems(ConfigurationCacheProblemsOption.Value.valueOf(decoder.readString()));
             startParameter.setConfigurationCacheMaxProblems(decoder.readSmallInt());
@@ -216,7 +222,7 @@ public class BuildActionSerializer {
 
         private List<TaskExecutionRequest> readTaskRequests(Decoder decoder) throws Exception {
             int requestCount = decoder.readSmallInt();
-            List<TaskExecutionRequest> taskExecutionRequests = new ArrayList<TaskExecutionRequest>(requestCount);
+            List<TaskExecutionRequest> taskExecutionRequests = new ArrayList<>(requestCount);
             for (int i = 0; i < requestCount; i++) {
                 taskExecutionRequests.add(new DefaultTaskExecutionRequest(stringListSerializer.read(decoder)));
             }

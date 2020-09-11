@@ -48,10 +48,12 @@ import org.gradle.internal.resolve.result.BuildableComponentArtifactsResolveResu
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult;
 import org.gradle.internal.resolve.result.BuildableModuleVersionListingResolveResult;
 import org.gradle.internal.resolve.result.DefaultBuildableArtifactResolveResult;
+import org.gradle.internal.resolve.result.DefaultBuildableModuleComponentMetaDataResolveResult;
 
 import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class DependencyVerifyingModuleComponentRepository implements ModuleComponentRepository {
     private final ModuleComponentRepository delegate;
@@ -117,20 +119,28 @@ public class DependencyVerifyingModuleComponentRepository implements ModuleCompo
 
         @Override
         public void resolveComponentMetaData(ModuleComponentIdentifier moduleComponentIdentifier, ComponentOverrideMetadata requestMetaData, BuildableModuleComponentMetaDataResolveResult result) {
-            delegate.resolveComponentMetaData(moduleComponentIdentifier, requestMetaData, result);
-            if (hasUsableResult(result)) {
-                result.getMetaData().getSources().withSources(DefaultMetadataFileSource.class, metadataFileSource -> {
+            // For metadata, because the local file can be deleted we have to proceed in two steps
+            // First resolve with a tmp result, and if it's found and that the file is still present
+            // we can perform verification. If it's missing, then we do nothing so that it's downloaded
+            // and verified later.
+            BuildableModuleComponentMetaDataResolveResult tmp = new DefaultBuildableModuleComponentMetaDataResolveResult();
+            delegate.resolveComponentMetaData(moduleComponentIdentifier, requestMetaData, tmp);
+            AtomicBoolean ignore = new AtomicBoolean();
+            if (hasUsableResult(tmp)) {
+                tmp.getMetaData().getSources().withSources(DefaultMetadataFileSource.class, metadataFileSource -> {
                     ModuleComponentArtifactIdentifier artifact = metadataFileSource.getArtifactId();
                     if (isExternalArtifactId(artifact)) {
-                        result.getMetaData().getSources().withSource(ModuleDescriptorHashModuleSource.class, hashSource -> {
+                        tmp.getMetaData().getSources().withSource(ModuleDescriptorHashModuleSource.class, hashSource -> {
                             if (hashSource.isPresent()) {
                                 boolean changingModule = requestMetaData.isChanging() || hashSource.get().isChangingModule();
                                 if (!changingModule) {
                                     File artifactFile = metadataFileSource.getArtifactFile();
-                                    if (artifactFile != null) {
+                                    if (artifactFile != null && artifactFile.exists()) {
                                         // it's possible that the file is null if it has been removed from the cache
                                         // for example
-                                        operation.onArtifact(ArtifactVerificationOperation.ArtifactKind.METADATA, artifact, artifactFile, () -> maybeFetchSignatureFile(moduleComponentIdentifier, result.getMetaData().getSources(), artifact), getName(), getId());
+                                        operation.onArtifact(ArtifactVerificationOperation.ArtifactKind.METADATA, artifact, artifactFile, () -> maybeFetchSignatureFile(moduleComponentIdentifier, tmp.getMetaData().getSources(), artifact), getName(), getId());
+                                    } else {
+                                        ignore.set(true);
                                     }
                                 }
                             }
@@ -138,6 +148,10 @@ public class DependencyVerifyingModuleComponentRepository implements ModuleCompo
                         });
                     }
                 });
+            }
+
+            if (!ignore.get()) {
+                delegate.resolveComponentMetaData(moduleComponentIdentifier, requestMetaData, result);
             }
         }
 

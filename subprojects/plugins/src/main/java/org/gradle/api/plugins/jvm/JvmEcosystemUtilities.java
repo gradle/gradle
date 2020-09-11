@@ -29,7 +29,7 @@ import org.gradle.internal.HasInternalProtocol;
  * to either replicate what the Gradle JVM plugins are doing, or integrate with
  * the existing Jvm plugins.
  *
- * @since 6.7
+ * @since 6.8
  */
 @Incubating
 @NonNullApi

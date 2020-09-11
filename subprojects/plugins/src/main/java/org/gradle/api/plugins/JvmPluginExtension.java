@@ -27,7 +27,7 @@ import org.gradle.api.plugins.jvm.ResolvableConfigurationBuilder;
  * This extension is shared by JVM plugins (Java, Groovy, Scala, ...)
  * and can be used to configure JVM specific behavior.
  *
- * @since 6.7
+ * @since 6.8
  */
 @Incubating
 public interface JvmPluginExtension {

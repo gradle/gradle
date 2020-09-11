@@ -25,13 +25,13 @@ import common.compileAllDependency
 import common.distributedPerformanceTestParameters
 import common.gradleWrapper
 import common.performanceTestCommandLine
-import configurations.individualPerformanceTestJavaHome
 import jetbrains.buildServer.configs.kotlin.v2019_2.BuildType
 
-open class AdHocPerformanceTestCoordinator(uuid: String, id: String, os: Os) : BuildType({
-    this.uuid = uuid
+open class AdHocPerformanceTestCoordinator(os: Os) : BuildType({
+    val id = "Gradle_Util_Performance_PerformanceTestCoordinator${os.asName()}"
+    this.uuid = id
     id(id)
-    name = "AdHoc Performance Test Coordinator - ${os.name.capitalize()}"
+    name = "AdHoc Performance Test Coordinator - ${os.asName()}"
 
     applyPerformanceTestSettings(os = os, timeout = 420)
 
@@ -47,8 +47,8 @@ open class AdHocPerformanceTestCoordinator(uuid: String, id: String, os: Os) : B
             tasks = ""
             gradleParams = (
                 buildToolGradleParameters(isContinue = false) +
-                    performanceTestCommandLine(task = "clean :performance:distributedPerformanceTest", baselines = "%performance.baselines%", testJavaHome = individualPerformanceTestJavaHome(os)) +
-                    distributedPerformanceTestParameters("Gradle_Check_IndividualPerformanceScenarioWorkers${os.name.capitalize()}") +
+                    performanceTestCommandLine(task = "clean :performance:distributedPerformanceTest", baselines = "%performance.baselines%", os = os) +
+                    distributedPerformanceTestParameters("Gradle_Check_IndividualPerformanceScenarioWorkers${os.asName()}") +
                     builtInRemoteBuildCacheNode.gradleParameters(os)
                 ).joinToString(separator = " ")
         }
@@ -59,3 +59,7 @@ open class AdHocPerformanceTestCoordinator(uuid: String, id: String, os: Os) : B
         compileAllDependency()
     }
 })
+
+object AdHocPerformanceTestCoordinatorLinux : AdHocPerformanceTestCoordinator(Os.LINUX)
+object AdHocPerformanceTestCoordinatorWindows : AdHocPerformanceTestCoordinator(Os.WINDOWS)
+object AdHocPerformanceTestCoordinatorMacOS : AdHocPerformanceTestCoordinator(Os.MACOS)

@@ -59,8 +59,7 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
         dslFixture.buildFile.assertContents(
             allOf(
                 containsString("This is a general purpose Gradle build"),
-                containsString("Learn how to create Gradle builds at")))
-        outputContains("Get more help with your project: ")
+                containsString("Learn more about Gradle by exploring our samples at")))
 
         expect:
         succeeds 'help'
@@ -217,6 +216,7 @@ include("child")
   - 'kotlin-gradle-plugin'
   - 'kotlin-library'
   - 'pom'
+  - 'scala-application'
   - 'scala-library'""")
     }
 
@@ -279,6 +279,8 @@ include("child")
 
      --project-name     Set the project name.
 
+     --split-project     Split functionality across multiple subprojects?
+
      --test-framework     Set the test framework to be used.
                           Available values are:
                                junit
@@ -303,6 +305,7 @@ include("child")
                      kotlin-gradle-plugin
                      kotlin-library
                      pom
+                     scala-application
                      scala-library""")
     }
 

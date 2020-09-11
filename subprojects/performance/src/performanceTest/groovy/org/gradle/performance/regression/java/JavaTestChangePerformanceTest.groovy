@@ -16,15 +16,15 @@
 
 package org.gradle.performance.regression.java
 
-import org.gradle.performance.AbstractCrossVersionGradleInternalPerformanceTest
-import org.gradle.performance.mutator.ApplyNonAbiChangeToJavaSourceFileMutator
+import org.gradle.performance.AbstractCrossVersionPerformanceTest
+import org.gradle.profiler.mutations.ApplyNonAbiChangeToJavaSourceFileMutator
 import spock.lang.Unroll
 
 import static org.gradle.performance.generator.JavaTestProject.LARGE_JAVA_MULTI_PROJECT
 import static org.gradle.performance.generator.JavaTestProject.LARGE_MONOLITHIC_JAVA_PROJECT
 import static org.gradle.performance.generator.JavaTestProject.MEDIUM_JAVA_MULTI_PROJECT_WITH_TEST_NG
 
-class JavaTestChangePerformanceTest extends AbstractCrossVersionGradleInternalPerformanceTest {
+class JavaTestChangePerformanceTest extends AbstractCrossVersionPerformanceTest {
 
     @Unroll
     def "test for non-abi change on #testProject"() {
@@ -34,8 +34,8 @@ class JavaTestChangePerformanceTest extends AbstractCrossVersionGradleInternalPe
         runner.warmUpRuns = warmUpRuns
         runner.runs = runs
         runner.tasksToRun = ['test']
-        runner.addBuildExperimentListener(new ApplyNonAbiChangeToJavaSourceFileMutator(testProject.config.fileToChangeByScenario['test']))
-        runner.targetVersions = ["6.7-20200723220251+0000"]
+        runner.targetVersions = ["6.7-20200824220048+0000"]
+        runner.addBuildMutator { new ApplyNonAbiChangeToJavaSourceFileMutator(new File(it.projectDir, testProject.config.fileToChangeByScenario['test'])) }
 
         when:
         def result = runner.run()

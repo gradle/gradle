@@ -19,10 +19,10 @@ package org.gradle.api.plugins;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
@@ -52,7 +52,10 @@ import org.gradle.api.tasks.testing.JUnitXmlReport;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.internal.deprecation.DeprecatableConfiguration;
 import org.gradle.jvm.toolchain.JavaInstallationRegistry;
-import org.gradle.jvm.toolchain.internal.JavaToolchain;
+import org.gradle.jvm.toolchain.JavaToolchainService;
+import org.gradle.jvm.toolchain.JavaToolchainSpec;
+import org.gradle.jvm.toolchain.internal.DefaultJavaToolchainService;
+import org.gradle.jvm.toolchain.internal.DefaultToolchainSpec;
 import org.gradle.jvm.toolchain.internal.JavaToolchainQueryService;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.jvm.tasks.ProcessResources;
@@ -61,6 +64,7 @@ import javax.inject.Inject;
 import java.io.File;
 import java.util.Set;
 import java.util.concurrent.Callable;
+import java.util.function.BiFunction;
 import java.util.function.Supplier;
 
 /**
@@ -129,11 +133,13 @@ public class JavaBasePlugin implements Plugin<Project> {
     }
 
     private JavaPluginConvention addExtensions(final ProjectInternal project) {
+        DefaultToolchainSpec toolchainSpec = project.getObjects().newInstance(DefaultToolchainSpec.class);
         SourceSetContainer sourceSets = (SourceSetContainer) project.getExtensions().getByName("sourceSets");
-        JavaPluginConvention javaConvention = new DefaultJavaPluginConvention(project, sourceSets);
+        JavaPluginConvention javaConvention = new DefaultJavaPluginConvention(project, sourceSets, toolchainSpec);
         project.getConvention().getPlugins().put("java", javaConvention);
-        project.getExtensions().create(JavaPluginExtension.class, "java", DefaultJavaPluginExtension.class, javaConvention, project, jvmPluginServices);
+        project.getExtensions().create(JavaPluginExtension.class, "java", DefaultJavaPluginExtension.class, javaConvention, project, jvmPluginServices, toolchainSpec);
         project.getExtensions().add(JavaInstallationRegistry.class, "javaInstalls", javaInstallationRegistry);
+        project.getExtensions().create(JavaToolchainService.class, "javaToolchains", DefaultJavaToolchainService.class, getJavaToolchainQueryService());
         return javaConvention;
     }
 
@@ -185,7 +191,7 @@ public class JavaBasePlugin implements Plugin<Project> {
             compileTask.getOptions().getHeaderOutputDirectory().convention(target.getLayout().getBuildDirectory().dir(generatedHeadersDir));
             JavaPluginExtension javaPluginExtension = target.getExtensions().getByType(JavaPluginExtension.class);
             compileTask.getModularity().getInferModulePath().convention(javaPluginExtension.getModularity().getInferModulePath());
-            compileTask.getJavaCompiler().convention(getToolchainTool(target, JavaToolchain::getJavaCompiler));
+            compileTask.getJavaCompiler().convention(getToolchainTool(target, JavaToolchainService::compilerFor));
         });
     }
 
@@ -302,30 +308,43 @@ public class JavaBasePlugin implements Plugin<Project> {
     }
 
     private void configureCompileDefaults(final Project project, final JavaPluginConvention javaConvention) {
+        JavaPluginExtension javaExtension = project.getExtensions().getByType(JavaPluginExtension.class);
+        DefaultJavaPluginConvention defaultJavaPluginConvention = (DefaultJavaPluginConvention) javaConvention;
         project.getTasks().withType(AbstractCompile.class).configureEach(compile -> {
             ConventionMapping conventionMapping = compile.getConventionMapping();
-            conventionMapping.map("sourceCompatibility", determineCompatibility(compile, javaConvention::getSourceCompatibility));
-            conventionMapping.map("targetCompatibility", determineCompatibility(compile, javaConvention::getTargetCompatibility));
+            conventionMapping.map("sourceCompatibility", determineCompatibility(compile, javaExtension, defaultJavaPluginConvention::getSourceCompatibility, defaultJavaPluginConvention::getRawSourceCompatibility));
+            conventionMapping.map("targetCompatibility", determineCompatibility(compile, javaExtension, defaultJavaPluginConvention::getTargetCompatibility, defaultJavaPluginConvention::getRawTargetCompatibility));
         });
     }
 
-    private Callable<Object> determineCompatibility(AbstractCompile compile, Supplier<JavaVersion> javaVersionSupplier) {
+    private Callable<String> determineCompatibility(AbstractCompile compile, JavaPluginExtension javaExtension, Supplier<JavaVersion> javaVersionSupplier, Supplier<JavaVersion> rawJavaVersionSupplier) {
         return () -> {
             if (compile instanceof JavaCompile) {
                 JavaCompile javaCompile = (JavaCompile) compile;
                 if (javaCompile.getOptions().getRelease().isPresent()) {
+                    // Release set on the task wins, no need to check *Compat has having both is illegal anyway
                     return JavaVersion.toVersion(javaCompile.getOptions().getRelease().get()).toString();
+                } else if (javaCompile.getJavaCompiler().isPresent()) {
+                    // Toolchains in use
+                    checkToolchainAndCompatibilityUsage(javaExtension, rawJavaVersionSupplier);
+                    return javaCompile.getJavaCompiler().get().getMetadata().getLanguageVersion().toString();
                 }
             }
             return javaVersionSupplier.get().toString();
         };
     }
 
+    private void checkToolchainAndCompatibilityUsage(JavaPluginExtension javaExtension, Supplier<JavaVersion> rawJavaVersionSupplier) {
+        if (((DefaultToolchainSpec) javaExtension.getToolchain()).isConfigured() && rawJavaVersionSupplier.get() != null) {
+            throw new InvalidUserDataException("The new Java toolchain feature cannot be used at the project level in combination with source and/or target compatibility");
+        }
+    }
+
     private void configureJavaDoc(final Project project, final JavaPluginConvention convention) {
         project.getTasks().withType(Javadoc.class).configureEach(javadoc -> {
             javadoc.getConventionMapping().map("destinationDir", () -> new File(convention.getDocsDir(), "javadoc"));
             javadoc.getConventionMapping().map("title", () -> project.getExtensions().getByType(ReportingExtension.class).getApiDocTitle());
-            javadoc.getJavadocTool().convention(getToolchainTool(project, JavaToolchain::getJavadocTool));
+            javadoc.getJavadocTool().convention(getToolchainTool(project, JavaToolchainService::javadocToolFor));
         });
     }
 
@@ -364,12 +383,13 @@ public class JavaBasePlugin implements Plugin<Project> {
         htmlReport.getOutputLocation().convention(project.getLayout().getProjectDirectory().dir(project.provider(() -> new File(convention.getTestReportDir(), test.getName()).getAbsolutePath())));
         test.getBinaryResultsDirectory().convention(project.getLayout().getProjectDirectory().dir(project.provider(() -> new File(convention.getTestResultsDir(), test.getName() + "/binary").getAbsolutePath())));
         test.workingDir(project.getProjectDir());
-        test.getJavaLauncher().convention(getToolchainTool(project, JavaToolchain::getJavaLauncher));
+        test.getJavaLauncher().convention(getToolchainTool(project, JavaToolchainService::launcherFor));
     }
 
-    private <T> Provider<T> getToolchainTool(Project project, Transformer<T, JavaToolchain> toolMapper) {
+    private <T> Provider<T> getToolchainTool(Project project, BiFunction<JavaToolchainService, JavaToolchainSpec, Provider<T>> toolMapper) {
         final JavaPluginExtension extension = project.getExtensions().getByType(JavaPluginExtension.class);
-        return getJavaToolchainQueryService().findMatchingToolchain(extension.getToolchain()).map(toolMapper).orElse(Providers.notDefined());
+        final JavaToolchainService service = project.getExtensions().getByType(JavaToolchainService.class);
+        return toolMapper.apply(service, extension.getToolchain()).orElse(Providers.notDefined());
     }
 
     @Inject

@@ -16,17 +16,18 @@
 
 package org.gradle.performance.regression.corefeature
 
-import org.gradle.performance.AbstractCrossVersionGradleProfilerPerformanceTest
+import org.gradle.performance.AbstractCrossVersionPerformanceTest
+import spock.lang.Ignore
 
-class DeprecationCreationPerformanceTest extends AbstractCrossVersionGradleProfilerPerformanceTest {
-
+@Ignore('https://github.com/gradle/gradle-private/issues/3202')
+class DeprecationCreationPerformanceTest extends AbstractCrossVersionPerformanceTest {
     def "create many deprecation warnings"() {
         given:
         runner.testProject = "generateLotsOfDeprecationWarnings"
         runner.tasksToRun = ['help']
         runner.gradleOpts = ["-Xms1g", "-Xmx1g"]
         runner.minimumBaseVersion = '4.9'
-        runner.targetVersions = ["6.7-20200804220106+0000"]
+        runner.targetVersions = ["6.7-20200827220028+0000"]
         when:
         def result = runner.run()
 

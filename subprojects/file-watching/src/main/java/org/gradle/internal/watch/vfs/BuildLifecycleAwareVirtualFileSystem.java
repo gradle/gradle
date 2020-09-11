@@ -29,7 +29,7 @@ public interface BuildLifecycleAwareVirtualFileSystem extends VirtualFileSystem 
     /**
      * Called when the build is started.
      */
-    void afterBuildStarted(boolean watchingEnabled, BuildOperationRunner buildOperationRunner);
+    void afterBuildStarted(boolean watchingEnabled, VfsLogging vfsLogging, WatchLogging watchLogging, BuildOperationRunner buildOperationRunner);
 
     /**
      * Register a watchable hierarchy.
@@ -43,5 +43,13 @@ public interface BuildLifecycleAwareVirtualFileSystem extends VirtualFileSystem 
     /**
      * Called when the build is finished.
      */
-    void beforeBuildFinished(boolean watchingEnabled, BuildOperationRunner buildOperationRunner, int maximumNumberOfWatchedHierarchies);
+    void beforeBuildFinished(boolean watchingEnabled, VfsLogging vfsLogging, WatchLogging watchLogging, BuildOperationRunner buildOperationRunner, int maximumNumberOfWatchedHierarchies);
+
+    enum VfsLogging {
+        NORMAL, VERBOSE
+    }
+
+    enum WatchLogging {
+        NORMAL, DEBUG
+    }
 }

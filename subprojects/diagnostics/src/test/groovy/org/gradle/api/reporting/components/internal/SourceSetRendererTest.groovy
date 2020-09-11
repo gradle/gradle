@@ -35,7 +35,7 @@ class SourceSetRendererTest extends Specification {
     PatternFilterable filter = Stub(PatternFilterable)
 
     def resolver = Stub(FileResolver) {
-        resolveAsRelativePath(_) >> { return it[0].toString().replace(File.separator, "/") }
+        resolveForDisplay(_) >> { return it[0].toString().replace(File.separator, "/") }
     }
     def output = new TestStyledTextOutput()
     def builder = new DefaultTextReportBuilder(output, resolver)

@@ -36,12 +36,21 @@ class ConfigurationCacheScriptChangesIntegrationTest extends AbstractConfigurati
 
         then:
         outputContains fixture.expectedOutputBeforeChange
+        configurationCache.assertStateStored()
+
+        when:
+        build()
+
+        then: 'scripts are not executed when loading from cache'
+        outputDoesNotContain fixture.expectedOutputBeforeChange
+        configurationCache.assertStateLoaded()
 
         when:
         fixture.applyChange()
         build()
 
         then:
+        outputContains fixture.expectedCacheInvalidationMessage
         outputContains fixture.expectedOutputAfterChange
         configurationCache.assertStateStored()
 

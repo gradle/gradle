@@ -170,8 +170,8 @@ You can override the convention values by using the following syntax:
 
 .Setting Swift source set
 ====
-include::sample[dir="snippets/swift/basic/groovy",files="build.gradle[tags=swift-source-set]"]
-include::sample[dir="snippets/swift/basic/kotlin",files="build.gradle.kts[tags=swift-source-set]"]
+include::sample[dir="snippets/swift/basic/groovy/common",files="build.gradle[tags=swift-source-set]"]
+include::sample[dir="snippets/swift/basic/kotlin/common",files="build.gradle.kts[tags=swift-source-set]"]
 ====
 
 Now Gradle will only search directly in _Sources/Common_ for the source.
@@ -240,8 +240,7 @@ If the types from a dependency appear as unresolved symbols of the static librar
 Otherwise, the dependency is an internal implementation detail and should be added to _implementation_.
 
 If you’re unsure of the difference between an API and implementation dependency, the <<swift_library_plugin.adoc#sec:swift_library_api_vs_implementation,Swift Library Plugin>> chapter has a detailed explanation.
-// TODO Uncomment when guides are ready.
-//In addition, you can see a basic, practical example of building a Swift library in the corresponding link:{guidesUrl}/building-swift-libraries[guide].
+In addition, you can see a basic, practical example of building a Swift library in the corresponding link:../samples/sample_building_swift_libraries.html[sample].
 
 [[sec:building_swift_applications]]
 == Building Swift applications
@@ -251,5 +250,4 @@ See the <<swift_application_plugin.adoc#,Swift Application Plugin>> chapter for 
  * `install` create a directory containing everything needed to run it
  * Shell and Windows Batch scripts to start the application
 
-// TODO Uncomment when guides are ready
-//You can see a basic example of building a Swift application in the corresponding link:{guidesUrl}/building-swift-applications[guide].
+You can see a basic example of building a Swift application in the corresponding link:../samples/sample_building_swift_applications.html[sample].

@@ -29,7 +29,7 @@ import java.util.List;
  * A builder to construct an "outgoing elements" configuration, that is to say something
  * which is consumable by other components (other projects or external projects)
  *
- * @since 6.7
+ * @since 6.8
  */
 @SuppressWarnings("UnusedReturnValue")
 @Incubating

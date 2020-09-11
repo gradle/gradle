@@ -40,7 +40,6 @@ The following source tree contains Java and Kotlin source files. Java source fil
 ----
 .
 ├── build.gradle
-├── settings.gradle
 └── src
     └── main
         ├── java
@@ -55,7 +54,6 @@ The following source tree contains Java and Kotlin source files. Java source fil
 ----
 .
 ├── build.gradle.kts
-├── settings.gradle.kts
 └── src
     └── main
         ├── java
@@ -109,8 +107,11 @@ A typical Gradle project with a settings file look as such:
 [source,groovy]
 ----
 .
-├── build.gradle
-└── settings.gradle
+├── settings.gradle
+├── subproject-one
+│   └── build.gradle
+└── subproject-two
+    └── build.gradle
 ----
 =====
 [.multi-language-sample]
@@ -118,8 +119,11 @@ A typical Gradle project with a settings file look as such:
 [source,kotlin]
 ----
 .
-├── build.gradle.kts
-└── settings.gradle.kts
+├── settings.gradle.kts
+├── subproject-one
+│   └── build.gradle.kts
+└── subproject-two
+    └── build.gradle.kts
 ----
 =====
 ====
@@ -154,7 +158,6 @@ Optionally, the `buildSrc` directory can host a build script if additional confi
 [source,groovy]
 ----
 .
-├── build.gradle
 ├── buildSrc
 │   ├── build.gradle
 │   └── src
@@ -169,7 +172,11 @@ Optionally, the `buildSrc` directory can host a build script if additional confi
 │               └── com
 │                   └── enterprise
 │                       └── DeploymentPluginTest.java
-└── settings.gradle
+├── settings.gradle
+├── subprojecto-one
+│   └── build.gradle.kts
+└── subproject-two
+    └── build.gradle.kts
 ----
 =====
 [.multi-language-sample]
@@ -177,7 +184,6 @@ Optionally, the `buildSrc` directory can host a build script if additional confi
 [source,kotlin]
 ----
 .
-├── build.gradle.kts
 ├── buildSrc
 │   ├── build.gradle.kts
 │   └── src
@@ -192,7 +198,11 @@ Optionally, the `buildSrc` directory can host a build script if additional confi
 │               └── com
 │                   └── enterprise
 │                       └── DeploymentPluginTest.java
-└── settings.gradle.kts
+├── settings.gradle.kts
+├── subproject-one
+│   └── build.gradle.kts
+└── subproject-two
+    └── build.gradle.kts
 ----
 =====
 ====
@@ -220,9 +230,12 @@ Alternatively, the file can also live in the `GRADLE_USER_HOME` directory if you
 [source,groovy]
 ----
 .
-├── build.gradle
 ├── gradle.properties
 └── settings.gradle
+├── subproject-a
+│   └── build.gradle
+└── subproject-b
+    └── build.gradle
 ----
 =====
 [.multi-language-sample]
@@ -230,9 +243,12 @@ Alternatively, the file can also live in the `GRADLE_USER_HOME` directory if you
 [source,kotlin]
 ----
 .
-├── build.gradle.kts
 ├── gradle.properties
 └── settings.gradle.kts
+├── subproject-a
+│   └── build.gradle.kts
+└── subproject-b
+    └── build.gradle.kts
 ----
 =====
 ====

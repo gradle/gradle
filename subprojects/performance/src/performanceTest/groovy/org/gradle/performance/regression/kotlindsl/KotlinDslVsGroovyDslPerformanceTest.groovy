@@ -35,8 +35,8 @@ class KotlinDslVsGroovyDslPerformanceTest extends AbstractCrossBuildPerformanceT
 
         given:
         runner.testGroup = 'Kotlin DSL vs Groovy DSL'
-        def groovyDslBuildName = 'Groovy DSL build'
-        def kotlinDslBuildName = 'Kotlin DSL build'
+        def groovyDslBuildName = 'Groovy_DSL_build'
+        def kotlinDslBuildName = 'Kotlin_DSL_build'
 
         and:
         def warmupBuilds = 1

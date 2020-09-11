@@ -26,7 +26,7 @@ import org.gradle.api.plugins.jvm.ResolvableConfigurationBuilder;
  * Provides helpers to model JVM components, cross-project JVM publications
  * or resolvable configurations.
  *
- * @since 6.7
+ * @since 6.8
  */
 @NonNullApi
 @SuppressWarnings("UnusedReturnValue")

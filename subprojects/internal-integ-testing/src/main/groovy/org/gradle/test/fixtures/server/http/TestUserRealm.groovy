@@ -14,57 +14,29 @@
  * limitations under the License.
  */
 
-package org.gradle.test.fixtures.server.http;
+package org.gradle.test.fixtures.server.http
 
-import org.mortbay.jetty.Request;
-import org.mortbay.jetty.security.Password;
-import org.mortbay.jetty.security.UserRealm;
+import groovy.transform.CompileStatic
+import org.eclipse.jetty.security.HashLoginService
+import org.eclipse.jetty.security.UserStore
+import org.eclipse.jetty.util.security.Credential
 
-import java.security.Principal;
+@CompileStatic
+class TestUserRealm extends HashLoginService {
+    public static final String REALM_NAME = 'test'
+    public static final String ROLE = 'test'
+    private final UserStore userStore
 
-class TestUserRealm implements UserRealm {
-    String username
-    String password
+    final String username
+    final String password
 
-    Principal authenticate(String username, Object credentials, Request request) {
-        Password passwordCred = new Password(password)
-        if (username == this.username && passwordCred.check(credentials)) {
-            return getPrincipal(username)
-        }
-        return null
+    TestUserRealm(String username, String password) {
+        super(REALM_NAME)
+        userStore = new UserStore()
+        setUserStore(userStore)
+        this.username = username
+        this.password = password
+        userStore.addUser(username, Credential.getCredential(password), [ROLE] as String[])
     }
 
-    String getName() {
-        return "test"
-    }
-
-    Principal getPrincipal(String username) {
-        return new Principal() {
-            String getName() {
-                return username
-            }
-        }
-    }
-
-    boolean reauthenticate(Principal user) {
-        return false
-    }
-
-    boolean isUserInRole(Principal user, String role) {
-        return false
-    }
-
-    void disassociate(Principal user) {
-    }
-
-    Principal pushRole(Principal user, String role) {
-        return user
-    }
-
-    Principal popRole(Principal user) {
-        return user
-    }
-
-    void logout(Principal user) {
-    }
 }

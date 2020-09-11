@@ -13,6 +13,11 @@ dependencyLocking {
 }
 // end::locking-file-name[]
 
+// tag::ignore-dependencies[]
+dependencyLocking {
+    ignoredDependencies.add("com.example:*")
+}
+// end::ignore-dependencies[]
 
 // tag::locking-explicit[]
 configurations {

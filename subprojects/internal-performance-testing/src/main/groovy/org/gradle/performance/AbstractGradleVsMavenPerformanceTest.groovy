@@ -16,64 +16,60 @@
 package org.gradle.performance
 
 import groovy.transform.CompileStatic
-import org.gradle.api.internal.file.TestFiles
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.performance.categories.PerformanceExperiment
 import org.gradle.performance.fixture.BuildExperimentSpec
-import org.gradle.performance.fixture.GradleSessionProvider
 import org.gradle.performance.fixture.GradleVsMavenBuildExperimentRunner
 import org.gradle.performance.fixture.GradleVsMavenPerformanceTestRunner
 import org.gradle.performance.fixture.PerformanceTestDirectoryProvider
 import org.gradle.performance.fixture.PerformanceTestIdProvider
+import org.gradle.performance.results.GradleProfilerReporter
+import org.gradle.performance.results.GradleVsMavenBuildPerformanceResults
 import org.gradle.performance.results.GradleVsMavenBuildResultsStore
+import org.gradle.performance.results.WritableResultsStore
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 import org.junit.experimental.categories.Category
 import spock.lang.Specification
 
+import static org.gradle.performance.results.ResultsStoreHelper.createResultsStoreWhenDatabaseAvailable
+
 @Category(PerformanceExperiment)
 @CompileStatic
 @CleanupTestDirectory
+@UsesNativeServices
 class AbstractGradleVsMavenPerformanceTest extends Specification {
-    private static final GradleVsMavenBuildResultsStore RESULT_STORE = new GradleVsMavenBuildResultsStore()
+    private static final WritableResultsStore<GradleVsMavenBuildPerformanceResults> RESULT_STORE = createResultsStoreWhenDatabaseAvailable { new GradleVsMavenBuildResultsStore() }
 
     @Rule
     TestNameTestDirectoryProvider temporaryFolder = new PerformanceTestDirectoryProvider(getClass())
 
     final IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext()
 
+    GradleProfilerReporter gradleProfilerReporter = new GradleProfilerReporter(temporaryFolder.testDirectory)
     GradleVsMavenPerformanceTestRunner runner = new GradleVsMavenPerformanceTestRunner(
-        temporaryFolder, new GradleVsMavenBuildExperimentRunner(new GradleSessionProvider(buildContext), TestFiles.execActionFactory()), RESULT_STORE, RESULT_STORE, buildContext) {
+        temporaryFolder,
+        new GradleVsMavenBuildExperimentRunner(gradleProfilerReporter.getResultCollector()),
+        RESULT_STORE,
+        RESULT_STORE.reportAlso(gradleProfilerReporter),
+        buildContext
+    ) {
         @Override
         protected void defaultSpec(BuildExperimentSpec.Builder builder) {
             super.defaultSpec(builder)
             builder.workingDirectory = temporaryFolder.testDirectory
-            AbstractGradleVsMavenPerformanceTest.this.defaultSpec(builder)
-        }
-
-        @Override
-        protected void finalizeSpec(BuildExperimentSpec.Builder builder) {
-            super.finalizeSpec(builder)
-            AbstractGradleVsMavenPerformanceTest.this.finalizeSpec(builder)
         }
     }
 
     @Rule
     PerformanceTestIdProvider performanceTestIdProvider = new PerformanceTestIdProvider(runner)
 
-    protected void defaultSpec(BuildExperimentSpec.Builder builder) {
-
-    }
-
-    protected void finalizeSpec(BuildExperimentSpec.Builder builder) {
-        builder.listener = runner.buildExperimentListener
-    }
-
     static {
         // TODO - find a better way to cleanup
         System.addShutdownHook {
-            ((Closeable)RESULT_STORE).close()
+            ((Closeable) RESULT_STORE).close()
         }
     }
 

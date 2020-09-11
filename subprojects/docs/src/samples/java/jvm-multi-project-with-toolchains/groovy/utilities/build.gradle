@@ -1,0 +1,8 @@
+plugins {
+    id 'myproject.java-conventions'
+    id 'java-library'
+}
+
+dependencies {
+    implementation project(':list')
+}

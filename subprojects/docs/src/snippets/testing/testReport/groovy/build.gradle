@@ -1,26 +1,23 @@
 // tag::test-report[]
-subprojects {
-    apply plugin: 'java'
+plugins {
+    id 'java'
+}
 
-// end::test-report[]
-    repositories {
-        mavenCentral()
-    }
-
-    dependencies {
-        testImplementation 'junit:junit:4.13'
-    }
-
-// tag::test-report[]
-    // Disable the test report for the individual test task
-    test {
-        reports.html.enabled = false
+// A resolvable configuration to collect test report data
+jvm.createResolvableConfiguration('testReportData') {
+    requiresAttributes {
+        documentation('test-report-data')
     }
 }
 
-task testReport(type: TestReport) {
+dependencies {
+    testReportData project(':core')
+    testReportData project(':util')
+}
+
+tasks.register('testReport', TestReport) {
     destinationDir = file("$buildDir/reports/allTests")
-    // Include the results from the `test` task in all subprojects
-    reportOn subprojects*.test
+    // Use test results from testReportData configuration
+    testResultDirs.from(configurations.testReportData)
 }
 // end::test-report[]

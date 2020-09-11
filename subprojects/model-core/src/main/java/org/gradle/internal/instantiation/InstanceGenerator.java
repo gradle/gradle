@@ -19,7 +19,10 @@ package org.gradle.internal.instantiation;
 import org.gradle.api.Describable;
 import org.gradle.api.reflect.ObjectInstantiationException;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.ServiceScope;
 
+@ServiceScope(Scopes.BuildTree.class)
 public interface InstanceGenerator extends Instantiator {
     /**
      * Create a new instance of T with the given display name, using {@code parameters} as the construction parameters.

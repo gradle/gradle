@@ -204,11 +204,6 @@ This can save a significant amount of time for incremental builds, where the num
 [[sec:daemon_watch_fs]]
 == Watching the file system
 
-[NOTE]
-====
-Watching the file system is an experimental feature.
-====
-
 To detect changes on the file system, and to calculate what needs to be rebuilt, Gradle collects information about the file system in-memory during every build (aka _Virtual File System_).
 By watching the file system, Gradle can keep the Virtual File System in sync with the file system even between builds.
 Doing so allows the Daemon to save the time to rebuild the Virtual File System from disk for the next build.
@@ -230,29 +225,48 @@ You can enable the feature in a couple of ways:
 
 Run with `--watch-fs` on the command line::
 This enables watching the file system for this build only.
-Put `org.gradle.unsafe.watch-fs=true` in your `gradle.properties`::
+Put `org.gradle.vfs.watch=true` in your `gradle.properties`::
 This enables watching the file system for all builds, unless explicitly disabled with `--no-watch-fs`.
 
 [[sec:daemon_watch_fs_troubleshooting]]
 === Troubleshooting file system watching
 
 Limitations::
-We are working on removing the following limitations to make file system watching production ready.
-- If you have symlinks in your build, you won’t get the performance benefits for those locations (we plan to change this in the future).
-- When multiple daemons are running, the idle ones can pick up the changes produced by the others and create large log files with lots of debug info about the changes.
-- On Windows, we don’t support SUBST and network drives (they might work, but we don’t test them yet).
+File system watching currently has the following limitations:
+- If you have symlinks in your build, you won’t get the performance benefits for those locations.
+- On Windows, we don’t support network drives (they might work, but we don’t test them yet).
 
-Gradle does not pick up some of my changes.::
+Enable verbose logging::
+You can instruct Gradle to some more information about the state of the virtual file system, and the events received from the file system using the `org.gradle.vfs.verbose` flag.
+This produces the following output at the start and end of the build:
++
+----
+$ gradle assemble --watch-fs -Dorg.gradle.vfs.verbose=true
+Received 3 file system events since last build while watching 1 hierarchies
+Virtual file system retained information about 2 files, 2 directories and 0 missing files since last build
+> Task :compileJava NO-SOURCE
+> Task :processResources NO-SOURCE
+> Task :classes UP-TO-DATE
+> Task :jar UP-TO-DATE
+> Task :assemble UP-TO-DATE
+
+BUILD SUCCESSFUL in 58ms
+1 actionable task: 1 up-to-date
+Received 5 file system events during the current build while watching 1 hierarchies
+Virtual file system retains information about 3 files, 2 directories and 2 missing files until next build
+----
++
+Note that on Windows and macOS Gradle might report changes received since the last build even if you haven't changed anything.
+These are harmless notifications about changes to Gradle's own caches and can be ignored safely.
+
+Gradle does not pick up some of my changes::
 _Please https://gradle-community.slack.com/app_redirect?channel=file-system-watching[let us know on the Gradle community Slack] if that happens to you._
 If your build declares its inputs and outputs correctly, this should not happen.
 So it’s either a bug we need to fix, or your build is lacking the declaration of some inputs or outputs.
 
-Why am I always getting “Received 8 file system events since last build” even though I only changed one file?::
-These are harmless notifications about changes to Gradle's own caches that happen after file watching has started.
-
-`Dropped VFS state due to lost state`::
-_Please https://gradle-community.slack.com/app_redirect?channel=file-system-watching[let us know on the Gradle community Slack] if that happens to you._
-This message means that either
+VFS state is dropped due to lost state::
+If you receive the `Dropped VFS state due to lost state` message during the build, _please https://gradle-community.slack.com/app_redirect?channel=file-system-watching[let us know on the Gradle community Slack] if that happens to you._
+This message means that either:
 +
 --
 - the daemon received some unknown file system event,
@@ -260,8 +274,8 @@ This message means that either
 --
 In both cases the build cannot benefit from file system watching.
 
-`java.io.IOException: Too many open files`::
-If you receive this error on macOS, you need to raise your open files limit, see https://superuser.com/a/443168/8117[here].
+Too many open files on macOS::
+If you receive the `java.io.IOException: Too many open files` error on macOS, you need to raise your open files limit, see https://superuser.com/a/443168/8117[here].
 
 [[sec:inotify_watches_limit]]
 ===  Linux-specific notes

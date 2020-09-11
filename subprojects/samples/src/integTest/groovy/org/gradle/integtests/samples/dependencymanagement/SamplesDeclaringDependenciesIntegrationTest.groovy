@@ -117,18 +117,6 @@ class SamplesDeclaringDependenciesIntegrationTest extends AbstractSampleIntegrat
     }
 
     @Unroll
-    @UsesSample("dependencyManagement/declaringDependencies-projectDependencies")
-    def "can declare and resolve project dependencies with #dsl dsl"() {
-        executer.inDirectory(sample.dir.file(dsl))
-
-        expect:
-        succeeds('assemble')
-
-        where:
-        dsl << ['groovy', 'kotlin']
-    }
-
-    @Unroll
     @UsesSample("dependencyManagement/declaringDependencies-artifactOnly")
     def "can resolve dependency with artifact-only declaration with #dsl dsl"() {
         TestFile dslDir = sample.dir.file(dsl)

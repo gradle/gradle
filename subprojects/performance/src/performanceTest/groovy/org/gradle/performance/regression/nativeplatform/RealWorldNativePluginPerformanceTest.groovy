@@ -17,17 +17,18 @@
 package org.gradle.performance.regression.nativeplatform
 
 import org.apache.commons.io.FileUtils
-import org.gradle.performance.AbstractCrossVersionGradleInternalPerformanceTest
-import org.gradle.performance.fixture.BuildExperimentInvocationInfo
-import org.gradle.performance.fixture.BuildExperimentListener
-import org.gradle.performance.fixture.BuildExperimentListenerAdapter
-import org.gradle.performance.measure.MeasuredOperation
+import org.gradle.performance.AbstractCrossVersionPerformanceTest
+import org.gradle.profiler.BuildContext
+import org.gradle.profiler.BuildMutator
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import spock.lang.Unroll
 
-class RealWorldNativePluginPerformanceTest extends AbstractCrossVersionGradleInternalPerformanceTest {
+@Requires(TestPrecondition.LINUX)
+class RealWorldNativePluginPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
     def setup() {
-        runner.targetVersions = ["6.7-20200806220106+0000"]
+        runner.targetVersions = ["6.7-20200824220048+0000"]
         runner.minimumBaseVersion = "4.0"
     }
 
@@ -70,43 +71,37 @@ class RealWorldNativePluginPerformanceTest extends AbstractCrossVersionGradleInt
 
         def changedFile = fileToChange
         def changeClosure = change
-        runner.addBuildExperimentListener(new BuildExperimentListenerAdapter() {
-            String originalContent
-            File originalContentFor
+        runner.addBuildMutator { invocationSettings ->
+            new BuildMutator() {
+                String originalContent
+                File originalContentFor
 
-            @Override
-            void beforeInvocation(BuildExperimentInvocationInfo invocationInfo) {
-                File file = new File(invocationInfo.projectDir, changedFile)
-                if (originalContentFor != file) {
-                    assert file.exists()
-                    def backupFile = new File(file.parentFile, file.name + "~")
-                    if (backupFile.exists()) {
-                        originalContent = backupFile.text
-                        file.text = originalContent
-                    } else {
-                        originalContent = file.text
-                        FileUtils.copyFile(file, backupFile)
+                @Override
+                void beforeBuild(BuildContext context) {
+                    File file = new File(invocationSettings.projectDir, changedFile)
+                    if (originalContentFor != file) {
+                        assert file.exists()
+                        def backupFile = new File(file.parentFile, file.name + "~")
+                        if (backupFile.exists()) {
+                            originalContent = backupFile.text
+                            file.text = originalContent
+                        } else {
+                            originalContent = file.text
+                            FileUtils.copyFile(file, backupFile)
+                        }
+                        originalContentFor = file
                     }
-                    originalContentFor = file
-                }
-                if (invocationInfo.iterationNumber % 2 == 0) {
-                    println "Changing $file"
-                    // do change
-                    changeClosure(file, originalContent)
-                } else if (invocationInfo.iterationNumber > 2) {
-                    println "Reverting $file"
-                    file.text = originalContent
-                }
-            }
-
-            @Override
-            void afterInvocation(BuildExperimentInvocationInfo invocationInfo, MeasuredOperation operation, BuildExperimentListener.MeasurementCallback measurementCallback) {
-                if (invocationInfo.iterationNumber % 2 == 1) {
-                    println "Omitting measurement from last run."
-                    measurementCallback.omitMeasurement()
+                    if (context.iteration % 2 == 0) {
+                        println "Changing $file"
+                        // do change
+                        changeClosure(file, originalContent)
+                    } else if (context.iteration > 2) {
+                        println "Reverting $file"
+                        file.text = originalContent
+                    }
                 }
             }
-        })
+        }
 
         when:
         def result = runner.run()
@@ -118,10 +113,10 @@ class RealWorldNativePluginPerformanceTest extends AbstractCrossVersionGradleInt
         // source file change causes a single project, single source set, single file to be recompiled.
         // header file change causes a single project, two source sets, some files to be recompiled.
         // recompile all sources causes all projects, all source sets, all files to be recompiled.
-        testProject               | changeType       | fileToChange                      | change                | iterations
-        "mediumNativeMonolithic"  | 'source file'    | 'modules/project5/src/src100_c.c' | this.&changeCSource   | 40
-        "mediumNativeMonolithic"  | 'header file'    | 'modules/project1/src/src50_h.h'  | this.&changeHeader    | 40
-        "smallNativeMonolithic"   | 'build file'     | 'common.gradle'                   | this.&changeArgs      | 40
+        testProject              | changeType    | fileToChange                      | change              | iterations
+        "mediumNativeMonolithic" | 'source file' | 'modules/project5/src/src100_c.c' | this.&changeCSource | 40
+        "mediumNativeMonolithic" | 'header file' | 'modules/project1/src/src50_h.h'  | this.&changeHeader  | 40
+        "smallNativeMonolithic"  | 'build file'  | 'common.gradle'                   | this.&changeArgs    | 40
     }
 
     void changeCSource(File file, String originalContent) {

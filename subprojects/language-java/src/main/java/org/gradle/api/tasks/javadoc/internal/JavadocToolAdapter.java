@@ -16,7 +16,9 @@
 
 package org.gradle.api.tasks.javadoc.internal;
 
+import org.gradle.api.file.RegularFile;
 import org.gradle.api.tasks.WorkResult;
+import org.gradle.jvm.toolchain.JavaInstallationMetadata;
 import org.gradle.jvm.toolchain.JavadocTool;
 import org.gradle.jvm.toolchain.internal.JavaToolchain;
 import org.gradle.process.internal.ExecActionFactory;
@@ -32,9 +34,17 @@ public class JavadocToolAdapter implements JavadocTool {
     }
 
     public WorkResult execute(JavadocSpec spec) {
-        spec.setExecutable(toolchain.findExecutable("javadoc"));
+        spec.setExecutable(getExecutablePath().toString());
         return generator.execute(spec);
     }
 
+    @Override
+    public JavaInstallationMetadata getMetadata() {
+        return toolchain;
+    }
 
+    @Override
+    public RegularFile getExecutablePath() {
+        return toolchain.findExecutable("javadoc");
+    }
 }

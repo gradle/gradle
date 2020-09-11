@@ -114,8 +114,8 @@ You can access tasks from any project using the task's path using the `tasks.get
 
 .Accessing tasks by path
 ====
-include::sample[dir="snippets/tasks/accessUsingPath/groovy",files="build.gradle[]"]
-include::sample[dir="snippets/tasks/accessUsingPath/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/tasks/accessUsingPath/groovy",files="project-a/build.gradle[];build.gradle[]"]
+include::sample[dir="snippets/tasks/accessUsingPath/kotlin",files="project-a/build.gradle.kts[];build.gradle.kts[]"]
 
 .Output of **`gradle -q hello`**
 ----
@@ -1157,7 +1157,8 @@ include::sample[dir="snippets/tasks/inputNormalization/groovy",files="build.grad
 include::sample[dir="snippets/tasks/inputNormalization/kotlin",files="build.gradle.kts[tags=ignore-build-info-properties]"]
 ====
 
-If adding such a file to your jar files is something you do for all of the projects in your build, and you want to filter this file for all consumers, you may wrap the configurations described above in an `allprojects {}` or `subprojects {}` block in the root build script.
+If adding such a file to your jar files is something you do for all of the projects in your build, and you want to filter this file for all consumers,
+you should consider configuring such normalization in a <<sharing_build_logic_between_subprojects#sec:convention_plugins,convention plugin>> to share it between subprojects.
 
 The effect of this configuration would be that changes to `build-info.properties` would be ignored for up-to-date checks and <<build_cache.adoc#build_cache,build cache>> key calculations.
 Note that this will not change the runtime behavior of the `test` task — i.e. any test is still able to load `build-info.properties` and the runtime classpath is still the same as before.

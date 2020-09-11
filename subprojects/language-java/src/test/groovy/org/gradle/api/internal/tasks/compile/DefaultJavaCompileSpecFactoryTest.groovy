@@ -16,16 +16,29 @@
 
 package org.gradle.api.internal.tasks.compile
 
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.tasks.compile.CompileOptions
+import org.gradle.internal.jvm.Jvm
+import org.gradle.jvm.toolchain.JavaLanguageVersion
+import org.gradle.jvm.toolchain.internal.JavaToolchain
 import spock.lang.Specification
+import spock.lang.Unroll
 
 class DefaultJavaCompileSpecFactoryTest extends Specification {
-    def "produces correct spec type" () {
+
+    @Unroll
+    def "produces correct spec with fork=#fork, executable=#executable, toolchain=#toolchainHome"() {
         CompileOptions options = new CompileOptions(Mock(ObjectFactory))
         options.fork = fork
         options.forkOptions.executable = executable
-        DefaultJavaCompileSpecFactory factory = new DefaultJavaCompileSpecFactory(options)
+        def toolchain = null
+        if (toolchainHome != null) {
+            toolchain = Mock(JavaToolchain)
+            toolchain.installationPath >> TestFiles.fileFactory().dir(toolchainHome)
+            toolchain.languageVersion >> JavaLanguageVersion.of(8)
+        }
+        DefaultJavaCompileSpecFactory factory = new DefaultJavaCompileSpecFactory(options, toolchain)
 
         when:
         def spec = factory.create()
@@ -36,9 +49,12 @@ class DefaultJavaCompileSpecFactoryTest extends Specification {
         CommandLineJavaCompileSpec.isAssignableFrom(spec.getClass()) == implementsCommandLine
 
         where:
-        fork  | executable | implementsForking | implementsCommandLine
-        false | null       | false             | false
-        true  | null       | true              | false
-        true  | "X"        | false             | true
+        fork  | executable | implementsForking | implementsCommandLine | toolchainHome
+        false | null       | false             | false                 | null
+        true  | null       | true              | false                 | null
+        true  | "X"        | false             | true                  | null
+        true | "X" | true | false | File.createTempDir()
+        false | null       | false             | false                 | Jvm.current().javaHome
     }
+
 }

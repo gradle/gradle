@@ -419,7 +419,7 @@ include::sample[dir="snippets/antMigration/multiProject/groovy",files="web/build
 include::sample[dir="snippets/antMigration/multiProject/kotlin",files="web/build.gradle.kts[]"]
 ====
 +
-This is not as robust or powerful as Gradle's <<multi_project_builds#sec:project_jar_dependencies,project dependencies>>, but it solves the immediate problem without big changes to the build. Just be careful to remove or override any dependencies on tasks that delegate to other subprojects, like the `buildRequiredProjects` task.
+This is not as robust or powerful as Gradle's <<declaring_dependencies_between_subprojects#sec:project_jar_dependencies,project dependencies>>, but it solves the immediate problem without big changes to the build. Just be careful to remove or override any dependencies on tasks that delegate to other subprojects, like the `buildRequiredProjects` task.
  5. Identify the projects that have no dependencies on other projects and migrate them to idiomatic Gradle builds scripts.
 +
 Just follow the advice in the rest of this guide to migrate individual project builds. As mentioned elsewhere, you should ideally use Gradle standard plugins where possible. This may mean that you need to add an extra copy task to each build that copies the generated artifacts to the location expected by the rest of the Ant builds.
@@ -440,4 +440,4 @@ This chapter has covered the major topics that are specific to migrating Ant bui
  * Learn how to <<organizing_gradle_projects#organizing_gradle_projects,structure your builds effectively>>
  * <<logging#logging,Configure Gradle's logging>> and use it from your builds
 
-As a final note, this guide has only touched on a few of Gradle's features and we encourage you to learn about the rest from the other chapters of the user manual and from our tutorial-style {guidesUrl}/[Gradle Guides].
+As a final note, this guide has only touched on a few of Gradle's features and we encourage you to learn about the rest from the other chapters of the user manual and from our link:../samples/index.html[step-by-step samples].

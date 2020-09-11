@@ -16,7 +16,11 @@
 
 package org.gradle.buildinit.plugins.internal;
 
+import org.gradle.buildinit.plugins.internal.modifiers.ModularizationOption;
+
+import java.util.Collections;
 import java.util.Optional;
+import java.util.Set;
 
 public abstract class LanguageLibraryProjectInitDescriptor implements LanguageSpecificProjectGenerator {
     protected String withPackage(InitSettings settings, String className) {
@@ -28,7 +32,12 @@ public abstract class LanguageLibraryProjectInitDescriptor implements LanguageSp
     }
 
     @Override
-    public Optional<String> getFurtherReading() {
+    public Set<ModularizationOption> getModularizationOptions() {
+        return Collections.singleton(ModularizationOption.SINGLE_PROJECT);
+    }
+
+    @Override
+    public Optional<String> getFurtherReading(InitSettings settings) {
         return Optional.empty();
     }
 }

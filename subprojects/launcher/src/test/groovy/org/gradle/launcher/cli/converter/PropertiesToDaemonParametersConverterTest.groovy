@@ -126,7 +126,7 @@ class PropertiesToDaemonParametersConverterTest extends Specification {
     }
 
     @Unroll
-    def "explicitly sets daemon usage if daemon system property is specified"() {
+    def "explicitly sets daemon usage if daemon system property is specified - #enabled"() {
         when:
         converter.convert((DaemonBuildOptions.DaemonOption.GRADLE_PROPERTY): enabled.toString(), params)
 

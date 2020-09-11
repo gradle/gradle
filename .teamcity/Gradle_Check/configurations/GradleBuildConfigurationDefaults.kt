@@ -21,14 +21,6 @@ import jetbrains.buildServer.configs.kotlin.v2019_2.buildSteps.script
 import model.CIBuildModel
 import model.StageNames
 
-val killAllGradleProcesses = """
-    free -m
-    ps aux | egrep 'Gradle(Daemon|Worker)'
-    ps aux | egrep 'Gradle(Daemon|Worker)' | awk '{print ${'$'}2}' | xargs kill -9
-    free -m
-    ps aux | egrep 'Gradle(Daemon|Worker)' | awk '{print ${'$'}2}'
-""".trimIndent()
-
 val m2CleanScriptUnixLike = """
     REPO=%teamcity.agent.jvm.user.home%/.m2/repository
     if [ -e ${'$'}REPO ] ; then
@@ -90,7 +82,7 @@ fun ProjectFeatures.buildReportTab(title: String, startPage: String) {
 }
 
 private
-fun BaseGradleBuildType.gradleRunnerStep(model: CIBuildModel, gradleTasks: String, os: Os = Os.linux, extraParameters: String = "", daemon: Boolean = true) {
+fun BaseGradleBuildType.gradleRunnerStep(model: CIBuildModel, gradleTasks: String, os: Os = Os.LINUX, extraParameters: String = "", daemon: Boolean = true) {
     val buildScanTags = model.buildScanTags + listOfNotNull(stage?.id)
 
     steps {
@@ -155,9 +147,10 @@ fun BaseGradleBuildType.killProcessStep(stepName: String, daemon: Boolean = true
     }
 }
 
-fun applyDefaults(model: CIBuildModel, buildType: BaseGradleBuildType, gradleTasks: String, notQuick: Boolean = false, os: Os = Os.linux, extraParameters: String = "", timeout: Int = 90, extraSteps: BuildSteps.() -> Unit = {}, daemon: Boolean = true) {
+fun applyDefaults(model: CIBuildModel, buildType: BaseGradleBuildType, gradleTasks: String, notQuick: Boolean = false, os: Os = Os.LINUX, extraParameters: String = "", timeout: Int = 90, extraSteps: BuildSteps.() -> Unit = {}, daemon: Boolean = true) {
     buildType.applyDefaultSettings(os, timeout)
 
+    buildType.killProcessStep("KILL_LEAKED_PROCESSES_FROM_PREVIOUS_BUILDS")
     buildType.gradleRunnerStep(model, gradleTasks, os, extraParameters, daemon)
 
     buildType.steps {
@@ -173,14 +166,14 @@ fun applyTestDefaults(
     buildType: BaseGradleBuildType,
     gradleTasks: String,
     notQuick: Boolean = false,
-    os: Os = Os.linux,
+    os: Os = Os.LINUX,
     extraParameters: String = "",
     timeout: Int = 90,
     extraSteps: BuildSteps.() -> Unit = {}, // the steps after runner steps
     daemon: Boolean = true,
     preSteps: BuildSteps.() -> Unit = {} // the steps before runner steps
 ) {
-    if (os == Os.macos) {
+    if (os == Os.MACOS) {
         buildType.params.param("env.REPO_MIRROR_URLS", "")
     }
 
@@ -190,7 +183,7 @@ fun applyTestDefaults(
         preSteps()
     }
 
-    if (os == Os.windows) {
+    if (os == Os.WINDOWS) {
         buildType.attachFileLeakDetector()
     }
 
@@ -198,7 +191,7 @@ fun applyTestDefaults(
 
     buildType.gradleRunnerStep(model, gradleTasks, os, extraParameters, daemon)
 
-    if (os == Os.windows) {
+    if (os == Os.WINDOWS) {
         buildType.dumpOpenFiles()
     }
     buildType.killProcessStep("KILL_PROCESSES_STARTED_BY_GRADLE")
@@ -213,7 +206,6 @@ fun applyTestDefaults(
 
 fun buildScanTag(tag: String) = """"-Dscan.tag.$tag""""
 fun buildScanCustomValue(key: String, value: String) = """"-Dscan.value.$key=$value""""
-
 fun applyDefaultDependencies(model: CIBuildModel, buildType: BuildType, notQuick: Boolean = false) {
     if (notQuick) {
         // wait for quick feedback phase to finish successfully
@@ -226,7 +218,6 @@ fun applyDefaultDependencies(model: CIBuildModel, buildType: BuildType, notQuick
             }
         }
     }
-
     if (buildType !is CompileAll) {
         buildType.dependencies {
             compileAllDependency(CompileAll.buildTypeId(model))

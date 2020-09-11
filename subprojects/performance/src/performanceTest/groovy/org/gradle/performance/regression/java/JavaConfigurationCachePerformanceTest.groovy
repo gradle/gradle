@@ -17,12 +17,13 @@
 package org.gradle.performance.regression.java
 
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheOption
-import org.gradle.performance.AbstractCrossVersionGradleInternalPerformanceTest
+import org.gradle.performance.AbstractCrossVersionPerformanceTest
 import org.gradle.performance.categories.PerformanceRegressionTest
-import org.gradle.performance.fixture.BuildExperimentInvocationInfo
-import org.gradle.performance.fixture.BuildExperimentListener
-import org.gradle.performance.fixture.BuildExperimentListenerAdapter
-import org.gradle.performance.measure.MeasuredOperation
+import org.gradle.performance.fixture.GradleBuildExperimentRunner
+import org.gradle.profiler.BuildContext
+import org.gradle.profiler.BuildMutator
+import org.gradle.profiler.InvocationSettings
+import org.gradle.profiler.instrument.PidInstrumentation
 import org.junit.experimental.categories.Category
 import spock.lang.Unroll
 
@@ -33,27 +34,46 @@ import static org.gradle.performance.generator.JavaTestProject.SMALL_JAVA_MULTI_
 import static org.junit.Assert.assertTrue
 
 @Category(PerformanceRegressionTest)
-class JavaConfigurationCachePerformanceTest extends AbstractCrossVersionGradleInternalPerformanceTest {
-
+class JavaConfigurationCachePerformanceTest extends AbstractCrossVersionPerformanceTest {
     private File stateDirectory
 
     def setup() {
         stateDirectory = temporaryFolder.file(".gradle/configuration-cache")
     }
 
+    // Disable pid instrumentation in case of configuration cache code daemon
+    // Otherwise it complains: Gradle daemon was reused but should not be reused because init script is not executed properly
+    // https://github.com/gradle/gradle-profiler/pull/238
+    private void disablePidInstrumentationOnCodeDaemon(String daemon) {
+        if (daemon == 'cold') {
+            (runner.experimentRunner as GradleBuildExperimentRunner).with {
+                it.pidInstrumentation = new PidInstrumentation() {
+                    @Override
+                    void calculateGradleArgs(List<String> gradleArgs) {
+                    }
+
+                    @Override
+                    String getPidForLastBuild() {
+                        return UUID.randomUUID().toString()
+                    }
+                }
+            }
+        }
+    }
+
     @Unroll
     def "assemble on #testProject #action configuration cache state with #daemon daemon"() {
-
         given:
-        runner.targetVersions = ["6.7-20200723220251+0000"]
+        runner.targetVersions = ["6.7-20200827220028+0000"]
         runner.minimumBaseVersion = "6.6"
         runner.testProject = testProject.projectName
         runner.tasksToRun = ["assemble"]
         runner.args = ["-D${ConfigurationCacheOption.PROPERTY_NAME}=true"]
 
         and:
+        disablePidInstrumentationOnCodeDaemon(daemon)
         runner.useDaemon = daemon == hot
-        runner.addBuildExperimentListener(listenerFor(action))
+        runner.addBuildMutator { configurationCacheInvocationListenerFor(it, action, stateDirectory) }
         runner.warmUpRuns = daemon == hot ? 20 : 1
         runner.runs = daemon == hot ? 60 : 25
 
@@ -75,36 +95,33 @@ class JavaConfigurationCachePerformanceTest extends AbstractCrossVersionGradleIn
 //        SMALL_JAVA_MULTI_PROJECT_NO_BUILD_SRC | cold   | storing
     }
 
-    private BuildExperimentListener listenerFor(String action) {
-        return configurationCacheInvocationListenerFor(action, stateDirectory)
-    }
-
     static String loading = "loading"
     static String storing = "storing"
     static String hot = "hot"
     static String cold = "cold"
 
-    static BuildExperimentListener configurationCacheInvocationListenerFor(String action, File stateDirectory) {
-        return new BuildExperimentListenerAdapter() {
-
+    static BuildMutator configurationCacheInvocationListenerFor(InvocationSettings invocationSettings, String action, File stateDirectory) {
+        return new BuildMutator() {
             @Override
-            void beforeInvocation(BuildExperimentInvocationInfo invocationInfo) {
+            void beforeBuild(BuildContext context) {
                 if (action == storing) {
                     stateDirectory.deleteDir()
                 }
             }
 
             @Override
-            void afterInvocation(BuildExperimentInvocationInfo invocationInfo, MeasuredOperation operation, BuildExperimentListener.MeasurementCallback measurementCallback) {
-                if (invocationInfo.iterationNumber > 1) {
+            void afterBuild(BuildContext context, Throwable error) {
+                if (context.iteration > 1) {
                     def tag = action == storing
                         ? "Calculating task graph as no configuration cache is available"
                         : "Reusing configuration cache"
-                    def found = Files.lines(invocationInfo.buildLog.toPath()).withCloseable { lines ->
+                    File buildLog = new File(invocationSettings.projectDir, "profile.log")
+
+                    def found = Files.lines(buildLog.toPath()).withCloseable { lines ->
                         lines.anyMatch { line -> line.contains(tag) }
                     }
                     if (!found) {
-                        assertTrue("Configuration cache log '$tag' not found in '$invocationInfo.buildLog'\n\n$invocationInfo.buildLog.text", found)
+                        assertTrue("Configuration cache log '$tag' not found in '$buildLog'\n\n$buildLog.text", found)
                     }
                 }
             }

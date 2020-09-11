@@ -26,7 +26,7 @@ import java.util.function.Function;
  * A source directory set builder which assumes that the sources are generated
  * by a task.
  *
- * @since 6.7
+ * @since 6.8
  */
 @Incubating
 public interface JvmLanguageGeneratedSourceDirectoryBuilder extends JvmLanguageSourceDirectoryBuilder {

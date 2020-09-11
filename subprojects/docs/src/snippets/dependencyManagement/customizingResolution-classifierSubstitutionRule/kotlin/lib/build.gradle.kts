@@ -1,5 +1,5 @@
 plugins {
-    `java-library`
+    id("myproject.java-library-conventions")
 }
 
 // tag::dependencies[]

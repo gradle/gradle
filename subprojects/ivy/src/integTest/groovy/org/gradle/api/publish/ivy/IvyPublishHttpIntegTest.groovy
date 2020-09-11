@@ -16,6 +16,7 @@
 
 package org.gradle.api.publish.ivy
 
+import org.eclipse.jetty.http.HttpStatus
 import org.gradle.api.artifacts.repositories.PasswordCredentials
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
@@ -29,7 +30,6 @@ import org.gradle.test.fixtures.server.http.IvyHttpRepository
 import org.gradle.util.GradleVersion
 import org.hamcrest.CoreMatchers
 import org.junit.Rule
-import org.mortbay.jetty.HttpStatus
 import spock.lang.Unroll
 
 import static org.gradle.test.matchers.UserAgentMatcher.matchesNameAndVersion
@@ -93,11 +93,11 @@ credentials {
             module.jar.sha256.expectPut()
             module.jar.sha512.expectPut()
         }
-        module.ivy.expectPut(HttpStatus.ORDINAL_201_Created)
-        module.ivy.sha1.expectPut(HttpStatus.ORDINAL_201_Created)
+        module.ivy.expectPut(HttpStatus.CREATED_201)
+        module.ivy.sha1.expectPut(HttpStatus.CREATED_201)
         if (extraChecksums) {
-            module.ivy.sha256.expectPut(HttpStatus.ORDINAL_201_Created)
-            module.ivy.sha512.expectPut(HttpStatus.ORDINAL_201_Created)
+            module.ivy.sha256.expectPut(HttpStatus.CREATED_201)
+            module.ivy.sha512.expectPut(HttpStatus.CREATED_201)
         }
         module.moduleMetadata.expectPut()
         module.moduleMetadata.sha1.expectPut()
@@ -490,10 +490,10 @@ credentials {
         module.jar.sha512.expectPut()
 
         module.ivy.expectPutBroken()
-        module.ivy.expectPut(HttpStatus.ORDINAL_201_Created)
-        module.ivy.sha1.expectPut(HttpStatus.ORDINAL_201_Created)
-        module.ivy.sha256.expectPut(HttpStatus.ORDINAL_201_Created)
-        module.ivy.sha512.expectPut(HttpStatus.ORDINAL_201_Created)
+        module.ivy.expectPut(HttpStatus.CREATED_201)
+        module.ivy.sha1.expectPut(HttpStatus.CREATED_201)
+        module.ivy.sha256.expectPut(HttpStatus.CREATED_201)
+        module.ivy.sha512.expectPut(HttpStatus.CREATED_201)
 
         module.moduleMetadata.expectPutBroken()
         module.moduleMetadata.expectPut()

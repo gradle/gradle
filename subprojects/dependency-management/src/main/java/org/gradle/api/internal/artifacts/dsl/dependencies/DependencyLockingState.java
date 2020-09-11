@@ -47,4 +47,6 @@ public interface DependencyLockingState {
      * @see #mustValidateLockState()
      */
     Set<ModuleComponentIdentifier> getLockedDependencies();
+
+    LockEntryFilter getIgnoredEntryFilter();
 }

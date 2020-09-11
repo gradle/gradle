@@ -40,52 +40,49 @@ class PerformanceTestBuildTypeTest {
     @Test
     fun `create correct PerformanceTest build type`() {
         val performanceTest = PerformanceTestCoordinator(buildModel, PerformanceTestType.test, Stage(StageNames.READY_FOR_MERGE,
-                specificBuilds = listOf(
-                        SpecificBuild.BuildDistributions,
-                        SpecificBuild.Gradleception,
-                        SpecificBuild.SmokeTestsMinJavaVersion),
-                functionalTests = listOf(
-                        TestCoverage(1, TestType.platform, Os.linux, JvmVersion.java8),
-                        TestCoverage(2, TestType.platform, Os.windows, JvmVersion.java11, vendor = JvmVendor.openjdk)),
-                performanceTests = listOf(PerformanceTestType.test),
-                omitsSlowProjects = true))
+            specificBuilds = listOf(
+                SpecificBuild.BuildDistributions,
+                SpecificBuild.Gradleception,
+                SpecificBuild.SmokeTestsMinJavaVersion),
+            functionalTests = listOf(
+                TestCoverage(1, TestType.platform, Os.LINUX, JvmVersion.java8),
+                TestCoverage(2, TestType.platform, Os.WINDOWS, JvmVersion.java11, vendor = JvmVendor.openjdk)),
+            performanceTests = listOf(PerformanceTestType.test),
+            omitsSlowProjects = true))
 
         assertEquals(listOf(
-                "GRADLE_RUNNER",
-                "CHECK_CLEAN_M2"
+            "GRADLE_RUNNER",
+            "CHECK_CLEAN_M2"
         ), performanceTest.steps.items.map(BuildStep::name))
 
         val expectedRunnerParams = listOf(
-                "--baselines",
-                "%performance.baselines%",
-                "",
-                "-x",
-                "prepareSamples",
-                "-Porg.gradle.performance.branchName=%teamcity.build.branch%",
-                "-Porg.gradle.performance.db.url=%performance.db.url%",
-                "-Porg.gradle.performance.db.username=%performance.db.username%",
-                "-Porg.gradle.performance.db.password=%performance.db.password.tcagent%",
-                "-PteamCityToken=%teamcity.user.bot-gradle.token%",
-                "-PtestJavaHome=%linux.java8.oracle.64bit%",
-                "-Dorg.gradle.workers.max=%maxParallelForks%",
-                "-PmaxParallelForks=%maxParallelForks%",
-                "-Dorg.gradle.unsafe.vfs.drop=true",
-                "-s",
-                "--daemon",
-                "",
-                "-Dorg.gradle.internal.tasks.createops",
-                "-Porg.gradle.performance.buildTypeId=Gradle_Check_IndividualPerformanceScenarioWorkersLinux",
-                "-Porg.gradle.performance.workerTestTaskName=fullPerformanceTest",
-                "-Porg.gradle.performance.coordinatorBuildId=%teamcity.build.id%",
-                "\"-Dscan.tag.PerformanceTest\"",
-                "\"-Dgradle.cache.remote.url=%gradle.cache.remote.url%\"",
-                "\"-Dgradle.cache.remote.username=%gradle.cache.remote.username%\"",
-                "\"-Dgradle.cache.remote.password=%gradle.cache.remote.password%\""
+            "--baselines",
+            "%performance.baselines%",
+            "",
+            "\"-PtestJavaHome=%linux.java8.oracle.64bit%\"",
+            "\"-Porg.gradle.performance.branchName=%teamcity.build.branch%\"",
+            "\"-Porg.gradle.performance.db.url=%performance.db.url%\"",
+            "\"-Porg.gradle.performance.db.username=%performance.db.username%\"",
+            "\"-Porg.gradle.performance.db.password=%performance.db.password.tcagent%\"",
+            "\"-PteamCityToken=%teamcity.user.bot-gradle.token%\"",
+            "-Dorg.gradle.workers.max=%maxParallelForks%",
+            "-PmaxParallelForks=%maxParallelForks%",
+            "-s",
+            "--daemon",
+            "",
+            "-Dorg.gradle.internal.tasks.createops",
+            "-Porg.gradle.performance.buildTypeId=Gradle_Check_IndividualPerformanceScenarioWorkersLinux",
+            "-Porg.gradle.performance.workerTestTaskName=fullPerformanceTest",
+            "-Porg.gradle.performance.coordinatorBuildId=%teamcity.build.id%",
+            "\"-Dscan.tag.PerformanceTest\"",
+            "\"-Dgradle.cache.remote.url=%gradle.cache.remote.url%\"",
+            "\"-Dgradle.cache.remote.username=%gradle.cache.remote.username%\"",
+            "\"-Dgradle.cache.remote.password=%gradle.cache.remote.password%\""
         )
 
         assertEquals(
-                (listOf("clean", ":performance:distributedPerformanceTest") + expectedRunnerParams).joinToString(" "),
-                performanceTest.getGradleStep("GRADLE_RUNNER").gradleParams!!.trim()
+            (listOf("clean", ":performance:distributedPerformanceTest") + expectedRunnerParams).joinToString(" "),
+            performanceTest.getGradleStep("GRADLE_RUNNER").gradleParams!!.trim()
         )
         assertEquals(BuildStep.ExecutionMode.DEFAULT, performanceTest.getGradleStep("GRADLE_RUNNER").executionMode)
     }

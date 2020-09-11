@@ -20,6 +20,7 @@ import org.gradle.api.execution.TaskExecutionListener;
 import org.gradle.api.internal.BuildScopeListenerRegistrationListener;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
@@ -74,7 +75,7 @@ import org.gradle.execution.plan.WorkNodeExecutor;
 import org.gradle.execution.taskgraph.DefaultTaskExecutionGraph;
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
 import org.gradle.execution.taskgraph.TaskListenerInternal;
-import org.gradle.initialization.BuildOperatingFiringTaskExecutionPreparer;
+import org.gradle.initialization.BuildOperationFiringTaskExecutionPreparer;
 import org.gradle.initialization.DefaultTaskExecutionPreparer;
 import org.gradle.initialization.TaskExecutionPreparer;
 import org.gradle.internal.Factory;
@@ -156,12 +157,18 @@ public class GradleScopeServices extends DefaultServiceRegistry {
         if (gradle.isRootBuild()) {
             return sharedControllers;
         } else {
+            // TODO: buildSrc shouldn't be special here, but since buildSrc is built separately from other included builds and the root build
+            // We need to treat buildSrc as if it's a root build so that it can depend on included builds that may substitute dependencies
+            // into buildSrc
+            if (gradle.getOwner().getBuildIdentifier().getName().equals(SettingsInternal.BUILD_SRC)) {
+                return new IncludedBuildControllers.BuildSrcIncludedBuildControllers(sharedControllers);
+            }
             return IncludedBuildControllers.EMPTY;
         }
     }
 
     TaskExecutionPreparer createTaskExecutionPreparer(BuildConfigurationActionExecuter buildConfigurationActionExecuter, IncludedBuildControllers includedBuildControllers, BuildOperationExecutor buildOperationExecutor) {
-        return new BuildOperatingFiringTaskExecutionPreparer(
+        return new BuildOperationFiringTaskExecutionPreparer(
             new DefaultTaskExecutionPreparer(buildConfigurationActionExecuter, includedBuildControllers, buildOperationExecutor),
             buildOperationExecutor);
     }

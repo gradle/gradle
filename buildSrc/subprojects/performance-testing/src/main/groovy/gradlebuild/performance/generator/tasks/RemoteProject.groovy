@@ -68,17 +68,20 @@ abstract class RemoteProject extends DefaultTask {
         moveToOutputDir(checkoutDir, outputDirectory, subdirectory.getOrNull())
     }
 
-    private static File cleanTemporaryDir(Task task) {
-        File tmpDir = task.getTemporaryDir()
+    private static File cleanTemporaryDir(Task task, File tmpDir) {
         if (tmpDir.exists()) {
             task.project.delete(tmpDir)
         }
         return tmpDir
     }
 
-    @TypeChecked(TypeCheckingMode.SKIP)
     static File checkout(Task task, String remoteUri, String ref) {
-        File checkoutDir = cleanTemporaryDir(task)
+        checkout(task, remoteUri, ref, task.getTemporaryDir())
+    }
+
+    @TypeChecked(TypeCheckingMode.SKIP)
+    static File checkout(Task task, String remoteUri, String ref, File checkoutDir) {
+        cleanTemporaryDir(task, checkoutDir)
         task.project.exec {
             commandLine = ["git", "clone", "--no-checkout", remoteUri, checkoutDir.absolutePath]
             errorOutput = System.out

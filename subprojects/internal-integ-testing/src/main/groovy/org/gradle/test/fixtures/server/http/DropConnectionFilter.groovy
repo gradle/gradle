@@ -17,8 +17,8 @@
 package org.gradle.test.fixtures.server.http
 
 import com.google.common.io.ByteStreams
-import org.mortbay.util.IO
-import org.mortbay.util.URIUtil
+import org.eclipse.jetty.util.IO
+import org.eclipse.jetty.util.URIUtil
 
 import javax.servlet.Filter
 import javax.servlet.FilterChain
@@ -84,12 +84,13 @@ class DropConnectionFilter implements Filter {
             def stream = request.getInputStream()
             IO.copy(ByteStreams.limit(stream, dropConnectionForPutBytes), out)
             stream.close()
-
-            // Drop the current connection (by dropping all), but accept subsequent connections.
-            buildCache.stop()
-            buildCache.dropConnectionForPutAfterBytes(-1)
-            buildCache.start()
         }
+
+        // Drop the current connection (by dropping all), but accept subsequent connections.
+        buildCache.stop()
+        buildCache.dropConnectionForPutAfterBytes(-1)
+        buildCache.start()
+
     }
 
     @Override

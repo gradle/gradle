@@ -41,7 +41,6 @@ abstract class CountLoc : TransformAction<TransformParameters.None> {
 // end::artifact-transform-countloc[]
 
 val usage = Attribute.of("usage", String::class.java)
-// tag::artifact-transform-registration[]
 val artifactType = Attribute.of("artifactType", String::class.java)
 
 dependencies {
@@ -50,16 +49,12 @@ dependencies {
         to.attribute(artifactType, "loc")
     }
 }
-// end::artifact-transform-registration[]
 
-
-allprojects {
-    dependencies {
-        attributesSchema {
-            attribute(usage)
-        }
+dependencies {
+    attributesSchema {
+        attribute(usage)
     }
-    configurations.create("compile") {
-        attributes.attribute(usage, "api")
-    }
+}
+configurations.create("compile") {
+    attributes.attribute(usage, "api")
 }

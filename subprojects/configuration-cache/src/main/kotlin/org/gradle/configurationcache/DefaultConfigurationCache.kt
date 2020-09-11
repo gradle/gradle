@@ -333,7 +333,6 @@ class DefaultConfigurationCache internal constructor(
             fileResolver = service(),
             instantiator = service(),
             listenerManager = service(),
-            projectStateRegistry = service(),
             taskNodeFactory = service(),
             fingerprinterRegistry = service(),
             buildOperationExecutor = service(),
@@ -350,7 +349,6 @@ class DefaultConfigurationCache internal constructor(
             valueSourceProviderFactory = service(),
             patternSetFactory = factory(),
             fileOperations = service(),
-            fileSystem = service(),
             fileFactory = service()
         )
 

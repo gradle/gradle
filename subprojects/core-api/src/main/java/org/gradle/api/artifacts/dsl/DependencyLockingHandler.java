@@ -18,6 +18,7 @@ package org.gradle.api.artifacts.dsl;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.file.RegularFileProperty;
+import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
 
 /**
@@ -68,5 +69,19 @@ public interface DependencyLockingHandler {
      */
     @Incubating
     RegularFileProperty getLockFile();
+
+    /**
+     * Allows to configure dependencies that will be ignored in the lock state.
+     * <p>
+     * The format of the entry is {@code <group>:<artifact>} where both can end with a {@code *} as a wildcard character.
+     * The value {@code *:*} is not considered a valid value as it is equivalent to disabling locking.
+     * <p>
+     * These dependencies will not be written to the lock state and any references to them in lock state will be ignored at runtime.
+     * It is thus not possible to set this property but still lock a matching entry by manually adding it to the lock state.
+     *
+     * @since 6.7
+     */
+    @Incubating
+    ListProperty<String> getIgnoredDependencies();
 
 }

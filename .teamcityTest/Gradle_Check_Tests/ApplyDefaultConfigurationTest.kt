@@ -63,6 +63,7 @@ class ApplyDefaultConfigurationTest {
         applyDefaults(buildModel, buildType, "myTask")
 
         assertEquals(listOf(
+            "KILL_LEAKED_PROCESSES_FROM_PREVIOUS_BUILDS",
             "GRADLE_RUNNER",
             "CHECK_CLEAN_M2"
         ), steps.items.map(BuildStep::name))
@@ -96,7 +97,7 @@ class ApplyDefaultConfigurationTest {
         "''     , false, '--no-daemon'"
     ])
     fun `can apply defaults to windows test configurations`(extraParameters: String, daemon: Boolean, expectedDaemonParam: String) {
-        applyTestDefaults(buildModel, buildType, "myTask", os = Os.windows, extraParameters = extraParameters, daemon = daemon)
+        applyTestDefaults(buildModel, buildType, "myTask", os = Os.WINDOWS, extraParameters = extraParameters, daemon = daemon)
 
         assertEquals(listOf(
             "ATTACH_FILE_LEAK_DETECTOR",
@@ -123,5 +124,5 @@ class ApplyDefaultConfigurationTest {
 
     private
     fun expectedRunnerParam(daemon: String = "--daemon", extraParameters: String = "") =
-        "-Dorg.gradle.workers.max=%maxParallelForks% -PmaxParallelForks=%maxParallelForks% -Dorg.gradle.unsafe.vfs.drop=true -s $daemon --continue -Dorg.gradle.internal.tasks.createops $extraParameters -PteamCityToken=%teamcity.user.bot-gradle.token% -PteamCityBuildId=%teamcity.build.id% \"-Dscan.tag.Check\" \"-Dscan.tag.\""
+        "-Dorg.gradle.workers.max=%maxParallelForks% -PmaxParallelForks=%maxParallelForks% -s $daemon --continue -Dorg.gradle.internal.tasks.createops $extraParameters -PteamCityToken=%teamcity.user.bot-gradle.token% -PteamCityBuildId=%teamcity.build.id% \"-Dscan.tag.Check\" \"-Dscan.tag.\""
 }

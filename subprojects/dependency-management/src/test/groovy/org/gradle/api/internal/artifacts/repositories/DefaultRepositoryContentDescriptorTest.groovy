@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.repositories
 
+import org.gradle.api.internal.FeaturePreviews
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import spock.lang.Specification
@@ -25,7 +26,7 @@ import spock.lang.Unroll
 class DefaultRepositoryContentDescriptorTest extends Specification {
 
     @Subject
-    DefaultRepositoryContentDescriptor descriptor = new DefaultMavenRepositoryContentDescriptor({ throw new RuntimeException("only required in error cases") })
+    DefaultRepositoryContentDescriptor descriptor = new DefaultMavenRepositoryContentDescriptor({ throw new RuntimeException("only required in error cases") }, new FeaturePreviews())
 
     @Unroll
     def "reasonable error message when input is incorrect (include string)"() {
@@ -211,7 +212,7 @@ class DefaultRepositoryContentDescriptorTest extends Specification {
     def "can exclude or include whole groups using #method(#expr)"() {
         def fooMod = DefaultModuleIdentifier.newId(group, module)
         def details = Mock(ArtifactResolutionDetails)
-        def descriptor = new DefaultRepositoryContentDescriptor()
+        def descriptor = new DefaultRepositoryContentDescriptor({ "my-repo"}, new FeaturePreviews())
 
         given:
         descriptor."exclude$method"(expr)
@@ -231,7 +232,7 @@ class DefaultRepositoryContentDescriptorTest extends Specification {
 
 
         when:
-        descriptor = new DefaultRepositoryContentDescriptor()
+        descriptor = new DefaultRepositoryContentDescriptor({ "my-repo"}, new FeaturePreviews())
         descriptor."include$method"(expr)
         action = descriptor.toContentFilter()
         details.moduleId >> fooMod
@@ -260,7 +261,7 @@ class DefaultRepositoryContentDescriptorTest extends Specification {
     def "can exclude or include whole modules using #method(#expr)"() {
         def fooMod = DefaultModuleIdentifier.newId(group, module)
         def details = Mock(ArtifactResolutionDetails)
-        def descriptor = new DefaultRepositoryContentDescriptor()
+        def descriptor = new DefaultRepositoryContentDescriptor({ "my-repo"}, new FeaturePreviews())
 
         given:
         descriptor."exclude$method"(group, expr)
@@ -280,7 +281,7 @@ class DefaultRepositoryContentDescriptorTest extends Specification {
 
 
         when:
-        descriptor = new DefaultRepositoryContentDescriptor()
+        descriptor = new DefaultRepositoryContentDescriptor({ "my-repo"}, new FeaturePreviews())
         descriptor."include$method"(group, expr)
         action = descriptor.toContentFilter()
         details.moduleId >> fooMod
@@ -309,7 +310,7 @@ class DefaultRepositoryContentDescriptorTest extends Specification {
     def "can exclude or include specific versions using #method(#expr)"() {
         def fooMod = DefaultModuleIdentifier.newId(group, module)
         def details = Mock(ArtifactResolutionDetails)
-        def descriptor = new DefaultRepositoryContentDescriptor()
+        def descriptor = new DefaultRepositoryContentDescriptor({ "my-repo"}, new FeaturePreviews())
 
         given:
         descriptor."exclude$method"(group, module, expr)
@@ -329,7 +330,7 @@ class DefaultRepositoryContentDescriptorTest extends Specification {
 
 
         when:
-        descriptor = new DefaultRepositoryContentDescriptor()
+        descriptor = new DefaultRepositoryContentDescriptor({ "my-repo"}, new FeaturePreviews())
         descriptor."include$method"(group, module, expr)
         action = descriptor.toContentFilter()
         details.moduleId >> fooMod
@@ -344,18 +345,27 @@ class DefaultRepositoryContentDescriptorTest extends Specification {
         }
 
         where:
-        method           | expr    | group | module | version | excluded
-        'Version'        | '1.0'   | 'org' | 'foo'  | '1.0'   | true
-        'Version'        | '1.1'   | 'org' | 'bar'  | '1.0'   | false
-        'VersionByRegex' | '1\\.0' | 'org' | 'foo'  | '1.0'   | true
-        'VersionByRegex' | '1\\.1' | 'org' | 'bar'  | '1.0'   | false
-        'VersionByRegex' | '2.+'   | 'org' | 'foo'  | '1.0'   | false
-        'VersionByRegex' | '1.+'   | 'org' | 'foo'  | '1.0'   | true
+        method           | expr        | group | module | version | excluded
+        'Version'        | '1.0'       | 'org' | 'foo'  | '1.0'   | true
+        'Version'        | '1.1'       | 'org' | 'bar'  | '1.0'   | false
+        'Version'        | '[1.0,)'    | 'org' | 'bar'  | '1.1'   | true
+        'Version'        | '[1.1,)'    | 'org' | 'bar'  | '1.1'   | true
+        'Version'        | '[1.0,1.2]' | 'org' | 'bar'  | '1.1'   | true
+        'Version'        | '[1.0,1.1]' | 'org' | 'bar'  | '1.1'   | true
+        'Version'        | '[1.0,1.2)' | 'org' | 'bar'  | '1.1'   | true
+        'Version'        | '[1.0,1.2]' | 'org' | 'bar'  | '1.3'   | false
+        'Version'        | '(,1.2]'    | 'org' | 'bar'  | '1.1'   | true
+        'Version'        | '(,1.1]'    | 'org' | 'bar'  | '1.1'   | true
+        'Version'        | '(,1.0]'    | 'org' | 'bar'  | '1.1'   | false
+        'VersionByRegex' | '1\\.0'     | 'org' | 'foo'  | '1.0'   | true
+        'VersionByRegex' | '1\\.1'     | 'org' | 'bar'  | '1.0'   | false
+        'VersionByRegex' | '2.+'       | 'org' | 'foo'  | '1.0'   | false
+        'VersionByRegex' | '1.+'       | 'org' | 'foo'  | '1.0'   | true
     }
 
     def "cannot update repository content filter after resolution happens"() {
         given:
-        def descriptor = new DefaultRepositoryContentDescriptor({ "repoName" })
+        def descriptor = new DefaultRepositoryContentDescriptor({ "repoName" }, new FeaturePreviews())
         descriptor.toContentFilter()
 
         when:

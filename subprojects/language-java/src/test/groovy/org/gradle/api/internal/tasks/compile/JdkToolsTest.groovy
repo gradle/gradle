@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.tasks.compile
 
-import org.gradle.internal.jvm.JavaInfo
+import org.gradle.api.JavaVersion
 import org.gradle.internal.jvm.Jvm
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -40,11 +40,11 @@ class JdkToolsTest extends Specification {
         compiler.class == current.systemJavaCompiler.class
     }
 
-    @Requires(TestPrecondition.JDK8_OR_EARLIER)
     def "throws when no tools"() {
         when:
-        new JdkTools(Mock(JavaInfo) {
+        new JdkTools(Mock(Jvm) {
             getToolsJar() >> null
+            getJavaVersion() >> JavaVersion.VERSION_1_8
             getJavaHome() >> new File('.')
         }, [])
 
@@ -58,7 +58,7 @@ class JdkToolsTest extends Specification {
         if (defaultCompilerClassAlreadyInjectedIntoExtensionClassLoader()) {
             throw new IllegalStateException()
         }
-        new JdkTools(Mock(JavaInfo) {
+        new JdkTools(Mock(Jvm) {
             getToolsJar() >> new File("/nothing")
         }, []).systemJavaCompiler
 

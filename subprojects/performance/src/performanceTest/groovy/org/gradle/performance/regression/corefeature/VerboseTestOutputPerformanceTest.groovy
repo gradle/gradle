@@ -16,10 +16,10 @@
 
 package org.gradle.performance.regression.corefeature
 
-import org.gradle.performance.AbstractCrossVersionGradleProfilerPerformanceTest
+import org.gradle.performance.AbstractCrossVersionPerformanceTest
 import spock.lang.Unroll
 
-class VerboseTestOutputPerformanceTest extends AbstractCrossVersionGradleProfilerPerformanceTest {
+class VerboseTestOutputPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
     @Unroll
     def "cleanTest test on #testProject with verbose test output"() {
@@ -28,7 +28,7 @@ class VerboseTestOutputPerformanceTest extends AbstractCrossVersionGradleProfile
         runner.tasksToRun = ['cleanTest', 'test']
         runner.args = ['-q']
         runner.gradleOpts = ["-Xms256m", "-Xmx256m"]
-        runner.targetVersions = ["6.7-20200723220251+0000"]
+        runner.targetVersions = ["6.7-20200824220048+0000"]
 
         when:
         def result = runner.run()

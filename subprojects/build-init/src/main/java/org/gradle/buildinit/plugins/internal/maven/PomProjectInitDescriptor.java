@@ -17,6 +17,7 @@ package org.gradle.buildinit.plugins.internal.maven;
 
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.settings.Settings;
+import org.gradle.api.file.Directory;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.artifacts.mvnsettings.MavenSettingsProvider;
 import org.gradle.buildinit.plugins.internal.BuildConverter;
@@ -26,7 +27,7 @@ import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
 import org.gradle.buildinit.plugins.internal.modifiers.ComponentType;
 import org.gradle.buildinit.plugins.internal.modifiers.Language;
-import org.gradle.internal.file.PathToFileResolver;
+import org.gradle.buildinit.plugins.internal.modifiers.ModularizationOption;
 import org.gradle.util.IncubationLogger;
 
 import java.io.File;
@@ -40,10 +41,8 @@ public class PomProjectInitDescriptor implements BuildConverter {
     private final MavenSettingsProvider settingsProvider;
     private final BuildScriptBuilderFactory scriptBuilderFactory;
     private final DocumentationRegistry documentationRegistry;
-    private final PathToFileResolver fileResolver;
 
-    public PomProjectInitDescriptor(PathToFileResolver fileResolver, MavenSettingsProvider mavenSettingsProvider, BuildScriptBuilderFactory scriptBuilderFactory, DocumentationRegistry documentationRegistry) {
-        this.fileResolver = fileResolver;
+    public PomProjectInitDescriptor(MavenSettingsProvider mavenSettingsProvider, BuildScriptBuilderFactory scriptBuilderFactory, DocumentationRegistry documentationRegistry) {
         this.settingsProvider = mavenSettingsProvider;
         this.scriptBuilderFactory = scriptBuilderFactory;
         this.documentationRegistry = documentationRegistry;
@@ -65,6 +64,11 @@ public class PomProjectInitDescriptor implements BuildConverter {
     }
 
     @Override
+    public Set<ModularizationOption> getModularizationOptions() {
+        return Collections.singleton(ModularizationOption.SINGLE_PROJECT);
+    }
+
+    @Override
     public String getSourceBuildDescription() {
         return "Maven";
     }
@@ -72,11 +76,11 @@ public class PomProjectInitDescriptor implements BuildConverter {
     @Override
     public void generate(InitSettings initSettings) {
         IncubationLogger.incubatingFeatureUsed("Maven to Gradle conversion");
-        File pom = fileResolver.resolve("pom.xml");
+        File pom = initSettings.getTarget().file("pom.xml").getAsFile();
         try {
             Settings settings = settingsProvider.buildSettings();
             Set<MavenProject> mavenProjects = new MavenProjectsCreator().create(settings, pom);
-            new Maven2Gradle(mavenProjects, fileResolver.resolve("."), initSettings.getDsl(), scriptBuilderFactory).convert();
+            new Maven2Gradle(mavenProjects, initSettings.getTarget(), initSettings.getDsl(), scriptBuilderFactory).convert();
         } catch (Exception exception) {
             throw new MavenConversionException(String.format("Could not convert Maven POM %s to a Gradle build.", pom), exception);
         }
@@ -88,8 +92,8 @@ public class PomProjectInitDescriptor implements BuildConverter {
     }
 
     @Override
-    public boolean canApplyToCurrentDirectory() {
-        return fileResolver.resolve("pom.xml").isFile();
+    public boolean canApplyToCurrentDirectory(Directory current) {
+        return current.file("pom.xml").getAsFile().isFile();
     }
 
     @Override
@@ -118,7 +122,7 @@ public class PomProjectInitDescriptor implements BuildConverter {
     }
 
     @Override
-    public Optional<String> getFurtherReading() {
+    public Optional<String> getFurtherReading(InitSettings settings) {
         return Optional.of(documentationRegistry.getDocumentationFor("migrating_from_maven"));
     }
 }

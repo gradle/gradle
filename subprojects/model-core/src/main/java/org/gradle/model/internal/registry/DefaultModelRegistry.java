@@ -301,7 +301,7 @@ public class DefaultModelRegistry implements ModelRegistryInternal {
             }
         }
         if (!Iterables.isEmpty(node.getDependents())) {
-            throw new IllegalStateException(String.format("Tried to remove model '%s' but it is depended on by: '%s'",  node.getPath(), Joiner.on(", ").join(node.getDependents())));
+            throw new IllegalStateException(String.format("Tried to remove model '%s' but it is depended on by: '%s'", node.getPath(), Joiner.on(", ").join(node.getDependents())));
         }
         nodesToRemove.add(node);
     }

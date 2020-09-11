@@ -24,6 +24,8 @@ import org.gradle.internal.invocation.BuildController
 import org.gradle.internal.operations.BuildOperationRunner
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem
+import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem.VfsLogging
+import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem.WatchLogging
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -45,25 +47,33 @@ class FileSystemWatchingBuildActionRunnerTest extends Specification {
     def delegate = Mock(BuildActionRunner)
     def buildAction = Mock(BuildAction)
 
-    def "watching virtual file system is informed about watching the file system being #watchFsEnabledString"() {
+    def "watching virtual file system is informed about watching the file system being #watchFsEnabledString (VFS logging: #vfsLogging, watch logging: #watchLogging)"() {
         _ * startParameter.getSystemPropertiesArgs() >> [:]
         _ * startParameter.isWatchFileSystem() >> watchFsEnabled
+        _ * startParameter.isWatchFileSystemDebugLogging() >> (watchLogging == WatchLogging.DEBUG)
+        _ * startParameter.isVfsVerboseLogging() >> (vfsLogging == VfsLogging.VERBOSE)
 
         def runner = new FileSystemWatchingBuildActionRunner(delegate)
 
         when:
         runner.run(buildAction, buildController)
         then:
-        1 * watchingHandler.afterBuildStarted(watchFsEnabled, buildOperationRunner)
+        1 * watchingHandler.afterBuildStarted(watchFsEnabled, vfsLogging, watchLogging, buildOperationRunner)
 
         then:
         1 * delegate.run(buildAction, buildController)
 
         then:
-        1 * watchingHandler.beforeBuildFinished(watchFsEnabled, buildOperationRunner, _)
+        1 * watchingHandler.beforeBuildFinished(watchFsEnabled, vfsLogging, watchLogging, buildOperationRunner, _)
 
         where:
-        watchFsEnabled << [true, false]
+        watchFsEnabled | vfsLogging         | watchLogging
+        true           | VfsLogging.VERBOSE | WatchLogging.NORMAL
+        true           | VfsLogging.NORMAL  | WatchLogging.NORMAL
+        true           | VfsLogging.VERBOSE | WatchLogging.DEBUG
+        true           | VfsLogging.NORMAL  | WatchLogging.DEBUG
+        false          | VfsLogging.NORMAL  | WatchLogging.NORMAL
+        false          | VfsLogging.NORMAL  | WatchLogging.DEBUG
         watchFsEnabledString = watchFsEnabled ? "enabled" : "disabled"
     }
 }

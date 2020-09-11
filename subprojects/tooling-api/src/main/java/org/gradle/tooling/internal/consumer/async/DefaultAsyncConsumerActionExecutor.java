@@ -56,15 +56,23 @@ public class DefaultAsyncConsumerActionExecutor implements AsyncConsumerActionEx
 
     @Override
     public <T> void run(final ConsumerAction<? extends T> action, final ResultHandlerVersion1<? super T> handler) {
-        lifecycle.use(() -> executor.execute(() -> {
-            T result;
-            try {
-                result = actionExecutor.run(action);
-            } catch (Throwable t) {
-                handler.onFailure(t);
-                return;
+        lifecycle.use(new Runnable() {
+            @Override
+            public void run() {
+                executor.execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        T result;
+                        try {
+                            result = actionExecutor.run(action);
+                        } catch (Throwable t) {
+                            handler.onFailure(t);
+                            return;
+                        }
+                        handler.onComplete(result);
+                    }
+                });
             }
-            handler.onComplete(result);
-        }));
+        });
     }
 }

@@ -22,7 +22,7 @@ import java.io.File
 
 
 private
-data class UniquePropertyProblem(val property: String, val message: StructuredMessage, val documentationSection: String?)
+data class UniquePropertyProblem(val userCodeLocation: String, val message: StructuredMessage, val documentationSection: String?)
 
 
 private
@@ -38,7 +38,7 @@ fun buildConsoleSummary(cacheAction: String, problems: List<PropertyProblem>, re
         appendln(buildSummaryHeader(cacheAction, problems.size, uniquePropertyProblems))
         uniquePropertyProblems.take(maxConsoleProblems).forEach { problem ->
             append("- ")
-            append(problem.property)
+            append(problem.userCodeLocation.capitalize())
             append(": ")
             appendln(problem.message)
             if (problem.documentationSection != null) {
@@ -56,9 +56,7 @@ fun buildConsoleSummary(cacheAction: String, problems: List<PropertyProblem>, re
 
 private
 fun uniquePropertyProblems(problems: List<PropertyProblem>): Set<UniquePropertyProblem> =
-    problems.sortedBy { it.trace.sequence.toList().reversed().joinToString(".") }
-        .groupBy { UniquePropertyProblem(propertyDescriptionFor(it.trace), it.message, it.documentationSection?.anchor) }
-        .keys
+    problems.map { UniquePropertyProblem(it.trace.containingUserCode, it.message, it.documentationSection?.anchor) }.sortedBy { it.userCodeLocation }.toSet()
 
 
 private

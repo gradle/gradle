@@ -36,7 +36,7 @@ class RootLocalComponentMetadataTest extends DefaultLocalComponentMetadataTest {
     def 'locking constraints are attached to a configuration and not its children'() {
         given:
         def constraint = DefaultModuleComponentIdentifier.newId(mid, '1.1')
-        dependencyLockingHandler.loadLockState("conf") >> new DefaultDependencyLockingState(true, [constraint] as Set)
+        dependencyLockingHandler.loadLockState("conf") >> new DefaultDependencyLockingState(true, [constraint] as Set, {entry -> false })
         dependencyLockingHandler.loadLockState("child") >> DefaultDependencyLockingState.EMPTY_LOCK_CONSTRAINT
         addConfiguration('conf').enableLocking()
         addConfiguration('child', ['conf']).enableLocking()
@@ -53,7 +53,7 @@ class RootLocalComponentMetadataTest extends DefaultLocalComponentMetadataTest {
     def 'locking constraints are not transitive'() {
         given:
         def constraint = DefaultModuleComponentIdentifier.newId(mid, '1.1')
-        dependencyLockingHandler.loadLockState("conf") >> new DefaultDependencyLockingState(true, [constraint] as Set)
+        dependencyLockingHandler.loadLockState("conf") >> new DefaultDependencyLockingState(true, [constraint] as Set, {entry -> false })
         addConfiguration('conf').enableLocking()
 
         when:
@@ -70,7 +70,7 @@ class RootLocalComponentMetadataTest extends DefaultLocalComponentMetadataTest {
     def 'provides useful reason for locking constraints (#strict)'() {
         given:
         def constraint = DefaultModuleComponentIdentifier.newId(mid, '1.1')
-        dependencyLockingHandler.loadLockState("conf") >> new DefaultDependencyLockingState(strict, [constraint] as Set)
+        dependencyLockingHandler.loadLockState("conf") >> new DefaultDependencyLockingState(strict, [constraint] as Set, {entry -> false })
         addConfiguration('conf').enableLocking()
 
         when:

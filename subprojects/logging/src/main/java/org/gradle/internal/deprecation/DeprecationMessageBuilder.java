@@ -285,6 +285,41 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
         }
     }
 
+    public static class DeprecateSystemProperty extends WithReplacement<String, DeprecateSystemProperty> {
+        private final String systemProperty;
+
+        DeprecateSystemProperty(String systemProperty) {
+            super(systemProperty);
+            this.systemProperty = systemProperty;
+            // This never happens in user code
+            setIndirectUsage();
+        }
+
+        /**
+         * Output: This is scheduled to be removed in Gradle 7.
+         */
+        @Override
+        public WithDeprecationTimeline willBeRemovedInGradle7() {
+            setDeprecationTimeline(DeprecationTimeline.willBeRemovedInVersion(GRADLE7));
+            return new WithDeprecationTimeline(this);
+        }
+
+        @Override
+        String formatSubject() {
+            return systemProperty;
+        }
+
+        @Override
+        String formatSummary(String property) {
+            return String.format("The %s system property has been deprecated.", property);
+        }
+
+        @Override
+        String formatAdvice(String replacement) {
+            return String.format("Please use the %s system property instead.", replacement);
+        }
+    }
+
     @CheckReturnValue
     public static class ConfigurationDeprecationTypeSelector {
         private final String configuration;

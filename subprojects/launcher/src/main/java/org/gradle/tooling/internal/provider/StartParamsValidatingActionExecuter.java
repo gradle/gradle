@@ -19,7 +19,6 @@ package org.gradle.tooling.internal.provider;
 import org.gradle.StartParameter;
 import org.gradle.initialization.BuildRequestContext;
 import org.gradle.internal.invocation.BuildAction;
-import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.launcher.exec.BuildActionExecuter;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.BuildActionResult;
@@ -29,15 +28,15 @@ import java.io.File;
 /**
  * Validates certain aspects of the start parameters, prior to starting a session using the parameters.
  */
-public class StartParamsValidatingActionExecuter implements BuildActionExecuter<BuildActionParameters> {
-    private final BuildActionExecuter<BuildActionParameters> delegate;
+public class StartParamsValidatingActionExecuter implements BuildActionExecuter<BuildActionParameters, BuildRequestContext> {
+    private final BuildActionExecuter<BuildActionParameters, BuildRequestContext> delegate;
 
-    public StartParamsValidatingActionExecuter(BuildActionExecuter<BuildActionParameters> delegate) {
+    public StartParamsValidatingActionExecuter(BuildActionExecuter<BuildActionParameters, BuildRequestContext> delegate) {
         this.delegate = delegate;
     }
 
     @Override
-    public BuildActionResult execute(BuildAction action, BuildRequestContext requestContext, BuildActionParameters actionParameters, ServiceRegistry contextServices) {
+    public BuildActionResult execute(BuildAction action, BuildActionParameters actionParameters, BuildRequestContext requestContext) {
         StartParameter startParameter = action.getStartParameter();
         if (startParameter.getBuildFile() != null) {
             validateIsFileAndExists(startParameter.getBuildFile(), "build file");
@@ -57,7 +56,7 @@ public class StartParamsValidatingActionExecuter implements BuildActionExecuter<
             validateIsFileAndExists(initScript, "initialization script");
         }
 
-        return delegate.execute(action, requestContext, actionParameters, contextServices);
+        return delegate.execute(action, actionParameters, requestContext);
     }
 
     private static void validateIsFileAndExists(File file, String fileType) {

@@ -23,9 +23,9 @@ import com.google.common.collect.MultimapBuilder;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
+import org.gradle.api.file.Directory;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
 import org.gradle.internal.Cast;
-import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.util.GFileUtils;
 
 import javax.annotation.Nullable;
@@ -46,16 +46,24 @@ import java.util.Map;
 public class BuildScriptBuilder {
 
     private final BuildInitDsl dsl;
-    private final PathToFileResolver fileResolver;
     private final String fileNameWithoutExtension;
+    private boolean externalComments;
 
     private final List<String> headerLines = new ArrayList<>();
     private final TopLevelBlock block = new TopLevelBlock();
 
-    public BuildScriptBuilder(BuildInitDsl dsl, PathToFileResolver fileResolver, String fileNameWithoutExtension) {
+    public BuildScriptBuilder(BuildInitDsl dsl, String fileNameWithoutExtension) {
         this.dsl = dsl;
-        this.fileResolver = fileResolver;
         this.fileNameWithoutExtension = fileNameWithoutExtension;
+    }
+
+    public BuildScriptBuilder withExternalComments() {
+        this.externalComments = true;
+        return this;
+    }
+
+    public String getFileNameWithoutExtension() {
+        return fileNameWithoutExtension;
     }
 
     /**
@@ -85,6 +93,7 @@ public class BuildScriptBuilder {
      */
     public BuildScriptBuilder conventionPluginSupport(@Nullable String comment) {
         Syntax syntax = syntaxFor(dsl);
+        block.repositories.gradlePluginPortal("Use the plugin portal to apply community plugins in convention plugins.");
         syntax.configureConventionPlugin(comment, block.plugins, block.repositories);
         return this;
     }
@@ -320,13 +329,13 @@ public class BuildScriptBuilder {
         return containerElement;
     }
 
-    public TemplateOperation create() {
+    public TemplateOperation create(Directory targetDirectory) {
         return () -> {
-            File target = getTargetFile();
+            File target = getTargetFile(targetDirectory);
             GFileUtils.mkdirs(target.getParentFile());
             try {
                 try (PrintWriter writer = new PrintWriter(new FileWriter(target))) {
-                    PrettyPrinter printer = new PrettyPrinter(syntaxFor(dsl), writer);
+                    PrettyPrinter printer = new PrettyPrinter(syntaxFor(dsl), writer, externalComments);
                     printer.printFileHeader(headerLines);
                     block.writeBodyTo(printer);
                 }
@@ -336,8 +345,12 @@ public class BuildScriptBuilder {
         };
     }
 
-    private File getTargetFile() {
-        return fileResolver.resolve(dsl.fileNameFor(fileNameWithoutExtension));
+    public List<String> extractComments() {
+        return block.extractComments();
+    }
+
+    private File getTargetFile(Directory targetDirectory) {
+        return targetDirectory.file(dsl.fileNameFor(fileNameWithoutExtension)).getAsFile();
     }
 
     private static Syntax syntaxFor(BuildInitDsl dsl) {
@@ -803,30 +816,8 @@ public class BuildScriptBuilder {
      */
     private interface BlockBody {
         void writeBodyTo(PrettyPrinter printer);
-    }
 
-    private static class StatementSequence implements Statement {
-        final ScriptBlockImpl statements = new ScriptBlockImpl();
-
-        public void add(Statement statement) {
-            statements.add(statement);
-        }
-
-        @Nullable
-        @Override
-        public String getComment() {
-            return null;
-        }
-
-        @Override
-        public Statement.Type type() {
-            return statements.type();
-        }
-
-        @Override
-        public void writeCodeTo(PrettyPrinter printer) {
-            statements.writeBodyTo(printer);
-        }
+        List<Statement> getStatements();
     }
 
     private static class BlockStatement implements Statement {
@@ -892,6 +883,11 @@ public class BuildScriptBuilder {
         }
 
         @Override
+        public void gradlePluginPortal(@Nullable String comment) {
+            add(new MethodInvocation(comment, new MethodInvocationExpression("gradlePluginPortal")));
+        }
+
+        @Override
         public void maven(String comment, String url) {
             add(new MavenRepoExpression(comment, url));
         }
@@ -939,6 +935,15 @@ public class BuildScriptBuilder {
                 }
             }
         }
+
+        @Override
+        public List<Statement> getStatements() {
+            List<Statement> statements = new ArrayList<>();
+            for (String config : dependencies.keySet()) {
+                statements.addAll(dependencies.get(config));
+            }
+            return statements;
+        }
     }
 
     private static class MavenRepoExpression extends AbstractStatement {
@@ -962,6 +967,11 @@ public class BuildScriptBuilder {
 
         public void add(Statement statement) {
             statements.add(statement);
+        }
+
+        @Override
+        public List<Statement> getStatements() {
+            return statements;
         }
 
         public Statement.Type type() {
@@ -1036,6 +1046,27 @@ public class BuildScriptBuilder {
             printer.printStatement(conventions);
             printer.printStatement(taskTypes);
             printer.printStatement(tasks);
+        }
+
+        public List<String> extractComments() {
+            List<String> comments = new ArrayList<>();
+            collectComments(plugins.body, comments);
+            collectComments(repositories.body, comments);
+            collectComments(dependencies, comments);
+            for (Statement otherBlock : getStatements()) {
+                if (otherBlock instanceof BlockStatement) {
+                    collectComments(((BlockStatement) otherBlock).body, comments);
+                }
+            }
+            return comments;
+        }
+
+        private void collectComments(BlockBody body, List<String> comments) {
+            for (Statement statement : body.getStatements()) {
+                if (statement.getComment() != null) {
+                    comments.add(statement.getComment());
+                }
+            }
         }
     }
 
@@ -1115,17 +1146,24 @@ public class BuildScriptBuilder {
 
         private final Syntax syntax;
         private final PrintWriter writer;
+        private final boolean externalComments;
         private String indent = "";
+        private String eolComment = null;
+        private int commentCount = 0;
         private boolean needSeparatorLine = true;
         private boolean firstStatementOfBlock = false;
         private boolean hasSeparatorLine = false;
 
-        PrettyPrinter(Syntax syntax, PrintWriter writer) {
+        PrettyPrinter(Syntax syntax, PrintWriter writer, boolean externalComments) {
             this.syntax = syntax;
             this.writer = writer;
+            this.externalComments = externalComments;
         }
 
         public void printFileHeader(Collection<String> lines) {
+            if (externalComments) {
+                return;
+            }
             println("/*");
             println(" * This file was generated by the Gradle 'init' task.");
             if (!lines.isEmpty()) {
@@ -1188,8 +1226,13 @@ public class BuildScriptBuilder {
             printStatementSeparator();
 
             if (hasComment) {
-                for (String line : splitComment(statement.getComment())) {
-                    println("// " + line);
+                if (externalComments) {
+                    commentCount++;
+                    eolComment = " // <" + commentCount + ">";
+                } else {
+                    for (String line : splitComment(statement.getComment())) {
+                        println("// " + line);
+                    }
                 }
             }
 
@@ -1205,7 +1248,12 @@ public class BuildScriptBuilder {
             if (!indent.isEmpty()) {
                 writer.print(indent);
             }
-            writer.println(s);
+            if (eolComment != null) {
+                writer.println(s + eolComment);
+                eolComment = null;
+            } else {
+                writer.println(s);
+            }
             hasSeparatorLine = false;
         }
 
@@ -1397,7 +1445,6 @@ public class BuildScriptBuilder {
         @Override
         public void configureConventionPlugin(@Nullable String comment, BlockStatement plugins, RepositoriesBlock repositories) {
             plugins.add(new PluginSpec("kotlin-dsl", null, comment));
-            repositories.jcenter(null);
         }
     }
 

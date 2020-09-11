@@ -15,7 +15,7 @@
 [[tutorial_using_tasks]]
 = Build Script Basics
 
-This chapter introduces you to the basics of writing Gradle build scripts. For a quick hands-on introduction, try the link:{guidesUrl}/creating-new-gradle-builds/[Creating New Gradle Builds] guide.
+This chapter introduces you to the basics of writing Gradle build scripts. For a quick hands-on introduction, try one of the link:../samples/index.html[step-by-step samples].
 
 
 [[sec:projects_and_tasks]]

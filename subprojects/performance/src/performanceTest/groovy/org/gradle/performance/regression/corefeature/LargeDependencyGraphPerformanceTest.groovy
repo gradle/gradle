@@ -16,12 +16,12 @@
 
 package org.gradle.performance.regression.corefeature
 
-import org.gradle.performance.AbstractCrossVersionGradleProfilerPerformanceTest
+import org.gradle.performance.AbstractCrossVersionPerformanceTest
 import org.gradle.performance.WithExternalRepository
 import spock.lang.Ignore
 import spock.lang.Unroll
 
-class LargeDependencyGraphPerformanceTest extends AbstractCrossVersionGradleProfilerPerformanceTest implements WithExternalRepository {
+class LargeDependencyGraphPerformanceTest extends AbstractCrossVersionPerformanceTest implements WithExternalRepository {
 
     private final static TEST_PROJECT_NAME = 'excludeRuleMergingBuild'
     public static final String MIN_MEMORY = "-Xms800m"
@@ -29,7 +29,7 @@ class LargeDependencyGraphPerformanceTest extends AbstractCrossVersionGradleProf
 
     def setup() {
         runner.minimumBaseVersion = '4.8'
-        runner.targetVersions = ["6.7-20200723220251+0000"]
+        runner.targetVersions = ["6.7-20200824220048+0000"]
     }
 
     def "resolve large dependency graph from file repo"() {
@@ -55,7 +55,7 @@ class LargeDependencyGraphPerformanceTest extends AbstractCrossVersionGradleProf
         given:
         runner.tasksToRun = ['resolveDependencies']
         runner.gradleOpts = [MIN_MEMORY, MAX_MEMORY]
-        runner.targetVersions = ["6.7-20200723220251+0000"]
+        runner.targetVersions = ["6.7-20200824220048+0000"]
         runner.args = ['-PuseHttp', "-PhttpPort=${serverPort}", '-PnoExcludes']
         if (parallel) {
             runner.args += '--parallel'

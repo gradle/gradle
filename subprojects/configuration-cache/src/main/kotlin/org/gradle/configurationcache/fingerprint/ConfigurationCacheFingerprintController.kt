@@ -18,7 +18,9 @@ package org.gradle.configurationcache.fingerprint
 
 import org.gradle.api.execution.internal.TaskInputsListeners
 import org.gradle.api.internal.TaskInternal
+import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.FileCollectionInternal
+import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
 import org.gradle.api.internal.provider.DefaultValueSourceProviderFactory
 import org.gradle.api.internal.provider.ValueSourceProviderFactory
 import org.gradle.configurationcache.BuildTreeListenerManager
@@ -54,7 +56,9 @@ class ConfigurationCacheFingerprintController internal constructor(
     private val fileCollectionFingerprinter: AbsolutePathFileCollectionFingerprinter,
     private val buildCommencedTimeProvider: BuildCommencedTimeProvider,
     private val listenerManager: ListenerManager,
-    private val buildTreeListenerManager: BuildTreeListenerManager
+    private val buildTreeListenerManager: BuildTreeListenerManager,
+    private val fileCollectionFactory: FileCollectionFactory,
+    private val directoryFileTreeFactory: DirectoryFileTreeFactory
 ) : Stoppable {
 
     private
@@ -83,7 +87,9 @@ class ConfigurationCacheFingerprintController internal constructor(
             val outputStream = ByteArrayOutputStream()
             val fingerprintWriter = ConfigurationCacheFingerprintWriter(
                 CacheFingerprintComponentHost(),
-                writeContextForOutputStream(outputStream)
+                writeContextForOutputStream(outputStream),
+                fileCollectionFactory,
+                directoryFileTreeFactory
             )
             addListener(fingerprintWriter)
             return Writing(fingerprintWriter, outputStream)

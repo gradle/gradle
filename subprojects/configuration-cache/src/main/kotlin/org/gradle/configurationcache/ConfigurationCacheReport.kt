@@ -171,7 +171,7 @@ class ConfigurationCacheReport {
             "location" to trace.displayName.displayName
         )
         is PropertyTrace.BuildLogicClass -> mapOf(
-            "kind" to "Class",
+            "kind" to "BuildLogicClass",
             "type" to trace.name
         )
         PropertyTrace.Gradle -> mapOf(

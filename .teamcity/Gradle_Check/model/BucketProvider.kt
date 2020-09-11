@@ -267,7 +267,7 @@ type build\$action-test-classes.properties
             script {
                 name = "PREPARE_TEST_CLASSES"
                 executionMode = BuildStep.ExecutionMode.ALWAYS
-                scriptContent = if (os == Os.windows) windowsScript else unixScript
+                scriptContent = if (os == Os.WINDOWS) windowsScript else unixScript
             }
         }
     }

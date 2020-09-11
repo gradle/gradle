@@ -29,9 +29,7 @@ import spock.lang.Unroll
 
 import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_4_LATEST
 import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_VINTAGE_JUPITER
-import static org.hamcrest.CoreMatchers.containsString
 import static org.hamcrest.CoreMatchers.equalTo
-
 /**
  * General tests for the JVM testing infrastructure that don't deserve their own test class.
  */
@@ -541,65 +539,4 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec {
             .testFailed("testFailingGetMessage", equalTo('Could not determine failure message for exception of type UsefulNPETest$1: java.lang.RuntimeException'))
     }
 
-    @IgnoreIf({ GradleContextualExecuter.embedded })
-    def "non-deserializable suppressed exceptions are preserved"() {
-        buildFile << """
-            apply plugin:'java-library'
-            ${mavenCentralRepository()}
-            dependencies {
-                testImplementation 'org.junit.jupiter:junit-jupiter-api:5.6.1'
-                testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
-            }
-
-            test {
-                useJUnitPlatform()
-            }
-        """
-
-        file('src/test/java/TestCaseWithThrowingBeforeAllAndAfterAllCallbacks.java') << """
-            import org.junit.jupiter.api.Test;
-            import org.junit.jupiter.api.extension.AfterAllCallback;
-            import org.junit.jupiter.api.extension.BeforeAllCallback;
-            import org.junit.jupiter.api.extension.ExtendWith;
-            import org.junit.jupiter.api.extension.ExtensionContext;
-
-            @ExtendWith(ThrowingBeforeAllCallback.class)
-            @ExtendWith(ThrowingAfterAllCallback.class)
-            public class TestCaseWithThrowingBeforeAllAndAfterAllCallbacks {
-
-                @Test
-                void test() {
-                }
-
-            }
-
-            class ThrowingBeforeAllCallback implements BeforeAllCallback {
-                @Override
-                public void beforeAll(ExtensionContext context) {
-                    throw new IllegalStateException("beforeAll callback");
-                }
-            }
-
-            class ThrowingAfterAllCallback implements AfterAllCallback {
-                @Override
-                public void afterAll(ExtensionContext context) {
-                    throw new CustomException("afterAll callback");
-                }
-            }
-
-            class CustomException extends IllegalStateException {
-                public CustomException(String message) { super(message); }
-            }
-        """
-
-        when:
-        fails 'test'
-
-        then:
-        def result = new DefaultTestExecutionResult(testDirectory)
-        result.testClass("TestCaseWithThrowingBeforeAllAndAfterAllCallbacks")
-            .testFailed("initializationError", equalTo('java.lang.IllegalStateException: beforeAll callback'))
-        result.testClass("TestCaseWithThrowingBeforeAllAndAfterAllCallbacks")
-            .testFailed("initializationError", containsString('Suppressed: CustomException: afterAll callback'))
-    }
 }

@@ -300,9 +300,13 @@ public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     public void multiProjectBuildCanHaveSettingsFileAndRootBuildFileInSubDir() {
+        // Stop traversing to parent directory; otherwise embedded test execution will
+        // find and load the `gradle.properties` file in the root of the source repository
+        getTestDirectory().file("settings.gradle").createFile();
+
         TestFile buildFilesDir = getTestDirectory().file("root");
-        TestFile settingsFile = buildFilesDir.file("settings.gradle");
-        settingsFile.writelns(
+        TestFile relocatedSettingsFile = buildFilesDir.file("settings.gradle");
+        relocatedSettingsFile.writelns(
             "includeFlat 'child'",
             "rootProject.projectDir = new File(settingsDir, '..')",
             "rootProject.buildFileName = 'root/build.gradle'"
@@ -314,9 +318,9 @@ public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
         TestFile childBuildFile = testFile("child/build.gradle");
         childBuildFile.writelns("task('do-stuff')", "task('task')");
 
-        usingProjectDir(getTestDirectory()).usingSettingsFile(settingsFile).withTasks("do-stuff").run().assertTasksExecuted(":child:task", ":do-stuff", ":child:do-stuff").assertTaskOrder(":child:task", ":do-stuff");
+        usingProjectDir(getTestDirectory()).usingSettingsFile(relocatedSettingsFile).withTasks("do-stuff").run().assertTasksExecuted(":child:task", ":do-stuff", ":child:do-stuff").assertTaskOrder(":child:task", ":do-stuff");
         usingBuildFile(rootBuildFile).withTasks("do-stuff").run().assertTasksExecuted(":child:task", ":do-stuff", ":child:do-stuff").assertTaskOrder(":child:task", ":do-stuff");
-        usingBuildFile(childBuildFile).usingSettingsFile(settingsFile).withTasks("do-stuff").run().assertTasksExecutedInOrder(":child:do-stuff");
+        usingBuildFile(childBuildFile).usingSettingsFile(relocatedSettingsFile).withTasks("do-stuff").run().assertTasksExecutedInOrder(":child:do-stuff");
     }
 
     @Test

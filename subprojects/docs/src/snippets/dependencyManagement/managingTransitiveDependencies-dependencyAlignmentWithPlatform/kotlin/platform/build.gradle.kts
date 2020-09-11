@@ -1,6 +1,9 @@
 // tag::platform[]
 plugins {
     `java-platform`
+// end::platform[]
+    id("myproject.publishing-conventions")
+// tag::platform[]
 }
 
 dependencies {
@@ -13,7 +16,6 @@ dependencies {
     }
 }
 // end::platform[]
-
 
 publishing {
     publications {

@@ -172,8 +172,8 @@ The descriptor file is customized to include the project description for each pr
 
 .Publishing a Java module
 ====
-include::sample[dir="snippets/ivy-publish/java-multi-project/groovy",files="build.gradle[tags=all]"]
-include::sample[dir="snippets/ivy-publish/java-multi-project/kotlin",files="build.gradle.kts[tags=all]"]
+include::sample[dir="snippets/ivy-publish/java-multi-project/groovy",files="settings.gradle[];buildSrc/build.gradle[];buildSrc/src/main/groovy/myproject.publishing-conventions.gradle[];project1/build.gradle[];project2/build.gradle[]"]
+include::sample[dir="snippets/ivy-publish/java-multi-project/kotlin",files="settings.gradle.kts[];buildSrc/build.gradle.kts[];buildSrc/src/main/kotlin/myproject.publishing-conventions.gradle.kts[];project1/build.gradle.kts[];project2/build.gradle.kts[]"]
 ====
 
 The result is that the following artifacts will be published for each project:

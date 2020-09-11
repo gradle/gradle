@@ -48,6 +48,17 @@ class OrElseProvider<T> extends AbstractMinimalProvider<T> {
     }
 
     @Override
+    public ExecutionTimeValue<? extends T> calculateExecutionTimeValue() {
+        ExecutionTimeValue<? extends T> leftValue = left.calculateExecutionTimeValue();
+        if (!leftValue.isMissing()) {
+            // favour left execution time value if present for better configuration cache integration
+            // of idioms like `property.convention(provider.orElse(somethingElse))`
+            return leftValue;
+        }
+        return super.calculateExecutionTimeValue();
+    }
+
+    @Override
     protected Value<? extends T> calculateOwnValue(ValueConsumer consumer) {
         Value<? extends T> leftValue = left.calculateValue(consumer);
         if (!leftValue.isMissing()) {

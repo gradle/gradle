@@ -23,14 +23,20 @@ import java.util.Arrays;
 import java.util.List;
 
 public class PerformanceDatabase {
+    private static final String PERFORMANCE_DB_URL_PROPERTY_NAME = "org.gradle.performance.db.url";
     private static final int LOGIN_TIMEOUT_SECONDS = 60;
     private final String databaseName;
     private final List<ConnectionAction<Void>> databaseInitializers;
     private Connection connection;
 
+    @SafeVarargs
     public PerformanceDatabase(String databaseName, ConnectionAction<Void>... schemaInitializers) {
         this.databaseName = databaseName;
         this.databaseInitializers = Arrays.asList(schemaInitializers);
+    }
+
+    public static boolean isAvailable() {
+        return System.getProperty(PERFORMANCE_DB_URL_PROPERTY_NAME) != null;
     }
 
     public void close() {
@@ -67,8 +73,10 @@ public class PerformanceDatabase {
     }
 
     public String getUrl() {
-        String defaultUrl = "jdbc:h2:" + System.getProperty("user.home") + "/.gradle-performance-test-data";
-        String baseUrl = System.getProperty("org.gradle.performance.db.url", defaultUrl);
+        String baseUrl = System.getProperty(PERFORMANCE_DB_URL_PROPERTY_NAME);
+        if (baseUrl == null) {
+            throw new RuntimeException("You need to specify a URL for the performance database");
+        }
         StringBuilder url = new StringBuilder(baseUrl);
         if (!baseUrl.endsWith("/")) {
             url.append('/');

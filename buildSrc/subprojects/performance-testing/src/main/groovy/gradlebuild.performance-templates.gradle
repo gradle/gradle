@@ -27,7 +27,7 @@ tasks.register("gradleBuildBaseline", RemoteProject) {
     remoteUri = rootDir.absolutePath
     // Remember to update accordingly when rebasing/squashing
     // Do not use the "Rebase and merge" nor "Squash and merge" Github buttons when merging a PR that change the baseline
-    ref = '4a45c91fc3f6f062c25a34d8eb889470a1909fa8'
+    ref = '264bd7744d2e89b2708303cd56bb11bc5003fa7e'
 }
 
 // === Java ===
@@ -354,7 +354,7 @@ tasks.register("k9AndroidBuild", RemoteProject) {
 tasks.register("largeAndroidBuild", RemoteProject) {
     remoteUri = 'https://github.com/gradle/perf-android-large.git'
     // From android-35 branch
-    ref = "36143205842725fb1bd33f5ffc4667ccd0336641"
+    ref = "ea980c1d903491aae18ecdea2abb9c60cc520239"
 }
 
 tasks.register("santaTrackerAndroidBuild", RemoteProject) {
@@ -463,7 +463,7 @@ tasks.register("excludeRuleMergingBuild", RemoteProject) {
 tasks.register("springBootApp", RemoteProject) {
     remoteUri = 'https://github.com/gradle/performance-comparisons.git'
     // From master branch
-    ref = "13739fa299e485c079335b0cd5b30da1cff92234"
+    ref = "cbfe4c63fa570200624575c75bafb556d3eb4bdd"
     subdirectory = 'parallel-downloads'
 }
 
@@ -495,16 +495,4 @@ tasks.withType(JvmProjectGeneratorTask).configureEach {
         templateArgs['springDmPluginVersion'] = springDmPluginVersion
     }
     templateArgs['projectDependencies'] = true
-}
-
-// The Android Studio performance tests use custom model classes which need to be found in
-// a dedicated project in order for the classpath to be setup properly
-def androidRemoteProjects = tasks.withType(RemoteProject).matching { it.name =~ /Android/ }
-androidRemoteProjects.configureEach {
-    // TODO: This should use a proper dependency
-    def buildClassPath = tasks.findByPath(':internal-android-performance-testing:buildClassPath')
-    dependsOn buildClassPath
-    doLast {
-        file("$outputDirectory/tapi-classpath.txt") << buildClassPath.outputFile.get().getAsFile().text
-    }
 }

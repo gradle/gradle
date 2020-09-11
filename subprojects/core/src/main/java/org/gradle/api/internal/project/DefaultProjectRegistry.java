@@ -103,7 +103,7 @@ public class DefaultProjectRegistry<T extends ProjectIdentifier> implements Proj
 
     @Override
     public Set<T> getSubProjects(String path) {
-        return GUtil.elvis(subProjects.get(path), new HashSet<T>());
+        return GUtil.getOrDefault(subProjects.get(path), HashSet::new);
     }
 
     @Override

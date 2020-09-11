@@ -16,13 +16,13 @@
 
 package org.gradle.performance.regression.java
 
-import org.gradle.performance.AbstractCrossVersionGradleProfilerPerformanceTest
+import org.gradle.performance.AbstractCrossVersionPerformanceTest
 import spock.lang.Unroll
 
 import static org.gradle.performance.generator.JavaTestProject.LARGE_JAVA_MULTI_PROJECT
 import static org.gradle.performance.generator.JavaTestProject.LARGE_MONOLITHIC_JAVA_PROJECT
 
-class JavaTasksPerformanceTest extends AbstractCrossVersionGradleProfilerPerformanceTest {
+class JavaTasksPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
     @Unroll
     def "tasks on #testProject"() {
@@ -30,7 +30,7 @@ class JavaTasksPerformanceTest extends AbstractCrossVersionGradleProfilerPerform
         runner.testProject = testProject
         runner.gradleOpts = ["-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}"]
         runner.tasksToRun = ['tasks']
-        runner.targetVersions = ["6.7-20200723220251+0000"]
+        runner.targetVersions = ["6.7-20200824220048+0000"]
 
         when:
         def result = runner.run()
@@ -50,7 +50,7 @@ class JavaTasksPerformanceTest extends AbstractCrossVersionGradleProfilerPerform
         runner.testProject = testProject
         runner.gradleOpts = ["-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}"]
         runner.tasksToRun = ['tasks', '--all']
-        runner.targetVersions = ["6.7-20200723220251+0000"]
+        runner.targetVersions = ["6.7-20200824220048+0000"]
 
         when:
         def result = runner.run()

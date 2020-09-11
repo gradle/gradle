@@ -18,7 +18,6 @@
 package org.gradle.buildinit.plugins.internal;
 
 import org.gradle.api.internal.DocumentationRegistry;
-import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.util.GradleVersion;
 
 import java.io.File;
@@ -33,13 +32,11 @@ import java.util.Set;
 public class TemplateOperationFactory {
 
     private final String templatepackage;
-    private final PathToFileResolver fileResolver;
     private final DocumentationRegistry documentationRegistry;
     private final Map<String, String> defaultBindings;
 
-    public TemplateOperationFactory(String templatepackage, PathToFileResolver fileResolver, DocumentationRegistry documentationRegistry) {
+    public TemplateOperationFactory(String templatepackage, DocumentationRegistry documentationRegistry) {
         this.documentationRegistry = documentationRegistry;
-        this.fileResolver = fileResolver;
         this.templatepackage = templatepackage;
         this.defaultBindings = loadDefaultBindings();
     }
@@ -79,8 +76,8 @@ public class TemplateOperationFactory {
             return this;
         }
 
-        public TemplateOperationBuilder withTarget(String targetFilePath) {
-            this.target = fileResolver.resolve(targetFilePath);
+        public TemplateOperationBuilder withTarget(File targetFilePath) {
+            this.target = targetFilePath;
             return this;
         }
 

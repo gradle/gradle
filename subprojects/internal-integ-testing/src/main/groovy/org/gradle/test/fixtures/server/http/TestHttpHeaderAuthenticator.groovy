@@ -16,24 +16,39 @@
 
 package org.gradle.test.fixtures.server.http
 
-import org.mortbay.jetty.Request
-import org.mortbay.jetty.Response
-import org.mortbay.jetty.security.Authenticator
-import org.mortbay.jetty.security.UserRealm
+import org.eclipse.jetty.security.Authenticator
+import org.eclipse.jetty.security.ServerAuthException
+import org.eclipse.jetty.server.Authentication
 
-import java.security.Principal
+import javax.servlet.ServletRequest
+import javax.servlet.ServletResponse
 
 class TestHttpHeaderAuthenticator implements Authenticator {
 
     public static final String AUTH_SCHEME_NAME = "HEADER"
 
     @Override
-    Principal authenticate(UserRealm realm, String pathInContext, Request request, Response response) throws IOException {
-        return null
+    void setConfiguration(AuthConfiguration configuration) {
+
     }
 
     @Override
     String getAuthMethod() {
-        return AUTH_SCHEME_NAME;
+        AUTH_SCHEME_NAME
+    }
+
+    @Override
+    void prepareRequest(ServletRequest request) {
+
+    }
+
+    @Override
+    Authentication validateRequest(ServletRequest request, ServletResponse response, boolean mandatory) throws ServerAuthException {
+        Authentication.SEND_CONTINUE
+    }
+
+    @Override
+    boolean secureResponse(ServletRequest request, ServletResponse response, boolean mandatory, Authentication.User validatedUser) throws ServerAuthException {
+        return false
     }
 }

@@ -34,11 +34,11 @@ Let's talk about some concrete examples.
 
 The end goal of every build script should be to only contain declarative language elements which makes the code easier to understand and maintain.
 Imperative logic should live in binary plugins and which in turn is applied to the build script.
-As a side product, you automatically enable your team to link:{guidesUrl}/designing-gradle-plugins/#reusable_logic_should_be_written_as_binary_plugin[reuse the plugin logic in other projects] if you publish the artifact to a binary repository.
+As a side product, you automatically enable your team to link:../samples/sample_publishing_convention_plugins.html[reuse the plugin logic in other projects] if you publish the artifact to a binary repository.
 
 The following sample build shows a negative example of using conditional logic directly in the build script.
 While this code snippet is small, it is easy to imagine a full-blown build script using numerous procedural statements and the impact it would have on readability and maintainability.
-By moving the code into a class link:{guidesUrl}/testing-gradle-plugins/[testability] also becomes a valid option.
+By moving the code into a class, it can also be tested individually.
 
 .A build script using conditional logic to create a task
 ====
@@ -114,13 +114,13 @@ It may also be helpful to read <<lazy_configuration.adoc#lazy_configuration,the 
 
 Don't use `org.gradle.api.internal.ConventionMapping`.
 Use link:{javadocPath}/org/gradle/api/provider/Provider.html[Provider] and/or link:{javadocPath}/org/gradle/api/provider/Property.html[Property].
-You can find an example for capturing user input to configure runtime behavior in the link:{guidesUrl}/implementing-gradle-plugins/#capturing_user_input_to_configure_plugin_runtime_behavior[implementing plugins guide].
+You can find an example for capturing user input to configure runtime behavior in the link:https://guides.gradle.org/implementing-gradle-plugins/#capturing_user_input_to_configure_plugin_runtime_behavior[implementing plugins guide].
 
 Instead of `org.gradle.internal.os.OperatingSystem`, use another method to detect operating system, such as link:https://commons.apache.org/proper/commons-lang/apidocs/org/apache/commons/lang3/SystemUtils.html[Apache commons-lang SystemUtils] or `System.getProperty("os.name")`.
 
 Use other collections or I/O frameworks instead of `org.gradle.util.CollectionUtils`, `org.gradle.util.GFileUtils`, and other classes under `org.gradle.util.*`.
 
-Gradle plugin authors may find the Designing Gradle Plugins subsection on link:{guidesUrl}/designing-gradle-plugins/#restricting_the_plugin_implementation_to_gradle_s_public_api[restricting the plugin implementation to Gradle's public API] helpful.
+Gradle plugin authors may find the Designing Gradle Plugins subsection on link:https://guides.gradle.org/designing-gradle-plugins/#restricting_the_plugin_implementation_to_gradle_s_public_api[restricting the plugin implementation to Gradle's public API] helpful.
 
 [[sec:declaring_tasks]]
 == Follow conventions when declaring tasks
@@ -213,7 +213,7 @@ The appropriate approach depends on the problem at hand. Here're some options:
 == Avoid inter-project configuration
 
 Gradle does not restrict build script authors from reaching into the domain model from one project into another one in a <<multi_project_builds.adoc#multi_project_builds,multi-project build>>.
-Strongly-coupled projects hurts <<multi_project_builds.adoc#sec:parallel_execution,build execution performance>> as well as readability and maintainability of code.
+Strongly-coupled projects hurts <<multi_project_configuration_and_execution.adoc#sec:parallel_execution,build execution performance>> as well as readability and maintainability of code.
 
 The following practices should be avoided:
 

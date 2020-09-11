@@ -106,3 +106,9 @@ The Tooling API requires Java 8 or later. The Gradle version used by builds may 
 The Tooling API supports running builds using Gradle 2.6 and later. Gradle 5.0 and up require clients to use Tooling API version 3.0 or later.
 
 You should note that not all features of the Tooling API are available for all versions of Gradle. Refer to the documentation for each class and method for more details.
+
+In general, the Tooling API client can run on a different version of Java than the build, but classes that are sent to the build via custom build actions need to be targeted to the lowest supported Java version.
+
+- Gradle 2.6-2.14.1 only supports Java 6 through Java 8.
+- Gradle 3.x and 4.x require a minimum version of Java 7.
+- Gradle 5 and above require a minimum version of Java 8.

@@ -16,16 +16,13 @@
 
 package org.gradle.api.tasks.compile
 
-import org.gradle.api.JavaVersion
-import org.gradle.api.file.Directory
-import org.gradle.api.internal.tasks.compile.CommandLineJavaCompileSpec
+import org.gradle.api.internal.file.TestFiles
+import org.gradle.api.internal.tasks.compile.DefaultJavaCompileSpec
 import org.gradle.internal.jvm.Jvm
 import org.gradle.jvm.toolchain.JavaCompiler
-import org.gradle.jvm.toolchain.JavaInstallation
+import org.gradle.jvm.toolchain.JavaInstallationMetadata
+import org.gradle.jvm.toolchain.JavaLanguageVersion
 import org.gradle.jvm.toolchain.JavaToolChain
-import org.gradle.jvm.toolchain.internal.JavaCompilerFactory
-import org.gradle.jvm.toolchain.internal.JavaToolchain
-import org.gradle.jvm.toolchain.internal.ToolchainToolFactory
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import spock.lang.Issue
 
@@ -81,26 +78,118 @@ class JavaCompileTest extends AbstractProjectBuilderSpec {
         e.message == "Must not use `exectuable` property on `ForkOptions` together with `javaCompiler` property"
     }
 
-    def "spec is configured using the toolchain compiler via command line"() {
-        def javaCompile = project.tasks.create("compileJava", JavaCompile)
+    def 'uses release property combined with toolchain compiler'() {
+        def javaCompile = project.tasks.create('compileJava', JavaCompile)
+        javaCompile.destinationDirectory.fileValue(new File('somewhere'))
         def javaHome = Jvm.current().javaHome
-        def installation = Mock(JavaInstallation)
-        def installDir = Mock(Directory)
-        installDir.asFile >> javaHome
-        installation.installationDirectory >> installDir
-        installation.getJavaVersion() >> JavaVersion.VERSION_12
-        def toolchain = new JavaToolchain(installation, Mock(JavaCompilerFactory), Mock(ToolchainToolFactory))
-        javaCompile.setDestinationDir(new File("tmp"))
+        def metadata = Mock(JavaInstallationMetadata)
+        def compiler = Mock(JavaCompiler)
+
+        metadata.languageVersion >> JavaLanguageVersion.of(15)
+        metadata.installationPath >> TestFiles.fileFactory().dir(javaHome)
+        compiler.metadata >> metadata
+
+        given:
+        javaCompile.javaCompiler.set(compiler)
+        javaCompile.options.release.set(9)
 
         when:
-        javaCompile.javaCompiler.set(toolchain.javaCompiler)
         def spec = javaCompile.createSpec()
 
         then:
-        spec instanceof CommandLineJavaCompileSpec
+        spec.release == 9
+        spec.getSourceCompatibility() == null
+        spec.getTargetCompatibility() == null
         spec.compileOptions.forkOptions.javaHome == javaHome
-        spec.getSourceCompatibility() == "12"
-        spec.getTargetCompatibility() == "12"
+    }
+
+    def 'uses custom source and target compatibility combined with toolchain compiler'() {
+        def javaCompile = project.tasks.create('compileJava', JavaCompile)
+        javaCompile.destinationDirectory.fileValue(new File('somewhere'))
+        def javaHome = Jvm.current().javaHome
+        def metadata = Mock(JavaInstallationMetadata)
+        def compiler = Mock(JavaCompiler)
+
+        metadata.languageVersion >> JavaLanguageVersion.of(15)
+        metadata.installationPath >> TestFiles.fileFactory().dir(javaHome)
+        compiler.metadata >> metadata
+
+        given:
+        javaCompile.javaCompiler.set(compiler)
+        javaCompile.setSourceCompatibility('11')
+        javaCompile.setTargetCompatibility('14')
+
+        when:
+        def spec = javaCompile.createSpec()
+
+        then:
+        spec.getSourceCompatibility() == '11'
+        spec.getTargetCompatibility() == '14'
+        spec.compileOptions.forkOptions.javaHome == javaHome
+    }
+
+    def "spec is configured using the toolchain compiler in-process using the current jvm as toolchain"() {
+        def javaCompile = project.tasks.create("compileJava", JavaCompile)
+        javaCompile.setDestinationDir(new File("tmp"))
+        def javaHome = Jvm.current().javaHome
+        def metadata = Mock(JavaInstallationMetadata)
+        def compiler = Mock(JavaCompiler)
+
+        metadata.languageVersion >> JavaLanguageVersion.of(12)
+        metadata.installationPath >> TestFiles.fileFactory().dir(javaHome)
+        compiler.metadata >> metadata
+
+        when:
+        javaCompile.javaCompiler.set(compiler)
+        def spec = javaCompile.createSpec()
+
+        then:
+        spec instanceof DefaultJavaCompileSpec
+        spec.compileOptions.forkOptions.javaHome == javaHome
+        spec.getSourceCompatibility() == null
+        spec.getTargetCompatibility() == null
+    }
+
+    def 'spec is configured with the right values for source and target compatibility when set in parallel with a toolchain'() {
+        def javaCompile = project.tasks.create("compileJava", JavaCompile)
+        javaCompile.setDestinationDir(new File("tmp"))
+        def javaHome = Jvm.current().javaHome
+        def metadata = Mock(JavaInstallationMetadata)
+        def compiler = Mock(JavaCompiler)
+
+        metadata.languageVersion >> JavaLanguageVersion.of(12)
+        metadata.installationPath >> TestFiles.fileFactory().dir(javaHome)
+        compiler.metadata >> metadata
+
+        when:
+        javaCompile.javaCompiler.set(compiler)
+        javaCompile.sourceCompatibility = '8'
+        javaCompile.targetCompatibility = '10'
+        def spec = javaCompile.createSpec()
+
+        then:
+        spec.getSourceCompatibility() == '8'
+        spec.getTargetCompatibility() == '10'
+    }
+
+    def 'spec is configured with the right value for release when set in parallel with a toolchain'() {
+        def javaCompile = project.tasks.create("compileJava", JavaCompile)
+        javaCompile.setDestinationDir(new File("tmp"))
+        def javaHome = Jvm.current().javaHome
+        def metadata = Mock(JavaInstallationMetadata)
+        def compiler = Mock(JavaCompiler)
+
+        metadata.languageVersion >> JavaLanguageVersion.of(12)
+        metadata.installationPath >> TestFiles.fileFactory().dir(javaHome)
+        compiler.metadata >> metadata
+
+        when:
+        javaCompile.javaCompiler.set(compiler)
+        javaCompile.options.release.set(10)
+        def spec = javaCompile.createSpec()
+
+        then:
+        spec.release == 10
     }
 
 }

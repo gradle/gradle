@@ -56,7 +56,7 @@ class CIConfigIntegrationTests {
         val macOS = readyForRelease.subProjects.find { it.name.contains("Macos") }!!
 
         macOS.buildTypes.forEach { buildType ->
-            assertFalse(Os.macos.ignoredSubprojects.any { subProject ->
+            assertFalse(Os.MACOS.ignoredSubprojects.any { subProject ->
                 buildType.name.endsWith("($subProject)")
             })
         }
@@ -318,7 +318,7 @@ class CIConfigIntegrationTests {
 
     @Test
     fun long_ids_are_shortened() {
-        val testCoverage = TestCoverage(1, TestType.quickFeedbackCrossVersion, Os.windows, JvmVersion.java11, JvmVendor.oracle)
+        val testCoverage = TestCoverage(1, TestType.quickFeedbackCrossVersion, Os.WINDOWS, JvmVersion.java11, JvmVendor.oracle)
         val shortenedId = testCoverage.asConfigurationId(model, "veryLongSubprojectNameLongerThanEverythingWeHave")
         assertTrue(shortenedId.length < 80)
         assertEquals("Gradle_Check_QckFdbckCrssVrsn_1_vryLngSbprjctNmLngrThnEvrythngWHv", shortenedId)

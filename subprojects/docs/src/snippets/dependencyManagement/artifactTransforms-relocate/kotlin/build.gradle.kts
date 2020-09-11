@@ -73,7 +73,6 @@ abstract class ClassRelocator : TransformAction<ClassRelocator.Parameters> {
 configurations.create("externalClasspath")
 
 val usage = Attribute.of("usage", String::class.java)
-// tag::artifact-transform-registration[]
 val artifactType = Attribute.of("artifactType", String::class.java)
 
 dependencies {
@@ -86,16 +85,12 @@ dependencies {
         }
     }
 }
-// end::artifact-transform-registration[]
 
-
-allprojects {
-    dependencies {
-        attributesSchema {
-            attribute(usage)
-        }
+dependencies {
+    attributesSchema {
+        attribute(usage)
     }
-    configurations.create("compile") {
-        attributes.attribute(usage, "api")
-    }
+}
+configurations.create("compile") {
+    attributes.attribute(usage, "api")
 }

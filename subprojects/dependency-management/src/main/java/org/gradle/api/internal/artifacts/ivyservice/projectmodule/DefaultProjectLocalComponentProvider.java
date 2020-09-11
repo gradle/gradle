@@ -84,10 +84,10 @@ public class DefaultProjectLocalComponentProvider implements LocalComponentProvi
 
     private LocalComponentMetadata getLocalComponentMetadata(final ProjectComponentIdentifier projectIdentifier) {
         ProjectState projectState = projectStateRegistry.stateFor(projectIdentifier);
-        return projectState.withMutableState(() -> {
+        return projectState.fromMutableState(p -> {
             LocalComponentMetadata metadata = projects.getIfPresent(projectIdentifier);
             if (metadata == null) {
-                metadata = getLocalComponentMetadata(projectState, projectState.getMutableModel());
+                metadata = getLocalComponentMetadata(projectState, p);
                 projects.put(projectIdentifier, metadata);
             }
             return metadata;
@@ -104,5 +104,4 @@ public class DefaultProjectLocalComponentProvider implements LocalComponentProvi
         }
         return metaData;
     }
-
 }

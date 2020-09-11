@@ -16,23 +16,29 @@
 
 package org.gradle.performance
 
+import groovy.transform.CompileStatic
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.performance.fixture.BuildExperimentSpec
-import org.gradle.performance.fixture.CrossBuildGradleProfilerPerformanceTestRunner
-import org.gradle.performance.fixture.GradleProfilerBuildExperimentRunner
+import org.gradle.performance.fixture.CrossBuildPerformanceTestRunner
+import org.gradle.performance.fixture.GradleBuildExperimentRunner
+import org.gradle.performance.fixture.GradleBuildExperimentSpec
 import org.gradle.performance.fixture.PerformanceTestDirectoryProvider
 import org.gradle.performance.fixture.PerformanceTestIdProvider
-import org.gradle.performance.results.CompositeDataReporter
+import org.gradle.performance.results.CrossBuildPerformanceResults
 import org.gradle.performance.results.CrossBuildResultsStore
 import org.gradle.performance.results.GradleProfilerReporter
+import org.gradle.performance.results.WritableResultsStore
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
+import static org.gradle.performance.results.ResultsStoreHelper.createResultsStoreWhenDatabaseAvailable
+
+@CompileStatic
 @CleanupTestDirectory
 class AbstractCrossBuildPerformanceTest extends Specification {
-    private static final CrossBuildResultsStore RESULT_STORE = new CrossBuildResultsStore()
+    private static final WritableResultsStore<CrossBuildPerformanceResults> RESULTS_STORE = createResultsStoreWhenDatabaseAvailable { new CrossBuildResultsStore() }
 
     protected final IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext()
 
@@ -42,40 +48,47 @@ class AbstractCrossBuildPerformanceTest extends Specification {
     @Rule
     PerformanceTestIdProvider performanceTestIdProvider = new PerformanceTestIdProvider()
 
-    CrossBuildGradleProfilerPerformanceTestRunner runner
+    CrossBuildPerformanceTestRunner runner
 
     def setup() {
         def gradleProfilerReporter = new GradleProfilerReporter(temporaryFolder.testDirectory)
-        def compositeReporter = CompositeDataReporter.of(RESULT_STORE, gradleProfilerReporter)
-        runner = new CrossBuildGradleProfilerPerformanceTestRunner(new GradleProfilerBuildExperimentRunner(gradleProfilerReporter.getResultCollector()), RESULT_STORE, compositeReporter, buildContext) {
+        runner = new CrossBuildPerformanceTestRunner(
+            new GradleBuildExperimentRunner(gradleProfilerReporter.getResultCollector()),
+            RESULTS_STORE,
+            RESULTS_STORE.reportAlso(gradleProfilerReporter),
+            buildContext
+        ) {
             @Override
             protected void defaultSpec(BuildExperimentSpec.Builder builder) {
                 super.defaultSpec(builder)
                 builder.workingDirectory = temporaryFolder.testDirectory
+            }
+
+            @Override
+            protected void configureGradleSpec(GradleBuildExperimentSpec.GradleBuilder builder) {
+                super.configureGradleSpec(builder)
                 AbstractCrossBuildPerformanceTest.this.defaultSpec(builder)
             }
 
             @Override
-            protected void finalizeSpec(BuildExperimentSpec.Builder builder) {
-                super.finalizeSpec(builder)
+            protected void finalizeGradleSpec(GradleBuildExperimentSpec.GradleBuilder builder) {
+                super.finalizeGradleSpec(builder)
                 AbstractCrossBuildPerformanceTest.this.finalizeSpec(builder)
             }
         }
         performanceTestIdProvider.setTestSpec(runner)
     }
 
-    protected void defaultSpec(BuildExperimentSpec.Builder builder) {
-
+    protected void defaultSpec(GradleBuildExperimentSpec.GradleBuilder builder) {
     }
 
-    protected void finalizeSpec(BuildExperimentSpec.Builder builder) {
-
+    protected void finalizeSpec(GradleBuildExperimentSpec.GradleBuilder builder) {
     }
 
     static {
         // TODO - find a better way to cleanup
         System.addShutdownHook {
-            ((Closeable) RESULT_STORE).close()
+            ((Closeable) RESULTS_STORE).close()
         }
     }
 }

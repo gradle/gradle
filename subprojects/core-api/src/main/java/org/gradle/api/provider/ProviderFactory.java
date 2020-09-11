@@ -24,6 +24,8 @@ import org.gradle.api.credentials.Credentials;
 import org.gradle.api.credentials.PasswordCredentials;
 import org.gradle.api.file.FileContents;
 import org.gradle.api.file.RegularFile;
+import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.util.concurrent.Callable;
 import java.util.function.BiFunction;
@@ -38,6 +40,7 @@ import java.util.function.BiFunction;
  * @since 4.0
  */
 @NonExtensible
+@ServiceScope(Scopes.Build.class)
 public interface ProviderFactory {
 
     /**

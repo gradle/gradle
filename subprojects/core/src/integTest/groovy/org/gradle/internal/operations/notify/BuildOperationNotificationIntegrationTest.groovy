@@ -183,7 +183,7 @@ class BuildOperationNotificationIntegrationTest extends AbstractIntegrationSpec 
         notifications.op(EvaluateSettingsBuildOperationType.Details, [buildPath: ":a:buildSrc"]).parentId == notifications.op(LoadBuildBuildOperationType.Details, [buildPath: ":a:buildSrc"]).id
 
         notifications.op(ConfigureBuildBuildOperationType.Details, [buildPath: ":"]).parentId == notifications.op(RunBuildBuildOperationType.Details).id
-        notifications.op(ConfigureBuildBuildOperationType.Details, [buildPath: ":a"]).parentId == notifications.op(ConfigureBuildBuildOperationType.Details, [buildPath: ":"]).id
+        notifications.op(ConfigureBuildBuildOperationType.Details, [buildPath: ":a"]).parentId == notifications.op(RunBuildBuildOperationType.Details).id
         notifications.op(ConfigureBuildBuildOperationType.Details, [buildPath: ":buildSrc"]).parentId == notifications.op(BuildBuildSrcBuildOperationType.Details, [buildPath: ':']).id
         notifications.op(ConfigureBuildBuildOperationType.Details, [buildPath: ":a:buildSrc"]).parentId == notifications.op(BuildBuildSrcBuildOperationType.Details, [buildPath: ':a']).id
 

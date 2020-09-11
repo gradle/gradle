@@ -27,6 +27,8 @@ import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.util.Path
 import spock.lang.Specification
 
+import java.util.function.Consumer
+
 class LifecycleProjectEvaluatorTest extends Specification {
 
     private project = Mock(ProjectInternal)
@@ -55,7 +57,7 @@ class LifecycleProjectEvaluatorTest extends Specification {
             null
         }
         project.getMutationState() >> mutationState
-        mutationState.withMutableState(_) >> { args -> args[0].run() }
+        mutationState.applyToMutableState(_) >> { Consumer consumer -> consumer.accept(project) }
     }
 
     void "nothing happens if project was already configured"() {

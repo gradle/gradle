@@ -16,9 +16,6 @@
 
 package org.gradle.configurationcache.serialization.codecs
 
-import org.gradle.api.file.ArchiveOperations
-import org.gradle.api.file.FileSystemOperations
-import org.gradle.api.file.ProjectLayout
 import org.gradle.api.internal.artifacts.transform.ArtifactTransformActionScheme
 import org.gradle.api.internal.artifacts.transform.ArtifactTransformListener
 import org.gradle.api.internal.artifacts.transform.ArtifactTransformParameterScheme
@@ -30,18 +27,11 @@ import org.gradle.api.internal.file.FileLookup
 import org.gradle.api.internal.file.FileOperations
 import org.gradle.api.internal.file.FilePropertyFactory
 import org.gradle.api.internal.file.FileResolver
-import org.gradle.api.internal.file.TemporaryFileProvider
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
-import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.api.internal.provider.PropertyFactory
 import org.gradle.api.internal.provider.ValueSourceProviderFactory
-import org.gradle.api.model.ObjectFactory
-import org.gradle.api.provider.ProviderFactory
 import org.gradle.api.services.internal.BuildServiceRegistryInternal
 import org.gradle.api.tasks.util.PatternSet
-import org.gradle.api.tasks.util.internal.PatternSpecFactory
-import org.gradle.execution.plan.TaskNodeFactory
-import org.gradle.initialization.BuildRequestMetaData
 import org.gradle.configurationcache.problems.DocumentationSection.NotYetImplementedJavaSerialization
 import org.gradle.configurationcache.serialization.codecs.jos.JavaObjectSerializationCodec
 import org.gradle.configurationcache.serialization.codecs.transform.ChainedTransformationNodeCodec
@@ -54,18 +44,15 @@ import org.gradle.configurationcache.serialization.codecs.transform.Transformati
 import org.gradle.configurationcache.serialization.codecs.transform.TransformationNodeReferenceCodec
 import org.gradle.configurationcache.serialization.codecs.transform.TransformationStepCodec
 import org.gradle.configurationcache.serialization.codecs.transform.TransformedExternalArtifactSetCodec
-import org.gradle.configurationcache.serialization.ownerServiceCodec
 import org.gradle.configurationcache.serialization.reentrant
 import org.gradle.configurationcache.serialization.unsupported
+import org.gradle.execution.plan.TaskNodeFactory
 import org.gradle.internal.Factory
 import org.gradle.internal.event.ListenerManager
-import org.gradle.internal.execution.OutputChangeListener
 import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import org.gradle.internal.isolation.IsolatableFactory
-import org.gradle.internal.nativeintegration.filesystem.FileSystem
 import org.gradle.internal.operations.BuildOperationExecutor
-import org.gradle.internal.operations.BuildOperationListenerManager
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.serialize.BaseSerializerFactory.BIG_DECIMAL_SERIALIZER
 import org.gradle.internal.serialize.BaseSerializerFactory.BIG_INTEGER_SERIALIZER
@@ -83,11 +70,6 @@ import org.gradle.internal.serialize.BaseSerializerFactory.SHORT_SERIALIZER
 import org.gradle.internal.serialize.BaseSerializerFactory.STRING_SERIALIZER
 import org.gradle.internal.snapshot.ValueSnapshotter
 import org.gradle.internal.state.ManagedFactoryRegistry
-import org.gradle.jvm.toolchain.internal.JavaCompilerFactory
-import org.gradle.process.ExecOperations
-import org.gradle.process.internal.ExecActionFactory
-import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
-import org.gradle.workers.WorkerExecutor
 import java.io.Externalizable
 
 
@@ -100,7 +82,6 @@ class Codecs(
     fileResolver: FileResolver,
     instantiator: Instantiator,
     listenerManager: ListenerManager,
-    projectStateRegistry: ProjectStateRegistry,
     taskNodeFactory: TaskNodeFactory,
     fingerprinterRegistry: FileCollectionFingerprinterRegistry,
     buildOperationExecutor: BuildOperationExecutor,
@@ -117,7 +98,6 @@ class Codecs(
     valueSourceProviderFactory: ValueSourceProviderFactory,
     patternSetFactory: Factory<PatternSet>,
     fileOperations: FileOperations,
-    fileSystem: FileSystem,
     fileFactory: FileFactory
 ) {
 
@@ -135,7 +115,7 @@ class Codecs(
         bind(ListenerBroadcastCodec(listenerManager))
         bind(LoggerCodec)
 
-        fileCollectionTypes(directoryFileTreeFactory, fileCollectionFactory, fileOperations, fileSystem, fileFactory, patternSetFactory)
+        fileCollectionTypes(directoryFileTreeFactory, fileCollectionFactory, fileOperations, fileFactory, patternSetFactory)
 
         bind(ApiTextResourceAdapterCodec)
 
@@ -176,27 +156,6 @@ class Codecs(
         bind(BooleanValueSnapshotCodec)
         bind(NullValueSnapshotCodec)
 
-        bind(ownerServiceCodec<ProviderFactory>())
-        bind(ownerServiceCodec<ObjectFactory>())
-        bind(ownerServiceCodec<WorkerExecutor>())
-        bind(ownerServiceCodec<ProjectLayout>())
-        bind(ownerServiceCodec<PatternSpecFactory>())
-        bind(ownerServiceCodec<FileResolver>())
-        bind(ownerServiceCodec<Instantiator>())
-        bind(ownerServiceCodec<FileCollectionFactory>())
-        bind(ownerServiceCodec<FileSystemOperations>())
-        bind(ownerServiceCodec<FileOperations>())
-        bind(ownerServiceCodec<ArchiveOperations>())
-        bind(ownerServiceCodec<BuildOperationExecutor>())
-        bind(ownerServiceCodec<ToolingModelBuilderRegistry>())
-        bind(ownerServiceCodec<ExecOperations>())
-        bind(ownerServiceCodec<ExecActionFactory>())
-        bind(ownerServiceCodec<BuildOperationListenerManager>())
-        bind(ownerServiceCodec<BuildRequestMetaData>())
-        bind(ownerServiceCodec<ListenerManager>())
-        bind(ownerServiceCodec<TemporaryFileProvider>())
-        bind(ownerServiceCodec<OutputChangeListener>())
-        bind(ownerServiceCodec<JavaCompilerFactory>())
         bind(ServicesCodec())
 
         bind(ProxyCodec)
@@ -215,9 +174,9 @@ class Codecs(
         baseTypes()
 
         providerTypes(propertyFactory, filePropertyFactory, buildServiceRegistry, valueSourceProviderFactory)
-        fileCollectionTypes(directoryFileTreeFactory, fileCollectionFactory, fileOperations, fileSystem, fileFactory, patternSetFactory)
+        fileCollectionTypes(directoryFileTreeFactory, fileCollectionFactory, fileOperations, fileFactory, patternSetFactory)
 
-        bind(TaskNodeCodec(projectStateRegistry, userTypesCodec, taskNodeFactory))
+        bind(TaskNodeCodec(userTypesCodec, taskNodeFactory))
         bind(InitialTransformationNodeCodec(userTypesCodec, buildOperationExecutor, transformListener))
         bind(ChainedTransformationNodeCodec(userTypesCodec, buildOperationExecutor, transformListener))
         bind(IsolateTransformerParametersNodeCodec(userTypesCodec))
@@ -243,11 +202,11 @@ class Codecs(
     }
 
     private
-    fun BindingsBuilder.fileCollectionTypes(directoryFileTreeFactory: DirectoryFileTreeFactory, fileCollectionFactory: FileCollectionFactory, fileOperations: FileOperations, fileSystem: FileSystem, fileFactory: FileFactory, patternSetFactory: Factory<PatternSet>) {
+    fun BindingsBuilder.fileCollectionTypes(directoryFileTreeFactory: DirectoryFileTreeFactory, fileCollectionFactory: FileCollectionFactory, fileOperations: FileOperations, fileFactory: FileFactory, patternSetFactory: Factory<PatternSet>) {
         bind(DirectoryCodec(fileFactory))
         bind(RegularFileCodec(fileFactory))
         bind(ConfigurableFileTreeCodec(fileCollectionFactory))
-        bind(FileTreeCodec(fileCollectionFactory, directoryFileTreeFactory, fileOperations, fileSystem))
+        bind(FileTreeCodec(fileCollectionFactory, directoryFileTreeFactory, fileOperations))
         val fileCollectionCodec = FileCollectionCodec(fileCollectionFactory)
         bind(ConfigurableFileCollectionCodec(fileCollectionCodec, fileCollectionFactory))
         bind(fileCollectionCodec)

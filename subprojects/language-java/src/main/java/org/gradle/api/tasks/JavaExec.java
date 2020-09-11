@@ -32,7 +32,6 @@ import org.gradle.internal.jvm.DefaultModularitySpec;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.jvm.toolchain.JavaLauncher;
-import org.gradle.jvm.toolchain.internal.DefaultToolchainJavaLauncher;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.ExecResult;
 import org.gradle.process.JavaDebugOptions;
@@ -115,7 +114,7 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
     private final Property<String> mainClass;
     private final ModularitySpec modularity;
     private final Property<ExecResult> execResult;
-    private Property<JavaLauncher> javaLauncher;
+    private final Property<JavaLauncher> javaLauncher;
 
     public JavaExec() {
         ObjectFactory objectFactory = getObjectFactory();
@@ -125,7 +124,7 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
         execResult = objectFactory.property(ExecResult.class);
 
         javaExecSpec = objectFactory.newInstance(DefaultJavaExecSpec.class);
-        javaExecSpec.getMainClass().convention(getProviderFactory().provider(this::getMain)); // go through 'main' to keep this compatible with existing convention mappings
+        javaExecSpec.getMainClass().convention(getMainClass().orElse(getProviderFactory().provider(this::getMain))); // go through 'main' to keep this compatible with existing convention mappings
         javaExecSpec.getMainModule().convention(mainModule);
         javaExecSpec.getModularity().getInferModulePath().convention(modularity.getInferModulePath());
         javaLauncher = objectFactory.property(JavaLauncher.class);
@@ -753,7 +752,7 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
      * @since 6.7
      */
     @Incubating
-    @Internal // getJavaVersion() is used as @Input
+    @Internal("getJavaVersion() is used as @Input")
     public Property<JavaLauncher> getJavaLauncher() {
         return javaLauncher;
     }
@@ -761,7 +760,7 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
     @Nullable
     private String getEffectiveExecutable() {
         if (javaLauncher.isPresent()) {
-            return ((DefaultToolchainJavaLauncher) javaLauncher.get()).getExecutable();
+            return javaLauncher.get().getExecutablePath().toString();
         }
         final String executable = getExecutable();
         if (executable != null) {

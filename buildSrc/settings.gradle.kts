@@ -26,8 +26,6 @@ pluginManagement {
 
 apply(from = "../gradle/shared-with-buildSrc/mirrors.settings.gradle.kts")
 
-val upperCaseLetters = "\\p{Upper}".toRegex()
-
 rootProject.name = "buildSrc"
 
 // Platform: defines shared dependency versions
@@ -52,6 +50,7 @@ include("lifecycle")
 
 // Special purpose build logic for subproject - please preserve alphabetical order
 include("binary-compatibility")
+include("build-init-samples")
 include("buildquality")
 include("documentation")
 include("integration-testing")
@@ -65,9 +64,6 @@ include("publishing")
 
 for (project in rootProject.children) {
     project.projectDir = file("subprojects/${project.name}")
-    project.buildFileName = "${project.name}.gradle.kts"
-    assert(project.projectDir.isDirectory)
-    assert(project.buildFile.isFile)
 }
 
 fun remoteBuildCacheEnabled(settings: Settings) = settings.buildCache.remote?.isEnabled == true

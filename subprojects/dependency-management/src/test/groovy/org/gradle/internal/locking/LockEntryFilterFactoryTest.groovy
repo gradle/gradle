@@ -27,7 +27,7 @@ class LockEntryFilterFactoryTest extends Specification {
     @Unroll
     def "filters #filteredValues and accept #acceptedValues for filter with #filters"() {
         when:
-        def filter = LockEntryFilterFactory.forParameter(filters)
+        def filter = LockEntryFilterFactory.forParameter(filters, "Update lock", true)
 
         then:
         filteredValues.each {
@@ -61,7 +61,7 @@ class LockEntryFilterFactoryTest extends Specification {
     @Unroll
     def "fails for invalid filter #filters"() {
         when:
-        LockEntryFilterFactory.forParameter(filters)
+        LockEntryFilterFactory.forParameter(filters, "Update lock", true)
 
         then:
         thrown(IllegalArgumentException)

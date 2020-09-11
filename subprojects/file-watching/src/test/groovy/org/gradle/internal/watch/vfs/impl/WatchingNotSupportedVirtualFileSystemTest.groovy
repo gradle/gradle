@@ -21,6 +21,8 @@ import org.gradle.internal.snapshot.CaseSensitivity
 import org.gradle.internal.snapshot.SnapshotHierarchy
 import org.gradle.internal.vfs.impl.DefaultSnapshotHierarchy
 import org.gradle.internal.vfs.impl.VfsRootReference
+import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem.VfsLogging
+import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem.WatchLogging
 import spock.lang.Specification
 
 class WatchingNotSupportedVirtualFileSystemTest extends Specification {
@@ -34,13 +36,13 @@ class WatchingNotSupportedVirtualFileSystemTest extends Specification {
 
     def "invalidates the virtual file system before and after the build"() {
         when:
-        watchingNotSupportedHandler.afterBuildStarted(retentionEnabled, buildOperationRunner)
+        watchingNotSupportedHandler.afterBuildStarted(retentionEnabled, VfsLogging.NORMAL, WatchLogging.NORMAL, buildOperationRunner)
         then:
         rootReference.getRoot() == emptySnapshotHierarchy
 
         when:
         rootReference.update { root -> nonEmptySnapshotHierarchy }
-        watchingNotSupportedHandler.beforeBuildFinished(retentionEnabled, buildOperationRunner, Integer.MAX_VALUE)
+        watchingNotSupportedHandler.beforeBuildFinished(retentionEnabled, VfsLogging.NORMAL, WatchLogging.NORMAL, buildOperationRunner, Integer.MAX_VALUE)
         then:
         rootReference.getRoot() == emptySnapshotHierarchy
 

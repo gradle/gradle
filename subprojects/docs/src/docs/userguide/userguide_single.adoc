@@ -86,6 +86,14 @@ include::logging.adoc[leveloffset=+2]
 
 include::multi_project_builds.adoc[leveloffset=+2]
 
+include::sharing_build_logic_between_subprojects.adoc[leveloffset=+2]
+
+include::fine_tuning_project_layout.adoc[leveloffset=+2]
+
+include::declaring_dependencies_between_subprojects.adoc[leveloffset=+2]
+
+include::multi_project_configuration_and_execution.adoc[leveloffset=+2]
+
 include::organizing_gradle_projects.adoc[leveloffset=+2]
 
 include::authoring_maintainable_build_scripts.adoc[leveloffset=+2]

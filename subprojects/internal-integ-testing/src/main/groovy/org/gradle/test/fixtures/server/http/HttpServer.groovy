@@ -20,7 +20,6 @@ import com.google.gson.Gson
 import com.google.gson.JsonElement
 import groovy.xml.MarkupBuilder
 import org.gradle.api.credentials.PasswordCredentials
-import org.gradle.internal.BiAction
 import org.gradle.internal.credentials.DefaultPasswordCredentials
 import org.gradle.internal.hash.HashUtil
 import org.gradle.test.fixtures.server.ExpectOne
@@ -29,16 +28,16 @@ import org.gradle.test.fixtures.server.ServerWithExpectations
 import org.gradle.test.matchers.UserAgentMatcher
 import org.gradle.util.GFileUtils
 import org.hamcrest.Matcher
-import org.mortbay.io.EndPoint
-import org.mortbay.jetty.Handler
-import org.mortbay.jetty.HttpHeaders
-import org.mortbay.jetty.HttpStatus
-import org.mortbay.jetty.MimeTypes
-import org.mortbay.jetty.Request
-import org.mortbay.jetty.handler.AbstractHandler
+import org.eclipse.jetty.server.Handler
+import org.eclipse.jetty.http.HttpHeader
+import org.eclipse.jetty.http.HttpStatus
+import org.eclipse.jetty.http.MimeTypes
+import org.eclipse.jetty.server.Request
+import org.eclipse.jetty.server.handler.AbstractHandler
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
+import javax.servlet.ServletException
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 import java.util.concurrent.CountDownLatch
@@ -94,9 +93,10 @@ class HttpServer extends ServerWithExpectations implements HttpServerFixture {
     @Override
     Handler getCustomHandler() {
         return new AbstractHandler() {
-            void handle(String target, HttpServletRequest request, HttpServletResponse response, int dispatch) {
+            @Override
+            void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
                 String d = request.getQueryString()
-                if (request.handled) {
+                if (baseRequest.handled) {
                     return
                 }
                 onFailure(new AssertionError("Received unexpected ${request.method} request to ${target}."))
@@ -302,7 +302,7 @@ class HttpServer extends ServerWithExpectations implements HttpServerFixture {
     private Action broken() {
         new ActionSupport("return 500 broken") {
             void handle(HttpServletRequest request, HttpServletResponse response) {
-                response.sendError(500, "broken")
+                response.setStatus(500, "broken")
             }
         }
     }
@@ -387,7 +387,7 @@ class HttpServer extends ServerWithExpectations implements HttpServerFixture {
                 def file = srcFile
                 if (file.isFile()) {
                     response.setHeader("Content-Encoding", "gzip")
-                    response.setDateHeader(HttpHeaders.LAST_MODIFIED, srcFile.lastModified())
+                    response.setDateHeader(HttpHeader.LAST_MODIFIED.asString(), srcFile.lastModified())
                     def stream = new GZIPOutputStream(response.outputStream)
                     stream.write(file.bytes)
                     stream.close()
@@ -470,7 +470,7 @@ class HttpServer extends ServerWithExpectations implements HttpServerFixture {
 
     private sendFile(HttpServletResponse response, File file, Long lastModified, Long contentLength, String contentType) {
         if (sendLastModified) {
-            response.setDateHeader(HttpHeaders.LAST_MODIFIED, lastModified ?: file.lastModified())
+            response.setDateHeader(HttpHeader.LAST_MODIFIED.asString(), lastModified ?: file.lastModified())
         }
         def content = file.bytes
 
@@ -501,7 +501,7 @@ class HttpServer extends ServerWithExpectations implements HttpServerFixture {
             }
 
             if (value != null) {
-                response.addHeader(HttpHeaders.ETAG, value)
+                response.addHeader(HttpHeader.ETAG.asString(), value)
             }
         }
     }
@@ -528,7 +528,7 @@ class HttpServer extends ServerWithExpectations implements HttpServerFixture {
     /**
      * Expects one PUT request for the given URL. Writes the request content to the given file.
      */
-    void expectPut(String path, File destFile, int statusCode = HttpStatus.ORDINAL_200_OK, PasswordCredentials credentials = null, long expectedContentLength = -1) {
+    void expectPut(String path, File destFile, int statusCode = HttpStatus.OK_200, PasswordCredentials credentials = null, long expectedContentLength = -1) {
         def action = new ActionSupport("write request to $destFile.name (content length: $expectedContentLength) and return status $statusCode") {
             void handle(HttpServletRequest request, HttpServletResponse response) {
                 if (HttpServer.this.expectedUserAgent != null) {
@@ -654,7 +654,8 @@ class HttpServer extends ServerWithExpectations implements HttpServerFixture {
         HttpExpectOne expectation = new HttpExpectOne(action, methods, path)
         expectations << expectation
         add(path, matchPrefix, methods, new AbstractHandler() {
-            void handle(String target, HttpServletRequest request, HttpServletResponse response, int dispatch) {
+            @Override
+            void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
                 if (expectation.atomicRun.getAndSet(true)) {
                     return
                 }
@@ -690,7 +691,8 @@ class HttpServer extends ServerWithExpectations implements HttpServerFixture {
 
     protected void allow(String path, boolean matchPrefix, Collection<String> methods, Action action) {
         add(path, matchPrefix, methods, new AbstractHandler() {
-            void handle(String target, HttpServletRequest request, HttpServletResponse response, int dispatch) {
+            @Override
+            void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
                 action.handle(request, response)
                 request.handled = true
             }
@@ -701,13 +703,14 @@ class HttpServer extends ServerWithExpectations implements HttpServerFixture {
         assert path.startsWith('/')
         def prefix = path == '/' ? '/' : path + '/'
         collection.addHandler(new AbstractHandler() {
-            void handle(String target, HttpServletRequest request, HttpServletResponse response, int dispatch) {
+            @Override
+            void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
                 if (methods != null && !methods.contains(request.method)) {
                     return
                 }
                 boolean match = request.pathInfo == path || (matchPrefix && request.pathInfo.startsWith(prefix))
                 if (match && !request.handled) {
-                    handler.handle(target, request, response, dispatch)
+                    handler.handle(target, baseRequest, request, response)
                 }
             }
         })
@@ -721,11 +724,8 @@ class HttpServer extends ServerWithExpectations implements HttpServerFixture {
      * Blocks on SSL handshake for 60 seconds.
      */
     void expectSslHandshakeBlocking() {
-        sslPreHandler = new BiAction<EndPoint, Request>() {
-            @Override
-            void execute(EndPoint endPoint, Request request) {
-                Thread.sleep(TimeUnit.SECONDS.toMillis(60))
-            }
+        sslPreHandler {
+            Thread.sleep(TimeUnit.SECONDS.toMillis(60))
         }
     }
 
