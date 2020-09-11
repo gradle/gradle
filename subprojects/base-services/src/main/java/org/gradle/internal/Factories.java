@@ -18,7 +18,12 @@ package org.gradle.internal;
 import java.lang.ref.SoftReference;
 import java.util.concurrent.atomic.AtomicReference;
 
-public abstract class Factories {
+public final class Factories {
+
+    private Factories() {
+        /* no-op */
+    }
+
     public static <T> Factory<T> toFactory(final Runnable runnable) {
         return new Factory<T>() {
             @Override
