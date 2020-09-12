@@ -33,7 +33,7 @@ public class TestCountLogger implements TestListener {
     private long totalTests;
     private long failedTests;
     private long skippedTests;
-    private boolean hadFailures;
+    private TestResult rootSuiteResult;
 
     public TestCountLogger(ProgressLoggerFactory factory) {
         this(factory, LoggerFactory.getLogger(TestCountLogger.class));
@@ -95,18 +95,15 @@ public class TestCountLogger implements TestListener {
     @Override
     public void afterSuite(TestDescriptor suite, TestResult result) {
         if (suite.getParent() == null) {
+            rootSuiteResult = result;
             if (failedTests > 0) {
                 logger.error(TextUtil.getPlatformLineSeparator() + summary());
             }
             progressLogger.completed();
-
-            if (result.getResultType() == TestResult.ResultType.FAILURE) {
-                hadFailures = true;
-            }
         }
     }
 
-    public boolean hadFailures() {
-        return hadFailures;
+    public TestResult getRootSuiteResult() {
+        return rootSuiteResult;
     }
 }
