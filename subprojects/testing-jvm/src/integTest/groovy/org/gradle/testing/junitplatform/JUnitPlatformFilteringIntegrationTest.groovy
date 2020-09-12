@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,49 @@ package org.gradle.testing.junitplatform
 
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 
-class JUnitPlatformNestedPatternMatchingIntegrationTest extends JUnitPlatformIntegrationSpec {
+class JUnitPlatformFilteringIntegrationTest extends JUnitPlatformIntegrationSpec {
+
+    def 'can filter nested tests'() {
+        given:
+        file('src/test/java/org/gradle/NestedTest.java') << '''
+package org.gradle;
+import static org.junit.jupiter.api.Assertions.*;
+
+import java.util.EmptyStackException;
+import java.util.Stack;
+
+import org.junit.jupiter.api.*;
+
+class NestedTest {
+    @Test
+    void outerTest() {
+    }
+
+    @Nested
+    class Inner {
+        @Test
+        void innerTest() {
+        }
+    }
+}
+'''
+        buildFile << '''
+test {
+    filter {
+        includeTestsMatching "*innerTest*"
+    }
+}
+'''
+        when:
+        succeeds('test')
+
+        then:
+        new DefaultTestExecutionResult(testDirectory)
+            .assertTestClassesExecuted('org.gradle.NestedTest$Inner')
+            .testClass('org.gradle.NestedTest$Inner').assertTestCount(1, 0, 0)
+            .assertTestPassed('innerTest()')
+    }
+
     def 'can use nested class as test pattern'() {
         given:
         file('src/test/java/EnclosingClass.java') << '''
@@ -57,4 +99,5 @@ class EnclosingClass {
             .assertTestCount(1, 0, 0)
             .assertTestPassed('nestedTest')
     }
+
 }
