@@ -79,6 +79,30 @@ class JavaCompileToolchainIntegrationTest extends AbstractPluginIntegrationTest 
         javaClassFile("Foo.class").exists()
     }
 
+    @ToBeFixedForConfigurationCache(because = "Creates a second exception")
+    def 'fails when requesting not available toolchain'() {
+        buildFile << """
+            apply plugin: 'java'
+
+            java {
+                toolchain {
+                    languageVersion = JavaLanguageVersion.of(99)
+                }
+            }
+"""
+
+        file("src/main/java/Foo.java") << "public class Foo {}"
+
+        when:
+        failure = executer
+            .withArgument("-Porg.gradle.java.installations.auto-download=false")
+            .withTasks("compileJava")
+            .runWithFailure()
+
+        then:
+        failureHasCause('No compatible toolchains found for request filter: {languageVersion=99} (auto-detect true, auto-download false)')
+    }
+
     @Requires(adhoc = { AvailableJavaHomes.getJdk(JavaVersion.VERSION_1_7) != null })
     def "can use toolchains to compile java 1.7 code"() {
         def java7jdk = AvailableJavaHomes.getJdk(JavaVersion.VERSION_1_7)
