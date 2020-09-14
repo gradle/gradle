@@ -54,6 +54,7 @@ import org.gradle.plugins.ide.idea.IdeaPlugin
 import org.gradle.plugins.ide.idea.model.IdeaModel
 import org.w3c.dom.Document
 import java.io.File
+import java.nio.charset.StandardCharsets
 import javax.xml.parsers.DocumentBuilderFactory
 import kotlin.reflect.KClass
 
@@ -245,6 +246,10 @@ class PerformanceTestPlugin : Plugin<Project> {
             outputs.doNotCacheIf("Is adhoc performance test") { true }
         }
 
+        val shouldLoadScenariosFromFile = project.providers.gradleProperty("includePerformanceTestScenarios")
+            .forUseAtConfigurationTime()
+            .getOrElse("false") == "true"
+
         configureSampleGenerators {
             all {
                 val sampleGenerator = this
@@ -259,10 +264,19 @@ class PerformanceTestPlugin : Plugin<Project> {
                     performanceReporter = createPerformanceReporter()
                     channel = "commits$channelSuffix"
                     setTestProjectGenerationTask(sampleGenerator)
+
+                    if (shouldLoadScenariosFromFile) {
+                        scenarios = loadScenariosFromFile(sampleGenerator.name).joinToString(";")
+                    }
                 }
             }
         }
     }
+
+    private
+    fun Project.loadScenariosFromFile(testProject: String) =
+        project.rootProject.file("include-performance-test-splits/$testProject-performance-scenarios.csv").readLines(StandardCharsets.UTF_8)
+            .map { it.split(";")[1] }
 
     private
     fun Project.createDistributedPerformanceTestTasks(performanceSourceSet: SourceSet) {
