@@ -263,6 +263,11 @@ Defines the minimum JVM version your code should run on, i.e. it determines the 
 
 These options can be set per link:{groovyDslPath}/org.gradle.api.tasks.compile.JavaCompile.html[JavaCompile] task, or on the `java { }` extension for all compile tasks, using properties with the same names.
 
+[NOTE]
+====
+Using a toolchain makes it illegal to configure the `sourceCompatibility` or `targetCompatibility` at the `java { }` extension level.
+====
+
 However, these options do not protect against the use of APIs introduced in later Java versions.
 
 ==== Compiling and testing Java 6/7
