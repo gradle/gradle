@@ -122,10 +122,6 @@ Select test framework:
 Enter selection (default: JUnit 4) [1..4]
 """ else ""
         val packageNameChoice = if (descriptor.supportsPackage()) "Source package (default: demo):\n" else ""
-        val furtherReading = if (descriptor.getFurtherReading(settings).isPresent) """
-            > Task :init
-            ${descriptor.getFurtherReading(settings).get()}
-            """.trimIndent() else ""
         val toolChain = when {
             descriptor.language === Language.SWIFT -> {
                 "* An installed Swift compiler. See which link:{userManualPath}/building_swift_projects.html#sec:swift_supported_tool_chain[Swift tool chains] are supported by Gradle."
@@ -152,7 +148,6 @@ Enter selection (default: JUnit 4) [1..4]
             .withBinding("componentType", descriptor.componentType.name.toLowerCase())
             .withBinding("componentTypeIndex", "" + (descriptor.componentType.ordinal + 1))
             .withBinding("packageNameChoice", packageNameChoice)
-            .withBinding("furtherReading", furtherReading)
             .withBinding("subprojectName", settings.subprojects.first())
             .withBinding("toolChain", toolChain)
             .withBinding("exampleClass", exampleClass)
