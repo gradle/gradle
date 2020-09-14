@@ -16,17 +16,17 @@
 
 package org.gradle.api.plugins.antlr.internal
 
-import org.gradle.api.file.FileCollection
+import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.plugins.antlr.AntlrTask
 import spock.lang.Specification
 
 class AntlrSpecFactoryTest extends Specification {
 
     private AntlrSpecFactory factory = new AntlrSpecFactory()
-    private FileCollection sourceSetDirectories = Mock()
+    private SourceDirectorySet sourceDirectorySet = Mock()
 
     def setup(){
-        1 * sourceSetDirectories.getFiles() >> []
+        1 * sourceDirectorySet.getSrcDirs() >> []
     }
     def tracePropertiesAddedToArgumentList() {
         when:
@@ -39,7 +39,7 @@ class AntlrSpecFactoryTest extends Specification {
         _ * task.isTraceParser() >> true
         _ * task.isTraceTreeWalker() >> true
 
-        def spec = factory.create(task, [] as Set, sourceSetDirectories)
+        def spec = factory.create(task, [] as Set, sourceDirectorySet)
 
         then:
         spec.arguments.contains("-trace")
@@ -54,7 +54,7 @@ class AntlrSpecFactoryTest extends Specification {
         _ * task.outputDirectory >> destFile()
         _ * task.getArguments() >> ["-trace", "-traceLexer", "-traceParser", "-traceTreeWalker"]
 
-        def spec = factory.create(task, [] as Set, sourceSetDirectories)
+        def spec = factory.create(task, [] as Set, sourceDirectorySet)
 
         then:
         spec.arguments.contains("-trace")
@@ -73,7 +73,7 @@ class AntlrSpecFactoryTest extends Specification {
         _ * task.isTraceParser() >> true
         _ * task.isTraceTreeWalker() >> true
 
-        def spec = factory.create(task, [] as Set, sourceSetDirectories)
+        def spec = factory.create(task, [] as Set, sourceDirectorySet)
 
         then:
         spec.arguments.count { it == "-trace" } == 1
