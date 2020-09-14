@@ -200,12 +200,6 @@ fun configureTests() {
 
         maxParallelForks = project.maxParallelForks
 
-        if (!BuildEnvironment.isIntelliJIDEA) {
-            // JUnit 5 Vintage engine can't recognize Spock @Unroll test method correctly
-            // So if running an @Unroll method in IDEA with include pattern "SomeClass.methodName"
-            // The result will be incorrect. In this case we fallback to JUnit
-            useJUnitPlatform()
-        }
         configureJvmForTest()
         addOsAsInputs()
 
