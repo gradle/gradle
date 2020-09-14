@@ -20,13 +20,15 @@ package org.gradle.testing.junit
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.testing.fixture.JUnitMultiVersionIntegrationSpec
+import org.gradle.util.VersionNumber
 
 import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_VINTAGE
 import static org.gradle.testing.fixture.JUnitCoverage.LARGE_COVERAGE
 
-@TargetCoverage({ LARGE_COVERAGE + JUNIT_VINTAGE})
+@TargetCoverage({ LARGE_COVERAGE + JUNIT_VINTAGE })
 class JUnitClassLevelFilteringIntegrationTest extends JUnitMultiVersionIntegrationSpec {
     def "runs all tests for class instead of method when runner is not filterable"() {
+        given:
         buildFile << """
             apply plugin: 'java'
             ${mavenCentralRepository()}
@@ -68,23 +70,42 @@ class JUnitClassLevelFilteringIntegrationTest extends JUnitMultiVersionIntegrati
         """
 
         when:
-        run("test", "--tests", "FooTest.pass")
+        succeeds("test", "--tests", "FooTest.pass")
 
         then:
-        def result = new DefaultTestExecutionResult(testDirectory)
-        result.assertTestClassesExecuted("FooTest")
-        result.testClass("FooTest").assertTestsExecuted("other", "pass")
+        testResult()
+            .assertTestClassesExecuted("FooTest")
+            .testClass("FooTest").assertTestsExecuted("other", "pass")
 
         when:
-        fails("test", "--tests", "FooTest.ignored")
+        def runsEntireTestClassOnMismatch = vintage && vintageEngineSupportsMethodSelectorsForSpockMethods(dependencyVersion)
+        if (runsEntireTestClassOnMismatch) {
+            succeeds("test", "--tests", "FooTest.ignored")
+        } else {
+            fails("test", "--tests", "FooTest.ignored")
+        }
 
         then:
-        failure.assertHasCause("No tests found for given includes: [FooTest.ignored]")
+        if (runsEntireTestClassOnMismatch) {
+            testResult()
+                .assertTestClassesExecuted("FooTest")
+                .testClass("FooTest").assertTestsExecuted("other", "pass")
+        } else {
+            failure.assertHasCause("No tests found for given includes: [FooTest.ignored]")
+        }
 
         when:
         fails("test", "--tests", "NotFooTest.pass")
 
         then:
         failure.assertHasCause("No tests found for given includes: [NotFooTest.pass]")
+    }
+
+    private DefaultTestExecutionResult testResult() {
+        new DefaultTestExecutionResult(testDirectory)
+    }
+
+    private static boolean vintageEngineSupportsMethodSelectorsForSpockMethods(String version) {
+        VersionNumber.parse(version).baseVersion >= VersionNumber.parse("5.7.0")
     }
 }
