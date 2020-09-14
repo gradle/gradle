@@ -2,7 +2,7 @@ package projects
 
 import Gradle_Check.configurations.FunctionalTestsPass
 import Gradle_Check.configurations.PerformanceTestsPass
-import Gradle_Check.model.GradleBuildBucketProvider
+import Gradle_Check.model.FunctionalTestBucketProvider
 import Gradle_Check.model.PerformanceTestBucketProvider
 import common.Os
 import configurations.FunctionalTest
@@ -20,7 +20,7 @@ import model.Stage
 import model.StageNames
 import model.TestType
 
-class StageProject(model: CIBuildModel, gradleBuildBucketProvider: GradleBuildBucketProvider, performanceTestBucketProvider: PerformanceTestBucketProvider, stage: Stage, rootProjectUuid: String) : Project({
+class StageProject(model: CIBuildModel, functionalTestBucketProvider: FunctionalTestBucketProvider, performanceTestBucketProvider: PerformanceTestBucketProvider, stage: Stage, rootProjectUuid: String) : Project({
     this.uuid = "${model.projectPrefix}Stage_${stage.stageName.uuid}"
     this.id = AbsoluteId("${model.projectPrefix}Stage_${stage.stageName.id}")
     this.name = stage.stageName.stageName
@@ -64,7 +64,7 @@ class StageProject(model: CIBuildModel, gradleBuildBucketProvider: GradleBuildBu
 
         val functionalTestProjects = allCoverage
             .map { testCoverage ->
-                val functionalTestProject = FunctionalTestProject(model, gradleBuildBucketProvider, testCoverage, stage)
+                val functionalTestProject = FunctionalTestProject(model, functionalTestBucketProvider, testCoverage, stage)
                 if (stage.functionalTestsDependOnSpecificBuilds) {
                     specificBuildTypes.forEach { specificBuildType ->
                         functionalTestProject.addDependencyForAllBuildTypes(specificBuildType)
@@ -81,7 +81,7 @@ class StageProject(model: CIBuildModel, gradleBuildBucketProvider: GradleBuildBu
             this@StageProject.buildType(FunctionalTestsPass(model, functionalTestProject))
         }
 
-        val deferredTestsForThisStage = gradleBuildBucketProvider.createDeferredFunctionalTestsFor(stage)
+        val deferredTestsForThisStage = functionalTestBucketProvider.createDeferredFunctionalTestsFor(stage)
         if (deferredTestsForThisStage.isNotEmpty()) {
             val deferredTestsProject = Project {
                 uuid = "${rootProjectUuid}_deferred_tests"

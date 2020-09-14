@@ -154,7 +154,8 @@ class TestProjectTime(val testProject: String, val scenarioTimes: List<Performan
         }
     }
 
-    override fun toString(): String {
+    override
+    fun toString(): String {
         return "TestProjectScenarioTime(testProject=$testProject, totalTime=$totalTime)"
     }
 }
@@ -162,7 +163,8 @@ class TestProjectTime(val testProject: String, val scenarioTimes: List<Performan
 data class Scenario(val className: String, val scenario: String)
 
 class SingleTestProjectBucket(val testProject: String, val scenarios: List<Scenario>) : PerformanceTestBucket {
-    override fun createPerformanceTestsFor(model: CIBuildModel, stage: Stage, performanceTestCoverage: PerformanceTestCoverage, bucketIndex: Int): PerformanceTest {
+    override
+    fun createPerformanceTestsFor(model: CIBuildModel, stage: Stage, performanceTestCoverage: PerformanceTestCoverage, bucketIndex: Int): PerformanceTest {
         val uuid = getUuid(model, performanceTestCoverage, bucketIndex)
         return PerformanceTest(
             model,
@@ -180,7 +182,8 @@ class SingleTestProjectBucket(val testProject: String, val scenarios: List<Scena
 }
 
 class MultipleTestProjectBucket(val testProjects: List<TestProjectTime>) : PerformanceTestBucket {
-    override fun createPerformanceTestsFor(model: CIBuildModel, stage: Stage, performanceTestCoverage: PerformanceTestCoverage, bucketIndex: Int): PerformanceTest {
+    override
+    fun createPerformanceTestsFor(model: CIBuildModel, stage: Stage, performanceTestCoverage: PerformanceTestCoverage, bucketIndex: Int): PerformanceTest {
         val uuid = getUuid(model, performanceTestCoverage, bucketIndex)
         return PerformanceTest(
             model,
@@ -202,7 +205,8 @@ class MultipleTestProjectBucket(val testProjects: List<TestProjectTime>) : Perfo
 }
 
 class EmptyTestProjectBucket(private val index: Int) : PerformanceTestBucket {
-    override fun createPerformanceTestsFor(model: CIBuildModel, stage: Stage, performanceTestCoverage: PerformanceTestCoverage, bucketIndex: Int): PerformanceTest {
+    override
+    fun createPerformanceTestsFor(model: CIBuildModel, stage: Stage, performanceTestCoverage: PerformanceTestCoverage, bucketIndex: Int): PerformanceTest {
         val uuid = getUuid(model, performanceTestCoverage, bucketIndex)
         return PerformanceTest(
             model,
@@ -218,7 +222,8 @@ class EmptyTestProjectBucket(private val index: Int) : PerformanceTestBucket {
 }
 
 class TestProjectSplitBucket(val testProject: String, val number: Int, val scenarios: List<PerformanceTestTime>) : PerformanceTestBucket {
-    override fun createPerformanceTestsFor(model: CIBuildModel, stage: Stage, performanceTestCoverage: PerformanceTestCoverage, bucketIndex: Int): PerformanceTest {
+    override
+    fun createPerformanceTestsFor(model: CIBuildModel, stage: Stage, performanceTestCoverage: PerformanceTestCoverage, bucketIndex: Int): PerformanceTest {
         val uuid = getUuid(model, performanceTestCoverage, bucketIndex)
         return PerformanceTest(
             model,
@@ -235,7 +240,8 @@ class TestProjectSplitBucket(val testProject: String, val number: Int, val scena
     }
 }
 
-private fun prepareScenariosStep(testProject: String, scenarios: List<Scenario>, os: Os): BuildSteps.() -> Unit {
+private
+fun prepareScenariosStep(testProject: String, scenarios: List<Scenario>, os: Os): BuildSteps.() -> Unit {
     val csvLines = scenarios.map { "${it.className};${it.scenario}" }
     val action = "include"
     val fileNamePostfix = "$testProject-performance-scenarios.csv"

@@ -1,6 +1,6 @@
 package projects
 
-import Gradle_Check.model.GradleBuildBucketProvider
+import Gradle_Check.model.FunctionalTestBucketProvider
 import Gradle_Check.model.StatisticsBasedPerformanceTestBucketProvider
 import common.failedTestArtifactDestination
 import configurations.StagePasses
@@ -12,7 +12,7 @@ import model.CIBuildModel
 import model.Stage
 import java.io.File
 
-class RootProject(model: CIBuildModel, gradleBuildBucketProvider: GradleBuildBucketProvider) : Project({
+class RootProject(model: CIBuildModel, functionalTestBucketProvider: FunctionalTestBucketProvider) : Project({
     uuid = model.projectPrefix.removeSuffix("_")
     id = AbsoluteId(uuid)
     parentId = AbsoluteId("Gradle")
@@ -37,7 +37,7 @@ class RootProject(model: CIBuildModel, gradleBuildBucketProvider: GradleBuildBuc
 
     var prevStage: Stage? = null
     model.stages.forEach { stage ->
-        val stageProject = StageProject(model, gradleBuildBucketProvider, performanceTestBucketProvider, stage, uuid)
+        val stageProject = StageProject(model, functionalTestBucketProvider, performanceTestBucketProvider, stage, uuid)
         val stagePasses = StagePasses(model, stage, prevStage, stageProject)
         buildType(stagePasses)
         subProject(stageProject)
