@@ -38,7 +38,7 @@ link:../samples/index.html#kotlin[Kotlin]
 
 == Introduction
 
-The simplest build script for a Java project applies the <<java_library_plugin.adoc#,Java Library Plugin>> and optionally sets the project version and Java compatibility versions:
+The simplest build script for a Java project applies the <<java_library_plugin.adoc#,Java Library Plugin>> and optionally sets the project version and select the <<toolchains.adoc#,Java toolchain>> to use:
 
 .Applying the Java Library Plugin
 ====
@@ -58,7 +58,10 @@ This isn't sufficient to build any non-trivial Java project — at the very leas
 
 [NOTE]
 ====
-Although the properties in the example are optional, we recommend that you specify them in your projects. The compatibility options mitigate against problems with the project being built with different Java compiler versions, and the version string is important for tracking the progression of the project. The project version is also used in archive names by default.
+Although the properties in the example are optional, we recommend that you specify them in your projects.
+The toolchain options protects against problems with the project being built with different Java versions.
+The version string is important for tracking the progression of the project.
+The project version is also used in archive names by default.
 ====
 
 The Java Library Plugin also integrates the above tasks into the standard <<base_plugin.adoc#sec:base_tasks,Base Plugin lifecycle tasks>>:
@@ -237,6 +240,8 @@ That's also how you can change the verbosity of the compiler, disable debug outp
 === Targeting a specific Java version
 
 By default, Gradle will compile Java code to the language level of the JVM running Gradle.
+With the usage of <<toolchains.adoc#,Java toolchains>>, you can break that link by making sure a given Java version, defined by the build, is used for compilation, execution and documentation.
+Sometimes however, what you need requires more advanced options.
 
 Since version 9, the Java compiler can be configured to produce bytecode for an older Java version while making sure the code does not use any APIs from a more recent version.
 Gradle now supports this link:{groovyDslPath}/org.gradle.api.tasks.compile.CompileOptions.html#org.gradle.api.tasks.compile.CompileOptions:release[release] flag on `CompileOptions` directly for Java compilation.
@@ -258,12 +263,13 @@ Defines the minimum JVM version your code should run on, i.e. it determines the 
 
 These options can be set per link:{groovyDslPath}/org.gradle.api.tasks.compile.JavaCompile.html[JavaCompile] task, or on the `java { }` extension for all compile tasks, using properties with the same names.
 
-However these options do not protect against the use of APIs introduced in later Java versions.
+However, these options do not protect against the use of APIs introduced in later Java versions.
 
 ==== Compiling and testing Java 6/7
 
 Gradle can only run on Java version 8 or higher.
-Gradle still supports compiling, testing, generating Javadoc and executing applications for Java 6 and Java 7. Java 5 is not supported.
+Gradle still supports compiling, testing, generating Javadoc and executing applications for Java 6 and Java 7.
+Java 5 and below are not supported.
 
 [NOTE]
 ====
@@ -276,19 +282,18 @@ To use Java 6 or Java 7, the following tasks need to be configured:
 * `Javadoc` task to use the correct `javadoc` executable
 * `Test` and the `JavaExec` task to use the correct `java` executable.
 
-The following sample shows how the `build.gradle` needs to be adjusted. In order to be able to make the build machine-independent, the location of the old Java home and target version should be configured in `GRADLE_USER_HOME/gradle.properties` footnote:[For more details on `gradle.properties` see <<build_environment.adoc#sec:gradle_configuration_properties,Gradle configuration properties>> ] in the user's home directory on each developer machine, as shown in the example.
+With the usage of Java toolchains, this is now a trivial thing to do:
 
 ==== Example: Configure Java 7 build
-[source,properties]
-.gradle.properties
-----
-include::{snippetsPath}/java/crossCompilation/groovy/gradle.properties[]
-----
 
 ====
 include::sample[dir="snippets/java/crossCompilation/groovy",files="build.gradle[tags=java-cross-compilation]"]
 include::sample[dir="snippets/java/crossCompilation/kotlin",files="build.gradle.kts[tags=java-cross-compilation]"]
 ====
+
+The only requirement is to have <<toolchains.adoc#sec:auto_detection,Java 7 installed and Gradle aware of it>>.
+
+You can take a look at what you needed to do with previous Gradle versions https://docs.gradle.org/6.6.1/userguide/building_java_projects.html#compiling_and_testing_java_67[here].
 
 [[sec:custom_java_source_sets]]
 === Compiling independent sources separately
