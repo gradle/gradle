@@ -97,7 +97,7 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
         this.experimentRunner = experimentRunner
         this.releases = releases
         this.buildContext = buildContext
-        loadConfiguredTestProject()
+        this.testProject = loadConfiguredTestProject()
     }
 
     void addBuildMutator(Function<InvocationSettings, BuildMutator> buildMutator) {
@@ -108,11 +108,9 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
         return measuredBuildOperations
     }
 
-    void loadConfiguredTestProject() {
+    static String loadConfiguredTestProject() {
         def testProjectFromSystemProperty = System.getProperty(TEST_PROJECT_PROPERTY_NAME)
-        if (testProjectFromSystemProperty != null && !testProjectFromSystemProperty.empty) {
-            testProject = testProjectFromSystemProperty
-        }
+        return (testProjectFromSystemProperty != null && !testProjectFromSystemProperty.empty) ? testProjectFromSystemProperty : null
     }
 
     CrossVersionPerformanceResults run() {
