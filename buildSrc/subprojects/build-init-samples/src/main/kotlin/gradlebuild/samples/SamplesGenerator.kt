@@ -108,8 +108,8 @@ object SamplesGenerator {
                 testSourceFile = "demo/" + exampleClass + testFileSuffix + "." + descriptor.language.extension
                 sourceFileTree = """        │       └── demo
         │           └── $exampleClass.${descriptor.language.extension}"""
-                testSourceFileTree = """        │       └── demo
-        │           └── $exampleClass$testFileSuffix.${descriptor.language.extension}"""
+                testSourceFileTree = """                └── demo
+                    └── $exampleClass$testFileSuffix.${descriptor.language.extension}"""
             }
         }
         val buildFileComments = comments.values.first().stream().map { c: String -> "<" + (comments.values.first().indexOf(c) + 1) + "> " + c }.collect(Collectors.joining("\n"))

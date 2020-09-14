@@ -105,8 +105,6 @@ ${testSourceFileTree.raw}
     ├── build.gradle.kts // <4>
     └── src
         ├── main
-        │   └── java // <5>
-        ├── main
         │   └── ${languageLC.raw} // <5>
 ${sourceFileTree.raw}
         └── test
