@@ -60,8 +60,8 @@ class PerformanceTest(model: CIBuildModel, type: PerformanceTestType, stage: Sta
                 gradleParams = (
                     performanceTestCommandLine(
                         "clean ${performanceTestTaskNames.joinToString(" ")}",
-                        "%baselines%",
-                        """--channel %channel%$extraParameters""",
+                        "%performance.baselines%",
+                        extraParameters,
                         os
                     ) +
                         buildToolGradleParameters(isContinue = false, os = os) +
