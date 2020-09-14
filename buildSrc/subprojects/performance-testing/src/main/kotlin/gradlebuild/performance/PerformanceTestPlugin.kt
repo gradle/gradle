@@ -267,6 +267,9 @@ class PerformanceTestPlugin : Plugin<Project> {
 
                     if (shouldLoadScenariosFromFile) {
                         scenarios = loadScenariosFromFile(sampleGenerator.name).joinToString(";")
+                        doFirst {
+                            assert(scenarios.isNotEmpty()) { "Running $name requires to set some scenarios" }
+                        }
                     }
                 }
             }
@@ -274,9 +277,13 @@ class PerformanceTestPlugin : Plugin<Project> {
     }
 
     private
-    fun Project.loadScenariosFromFile(testProject: String) =
-        project.rootProject.file("include-performance-test-splits/$testProject-performance-scenarios.csv").readLines(StandardCharsets.UTF_8)
-            .map { it.split(";")[1] }
+    fun Project.loadScenariosFromFile(testProject: String): List<String> {
+        val scenarioFile = project.rootProject.file("performance-test-splits/include-$testProject-performance-scenarios.csv")
+        return if (scenarioFile.isFile)
+            scenarioFile.readLines(StandardCharsets.UTF_8)
+                .map { it.split(";")[1] }
+        else listOf()
+    }
 
     private
     fun Project.createDistributedPerformanceTestTasks(performanceSourceSet: SourceSet) {
