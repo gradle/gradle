@@ -245,29 +245,30 @@ fun prepareScenariosStep(testProject: String, scenarios: List<Scenario>, os: Os)
     val csvLines = scenarios.map { "${it.className};${it.scenario}" }
     val action = "include"
     val fileNamePostfix = "$testProject-performance-scenarios.csv"
+    val performanceTestSplitDirectoryName = "performance-test-splits"
     val unixScript = """
-mkdir -p build
-rm -rf build/*-$fileNamePostfix
-cat > build/$action-$fileNamePostfix << EOL
+mkdir -p $performanceTestSplitDirectoryName
+rm -rf $performanceTestSplitDirectoryName/*-$fileNamePostfix
+cat > $performanceTestSplitDirectoryName/$action-$fileNamePostfix << EOL
 ${csvLines.joinToString("\n")}
 EOL
 
 echo "Performance tests to be ${action}d in this build"
-cat build/$action-$fileNamePostfix
+cat $performanceTestSplitDirectoryName/$action-$fileNamePostfix
 """
 
     val linesWithEcho = csvLines.joinToString("\n") { "echo $it" }
 
     val windowsScript = """
-mkdir build
-del /f /q build\include-$fileNamePostfix
-del /f /q build\exclude-$fileNamePostfix
+mkdir $performanceTestSplitDirectoryName
+del /f /q $performanceTestSplitDirectoryName\include-$fileNamePostfix
+del /f /q $performanceTestSplitDirectoryName\exclude-$fileNamePostfix
 (
 $linesWithEcho
-) > build\$action-$fileNamePostfix
+) > $performanceTestSplitDirectoryName\$action-$fileNamePostfix
 
 echo "Performance tests to be ${action}d in this build"
-type build\$action-$fileNamePostfix
+type $performanceTestSplitDirectoryName\$action-$fileNamePostfix
 """
 
     return {
