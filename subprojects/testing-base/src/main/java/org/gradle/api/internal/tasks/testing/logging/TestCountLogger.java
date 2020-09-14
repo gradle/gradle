@@ -25,6 +25,8 @@ import org.gradle.util.TextUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
+
 public class TestCountLogger implements TestListener {
     private final ProgressLoggerFactory factory;
     private ProgressLogger progressLogger;
@@ -103,6 +105,7 @@ public class TestCountLogger implements TestListener {
         }
     }
 
+    @Nullable
     public TestResult getRootSuiteResult() {
         return rootSuiteResult;
     }
