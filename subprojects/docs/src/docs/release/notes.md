@@ -97,7 +97,7 @@ This is not always desirable.
 Building projects with different Java versions on different developer machines and CI servers may lead to unexpected issues.
 Additionally, you may want to build a project using a Java version that running Gradle is not compatible with.
 
-Before this release, it required [several steps](userguide/building_java_projects.html#compiling_and_testing_java_67) to configure a different Java version for compilation, testing, generating Javadoc, and executing applications.
+Before this release, it required [several steps](https://docs.gradle.org/6.6.1/userguide/building_java_projects.html#compiling_and_testing_java_67) to configure a different Java version for compilation, testing, generating Javadoc, and executing applications.
 
 This release introduces the toolchain concept to simplify such a setup.
 A Java toolchain is a set of tools (`javac` compiler,`java` command etc), taken from a local Java installation and used during the build.
