@@ -11,6 +11,7 @@ import org.gradle.api.Generated
 
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory.ClassPathNotation.GRADLE_API
 import org.gradle.api.internal.classpath.Module
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.classpath.DefaultClassPath
 
 import org.gradle.kotlin.dsl.accessors.TestWithClassPath
@@ -45,7 +46,8 @@ class KotlinScriptClassPathProviderTest : TestWithClassPath() {
             coreAndPluginsScope = mock(),
             gradleApiJarsProvider = { gradleApiJar },
             jarCache = { id, generator -> file("$id.jar").apply(generator) },
-            progressMonitorProvider = progressMonitorProvider
+            progressMonitorProvider = progressMonitorProvider,
+            temporaryFileProvider = TestFiles.tmpDirTemporaryFileProvider(tempFolder.root)
         )
 
         assertThat(

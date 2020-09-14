@@ -16,8 +16,10 @@
 
 package org.gradle.kotlin.dsl.fixtures
 
+import org.gradle.api.internal.file.TmpDirTemporaryFileProvider
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
+import org.gradle.internal.file.TempFiles
 
 import org.gradle.kotlin.dsl.codegen.generateApiExtensionsJar
 import org.gradle.kotlin.dsl.support.gradleApiMetadataModuleName
@@ -40,7 +42,7 @@ private
 fun testInstallationGradleApiExtensionsJarFor(testInstallation: File) =
     testInstallationGradleApiExtensionsJars.getOrPut(testInstallation) {
         val fixturesDir = File("build/tmp/fixtures").also { it.mkdirs() }
-        File.createTempFile("gradle-api-extensions", "fixture", fixturesDir).also { jar ->
+        TempFiles.createTempFile("gradle-api-extensions", "fixture", fixturesDir).also { jar ->
             generateTestInstallationGradleApiExtensionsJarTo(jar, testInstallation)
             jar.deleteOnExit()
         }
@@ -64,6 +66,7 @@ fun generateTestInstallationGradleApiExtensionsJarTo(jar: File, testInstallation
         .single()
 
     generateApiExtensionsJar(
+        TmpDirTemporaryFileProvider.createLegacy(),
         jar,
         gradleJars,
         gradleApiMetadataJar

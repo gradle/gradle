@@ -115,7 +115,6 @@ import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.TemporaryFileProvider;
-import org.gradle.api.internal.file.TmpDirTemporaryFileProvider;
 import org.gradle.api.internal.filestore.ArtifactIdentifierFileStore;
 import org.gradle.api.internal.filestore.DefaultArtifactIdentifierFileStore;
 import org.gradle.api.internal.filestore.TwoStageArtifactIdentifierFileStore;
@@ -192,7 +191,6 @@ import org.gradle.internal.execution.steps.UpToDateResult;
 import org.gradle.internal.execution.steps.ValidateStep;
 import org.gradle.internal.execution.timeout.TimeoutHandler;
 import org.gradle.internal.file.Deleter;
-import org.gradle.internal.file.FileAccessTimeJournal;
 import org.gradle.internal.file.RelativeFilePathResolver;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.classpath.ClasspathFingerprinter;
@@ -254,6 +252,8 @@ class DependencyManagementBuildScopeServices {
         registration.add(ProjectArtifactResolver.class);
         registration.add(ProjectArtifactSetResolver.class);
         registration.add(ProjectDependencyResolver.class);
+        registration.add(DefaultExternalResourceFileStore.Factory.class);
+        registration.add(DefaultArtifactIdentifierFileStore.Factory.class);
     }
 
     DependencyResolutionManagementInternal createSharedDependencyResolutionServices(Instantiator instantiator,
@@ -464,14 +464,19 @@ class DependencyManagementBuildScopeServices {
         );
     }
 
-    FileStoreAndIndexProvider createFileStoreAndIndexProvider(BuildCommencedTimeProvider timeProvider, ArtifactCachesProvider artifactCaches, FileAccessTimeJournal fileAccessTimeJournal, ChecksumService checksumService) {
-        ExternalResourceFileStore writableFileStore = prepareExternalResourceFileStore(artifactCaches.getWritableCacheMetadata(), fileAccessTimeJournal, checksumService);
+    FileStoreAndIndexProvider createFileStoreAndIndexProvider(
+        BuildCommencedTimeProvider timeProvider,
+        ArtifactCachesProvider artifactCaches,
+        DefaultExternalResourceFileStore.Factory defaultExternalResourceFileStoreFactory,
+        DefaultArtifactIdentifierFileStore.Factory defaultArtifactIdentifierFileStoreFactory
+    ) {
+        ExternalResourceFileStore writableFileStore = defaultExternalResourceFileStoreFactory.create(artifactCaches.getWritableCacheMetadata());
         ExternalResourceFileStore externalResourceFileStore = artifactCaches.withReadOnlyCache((md, manager) ->
-            (ExternalResourceFileStore) new TwoStageExternalResourceFileStore(prepareExternalResourceFileStore(md, fileAccessTimeJournal, checksumService), writableFileStore)).orElse(writableFileStore);
+            (ExternalResourceFileStore) new TwoStageExternalResourceFileStore(defaultExternalResourceFileStoreFactory.create(md), writableFileStore)).orElse(writableFileStore);
         CachedExternalResourceIndex<String> writableByUrlCachedExternalResourceIndex = prepareArtifactUrlCachedResolutionIndex(timeProvider, artifactCaches.getWritableCacheLockingManager(), externalResourceFileStore, artifactCaches.getWritableCacheMetadata());
-        ArtifactIdentifierFileStore writableArtifactIdentifierFileStore = artifactCaches.withWritableCache((md, manager) -> prepareArtifactRevisionIdFileStore(md, fileAccessTimeJournal, checksumService));
+        ArtifactIdentifierFileStore writableArtifactIdentifierFileStore = artifactCaches.withWritableCache((md, manager) -> defaultArtifactIdentifierFileStoreFactory.create(md));
         ArtifactIdentifierFileStore artifactIdentifierFileStore = artifactCaches.withReadOnlyCache((md, manager) -> (ArtifactIdentifierFileStore) new TwoStageArtifactIdentifierFileStore(
-            prepareArtifactRevisionIdFileStore(md, fileAccessTimeJournal, checksumService),
+            defaultArtifactIdentifierFileStoreFactory.create(md),
             writableArtifactIdentifierFileStore
         )).orElse(writableArtifactIdentifierFileStore);
         return new FileStoreAndIndexProvider(
@@ -487,14 +492,6 @@ class DependencyManagementBuildScopeServices {
             externalResourceFileStore.getFileAccessTracker(),
             artifactCacheMetadata.getCacheDir().toPath()
         );
-    }
-
-    private ArtifactIdentifierFileStore prepareArtifactRevisionIdFileStore(ArtifactCacheMetadata artifactCacheMetadata, FileAccessTimeJournal fileAccessTimeJournal, ChecksumService checksumService) {
-        return new DefaultArtifactIdentifierFileStore(artifactCacheMetadata.getFileStoreDirectory(), new TmpDirTemporaryFileProvider(), fileAccessTimeJournal, checksumService);
-    }
-
-    private ExternalResourceFileStore prepareExternalResourceFileStore(ArtifactCacheMetadata artifactCacheMetadata, FileAccessTimeJournal fileAccessTimeJournal, ChecksumService checksumService) {
-        return new DefaultExternalResourceFileStore(artifactCacheMetadata.getExternalResourcesStoreDirectory(), new TmpDirTemporaryFileProvider(), fileAccessTimeJournal, checksumService);
     }
 
     TextUriResourceLoader.Factory createTextUrlResourceLoaderFactory(FileStoreAndIndexProvider fileStoreAndIndexProvider, RepositoryTransportFactory repositoryTransportFactory, RelativeFilePathResolver resolver) {

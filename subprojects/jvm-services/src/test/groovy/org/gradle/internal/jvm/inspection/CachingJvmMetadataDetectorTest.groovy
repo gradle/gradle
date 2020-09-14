@@ -67,8 +67,11 @@ class CachingJvmMetadataDetectorTest extends Specification {
     def "cached probe are not affected by symlink changes"() {
         given:
         NativeServicesTestFixture.initialize()
-        def delegate = new DefaultJvmMetadataDetector(TestFiles.execHandleFactory())
-        def detector = new CachingJvmMetadataDetector(delegate)
+        def metaDataDetector = new DefaultJvmMetadataDetector(
+            TestFiles.execHandleFactory(),
+            TestFiles.tmpDirTemporaryFileProvider(temporaryFolder.root)
+        )
+        def detector = new CachingJvmMetadataDetector(metaDataDetector)
         File javaHome1 = Jvm.current().javaHome
         def link = new TestFile(temporaryFolder.newFolder(), "jdklink")
         link.createLink(javaHome1)

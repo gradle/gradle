@@ -16,6 +16,7 @@
 
 package org.gradle.plugins.signing
 
+import org.gradle.internal.SystemProperties
 import org.gradle.test.fixtures.file.TestFile
 
 import java.nio.file.Files
@@ -73,7 +74,7 @@ class GpgCmdFixture {
     static prepareGnupgHomeSymlink(File gpgHomeInTest) {
         // We have to do this, otherwise gpg will complain: can't connect to the agent: File name too long
         // it's limited to 108 chars due to http://man7.org/linux/man-pages/man7/unix.7.html
-        Path tmpLink = Paths.get(System.getProperty("java.io.tmpdir")).resolve(createRandomPrefix())
+        Path tmpLink = Paths.get(SystemProperties.getInstance().getJavaIoTmpDir()).resolve(createRandomPrefix())
         return Files.createSymbolicLink(tmpLink, gpgHomeInTest.toPath())
     }
 }

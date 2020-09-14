@@ -18,10 +18,13 @@ package org.gradle.process.internal
 import org.gradle.api.internal.file.AbstractFileCollection
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.TestFiles
+import org.gradle.api.internal.file.TmpDirTemporaryFileProvider
 import org.gradle.initialization.DefaultBuildCancellationToken
 import org.gradle.internal.jvm.JavaModuleDetector
 import org.gradle.internal.jvm.Jvm
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
+import org.junit.Rule
 import spock.lang.Issue
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -32,7 +35,19 @@ import java.util.concurrent.Executor
 import static java.util.Arrays.asList
 
 class JavaExecHandleBuilderTest extends Specification {
-    JavaExecHandleBuilder builder = new JavaExecHandleBuilder(TestFiles.resolver(), TestFiles.fileCollectionFactory(), TestUtil.objectFactory(), Mock(Executor), new DefaultBuildCancellationToken(), null, TestFiles.execFactory().newJavaForkOptions())
+    @Rule
+    final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
+    final TmpDirTemporaryFileProvider temporaryFileProvider = TestFiles.tmpDirTemporaryFileProvider(tmpDir.root)
+    JavaExecHandleBuilder builder = new JavaExecHandleBuilder(
+        TestFiles.resolver(),
+        TestFiles.fileCollectionFactory(),
+        TestUtil.objectFactory(),
+        Mock(Executor),
+        new DefaultBuildCancellationToken(),
+        temporaryFileProvider,
+        null,
+        TestFiles.execFactory().newJavaForkOptions()
+    )
 
     FileCollectionFactory fileCollectionFactory = TestFiles.fileCollectionFactory()
 
@@ -169,8 +184,16 @@ class JavaExecHandleBuilderTest extends Specification {
                 Set<File> getFiles() { [libJar] }
             }
         }
-        builder = new JavaExecHandleBuilder(TestFiles.resolver(), TestFiles.fileCollectionFactory(), TestUtil.objectFactory(), Mock(Executor), new DefaultBuildCancellationToken(),
-            moduleDetector, TestFiles.execFactory().newJavaForkOptions())
+        builder = new JavaExecHandleBuilder(
+            TestFiles.resolver(),
+            TestFiles.fileCollectionFactory(),
+            TestUtil.objectFactory(),
+            Mock(Executor),
+            new DefaultBuildCancellationToken(),
+            temporaryFileProvider,
+            moduleDetector,
+            TestFiles.execFactory().newJavaForkOptions()
+        )
 
         builder.mainModule.set("mainModule")
         builder.mainClass.set("mainClass")

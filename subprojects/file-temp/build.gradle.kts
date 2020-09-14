@@ -14,22 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.api.tasks.scala.internal;
+plugins {
+    id("gradlebuild.distribution.api-java")
+}
 
-import org.gradle.api.file.ConfigurableFileCollection;
-import org.gradle.api.file.DirectoryProperty;
-import org.gradle.api.file.RegularFileProperty;
-import org.gradle.api.provider.ListProperty;
-import org.gradle.workers.WorkParameters;
+description = "Utilities for working with temporary files & directories"
 
-public interface ScaladocParameters extends WorkParameters {
-    RegularFileProperty getOptionsFile();
+gradlebuildJava.usedInWorkers()
 
-    ConfigurableFileCollection getClasspath();
+dependencies {
+    implementation(project(":base-annotations"))
+    implementation(project(":base-services"))
 
-    DirectoryProperty getOutputDirectory();
-
-    ListProperty<String> getOptions();
-
-    ConfigurableFileCollection getSources();
+    implementation(libs.inject)
 }

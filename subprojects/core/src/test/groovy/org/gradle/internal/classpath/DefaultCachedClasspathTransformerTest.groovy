@@ -63,13 +63,22 @@ class DefaultCachedClasspathTransformerTest extends ConcurrentSpec {
 
     def cacheFactory = new DefaultClasspathTransformerCacheFactory(cacheScopeMapping, usedGradleVersions)
     def classpathWalker = new ClasspathWalker(TestFiles.fileSystem())
-    def classpathBuilder = new ClasspathBuilder()
+    def classpathBuilder = new ClasspathBuilder(TestFiles.tmpDirTemporaryFileProvider(testDirectoryProvider.root))
     def fileSystemAccess = TestFiles.fileSystemAccess()
     def globalCacheLocations = Stub(GlobalCacheLocations)
     URLClassLoader testClassLoader = null
 
     @Subject
-    DefaultCachedClasspathTransformer transformer = new DefaultCachedClasspathTransformer(cacheRepository, cacheFactory, fileAccessTimeJournal, classpathWalker, classpathBuilder, fileSystemAccess, executorFactory, globalCacheLocations)
+    DefaultCachedClasspathTransformer transformer = new DefaultCachedClasspathTransformer(
+        cacheRepository,
+        cacheFactory,
+        fileAccessTimeJournal,
+        classpathWalker,
+        classpathBuilder,
+        fileSystemAccess,
+        executorFactory,
+        globalCacheLocations
+    )
 
     def cleanup() {
         testClassLoader?.close()

@@ -23,6 +23,7 @@ import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.mock
 import org.gradle.api.Action
 import org.gradle.api.initialization.Settings
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.initialization.ScriptHandlerInternal
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.internal.hash.HashCode
@@ -31,10 +32,16 @@ import org.gradle.kotlin.dsl.fixtures.testRuntimeClassPath
 import org.gradle.kotlin.dsl.fixtures.withClassLoaderFor
 import org.gradle.kotlin.dsl.support.KotlinScriptHost
 import org.gradle.plugin.management.PluginManagementSpec
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.junit.Rule
 import java.io.File
 
 
 abstract class TestWithCompiler : TestWithTempFiles() {
+
+    @Rule
+    @JvmField
+    val tmpDir = TestNameTestDirectoryProvider(this::class.java)
 
     internal
     inline fun withExecutableProgramFor(
@@ -67,7 +74,8 @@ abstract class TestWithCompiler : TestWithTempFiles() {
             testRuntimeClassPath,
             sourceHash,
             programKind,
-            programTarget
+            programTarget,
+            temporaryFileProvider = TestFiles.tmpDirTemporaryFileProvider(tmpDir.root)
         ).compile(program)
     }
 

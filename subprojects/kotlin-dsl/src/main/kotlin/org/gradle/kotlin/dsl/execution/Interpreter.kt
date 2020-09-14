@@ -20,6 +20,7 @@ import com.google.common.annotations.VisibleForTesting
 import org.gradle.api.Project
 import org.gradle.api.initialization.Settings
 import org.gradle.api.initialization.dsl.ScriptHandler
+import org.gradle.api.internal.file.TemporaryFileProvider
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.invocation.Gradle
 import org.gradle.groovy.scripts.ScriptSource
@@ -258,7 +259,8 @@ class Interpreter(val host: Host) {
             programKind,
             programTarget,
             host.compilationClassPathOf(targetScope.parent),
-            pluginAccessorsClassPath
+            pluginAccessorsClassPath,
+            scriptHost.temporaryFileProvider
         )
 
         return loadClassInChildScopeOf(
@@ -281,7 +283,8 @@ class Interpreter(val host: Host) {
         programKind: ProgramKind,
         programTarget: ProgramTarget,
         compilationClassPath: ClassPath,
-        pluginAccessorsClassPath: ClassPath
+        pluginAccessorsClassPath: ClassPath,
+        temporaryFileProvider: TemporaryFileProvider
     ): File = host.cachedDirFor(
         scriptHost,
         templateId,
@@ -314,6 +317,7 @@ class Interpreter(val host: Host) {
                     programTarget = programTarget,
                     implicitImports = host.implicitImports,
                     logger = interpreterLogger,
+                    temporaryFileProvider = temporaryFileProvider,
                     compileBuildOperationRunner = host::runCompileBuildOperation,
                     pluginAccessorsClassPath = pluginAccessorsClassPath,
                     packageName = residualProgram.packageName
@@ -465,7 +469,7 @@ class Interpreter(val host: Host) {
 
                         scriptSource.withLocationAwareExceptionHandling {
 
-                            withTemporaryScriptFileFor(originalScriptPath, program.secondStageScriptText) { scriptFile ->
+                            scriptHost.temporaryFileProvider.withTemporaryScriptFileFor(originalScriptPath, program.secondStageScriptText) { scriptFile ->
 
                                 ResidualProgramCompiler(
                                     outputDir,
@@ -475,6 +479,7 @@ class Interpreter(val host: Host) {
                                     programTarget,
                                     host.implicitImports,
                                     interpreterLogger,
+                                    scriptHost.temporaryFileProvider,
                                     host::runCompileBuildOperation
                                 ).emitStage2ProgramFor(
                                     scriptFile,

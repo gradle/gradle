@@ -16,7 +16,8 @@
 
 package org.gradle.internal.nativeintegration.filesystem.jdk7
 
-
+import org.gradle.api.internal.file.TestFiles
+import org.gradle.internal.SystemProperties
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -30,12 +31,13 @@ import static org.gradle.util.WindowsSymbolicLinkUtil.createWindowsSymbolicLink
 
 class Jdk7SymlinkTest extends Specification {
 
-    @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
+    @Rule
+    TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
 
     @Requires(TestPrecondition.SYMLINKS)
     def 'on symlink supporting system, it will return true for supported symlink'() {
         expect:
-        new Jdk7Symlink().isSymlinkCreationSupported()
+        new Jdk7Symlink(TestFiles.tmpDirTemporaryFileProvider(temporaryFolder.getRoot())).isSymlinkCreationSupported()
     }
 
     @Requires(TestPrecondition.NO_SYMLINKS)
@@ -48,16 +50,16 @@ class Jdk7SymlinkTest extends Specification {
     def 'deletes test files after symlink support test with #implementationClass'() {
         expect:
         listSymlinkTestFiles().findAll { !it.delete() }.empty
-        implementationClass.newInstance()
+        create(temporaryFolder.root)
         listSymlinkTestFiles().empty
 
         where:
-        implementationClass << [Jdk7Symlink, WindowsJdk7Symlink]
+        create << [{ it -> new Jdk7Symlink(TestFiles.tmpDirTemporaryFileProvider(it)) }, { new WindowsJdk7Symlink() }]
     }
 
     @Requires(TestPrecondition.SYMLINKS)
     def 'can create and detect symlinks'() {
-        def symlink = new Jdk7Symlink()
+        def symlink = new Jdk7Symlink(TestFiles.tmpDirTemporaryFileProvider(temporaryFolder.getRoot()))
         def testDirectory = temporaryFolder.getTestDirectory().createDir()
 
         when:
@@ -121,7 +123,7 @@ class Jdk7SymlinkTest extends Specification {
     }
 
     private static List<File> listSymlinkTestFiles() {
-        def tempDir = new File(System.getProperty("java.io.tmpdir"))
+        def tempDir = new File(SystemProperties.getInstance().getJavaIoTmpDir())
         return tempDir.listFiles(new FileFilter() {
             @Override
             boolean accept(File pathname) {

@@ -196,4 +196,8 @@ abstract class AbstractTestDirectoryProvider implements TestRule, TestDirectoryP
     public TestFile createDir(Object... path) {
         return file(path).createDir();
     }
+
+    public TestFile getRoot() {
+        return root;
+    }
 }

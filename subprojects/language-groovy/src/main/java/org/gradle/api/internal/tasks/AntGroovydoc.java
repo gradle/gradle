@@ -26,7 +26,7 @@ import groovy.lang.GroovyObjectSupport;
 import org.gradle.api.GradleException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileSystemOperations;
-import org.gradle.api.internal.ClassPathRegistry;
+import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.project.IsolatedAntBuilder;
 import org.gradle.api.tasks.javadoc.Groovydoc;
 import org.gradle.util.VersionNumber;
@@ -41,12 +41,17 @@ import java.util.Set;
 /**
  * Generates groovy doc using Ant.
  */
-public class AntGroovydoc {
+public final class AntGroovydoc {
 
     private final IsolatedAntBuilder ant;
+    private final TemporaryFileProvider temporaryFileProvider;
 
-    public AntGroovydoc(IsolatedAntBuilder ant, @SuppressWarnings("UnusedParameters") ClassPathRegistry ignored) {
+    public AntGroovydoc(
+        IsolatedAntBuilder ant,
+        TemporaryFileProvider temporaryFileProvider
+    ) {
         this.ant = ant;
+        this.temporaryFileProvider = temporaryFileProvider;
     }
 
     public void execute(
@@ -95,7 +100,7 @@ public class AntGroovydoc {
         File temp;
         final String tempPath;
         try {
-            temp = File.createTempFile("temp", "");
+            temp = temporaryFileProvider.createTemporaryFile("temp", "");
             String p = temp.getCanonicalPath();
             tempPath = File.separatorChar == '/' ? p : p.replace(File.separatorChar, '/');
             temp.deleteOnExit();
@@ -113,7 +118,7 @@ public class AntGroovydoc {
                     "classname", "org.codehaus.groovy.ant.Groovy"
                 ));
 
-                antBuilder.invokeMethod("groovy", new Object[]{"new File('"+ tempPath + "').text = GroovySystem.version"});
+                antBuilder.invokeMethod("groovy", new Object[]{"new File('" + tempPath + "').text = GroovySystem.version"});
 
                 return null;
             }

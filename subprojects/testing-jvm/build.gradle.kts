@@ -11,6 +11,7 @@ dependencies {
     implementation(project(":logging"))
     implementation(project(":process-services"))
     implementation(project(":file-collections"))
+    implementation(project(":file-temp"))
     implementation(project(":jvm-services"))
     implementation(project(":core-api"))
     implementation(project(":model-core"))
