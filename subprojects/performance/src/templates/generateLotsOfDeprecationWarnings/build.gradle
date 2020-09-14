@@ -1,4 +1,3 @@
-
 /*
  * Copyright 2018 the original author or authors.
  *
@@ -17,13 +16,21 @@
 
 @groovy.transform.CompileStatic
 void createDeprecations(int iterations) {
-    for (int i=0; i<iterations; i++) {
+    for (int i = 0; i < iterations; i++) {
         // every 10th deprecation should have a different message
-        if(i%10 == 0) {
-            org.gradle.util.DeprecationLogger.nagUserOfDeprecated("Some unique deprecation No #\$i")
+        if (i % 10 == 0) {
+            nagUserOfDeprecated("Some unique deprecation No #\$i")
         }
-        org.gradle.util.DeprecationLogger.nagUserOfDeprecated("Some repetitive Deprecation")
+        nagUserOfDeprecated("Some repetitive Deprecation")
     }
 }
+
+
+@groovy.transform.CompileStatic
+void nagUserOfDeprecated(String thing) {
+    org.gradle.internal.deprecation.DeprecationLogger.deprecate(thing).willBecomeAnErrorInGradle7().undocumented().nagUser();
+
+}
+
 // This generates 1 deprecation 10k times and 1k unique deprecations
 createDeprecations(10000)
