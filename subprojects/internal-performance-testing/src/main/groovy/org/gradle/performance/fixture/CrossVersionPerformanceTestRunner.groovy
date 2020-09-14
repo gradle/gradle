@@ -30,6 +30,7 @@ import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.internal.time.Clock
 import org.gradle.internal.time.Time
+import org.gradle.performance.generator.JavaTestProject
 import org.gradle.performance.results.CrossVersionPerformanceResults
 import org.gradle.performance.results.DataReporter
 import org.gradle.performance.results.MeasuredOperationList
@@ -111,6 +112,11 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
     static String loadConfiguredTestProject() {
         def testProjectFromSystemProperty = System.getProperty(TEST_PROJECT_PROPERTY_NAME)
         return (testProjectFromSystemProperty != null && !testProjectFromSystemProperty.empty) ? testProjectFromSystemProperty : null
+    }
+
+    List<String> getProjectMemoryOptions() {
+        def javaTestProject = JavaTestProject.projectFor(testProject)
+        return ["-Xms${javaTestProject.daemonMemory}", "-Xmx${javaTestProject.daemonMemory}"]
     }
 
     CrossVersionPerformanceResults run() {
