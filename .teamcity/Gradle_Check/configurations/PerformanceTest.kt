@@ -21,6 +21,7 @@ import common.applyPerformanceTestSettings
 import common.buildToolGradleParameters
 import common.checkCleanM2
 import common.gradleWrapper
+import common.individualPerformanceTestArtifactRules
 import common.killGradleProcessesStep
 import common.performanceTestCommandLine
 import common.removeSubstDirOnWindows
@@ -39,6 +40,7 @@ class PerformanceTest(model: CIBuildModel, type: PerformanceTestType, stage: Sta
     this.name = description
     val performanceTestTaskNames = getPerformanceTestTaskNames(performanceSubProject, testProjects)
     applyPerformanceTestSettings(os = os, timeout = type.timeout)
+    artifactRules = individualPerformanceTestArtifactRules
 
     params {
         param("performance.baselines", type.defaultBaselines)
