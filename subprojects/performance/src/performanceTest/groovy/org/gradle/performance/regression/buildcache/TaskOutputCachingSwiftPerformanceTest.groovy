@@ -19,9 +19,8 @@ package org.gradle.performance.regression.buildcache
 import org.gradle.initialization.ParallelismBuildOptions
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import spock.lang.Unroll
 
-@Requires(TestPrecondition.LINUX)
+@Requires(TestPrecondition.NOT_WINDOWS)
 class TaskOutputCachingSwiftPerformanceTest extends AbstractTaskOutputCachingPerformanceTest {
     def setup() {
         runner.minimumBaseVersion = "4.5"
@@ -29,11 +28,10 @@ class TaskOutputCachingSwiftPerformanceTest extends AbstractTaskOutputCachingPer
         runner.args += ["--parallel", "--${ParallelismBuildOptions.MaxWorkersOption.LONG_OPTION}=6"]
     }
 
-    @Unroll
-    def "clean #task on #testProject with local cache"() {
+    def "clean assemble with local cache (swift)"() {
         given:
-        runner.testProject = testProject
-        runner.tasksToRun = [task]
+        runner.tasksToRun = ["assemble"]
+        def maxMemory = '1G'
         runner.gradleOpts = ["-Xms$maxMemory", "-Xmx$maxMemory"]
 
         when:
@@ -41,10 +39,5 @@ class TaskOutputCachingSwiftPerformanceTest extends AbstractTaskOutputCachingPer
 
         then:
         result.assertCurrentVersionHasNotRegressed()
-
-        where:
-        testProject        | task       | maxMemory
-        'mediumSwiftMulti' | 'assemble' | '1G'
-        'bigSwiftApp'      | 'assemble' | '1G'
     }
 }

@@ -514,6 +514,23 @@
                     }
                 }
             ]
+        },
+        {
+            "testId" : "org.gradle.performance.regression.buildcache.TaskOutputCachingSwiftPerformanceTest.clean assemble with local cache (swift)",
+            "groups" : [
+                {
+                    "testProject" : "mediumSwiftMulti",
+                    "stages" : {
+                        "ExperimentalPerformance":  ["linux"]
+                    }
+                },
+                {
+                    "testProject" : "bigSwiftApp",
+                    "stages" : {
+                        "ExperimentalPerformance":  ["linux"]
+                    }
+                }
+            ]
         }
     ]
 }
