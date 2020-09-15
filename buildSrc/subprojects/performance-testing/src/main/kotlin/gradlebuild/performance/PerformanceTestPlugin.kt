@@ -39,6 +39,7 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.internal.tasks.DefaultTaskContainer
+import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.Delete
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.SourceSetContainer
@@ -199,6 +200,7 @@ class PerformanceTestPlugin : Plugin<Project> {
         tasks.withType<ProjectGeneratorTask>().action()
         tasks.withType<RemoteProject>().action()
         tasks.withType<JavaExecProjectGeneratorTask>().action()
+        tasks.withType<Copy>().matching { it.name in setOf("archivePerformanceProject", "workerApiProject") }.action()
     }
 
 
