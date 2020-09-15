@@ -32,10 +32,7 @@ tasks.test {
 // end::testtask-configuration[]
 
 // tag::testtask-dependency[]
-tasks.test {
-    finalizedBy(tasks.jacocoTestReport) // report is always generated after tests run
-}
-tasks.jacocoTestReport {
+tasks.named("jacocoTestReport").configure {
     dependsOn(tasks.test) // tests are required to run before generating the report
 }
 // end::testtask-dependency[]
