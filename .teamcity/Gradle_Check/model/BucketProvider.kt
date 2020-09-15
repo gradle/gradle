@@ -239,28 +239,28 @@ class LargeSubprojectSplitBucket(val subproject: GradleSubproject, val number: I
         val testClasses = classes.map { it.toPropertiesLine() }
         val action = if (include) "include" else "exclude"
         val unixScript = """
-mkdir -p build
-rm -rf build/*-test-classes.properties
-cat > build/$action-test-classes.properties << EOL
+mkdir -p test-splits
+rm -rf test-splits/*-test-classes.properties
+cat > test-splits/$action-test-classes.properties << EOL
 ${testClasses.joinToString("\n")}
 EOL
 
 echo "Tests to be ${action}d in this build"
-cat build/$action-test-classes.properties
+cat test-splits/$action-test-classes.properties
 """
 
         val linesWithEcho = testClasses.joinToString("\n") { "echo $it" }
 
         val windowsScript = """
-mkdir build
-del /f /q build\include-test-classes.properties
-del /f /q build\exclude-test-classes.properties
+mkdir test-splits
+del /f /q test-splits\include-test-classes.properties
+del /f /q test-splits\exclude-test-classes.properties
 (
 $linesWithEcho
-) > build\$action-test-classes.properties
+) > test-splits\$action-test-classes.properties
 
 echo "Tests to be ${action}d in this build"
-type build\$action-test-classes.properties
+type test-splits\$action-test-classes.properties
 """
 
         return {
