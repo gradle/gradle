@@ -30,3 +30,7 @@ org.gradle.performance.regression.java.JavaConfigurationCachePerformanceTest;ass
 org.gradle.performance.regression.java.JavaConfigurationCachePerformanceTest;assemble storing configuration cache state with hot daemon;largeJavaMultiProjectNoBuildSrc;linux;383000
 org.gradle.performance.regression.java.JavaConfigurationCachePerformanceTest;assemble storing configuration cache state with cold daemon;largeJavaMultiProjectNoBuildSrc;linux;628000
 org.gradle.performance.regression.java.JavaConfigurationCachePerformanceTest;assemble storing configuration cache state with hot daemon;smallJavaMultiProject;linux;184000
+org.gradle.performance.regression.java.JavaCleanAssemblePerformanceTest;clean assemble;largeJavaMultiProject;linux;499000
+org.gradle.performance.regression.java.JavaCleanAssemblePerformanceTest;clean assemble;largeMonolithicJavaProject;linux;529000
+org.gradle.performance.regression.java.JavaCleanAssemblePerformanceTest;clean assemble;mediumJavaCompositeBuild;linux;259000
+org.gradle.performance.regression.java.JavaCleanAssemblePerformanceTest;clean assemble;mediumJavaPredefinedCompositeBuild;linux;260000

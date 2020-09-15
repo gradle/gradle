@@ -17,37 +17,22 @@
 package org.gradle.performance.regression.java
 
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
-import spock.lang.Unroll
-
-import static org.gradle.performance.generator.JavaTestProject.LARGE_JAVA_MULTI_PROJECT
-import static org.gradle.performance.generator.JavaTestProject.LARGE_MONOLITHIC_JAVA_PROJECT
-import static org.gradle.performance.generator.JavaTestProject.MEDIUM_JAVA_COMPOSITE_BUILD
-import static org.gradle.performance.generator.JavaTestProject.MEDIUM_JAVA_PREDEFINED_COMPOSITE_BUILD
 
 class JavaCleanAssemblePerformanceTest extends AbstractCrossVersionPerformanceTest {
 
-    @Unroll
-    def "clean assemble on #testProject"() {
+    def "clean assemble"() {
         given:
-        runner.testProject = testProject
-        runner.gradleOpts = ["-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}"]
-        runner.warmUpRuns = warmUpRuns
-        runner.runs = runs
+        runner.gradleOpts = runner.projectMemoryOptions
+        runner.warmUpRuns = 2
+        runner.runs = 6
         runner.tasksToRun = ["clean", "assemble"]
         runner.targetVersions = ["6.7-20200824220048+0000"]
-        runner.minimumBaseVersion = minimumBaseVersion
+        runner.minimumBaseVersion = runner.testProject.contains("Composite") ? "4.0" : null
 
         when:
         def result = runner.run()
 
         then:
         result.assertCurrentVersionHasNotRegressed()
-
-        where:
-        testProject                            | warmUpRuns | runs  | minimumBaseVersion
-        LARGE_MONOLITHIC_JAVA_PROJECT          | 2          | 6     | null
-        LARGE_JAVA_MULTI_PROJECT               | 2          | 6     | null
-        MEDIUM_JAVA_COMPOSITE_BUILD            | 2          | 6     | "4.0"
-        MEDIUM_JAVA_PREDEFINED_COMPOSITE_BUILD | 2          | 6     | "4.0"
     }
 }
