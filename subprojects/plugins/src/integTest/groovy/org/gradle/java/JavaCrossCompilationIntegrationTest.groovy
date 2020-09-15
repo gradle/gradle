@@ -38,38 +38,28 @@ class JavaCrossCompilationIntegrationTest extends MultiVersionIntegrationSpec {
 
     def setup() {
         Assume.assumeTrue(target != null)
-        def java = TextUtil.escapeString(target.getJavaExecutable())
         def javaHome = TextUtil.escapeString(target.getJavaHome())
-        def javadoc = TextUtil.escapeString(target.getExecutable("javadoc"))
 
         buildFile << """
 apply plugin: 'java'
-sourceCompatibility = ${version}
-targetCompatibility = ${version}
 ${mavenCentralRepository()}
-tasks.withType(JavaCompile) {
-    options.with {
-        fork = true
-        forkOptions.javaHome = file("$javaHome")
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of($javaVersion.majorVersion )
     }
 }
 tasks.withType(Javadoc) {
-    executable = "$javadoc"
     options.noTimestamp = false
 }
-tasks.withType(Test) {
-    executable = "$java"
-}
-tasks.withType(JavaExec) {
-    executable = "$java"
-}
-
 """
 
         file("src/main/java/Thing.java") << """
 /** Some thing. */
 public class Thing { }
 """
+        executer.withArgument("-Porg.gradle.java.installations.auto-detect=false")
+            .withArgument("-Porg.gradle.java.installations.auto-download=false")
+            .withArgument("-Porg.gradle.java.installations.paths=" + javaHome)
     }
 
     def "can compile source and run JUnit tests using target Java version"() {
