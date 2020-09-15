@@ -216,6 +216,32 @@
                     }
                 }
             ]
+        },
+        {
+            "testId" : "org.gradle.performance.regression.java.JavaConfigurationPerformanceTest.configure",
+            "groups" : [
+                {
+                    "testProject" : "largeJavaMultiProject",
+                    "stages" : {
+                        "ExperimentalPerformance":  ["linux"],
+                        "ReadyForRelease": ["windows"]
+                    }
+                },
+                {
+                    "testProject" : "largeJavaMultiProjectKotlinDsl",
+                    "stages" : {
+                        "ExperimentalPerformance":  ["linux"],
+                        "ReadyForRelease": ["windows"]
+                    }
+                },
+                {
+                    "testProject" : "largeMonolithicJavaProject",
+                    "stages" : {
+                        "ExperimentalPerformance":  ["linux"],
+                        "ReadyForRelease": ["windows"]
+                    }
+                }
+            ]
         }
     ]
 }

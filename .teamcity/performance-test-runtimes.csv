@@ -21,3 +21,6 @@ org.gradle.performance.regression.java.JavaIDEModelPerformanceTest;get IDE model
 org.gradle.performance.regression.java.JavaIDEModelPerformanceTest;get IDE model for IDEA;largeMonolithicJavaProject;linux;116000
 org.gradle.performance.regression.java.JavaDependencyReportPerformanceTest;generate dependency report;largeMonolithicJavaProject;linux;141000
 org.gradle.performance.regression.java.JavaDependencyReportPerformanceTest;generate dependency report;largeJavaMultiProject;linux;272000
+org.gradle.performance.regression.java.JavaConfigurationPerformanceTest;configure;largeJavaMultiProject;linux;253000
+org.gradle.performance.regression.java.JavaConfigurationPerformanceTest;configure;largeJavaMultiProjectKotlinDsl;linux;395000
+org.gradle.performance.regression.java.JavaConfigurationPerformanceTest;configure;largeMonolithicJavaProject;linux;141000
