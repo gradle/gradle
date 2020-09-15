@@ -337,6 +337,39 @@
                     }
                 }
             ]
+        },
+        {
+            "testId" : "org.gradle.performance.regression.java.JavaABIChangePerformanceTest.assemble for abi change",
+            "groups" : [
+                {
+                    "testProject" : "largeJavaMultiProject",
+                    "stages" : {
+                        "ExperimentalPerformance":  ["linux"],
+                        "ReadyForRelease": ["windows"]
+                    }
+                },
+                {
+                    "testProject" : "largeMonolithicJavaProject",
+                    "stages" : {
+                        "ExperimentalPerformance":  ["linux"],
+                        "ReadyForRelease": ["windows"]
+                    }
+                },
+                {
+                    "testProject" : "largeMonolithicGroovyProject",
+                    "stages" : {
+                        "ExperimentalPerformance":  ["linux"],
+                        "ReadyForRelease": ["windows"]
+                    }
+                },
+                {
+                    "testProject" : "largeGroovyMultiProject",
+                    "stages" : {
+                        "ExperimentalPerformance":  ["linux"],
+                        "ReadyForRelease": ["windows"]
+                    }
+                }
+            ]
         }
     ]
 }
