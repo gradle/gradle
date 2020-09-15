@@ -491,6 +491,29 @@
                     }
                 }
             ]
+        },
+        {
+            "testId" : "org.gradle.performance.regression.buildcache.TaskOutputCachingNativePerformanceTest.clean assemble with local cache (native project)",
+            "groups" : [
+                {
+                    "testProject" : "bigCppApp",
+                    "stages" : {
+                        "ExperimentalPerformance":  ["linux"]
+                    }
+                },
+                {
+                    "testProject" : "bigCppMulti",
+                    "stages" : {
+                        "ExperimentalPerformance":  ["linux"]
+                    }
+                },
+                {
+                    "testProject" : "bigNative",
+                    "stages" : {
+                        "ExperimentalPerformance":  ["linux"]
+                    }
+                }
+            ]
         }
     ]
 }

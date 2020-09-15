@@ -50,3 +50,6 @@ org.gradle.performance.regression.buildcache.TaskOutputCachingJavaPerformanceTes
 org.gradle.performance.regression.buildcache.TaskOutputCachingJavaPerformanceTest;clean assemble with local cache;largeMonolithicJavaProject;linux;1018000
 org.gradle.performance.regression.buildcache.TaskOutputCachingJavaPerformanceTest;clean assemble for abi change with local cache;largeJavaMultiProject;linux;993000
 org.gradle.performance.regression.buildcache.TaskOutputCachingJavaPerformanceTest;clean assemble for non-abi change with local cache;largeJavaMultiProject;linux;927000
+org.gradle.performance.regression.buildcache.TaskOutputCachingNativePerformanceTest;clean assemble with local cache (native project);bigCppApp;linux;234000
+org.gradle.performance.regression.buildcache.TaskOutputCachingNativePerformanceTest;clean assemble with local cache (native project);bigCppMulti;linux;497000
+org.gradle.performance.regression.buildcache.TaskOutputCachingNativePerformanceTest;clean assemble with local cache (native project);bigNative;linux;233000

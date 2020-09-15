@@ -17,11 +17,8 @@
 package org.gradle.performance.regression.buildcache
 
 import org.gradle.initialization.ParallelismBuildOptions
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
-import spock.lang.Unroll
 
-@Requires(TestPrecondition.LINUX)
+// TODO: Merge with TaskOutputCachingJavaPerformanceTest
 class TaskOutputCachingNativePerformanceTest extends AbstractTaskOutputCachingPerformanceTest {
 
     def setup() {
@@ -30,11 +27,10 @@ class TaskOutputCachingNativePerformanceTest extends AbstractTaskOutputCachingPe
         runner.args += ["-Dorg.gradle.caching.native=true", "--parallel", "--${ParallelismBuildOptions.MaxWorkersOption.LONG_OPTION}=6"]
     }
 
-    @Unroll
-    def "clean #task on #testProject with local cache"() {
+    def "clean assemble with local cache (native project)"() {
         given:
-        runner.testProject = testProject
-        runner.tasksToRun = [task]
+        runner.tasksToRun = ["assemble"]
+        def maxMemory = runner.testProject == 'bigCppApp' ? '256m' : '1G'
         runner.gradleOpts = ["-Xms$maxMemory", "-Xmx$maxMemory"]
 
         when:
@@ -42,11 +38,5 @@ class TaskOutputCachingNativePerformanceTest extends AbstractTaskOutputCachingPe
 
         then:
         result.assertCurrentVersionHasNotRegressed()
-
-        where:
-        testProject        | task       | maxMemory
-        'bigCppApp'        | 'assemble' | '256m'
-        'bigCppMulti'      | 'assemble' | '1G'
-        'bigNative'        | 'assemble' | '1G'
     }
 }
