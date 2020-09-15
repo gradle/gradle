@@ -1,0 +1,10 @@
+org.gradle.performance.regression.java.JavaUpToDatePerformanceTest;up-to-date assemble (parallel true);largeJavaMultiProject;linux;476000
+org.gradle.performance.regression.java.JavaUpToDatePerformanceTest;up-to-date assemble (parallel false);largeJavaMultiProject;linux;700000
+org.gradle.performance.regression.java.JavaUpToDatePerformanceTest;up-to-date assemble (parallel false);largeMonolithicJavaProject;linux;308000
+org.gradle.performance.regression.java.JavaUpToDatePerformanceTest;up-to-date assemble with local build cache enabled (parallel true);largeJavaMultiProject;linux;308000
+org.gradle.performance.regression.java.JavaUpToDatePerformanceTest;up-to-date assemble with local build cache enabled (parallel false);largeJavaMultiProject;linux;308000
+org.gradle.performance.regression.java.JavaUpToDatePerformanceTest;up-to-date assemble with local build cache enabled (parallel false);largeMonolithicJavaProject;linux;308000
+org.gradle.performance.regression.java.JavaTasksPerformanceTest;tasks;largeJavaMultiProject;linux;30000
+org.gradle.performance.regression.java.JavaTasksPerformanceTest;tasks;largeMonolithicJavaProject;linux;30000
+org.gradle.performance.regression.java.JavaTasksPerformanceTest;tasks --all;largeJavaMultiProject;linux;30000
+org.gradle.performance.regression.java.JavaTasksPerformanceTest;tasks --all;largeMonolithicJavaProject;linux;30000
