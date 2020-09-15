@@ -43,9 +43,14 @@ public class DefaultDependencyConstraintSet extends DelegatingDomainObjectSet<De
     }
 
     @Override
-    public boolean add(final DependencyConstraint dependencyConstraints) {
+    public boolean add(final DependencyConstraint dependencyConstraint) {
         warnIfConfigurationIsDeprecated();
-        return super.add(dependencyConstraints);
+        return addInternalDependencyConstraint(dependencyConstraint);
+    }
+
+    // For internal use only, allows adding a dependency constraint without issuing a deprecation warning
+    public boolean addInternalDependencyConstraint(DependencyConstraint dependencyConstraint) {
+        return super.add(dependencyConstraint);
     }
 
     private void warnIfConfigurationIsDeprecated() {
