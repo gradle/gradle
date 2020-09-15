@@ -531,6 +531,39 @@
                     }
                 }
             ]
+        },
+        {
+            "testId" : "org.gradle.performance.regression.corefeature.ArchiveTreePerformanceTest.visiting zip trees",
+            "groups" : [
+                {
+                    "testProject" : "archivePerformanceProject",
+                    "stages" : {
+                        "ExperimentalPerformance":  ["linux"]
+                    }
+                }
+            ]
+        },
+        {
+            "testId" : "org.gradle.performance.regression.corefeature.ArchiveTreePerformanceTest.visiting tar trees",
+            "groups" : [
+                {
+                    "testProject" : "archivePerformanceProject",
+                    "stages" : {
+                        "ExperimentalPerformance":  ["linux"]
+                    }
+                }
+            ]
+        },
+        {
+            "testId" : "org.gradle.performance.regression.corefeature.ArchiveTreePerformanceTest.visiting gzip tar trees",
+            "groups" : [
+                {
+                    "testProject" : "archivePerformanceProject",
+                    "stages" : {
+                        "ExperimentalPerformance":  ["linux"]
+                    }
+                }
+            ]
         }
     ]
 }

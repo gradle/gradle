@@ -55,3 +55,6 @@ org.gradle.performance.regression.buildcache.TaskOutputCachingNativePerformanceT
 org.gradle.performance.regression.buildcache.TaskOutputCachingNativePerformanceTest;clean assemble with local cache (native project);bigNative;linux;233000
 org.gradle.performance.regression.buildcache.TaskOutputCachingSwiftPerformanceTest;clean assemble with local cache (swift);bigSwiftApp;linux;315000
 org.gradle.performance.regression.buildcache.TaskOutputCachingSwiftPerformanceTest;clean assemble with local cache (swift);mediumSwiftMulti;linux;522000
+org.gradle.performance.regression.corefeature.ArchiveTreePerformanceTest;visiting zip trees;archivePerformanceProject;linux;229000
+org.gradle.performance.regression.corefeature.ArchiveTreePerformanceTest;visiting tar trees;archivePerformanceProject;linux;163000
+org.gradle.performance.regression.corefeature.ArchiveTreePerformanceTest;visiting gzip tar trees;archivePerformanceProject;linux;167000
