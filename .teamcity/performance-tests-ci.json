@@ -242,6 +242,68 @@
                     }
                 }
             ]
+        },
+        {
+            "testId" : "org.gradle.performance.regression.java.JavaConfigurationCachePerformanceTest.assemble loading configuration cache state with hot daemon",
+            "groups" : [
+                {
+                    "testProject" : "largeJavaMultiProjectNoBuildSrc",
+                    "stages" : {
+                        "ExperimentalPerformance":  ["linux"],
+                        "ReadyForRelease": ["windows"]
+                    }
+                },
+                {
+                    "testProject" : "smallJavaMultiProject",
+                    "stages" : {
+                        "ExperimentalPerformance":  ["linux"],
+                        "ReadyForRelease": ["windows"]
+                    }
+                }
+            ]
+        },
+        {
+            "testId" : "org.gradle.performance.regression.java.JavaConfigurationCachePerformanceTest.assemble storing configuration cache state with hot daemon",
+            "groups" : [
+                {
+                    "testProject" : "largeJavaMultiProjectNoBuildSrc",
+                    "stages" : {
+                        "ExperimentalPerformance":  ["linux"],
+                        "ReadyForRelease": ["windows"]
+                    }
+                },
+                {
+                    "testProject" : "smallJavaMultiProject",
+                    "stages" : {
+                        "ExperimentalPerformance":  ["linux"],
+                        "ReadyForRelease": ["windows"]
+                    }
+                }
+            ]
+        },
+        {
+            "testId" : "org.gradle.performance.regression.java.JavaConfigurationCachePerformanceTest.assemble loading configuration cache state with cold daemon",
+            "groups" : [
+                {
+                    "testProject" : "largeJavaMultiProjectNoBuildSrc",
+                    "stages" : {
+                        "ExperimentalPerformance":  ["linux"],
+                        "ReadyForRelease": ["windows"]
+                    }
+                }
+            ]
+        },
+        {
+            "testId" : "org.gradle.performance.regression.java.JavaConfigurationCachePerformanceTest.assemble storing configuration cache state with cold daemon",
+            "groups" : [
+                {
+                    "testProject" : "largeJavaMultiProjectNoBuildSrc",
+                    "stages" : {
+                        "ExperimentalPerformance":  ["linux"],
+                        "ReadyForRelease": ["windows"]
+                    }
+                }
+            ]
         }
     ]
 }

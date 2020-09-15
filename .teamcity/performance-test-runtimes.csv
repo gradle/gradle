@@ -24,3 +24,9 @@ org.gradle.performance.regression.java.JavaDependencyReportPerformanceTest;gener
 org.gradle.performance.regression.java.JavaConfigurationPerformanceTest;configure;largeJavaMultiProject;linux;253000
 org.gradle.performance.regression.java.JavaConfigurationPerformanceTest;configure;largeJavaMultiProjectKotlinDsl;linux;395000
 org.gradle.performance.regression.java.JavaConfigurationPerformanceTest;configure;largeMonolithicJavaProject;linux;141000
+org.gradle.performance.regression.java.JavaConfigurationCachePerformanceTest;assemble loading configuration cache state with hot daemon;largeJavaMultiProjectNoBuildSrc;linux;386000
+org.gradle.performance.regression.java.JavaConfigurationCachePerformanceTest;assemble loading configuration cache state with cold daemon;largeJavaMultiProjectNoBuildSrc;linux;626000
+org.gradle.performance.regression.java.JavaConfigurationCachePerformanceTest;assemble loading configuration cache state with hot daemon;smallJavaMultiProject;linux;188000
+org.gradle.performance.regression.java.JavaConfigurationCachePerformanceTest;assemble storing configuration cache state with hot daemon;largeJavaMultiProjectNoBuildSrc;linux;383000
+org.gradle.performance.regression.java.JavaConfigurationCachePerformanceTest;assemble storing configuration cache state with cold daemon;largeJavaMultiProjectNoBuildSrc;linux;628000
+org.gradle.performance.regression.java.JavaConfigurationCachePerformanceTest;assemble storing configuration cache state with hot daemon;smallJavaMultiProject;linux;184000

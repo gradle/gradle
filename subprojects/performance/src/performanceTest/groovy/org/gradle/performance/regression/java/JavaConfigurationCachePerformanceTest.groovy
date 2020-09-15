@@ -29,8 +29,6 @@ import spock.lang.Unroll
 
 import java.nio.file.Files
 
-import static org.gradle.performance.generator.JavaTestProject.LARGE_JAVA_MULTI_PROJECT_NO_BUILD_SRC
-import static org.gradle.performance.generator.JavaTestProject.SMALL_JAVA_MULTI_PROJECT_NO_BUILD_SRC
 import static org.junit.Assert.assertTrue
 
 @Category(PerformanceRegressionTest)
@@ -62,11 +60,10 @@ class JavaConfigurationCachePerformanceTest extends AbstractCrossVersionPerforma
     }
 
     @Unroll
-    def "assemble on #testProject #action configuration cache state with #daemon daemon"() {
+    def "assemble #action configuration cache state with #daemon daemon"() {
         given:
         runner.targetVersions = ["6.7-20200827220028+0000"]
         runner.minimumBaseVersion = "6.6"
-        runner.testProject = testProject.projectName
         runner.tasksToRun = ["assemble"]
         runner.args = ["-D${ConfigurationCacheOption.PROPERTY_NAME}=true"]
 
@@ -83,16 +80,13 @@ class JavaConfigurationCachePerformanceTest extends AbstractCrossVersionPerforma
         then:
         result.assertCurrentVersionHasNotRegressed()
 
+
         where:
-        testProject                           | daemon | action
-        LARGE_JAVA_MULTI_PROJECT_NO_BUILD_SRC | hot    | loading
-        LARGE_JAVA_MULTI_PROJECT_NO_BUILD_SRC | hot    | storing
-        LARGE_JAVA_MULTI_PROJECT_NO_BUILD_SRC | cold   | loading
-        LARGE_JAVA_MULTI_PROJECT_NO_BUILD_SRC | cold   | storing
-        SMALL_JAVA_MULTI_PROJECT_NO_BUILD_SRC | hot    | loading
-        SMALL_JAVA_MULTI_PROJECT_NO_BUILD_SRC | hot    | storing
-//        SMALL_JAVA_MULTI_PROJECT_NO_BUILD_SRC | cold   | loading
-//        SMALL_JAVA_MULTI_PROJECT_NO_BUILD_SRC | cold   | storing
+        daemon | action
+        hot    | loading
+        hot    | storing
+        cold   | loading
+        cold   | storing
     }
 
     static String loading = "loading"
