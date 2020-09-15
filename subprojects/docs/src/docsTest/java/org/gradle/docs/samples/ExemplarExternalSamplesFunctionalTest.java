@@ -25,7 +25,6 @@ import org.gradle.integtests.fixtures.logging.GradleWelcomeOutputNormalizer;
 import org.gradle.integtests.fixtures.logging.NativeComponentReportOutputNormalizer;
 import org.gradle.integtests.fixtures.logging.PlayComponentReportOutputNormalizer;
 import org.gradle.integtests.fixtures.logging.SampleOutputNormalizer;
-import org.gradle.integtests.fixtures.logging.SuppressingKotlinUnusedParameterWarningNormalizer;
 import org.gradle.integtests.fixtures.mirror.SetMirrorsSampleModifier;
 import org.gradle.samples.test.normalizer.FileSeparatorOutputNormalizer;
 import org.gradle.samples.test.normalizer.GradleOutputNormalizer;
@@ -45,8 +44,7 @@ import org.junit.runner.RunWith;
     NativeComponentReportOutputNormalizer.class,
     PlayComponentReportOutputNormalizer.class,
     DependencyInsightOutputNormalizer.class,
-    ConfigurationCacheOutputNormalizer.class,
-    SuppressingKotlinUnusedParameterWarningNormalizer.class
+    ConfigurationCacheOutputNormalizer.class
 })
 @SampleModifiers({
     SetMirrorsSampleModifier.class,
