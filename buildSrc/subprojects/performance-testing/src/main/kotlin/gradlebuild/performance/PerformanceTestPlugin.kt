@@ -39,6 +39,7 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.internal.tasks.DefaultTaskContainer
+import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter
 import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.Delete
 import org.gradle.api.tasks.SourceSet
@@ -268,9 +269,12 @@ class PerformanceTestPlugin : Plugin<Project> {
                     setTestProjectGenerationTask(sampleGenerator)
 
                     if (shouldLoadScenariosFromFile) {
-                        scenarios = loadScenariosFromFile(sampleGenerator.name).joinToString(";")
+                        val scenariosFromFile = loadScenariosFromFile(sampleGenerator.name)
+                        if (scenariosFromFile.isNotEmpty()) {
+                            setTestNameIncludePatterns(scenariosFromFile)
+                        }
                         doFirst {
-                            assert(scenarios.isNotEmpty()) { "Running $name requires to set some scenarios" }
+                            assert((filter as DefaultTestFilter).includePatterns.isNotEmpty()) { "Running $name requires to add a test filter" }
                         }
                     }
                 }
@@ -283,7 +287,10 @@ class PerformanceTestPlugin : Plugin<Project> {
         val scenarioFile = project.rootProject.file("performance-test-splits/include-$testProject-performance-scenarios.csv")
         return if (scenarioFile.isFile)
             scenarioFile.readLines(StandardCharsets.UTF_8)
-                .map { it.split(";")[1] }
+                .map {
+                    val (className, scenario) = it.split(";")
+                    "$className.$scenario"
+                }
         else listOf()
     }
 
