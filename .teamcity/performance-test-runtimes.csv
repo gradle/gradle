@@ -38,3 +38,15 @@ org.gradle.performance.regression.java.JavaCleanAssemblePerformanceTest;clean as
 org.gradle.performance.regression.java.JavaCleanAssemblePerformanceTest;clean assemble;largeMonolithicJavaProject;linux;529000
 org.gradle.performance.regression.java.JavaCleanAssemblePerformanceTest;clean assemble;mediumJavaCompositeBuild;linux;259000
 org.gradle.performance.regression.java.JavaCleanAssemblePerformanceTest;clean assemble;mediumJavaPredefinedCompositeBuild;linux;260000
+org.gradle.performance.regression.buildcache.TaskOutputCachingJavaPerformanceTest;clean assemble with remote http cache;largeJavaMultiProject;linux;905000
+org.gradle.performance.regression.buildcache.TaskOutputCachingJavaPerformanceTest;clean assemble with remote http cache;largeMonolithicJavaProject;linux;1012000
+org.gradle.performance.regression.buildcache.TaskOutputCachingJavaPerformanceTest;clean assemble with remote https cache;largeJavaMultiProject;linux;896000
+org.gradle.performance.regression.buildcache.TaskOutputCachingJavaPerformanceTest;clean assemble with remote https cache;largeMonolithicJavaProject;linux;1022000
+org.gradle.performance.regression.buildcache.TaskOutputCachingJavaPerformanceTest;clean assemble with empty local cache;largeJavaMultiProject;linux;877000
+org.gradle.performance.regression.buildcache.TaskOutputCachingJavaPerformanceTest;clean assemble with empty local cache;largeMonolithicJavaProject;linux;975000
+org.gradle.performance.regression.buildcache.TaskOutputCachingJavaPerformanceTest;clean assemble with empty remote http cache;largeJavaMultiProject;linux;863000
+org.gradle.performance.regression.buildcache.TaskOutputCachingJavaPerformanceTest;clean assemble with empty remote http cache;largeMonolithicJavaProject;linux;977000
+org.gradle.performance.regression.buildcache.TaskOutputCachingJavaPerformanceTest;clean assemble with local cache;largeJavaMultiProject;linux;985000
+org.gradle.performance.regression.buildcache.TaskOutputCachingJavaPerformanceTest;clean assemble with local cache;largeMonolithicJavaProject;linux;1018000
+org.gradle.performance.regression.buildcache.TaskOutputCachingJavaPerformanceTest;clean assemble for abi change with local cache;largeJavaMultiProject;linux;993000
+org.gradle.performance.regression.buildcache.TaskOutputCachingJavaPerformanceTest;clean assemble for non-abi change with local cache;largeJavaMultiProject;linux;927000

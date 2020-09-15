@@ -26,15 +26,10 @@ import org.gradle.profiler.BuildMutator
 import org.gradle.profiler.mutations.ApplyAbiChangeToJavaSourceFileMutator
 import org.gradle.profiler.mutations.ApplyNonAbiChangeToJavaSourceFileMutator
 import org.gradle.test.fixtures.keystore.TestKeyStore
-import spock.lang.Unroll
 
 import java.util.zip.GZIPInputStream
 import java.util.zip.GZIPOutputStream
 
-import static org.gradle.performance.generator.JavaTestProject.LARGE_JAVA_MULTI_PROJECT
-import static org.gradle.performance.generator.JavaTestProject.LARGE_MONOLITHIC_JAVA_PROJECT
-
-@Unroll
 class TaskOutputCachingJavaPerformanceTest extends AbstractTaskOutputCachingPerformanceTest {
 
     def setup() {
@@ -44,8 +39,8 @@ class TaskOutputCachingJavaPerformanceTest extends AbstractTaskOutputCachingPerf
         runner.targetVersions = ["6.7-20200824220048+0000"]
     }
 
-    def "clean #tasks on #testProject with remote http cache"() {
-        setupTestProject(runner, testProject, tasks)
+    def "clean assemble with remote http cache"() {
+        setupTestProject(runner)
         protocol = "http"
         pushToRemote = true
         runner.addBuildMutator { cleanLocalCache() }
@@ -56,13 +51,10 @@ class TaskOutputCachingJavaPerformanceTest extends AbstractTaskOutputCachingPerf
 
         then:
         result.assertCurrentVersionHasNotRegressed()
-
-        where:
-        [testProject, tasks] << scenarios
     }
 
-    def "clean #tasks on #testProject with remote https cache"() {
-        setupTestProject(runner, testProject, tasks)
+    def "clean assemble with remote https cache"() {
+        setupTestProject(runner)
         protocol = "https"
         pushToRemote = true
         runner.addBuildMutator { cleanLocalCache() }
@@ -78,14 +70,11 @@ class TaskOutputCachingJavaPerformanceTest extends AbstractTaskOutputCachingPerf
 
         then:
         result.assertCurrentVersionHasNotRegressed()
-
-        where:
-        [testProject, tasks] << scenarios
     }
 
-    def "clean #tasks on #testProject with empty local cache"() {
+    def "clean assemble with empty local cache"() {
         given:
-        setupTestProject(runner, testProject, tasks)
+        setupTestProject(runner)
         runner.warmUpRuns = 6
         runner.runs = 8
         pushToRemote = false
@@ -96,14 +85,11 @@ class TaskOutputCachingJavaPerformanceTest extends AbstractTaskOutputCachingPerf
 
         then:
         result.assertCurrentVersionHasNotRegressed()
-
-        where:
-        [testProject, tasks] << scenarios
     }
 
-    def "clean #tasks on #testProject with empty remote http cache"() {
+    def "clean assemble with empty remote http cache"() {
         given:
-        setupTestProject(runner, testProject, tasks)
+        setupTestProject(runner)
         runner.warmUpRuns = 6
         runner.runs = 8
         pushToRemote = true
@@ -115,20 +101,12 @@ class TaskOutputCachingJavaPerformanceTest extends AbstractTaskOutputCachingPerf
 
         then:
         result.assertCurrentVersionHasNotRegressed()
-
-        where:
-        [testProject, tasks] << scenarios
     }
 
-    def "clean #tasks on #testProject with local cache (parallel: #parallel)"() {
+    def "clean assemble with local cache"() {
         given:
-        if (!parallel) {
-            runner.previousTestIds = ["clean $tasks on $testProject with local cache"]
-        }
-        setupTestProject(runner, testProject, tasks)
-        if (parallel) {
-            runner.args += "--parallel"
-        }
+        setupTestProject(runner)
+        runner.args += "--parallel"
         pushToRemote = false
         runner.addBuildMutator { touchCacheArtifacts() }
 
@@ -137,18 +115,12 @@ class TaskOutputCachingJavaPerformanceTest extends AbstractTaskOutputCachingPerf
 
         then:
         result.assertCurrentVersionHasNotRegressed()
-
-        where:
-        testScenario << [scenarios, [true, false]].combinations()
-        projectInfo = testScenario[0]
-        parallel = testScenario[1]
-        testProject = projectInfo[0]
-        tasks = projectInfo[1]
     }
 
-    def "clean #tasks for abi change on #testProject with local cache (parallel: true)"() {
+    def "clean assemble for abi change with local cache"() {
         given:
-        setupTestProject(runner, testProject, tasks)
+        setupTestProject(runner)
+        def testProject = JavaTestProject.projectFor(runner.testProject)
         runner.addBuildMutator { new ApplyAbiChangeToJavaSourceFileMutator(new File(it.projectDir, testProject.config.fileToChangeByScenario['assemble'])) }
         runner.args += "--parallel"
         pushToRemote = false
@@ -159,16 +131,12 @@ class TaskOutputCachingJavaPerformanceTest extends AbstractTaskOutputCachingPerf
 
         then:
         result.assertCurrentVersionHasNotRegressed()
-
-        where:
-        // We only test the multiproject here since for the monolitic project we would have no cache hits.
-        // This would mean we actually would test incremental compilation.
-        [testProject, tasks] << [[LARGE_JAVA_MULTI_PROJECT, 'assemble']]
     }
 
-    def "clean #tasks for non-abi change on #testProject with local cache (parallel: true)"() {
+    def "clean assemble for non-abi change with local cache"() {
         given:
-        setupTestProject(runner, testProject, tasks)
+        setupTestProject(runner)
+        def testProject = JavaTestProject.projectFor(runner.testProject)
         runner.addBuildMutator { new ApplyNonAbiChangeToJavaSourceFileMutator(new File(it.projectDir, testProject.config.fileToChangeByScenario['assemble'])) }
         runner.args += "--parallel"
         pushToRemote = false
@@ -179,11 +147,6 @@ class TaskOutputCachingJavaPerformanceTest extends AbstractTaskOutputCachingPerf
 
         then:
         result.assertCurrentVersionHasNotRegressed()
-
-        where:
-        // We only test the multiproject here since for the monolitic project we would have no cache hits.
-        // This would mean we actually would test incremental compilation.
-        [testProject, tasks] << [[LARGE_JAVA_MULTI_PROJECT, 'assemble']]
     }
 
     private BuildMutator touchCacheArtifacts() {
@@ -238,18 +201,9 @@ class TaskOutputCachingJavaPerformanceTest extends AbstractTaskOutputCachingPerf
         println "Changed file dates in $count cache artifacts in $dir in ${time} ms"
     }
 
-    static def setupTestProject(CrossVersionPerformanceTestRunner runner, JavaTestProject testProject, String tasks) {
-        runner.testProject = testProject
-        runner.gradleOpts = ["-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}"]
-        runner.tasksToRun = tasks.split(' ') as List
+    static def setupTestProject(CrossVersionPerformanceTestRunner runner) {
+        runner.gradleOpts = runner.projectMemoryOptions
+        runner.tasksToRun = ["assemble"]
         runner.cleanTasks = ["clean"]
     }
-
-    static def getScenarios() {
-        [
-            [LARGE_MONOLITHIC_JAVA_PROJECT, 'assemble'],
-            [LARGE_JAVA_MULTI_PROJECT, 'assemble']
-        ]
-    }
-
 }

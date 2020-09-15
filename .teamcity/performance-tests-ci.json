@@ -370,6 +370,127 @@
                     }
                 }
             ]
+        },
+        {
+            "testId" : "org.gradle.performance.regression.buildcache.TaskOutputCachingJavaPerformanceTest.clean assemble with remote http cache",
+            "groups" : [
+                {
+                    "testProject" : "largeJavaMultiProject",
+                    "stages" : {
+                        "ExperimentalPerformance":  ["linux"],
+                        "ReadyForRelease": ["windows"]
+                    }
+                },
+                {
+                    "testProject" : "largeMonolithicJavaProject",
+                    "stages" : {
+                        "ExperimentalPerformance":  ["linux"],
+                        "ReadyForRelease": ["windows"]
+                    }
+                }
+            ]
+        },
+        {
+            "testId" : "org.gradle.performance.regression.buildcache.TaskOutputCachingJavaPerformanceTest.clean assemble with remote https cache",
+            "groups" : [
+                {
+                    "testProject" : "largeJavaMultiProject",
+                    "stages" : {
+                        "ExperimentalPerformance":  ["linux"],
+                        "ReadyForRelease": ["windows"]
+                    }
+                },
+                {
+                    "testProject" : "largeMonolithicJavaProject",
+                    "stages" : {
+                        "ExperimentalPerformance":  ["linux"],
+                        "ReadyForRelease": ["windows"]
+                    }
+                }
+            ]
+        },
+        {
+            "testId" : "org.gradle.performance.regression.buildcache.TaskOutputCachingJavaPerformanceTest.clean assemble with empty local cache",
+            "groups" : [
+                {
+                    "testProject" : "largeJavaMultiProject",
+                    "stages" : {
+                        "ExperimentalPerformance":  ["linux"],
+                        "ReadyForRelease": ["windows"]
+                    }
+                },
+                {
+                    "testProject" : "largeMonolithicJavaProject",
+                    "stages" : {
+                        "ExperimentalPerformance":  ["linux"],
+                        "ReadyForRelease": ["windows"]
+                    }
+                }
+            ]
+        },
+        {
+            "testId" : "org.gradle.performance.regression.buildcache.TaskOutputCachingJavaPerformanceTest.clean assemble with empty remote http cache",
+            "groups" : [
+                {
+                    "testProject" : "largeJavaMultiProject",
+                    "stages" : {
+                        "ExperimentalPerformance":  ["linux"],
+                        "ReadyForRelease": ["windows"]
+                    }
+                },
+                {
+                    "testProject" : "largeMonolithicJavaProject",
+                    "stages" : {
+                        "ExperimentalPerformance":  ["linux"],
+                        "ReadyForRelease": ["windows"]
+                    }
+                }
+            ]
+        },
+        {
+            "testId" : "org.gradle.performance.regression.buildcache.TaskOutputCachingJavaPerformanceTest.clean assemble with local cache",
+            "groups" : [
+                {
+                    "testProject" : "largeJavaMultiProject",
+                    "stages" : {
+                        "ExperimentalPerformance":  ["linux"],
+                        "ReadyForRelease": ["windows"]
+                    }
+                },
+                {
+                    "testProject" : "largeMonolithicJavaProject",
+                    "stages" : {
+                        "ExperimentalPerformance":  ["linux"],
+                        "ReadyForRelease": ["windows"]
+                    }
+                }
+            ]
+        },
+        {
+            "testId" : "org.gradle.performance.regression.buildcache.TaskOutputCachingJavaPerformanceTest.clean assemble for abi change with local cache",
+            "groups" : [
+                {
+                    "testProject" : "largeJavaMultiProject",
+                    "comment": "We only test the multi-project here since for the monolithic project we would have no cache hits. This would mean we actually would test incremental compilation.",
+                    "stages" : {
+                        "ExperimentalPerformance":  ["linux"],
+                        "ReadyForRelease": ["windows"]
+                    }
+                }
+            ]
+        },
+        {
+            "testId" : "org.gradle.performance.regression.buildcache.TaskOutputCachingJavaPerformanceTest.clean assemble for non-abi change with local cache",
+            "groups" : [
+                {
+                    "testProject" : "largeJavaMultiProject",
+                    "comment": "We only test the multi-project here since for the monolithic project we would have no cache hits. This would mean we actually would test incremental compilation.",
+                    "stages" : {
+                        "ExperimentalPerformance":  ["linux"],
+                        "ReadyForRelease": ["windows"]
+                    }
+                }
+            ]
         }
     ]
 }
