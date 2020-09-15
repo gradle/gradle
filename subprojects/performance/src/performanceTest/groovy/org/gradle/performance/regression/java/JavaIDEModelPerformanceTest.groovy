@@ -21,9 +21,7 @@ import org.gradle.performance.generator.JavaTestProject
 import org.gradle.tooling.model.ExternalDependency
 import org.gradle.tooling.model.eclipse.EclipseProject
 import org.gradle.tooling.model.idea.IdeaProject
-import spock.lang.Unroll
 
-import static org.gradle.performance.generator.JavaTestProject.LARGE_JAVA_MULTI_PROJECT
 import static org.gradle.performance.generator.JavaTestProject.LARGE_MONOLITHIC_JAVA_PROJECT
 
 class JavaIDEModelPerformanceTest extends AbstractCrossVersionPerformanceTest {
@@ -33,10 +31,9 @@ class JavaIDEModelPerformanceTest extends AbstractCrossVersionPerformanceTest {
         runner.minimumBaseVersion = "2.11"
     }
 
-    @Unroll
-    def "get IDE model on #testProject for Eclipse"() {
+    def "get IDE model for Eclipse"() {
         given:
-        setupTestProject(testProject, iterations)
+        setupTestProject()
 
         runner.toolingApi("Eclipse model") {
             it.model(EclipseProject)
@@ -84,17 +81,11 @@ class JavaIDEModelPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
         then:
         result.assertCurrentVersionHasNotRegressed()
-
-        where:
-        testProject                   | iterations
-        LARGE_MONOLITHIC_JAVA_PROJECT | 200
-        LARGE_JAVA_MULTI_PROJECT      | 40
     }
 
-    @Unroll
-    def "get IDE model on #testProject for IDEA"() {
+    def "get IDE model for IDEA"() {
         given:
-        setupTestProject(testProject, iterations)
+        setupTestProject()
         runner.toolingApi("IDEA model") {
             it.model(IdeaProject)
         }.run { builder ->
@@ -138,18 +129,18 @@ class JavaIDEModelPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
         then:
         result.assertCurrentVersionHasNotRegressed()
-
-        where:
-        testProject                   | iterations
-        LARGE_MONOLITHIC_JAVA_PROJECT | 200
-        LARGE_JAVA_MULTI_PROJECT      | 40
     }
 
-    private setupTestProject(JavaTestProject testProject, int iterations) {
-        runner.testProject = testProject
-        runner.gradleOpts = ["-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}"]
+    private setupTestProject() {
+        runner.gradleOpts = runner.projectMemoryOptions
+        def iterations = determineIterations()
         runner.warmUpRuns = iterations
         runner.runs = iterations
+    }
+
+    private determineIterations() {
+        def testProject = JavaTestProject.projectFor(runner.testProject)
+        return testProject == LARGE_MONOLITHIC_JAVA_PROJECT ? 200 : 40
     }
 
     private static void forEachEclipseProject(def elm, @DelegatesTo(value=EclipseProject) Closure<?> action) {

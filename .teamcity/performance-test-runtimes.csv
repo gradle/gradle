@@ -15,3 +15,7 @@ org.gradle.performance.regression.java.JavaNonABIChangePerformanceTest;assemble 
 org.gradle.performance.regression.java.JavaNonABIChangePerformanceTest;assemble for non-abi change;largeGroovyMultiProject;linux;613000
 org.gradle.performance.regression.java.JavaNonABIChangePerformanceTest;assemble for non-abi change;largeMonolithicJavaProject;linux;1013000
 org.gradle.performance.regression.java.JavaNonABIChangePerformanceTest;assemble for non-abi change;largeMonolithicGroovyProject;linux;1680000
+org.gradle.performance.regression.java.JavaIDEModelPerformanceTest;get IDE model for Eclipse;largeJavaMultiProject;linux;480000
+org.gradle.performance.regression.java.JavaIDEModelPerformanceTest;get IDE model for Eclipse;largeMonolithicJavaProject;linux;116000
+org.gradle.performance.regression.java.JavaIDEModelPerformanceTest;get IDE model for IDEA;largeJavaMultiProject;linux;454000
+org.gradle.performance.regression.java.JavaIDEModelPerformanceTest;get IDE model for IDEA;largeMonolithicJavaProject;linux;116000
