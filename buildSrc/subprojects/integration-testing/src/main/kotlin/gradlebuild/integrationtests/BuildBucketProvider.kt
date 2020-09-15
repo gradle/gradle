@@ -36,7 +36,7 @@ fun Project.bucketProvider(): BuildBucketProvider {
                 IncludeTestClassProvider(readTestClasses(content))
             }
             project.stringPropertyOrEmpty("excludeTestClasses").isNotBlank() -> {
-                val content = project.rootProject.rootDir.resolve("test-splits/exclude-test-classes.properties").readText()
+                val content = project.rootProject.file("test-splits/exclude-test-classes.properties").readText()
                 println("Tests to be excluded:\n$content")
                 ExcludeTestClassProvider(readTestClasses(content))
             }
