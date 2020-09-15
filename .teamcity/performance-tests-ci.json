@@ -100,6 +100,32 @@
                     }
                 }
             ]
+        },
+        {
+            "testId" : "org.gradle.performance.regression.java.JavaTestChangePerformanceTest.test for non-abi change",
+            "groups" : [
+                {
+                    "testProject" : "largeJavaMultiProject",
+                    "stages" : {
+                        "ExperimentalPerformance":  ["linux"],
+                        "ReadyForRelease": ["windows"]
+                    }
+                },
+                {
+                    "testProject" : "mediumJavaMultiProjectWithTestNG",
+                    "stages" : {
+                        "ExperimentalPerformance":  ["linux"],
+                        "ReadyForRelease": ["windows"]
+                    }
+                },
+                {
+                    "testProject" : "largeMonolithicJavaProject",
+                    "stages" : {
+                        "ExperimentalPerformance":  ["linux"],
+                        "ReadyForRelease": ["windows"]
+                    }
+                }
+            ]
         }
     ]
 }
