@@ -36,7 +36,7 @@ details of 2
 
 ### Kotlin DSL script compilation is faster and consumes less memory
 
-In this release, the compilation of [Gradle Kotlin DSL](userguide/kotlin_dsl.html) scripts (`*.gradle.kts`) is now faster and consumes less memory.
+In this release, the compilation of [Gradle Kotlin DSL](userguide/kotlin_dsl.html) scripts (`*.gradle.kts`) is faster and consumes less memory.
 
 On a sample medium-sized build, the cumulative script compilation time goes from [~50 seconds](https://scans.gradle.com/s/3bg67eccnya5i/performance/configuration?showScriptCompilationTimes) down to [~21 seconds](https://scans.gradle.com/s/y7dw5ekes24ag/performance/configuration?showScriptCompilationTimes) with cold caches and cold daemons.
 This improvement also reduces memory pressure.
