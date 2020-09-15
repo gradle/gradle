@@ -31,12 +31,12 @@ fun Project.bucketProvider(): BuildBucketProvider {
     if (!rootProject.extra.has("bucketProvider")) {
         rootProject.extra["bucketProvider"] = when {
             project.stringPropertyOrEmpty("includeTestClasses").isNotBlank() -> {
-                val content = project.rootProject.buildDir.resolve("include-test-classes.properties").readText()
+                val content = project.rootProject.file("test-splits/include-test-classes.properties").readText()
                 println("Tests to be included:\n$content")
                 IncludeTestClassProvider(readTestClasses(content))
             }
             project.stringPropertyOrEmpty("excludeTestClasses").isNotBlank() -> {
-                val content = project.rootProject.buildDir.resolve("exclude-test-classes.properties").readText()
+                val content = project.rootProject.file("test-splits/exclude-test-classes.properties").readText()
                 println("Tests to be excluded:\n$content")
                 ExcludeTestClassProvider(readTestClasses(content))
             }
