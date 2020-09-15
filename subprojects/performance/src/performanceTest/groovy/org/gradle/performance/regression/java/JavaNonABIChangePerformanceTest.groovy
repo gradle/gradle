@@ -17,22 +17,18 @@
 package org.gradle.performance.regression.java
 
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
+import org.gradle.performance.generator.JavaTestProject
 import org.gradle.performance.mutator.ApplyNonAbiChangeToGroovySourceFileMutator
 import org.gradle.profiler.mutations.ApplyNonAbiChangeToJavaSourceFileMutator
 import spock.lang.Unroll
 
-import static org.gradle.performance.generator.JavaTestProject.LARGE_GROOVY_MULTI_PROJECT
-import static org.gradle.performance.generator.JavaTestProject.LARGE_JAVA_MULTI_PROJECT
-import static org.gradle.performance.generator.JavaTestProject.LARGE_MONOLITHIC_GROOVY_PROJECT
-import static org.gradle.performance.generator.JavaTestProject.LARGE_MONOLITHIC_JAVA_PROJECT
-
 class JavaNonABIChangePerformanceTest extends AbstractCrossVersionPerformanceTest {
 
     @Unroll
-    def "assemble for non-abi change on #testProject"() {
+    def "assemble for non-abi change"() {
         given:
-        runner.testProject = testProject
-        runner.gradleOpts = ["-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}"]
+        def testProject = JavaTestProject.projectFor(runner.testProject)
+        runner.gradleOpts = runner.projectMemoryOptions
         runner.tasksToRun = ['assemble']
         runner.targetVersions = ["6.7-20200824220048+0000"]
         boolean isGroovyProject = testProject.name().contains("GROOVY")
@@ -49,8 +45,5 @@ class JavaNonABIChangePerformanceTest extends AbstractCrossVersionPerformanceTes
 
         then:
         result.assertCurrentVersionHasNotRegressed()
-
-        where:
-        testProject << [LARGE_MONOLITHIC_JAVA_PROJECT, LARGE_JAVA_MULTI_PROJECT, LARGE_MONOLITHIC_GROOVY_PROJECT, LARGE_GROOVY_MULTI_PROJECT]
     }
 }

@@ -11,3 +11,7 @@ org.gradle.performance.regression.java.JavaTasksPerformanceTest;tasks --all;larg
 org.gradle.performance.regression.java.JavaTestChangePerformanceTest;test for non-abi change;largeMonolithicJavaProject;linux;1415000
 org.gradle.performance.regression.java.JavaTestChangePerformanceTest;test for non-abi change;largeJavaMultiProject;linux;584000
 org.gradle.performance.regression.java.JavaTestChangePerformanceTest;test for non-abi change;mediumJavaMultiProjectWithTestNG;linux;290000
+org.gradle.performance.regression.java.JavaNonABIChangePerformanceTest;assemble for non-abi change;largeJavaMultiProject;linux;486000
+org.gradle.performance.regression.java.JavaNonABIChangePerformanceTest;assemble for non-abi change;largeGroovyMultiProject;linux;613000
+org.gradle.performance.regression.java.JavaNonABIChangePerformanceTest;assemble for non-abi change;largeMonolithicJavaProject;linux;1013000
+org.gradle.performance.regression.java.JavaNonABIChangePerformanceTest;assemble for non-abi change;largeMonolithicGroovyProject;linux;1680000
