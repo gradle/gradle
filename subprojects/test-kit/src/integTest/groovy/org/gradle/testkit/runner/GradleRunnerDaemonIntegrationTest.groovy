@@ -21,13 +21,16 @@ import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.testkit.runner.fixtures.CustomDaemonDirectory
 import org.gradle.testkit.runner.fixtures.NoDebug
+import org.gradle.util.GradleVersion
+import org.junit.Assume
 import org.junit.Rule
 import spock.lang.IgnoreIf
 
 @NoDebug
 class GradleRunnerDaemonIntegrationTest extends BaseGradleRunnerIntegrationTest {
-
     def setup() {
+        // https://github.com/gradle/gradle-private/issues/3207
+        Assume.assumeTrue(gradleVersion >= GradleVersion.version('2.7'))
         requireIsolatedTestKitDir = true
     }
 
@@ -59,7 +62,8 @@ class GradleRunnerDaemonIntegrationTest extends BaseGradleRunnerIntegrationTest 
         testKitDaemons().daemon.context.pid == pid
     }
 
-    @IgnoreIf({ GradleContextualExecuter.embedded }) // TestKit needs a real Gradle distribution here
+    @IgnoreIf({ GradleContextualExecuter.embedded })
+    // TestKit needs a real Gradle distribution here
     @CustomDaemonDirectory
     def "user daemon process does not reuse existing daemon process intended for test execution even when using same gradle user home"() {
         given:
