@@ -38,7 +38,7 @@ link:../samples/index.html#kotlin[Kotlin]
 
 == Introduction
 
-The simplest build script for a Java project applies the <<java_library_plugin.adoc#,Java Library Plugin>> and optionally sets the project version and select the <<toolchains.adoc#,Java toolchain>> to use:
+The simplest build script for a Java project applies the <<java_library_plugin.adoc#,Java Library Plugin>> and optionally sets the project version and selects the <<toolchains.adoc#,Java toolchain>> to use:
 
 .Applying the Java Library Plugin
 ====
@@ -241,7 +241,7 @@ That's also how you can change the verbosity of the compiler, disable debug outp
 
 By default, Gradle will compile Java code to the language level of the JVM running Gradle.
 With the usage of <<toolchains.adoc#,Java toolchains>>, you can break that link by making sure a given Java version, defined by the build, is used for compilation, execution and documentation.
-Sometimes however, what you need requires more advanced options.
+It is however possible to override some compiler and execution options at the task level.
 
 Since version 9, the Java compiler can be configured to produce bytecode for an older Java version while making sure the code does not use any APIs from a more recent version.
 Gradle now supports this link:{groovyDslPath}/org.gradle.api.tasks.compile.CompileOptions.html#org.gradle.api.tasks.compile.CompileOptions:release[release] flag on `CompileOptions` directly for Java compilation.
@@ -287,7 +287,7 @@ To use Java 6 or Java 7, the following tasks need to be configured:
 * `Javadoc` task to use the correct `javadoc` executable
 * `Test` and the `JavaExec` task to use the correct `java` executable.
 
-With the usage of Java toolchains, this is now a trivial thing to do:
+With the usage of Java toolchains, this can be done as follows:
 
 ==== Example: Configure Java 7 build
 
@@ -296,9 +296,7 @@ include::sample[dir="snippets/java/crossCompilation/groovy",files="build.gradle[
 include::sample[dir="snippets/java/crossCompilation/kotlin",files="build.gradle.kts[tags=java-cross-compilation]"]
 ====
 
-The only requirement is to have <<toolchains.adoc#sec:auto_detection,Java 7 installed and Gradle aware of it>>.
-
-You can take a look at what you needed to do with previous Gradle versions https://docs.gradle.org/6.6.1/userguide/building_java_projects.html#compiling_and_testing_java_67[here].
+The only requirement is to have <<toolchains.adoc#sec:auto_detection,Java 7 installed and known to Gradle>>.
 
 [[sec:custom_java_source_sets]]
 === Compiling independent sources separately
