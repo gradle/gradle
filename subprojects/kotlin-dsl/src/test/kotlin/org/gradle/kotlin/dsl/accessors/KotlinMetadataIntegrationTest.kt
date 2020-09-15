@@ -16,10 +16,6 @@
 
 package org.gradle.kotlin.dsl.accessors
 
-import kotlinx.metadata.jvm.KotlinClassHeader
-import kotlinx.metadata.jvm.KotlinClassMetadata
-import kotlinx.metadata.jvm.KotlinModuleMetadata
-
 import org.gradle.api.Action
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.dsl.DependencyHandler
@@ -46,13 +42,9 @@ class KotlinMetadataIntegrationTest : TestWithTempFiles() {
 
     @Test
     fun `extract file metadata`() {
-
-        val fileFacadeHeader = javaClass.classLoader
-            .loadClass(javaClass.name + "Kt")
-            .readKotlinClassHeader()
-
-        val metadata = KotlinClassMetadata.read(fileFacadeHeader) as KotlinClassMetadata.FileFacade
-        metadata.accept(KotlinMetadataPrintingVisitor.ForPackage)
+        dumpFileFacadeHeaderOf(
+            javaClass.classLoader.loadClass(javaClass.name + "Kt")
+        )
     }
 
     @Test
@@ -79,23 +71,6 @@ class KotlinMetadataIntegrationTest : TestWithTempFiles() {
             )
         )
 
-        val bytes = outputDir.resolve("META-INF/$moduleName.kotlin_module").readBytes()
-        val metadata = KotlinModuleMetadata.read(bytes)!!
-        metadata.accept(KotlinMetadataPrintingVisitor.ForModule)
+        dumpMetadataOfModule(outputDir, moduleName)
     }
-
-    private
-    fun Class<*>.readKotlinClassHeader(): KotlinClassHeader =
-        getAnnotation(Metadata::class.java).run {
-            KotlinClassHeader(
-                kind,
-                metadataVersion,
-                bytecodeVersion,
-                data1,
-                data2,
-                extraString,
-                packageName,
-                extraInt
-            )
-        }
 }

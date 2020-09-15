@@ -26,6 +26,7 @@ import kotlinx.metadata.KmPackageExtensionVisitor
 import kotlinx.metadata.KmPackageVisitor
 import kotlinx.metadata.KmPropertyExtensionVisitor
 import kotlinx.metadata.KmPropertyVisitor
+import kotlinx.metadata.KmTypeAliasVisitor
 import kotlinx.metadata.KmTypeExtensionVisitor
 import kotlinx.metadata.KmTypeParameterExtensionVisitor
 import kotlinx.metadata.KmTypeParameterVisitor
@@ -41,11 +42,57 @@ import kotlinx.metadata.jvm.JvmPropertyExtensionVisitor
 import kotlinx.metadata.jvm.JvmTypeExtensionVisitor
 import kotlinx.metadata.jvm.JvmTypeParameterExtensionVisitor
 import kotlinx.metadata.jvm.KmModuleVisitor
+import kotlinx.metadata.jvm.KotlinClassHeader
+import kotlinx.metadata.jvm.KotlinClassMetadata
+import kotlinx.metadata.jvm.KotlinModuleMetadata
+import java.io.File
+
+
+internal
+fun dumpFileFacadeHeaderOf(loadClass: Class<*>) {
+    val fileFacadeHeader = loadClass.readKotlinClassHeader()
+    val metadata = KotlinClassMetadata.read(fileFacadeHeader) as KotlinClassMetadata.FileFacade
+    metadata.accept(KotlinMetadataPrintingVisitor.ForPackage)
+}
+
+
+internal
+fun Class<*>.readKotlinClassHeader(): KotlinClassHeader =
+    getAnnotation(Metadata::class.java).run {
+        KotlinClassHeader(
+            kind,
+            metadataVersion,
+            bytecodeVersion,
+            data1,
+            data2,
+            extraString,
+            packageName,
+            extraInt
+        )
+    }
+
+
+internal
+fun dumpMetadataOfModule(outputDir: File, moduleName: String) {
+    visitMetadataOfModule(outputDir, moduleName, KotlinMetadataPrintingVisitor.ForModule)
+}
+
+
+internal
+fun visitMetadataOfModule(outputDir: File, moduleName: String, visitor: KmModuleVisitor) {
+    val bytes = outputDir.resolve("META-INF/$moduleName.kotlin_module").readBytes()
+    val metadata = KotlinModuleMetadata.read(bytes)!!
+    metadata.accept(visitor)
+}
 
 
 object KotlinMetadataPrintingVisitor {
 
     object ForPackage : KmPackageVisitor() {
+        override fun visitTypeAlias(flags: Flags, name: String): KmTypeAliasVisitor? {
+            println("visitTypeAlias($flags, $name)")
+            return super.visitTypeAlias(flags, name)
+        }
 
         override fun visitExtensions(type: KmExtensionType): KmPackageExtensionVisitor? {
             println("visitExtensions($type)")
@@ -95,12 +142,14 @@ object KotlinMetadataPrintingVisitor {
                             println("visitAnnotation($annotation)")
                             super.visitAnnotation(annotation)
                         }
+
                         override fun visitEnd() {
                             println("visitEnd()")
                             super.visitEnd()
                         }
                     }
                 }
+
                 override fun visitEnd() {
                     println("visitEnd()")
                     super.visitEnd()
@@ -115,6 +164,7 @@ object KotlinMetadataPrintingVisitor {
                     println("visit($signature)")
                     super.visit(signature)
                 }
+
                 override fun visitEnd() {
                     println("visitEnd()")
                     super.visitEnd()
