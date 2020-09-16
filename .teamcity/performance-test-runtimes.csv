@@ -76,3 +76,4 @@ org.gradle.performance.regression.corefeature.RichConsolePerformanceTest;clean a
 org.gradle.performance.regression.corefeature.RichConsolePerformanceTest;clean assemble with rich console;largeMonolithicJavaProject;linux;819000
 org.gradle.performance.regression.corefeature.RichConsolePerformanceTest;clean assemble with rich console;bigNative;linux;186000
 org.gradle.performance.regression.corefeature.RichConsolePerformanceTest;cleanTest test with rich console;withVerboseJUnit;linux;67000
+org.gradle.performance.regression.corefeature.TaskCreationPerformanceTest;create many tasks;createLotsOfTasks;linux;135000

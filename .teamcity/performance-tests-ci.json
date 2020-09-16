@@ -742,6 +742,17 @@
                     }
                 }
             ]
+        },
+        {
+            "testId" : "org.gradle.performance.regression.corefeature.TaskCreationPerformanceTest.create many tasks",
+            "groups" : [
+                {
+                    "testProject" : "createLotsOfTasks",
+                    "stages" : {
+                        "ExperimentalPerformance":  ["linux"]
+                    }
+                }
+            ]
         }
     ]
 }
