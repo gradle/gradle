@@ -28,7 +28,7 @@ import org.gradle.internal.hash.HashCode
 
 
 internal
-class ConfigurationCacheClassLoaderScopeRegistryListener : ClassLoaderScopeRegistryListener, ScopeLookup {
+class ConfigurationCacheClassLoaderScopeRegistryListener : ClassLoaderScopeRegistryListener, ScopeLookup, AutoCloseable {
     private
     val scopeSpecs = LinkedHashMap<ClassLoaderScopeId, ClassLoaderScopeSpec>()
 
@@ -59,6 +59,10 @@ class ConfigurationCacheClassLoaderScopeRegistryListener : ClassLoaderScopeRegis
         scopeSpecs.clear()
         loaders.clear()
         detach()
+    }
+
+    override fun close() {
+        dispose()
     }
 
     private

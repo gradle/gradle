@@ -164,6 +164,7 @@ class DefaultConfigurationCache internal constructor(
                     throw error
                 } finally {
                     cacheFingerprintController.stop()
+                    scopeRegistryListener.dispose()
                 }
             }
         }
