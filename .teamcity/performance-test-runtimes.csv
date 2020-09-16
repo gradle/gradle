@@ -79,3 +79,5 @@ org.gradle.performance.regression.corefeature.RichConsolePerformanceTest;cleanTe
 org.gradle.performance.regression.corefeature.TaskCreationPerformanceTest;create many tasks;createLotsOfTasks;linux;135000
 org.gradle.performance.regression.corefeature.VerboseTestOutputPerformanceTest;cleanTest test with verbose test output;withVerboseTestNG;linux;172000
 org.gradle.performance.regression.corefeature.VerboseTestOutputPerformanceTest;cleanTest test with verbose test output;withVerboseJUnit;linux;190000
+org.gradle.performance.regression.nativeplatform.NativeBuildDependentsPerformanceTest;libA0:buildDependentsLibA0;nativeDependents;linux;549000
+org.gradle.performance.regression.nativeplatform.NativeBuildDependentsPerformanceTest;libA0:dependentComponents;nativeDependents;linux;546000
