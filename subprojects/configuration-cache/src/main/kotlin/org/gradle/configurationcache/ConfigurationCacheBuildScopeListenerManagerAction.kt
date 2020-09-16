@@ -17,7 +17,6 @@
 package org.gradle.configurationcache
 
 import org.gradle.configurationcache.initialization.ConfigurationCacheProblemsListener
-import org.gradle.configurationcache.initialization.ConfigurationCacheStartParameter
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.service.scopes.BuildScopeListenerManagerAction
 
@@ -32,12 +31,12 @@ class ConfigurationCacheBuildScopeListenerManagerAction(
     val problemsListener: ConfigurationCacheProblemsListener,
 
     private
-    val startParameter: ConfigurationCacheStartParameter
+    val buildEnablement: ConfigurationCacheBuildEnablement
 
 ) : BuildScopeListenerManagerAction {
 
     override fun execute(manager: ListenerManager) {
-        if (startParameter.isEnabled) {
+        if (buildEnablement.isEnabledForCurrentBuild) {
             scopeRegistryListener.attach(manager)
             manager.addListener(problemsListener)
         }

@@ -16,7 +16,6 @@
 
 package org.gradle.configurationcache
 
-import org.gradle.api.internal.SettingsInternal
 import org.gradle.configuration.internal.UserCodeApplicationContext
 import org.gradle.configurationcache.fingerprint.ConfigurationCacheFingerprintController
 import org.gradle.configurationcache.initialization.ConfigurationCacheProblemsListener
@@ -32,6 +31,7 @@ import org.gradle.internal.service.ServiceRegistration
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry
 import org.gradle.internal.service.scopes.Scopes
 import org.gradle.internal.service.scopes.ServiceScope
+import org.gradle.util.Path
 
 
 class ConfigurationCacheServices : AbstractPluginServiceRegistry() {
@@ -54,6 +54,7 @@ class ConfigurationCacheServices : AbstractPluginServiceRegistry() {
 
     override fun registerBuildServices(registration: ServiceRegistration) {
         registration.run {
+            add(ConfigurationCacheBuildEnablement::class.java)
             add(ConfigurationCacheClassLoaderScopeRegistryListener::class.java)
             add(ConfigurationCacheBuildScopeListenerManagerAction::class.java)
             add(SystemPropertyAccessListener::class.java)
@@ -73,17 +74,26 @@ class ConfigurationCacheServices : AbstractPluginServiceRegistry() {
 }
 
 
+class ConfigurationCacheBuildEnablement(
+    private val buildPath: PublicBuildPath,
+    private val startParameter: ConfigurationCacheStartParameter
+) {
+    val isEnabledForCurrentBuild by lazy {
+        startParameter.isEnabled && buildPath.buildPath == Path.ROOT
+    }
+}
+
+
 class BuildServicesProvider {
     fun createConfigurationCacheProblemsListener(
-        buildPath: PublicBuildPath,
-        startParameter: ConfigurationCacheStartParameter,
+        buildEnablement: ConfigurationCacheBuildEnablement,
         problemsListener: ConfigurationCacheProblems,
         userCodeApplicationContext: UserCodeApplicationContext
     ): ConfigurationCacheProblemsListener {
-        if (!startParameter.isEnabled || buildPath.buildPath.name == SettingsInternal.BUILD_SRC) {
-            return NoOpConfigurationCacheProblemsListener()
+        return if (buildEnablement.isEnabledForCurrentBuild) {
+            DefaultConfigurationCacheProblemsListener(problemsListener, userCodeApplicationContext)
         } else {
-            return DefaultConfigurationCacheProblemsListener(problemsListener, userCodeApplicationContext)
+            NoOpConfigurationCacheProblemsListener()
         }
     }
 }

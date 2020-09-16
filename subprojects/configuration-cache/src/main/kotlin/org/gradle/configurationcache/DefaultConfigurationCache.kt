@@ -20,7 +20,6 @@ import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.Logging
 import org.gradle.configurationcache.ConfigurationCacheRepository.CheckedFingerprint
-import org.gradle.configurationcache.extensions.unsafeLazy
 import org.gradle.configurationcache.fingerprint.ConfigurationCacheFingerprintController
 import org.gradle.configurationcache.fingerprint.InvalidationReason
 import org.gradle.configurationcache.initialization.ConfigurationCacheStartParameter
@@ -53,6 +52,7 @@ import java.io.OutputStream
 class DefaultConfigurationCache internal constructor(
     private val host: Host,
     private val startParameter: ConfigurationCacheStartParameter,
+    private val buildEnablement: ConfigurationCacheBuildEnablement,
     private val cacheRepository: ConfigurationCacheRepository,
     private val cacheKey: ConfigurationCacheKey,
     private val problems: ConfigurationCacheProblems,
@@ -142,12 +142,7 @@ class DefaultConfigurationCache internal constructor(
 
     override fun save() {
 
-        if (!isConfigurationCacheEnabled) {
-            // No need to hold onto the `ClassLoaderScope` tree
-            // if we are not writing it.
-            scopeRegistryListener.dispose()
-            return
-        }
+        if (!isConfigurationCacheEnabled) return
 
         // TODO - fingerprint should be collected until the state file has been written, as user code can run during this process
         // Moving this is currently broken because the Jar task queries provider values when serializing the manifest file tree and this
@@ -383,11 +378,9 @@ class DefaultConfigurationCache internal constructor(
     inline fun <reified T> factory() =
         host.factory(T::class.java)
 
-    // Skip configuration cache for buildSrc for now.
     private
-    val isConfigurationCacheEnabled: Boolean by unsafeLazy {
-        startParameter.isEnabled && host.currentBuild.gradle.isRootBuild
-    }
+    val isConfigurationCacheEnabled: Boolean
+        get() = buildEnablement.isEnabledForCurrentBuild
 
     private
     val configurationCacheLogLevel: LogLevel
