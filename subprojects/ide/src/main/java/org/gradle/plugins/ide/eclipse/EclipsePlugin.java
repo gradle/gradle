@@ -62,6 +62,7 @@ import org.gradle.plugins.ide.internal.configurer.UniqueProjectNameProvider;
 
 import javax.inject.Inject;
 import java.io.File;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Callable;
@@ -239,14 +240,19 @@ public class EclipsePlugin extends IdePlugin {
         project.getPlugins().withType(JavaPlugin.class, new Action<JavaPlugin>() {
             @Override
             public void execute(JavaPlugin javaPlugin) {
-                SourceSetContainer sourceSets = project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets();
-                List<Configuration> sourceSetsConfigurations = Lists.newArrayListWithCapacity(sourceSets.size() * 2);
-                ConfigurationContainer configurations = project.getConfigurations();
-                for (SourceSet sourceSet : sourceSets) {
-                    sourceSetsConfigurations.add(configurations.getByName(sourceSet.getCompileClasspathConfigurationName()));
-                    sourceSetsConfigurations.add(configurations.getByName(sourceSet.getRuntimeClasspathConfigurationName()));
-                }
-                model.getClasspath().setPlusConfigurations(sourceSetsConfigurations);
+                ((IConventionAware) model.getClasspath()).getConventionMapping().map("plusConfigurations", new Callable<Collection<Configuration>>() {
+                    @Override
+                    public Collection<Configuration> call() throws Exception {
+                        SourceSetContainer sourceSets = project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets();
+                        List<Configuration> sourceSetsConfigurations = Lists.newArrayListWithCapacity(sourceSets.size() * 2);
+                        ConfigurationContainer configurations = project.getConfigurations();
+                        for (SourceSet sourceSet : sourceSets) {
+                            sourceSetsConfigurations.add(configurations.getByName(sourceSet.getCompileClasspathConfigurationName()));
+                            sourceSetsConfigurations.add(configurations.getByName(sourceSet.getRuntimeClasspathConfigurationName()));
+                        }
+                        return sourceSetsConfigurations;
+                    }
+                });
 
                 ((IConventionAware) model.getClasspath()).getConventionMapping().map("classFolders", new Callable<List<File>>() {
                     @Override
