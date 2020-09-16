@@ -753,6 +753,23 @@
                     }
                 }
             ]
+        },
+        {
+            "testId" : "org.gradle.performance.regression.corefeature.VerboseTestOutputPerformanceTest.cleanTest test with verbose test output",
+            "groups" : [
+                {
+                    "testProject" : "withVerboseTestNG",
+                    "stages" : {
+                        "ExperimentalPerformance":  ["linux"]
+                    }
+                },
+                {
+                    "testProject" : "withVerboseJUnit",
+                    "stages" : {
+                        "ExperimentalPerformance":  ["linux"]
+                    }
+                }
+            ]
         }
     ]
 }
