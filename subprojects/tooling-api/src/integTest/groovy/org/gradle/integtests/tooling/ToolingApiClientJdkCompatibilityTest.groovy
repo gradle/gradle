@@ -137,6 +137,8 @@ public class ToolingApiCompatibilityClient {
 
         assert out.toString().contains("Hello from");
         System.err.println(err.toString());
+
+        connection.close();
     }
 
    private static void buildAction(File projectLocation, String gradleVersion, File javaHome, File gradleUserHome) throws Exception {
@@ -162,6 +164,8 @@ public class ToolingApiCompatibilityClient {
             System.out.println(out.toString());
             System.err.println(err.toString());
         }
+
+        connection.close();
    }
 }
 """
