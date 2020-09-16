@@ -24,7 +24,7 @@ class DeprecationCreationPerformanceTest extends AbstractCrossVersionPerformance
         runner.testProject = "generateLotsOfDeprecationWarnings"
         runner.tasksToRun = ['help']
         runner.gradleOpts = ["-Xms1g", "-Xmx1g"]
-        runner.minimumBaseVersion = '4.9'
+        runner.minimumBaseVersion = '6.0'
         runner.targetVersions = ["6.7-20200827220028+0000"]
         when:
         def result = runner.run()
