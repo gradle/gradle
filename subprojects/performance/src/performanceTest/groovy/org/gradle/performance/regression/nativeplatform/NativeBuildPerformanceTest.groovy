@@ -29,33 +29,25 @@ class NativeBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
         runner.targetVersions = ["6.7-20200824220048+0000"]
     }
 
-    @Unroll
-    def "up-to-date assemble on #testProject"() {
+    def "up-to-date assemble (native)"() {
         given:
-        runner.testProject = testProject
         runner.tasksToRun = ["assemble"]
-        runner.gradleOpts = ["-Xms$maxMemory", "-Xmx$maxMemory"]
+        runner.gradleOpts = runner.projectMemoryOptions
 
         when:
         def result = runner.run()
 
         then:
         result.assertCurrentVersionHasNotRegressed()
-
-        where:
-        testProject        | maxMemory
-        "bigCppApp"        | '256m'
-        "bigCppMulti"      | '1g'
     }
 
     @Unroll
-    def "assemble with #changeType file change on #testProject"() {
+    def "assemble with #changeType file change"() {
         given:
-        runner.testProject = testProject
         runner.tasksToRun = ["assemble"]
-        runner.gradleOpts = ["-Xms$maxMemory", "-Xmx$maxMemory"]
+        runner.gradleOpts = runner.projectMemoryOptions
         runner.addBuildMutator { settings ->
-            new ApplyChangeToNativeSourceFileMutator(new File(settings.getProjectDir(), fileToChange))
+            new ApplyChangeToNativeSourceFileMutator(new File(settings.getProjectDir(), determineFileToChange(changeType, runner.testProject)))
         }
 
         when:
@@ -65,12 +57,28 @@ class NativeBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject   | maxMemory | fileToChange
-        "bigCppApp"   | '256m'    | 'src/main/cpp/lib250.cpp'
-        "bigCppApp"   | '256m'    | 'src/main/headers/lib250.h'
-        "bigCppMulti" | '1g'      | 'project101/src/main/cpp/project101lib4.cpp'
-        "bigCppMulti" | '1g'      | 'project101/src/main/public/project101lib4.h'
-        changeType = fileToChange.endsWith('.h') ? 'header' : 'source'
+        changeType << ['header', 'source']
     }
 
+    static String determineFileToChange(String changeType, String testProject) {
+        if (changeType == 'header') {
+            switch (testProject) {
+                case 'bigCppApp':
+                    return 'src/main/headers/lib250.h'
+                case 'bigCppMulti':
+                    return 'project101/src/main/public/project101lib4.h'
+                default:
+                    throw new IllegalArgumentException("Unknown test project " + testProject)
+            }
+        } else {
+            switch (testProject) {
+                case 'bigCppApp':
+                    return 'src/main/cpp/lib250.cpp'
+                case 'bigCppMulti':
+                    return 'project101/src/main/cpp/project101lib4.cpp'
+                default:
+                    throw new IllegalArgumentException("Unknown test project " + testProject)
+            }
+        }
+    }
 }
