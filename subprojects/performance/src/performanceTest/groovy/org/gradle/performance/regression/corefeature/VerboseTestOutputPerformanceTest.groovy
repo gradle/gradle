@@ -24,7 +24,7 @@ class VerboseTestOutputPerformanceTest extends AbstractCrossVersionPerformanceTe
         given:
         runner.tasksToRun = ['cleanTest', 'test']
         runner.args = ['-q']
-        runner.gradleOpts = ["-Xms256m", "-Xmx256m"]
+        runner.gradleOpts = runner.projectMemoryOptions
         runner.targetVersions = ["6.7-20200824220048+0000"]
 
         when:

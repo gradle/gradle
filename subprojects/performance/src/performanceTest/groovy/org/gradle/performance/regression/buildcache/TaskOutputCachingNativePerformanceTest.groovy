@@ -30,8 +30,7 @@ class TaskOutputCachingNativePerformanceTest extends AbstractTaskOutputCachingPe
     def "clean assemble with local cache (native project)"() {
         given:
         runner.tasksToRun = ["assemble"]
-        def maxMemory = runner.testProject == 'bigCppApp' ? '256m' : '1G'
-        runner.gradleOpts = ["-Xms$maxMemory", "-Xmx$maxMemory"]
+        runner.gradleOpts = runner.projectMemoryOptions
 
         when:
         def result = runner.run()

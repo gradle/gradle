@@ -115,8 +115,31 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
     }
 
     List<String> getProjectMemoryOptions() {
-        def javaTestProject = JavaTestProject.projectFor(testProject)
-        return ["-Xms${javaTestProject.daemonMemory}", "-Xmx${javaTestProject.daemonMemory}"]
+        def daemonMemory = determineDaemonMemory(testProject)
+        return ["-Xms${daemonMemory}", "-Xmx${daemonMemory}"]
+    }
+
+    private static String determineDaemonMemory(String testProject) {
+        switch (testProject) {
+            case 'bigCppApp':
+                return '256m'
+            case 'bigCppMulti':
+                return '1g'
+            case 'nativeDependents':
+                return '3g'
+            case 'bigNative':
+                return '1g'
+            case 'withVerboseJUnit':
+                return '256m'
+            case 'withVerboseTestNG':
+                return '256m'
+            case 'mediumSwiftMulti':
+                return '1G'
+            case 'bigSwiftApp':
+                return '1G'
+            default:
+                return JavaTestProject.projectFor(testProject).daemonMemory
+        }
     }
 
     CrossVersionPerformanceResults run() {

@@ -31,8 +31,7 @@ class TaskOutputCachingSwiftPerformanceTest extends AbstractTaskOutputCachingPer
     def "clean assemble with local cache (swift)"() {
         given:
         runner.tasksToRun = ["assemble"]
-        def maxMemory = '1G'
-        runner.gradleOpts = ["-Xms$maxMemory", "-Xmx$maxMemory"]
+        runner.gradleOpts = runner.projectMemoryOptions
 
         when:
         def result = runner.run()
