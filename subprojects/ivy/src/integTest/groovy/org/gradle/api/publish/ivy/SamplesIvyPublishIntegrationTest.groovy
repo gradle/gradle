@@ -21,8 +21,10 @@ import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.util.TextUtil
 import org.junit.Rule
+import spock.lang.Ignore
 import spock.lang.Unroll
 
+@Ignore
 class SamplesIvyPublishIntegrationTest extends AbstractSampleIntegrationTest {
     @Rule public final Sample sampleProject = new Sample(temporaryFolder)
 
