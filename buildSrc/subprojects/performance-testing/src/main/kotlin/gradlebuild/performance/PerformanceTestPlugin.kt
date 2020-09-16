@@ -268,6 +268,10 @@ class PerformanceTestPlugin : Plugin<Project> {
                     channel = "commits$channelSuffix"
                     setTestProjectGenerationTask(sampleGenerator)
 
+                    retry {
+                        maxRetries.set(3)
+                    }
+
                     if (shouldLoadScenariosFromFile) {
                         val scenariosFromFile = loadScenariosFromFile(sampleGenerator.name)
                         if (scenariosFromFile.isNotEmpty()) {
