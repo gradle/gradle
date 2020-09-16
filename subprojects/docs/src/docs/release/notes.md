@@ -56,6 +56,19 @@ The following are the features that have been promoted in this Gradle release.
 ### Example promoted
 -->
 
+## Security Improvements
+
+### Support for Outdated TLS Versions Removed
+
+This version of Gradle officially drops support for `TLSv1` and `TLSv1.1`.
+Outdated TLS versions can be specified manually using the system property `https.protocols` with
+a comma separated list of protocols required for your Gradle build.
+Gradle now only officially supports versions `TLSv1.2` and `TLSv1.3`.
+
+**Note**: Early versions of JDK 11 & JDK 12 contained [race condition bug in the `TLSv1.3` handling logic](https://bugs.openjdk.java.net/browse/JDK-8213202)
+which causes the exception `javax.net.ssl.SSLException: No PSK available. Unable to resume`. If you run into this issue,
+we recommend updating to the latest minor JDK version.
+
 ## Fixed issues
 
 ## Known issues

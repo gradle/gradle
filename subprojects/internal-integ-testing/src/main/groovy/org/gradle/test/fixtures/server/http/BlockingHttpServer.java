@@ -42,6 +42,9 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.logging.ConsoleHandler;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * An HTTP server that allows a test to synchronize and make assertions about concurrent activities that happen in another process.
@@ -115,7 +118,7 @@ public class BlockingHttpServer extends ExternalResource implements ResettableEx
      */
     public String callFromBuild(String resource) {
         return callFromBuildUsingExpression("\"" + resource + "\"");
-     }
+    }
 
     /**
      * Returns Java statements to get the given resource, using the given expression to calculate the resource to get.
@@ -387,6 +390,17 @@ public class BlockingHttpServer extends ExternalResource implements ResettableEx
             throw new IllegalStateException("Cannot get HTTP port as server is not running.");
         }
         return server.getAddress().getPort();
+    }
+
+    /**
+     * To help with debugging the underlying {@link com.sun.net.httpserver.HttpServer}.
+     */
+    public static void enableServerLogging() {
+        final ConsoleHandler handler = new ConsoleHandler();
+        handler.setLevel(Level.ALL);
+        final Logger logger = Logger.getLogger("com.sun.net.httpserver");
+        logger.setLevel(Level.ALL);
+        logger.addHandler(handler);
     }
 
     static String normalizePath(String path) {

@@ -21,16 +21,13 @@ import com.sun.net.httpserver.HttpsParameters;
 import com.sun.net.httpserver.HttpsServer;
 import org.gradle.test.fixtures.keystore.TestKeyStore;
 
-import javax.net.ssl.KeyManager;
-import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.TrustManagerFactory;
-import java.io.FileInputStream;
+import javax.net.ssl.SSLParameters;
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.security.KeyStore;
+import java.util.Arrays;
+import java.util.function.Predicate;
 
 /**
  * An HTTPS server fixture for tests.
@@ -42,9 +39,13 @@ public class BlockingHttpsServer extends BlockingHttpServer {
         super(HttpsServer.create(new InetSocketAddress(0), 10), 120000, Scheme.HTTPS);
     }
 
-    public void configure(TestKeyStore testKeyStore) {
+    /**
+     * @param testKeyStore The key store to configure this server from.
+     * @param tlsProtocolFilter Used to prune the supported set of TLS versions
+     */
+    public void configure(TestKeyStore testKeyStore, Predicate<String> tlsProtocolFilter) {
         HttpsServer httpsServer = (HttpsServer) this.server;
-        SSLContext context = createSSLContext(testKeyStore);
+        SSLContext context = testKeyStore.asSSLContext();
         httpsServer.setHttpsConfigurator(new HttpsConfigurator(context) {
             @Override
             public void configure(HttpsParameters params) {
@@ -52,35 +53,20 @@ public class BlockingHttpsServer extends BlockingHttpServer {
                 SSLEngine engine = c.createSSLEngine();
                 params.setNeedClientAuth(false);
                 params.setCipherSuites(engine.getEnabledCipherSuites());
-                params.setProtocols(engine.getEnabledProtocols());
-                params.setSSLParameters(c.getDefaultSSLParameters());
+                // TLS protocols need to be filtered off both the HttpsParameters & SSLParameters
+                params.setProtocols(stripFilteredProtocols(engine.getEnabledProtocols()));
+                SSLParameters parameters = c.getDefaultSSLParameters();
+                parameters.setProtocols(stripFilteredProtocols(parameters.getProtocols()));
+                params.setSSLParameters(parameters);
+            }
+
+            private String[] stripFilteredProtocols(String[] allProtocols) {
+                return Arrays.stream(allProtocols).filter(tlsProtocolFilter).toArray(String[]::new);
             }
         });
     }
 
-    // Create the and initialize the SSLContext
-    private SSLContext createSSLContext(TestKeyStore testKeyStore) {
-        try {
-            KeyStore keyStore = KeyStore.getInstance("JKS");
-            char[] keyStorePassword = testKeyStore.getKeyStorePassword().toCharArray();
-            keyStore.load(new FileInputStream(testKeyStore.getKeyStore()), keyStorePassword);
-
-            // Create key manager
-            KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance("SunX509");
-            keyManagerFactory.init(keyStore, keyStorePassword);
-            KeyManager[] km = keyManagerFactory.getKeyManagers();
-
-            // Create trust manager
-            TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance("SunX509");
-            trustManagerFactory.init(keyStore);
-            TrustManager[] tm = trustManagerFactory.getTrustManagers();
-
-            // Initialize SSLContext
-            SSLContext sslContext = SSLContext.getInstance("TLS");
-            sslContext.init(km, tm, null);
-            return sslContext;
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+    public void configure(TestKeyStore testKeyStore) {
+        configure(testKeyStore, __ -> true);
     }
 }
