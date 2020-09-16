@@ -944,6 +944,79 @@
                     }
                 }
             ]
+        },
+        {
+            "testId" : "org.gradle.performance.regression.android.RealLifeAndroidBuildPerformanceTest.help",
+            "groups" : [
+                {
+                    "testProject" : "k9AndroidBuild",
+                    "stages" : {
+                        "ExperimentalPerformance":  ["linux"]
+                    }
+                },
+                {
+                    "testProject" : "largeAndroidBuild",
+                    "stages" : {
+                        "ExperimentalPerformance":  ["linux"]
+                    }
+                }
+            ]
+        },
+        {
+            "testId" : "org.gradle.performance.regression.android.RealLifeAndroidBuildPerformanceTest.assembleDebug",
+            "groups" : [
+                {
+                    "testProject" : "k9AndroidBuild",
+                    "stages" : {
+                        "ExperimentalPerformance":  ["linux"]
+                    }
+                },
+                {
+                    "testProject" : "largeAndroidBuild",
+                    "stages" : {
+                        "ExperimentalPerformance":  ["linux"]
+                    }
+                },
+                {
+                    "testProject" : "santaTrackerAndroidBuild",
+                    "stages" : {
+                        "ExperimentalPerformance":  ["linux"]
+                    }
+                }
+            ]
+        },
+        {
+            "testId" : "org.gradle.performance.regression.android.RealLifeAndroidBuildPerformanceTest.clean phthalic:assembleDebug",
+            "groups" : [
+                {
+                    "testProject" : "largeAndroidBuild",
+                    "stages" : {
+                        "ExperimentalPerformance":  ["linux"]
+                    }
+                }
+            ]
+        },
+        {
+            "testId" : "org.gradle.performance.regression.android.RealLifeAndroidBuildPerformanceTest.abi change",
+            "groups" : [
+                {
+                    "testProject" : "santaTrackerAndroidBuild",
+                    "stages" : {
+                        "ExperimentalPerformance":  ["linux"]
+                    }
+                }
+            ]
+        },
+        {
+            "testId" : "org.gradle.performance.regression.android.RealLifeAndroidBuildPerformanceTest.non-abi change",
+            "groups" : [
+                {
+                    "testProject" : "santaTrackerAndroidBuild",
+                    "stages" : {
+                        "ExperimentalPerformance":  ["linux"]
+                    }
+                }
+            ]
         }
     ]
 }

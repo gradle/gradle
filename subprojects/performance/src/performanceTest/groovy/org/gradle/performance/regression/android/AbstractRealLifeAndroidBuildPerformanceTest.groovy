@@ -43,4 +43,12 @@ class AbstractRealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionPe
             }
         }
     }
+
+    AndroidTestProject getAndroidTestProject() {
+        def foundProject = AndroidTestProject.ANDROID_TEST_PROJECTS.find { it.templateName == runner.testProject }
+        if (!foundProject) {
+            throw new IllegalArgumentException("Android project ${runner.testProject} not found")
+        }
+        return foundProject
+    }
 }

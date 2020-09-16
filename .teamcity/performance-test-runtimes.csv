@@ -98,3 +98,11 @@ org.gradle.performance.regression.nativeplatform.SwiftBuildPerformanceTest;up-to
 org.gradle.performance.regression.nativeplatform.SwiftBuildPerformanceTest;up-to-date assemble (swift);bigSwiftApp;linux;114000
 org.gradle.performance.regression.nativeplatform.SwiftBuildPerformanceTest;incremental compile;mediumSwiftMulti;linux;534000
 org.gradle.performance.regression.nativeplatform.SwiftBuildPerformanceTest;incremental compile;bigSwiftApp;linux;184000
+org.gradle.performance.regression.android.RealLifeAndroidBuildPerformanceTest;help;k9AndroidBuild;linux;133000
+org.gradle.performance.regression.android.RealLifeAndroidBuildPerformanceTest;help;largeAndroidBuild;linux;217000
+org.gradle.performance.regression.android.RealLifeAndroidBuildPerformanceTest;assembleDebug;k9AndroidBuild;linux;170000
+org.gradle.performance.regression.android.RealLifeAndroidBuildPerformanceTest;assembleDebug;largeAndroidBuild;linux;694000
+org.gradle.performance.regression.android.RealLifeAndroidBuildPerformanceTest;assembleDebug;santaTrackerAndroidBuild;linux;476000
+org.gradle.performance.regression.android.RealLifeAndroidBuildPerformanceTest;clean phthalic:assembleDebug;largeAndroidBuild;linux;608000
+org.gradle.performance.regression.android.RealLifeAndroidBuildPerformanceTest;abi change;santaTrackerAndroidBuild;linux;883000
+org.gradle.performance.regression.android.RealLifeAndroidBuildPerformanceTest;non-abi change;santaTrackerAndroidBuild;linux;591000

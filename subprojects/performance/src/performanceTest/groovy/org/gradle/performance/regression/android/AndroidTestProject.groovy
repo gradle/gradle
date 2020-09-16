@@ -25,15 +25,22 @@ import org.gradle.profiler.mutations.ApplyNonAbiChangeToSourceFileMutator
 
 class AndroidTestProject {
 
-    static final LARGE_ANDROID_BUILD = new AndroidTestProject(
+    public static final LARGE_ANDROID_BUILD = new AndroidTestProject(
         templateName: 'largeAndroidBuild',
         memory: '5g',
     )
 
-    static final K9_ANDROID = new AndroidTestProject(
+    public static final K9_ANDROID = new AndroidTestProject(
         templateName: 'k9AndroidBuild',
         memory: '1g',
     )
+
+    public static final List<AndroidTestProject> ANDROID_TEST_PROJECTS = [
+        LARGE_ANDROID_BUILD,
+        K9_ANDROID,
+        IncrementalAndroidTestProject.SANTA_TRACKER_JAVA,
+        IncrementalAndroidTestProject.SANTA_TRACKER_KOTLIN
+    ]
 
     String templateName
     String memory
