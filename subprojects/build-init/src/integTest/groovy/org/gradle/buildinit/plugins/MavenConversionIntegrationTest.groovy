@@ -29,10 +29,8 @@ import org.gradle.test.fixtures.server.http.PomHttpArtifact
 import org.gradle.util.SetSystemProperties
 import org.gradle.util.TextUtil
 import org.junit.Rule
-import spock.lang.Ignore
 import spock.lang.Issue
 
-@Ignore
 class MavenConversionIntegrationTest extends AbstractInitIntegrationSpec {
 
     @Rule
