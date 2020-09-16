@@ -17,24 +17,20 @@
 package org.gradle.performance.regression.corefeature
 
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
+import org.gradle.performance.generator.JavaTestProject
 import spock.lang.Unroll
 
-import static org.gradle.performance.generator.JavaTestProject.LARGE_JAVA_MULTI_PROJECT
-import static org.gradle.performance.generator.JavaTestProject.LARGE_MONOLITHIC_JAVA_PROJECT
-
 class RichConsolePerformanceTest extends AbstractCrossVersionPerformanceTest {
-
-    private static final String CLEAN_ASSEMBLE_TASKS = 'clean assemble'
 
     def setup() {
         runner.args << '--console=rich'
     }
 
     @Unroll
-    def "#tasks on #testProject with rich console"() {
+    def "#tasks with rich console"() {
         given:
-        runner.testProject = testProject
         runner.tasksToRun = tasks.split(' ')
+        def daemonMemory = determineDaemonMemory(runner.testProject)
         runner.gradleOpts = ["-Xms${daemonMemory}", "-Xmx${daemonMemory}"]
         runner.warmUpRuns = 5
         runner.runs = 8
@@ -47,10 +43,17 @@ class RichConsolePerformanceTest extends AbstractCrossVersionPerformanceTest {
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject                   | tasks                 | daemonMemory
-        LARGE_JAVA_MULTI_PROJECT      | CLEAN_ASSEMBLE_TASKS  | LARGE_JAVA_MULTI_PROJECT.daemonMemory
-        LARGE_MONOLITHIC_JAVA_PROJECT | CLEAN_ASSEMBLE_TASKS  | LARGE_MONOLITHIC_JAVA_PROJECT.daemonMemory
-        'bigNative'                   | CLEAN_ASSEMBLE_TASKS  | '1g'
-        'withVerboseJUnit'            | 'cleanTest test'      | '256m'
+        tasks << ['clean assemble', 'cleanTest test']
+    }
+
+    static String determineDaemonMemory(String testProject) {
+        switch (testProject) {
+            case 'bigNative':
+                return '1g'
+            case 'withVerboseJUnit':
+                return '256m'
+            default:
+                return JavaTestProject.projectFor(testProject).daemonMemory
+        }
     }
 }

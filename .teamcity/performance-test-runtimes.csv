@@ -72,3 +72,7 @@ org.gradle.performance.regression.corefeature.LargeDependencyGraphPerformanceTes
 org.gradle.performance.regression.corefeature.LargeDependencyGraphPerformanceTest;resolve large dependency graph (parallel = true, locking = true);excludeRuleMergingBuild;linux;207000
 org.gradle.performance.regression.corefeature.ParallelDownloadsPerformanceTest;resolves dependencies from external repository;springBootApp;linux;324000
 org.gradle.performance.regression.corefeature.ParallelDownloadsPerformanceTest;resolves dependencies from external repository (parallel);springBootApp;linux;267000
+org.gradle.performance.regression.corefeature.RichConsolePerformanceTest;clean assemble with rich console;largeJavaMultiProject;linux;723000
+org.gradle.performance.regression.corefeature.RichConsolePerformanceTest;clean assemble with rich console;largeMonolithicJavaProject;linux;819000
+org.gradle.performance.regression.corefeature.RichConsolePerformanceTest;clean assemble with rich console;bigNative;linux;186000
+org.gradle.performance.regression.corefeature.RichConsolePerformanceTest;cleanTest test with rich console;withVerboseJUnit;linux;67000
