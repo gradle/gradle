@@ -291,6 +291,7 @@ class PerformanceTestPlugin : Plugin<Project> {
         val scenarioFile = project.rootProject.file("performance-test-splits/include-$testProject-performance-scenarios.csv")
         return if (scenarioFile.isFile)
             scenarioFile.readLines(StandardCharsets.UTF_8)
+                .filter { it.isNotEmpty() }
                 .map {
                     val (className, scenario) = it.split(";")
                     "$className.$scenario"
