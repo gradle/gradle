@@ -65,3 +65,8 @@ org.gradle.performance.regression.corefeature.IdeIntegrationPerformanceTest;ecli
 org.gradle.performance.regression.corefeature.IdeIntegrationPerformanceTest;eclipse;largeJavaMultiProject;linux;404000
 org.gradle.performance.regression.corefeature.IdeIntegrationPerformanceTest;idea;largeMonolithicJavaProject;linux;147000
 org.gradle.performance.regression.corefeature.IdeIntegrationPerformanceTest;idea;largeJavaMultiProject;linux;365000
+org.gradle.performance.regression.corefeature.LargeDependencyGraphPerformanceTest;resolve large dependency graph from file repo;excludeRuleMergingBuild;linux;388000
+org.gradle.performance.regression.corefeature.LargeDependencyGraphPerformanceTest;resolve large dependency graph (parallel = false, locking = false);excludeRuleMergingBuild;linux;275000
+org.gradle.performance.regression.corefeature.LargeDependencyGraphPerformanceTest;resolve large dependency graph (parallel = false, locking = true);excludeRuleMergingBuild;linux;229000
+org.gradle.performance.regression.corefeature.LargeDependencyGraphPerformanceTest;resolve large dependency graph (parallel = true, locking = false);excludeRuleMergingBuild;linux;227000
+org.gradle.performance.regression.corefeature.LargeDependencyGraphPerformanceTest;resolve large dependency graph (parallel = true, locking = true);excludeRuleMergingBuild;linux;207000

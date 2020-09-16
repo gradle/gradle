@@ -631,6 +631,61 @@
                     }
                 }
             ]
+        },
+        {
+            "testId" : "org.gradle.performance.regression.corefeature.LargeDependencyGraphPerformanceTest.resolve large dependency graph from file repo",
+            "groups" : [
+                {
+                    "testProject" : "excludeRuleMergingBuild",
+                    "stages" : {
+                        "ExperimentalPerformance":  ["linux"]
+                    }
+                }
+            ]
+        },
+        {
+            "testId" : "org.gradle.performance.regression.corefeature.LargeDependencyGraphPerformanceTest.resolve large dependency graph (parallel = false, locking = false)",
+            "groups" : [
+                {
+                    "testProject" : "excludeRuleMergingBuild",
+                    "stages" : {
+                        "ExperimentalPerformance":  ["linux"]
+                    }
+                }
+            ]
+        },
+        {
+            "testId" : "org.gradle.performance.regression.corefeature.LargeDependencyGraphPerformanceTest.resolve large dependency graph (parallel = true, locking = false)",
+            "groups" : [
+                {
+                    "testProject" : "excludeRuleMergingBuild",
+                    "stages" : {
+                        "ExperimentalPerformance":  ["linux"]
+                    }
+                }
+            ]
+        },
+        {
+            "testId" : "org.gradle.performance.regression.corefeature.LargeDependencyGraphPerformanceTest.resolve large dependency graph (parallel = false, locking = true)",
+            "groups" : [
+                {
+                    "testProject" : "excludeRuleMergingBuild",
+                    "stages" : {
+                        "ExperimentalPerformance":  ["linux"]
+                    }
+                }
+            ]
+        },
+        {
+            "testId" : "org.gradle.performance.regression.corefeature.LargeDependencyGraphPerformanceTest.resolve large dependency graph (parallel = true, locking = true)",
+            "groups" : [
+                {
+                    "testProject" : "excludeRuleMergingBuild",
+                    "stages" : {
+                        "ExperimentalPerformance":  ["linux"]
+                    }
+                }
+            ]
         }
     ]
 }
