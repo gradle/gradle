@@ -215,47 +215,6 @@ class JUnitPlatformIntegrationTest extends JUnitPlatformIntegrationSpec {
             .assertTestPassed('partialSkip(RepetitionInfo)[3]', 'partialSkip 3/3')
     }
 
-    def 'can filter nested tests'() {
-        given:
-        file('src/test/java/org/gradle/NestedTest.java') << '''
-package org.gradle;
-import static org.junit.jupiter.api.Assertions.*;
-
-import java.util.EmptyStackException;
-import java.util.Stack;
-
-import org.junit.jupiter.api.*;
-
-class NestedTest {
-    @Test
-    void outerTest() {
-    }
-
-    @Nested
-    class Inner {
-        @Test
-        void innerTest() {
-        }
-    }
-}
-'''
-        buildFile << '''
-test {
-    filter {
-        includeTestsMatching "*innerTest*"
-    }
-}
-'''
-        when:
-        succeeds('test')
-
-        then:
-        new DefaultTestExecutionResult(testDirectory)
-            .assertTestClassesExecuted('org.gradle.NestedTest$Inner')
-            .testClass('org.gradle.NestedTest$Inner').assertTestCount(1, 0, 0)
-            .assertTestPassed('innerTest()')
-    }
-
     @Issue('https://github.com/gradle/gradle/issues/4476')
     def 'can handle test engine failure'() {
         given:

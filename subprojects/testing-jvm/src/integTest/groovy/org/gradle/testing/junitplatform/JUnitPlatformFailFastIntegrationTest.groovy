@@ -18,7 +18,7 @@ package org.gradle.testing.junitplatform
 
 import org.gradle.testing.fixture.AbstractJvmFailFastIntegrationSpec
 
-import static org.gradle.test.fixtures.junitplatform.JUnitPlatformTestRewriter.LATEST_JUPITER_VERSION
+import static org.gradle.testing.fixture.JUnitCoverage.LATEST_JUPITER_VERSION
 
 class JUnitPlatformFailFastIntegrationTest extends AbstractJvmFailFastIntegrationSpec {
     @Override
@@ -28,7 +28,7 @@ class JUnitPlatformFailFastIntegrationTest extends AbstractJvmFailFastIntegratio
 
     @Override
     String testDependency() {
-        "org.junit.jupiter:junit-jupiter-api:${LATEST_JUPITER_VERSION}','org.junit.jupiter:junit-jupiter-engine:${LATEST_JUPITER_VERSION}"
+        "org.junit.jupiter:junit-jupiter:$LATEST_JUPITER_VERSION"
     }
 
     @Override
