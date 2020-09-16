@@ -58,3 +58,4 @@ org.gradle.performance.regression.buildcache.TaskOutputCachingSwiftPerformanceTe
 org.gradle.performance.regression.corefeature.ArchiveTreePerformanceTest;visiting zip trees;archivePerformanceProject;linux;229000
 org.gradle.performance.regression.corefeature.ArchiveTreePerformanceTest;visiting tar trees;archivePerformanceProject;linux;163000
 org.gradle.performance.regression.corefeature.ArchiveTreePerformanceTest;visiting gzip tar trees;archivePerformanceProject;linux;167000
+org.gradle.performance.regression.corefeature.DeprecationCreationPerformanceTest;create many deprecation warnings;generateLotsOfDeprecationWarnings;linux;106000

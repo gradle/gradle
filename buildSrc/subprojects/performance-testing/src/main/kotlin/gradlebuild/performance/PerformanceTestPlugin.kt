@@ -201,7 +201,7 @@ class PerformanceTestPlugin : Plugin<Project> {
         tasks.withType<ProjectGeneratorTask>().action()
         tasks.withType<RemoteProject>().action()
         tasks.withType<JavaExecProjectGeneratorTask>().action()
-        tasks.withType<Copy>().matching { it.name in setOf("archivePerformanceProject", "workerApiProject") }.action()
+        tasks.withType<Copy>().matching { it.name in setOf("archivePerformanceProject", "workerApiProject", "generateLotsOfDeprecationWarnings") }.action()
     }
 
 
