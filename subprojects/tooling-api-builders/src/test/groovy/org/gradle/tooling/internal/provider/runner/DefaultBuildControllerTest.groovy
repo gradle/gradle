@@ -24,10 +24,10 @@ import org.gradle.internal.service.ServiceRegistry
 import org.gradle.tooling.internal.gradle.GradleProjectIdentity
 import org.gradle.tooling.internal.protocol.InternalUnsupportedModelException
 import org.gradle.tooling.internal.protocol.ModelIdentifier
-import org.gradle.tooling.provider.model.ToolingModelBuilder
-import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
 import org.gradle.tooling.provider.model.ParameterizedToolingModelBuilder
+import org.gradle.tooling.provider.model.ToolingModelBuilder
 import org.gradle.tooling.provider.model.UnknownModelException
+import org.gradle.tooling.provider.model.internal.ToolingModelBuilderLookup
 import spock.lang.Specification
 
 class DefaultBuildControllerTest extends Specification {
@@ -37,10 +37,10 @@ class DefaultBuildControllerTest extends Specification {
             get(BuildCancellationToken) >> cancellationToken
         }
     }
-    def registry = Stub(ToolingModelBuilderRegistry)
+    def registry = Stub(ToolingModelBuilderLookup)
     def project = Stub(ProjectInternal) {
         getServices() >> Stub(ServiceRegistry) {
-            get(ToolingModelBuilderRegistry) >> registry
+            get(ToolingModelBuilderLookup) >> registry
         }
     }
     def modelId = Stub(ModelIdentifier) {
@@ -55,7 +55,7 @@ class DefaultBuildControllerTest extends Specification {
 
         given:
         _ * gradle.defaultProject >> project
-        _ * registry.getBuilder('some.model') >> { throw failure }
+        _ * registry.locate('some.model') >> { throw failure }
 
         when:
         controller.getModel(null, modelId)
@@ -77,7 +77,7 @@ class DefaultBuildControllerTest extends Specification {
         _ * gradle.rootProject >> rootProject
         _ * rootProject.project(":some:path") >> project
         _ * rootProject.getProjectDir() >> rootDir
-        _ * registry.getBuilder("some.model") >> modelBuilder
+        _ * registry.locate("some.model") >> modelBuilder
         _ * modelBuilder.buildAll("some.model", project) >> model
 
         when:
@@ -92,7 +92,7 @@ class DefaultBuildControllerTest extends Specification {
 
         given:
         _ * gradle.defaultProject >> project
-        _ * registry.getBuilder("some.model") >> modelBuilder
+        _ * registry.locate("some.model") >> modelBuilder
         _ * modelBuilder.buildAll("some.model", project) >> model
 
         when:
@@ -119,7 +119,7 @@ class DefaultBuildControllerTest extends Specification {
 
         given:
         _ * gradle.defaultProject >> project
-        _ * registry.getBuilder("some.model") >> modelBuilder
+        _ * registry.locate("some.model") >> modelBuilder
         _ * modelBuilder.buildAll("some.model", project) >> model
 
         when:
@@ -144,7 +144,7 @@ class DefaultBuildControllerTest extends Specification {
 
         given:
         _ * gradle.defaultProject >> project
-        _ * registry.getBuilder("some.model") >> parameterizedModelBuilder
+        _ * registry.locate("some.model") >> parameterizedModelBuilder
         _ * parameterizedModelBuilder.getParameterType() >> parameterType
         _ * parameterizedModelBuilder.buildAll("some.model", _, project) >> { def modelName, CustomParameter param, projectInternal ->
             assert param != null
@@ -165,7 +165,7 @@ class DefaultBuildControllerTest extends Specification {
 
         given:
         _ * gradle.defaultProject >> project
-        _ * registry.getBuilder("some.model") >> modelBuilder
+        _ * registry.locate("some.model") >> modelBuilder
         _ * modelBuilder.buildAll("some.model", project) >> model
 
         when:

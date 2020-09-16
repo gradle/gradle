@@ -96,7 +96,6 @@ import org.gradle.normalization.internal.DefaultRuntimeClasspathNormalization;
 import org.gradle.normalization.internal.InputNormalizationHandlerInternal;
 import org.gradle.normalization.internal.RuntimeClasspathNormalizationInternal;
 import org.gradle.process.internal.ExecFactory;
-import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry;
 import org.gradle.tooling.provider.model.internal.DefaultToolingModelBuilderRegistry;
 import org.gradle.util.Path;
 
@@ -172,7 +171,7 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
         return new DefaultAntBuilderFactory(project, new DefaultAntLoggingAdapterFactory());
     }
 
-    protected ToolingModelBuilderRegistry decorateToolingModelRegistry(ToolingModelBuilderRegistry buildScopedToolingModelBuilders, BuildOperationExecutor buildOperationExecutor, ProjectStateRegistry projectStateRegistry) {
+    protected DefaultToolingModelBuilderRegistry decorateToolingModelRegistry(DefaultToolingModelBuilderRegistry buildScopedToolingModelBuilders, BuildOperationExecutor buildOperationExecutor, ProjectStateRegistry projectStateRegistry) {
         return new DefaultToolingModelBuilderRegistry(buildOperationExecutor, projectStateRegistry, buildScopedToolingModelBuilders);
     }
 

@@ -33,7 +33,7 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class DefaultToolingModelBuilderRegistry implements ToolingModelBuilderRegistry {
+public class DefaultToolingModelBuilderRegistry implements ToolingModelBuilderRegistry, ToolingModelBuilderLookup {
     private final ToolingModelBuilderRegistry parent;
 
     private final List<ToolingModelBuilder> builders = new ArrayList<ToolingModelBuilder>();
@@ -58,6 +58,19 @@ public class DefaultToolingModelBuilderRegistry implements ToolingModelBuilderRe
 
     @Override
     public ToolingModelBuilder getBuilder(String modelName) throws UnsupportedOperationException {
+        ToolingModelBuilder builder = find(modelName);
+        if (builder != null) {
+            return builder;
+        }
+        if (parent != null) {
+            return parent.getBuilder(modelName);
+        }
+
+        throw new UnknownModelException(String.format("No builders are available to build a model of type '%s'.", modelName));
+    }
+
+    @Nullable
+    private ToolingModelBuilder find(String modelName) {
         ToolingModelBuilder match = null;
         for (ToolingModelBuilder builder : builders) {
             if (builder.canBuild(modelName)) {
@@ -67,18 +80,17 @@ public class DefaultToolingModelBuilderRegistry implements ToolingModelBuilderRe
                 match = builder;
             }
         }
-        if (match != null) {
-            if (match instanceof ParameterizedToolingModelBuilder) {
-                return new ParameterizedBuildOperationWrappingToolingModelBuilder<>(Cast.uncheckedNonnullCast(match));
-            } else {
-                return new BuildOperationWrappingToolingModelBuilder(match);
-            }
-        }
-        if (parent != null) {
-            return parent.getBuilder(modelName);
-        }
+        return match;
+    }
 
-        throw new UnknownModelException(String.format("No builders are available to build a model of type '%s'.", modelName));
+    @Override
+    public ToolingModelBuilder locate(String modelName) throws UnknownModelException {
+        ToolingModelBuilder builder = getBuilder(modelName);
+        if (builder instanceof ParameterizedToolingModelBuilder) {
+            return new ParameterizedBuildOperationWrappingToolingModelBuilder<>(Cast.uncheckedNonnullCast(builder));
+        } else {
+            return new BuildOperationWrappingToolingModelBuilder(builder);
+        }
     }
 
     private class BuildOperationWrappingToolingModelBuilder implements ToolingModelBuilder {
