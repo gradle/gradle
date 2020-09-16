@@ -168,6 +168,7 @@ class TestProjectTime(val testProject: String, val scenarioTimes: List<Performan
             val smallElementAggregateFunction: (List<PerformanceTestTime>) -> List<PerformanceTestTime> = { it }
 
             val buckets: List<List<PerformanceTestTime>> = split(list, toIntFunction, largeElementSplitFunction, smallElementAggregateFunction, expectedBucketNumber, Integer.MAX_VALUE, { listOf() })
+                .filter { it.isNotEmpty() }
 
             buckets.mapIndexed { index: Int, classesInBucket: List<PerformanceTestTime> ->
                 TestProjectSplitBucket(testProject, index + 1, classesInBucket)
@@ -270,6 +271,9 @@ class TestProjectSplitBucket(val testProject: String, val number: Int, val scena
 
 private
 fun prepareScenariosStep(testProject: String, scenarios: List<Scenario>, os: Os): BuildSteps.() -> Unit {
+    if (scenarios.isEmpty()) {
+        throw IllegalArgumentException("Scenarios list must not be empty for $testProject")
+    }
     val csvLines = scenarios.map { "${it.className};${it.scenario}" }
     val action = "include"
     val fileNamePostfix = "$testProject-performance-scenarios.csv"
