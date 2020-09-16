@@ -151,17 +151,7 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
     }
 
     CrossVersionPerformanceResults run() {
-        if (testId == null) {
-            throw new IllegalStateException("Test id has not been specified")
-        }
-        if (testProject == null) {
-            throw new IllegalStateException("Test project has not been specified")
-        }
-        if (workingDir == null) {
-            throw new IllegalStateException("Working directory has not been specified")
-        }
-
-        Assume.assumeTrue(TestScenarioSelector.shouldRun(testClassName, testId, [testProject].toSet(), resultsStore))
+        assumeShouldRun()
 
         def results = new CrossVersionPerformanceResults(
             testId: testId,
@@ -201,6 +191,20 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
         reporter.report(results)
 
         return results
+    }
+
+    public void assumeShouldRun() {
+        if (testId == null) {
+            throw new IllegalStateException("Test id has not been specified")
+        }
+        if (testProject == null) {
+            throw new IllegalStateException("Test project has not been specified")
+        }
+        if (workingDir == null) {
+            throw new IllegalStateException("Working directory has not been specified")
+        }
+
+        Assume.assumeTrue(TestScenarioSelector.shouldRun(testClassName, testId, [testProject].toSet(), resultsStore))
     }
 
     private File perVersionWorkingDirectory(String version, int maxWorkingDirLength) {

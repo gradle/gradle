@@ -45,6 +45,9 @@ class AbstractRealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionPe
     }
 
     AndroidTestProject getAndroidTestProject() {
+        // We assume here already, since the test may try to cast the returned test project to `IncrementalAndroidTestProject`,
+        // which fails when the test project is non-incremental.
+        runner.assumeShouldRun()
         AndroidTestProject.getAndroidTestProject(runner.testProject)
     }
 }
