@@ -194,4 +194,30 @@ class EclipseSourceSetIntegrationSpec extends AbstractEclipseIntegrationSpec {
         classpath.sourceDir('src/default/java').assertOutputLocation('bin/default_')
         classpath.sourceDir('src/default_/java').assertOutputLocation('bin/default__')
     }
+
+    @ToBeFixedForConfigurationCache
+    def "Custom source set defined on dependencies"() {
+        setup:
+        buildFile << """
+            apply plugin: 'java'
+            apply plugin: 'eclipse'
+
+            ${jcenterRepository()}
+
+            sourceSets {
+                integTest
+            }
+
+            dependencies {
+                integTestImplementation 'com.google.guava:guava:18.0'
+            }
+        """
+
+        when:
+        run 'eclipse'
+
+        then:
+        EclipseClasspathFixture classpath = classpath('.')
+        classpath.lib('guava-18.0.jar').assertHasAttribute('gradle_used_by_scope', 'integTest')
+    }
 }
