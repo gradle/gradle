@@ -22,9 +22,8 @@ import org.gradle.profiler.BuildContext
 import org.gradle.profiler.mutations.AbstractFileChangeMutator
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import spock.lang.Unroll
 
-@Requires(TestPrecondition.LINUX)
+@Requires(TestPrecondition.NOT_WINDOWS)
 class SwiftBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
     def setup() {
         runner.minimumBaseVersion = '4.6'
@@ -32,43 +31,40 @@ class SwiftBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
         runner.args += ["--parallel", "--${ParallelismBuildOptions.MaxWorkersOption.LONG_OPTION}=6"]
     }
 
-    @Unroll
-    def "up-to-date assemble on #testProject"() {
+    def "up-to-date assemble (swift)"() {
         given:
-        runner.testProject = testProject
         runner.tasksToRun = ["assemble"]
-        runner.gradleOpts = ["-Xms$maxMemory", "-Xmx$maxMemory"]
+        runner.gradleOpts = runner.projectMemoryOptions
 
         when:
         def result = runner.run()
 
         then:
         result.assertCurrentVersionHasNotRegressed()
-
-        where:
-        testProject        | maxMemory
-        'mediumSwiftMulti' | '1G'
-        'bigSwiftApp'      | '1G'
     }
 
-    @Unroll
-    def "incremental compile on #testProject"() {
+    def "incremental compile"() {
         given:
-        runner.testProject = testProject
         runner.tasksToRun = ["assemble"]
-        runner.gradleOpts = ["-Xms$maxMemory", "-Xmx$maxMemory"]
-        runner.addBuildMutator { invocationSettings -> new ChangeSwiftFileMutator(new File(invocationSettings.projectDir, fileToChange)) }
+        runner.gradleOpts = runner.projectMemoryOptions
+        runner.addBuildMutator { invocationSettings -> new ChangeSwiftFileMutator(new File(invocationSettings.projectDir, determineFileToChange(runner.testProject))) }
 
         when:
         def result = runner.run()
 
         then:
         result.assertCurrentVersionHasNotRegressed()
+    }
 
-        where:
-        testProject        | maxMemory | fileToChange
-        "mediumSwiftMulti" | '1G'      | 'lib6api3/src/main/swift/Lib6Api3Impl2Api.swift'
-        'bigSwiftApp'      | '1G'      | 'src/main/swift//AppImpl54Api3.swift'
+    static String determineFileToChange(String testProject) {
+        switch (testProject) {
+            case 'mediumSwiftMulti':
+                return 'lib6api3/src/main/swift/Lib6Api3Impl2Api.swift'
+            case 'bigSwiftApp':
+                return 'src/main/swift//AppImpl54Api3.swift'
+            default:
+                throw new IllegalArgumentException("Invalid test project ${testProject}")
+        }
     }
 
     private static class ChangeSwiftFileMutator extends AbstractFileChangeMutator {

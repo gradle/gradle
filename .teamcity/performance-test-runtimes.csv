@@ -94,3 +94,7 @@ org.gradle.performance.regression.nativeplatform.RealWorldNativePluginPerformanc
 org.gradle.performance.regression.nativeplatform.RealWorldNativePluginPerformanceTest;build with header file change;mediumNativeMonolithic;linux;270000
 org.gradle.performance.regression.nativeplatform.RealWorldNativePluginPerformanceTest;build with source file change;mediumNativeMonolithic;linux;270000
 org.gradle.performance.regression.nativeplatform.RealWorldNativePluginPerformanceTest;build with build file change;smallNativeMonolithic;linux;620000
+org.gradle.performance.regression.nativeplatform.SwiftBuildPerformanceTest;up-to-date assemble (swift);mediumSwiftMulti;linux;174000
+org.gradle.performance.regression.nativeplatform.SwiftBuildPerformanceTest;up-to-date assemble (swift);bigSwiftApp;linux;114000
+org.gradle.performance.regression.nativeplatform.SwiftBuildPerformanceTest;incremental compile;mediumSwiftMulti;linux;534000
+org.gradle.performance.regression.nativeplatform.SwiftBuildPerformanceTest;incremental compile;bigSwiftApp;linux;184000
