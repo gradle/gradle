@@ -61,3 +61,7 @@ org.gradle.performance.regression.corefeature.ArchiveTreePerformanceTest;visitin
 org.gradle.performance.regression.corefeature.DeprecationCreationPerformanceTest;create many deprecation warnings;generateLotsOfDeprecationWarnings;linux;106000
 org.gradle.performance.regression.corefeature.ExcludeRuleMergingPerformanceTest;merge exclude rules;excludeRuleMergingBuild;linux;292000
 org.gradle.performance.regression.corefeature.ExcludeRuleMergingPerformanceTest;merge exclude rules (parallel);excludeRuleMergingBuild;linux;243000
+org.gradle.performance.regression.corefeature.IdeIntegrationPerformanceTest;eclipse;largeMonolithicJavaProject;linux;144000
+org.gradle.performance.regression.corefeature.IdeIntegrationPerformanceTest;eclipse;largeJavaMultiProject;linux;404000
+org.gradle.performance.regression.corefeature.IdeIntegrationPerformanceTest;idea;largeMonolithicJavaProject;linux;147000
+org.gradle.performance.regression.corefeature.IdeIntegrationPerformanceTest;idea;largeJavaMultiProject;linux;365000
