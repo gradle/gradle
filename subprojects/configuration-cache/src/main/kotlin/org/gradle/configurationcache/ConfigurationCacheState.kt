@@ -231,8 +231,8 @@ class ConfigurationCacheState(
     suspend fun DefaultWriteContext.writeGradleEnterprisePluginManager() {
         val manager = service<GradleEnterprisePluginManager>()
         val adapter = manager.adapter
-        val writtenAdapter = if (adapter == null) null else {
-            if (adapter.shouldSaveToConfigurationCache()) adapter else null
+        val writtenAdapter = adapter?.takeIf {
+            it.shouldSaveToConfigurationCache()
         }
         write(writtenAdapter)
     }
