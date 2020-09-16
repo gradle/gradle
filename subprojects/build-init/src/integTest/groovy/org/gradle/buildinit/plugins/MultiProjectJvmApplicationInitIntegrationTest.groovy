@@ -21,6 +21,7 @@ import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import spock.lang.Ignore
 import spock.lang.Unroll
 
 import static org.gradle.buildinit.plugins.internal.modifiers.Language.GROOVY
@@ -28,6 +29,7 @@ import static org.gradle.buildinit.plugins.internal.modifiers.Language.JAVA
 import static org.gradle.buildinit.plugins.internal.modifiers.Language.KOTLIN
 import static org.gradle.buildinit.plugins.internal.modifiers.Language.SCALA
 
+@Ignore
 class MultiProjectJvmApplicationInitIntegrationTest extends AbstractIntegrationSpec {
     final def targetDir = testDirectory.createDir("some-thing")
 
