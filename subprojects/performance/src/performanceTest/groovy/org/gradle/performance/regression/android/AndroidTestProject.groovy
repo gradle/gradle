@@ -45,6 +45,14 @@ class AndroidTestProject {
     String templateName
     String memory
 
+    static getAndroidTestProject(String testProject) {
+        def foundProject = ANDROID_TEST_PROJECTS.find { it.templateName == testProject }
+        if (!foundProject) {
+            throw new IllegalArgumentException("Android project ${testProject} not found")
+        }
+        return foundProject
+    }
+
     void configure(CrossVersionPerformanceTestRunner runner) {
         runner.testProject = templateName
         runner.gradleOpts = ["-Xms$memory", "-Xmx$memory"]

@@ -106,3 +106,5 @@ org.gradle.performance.regression.android.RealLifeAndroidBuildPerformanceTest;as
 org.gradle.performance.regression.android.RealLifeAndroidBuildPerformanceTest;clean phthalic:assembleDebug;largeAndroidBuild;linux;608000
 org.gradle.performance.regression.android.RealLifeAndroidBuildPerformanceTest;abi change;santaTrackerAndroidBuild;linux;883000
 org.gradle.performance.regression.android.RealLifeAndroidBuildPerformanceTest;non-abi change;santaTrackerAndroidBuild;linux;591000
+org.gradle.performance.regression.android.RealLifeAndroidStudioMockupPerformanceTest;get IDE model for Android Studio;largeAndroidBuild;linux;1251000
+org.gradle.performance.regression.android.RealLifeAndroidStudioMockupPerformanceTest;get IDE model for Android Studio;k9AndroidBuild;linux;253000

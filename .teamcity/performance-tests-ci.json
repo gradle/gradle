@@ -1017,6 +1017,23 @@
                     }
                 }
             ]
+        },
+        {
+            "testId" : "org.gradle.performance.regression.android.RealLifeAndroidStudioMockupPerformanceTest.get IDE model for Android Studio",
+            "groups" : [
+                {
+                    "testProject" : "largeAndroidBuild",
+                    "stages" : {
+                        "ExperimentalPerformance":  ["linux"]
+                    }
+                },
+                {
+                    "testProject" : "k9AndroidBuild",
+                    "stages" : {
+                        "ExperimentalPerformance":  ["linux"]
+                    }
+                }
+            ]
         }
     ]
 }
