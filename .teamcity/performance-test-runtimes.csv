@@ -59,3 +59,5 @@ org.gradle.performance.regression.corefeature.ArchiveTreePerformanceTest;visitin
 org.gradle.performance.regression.corefeature.ArchiveTreePerformanceTest;visiting tar trees;archivePerformanceProject;linux;163000
 org.gradle.performance.regression.corefeature.ArchiveTreePerformanceTest;visiting gzip tar trees;archivePerformanceProject;linux;167000
 org.gradle.performance.regression.corefeature.DeprecationCreationPerformanceTest;create many deprecation warnings;generateLotsOfDeprecationWarnings;linux;106000
+org.gradle.performance.regression.corefeature.ExcludeRuleMergingPerformanceTest;merge exclude rules;excludeRuleMergingBuild;linux;292000
+org.gradle.performance.regression.corefeature.ExcludeRuleMergingPerformanceTest;merge exclude rules (parallel);excludeRuleMergingBuild;linux;243000

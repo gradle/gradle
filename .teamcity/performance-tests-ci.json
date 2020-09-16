@@ -575,6 +575,28 @@
                     }
                 }
             ]
+        },
+        {
+            "testId" : "org.gradle.performance.regression.corefeature.ExcludeRuleMergingPerformanceTest.merge exclude rules",
+            "groups" : [
+                {
+                    "testProject" : "excludeRuleMergingBuild",
+                    "stages" : {
+                        "ExperimentalPerformance":  ["linux"]
+                    }
+                }
+            ]
+        },
+        {
+            "testId" : "org.gradle.performance.regression.corefeature.ExcludeRuleMergingPerformanceTest.merge exclude rules (parallel)",
+            "groups" : [
+                {
+                    "testProject" : "excludeRuleMergingBuild",
+                    "stages" : {
+                        "ExperimentalPerformance":  ["linux"]
+                    }
+                }
+            ]
         }
     ]
 }
