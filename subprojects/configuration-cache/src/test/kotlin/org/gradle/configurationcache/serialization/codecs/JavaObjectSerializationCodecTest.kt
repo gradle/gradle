@@ -105,7 +105,7 @@ class JavaObjectSerializationCodecTest : AbstractUserTypeCodecTest() {
 
     @Test
     fun `can handle writeReplace readResolve`() {
-        verifyRoundtripOf(::SerializableWriteReplaceBean) {
+        verifyRoundtripOf({ SerializableWriteReplaceBean() }) {
             assertThat(
                 it.value,
                 equalTo<Any>("42")
@@ -143,7 +143,7 @@ class JavaObjectSerializationCodecTest : AbstractUserTypeCodecTest() {
     @Ignore("wip")
     @Test
     fun `can handle Externalizable beans`() {
-        verifyRoundtripOf(::ExternalizableBean) {
+        verifyRoundtripOf({ ExternalizableBean() }) {
             assertThat(
                 it.value,
                 equalTo<Any>(42)
@@ -153,7 +153,7 @@ class JavaObjectSerializationCodecTest : AbstractUserTypeCodecTest() {
 
     @Test
     fun `can handle multiple writeObject implementations in the hierarchy`() {
-        verifyRoundtripOf(::MultiWriteObjectBean) { bean ->
+        verifyRoundtripOf({ MultiWriteObjectBean() }) { bean ->
             assertThat(
                 bean.stringValue,
                 equalTo("42")
@@ -175,7 +175,7 @@ class JavaObjectSerializationCodecTest : AbstractUserTypeCodecTest() {
 
     @Test
     fun `can handle writeObject without readObject`() {
-        verifyRoundtripOf(::SerializableWriteObjectOnlyBean) {
+        verifyRoundtripOf({ SerializableWriteObjectOnlyBean() }) {
             assertThat(
                 it.value,
                 equalTo<Any>("42")
