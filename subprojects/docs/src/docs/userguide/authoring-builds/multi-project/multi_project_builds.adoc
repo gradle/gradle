@@ -93,7 +93,7 @@ and how subprojects can <<declaring_dependencies_between_subprojects#,depend on 
 == Naming recommendations
 
 As your project grows, naming and consistency gets increasingly more important.
-To keep your builds maintainable, we recommend the following :
+To keep your builds maintainable, we recommend the following:
 
 1. _Keep default project names for subprojects_:
 It is possible to configure custom project names in the settings file.
