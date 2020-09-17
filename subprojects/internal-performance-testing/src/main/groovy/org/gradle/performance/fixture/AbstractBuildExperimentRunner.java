@@ -21,6 +21,7 @@ import joptsimple.OptionParser;
 import org.apache.commons.io.FileUtils;
 import org.gradle.performance.measure.Duration;
 import org.gradle.performance.measure.MeasuredOperation;
+import org.gradle.performance.results.GradleProfilerReporter;
 import org.gradle.performance.results.MeasuredOperationList;
 import org.gradle.profiler.BenchmarkResultCollector;
 import org.gradle.profiler.BuildMutator;
@@ -48,20 +49,20 @@ public abstract class AbstractBuildExperimentRunner implements BuildExperimentRu
     private static final String PROFILER_TARGET_DIR_KEY = "org.gradle.performance.flameGraphTargetDir";
 
     private final ProfilerFlameGraphGenerator flameGraphGenerator;
-    private final BenchmarkResultCollector resultCollector;
+    private final GradleProfilerReporter gradleProfilerReporter;
     private final org.gradle.profiler.Profiler profiler;
 
     public static String getProfilerTargetDir() {
         return System.getProperty(PROFILER_TARGET_DIR_KEY);
     }
 
-    public AbstractBuildExperimentRunner(BenchmarkResultCollector resultCollector) {
+    public AbstractBuildExperimentRunner(GradleProfilerReporter gradleProfilerReporter) {
         String profilerTargetDir = getProfilerTargetDir();
         this.flameGraphGenerator = profilerTargetDir == null
             ? ProfilerFlameGraphGenerator.NOOP
             : new JfrFlameGraphGenerator(new File(profilerTargetDir));
         this.profiler = createProfiler(profilerTargetDir);
-        this.resultCollector = resultCollector;
+        this.gradleProfilerReporter = gradleProfilerReporter;
     }
 
     private org.gradle.profiler.Profiler createProfiler(String jfrProfileTargetDir) {
@@ -80,8 +81,8 @@ public abstract class AbstractBuildExperimentRunner implements BuildExperimentRu
         return flameGraphGenerator;
     }
 
-    protected BenchmarkResultCollector getResultCollector() {
-        return resultCollector;
+    protected BenchmarkResultCollector getResultCollector(String name) {
+        return gradleProfilerReporter.getResultCollector(name);
     }
 
     protected org.gradle.profiler.Profiler getProfiler() {
