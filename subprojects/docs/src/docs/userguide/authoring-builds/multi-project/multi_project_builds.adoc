@@ -86,7 +86,9 @@ include::{snippetsPath}/multiproject/basic-multiproject/tests/run.out[]
 
 And that's how simple it is to create a basic multi-project build.
 
-Next, we will look at multi-project builds that contain more than one subproject. We will explore how build logic can be shared across subprojects and how subprojects can depend on one another.
+Next, we will look at multi-project builds that contain more than one subproject.
+We will explore how build logic can be <<sharing_build_logic_between_subprojects#,shared between subprojects>>
+and how subprojects can <<declaring_dependencies_between_subprojects#,depend on one another>>.
 
 == Naming recommendations
 
