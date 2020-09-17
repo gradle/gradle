@@ -8,10 +8,9 @@ description = "Kotlin Compiler Embeddable - patched for Gradle"
 moduleIdentity.baseName.set("kotlin-compiler-embeddable-${libs.kotlinVersion}-patched-for-gradle")
 
 dependencies {
-    api(libs.futureKotlin("stdlib"))
-    api(libs.futureKotlin("reflect"))
-    api(libs.futureKotlin("script-runtime"))
-    api(libs.futureKotlin("daemon-embeddable"))
-
-    runtimeOnly(libs.trove4j)
+    implementation(libs.futureKotlin("stdlib"))
+    implementation(libs.futureKotlin("reflect"))
+    implementation(libs.futureKotlin("script-runtime"))
+    implementation(libs.futureKotlin("daemon-embeddable"))
+    implementation(libs.trove4j)
 }
