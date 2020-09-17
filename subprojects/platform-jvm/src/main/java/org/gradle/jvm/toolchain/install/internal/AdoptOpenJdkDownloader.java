@@ -17,6 +17,7 @@
 package org.gradle.jvm.toolchain.install.internal;
 
 import org.apache.commons.io.IOUtils;
+import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
 import org.gradle.api.resources.MissingResourceException;
@@ -33,6 +34,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Collections;
 
 public class AdoptOpenJdkDownloader {
@@ -46,7 +48,7 @@ public class AdoptOpenJdkDownloader {
     }
 
     public void download(URI source, File tmpFile) {
-        final ExternalResource resource = getTransport().getRepository().withProgressLogging().resource(new ExternalResourceName(source));
+        final ExternalResource resource = getTransport(source).getRepository().withProgressLogging().resource(new ExternalResourceName(source));
         try {
             downloadResource(source, tmpFile, resource);
         } catch (MissingResourceException e) {
@@ -72,8 +74,17 @@ public class AdoptOpenJdkDownloader {
         }
     }
 
-    private RepositoryTransport getTransport() {
-        final HttpRedirectVerifier redirectVerifier = HttpRedirectVerifierFactory.create(null, true, null, null);
+    private RepositoryTransport getTransport(URI source) {
+        final HttpRedirectVerifier redirectVerifier;
+        try {
+            redirectVerifier = HttpRedirectVerifierFactory.create(new URI(source.getScheme(), source.getAuthority(), null, null, null), false, () -> {
+                throw new InvalidUserCodeException("Attempting to download a JDK from an insecure URI " + source + ". This is not supported, use a secure URI instead.");
+            }, uri -> {
+                throw new InvalidUserCodeException("Attempting to download a JDK from an insecure URI " + uri + ". This URI was reached as a redirect from " + source + ". This is not supported, make sure no insecure URIs appear in the redirect");
+            });
+        } catch (URISyntaxException e) {
+            throw new InvalidUserCodeException("Cannot extract host information from specified URI " + source);
+        }
         return repositoryTransportFactory.createTransport("https", "adoptopenjdk toolchains", Collections.emptyList(), redirectVerifier);
     }
 

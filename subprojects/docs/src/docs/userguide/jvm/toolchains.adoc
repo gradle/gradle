@@ -112,6 +112,12 @@ For that you use the Gradle property as in the example below:
 org.gradle.jvm.toolchain.install.adoptopenjdk.baseUri=https://api.company.net/
 ----
 
+[WARNING]
+====
+Only secure protocols like `https` are accepted.
+This is required to make sure no one can tamper with the download in flight.
+====
+
 [[sub:disable_auto_provision]]
 === How to disable auto provisioning
 
