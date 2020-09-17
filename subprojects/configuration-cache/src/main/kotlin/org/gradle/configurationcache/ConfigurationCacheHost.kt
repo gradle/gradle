@@ -63,7 +63,7 @@ class ConfigurationCacheHost internal constructor(
 ) : DefaultConfigurationCache.Host {
 
     override val currentBuild: VintageGradleBuild =
-        DefaultVintageGradleBuild()
+        DefaultVintageGradleBuild(gradle)
 
     override fun createBuild(rootProjectName: String): ConfigurationCacheBuild =
         DefaultConfigurationCacheBuild(gradle, service(), rootProjectName)
@@ -74,16 +74,10 @@ class ConfigurationCacheHost internal constructor(
     override fun <T> factory(serviceType: Class<T>): Factory<T> =
         gradle.services.getFactory(serviceType)
 
-    inner class DefaultVintageGradleBuild : VintageGradleBuild {
-
-        override val gradle: GradleInternal
-            get() = this@ConfigurationCacheHost.gradle
+    class DefaultVintageGradleBuild(override val gradle: GradleInternal) : VintageGradleBuild {
 
         override val scheduledWork: List<Node>
             get() = gradle.taskGraph.scheduledWork
-
-        override val rootProject: ProjectInternal
-            get() = gradle.rootProject
     }
 
     inner class DefaultConfigurationCacheBuild(

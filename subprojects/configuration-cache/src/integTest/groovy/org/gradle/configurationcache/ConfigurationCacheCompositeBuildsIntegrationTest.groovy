@@ -19,53 +19,71 @@ package org.gradle.configurationcache
 
 class ConfigurationCacheCompositeBuildsIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
-    def "reports a problem when included builds are present"() {
-
+    def "can use lib produced by included build"() {
         given:
         def configurationCache = newConfigurationCacheFixture()
-        settingsFile << """includeBuild("included")"""
-        file("included/settings.gradle") << ""
+        createDir('app') {
+            file('settings.gradle') << """
+                includeBuild '../lib'
+            """
+            file('build.gradle') << """
+                plugins {
+                    id 'java'
+                    id 'application'
+                }
+                application {
+                   mainClass = 'Main'
+                }
+                dependencies {
+                    implementation 'org.test:lib:1.0'
+                }
+            """
+            file('src/main/java/Main.java') << """
+                class Main { public static void main(String[] args) {
+                    Lib.main();
+                } }
+            """
+        }
+        createDir('lib') {
+            file('settings.gradle') << """
+                rootProject.name = 'lib'
+            """
 
-        and:
-        def expectedProblem = "Gradle runtime: support for included builds is not yet implemented with the configuration cache."
+            file('build.gradle') << """
+                plugins { id 'java' }
+                group = 'org.test'
+                version = '1.0'
+            """
 
-        when:
-        configurationCacheFails("help")
-
-        then:
-        problems.assertFailureHasProblems(failure) {
-            withUniqueProblems(expectedProblem)
-            withProblemsWithStackTraceCount(0)
+            file('src/main/java/Lib.java') << """
+                public class Lib { public static void main() {
+                    System.out.println("Before!");
+                } }
+            """
         }
 
         when:
-        configurationCacheRunLenient("help")
+        inDirectory 'app'
+        configurationCacheRunLenient 'run'
 
         then:
-        problems.assertResultHasProblems(result) {
-            withUniqueProblems(expectedProblem)
-            withProblemsWithStackTraceCount(0)
-        }
+        outputContains 'Before!'
+        configurationCache.assertStateStored()
 
-        when:
-        configurationCacheFails("help")
+        when: 'changing source file from included build'
+        file('lib/src/main/java/Lib.java').text = """
+            public class Lib { public static void main() {
+                System.out.println("After!");
+            } }
+        """
 
-        then:
+        and: 'rerunning the build'
+        inDirectory 'app'
+        configurationCacheRunLenient 'run', '-q'
+
+        then: 'it should pick up the changes'
+        outputContains 'After!'
         configurationCache.assertStateLoaded()
-        problems.assertFailureHasProblems(failure) {
-            withUniqueProblems(expectedProblem)
-            withProblemsWithStackTraceCount(0)
-        }
-
-        when:
-        configurationCacheRunLenient("help")
-
-        then:
-        configurationCache.assertStateLoaded()
-        problems.assertResultHasProblems(result) {
-            withUniqueProblems(expectedProblem)
-            withProblemsWithStackTraceCount(0)
-        }
     }
 
     def "reports a problem when source dependencies are present"() {

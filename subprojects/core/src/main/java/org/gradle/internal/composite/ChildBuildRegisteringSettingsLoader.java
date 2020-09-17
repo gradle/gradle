@@ -56,22 +56,7 @@ public class ChildBuildRegisteringSettingsLoader implements SettingsLoader {
         if (!includedBuilds.isEmpty()) {
             Set<IncludedBuild> children = new LinkedHashSet<IncludedBuild>(includedBuilds.size());
             for (IncludedBuildSpec includedBuildSpec : includedBuilds) {
-                gradle.getOwner().assertCanAdd(includedBuildSpec);
-
-                DefaultConfigurableIncludedBuild configurable = instantiator.newInstance(DefaultConfigurableIncludedBuild.class, includedBuildSpec.rootDir);
-                includedBuildSpec.configurer.execute(configurable);
-
-                BuildDefinition buildDefinition = BuildDefinition.fromStartParameterForBuild(
-                    gradle.getStartParameter(),
-                    configurable.getName(),
-                    includedBuildSpec.rootDir,
-                    PluginRequests.EMPTY,
-                    configurable.getDependencySubstitutionAction(),
-                    publicBuildPath
-                );
-
-                IncludedBuildState includedBuild = buildRegistry.addIncludedBuild(buildDefinition);
-
+                IncludedBuildState includedBuild = addIncludedBuild(includedBuildSpec, gradle);
                 children.add(includedBuild.getModel());
             }
 
@@ -82,5 +67,23 @@ public class ChildBuildRegisteringSettingsLoader implements SettingsLoader {
         }
 
         return settings;
+    }
+
+    private IncludedBuildState addIncludedBuild(IncludedBuildSpec includedBuildSpec, GradleInternal gradle) {
+        gradle.getOwner().assertCanAdd(includedBuildSpec);
+
+        DefaultConfigurableIncludedBuild configurable = instantiator.newInstance(DefaultConfigurableIncludedBuild.class, includedBuildSpec.rootDir);
+        includedBuildSpec.configurer.execute(configurable);
+
+        BuildDefinition buildDefinition = BuildDefinition.fromStartParameterForBuild(
+            gradle.getStartParameter(),
+            configurable.getName(),
+            includedBuildSpec.rootDir,
+            PluginRequests.EMPTY,
+            configurable.getDependencySubstitutionAction(),
+            publicBuildPath
+        );
+
+        return buildRegistry.addIncludedBuild(buildDefinition);
     }
 }

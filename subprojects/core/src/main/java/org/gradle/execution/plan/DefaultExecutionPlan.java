@@ -117,9 +117,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
     public void addEntryTasks(Collection<? extends Task> tasks) {
         final Deque<Node> queue = new ArrayDeque<>();
 
-        List<Task> sortedTasks = new ArrayList<>(tasks);
-        Collections.sort(sortedTasks);
-        for (Task task : sortedTasks) {
+        for (Task task : sorted(tasks)) {
             TaskNode node = taskNodeFactory.getOrCreateNode(task);
             if (node.isMustNotRun()) {
                 requireWithDependencies(node);
@@ -131,6 +129,12 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         }
 
         doAddNodes(queue);
+    }
+
+    private List<Task> sorted(Collection<? extends Task> tasks) {
+        List<Task> sortedTasks = new ArrayList<>(tasks);
+        Collections.sort(sortedTasks);
+        return sortedTasks;
     }
 
     private void doAddNodes(Deque<Node> queue) {
@@ -233,15 +237,17 @@ public class DefaultExecutionPlan implements ExecutionPlan {
     }
 
     public void determineExecutionPlan() {
-        LinkedList<NodeInVisitingSegment> nodeQueue = Lists.newLinkedList(Iterables.transform(entryNodes, new Function<Node, NodeInVisitingSegment>() {
-            private int index;
+        LinkedList<NodeInVisitingSegment> nodeQueue = Lists.newLinkedList(
+            Iterables.transform(entryNodes, new Function<Node, NodeInVisitingSegment>() {
+                private int index;
 
-            @Override
-            @SuppressWarnings("NullableProblems")
-            public NodeInVisitingSegment apply(Node node) {
-                return new NodeInVisitingSegment(node, index++);
-            }
-        }));
+                @Override
+                @SuppressWarnings("NullableProblems")
+                public NodeInVisitingSegment apply(Node node) {
+                    return new NodeInVisitingSegment(node, index++);
+                }
+            })
+        );
         int visitingSegmentCounter = nodeQueue.size();
         Set<Node> dependenciesWhichRequireMonitoring = Sets.newHashSet();
 
@@ -482,7 +488,14 @@ public class DefaultExecutionPlan implements ExecutionPlan {
     }
 
     public List<Node> getScheduledNodes() {
-        return ImmutableList.copyOf(nodeMapping.nodes);
+        Set<Node> nodes = nodeMapping.nodes;
+        ImmutableList.Builder<Node> builder = ImmutableList.<Node>builder();
+        for (Node node : dependenciesWhichRequireMonitoring) {
+            if (!nodes.contains(node)) {
+                builder.add(node);
+            }
+        }
+        return builder.addAll(nodes).build();
     }
 
     @Override
@@ -512,7 +525,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
             return null;
         }
 
-        for (Iterator<Node> iterator = dependenciesWhichRequireMonitoring.iterator(); iterator.hasNext();) {
+        for (Iterator<Node> iterator = dependenciesWhichRequireMonitoring.iterator(); iterator.hasNext(); ) {
             Node node = iterator.next();
             if (node.isComplete()) {
                 LOGGER.debug("Monitored node {} completed", node);

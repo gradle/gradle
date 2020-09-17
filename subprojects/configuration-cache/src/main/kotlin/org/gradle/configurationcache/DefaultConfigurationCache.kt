@@ -346,7 +346,8 @@ class DefaultConfigurationCache internal constructor(
             valueSourceProviderFactory = service(),
             patternSetFactory = factory(),
             fileOperations = service(),
-            fileFactory = service()
+            fileFactory = service(),
+            includedTaskGraph = service()
         )
 
     private

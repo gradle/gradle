@@ -174,6 +174,7 @@ abstract class AbstractUserTypeCodecTest {
         valueSourceProviderFactory = mock(),
         patternSetFactory = mock(),
         fileOperations = mock(),
-        fileFactory = mock()
+        fileFactory = mock(),
+        includedTaskGraph = mock()
     )
 }
