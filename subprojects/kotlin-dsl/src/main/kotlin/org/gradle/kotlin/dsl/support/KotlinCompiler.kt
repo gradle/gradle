@@ -16,11 +16,9 @@
 
 package org.gradle.kotlin.dsl.support
 
-import org.gradle.internal.SystemProperties
 import org.gradle.internal.io.NullOutputStream
 
 import org.jetbrains.kotlin.cli.common.CLIConfigurationKeys
-import org.jetbrains.kotlin.cli.common.KOTLIN_COMPILER_ENVIRONMENT_KEEPALIVE_PROPERTY
 
 import org.jetbrains.kotlin.cli.common.config.addKotlinSourceRoot
 import org.jetbrains.kotlin.cli.common.config.addKotlinSourceRoots
@@ -375,18 +373,11 @@ fun CompilerConfiguration.addScriptDefinition(scriptDef: ScriptDefinition) {
 private
 fun Disposable.kotlinCoreEnvironmentFor(configuration: CompilerConfiguration): KotlinCoreEnvironment {
     org.jetbrains.kotlin.cli.common.environment.setIdeaIoUseFallback()
-    // Don't keep the Kotlin compiler environment alive as it might hold onto stale data.
-    // See https://youtrack.jetbrains.com/issue/KT-35394
-    return SystemProperties.getInstance().withSystemProperty(
-        KOTLIN_COMPILER_ENVIRONMENT_KEEPALIVE_PROPERTY,
-        "false"
-    ) {
-        KotlinCoreEnvironment.createForProduction(
-            this,
-            configuration,
-            EnvironmentConfigFiles.JVM_CONFIG_FILES
-        )
-    }
+    return KotlinCoreEnvironment.createForProduction(
+        this,
+        configuration,
+        EnvironmentConfigFiles.JVM_CONFIG_FILES
+    )
 }
 
 

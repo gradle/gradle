@@ -74,6 +74,7 @@ import org.gradle.api.publish.maven.internal.artifact.DefaultMavenArtifactSet;
 import org.gradle.api.publish.maven.internal.artifact.DerivedMavenArtifact;
 import org.gradle.api.publish.maven.internal.artifact.SingleOutputTaskMavenArtifact;
 import org.gradle.api.publish.maven.internal.dependencies.DefaultMavenDependency;
+import org.gradle.api.publish.maven.internal.dependencies.DefaultMavenProjectDependency;
 import org.gradle.api.publish.maven.internal.dependencies.MavenDependencyInternal;
 import org.gradle.api.publish.maven.internal.publisher.MavenNormalizedPublication;
 import org.gradle.api.publish.maven.internal.publisher.MutableMavenProjectIdentity;
@@ -457,7 +458,8 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
 
     private void addProjectDependency(ProjectDependency dependency, Set<ExcludeRule> globalExcludes, Set<MavenDependencyInternal> dependencies) {
         ModuleVersionIdentifier identifier = projectDependencyResolver.resolve(ModuleVersionIdentifier.class, dependency);
-        dependencies.add(new DefaultMavenDependency(identifier.getGroup(), identifier.getName(), identifier.getVersion(), Collections.emptyList(), getExcludeRules(globalExcludes, dependency)));
+        DefaultMavenDependency moduleDependency = new DefaultMavenDependency(identifier.getGroup(), identifier.getName(), identifier.getVersion(), Collections.emptyList(), getExcludeRules(globalExcludes, dependency));
+        dependencies.add(new DefaultMavenProjectDependency(moduleDependency, dependency.getDependencyProject().getPath()));
     }
 
     private void addModuleDependency(ModuleDependency dependency, Set<ExcludeRule> globalExcludes, Set<MavenDependencyInternal> dependencies) {
@@ -471,7 +473,8 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
     private void addDependencyConstraint(DefaultProjectDependencyConstraint dependency, Set<MavenDependency> dependencies) {
         ProjectDependency projectDependency = dependency.getProjectDependency();
         ModuleVersionIdentifier identifier = projectDependencyResolver.resolve(ModuleVersionIdentifier.class, projectDependency);
-        dependencies.add(new DefaultMavenDependency(identifier.getGroup(), identifier.getName(), identifier.getVersion()));
+        DefaultMavenDependency moduleDependency = new DefaultMavenDependency(identifier.getGroup(), identifier.getName(), identifier.getVersion());
+        dependencies.add(new DefaultMavenProjectDependency(moduleDependency, projectDependency.getDependencyProject().getPath()));
     }
 
     private static Set<ExcludeRule> getExcludeRules(Set<ExcludeRule> globalExcludes, ModuleDependency dependency) {

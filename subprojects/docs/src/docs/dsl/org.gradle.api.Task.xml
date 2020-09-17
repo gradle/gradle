@@ -53,6 +53,9 @@
                 <td>mustRunAfter</td>
             </tr>
             <tr>
+                <td>shouldRunAfter</td>
+            </tr>
+            <tr>
                 <td>finalizedBy</td>
             </tr>
             <tr>
@@ -91,6 +94,9 @@
             </tr>
             <tr>
                 <td>mustRunAfter</td>
+            </tr>
+            <tr>
+                <td>shouldRunAfter</td>
             </tr>
             <tr>
                 <td>finalizedBy</td>

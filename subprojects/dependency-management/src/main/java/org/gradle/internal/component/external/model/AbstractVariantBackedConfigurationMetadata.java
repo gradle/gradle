@@ -87,7 +87,7 @@ class AbstractVariantBackedConfigurationMetadata implements ModuleConfigurationM
 
     @Override
     public Identifier getIdentifier() {
-        return null;
+        return variant.getIdentifier();
     }
 
     @Override
@@ -172,5 +172,10 @@ class AbstractVariantBackedConfigurationMetadata implements ModuleConfigurationM
 
     protected ComponentVariant getVariant() {
         return variant;
+    }
+
+    @Override
+    public boolean isExternalVariant() {
+        return variant.isExternalVariant();
     }
 }

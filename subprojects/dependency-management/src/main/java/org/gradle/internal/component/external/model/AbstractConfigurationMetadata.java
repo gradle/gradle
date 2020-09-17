@@ -44,6 +44,7 @@ public abstract class AbstractConfigurationMetadata implements ModuleConfigurati
     private final ImmutableAttributes attributes;
     private final ImmutableCapabilities capabilities;
     private final boolean mavenArtifactDiscovery;
+    private final boolean externalVariant;
 
     // Should be final, and set in constructor
     private ImmutableList<ModuleDependencyMetadata> configDependencies;
@@ -53,7 +54,7 @@ public abstract class AbstractConfigurationMetadata implements ModuleConfigurati
                                   ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts, ImmutableSet<String> hierarchy,
                                   ImmutableList<ExcludeMetadata> excludes, ImmutableAttributes attributes,
                                   ImmutableList<ModuleDependencyMetadata> configDependencies, ImmutableCapabilities capabilities,
-                                  boolean mavenArtifactDiscovery) {
+                                  boolean mavenArtifactDiscovery, boolean externalVariant) {
 
         this.componentId = componentId;
         this.name = name;
@@ -66,6 +67,7 @@ public abstract class AbstractConfigurationMetadata implements ModuleConfigurati
         this.configDependencies = configDependencies;
         this.capabilities = capabilities;
         this.mavenArtifactDiscovery = mavenArtifactDiscovery;
+        this.externalVariant = externalVariant;
     }
 
     AbstractConfigurationMetadata(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible,
@@ -73,7 +75,8 @@ public abstract class AbstractConfigurationMetadata implements ModuleConfigurati
                                   ImmutableList<ExcludeMetadata> excludes, ImmutableAttributes attributes,
                                   Factory<List<ModuleDependencyMetadata>> configDependenciesFactory,
                                   ImmutableCapabilities capabilities,
-                                  boolean mavenArtifactDiscovery) {
+                                  boolean mavenArtifactDiscovery,
+                                  boolean externalVariant) {
 
         this.componentId = componentId;
         this.name = name;
@@ -86,6 +89,7 @@ public abstract class AbstractConfigurationMetadata implements ModuleConfigurati
         this.configDependenciesFactory = configDependenciesFactory;
         this.capabilities = capabilities;
         this.mavenArtifactDiscovery = mavenArtifactDiscovery;
+        this.externalVariant = externalVariant;
     }
 
     @Override
@@ -136,6 +140,11 @@ public abstract class AbstractConfigurationMetadata implements ModuleConfigurati
     @Override
     public boolean isCanBeResolved() {
         return false;
+    }
+
+    @Override
+    public boolean isExternalVariant() {
+        return externalVariant;
     }
 
     public void setDependencies(List<ModuleDependencyMetadata> dependencies) {

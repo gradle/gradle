@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result
 
+
 import org.gradle.api.artifacts.result.ResolvedVariantResult
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.capabilities.Capability
@@ -32,27 +33,43 @@ import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.n
 
 class ComponentResultSerializerTest extends SerializerSpec {
 
+    private ComponentIdentifierSerializer componentIdentifierSerializer = new ComponentIdentifierSerializer()
     def serializer = new ComponentResultSerializer(
-            new DefaultImmutableModuleIdentifierFactory(),
-            new ResolvedVariantResultSerializer(
-                    new DesugaredAttributeContainerSerializer(AttributeTestUtil.attributesFactory(), TestUtil.objectInstantiator())
-            ), DependencyManagementTestUtil.componentSelectionDescriptorFactory()
+        new DefaultImmutableModuleIdentifierFactory(),
+        new ResolvedVariantResultSerializer(
+            componentIdentifierSerializer,
+            new DesugaredAttributeContainerSerializer(AttributeTestUtil.attributesFactory(), TestUtil.objectInstantiator())
+        ),
+        DependencyManagementTestUtil.componentSelectionDescriptorFactory(),
+        componentIdentifierSerializer
     )
 
     def "serializes"() {
         def componentIdentifier = new DefaultModuleComponentIdentifier(DefaultModuleIdentifier.newId('group', 'module'), 'version')
+        def extId = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId('group', 'external'), '1.0')
         def attributes = AttributeTestUtil.attributesFactory().mutable()
         attributes.attribute(Attribute.of('type', String), 'custom')
         attributes.attribute(Attribute.of('format', String), 'jar')
         def v1 = Mock(ResolvedVariantResult) {
+            getOwner() >> componentIdentifier
             getDisplayName() >> "v1"
             getAttributes() >> ImmutableAttributes.EMPTY
             getCapabilities() >> [capability('foo')]
+            getExternalVariant() >> Optional.empty()
+        }
+        def v3 = Mock(ResolvedVariantResult) {
+            getOwner() >> extId
+            getDisplayName() >> "v3"
+            getAttributes() >> attributes
+            getCapabilities() >> [capability('bar'), capability('baz')]
+            getExternalVariant() >> Optional.empty()
         }
         def v2 = Mock(ResolvedVariantResult) {
+            getOwner() >> componentIdentifier
             getDisplayName() >> "v2"
             getAttributes() >> attributes
             getCapabilities() >> [capability('bar'), capability('baz')]
+            getExternalVariant() >> Optional.of(v3)
         }
         def selection = new DetachedComponentResult(12L,
             newId('org', 'foo', '2.0'),
@@ -72,18 +89,32 @@ class ComponentResultSerializerTest extends SerializerSpec {
         result.resolvedVariants[0].displayName == 'v1'
         result.resolvedVariants[0].attributes == ImmutableAttributes.EMPTY
         result.resolvedVariants[0].capabilities.size() == 1
-        result.resolvedVariants[0].capabilities[0].group== 'org'
+        result.resolvedVariants[0].capabilities[0].group == 'org'
         result.resolvedVariants[0].capabilities[0].name == 'foo'
         result.resolvedVariants[0].capabilities[0].version == '1.0'
+        result.resolvedVariants[0].owner == componentIdentifier
         result.resolvedVariants[1].displayName == 'v2'
         result.resolvedVariants[1].attributes == attributes.asImmutable()
         result.resolvedVariants[1].capabilities.size() == 2
-        result.resolvedVariants[1].capabilities[0].group== 'org'
+        result.resolvedVariants[1].capabilities[0].group == 'org'
         result.resolvedVariants[1].capabilities[0].name == 'bar'
         result.resolvedVariants[1].capabilities[0].version == '1.0'
-        result.resolvedVariants[1].capabilities[1].group== 'org'
+        result.resolvedVariants[1].capabilities[1].group == 'org'
         result.resolvedVariants[1].capabilities[1].name == 'baz'
         result.resolvedVariants[1].capabilities[1].version == '1.0'
+        result.resolvedVariants[1].owner == componentIdentifier
+        result.resolvedVariants[1].externalVariant.present
+        def external = result.resolvedVariants[1].externalVariant.get()
+        external.displayName == 'v3'
+        external.attributes == attributes.asImmutable()
+        external.capabilities.size() == 2
+        external.capabilities[0].group == 'org'
+        external.capabilities[0].name == 'bar'
+        external.capabilities[0].version == '1.0'
+        external.capabilities[1].group == 'org'
+        external.capabilities[1].name == 'baz'
+        external.capabilities[1].version == '1.0'
+        external.owner == extId
         result.repositoryName == 'repoName'
     }
 

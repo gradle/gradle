@@ -119,4 +119,5 @@ public abstract class AbstractDependencyMetadataAdapter<T extends DependencyMeta
             updateMetadata((ModuleDependencyMetadata) ((ForcingDependencyMetadata) originalMetadata).forced());
         }
     }
+
 }

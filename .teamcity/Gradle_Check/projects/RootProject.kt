@@ -1,6 +1,7 @@
 package projects
 
 import Gradle_Check.model.GradleBuildBucketProvider
+import Gradle_Check.model.StatisticsBasedPerformanceTestBucketProvider
 import common.failedTestArtifactDestination
 import configurations.StagePasses
 import jetbrains.buildServer.configs.kotlin.v2019_2.AbsoluteId
@@ -9,12 +10,14 @@ import jetbrains.buildServer.configs.kotlin.v2019_2.projectFeatures.VersionedSet
 import jetbrains.buildServer.configs.kotlin.v2019_2.projectFeatures.versionedSettings
 import model.CIBuildModel
 import model.Stage
+import java.io.File
 
 class RootProject(model: CIBuildModel, gradleBuildBucketProvider: GradleBuildBucketProvider) : Project({
     uuid = model.projectPrefix.removeSuffix("_")
     id = AbsoluteId(uuid)
     parentId = AbsoluteId("Gradle")
     name = model.rootProjectName
+    val performanceTestBucketProvider = StatisticsBasedPerformanceTestBucketProvider(model, File("../subprojects/performance/some-file.csv"))
 
     features {
         versionedSettings {
@@ -34,7 +37,7 @@ class RootProject(model: CIBuildModel, gradleBuildBucketProvider: GradleBuildBuc
 
     var prevStage: Stage? = null
     model.stages.forEach { stage ->
-        val stageProject = StageProject(model, gradleBuildBucketProvider, stage, uuid)
+        val stageProject = StageProject(model, gradleBuildBucketProvider, performanceTestBucketProvider, stage, uuid)
         val stagePasses = StagePasses(model, stage, prevStage, stageProject)
         buildType(stagePasses)
         subProject(stageProject)
@@ -50,10 +53,10 @@ class RootProject(model: CIBuildModel, gradleBuildBucketProvider: GradleBuildBuc
 
     cleanup {
         baseRule {
-            history(days = 7)
+            history(days = 14)
         }
         baseRule {
-            artifacts(days = 7, artifactPatterns = """
+            artifacts(days = 14, artifactPatterns = """
                 +:**/*
                 +:$failedTestArtifactDestination/**/*"
             """.trimIndent())

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,14 +17,15 @@
 package org.gradle.testing.fixture
 /**
  * NEWEST is JUnit 4 series, i.e. junit:junit:4.13
- * JUPITER is JUnit Jupiter engine, i.e. org.junit.jupiter:junit-jupiter-api:5.6.2
- * VINTAGE is JUnit Vintage engine which supports JUnit 4 tests on top of JUnit Platform, i.e. org.junit.vintage:junit-vintage-engine:5.6.2
+ * JUPITER is JUnit Jupiter engine, i.e. org.junit.jupiter:junit-jupiter:5.7.0
+ * VINTAGE is JUnit Vintage engine which supports JUnit 4 tests on top of JUnit Platform, i.e. org.junit.vintage:junit-vintage-engine:5.7.0
  */
 class JUnitCoverage {
     final static String NEWEST = '4.13'
-    final static String LATEST_JUPITER_VERSION = '5.6.2'
-    final static String LATEST_VINTAGE_VERSION = '5.6.2'
-    final static String LATEST_LAUNCHER_VERSION = '1.6.2'
+    final static String LATEST_JUNIT5_VERSION = '5.7.0'
+    final static String LATEST_JUPITER_VERSION = LATEST_JUNIT5_VERSION
+    final static String LATEST_VINTAGE_VERSION = LATEST_JUNIT5_VERSION
+    final static String LATEST_LAUNCHER_VERSION = '1.7.0'
     final static String JUPITER = 'Jupiter:' + LATEST_JUPITER_VERSION
     final static String VINTAGE = 'Vintage:' + LATEST_VINTAGE_VERSION
     final static List<String> LARGE_COVERAGE = ['4.0', '4.4', '4.8.2', NEWEST]

@@ -103,6 +103,7 @@ public abstract class AbstractRealisedModuleResolveMetadataSerializationHelper {
         encoder.writeString(configuration.getName());
         attributeContainerSerializer.write(encoder, configuration.getAttributes());
         writeCapabilities(encoder, configuration.getCapabilities().getCapabilities());
+        encoder.writeBoolean(configuration.isExternalVariant());
     }
 
     protected Map<String, List<GradleDependencyMetadata>> readVariantDependencies(Decoder decoder) throws IOException {

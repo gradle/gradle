@@ -55,4 +55,9 @@ public class DefaultSelectedByVariantMatchingLocalConfigurationMetadata extends 
     public ImmutableList<? extends LocalComponentArtifactMetadata> getArtifacts() {
         return delegate.getArtifacts();
     }
+
+    @Override
+    public boolean isExternalVariant() {
+        return delegate.isExternalVariant();
+    }
 }

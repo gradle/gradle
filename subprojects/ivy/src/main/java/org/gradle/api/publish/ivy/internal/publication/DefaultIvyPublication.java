@@ -68,6 +68,7 @@ import org.gradle.api.publish.ivy.internal.artifact.SingleOutputTaskIvyArtifact;
 import org.gradle.api.publish.ivy.internal.dependency.DefaultIvyDependency;
 import org.gradle.api.publish.ivy.internal.dependency.DefaultIvyDependencySet;
 import org.gradle.api.publish.ivy.internal.dependency.DefaultIvyExcludeRule;
+import org.gradle.api.publish.ivy.internal.dependency.DefaultIvyProjectDependency;
 import org.gradle.api.publish.ivy.internal.dependency.IvyDependencyInternal;
 import org.gradle.api.publish.ivy.internal.dependency.IvyExcludeRule;
 import org.gradle.api.publish.ivy.internal.publisher.IvyNormalizedPublication;
@@ -424,8 +425,9 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
 
     private void addProjectDependency(ProjectDependency dependency, String confMapping) {
         ModuleVersionIdentifier identifier = projectDependencyResolver.resolve(ModuleVersionIdentifier.class, dependency);
-        ivyDependencies.add(new DefaultIvyDependency(
-                identifier.getGroup(), identifier.getName(), identifier.getVersion(), confMapping, dependency.isTransitive(), Collections.<DependencyArtifact>emptyList(), dependency.getExcludeRules()));
+        DefaultIvyDependency moduleDep = new DefaultIvyDependency(
+            identifier.getGroup(), identifier.getName(), identifier.getVersion(), confMapping, dependency.isTransitive(), Collections.<DependencyArtifact>emptyList(), dependency.getExcludeRules());
+        ivyDependencies.add(new DefaultIvyProjectDependency(moduleDep, dependency.getDependencyProject().getPath()));
     }
 
     private void addExternalDependency(ExternalDependency dependency, String confMapping, ImmutableAttributes attributes) {

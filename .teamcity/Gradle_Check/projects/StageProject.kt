@@ -1,7 +1,10 @@
 package projects
 
 import Gradle_Check.configurations.FunctionalTestsPass
+import Gradle_Check.configurations.PerformanceTestsPass
 import Gradle_Check.model.GradleBuildBucketProvider
+import Gradle_Check.model.PerformanceTestBucketProvider
+import common.Os
 import configurations.FunctionalTest
 import configurations.PerformanceTestCoordinator
 import configurations.SanityCheck
@@ -14,9 +17,10 @@ import jetbrains.buildServer.configs.kotlin.v2019_2.Project
 import model.CIBuildModel
 import model.SpecificBuild
 import model.Stage
+import model.StageNames
 import model.TestType
 
-class StageProject(model: CIBuildModel, gradleBuildBucketProvider: GradleBuildBucketProvider, stage: Stage, rootProjectUuid: String) : Project({
+class StageProject(model: CIBuildModel, gradleBuildBucketProvider: GradleBuildBucketProvider, performanceTestBucketProvider: PerformanceTestBucketProvider, stage: Stage, rootProjectUuid: String) : Project({
     this.uuid = "${model.projectPrefix}Stage_${stage.stageName.uuid}"
     this.id = AbsoluteId("${model.projectPrefix}Stage_${stage.stageName.id}")
     this.name = stage.stageName.stageName
@@ -46,6 +50,12 @@ class StageProject(model: CIBuildModel, gradleBuildBucketProvider: GradleBuildBu
 
         performanceTests = stage.performanceTests.map { PerformanceTestCoordinator(model, it, stage) }
         performanceTests.forEach(this::buildType)
+
+        if (stage.stageName == StageNames.EXPERIMENTAL_PERFORMANCE) {
+            val performanceTestProject = PerformanceTestProject(model, performanceTestBucketProvider, Os.LINUX, stage)
+            subProject(performanceTestProject)
+            buildType(PerformanceTestsPass(model, performanceTestProject))
+        }
 
         val (topLevelCoverage, allCoverage) = stage.functionalTests.partition { it.testType == TestType.soak || it.testDistribution }
         val topLevelFunctionalTests = topLevelCoverage

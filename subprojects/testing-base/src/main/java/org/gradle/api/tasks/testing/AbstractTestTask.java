@@ -28,7 +28,6 @@ import org.gradle.api.file.FileSystemOperations;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.tasks.testing.DefaultTestTaskReports;
 import org.gradle.api.internal.tasks.testing.FailFastTestListenerInternal;
-import org.gradle.api.internal.tasks.testing.NoMatchingTestsReporter;
 import org.gradle.api.internal.tasks.testing.TestExecuter;
 import org.gradle.api.internal.tasks.testing.TestExecutionSpec;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
@@ -80,6 +79,7 @@ import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
 import org.gradle.util.ClosureBackedAction;
 import org.gradle.util.ConfigureUtil;
 
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.util.HashMap;
@@ -427,12 +427,6 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
 
     @TaskAction
     public void executeTests() {
-        if (getFilter().isFailOnNoMatchingTests() && (!getFilter().getIncludePatterns().isEmpty()
-            || !filter.getCommandLineIncludePatterns().isEmpty()
-            || !filter.getExcludePatterns().isEmpty())) {
-            addTestListener(new NoMatchingTestsReporter(createNoMatchingTestErrorMessage()));
-        }
-
         LogLevel currentLevel = determineCurrentLogLevel();
         TestLogging levelLogging = getTestLogging().get(currentLevel);
         TestExceptionFormatter exceptionFormatter = getExceptionFormatter(levelLogging);
@@ -495,9 +489,21 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
 
         createReporting(results, testOutputStore);
 
-        if (testCountLogger.hadFailures()) {
+        handleRootSuiteResult(testCountLogger.getRootSuiteResult());
+    }
+
+    private void handleRootSuiteResult(@Nullable TestResult result) {
+        if (result != null && result.getResultType() == TestResult.ResultType.FAILURE) {
             handleTestFailures();
+        } else if (result != null && result.getTestCount() == 0 && shouldFailOnNoMatchingTests()) {
+            throw new TestExecutionException(createNoMatchingTestErrorMessage());
         }
+    }
+
+    private boolean shouldFailOnNoMatchingTests() {
+        return filter.isFailOnNoMatchingTests() && (!filter.getIncludePatterns().isEmpty()
+            || !filter.getCommandLineIncludePatterns().isEmpty()
+            || !filter.getExcludePatterns().isEmpty());
     }
 
     private String createNoMatchingTestErrorMessage() {

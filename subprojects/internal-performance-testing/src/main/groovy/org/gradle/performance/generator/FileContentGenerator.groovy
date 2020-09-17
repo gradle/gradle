@@ -119,7 +119,7 @@ abstract class FileContentGenerator {
             return null
         }
         """
-        org.gradle.jvmargs=-Xmxs${config.daemonMemory} -Xmx${config.daemonMemory}
+        org.gradle.jvmargs=-Xms${config.daemonMemory} -Xmx${config.daemonMemory} -Dfile.encoding=UTF-8
         org.gradle.parallel=${config.parallel}
         org.gradle.workers.max=${config.maxWorkers}
         compilerMemory=${config.compilerMemory}

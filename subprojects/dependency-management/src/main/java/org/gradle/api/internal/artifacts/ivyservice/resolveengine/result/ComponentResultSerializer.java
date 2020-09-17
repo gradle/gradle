@@ -40,11 +40,12 @@ public class ComponentResultSerializer implements Serializer<ResolvedGraphCompon
 
     public ComponentResultSerializer(ImmutableModuleIdentifierFactory moduleIdentifierFactory,
                                      ResolvedVariantResultSerializer resolvedVariantResultSerializer,
-                                     ComponentSelectionDescriptorFactory componentSelectionDescriptorFactory) {
+                                     ComponentSelectionDescriptorFactory componentSelectionDescriptorFactory,
+                                     ComponentIdentifierSerializer componentIdentifierSerializer) {
         this.idSerializer = new ModuleVersionIdentifierSerializer(moduleIdentifierFactory);
         this.resolvedVariantResultSerializer = resolvedVariantResultSerializer;
         this.reasonSerializer = new ComponentSelectionReasonSerializer(componentSelectionDescriptorFactory);
-        this.componentIdSerializer = new ComponentIdentifierSerializer();
+        this.componentIdSerializer = componentIdentifierSerializer;
     }
 
     void reset() {

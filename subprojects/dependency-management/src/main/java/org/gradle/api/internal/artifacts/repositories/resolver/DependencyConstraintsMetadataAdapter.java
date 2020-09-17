@@ -47,4 +47,5 @@ public class DependencyConstraintsMetadataAdapter extends AbstractDependenciesMe
     protected boolean isEndorsingStrictVersions(DependencyConstraintMetadata details) {
         return false;
     }
+
 }

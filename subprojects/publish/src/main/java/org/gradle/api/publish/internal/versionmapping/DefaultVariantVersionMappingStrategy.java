@@ -18,7 +18,9 @@ package org.gradle.api.publish.internal.versionmapping;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
+import org.gradle.api.artifacts.component.ProjectComponentSelector;
 import org.gradle.api.artifacts.result.DependencyResult;
 import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
@@ -52,7 +54,7 @@ public class DefaultVariantVersionMappingStrategy implements VariantVersionMappi
     }
 
     @Override
-    public ModuleVersionIdentifier maybeResolveVersion(String group, String module) {
+    public ModuleVersionIdentifier maybeResolveVersion(String group, String module, String projectPath) {
         if (usePublishedVersions && targetConfiguration != null) {
             ResolutionResult resolutionResult = targetConfiguration
                 .getIncoming()
@@ -71,9 +73,15 @@ public class DefaultVariantVersionMappingStrategy implements VariantVersionMappi
             Set<? extends DependencyResult> allDependencies = resolutionResult.getAllDependencies();
             for (DependencyResult dependencyResult : allDependencies) {
                 if (dependencyResult instanceof ResolvedDependencyResult) {
-                    if (dependencyResult.getRequested() instanceof ModuleComponentSelector) {
-                        ModuleComponentSelector requested = (ModuleComponentSelector) dependencyResult.getRequested();
+                    ComponentSelector rcs = dependencyResult.getRequested();
+                    if (rcs instanceof ModuleComponentSelector) {
+                        ModuleComponentSelector requested = (ModuleComponentSelector) rcs;
                         if (requested.getGroup().equals(group) && requested.getModule().equals(module)) {
+                            return ((ResolvedDependencyResult) dependencyResult).getSelected().getModuleVersion();
+                        }
+                    } else if (rcs instanceof ProjectComponentSelector) {
+                        ProjectComponentSelector pcs = (ProjectComponentSelector) rcs;
+                        if (pcs.getProjectPath().equals(projectPath)) {
                             return ((ResolvedDependencyResult) dependencyResult).getSelected().getModuleVersion();
                         }
                     }

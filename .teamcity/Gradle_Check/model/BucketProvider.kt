@@ -177,9 +177,12 @@ class StatisticBasedGradleBuildBucketProvider(private val model: CIBuildModel, t
  * @param smallElementAggregateFunction the function used to aggregate tiny elements into a large bucket
  * @param expectedBucketNumber the return value's size should be expectedBucketNumber
  */
-fun <T, R> split(list: LinkedList<T>, toIntFunction: (T) -> Int, largeElementSplitFunction: (T, Int) -> List<R>, smallElementAggregateFunction: (List<T>) -> R, expectedBucketNumber: Int, maxNumberInBucket: Int): List<R> {
+fun <T, R> split(list: LinkedList<T>, toIntFunction: (T) -> Int, largeElementSplitFunction: (T, Int) -> List<R>, smallElementAggregateFunction: (List<T>) -> R, expectedBucketNumber: Int, maxNumberInBucket: Int, noElementSplitFunction: (Int) -> List<R> = { throw IllegalArgumentException("More buckets than things to split") }): List<R> {
     if (expectedBucketNumber == 1) {
         return listOf(smallElementAggregateFunction(list))
+    }
+    if (list.isEmpty()) {
+        return noElementSplitFunction(expectedBucketNumber)
     }
 
     val expectedBucketSize = list.sumBy(toIntFunction) / expectedBucketNumber
@@ -190,7 +193,7 @@ fun <T, R> split(list: LinkedList<T>, toIntFunction: (T) -> Int, largeElementSpl
 
     return if (largestElementSize >= expectedBucketSize) {
         val bucketsOfFirstElement = largeElementSplitFunction(largestElement, if (largestElementSize % expectedBucketSize == 0) largestElementSize / expectedBucketSize else largestElementSize / expectedBucketSize + 1)
-        val bucketsOfRestElements = split(list, toIntFunction, largeElementSplitFunction, smallElementAggregateFunction, expectedBucketNumber - bucketsOfFirstElement.size, maxNumberInBucket)
+        val bucketsOfRestElements = split(list, toIntFunction, largeElementSplitFunction, smallElementAggregateFunction, expectedBucketNumber - bucketsOfFirstElement.size, maxNumberInBucket, noElementSplitFunction)
         bucketsOfFirstElement + bucketsOfRestElements
     } else {
         val buckets = arrayListOf(largestElement)
@@ -200,7 +203,7 @@ fun <T, R> split(list: LinkedList<T>, toIntFunction: (T) -> Int, largeElementSpl
             buckets.add(smallestElement)
             restCapacity -= toIntFunction(smallestElement)
         }
-        listOf(smallElementAggregateFunction(buckets)) + split(list, toIntFunction, largeElementSplitFunction, smallElementAggregateFunction, expectedBucketNumber - 1, maxNumberInBucket)
+        listOf(smallElementAggregateFunction(buckets)) + split(list, toIntFunction, largeElementSplitFunction, smallElementAggregateFunction, expectedBucketNumber - 1, maxNumberInBucket, noElementSplitFunction)
     }
 }
 
@@ -239,28 +242,28 @@ class LargeSubprojectSplitBucket(val subproject: GradleSubproject, val number: I
         val testClasses = classes.map { it.toPropertiesLine() }
         val action = if (include) "include" else "exclude"
         val unixScript = """
-mkdir -p build
-rm -rf build/*-test-classes.properties
-cat > build/$action-test-classes.properties << EOL
+mkdir -p test-splits
+rm -rf test-splits/*-test-classes.properties
+cat > test-splits/$action-test-classes.properties << EOL
 ${testClasses.joinToString("\n")}
 EOL
 
 echo "Tests to be ${action}d in this build"
-cat build/$action-test-classes.properties
+cat test-splits/$action-test-classes.properties
 """
 
         val linesWithEcho = testClasses.joinToString("\n") { "echo $it" }
 
         val windowsScript = """
-mkdir build
-del /f /q build\include-test-classes.properties
-del /f /q build\exclude-test-classes.properties
+mkdir test-splits
+del /f /q test-splits\include-test-classes.properties
+del /f /q test-splits\exclude-test-classes.properties
 (
 $linesWithEcho
-) > build\$action-test-classes.properties
+) > test-splits\$action-test-classes.properties
 
 echo "Tests to be ${action}d in this build"
-type build\$action-test-classes.properties
+type test-splits\$action-test-classes.properties
 """
 
         return {

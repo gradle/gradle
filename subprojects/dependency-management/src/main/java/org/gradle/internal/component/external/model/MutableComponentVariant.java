@@ -54,4 +54,8 @@ public interface MutableComponentVariant {
     void setAttributes(ImmutableAttributes updatedAttributes);
 
     MutableComponentVariant copy(String variantName, ImmutableAttributes attributes, Capability capability);
+
+    boolean isAvailableExternally();
+
+    void setAvailableExternally(boolean availableExternally);
 }

@@ -130,7 +130,7 @@ enum JavaTestProject {
         .withCompilerMemory("64m")
         .assembleChangeFile()
         .create()),
-    SMALL_JAVA_MULTI_PROJECT_NO_BUILD_SRC(new TestProjectGeneratorConfigurationBuilder('smallJavaMultiProject')
+    SMALL_JAVA_MULTI_PROJECT_NO_BUILD_SRC(new TestProjectGeneratorConfigurationBuilder('smallJavaMultiProjectNoBuildSrc')
         .withSourceFiles(50)
         .withSubProjects(10)
         .withDaemonMemory("256m")

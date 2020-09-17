@@ -108,7 +108,7 @@ class LenientPlatformResolveMetadata implements ModuleComponentResolveMetadata {
             }
             return new RealisedConfigurationMetadata(
                 moduleComponentIdentifier, name, false, false,
-                ImmutableSet.of(name), ImmutableList.of(), ImmutableList.of(), ImmutableAttributes.EMPTY, ImmutableCapabilities.EMPTY, false, dependencies.build(), false
+                ImmutableSet.of(name), ImmutableList.of(), ImmutableList.of(), ImmutableAttributes.EMPTY, ImmutableCapabilities.EMPTY, false, dependencies.build(), false, false
             );
         }
         throw new IllegalArgumentException("Undefined configuration '" + name + "'");
@@ -162,6 +162,11 @@ class LenientPlatformResolveMetadata implements ModuleComponentResolveMetadata {
     @Override
     public VariantDerivationStrategy getVariantDerivationStrategy() {
         return NoOpDerivationStrategy.getInstance();
+    }
+
+    @Override
+    public boolean isExternalVariant() {
+        return false;
     }
 
     @Override

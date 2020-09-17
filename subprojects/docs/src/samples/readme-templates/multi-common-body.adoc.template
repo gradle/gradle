@@ -70,7 +70,7 @@ Select build script DSL:
 Enter selection (default: Groovy) [1..2] 1
 ${testFrameworkChoice.raw}
 Project name (default: demo):
-${packageNameChoice.raw}${furtherReading.raw}
+${packageNameChoice.raw}
 
 BUILD SUCCESSFUL
 2 actionable tasks: 2 executed

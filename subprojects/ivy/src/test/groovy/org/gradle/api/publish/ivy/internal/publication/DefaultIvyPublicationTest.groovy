@@ -17,6 +17,7 @@
 package org.gradle.api.publish.ivy.internal.publication
 
 import org.gradle.api.InvalidUserDataException
+import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.artifacts.DependencyArtifact
 import org.gradle.api.artifacts.ExcludeRule
@@ -160,7 +161,9 @@ class DefaultIvyPublicationTest extends Specification {
     def "maps project dependency to ivy dependency"() {
         given:
         def publication = createPublication()
-        def projectDependency = Mock(ProjectDependency)
+        def projectDependency = Mock(ProjectDependency) {
+            getDependencyProject() >> Mock(Project)
+        }
         def exclude = Mock(ExcludeRule)
 
         and:

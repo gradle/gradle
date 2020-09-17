@@ -107,7 +107,7 @@ public class DefaultResolvedComponentResult implements ResolvedComponentResultIn
     @SuppressWarnings("deprecation")
     public ResolvedVariantResult getVariant() {
         if (variants.isEmpty()) {
-            return new DefaultResolvedVariantResult(Describables.of("<empty>"), ImmutableAttributes.EMPTY, Collections.emptyList());
+            return new DefaultResolvedVariantResult(componentId, Describables.of("<empty>"), ImmutableAttributes.EMPTY, Collections.emptyList(), null);
         }
         // Returns an approximation of a composite variant
         List<String> parts = variants.stream()
@@ -115,7 +115,7 @@ public class DefaultResolvedComponentResult implements ResolvedComponentResultIn
             .collect(Collectors.toList());
         DisplayName variantName = new VariantNameBuilder().getVariantName(parts);
         ResolvedVariantResult firstVariant = variants.get(0);
-        return new DefaultResolvedVariantResult(variantName, firstVariant.getAttributes(), firstVariant.getCapabilities());
+        return new DefaultResolvedVariantResult(componentId, variantName, firstVariant.getAttributes(), firstVariant.getCapabilities(), null);
     }
 
     @Override

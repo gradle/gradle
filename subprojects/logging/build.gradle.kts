@@ -25,6 +25,7 @@ dependencies {
     runtimeOnly(libs.jclToSlf4j)
 
     testImplementation(testFixtures(project(":core")))
+    testImplementation(testFixtures(project(":testing-jvm")))
 
     integTestImplementation(libs.ansiControlSequenceUtil)
 

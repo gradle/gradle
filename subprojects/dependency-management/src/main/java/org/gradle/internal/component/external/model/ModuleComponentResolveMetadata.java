@@ -71,4 +71,6 @@ public interface ModuleComponentResolveMetadata extends ComponentResolveMetadata
     VariantMetadataRules getVariantMetadataRules();
 
     VariantDerivationStrategy getVariantDerivationStrategy();
+
+    boolean isExternalVariant();
 }

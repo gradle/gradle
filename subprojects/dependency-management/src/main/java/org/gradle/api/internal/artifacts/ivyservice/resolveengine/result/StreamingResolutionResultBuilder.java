@@ -79,9 +79,10 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
                                             AttributeContainerSerializer attributeContainerSerializer,
                                             AttributeDesugaring desugaring,
                                             ComponentSelectionDescriptorFactory componentSelectionDescriptorFactory) {
-        ResolvedVariantResultSerializer resolvedVariantResultSerializer = new ResolvedVariantResultSerializer(attributeContainerSerializer);
+        ComponentIdentifierSerializer componentIdentifierSerializer = new ComponentIdentifierSerializer();
+        ResolvedVariantResultSerializer resolvedVariantResultSerializer = new ResolvedVariantResultSerializer(componentIdentifierSerializer, attributeContainerSerializer);
         this.dependencyResultSerializer = new DependencyResultSerializer(resolvedVariantResultSerializer, componentSelectionDescriptorFactory);
-        this.componentResultSerializer = new ComponentResultSerializer(moduleIdentifierFactory, resolvedVariantResultSerializer, componentSelectionDescriptorFactory);
+        this.componentResultSerializer = new ComponentResultSerializer(moduleIdentifierFactory, resolvedVariantResultSerializer, componentSelectionDescriptorFactory, componentIdentifierSerializer);
         this.store = store;
         this.cache = cache;
         this.componentSelectorSerializer = new ComponentSelectorSerializer(attributeContainerSerializer);

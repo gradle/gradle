@@ -100,4 +100,6 @@ public interface ConfigurationMetadata extends HasAttributes {
      * that may not be directly defined in the metadata (e.g. the default 'jar' artifact).
      */
     boolean requiresMavenArtifactDiscovery();
+
+    boolean isExternalVariant();
 }

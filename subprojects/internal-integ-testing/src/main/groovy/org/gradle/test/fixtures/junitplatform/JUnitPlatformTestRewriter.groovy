@@ -19,32 +19,32 @@ package org.gradle.test.fixtures.junitplatform
 import groovy.io.FileType
 
 class JUnitPlatformTestRewriter {
-    static final String LATEST_JUPITER_VERSION = '5.6.2'
-    static final String LATEST_VINTAGE_VERSION = '5.6.2'
-    static Map replacements = ['org.junit.Test': 'org.junit.jupiter.api.Test',
-                               'org.junit.Before;': 'org.junit.jupiter.api.BeforeEach;',
-                               'org.junit.After;': 'org.junit.jupiter.api.AfterEach;',
-                               '@org.junit.Before ': '@org.junit.jupiter.api.BeforeEach ',
-                               '@org.junit.After ': '@org.junit.jupiter.api.AfterEach ',
-                               '@org.junit.Before\n': '@org.junit.jupiter.api.BeforeEach\n',
-                               '@org.junit.After\n': '@org.junit.jupiter.api.AfterEach\n',
-                               'org.junit.BeforeClass': 'org.junit.jupiter.api.BeforeAll',
-                               'org.junit.AfterClass': 'org.junit.jupiter.api.AfterAll',
-                               'org.junit.Ignore': 'org.junit.jupiter.api.Disabled',
-                               '@Before\n': '@BeforeEach\n',
-                               '@After\n': '@AfterEach\n',
-                               '@Before ': '@BeforeEach ',
-                               '@After ': '@AfterEach ',
-                               '@BeforeClass': '@BeforeAll',
-                               '@AfterClass': '@AfterAll',
-                               '@Ignore': '@Disabled',
-                               'import org.junit.*': 'import org.junit.jupiter.api.*',
-                               'org.junit.Assume': 'org.junit.jupiter.api.Assumptions',
-                               'org.junit.Assert': 'org.junit.jupiter.api.Assertions',
-                               'junit.framework.Assert': 'org.junit.jupiter.api.Assertions',
-                               'Assert.': 'Assertions.',
-                               'Assume.': 'Assumptions.',
-    ]
+
+    private static final Map REPLACEMENTS = Collections.unmodifiableMap([
+        'org.junit.Test': 'org.junit.jupiter.api.Test',
+        'org.junit.Before;': 'org.junit.jupiter.api.BeforeEach;',
+        'org.junit.After;': 'org.junit.jupiter.api.AfterEach;',
+        '@org.junit.Before ': '@org.junit.jupiter.api.BeforeEach ',
+        '@org.junit.After ': '@org.junit.jupiter.api.AfterEach ',
+        '@org.junit.Before\n': '@org.junit.jupiter.api.BeforeEach\n',
+        '@org.junit.After\n': '@org.junit.jupiter.api.AfterEach\n',
+        'org.junit.BeforeClass': 'org.junit.jupiter.api.BeforeAll',
+        'org.junit.AfterClass': 'org.junit.jupiter.api.AfterAll',
+        'org.junit.Ignore': 'org.junit.jupiter.api.Disabled',
+        '@Before\n': '@BeforeEach\n',
+        '@After\n': '@AfterEach\n',
+        '@Before ': '@BeforeEach ',
+        '@After ': '@AfterEach ',
+        '@BeforeClass': '@BeforeAll',
+        '@AfterClass': '@AfterAll',
+        '@Ignore': '@Disabled',
+        'import org.junit.*': 'import org.junit.jupiter.api.*',
+        'org.junit.Assume': 'org.junit.jupiter.api.Assumptions',
+        'org.junit.Assert': 'org.junit.jupiter.api.Assertions',
+        'junit.framework.Assert': 'org.junit.jupiter.api.Assertions',
+        'Assert.': 'Assertions.',
+        'Assume.': 'Assumptions.',
+    ])
 
     static rewriteWithJupiter(File projectDir, String dependencyVersion) {
         rewriteBuildFileWithJupiter(projectDir, dependencyVersion)
@@ -78,7 +78,7 @@ class JUnitPlatformTestRewriter {
     static rewriteJavaFilesWithJupiterAnno(File rootProject) {
         rootProject.traverse(type: FileType.FILES, nameFilter: ~/.*\.(java|groovy)/) {
             String text = it.text
-            replacements.each { key, value ->
+            REPLACEMENTS.each { key, value ->
                 text = text.replace(key, value)
             }
             it.text = text

@@ -90,7 +90,8 @@ object BuildServices {
         progressLoggerFactory: ProgressLoggerFactory,
         buildOperationExecutor: BuildOperationExecutor,
         cachedClasspathTransformer: CachedClasspathTransformer,
-        listenerManager: ListenerManager
+        listenerManager: ListenerManager,
+        @Suppress("UNUSED_PARAMETER") kotlinCompilerContextDisposer: KotlinCompilerContextDisposer
     ): KotlinScriptEvaluator =
 
         StandardKotlinScriptEvaluator(
@@ -110,6 +111,10 @@ object BuildServices {
             cachedClasspathTransformer,
             listenerManager.getBroadcaster(ScriptExecutionListener::class.java)
         )
+
+    @Suppress("unused")
+    fun createKotlinCompilerContextDisposer(listenerManager: ListenerManager) =
+        KotlinCompilerContextDisposer(listenerManager)
 
     private
     fun versionedJarCacheFor(jarCache: GeneratedGradleJarCache): JarCache =

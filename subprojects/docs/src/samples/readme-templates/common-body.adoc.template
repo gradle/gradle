@@ -62,7 +62,7 @@ Select build script DSL:
 Enter selection (default: Groovy) [1..2] 1
 ${testFrameworkChoice.raw}
 Project name (default: demo):
-${packageNameChoice.raw}${furtherReading.raw}
+${packageNameChoice.raw}
 
 BUILD SUCCESSFUL
 2 actionable tasks: 2 executed
@@ -104,8 +104,6 @@ ${testSourceFileTree.raw}
 └── ${subprojectName.raw}
     ├── build.gradle.kts // <4>
     └── src
-        ├── main
-        │   └── java // <5>
         ├── main
         │   └── ${languageLC.raw} // <5>
 ${sourceFileTree.raw}

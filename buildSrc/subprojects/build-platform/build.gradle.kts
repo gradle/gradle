@@ -58,7 +58,7 @@ dependencies {
         api("org.javassist:javassist:3.23.0-GA")
         api("org.jetbrains.kotlinx:kotlinx-metadata-jvm:0.1.0")
         api("org.jsoup:jsoup:1.11.3")
-        api("org.junit.jupiter:junit-jupiter:5.6.2")
+        api("org.junit.jupiter:junit-jupiter:5.7.0")
         api("org.openmbee.junit:junit-xml-parser:1.0.0")
         api("org.ow2.asm:asm:$asmVersion")
         api("org.ow2.asm:asm-commons:$asmVersion")

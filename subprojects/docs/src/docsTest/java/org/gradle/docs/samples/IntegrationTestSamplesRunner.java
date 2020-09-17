@@ -23,8 +23,9 @@ import org.junit.runners.model.InitializationError;
 
 import javax.annotation.Nullable;
 import java.io.File;
+import java.nio.file.Paths;
 
-public class IntegrationTestSamplesRunner extends SamplesRunner {
+class IntegrationTestSamplesRunner extends SamplesRunner {
     private static final String SAMPLES_DIR_PROPERTY = "integTest.samplesdir";
 
     public IntegrationTestSamplesRunner(Class<?> testClass) throws InitializationError {
@@ -43,6 +44,6 @@ public class IntegrationTestSamplesRunner extends SamplesRunner {
         if (samplesDir == null) {
             throw new IllegalStateException(String.format("'%s' property is required", SAMPLES_DIR_PROPERTY));
         }
-        return new File(samplesDir);
+        return Paths.get(samplesDir).toFile();
     }
 }

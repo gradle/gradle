@@ -106,6 +106,10 @@ public class DslOriginDependencyMetadataWrapper implements DslOriginDependencyMe
         return delegate.isEndorsingStrictVersions();
     }
 
+    private boolean isExternalVariant() {
+        return false;
+    }
+
     @Override
     public boolean isFromLock() {
         return delegate.isFromLock();

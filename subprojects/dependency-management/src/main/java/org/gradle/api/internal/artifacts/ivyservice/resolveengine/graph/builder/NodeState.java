@@ -26,6 +26,7 @@ import com.google.common.collect.Sets;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.ModuleIdentifier;
+import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
@@ -41,6 +42,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.Dependen
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.CapabilitiesConflictHandler;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.strict.StrictVersionConstraints;
 import org.gradle.api.internal.artifacts.result.DefaultResolvedVariantResult;
+import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.internal.Describables;
@@ -53,6 +55,8 @@ import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
+import org.gradle.internal.component.model.ExcludeMetadata;
+import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.SelectedByVariantMatchingConfigurationMetadata;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.slf4j.Logger;
@@ -127,7 +131,7 @@ public class NodeState implements DependencyGraphNode {
         this.component = component;
         this.resolveState = resolveState;
         this.metaData = md;
-        this.isTransitive = metaData.isTransitive();
+        this.isTransitive = metaData.isTransitive() || metaData.isExternalVariant();
         this.selectedByVariantAwareResolution = md instanceof SelectedByVariantMatchingConfigurationMetadata;
         this.moduleExclusions = resolveState == null ? null : resolveState.getModuleExclusions(); // can be null in tests, ResolveState cannot be mocked
         this.dependenciesMayChange = component.getModule() != null && component.getModule().isVirtualPlatform(); // can be null in tests, ComponentState cannot be mocked
@@ -239,8 +243,8 @@ public class NodeState implements DependencyGraphNode {
             return;
         }
 
-         // Check if there are any transitive incoming edges at all. Don't traverse if not.
-        if (transitiveEdgeCount == 0 && !isRoot()) {
+        // Check if there are any transitive incoming edges at all. Don't traverse if not.
+        if (transitiveEdgeCount == 0 && !isRoot() && !metaData.isExternalVariant()) {
             handleNonTransitiveNode(discoveredEdges);
             return;
         }
@@ -450,8 +454,19 @@ public class NodeState implements DependencyGraphNode {
             cachedFilteredDependencyStates = null;
         }
         List<? extends DependencyMetadata> dependencies = metaData.getDependencies();
+        if (transitiveEdgeCount == 0 && metaData.isExternalVariant()) {
+            // there must be a single dependency state because this variant is an "available-at"
+            // variant and here we are in the case the "including" component said that transitive
+            // should be false so we need to arbitrarily carry that onto the dependency metadata
+            assert dependencies.size() == 1;
+            dependencies = Collections.singletonList(makeNonTransitive(dependencies.get(0)));
+        }
         doesNotHaveDependencies = dependencies.isEmpty();
         return dependencies;
+    }
+
+    private static DependencyMetadata makeNonTransitive(DependencyMetadata dependencyMetadata) {
+        return new NonTransitiveVariantDependencyMetadata(dependencyMetadata);
     }
 
     private List<DependencyState> dependencies(ExcludeSpec spec) {
@@ -650,6 +665,19 @@ public class NodeState implements DependencyGraphNode {
     }
 
     private ExcludeSpec computeModuleResolutionFilter(List<EdgeState> incomingEdges) {
+        if (metaData.isExternalVariant()) {
+            // If the current node represents an external variant, we must not consider its excludes
+            // because it's some form of "delegation"
+            return moduleExclusions.nothing();
+        }
+        if (incomingEdges.size() == 1) {
+            // At the same time if the current node _comes from_ a delegated variant (available-at)
+            // then we need to take the exclusion filter from the origin node instead
+            NodeState from = incomingEdges.get(0).getFrom();
+            if (from.getMetadata().isExternalVariant()) {
+                return computeModuleResolutionFilter(from.getIncomingEdges());
+            }
+        }
         ExcludeSpec nodeExclusions = computeNodeExclusions();
         if (incomingEdges.isEmpty()) {
             return nodeExclusions;
@@ -1194,17 +1222,105 @@ public class NodeState implements DependencyGraphNode {
         AttributeContainer attributes = desugar(metaData.getAttributes());
         List<Capability> resolvedVariantCapabilities = capabilities.isEmpty() ? Collections.singletonList(component.getImplicitCapability()) : ImmutableList.copyOf(capabilities);
         cachedVariantResult = new DefaultResolvedVariantResult(
+            component.getComponentId(),
             name,
             attributes,
-            resolvedVariantCapabilities
-        );
+            resolvedVariantCapabilities,
+            findExternalVariant());
         return cachedVariantResult;
+    }
+
+    private ResolvedVariantResult findExternalVariant() {
+        if (!metaData.isExternalVariant()) {
+            return null;
+        }
+        // An external variant must have exactly one outgoing edge
+        // corresponding to the dependency to the external module
+        assert outgoingEdges.size() == 1;
+        for (EdgeState outgoingEdge : outgoingEdges) {
+            //noinspection ConstantConditions
+            return outgoingEdge.getSelectedVariant();
+        }
+        return null;
     }
 
     public void updateTransitiveExcludes() {
         cachedModuleResolutionFilter = null;
         if (isSelected()) {
             resolveState.onMoreSelected(this);
+        }
+    }
+
+    private static class NonTransitiveVariantDependencyMetadata implements DependencyMetadata {
+        private final DependencyMetadata dependencyMetadata;
+
+        public NonTransitiveVariantDependencyMetadata(DependencyMetadata dependencyMetadata) {
+            this.dependencyMetadata = dependencyMetadata;
+        }
+
+        @Override
+        public ComponentSelector getSelector() {
+            return dependencyMetadata.getSelector();
+        }
+
+        @Override
+        public List<ConfigurationMetadata> selectConfigurations(ImmutableAttributes consumerAttributes, ComponentResolveMetadata targetComponent, AttributesSchemaInternal consumerSchema, Collection<? extends Capability> explicitRequestedCapabilities) {
+            return dependencyMetadata.selectConfigurations(consumerAttributes, targetComponent, consumerSchema, explicitRequestedCapabilities);
+        }
+
+        @Override
+        public List<ExcludeMetadata> getExcludes() {
+            return dependencyMetadata.getExcludes();
+        }
+
+        @Override
+        public List<IvyArtifactName> getArtifacts() {
+            return dependencyMetadata.getArtifacts();
+        }
+
+        @Override
+        public DependencyMetadata withTarget(ComponentSelector target) {
+            return makeNonTransitive(dependencyMetadata.withTarget(target));
+        }
+
+        @Override
+        public DependencyMetadata withTargetAndArtifacts(ComponentSelector target, List<IvyArtifactName> artifacts) {
+            return makeNonTransitive(dependencyMetadata.withTargetAndArtifacts(target, artifacts));
+        }
+
+        @Override
+        public boolean isChanging() {
+            return dependencyMetadata.isChanging();
+        }
+
+        @Override
+        public boolean isTransitive() {
+            return false;
+        }
+
+        @Override
+        public boolean isConstraint() {
+            return dependencyMetadata.isConstraint();
+        }
+
+        @Override
+        public boolean isEndorsingStrictVersions() {
+            return dependencyMetadata.isEndorsingStrictVersions();
+        }
+
+        @Override
+        public String getReason() {
+            return dependencyMetadata.getReason();
+        }
+
+        @Override
+        public DependencyMetadata withReason(String reason) {
+            return makeNonTransitive(dependencyMetadata.withReason(reason));
+        }
+
+        @Override
+        public String toString() {
+            return "Non transitive dependency for external variant " + dependencyMetadata;
         }
     }
 }

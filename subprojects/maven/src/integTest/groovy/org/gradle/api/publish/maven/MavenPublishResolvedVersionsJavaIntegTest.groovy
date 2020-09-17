@@ -19,6 +19,7 @@ package org.gradle.api.publish.maven
 import org.gradle.api.attributes.Category
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 import org.gradle.test.fixtures.maven.MavenJavaModule
+import spock.lang.Issue
 import spock.lang.Unroll
 
 class MavenPublishResolvedVersionsJavaIntegTest extends AbstractMavenPublishIntegTest {
@@ -598,6 +599,74 @@ class MavenPublishResolvedVersionsJavaIntegTest extends AbstractMavenPublishInte
             }
             """
         ]
+    }
+
+    // This is a weird test case, because why would you have a substitution rule
+    // for a first level dependency? However it may be that you implicitly get a
+    // substitution rule (via a plugin for example) that you are not aware of.
+    // Ideally we should warn when such things happen (linting).
+    @Issue("https://github.com/gradle/gradle/issues/14039")
+    def "substituted project dependencies are also substituted in the generated POM file"() {
+        createBuildScripts("""
+            dependencies {
+                implementation project(":a")
+            }
+
+            configurations.all {
+                resolutionStrategy.dependencySubstitution {
+                    substitute(project(':a')).with(project(':b'))
+                }
+            }
+
+            publishing {
+                publications {
+                    maven(MavenPublication) {
+                        from components.java
+                        versionMapping {
+                            ${apiUsingUsage()}
+                            ${runtimeUsingUsage()}
+                        }
+                    }
+
+                }
+            }
+        """)
+        settingsFile << """
+            include 'a'
+            include 'b'
+        """
+        file("a/build.gradle") << """
+            plugins {
+                id 'java-library'
+            }
+            group = 'com.first'
+            version = '1.1'
+        """
+        file("b/build.gradle") << """
+            plugins {
+                id 'java-library'
+            }
+            group = 'com.second'
+            version = '1.2'
+        """
+
+        when:
+        run "publish"
+
+        then:
+        javaLibrary.mavenModule.removeGradleMetadataRedirection()
+        javaLibrary.assertPublished()
+        javaLibrary.parsedPom.scope("runtime") {
+            assert dependencies.size() == 1
+            def deps = dependencies.values()
+            assert deps[0].artifactId == 'b' // because of substitution
+            assert deps[0].groupId == 'com.second'
+            assert deps[0].version == '1.2'
+        }
+        javaLibrary.parsedModuleMetadata.variant("runtimeElements") {
+            dependency("com.second", "b", "1.2")
+            noMoreDependencies()
+        }
     }
 
     def "can substitute with a project dependency"() {

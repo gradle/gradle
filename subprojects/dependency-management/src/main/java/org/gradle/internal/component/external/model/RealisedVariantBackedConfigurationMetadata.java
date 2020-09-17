@@ -103,6 +103,11 @@ public class RealisedVariantBackedConfigurationMetadata extends AbstractVariantB
             return delegate.getCapabilities();
         }
 
+        @Override
+        public boolean isExternalVariant() {
+            return delegate.isExternalVariant();
+        }
+
         private ImmutableAttributes mergeComponentAndVariantAttributes(AttributeContainerInternal variantAttributes) {
             return attributesFactory.concat(componentLevelAttributes, variantAttributes.asImmutable());
         }

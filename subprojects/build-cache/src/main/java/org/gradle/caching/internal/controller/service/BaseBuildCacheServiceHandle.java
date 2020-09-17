@@ -33,14 +33,22 @@ public class BaseBuildCacheServiceHandle implements BuildCacheServiceHandle {
     protected final BuildCacheServiceRole role;
     private final boolean pushEnabled;
     private final boolean logStackTraces;
+    private final boolean disableOnError;
 
     private boolean disabled;
 
-    public BaseBuildCacheServiceHandle(BuildCacheService service, boolean push, BuildCacheServiceRole role, boolean logStackTraces) {
+    public BaseBuildCacheServiceHandle(
+        BuildCacheService service,
+        boolean push,
+        BuildCacheServiceRole role,
+        boolean logStackTraces,
+        boolean disableOnError
+    ) {
         this.role = role;
         this.service = service;
         this.pushEnabled = push;
         this.logStackTraces = logStackTraces;
+        this.disableOnError = disableOnError;
     }
 
     @Nullable
@@ -94,7 +102,9 @@ public class BaseBuildCacheServiceHandle implements BuildCacheServiceHandle {
     }
 
     private void failure(String verb, String preposition, BuildCacheKey key, Throwable e) {
-        disabled = true;
+        if (disableOnError) {
+            disabled = true;
+        }
 
         String description = "Could not " + verb + " entry " + key.getDisplayName() + " " + preposition + " " + role.getDisplayName() + " build cache";
         if (LOGGER.isWarnEnabled()) {

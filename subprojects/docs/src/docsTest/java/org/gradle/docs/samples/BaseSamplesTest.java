@@ -29,9 +29,7 @@ import org.gradle.samples.test.normalizer.GradleOutputNormalizer;
 import org.gradle.samples.test.normalizer.JavaObjectSerializationOutputNormalizer;
 import org.gradle.samples.test.runner.SampleModifiers;
 import org.gradle.samples.test.runner.SamplesOutputNormalizers;
-import org.junit.runner.RunWith;
 
-@RunWith(IntegrationTestSamplesRunner.class)
 @SamplesOutputNormalizers({
     SampleOutputNormalizer.class,
     JavaObjectSerializationOutputNormalizer.class,
@@ -47,5 +45,6 @@ import org.junit.runner.RunWith;
     SetMirrorsSampleModifier.class,
     MoreMemorySampleModifier.class
 })
-public class ExemplarExternalSamplesFunctionalTest {
+abstract class BaseSamplesTest {
 }
+
