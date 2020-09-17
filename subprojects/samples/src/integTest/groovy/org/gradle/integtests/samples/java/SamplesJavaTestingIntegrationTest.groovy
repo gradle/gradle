@@ -24,10 +24,8 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
-import spock.lang.Ignore
 import spock.lang.Unroll
 
-@Ignore
 class SamplesJavaTestingIntegrationTest extends AbstractSampleIntegrationTest {
 
     @Rule
