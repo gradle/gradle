@@ -54,12 +54,9 @@ dependencies {
     implementation(libs.guava)
     implementation(libs.inject)
 
-    implementation(libs.futureKotlin("script-runtime")) {
-        isTransitive = false
-    }
-    implementation(libs.futureKotlin("daemon-embeddable")) {
-        isTransitive = false
-    }
+    implementation(libs.futureKotlin("script-runtime"))
+    implementation(libs.futureKotlin("daemon-embeddable"))
+
     implementation(libs.futureKotlin("scripting-common")) {
         isTransitive = false
     }
