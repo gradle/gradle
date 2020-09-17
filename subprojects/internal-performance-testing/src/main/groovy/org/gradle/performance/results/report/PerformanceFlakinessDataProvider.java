@@ -16,6 +16,7 @@
 
 package org.gradle.performance.results.report;
 
+import org.gradle.performance.results.PerformanceExperiment;
 import org.gradle.performance.results.ScenarioBuildResultData;
 
 import java.math.BigDecimal;

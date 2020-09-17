@@ -20,6 +20,7 @@ import org.apache.commons.lang.StringUtils;
 import org.gradle.performance.results.FileRenderer;
 import org.gradle.performance.results.NoResultsStore;
 import org.gradle.performance.results.PerformanceDatabase;
+import org.gradle.performance.results.PerformanceExperiment;
 import org.gradle.performance.results.PerformanceTestHistory;
 import org.gradle.performance.results.ResultsStore;
 import org.gradle.performance.results.ResultsStoreHelper;
@@ -60,8 +61,8 @@ public abstract class AbstractReportGenerator<R extends ResultsStore> {
     protected void generateReport(ResultsStore store, PerformanceFlakinessDataProvider flakinessDataProvider, PerformanceExecutionDataProvider executionDataProvider, File outputDirectory, String projectName) throws IOException {
         renderIndexPage(flakinessDataProvider, executionDataProvider, new File(outputDirectory, "index.html"));
 
-        for (String testName : store.getTestNames()) {
-            PerformanceTestHistory testResults = store.getTestResults(testName, 500, 90, ResultsStoreHelper.determineChannel());
+        for (PerformanceExperiment experiment : store.getPerformanceExperiments()) {
+            PerformanceTestHistory testResults = store.getTestResults(experiment, 500, 90, ResultsStoreHelper.determineChannel());
             renderScenarioPage(projectName, outputDirectory, testResults);
         }
 

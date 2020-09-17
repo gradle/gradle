@@ -57,7 +57,7 @@ public class DefaultPerformanceExecutionDataProvider extends PerformanceExecutio
     protected TreeSet<ScenarioBuildResultData> queryExecutionData(List<ScenarioBuildResultData> scenarioList) {
         // scenarioList contains duplicate scenarios because of rerun
         return scenarioList.stream()
-            .collect(groupingBy(ScenarioBuildResultData::getScenarioName))
+            .collect(groupingBy(ScenarioBuildResultData::getPerformanceExperiment))
             .values()
             .stream()
             .map(this::queryAndSortExecutionData).collect(treeSetCollector(SCENARIO_COMPARATOR));
@@ -66,7 +66,7 @@ public class DefaultPerformanceExecutionDataProvider extends PerformanceExecutio
     private ScenarioBuildResultData queryAndSortExecutionData(List<ScenarioBuildResultData> scenarios) {
         ScenarioBuildResultData mergedScenario = mergeScenarioWithSameName(scenarios);
 
-        PerformanceTestHistory history = resultsStore.getTestResults(scenarios.get(0).getScenarioName(), DEFAULT_RETRY_COUNT, PERFORMANCE_DATE_RETRIEVE_DAYS, ResultsStoreHelper.determineChannel());
+        PerformanceTestHistory history = resultsStore.getTestResults(scenarios.get(0).getPerformanceExperiment(), DEFAULT_RETRY_COUNT, PERFORMANCE_DATE_RETRIEVE_DAYS, ResultsStoreHelper.determineChannel());
         List<? extends PerformanceTestExecution> recentExecutions = history.getExecutions();
 
         scenarios.forEach(scenario -> setExecutions(scenario, singletonList(scenario.getTeamCityBuildId()), recentExecutions));

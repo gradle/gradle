@@ -23,6 +23,7 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.io.Files;
 import groovy.transform.CompileStatic;
+import org.gradle.performance.results.PerformanceExperiment;
 import org.gradle.performance.results.PerformanceTestExecution;
 import org.gradle.performance.results.PerformanceTestHistory;
 import org.gradle.performance.results.ResultsStore;
@@ -31,7 +32,6 @@ import org.gradle.performance.results.ResultsStoreHelper;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Determines whether a specific scenario within a performance test should run and whether it should run locally
@@ -40,7 +40,7 @@ import java.util.Set;
 @CompileStatic
 public class TestScenarioSelector {
 
-    public static boolean shouldRun(String fullClassName, String testId, Set<String> templates, ResultsStore resultsStore) {
+    public static boolean shouldRun(String fullClassName, String testId, String testProject, ResultsStore resultsStore) {
         if (testId.contains(";")) {
             throw new IllegalArgumentException("Test ID cannot contain ';', but was '" + testId + "'");
         }
@@ -49,21 +49,21 @@ public class TestScenarioSelector {
         boolean shouldRun = scenarios.isEmpty() || scenarios.contains(testId);
         String scenarioList = System.getProperty("org.gradle.performance.scenario.list");
         if (shouldRun && scenarioList != null) {
-            addToScenarioList(fullClassName, testId, templates, new File(scenarioList), resultsStore);
+            addToScenarioList(fullClassName, testId, testProject, new File(scenarioList), resultsStore);
             return false;
         } else {
             return shouldRun;
         }
     }
 
-    private static void addToScenarioList(String fullClassName, String testId, Set<String> templates, File scenarioList, ResultsStore resultsStore) {
+    private static void addToScenarioList(String fullClassName, String testId, String testProject, File scenarioList, ResultsStore resultsStore) {
         try {
-            long estimatedRuntime = getEstimatedRuntime(testId, resultsStore);
+            long estimatedRuntime = getEstimatedRuntime(testId, testProject, resultsStore);
             List<String> args = Lists.newArrayList();
             args.add(fullClassName);
             args.add(testId);
             args.add(String.valueOf(estimatedRuntime));
-            args.addAll(templates);
+            args.add(testProject);
             Files.touch(scenarioList);
             Files.append(Joiner.on(';').join(args) + '\n', scenarioList, Charsets.UTF_8);
         } catch (IOException e) {
@@ -71,9 +71,9 @@ public class TestScenarioSelector {
         }
     }
 
-    private static long getEstimatedRuntime(String testId, ResultsStore resultsStore) {
+    private static long getEstimatedRuntime(String testId, String testProject, ResultsStore resultsStore) {
         String channel = ResultsStoreHelper.determineChannel();
-        PerformanceTestHistory history = resultsStore.getTestResults(testId, 1, 365, channel);
+        PerformanceTestHistory history = resultsStore.getTestResults(new PerformanceExperiment(testProject, testId), 1, 365, channel);
         PerformanceTestExecution lastRun = Iterables.getFirst(history.getExecutions(), null);
         if (lastRun == null) {
             return 0;

@@ -112,15 +112,16 @@ public class BaseCrossBuildResultsStore<R extends CrossBuildPerformanceResults> 
     }
 
     @Override
-    public List<String> getTestNames() {
+    public List<PerformanceExperiment> getPerformanceExperiments() {
         try {
-            return db.withConnection((ConnectionAction<List<String>>) connection -> {
-                Set<String> testNames = Sets.newLinkedHashSet();
+            return db.withConnection((ConnectionAction<List<PerformanceExperiment>>) connection -> {
+                Set<PerformanceExperiment> testNames = Sets.newLinkedHashSet();
                 PreparedStatement testIdsStatement = connection.prepareStatement("select distinct testId, testGroup from testExecution where resultType = ? order by testGroup, testId");
                 testIdsStatement.setString(1, resultType);
                 ResultSet testExecutions = testIdsStatement.executeQuery();
                 while (testExecutions.next()) {
-                    testNames.add(testExecutions.getString(1));
+                    // TODO: Add testProject to cross_build_results DB
+                    testNames.add(new PerformanceExperiment("UNKNOWN", testExecutions.getString(1)));
                 }
                 testExecutions.close();
                 testIdsStatement.close();
@@ -132,19 +133,19 @@ public class BaseCrossBuildResultsStore<R extends CrossBuildPerformanceResults> 
     }
 
     @Override
-    public CrossBuildPerformanceTestHistory getTestResults(String testName, String channel) {
-        return getTestResults(testName, Integer.MAX_VALUE, Integer.MAX_VALUE, channel);
+    public CrossBuildPerformanceTestHistory getTestResults(PerformanceExperiment experiment, String channel) {
+        return getTestResults(experiment, Integer.MAX_VALUE, Integer.MAX_VALUE, channel);
     }
 
     @Override
-    public CrossBuildPerformanceTestHistory getTestResults(final String testName, final int mostRecentN, final int maxDaysOld, final String channel) {
+    public CrossBuildPerformanceTestHistory getTestResults(final PerformanceExperiment experiment, final int mostRecentN, final int maxDaysOld, final String channel) {
         try {
             return db.withConnection(connection -> {
                 List<CrossBuildPerformanceResults> results = Lists.newArrayList();
                 Set<BuildDisplayInfo> builds = Sets.newTreeSet(Comparator.comparing(BuildDisplayInfo::getDisplayName));
                 PreparedStatement executionsForName = connection.prepareStatement("select id, startTime, endTime, versionUnderTest, operatingSystem, jvm, vcsBranch, vcsCommit, testGroup, channel, host, teamCityBuildId from testExecution where testId = ? and startTime >= ? and channel = ? order by startTime desc limit ?");
                 PreparedStatement operationsForExecution = connection.prepareStatement("select testProject, displayName, tasks, args, gradleOpts, daemon, totalTime, cleanTasks from testOperation where testExecution = ?");
-                executionsForName.setString(1, testName);
+                executionsForName.setString(1, experiment.getScenario());
                 Timestamp minDate = new Timestamp(LocalDate.now().minusDays(maxDaysOld).toDate().getTime());
                 executionsForName.setTimestamp(2, minDate);
                 executionsForName.setString(3, channel);
@@ -153,7 +154,7 @@ public class BaseCrossBuildResultsStore<R extends CrossBuildPerformanceResults> 
                 while (testExecutions.next()) {
                     long id = testExecutions.getLong(1);
                     CrossBuildPerformanceResults performanceResults = new CrossBuildPerformanceResults();
-                    performanceResults.setTestId(testName);
+                    performanceResults.setTestId(experiment.getScenario());
                     performanceResults.setStartTime(testExecutions.getTimestamp(2).getTime());
                     performanceResults.setEndTime(testExecutions.getTimestamp(3).getTime());
                     performanceResults.setVersionUnderTest(testExecutions.getString(4));
@@ -195,7 +196,7 @@ public class BaseCrossBuildResultsStore<R extends CrossBuildPerformanceResults> 
                 operationsForExecution.close();
                 executionsForName.close();
 
-                return new CrossBuildPerformanceTestHistory(testName, ImmutableList.copyOf(builds), results);
+                return new CrossBuildPerformanceTestHistory(experiment.getScenario(), ImmutableList.copyOf(builds), results);
             });
         } catch (Exception e) {
             throw new RuntimeException(String.format("Could not load results from datastore '%s'.", db.getUrl()), e);

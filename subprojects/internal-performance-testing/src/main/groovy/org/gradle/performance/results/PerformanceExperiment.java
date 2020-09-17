@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.performance.results.report;
+package org.gradle.performance.results;
 
 import java.util.Objects;
 

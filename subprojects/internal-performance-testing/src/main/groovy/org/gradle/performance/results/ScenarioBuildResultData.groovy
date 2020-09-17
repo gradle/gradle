@@ -90,6 +90,10 @@ class ScenarioBuildResultData {
         return executions.empty ? Double.NEGATIVE_INFINITY : executions[0].getDifferencePercentage()
     }
 
+    PerformanceExperiment getPerformanceExperiment() {
+        new PerformanceExperiment(getTestProject(), getScenarioName())
+    }
+
     List<ExecutionData> getExecutions() {
         return currentBuildExecutions.isEmpty() ? recentExecutions : currentBuildExecutions
     }
