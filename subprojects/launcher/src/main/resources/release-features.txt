@@ -1,3 +1,0 @@
- - File system watching is ready for production use
- - Declare the version of Java your build requires
- - Java 15 support
