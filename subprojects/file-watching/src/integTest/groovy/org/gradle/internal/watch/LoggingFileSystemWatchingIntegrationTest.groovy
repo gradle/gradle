@@ -125,7 +125,7 @@ class LoggingFileSystemWatchingIntegrationTest extends AbstractFileSystemWatchin
         // On Windows, it may take some extra time until the event occurs
         ConcurrentTestUtil.poll {
             // The first modification removes the VFS entry, so the second modification doesn't have an effect on the VFS.
-            assert daemon.log.count("Handling VFS change MODIFIED ${file().absolutePath}") == 1
+            assert daemon.log.count("Handling VFS change MODIFIED ${sourceFile.absolutePath}") == 1
         }
     }
 
