@@ -18,6 +18,7 @@ package org.gradle.configurationcache
 
 import org.gradle.configuration.internal.UserCodeApplicationContext
 import org.gradle.configurationcache.fingerprint.ConfigurationCacheFingerprintController
+import org.gradle.configurationcache.initialization.ConfigurationCacheBuildEnablement
 import org.gradle.configurationcache.initialization.ConfigurationCacheProblemsListener
 import org.gradle.configurationcache.initialization.ConfigurationCacheStartParameter
 import org.gradle.configurationcache.initialization.DefaultConfigurationCacheProblemsListener
@@ -25,13 +26,11 @@ import org.gradle.configurationcache.initialization.DefaultInjectedClasspathInst
 import org.gradle.configurationcache.initialization.NoOpConfigurationCacheProblemsListener
 import org.gradle.configurationcache.problems.ConfigurationCacheProblems
 import org.gradle.configurationcache.serialization.beans.BeanConstructors
-import org.gradle.internal.build.PublicBuildPath
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.service.ServiceRegistration
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry
 import org.gradle.internal.service.scopes.Scopes
 import org.gradle.internal.service.scopes.ServiceScope
-import org.gradle.util.Path
 
 
 class ConfigurationCacheServices : AbstractPluginServiceRegistry() {
@@ -70,16 +69,6 @@ class ConfigurationCacheServices : AbstractPluginServiceRegistry() {
             add(ConfigurationCacheHost::class.java)
             add(DefaultConfigurationCache::class.java)
         }
-    }
-}
-
-
-class ConfigurationCacheBuildEnablement(
-    private val buildPath: PublicBuildPath,
-    private val startParameter: ConfigurationCacheStartParameter
-) {
-    val isEnabledForCurrentBuild by lazy {
-        startParameter.isEnabled && buildPath.buildPath == Path.ROOT
     }
 }
 
