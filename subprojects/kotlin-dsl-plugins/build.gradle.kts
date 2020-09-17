@@ -24,7 +24,7 @@ plugins {
 description = "Kotlin DSL Gradle Plugins deployed to the Plugin Portal"
 
 group = "org.gradle.kotlin"
-version = "1.4.0"
+version = "1.4.1"
 
 base.archivesBaseName = "plugins"
 
