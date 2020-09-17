@@ -56,9 +56,7 @@ class PerformanceTestBuildTypeTest {
         ), performanceTest.steps.items.map(BuildStep::name))
 
         val expectedRunnerParams = listOf(
-            "--baselines",
-            "%performance.baselines%",
-            "",
+            "-PperformanceBaselines=%performance.baselines%",
             "\"-PtestJavaHome=%linux.java8.oracle.64bit%\"",
             "\"-Porg.gradle.performance.branchName=%teamcity.build.branch%\"",
             "\"-Porg.gradle.performance.db.url=%performance.db.url%\"",

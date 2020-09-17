@@ -40,6 +40,7 @@ import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.internal.tasks.DefaultTaskContainer
 import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter
+import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.Delete
 import org.gradle.api.tasks.SourceSet
@@ -68,10 +69,10 @@ object PropertyNames {
 
     const val workerTestTaskName = "org.gradle.performance.workerTestTaskName"
     const val performanceTestVerbose = "performanceTest.verbose"
-    const val baselines = "org.gradle.performance.baselines"
     const val buildTypeId = "org.gradle.performance.buildTypeId"
 
     const val teamCityToken = "teamCityToken"
+    const val baselines = "performanceBaselines"
 }
 
 
@@ -101,10 +102,18 @@ private
 const val slowPerformanceRegressionTestCategory = "org.gradle.performance.categories.SlowPerformanceRegressionTest"
 
 
+interface PerformanceTestExtension {
+    val baselines: Property<String>
+}
+
+
 @Suppress("unused")
 class PerformanceTestPlugin : Plugin<Project> {
 
     override fun apply(project: Project): Unit = project.run {
+        val performanceTestExtension = createExtension()
+        createAndWireCommitDistributionTask(performanceTestExtension)
+
         val performanceTestSourceSet = createPerformanceTestSourceSet()
         addPerformanceTestConfigurationAndDependencies()
         createCheckNoIdenticalBuildFilesTask()
@@ -118,6 +127,13 @@ class PerformanceTestPlugin : Plugin<Project> {
         createRebaselineTask(performanceTestSourceSet)
 
         configureIdePlugins(performanceTestSourceSet)
+    }
+
+    private
+    fun Project.createExtension(): PerformanceTestExtension {
+        val performanceTestExtension = extensions.create<PerformanceTestExtension>("performanceTest")
+        performanceTestExtension.baselines.set(stringPropertyOrNull(PropertyNames.baselines))
+        return performanceTestExtension
     }
 
     private
@@ -326,7 +342,7 @@ class PerformanceTestPlugin : Plugin<Project> {
         }
         create("distributedHistoricalPerformanceTest", DistributedPerformanceTest::class) {
             excludeCategories(performanceExperimentCategory)
-            configuredBaselines.set(Config.baseLineList)
+            baselines.set(Config.baseLineList)
             checks = "none"
             channel = "historical$channelSuffix"
         }
@@ -381,8 +397,6 @@ class PerformanceTestPlugin : Plugin<Project> {
             distributedPerformanceReporter = createPerformanceReporter()
         }
 
-        createAndWireCommitDistributionTasks(performanceTest, true)
-
         afterEvaluate {
             performanceTest.configure {
                 branchName?.takeIf { it.isNotEmpty() }?.let { branchName ->
@@ -395,16 +409,16 @@ class PerformanceTestPlugin : Plugin<Project> {
     }
 
     private
-    fun Project.createAndWireCommitDistributionTasks(performanceTest: TaskProvider<out PerformanceTest>, isDistributed: Boolean) {
+    fun Project.createAndWireCommitDistributionTask(extension: PerformanceTestExtension) {
         // The data flow here is:
-        // performanceTest.configuredBaselines -> determineBaselines.configuredBaselines
-        // determineBaselines.determinedBaselines -> performanceTest.determinedBaselines
-        // determineBaselines.determinedBaselines -> buildCommitDistribution.commitBaseline
-        val determineBaselines = tasks.register("${performanceTest.name}DetermineBaselines", DetermineBaselines::class, isDistributed)
-        val buildCommitDistribution = tasks.register("${performanceTest.name}BuildCommitDistribution", BuildCommitDistribution::class)
+        // extension.baselines -> determineBaselines.configuredBaselines
+        // determineBaselines.determinedBaselines -> performanceTest.baselines
+        // determineBaselines.determinedBaselines -> buildCommitDistribution.baselines
+        val determineBaselines = tasks.register("determineBaselines", DetermineBaselines::class, false)
+        val buildCommitDistribution = tasks.register("buildCommitDistribution", BuildCommitDistribution::class)
 
         determineBaselines.configure {
-            configuredBaselines.set(performanceTest.flatMap { it.configuredBaselines })
+            configuredBaselines.set(extension.baselines)
         }
 
         buildCommitDistribution.configure {
@@ -412,9 +426,9 @@ class PerformanceTestPlugin : Plugin<Project> {
             commitBaseline.set(determineBaselines.flatMap { it.determinedBaselines })
         }
 
-        performanceTest.configure {
+        tasks.withType<PerformanceTest>().configureEach {
             dependsOn(buildCommitDistribution)
-            determinedBaselines.set(determineBaselines.flatMap { it.determinedBaselines })
+            baselines.set(determineBaselines.flatMap { it.determinedBaselines })
         }
     }
 
@@ -435,8 +449,6 @@ class PerformanceTestPlugin : Plugin<Project> {
                 }
             }
         }
-        createAndWireCommitDistributionTasks(performanceTest, false)
-
         val testResultsZipTask = testResultsZipTaskFor(performanceTest, name)
 
         performanceTest.configure {
@@ -493,10 +505,6 @@ class PerformanceTestPlugin : Plugin<Project> {
             maxParallelForks = 1
 
             useJUnitPlatform()
-
-            project.findProperty(PropertyNames.baselines)?.let { baselines ->
-                task.configuredBaselines.set(baselines as String)
-            }
 
             jvmArgs("-Xmx5g", "-XX:+HeapDumpOnOutOfMemoryError")
 

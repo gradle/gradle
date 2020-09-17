@@ -55,10 +55,7 @@ import java.nio.charset.Charset
 abstract class PerformanceTest extends DistributionTest {
     public static final String TC_URL = "https://builds.gradle.org/viewLog.html?buildId="
     public static final Set<String> NON_CACHEABLE_VERSIONS = Sets.newHashSet("last", "nightly", "flakiness-detection-commit")
-    // Baselines configured by command line `--baselines`
-    private Property<String> configuredBaselines = getProject().getObjects().property(String.class)
-    // Baselines determined by determineBaselines task
-    private Property<String> determinedBaselines = getProject().getObjects().property(String.class)
+    private final Property<String> baselines = getProject().getObjects().property(String.class)
 
     private final Map<String, String> databaseParameters = new HashMap<>()
 
@@ -123,9 +120,8 @@ abstract class PerformanceTest extends DistributionTest {
     }
 
     private boolean notContainsSpecialVersions() {
-        return ![configuredBaselines.getOrElse(""), determinedBaselines.getOrElse("")]
-            .collect { it.split(",") }
-            .flatten()
+        return !baselines.getOrElse("")
+            .split(",")
             .collect { it.toString().trim() }
             .any { NON_CACHEABLE_VERSIONS.contains(it) }
     }
@@ -170,16 +166,10 @@ abstract class PerformanceTest extends DistributionTest {
         this.scenarios = scenarios
     }
 
-    @Optional
-    @Input
-    Property<String> getDeterminedBaselines() {
-        return determinedBaselines
-    }
-
     @Internal
     @Option(option = "baselines", description = "A comma or semicolon separated list of Gradle versions to be used as baselines for comparing.")
-    Property<String> getConfiguredBaselines() {
-        return configuredBaselines
+    Property<String> getBaselines() {
+        return baselines
     }
 
     @Option(option = "warmups", description = "Number of warmups before measurements")
@@ -272,7 +262,7 @@ abstract class PerformanceTest extends DistributionTest {
         private void addExecutionParameters(List<String> result) {
             addSystemPropertyIfExist(result, "org.gradle.performance.scenarios", scenarios)
             addSystemPropertyIfExist(result, "org.gradle.performance.testProject", getTestProjectName().getOrNull())
-            addSystemPropertyIfExist(result, "org.gradle.performance.baselines", determinedBaselines.getOrNull())
+            addSystemPropertyIfExist(result, "org.gradle.performance.baselines", baselines.getOrNull())
             addSystemPropertyIfExist(result, "org.gradle.performance.execution.warmups", warmups)
             addSystemPropertyIfExist(result, "org.gradle.performance.execution.runs", runs)
             addSystemPropertyIfExist(result, "org.gradle.performance.regression.checks", checks)

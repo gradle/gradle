@@ -20,6 +20,13 @@ import com.google.common.annotations.VisibleForTesting
 import com.google.common.base.Splitter
 import com.google.common.collect.HashMultiset
 import com.google.common.collect.Multiset
+import gradlebuild.performance.CoordinatorBuild
+import gradlebuild.performance.JUnitXmlTestEventsGenerator
+import gradlebuild.performance.ScenarioBuildResultData
+import gradlebuild.performance.reporter.DefaultPerformanceReporter
+import gradlebuild.performance.rerun.PerformanceScenarioRerunStrategy
+import gradlebuild.performance.rerun.RepeatRerunStrategy
+import gradlebuild.performance.rerun.RetryFailedRerunStrategy
 import groovy.json.JsonOutput
 import groovy.transform.CompileStatic
 import groovy.transform.PackageScope
@@ -42,13 +49,6 @@ import org.gradle.api.tasks.testing.TestListener
 import org.gradle.api.tasks.testing.TestOutputListener
 import org.gradle.initialization.BuildCancellationToken
 import org.gradle.process.CommandLineArgumentProvider
-import gradlebuild.performance.CoordinatorBuild
-import gradlebuild.performance.JUnitXmlTestEventsGenerator
-import gradlebuild.performance.ScenarioBuildResultData
-import gradlebuild.performance.reporter.DefaultPerformanceReporter
-import gradlebuild.performance.rerun.PerformanceScenarioRerunStrategy
-import gradlebuild.performance.rerun.RepeatRerunStrategy
-import gradlebuild.performance.rerun.RetryFailedRerunStrategy
 import org.openmbee.junit.JUnitMarshalling
 import org.openmbee.junit.model.JUnitTestSuite
 
@@ -163,7 +163,7 @@ abstract class DistributedPerformanceTest extends PerformanceTest {
     @TaskAction
     @Override
     void executeTests() {
-        println("Running against baseline ${determinedBaselines.getOrElse('defaults')}")
+        println("Running against baseline ${baselines.getOrElse('defaults')}")
         try {
             doExecuteTests()
         } catch (Throwable e) {
@@ -227,7 +227,7 @@ abstract class DistributedPerformanceTest extends PerformanceTest {
                 property: [
                     [name: 'scenario', value: scenario.id],
                     [name: 'templates', value: scenario.templates.join(' ')],
-                    [name: 'baselines', value: determinedBaselines.getOrElse('defaults')],
+                    [name: 'baselines', value: baselines.getOrElse('defaults')],
                     [name: 'warmups', value: warmups ?: 'defaults'],
                     [name: 'runs', value: runs ?: 'defaults'],
                     [name: 'checks', value: checks ?: 'all'],
