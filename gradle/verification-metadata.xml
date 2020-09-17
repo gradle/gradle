@@ -84,11 +84,13 @@
          <trusted-key id="a2570288e10932263e8326cbaa49c633b4734832">
             <trusting group="com.pinterest" name="ktlint"/>
             <trusting group="com.pinterest.ktlint"/>
+            <trusting group="^com[.]pinterest($|([.].*))" regex="true"/>
          </trusted-key>
          <trusted-key id="a413f67d71beec23add0ce0acb43338e060cf9fa" group="org.jacoco"/>
          <trusted-key id="a5bd02b93e7a40482eb1d66a5f69ad087600b22c" group="org.ow2.asm"/>
          <trusted-key id="a602970fe1bf5c9c8a9491b97a3c9fe21dfdbf44" group="org.apache.pdfbox"/>
          <trusted-key id="a6d6c97108b8585f91b158748671a8df71296252" group="com.squareup.okhttp3"/>
+         <trusted-key id="a7892505cf1a58076453e52d7999befba1039e8b" group="net.bytebuddy"/>
          <trusted-key id="afcc4c7594d09e2182c60e0f7a01b0f236e5430f" group="com.google.code.gson" name="gson"/>
          <trusted-key id="b8d44699d150aad887fdcf8bd6131c504debcc09" group="com.kohlschutter.junixsocket"/>
          <trusted-key id="ba926f64ca647b6d853a38672e2010f8a7ff4a41">
@@ -110,6 +112,7 @@
          <trusted-key id="d54a395b5cf3f86eb45f6e426b1b008864323b92" group="org.antlr"/>
          <trusted-key id="d9aa7402ba75f78720d975211d185615d0a84648" group="net.sf.saxon" name="Saxon-HE"/>
          <trusted-key id="df49fa14952e59a7b21931ec8edf2667d0ecffaf" group="io.mockk"/>
+         <trusted-key id="e85aed155021af8a6c6b7a4a7c7d8456294423ba" group="org.objenesis" name="objenesis"/>
          <trusted-key id="e870fb6be4ba46c81520fd6936b9cf3beb52d771" group="com.openhtmltopdf"/>
          <trusted-key id="ea23db1360d9029481e7f2efecdfea3cb4493b94" group="org.apache.sshd"/>
          <trusted-key id="ea313384ca0eba950ea017e937890e298d9a2bfa">

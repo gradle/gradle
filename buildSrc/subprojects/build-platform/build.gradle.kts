@@ -46,7 +46,7 @@ dependencies {
         api("com.vladsch.flexmark:flexmark-all:0.34.56")
         api("commons-io:commons-io:2.6")
         api("commons-lang:commons-lang:2.6")
-        api("io.mockk:mockk:1.8.13")
+        api("io.mockk:mockk:1.10.0")
         api("javax.activation:activation:1.1.1")
         api("javax.xml.bind:jaxb-api:2.2.12")
         api("junit:junit:4.13")
