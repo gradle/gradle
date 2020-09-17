@@ -78,23 +78,26 @@ public class LazyToRealisedModuleComponentResolveMetadataHelper {
             ImmutableList<? extends ComponentVariant.File> files;
 
             ComponentVariant baseVariant = variantsByName.get(baseName);
+            boolean isExternalVariant;
             if (baseVariant == null) {
                 attributes = componentMetadata.getAttributes();
                 capabilities = ImmutableCapabilities.EMPTY;
                 dependencies = ImmutableList.of();
                 dependencyConstraints = ImmutableList.of();
                 files = ImmutableList.of();
+                isExternalVariant = false;
             } else {
                 attributes = (ImmutableAttributes) baseVariant.getAttributes();
                 capabilities = (ImmutableCapabilities) baseVariant.getCapabilities();
                 dependencies = baseVariant.getDependencies();
                 dependencyConstraints = baseVariant.getDependencyConstraints();
                 files = baseVariant.getFiles();
+                isExternalVariant = baseVariant.isExternalVariant();
             }
 
             if (baseName == null || baseVariant != null) {
                 AbstractRealisedModuleComponentResolveMetadata.ImmutableRealisedVariantImpl variant = applyRules(new AbstractMutableModuleComponentResolveMetadata.ImmutableVariantImpl(
-                        componentMetadata.getId(), additionalVariant.getName(), attributes, dependencies, dependencyConstraints, files, capabilities, baseVariant.isExternalVariant()),
+                        componentMetadata.getId(), additionalVariant.getName(), attributes, dependencies, dependencyConstraints, files, capabilities, isExternalVariant),
                     variantMetadataRules, componentMetadata.getId());
                 builder.add(variant);
             } else if (!additionalVariant.isLenient()) {
