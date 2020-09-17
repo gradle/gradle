@@ -133,17 +133,17 @@ Samples and output belong under `src/samples` and are published beside the user 
 
 To run the samples tests:
 ```
-./gradlew :docs:docsTest --tests "org.gradle.docs.samples.ExemplarExternalSamplesFunctionalTest.*"
+./gradlew :docs:docsTest --tests "org.gradle.docs.samples.*.*"
 ```
 
 To run tests for a single sample, let's say from `samples/java/application`:
 ```
-./gradlew :docs:docsTest --tests "org.gradle.docs.samples.ExemplarExternalSamplesFunctionalTest.java-application*"
+./gradlew :docs:docsTest --tests "org.gradle.docs.samples.DependencyManagementSnippetsTest.java-application*"
 ```
 
 To run tests for a single snippet, let's say from `snippets/base/distribution`:
 ```
-./gradlew :docs:docsTest --tests "org.gradle.docs.samples.ExemplarExternalSamplesFunctionalTest.snippet-base-distribution*"
+./gradlew :docs:docsTest --tests "org.gradle.docs.samples.*.snippet-base-distribution*"
 ```
 
 ## Groovy DSL Reference

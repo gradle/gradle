@@ -1,4 +1,3 @@
-
 import gradlebuild.integrationtests.model.GradleDistribution
 import org.gradle.docs.samples.internal.tasks.InstallSample
 
@@ -441,6 +440,7 @@ tasks.withType(InstallSample) {
 
 // TODO add some kind of test precondition support in sample test conf
 tasks.named("docsTest") { task ->
+    maxParallelForks = 2
     // The org.gradle.samples plugin uses Exemplar to execute integration tests on the samples.
     // Exemplar doesn't know about that it's running in the context of the gradle/gradle build
     // so it uses the Gradle distribution from the running build. This is not correct, because
@@ -461,32 +461,32 @@ tasks.named("docsTest") { task ->
         failOnNoMatchingTests = false
         // Only execute C++ sample tests on Linux because it is the configured target
         if (!org.gradle.internal.os.OperatingSystem.current().linux) {
-            excludeTestsMatching "org.gradle.docs.samples.ExemplarExternalSamplesFunctionalTest.building-cpp-*.sample"
+            excludeTestsMatching "org.gradle.docs.samples.*.building-cpp-*.sample"
         }
         // Only execute Swift sample tests on OS X because it is the configured target
         if (!org.gradle.internal.os.OperatingSystem.current().macOsX) {
-            excludeTestsMatching "org.gradle.docs.samples.ExemplarExternalSamplesFunctionalTest.building-swift-*.sample"
+            excludeTestsMatching "org.gradle.docs.samples.*.building-swift-*.sample"
         }
         // Only execute Groovy sample tests on Java < 9 to avoid warnings in output
         if (buildJvms.testJvm.get().javaVersion.java9Compatible) {
-            excludeTestsMatching "org.gradle.docs.samples.ExemplarExternalSamplesFunctionalTest.building-groovy-*.sample"
+            excludeTestsMatching "org.gradle.docs.samples.*.building-groovy-*.sample"
         }
         // Do not execute Java Module tests on JVM < 9
         if (!buildJvms.testJvm.get().javaVersion.java9Compatible) {
-            excludeTestsMatching "org.gradle.docs.samples.ExemplarExternalSamplesFunctionalTest.building-java-modules*.sample"
+            excludeTestsMatching "org.gradle.docs.samples.*.building-java-modules*.sample"
         }
 
         // Do not execute JaCoCo tests on JDK >= 15 until JaCoCo we use starts supporting newer JDKs
         if (buildJvms.testJvm.get().javaVersion.isCompatibleWith(JavaVersion.VERSION_15)) {
-            excludeTestsMatching 'org.gradle.docs.samples.ExemplarExternalSamplesFunctionalTest.jvm-multi-project-with-code-coverage_*_testTask.sample'
-            excludeTestsMatching 'org.gradle.docs.samples.ExemplarExternalSamplesFunctionalTest.snippet-testing-jacoco-application_*_jacocoApp.sample'
+            excludeTestsMatching 'org.gradle.docs.samples.*.jvm-multi-project-with-code-coverage_*_testTask.sample'
+            excludeTestsMatching 'org.gradle.docs.samples.*.snippet-testing-jacoco-application_*_jacocoApp.sample'
         }
 
-        excludeTestsMatching 'org.gradle.docs.samples.ExemplarExternalSamplesFunctionalTest.snippet-scala-cross-compilation_groovy_sanityCheck.sample' // There is no java executable in /Library/Java/JavaVirtualMachines/1.6.0.jdk/Contents/Home/bin. Expression: executable.exists()
-        excludeTestsMatching 'org.gradle.docs.samples.ExemplarExternalSamplesFunctionalTest.snippet-groovy-cross-compilation_*.sample'  // compilation error
-        excludeTestsMatching 'org.gradle.docs.samples.ExemplarExternalSamplesFunctionalTest.snippet-java-cross-compilation_*.sample' // fails to find javadoc
-        excludeTestsMatching 'org.gradle.docs.samples.ExemplarExternalSamplesFunctionalTest.snippet-kotlin-dsl-android-build_*.sample' // plugin [id: 'com.android.application', version: '3.2.0', apply: false] was not found: Gradle Central Plugin Repository
-        excludeTestsMatching 'org.gradle.docs.samples.ExemplarExternalSamplesFunctionalTest.snippet-kotlin-dsl-android-single-build_*.sample' // seems legit: java.lang.NoClassDefFoundError: Could not initialize class org.jetbrains.kotlin.gradle.plugin.sources.DefaultKotlinSourceSetKt
+        excludeTestsMatching 'org.gradle.docs.samples.*.snippet-scala-cross-compilation_groovy_sanityCheck.sample' // There is no java executable in /Library/Java/JavaVirtualMachines/1.6.0.jdk/Contents/Home/bin. Expression: executable.exists()
+        excludeTestsMatching 'org.gradle.docs.samples.*.snippet-groovy-cross-compilation_*.sample'  // compilation error
+        excludeTestsMatching 'org.gradle.docs.samples.*.snippet-java-cross-compilation_*.sample' // fails to find javadoc
+        excludeTestsMatching 'org.gradle.docs.samples.*.snippet-kotlin-dsl-android-build_*.sample' // plugin [id: 'com.android.application', version: '3.2.0', apply: false] was not found: Gradle Central Plugin Repository
+        excludeTestsMatching 'org.gradle.docs.samples.*.snippet-kotlin-dsl-android-single-build_*.sample' // seems legit: java.lang.NoClassDefFoundError: Could not initialize class org.jetbrains.kotlin.gradle.plugin.sources.DefaultKotlinSourceSetKt
     }
 }
 

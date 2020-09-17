@@ -34,7 +34,7 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-public class IntegrationTestSamplesExecutor extends CommandExecutor {
+class IntegrationTestSamplesExecutor extends CommandExecutor {
 
     private static final String WARNING_MODE_FLAG_PREFIX = "--warning-mode=";
 
