@@ -124,3 +124,8 @@ afterEvaluate {
         }
     }
 }
+
+// Workaround for https://github.com/gradle/gradlecom/issues/627
+configurations.archives.get().allArtifacts.removeIf {
+    it.name != "plugins"
+}

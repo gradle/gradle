@@ -115,12 +115,3 @@ tasks.noDaemonIntegTest.configure {
 testFilesCleanup {
     policy.set(WhenNotEmpty.REPORT)
 }
-
-// TODO: workaround for https://github.com/gradle/gradlecom/issues/627
-//  which causes `publishPlugins` to fail with:
-//  > java.io.FileNotFoundException: .../subprojects/kotlin-dsl-plugins/src/main/java (No such file or directory)
-afterEvaluate {
-    configurations.archives.get().allArtifacts.removeIf {
-        it.name == "java"
-    }
-}
