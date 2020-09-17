@@ -64,6 +64,7 @@ import org.gradle.plugin.use.PluginDependenciesSpec
 import org.gradle.plugin.use.internal.PluginRequestApplicator
 import org.gradle.plugin.use.internal.PluginRequestCollector
 import org.gradle.testfixtures.ProjectBuilder
+import org.gradle.testfixtures.internal.ProjectBuilderImpl
 import java.io.File
 import java.net.URLClassLoader
 import java.nio.file.Files
@@ -375,7 +376,7 @@ class SyntheticProjectSchemaBuilder(
         projectSchemaProvider.schemaFor(childProjectWith(plugins))
 
     override fun close() {
-        stoppable((rootProject as ProjectInternal).services).stop()
+        ProjectBuilderImpl.stop(rootProject)
     }
 
     private
