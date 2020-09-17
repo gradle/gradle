@@ -124,10 +124,11 @@ public class IndexPageGenerator extends AbstractTablePageGenerator {
             }
 
             private void markFlakyTestInfo(ScenarioBuildResultData scenario, Set<Tag> result) {
-                BigDecimal rate = flakinessDataProvider.getFlakinessRate(scenario.getScenarioName());
+                PerformanceExperiment experiment = new PerformanceExperiment(scenario.getTestProject(), scenario.getScenarioName());
+                BigDecimal rate = flakinessDataProvider.getFlakinessRate(experiment);
                 if (rate != null && rate.doubleValue() > PerformanceFlakinessDataProvider.FLAKY_THRESHOLD) {
                     result.add(Tag.FlakinessInfoTag.createFlakinessRateTag(rate));
-                    BigDecimal failureThreshold = flakinessDataProvider.getFailureThreshold(scenario.getScenarioName());
+                    BigDecimal failureThreshold = flakinessDataProvider.getFailureThreshold(experiment);
                     result.add(Tag.FlakinessInfoTag.createFailureThresholdTag(failureThreshold));
                 }
             }

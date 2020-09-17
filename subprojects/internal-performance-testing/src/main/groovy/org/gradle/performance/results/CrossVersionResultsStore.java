@@ -23,6 +23,7 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.performance.measure.DataSeries;
 import org.gradle.performance.measure.Duration;
 import org.gradle.performance.measure.MeasuredOperation;
+import org.gradle.performance.results.report.PerformanceExperiment;
 import org.gradle.util.GradleVersion;
 import org.joda.time.LocalDate;
 
@@ -53,18 +54,18 @@ import static org.gradle.performance.results.ResultsStoreHelper.toArray;
  */
 public class CrossVersionResultsStore implements WritableResultsStore<CrossVersionPerformanceResults> {
     private static final String FLAKINESS_RATE_SQL =
-        "SELECT TESTID, AVG(\n" +
+        "SELECT TESTID, TESTPROJECT, AVG(\n" +
             "  CASE WHEN DIFFCONFIDENCE > 0.97 THEN 1.0\n" +
             "    ELSE 0.0\n" +
             "  END) AS FAILURE_RATE \n" +
             "  FROM testExecution\n" +
             " WHERE (CHANNEL = 'flakiness-detection-master' OR CHANNEL = 'flakiness-detection-release') AND STARTTIME> ?\n" +
-            "GROUP BY TESTID ORDER by FAILURE_RATE;";
+            "GROUP BY TESTID, TESTPROJECT ORDER by FAILURE_RATE;";
     private static final String FAILURE_THRESOLD_SQL =
-        "SELECT TESTID, MAX(ABS((BASELINEMEDIAN-CURRENTMEDIAN)/BASELINEMEDIAN)) as THRESHOLD\n" +
+        "SELECT TESTID, TESTPROJECT, MAX(ABS((BASELINEMEDIAN-CURRENTMEDIAN)/BASELINEMEDIAN)) as THRESHOLD\n" +
             "FROM testExecution\n" +
             "WHERE (CHANNEL = 'flakiness-detection-master' or CHANNEL= 'flakiness-detection-release') AND STARTTIME > ? AND DIFFCONFIDENCE > 0.97\n" +
-            "GROUP BY TESTID";
+            "GROUP BY TESTID, TESTPROJECT";
     // Only the flakiness detection results within 90 days will be considered.
     private static final int FLAKINESS_DETECTION_DAYS = 90;
     private final long ignoreV17Before;
@@ -336,12 +337,12 @@ public class CrossVersionResultsStore implements WritableResultsStore<CrossVersi
         }
     }
 
-    public Map<String, BigDecimal> getFlakinessRates() {
+    public Map<PerformanceExperiment, BigDecimal> getFlakinessRates() {
         Timestamp time = Timestamp.valueOf(LocalDateTime.now().minusDays(FLAKINESS_DETECTION_DAYS));
         return queryFlakinessData(FLAKINESS_RATE_SQL, time);
     }
 
-    public Map<String, BigDecimal> getFailureThresholds() {
+    public Map<PerformanceExperiment, BigDecimal> getFailureThresholds() {
         Timestamp time = Timestamp.valueOf(LocalDateTime.now().minusDays(FLAKINESS_DETECTION_DAYS));
         return queryFlakinessData(FAILURE_THRESOLD_SQL, time);
     }
@@ -352,15 +353,16 @@ public class CrossVersionResultsStore implements WritableResultsStore<CrossVersi
         return statement;
     }
 
-    private Map<String, BigDecimal> queryFlakinessData(String sql, Timestamp time) {
+    private Map<PerformanceExperiment, BigDecimal> queryFlakinessData(String sql, Timestamp time) {
         try {
             return db.withConnection(connection -> {
-                Map<String, BigDecimal> results = Maps.newHashMap();
+                Map<PerformanceExperiment, BigDecimal> results = Maps.newHashMap();
                 try (PreparedStatement statement = prepareStatement(connection, sql, time); ResultSet resultSet = statement.executeQuery()) {
                     while (resultSet.next()) {
                         String scenario = resultSet.getString(1);
-                        BigDecimal value = resultSet.getBigDecimal(2);
-                        results.put(scenario, value);
+                        String testProject = resultSet.getString(2);
+                        BigDecimal value = resultSet.getBigDecimal(3);
+                        results.put(new PerformanceExperiment(testProject, scenario), value);
                     }
                 }
                 return results;

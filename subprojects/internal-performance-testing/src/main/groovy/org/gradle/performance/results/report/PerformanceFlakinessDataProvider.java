@@ -31,32 +31,30 @@ public interface PerformanceFlakinessDataProvider {
      * in the flakiness detection builds divided by the total number of runs of the scenario.
      *
      * <pre>
-     *  SELECT TESTID, AVG(CONVERT(CASEWHEN(DIFFCONFIDENCE > 0.97, 1, 0), DECIMAL)) AS FAILURE_RATE,
+     *  SELECT TESTID, TESTPROJECT, AVG(CONVERT(CASEWHEN(DIFFCONFIDENCE > 0.97, 1, 0), DECIMAL)) AS FAILURE_RATE,
      *  FROM TESTEXECUTION
      *  WHERE (CHANNEL = 'flakiness-detection-master' OR CHANNEL = 'flakiness-detection-release')
      *  GROUP BY TESTID
      * </pre>
      *
-     * @param scenario the scenario name.
      * @return the flakiness rate in DB, null if not exists.
      */
-    BigDecimal getFlakinessRate(String scenario);
+    BigDecimal getFlakinessRate(PerformanceExperiment experiment);
 
     /**
      * The failure threshold of flaky scenario, if a flaky scenario performance test's difference is higher than this value,
      * it will be recognized as a real failure.
      *
      * <pre>
-     *  SELECT TESTID, MAX(ABS((BASELINEMEDIAN-CURRENTMEDIAN)/BASELINEMEDIAN)) as THRESHOLD
+     *  SELECT TESTID, TESTPROJECT, MAX(ABS((BASELINEMEDIAN-CURRENTMEDIAN)/BASELINEMEDIAN)) as THRESHOLD
      *  FROM TESTEXECUTION
      *  WHERE (CHANNEL = 'flakiness-detection-master' or CHANNEL= 'flakiness-detection-release') AND DIFFCONFIDENCE > 0.99
      *  GROUP BY TESTID
      * </pre>
      *
-     * @param scenario the scenario name
      * @return the failure threshold in DB, null if not exists.
      */
-    BigDecimal getFailureThreshold(String scenario);
+    BigDecimal getFailureThreshold(PerformanceExperiment experiment);
 
     ScenarioRegressionResult getScenarioRegressionResult(ScenarioBuildResultData scenario);
 
@@ -80,12 +78,12 @@ public interface PerformanceFlakinessDataProvider {
         INSTANCE;
 
         @Override
-        public BigDecimal getFlakinessRate(String scenario) {
+        public BigDecimal getFlakinessRate(PerformanceExperiment experiment) {
             return BigDecimal.ZERO;
         }
 
         @Override
-        public BigDecimal getFailureThreshold(String scenario) {
+        public BigDecimal getFailureThreshold(PerformanceExperiment experiment) {
             return BigDecimal.ZERO;
         }
 

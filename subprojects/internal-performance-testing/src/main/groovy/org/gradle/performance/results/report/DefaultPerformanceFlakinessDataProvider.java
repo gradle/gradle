@@ -27,8 +27,8 @@ import static org.gradle.performance.results.report.PerformanceFlakinessDataProv
 import static org.gradle.performance.results.report.PerformanceFlakinessDataProvider.ScenarioRegressionResult.STABLE_REGRESSION;
 
 public class DefaultPerformanceFlakinessDataProvider implements PerformanceFlakinessDataProvider {
-    private final Map<String, BigDecimal> flakinessRates;
-    private final Map<String, BigDecimal> failureThresholds;
+    private final Map<PerformanceExperiment, BigDecimal> flakinessRates;
+    private final Map<PerformanceExperiment, BigDecimal> failureThresholds;
 
     public DefaultPerformanceFlakinessDataProvider(CrossVersionResultsStore crossVersionResultsStore) {
         flakinessRates = crossVersionResultsStore.getFlakinessRates();
@@ -36,37 +36,37 @@ public class DefaultPerformanceFlakinessDataProvider implements PerformanceFlaki
     }
 
     @Override
-    public BigDecimal getFlakinessRate(String scenario) {
-        return flakinessRates.get(scenario);
+    public BigDecimal getFlakinessRate(PerformanceExperiment experiment) {
+        return flakinessRates.get(experiment);
     }
 
     @Override
-    public BigDecimal getFailureThreshold(String scenario) {
-        return failureThresholds.get(scenario);
+    public BigDecimal getFailureThreshold(PerformanceExperiment experiment) {
+        return failureThresholds.get(experiment);
     }
 
     @Override
     public ScenarioRegressionResult getScenarioRegressionResult(ScenarioBuildResultData scenario) {
-        return getScenarioRegressionResult(scenario.getScenarioName(), scenario.getDifferencePercentage());
+        return getScenarioRegressionResult(new PerformanceExperiment(scenario.getTestProject(), scenario.getScenarioName()), scenario.getDifferencePercentage());
     }
 
-    private ScenarioRegressionResult getScenarioRegressionResult(String scenarioName, double regressionPercentage) {
-        if (isStableScenario(scenarioName)) {
+    private ScenarioRegressionResult getScenarioRegressionResult(PerformanceExperiment experiment, double regressionPercentage) {
+        if (isStableScenario(experiment)) {
             return STABLE_REGRESSION;
         }
-        if (isBigRegression(scenarioName, regressionPercentage)) {
+        if (isBigRegression(experiment, regressionPercentage)) {
             return BIG_FLAKY_REGRESSION;
         }
         return SMALL_FLAKY_REGRESSION;
     }
 
-    private boolean isBigRegression(String scenarioName, double regressionPercentage) {
-        BigDecimal threshold = getFailureThreshold(scenarioName);
+    private boolean isBigRegression(PerformanceExperiment experiment, double regressionPercentage) {
+        BigDecimal threshold = getFailureThreshold(experiment);
         return threshold != null && regressionPercentage / 100 > threshold.doubleValue();
     }
 
-    private boolean isStableScenario(String scenarioName) {
-        BigDecimal flakinessRate = getFlakinessRate(scenarioName);
+    private boolean isStableScenario(PerformanceExperiment experiment) {
+        BigDecimal flakinessRate = getFlakinessRate(experiment);
         return flakinessRate == null || flakinessRate.doubleValue() < PerformanceFlakinessDataProvider.FLAKY_THRESHOLD;
     }
 }
