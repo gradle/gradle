@@ -267,6 +267,8 @@ In the previous releases, that was not possible because `buildSrc` could not acc
 In this release, it's now possible to share build logic between buildSrc and the root build or any other included build.
 This makes it easier to share common repository declarations or conventions between buildSrc and other builds as demonstrated in [this sample](samples/sample_sharing_convention_plugins_with_build_logic.html).
 
+**NOTE** Using a plugin from an included build with buildSrc will break importing your build into Android Studio and IntelliJ until a fix for [IDEA-250774](https://youtrack.jetbrains.com/issue/IDEA-250774) has been released. 
+
 ## Documentation improvements
 
 <a name="new-samples"></a>
