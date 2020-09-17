@@ -86,8 +86,54 @@ include::{snippetsPath}/multiproject/basic-multiproject/tests/run.out[]
 
 And that's how simple it is to create a basic multi-project build.
 
-Next, we will look at multi-project builds that contain more than one subproject.
-We will explore how build logic can be <<sharing_build_logic_between_subprojects#,shared between subprojects>>
+[[sec:adding_subprojects]]
+== Adding subprojects
+
+Let's say we want to add another subproject called `lib` to the previously created project.
+All we need to do is add another `include` statement in the root settings file:
+====
+include::sample[dir="snippets/multiproject/multiple-subprojects/groovy",files="settings.gradle[]"]
+include::sample[dir="snippets/multiproject/multiple-subprojects/kotlin",files="settings.gradle.kts[]"]
+====
+
+Gradle will then look for the build file for the new subproject in the `lib/` subdirectory of the project:
+
+.Multi-project build with two subprojects
+====
+[.multi-language-sample]
+=====
+.Project layout
+[source, groovy]
+----
+.
+├── app
+│   ...
+│   └── build.gradle
+├── lib
+│   ...
+│   └── build.gradle
+└── settings.gradle
+----
+=====
+[.multi-language-sample]
+=====
+.Project layout
+[source, kotlin]
+----
+.
+├── app
+│   ...
+│   └── build.gradle.kts
+├── lib
+│   ...
+│   └── build.gradle.kts
+└── settings.gradle.kts
+----
+=====
+====
+
+
+Next, will explore how build logic can be <<sharing_build_logic_between_subprojects#,shared between subprojects>>
 and how subprojects can <<declaring_dependencies_between_subprojects#,depend on one another>>.
 
 == Naming recommendations
