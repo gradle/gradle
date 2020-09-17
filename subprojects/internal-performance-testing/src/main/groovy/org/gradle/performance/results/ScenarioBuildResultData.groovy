@@ -29,6 +29,7 @@ class ScenarioBuildResultData {
     String teamCityBuildId
     String scenarioName
     String scenarioClass
+    String testProject
     String webUrl
     String agentName
     String agentUrl
@@ -102,7 +103,7 @@ class ScenarioBuildResultData {
     }
 
     boolean isFlaky() {
-        return rawData.size() > 1 && rawData.count { it.successful } == 1;
+        return rawData.size() > 1 && rawData.count { it.successful } == 1
     }
 
     static class ExecutionData {

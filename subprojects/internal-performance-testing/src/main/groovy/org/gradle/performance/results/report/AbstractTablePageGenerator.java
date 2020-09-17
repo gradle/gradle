@@ -168,7 +168,7 @@ public abstract class AbstractTablePageGenerator extends HtmlPageGenerator<Resul
                                 end();
                             end();
                             div().classAttr("col-6");
-                                big().text(scenario.getScenarioName()).end();
+                                big().text(scenario.getScenarioName() + " | " + scenario.getTestProject()).end();
                                 tags.stream().filter(Tag::isValid).forEach(this::renderTag);
                             end();
                             div().classAttr("col-3");

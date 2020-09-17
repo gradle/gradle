@@ -39,7 +39,6 @@ public abstract class AbstractReportGenerator<R extends ResultsStore> {
         File resultJson = new File(args[1]);
         String projectName = args[2];
 
-
         try (ResultsStore store = getResultsStore()) {
             PerformanceExecutionDataProvider executionDataProvider = getExecutionDataProvider(store, resultJson);
             PerformanceFlakinessDataProvider flakinessDataProvider = getFlakinessDataProvider();

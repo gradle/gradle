@@ -229,7 +229,7 @@ abstract class PerformanceTest extends DistributionTest {
         Collection<File> xmls = reports.junitXml.destination.listFiles().findAll { it.path.endsWith(".xml") }
         List<ScenarioBuildResultData> resultData = xmls
             .collect { JUnitMarshalling.unmarshalTestSuite(new FileInputStream(it)) }
-            .collect { extractResultFromTestSuite(it) }
+            .collect { extractResultFromTestSuite(it, getTestProjectName().get()) }
             .flatten() as List<ScenarioBuildResultData>
         FileUtils.write(resultsJson, JsonOutput.toJson(resultData), Charset.defaultCharset())
     }
@@ -240,10 +240,13 @@ abstract class PerformanceTest extends DistributionTest {
         return failures.collect { it.value }.join("\n")
     }
 
-    private List<ScenarioBuildResultData> extractResultFromTestSuite(JUnitTestSuite testSuite) {
+    private List<ScenarioBuildResultData> extractResultFromTestSuite(JUnitTestSuite testSuite, String testProject) {
         List<JUnitTestCase> testCases = testSuite.testCases ?: []
         return testCases.findAll { !it.skipped }.collect {
-            new ScenarioBuildResultData(scenarioName: it.name,
+            new ScenarioBuildResultData(
+                scenarioName: it.name,
+                scenarioClass: it.className,
+                testProject: testProject,
                 webUrl: TC_URL + buildId,
                 status: (it.errors || it.failures) ? "FAILURE" : "SUCCESS",
                 testFailure: collectFailures(testSuite))
