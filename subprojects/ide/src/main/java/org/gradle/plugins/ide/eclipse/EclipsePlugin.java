@@ -62,6 +62,7 @@ import org.gradle.plugins.ide.internal.configurer.UniqueProjectNameProvider;
 
 import javax.inject.Inject;
 import java.io.File;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Callable;
@@ -239,9 +240,9 @@ public class EclipsePlugin extends IdePlugin {
         project.getPlugins().withType(JavaPlugin.class, new Action<JavaPlugin>() {
             @Override
             public void execute(JavaPlugin javaPlugin) {
-                project.afterEvaluate(new Action<Project>() {
+                ((IConventionAware) model.getClasspath()).getConventionMapping().map("plusConfigurations", new Callable<Collection<Configuration>>() {
                     @Override
-                    public void execute(Project project) {
+                    public Collection<Configuration> call() {
                         SourceSetContainer sourceSets = project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets();
                         List<Configuration> sourceSetsConfigurations = Lists.newArrayListWithCapacity(sourceSets.size() * 2);
                         ConfigurationContainer configurations = project.getConfigurations();
@@ -249,9 +250,9 @@ public class EclipsePlugin extends IdePlugin {
                             sourceSetsConfigurations.add(configurations.getByName(sourceSet.getCompileClasspathConfigurationName()));
                             sourceSetsConfigurations.add(configurations.getByName(sourceSet.getRuntimeClasspathConfigurationName()));
                         }
-                        model.getClasspath().setPlusConfigurations(sourceSetsConfigurations);
+                        return sourceSetsConfigurations;
                     }
-                });
+                }).cache();
 
                 ((IConventionAware) model.getClasspath()).getConventionMapping().map("classFolders", new Callable<List<File>>() {
                     @Override
