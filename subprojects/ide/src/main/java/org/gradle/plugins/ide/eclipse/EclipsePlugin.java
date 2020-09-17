@@ -265,9 +265,9 @@ public class EclipsePlugin extends IdePlugin {
                 task.configure(new Action<GenerateEclipseClasspath>() {
                     @Override
                     public void execute(GenerateEclipseClasspath task) {
-                        SourceSetContainer sourceSets = project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets();
-                        task.dependsOn(sourceSets.getByName("main").getOutput().getDirs());
-                        task.dependsOn(sourceSets.getByName("test").getOutput().getDirs());
+                        for (SourceSet sourceSet : project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets()) {
+                            task.dependsOn(sourceSet.getOutput().getDirs());
+                        }
                     }
                 });
             }
