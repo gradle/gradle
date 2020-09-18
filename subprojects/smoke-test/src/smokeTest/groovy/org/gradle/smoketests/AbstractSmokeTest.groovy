@@ -97,7 +97,7 @@ abstract class AbstractSmokeTest extends Specification {
         static androidGradle = Versions.of(*AGP_VERSIONS.latestsPlusNightly)
 
         // https://search.maven.org/search?q=g:org.jetbrains.kotlin%20AND%20a:kotlin-project&core=gav
-        static kotlin = Versions.of('1.3.21', '1.3.31', '1.3.41', '1.3.50', '1.3.61', '1.3.72', '1.4.0')
+        static kotlin = Versions.of('1.3.21', '1.3.31', '1.3.41', '1.3.50', '1.3.61', '1.3.72', '1.4.0', '1.4.10')
 
         // https://plugins.gradle.org/plugin/org.gretty
         static gretty = "3.0.3"
