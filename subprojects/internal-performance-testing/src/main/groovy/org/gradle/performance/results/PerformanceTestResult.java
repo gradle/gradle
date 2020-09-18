@@ -21,6 +21,7 @@ import java.util.List;
 
 public abstract class PerformanceTestResult {
     private String testId;
+    private String testProject;
     private String teamCityBuildId;
     private String jvm;
     private String operatingSystem;
@@ -57,6 +58,14 @@ public abstract class PerformanceTestResult {
 
     public void setTestId(String testId) {
         this.testId = testId;
+    }
+
+    public String getTestProject() {
+        return testProject;
+    }
+
+    public void setTestProject(String testProject) {
+        this.testProject = testProject;
     }
 
     public String getTeamCityBuildId() {

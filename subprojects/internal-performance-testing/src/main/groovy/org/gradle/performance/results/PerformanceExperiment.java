@@ -52,4 +52,12 @@ public class PerformanceExperiment {
     public int hashCode() {
         return Objects.hash(testProject, scenario);
     }
+
+    @Override
+    public String toString() {
+        return "PerformanceExperiment{" +
+            "testProject='" + testProject + '\'' +
+            ", scenario='" + scenario + '\'' +
+            '}';
+    }
 }

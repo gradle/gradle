@@ -110,6 +110,7 @@ class GradleVsMavenPerformanceTestRunner extends AbstractCrossBuildPerformanceTe
     GradleVsMavenBuildPerformanceResults newResult() {
         new GradleVsMavenBuildPerformanceResults(
             testId: testId,
+            testProject: testProject,
             testGroup: testGroup,
             jvm: Jvm.current().toString(),
             host: InetAddress.getLocalHost().getHostName(),
