@@ -9,7 +9,7 @@ plugins {
 
 // tag::jacoco-configuration[]
 jacoco {
-    toolVersion = "0.8.5"
+    toolVersion = "0.8.6"
     reportsDir = file("$buildDir/customJacocoReportDir")
 }
 // end::jacoco-configuration[]

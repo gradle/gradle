@@ -17,11 +17,7 @@
 package org.gradle.configurationcache
 
 import org.gradle.testing.jacoco.plugins.fixtures.JavaProjectUnderTest
-import org.gradle.util.Requires
 
-import static org.gradle.util.TestPrecondition.JDK14_OR_EARLIER
-
-@Requires(JDK14_OR_EARLIER)
 class ConfigurationCacheJacocoIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
     def "can use jacoco"() {

@@ -33,6 +33,15 @@ Some plugins will break with this new version of Gradle, for example because the
 . Run `gradle wrapper --gradle-version {gradleVersion}` to update the project to {gradleVersion}.
 . Try to run the project and debug any errors using the <<troubleshooting.adoc#troubleshooting, Troubleshooting Guide>>.
 
+[[changes_6.8]]
+== Upgrading from 6.7
+
+=== Potential breaking changes
+
+==== Updates to default tool integration versions
+
+- JaCoCo has been updated to http://www.jacoco.org/jacoco/trunk/doc/changes.html[0.8.6].
+
 [[changes_6.7]]
 == Upgrading from 6.6
 
