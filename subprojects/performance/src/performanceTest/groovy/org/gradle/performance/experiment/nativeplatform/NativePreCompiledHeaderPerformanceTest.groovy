@@ -19,22 +19,23 @@ package org.gradle.performance.experiment.nativeplatform
 import org.gradle.performance.AbstractCrossBuildPerformanceTest
 import org.gradle.performance.categories.PerformanceExperiment
 import org.junit.experimental.categories.Category
-import spock.lang.Unroll
 
 @Category(PerformanceExperiment)
 class NativePreCompiledHeaderPerformanceTest extends AbstractCrossBuildPerformanceTest {
-    @Unroll
-    def "clean assemble on #testProject with precompiled headers" () {
+
+    def "clean assemble with precompiled headers" () {
         given:
         runner.testGroup = 'pre-compiled header builds'
         runner.buildSpec {
-            projectName(testProject).displayName("Using PCH").invocation {
+            displayName("Using PCH")
+            invocation {
                 args("-PusePCH")
                 tasksToRun("clean", "assemble")
             }
         }
         runner.baseline {
-            projectName(testProject).displayName("No PCH").invocation {
+            displayName("No PCH")
+            invocation {
                 tasksToRun("clean", "assemble")
             }
         }
@@ -44,8 +45,5 @@ class NativePreCompiledHeaderPerformanceTest extends AbstractCrossBuildPerforman
 
         then:
         results
-
-        where:
-        testProject << [ "smallPCHNative", "mediumPCHNative", "bigPCHNative" ]
     }
 }

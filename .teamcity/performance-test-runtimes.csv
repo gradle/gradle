@@ -124,3 +124,6 @@ org.gradle.performance.experiment.nativeplatform.NativeParallelPerformanceTest;c
 org.gradle.performance.experiment.nativeplatform.NativeParallelPerformanceTest;clean assemble with parallel workers;mediumNative;linux;184000
 org.gradle.performance.experiment.nativeplatform.NativeParallelPerformanceTest;clean assemble with parallel workers;bigNative;linux;670000
 org.gradle.performance.experiment.nativeplatform.NativeParallelPerformanceTest;clean assemble with parallel workers;multiNative;linux;1734000
+org.gradle.performance.experiment.nativeplatform.NativePreCompiledHeaderPerformanceTest;clean assemble with precompiled headers;smallPCHNative;linux;123000
+org.gradle.performance.experiment.nativeplatform.NativePreCompiledHeaderPerformanceTest;clean assemble with precompiled headers;mediumPCHNative;linux;295000
+org.gradle.performance.experiment.nativeplatform.NativePreCompiledHeaderPerformanceTest;clean assemble with precompiled headers;bigPCHNative;linux;1072000

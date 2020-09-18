@@ -1124,6 +1124,29 @@
                     }
                 }
             ]
+        },
+        {
+            "testId" : "org.gradle.performance.experiment.nativeplatform.NativePreCompiledHeaderPerformanceTest.clean assemble with precompiled headers",
+            "groups" : [
+                {
+                    "testProject" : "smallPCHNative",
+                    "coverage" : {
+                        "experiment":  ["linux"]
+                    }
+                },
+                {
+                    "testProject" : "mediumPCHNative",
+                    "coverage" : {
+                        "experiment":  ["linux"]
+                    }
+                },
+                {
+                    "testProject" : "bigPCHNative",
+                    "coverage" : {
+                        "experiment":  ["linux"]
+                    }
+                }
+            ]
         }
     ]
 }
