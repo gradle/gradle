@@ -22,6 +22,7 @@ import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
 import org.gradle.internal.time.Clock
 import org.gradle.internal.time.Time
+import org.gradle.performance.generator.TestProjects
 import org.gradle.performance.results.CrossBuildPerformanceResults
 import org.gradle.performance.results.DataReporter
 import org.gradle.performance.results.ResultsStore
@@ -72,6 +73,10 @@ abstract class AbstractCrossBuildPerformanceTestRunner<R extends CrossBuildPerfo
 
     void addBuildMutator(Function<InvocationSettings, BuildMutator> buildMutator) {
         buildMutators.add(buildMutator)
+    }
+
+    List<String> getProjectMemoryOptions() {
+        TestProjects.getProjectMemoryOptions(testProject)
     }
 
     protected void configureGradleSpec(GradleBuildExperimentSpec.GradleBuilder builder) {

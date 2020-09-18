@@ -30,7 +30,7 @@ import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.internal.time.Clock
 import org.gradle.internal.time.Time
-import org.gradle.performance.generator.JavaTestProject
+import org.gradle.performance.generator.TestProjects
 import org.gradle.performance.results.CrossVersionPerformanceResults
 import org.gradle.performance.results.DataReporter
 import org.gradle.performance.results.MeasuredOperationList
@@ -109,39 +109,7 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
     }
 
     List<String> getProjectMemoryOptions() {
-        def daemonMemory = determineDaemonMemory(testProject)
-        return ["-Xms${daemonMemory}", "-Xmx${daemonMemory}"]
-    }
-
-    private static String determineDaemonMemory(String testProject) {
-        switch (testProject) {
-            case 'bigCppApp':
-                return '256m'
-            case 'bigCppMulti':
-                return '1g'
-            case 'nativeDependents':
-                return '3g'
-            case 'bigNative':
-                return '1g'
-            case 'withVerboseJUnit':
-                return '256m'
-            case 'withVerboseTestNG':
-                return '256m'
-            case 'mediumSwiftMulti':
-                return '1G'
-            case 'bigSwiftApp':
-                return '1G'
-            case 'nativeMonolithic':
-                return '2500m'
-            case 'nativeMonolithicOverlapping':
-                return '2500m'
-            case 'mediumNativeMonolithic':
-                return '512m'
-            case 'smallNativeMonolithic':
-                return '512m'
-            default:
-                return JavaTestProject.projectFor(testProject).daemonMemory
-        }
+        TestProjects.getProjectMemoryOptions(testProject)
     }
 
     CrossVersionPerformanceResults run() {

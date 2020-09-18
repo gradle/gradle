@@ -1044,6 +1044,17 @@
                     }
                 }
             ]
+        },
+        {
+            "testId" : "org.gradle.performance.experiment.java.JavaLibraryPluginPerformanceTest.java-library vs java",
+            "groups" : [
+                {
+                    "testProject" : "largeJavaMultiProject",
+                    "coverage" : {
+                        "slow":  ["linux", "windows"]
+                    }
+                }
+            ]
         }
     ]
 }
