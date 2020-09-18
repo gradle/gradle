@@ -21,8 +21,6 @@ import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testing.jacoco.plugins.fixtures.JavaProjectUnderTest
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 
 class JacocoCachingIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture {
 
@@ -45,7 +43,6 @@ class JacocoCachingIntegrationTest extends AbstractIntegrationSpec implements Di
         """
     }
 
-    @Requires(TestPrecondition.JDK14_OR_EARLIER) // reevaluate when upgrading JaCoco from current 0.8.5
     @ToBeFixedForConfigurationCache
     def "jacoco file results are cached"() {
         when:
@@ -67,7 +64,6 @@ class JacocoCachingIntegrationTest extends AbstractIntegrationSpec implements Di
         reportFile.assertContentsHaveNotChangedSince(snapshot)
     }
 
-    @Requires(TestPrecondition.JDK14_OR_EARLIER) // reevaluate when upgrading JaCoco from current 0.8.5
     @ToBeFixedForConfigurationCache
     def "jacoco file results are not cached when sharing output with another task"() {
         javaProjectUnderTest.writeIntegrationTestSourceFiles()
@@ -95,7 +91,6 @@ class JacocoCachingIntegrationTest extends AbstractIntegrationSpec implements Di
         executedAndNotSkipped ":test", ":jacocoTestReport"
     }
 
-    @Requires(TestPrecondition.JDK14_OR_EARLIER) // reevaluate when upgrading JaCoco from current 0.8.5
     @ToBeFixedForConfigurationCache
     def "test execution is cached with different gradle user home"() {
         when:
