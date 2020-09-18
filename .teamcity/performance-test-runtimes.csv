@@ -116,3 +116,5 @@ org.gradle.performance.regression.android.FasterIncrementalAndroidBuildsPerforma
 org.gradle.performance.regression.android.FasterIncrementalAndroidBuildsPerformanceTest;faster abi change (build comparison);santaTrackerAndroidBuild;linux;795000
 org.gradle.performance.regression.android.FasterIncrementalAndroidBuildsPerformanceTest;faster abi change (build comparison);santaTrackerAndroidJavaBuild;linux;425000
 org.gradle.performance.experiment.java.JavaLibraryPluginPerformanceTest;java-library vs java;largeJavaMultiProject;linux;352000
+org.gradle.performance.experiment.java.ParallelBuildPerformanceTest;clean assemble with 4 parallel workers;largeJavaMultiProject;linux;470000
+org.gradle.performance.experiment.java.ParallelBuildPerformanceTest;clean assemble with 4 parallel workers;largeMonolithicJavaProject;linux;354000

@@ -1055,6 +1055,23 @@
                     }
                 }
             ]
+        },
+        {
+            "testId" : "org.gradle.performance.experiment.java.ParallelBuildPerformanceTest.clean assemble with 4 parallel workers",
+            "groups" : [
+                {
+                    "testProject" : "largeJavaMultiProject",
+                    "coverage" : {
+                        "experiment":  ["linux"]
+                    }
+                },
+                {
+                    "testProject" : "largeMonolithicJavaProject",
+                    "coverage" : {
+                        "experiment":  ["linux"]
+                    }
+                }
+            ]
         }
     ]
 }

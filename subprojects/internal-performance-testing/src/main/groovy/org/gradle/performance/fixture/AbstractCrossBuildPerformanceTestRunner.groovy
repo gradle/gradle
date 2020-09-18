@@ -67,6 +67,7 @@ abstract class AbstractCrossBuildPerformanceTestRunner<R extends CrossBuildPerfo
 
     void buildSpec(@DelegatesTo(GradleBuildExperimentSpec.GradleBuilder) Closure<?> configureAction) {
         def builder = GradleBuildExperimentSpec.builder()
+        builder.projectName = testProject
         configureGradleSpec(builder)
         configureAndAddSpec(builder, configureAction)
     }
@@ -98,7 +99,6 @@ abstract class AbstractCrossBuildPerformanceTestRunner<R extends CrossBuildPerfo
 
     protected void defaultSpec(BuildExperimentSpec.Builder builder) {
         builder.buildMutators.addAll(buildMutators)
-        builder.projectName = testProject
     }
 
     protected void finalizeSpec(BuildExperimentSpec.Builder builder) {
