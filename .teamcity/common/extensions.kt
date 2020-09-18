@@ -115,7 +115,7 @@ fun BuildSteps.checkCleanM2(os: Os = Os.LINUX) {
     }
 }
 
-fun buildToolGradleParameters(daemon: Boolean = true, isContinue: Boolean = true, os: Os = Os.LINUX): List<String> =
+fun buildToolGradleParameters(daemon: Boolean = true, isContinue: Boolean = true): List<String> =
     listOf(
         // We pass the 'maxParallelForks' setting as 'workers.max' to limit the maximum number of executers even
         // if multiple test tasks run in parallel. We also pass it to the Gradle build as a maximum (maxParallelForks)
@@ -127,8 +127,6 @@ fun buildToolGradleParameters(daemon: Boolean = true, isContinue: Boolean = true
         if (isContinue) "--continue" else "",
         "-Dorg.gradle.internal.tasks.createops"
     )
-
-fun buildToolParametersString(daemon: Boolean = true, os: Os = Os.LINUX) = buildToolGradleParameters(daemon, os = os).joinToString(separator = " ")
 
 fun Dependencies.compileAllDependency(compileAllId: String = "Gradle_Check_CompileAll") {
     // Compile All has to succeed before anything else is started
