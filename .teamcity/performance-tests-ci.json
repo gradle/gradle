@@ -982,6 +982,34 @@
                     }
                 }
             ]
+        },
+        {
+            "testId" : "org.gradle.performance.regression.android.RealLifeAndroidBuildSlowPerformanceTest.clean assembleDebug with clean transforms cache",
+            "groups" : [
+                {
+                    "testProject" : "largeAndroidBuild",
+                    "coverage" : {
+                        "slow":  ["linux"]
+                    }
+                },
+                {
+                    "testProject" : "santaTrackerAndroidBuild",
+                    "coverage" : {
+                        "slow":  ["linux"]
+                    }
+                }
+            ]
+        },
+        {
+            "testId" : "org.gradle.performance.regression.android.RealLifeAndroidBuildSlowPerformanceTest.clean phthalic:assembleDebug with clean transforms cache",
+            "groups" : [
+                {
+                    "testProject" : "largeAndroidBuild",
+                    "coverage" : {
+                        "slow":  ["linux"]
+                    }
+                }
+            ]
         }
     ]
 }
