@@ -22,13 +22,13 @@ import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.io.Files;
-import groovy.transform.CompileStatic;
 import org.gradle.performance.results.PerformanceExperiment;
 import org.gradle.performance.results.PerformanceTestExecution;
 import org.gradle.performance.results.PerformanceTestHistory;
 import org.gradle.performance.results.ResultsStore;
 import org.gradle.performance.results.ResultsStoreHelper;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
@@ -37,8 +37,8 @@ import java.util.List;
  * Determines whether a specific scenario within a performance test should run and whether it should run locally
  * or be added to the list of scenarios to run in distributed mode.
  */
-@CompileStatic
 public class TestScenarioSelector {
+    private static final String TEST_PROJECT_PROPERTY_NAME = "org.gradle.performance.testProject";
 
     public static boolean shouldRun(String fullClassName, String testId, String testProject, ResultsStore resultsStore) {
         if (testId.contains(";")) {
@@ -80,5 +80,11 @@ public class TestScenarioSelector {
         } else {
             return lastRun.getEndTime() - lastRun.getStartTime();
         }
+    }
+
+    @Nullable
+    static String loadConfiguredTestProject() {
+        String testProjectFromSystemProperty = System.getProperty(TEST_PROJECT_PROPERTY_NAME);
+        return (testProjectFromSystemProperty != null && !testProjectFromSystemProperty.isEmpty()) ? testProjectFromSystemProperty : null;
     }
 }

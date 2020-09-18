@@ -45,6 +45,7 @@ abstract class AbstractCrossBuildPerformanceTestRunner<R extends CrossBuildPerfo
     String testClassName
     String testId
     String testGroup
+    String testProject
     List<BuildExperimentSpec> specs = []
 
     final DataReporter<R> reporter
@@ -56,6 +57,7 @@ abstract class AbstractCrossBuildPerformanceTestRunner<R extends CrossBuildPerfo
         this.experimentRunner = experimentRunner
         this.buildContext = buildContext
         this.gradleDistribution = new UnderDevelopmentGradleDistribution(buildContext)
+        this.testProject = TestScenarioSelector.loadConfiguredTestProject()
     }
 
     void baseline(@DelegatesTo(GradleBuildExperimentSpec.GradleBuilder) Closure<?> configureAction) {
@@ -91,6 +93,7 @@ abstract class AbstractCrossBuildPerformanceTestRunner<R extends CrossBuildPerfo
 
     protected void defaultSpec(BuildExperimentSpec.Builder builder) {
         builder.buildMutators.addAll(buildMutators)
+        builder.projectName = testProject
     }
 
     protected void finalizeSpec(BuildExperimentSpec.Builder builder) {
