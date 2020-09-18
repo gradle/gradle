@@ -32,7 +32,6 @@ class GradleVsMavenPerformanceTestRunner extends AbstractCrossBuildPerformanceTe
 
     final M2Installation m2
 
-    String testProject
     List<String> gradleTasks
     List<String> equivalentMavenTasks
     List<Object> jvmOpts = []
