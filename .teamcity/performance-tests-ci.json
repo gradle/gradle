@@ -6,9 +6,8 @@
             "groups" : [
                 {
                     "testProject" : "largeJavaMultiProject",
-                    "stages" : {
-                        "ExperimentalPerformance":  ["linux"],
-                        "ReadyForRelease": ["windows"]
+                    "coverage" : {
+                        "test":  ["linux", "windows"]
                     }
                 }
             ]
@@ -18,16 +17,14 @@
             "groups" : [
                 {
                     "testProject" : "largeJavaMultiProject",
-                    "stages" : {
-                        "ExperimentalPerformance":  ["linux"],
-                        "ReadyForRelease": ["windows"]
+                    "coverage" : {
+                        "test":  ["linux", "windows"]
                     }
                 },
                 {
                     "testProject" : "largeMonolithicJavaProject",
-                    "stages" : {
-                        "ExperimentalPerformance":  ["linux"],
-                        "ReadyForRelease": ["windows"]
+                    "coverage" : {
+                        "test":  ["linux", "windows"]
                     }
                 }
             ]
@@ -37,9 +34,8 @@
             "groups" : [
                 {
                     "testProject" : "largeJavaMultiProject",
-                    "stages" : {
-                        "ExperimentalPerformance":  ["linux"],
-                        "ReadyForRelease": ["windows"]
+                    "coverage" : {
+                        "test":  ["linux", "windows"]
                     }
                 }
             ]
@@ -49,16 +45,14 @@
             "groups" : [
                 {
                     "testProject" : "largeJavaMultiProject",
-                    "stages" : {
-                        "ExperimentalPerformance":  ["linux"],
-                        "ReadyForRelease": ["windows"]
+                    "coverage" : {
+                        "test":  ["linux", "windows"]
                     }
                 },
                 {
                     "testProject" : "largeMonolithicJavaProject",
-                    "stages" : {
-                        "ExperimentalPerformance":  ["linux"],
-                        "ReadyForRelease": ["windows"]
+                    "coverage" : {
+                        "test":  ["linux", "windows"]
                     }
                 }
             ]
@@ -68,16 +62,14 @@
             "groups" : [
                 {
                     "testProject" : "largeJavaMultiProject",
-                    "stages" : {
-                        "ExperimentalPerformance":  ["linux"],
-                        "ReadyForRelease": ["windows"]
+                    "coverage" : {
+                        "test":  ["linux", "windows"]
                     }
                 },
                 {
                     "testProject" : "largeMonolithicJavaProject",
-                    "stages" : {
-                        "ExperimentalPerformance":  ["linux"],
-                        "ReadyForRelease": ["windows"]
+                    "coverage" : {
+                        "test":  ["linux", "windows"]
                     }
                 }
             ]
@@ -87,16 +79,14 @@
             "groups" : [
                 {
                     "testProject" : "largeJavaMultiProject",
-                    "stages" : {
-                        "ExperimentalPerformance":  ["linux"],
-                        "ReadyForRelease": ["windows"]
+                    "coverage" : {
+                        "test":  ["linux", "windows"]
                     }
                 },
                 {
                     "testProject" : "largeMonolithicJavaProject",
-                    "stages" : {
-                        "ExperimentalPerformance":  ["linux"],
-                        "ReadyForRelease": ["windows"]
+                    "coverage" : {
+                        "test":  ["linux", "windows"]
                     }
                 }
             ]
@@ -106,23 +96,20 @@
             "groups" : [
                 {
                     "testProject" : "largeJavaMultiProject",
-                    "stages" : {
-                        "ExperimentalPerformance":  ["linux"],
-                        "ReadyForRelease": ["windows"]
+                    "coverage" : {
+                        "test":  ["linux", "windows"]
                     }
                 },
                 {
                     "testProject" : "mediumJavaMultiProjectWithTestNG",
-                    "stages" : {
-                        "ExperimentalPerformance":  ["linux"],
-                        "ReadyForRelease": ["windows"]
+                    "coverage" : {
+                        "test":  ["linux", "windows"]
                     }
                 },
                 {
                     "testProject" : "largeMonolithicJavaProject",
-                    "stages" : {
-                        "ExperimentalPerformance":  ["linux"],
-                        "ReadyForRelease": ["windows"]
+                    "coverage" : {
+                        "test":  ["linux", "windows"]
                     }
                 }
             ]
@@ -132,30 +119,26 @@
             "groups" : [
                 {
                     "testProject" : "largeJavaMultiProject",
-                    "stages" : {
-                        "ExperimentalPerformance":  ["linux"],
-                        "ReadyForRelease": ["windows"]
+                    "coverage" : {
+                        "test":  ["linux", "windows"]
                     }
                 },
                 {
                     "testProject" : "largeMonolithicJavaProject",
-                    "stages" : {
-                        "ExperimentalPerformance":  ["linux"],
-                        "ReadyForRelease": ["windows"]
+                    "coverage" : {
+                        "test":  ["linux", "windows"]
                     }
                 },
                 {
                     "testProject" : "largeGroovyMultiProject",
-                    "stages" : {
-                        "ExperimentalPerformance":  ["linux"],
-                        "ReadyForRelease": ["windows"]
+                    "coverage" : {
+                        "test":  ["linux", "windows"]
                     }
                 },
                 {
                     "testProject" : "largeMonolithicGroovyProject",
-                    "stages" : {
-                        "ExperimentalPerformance":  ["linux"],
-                        "ReadyForRelease": ["windows"]
+                    "coverage" : {
+                        "test":  ["linux", "windows"]
                     }
                 }
             ]
@@ -165,16 +148,14 @@
             "groups" : [
                 {
                     "testProject" : "largeJavaMultiProject",
-                    "stages" : {
-                        "ExperimentalPerformance":  ["linux"],
-                        "ReadyForRelease": ["windows"]
+                    "coverage" : {
+                        "test":  ["linux", "windows"]
                     }
                 },
                 {
                     "testProject" : "largeMonolithicJavaProject",
-                    "stages" : {
-                        "ExperimentalPerformance":  ["linux"],
-                        "ReadyForRelease": ["windows"]
+                    "coverage" : {
+                        "test":  ["linux", "windows"]
                     }
                 }
             ]
@@ -184,16 +165,14 @@
             "groups" : [
                 {
                     "testProject" : "largeJavaMultiProject",
-                    "stages" : {
-                        "ExperimentalPerformance":  ["linux"],
-                        "ReadyForRelease": ["windows"]
+                    "coverage" : {
+                        "test":  ["linux", "windows"]
                     }
                 },
                 {
                     "testProject" : "largeMonolithicJavaProject",
-                    "stages" : {
-                        "ExperimentalPerformance":  ["linux"],
-                        "ReadyForRelease": ["windows"]
+                    "coverage" : {
+                        "test":  ["linux", "windows"]
                     }
                 }
             ]
@@ -203,16 +182,14 @@
             "groups" : [
                 {
                     "testProject" : "largeJavaMultiProject",
-                    "stages" : {
-                        "ExperimentalPerformance":  ["linux"],
-                        "ReadyForRelease": ["windows"]
+                    "coverage" : {
+                        "test":  ["linux", "windows"]
                     }
                 },
                 {
                     "testProject" : "largeMonolithicJavaProject",
-                    "stages" : {
-                        "ExperimentalPerformance":  ["linux"],
-                        "ReadyForRelease": ["windows"]
+                    "coverage" : {
+                        "test":  ["linux", "windows"]
                     }
                 }
             ]
@@ -222,23 +199,20 @@
             "groups" : [
                 {
                     "testProject" : "largeJavaMultiProject",
-                    "stages" : {
-                        "ExperimentalPerformance":  ["linux"],
-                        "ReadyForRelease": ["windows"]
+                    "coverage" : {
+                        "test":  ["linux", "windows"]
                     }
                 },
                 {
                     "testProject" : "largeJavaMultiProjectKotlinDsl",
-                    "stages" : {
-                        "ExperimentalPerformance":  ["linux"],
-                        "ReadyForRelease": ["windows"]
+                    "coverage" : {
+                        "test":  ["linux", "windows"]
                     }
                 },
                 {
                     "testProject" : "largeMonolithicJavaProject",
-                    "stages" : {
-                        "ExperimentalPerformance":  ["linux"],
-                        "ReadyForRelease": ["windows"]
+                    "coverage" : {
+                        "test":  ["linux", "windows"]
                     }
                 }
             ]
@@ -248,16 +222,14 @@
             "groups" : [
                 {
                     "testProject" : "largeJavaMultiProjectNoBuildSrc",
-                    "stages" : {
-                        "ExperimentalPerformance":  ["linux"],
-                        "ReadyForRelease": ["windows"]
+                    "coverage" : {
+                        "test":  ["linux", "windows"]
                     }
                 },
                 {
                     "testProject" : "smallJavaMultiProject",
-                    "stages" : {
-                        "ExperimentalPerformance":  ["linux"],
-                        "ReadyForRelease": ["windows"]
+                    "coverage" : {
+                        "test":  ["linux", "windows"]
                     }
                 }
             ]
@@ -267,16 +239,14 @@
             "groups" : [
                 {
                     "testProject" : "largeJavaMultiProjectNoBuildSrc",
-                    "stages" : {
-                        "ExperimentalPerformance":  ["linux"],
-                        "ReadyForRelease": ["windows"]
+                    "coverage" : {
+                        "test":  ["linux", "windows"]
                     }
                 },
                 {
                     "testProject" : "smallJavaMultiProject",
-                    "stages" : {
-                        "ExperimentalPerformance":  ["linux"],
-                        "ReadyForRelease": ["windows"]
+                    "coverage" : {
+                        "test":  ["linux", "windows"]
                     }
                 }
             ]
@@ -286,9 +256,8 @@
             "groups" : [
                 {
                     "testProject" : "largeJavaMultiProjectNoBuildSrc",
-                    "stages" : {
-                        "ExperimentalPerformance":  ["linux"],
-                        "ReadyForRelease": ["windows"]
+                    "coverage" : {
+                        "test":  ["linux", "windows"]
                     }
                 }
             ]
@@ -298,9 +267,8 @@
             "groups" : [
                 {
                     "testProject" : "largeJavaMultiProjectNoBuildSrc",
-                    "stages" : {
-                        "ExperimentalPerformance":  ["linux"],
-                        "ReadyForRelease": ["windows"]
+                    "coverage" : {
+                        "test":  ["linux", "windows"]
                     }
                 }
             ]
@@ -310,30 +278,26 @@
             "groups" : [
                 {
                     "testProject" : "largeJavaMultiProject",
-                    "stages" : {
-                        "ExperimentalPerformance":  ["linux"],
-                        "ReadyForRelease": ["windows"]
+                    "coverage" : {
+                        "test":  ["linux", "windows"]
                     }
                 },
                 {
                     "testProject" : "largeMonolithicJavaProject",
-                    "stages" : {
-                        "ExperimentalPerformance":  ["linux"],
-                        "ReadyForRelease": ["windows"]
+                    "coverage" : {
+                        "test":  ["linux", "windows"]
                     }
                 },
                 {
                     "testProject" : "mediumJavaCompositeBuild",
-                    "stages" : {
-                        "ExperimentalPerformance":  ["linux"],
-                        "ReadyForRelease": ["windows"]
+                    "coverage" : {
+                        "test":  ["linux", "windows"]
                     }
                 },
                 {
                     "testProject" : "mediumJavaPredefinedCompositeBuild",
-                    "stages" : {
-                        "ExperimentalPerformance":  ["linux"],
-                        "ReadyForRelease": ["windows"]
+                    "coverage" : {
+                        "test":  ["linux", "windows"]
                     }
                 }
             ]
@@ -343,30 +307,26 @@
             "groups" : [
                 {
                     "testProject" : "largeJavaMultiProject",
-                    "stages" : {
-                        "ExperimentalPerformance":  ["linux"],
-                        "ReadyForRelease": ["windows"]
+                    "coverage" : {
+                        "test":  ["linux", "windows"]
                     }
                 },
                 {
                     "testProject" : "largeMonolithicJavaProject",
-                    "stages" : {
-                        "ExperimentalPerformance":  ["linux"],
-                        "ReadyForRelease": ["windows"]
+                    "coverage" : {
+                        "test":  ["linux", "windows"]
                     }
                 },
                 {
                     "testProject" : "largeMonolithicGroovyProject",
-                    "stages" : {
-                        "ExperimentalPerformance":  ["linux"],
-                        "ReadyForRelease": ["windows"]
+                    "coverage" : {
+                        "test":  ["linux", "windows"]
                     }
                 },
                 {
                     "testProject" : "largeGroovyMultiProject",
-                    "stages" : {
-                        "ExperimentalPerformance":  ["linux"],
-                        "ReadyForRelease": ["windows"]
+                    "coverage" : {
+                        "test":  ["linux", "windows"]
                     }
                 }
             ]
@@ -376,16 +336,14 @@
             "groups" : [
                 {
                     "testProject" : "largeJavaMultiProject",
-                    "stages" : {
-                        "ExperimentalPerformance":  ["linux"],
-                        "ReadyForRelease": ["windows"]
+                    "coverage" : {
+                        "test":  ["linux", "windows"]
                     }
                 },
                 {
                     "testProject" : "largeMonolithicJavaProject",
-                    "stages" : {
-                        "ExperimentalPerformance":  ["linux"],
-                        "ReadyForRelease": ["windows"]
+                    "coverage" : {
+                        "test":  ["linux", "windows"]
                     }
                 }
             ]
@@ -395,16 +353,14 @@
             "groups" : [
                 {
                     "testProject" : "largeJavaMultiProject",
-                    "stages" : {
-                        "ExperimentalPerformance":  ["linux"],
-                        "ReadyForRelease": ["windows"]
+                    "coverage" : {
+                        "test":  ["linux", "windows"]
                     }
                 },
                 {
                     "testProject" : "largeMonolithicJavaProject",
-                    "stages" : {
-                        "ExperimentalPerformance":  ["linux"],
-                        "ReadyForRelease": ["windows"]
+                    "coverage" : {
+                        "test":  ["linux", "windows"]
                     }
                 }
             ]
@@ -414,16 +370,14 @@
             "groups" : [
                 {
                     "testProject" : "largeJavaMultiProject",
-                    "stages" : {
-                        "ExperimentalPerformance":  ["linux"],
-                        "ReadyForRelease": ["windows"]
+                    "coverage" : {
+                        "test":  ["linux", "windows"]
                     }
                 },
                 {
                     "testProject" : "largeMonolithicJavaProject",
-                    "stages" : {
-                        "ExperimentalPerformance":  ["linux"],
-                        "ReadyForRelease": ["windows"]
+                    "coverage" : {
+                        "test":  ["linux", "windows"]
                     }
                 }
             ]
@@ -433,16 +387,14 @@
             "groups" : [
                 {
                     "testProject" : "largeJavaMultiProject",
-                    "stages" : {
-                        "ExperimentalPerformance":  ["linux"],
-                        "ReadyForRelease": ["windows"]
+                    "coverage" : {
+                        "test":  ["linux", "windows"]
                     }
                 },
                 {
                     "testProject" : "largeMonolithicJavaProject",
-                    "stages" : {
-                        "ExperimentalPerformance":  ["linux"],
-                        "ReadyForRelease": ["windows"]
+                    "coverage" : {
+                        "test":  ["linux", "windows"]
                     }
                 }
             ]
@@ -452,16 +404,14 @@
             "groups" : [
                 {
                     "testProject" : "largeJavaMultiProject",
-                    "stages" : {
-                        "ExperimentalPerformance":  ["linux"],
-                        "ReadyForRelease": ["windows"]
+                    "coverage" : {
+                        "test":  ["linux", "windows"]
                     }
                 },
                 {
                     "testProject" : "largeMonolithicJavaProject",
-                    "stages" : {
-                        "ExperimentalPerformance":  ["linux"],
-                        "ReadyForRelease": ["windows"]
+                    "coverage" : {
+                        "test":  ["linux", "windows"]
                     }
                 }
             ]
@@ -472,9 +422,8 @@
                 {
                     "testProject" : "largeJavaMultiProject",
                     "comment": "We only test the multi-project here since for the monolithic project we would have no cache hits. This would mean we actually would test incremental compilation.",
-                    "stages" : {
-                        "ExperimentalPerformance":  ["linux"],
-                        "ReadyForRelease": ["windows"]
+                    "coverage" : {
+                        "test":  ["linux", "windows"]
                     }
                 }
             ]
@@ -485,9 +434,8 @@
                 {
                     "testProject" : "largeJavaMultiProject",
                     "comment": "We only test the multi-project here since for the monolithic project we would have no cache hits. This would mean we actually would test incremental compilation.",
-                    "stages" : {
-                        "ExperimentalPerformance":  ["linux"],
-                        "ReadyForRelease": ["windows"]
+                    "coverage" : {
+                        "test":  ["linux", "windows"]
                     }
                 }
             ]
@@ -497,20 +445,20 @@
             "groups" : [
                 {
                     "testProject" : "bigCppApp",
-                    "stages" : {
-                        "ExperimentalPerformance":  ["linux"]
+                    "coverage" : {
+                        "test":  ["linux"]
                     }
                 },
                 {
                     "testProject" : "bigCppMulti",
-                    "stages" : {
-                        "ExperimentalPerformance":  ["linux"]
+                    "coverage" : {
+                        "test":  ["linux"]
                     }
                 },
                 {
                     "testProject" : "bigNative",
-                    "stages" : {
-                        "ExperimentalPerformance":  ["linux"]
+                    "coverage" : {
+                        "test":  ["linux"]
                     }
                 }
             ]
@@ -520,14 +468,14 @@
             "groups" : [
                 {
                     "testProject" : "mediumSwiftMulti",
-                    "stages" : {
-                        "ExperimentalPerformance":  ["linux"]
+                    "coverage" : {
+                        "test":  ["linux"]
                     }
                 },
                 {
                     "testProject" : "bigSwiftApp",
-                    "stages" : {
-                        "ExperimentalPerformance":  ["linux"]
+                    "coverage" : {
+                        "test":  ["linux"]
                     }
                 }
             ]
@@ -537,8 +485,8 @@
             "groups" : [
                 {
                     "testProject" : "archivePerformanceProject",
-                    "stages" : {
-                        "ExperimentalPerformance":  ["linux"]
+                    "coverage" : {
+                        "test":  ["linux"]
                     }
                 }
             ]
@@ -548,8 +496,8 @@
             "groups" : [
                 {
                     "testProject" : "archivePerformanceProject",
-                    "stages" : {
-                        "ExperimentalPerformance":  ["linux"]
+                    "coverage" : {
+                        "test":  ["linux"]
                     }
                 }
             ]
@@ -559,8 +507,8 @@
             "groups" : [
                 {
                     "testProject" : "archivePerformanceProject",
-                    "stages" : {
-                        "ExperimentalPerformance":  ["linux"]
+                    "coverage" : {
+                        "test":  ["linux"]
                     }
                 }
             ]
@@ -570,8 +518,8 @@
             "groups" : [
                 {
                     "testProject" : "generateLotsOfDeprecationWarnings",
-                    "stages" : {
-                        "ExperimentalPerformance":  ["linux"]
+                    "coverage" : {
+                        "test":  ["linux"]
                     }
                 }
             ]
@@ -581,8 +529,8 @@
             "groups" : [
                 {
                     "testProject" : "excludeRuleMergingBuild",
-                    "stages" : {
-                        "ExperimentalPerformance":  ["linux"]
+                    "coverage" : {
+                        "test":  ["linux"]
                     }
                 }
             ]
@@ -592,8 +540,8 @@
             "groups" : [
                 {
                     "testProject" : "excludeRuleMergingBuild",
-                    "stages" : {
-                        "ExperimentalPerformance":  ["linux"]
+                    "coverage" : {
+                        "test":  ["linux"]
                     }
                 }
             ]
@@ -603,14 +551,14 @@
             "groups" : [
                 {
                     "testProject" : "largeMonolithicJavaProject",
-                    "stages" : {
-                        "ExperimentalPerformance":  ["linux"]
+                    "coverage" : {
+                        "test":  ["linux"]
                     }
                 },
                 {
                     "testProject" : "largeJavaMultiProject",
-                    "stages" : {
-                        "ExperimentalPerformance":  ["linux"]
+                    "coverage" : {
+                        "test":  ["linux"]
                     }
                 }
             ]
@@ -620,14 +568,14 @@
             "groups" : [
                 {
                     "testProject" : "largeMonolithicJavaProject",
-                    "stages" : {
-                        "ExperimentalPerformance":  ["linux"]
+                    "coverage" : {
+                        "test":  ["linux"]
                     }
                 },
                 {
                     "testProject" : "largeJavaMultiProject",
-                    "stages" : {
-                        "ExperimentalPerformance":  ["linux"]
+                    "coverage" : {
+                        "test":  ["linux"]
                     }
                 }
             ]
@@ -637,8 +585,8 @@
             "groups" : [
                 {
                     "testProject" : "excludeRuleMergingBuild",
-                    "stages" : {
-                        "ExperimentalPerformance":  ["linux"]
+                    "coverage" : {
+                        "test":  ["linux"]
                     }
                 }
             ]
@@ -648,8 +596,8 @@
             "groups" : [
                 {
                     "testProject" : "excludeRuleMergingBuild",
-                    "stages" : {
-                        "ExperimentalPerformance":  ["linux"]
+                    "coverage" : {
+                        "test":  ["linux"]
                     }
                 }
             ]
@@ -659,8 +607,8 @@
             "groups" : [
                 {
                     "testProject" : "excludeRuleMergingBuild",
-                    "stages" : {
-                        "ExperimentalPerformance":  ["linux"]
+                    "coverage" : {
+                        "test":  ["linux"]
                     }
                 }
             ]
@@ -670,8 +618,8 @@
             "groups" : [
                 {
                     "testProject" : "excludeRuleMergingBuild",
-                    "stages" : {
-                        "ExperimentalPerformance":  ["linux"]
+                    "coverage" : {
+                        "test":  ["linux"]
                     }
                 }
             ]
@@ -681,8 +629,8 @@
             "groups" : [
                 {
                     "testProject" : "excludeRuleMergingBuild",
-                    "stages" : {
-                        "ExperimentalPerformance":  ["linux"]
+                    "coverage" : {
+                        "test":  ["linux"]
                     }
                 }
             ]
@@ -692,8 +640,8 @@
             "groups" : [
                 {
                     "testProject" : "springBootApp",
-                    "stages" : {
-                        "ExperimentalPerformance":  ["linux"]
+                    "coverage" : {
+                        "test":  ["linux"]
                     }
                 }
             ]
@@ -703,8 +651,8 @@
             "groups" : [
                 {
                     "testProject" : "springBootApp",
-                    "stages" : {
-                        "ExperimentalPerformance":  ["linux"]
+                    "coverage" : {
+                        "test":  ["linux"]
                     }
                 }
             ]
@@ -714,20 +662,20 @@
             "groups" : [
                 {
                     "testProject" : "largeMonolithicJavaProject",
-                    "stages" : {
-                        "ExperimentalPerformance":  ["linux"]
+                    "coverage" : {
+                        "test":  ["linux"]
                     }
                 },
                 {
                     "testProject" : "largeJavaMultiProject",
-                    "stages" : {
-                        "ExperimentalPerformance":  ["linux"]
+                    "coverage" : {
+                        "test":  ["linux"]
                     }
                 },
                 {
                     "testProject" : "bigNative",
-                    "stages" : {
-                        "ExperimentalPerformance":  ["linux"]
+                    "coverage" : {
+                        "test":  ["linux"]
                     }
                 }
             ]
@@ -737,8 +685,8 @@
             "groups" : [
                 {
                     "testProject" : "withVerboseJUnit",
-                    "stages" : {
-                        "ExperimentalPerformance":  ["linux"]
+                    "coverage" : {
+                        "test":  ["linux"]
                     }
                 }
             ]
@@ -748,8 +696,8 @@
             "groups" : [
                 {
                     "testProject" : "createLotsOfTasks",
-                    "stages" : {
-                        "ExperimentalPerformance":  ["linux"]
+                    "coverage" : {
+                        "test":  ["linux"]
                     }
                 }
             ]
@@ -759,14 +707,14 @@
             "groups" : [
                 {
                     "testProject" : "withVerboseTestNG",
-                    "stages" : {
-                        "ExperimentalPerformance":  ["linux"]
+                    "coverage" : {
+                        "test":  ["linux"]
                     }
                 },
                 {
                     "testProject" : "withVerboseJUnit",
-                    "stages" : {
-                        "ExperimentalPerformance":  ["linux"]
+                    "coverage" : {
+                        "test":  ["linux"]
                     }
                 }
             ]
@@ -776,8 +724,8 @@
             "groups" : [
                 {
                     "testProject" : "nativeDependents",
-                    "stages" : {
-                        "ExperimentalPerformance":  ["linux"]
+                    "coverage" : {
+                        "test":  ["linux"]
                     }
                 }
             ]
@@ -787,8 +735,8 @@
             "groups" : [
                 {
                     "testProject" : "nativeDependents",
-                    "stages" : {
-                        "ExperimentalPerformance":  ["linux"]
+                    "coverage" : {
+                        "test":  ["linux"]
                     }
                 }
             ]
@@ -798,14 +746,14 @@
             "groups" : [
                 {
                     "testProject" : "bigCppApp",
-                    "stages" : {
-                        "ExperimentalPerformance":  ["linux"]
+                    "coverage" : {
+                        "test":  ["linux"]
                     }
                 },
                 {
                     "testProject" : "bigCppMulti",
-                    "stages" : {
-                        "ExperimentalPerformance":  ["linux"]
+                    "coverage" : {
+                        "test":  ["linux"]
                     }
                 }
             ]
@@ -815,14 +763,14 @@
             "groups" : [
                 {
                     "testProject" : "bigCppApp",
-                    "stages" : {
-                        "ExperimentalPerformance":  ["linux"]
+                    "coverage" : {
+                        "test":  ["linux"]
                     }
                 },
                 {
                     "testProject" : "bigCppMulti",
-                    "stages" : {
-                        "ExperimentalPerformance":  ["linux"]
+                    "coverage" : {
+                        "test":  ["linux"]
                     }
                 }
             ]
@@ -832,14 +780,14 @@
             "groups" : [
                 {
                     "testProject" : "bigCppApp",
-                    "stages" : {
-                        "ExperimentalPerformance":  ["linux"]
+                    "coverage" : {
+                        "test":  ["linux"]
                     }
                 },
                 {
                     "testProject" : "bigCppMulti",
-                    "stages" : {
-                        "ExperimentalPerformance":  ["linux"]
+                    "coverage" : {
+                        "test":  ["linux"]
                     }
                 }
             ]
@@ -849,14 +797,14 @@
             "groups" : [
                 {
                     "testProject" : "nativeMonolithic",
-                    "stages" : {
-                        "ExperimentalPerformance":  ["linux"]
+                    "coverage" : {
+                        "test":  ["linux"]
                     }
                 },
                 {
                     "testProject" : "nativeMonolithicOverlapping",
-                    "stages" : {
-                        "ExperimentalPerformance":  ["linux"]
+                    "coverage" : {
+                        "test":  ["linux"]
                     }
                 }
             ]
@@ -866,14 +814,14 @@
             "groups" : [
                 {
                     "testProject" : "nativeMonolithic",
-                    "stages" : {
-                        "ExperimentalPerformance":  ["linux"]
+                    "coverage" : {
+                        "test":  ["linux"]
                     }
                 },
                 {
                     "testProject" : "nativeMonolithicOverlapping",
-                    "stages" : {
-                        "ExperimentalPerformance":  ["linux"]
+                    "coverage" : {
+                        "test":  ["linux"]
                     }
                 }
             ]
@@ -883,8 +831,8 @@
             "groups" : [
                 {
                     "testProject" : "mediumNativeMonolithic",
-                    "stages" : {
-                        "ExperimentalPerformance":  ["linux"]
+                    "coverage" : {
+                        "test":  ["linux"]
                     }
                 }
             ]
@@ -894,8 +842,8 @@
             "groups" : [
                 {
                     "testProject" : "mediumNativeMonolithic",
-                    "stages" : {
-                        "ExperimentalPerformance":  ["linux"]
+                    "coverage" : {
+                        "test":  ["linux"]
                     }
                 }
             ]
@@ -905,8 +853,8 @@
             "groups" : [
                 {
                     "testProject" : "smallNativeMonolithic",
-                    "stages" : {
-                        "ExperimentalPerformance":  ["linux"]
+                    "coverage" : {
+                        "test":  ["linux"]
                     }
                 }
             ]
@@ -916,14 +864,14 @@
             "groups" : [
                 {
                     "testProject" : "mediumSwiftMulti",
-                    "stages" : {
-                        "ExperimentalPerformance":  ["linux"]
+                    "coverage" : {
+                        "test":  ["linux"]
                     }
                 },
                 {
                     "testProject" : "bigSwiftApp",
-                    "stages" : {
-                        "ExperimentalPerformance":  ["linux"]
+                    "coverage" : {
+                        "test":  ["linux"]
                     }
                 }
             ]
@@ -933,14 +881,14 @@
             "groups" : [
                 {
                     "testProject" : "mediumSwiftMulti",
-                    "stages" : {
-                        "ExperimentalPerformance":  ["linux"]
+                    "coverage" : {
+                        "test":  ["linux"]
                     }
                 },
                 {
                     "testProject" : "bigSwiftApp",
-                    "stages" : {
-                        "ExperimentalPerformance":  ["linux"]
+                    "coverage" : {
+                        "test":  ["linux"]
                     }
                 }
             ]
@@ -950,14 +898,14 @@
             "groups" : [
                 {
                     "testProject" : "k9AndroidBuild",
-                    "stages" : {
-                        "ExperimentalPerformance":  ["linux"]
+                    "coverage" : {
+                        "test":  ["linux"]
                     }
                 },
                 {
                     "testProject" : "largeAndroidBuild",
-                    "stages" : {
-                        "ExperimentalPerformance":  ["linux"]
+                    "coverage" : {
+                        "test":  ["linux"]
                     }
                 }
             ]
@@ -967,20 +915,20 @@
             "groups" : [
                 {
                     "testProject" : "k9AndroidBuild",
-                    "stages" : {
-                        "ExperimentalPerformance":  ["linux"]
+                    "coverage" : {
+                        "test":  ["linux"]
                     }
                 },
                 {
                     "testProject" : "largeAndroidBuild",
-                    "stages" : {
-                        "ExperimentalPerformance":  ["linux"]
+                    "coverage" : {
+                        "test":  ["linux"]
                     }
                 },
                 {
                     "testProject" : "santaTrackerAndroidBuild",
-                    "stages" : {
-                        "ExperimentalPerformance":  ["linux"]
+                    "coverage" : {
+                        "test":  ["linux"]
                     }
                 }
             ]
@@ -990,8 +938,8 @@
             "groups" : [
                 {
                     "testProject" : "largeAndroidBuild",
-                    "stages" : {
-                        "ExperimentalPerformance":  ["linux"]
+                    "coverage" : {
+                        "test":  ["linux"]
                     }
                 }
             ]
@@ -1001,8 +949,8 @@
             "groups" : [
                 {
                     "testProject" : "santaTrackerAndroidBuild",
-                    "stages" : {
-                        "ExperimentalPerformance":  ["linux"]
+                    "coverage" : {
+                        "test":  ["linux"]
                     }
                 }
             ]
@@ -1012,8 +960,8 @@
             "groups" : [
                 {
                     "testProject" : "santaTrackerAndroidBuild",
-                    "stages" : {
-                        "ExperimentalPerformance":  ["linux"]
+                    "coverage" : {
+                        "test":  ["linux"]
                     }
                 }
             ]
@@ -1023,14 +971,14 @@
             "groups" : [
                 {
                     "testProject" : "largeAndroidBuild",
-                    "stages" : {
-                        "ExperimentalPerformance":  ["linux"]
+                    "coverage" : {
+                        "test":  ["linux"]
                     }
                 },
                 {
                     "testProject" : "k9AndroidBuild",
-                    "stages" : {
-                        "ExperimentalPerformance":  ["linux"]
+                    "coverage" : {
+                        "test":  ["linux"]
                     }
                 }
             ]
