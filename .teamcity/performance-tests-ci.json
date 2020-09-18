@@ -1072,6 +1072,23 @@
                     }
                 }
             ]
+        },
+        {
+            "testId" : "org.gradle.performance.experiment.buildcache.LocalTaskOutputCacheCrossBuildPerformanceTest.assemble with local cache (build comparison)",
+            "groups" : [
+                {
+                    "testProject" : "largeJavaMultiProject",
+                    "coverage" : {
+                        "experiment":  ["linux"]
+                    }
+                },
+                {
+                    "testProject" : "largeMonolithicJavaProject",
+                    "coverage" : {
+                        "experiment":  ["linux"]
+                    }
+                }
+            ]
         }
     ]
 }

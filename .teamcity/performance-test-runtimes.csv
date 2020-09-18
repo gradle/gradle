@@ -118,3 +118,5 @@ org.gradle.performance.regression.android.FasterIncrementalAndroidBuildsPerforma
 org.gradle.performance.experiment.java.JavaLibraryPluginPerformanceTest;java-library vs java;largeJavaMultiProject;linux;352000
 org.gradle.performance.experiment.java.ParallelBuildPerformanceTest;clean assemble with 4 parallel workers;largeJavaMultiProject;linux;470000
 org.gradle.performance.experiment.java.ParallelBuildPerformanceTest;clean assemble with 4 parallel workers;largeMonolithicJavaProject;linux;354000
+org.gradle.performance.experiment.buildcache.LocalTaskOutputCacheCrossBuildPerformanceTest;assemble with local cache (build comparison);largeJavaMultiProject;linux;4676000
+org.gradle.performance.experiment.buildcache.LocalTaskOutputCacheCrossBuildPerformanceTest;assemble with local cache (build comparison);largeMonolithicJavaProject;linux;5472000
