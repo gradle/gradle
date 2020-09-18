@@ -1,7 +1,7 @@
 import Gradle_Check.model.CROSS_VERSION_BUCKETS
-import Gradle_Check.model.GradleBuildBucketProvider
+import Gradle_Check.model.FunctionalTestBucketProvider
 import Gradle_Check.model.JsonBasedGradleSubprojectProvider
-import Gradle_Check.model.StatisticBasedGradleBuildBucketProvider
+import Gradle_Check.model.StatisticBasedFunctionalTestBucketProvider
 import Gradle_Check.model.ignoredSubprojects
 import common.JvmVendor
 import common.JvmVersion
@@ -29,7 +29,7 @@ import java.io.File
 class CIConfigIntegrationTests {
     private val subprojectProvider = JsonBasedGradleSubprojectProvider(File("../.teamcity/subprojects.json"))
     private val model = CIBuildModel(buildScanTags = listOf("Check"), subprojects = subprojectProvider)
-    private val gradleBuildBucketProvider = StatisticBasedGradleBuildBucketProvider(model, File("./test-class-data.json").absoluteFile)
+    private val gradleBuildBucketProvider = StatisticBasedFunctionalTestBucketProvider(model, File("./test-class-data.json").absoluteFile)
     private val rootProject = RootProject(model, gradleBuildBucketProvider)
 
     private
@@ -98,9 +98,9 @@ class CIConfigIntegrationTests {
         }
     }
 
-    class SubProjectBucketProvider(private val model: CIBuildModel) : GradleBuildBucketProvider {
-        override fun createFunctionalTestsFor(stage: Stage, testConfig: TestCoverage) =
-            model.subprojects.subprojects.map { it.createFunctionalTestsFor(model, stage, testConfig, Int.MAX_VALUE) }
+    class SubProjectBucketProvider(private val model: CIBuildModel) : FunctionalTestBucketProvider {
+        override fun createFunctionalTestsFor(stage: Stage, testCoverage: TestCoverage) =
+            model.subprojects.subprojects.map { it.createFunctionalTestsFor(model, stage, testCoverage, Int.MAX_VALUE) }
 
         override fun createDeferredFunctionalTestsFor(stage: Stage) = emptyList<FunctionalTest>()
     }
@@ -221,7 +221,7 @@ class CIConfigIntegrationTests {
 
     private fun toTriggerId(id: String) = "Gradle_Check_Stage_${id}_Trigger"
     private fun subProjectFolderList(): List<File> {
-        val subProjectFolders = File("../subprojects").listFiles().filter { it.isDirectory }
+        val subProjectFolders = File("../subprojects").listFiles()!!.filter { it.isDirectory }
         assertFalse(subProjectFolders.isEmpty())
         return subProjectFolders
     }
