@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,19 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.provider.model;
+package org.gradle.tooling.provider.model.internal;
 
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
+import org.gradle.tooling.provider.model.ToolingModelBuilder;
+import org.gradle.tooling.provider.model.UnknownModelException;
 
-/**
- * A registry of tooling model builders. Adding a builder to this registry makes a model (or models) available via the tooling API.
- *
- * <p>An instance of this type can be injected into a task, plugin or other object by annotating a public constructor or property getter method with {@code javax.inject.Inject}.
- */
 @ServiceScope(Scopes.Build.class)
-public interface ToolingModelBuilderRegistry {
-    void register(ToolingModelBuilder builder);
-
-    ToolingModelBuilder getBuilder(String modelName) throws UnknownModelException;
+public interface ToolingModelBuilderLookup {
+    /**
+     * Locates a model builder that runs as a top level build operation.
+     */
+    ToolingModelBuilder locate(String modelName) throws UnknownModelException;
 }
