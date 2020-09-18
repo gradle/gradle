@@ -31,17 +31,6 @@ import static org.gradle.performance.generator.JavaTestProject.LARGE_JAVA_MULTI_
 import static org.gradle.performance.generator.JavaTestProject.MEDIUM_MONOLITHIC_JAVA_PROJECT
 import static org.gradle.test.fixtures.server.http.MavenHttpPluginRepository.PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY
 
-/**
- * Test Gradle performance against it's own build.
- *
- * Reasons for re-baselining:
- * - accept a regression in Gradle itself
- * - accept a regression in the Gradle build
- * - improvements to Gradle or its build!
- *
- * Reasons for breaking:
- *   - e.g. change in Gradle that breaks the Gradle build
- */
 @Issue('https://github.com/gradle/gradle-private/issues/1313')
 @Category(SlowPerformanceRegressionTest)
 class BuildSrcApiChangePerformanceTest extends AbstractCrossVersionPerformanceTest {
