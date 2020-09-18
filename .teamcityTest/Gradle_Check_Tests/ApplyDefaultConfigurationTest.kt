@@ -86,7 +86,7 @@ class ApplyDefaultConfigurationTest {
             "KILL_PROCESSES_STARTED_BY_GRADLE",
             "CHECK_CLEAN_M2"
         ), steps.items.map(BuildStep::name))
-        verifyGradleRunnerParams(extraParameters, daemon, expectedDaemonParam)
+        verifyGradleRunnerParams(extraParameters, expectedDaemonParam)
     }
 
     @ParameterizedTest
@@ -108,11 +108,11 @@ class ApplyDefaultConfigurationTest {
             "KILL_PROCESSES_STARTED_BY_GRADLE",
             "CHECK_CLEAN_M2"
         ), steps.items.map(BuildStep::name))
-        verifyGradleRunnerParams(extraParameters, daemon, expectedDaemonParam)
+        verifyGradleRunnerParams(extraParameters, expectedDaemonParam)
     }
 
     private
-    fun verifyGradleRunnerParams(extraParameters: String, daemon: Boolean, expectedDaemonParam: String) {
+    fun verifyGradleRunnerParams(extraParameters: String, expectedDaemonParam: String) {
         assertEquals(BuildStep.ExecutionMode.DEFAULT, getGradleStep("GRADLE_RUNNER").executionMode)
 
         assertEquals(expectedRunnerParam(expectedDaemonParam, extraParameters), getGradleStep("GRADLE_RUNNER").gradleParams)
