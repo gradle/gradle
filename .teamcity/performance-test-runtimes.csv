@@ -111,3 +111,7 @@ org.gradle.performance.regression.android.RealLifeAndroidStudioMockupPerformance
 org.gradle.performance.regression.android.RealLifeAndroidBuildSlowPerformanceTest;clean assembleDebug with clean transforms cache;largeAndroidBuild;linux;1571000
 org.gradle.performance.regression.android.RealLifeAndroidBuildSlowPerformanceTest;clean assembleDebug with clean transforms cache;santaTrackerAndroidBuild;linux;1887000
 org.gradle.performance.regression.android.RealLifeAndroidBuildSlowPerformanceTest;clean phthalic:assembleDebug with clean transforms cache;largeAndroidBuild;linux;929000
+org.gradle.performance.regression.android.FasterIncrementalAndroidBuildsPerformanceTest;faster non-abi change (build comparison);santaTrackerAndroidBuild;linux;428000
+org.gradle.performance.regression.android.FasterIncrementalAndroidBuildsPerformanceTest;faster non-abi change (build comparison);santaTrackerAndroidJavaBuild;linux;398000
+org.gradle.performance.regression.android.FasterIncrementalAndroidBuildsPerformanceTest;faster abi change (build comparison);santaTrackerAndroidBuild;linux;795000
+org.gradle.performance.regression.android.FasterIncrementalAndroidBuildsPerformanceTest;faster abi change (build comparison);santaTrackerAndroidJavaBuild;linux;425000

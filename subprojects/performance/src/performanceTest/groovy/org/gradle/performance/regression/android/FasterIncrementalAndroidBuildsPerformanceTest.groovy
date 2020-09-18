@@ -31,9 +31,7 @@ import org.gradle.profiler.mutations.AbstractCleanupMutator
 import org.gradle.profiler.mutations.ClearConfigurationCacheStateMutator
 import org.gradle.profiler.mutations.ClearProjectCacheMutator
 import org.junit.experimental.categories.Category
-import spock.lang.Unroll
 
-import static org.gradle.performance.regression.android.IncrementalAndroidTestProject.SANTA_TRACKER_JAVA
 import static org.gradle.performance.regression.android.IncrementalAndroidTestProject.SANTA_TRACKER_KOTLIN
 
 @Category(PerformanceExperiment)
@@ -44,8 +42,7 @@ class FasterIncrementalAndroidBuildsPerformanceTest extends AbstractCrossBuildPe
         runner.testGroup = "incremental android changes"
     }
 
-    @Unroll
-    def "faster non-abi change on #testProject (build comparison)"() {
+    def "faster non-abi change (build comparison)"() {
         given:
         buildSpecForSupportedOptimizations(testProject) {
             testProject.configureForNonAbiChange(delegate)
@@ -55,13 +52,9 @@ class FasterIncrementalAndroidBuildsPerformanceTest extends AbstractCrossBuildPe
         def results = runner.run()
         then:
         results
-
-        where:
-        testProject << [SANTA_TRACKER_KOTLIN, SANTA_TRACKER_JAVA]
     }
 
-    @Unroll
-    def "faster abi-change on #testProject (build comparison)"() {
+    def "faster abi change (build comparison)"() {
         given:
         buildSpecForSupportedOptimizations(testProject) {
             testProject.configureForAbiChange(delegate)
@@ -71,9 +64,10 @@ class FasterIncrementalAndroidBuildsPerformanceTest extends AbstractCrossBuildPe
         def results = runner.run()
         then:
         results
+    }
 
-        where:
-        testProject << [SANTA_TRACKER_KOTLIN, SANTA_TRACKER_JAVA]
+    private IncrementalAndroidTestProject getTestProject() {
+        AndroidTestProject.getAndroidTestProject(runner.testProject) as IncrementalAndroidTestProject
     }
 
     private void buildSpecForSupportedOptimizations(IncrementalAndroidTestProject testProject, @DelegatesTo(GradleBuildExperimentSpec.GradleBuilder) Closure scenarioConfiguration) {
