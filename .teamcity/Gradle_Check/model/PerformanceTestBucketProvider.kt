@@ -216,7 +216,7 @@ class MultipleTestProjectBucket(val testProjects: List<TestProjectTime>) : Perfo
             PerformanceTestType.test,
             stage,
             uuid,
-            "Performance tests for ${testProjects.joinToString(", ")}",
+            "Performance tests for ${testProjects.joinToString(", ") { it.testProject }}",
             "performance",
             testProjects.map { it.testProject }.distinct(),
             performanceTestCoverage.os,
