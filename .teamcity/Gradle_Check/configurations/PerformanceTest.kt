@@ -64,7 +64,7 @@ class PerformanceTest(model: CIBuildModel, type: PerformanceTestType, stage: Sta
                         """--channel %channel%$extraParameters""",
                         os
                     ) +
-                        buildToolGradleParameters(isContinue = false, os = os) +
+                        buildToolGradleParameters(isContinue = false) +
                         buildScanTag("PerformanceTest") +
                         model.parentBuildCache.gradleParameters(os)
                     ).joinToString(separator = " ")

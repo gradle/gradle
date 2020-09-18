@@ -51,7 +51,7 @@ class IndividualPerformanceScenarioWorkers(model: CIBuildModel, os: Os = Os.LINU
                     """--scenarios "%scenario%" --warmups %warmups% --runs %runs% --checks %checks% --channel %channel%""",
                     os
                 ) +
-                    buildToolGradleParameters(isContinue = false, os = os) +
+                    buildToolGradleParameters(isContinue = false) +
                     buildScanTag("IndividualPerformanceScenarioWorkers") +
                     model.parentBuildCache.gradleParameters(os)
                 ).joinToString(separator = " ")
