@@ -127,7 +127,7 @@ class StatisticBasedFunctionalTestBucketProvider(private val model: CIBuildModel
         if (testCoverage.testType == TestType.platform) {
             val docsSubproject = validSubprojects.filter { it.name == "docs" }
             val otherSubProjectTestClassTimes = subProjectTestClassTimes.filter { it.subProject.name != "docs" }
-            return docsSubproject + split(
+            return docsSubproject + splitIntoBuckets(
                 LinkedList(otherSubProjectTestClassTimes),
                 SubprojectTestClassTime::totalTime,
                 { largeElement: SubprojectTestClassTime, size: Int -> largeElement.split(size) },
@@ -136,7 +136,7 @@ class StatisticBasedFunctionalTestBucketProvider(private val model: CIBuildModel
                 MAX_PROJECT_NUMBER_IN_BUCKET
             )
         } else {
-            return split(
+            return splitIntoBuckets(
                 LinkedList(subProjectTestClassTimes),
                 SubprojectTestClassTime::totalTime,
                 { largeElement: SubprojectTestClassTime, size: Int -> largeElement.split(size) },
@@ -289,7 +289,7 @@ class SubprojectTestClassTime(val subProject: GradleSubproject, private val test
             val largeElementSplitFunction: (TestClassTime, Int) -> List<List<TestClassTime>> = { testClassTime: TestClassTime, number: Int -> listOf(listOf(testClassTime)) }
             val smallElementAggregateFunction: (List<TestClassTime>) -> List<TestClassTime> = { it }
 
-            val buckets: List<List<TestClassTime>> = split(list, toIntFunction, largeElementSplitFunction, smallElementAggregateFunction, expectedBucketNumber, Integer.MAX_VALUE)
+            val buckets: List<List<TestClassTime>> = splitIntoBuckets(list, toIntFunction, largeElementSplitFunction, smallElementAggregateFunction, expectedBucketNumber, Integer.MAX_VALUE)
 
             buckets.mapIndexed { index: Int, classesInBucket: List<TestClassTime> ->
                 val include = index != buckets.size - 1
