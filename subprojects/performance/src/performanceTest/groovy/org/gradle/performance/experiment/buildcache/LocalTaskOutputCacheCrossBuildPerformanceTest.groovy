@@ -55,6 +55,8 @@ class LocalTaskOutputCacheCrossBuildPerformanceTest extends AbstractCrossBuildPe
                     "--init-script", escapeString(noPushInitScript.absolutePath)
                 )
             }
+            warmUpCount = 2
+            invocationCount = 4
         }
         runner.buildSpec {
             displayName("fully cached")
@@ -72,6 +74,8 @@ class LocalTaskOutputCacheCrossBuildPerformanceTest extends AbstractCrossBuildPe
                 cleanTasks("clean")
                 args("--build-cache")
             }
+            warmUpCount = 2
+            invocationCount = 4
         }
         runner.baseline {
             displayName("fully up-to-date")
@@ -81,6 +85,8 @@ class LocalTaskOutputCacheCrossBuildPerformanceTest extends AbstractCrossBuildPe
             invocation {
                 cleanTasks('clean')
             }
+            warmUpCount = 2
+            invocationCount = 4
         }
 
         when:
