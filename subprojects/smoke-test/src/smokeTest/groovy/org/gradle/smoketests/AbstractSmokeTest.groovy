@@ -29,6 +29,7 @@ import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.versions.AndroidGradlePluginVersions
 import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler
 import org.gradle.internal.operations.trace.BuildOperationTrace
+import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.GradleRunner
@@ -39,6 +40,7 @@ import spock.lang.Specification
 
 import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.createMirrorInitScript
 import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.gradlePluginRepositoryMirrorUrl
+import static org.gradle.test.fixtures.dsl.GradleDsl.GROOVY
 import static org.gradle.test.fixtures.server.http.MavenHttpPluginRepository.PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY
 
 abstract class AbstractSmokeTest extends Specification {
@@ -289,16 +291,16 @@ abstract class AbstractSmokeTest extends Specification {
         file.text = text
     }
 
-    protected static String jcenterRepository() {
-        RepoScriptBlockUtil.jcenterRepository()
+    protected static String jcenterRepository(GradleDsl dsl = GROOVY) {
+        RepoScriptBlockUtil.jcenterRepository(dsl)
     }
 
-    protected static String mavenCentralRepository() {
-        RepoScriptBlockUtil.mavenCentralRepository()
+    protected static String mavenCentralRepository(GradleDsl dsl = GROOVY) {
+        RepoScriptBlockUtil.mavenCentralRepository(dsl)
     }
 
-    protected static String googleRepository() {
-        RepoScriptBlockUtil.googleRepository()
+    protected static String googleRepository(GradleDsl dsl = GROOVY) {
+        RepoScriptBlockUtil.googleRepository(dsl)
     }
 
     protected static void expectNoDeprecationWarnings(BuildResult result) {
