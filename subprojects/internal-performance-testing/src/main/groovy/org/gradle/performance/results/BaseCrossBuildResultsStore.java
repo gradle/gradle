@@ -121,7 +121,10 @@ public class BaseCrossBuildResultsStore<R extends CrossBuildPerformanceResults> 
                 ResultSet testExecutions = testIdsStatement.executeQuery();
                 while (testExecutions.next()) {
                     // TODO: Add testProject to cross_build_results DB
-                    testNames.add(new PerformanceExperiment(testExecutions.getString(2), testExecutions.getString(1)));
+                    String testProject = testExecutions.getString(2);
+                    if (testProject != null) {
+                        testNames.add(new PerformanceExperiment(testProject, testExecutions.getString(1)));
+                    }
                 }
                 testExecutions.close();
                 testIdsStatement.close();
