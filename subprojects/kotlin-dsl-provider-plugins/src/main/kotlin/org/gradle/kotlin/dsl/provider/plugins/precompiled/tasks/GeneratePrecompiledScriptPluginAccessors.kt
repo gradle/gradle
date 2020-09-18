@@ -64,6 +64,7 @@ import org.gradle.plugin.use.PluginDependenciesSpec
 import org.gradle.plugin.use.internal.PluginRequestApplicator
 import org.gradle.plugin.use.internal.PluginRequestCollector
 import org.gradle.testfixtures.ProjectBuilder
+import org.gradle.testfixtures.internal.ProjectBuilderImpl
 import java.io.File
 import java.net.URLClassLoader
 import java.nio.file.Files
@@ -285,28 +286,27 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
     private
     fun projectSchemaImpliedByPluginGroups(
         pluginGroupsPerRequests: Map<List<String>, List<PrecompiledScriptPlugin>>
-    ): Map<HashedProjectSchema, List<PrecompiledScriptPlugin>> {
-
-        val schemaBuilder = SyntheticProjectSchemaBuilder(
+    ): Map<HashedProjectSchema, List<PrecompiledScriptPlugin>> =
+        SyntheticProjectSchemaBuilder(
             gradleUserHomeDir = gradleUserHomeDir,
             rootProjectDir = uniqueTempDirectory(),
             rootProjectClassPath = (classPathFiles + runtimeClassPathFiles).files,
             projectSchemaProvider = projectSchemaProvider
-        )
-        return pluginGroupsPerRequests.flatMap { (uniquePluginRequests, scriptPlugins) ->
-            try {
-                val schema = schemaBuilder.schemaFor(pluginRequestsFor(uniquePluginRequests, scriptPlugins.first()))
-                val hashedSchema = HashedProjectSchema(schema)
-                scriptPlugins.map { hashedSchema to it }
-            } catch (error: Throwable) {
-                reportProjectSchemaError(scriptPlugins, error)
-                emptyList<Pair<HashedProjectSchema, PrecompiledScriptPlugin>>()
-            }
-        }.groupBy(
-            { (schema, _) -> schema },
-            { (_, plugin) -> plugin }
-        )
-    }
+        ).useToRun {
+            pluginGroupsPerRequests.flatMap { (uniquePluginRequests, scriptPlugins) ->
+                try {
+                    val schema = schemaFor(pluginRequestsFor(uniquePluginRequests, scriptPlugins.first()))
+                    val hashedSchema = HashedProjectSchema(schema)
+                    scriptPlugins.map { hashedSchema to it }
+                } catch (error: Throwable) {
+                    reportProjectSchemaError(scriptPlugins, error)
+                    emptyList<Pair<HashedProjectSchema, PrecompiledScriptPlugin>>()
+                }
+            }.groupBy(
+                { (schema, _) -> schema },
+                { (_, plugin) -> plugin }
+            )
+        }
 
     private
     fun uniqueTempDirectory() = Files.createTempDirectory(temporaryDir.toPath(), "project-").toFile()
@@ -367,13 +367,17 @@ class SyntheticProjectSchemaBuilder(
     rootProjectDir: File,
     rootProjectClassPath: Collection<File>,
     private val projectSchemaProvider: ProjectSchemaProvider
-) {
+) : AutoCloseable {
 
     private
     val rootProject = buildRootProject(gradleUserHomeDir, rootProjectDir, rootProjectClassPath)
 
     fun schemaFor(plugins: PluginRequests): TypedProjectSchema =
         projectSchemaProvider.schemaFor(childProjectWith(plugins))
+
+    override fun close() {
+        ProjectBuilderImpl.stop(rootProject)
+    }
 
     private
     fun childProjectWith(pluginRequests: PluginRequests): Project {

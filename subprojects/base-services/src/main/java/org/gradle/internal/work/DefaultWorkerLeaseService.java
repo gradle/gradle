@@ -149,6 +149,10 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, Stoppable 
         releaseLocks(projectLocks);
     }
 
+    public void releaseCurrentResourceLocks() {
+        releaseLocks(workerLeaseLockRegistry.getResourceLocksByCurrentThread());
+    }
+
     @Override
     public void withoutProjectLock(Runnable runnable) {
         withoutProjectLock(Factories.toFactory(runnable));
