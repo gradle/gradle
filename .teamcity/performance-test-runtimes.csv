@@ -127,3 +127,11 @@ org.gradle.performance.experiment.nativeplatform.NativeParallelPerformanceTest;c
 org.gradle.performance.experiment.nativeplatform.NativePreCompiledHeaderPerformanceTest;clean assemble with precompiled headers;smallPCHNative;linux;123000
 org.gradle.performance.experiment.nativeplatform.NativePreCompiledHeaderPerformanceTest;clean assemble with precompiled headers;mediumPCHNative;linux;295000
 org.gradle.performance.experiment.nativeplatform.NativePreCompiledHeaderPerformanceTest;clean assemble with precompiled headers;bigPCHNative;linux;1072000
+org.gradle.performance.experiment.maven.JavaTestGradleVsMavenPerformanceTest;clean assemble (Gradle vs Maven);mediumMonolithicJavaProject;linux;189000
+org.gradle.performance.experiment.maven.JavaTestGradleVsMavenPerformanceTest;clean assemble (Gradle vs Maven);mediumJavaMultiProject;linux;414000
+org.gradle.performance.experiment.maven.JavaTestGradleVsMavenPerformanceTest;clean test (Gradle vs Maven);mediumMonolithicJavaProject;linux;535000
+org.gradle.performance.experiment.maven.JavaTestGradleVsMavenPerformanceTest;clean test (Gradle vs Maven);mediumJavaMultiProject;linux;1220000
+org.gradle.performance.experiment.maven.JavaTestGradleVsMavenPerformanceTest;assemble for non-abi change (Gradle vs Maven);mediumMonolithicJavaProject;linux;293000
+org.gradle.performance.experiment.maven.JavaTestGradleVsMavenPerformanceTest;assemble for non-abi change (Gradle vs Maven);mediumJavaMultiProject;linux;682000
+org.gradle.performance.experiment.maven.JavaTestGradleVsMavenPerformanceTest;test for non-abi change (Gradle vs Maven);mediumMonolithicJavaProject;linux;870000
+org.gradle.performance.experiment.maven.JavaTestGradleVsMavenPerformanceTest;test for non-abi change (Gradle vs Maven);mediumJavaMultiProject;linux;1853000

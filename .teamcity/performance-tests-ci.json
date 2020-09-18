@@ -1147,6 +1147,74 @@
                     }
                 }
             ]
+        },
+        {
+            "testId" : "org.gradle.performance.experiment.maven.JavaTestGradleVsMavenPerformanceTest.clean assemble (Gradle vs Maven)",
+            "groups" : [
+                {
+                    "testProject" : "mediumMonolithicJavaProject",
+                    "coverage" : {
+                        "experiment":  ["linux"]
+                    }
+                },
+                {
+                    "testProject" : "mediumJavaMultiProject",
+                    "coverage" : {
+                        "experiment":  ["linux"]
+                    }
+                }
+            ]
+        },
+        {
+            "testId" : "org.gradle.performance.experiment.maven.JavaTestGradleVsMavenPerformanceTest.clean test (Gradle vs Maven)",
+            "groups" : [
+                {
+                    "testProject" : "mediumMonolithicJavaProject",
+                    "coverage" : {
+                        "experiment":  ["linux"]
+                    }
+                },
+                {
+                    "testProject" : "mediumJavaMultiProject",
+                    "coverage" : {
+                        "experiment":  ["linux"]
+                    }
+                }
+            ]
+        },
+        {
+            "testId" : "org.gradle.performance.experiment.maven.JavaTestGradleVsMavenPerformanceTest.assemble for non-abi change (Gradle vs Maven)",
+            "groups" : [
+                {
+                    "testProject" : "mediumMonolithicJavaProject",
+                    "coverage" : {
+                        "experiment":  ["linux"]
+                    }
+                },
+                {
+                    "testProject" : "mediumJavaMultiProject",
+                    "coverage" : {
+                        "experiment":  ["linux"]
+                    }
+                }
+            ]
+        },
+        {
+            "testId" : "org.gradle.performance.experiment.maven.JavaTestGradleVsMavenPerformanceTest.test for non-abi change (Gradle vs Maven)",
+            "groups" : [
+                {
+                    "testProject" : "mediumMonolithicJavaProject",
+                    "coverage" : {
+                        "experiment":  ["linux"]
+                    }
+                },
+                {
+                    "testProject" : "mediumJavaMultiProject",
+                    "coverage" : {
+                        "experiment":  ["linux"]
+                    }
+                }
+            ]
         }
     ]
 }
