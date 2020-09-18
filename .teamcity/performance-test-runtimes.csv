@@ -120,3 +120,7 @@ org.gradle.performance.experiment.java.ParallelBuildPerformanceTest;clean assemb
 org.gradle.performance.experiment.java.ParallelBuildPerformanceTest;clean assemble with 4 parallel workers;largeMonolithicJavaProject;linux;354000
 org.gradle.performance.experiment.buildcache.LocalTaskOutputCacheCrossBuildPerformanceTest;assemble with local cache (build comparison);largeJavaMultiProject;linux;4676000
 org.gradle.performance.experiment.buildcache.LocalTaskOutputCacheCrossBuildPerformanceTest;assemble with local cache (build comparison);largeMonolithicJavaProject;linux;5472000
+org.gradle.performance.experiment.nativeplatform.NativeParallelPerformanceTest;clean assemble with parallel workers;smallNative;linux;112000
+org.gradle.performance.experiment.nativeplatform.NativeParallelPerformanceTest;clean assemble with parallel workers;mediumNative;linux;184000
+org.gradle.performance.experiment.nativeplatform.NativeParallelPerformanceTest;clean assemble with parallel workers;bigNative;linux;670000
+org.gradle.performance.experiment.nativeplatform.NativeParallelPerformanceTest;clean assemble with parallel workers;multiNative;linux;1734000

@@ -1089,6 +1089,41 @@
                     }
                 }
             ]
+        },
+        {
+            "testId" : "org.gradle.performance.experiment.nativeplatform.NativeParallelPerformanceTest.clean assemble with parallel workers",
+            "groups" : [
+                {
+                    "testProject" : "smallNative",
+                    "coverage" : {
+                        "experiment":  ["linux"]
+                    }
+                },
+                {
+                    "testProject" : "mediumNative",
+                    "coverage" : {
+                        "experiment":  ["linux"]
+                    }
+                },
+                {
+                    "testProject" : "bigNative",
+                    "coverage" : {
+                        "experiment":  ["linux"]
+                    }
+                },
+                {
+                    "testProject" : "bigNative",
+                    "coverage" : {
+                        "experiment":  ["linux"]
+                    }
+                },
+                {
+                    "testProject" : "bigNative",
+                    "coverage" : {
+                        "experiment":  ["linux"]
+                    }
+                }
+            ]
         }
     ]
 }
