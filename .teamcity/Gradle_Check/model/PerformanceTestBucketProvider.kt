@@ -116,7 +116,7 @@ fun splitBucketsByScenarios(performanceTestCoverage: PerformanceTestCoverage, sc
         .entries
         .map { TestProjectTime(it.key, it.value) }
         .sortedBy { -it.totalTime }
-    return split(
+    return splitIntoBuckets(
         LinkedList(testProjectTimes),
         TestProjectTime::totalTime,
         { largeElement: TestProjectTime, size: Int -> largeElement.split(size) },
@@ -164,7 +164,7 @@ class TestProjectTime(val testProject: String, val scenarioTimes: List<Performan
             val largeElementSplitFunction: (PerformanceTestTime, Int) -> List<List<PerformanceTestTime>> = { performanceTestTime: PerformanceTestTime, number: Int -> listOf(listOf(performanceTestTime)) }
             val smallElementAggregateFunction: (List<PerformanceTestTime>) -> List<PerformanceTestTime> = { it }
 
-            val buckets: List<List<PerformanceTestTime>> = split(list, toIntFunction, largeElementSplitFunction, smallElementAggregateFunction, expectedBucketNumber, Integer.MAX_VALUE, { listOf() })
+            val buckets: List<List<PerformanceTestTime>> = splitIntoBuckets(list, toIntFunction, largeElementSplitFunction, smallElementAggregateFunction, expectedBucketNumber, Integer.MAX_VALUE, { listOf() })
                 .filter { it.isNotEmpty() }
 
             buckets.mapIndexed { index: Int, classesInBucket: List<PerformanceTestTime> ->
