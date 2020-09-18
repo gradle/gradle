@@ -177,12 +177,11 @@ public class DefaultConditionalExecutionQueue<T> implements ConditionalExecution
             coordinationService.withStateLock(new Transformer<ResourceLockState.Disposition, ResourceLockState>() {
                 @Override
                 public ResourceLockState.Disposition transform(ResourceLockState resourceLockState) {
-                    if (queue.isEmpty()) {
-                        return ResourceLockState.Disposition.FINISHED;
-                    }
-
                     lock.lock();
                     try {
+                        if (queue.isEmpty()) {
+                            return ResourceLockState.Disposition.FINISHED;
+                        }
                         Iterator<ConditionalExecution<T>> itr = queue.iterator();
                         while (itr.hasNext()) {
                             ConditionalExecution<T> next = itr.next();
@@ -192,14 +191,14 @@ public class DefaultConditionalExecutionQueue<T> implements ConditionalExecution
                                 break;
                             }
                         }
+
+                        if (execution.get() == null && !queue.isEmpty()) {
+                            return ResourceLockState.Disposition.RETRY;
+                        } else {
+                            return ResourceLockState.Disposition.FINISHED;
+                        }
                     } finally {
                         lock.unlock();
-                    }
-
-                    if (execution.get() == null && !queue.isEmpty()) {
-                        return ResourceLockState.Disposition.RETRY;
-                    } else {
-                        return ResourceLockState.Disposition.FINISHED;
                     }
                 }
             });
