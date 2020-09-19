@@ -1255,6 +1255,75 @@
                     }
                 }
             ]
+        },
+        {
+            "testId" : "org.gradle.performance.regression.java.JavaFirstUsePerformanceTest.first use",
+            "groups" : [
+                {
+                    "testProject" : "largeMonolithicJavaProject",
+                    "coverage" : {
+                        "slow":  ["linux"]
+                    }
+                },
+                {
+                    "testProject" : "largeJavaMultiProject",
+                    "coverage" : {
+                        "slow":  ["linux"]
+                    }
+                },
+                {
+                    "testProject" : "largeJavaMultiProjectKotlinDsl",
+                    "coverage" : {
+                        "slow":  ["linux"]
+                    }
+                }
+            ]
+        },
+        {
+            "testId" : "org.gradle.performance.regression.java.JavaFirstUsePerformanceTest.clean checkout",
+            "groups" : [
+                {
+                    "testProject" : "largeMonolithicJavaProject",
+                    "coverage" : {
+                        "slow":  ["linux"]
+                    }
+                },
+                {
+                    "testProject" : "largeJavaMultiProject",
+                    "coverage" : {
+                        "slow":  ["linux"]
+                    }
+                },
+                {
+                    "testProject" : "largeJavaMultiProjectKotlinDsl",
+                    "coverage" : {
+                        "slow":  ["linux"]
+                    }
+                }
+            ]
+        },
+        {
+            "testId" : "org.gradle.performance.regression.java.JavaFirstUsePerformanceTest.cold daemon",
+            "groups" : [
+                {
+                    "testProject" : "largeMonolithicJavaProject",
+                    "coverage" : {
+                        "slow":  ["linux"]
+                    }
+                },
+                {
+                    "testProject" : "largeJavaMultiProject",
+                    "coverage" : {
+                        "slow":  ["linux"]
+                    }
+                },
+                {
+                    "testProject" : "largeJavaMultiProjectKotlinDsl",
+                    "coverage" : {
+                        "slow":  ["linux"]
+                    }
+                }
+            ]
         }
     ]
 }

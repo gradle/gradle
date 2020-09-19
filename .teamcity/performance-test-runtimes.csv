@@ -140,3 +140,12 @@ org.gradle.performance.experiment.maven.JavaTestGradleVsMavenPerformanceTest;tes
 org.gradle.performance.regression.inception.BuildSrcApiChangePerformanceTest;buildSrc abi change;largeJavaMultiProject;linux;1018000
 org.gradle.performance.regression.inception.BuildSrcApiChangePerformanceTest;buildSrc abi change;largeJavaMultiProjectKotlinDsl;linux;2352000
 org.gradle.performance.regression.inception.BuildSrcApiChangePerformanceTest;buildSrc abi change;mediumMonolithicJavaProject;linux;243000
+org.gradle.performance.regression.java.JavaFirstUsePerformanceTest;first use;largeMonolithicJavaProject;linux;412000
+org.gradle.performance.regression.java.JavaFirstUsePerformanceTest;first use;largeJavaMultiProject;linux;758000
+org.gradle.performance.regression.java.JavaFirstUsePerformanceTest;first use;largeJavaMultiProjectKotlinDsl;linux;1206000
+org.gradle.performance.regression.java.JavaFirstUsePerformanceTest;clean checkout;largeMonolithicJavaProject;linux;380000
+org.gradle.performance.regression.java.JavaFirstUsePerformanceTest;clean checkout;largeJavaMultiProject;linux;1067000
+org.gradle.performance.regression.java.JavaFirstUsePerformanceTest;clean checkout;largeJavaMultiProjectKotlinDsl;linux;1015000
+org.gradle.performance.regression.java.JavaFirstUsePerformanceTest;cold daemon;largeMonolithicJavaProject;linux;323000
+org.gradle.performance.regression.java.JavaFirstUsePerformanceTest;cold daemon;largeJavaMultiProject;linux;1029000
+org.gradle.performance.regression.java.JavaFirstUsePerformanceTest;cold daemon;largeJavaMultiProjectKotlinDsl;linux;985000
