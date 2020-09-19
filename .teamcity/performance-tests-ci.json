@@ -692,6 +692,23 @@
             ]
         },
         {
+            "testId" : "org.gradle.performance.regression.corefeature.TaskAvoidancePerformanceTest.help with lazy and eager tasks",
+            "groups" : [
+                {
+                    "testProject" : "largeJavaMultiProject",
+                    "coverage" : {
+                        "test":  ["linux"]
+                    }
+                },
+                {
+                    "testProject" : "largeMonolithicJavaProject",
+                    "coverage" : {
+                        "test":  ["linux"]
+                    }
+                }
+            ]
+        },
+        {
             "testId" : "org.gradle.performance.regression.corefeature.TaskCreationPerformanceTest.create many tasks",
             "groups" : [
                 {
