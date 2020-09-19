@@ -1232,6 +1232,29 @@
                     }
                 }
             ]
+        },
+        {
+            "testId" : "org.gradle.performance.regression.inception.BuildSrcApiChangePerformanceTest.buildSrc abi change",
+            "groups" : [
+                {
+                    "testProject" : "mediumMonolithicJavaProject",
+                    "coverage" : {
+                        "slow":  ["linux"]
+                    }
+                },
+                {
+                    "testProject" : "largeJavaMultiProject",
+                    "coverage" : {
+                        "slow":  ["linux"]
+                    }
+                },
+                {
+                    "testProject" : "largeJavaMultiProjectKotlinDsl",
+                    "coverage" : {
+                        "slow":  ["linux"]
+                    }
+                }
+            ]
         }
     ]
 }

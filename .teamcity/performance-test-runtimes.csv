@@ -137,3 +137,6 @@ org.gradle.performance.experiment.maven.JavaTestGradleVsMavenPerformanceTest;ass
 org.gradle.performance.experiment.maven.JavaTestGradleVsMavenPerformanceTest;assemble for non-abi change (Gradle vs Maven);mediumJavaMultiProject;linux;682000
 org.gradle.performance.experiment.maven.JavaTestGradleVsMavenPerformanceTest;test for non-abi change (Gradle vs Maven);mediumMonolithicJavaProject;linux;870000
 org.gradle.performance.experiment.maven.JavaTestGradleVsMavenPerformanceTest;test for non-abi change (Gradle vs Maven);mediumJavaMultiProject;linux;1853000
+org.gradle.performance.regression.inception.BuildSrcApiChangePerformanceTest;buildSrc abi change;largeJavaMultiProject;linux;1018000
+org.gradle.performance.regression.inception.BuildSrcApiChangePerformanceTest;buildSrc abi change;largeJavaMultiProjectKotlinDsl;linux;2352000
+org.gradle.performance.regression.inception.BuildSrcApiChangePerformanceTest;buildSrc abi change;mediumMonolithicJavaProject;linux;243000
