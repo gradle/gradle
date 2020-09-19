@@ -296,7 +296,7 @@ include::sample[dir="snippets/java/crossCompilation/groovy",files="build.gradle[
 include::sample[dir="snippets/java/crossCompilation/kotlin",files="build.gradle.kts[tags=java-cross-compilation]"]
 ====
 
-The only requirement is to have <<toolchains.adoc#sec:auto_detection,Java 7 installed and known to Gradle>>.
+The only requirement is that Java 7 is installed and has to be either in <<toolchains.adoc#sec:auto_detection,a location Gradle can detect automatically>> or <<toolchains.adoc#sec:custom_loc,explicitly configured>>.
 
 [[sec:custom_java_source_sets]]
 === Compiling independent sources separately

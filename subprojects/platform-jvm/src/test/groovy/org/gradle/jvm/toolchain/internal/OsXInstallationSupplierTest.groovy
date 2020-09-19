@@ -19,6 +19,7 @@ package org.gradle.jvm.toolchain.internal
 import org.gradle.api.internal.provider.Providers
 import org.gradle.api.provider.ProviderFactory
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.process.internal.ExecException
 import org.gradle.process.internal.ExecHandleFactory
 import spock.lang.Specification
 
@@ -88,11 +89,31 @@ Matching Java Virtual Machines (3):
         directories*.source == ["macOS java_home", "macOS java_home", "macOS java_home"]
     }
 
+    def 'supplies no installation for failed command'() {
+        given:
+        def supplier = createFailingSupplier()
+
+        when:
+        def directories = supplier.get()
+
+        then:
+        directories.isEmpty()
+    }
+
     OsXInstallationSupplier createSupplier(String output, OperatingSystem os = OperatingSystem.MAC_OS) {
         new OsXInstallationSupplier(Mock(ExecHandleFactory), createProviderFactory(), os) {
             @Override
-            def void executeCommand(ByteArrayOutputStream outputStream) {
+            void executeCommand(ByteArrayOutputStream outputStream) {
                 outputStream.write(output.bytes, 0, output.bytes.size())
+            }
+        }
+    }
+
+    OsXInstallationSupplier createFailingSupplier() {
+        new OsXInstallationSupplier(Mock(ExecHandleFactory), createProviderFactory(), OperatingSystem.MAC_OS) {
+            @Override
+            void executeCommand(ByteArrayOutputStream outputStream) {
+                throw new ExecException("Command failed")
             }
         }
     }

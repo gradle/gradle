@@ -18,8 +18,11 @@ package org.gradle.jvm.toolchain.internal;
 
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.internal.os.OperatingSystem;
+import org.gradle.process.internal.ExecException;
 import org.gradle.process.internal.ExecHandleBuilder;
 import org.gradle.process.internal.ExecHandleFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -31,6 +34,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 public class OsXInstallationSupplier extends AutoDetectingInstallationSupplier {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(OsXInstallationSupplier.class);
 
     private final ExecHandleFactory execHandleFactory;
     private final OperatingSystem os;
@@ -44,9 +49,18 @@ public class OsXInstallationSupplier extends AutoDetectingInstallationSupplier {
     @Override
     protected Set<InstallationLocation> findCandidates() {
         if (os.isMacOsX()) {
-            final Reader output = executeJavaHome();
-            final Set<File> javaHomes = new OsXJavaHomeOutputParser().parse(output);
-            return javaHomes.stream().map(this::asInstallation).collect(Collectors.toSet());
+            try {
+                final Reader output = executeJavaHome();
+                final Set<File> javaHomes = new OsXJavaHomeOutputParser().parse(output);
+                return javaHomes.stream().map(this::asInstallation).collect(Collectors.toSet());
+            } catch (ExecException e) {
+                String errorMessage = "Java Toolchain auto-detection failed to find local MacOS system JVMs";
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug(errorMessage, e);
+                } else {
+                    LOGGER.info(errorMessage);
+                }
+            }
         }
         return Collections.emptySet();
     }

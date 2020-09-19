@@ -155,6 +155,7 @@ The following services are available for injection:
 - link:{javadocPath}/org/gradle/api/file/FileSystemOperations.html[FileSystemOperations] - Allows a task to run operations on the filesystem such as deleting files, copying files or syncing directories.
 - link:{javadocPath}/org/gradle/api/file/ArchiveOperations.html[ArchiveOperations] - Allows a task to run operations on archive files such as ZIP or TAR files.
 - link:{javadocPath}/org/gradle/process/ExecOperations.html[ExecOperations] - Allows a task to run external processes with dedicated support for running external `java` programs.
+- link:{javadocPath}/org/gradle/tooling/provider/model/ToolingModelBuilderRegistry.html[ToolingModelBuilderRegistry] - Allows a plugin to registers a Gradle tooling API model.
 
 Out of the above, `ProjectLayout` and `WorkerExecutor` services are only available for injection in project plugins.
 

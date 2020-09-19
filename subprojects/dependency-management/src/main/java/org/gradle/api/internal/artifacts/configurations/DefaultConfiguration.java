@@ -708,7 +708,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     @Override
     public ExtraExecutionGraphDependenciesResolverFactory getDependenciesResolver() {
-        return new DefaultExtraExecutionGraphDependenciesResolverFactory(this::getResultsForBuildDependencies, this::getResultsForArtifacts, new ResolveGraphAction(this),
+        return new DefaultExtraExecutionGraphDependenciesResolverFactory(this::getResultsForBuildDependencies, this::getResultsForArtifacts, owner,
             (attributes, filter) -> new ConfigurationFileCollection(Specs.satisfyAll(), attributes, filter, false, false));
     }
 

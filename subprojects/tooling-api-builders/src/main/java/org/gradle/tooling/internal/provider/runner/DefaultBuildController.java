@@ -34,8 +34,8 @@ import org.gradle.tooling.internal.protocol.ModelIdentifier;
 import org.gradle.tooling.internal.provider.connection.ProviderBuildResult;
 import org.gradle.tooling.provider.model.ParameterizedToolingModelBuilder;
 import org.gradle.tooling.provider.model.ToolingModelBuilder;
-import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry;
 import org.gradle.tooling.provider.model.UnknownModelException;
+import org.gradle.tooling.provider.model.internal.ToolingModelBuilderLookup;
 
 @SuppressWarnings("deprecation")
 class DefaultBuildController implements org.gradle.tooling.internal.protocol.InternalBuildController, InternalBuildControllerVersion2 {
@@ -146,11 +146,11 @@ class DefaultBuildController implements org.gradle.tooling.internal.protocol.Int
     }
 
     private ToolingModelBuilder getToolingModelBuilder(ProjectInternal project, ModelIdentifier modelIdentifier) {
-        ToolingModelBuilderRegistry modelBuilderRegistry = project.getServices().get(ToolingModelBuilderRegistry.class);
+        ToolingModelBuilderLookup modelBuilderRegistry = project.getServices().get(ToolingModelBuilderLookup.class);
 
         ToolingModelBuilder builder;
         try {
-            builder = modelBuilderRegistry.getBuilder(modelIdentifier.getName());
+            builder = modelBuilderRegistry.locate(modelIdentifier.getName());
         } catch (UnknownModelException e) {
             throw (InternalUnsupportedModelException) (new InternalUnsupportedModelException()).initCause(e);
         }

@@ -18,6 +18,7 @@ package org.gradle.configurationcache.serialization.codecs
 
 import org.gradle.api.Project
 import org.gradle.api.internal.artifacts.configurations.DefaultConfiguration
+import org.gradle.api.internal.artifacts.transform.DefaultExecutionGraphDependenciesResolver
 import org.gradle.api.internal.tasks.NodeExecutionContext
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.api.internal.tasks.WorkNodeAction
@@ -29,7 +30,7 @@ import org.gradle.configurationcache.serialization.logNotImplemented
 
 object WorkNodeActionCodec : Codec<WorkNodeAction> {
     override suspend fun WriteContext.encode(value: WorkNodeAction) {
-        if (value is DefaultConfiguration.ResolveGraphAction) {
+        if (value is DefaultConfiguration.ResolveGraphAction || value is DefaultExecutionGraphDependenciesResolver.FinalizeTransformDependencies) {
             // Can ignore
             return
         } else {

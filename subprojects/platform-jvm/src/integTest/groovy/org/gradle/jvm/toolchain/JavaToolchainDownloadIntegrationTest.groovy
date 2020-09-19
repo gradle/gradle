@@ -84,4 +84,37 @@ class JavaToolchainDownloadIntegrationTest extends AbstractIntegrationSpec {
             .assertHasCause("No compatible toolchains found for request filter: {languageVersion=14} (auto-detect false, auto-download false)")
     }
 
+    @ToBeFixedForConfigurationCache(because = "Fails the build with an additional error")
+    def 'toolchain download on http fails'() {
+        buildFile << """
+            apply plugin: "java"
+
+            java {
+                toolchain {
+                    languageVersion = JavaLanguageVersion.of(99)
+                }
+            }
+        """
+
+        propertiesFile << """
+            org.gradle.java.installations.auto-detect=false
+            org.gradle.jvm.toolchain.install.adoptopenjdk.baseUri=http://example.com
+        """
+
+        file("src/main/java/Foo.java") << "public class Foo {}"
+
+        when:
+        failure = executer
+            .withTasks("compileJava")
+            .requireOwnGradleUserHomeDir()
+            .runWithFailure()
+        result = failure
+
+        then:
+        failure.assertHasDescription("Execution failed for task ':compileJava'.")
+            .assertHasCause("Failed to calculate the value of task ':compileJava' property 'javaCompiler'")
+            .assertHasCause('Unable to download toolchain matching these requirements: {languageVersion=99}')
+            .assertThatCause(CoreMatchers.startsWith('Attempting to download a JDK from an insecure URI http://example.com'))
+    }
+
 }

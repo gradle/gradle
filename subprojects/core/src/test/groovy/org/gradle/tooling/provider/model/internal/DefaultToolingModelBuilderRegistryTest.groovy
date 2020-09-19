@@ -43,7 +43,24 @@ class DefaultToolingModelBuilderRegistryTest extends Specification {
         builder2.canBuild("model") >> true
 
         expect:
-        def actualBuilder = registry.getBuilder("model")
+        def builder = registry.getBuilder("model")
+        builder == builder2
+    }
+
+    def "wraps builder when locating for execution"() {
+        def builder1 = Mock(ToolingModelBuilder)
+        def builder2 = Mock(ToolingModelBuilder)
+
+        given:
+        registry.register(builder1)
+        registry.register(builder2)
+
+        and:
+        builder1.canBuild("model") >> false
+        builder2.canBuild("model") >> true
+
+        expect:
+        def actualBuilder = registry.locate("model")
         actualBuilder instanceof DefaultToolingModelBuilderRegistry.BuildOperationWrappingToolingModelBuilder
         actualBuilder.delegate == builder2
     }
@@ -82,7 +99,7 @@ class DefaultToolingModelBuilderRegistryTest extends Specification {
         e.message == "Multiple builders are available to build a model of type 'model'."
     }
 
-    def "can register parameterized model builder"() {
+    def "wraps parameterized model builder"() {
         def builder = Mock(ParameterizedToolingModelBuilder)
 
         given:
@@ -95,9 +112,8 @@ class DefaultToolingModelBuilderRegistryTest extends Specification {
         registry.getBuilder("model")
 
         then:
-        def foundBuilder = registry.getBuilder("model")
-        foundBuilder instanceof DefaultToolingModelBuilderRegistry.ParameterizedBuildOperationWrappingToolingModelBuilder
-        foundBuilder.delegate == builder
-        foundBuilder.delegate instanceof ParameterizedToolingModelBuilder
+        def actualBuilder = registry.locate("model")
+        actualBuilder instanceof DefaultToolingModelBuilderRegistry.ParameterizedBuildOperationWrappingToolingModelBuilder
+        actualBuilder.delegate == builder
     }
 }
