@@ -21,7 +21,6 @@ import org.gradle.performance.categories.SlowPerformanceRegressionTest
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.experimental.categories.Category
-import spock.lang.Unroll
 
 @Category(SlowPerformanceRegressionTest)
 @Requires(TestPrecondition.LINUX)
@@ -31,13 +30,12 @@ class NativeCleanBuildPerformanceTest extends AbstractCrossVersionPerformanceTes
         runner.targetVersions = ["6.7-20200824220048+0000"]
     }
 
-    @Unroll
-    def "clean assemble on #testProject"() {
+    def "clean assemble (native)"() {
         given:
-        runner.testProject = testProject
+        def iterations = runner.testProject in ['smallNative', 'smallCppApp', 'smallCppMulti'] ? 40 : null
         runner.tasksToRun = ["assemble"]
         runner.cleanTasks = ["clean"]
-        runner.gradleOpts = ["-Xms$maxMemory", "-Xmx$maxMemory"]
+        runner.gradleOpts = runner.projectMemoryOptions
         runner.runs = iterations
         runner.warmUpRuns = iterations
 
@@ -46,26 +44,10 @@ class NativeCleanBuildPerformanceTest extends AbstractCrossVersionPerformanceTes
 
         then:
         result.assertCurrentVersionHasNotRegressed()
-
-        where:
-        testProject                       | maxMemory | iterations
-        "smallNative"                     | '256m'    | 40
-        "mediumNative"                    | '256m'    | null
-        "bigNative"                       | '1g'      | null
-        "multiNative"                     | '256m'    | null
-        "smallCppApp"                     | '256m'    | 40
-        "mediumCppApp"                    | '256m'    | null
-        "mediumCppAppWithMacroIncludes"   | '256m'    | null
-        "bigCppApp"                       | '256m'    | null
-        "smallCppMulti"                   | '256m'    | 40
-        "mediumCppMulti"                  | '256m'    | null
-        "mediumCppMultiWithMacroIncludes" | '256m'    | null
-        "bigCppMulti"                     | '1g'      | null
     }
 
-    def "clean assemble on manyProjectsNative"() {
+    def "clean assemble (native, parallel)"() {
         given:
-        runner.testProject = "manyProjectsNative"
         runner.tasksToRun = ["assemble"]
         runner.cleanTasks = ["clean"]
         runner.args = ["--parallel", "--max-workers=12"]

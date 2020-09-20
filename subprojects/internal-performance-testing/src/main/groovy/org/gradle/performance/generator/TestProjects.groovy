@@ -24,14 +24,32 @@ class TestProjects {
 
     private static String determineDaemonMemory(String testProject) {
         switch (testProject) {
+            case 'smallCppApp':
+                return '256m'
+            case 'mediumCppApp':
+                return '256m'
+            case 'mediumCppAppWithMacroIncludes':
+                return '256m'
             case 'bigCppApp':
+                return '256m'
+            case 'smallCppMulti':
+                return '256m'
+            case 'mediumCppMulti':
+                return '256m'
+            case 'mediumCppMultiWithMacroIncludes':
                 return '256m'
             case 'bigCppMulti':
                 return '1g'
             case 'nativeDependents':
                 return '3g'
+            case 'smallNative':
+                return '256m'
+            case 'mediumNative':
+                return '256m'
             case 'bigNative':
                 return '1g'
+            case 'multiNative':
+                return '256m'
             case 'withVerboseJUnit':
                 return '256m'
             case 'withVerboseTestNG':
@@ -48,6 +66,8 @@ class TestProjects {
                 return '512m'
             case 'smallNativeMonolithic':
                 return '512m'
+            case 'manyProjectsNative':
+                return '1G'
             default:
                 return JavaTestProject.projectFor(testProject).daemonMemory
         }

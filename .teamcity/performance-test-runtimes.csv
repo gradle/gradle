@@ -149,3 +149,16 @@ org.gradle.performance.regression.java.JavaFirstUsePerformanceTest;clean checkou
 org.gradle.performance.regression.java.JavaFirstUsePerformanceTest;cold daemon;largeMonolithicJavaProject;linux;323000
 org.gradle.performance.regression.java.JavaFirstUsePerformanceTest;cold daemon;largeJavaMultiProject;linux;1029000
 org.gradle.performance.regression.java.JavaFirstUsePerformanceTest;cold daemon;largeJavaMultiProjectKotlinDsl;linux;985000
+org.gradle.performance.regression.nativeplatform.NativeCleanBuildPerformanceTest;clean assemble (native);smallNative;linux;308000
+org.gradle.performance.regression.nativeplatform.NativeCleanBuildPerformanceTest;clean assemble (native);mediumNative;linux;268000
+org.gradle.performance.regression.nativeplatform.NativeCleanBuildPerformanceTest;clean assemble (native);bigNative;linux;751000
+org.gradle.performance.regression.nativeplatform.NativeCleanBuildPerformanceTest;clean assemble (native);multiNative;linux;1822000
+org.gradle.performance.regression.nativeplatform.NativeCleanBuildPerformanceTest;clean assemble (native);smallCppApp;linux;295000
+org.gradle.performance.regression.nativeplatform.NativeCleanBuildPerformanceTest;clean assemble (native);mediumCppApp;linux;226000
+org.gradle.performance.regression.nativeplatform.NativeCleanBuildPerformanceTest;clean assemble (native);mediumCppAppWithMacroIncludes;linux;234000
+org.gradle.performance.regression.nativeplatform.NativeCleanBuildPerformanceTest;clean assemble (native);bigCppApp;linux;509000
+org.gradle.performance.regression.nativeplatform.NativeCleanBuildPerformanceTest;clean assemble (native);smallCppMulti;linux;320000
+org.gradle.performance.regression.nativeplatform.NativeCleanBuildPerformanceTest;clean assemble (native);mediumCppMulti;linux;488000
+org.gradle.performance.regression.nativeplatform.NativeCleanBuildPerformanceTest;clean assemble (native);mediumCppMultiWithMacroIncludes;linux;481000
+org.gradle.performance.regression.nativeplatform.NativeCleanBuildPerformanceTest;clean assemble (native);bigCppMulti;linux;1492000
+org.gradle.performance.regression.nativeplatform.NativeCleanBuildPerformanceTest;clean assemble (native, parallel);manyProjectsNative;linux;696000

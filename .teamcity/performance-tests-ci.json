@@ -1324,6 +1324,94 @@
                     }
                 }
             ]
+        },
+        {
+            "testId" : "org.gradle.performance.regression.nativeplatform.NativeCleanBuildPerformanceTest.clean assemble (native)",
+            "groups" : [
+                {
+                    "testProject" : "smallNative",
+                    "coverage" : {
+                        "slow":  ["linux"]
+                    }
+                },
+                {
+                    "testProject" : "mediumNative",
+                    "coverage" : {
+                        "slow":  ["linux"]
+                    }
+                },
+                {
+                    "testProject" : "bigNative",
+                    "coverage" : {
+                        "slow":  ["linux"]
+                    }
+                },
+                {
+                    "testProject" : "multiNative",
+                    "coverage" : {
+                        "slow":  ["linux"]
+                    }
+                },
+                {
+                    "testProject" : "smallCppApp",
+                    "coverage" : {
+                        "slow":  ["linux"]
+                    }
+                },
+                {
+                    "testProject" : "mediumCppApp",
+                    "coverage" : {
+                        "slow":  ["linux"]
+                    }
+                },
+                {
+                    "testProject" : "mediumCppAppWithMacroIncludes",
+                    "coverage" : {
+                        "slow":  ["linux"]
+                    }
+                },
+                {
+                    "testProject" : "bigCppApp",
+                    "coverage" : {
+                        "slow":  ["linux"]
+                    }
+                },
+                {
+                    "testProject" : "smallCppMulti",
+                    "coverage" : {
+                        "slow":  ["linux"]
+                    }
+                },
+                {
+                    "testProject" : "mediumCppMulti",
+                    "coverage" : {
+                        "slow":  ["linux"]
+                    }
+                },
+                {
+                    "testProject" : "mediumCppMultiWithMacroIncludes",
+                    "coverage" : {
+                        "slow":  ["linux"]
+                    }
+                },
+                {
+                    "testProject" : "bigCppMulti",
+                    "coverage" : {
+                        "slow":  ["linux"]
+                    }
+                }
+            ]
+        },
+        {
+            "testId" : "org.gradle.performance.regression.nativeplatform.NativeCleanBuildPerformanceTest.clean assemble (native, parallel)",
+            "groups" : [
+                {
+                    "testProject" : "manyProjectsNative",
+                    "coverage" : {
+                        "slow":  ["linux"]
+                    }
+                }
+            ]
         }
     ]
 }
