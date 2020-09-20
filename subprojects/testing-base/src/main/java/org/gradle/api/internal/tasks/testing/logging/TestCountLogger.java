@@ -25,8 +25,6 @@ import org.gradle.util.TextUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nullable;
-
 public class TestCountLogger implements TestListener {
     private final ProgressLoggerFactory factory;
     private ProgressLogger progressLogger;
@@ -35,7 +33,7 @@ public class TestCountLogger implements TestListener {
     private long totalTests;
     private long failedTests;
     private long skippedTests;
-    private TestResult rootSuiteResult;
+    private boolean hadFailures;
 
     public TestCountLogger(ProgressLoggerFactory factory) {
         this(factory, LoggerFactory.getLogger(TestCountLogger.class));
@@ -97,16 +95,22 @@ public class TestCountLogger implements TestListener {
     @Override
     public void afterSuite(TestDescriptor suite, TestResult result) {
         if (suite.getParent() == null) {
-            rootSuiteResult = result;
             if (failedTests > 0) {
                 logger.error(TextUtil.getPlatformLineSeparator() + summary());
             }
             progressLogger.completed();
+
+            if (result.getResultType() == TestResult.ResultType.FAILURE) {
+                hadFailures = true;
+            }
         }
     }
 
-    @Nullable
-    public TestResult getRootSuiteResult() {
-        return rootSuiteResult;
+    public boolean hadFailures() {
+        return hadFailures;
+    }
+
+    public long getTotalTests() {
+        return totalTests;
     }
 }

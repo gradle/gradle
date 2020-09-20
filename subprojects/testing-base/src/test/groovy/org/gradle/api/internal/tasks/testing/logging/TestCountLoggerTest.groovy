@@ -115,20 +115,26 @@ class TestCountLoggerTest extends Specification {
         1 * progressLogger.completed()
     }
 
-    def "remembers root suite result"() {
+    def "remembers whether any root suite reported failure and sums up total tests"() {
         when:
         logger.beforeSuite(rootSuite)
+        logger.beforeTest(test())
+        logger.afterTest(test(), result())
         logger.afterSuite(rootSuite, result())
 
         then:
-        logger.rootSuiteResult.resultType != TestResult.ResultType.FAILURE
+        !logger.hadFailures()
+        logger.totalTests == 1
 
         when:
         logger.beforeSuite(rootSuite)
+        logger.beforeTest(test())
+        logger.afterTest(test(), result())
         logger.afterSuite(rootSuite, result(true))
 
         then:
-        logger.rootSuiteResult.resultType == TestResult.ResultType.FAILURE
+        logger.hadFailures()
+        logger.totalTests == 2
     }
 
     private test() {

@@ -79,7 +79,6 @@ import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
 import org.gradle.util.ClosureBackedAction;
 import org.gradle.util.ConfigureUtil;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.util.HashMap;
@@ -489,13 +488,13 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
 
         createReporting(results, testOutputStore);
 
-        handleRootSuiteResult(testCountLogger.getRootSuiteResult());
+        handleCollectedResults(testCountLogger);
     }
 
-    private void handleRootSuiteResult(@Nullable TestResult result) {
-        if (result != null && result.getResultType() == TestResult.ResultType.FAILURE) {
+    private void handleCollectedResults(TestCountLogger testCountLogger) {
+        if (testCountLogger.hadFailures()) {
             handleTestFailures();
-        } else if (result != null && result.getTestCount() == 0 && shouldFailOnNoMatchingTests()) {
+        } else if (testCountLogger.getTotalTests() == 0 && shouldFailOnNoMatchingTests()) {
             throw new TestExecutionException(createNoMatchingTestErrorMessage());
         }
     }
