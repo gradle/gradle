@@ -1412,6 +1412,23 @@
                     }
                 }
             ]
+        },
+        {
+            "testId" : "org.gradle.performance.regression.nativeplatform.SwiftCleanBuildPerformanceTest.clean assemble (swift)",
+            "groups" : [
+                {
+                    "testProject" : "mediumSwiftMulti",
+                    "coverage" : {
+                        "slow":  ["linux"]
+                    }
+                },
+                {
+                    "testProject" : "bigSwiftApp",
+                    "coverage" : {
+                        "slow":  ["linux"]
+                    }
+                }
+            ]
         }
     ]
 }

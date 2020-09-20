@@ -162,3 +162,5 @@ org.gradle.performance.regression.nativeplatform.NativeCleanBuildPerformanceTest
 org.gradle.performance.regression.nativeplatform.NativeCleanBuildPerformanceTest;clean assemble (native);mediumCppMultiWithMacroIncludes;linux;481000
 org.gradle.performance.regression.nativeplatform.NativeCleanBuildPerformanceTest;clean assemble (native);bigCppMulti;linux;1492000
 org.gradle.performance.regression.nativeplatform.NativeCleanBuildPerformanceTest;clean assemble (native, parallel);manyProjectsNative;linux;696000
+org.gradle.performance.regression.nativeplatform.SwiftCleanBuildPerformanceTest;clean assemble (swift);mediumSwiftMulti;linux;1060000
+org.gradle.performance.regression.nativeplatform.SwiftCleanBuildPerformanceTest;clean assemble (swift);bigSwiftApp;linux;734000

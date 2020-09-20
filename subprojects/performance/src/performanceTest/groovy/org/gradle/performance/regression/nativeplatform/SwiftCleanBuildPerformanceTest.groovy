@@ -22,7 +22,6 @@ import org.gradle.performance.categories.SlowPerformanceRegressionTest
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.experimental.categories.Category
-import spock.lang.Unroll
 
 @Category(SlowPerformanceRegressionTest)
 @Requires(TestPrecondition.LINUX)
@@ -34,24 +33,17 @@ class SwiftCleanBuildPerformanceTest extends AbstractCrossVersionPerformanceTest
         runner.args += ["--parallel", "--${ParallelismBuildOptions.MaxWorkersOption.LONG_OPTION}=6"]
     }
 
-    @Unroll
-    def "clean assemble on #testProject"() {
+    def "clean assemble (swift)"() {
         given:
-        runner.testProject = testProject
         runner.tasksToRun = ["assemble"]
         runner.cleanTasks = ["clean"]
-        runner.gradleOpts = ["-Xms$maxMemory", "-Xmx$maxMemory"]
+        runner.gradleOpts = runner.projectMemoryOptions
 
         when:
         def result = runner.run()
 
         then:
         result.assertCurrentVersionHasNotRegressed()
-
-        where:
-        testProject        | maxMemory
-        'mediumSwiftMulti' | '1G'
-        'bigSwiftApp'      | '1G'
     }
 
 }
