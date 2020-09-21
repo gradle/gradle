@@ -116,9 +116,6 @@ class ExecuteActionsTaskExecuterTest extends Specification {
     def fingerprinterRegistry = Stub(FileCollectionFingerprinterRegistry) {
         getFingerprinter(_) >> fingerprinter
     }
-    def taskSnapshotter = Stub(TaskSnapshotter) {
-        snapshotTaskFiles(task, _) >> ImmutableSortedMap.of()
-    }
     def executionHistoryStore = Mock(ExecutionHistoryStore)
     def buildId = UniqueId.generate()
 
@@ -165,13 +162,13 @@ class ExecuteActionsTaskExecuterTest extends Specification {
     def executer = new ExecuteActionsTaskExecuter(
         ExecuteActionsTaskExecuter.BuildCacheState.DISABLED,
         ExecuteActionsTaskExecuter.ScanPluginState.NOT_APPLIED,
-        taskSnapshotter,
         executionHistoryStore,
         buildOperationExecutorForTaskExecution,
         asyncWorkTracker,
         actionListener,
         taskCacheabilityResolver,
         fingerprinterRegistry,
+        fileCollectionSnapshotter,
         classloaderHierarchyHasher,
         workExecutor,
         listenerManager,
