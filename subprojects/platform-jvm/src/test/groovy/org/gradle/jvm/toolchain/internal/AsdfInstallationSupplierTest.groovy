@@ -29,7 +29,7 @@ import static org.gradle.api.internal.file.TestFiles.systemSpecificAbsolutePath
 class AsdfInstallationSupplierTest extends Specification {
 
     @Rule
-    public final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass());
+    public final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
 
     def asdfHomeDirectory = temporaryFolder.createDir("asdf")
 
@@ -82,7 +82,7 @@ class AsdfInstallationSupplierTest extends Specification {
 
     def "supplies no installations for all empty directories"() {
         given:
-        def supplier = createSupplier(asdfHomeDirectory.absolutePath, asdfHomeDirectory.absolutePath, asdfHomeDirectory.absolutePath)
+        def supplier = createSupplier(asdfHomeDirectory.absolutePath, asdfHomeDirectory.absolutePath)
 
         when:
         def directories = supplier.get()
@@ -104,23 +104,10 @@ class AsdfInstallationSupplierTest extends Specification {
         directories*.source == ["asdf-vm"]
     }
 
-    def "supplies single installations for single candidate in ASDF_DATA_DIR"() {
-        given:
-        asdfHomeDirectory.createDir("installs/java/11.0.6.hs-adpt")
-        def supplier = createSupplier(asdfHomeDirectory.absolutePath, null, null)
-
-        when:
-        def directories = supplier.get()
-
-        then:
-        directoriesAsStablePaths(directories) == stablePaths([new File(asdfHomeDirectory, "installs/java/11.0.6.hs-adpt").absolutePath])
-        directories*.source == ["asdf-vm"]
-    }
-
     def "supplies single installations for single candidate in user.home"() {
         given:
         asdfHomeDirectory.createDir(".asdf/installs/java/11.0.6.hs-adpt")
-        def supplier = createSupplier(null, null, asdfHomeDirectory.absolutePath)
+        def supplier = createSupplier(null, asdfHomeDirectory.absolutePath)
 
         when:
         def directories = supplier.get()
@@ -182,23 +169,13 @@ class AsdfInstallationSupplierTest extends Specification {
         new AsdfInstallationSupplier(createProviderFactory(propertyValue))
     }
 
-    AsdfInstallationSupplier createSupplier(String asdfDataDir, String asdfDir, String userHome) {
-        new AsdfInstallationSupplier(createProviderFactory(asdfDataDir, asdfDir, userHome))
+    AsdfInstallationSupplier createSupplier(String asdfDataDir, String userHome) {
+        new AsdfInstallationSupplier(createProviderFactory(asdfDataDir, userHome))
     }
 
-    ProviderFactory createProviderFactory(String propertyValue) {
-        def providerFactory = Mock(ProviderFactory)
-        providerFactory.environmentVariable("ASDF_DIR") >> Providers.ofNullable(propertyValue)
-        providerFactory.environmentVariable("ASDF_DATA_DIR") >> Providers.notDefined()
-        providerFactory.systemProperty("user.home") >> Providers.notDefined()
-        providerFactory.gradleProperty("org.gradle.java.installations.auto-detect") >> Providers.ofNullable(null)
-        providerFactory
-    }
-
-    ProviderFactory createProviderFactory(String asdfDataDir, String asdfDir, String userHome) {
+    ProviderFactory createProviderFactory(String asdfDataDir, String userHome = null) {
         def providerFactory = Mock(ProviderFactory)
         providerFactory.environmentVariable("ASDF_DATA_DIR") >> Providers.ofNullable(asdfDataDir)
-        providerFactory.environmentVariable("ASDF_DIR") >> Providers.ofNullable(asdfDir)
         providerFactory.systemProperty("user.home") >> Providers.ofNullable(userHome)
         providerFactory.gradleProperty("org.gradle.java.installations.auto-detect") >> Providers.ofNullable(null)
         providerFactory
