@@ -78,8 +78,6 @@ object PropertyNames {
 
 object Config {
 
-    val baseLineList = listOf("1.1", "1.12", "2.0", "2.1", "2.4", "2.9", "2.12", "2.14.1", "last").toString()
-
     const val performanceTestScenarioListFileName = "performance-tests/scenario-list.csv"
 
     const val performanceTestReportsDir = "performance-tests/report"
@@ -342,7 +340,6 @@ class PerformanceTestPlugin : Plugin<Project> {
         }
         create("distributedHistoricalPerformanceTest", DistributedPerformanceTest::class) {
             excludeCategories(performanceExperimentCategory)
-            baselines.set(Config.baseLineList)
             checks = "none"
             channel = "historical$channelSuffix"
         }
