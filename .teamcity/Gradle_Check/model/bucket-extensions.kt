@@ -35,7 +35,8 @@ fun <T, R> splitIntoBuckets(
     smallElementAggregateFunction: (List<T>) -> R,
     expectedBucketNumber: Int,
     maxNumberInBucket: Int,
-    noElementSplitFunction: (Int) -> List<R> = { throw IllegalArgumentException("More buckets than things to split") }
+    noElementSplitFunction: (Int) -> List<R> = { throw IllegalArgumentException("More buckets than things to split") },
+    canRunTogether: (T, T) -> Boolean = { _, _ -> true }
 ): List<R> {
     if (expectedBucketNumber == 1) {
         return listOf(smallElementAggregateFunction(list))
@@ -52,16 +53,17 @@ fun <T, R> splitIntoBuckets(
 
     return if (largestElementSize >= expectedBucketSize) {
         val bucketsOfFirstElement = largeElementSplitFunction(largestElement, if (largestElementSize % expectedBucketSize == 0) largestElementSize / expectedBucketSize else largestElementSize / expectedBucketSize + 1)
-        val bucketsOfRestElements = splitIntoBuckets(list, toIntFunction, largeElementSplitFunction, smallElementAggregateFunction, expectedBucketNumber - bucketsOfFirstElement.size, maxNumberInBucket, noElementSplitFunction)
+        val bucketsOfRestElements = splitIntoBuckets(list, toIntFunction, largeElementSplitFunction, smallElementAggregateFunction, expectedBucketNumber - bucketsOfFirstElement.size, maxNumberInBucket, noElementSplitFunction, canRunTogether)
         bucketsOfFirstElement + bucketsOfRestElements
     } else {
         val buckets = arrayListOf(largestElement)
         var restCapacity = expectedBucketSize - toIntFunction(largestElement)
         while (restCapacity > 0 && list.isNotEmpty() && buckets.size < maxNumberInBucket) {
-            val smallestElement = list.removeLast()
+            val smallestElement = list.findLast { canRunTogether(largestElement, it) } ?: break
+            list.remove(smallestElement)
             buckets.add(smallestElement)
             restCapacity -= toIntFunction(smallestElement)
         }
-        listOf(smallElementAggregateFunction(buckets)) + splitIntoBuckets(list, toIntFunction, largeElementSplitFunction, smallElementAggregateFunction, expectedBucketNumber - 1, maxNumberInBucket, noElementSplitFunction)
+        listOf(smallElementAggregateFunction(buckets)) + splitIntoBuckets(list, toIntFunction, largeElementSplitFunction, smallElementAggregateFunction, expectedBucketNumber - 1, maxNumberInBucket, noElementSplitFunction, canRunTogether)
     }
 }

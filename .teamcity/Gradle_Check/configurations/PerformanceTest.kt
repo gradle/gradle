@@ -63,7 +63,7 @@ class PerformanceTest(model: CIBuildModel, type: PerformanceTestType, stage: Sta
                 workingDir = os.perfTestWorkingDir
                 gradleParams = (
                     performanceTestCommandLine(
-                        "clean ${performanceTestTaskNames.joinToString(" ") { "$it --channel %performance.channel%" }}",
+                        "clean ${performanceTestTaskNames.joinToString(" ") { "$it --channel %performance.channel% ${type.extraParameters}" }}",
                         "%performance.baselines%",
                         extraParameters,
                         os
