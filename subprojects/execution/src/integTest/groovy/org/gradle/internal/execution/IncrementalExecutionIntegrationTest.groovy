@@ -21,7 +21,6 @@ import com.google.common.collect.ImmutableSortedMap
 import com.google.common.collect.Iterables
 import com.google.common.collect.Maps
 import org.gradle.api.internal.file.TestFiles
-import org.gradle.caching.internal.CacheableEntity
 import org.gradle.caching.internal.controller.BuildCacheController
 import org.gradle.internal.execution.caching.CachingDisabledReason
 import org.gradle.internal.execution.history.ExecutionHistoryStore
@@ -841,11 +840,6 @@ class IncrementalExecutionIntegrationTest extends Specification {
                 @Override
                 String getIdentity() {
                     "myId"
-                }
-
-                @Override
-                void visitOutputTrees(CacheableEntity.CacheableTreeVisitor visitor) {
-                    throw new UnsupportedOperationException()
                 }
 
                 @Override

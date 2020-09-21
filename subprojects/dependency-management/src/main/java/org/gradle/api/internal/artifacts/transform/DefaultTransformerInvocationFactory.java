@@ -436,12 +436,6 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
         }
 
         @Override
-        public void visitOutputTrees(CacheableTreeVisitor visitor) {
-            visitor.visitOutputTree(OUTPUT_DIRECTORY_PROPERTY_NAME, TreeType.DIRECTORY, workspace.getOutputDirectory());
-            visitor.visitOutputTree(RESULTS_FILE_PROPERTY_NAME, TreeType.FILE, workspace.getResultsFile());
-        }
-
-        @Override
         public String getDisplayName() {
             return transformer.getDisplayName() + ": " + inputArtifact;
         }

@@ -25,7 +25,6 @@ import kotlinx.metadata.jvm.JvmMethodSignature
 import org.gradle.api.Project
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.caching.internal.CacheableEntity
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.execution.CachingResult
@@ -192,11 +191,6 @@ class GeneratePluginAccessors(
     override fun visitOutputProperties(visitor: UnitOfWork.OutputPropertyVisitor) {
         visitor.visitOutputProperty(SOURCES_OUTPUT_PROPERTY, TreeType.DIRECTORY, sourcesOutputDir)
         visitor.visitOutputProperty(CLASSES_OUTPUT_PROPERTY, TreeType.DIRECTORY, classesOutputDir)
-    }
-
-    override fun visitOutputTrees(visitor: CacheableEntity.CacheableTreeVisitor) {
-        visitor.visitOutputTree(SOURCES_OUTPUT_PROPERTY, TreeType.DIRECTORY, sourcesOutputDir)
-        visitor.visitOutputTree(CLASSES_OUTPUT_PROPERTY, TreeType.DIRECTORY, classesOutputDir)
     }
 }
 

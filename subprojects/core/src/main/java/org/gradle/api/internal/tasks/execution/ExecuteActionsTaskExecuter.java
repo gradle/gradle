@@ -42,7 +42,6 @@ import org.gradle.api.internal.tasks.TaskExecuterResult;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskExecutionOutcome;
 import org.gradle.api.internal.tasks.TaskStateInternal;
-import org.gradle.api.internal.tasks.properties.CacheableOutputFilePropertySpec;
 import org.gradle.api.internal.tasks.properties.InputFilePropertySpec;
 import org.gradle.api.internal.tasks.properties.OutputFilePropertySpec;
 import org.gradle.api.internal.tasks.properties.TaskProperties;
@@ -325,21 +324,6 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
                 if (outputFile != null) {
                     visitor.visitOutputProperty(property.getPropertyName(), property.getOutputType(), outputFile);
                 }
-            }
-        }
-
-        @Override
-        public void visitOutputTrees(CacheableTreeVisitor visitor) {
-            for (OutputFilePropertySpec property : context.getTaskProperties().getOutputFileProperties()) {
-                if (!(property instanceof CacheableOutputFilePropertySpec)) {
-                    throw new IllegalStateException("Non-cacheable property: " + property);
-                }
-                File cacheRoot = property.getOutputFile();
-                if (cacheRoot == null) {
-                    continue;
-                }
-
-                visitor.visitOutputTree(property.getPropertyName(), property.getOutputType(), cacheRoot);
             }
         }
 

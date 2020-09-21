@@ -22,7 +22,6 @@ import org.gradle.api.Project
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.cache.internal.CacheKeyBuilder
 import org.gradle.cache.internal.CacheKeyBuilder.CacheKeySpec
-import org.gradle.caching.internal.CacheableEntity
 import org.gradle.internal.classanalysis.AsmConstants.ASM_LEVEL
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
@@ -186,11 +185,6 @@ class GenerateProjectAccessors(
     override fun visitOutputProperties(visitor: UnitOfWork.OutputPropertyVisitor) {
         visitor.visitOutputProperty(SOURCES_OUTPUT_PROPERTY, TreeType.DIRECTORY, sourcesOutputDir)
         visitor.visitOutputProperty(CLASSES_OUTPUT_PROPERTY, TreeType.DIRECTORY, classesOutputDir)
-    }
-
-    override fun visitOutputTrees(visitor: CacheableEntity.CacheableTreeVisitor) {
-        visitor.visitOutputTree(SOURCES_OUTPUT_PROPERTY, TreeType.DIRECTORY, sourcesOutputDir)
-        visitor.visitOutputTree(CLASSES_OUTPUT_PROPERTY, TreeType.DIRECTORY, classesOutputDir)
     }
 }
 
