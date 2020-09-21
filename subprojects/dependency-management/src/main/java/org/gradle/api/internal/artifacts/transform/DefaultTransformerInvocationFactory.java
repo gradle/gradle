@@ -25,6 +25,7 @@ import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.artifacts.transform.TransformationWorkspaceProvider.TransformationWorkspace;
 import org.gradle.api.internal.file.DefaultFileSystemLocation;
+import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.provider.Providers;
@@ -87,6 +88,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
     private final WorkExecutor<ExecutionRequestContext, CachingResult> workExecutor;
     private final ArtifactTransformListener artifactTransformListener;
     private final CachingTransformationWorkspaceProvider immutableTransformationWorkspaceProvider;
+    private final FileCollectionFactory fileCollectionFactory;
     private final ProjectStateRegistry projectStateRegistry;
     private final BuildOperationExecutor buildOperationExecutor;
 
@@ -95,6 +97,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
         FileSystemAccess fileSystemAccess,
         ArtifactTransformListener artifactTransformListener,
         CachingTransformationWorkspaceProvider immutableTransformationWorkspaceProvider,
+        FileCollectionFactory fileCollectionFactory,
         ProjectStateRegistry projectStateRegistry,
         BuildOperationExecutor buildOperationExecutor
     ) {
@@ -102,6 +105,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
         this.fileSystemAccess = fileSystemAccess;
         this.artifactTransformListener = artifactTransformListener;
         this.immutableTransformationWorkspaceProvider = immutableTransformationWorkspaceProvider;
+        this.fileCollectionFactory = fileCollectionFactory;
         this.projectStateRegistry = projectStateRegistry;
         this.buildOperationExecutor = buildOperationExecutor;
     }
@@ -138,6 +142,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
                     inputArtifactSnapshot,
                     dependencies,
                     dependenciesFingerprint,
+                    fileCollectionFactory,
                     inputArtifactFingerprinter,
                     outputFingerprinter
                 );
@@ -160,6 +165,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
         CompleteFileSystemLocationSnapshot inputArtifactSnapshot,
         ArtifactTransformDependencies dependencies,
         CurrentFileCollectionFingerprint dependenciesFingerprint,
+        FileCollectionFactory fileCollectionFactory,
         FileCollectionFingerprinter inputArtifactFingerprinter,
         FileCollectionFingerprinter outputFingerprinter
     ) {
@@ -179,6 +185,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
                         dependencies,
                         dependenciesFingerprint,
                         executionHistoryStore,
+                        fileCollectionFactory,
                         inputArtifactFingerprinter,
                         outputFingerprinter
                     );
@@ -263,11 +270,12 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
         private final TransformationWorkspace workspace;
         private final File inputArtifact;
         private final String identityString;
-        private final ExecutionHistoryStore executionHistoryStore;
         private final CompleteFileSystemLocationSnapshot inputArtifactSnapshot;
         private final ArtifactTransformDependencies dependencies;
         private final CurrentFileCollectionFingerprint dependenciesFingerprint;
 
+        private final ExecutionHistoryStore executionHistoryStore;
+        private final FileCollectionFactory fileCollectionFactory;
         private final FileCollectionFingerprinter inputArtifactFingerprinter;
         private final FileCollectionFingerprinter outputFingerprinter;
 
@@ -284,6 +292,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
             CurrentFileCollectionFingerprint dependenciesFingerprint,
 
             ExecutionHistoryStore executionHistoryStore,
+            FileCollectionFactory fileCollectionFactory,
             FileCollectionFingerprinter inputArtifactFingerprinter,
             FileCollectionFingerprinter outputFingerprinter
         ) {
@@ -295,6 +304,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
             this.identityString = identityString;
             this.executionHistoryStore = executionHistoryStore;
             this.dependencies = dependencies;
+            this.fileCollectionFactory = fileCollectionFactory;
             this.inputArtifactFingerprinter = inputArtifactFingerprinter;
             this.outputFingerprinter = outputFingerprinter;
             this.executionTimer = Time.startTimer();
@@ -389,8 +399,8 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
 
         @Override
         public void visitOutputProperties(OutputPropertyVisitor visitor) {
-            visitor.visitOutputProperty(OUTPUT_DIRECTORY_PROPERTY_NAME, TreeType.DIRECTORY, workspace.getOutputDirectory());
-            visitor.visitOutputProperty(RESULTS_FILE_PROPERTY_NAME, TreeType.FILE, workspace.getResultsFile());
+            visitor.visitOutputProperty(OUTPUT_DIRECTORY_PROPERTY_NAME, TreeType.DIRECTORY, workspace.getOutputDirectory(), fileCollectionFactory.fixed(workspace.getOutputDirectory()));
+            visitor.visitOutputProperty(RESULTS_FILE_PROPERTY_NAME, TreeType.FILE, workspace.getResultsFile(), fileCollectionFactory.fixed(workspace.getResultsFile()));
         }
 
         @Override

@@ -65,11 +65,12 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
 
     def executionHistoryStore = new TestExecutionHistoryStore()
     def fileSystemAccess = TestFiles.fileSystemAccess()
-    def workExecutorTestFixture = new WorkExecutorTestFixture(fileSystemAccess, classloaderHasher, valueSnapshotter)
     def fileCollectionSnapshotter = new DefaultFileCollectionSnapshotter(fileSystemAccess, TestFiles.genericFileTreeSnapshotter(), TestFiles.fileSystem())
+    def workExecutorTestFixture = new WorkExecutorTestFixture(fileSystemAccess, classloaderHasher, fileCollectionSnapshotter, valueSnapshotter)
 
     def transformationWorkspaceProvider = new TestTransformationWorkspaceProvider(immutableTransformsStoreDirectory, executionHistoryStore)
 
+    def fileCollectionFactory = TestFiles.fileCollectionFactory()
     def artifactTransformListener = Mock(ArtifactTransformListener)
     def dependencyFingerprinter = new AbsolutePathFileCollectionFingerprinter(fileCollectionSnapshotter)
     def outputFilesFingerprinter = new OutputFileCollectionFingerprinter(fileCollectionSnapshotter)
@@ -105,6 +106,7 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
         fileSystemAccess,
         artifactTransformListener,
         transformationWorkspaceProvider,
+        fileCollectionFactory,
         projectStateRegistry,
         buildOperationExecutor
     )

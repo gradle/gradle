@@ -18,6 +18,7 @@ package org.gradle.internal.execution;
 
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.Describable;
+import org.gradle.api.file.FileCollection;
 import org.gradle.internal.execution.caching.CachingDisabledReason;
 import org.gradle.internal.execution.caching.CachingState;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
@@ -75,7 +76,7 @@ public interface UnitOfWork extends Describable {
     void visitOutputProperties(OutputPropertyVisitor visitor);
 
     interface OutputPropertyVisitor {
-        void visitOutputProperty(String propertyName, TreeType type, File root);
+        void visitOutputProperty(String propertyName, TreeType type, File root, FileCollection contents);
     }
 
     default void visitLocalState(LocalStateVisitor visitor) {}

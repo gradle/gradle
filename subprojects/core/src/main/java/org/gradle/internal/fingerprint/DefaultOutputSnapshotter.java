@@ -14,35 +14,34 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.execution.impl;
+package org.gradle.internal.fingerprint;
 
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.internal.execution.OutputSnapshotter;
 import org.gradle.internal.execution.UnitOfWork;
-import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
+import org.gradle.internal.snapshot.CompositeFileSystemSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
-import org.gradle.internal.vfs.FileSystemAccess;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.function.Function;
+import java.util.List;
 
 public class DefaultOutputSnapshotter implements OutputSnapshotter {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultOutputSnapshotter.class);
 
-    private final FileSystemAccess fileSystemAccess;
+    private final FileCollectionSnapshotter fileCollectionSnapshotter;
 
-    public DefaultOutputSnapshotter(FileSystemAccess fileSystemAccess) {
-        this.fileSystemAccess = fileSystemAccess;
+    public DefaultOutputSnapshotter(FileCollectionSnapshotter fileCollectionSnapshotter) {
+        this.fileCollectionSnapshotter = fileCollectionSnapshotter;
     }
 
     @Override
     public ImmutableSortedMap<String, FileSystemSnapshot> snapshotOutputs(UnitOfWork work) {
         ImmutableSortedMap.Builder<String, FileSystemSnapshot> builder = ImmutableSortedMap.naturalOrder();
-        work.visitOutputProperties((propertyName, type, root) -> {
+        work.visitOutputProperties((propertyName, type, root, contents) -> {
             LOGGER.debug("Snapshotting property {} for {}", propertyName, work);
-            CompleteFileSystemLocationSnapshot result = fileSystemAccess.read(root.getAbsolutePath(), Function.identity());
-            builder.put(propertyName, result);
+            List<FileSystemSnapshot> results = fileCollectionSnapshotter.snapshot(contents);
+            builder.put(propertyName, CompositeFileSystemSnapshot.of(results));
         });
         return builder.build();
     }

@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.transform;
 
 import org.apache.commons.io.FileUtils;
+import org.gradle.api.internal.file.TestFiles;
 import org.gradle.caching.internal.controller.BuildCacheCommandFactory;
 import org.gradle.caching.internal.controller.BuildCacheController;
 import org.gradle.caching.internal.controller.BuildCacheLoadCommand;
@@ -32,9 +33,10 @@ import org.gradle.internal.execution.OutputSnapshotter;
 import org.gradle.internal.execution.WorkExecutor;
 import org.gradle.internal.execution.history.OutputFilesRepository;
 import org.gradle.internal.execution.history.changes.DefaultExecutionStateChangeDetector;
-import org.gradle.internal.execution.impl.DefaultOutputSnapshotter;
 import org.gradle.internal.execution.timeout.impl.DefaultTimeoutHandler;
 import org.gradle.internal.file.Deleter;
+import org.gradle.internal.fingerprint.DefaultOutputSnapshotter;
+import org.gradle.internal.fingerprint.FileCollectionSnapshotter;
 import org.gradle.internal.fingerprint.overlap.impl.DefaultOverlappingOutputDetector;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.id.UniqueId;
@@ -56,6 +58,7 @@ public class WorkExecutorTestFixture {
     WorkExecutorTestFixture(
         FileSystemAccess fileSystemAccess,
         ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
+        FileCollectionSnapshotter fileCollectionSnapshotter,
         ValueSnapshotter valueSnapshotter
 
     ) {
@@ -99,7 +102,7 @@ public class WorkExecutorTestFixture {
             public void recordOutputs(Iterable<? extends FileSystemSnapshot> outputFileFingerprints) {
             }
         };
-        OutputSnapshotter outputSnapshotter = new DefaultOutputSnapshotter(fileSystemAccess);
+        OutputSnapshotter outputSnapshotter = new DefaultOutputSnapshotter(fileCollectionSnapshotter);
         Deleter deleter = new Deleter() {
             @Override
             public boolean deleteRecursively(File target) {

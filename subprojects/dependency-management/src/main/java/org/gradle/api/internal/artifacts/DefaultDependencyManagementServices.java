@@ -387,6 +387,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 FileSystemAccess fileSystemAccess,
                 ImmutableCachingTransformationWorkspaceProvider transformationWorkspaceProvider,
                 ArtifactTransformListener artifactTransformListener,
+                FileCollectionFactory fileCollectionFactory,
                 ProjectStateRegistry projectStateRegistry,
                 BuildOperationExecutor buildOperationExecutor
         ) {
@@ -395,6 +396,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 fileSystemAccess,
                 artifactTransformListener,
                 transformationWorkspaceProvider,
+                fileCollectionFactory,
                 projectStateRegistry,
                 buildOperationExecutor
             );

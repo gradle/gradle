@@ -16,6 +16,7 @@
 
 package org.gradle.internal.execution.steps
 
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.execution.Result
 import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.file.TreeType
@@ -24,13 +25,15 @@ class CreateOutputsStepTest extends ContextInsensitiveStepSpec {
     def step = new CreateOutputsStep<>(delegate)
 
     def "outputs are created"() {
+        def outputDir = file("outDir")
+        def outputFile = file("parent/outFile")
         when:
         step.execute(context)
 
         then:
         _ * work.visitOutputProperties(_ as UnitOfWork.OutputPropertyVisitor) >> { UnitOfWork.OutputPropertyVisitor visitor ->
-            visitor.visitOutputProperty("dir", TreeType.DIRECTORY, file("outDir"))
-            visitor.visitOutputProperty("file", TreeType.FILE, file("parent/outFile"))
+            visitor.visitOutputProperty("dir", TreeType.DIRECTORY, outputDir, TestFiles.fixed(outputDir))
+            visitor.visitOutputProperty("file", TreeType.FILE, outputFile, TestFiles.fixed(outputFile))
         }
 
         then:

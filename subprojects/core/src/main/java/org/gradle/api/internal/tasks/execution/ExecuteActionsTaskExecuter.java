@@ -322,7 +322,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
             for (OutputFilePropertySpec property : context.getTaskProperties().getOutputFileProperties()) {
                 File outputFile = property.getOutputFile();
                 if (outputFile != null) {
-                    visitor.visitOutputProperty(property.getPropertyName(), property.getOutputType(), outputFile);
+                    visitor.visitOutputProperty(property.getPropertyName(), property.getOutputType(), outputFile, property.getPropertyFiles());
                 }
             }
         }
@@ -347,7 +347,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         @Override
         public Iterable<String> getChangingOutputs() {
             ImmutableList.Builder<String> builder = ImmutableList.builder();
-            visitOutputProperties((propertyName, type, root) -> builder.add(root.getAbsolutePath()));
+            visitOutputProperties((propertyName, type, root, contents) -> builder.add(root.getAbsolutePath()));
             context.getTaskProperties().getDestroyableFiles().forEach(file -> builder.add(file.getAbsolutePath()));
             context.getTaskProperties().getLocalStateFiles().forEach(file -> builder.add(file.getAbsolutePath()));
             return builder.build();

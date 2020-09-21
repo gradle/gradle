@@ -23,6 +23,7 @@ import kotlinx.metadata.KmTypeVisitor
 import kotlinx.metadata.flagsOf
 import kotlinx.metadata.jvm.JvmMethodSignature
 import org.gradle.api.Project
+import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.internal.classpath.ClassPath
@@ -94,6 +95,7 @@ import javax.inject.Inject
  */
 class PluginAccessorClassPathGenerator @Inject constructor(
     private val classLoaderHierarchyHasher: ClassLoaderHierarchyHasher,
+    private val fileCollectionFactory: FileCollectionFactory,
     private val outputFileCollectionFingerprinter: OutputFileCollectionFingerprinter,
     private val workExecutor: WorkExecutor<ExecutionRequestContext, CachingResult>,
     private val workspaceProvider: KotlinDslWorkspaceProvider
@@ -113,6 +115,7 @@ class PluginAccessorClassPathGenerator @Inject constructor(
                     sourcesOutputDir,
                     classesOutputDir,
                     executionHistoryStore,
+                    fileCollectionFactory,
                     outputFileCollectionFingerprinter
                 )
                 workExecutor.execute(object : ExecutionRequestContext {
@@ -136,6 +139,7 @@ class GeneratePluginAccessors(
     private val sourcesOutputDir: File,
     private val classesOutputDir: File,
     private val executionHistoryStore: ExecutionHistoryStore,
+    private val fileCollectionFactory: FileCollectionFactory,
     private val outputFingerprinter: OutputFileCollectionFingerprinter
 ) : UnitOfWork {
 
@@ -189,8 +193,8 @@ class GeneratePluginAccessors(
     override fun visitInputFileProperties(visitor: UnitOfWork.InputFilePropertyVisitor) = Unit
 
     override fun visitOutputProperties(visitor: UnitOfWork.OutputPropertyVisitor) {
-        visitor.visitOutputProperty(SOURCES_OUTPUT_PROPERTY, TreeType.DIRECTORY, sourcesOutputDir)
-        visitor.visitOutputProperty(CLASSES_OUTPUT_PROPERTY, TreeType.DIRECTORY, classesOutputDir)
+        visitor.visitOutputProperty(SOURCES_OUTPUT_PROPERTY, TreeType.DIRECTORY, sourcesOutputDir, fileCollectionFactory.fixed(sourcesOutputDir))
+        visitor.visitOutputProperty(CLASSES_OUTPUT_PROPERTY, TreeType.DIRECTORY, classesOutputDir, fileCollectionFactory.fixed(classesOutputDir))
     }
 }
 

@@ -53,8 +53,8 @@ import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.OutputSnapshotter;
-import org.gradle.internal.execution.impl.DefaultOutputSnapshotter;
 import org.gradle.internal.file.Stat;
+import org.gradle.internal.fingerprint.DefaultOutputSnapshotter;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinter;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry;
 import org.gradle.internal.fingerprint.FileCollectionSnapshotter;
@@ -375,8 +375,8 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
             return new DefaultFileCollectionSnapshotter(fileSystemAccess, genericFileTreeSnapshotter, stat);
         }
 
-        OutputSnapshotter createOutputSnapshotter(FileSystemAccess fileSystemAccess) {
-            return new DefaultOutputSnapshotter(fileSystemAccess);
+        OutputSnapshotter createOutputSnapshotter(FileCollectionSnapshotter fileCollectionSnapshotter) {
+            return new DefaultOutputSnapshotter(fileCollectionSnapshotter);
         }
 
         AbsolutePathFileCollectionFingerprinter createAbsolutePathFileCollectionFingerprinter(FileCollectionSnapshotter fileCollectionSnapshotter) {

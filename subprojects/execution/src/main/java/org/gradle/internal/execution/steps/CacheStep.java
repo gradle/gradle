@@ -182,7 +182,7 @@ public class CacheStep implements Step<IncrementalChangesContext, CurrentSnapsho
 
         @Override
         public void visitOutputTrees(CacheableTreeVisitor visitor) {
-            work.visitOutputProperties((propertyName, type, root) -> visitor.visitOutputTree(propertyName, type, root));
+            work.visitOutputProperties((propertyName, type, root, contents) -> visitor.visitOutputTree(propertyName, type, root));
         }
     }
 }
