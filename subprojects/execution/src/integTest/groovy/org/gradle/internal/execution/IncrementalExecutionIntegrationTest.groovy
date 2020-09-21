@@ -28,6 +28,7 @@ import org.gradle.internal.execution.history.ExecutionHistoryStore
 import org.gradle.internal.execution.history.OutputFilesRepository
 import org.gradle.internal.execution.history.changes.DefaultExecutionStateChangeDetector
 import org.gradle.internal.execution.history.changes.InputChangesInternal
+import org.gradle.internal.execution.impl.DefaultOutputSnapshotter
 import org.gradle.internal.execution.impl.DefaultWorkExecutor
 import org.gradle.internal.execution.steps.BroadcastChangingOutputsStep
 import org.gradle.internal.execution.steps.CaptureStateBeforeExecutionStep
@@ -103,6 +104,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
     def outputFilesRepository = Stub(OutputFilesRepository) {
         isGeneratedByGradle() >> true
     }
+    def outputSnapshotter = new DefaultOutputSnapshotter(fileSystemAccess)
     def valueSnapshotter = new DefaultValueSnapshotter(classloaderHierarchyHasher, null)
     def buildCacheController = Mock(BuildCacheController)
     def buildOperationExecutor = new TestBuildOperationExecutor()
@@ -135,14 +137,14 @@ class IncrementalExecutionIntegrationTest extends Specification {
         new DefaultWorkExecutor<>(
             new LoadExecutionStateStep<>(
             new ValidateStep<>(validationWarningReporter,
-            new CaptureStateBeforeExecutionStep<>(buildOperationExecutor, classloaderHierarchyHasher, valueSnapshotter, overlappingOutputDetector,
+            new CaptureStateBeforeExecutionStep<>(buildOperationExecutor, classloaderHierarchyHasher, outputSnapshotter, overlappingOutputDetector, valueSnapshotter,
             new ResolveCachingStateStep<>(buildCacheController, false,
             new ResolveChangesStep<>(changeDetector,
             new SkipUpToDateStep<>(
             new RecordOutputsStep<>(outputFilesRepository,
             new BroadcastChangingOutputsStep<>(outputChangeListener,
             new StoreExecutionStateStep<>(
-            new SnapshotOutputsStep<>(buildOperationExecutor, buildInvocationScopeId.getId(),
+            new SnapshotOutputsStep<>(buildOperationExecutor, buildInvocationScopeId.getId(), outputSnapshotter,
             new CreateOutputsStep<>(
             new ResolveInputChangesStep<>(
             new CleanupOutputsStep<>(deleter, outputChangeListener,
@@ -799,11 +801,6 @@ class IncrementalExecutionIntegrationTest extends Specification {
                     outputs.forEach { name, spec ->
                         visitor.visitOutputProperty(name, spec.treeType, spec.root)
                     }
-                }
-
-                @Override
-                ImmutableSortedMap<String, FileSystemSnapshot> snapshotOutputs() {
-                    snapshotOutputs(outputs)
                 }
 
                 @Override

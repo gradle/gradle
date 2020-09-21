@@ -28,9 +28,11 @@ import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager;
 import org.gradle.internal.execution.CachingResult;
 import org.gradle.internal.execution.ExecutionRequestContext;
 import org.gradle.internal.execution.OutputChangeListener;
+import org.gradle.internal.execution.OutputSnapshotter;
 import org.gradle.internal.execution.WorkExecutor;
 import org.gradle.internal.execution.history.OutputFilesRepository;
 import org.gradle.internal.execution.history.changes.DefaultExecutionStateChangeDetector;
+import org.gradle.internal.execution.impl.DefaultOutputSnapshotter;
 import org.gradle.internal.execution.timeout.impl.DefaultTimeoutHandler;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.fingerprint.overlap.impl.DefaultOverlappingOutputDetector;
@@ -97,6 +99,7 @@ public class WorkExecutorTestFixture {
             public void recordOutputs(Iterable<? extends FileSystemSnapshot> outputFileFingerprints) {
             }
         };
+        OutputSnapshotter outputSnapshotter = new DefaultOutputSnapshotter(fileSystemAccess);
         Deleter deleter = new Deleter() {
             @Override
             public boolean deleteRecursively(File target) {
@@ -142,6 +145,7 @@ public class WorkExecutorTestFixture {
             new DefaultExecutionStateChangeDetector(),
             outputChangeListener,
             outputFilesRepository,
+            outputSnapshotter,
             new DefaultOverlappingOutputDetector(),
             new DefaultTimeoutHandler(null),
             behaviour -> DeprecationLogger.deprecateBehaviour(behaviour).willBeRemovedInGradle7().undocumented().nagUser(),

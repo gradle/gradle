@@ -23,7 +23,6 @@ import kotlinx.metadata.KmTypeVisitor
 import kotlinx.metadata.flagsOf
 import kotlinx.metadata.jvm.JvmMethodSignature
 import org.gradle.api.Project
-import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.caching.internal.CacheableEntity
@@ -39,11 +38,9 @@ import org.gradle.internal.execution.history.changes.InputChangesInternal
 import org.gradle.internal.file.TreeType
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.fingerprint.FileCollectionFingerprint
-import org.gradle.internal.fingerprint.FileCollectionSnapshotter
 import org.gradle.internal.fingerprint.impl.OutputFileCollectionFingerprinter
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import org.gradle.internal.hash.HashCode
-import org.gradle.internal.snapshot.CompositeFileSystemSnapshot
 import org.gradle.internal.snapshot.FileSystemSnapshot
 import org.gradle.kotlin.dsl.cache.KotlinDslWorkspaceProvider
 import org.gradle.kotlin.dsl.codegen.fileHeader
@@ -98,8 +95,6 @@ import javax.inject.Inject
  */
 class PluginAccessorClassPathGenerator @Inject constructor(
     private val classLoaderHierarchyHasher: ClassLoaderHierarchyHasher,
-    private val fileCollectionFactory: FileCollectionFactory,
-    private val fileCollectionSnapshotter: FileCollectionSnapshotter,
     private val outputFileCollectionFingerprinter: OutputFileCollectionFingerprinter,
     private val workExecutor: WorkExecutor<ExecutionRequestContext, CachingResult>,
     private val workspaceProvider: KotlinDslWorkspaceProvider
@@ -119,8 +114,6 @@ class PluginAccessorClassPathGenerator @Inject constructor(
                     sourcesOutputDir,
                     classesOutputDir,
                     executionHistoryStore,
-                    fileCollectionFactory,
-                    fileCollectionSnapshotter,
                     outputFileCollectionFingerprinter
                 )
                 workExecutor.execute(object : ExecutionRequestContext {
@@ -144,8 +137,6 @@ class GeneratePluginAccessors(
     private val sourcesOutputDir: File,
     private val classesOutputDir: File,
     private val executionHistoryStore: ExecutionHistoryStore,
-    private val fileCollectionFactory: FileCollectionFactory,
-    private val fileCollectionSnapshotter: FileCollectionSnapshotter,
     private val outputFingerprinter: OutputFileCollectionFingerprinter
 ) : UnitOfWork {
 
@@ -189,14 +180,6 @@ class GeneratePluginAccessors(
     ): ImmutableSortedMap<String, CurrentFileCollectionFingerprint> = ImmutableSortedMap.copyOf(
         afterExecutionOutputSnapshots.mapValues { (_, value) -> outputFingerprinter.fingerprint(ImmutableList.of(value)) }
     )
-
-    override fun snapshotOutputs(): ImmutableSortedMap<String, FileSystemSnapshot> {
-        val sourceSnapshots: List<FileSystemSnapshot> = fileCollectionSnapshotter.snapshot(fileCollectionFactory.fixed(sourcesOutputDir))
-        val classesSnapshots: List<FileSystemSnapshot> = fileCollectionSnapshotter.snapshot(fileCollectionFactory.fixed(classesOutputDir))
-        return ImmutableSortedMap.of(
-            SOURCES_OUTPUT_PROPERTY, CompositeFileSystemSnapshot.of(sourceSnapshots),
-            CLASSES_OUTPUT_PROPERTY, CompositeFileSystemSnapshot.of(classesSnapshots))
-    }
 
     override fun visitImplementations(visitor: UnitOfWork.ImplementationVisitor) {
         visitor.visitImplementation(GeneratePluginAccessors::class.java)

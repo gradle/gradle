@@ -74,7 +74,6 @@ import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinter;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry;
-import org.gradle.internal.fingerprint.FileCollectionSnapshotter;
 import org.gradle.internal.fingerprint.impl.AbsolutePathFingerprintingStrategy;
 import org.gradle.internal.fingerprint.impl.DefaultCurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.overlap.OverlappingOutputs;
@@ -84,7 +83,6 @@ import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationRef;
 import org.gradle.internal.operations.RunnableBuildOperation;
-import org.gradle.internal.snapshot.CompositeFileSystemSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.work.AsyncWorkTracker;
 import org.slf4j.Logger;
@@ -127,7 +125,6 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
     private final TaskActionListener actionListener;
     private final TaskCacheabilityResolver taskCacheabilityResolver;
     private final FileCollectionFingerprinterRegistry fingerprinterRegistry;
-    private final FileCollectionSnapshotter fileCollectionSnapshotter;
     private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
     private final WorkExecutor<ExecutionRequestContext, CachingResult> workExecutor;
     private final ListenerManager listenerManager;
@@ -146,7 +143,6 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         TaskActionListener actionListener,
         TaskCacheabilityResolver taskCacheabilityResolver,
         FileCollectionFingerprinterRegistry fingerprinterRegistry,
-        FileCollectionSnapshotter fileCollectionSnapshotter,
         ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
         WorkExecutor<ExecutionRequestContext, CachingResult> workExecutor,
         ListenerManager listenerManager,
@@ -164,7 +160,6 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         this.actionListener = actionListener;
         this.taskCacheabilityResolver = taskCacheabilityResolver;
         this.fingerprinterRegistry = fingerprinterRegistry;
-        this.fileCollectionSnapshotter = fileCollectionSnapshotter;
         this.classLoaderHierarchyHasher = classLoaderHierarchyHasher;
         this.workExecutor = workExecutor;
         this.listenerManager = listenerManager;
@@ -412,17 +407,6 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
                 }
             }
             return InputChangeTrackingStrategy.NONE;
-        }
-
-        @Override
-        public ImmutableSortedMap<String, FileSystemSnapshot> snapshotOutputs() {
-            ImmutableSortedMap.Builder<String, FileSystemSnapshot> builder = ImmutableSortedMap.naturalOrder();
-            visitOutputProperties((propertyName, type, root) -> {
-                LOGGER.debug("Snapshotting property {} for {}", propertyName, task);
-                List<FileSystemSnapshot> result = fileCollectionSnapshotter.snapshot(fileCollectionFactory.fixed(root));
-                builder.put(propertyName, CompositeFileSystemSnapshot.of(result));
-            });
-            return builder.build();
         }
 
         @Override

@@ -25,7 +25,6 @@ import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.artifacts.transform.TransformationWorkspaceProvider.TransformationWorkspace;
 import org.gradle.api.internal.file.DefaultFileSystemLocation;
-import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.provider.Providers;
@@ -46,7 +45,6 @@ import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinter;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry;
-import org.gradle.internal.fingerprint.FileCollectionSnapshotter;
 import org.gradle.internal.fingerprint.OutputNormalizer;
 import org.gradle.internal.fingerprint.overlap.OverlappingOutputs;
 import org.gradle.internal.hash.HashCode;
@@ -57,7 +55,6 @@ import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
-import org.gradle.internal.snapshot.CompositeFileSystemSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
@@ -90,8 +87,6 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
     private final WorkExecutor<ExecutionRequestContext, CachingResult> workExecutor;
     private final ArtifactTransformListener artifactTransformListener;
     private final CachingTransformationWorkspaceProvider immutableTransformationWorkspaceProvider;
-    private final FileCollectionFactory fileCollectionFactory;
-    private final FileCollectionSnapshotter fileCollectionSnapshotter;
     private final ProjectStateRegistry projectStateRegistry;
     private final BuildOperationExecutor buildOperationExecutor;
 
@@ -100,8 +95,6 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
         FileSystemAccess fileSystemAccess,
         ArtifactTransformListener artifactTransformListener,
         CachingTransformationWorkspaceProvider immutableTransformationWorkspaceProvider,
-        FileCollectionFactory fileCollectionFactory,
-        FileCollectionSnapshotter fileCollectionSnapshotter,
         ProjectStateRegistry projectStateRegistry,
         BuildOperationExecutor buildOperationExecutor
     ) {
@@ -109,8 +102,6 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
         this.fileSystemAccess = fileSystemAccess;
         this.artifactTransformListener = artifactTransformListener;
         this.immutableTransformationWorkspaceProvider = immutableTransformationWorkspaceProvider;
-        this.fileCollectionFactory = fileCollectionFactory;
-        this.fileCollectionSnapshotter = fileCollectionSnapshotter;
         this.projectStateRegistry = projectStateRegistry;
         this.buildOperationExecutor = buildOperationExecutor;
     }
@@ -188,8 +179,6 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
                         dependencies,
                         dependenciesFingerprint,
                         executionHistoryStore,
-                        fileCollectionFactory,
-                        fileCollectionSnapshotter,
                         inputArtifactFingerprinter,
                         outputFingerprinter
                     );
@@ -279,8 +268,6 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
         private final ArtifactTransformDependencies dependencies;
         private final CurrentFileCollectionFingerprint dependenciesFingerprint;
 
-        private final FileCollectionFactory fileCollectionFactory;
-        private final FileCollectionSnapshotter fileCollectionSnapshotter;
         private final FileCollectionFingerprinter inputArtifactFingerprinter;
         private final FileCollectionFingerprinter outputFingerprinter;
 
@@ -297,21 +284,17 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
             CurrentFileCollectionFingerprint dependenciesFingerprint,
 
             ExecutionHistoryStore executionHistoryStore,
-            FileCollectionFactory fileCollectionFactory,
-            FileCollectionSnapshotter fileCollectionSnapshotter,
             FileCollectionFingerprinter inputArtifactFingerprinter,
             FileCollectionFingerprinter outputFingerprinter
         ) {
             this.inputArtifactSnapshot = inputArtifactSnapshot;
             this.dependenciesFingerprint = dependenciesFingerprint;
-            this.fileCollectionFactory = fileCollectionFactory;
             this.inputArtifact = inputArtifact;
             this.transformer = transformer;
             this.workspace = workspace;
             this.identityString = identityString;
             this.executionHistoryStore = executionHistoryStore;
             this.dependencies = dependencies;
-            this.fileCollectionSnapshotter = fileCollectionSnapshotter;
             this.inputArtifactFingerprinter = inputArtifactFingerprinter;
             this.outputFingerprinter = outputFingerprinter;
             this.executionTimer = Time.startTimer();
@@ -433,16 +416,6 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
         @Override
         public Iterable<String> getChangingOutputs() {
             return ImmutableList.of(workspace.getOutputDirectory().getAbsolutePath(), workspace.getResultsFile().getAbsolutePath());
-        }
-
-        @Override
-        public ImmutableSortedMap<String, FileSystemSnapshot> snapshotOutputs() {
-            ImmutableSortedMap.Builder<String, FileSystemSnapshot> builder = ImmutableSortedMap.naturalOrder();
-            visitOutputProperties((propertyName, type, root) -> {
-                FileSystemSnapshot snapshot = CompositeFileSystemSnapshot.of(fileCollectionSnapshotter.snapshot(fileCollectionFactory.fixed(root)));
-                builder.put(propertyName, snapshot);
-            });
-            return builder.build();
         }
 
         @Override

@@ -43,6 +43,7 @@ import org.gradle.internal.execution.OutputChangeListener
 import org.gradle.internal.execution.history.AfterPreviousExecutionState
 import org.gradle.internal.execution.history.ExecutionHistoryStore
 import org.gradle.internal.execution.history.changes.DefaultExecutionStateChangeDetector
+import org.gradle.internal.execution.impl.DefaultOutputSnapshotter
 import org.gradle.internal.execution.impl.DefaultWorkExecutor
 import org.gradle.internal.execution.steps.BroadcastChangingOutputsStep
 import org.gradle.internal.execution.steps.CancelExecutionStep
@@ -112,6 +113,7 @@ class ExecuteActionsTaskExecuterTest extends Specification {
 
     def fileSystemAccess = TestFiles.fileSystemAccess()
     def fileCollectionSnapshotter = new DefaultFileCollectionSnapshotter(fileSystemAccess, TestFiles.genericFileTreeSnapshotter(), TestFiles.fileSystem())
+    def outputSnapshotter = new DefaultOutputSnapshotter(fileSystemAccess)
     def fingerprinter = new AbsolutePathFileCollectionFingerprinter(fileCollectionSnapshotter)
     def fingerprinterRegistry = Stub(FileCollectionFingerprinterRegistry) {
         getFingerprinter(_) >> fingerprinter
@@ -146,12 +148,12 @@ class ExecuteActionsTaskExecuterTest extends Specification {
         new LoadExecutionStateStep<>(
         new SkipEmptyWorkStep<>(
         new ValidateStep<>(validationWarningReporter,
-        new CaptureStateBeforeExecutionStep(buildOperationExecutor, classloaderHierarchyHasher, valueSnapshotter, overlappingOutputDetector,
+        new CaptureStateBeforeExecutionStep(buildOperationExecutor, classloaderHierarchyHasher, outputSnapshotter, overlappingOutputDetector, valueSnapshotter,
         new ResolveCachingStateStep(buildCacheController, false,
         new ResolveChangesStep<>(changeDetector,
         new SkipUpToDateStep<>(
         new BroadcastChangingOutputsStep<>(outputChangeListener,
-        new SnapshotOutputsStep<>(buildOperationExecutor, buildId,
+        new SnapshotOutputsStep<>(buildOperationExecutor, buildId, outputSnapshotter,
         new CancelExecutionStep<>(cancellationToken,
         new ResolveInputChangesStep<>(
         new CleanupOutputsStep<>(deleter, outputChangeListener,
@@ -168,7 +170,6 @@ class ExecuteActionsTaskExecuterTest extends Specification {
         actionListener,
         taskCacheabilityResolver,
         fingerprinterRegistry,
-        fileCollectionSnapshotter,
         classloaderHierarchyHasher,
         workExecutor,
         listenerManager,

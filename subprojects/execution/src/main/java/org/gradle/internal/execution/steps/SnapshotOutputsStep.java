@@ -22,6 +22,7 @@ import org.gradle.internal.Try;
 import org.gradle.internal.execution.BeforeExecutionContext;
 import org.gradle.internal.execution.CurrentSnapshotResult;
 import org.gradle.internal.execution.ExecutionOutcome;
+import org.gradle.internal.execution.OutputSnapshotter;
 import org.gradle.internal.execution.Result;
 import org.gradle.internal.execution.Step;
 import org.gradle.internal.execution.UnitOfWork;
@@ -37,15 +38,18 @@ import org.gradle.internal.snapshot.FileSystemSnapshot;
 
 public class SnapshotOutputsStep<C extends BeforeExecutionContext> extends BuildOperationStep<C, CurrentSnapshotResult> {
     private final UniqueId buildInvocationScopeId;
+    private final OutputSnapshotter outputSnapshotter;
     private final Step<? super C, ? extends Result> delegate;
 
     public SnapshotOutputsStep(
         BuildOperationExecutor buildOperationExecutor,
         UniqueId buildInvocationScopeId,
+        OutputSnapshotter outputSnapshotter,
         Step<? super C, ? extends Result> delegate
     ) {
         super(buildOperationExecutor);
         this.buildInvocationScopeId = buildInvocationScopeId;
+        this.outputSnapshotter = outputSnapshotter;
         this.delegate = delegate;
     }
 
@@ -88,7 +92,7 @@ public class SnapshotOutputsStep<C extends BeforeExecutionContext> extends Build
         };
     }
 
-    private static ImmutableSortedMap<String, CurrentFileCollectionFingerprint> captureOutputs(BeforeExecutionContext context) {
+    private ImmutableSortedMap<String, CurrentFileCollectionFingerprint> captureOutputs(BeforeExecutionContext context) {
         UnitOfWork work = context.getWork();
 
         ImmutableSortedMap<String, FileCollectionFingerprint> afterPreviousExecutionStateOutputFingerprints = context.getAfterPreviousExecutionState()
@@ -103,7 +107,7 @@ public class SnapshotOutputsStep<C extends BeforeExecutionContext> extends Build
             .flatMap(BeforeExecutionState::getDetectedOverlappingOutputs)
             .isPresent();
 
-        ImmutableSortedMap<String, FileSystemSnapshot> afterExecutionOutputSnapshots = work.snapshotOutputs();
+        ImmutableSortedMap<String, FileSystemSnapshot> afterExecutionOutputSnapshots = outputSnapshotter.snapshotOutputs(work);
 
         return work.fingerprintAndFilterOutputSnapshots(
             afterPreviousExecutionStateOutputFingerprints,

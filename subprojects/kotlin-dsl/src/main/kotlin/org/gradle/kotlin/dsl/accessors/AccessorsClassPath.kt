@@ -19,15 +19,11 @@ package org.gradle.kotlin.dsl.accessors
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableSortedMap
 import org.gradle.api.Project
-import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.cache.internal.CacheKeyBuilder
-
 import org.gradle.cache.internal.CacheKeyBuilder.CacheKeySpec
 import org.gradle.caching.internal.CacheableEntity
-
 import org.gradle.internal.classanalysis.AsmConstants.ASM_LEVEL
-
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.execution.CachingResult
@@ -40,31 +36,23 @@ import org.gradle.internal.execution.history.changes.InputChangesInternal
 import org.gradle.internal.file.TreeType
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.fingerprint.FileCollectionFingerprint
-import org.gradle.internal.fingerprint.FileCollectionSnapshotter
 import org.gradle.internal.fingerprint.impl.OutputFileCollectionFingerprinter
-
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.Hasher
 import org.gradle.internal.hash.Hashing
-import org.gradle.internal.snapshot.CompositeFileSystemSnapshot
 import org.gradle.internal.snapshot.FileSystemSnapshot
 import org.gradle.kotlin.dsl.cache.KotlinDslWorkspaceProvider
-
 import org.gradle.kotlin.dsl.codegen.fileHeaderFor
 import org.gradle.kotlin.dsl.codegen.kotlinDslPackageName
-
 import org.gradle.kotlin.dsl.concurrent.IO
 import org.gradle.kotlin.dsl.concurrent.withAsynchronousIO
-
 import org.gradle.kotlin.dsl.support.ClassBytesRepository
 import org.gradle.kotlin.dsl.support.appendReproducibleNewLine
 import org.gradle.kotlin.dsl.support.useToRun
-
 import org.jetbrains.kotlin.metadata.ProtoBuf
 import org.jetbrains.kotlin.metadata.ProtoBuf.Visibility
 import org.jetbrains.kotlin.metadata.deserialization.Flags
 import org.jetbrains.kotlin.metadata.jvm.deserialization.JvmProtoBufUtil
-
 import org.jetbrains.org.objectweb.asm.AnnotationVisitor
 import org.jetbrains.org.objectweb.asm.ClassReader
 import org.jetbrains.org.objectweb.asm.ClassVisitor
@@ -72,7 +60,6 @@ import org.jetbrains.org.objectweb.asm.Opcodes.ACC_PUBLIC
 import org.jetbrains.org.objectweb.asm.Opcodes.ACC_SYNTHETIC
 import org.jetbrains.org.objectweb.asm.signature.SignatureReader
 import org.jetbrains.org.objectweb.asm.signature.SignatureVisitor
-
 import java.io.Closeable
 import java.io.File
 import java.util.Optional
@@ -81,8 +68,6 @@ import javax.inject.Inject
 
 class ProjectAccessorsClassPathGenerator @Inject constructor(
     private val cacheKeyBuilder: CacheKeyBuilder,
-    private val fileCollectionFactory: FileCollectionFactory,
-    private val fileCollectionSnapshotter: FileCollectionSnapshotter,
     private val outputFileCollectionFingerprinter: OutputFileCollectionFingerprinter,
     private val projectSchemaProvider: ProjectSchemaProvider,
     private val workExecutor: WorkExecutor<ExecutionRequestContext, CachingResult>,
@@ -113,8 +98,6 @@ class ProjectAccessorsClassPathGenerator @Inject constructor(
                     sourcesOutputDir,
                     classesOutputDir,
                     executionHistoryStore,
-                    fileCollectionFactory,
-                    fileCollectionSnapshotter,
                     outputFileCollectionFingerprinter
                 )
                 workExecutor.execute(object : ExecutionRequestContext {
@@ -149,8 +132,6 @@ class GenerateProjectAccessors(
     private val sourcesOutputDir: File,
     private val classesOutputDir: File,
     private val executionHistoryStore: ExecutionHistoryStore,
-    private val fileCollectionFactory: FileCollectionFactory,
-    private val fileCollectionSnapshotter: FileCollectionSnapshotter,
     private val outputFingerprinter: OutputFileCollectionFingerprinter
 ) : UnitOfWork {
 
@@ -193,14 +174,6 @@ class GenerateProjectAccessors(
     ): ImmutableSortedMap<String, CurrentFileCollectionFingerprint> = ImmutableSortedMap.copyOf(
         afterExecutionOutputSnapshots.mapValues { (_, value) -> outputFingerprinter.fingerprint(ImmutableList.of(value)) }
     )
-
-    override fun snapshotOutputs(): ImmutableSortedMap<String, FileSystemSnapshot> {
-        val sourceSnapshots: List<FileSystemSnapshot> = fileCollectionSnapshotter.snapshot(fileCollectionFactory.fixed(sourcesOutputDir))
-        val classesSnapshots: List<FileSystemSnapshot> = fileCollectionSnapshotter.snapshot(fileCollectionFactory.fixed(classesOutputDir))
-        return ImmutableSortedMap.of(
-            SOURCES_OUTPUT_PROPERTY, CompositeFileSystemSnapshot.of(sourceSnapshots),
-            CLASSES_OUTPUT_PROPERTY, CompositeFileSystemSnapshot.of(classesSnapshots))
-    }
 
     override fun visitImplementations(visitor: UnitOfWork.ImplementationVisitor) {
         visitor.visitImplementation(GenerateProjectAccessors::class.java)

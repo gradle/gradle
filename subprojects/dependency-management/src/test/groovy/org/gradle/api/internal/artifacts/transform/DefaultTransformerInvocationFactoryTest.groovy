@@ -70,7 +70,6 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
 
     def transformationWorkspaceProvider = new TestTransformationWorkspaceProvider(immutableTransformsStoreDirectory, executionHistoryStore)
 
-    def fileCollectionFactory = TestFiles.fileCollectionFactory()
     def artifactTransformListener = Mock(ArtifactTransformListener)
     def dependencyFingerprinter = new AbsolutePathFileCollectionFingerprinter(fileCollectionSnapshotter)
     def outputFilesFingerprinter = new OutputFileCollectionFingerprinter(fileCollectionSnapshotter)
@@ -106,8 +105,6 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
         fileSystemAccess,
         artifactTransformListener,
         transformationWorkspaceProvider,
-        fileCollectionFactory,
-        fileCollectionSnapshotter,
         projectStateRegistry,
         buildOperationExecutor
     )
