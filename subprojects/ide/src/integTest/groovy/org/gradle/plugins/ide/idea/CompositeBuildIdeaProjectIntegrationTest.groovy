@@ -385,13 +385,13 @@ class CompositeBuildIdeaProjectIntegrationTest extends AbstractIntegrationSpec {
         then:
         iprHasModules "buildA.iml",
             "../buildB/buildB.iml",
-            "../buildB/b1/buildB-b1.iml",
             "../buildB/b2/b2.iml",
+            "../buildB/b1/b1.iml",
             "../buildC/buildC.iml",
             "../buildC/b1/buildC-b1.iml",
             "../b1/buildA-b1.iml"
 
-        imlHasDependencies "buildB-b1", "buildC-b1", "buildA-b1"
+        imlHasDependencies "b1", "buildC-b1", "buildA-b1"
     }
 
     @ToBeFixedForConfigurationCache
@@ -483,8 +483,8 @@ class CompositeBuildIdeaProjectIntegrationTest extends AbstractIntegrationSpec {
         iprHasModules([
             "buildA.iml",
             "../buildB/buildB.iml",
-            "../buildB/b1/buildB-b1.iml",
             "../buildB/b2/b2.iml",
+            "../buildB/b1/b1.iml",
             "../buildC/buildC.iml",
             // "../buildC/b1/buildC-b1.iml",
             // "../b1/b1.iml"
@@ -492,7 +492,6 @@ class CompositeBuildIdeaProjectIntegrationTest extends AbstractIntegrationSpec {
 
         // TODO Each of these should have dependencies
         imlHasDependencies(
-            "buildB-b1",
             // "buildC-b1",
             "b1"
         )
