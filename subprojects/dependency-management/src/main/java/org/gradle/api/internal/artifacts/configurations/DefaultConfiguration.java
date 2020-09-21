@@ -25,7 +25,6 @@ import org.gradle.api.Action;
 import org.gradle.api.Describable;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.Project;
 import org.gradle.api.artifacts.ArtifactCollection;
 import org.gradle.api.artifacts.ArtifactView;
 import org.gradle.api.artifacts.ConfigurablePublishArtifact;
@@ -87,9 +86,7 @@ import org.gradle.api.internal.file.FileCollectionStructureVisitor;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.tasks.FailureCollectingTaskDependencyResolveContext;
-import org.gradle.api.internal.tasks.NodeExecutionContext;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
-import org.gradle.api.internal.tasks.WorkNodeAction;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskDependency;
@@ -1854,34 +1851,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         @Override
         public PublishArtifactSet getPublishArtifactSet() {
             return getAllArtifacts();
-        }
-    }
-
-    public static class ResolveGraphAction implements WorkNodeAction {
-        private final DefaultConfiguration configuration;
-
-        public ResolveGraphAction(DefaultConfiguration configuration) {
-            this.configuration = configuration;
-        }
-
-        @Override
-        public String toString() {
-            return "resolve graph for " + configuration;
-        }
-
-        @Nullable
-        @Override
-        public Project getProject() {
-            return configuration.owner.getProject();
-        }
-
-        @Override
-        public void visitDependencies(TaskDependencyResolveContext context) {
-        }
-
-        @Override
-        public void run(NodeExecutionContext context) {
-            configuration.resolveExclusively(ARTIFACTS_RESOLVED);
         }
     }
 }
