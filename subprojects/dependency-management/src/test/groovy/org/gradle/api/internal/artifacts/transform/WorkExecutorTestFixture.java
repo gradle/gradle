@@ -26,6 +26,7 @@ import org.gradle.initialization.DefaultBuildCancellationToken;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager;
 import org.gradle.internal.execution.CachingResult;
+import org.gradle.internal.execution.DefaultOutputSnapshotter;
 import org.gradle.internal.execution.ExecutionRequestContext;
 import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.OutputSnapshotter;
