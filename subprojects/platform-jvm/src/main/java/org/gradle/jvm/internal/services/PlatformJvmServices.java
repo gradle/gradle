@@ -65,10 +65,6 @@ public class PlatformJvmServices extends AbstractPluginServiceRegistry {
     public void registerGlobalServices(ServiceRegistration registration) {
         registration.add(JarBinaryRenderer.class);
         registration.add(VariantAxisCompatibilityFactory.class, DefaultVariantAxisCompatibilityFactory.of(JavaPlatform.class, new DefaultJavaPlatformVariantAxisCompatibility()));
-    }
-
-    @Override
-    public void registerBuildTreeServices(ServiceRegistration registration) {
         registration.add(JavaInstallationProbe.class);
     }
 

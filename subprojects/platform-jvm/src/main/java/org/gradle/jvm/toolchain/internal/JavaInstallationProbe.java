@@ -157,6 +157,7 @@ public class JavaInstallationProbe {
         if (!jdkPath.exists()) {
             return ProbeResult.failure(InstallType.NO_SUCH_DIRECTORY, "No such directory: " + jdkPath);
         }
+        jdkPath = resolveSymlink(jdkPath);
         EnumMap<SysProp, String> metadata = cache.getUnchecked(jdkPath);
         String version = metadata.get(SysProp.VERSION);
         if (UNKNOWN.equals(version)) {
@@ -172,6 +173,14 @@ public class JavaInstallationProbe {
             return ProbeResult.success(InstallType.IS_JDK, metadata);
         }
         return ProbeResult.success(InstallType.IS_JRE, metadata);
+    }
+
+    private File resolveSymlink(File jdkPath) {
+        try {
+            return jdkPath.getCanonicalFile();
+        } catch (IOException e) {
+            return jdkPath;
+        }
     }
 
     private EnumMap<SysProp, String> getCurrentJvmMetadata() {
