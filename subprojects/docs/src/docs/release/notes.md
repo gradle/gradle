@@ -30,7 +30,8 @@ We would like to thank the following community contributors to this release of G
 [Vladimir Sitnikov](https://github.com/vlsi),
 [Stefan Oehme](https://github.com/oehme),
 [Thad House](https://github.com/ThadHouse),
-and [Michał Mlak](https://github.com/Miehau).
+[Michał Mlak](https://github.com/Miehau)
+and [Jochen Schalanda](https://github.com/joschi).
 
 ## Upgrade instructions
 
