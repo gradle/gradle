@@ -42,7 +42,7 @@ class PerformanceTest(
     uuid: String,
     description: String,
     performanceSubProject: String,
-    testProjects: List<String>,
+    val testProjects: List<String>,
     val bucketIndex: Int,
     os: Os = Os.LINUX,
     extraParameters: String = "",
