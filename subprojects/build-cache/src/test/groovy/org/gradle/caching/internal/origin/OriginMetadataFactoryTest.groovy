@@ -34,6 +34,7 @@ class OriginMetadataFactoryTest extends Specification {
 
     def "converts to origin metadata"() {
         entry.identity >> "identity"
+        entry.type >> CacheableEntity
         rootDir.absolutePath >> "root"
         def origin = new Properties()
         def writer = factory.createWriter(entry, 10)
@@ -47,7 +48,7 @@ class OriginMetadataFactoryTest extends Specification {
         origin.load(new ByteArrayInputStream(baos.toByteArray()))
         then:
         origin.identity == "identity"
-        origin.type == entry.getClass().canonicalName
+        origin.type == CacheableEntity.canonicalName
         origin.gradleVersion == "3.0"
         origin.creationTime != null
         origin.executionTime == "10"
