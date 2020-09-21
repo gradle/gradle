@@ -29,7 +29,6 @@ public class AsdfInstallationSupplier extends AutoDetectingInstallationSupplier 
 
     private final Provider<String> asdfDataDir;
     private final Provider<String> asdfUserHome;
-    private final Provider<String> asdfHome;
 
     @Inject
     public AsdfInstallationSupplier(ProviderFactory factory) {
@@ -37,14 +36,12 @@ public class AsdfInstallationSupplier extends AutoDetectingInstallationSupplier 
         asdfDataDir = getEnvironmentProperty("ASDF_DATA_DIR");
         asdfUserHome = getSystemProperty("user.home")
             .map(home -> new File(home, ".asdf").getAbsolutePath());
-        asdfHome = getEnvironmentProperty("ASDF_DIR");
     }
 
     @Override
     protected Set<InstallationLocation> findCandidates() {
         return asdfDataDir.map(findJavaCandidates())
             .orElse(asdfUserHome.map(findJavaCandidates()))
-            .orElse(asdfHome.map(findJavaCandidates()))
             .getOrElse(Collections.emptySet());
     }
 
