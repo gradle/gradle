@@ -289,7 +289,8 @@ enum class PerformanceTestType(val taskId: String, val displayName: String, val 
         displayName = "Performance Test Flakiness Detection",
         timeout = 600,
         defaultBaselines = "flakiness-detection-commit",
-        channel = "flakiness-detection"
+        channel = "flakiness-detection",
+        extraParameters = "--checks none --rerun"
     ),
     historical(
         taskId = "HistoricalPerformanceTest",
