@@ -219,7 +219,7 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
         settingsFile << """
             include 'a', 'b'
         """
-        setupBuildWithSimpleColorTransform()
+        setupBuildWithLegacyColorTransformImplementation()
         buildFile << """
             dependencies.artifactTypes {
                 green {
@@ -320,7 +320,7 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
         withColorVariants(remoteRepo.module("group", "thing1", "1.2")).publish().allowAll()
         withColorVariants(remoteRepo.module("group", "thing2", "1.2")).publish().allowAll()
 
-        setupBuildWithSimpleColorTransform()
+        setupBuildWithLegacyColorTransformImplementation()
         buildFile << """
             repositories {
                 maven {
@@ -385,7 +385,7 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
         settingsFile << """
             include 'a'
         """
-        setupBuildWithSimpleColorTransform()
+        setupBuildWithLegacyColorTransformImplementation()
         buildFile << """
             dependencies.artifactTypes {
                 blue {
@@ -459,7 +459,7 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
             rootProject.name = 'root'
             include 'a'
         """
-        setupBuildWithSimpleColorTransform()
+        setupBuildWithLegacyColorTransformImplementation()
         buildFile << """
             allprojects {
                 task additionalFile(type: FileProducer) {
@@ -882,7 +882,7 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
             include 'producer'
         """
         def buildSrcBuildFile = file("buildSrc/build.gradle")
-        setupBuildWithSimpleColorTransform(buildSrcBuildFile)
+        setupBuildWithLegacyColorTransformImplementation(buildSrcBuildFile)
         buildSrcBuildFile << """
             repositories {
                 maven { url = '${mavenRepo.uri}' }

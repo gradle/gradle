@@ -81,6 +81,7 @@ import java.io.File;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -89,6 +90,7 @@ import static org.gradle.internal.reflect.TypeValidationContext.Severity.WARNING
 public class DefaultTransformer extends AbstractTransformer<TransformAction<?>> {
 
     private final TransformParameters parameterObject;
+    private final ModelContainer<?> owner;
     private final Class<? extends FileNormalizer> fileNormalizer;
     private final Class<? extends FileNormalizer> dependenciesNormalizer;
     private final BuildOperationExecutor buildOperationExecutor;
@@ -127,6 +129,7 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction<?>> 
     ) {
         super(implementationClass, fromAttributes);
         this.parameterObject = parameterObject;
+        this.owner = owner;
         this.isolatedParameters = owner.newCalculatedValue(isolatedParameters);
         this.fileNormalizer = inputArtifactNormalizer;
         this.dependenciesNormalizer = dependenciesNormalizer;
@@ -212,6 +215,17 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction<?>> 
 
     @Override
     public void isolateParameters(FileCollectionFingerprinterRegistry fingerprinterRegistry) {
+        if (!owner.hasMutableState()) {
+            // This may happen when a task visits artifacts using a FileCollection instance created by a different project via a Configuration instance (not a dependencies produced by a different project, these work fine)
+            // There is also a check in DefaultConfiguration that deprecates resolving dependencies via FileCollection instance created by a different project, however that check may not
+            // necessarily be triggered. For example, the configuration may be legitimately resolved by some other task prior to the problematic task running
+            // TODO - hoist this up into configuration file collection visiting (and not when visiting the upstream dependencies of a transform), and deprecate this in Gradle 7.x
+            owner.fromMutableState((Function<Object, Object>) o -> {
+                isolateParameters(fingerprinterRegistry);
+                return null;
+            });
+            return;
+        }
         try {
             isolatedParameters.update(current -> {
                 if (current != null) {
