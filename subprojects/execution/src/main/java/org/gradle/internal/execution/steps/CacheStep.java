@@ -174,6 +174,11 @@ public class CacheStep implements Step<IncrementalChangesContext, CurrentSnapsho
         }
 
         @Override
+        public Class<?> getType() {
+            return work.getClass();
+        }
+
+        @Override
         public String getDisplayName() {
             return work.getDisplayName();
         }
