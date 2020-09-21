@@ -167,8 +167,6 @@ class GeneratePluginAccessors(
 
     override fun getExecutionHistoryStore(): Optional<ExecutionHistoryStore> = Optional.of(executionHistoryStore)
 
-    override fun validate(validationContext: UnitOfWork.WorkValidationContext) = Unit
-
     override fun getChangingOutputs(): Iterable<String> =
         listOf(sourcesOutputDir.absolutePath, classesOutputDir.absolutePath)
 

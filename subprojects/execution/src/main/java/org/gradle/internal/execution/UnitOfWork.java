@@ -89,7 +89,7 @@ public interface UnitOfWork extends CacheableEntity, Describable {
     /**
      * Validate the work definition and configuration.
      */
-    void validate(WorkValidationContext validationContext);
+    default void validate(WorkValidationContext validationContext) {}
 
     interface WorkValidationContext {
         TypeValidationContext createContextFor(Class<?> type, boolean cacheable);

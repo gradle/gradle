@@ -403,10 +403,6 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
         }
 
         @Override
-        public void validate(WorkValidationContext validationContext) {
-        }
-
-        @Override
         public Optional<CachingDisabledReason> shouldDisableCaching(@Nullable OverlappingOutputs detectedOverlappingOutputs) {
             return transformer.isCacheable()
                 ? Optional.empty()
