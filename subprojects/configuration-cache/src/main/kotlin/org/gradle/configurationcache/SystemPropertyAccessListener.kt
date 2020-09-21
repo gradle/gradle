@@ -18,8 +18,8 @@ package org.gradle.configurationcache
 
 import org.gradle.api.InvalidUserCodeException
 import org.gradle.configuration.internal.UserCodeApplicationContext
-import org.gradle.configurationcache.problems.ConfigurationCacheProblems
 import org.gradle.configurationcache.problems.DocumentationSection.RequirementsUndeclaredSysPropRead
+import org.gradle.configurationcache.problems.ProblemsListener
 import org.gradle.configurationcache.problems.PropertyProblem
 import org.gradle.configurationcache.problems.StructuredMessage
 import org.gradle.configurationcache.problems.location
@@ -64,7 +64,7 @@ val allowedProperties = setOf(
 
 
 class SystemPropertyAccessListener(
-    private val problems: ConfigurationCacheProblems,
+    private val problems: ProblemsListener,
     private val userCodeContext: UserCodeApplicationContext,
     listenerManager: ListenerManager
 ) : Instrumented.Listener {

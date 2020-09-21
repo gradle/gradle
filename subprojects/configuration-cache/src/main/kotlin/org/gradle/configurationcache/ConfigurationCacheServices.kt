@@ -25,6 +25,7 @@ import org.gradle.configurationcache.initialization.DefaultConfigurationCachePro
 import org.gradle.configurationcache.initialization.DefaultInjectedClasspathInstrumentationStrategy
 import org.gradle.configurationcache.initialization.NoOpConfigurationCacheProblemsListener
 import org.gradle.configurationcache.problems.ConfigurationCacheProblems
+import org.gradle.configurationcache.problems.ProblemsListener
 import org.gradle.configurationcache.serialization.beans.BeanConstructors
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.service.ServiceRegistration
@@ -76,7 +77,7 @@ class ConfigurationCacheServices : AbstractPluginServiceRegistry() {
 class BuildServicesProvider {
     fun createConfigurationCacheProblemsListener(
         buildEnablement: ConfigurationCacheBuildEnablement,
-        problemsListener: ConfigurationCacheProblems,
+        problemsListener: ProblemsListener,
         userCodeApplicationContext: UserCodeApplicationContext
     ): ConfigurationCacheProblemsListener {
         return if (buildEnablement.isEnabledForCurrentBuild) {
