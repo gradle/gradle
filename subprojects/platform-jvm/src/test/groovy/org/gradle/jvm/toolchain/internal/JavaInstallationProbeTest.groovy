@@ -17,16 +17,24 @@
 package org.gradle.jvm.toolchain.internal
 
 import org.gradle.api.JavaVersion
+import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.process.ExecResult
 import org.gradle.process.internal.ExecActionFactory
 import org.gradle.process.internal.JavaExecAction
+import org.gradle.test.fixtures.file.TestFile
+import org.gradle.testfixtures.internal.NativeServicesTestFixture
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import spock.lang.Specification
 import spock.lang.Unroll
 
-import static org.gradle.jvm.toolchain.internal.JavaInstallationProbe.InstallType.*
+import static org.gradle.jvm.toolchain.internal.JavaInstallationProbe.InstallType.INVALID_JDK
+import static org.gradle.jvm.toolchain.internal.JavaInstallationProbe.InstallType.IS_JDK
+import static org.gradle.jvm.toolchain.internal.JavaInstallationProbe.InstallType.IS_JRE
+import static org.gradle.jvm.toolchain.internal.JavaInstallationProbe.InstallType.NO_SUCH_DIRECTORY
 
 class JavaInstallationProbeTest extends Specification {
     @Rule
@@ -94,24 +102,44 @@ class JavaInstallationProbeTest extends Specification {
         'oracleJdk4'                          | oracleJvm('4')         | JavaVersion.VERSION_1_4 | 'Oracle JDK 4'        | true   | false | IS_JDK
         'oracleJre4'                          | oracleJvm('4')         | JavaVersion.VERSION_1_4 | 'Oracle JRE 4'        | true   | true  | IS_JRE
         'oracleJdk5'                          | oracleJvm('5')         | JavaVersion.VERSION_1_5 | 'Oracle JDK 5'        | true   | false | IS_JDK
-        'oracleJdk6'                          | oracleJvm('6')         | JavaVersion.VERSION_1_6 | 'Oracle JDK 6'        | true   | false | IS_JDK
-        'oracleJdk7'                          | oracleJvm('7')         | JavaVersion.VERSION_1_7 | 'Oracle JDK 7'        | true   | false | IS_JDK
-        'oracleJdk8'                          | oracleJvm('8')         | JavaVersion.VERSION_1_8 | 'Oracle JDK 8'        | true   | false | IS_JDK
-        'oracleJdk9'                          | oracleJvm('9')         | JavaVersion.VERSION_1_9 | 'Oracle JDK 9'        | true   | false | IS_JDK
-        'oracleJre9'                          | oracleJvm('9')         | JavaVersion.VERSION_1_9 | 'Oracle JRE 9'        | true   | true  | IS_JRE
-        'ibmJdk4'                             | ibmJvm('4')            | JavaVersion.VERSION_1_4 | 'IBM JDK 4'           | true   | false | IS_JDK
-        'ibmJre4'                             | ibmJvm('4')            | JavaVersion.VERSION_1_4 | 'IBM JRE 4'           | true   | true  | IS_JRE
-        'ibmJdk5'                             | ibmJvm('5')            | JavaVersion.VERSION_1_5 | 'IBM JDK 5'           | true   | false | IS_JDK
-        'ibmJdk6'                             | ibmJvm('6')            | JavaVersion.VERSION_1_6 | 'IBM JDK 6'           | true   | false | IS_JDK
-        'ibmJdk7'                             | ibmJvm('7')            | JavaVersion.VERSION_1_7 | 'IBM JDK 7'           | true   | false | IS_JDK
-        'ibmJdk8'                             | ibmJvm('8')            | JavaVersion.VERSION_1_8 | 'IBM JDK 8'           | true   | false | IS_JDK
-        'ibmJdk9'                             | ibmJvm('9')            | JavaVersion.VERSION_1_9 | 'IBM JDK 9'           | true   | false | IS_JDK
-        'zuluJre6'                            | zuluJvm('6')           | JavaVersion.VERSION_1_6 | 'Zulu JRE 6'          | true   | true  | IS_JRE
-        'zuluJdk8'                            | zuluJvm('8')           | JavaVersion.VERSION_1_8 | 'Zulu JDK 8'          | true   | false | IS_JDK
-        'hpuxJre6'                            | hpuxJvm('6')           | JavaVersion.VERSION_1_6 | 'HP-UX JRE 6'         | true   | true  | IS_JRE
-        'hpuxJdk7'                            | hpuxJvm('7')           | JavaVersion.VERSION_1_7 | 'HP-UX JDK 7'         | true   | false | IS_JDK
-        'binary that has invalid output'      | invalidOutput()        | null                    | null                  | true   | false | INVALID_JDK
-        'binary that returns unknown version' | invalidVersion()       | null                    | null                  | true   | false | INVALID_JDK
+        'oracleJdk6'                          | oracleJvm('6')   | JavaVersion.VERSION_1_6 | 'Oracle JDK 6' | true | false | IS_JDK
+        'oracleJdk7'                          | oracleJvm('7')   | JavaVersion.VERSION_1_7 | 'Oracle JDK 7' | true | false | IS_JDK
+        'oracleJdk8'                          | oracleJvm('8')   | JavaVersion.VERSION_1_8 | 'Oracle JDK 8' | true | false | IS_JDK
+        'oracleJdk9'                          | oracleJvm('9')   | JavaVersion.VERSION_1_9 | 'Oracle JDK 9' | true | false | IS_JDK
+        'oracleJre9'                          | oracleJvm('9')   | JavaVersion.VERSION_1_9 | 'Oracle JRE 9' | true | true  | IS_JRE
+        'ibmJdk4'                             | ibmJvm('4')      | JavaVersion.VERSION_1_4 | 'IBM JDK 4'    | true | false | IS_JDK
+        'ibmJre4'                             | ibmJvm('4')      | JavaVersion.VERSION_1_4 | 'IBM JRE 4'    | true | true  | IS_JRE
+        'ibmJdk5'                             | ibmJvm('5')      | JavaVersion.VERSION_1_5 | 'IBM JDK 5'    | true | false | IS_JDK
+        'ibmJdk6'                             | ibmJvm('6')      | JavaVersion.VERSION_1_6 | 'IBM JDK 6'    | true | false | IS_JDK
+        'ibmJdk7'                             | ibmJvm('7')      | JavaVersion.VERSION_1_7 | 'IBM JDK 7'    | true | false | IS_JDK
+        'ibmJdk8'                             | ibmJvm('8')      | JavaVersion.VERSION_1_8 | 'IBM JDK 8'    | true | false | IS_JDK
+        'ibmJdk9'                             | ibmJvm('9')      | JavaVersion.VERSION_1_9 | 'IBM JDK 9'    | true | false | IS_JDK
+        'zuluJre6'                            | zuluJvm('6')     | JavaVersion.VERSION_1_6 | 'Zulu JRE 6'   | true | true  | IS_JRE
+        'zuluJdk8'                            | zuluJvm('8')     | JavaVersion.VERSION_1_8 | 'Zulu JDK 8'   | true | false | IS_JDK
+        'hpuxJre6'                            | hpuxJvm('6')     | JavaVersion.VERSION_1_6 | 'HP-UX JRE 6'  | true | true  | IS_JRE
+        'hpuxJdk7'                            | hpuxJvm('7')     | JavaVersion.VERSION_1_7 | 'HP-UX JDK 7'  | true | false | IS_JDK
+        'binary that has invalid output'      | invalidOutput()  | null                    | null           | true | false | INVALID_JDK
+        'binary that returns unknown version' | invalidVersion() | null                    | null           | true | false | INVALID_JDK
+    }
+
+    @Requires(TestPrecondition.SYMLINKS)
+    def "cached probe are not affecyed by symlink changes"() {
+        given:
+        NativeServicesTestFixture.initialize()
+        def execFactory = Mock(ExecActionFactory)
+        def probe = new JavaInstallationProbe(execFactory)
+        File javaHome1 = Jvm.current().javaHome
+        def link = new TestFile(temporaryFolder.newFolder(), "jdklink")
+        link.createLink(javaHome1)
+
+        when:
+        def probe1 = probe.checkJdk(link)
+        link.createLink(new File("doesntExist"))
+        def probe2 = probe.checkJdk(link)
+
+        then:
+        probe1.javaHome.toString().contains(Jvm.current().javaHome.canonicalPath)
+        probe2.error.contains("No such directory")
     }
 
     private static Map<String, String> invalidOutput() {
