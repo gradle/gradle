@@ -72,4 +72,33 @@ class CompositeBuildSettingsPluginIntegrationTest extends AbstractIntegrationSpe
         then:
         outputContains("test-settings-plugin applied to :nested")
     }
+
+    // this documents the current behavior
+    def "settings plugins in an included build with explicit substitution rules are not seen"() {
+        file("build-src/settings.gradle") << """
+            plugins {
+                id "test-settings-plugin"
+            }
+        """
+
+        def pluginBuilder = new PluginBuilder(file("included-with-settings-plugin"))
+        pluginBuilder.addSettingsPlugin("println 'test-settings-plugin applied to ' + settings.gradle.publicBuildPath.buildPath")
+        pluginBuilder.prepareToExecute()
+
+        settingsFile << """
+            includeBuild("included-with-settings-plugin") {
+                // Includes with substitution rules are not configured during initialization but on demand if explicitly depended on
+                // See: IncludedBuildDependencySubstitutionsBuilder.build()
+                dependencySubstitution {
+                    substitute module('org.sample:my-plugin') with project(':')
+                }
+            }
+            includeBuild("build-src")
+        """
+        when:
+        fails("help")
+
+        then:
+        failure.assertHasDescription("Plugin [id: 'test-settings-plugin'] was not found in any of the following sources:")
+    }
 }
