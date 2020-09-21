@@ -16,8 +16,6 @@
 
 package org.gradle.kotlin.dsl.accessors
 
-import com.google.common.collect.ImmutableList
-import com.google.common.collect.ImmutableSortedMap
 import kotlinx.metadata.Flag
 import kotlinx.metadata.KmTypeVisitor
 import kotlinx.metadata.flagsOf
@@ -36,12 +34,8 @@ import org.gradle.internal.execution.WorkExecutor
 import org.gradle.internal.execution.history.ExecutionHistoryStore
 import org.gradle.internal.execution.history.changes.InputChangesInternal
 import org.gradle.internal.file.TreeType
-import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
-import org.gradle.internal.fingerprint.FileCollectionFingerprint
-import org.gradle.internal.fingerprint.impl.OutputFileCollectionFingerprinter
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import org.gradle.internal.hash.HashCode
-import org.gradle.internal.snapshot.FileSystemSnapshot
 import org.gradle.kotlin.dsl.cache.KotlinDslWorkspaceProvider
 import org.gradle.kotlin.dsl.codegen.fileHeader
 import org.gradle.kotlin.dsl.codegen.fileHeaderFor
@@ -96,7 +90,6 @@ import javax.inject.Inject
 class PluginAccessorClassPathGenerator @Inject constructor(
     private val classLoaderHierarchyHasher: ClassLoaderHierarchyHasher,
     private val fileCollectionFactory: FileCollectionFactory,
-    private val outputFileCollectionFingerprinter: OutputFileCollectionFingerprinter,
     private val workExecutor: WorkExecutor<ExecutionRequestContext, CachingResult>,
     private val workspaceProvider: KotlinDslWorkspaceProvider
 ) {
@@ -115,8 +108,7 @@ class PluginAccessorClassPathGenerator @Inject constructor(
                     sourcesOutputDir,
                     classesOutputDir,
                     executionHistoryStore,
-                    fileCollectionFactory,
-                    outputFileCollectionFingerprinter
+                    fileCollectionFactory
                 )
                 workExecutor.execute(object : ExecutionRequestContext {
                     override fun getWork() = work
@@ -139,8 +131,7 @@ class GeneratePluginAccessors(
     private val sourcesOutputDir: File,
     private val classesOutputDir: File,
     private val executionHistoryStore: ExecutionHistoryStore,
-    private val fileCollectionFactory: FileCollectionFactory,
-    private val outputFingerprinter: OutputFileCollectionFingerprinter
+    private val fileCollectionFactory: FileCollectionFactory
 ) : UnitOfWork {
 
     companion object {
@@ -172,15 +163,6 @@ class GeneratePluginAccessors(
 
     override fun getChangingOutputs(): Iterable<String> =
         listOf(sourcesOutputDir.absolutePath, classesOutputDir.absolutePath)
-
-    override fun fingerprintAndFilterOutputSnapshots(
-        afterPreviousExecutionOutputFingerprints: ImmutableSortedMap<String, FileCollectionFingerprint>,
-        beforeExecutionOutputSnapshots: ImmutableSortedMap<String, FileSystemSnapshot>,
-        afterExecutionOutputSnapshots: ImmutableSortedMap<String, FileSystemSnapshot>,
-        hasDetectedOverlappingOutputs: Boolean
-    ): ImmutableSortedMap<String, CurrentFileCollectionFingerprint> = ImmutableSortedMap.copyOf(
-        afterExecutionOutputSnapshots.mapValues { (_, value) -> outputFingerprinter.fingerprint(ImmutableList.of(value)) }
-    )
 
     override fun visitImplementations(visitor: UnitOfWork.ImplementationVisitor) {
         visitor.visitImplementation(GeneratePluginAccessors::class.java)

@@ -30,11 +30,19 @@ import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
+import org.gradle.internal.fingerprint.impl.DefaultCurrentFileCollectionFingerprint;
 import org.gradle.internal.id.UniqueId;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationType;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
+
+import java.util.Collections;
+
+import static com.google.common.collect.ImmutableSortedMap.copyOfSorted;
+import static com.google.common.collect.Maps.transformEntries;
+import static org.gradle.internal.execution.impl.OutputFilterUtil.filterOutputSnapshotAfterExecution;
+import static org.gradle.internal.fingerprint.impl.AbsolutePathFingerprintingStrategy.IGNORE_MISSING;
 
 public class SnapshotOutputsStep<C extends BeforeExecutionContext> extends BuildOperationStep<C, CurrentSnapshotResult> {
     private final UniqueId buildInvocationScopeId;
@@ -95,7 +103,7 @@ public class SnapshotOutputsStep<C extends BeforeExecutionContext> extends Build
     private ImmutableSortedMap<String, CurrentFileCollectionFingerprint> captureOutputs(BeforeExecutionContext context) {
         UnitOfWork work = context.getWork();
 
-        ImmutableSortedMap<String, FileCollectionFingerprint> afterPreviousExecutionStateOutputFingerprints = context.getAfterPreviousExecutionState()
+        ImmutableSortedMap<String, FileCollectionFingerprint> afterPreviousExecutionOutputFingerprints = context.getAfterPreviousExecutionState()
             .map(AfterPreviousExecutionState::getOutputFileProperties)
             .orElse(ImmutableSortedMap.of());
 
@@ -109,12 +117,23 @@ public class SnapshotOutputsStep<C extends BeforeExecutionContext> extends Build
 
         ImmutableSortedMap<String, FileSystemSnapshot> afterExecutionOutputSnapshots = outputSnapshotter.snapshotOutputs(work);
 
-        return work.fingerprintAndFilterOutputSnapshots(
-            afterPreviousExecutionStateOutputFingerprints,
-            beforeExecutionOutputSnapshots,
+        return copyOfSorted(transformEntries(
             afterExecutionOutputSnapshots,
-            hasDetectedOverlappingOutputs
-        );
+            (propertyName, afterExecutionOutputSnapshot) -> {
+                // This can never be null as it comes from an ImmutableMap's value
+                assert afterExecutionOutputSnapshot != null;
+
+                Iterable<FileSystemSnapshot> filteredSnapshots;
+                if (hasDetectedOverlappingOutputs) {
+                    FileCollectionFingerprint afterLastExecutionFingerprint = afterPreviousExecutionOutputFingerprints.get(propertyName);
+                    FileSystemSnapshot beforeExecutionOutputSnapshot = beforeExecutionOutputSnapshots.get(propertyName);
+                    filteredSnapshots = filterOutputSnapshotAfterExecution(afterLastExecutionFingerprint, beforeExecutionOutputSnapshot, afterExecutionOutputSnapshot);
+                } else {
+                    filteredSnapshots = Collections.singleton(afterExecutionOutputSnapshot);
+                }
+                return DefaultCurrentFileCollectionFingerprint.from(filteredSnapshots, IGNORE_MISSING);
+            }
+        ));
     }
 
     /*

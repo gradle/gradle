@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import org.gradle.api.execution.TaskActionListener;
 import org.gradle.api.execution.TaskExecutionListener;
 import org.gradle.api.file.FileCollection;
@@ -67,14 +66,10 @@ import org.gradle.internal.execution.caching.CachingState;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.history.changes.InputChangesInternal;
-import org.gradle.internal.execution.impl.OutputFilterUtil;
 import org.gradle.internal.file.ReservedFileSystemLocationRegistry;
-import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinter;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry;
-import org.gradle.internal.fingerprint.impl.AbsolutePathFingerprintingStrategy;
-import org.gradle.internal.fingerprint.impl.DefaultCurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.overlap.OverlappingOutputs;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.operations.BuildOperationContext;
@@ -82,7 +77,6 @@ import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationRef;
 import org.gradle.internal.operations.RunnableBuildOperation;
-import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.work.AsyncWorkTracker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -391,32 +385,6 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
                 }
             }
             return InputChangeTrackingStrategy.NONE;
-        }
-
-        @Override
-        public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> fingerprintAndFilterOutputSnapshots(
-            ImmutableSortedMap<String, FileCollectionFingerprint> afterPreviousExecutionOutputFingerprints,
-            ImmutableSortedMap<String, FileSystemSnapshot> beforeExecutionOutputSnapshots,
-            ImmutableSortedMap<String, FileSystemSnapshot> afterExecutionOutputSnapshots,
-            boolean hasDetectedOverlappingOutputs
-        ) {
-            return ImmutableSortedMap.copyOfSorted(
-                Maps.transformEntries(afterExecutionOutputSnapshots, (propertyName, afterExecutionOutputSnapshot) -> {
-                        FileCollectionFingerprint afterLastExecutionFingerprint = afterPreviousExecutionOutputFingerprints.get(propertyName);
-                        FileSystemSnapshot beforeExecutionOutputSnapshot = beforeExecutionOutputSnapshots.get(propertyName);
-                        // This can never be null as it comes from an ImmutableMap's value
-                        assert afterExecutionOutputSnapshot != null;
-                        return fingerprintOutputSnapshot(afterLastExecutionFingerprint, beforeExecutionOutputSnapshot, afterExecutionOutputSnapshot, hasDetectedOverlappingOutputs);
-                    }
-                )
-            );
-        }
-
-        private CurrentFileCollectionFingerprint fingerprintOutputSnapshot(@Nullable FileCollectionFingerprint afterLastExecutionFingerprint, FileSystemSnapshot beforeExecutionOutputSnapshot, FileSystemSnapshot afterExecutionOutputSnapshot, boolean hasOverlappingOutputs) {
-            List<FileSystemSnapshot> roots = hasOverlappingOutputs
-                ? OutputFilterUtil.filterOutputSnapshotAfterExecution(afterLastExecutionFingerprint, beforeExecutionOutputSnapshot, afterExecutionOutputSnapshot)
-                : ImmutableList.of(afterExecutionOutputSnapshot);
-            return DefaultCurrentFileCollectionFingerprint.from(roots, AbsolutePathFingerprintingStrategy.IGNORE_MISSING);
         }
 
         @Override

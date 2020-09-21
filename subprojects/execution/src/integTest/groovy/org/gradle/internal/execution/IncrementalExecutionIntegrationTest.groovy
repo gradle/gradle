@@ -17,7 +17,6 @@
 package org.gradle.internal.execution
 
 import com.google.common.collect.ImmutableList
-import com.google.common.collect.ImmutableSortedMap
 import com.google.common.collect.Iterables
 import com.google.common.collect.Maps
 import org.gradle.api.internal.file.TestFiles
@@ -43,11 +42,8 @@ import org.gradle.internal.execution.steps.SnapshotOutputsStep
 import org.gradle.internal.execution.steps.StoreExecutionStateStep
 import org.gradle.internal.execution.steps.ValidateStep
 import org.gradle.internal.file.TreeType
-import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
-import org.gradle.internal.fingerprint.FileCollectionFingerprint
 import org.gradle.internal.fingerprint.impl.AbsolutePathFileCollectionFingerprinter
 import org.gradle.internal.fingerprint.impl.DefaultFileCollectionSnapshotter
-import org.gradle.internal.fingerprint.impl.OutputFileCollectionFingerprinter
 import org.gradle.internal.fingerprint.overlap.OverlappingOutputs
 import org.gradle.internal.fingerprint.overlap.impl.DefaultOverlappingOutputDetector
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher
@@ -55,7 +51,6 @@ import org.gradle.internal.hash.HashCode
 import org.gradle.internal.id.UniqueId
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId
-import org.gradle.internal.snapshot.FileSystemSnapshot
 import org.gradle.internal.snapshot.impl.DefaultValueSnapshotter
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot
 import org.gradle.internal.vfs.VirtualFileSystem
@@ -82,7 +77,6 @@ class IncrementalExecutionIntegrationTest extends Specification {
     def fileSystemAccess = TestFiles.fileSystemAccess(virtualFileSystem)
     def snapshotter = new DefaultFileCollectionSnapshotter(fileSystemAccess, TestFiles.genericFileTreeSnapshotter(), TestFiles.fileSystem())
     def fingerprinter = new AbsolutePathFileCollectionFingerprinter(snapshotter)
-    def outputFingerprinter = new OutputFileCollectionFingerprinter(snapshotter)
     def executionHistoryStore = new TestExecutionHistoryStore()
     def outputChangeListener = new OutputChangeListener() {
 
@@ -844,25 +838,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
                 String getDisplayName() {
                     "Test unit of work"
                 }
-
-                @Override
-                ImmutableSortedMap<String, CurrentFileCollectionFingerprint> fingerprintAndFilterOutputSnapshots(
-                    ImmutableSortedMap<String, FileCollectionFingerprint> afterPreviousExecutionOutputFingerprints,
-                    ImmutableSortedMap<String, FileSystemSnapshot> beforeExecutionOutputSnapshots,
-                    ImmutableSortedMap<String, FileSystemSnapshot> afterExecutionOutputSnapshots,
-                    boolean hasDetectedOverlappingOutputs
-                ) {
-                    fingerprintOutputs(afterExecutionOutputSnapshots)
-                }
             }
-        }
-
-        private ImmutableSortedMap<String, CurrentFileCollectionFingerprint> fingerprintOutputs(ImmutableSortedMap<String, FileSystemSnapshot> outputSnapshots) {
-            def builder = ImmutableSortedMap.<String, CurrentFileCollectionFingerprint>naturalOrder()
-            outputSnapshots.each { propertyName, snapshot ->
-                builder.put(propertyName, outputFingerprinter.fingerprint([snapshot]))
-            }
-            return builder.build()
         }
     }
 }

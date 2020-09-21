@@ -28,7 +28,6 @@ import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.fingerprint.overlap.OverlappingOutputs;
 import org.gradle.internal.reflect.TypeValidationContext;
-import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 
 import javax.annotation.Nullable;
@@ -158,16 +157,6 @@ public interface UnitOfWork extends Describable {
     default boolean shouldCleanupOutputsOnNonIncrementalExecution() {
         return true;
     }
-
-    /**
-     * Convert to fingerprints and filter out missing roots.
-     */
-    ImmutableSortedMap<String, CurrentFileCollectionFingerprint> fingerprintAndFilterOutputSnapshots(
-        ImmutableSortedMap<String, FileCollectionFingerprint> afterPreviousExecutionOutputFingerprints,
-        ImmutableSortedMap<String, FileSystemSnapshot> beforeExecutionOutputSnapshots,
-        ImmutableSortedMap<String, FileSystemSnapshot> afterExecutionOutputSnapshots,
-        boolean hasDetectedOverlappingOutputs
-    );
 
     enum WorkResult {
         DID_WORK,

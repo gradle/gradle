@@ -21,7 +21,6 @@ import org.gradle.cache.internal.CacheKeyBuilder
 import org.gradle.internal.execution.CachingResult
 import org.gradle.internal.execution.ExecutionRequestContext
 import org.gradle.internal.execution.WorkExecutor
-import org.gradle.internal.fingerprint.impl.OutputFileCollectionFingerprinter
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import org.gradle.kotlin.dsl.cache.KotlinDslWorkspaceProvider
 
@@ -33,13 +32,11 @@ object GradleScopeServices {
     fun createPluginAccessorClassPathGenerator(
         classLoaderHierarchyHasher: ClassLoaderHierarchyHasher,
         fileCollectionFactory: FileCollectionFactory,
-        outputFileCollectionFingerprinter: OutputFileCollectionFingerprinter,
         workExecutor: WorkExecutor<ExecutionRequestContext, CachingResult>,
         workspaceProvider: KotlinDslWorkspaceProvider
     ) = PluginAccessorClassPathGenerator(
         classLoaderHierarchyHasher,
         fileCollectionFactory,
-        outputFileCollectionFingerprinter,
         workExecutor,
         workspaceProvider
     )
@@ -48,14 +45,12 @@ object GradleScopeServices {
     fun createProjectAccessorClassPathGenerator(
         cacheKeyBuilder: CacheKeyBuilder,
         fileCollectionFactory: FileCollectionFactory,
-        outputFileCollectionFingerprinter: OutputFileCollectionFingerprinter,
         projectSchemaProvider: ProjectSchemaProvider,
         workExecutor: WorkExecutor<ExecutionRequestContext, CachingResult>,
         workspaceProvider: KotlinDslWorkspaceProvider
     ) = ProjectAccessorsClassPathGenerator(
         cacheKeyBuilder,
         fileCollectionFactory,
-        outputFileCollectionFingerprinter,
         projectSchemaProvider,
         workExecutor,
         workspaceProvider
