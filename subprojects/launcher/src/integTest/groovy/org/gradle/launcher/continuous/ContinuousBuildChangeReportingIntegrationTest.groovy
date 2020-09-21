@@ -28,7 +28,6 @@ import static org.gradle.internal.filewatch.DefaultFileSystemChangeWaiterFactory
 import static org.gradle.internal.filewatch.DefaultFileWatcherEventListener.SHOW_INDIVIDUAL_CHANGES_LIMIT
 
 // Developer is able to easily determine the file(s) that triggered a rebuild
-@Ignore
 class ContinuousBuildChangeReportingIntegrationTest extends AbstractContinuousIntegrationTest {
     TestFile inputDir
     private static int changesLimit = SHOW_INDIVIDUAL_CHANGES_LIMIT
@@ -86,6 +85,7 @@ class ContinuousBuildChangeReportingIntegrationTest extends AbstractContinuousIn
         assertReportsChanges(inputFiles.collect { new ChangeEntry('new file', it) }, true)
     }
 
+    @Ignore('https://github.com/gradle/gradle-private/issues/3205')
     @Unroll
     def "should report the changes when files are removed with #changesCount"(changesCount) {
         given:
@@ -106,6 +106,7 @@ class ContinuousBuildChangeReportingIntegrationTest extends AbstractContinuousIn
         changesCount << [1, changesLimit, 11]
     }
 
+    @Ignore('https://github.com/gradle/gradle-private/issues/3205')
     @Unroll
     def "should report the changes when files are modified #changesCount"(changesCount) {
         given:
@@ -126,6 +127,7 @@ class ContinuousBuildChangeReportingIntegrationTest extends AbstractContinuousIn
         changesCount << [1, changesLimit, 11]
     }
 
+    @Ignore('https://github.com/gradle/gradle-private/issues/3205')
     @Unroll
     def "should report the changes when directories are created #changesCount"(changesCount) {
         given:
@@ -145,6 +147,7 @@ class ContinuousBuildChangeReportingIntegrationTest extends AbstractContinuousIn
         changesCount << [1, changesLimit, 11]
     }
 
+    @Ignore('https://github.com/gradle/gradle-private/issues/3205')
     @Unroll
     def "should report the changes when directories are deleted #changesCount"(changesCount) {
         given:
