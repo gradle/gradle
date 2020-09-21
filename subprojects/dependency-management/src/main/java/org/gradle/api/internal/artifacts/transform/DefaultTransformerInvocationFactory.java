@@ -179,8 +179,6 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
                     String transformIdentity = "transform/" + identityString;
                     ExecutionHistoryStore executionHistoryStore = workspaceProvider.getExecutionHistoryStore();
 
-                    ImmutableSortedMap<String, FileSystemSnapshot> outputsBeforeExecution = snapshotOutputs(fileCollectionSnapshotter, fileCollectionFactory, workspace);
-
                     TransformerExecution execution = new TransformerExecution(
                         transformer,
                         workspace,
@@ -189,7 +187,6 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
                         inputArtifactSnapshot,
                         dependencies,
                         dependenciesFingerprint,
-                        outputsBeforeExecution,
                         executionHistoryStore,
                         fileCollectionFactory,
                         fileCollectionSnapshotter,
@@ -281,7 +278,6 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
         private final CompleteFileSystemLocationSnapshot inputArtifactSnapshot;
         private final ArtifactTransformDependencies dependencies;
         private final CurrentFileCollectionFingerprint dependenciesFingerprint;
-        private final ImmutableSortedMap<String, FileSystemSnapshot> outputFileSnapshotsBeforeExecution;
 
         private final FileCollectionFactory fileCollectionFactory;
         private final FileCollectionSnapshotter fileCollectionSnapshotter;
@@ -299,7 +295,6 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
             CompleteFileSystemLocationSnapshot inputArtifactSnapshot,
             ArtifactTransformDependencies dependencies,
             CurrentFileCollectionFingerprint dependenciesFingerprint,
-            ImmutableSortedMap<String, FileSystemSnapshot> outputFileSnapshotsBeforeExecution,
 
             ExecutionHistoryStore executionHistoryStore,
             FileCollectionFactory fileCollectionFactory,
@@ -319,7 +314,6 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
             this.fileCollectionSnapshotter = fileCollectionSnapshotter;
             this.inputArtifactFingerprinter = inputArtifactFingerprinter;
             this.outputFingerprinter = outputFingerprinter;
-            this.outputFileSnapshotsBeforeExecution = outputFileSnapshotsBeforeExecution;
             this.executionTimer = Time.startTimer();
             this.inputArtifactProvider = Providers.of(new DefaultFileSystemLocation(inputArtifact));
         }
@@ -443,7 +437,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
 
         @Override
         public ImmutableSortedMap<String, FileSystemSnapshot> snapshotOutputsBeforeExecution() {
-            return outputFileSnapshotsBeforeExecution;
+            return snapshotOutputs(fileCollectionSnapshotter, fileCollectionFactory, workspace);
         }
 
         @Override
