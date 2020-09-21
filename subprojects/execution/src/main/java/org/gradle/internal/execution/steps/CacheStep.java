@@ -76,11 +76,9 @@ public class CacheStep implements Step<IncrementalChangesContext, CurrentSnapsho
     private CurrentSnapshotResult executeWithCache(IncrementalChangesContext context, BuildCacheKey cacheKey) {
         UnitOfWork work = context.getWork();
         CacheableWork cacheableWork = new CacheableWork(work);
-        return Try.ofFailable(() -> {
-                return work.isAllowedToLoadFromCache()
-                        ? buildCache.load(commandFactory.createLoad(cacheKey, cacheableWork))
-                        : Optional.<LoadMetadata>empty();
-            }
+        return Try.ofFailable(() -> work.isAllowedToLoadFromCache()
+                ? buildCache.load(commandFactory.createLoad(cacheKey, cacheableWork))
+                : Optional.<LoadMetadata>empty()
             )
             .map(successfulLoad -> successfulLoad
                 .map(cacheHit -> {
