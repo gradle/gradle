@@ -69,8 +69,11 @@ public class JavaToolchainQueryService {
 
     private JavaToolchain downloadToolchain(JavaToolchainSpec spec) {
         final Optional<File> installation = installService.tryInstall(spec);
-        return installation.map(this::asToolchain).orElseThrow(() ->
-            new NoToolchainAvailableException(spec, detectEnabled.getOrElse(true), downloadEnabled.getOrElse(true)));
+        return installation.map(this::asToolchain).orElseThrow(() -> noToolchainAvailable(spec));
+    }
+
+    private NoToolchainAvailableException noToolchainAvailable(JavaToolchainSpec spec) {
+        return new NoToolchainAvailableException(spec, detectEnabled.getOrElse(true), downloadEnabled.getOrElse(true));
     }
 
     private Predicate<JavaToolchain> matchingToolchain(JavaToolchainSpec spec) {

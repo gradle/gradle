@@ -63,7 +63,7 @@ class SharedJavaInstallationRegistryTest extends Specification {
         registry.listInstallations().containsAll(tempFolder, tmpDir2, tmpDir2)
     }
 
-    def "list of installations is not cached"() {
+    def "list of installations is cached"() {
         given:
         def registry = newRegistry(tempFolder)
 
@@ -72,7 +72,7 @@ class SharedJavaInstallationRegistryTest extends Specification {
         def installations2 = registry.listInstallations()
 
         then:
-        !installations.is(installations2)
+        installations.is(installations2)
     }
 
     @Unroll
