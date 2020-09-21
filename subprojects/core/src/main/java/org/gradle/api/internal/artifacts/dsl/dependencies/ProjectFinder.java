@@ -15,10 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.dsl.dependencies;
 
-import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.project.ProjectInternal;
-
-import javax.annotation.Nullable;
 
 public interface ProjectFinder {
     /**
@@ -28,23 +25,4 @@ public interface ProjectFinder {
      * @return The project belonging to the path, never null.
      */
     ProjectInternal getProject(String path);
-
-    /**
-     * Locates the project with the provided path, or <code>null</code> if not found.
-     *
-     * @param path Can be relative or absolute
-     * @return The project belonging to the path, or null if not found.
-     */
-    @Nullable
-    ProjectInternal findProject(String path);
-
-    /**
-     * Locates the project in the provided build with the provided path, or <code>null</code> if not found.
-     *
-     * @param build The build id of the build containing the project
-     * @param path Needs to be absolute
-     * @return The project belonging to the path in the build, or null if not found.
-     */
-    @Nullable
-    ProjectInternal findProject(BuildIdentifier build, String path);
 }

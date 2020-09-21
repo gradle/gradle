@@ -17,27 +17,13 @@
 package org.gradle.api.internal.artifacts.dsl.dependencies;
 
 import org.gradle.api.UnknownProjectException;
-import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.project.ProjectInternal;
-
-import javax.annotation.Nullable;
 
 public class UnknownProjectFinder implements ProjectFinder {
     private final String exceptionMessage;
 
     public UnknownProjectFinder(String exceptionMessage) {
         this.exceptionMessage = exceptionMessage;
-    }
-
-    @Override
-    public ProjectInternal findProject(String path) {
-        return null;
-    }
-
-    @Nullable
-    @Override
-    public ProjectInternal findProject(BuildIdentifier build, String path) {
-        return null;
     }
 
     @Override
