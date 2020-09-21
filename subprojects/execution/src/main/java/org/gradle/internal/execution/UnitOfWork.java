@@ -84,6 +84,12 @@ public interface UnitOfWork extends Describable {
         void visitLocalStateRoot(File localStateRoot);
     }
 
+    default void visitDestroyableRoots(DestroyableVisitor visitor) {}
+
+    interface DestroyableVisitor {
+        void visitDestroyableRoot(File destroyableRoot);
+    }
+
     long markExecutionTime();
 
     /**
@@ -119,18 +125,6 @@ public interface UnitOfWork extends Describable {
     default boolean isAllowedToLoadFromCache() {
         return true;
     }
-
-    /**
-     * Paths to locations changed by the unit of work.
-     *
-     * <p>
-     * We don't want to invalidate the whole file system mirror for artifact transformations, since I know exactly which parts need to be invalidated.
-     * For tasks though, we still need to invalidate everything.
-     * </p>
-     *
-     * @return {@link Optional#empty()} if the unit of work cannot guarantee that only some files have been changed or an iterable of the paths which were changed by the unit of work.
-     */
-    Iterable<String> getChangingOutputs();
 
     /**
      * Whether overlapping outputs should be allowed or ignored.

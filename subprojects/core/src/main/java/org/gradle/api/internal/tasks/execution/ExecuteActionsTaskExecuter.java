@@ -16,7 +16,6 @@
 package org.gradle.api.internal.tasks.execution;
 
 import com.google.common.collect.ImmutableCollection;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Lists;
@@ -323,8 +322,15 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
 
         @Override
         public void visitLocalState(LocalStateVisitor visitor) {
-            for (File localStateFile : context.getTaskProperties().getLocalStateFiles()) {
-                visitor.visitLocalStateRoot(localStateFile);
+            for (File localStateRoot : context.getTaskProperties().getLocalStateFiles()) {
+                visitor.visitLocalStateRoot(localStateRoot);
+            }
+        }
+
+        @Override
+        public void visitDestroyableRoots(DestroyableVisitor visitor) {
+            for (File destroyableRoot : context.getTaskProperties().getDestroyableFiles()) {
+                visitor.visitDestroyableRoot(destroyableRoot);
             }
         }
 
@@ -336,15 +342,6 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         @Override
         public boolean shouldCleanupOutputsOnNonIncrementalExecution() {
             return getInputChangeTrackingStrategy() == InputChangeTrackingStrategy.INCREMENTAL_PARAMETERS;
-        }
-
-        @Override
-        public Iterable<String> getChangingOutputs() {
-            ImmutableList.Builder<String> builder = ImmutableList.builder();
-            visitOutputProperties((propertyName, type, root, contents) -> builder.add(root.getAbsolutePath()));
-            context.getTaskProperties().getDestroyableFiles().forEach(file -> builder.add(file.getAbsolutePath()));
-            context.getTaskProperties().getLocalStateFiles().forEach(file -> builder.add(file.getAbsolutePath()));
-            return builder.build();
         }
 
         @Override

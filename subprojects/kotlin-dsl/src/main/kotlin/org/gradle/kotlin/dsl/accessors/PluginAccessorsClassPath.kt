@@ -161,9 +161,6 @@ class GeneratePluginAccessors(
 
     override fun getExecutionHistoryStore(): Optional<ExecutionHistoryStore> = Optional.of(executionHistoryStore)
 
-    override fun getChangingOutputs(): Iterable<String> =
-        listOf(sourcesOutputDir.absolutePath, classesOutputDir.absolutePath)
-
     override fun visitImplementations(visitor: UnitOfWork.ImplementationVisitor) {
         visitor.visitImplementation(GeneratePluginAccessors::class.java)
     }

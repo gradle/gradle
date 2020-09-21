@@ -16,8 +16,11 @@
 
 package org.gradle.internal.execution.steps
 
+import org.gradle.api.file.FileCollection
 import org.gradle.internal.execution.OutputChangeListener
 import org.gradle.internal.execution.Result
+import org.gradle.internal.execution.UnitOfWork
+import org.gradle.internal.file.TreeType
 
 class BroadcastChangingOutputsStepTest extends ContextInsensitiveStepSpec {
     def outputChangeListener = Mock(OutputChangeListener)
@@ -25,7 +28,9 @@ class BroadcastChangingOutputsStepTest extends ContextInsensitiveStepSpec {
     def delegateResult = Mock(Result)
 
     def "notifies listener about specific outputs changing"() {
-        def changingOutputs = ["output.txt"]
+        def outputDir = file("output-dir")
+        def localStateDir = file("local-state-dir")
+        def destroyableDir = file("destroyable-dir")
 
         when:
         def result = step.execute(context)
@@ -33,10 +38,22 @@ class BroadcastChangingOutputsStepTest extends ContextInsensitiveStepSpec {
         then:
         result == delegateResult
 
-        _ * work.changingOutputs >> changingOutputs
+        _ * work.visitOutputProperties(_ as UnitOfWork.OutputPropertyVisitor) >> { UnitOfWork.OutputPropertyVisitor visitor ->
+            visitor.visitOutputProperty("output", TreeType.DIRECTORY, outputDir, Mock(FileCollection))
+        }
+        _ * work.visitDestroyableRoots(_ as UnitOfWork.DestroyableVisitor) >> { UnitOfWork.DestroyableVisitor visitor ->
+            visitor.visitDestroyableRoot(destroyableDir)
+        }
+        _ * work.visitLocalState(_ as UnitOfWork.LocalStateVisitor) >> { UnitOfWork.LocalStateVisitor visitor ->
+            visitor.visitLocalStateRoot(localStateDir)
+        }
 
         then:
-        1 * outputChangeListener.beforeOutputChange(changingOutputs)
+        1 * outputChangeListener.beforeOutputChange([
+            outputDir.absolutePath,
+            destroyableDir.absolutePath,
+            localStateDir.absolutePath
+        ])
 
         then:
         1 * delegate.execute(context) >> delegateResult

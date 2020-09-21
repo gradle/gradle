@@ -810,11 +810,6 @@ class IncrementalExecutionIntegrationTest extends Specification {
                 }
 
                 @Override
-                void visitLocalState(UnitOfWork.LocalStateVisitor visitor) {
-                    throw new UnsupportedOperationException()
-                }
-
-                @Override
                 Optional<CachingDisabledReason> shouldDisableCaching(@Nullable OverlappingOutputs detectedOverlappingOutputs) {
                     throw new UnsupportedOperationException()
                 }
@@ -822,11 +817,6 @@ class IncrementalExecutionIntegrationTest extends Specification {
                 @Override
                 boolean isAllowedToLoadFromCache() {
                     throw new UnsupportedOperationException()
-                }
-
-                @Override
-                Iterable<String> getChangingOutputs() {
-                    outputs.values()*.root*.absolutePath
                 }
 
                 @Override
