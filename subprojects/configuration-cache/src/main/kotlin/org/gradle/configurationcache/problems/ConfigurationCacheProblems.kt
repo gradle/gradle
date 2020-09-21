@@ -20,7 +20,6 @@ import org.gradle.BuildAdapter
 import org.gradle.BuildResult
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.logging.Logging
-import org.gradle.initialization.RootBuildLifecycleListener
 import org.gradle.configurationcache.ConfigurationCacheAction
 import org.gradle.configurationcache.ConfigurationCacheAction.LOAD
 import org.gradle.configurationcache.ConfigurationCacheAction.STORE
@@ -28,8 +27,8 @@ import org.gradle.configurationcache.ConfigurationCacheKey
 import org.gradle.configurationcache.ConfigurationCacheProblemsException
 import org.gradle.configurationcache.ConfigurationCacheReport
 import org.gradle.configurationcache.TooManyConfigurationCacheProblemsException
-import org.gradle.configurationcache.extensions.getBroadcaster
 import org.gradle.configurationcache.initialization.ConfigurationCacheStartParameter
+import org.gradle.initialization.RootBuildLifecycleListener
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.service.scopes.Scopes
 import org.gradle.internal.service.scopes.ServiceScope
@@ -59,12 +58,6 @@ class ConfigurationCacheProblems(
 ) : ProblemsListener, AutoCloseable {
 
     private
-    val broadcaster = listenerManager.getBroadcaster<ProblemsListener>()
-
-    private
-    val problemHandler = ProblemHandler()
-
-    private
     val buildFinishedHandler = BuildFinishedProblemsHandler()
 
     private
@@ -86,13 +79,11 @@ class ConfigurationCacheProblems(
     var invalidateStoredState: (() -> Unit)? = null
 
     init {
-        listenerManager.addListener(problemHandler)
         listenerManager.addListener(buildFinishedHandler)
         listenerManager.addListener(postBuildHandler)
     }
 
     override fun close() {
-        listenerManager.removeListener(problemHandler)
         listenerManager.removeListener(buildFinishedHandler)
         listenerManager.removeListener(postBuildHandler)
     }
@@ -106,10 +97,6 @@ class ConfigurationCacheProblems(
         cacheAction = LOAD
     }
 
-    override fun onProblem(problem: PropertyProblem) {
-        broadcaster.onProblem(problem)
-    }
-
     fun failingBuildDueToSerializationError() {
         isFailingBuildDueToSerializationError = true
         isFailOnProblems = false
@@ -118,12 +105,8 @@ class ConfigurationCacheProblems(
     private
     fun List<PropertyProblem>.causes() = mapNotNull { it.exception }.take(maxCauses)
 
-    private
-    inner class ProblemHandler : ProblemsListener {
-
-        override fun onProblem(problem: PropertyProblem) {
-            problems.add(problem)
-        }
+    override fun onProblem(problem: PropertyProblem) {
+        problems.add(problem)
     }
 
     private

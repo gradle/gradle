@@ -23,9 +23,9 @@ import org.gradle.api.internal.GeneratedSubclasses
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.tasks.execution.TaskExecutionAccessListener
 import org.gradle.configuration.internal.UserCodeApplicationContext
-import org.gradle.configurationcache.problems.ConfigurationCacheProblems
 import org.gradle.configurationcache.problems.DocumentationSection.RequirementsBuildListeners
 import org.gradle.configurationcache.problems.DocumentationSection.RequirementsUseProjectDuringExecution
+import org.gradle.configurationcache.problems.ProblemsListener
 import org.gradle.configurationcache.problems.PropertyProblem
 import org.gradle.configurationcache.problems.PropertyTrace
 import org.gradle.configurationcache.problems.StructuredMessage
@@ -40,7 +40,7 @@ interface ConfigurationCacheProblemsListener : TaskExecutionAccessListener, Buil
 
 
 class DefaultConfigurationCacheProblemsListener internal constructor(
-    private val problems: ConfigurationCacheProblems,
+    private val problems: ProblemsListener,
     private val userCodeApplicationContext: UserCodeApplicationContext
 ) : ConfigurationCacheProblemsListener {
 
