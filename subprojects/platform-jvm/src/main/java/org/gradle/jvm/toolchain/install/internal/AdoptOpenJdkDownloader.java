@@ -48,7 +48,7 @@ public class AdoptOpenJdkDownloader {
     }
 
     public void download(URI source, File tmpFile) {
-        final ExternalResource resource = getTransport(source).getRepository().withProgressLogging().resource(new ExternalResourceName(source));
+        final ExternalResource resource = createExternalResource(source, tmpFile.getName());
         try {
             downloadResource(source, tmpFile, resource);
         } catch (MissingResourceException e) {
@@ -57,6 +57,16 @@ public class AdoptOpenJdkDownloader {
                 "(version, architecture, release/early access, ...) for the " +
                 "requested JDK is not available.", e);
         }
+    }
+
+    private ExternalResource createExternalResource(URI source, String name) {
+        final ExternalResourceName resourceName = new ExternalResourceName(source) {
+            @Override
+            public String getShortDisplayName() {
+                return name;
+            }
+        };
+        return getTransport(source).getRepository().withProgressLogging().resource(resourceName);
     }
 
     private void downloadResource(URI source, File tmpFile, ExternalResource resource) {
