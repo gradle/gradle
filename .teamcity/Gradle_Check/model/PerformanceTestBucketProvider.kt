@@ -66,7 +66,8 @@ class StatisticsBasedPerformanceTestBucketProvider(private val model: CIBuildMod
         for (performanceTestType in PerformanceTestType.values()) {
             val performanceTestCoverage = PerformanceTestCoverage(performanceTestType, Os.LINUX)
             val scenarios = determineScenariosFor(performanceTestCoverage, performanceTestConfigurations)
-            result[performanceTestCoverage] = splitBucketsByScenarios(performanceTestCoverage, scenarios, performanceTestTimes)
+            val testProjectToScenarioTimes = determineScenarioTestTimes(performanceTestCoverage.os, performanceTestTimes)
+            result[performanceTestCoverage] = splitBucketsByScenarios(scenarios, testProjectToScenarioTimes)
         }
         return result
     }
@@ -108,8 +109,7 @@ class StatisticsBasedPerformanceTestBucketProvider(private val model: CIBuildMod
 }
 
 private
-fun splitBucketsByScenarios(performanceTestCoverage: PerformanceTestCoverage, scenarios: List<PerformanceScenario>, performanceTestTimes: OperatingSystemToTestProjectPerformanceTestTimes): List<PerformanceTestBucket> {
-    val testProjectToScenarioTimes: Map<String, List<PerformanceTestTime>> = determineScenarioTestTimes(performanceTestCoverage, performanceTestTimes)
+fun splitBucketsByScenarios(scenarios: List<PerformanceScenario>, testProjectToScenarioTimes: Map<String, List<PerformanceTestTime>>): List<PerformanceTestBucket> {
 
     val testProjectTimes = scenarios
         .groupBy({ it.testProject }, { testProjectToScenarioTimes.getValue(it.testProject).first { times -> times.scenario == it.scenario } })
@@ -127,14 +127,20 @@ fun splitBucketsByScenarios(performanceTestCoverage: PerformanceTestCoverage, sc
     )
 }
 
-fun determineScenarioTestTimes(performanceTestCoverage: PerformanceTestCoverage, performanceTestTimes: OperatingSystemToTestProjectPerformanceTestTimes): Map<String, List<PerformanceTestTime>> = performanceTestTimes.getValue(performanceTestCoverage.os)
+fun determineScenarioTestTimes(os: Os, performanceTestTimes: OperatingSystemToTestProjectPerformanceTestTimes): Map<String, List<PerformanceTestTime>> = performanceTestTimes.getValue(os)
 
-fun determineScenariosFor(performanceTestCoverage: PerformanceTestCoverage, performanceTestConfigurations: List<PerformanceTestConfiguration>): List<PerformanceScenario> =
-    performanceTestConfigurations.flatMap { configuration ->
+fun determineScenariosFor(performanceTestCoverage: PerformanceTestCoverage, performanceTestConfigurations: List<PerformanceTestConfiguration>): List<PerformanceScenario> {
+    val performanceTestType = if (performanceTestCoverage.performanceTestType == PerformanceTestType.historical) {
+        PerformanceTestType.test
+    } else {
+        performanceTestCoverage.performanceTestType
+    }
+    return performanceTestConfigurations.flatMap { configuration ->
         configuration.groups
-            .filter { it.performanceTestTypes[performanceTestCoverage.performanceTestType]?.contains(performanceTestCoverage.os) == true }
+            .filter { it.performanceTestTypes[performanceTestType]?.contains(performanceTestCoverage.os) == true }
             .map { PerformanceScenario(Scenario.fromTestId(configuration.testId), it.testProject) }
     }
+}
 
 class PerformanceTestTime(val scenario: Scenario, val buildTimeMs: Int) {
     fun toCsvLine() = "${scenario.className};${scenario.scenario}"
