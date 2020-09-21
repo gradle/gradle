@@ -238,9 +238,10 @@ class PerformanceTestPlugin : Plugin<Project> {
     private
     fun Project.createLocalPerformanceTestTasks(performanceSourceSet: SourceSet) {
 
-        fun create(name: String, configure: PerformanceTest.() -> Unit = {}) {
-            createLocalPerformanceTestTask(name, performanceSourceSet).configure(configure)
-        }
+        fun create(name: String, configure: PerformanceTest.() -> Unit = {}) =
+            createLocalPerformanceTestTask(name, performanceSourceSet).also {
+                it.configure(configure)
+            }
 
         create("performanceTest") {
             includeCategories(performanceRegressionTestCategory)
@@ -277,7 +278,7 @@ class PerformanceTestPlugin : Plugin<Project> {
                     setTestProjectGenerationTask(sampleGenerator)
                 }
                 val channelSuffix = if (OperatingSystem.current().isLinux) "" else "-${OperatingSystem.current().familyName.toLowerCase()}"
-                create("${sampleGenerator.name}PerformanceTest") {
+                val performanceTest = create("${sampleGenerator.name}PerformanceTest") {
                     performanceReporter = createPerformanceReporter()
                     channel = "commits$channelSuffix"
                     setTestProjectGenerationTask(sampleGenerator)
@@ -293,6 +294,13 @@ class PerformanceTestPlugin : Plugin<Project> {
                         }
                         doFirst {
                             assert((filter as DefaultTestFilter).includePatterns.isNotEmpty()) { "Running $name requires to add a test filter" }
+                        }
+                    }
+                }
+                afterEvaluate {
+                    performanceTest.configure {
+                        branchName?.takeIf { it.isNotEmpty() }?.let { branchName ->
+                            channel = "$channel-$branchName"
                         }
                     }
                 }
