@@ -139,7 +139,6 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
 
     @Override
     public void beforeConfigureRootBuild() {
-        registerSubstitutions(includedBuildsByRootDir.values());
     }
 
     @Override
@@ -152,14 +151,8 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
             if (rootSettings.getRootProject().getName().equals(includedBuildRootProjectName)) {
                 throw new GradleException("Included build in " + build.getRootDirectory() + " has the same root project name '" + includedBuildRootProjectName + "' as the main build.");
             }
-            // Configure build now so that the next builds in the loop can see 'settings plugins'.
-            build.getConfiguredBuild();
-        }
-    }
-
-    private void registerSubstitutions(Iterable<IncludedBuildState> includedBuilds) {
-        for (IncludedBuildState includedBuild : includedBuilds) {
-            dependencySubstitutionsBuilder.build(includedBuild);
+            // Configure build now, if needed, so that the next builds in the loop can see 'settings plugins'.
+            dependencySubstitutionsBuilder.build(build);
         }
     }
 
