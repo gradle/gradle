@@ -621,13 +621,13 @@ class ConfigurationCacheBuildOptionsIntegrationTest extends AbstractConfiguratio
 
             abstract class MyTask extends DefaultTask {
                 @OutputDirectory
-                public abstract DirectoryProperty getOutputDir()
+                abstract DirectoryProperty getOutputDir()
 
                 @Input
-                public abstract Property<Integer> getInputCount()
+                abstract Property<Integer> getInputCount()
 
                 @TaskAction
-                public void doTask() {
+                void doTask() {
                     File outputFile = getOutputDir().get().asFile
                     outputFile.deleteDir()
                     outputFile.mkdirs()
@@ -639,13 +639,13 @@ class ConfigurationCacheBuildOptionsIntegrationTest extends AbstractConfiguratio
 
             abstract class ConsumerTask extends DefaultTask {
                 @InputFiles
-                public abstract ConfigurableFileCollection getMyInputs()
+                abstract ConfigurableFileCollection getMyInputs()
 
                 @OutputFile
-                public abstract RegularFileProperty getOutputFile()
+                abstract RegularFileProperty getOutputFile()
 
                 @TaskAction
-                public void doTask() {
+                void doTask() {
                     File outputFile = getOutputFile().get().asFile
                     outputFile.delete()
                     outputFile.parentFile.mkdirs()
