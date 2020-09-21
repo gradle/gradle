@@ -43,7 +43,6 @@ import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskExecutionOutcome;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.internal.tasks.properties.CacheableOutputFilePropertySpec;
-import org.gradle.api.internal.tasks.properties.FilePropertySpec;
 import org.gradle.api.internal.tasks.properties.InputFilePropertySpec;
 import org.gradle.api.internal.tasks.properties.OutputFilePropertySpec;
 import org.gradle.api.internal.tasks.properties.TaskProperties;
@@ -426,13 +425,12 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         }
 
         private ImmutableSortedMap<String, FileSystemSnapshot> snapshotOutputs() {
-            ImmutableSortedSet<OutputFilePropertySpec> outputFilePropertySpecs = context.getTaskProperties().getOutputFileProperties();
             ImmutableSortedMap.Builder<String, FileSystemSnapshot> builder = ImmutableSortedMap.naturalOrder();
-            for (FilePropertySpec propertySpec : outputFilePropertySpecs) {
-                LOGGER.debug("Snapshotting property {} for {}", propertySpec, task);
-                List<FileSystemSnapshot> result = fileCollectionSnapshotter.snapshot(propertySpec.getPropertyFiles());
-                builder.put(propertySpec.getPropertyName(), CompositeFileSystemSnapshot.of(result));
-            }
+            visitOutputProperties((propertyName, type, root) -> {
+                LOGGER.debug("Snapshotting property {} for {}", propertyName, task);
+                List<FileSystemSnapshot> result = fileCollectionSnapshotter.snapshot(fileCollectionFactory.fixed(root));
+                builder.put(propertyName, CompositeFileSystemSnapshot.of(result));
+            });
             return builder.build();
         }
 

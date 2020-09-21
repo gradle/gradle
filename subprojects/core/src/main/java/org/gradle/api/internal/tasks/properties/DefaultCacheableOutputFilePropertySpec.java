@@ -45,7 +45,6 @@ public class DefaultCacheableOutputFilePropertySpec extends AbstractFileProperty
     }
 
     @Override
-    @Nullable
     public File getOutputFile() {
         return getPropertyFiles().getSingleFile();
     }
