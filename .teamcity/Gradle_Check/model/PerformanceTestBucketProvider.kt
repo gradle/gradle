@@ -209,7 +209,8 @@ class SingleTestProjectBucket(val testProject: String, val scenarios: List<Scena
             "Performance tests for $testProject - index $bucketIndex",
             "performance",
             listOf(testProject),
-            performanceTestCoverage.os,
+            bucketIndex = bucketIndex,
+            os = performanceTestCoverage.os,
             extraParameters = " -PincludePerformanceTestScenarios=true",
             preBuildSteps = prepareScenariosStep(testProject, scenarios, performanceTestCoverage.os)
         )
@@ -228,7 +229,8 @@ class MultipleTestProjectBucket(val testProjects: List<TestProjectTime>) : Perfo
             "Performance tests for ${testProjects.joinToString(", ") { it.testProject }} - index $bucketIndex",
             "performance",
             testProjects.map { it.testProject }.distinct(),
-            performanceTestCoverage.os,
+            bucketIndex = bucketIndex,
+            os = performanceTestCoverage.os,
             extraParameters = " -PincludePerformanceTestScenarios=true",
             preBuildSteps = {
                 testProjects.forEach { testProject ->
@@ -251,7 +253,8 @@ class EmptyTestProjectBucket(private val index: Int) : PerformanceTestBucket {
             "Empty Performance Test bucket - index $bucketIndex",
             "performance",
             listOf(),
-            performanceTestCoverage.os
+            bucketIndex = bucketIndex,
+            os = performanceTestCoverage.os
         )
     }
 }
@@ -268,7 +271,8 @@ class TestProjectSplitBucket(val testProject: String, val number: Int, val scena
             "Performance test for $testProject (bucket $number) - index $bucketIndex",
             "performance",
             listOf(testProject),
-            performanceTestCoverage.os,
+            bucketIndex = bucketIndex,
+            os = performanceTestCoverage.os,
             extraParameters = " -PincludePerformanceTestScenarios=true",
             preBuildSteps = prepareScenariosStep(testProject, scenarios.map(PerformanceTestTime::scenario), performanceTestCoverage.os)
         )

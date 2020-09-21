@@ -37,5 +37,12 @@ class PerformanceTestsPass(model: CIBuildModel, performanceTestProject: Performa
 
     dependencies {
         snapshotDependencies(performanceTestProject.performanceTests)
+        performanceTestProject.performanceTests.forEach {
+            artifacts(it.id!!) {
+                id = "ARTIFACT_DEPENDENCY_${it.id!!}"
+                cleanDestination = true
+                artifactRules = "results/performance/build/test-results-*.zip!performance-tests/perf-results.json => perf-results/${it.bucketIndex}/"
+            }
+        }
     }
 })
