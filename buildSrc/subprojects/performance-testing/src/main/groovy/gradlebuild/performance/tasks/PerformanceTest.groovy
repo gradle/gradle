@@ -31,9 +31,9 @@ import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.Internal
-import org.gradle.api.tasks.LocalState
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputDirectory
+import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
@@ -106,7 +106,7 @@ abstract class PerformanceTest extends DistributionTest {
     @OutputDirectory
     File reportDir
 
-    @LocalState
+    @OutputFile
     File resultsJson
 
     // Disable report by default, we don't need it in worker build - unless it's AdHoc performance test
