@@ -703,6 +703,45 @@ class ConfigurationCacheBuildOptionsIntegrationTest extends AbstractConfiguratio
         configurationCache.assertStateLoaded()
     }
 
+    def "system property used at configuration time can be captured by task"() {
+        given:
+        buildFile """
+            def sysProp = providers.systemProperty("some.prop").forUseAtConfigurationTime()
+            println('sys prop value at configuration time = ' + sysProp.orNull)
+
+            task ok {
+                doLast {
+                    println('sys prop value at execution time = ' + sysProp.orNull)
+                }
+            }
+        """
+        def configurationCache = newConfigurationCacheFixture()
+
+        when:
+        configurationCacheRun 'ok', '-Dsome.prop=42'
+
+        then:
+        outputContains 'sys prop value at configuration time = 42'
+        outputContains 'sys prop value at execution time = 42'
+        configurationCache.assertStateStored()
+
+        when:
+        configurationCacheRun 'ok', '-Dsome.prop=42'
+
+        then:
+        outputDoesNotContain 'sys prop value at configuration time = 42'
+        outputContains 'sys prop value at execution time = 42'
+        configurationCache.assertStateLoaded()
+
+        when:
+        configurationCacheRun 'ok', '-Dsome.prop=37'
+
+        then:
+        outputContains 'sys prop value at configuration time = 37'
+        outputContains 'sys prop value at execution time = 37'
+        configurationCache.assertStateStored()
+    }
+
     private static String getGreetTask() {
         """
             abstract class Greet : DefaultTask() {
