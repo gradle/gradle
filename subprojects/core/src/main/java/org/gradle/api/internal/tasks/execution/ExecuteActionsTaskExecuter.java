@@ -415,16 +415,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         }
 
         @Override
-        public ImmutableSortedMap<String, FileSystemSnapshot> snapshotOutputsBeforeExecution() {
-            return snapshotOutputs();
-        }
-
-        @Override
-        public ImmutableSortedMap<String, FileSystemSnapshot> snapshotOutputsAfterExecution() {
-            return snapshotOutputs();
-        }
-
-        private ImmutableSortedMap<String, FileSystemSnapshot> snapshotOutputs() {
+        public ImmutableSortedMap<String, FileSystemSnapshot> snapshotOutputs() {
             ImmutableSortedMap.Builder<String, FileSystemSnapshot> builder = ImmutableSortedMap.naturalOrder();
             visitOutputProperties((propertyName, type, root) -> {
                 LOGGER.debug("Snapshotting property {} for {}", propertyName, task);

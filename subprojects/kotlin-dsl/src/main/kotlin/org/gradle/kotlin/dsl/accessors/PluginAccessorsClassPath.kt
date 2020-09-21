@@ -190,12 +190,7 @@ class GeneratePluginAccessors(
         afterExecutionOutputSnapshots.mapValues { (_, value) -> outputFingerprinter.fingerprint(ImmutableList.of(value)) }
     )
 
-    override fun snapshotOutputsBeforeExecution(): ImmutableSortedMap<String, FileSystemSnapshot> = snapshotOutputs()
-
-    override fun snapshotOutputsAfterExecution(): ImmutableSortedMap<String, FileSystemSnapshot> = snapshotOutputs()
-
-    private
-    fun snapshotOutputs(): ImmutableSortedMap<String, FileSystemSnapshot> {
+    override fun snapshotOutputs(): ImmutableSortedMap<String, FileSystemSnapshot> {
         val sourceSnapshots: List<FileSystemSnapshot> = fileCollectionSnapshotter.snapshot(fileCollectionFactory.fixed(sourcesOutputDir))
         val classesSnapshots: List<FileSystemSnapshot> = fileCollectionSnapshotter.snapshot(fileCollectionFactory.fixed(classesOutputDir))
         return ImmutableSortedMap.of(

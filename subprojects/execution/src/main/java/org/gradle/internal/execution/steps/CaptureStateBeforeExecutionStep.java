@@ -132,7 +132,7 @@ public class CaptureStateBeforeExecutionStep extends BuildOperationStep<AfterPre
             .map(AfterPreviousExecutionState::getOutputFileProperties)
             .orElse(ImmutableSortedMap.of());
 
-        ImmutableSortedMap<String, FileSystemSnapshot> outputFileSnapshots = work.snapshotOutputsBeforeExecution();
+        ImmutableSortedMap<String, FileSystemSnapshot> outputFileSnapshots = work.snapshotOutputs();
 
         OverlappingOutputs overlappingOutputs;
         switch (work.getOverlappingOutputHandling()) {

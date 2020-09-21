@@ -802,12 +802,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
                 }
 
                 @Override
-                ImmutableSortedMap<String, FileSystemSnapshot> snapshotOutputsBeforeExecution() {
-                    snapshotOutputs(outputs)
-                }
-
-                @Override
-                ImmutableSortedMap<String, FileSystemSnapshot> snapshotOutputsAfterExecution() {
+                ImmutableSortedMap<String, FileSystemSnapshot> snapshotOutputs() {
                     snapshotOutputs(outputs)
                 }
 

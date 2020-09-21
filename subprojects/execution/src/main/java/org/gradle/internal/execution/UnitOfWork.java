@@ -159,14 +159,9 @@ public interface UnitOfWork extends CacheableEntity, Describable {
     }
 
     /**
-     * Takes a snapshot of the outputs before execution.
+     * Takes a snapshot of the outputs.
      */
-    ImmutableSortedMap<String, FileSystemSnapshot> snapshotOutputsBeforeExecution();
-
-    /**
-     * Takes a snapshot of the outputs after execution.
-     */
-    ImmutableSortedMap<String, FileSystemSnapshot> snapshotOutputsAfterExecution();
+    ImmutableSortedMap<String, FileSystemSnapshot> snapshotOutputs();
 
     /**
      * Convert to fingerprints and filter out missing roots.
