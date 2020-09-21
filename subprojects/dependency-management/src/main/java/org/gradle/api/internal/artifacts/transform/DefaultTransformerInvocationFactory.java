@@ -437,12 +437,21 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
 
         @Override
         public ImmutableSortedMap<String, FileSystemSnapshot> snapshotOutputsBeforeExecution() {
-            return snapshotOutputs(fileCollectionSnapshotter, fileCollectionFactory, workspace);
+            return snapshotOutputs();
         }
 
         @Override
         public ImmutableSortedMap<String, FileSystemSnapshot> snapshotOutputsAfterExecution() {
-            return snapshotOutputs(fileCollectionSnapshotter, fileCollectionFactory, workspace);
+            return snapshotOutputs();
+        }
+
+        private ImmutableSortedMap<String, FileSystemSnapshot> snapshotOutputs() {
+            ImmutableSortedMap.Builder<String, FileSystemSnapshot> builder = ImmutableSortedMap.naturalOrder();
+            visitOutputProperties((propertyName, type, root) -> {
+                FileSystemSnapshot snapshot = CompositeFileSystemSnapshot.of(fileCollectionSnapshotter.snapshot(fileCollectionFactory.fixed(root)));
+                builder.put(propertyName, snapshot);
+            });
+            return builder.build();
         }
 
         @Override
@@ -476,31 +485,6 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
         public String getDisplayName() {
             return transformer.getDisplayName() + ": " + inputArtifact;
         }
-    }
-
-    private static ImmutableSortedMap<String, FileSystemSnapshot> snapshotOutputs(
-        FileCollectionSnapshotter fileCollectionSnapshotter,
-        FileCollectionFactory fileCollectionFactory,
-        TransformationWorkspace workspace
-    ) {
-        return ImmutableSortedMap.of(
-            OUTPUT_DIRECTORY_PROPERTY_NAME, snapshotOf(
-                workspace.getOutputDirectory(), fileCollectionSnapshotter, fileCollectionFactory
-            ),
-            RESULTS_FILE_PROPERTY_NAME, snapshotOf(
-                workspace.getResultsFile(), fileCollectionSnapshotter, fileCollectionFactory
-            )
-        );
-    }
-
-    private static FileSystemSnapshot snapshotOf(
-        File fileOrDir,
-        FileCollectionSnapshotter fileCollectionSnapshotter,
-        FileCollectionFactory fileCollectionFactory
-    ) {
-        return CompositeFileSystemSnapshot.of(
-            fileCollectionSnapshotter.snapshot(fileCollectionFactory.fixed(fileOrDir))
-        );
     }
 
     private static class ImmutableTransformationWorkspaceIdentity implements TransformationWorkspaceIdentity {
