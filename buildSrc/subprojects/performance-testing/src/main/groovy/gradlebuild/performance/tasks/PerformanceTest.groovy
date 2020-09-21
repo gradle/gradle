@@ -243,11 +243,14 @@ abstract class PerformanceTest extends DistributionTest {
     private List<ScenarioBuildResultData> extractResultFromTestSuite(JUnitTestSuite testSuite, String testProject) {
         List<JUnitTestCase> testCases = testSuite.testCases ?: []
         return testCases.findAll { !it.skipped }.collect {
+            def agentName = System.getenv("BUILD_AGENT_NAME") ?: null
             new ScenarioBuildResultData(
                 scenarioName: it.name,
                 scenarioClass: it.className,
                 testProject: testProject,
                 webUrl: TC_URL + buildId,
+                teamCityBuildId: buildId,
+                agentName: agentName,
                 status: (it.errors || it.failures) ? "FAILURE" : "SUCCESS",
                 testFailure: collectFailures(testSuite))
         }
