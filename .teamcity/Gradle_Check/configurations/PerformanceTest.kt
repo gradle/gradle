@@ -60,7 +60,7 @@ class PerformanceTest(
 
         params {
             param("performance.baselines", type.defaultBaselines)
-            param("performance.channel", "${type.channel}${if (os == Os.LINUX) "" else "-${os.name.toLowerCase(Locale.US)}"}")
+            param("performance.channel", "${type.channel}${if (os == Os.LINUX) "" else "-${os.name.toLowerCase(Locale.US)}"}-%teamcity.build.branch%")
             param("env.ANDROID_HOME", os.androidHome)
             when (os) {
                 Os.WINDOWS -> param("env.PATH", "%env.PATH%;C:/Program Files/7-zip")

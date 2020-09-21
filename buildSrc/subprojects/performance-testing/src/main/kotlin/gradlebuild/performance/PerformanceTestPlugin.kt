@@ -297,13 +297,6 @@ class PerformanceTestPlugin : Plugin<Project> {
                         }
                     }
                 }
-                afterEvaluate {
-                    performanceTest.configure {
-                        branchName?.takeIf { it.isNotEmpty() }?.let { branchName ->
-                            channel = "$channel-$branchName"
-                        }
-                    }
-                }
             }
         }
     }
