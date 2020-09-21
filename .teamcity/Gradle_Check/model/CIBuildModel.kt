@@ -260,12 +260,45 @@ enum class TestType(val unitTests: Boolean = true, val functionalTests: Boolean 
     forceRealizeDependencyManagement(false, true, false)
 }
 
-enum class PerformanceTestType(val taskId: String, val displayName: String, val timeout: Int, val defaultBaselines: String = "", val extraParameters: String = "", val uuid: String? = null) {
-    test("PerformanceTest", "Performance Regression Test", 420, "defaults"),
-    slow("SlowPerformanceTest", "Slow Performance Regression Test", 420, "defaults", uuid = "PerformanceExperimentCoordinator"),
-    experiment("PerformanceExperiment", "Performance Experiment", 420, "defaults", uuid = "PerformanceExperimentOnlyCoordinator"),
-    flakinessDetection("FlakinessDetection", "Performance Test Flakiness Detection", 600, "flakiness-detection-commit"),
-    historical("HistoricalPerformanceTest", "Historical Performance Test", 2280, "3.5.1,4.10.3,5.6.4,last", "--checks none");
+enum class PerformanceTestType(val taskId: String, val displayName: String, val timeout: Int, val defaultBaselines: String = "", val channel: String, val extraParameters: String = "", val uuid: String? = null) {
+    test(
+        taskId = "PerformanceTest",
+        displayName = "Performance Regression Test",
+        timeout = 420,
+        defaultBaselines = "defaults",
+        channel = "commits"
+    ),
+    slow(
+        taskId = "SlowPerformanceTest",
+        displayName = "Slow Performance Regression Test",
+        timeout = 420,
+        defaultBaselines = "defaults",
+        channel = "commits",
+        uuid = "PerformanceExperimentCoordinator"
+    ),
+    experiment(
+        taskId = "PerformanceExperiment",
+        displayName = "Performance Experiment",
+        timeout = 420,
+        defaultBaselines = "defaults",
+        channel = "experiments",
+        uuid = "PerformanceExperimentOnlyCoordinator"
+    ),
+    flakinessDetection(
+        taskId = "FlakinessDetection",
+        displayName = "Performance Test Flakiness Detection",
+        timeout = 600,
+        defaultBaselines = "flakiness-detection-commit",
+        channel = "flakiness-detection"
+    ),
+    historical(
+        taskId = "HistoricalPerformanceTest",
+        displayName = "Historical Performance Test",
+        timeout = 2280,
+        defaultBaselines = "3.5.1,4.10.3,5.6.4,last",
+        channel = "historical",
+        extraParameters = "--checks none"
+    );
 
     fun asId(model: CIBuildModel): String =
         "${model.projectPrefix}Performance${name.capitalize()}Coordinator"

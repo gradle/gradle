@@ -194,7 +194,7 @@ class SingleTestProjectBucket(val testProject: String, val scenarios: List<Scena
         val uuid = getUuid(model, performanceTestCoverage, bucketIndex)
         return PerformanceTest(
             model,
-            PerformanceTestType.test,
+            performanceTestCoverage.performanceTestType,
             stage,
             uuid,
             "Performance tests for $testProject",
@@ -213,7 +213,7 @@ class MultipleTestProjectBucket(val testProjects: List<TestProjectTime>) : Perfo
         val uuid = getUuid(model, performanceTestCoverage, bucketIndex)
         return PerformanceTest(
             model,
-            PerformanceTestType.test,
+            performanceTestCoverage.performanceTestType,
             stage,
             uuid,
             "Performance tests for ${testProjects.joinToString(", ") { it.testProject }}",
@@ -236,7 +236,7 @@ class EmptyTestProjectBucket(private val index: Int) : PerformanceTestBucket {
         val uuid = getUuid(model, performanceTestCoverage, bucketIndex)
         return PerformanceTest(
             model,
-            PerformanceTestType.test,
+            performanceTestCoverage.performanceTestType,
             stage,
             uuid,
             "EmptyPerformanceTestsFor$index",
@@ -253,7 +253,7 @@ class TestProjectSplitBucket(val testProject: String, val number: Int, val scena
         val uuid = getUuid(model, performanceTestCoverage, bucketIndex)
         return PerformanceTest(
             model,
-            PerformanceTestType.test,
+            performanceTestCoverage.performanceTestType,
             stage,
             uuid,
             "Performance test for $testProject (bucket $number)",

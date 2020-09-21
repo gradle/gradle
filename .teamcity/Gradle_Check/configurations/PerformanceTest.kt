@@ -33,6 +33,7 @@ import jetbrains.buildServer.configs.kotlin.v2019_2.BuildSteps
 import model.CIBuildModel
 import model.PerformanceTestType
 import model.Stage
+import java.util.Locale
 
 class PerformanceTest(model: CIBuildModel, type: PerformanceTestType, stage: Stage, uuid: String, description: String, performanceSubProject: String, testProjects: List<String>, os: Os = Os.LINUX, extraParameters: String = "", preBuildSteps: BuildSteps.() -> Unit = {}) : BaseGradleBuildType(model, stage = stage, init = {
     this.uuid = uuid
@@ -44,6 +45,7 @@ class PerformanceTest(model: CIBuildModel, type: PerformanceTestType, stage: Sta
 
     params {
         param("performance.baselines", type.defaultBaselines)
+        param("performance.channel", "${type.channel}${if (os == Os.LINUX) "" else "-${os.name.toLowerCase(Locale.US)}"}")
         param("env.ANDROID_HOME", os.androidHome)
         when (os) {
             Os.WINDOWS -> param("env.PATH", "%env.PATH%;C:/Program Files/7-zip")
@@ -61,7 +63,7 @@ class PerformanceTest(model: CIBuildModel, type: PerformanceTestType, stage: Sta
                 workingDir = os.perfTestWorkingDir
                 gradleParams = (
                     performanceTestCommandLine(
-                        "clean ${performanceTestTaskNames.joinToString(" ")}",
+                        "clean ${performanceTestTaskNames.joinToString(" ") { "$it --channel %performance.channel%" }}",
                         "%performance.baselines%",
                         extraParameters,
                         os
