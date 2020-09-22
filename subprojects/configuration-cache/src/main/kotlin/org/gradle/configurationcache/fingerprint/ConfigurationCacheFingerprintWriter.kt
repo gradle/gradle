@@ -52,22 +52,15 @@ class ConfigurationCacheFingerprintWriter(
     private val writeContext: DefaultWriteContext,
     private val fileCollectionFactory: FileCollectionFactory,
     private val directoryFileTreeFactory: DirectoryFileTreeFactory
-) : ValueSourceProviderFactory.Listener, TaskInputsListener, ScriptExecutionListener, UndeclaredBuildInputListener, ChangingValueDependencyResolutionListener, FileResourceListener {
+) : ValueSourceProviderFactory.Listener, TaskInputsListener, ScriptExecutionListener,
+    UndeclaredBuildInputListener, ChangingValueDependencyResolutionListener, FileResourceListener {
 
     interface Host {
-
         val gradleUserHomeDir: File
-
         val allInitScripts: List<File>
-
         val buildStartTime: Long
-
+        fun fingerprintOf(fileCollection: FileCollectionInternal): HashCode
         fun hashCodeOf(file: File): HashCode?
-
-        fun fingerprintOf(
-            fileCollection: FileCollectionInternal,
-            owner: TaskInternal
-        ): HashCode
     }
 
     @Volatile
@@ -207,7 +200,7 @@ class ConfigurationCacheFingerprintWriter(
             ConfigurationCacheFingerprint.TaskInputs(
                 task.identityPath.path,
                 simplify(fileSystemInputs),
-                host.fingerprintOf(fileSystemInputs, task)
+                host.fingerprintOf(fileSystemInputs)
             )
         )
     }
