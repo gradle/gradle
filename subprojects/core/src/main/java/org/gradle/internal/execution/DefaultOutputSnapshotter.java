@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.execution;
+package org.gradle.internal.execution;
 
 import com.google.common.collect.ImmutableSortedMap;
-import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.tasks.properties.FilePropertySpec;
 import org.gradle.internal.fingerprint.FileCollectionSnapshotter;
 import org.gradle.internal.snapshot.CompositeFileSystemSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
@@ -26,25 +24,24 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
-import java.util.SortedSet;
 
-public class DefaultTaskSnapshotter implements TaskSnapshotter {
-    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultTaskSnapshotter.class);
+public class DefaultOutputSnapshotter implements OutputSnapshotter {
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultOutputSnapshotter.class);
 
     private final FileCollectionSnapshotter fileCollectionSnapshotter;
 
-    public DefaultTaskSnapshotter(FileCollectionSnapshotter fileCollectionSnapshotter) {
+    public DefaultOutputSnapshotter(FileCollectionSnapshotter fileCollectionSnapshotter) {
         this.fileCollectionSnapshotter = fileCollectionSnapshotter;
     }
 
     @Override
-    public ImmutableSortedMap<String, FileSystemSnapshot> snapshotTaskFiles(TaskInternal task, SortedSet<? extends FilePropertySpec> fileProperties) {
+    public ImmutableSortedMap<String, FileSystemSnapshot> snapshotOutputs(UnitOfWork work) {
         ImmutableSortedMap.Builder<String, FileSystemSnapshot> builder = ImmutableSortedMap.naturalOrder();
-        for (FilePropertySpec propertySpec : fileProperties) {
-            LOGGER.debug("Snapshotting property {} for {}", propertySpec, task);
-            List<FileSystemSnapshot> result = fileCollectionSnapshotter.snapshot(propertySpec.getPropertyFiles());
-            builder.put(propertySpec.getPropertyName(), CompositeFileSystemSnapshot.of(result));
-        }
+        work.visitOutputProperties((propertyName, type, root, contents) -> {
+            LOGGER.debug("Snapshotting property {} for {}", propertyName, work);
+            List<FileSystemSnapshot> results = fileCollectionSnapshotter.snapshot(contents);
+            builder.put(propertyName, CompositeFileSystemSnapshot.of(results));
+        });
         return builder.build();
     }
 }

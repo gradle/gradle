@@ -18,7 +18,7 @@ package org.gradle.internal.execution;
 
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.Describable;
-import org.gradle.caching.internal.CacheableEntity;
+import org.gradle.api.file.FileCollection;
 import org.gradle.internal.execution.caching.CachingDisabledReason;
 import org.gradle.internal.execution.caching.CachingState;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
@@ -28,7 +28,6 @@ import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.fingerprint.overlap.OverlappingOutputs;
 import org.gradle.internal.reflect.TypeValidationContext;
-import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 
 import javax.annotation.Nullable;
@@ -37,7 +36,8 @@ import java.time.Duration;
 import java.util.Optional;
 import java.util.function.Supplier;
 
-public interface UnitOfWork extends CacheableEntity, Describable {
+public interface UnitOfWork extends Describable {
+    String getIdentity();
 
     /**
      * Executes the work synchronously.
@@ -75,7 +75,7 @@ public interface UnitOfWork extends CacheableEntity, Describable {
     void visitOutputProperties(OutputPropertyVisitor visitor);
 
     interface OutputPropertyVisitor {
-        void visitOutputProperty(String propertyName, TreeType type, File root);
+        void visitOutputProperty(String propertyName, TreeType type, File root, FileCollection contents);
     }
 
     default void visitLocalState(LocalStateVisitor visitor) {}
@@ -84,12 +84,18 @@ public interface UnitOfWork extends CacheableEntity, Describable {
         void visitLocalStateRoot(File localStateRoot);
     }
 
+    default void visitDestroyableRoots(DestroyableVisitor visitor) {}
+
+    interface DestroyableVisitor {
+        void visitDestroyableRoot(File destroyableRoot);
+    }
+
     long markExecutionTime();
 
     /**
      * Validate the work definition and configuration.
      */
-    void validate(WorkValidationContext validationContext);
+    default void validate(WorkValidationContext validationContext) {}
 
     interface WorkValidationContext {
         TypeValidationContext createContextFor(Class<?> type, boolean cacheable);
@@ -121,18 +127,6 @@ public interface UnitOfWork extends CacheableEntity, Describable {
     }
 
     /**
-     * Paths to locations changed by the unit of work.
-     *
-     * <p>
-     * We don't want to invalidate the whole file system mirror for artifact transformations, since I know exactly which parts need to be invalidated.
-     * For tasks though, we still need to invalidate everything.
-     * </p>
-     *
-     * @return {@link Optional#empty()} if the unit of work cannot guarantee that only some files have been changed or an iterable of the paths which were changed by the unit of work.
-     */
-    Iterable<String> getChangingOutputs();
-
-    /**
      * Whether overlapping outputs should be allowed or ignored.
      */
     default OverlappingOutputHandling getOverlappingOutputHandling() {
@@ -157,26 +151,6 @@ public interface UnitOfWork extends CacheableEntity, Describable {
     default boolean shouldCleanupOutputsOnNonIncrementalExecution() {
         return true;
     }
-
-    /**
-     * Takes a snapshot of the outputs before execution.
-     */
-    ImmutableSortedMap<String, FileSystemSnapshot> snapshotOutputsBeforeExecution();
-
-    /**
-     * Takes a snapshot of the outputs after execution.
-     */
-    ImmutableSortedMap<String, FileSystemSnapshot> snapshotOutputsAfterExecution();
-
-    /**
-     * Convert to fingerprints and filter out missing roots.
-     */
-    ImmutableSortedMap<String, CurrentFileCollectionFingerprint> fingerprintAndFilterOutputSnapshots(
-        ImmutableSortedMap<String, FileCollectionFingerprint> afterPreviousExecutionOutputFingerprints,
-        ImmutableSortedMap<String, FileSystemSnapshot> beforeExecutionOutputSnapshots,
-        ImmutableSortedMap<String, FileSystemSnapshot> afterExecutionOutputSnapshots,
-        boolean hasDetectedOverlappingOutputs
-    );
 
     enum WorkResult {
         DID_WORK,

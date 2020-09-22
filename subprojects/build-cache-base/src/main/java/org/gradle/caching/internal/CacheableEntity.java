@@ -24,7 +24,15 @@ import java.io.File;
  * An entity that can potentially be stored in the build cache.
  */
 public interface CacheableEntity {
+    /**
+     * The identity of the work as a part of the build to be reported in the origin metadata.
+     */
     String getIdentity();
+
+    /**
+     * The type of the work to report in the origin metadata.
+     */
+    Class<?> getType();
 
     String getDisplayName();
 

@@ -19,6 +19,7 @@ package org.gradle.internal.execution.steps
 import com.google.common.collect.ImmutableSortedMap
 import org.gradle.internal.execution.AfterPreviousExecutionContext
 import org.gradle.internal.execution.BeforeExecutionContext
+import org.gradle.internal.execution.OutputSnapshotter
 import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.execution.history.AfterPreviousExecutionState
 import org.gradle.internal.execution.history.ExecutionHistoryStore
@@ -41,12 +42,13 @@ import static org.gradle.internal.execution.steps.CaptureStateBeforeExecutionSte
 class CaptureStateBeforeExecutionStepTest extends StepSpec<AfterPreviousExecutionContext> {
 
     def classloaderHierarchyHasher = Mock(ClassLoaderHierarchyHasher)
+    def outputSnapshotter = Mock(OutputSnapshotter)
     def valueSnapshotter = Mock(ValueSnapshotter)
     def implementationSnapshot = ImplementationSnapshot.of("MyWorkClass", HashCode.fromInt(1234))
     def overlappingOutputDetector = Mock(OverlappingOutputDetector)
     def executionHistoryStore = Mock(ExecutionHistoryStore)
 
-    def step = new CaptureStateBeforeExecutionStep(buildOperationExecutor, classloaderHierarchyHasher, valueSnapshotter, overlappingOutputDetector, delegate)
+    def step = new CaptureStateBeforeExecutionStep(buildOperationExecutor, classloaderHierarchyHasher, outputSnapshotter, overlappingOutputDetector, valueSnapshotter, delegate)
 
     @Override
     protected AfterPreviousExecutionContext createContext() {
@@ -169,7 +171,7 @@ class CaptureStateBeforeExecutionStepTest extends StepSpec<AfterPreviousExecutio
         step.execute(context)
 
         then:
-        _ * work.snapshotOutputsBeforeExecution() >> ImmutableSortedMap.<String, FileSystemSnapshot>of("outputDir", outputFileSnapshot)
+        _ * outputSnapshotter.snapshotOutputs(work) >> ImmutableSortedMap.<String, FileSystemSnapshot>of("outputDir", outputFileSnapshot)
         interaction { fingerprintInputs() }
         1 * delegate.execute(_) >> { BeforeExecutionContext beforeExecution ->
             def state = beforeExecution.beforeExecutionState.get()
@@ -193,7 +195,7 @@ class CaptureStateBeforeExecutionStepTest extends StepSpec<AfterPreviousExecutio
         1 * afterPreviousExecutionState.inputProperties >> ImmutableSortedMap.<String, ValueSnapshot>of()
         1 * afterPreviousExecutionState.outputFileProperties >> ImmutableSortedMap.<String, FileCollectionFingerprint>of("outputDir", afterPreviousOutputFingerprint)
 
-        _ * work.snapshotOutputsBeforeExecution() >> ImmutableSortedMap.<String, FileSystemSnapshot>of("outputDir", outputFileSnapshot)
+        _ * outputSnapshotter.snapshotOutputs(work) >> ImmutableSortedMap.<String, FileSystemSnapshot>of("outputDir", outputFileSnapshot)
         1 * outputFileSnapshot.accept(_)
 
         interaction { fingerprintInputs() }
@@ -220,7 +222,7 @@ class CaptureStateBeforeExecutionStepTest extends StepSpec<AfterPreviousExecutio
         _ * context.afterPreviousExecutionState >> Optional.of(afterPreviousExecutionState)
         1 * afterPreviousExecutionState.inputProperties >> ImmutableSortedMap.of()
         1 * afterPreviousExecutionState.outputFileProperties >> afterPreviousOutputFingerprints
-        _ * work.snapshotOutputsBeforeExecution() >> beforeExecutionOutputFingerprints
+        _ * outputSnapshotter.snapshotOutputs(work) >> beforeExecutionOutputFingerprints
 
         _ * work.overlappingOutputHandling >> DETECT_OVERLAPS
         1 * overlappingOutputDetector.detect(afterPreviousOutputFingerprints, beforeExecutionOutputFingerprints) >> null
@@ -252,7 +254,7 @@ class CaptureStateBeforeExecutionStepTest extends StepSpec<AfterPreviousExecutio
         _ * context.afterPreviousExecutionState >> Optional.of(afterPreviousExecutionState)
         1 * afterPreviousExecutionState.inputProperties >> ImmutableSortedMap.of()
         1 * afterPreviousExecutionState.outputFileProperties >> afterPreviousOutputFingerprints
-        _ * work.snapshotOutputsBeforeExecution() >> beforeExecutionOutputFingerprints
+        _ * outputSnapshotter.snapshotOutputs(work) >> beforeExecutionOutputFingerprints
 
         _ * work.overlappingOutputHandling >> DETECT_OVERLAPS
         1 * overlappingOutputDetector.detect(afterPreviousOutputFingerprints, beforeExecutionOutputFingerprints) >> overlappingOutputs
@@ -279,7 +281,7 @@ class CaptureStateBeforeExecutionStepTest extends StepSpec<AfterPreviousExecutio
         _ * work.visitInputProperties(_ as UnitOfWork.InputPropertyVisitor)
         _ * work.visitInputFileProperties(_ as UnitOfWork.InputFilePropertyVisitor)
         _ * work.overlappingOutputHandling >> IGNORE_OVERLAPS
-        _ * work.snapshotOutputsBeforeExecution() >> ImmutableSortedMap.of()
+        _ * outputSnapshotter.snapshotOutputs(work) >> ImmutableSortedMap.of()
         _ * work.executionHistoryStore >> Optional.of(executionHistoryStore)
     }
 

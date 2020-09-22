@@ -134,6 +134,7 @@ import org.gradle.internal.execution.CachingResult;
 import org.gradle.internal.execution.ExecutionOutcome;
 import org.gradle.internal.execution.ExecutionRequestContext;
 import org.gradle.internal.execution.OutputChangeListener;
+import org.gradle.internal.execution.OutputSnapshotter;
 import org.gradle.internal.execution.Step;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.UpToDateResult;
@@ -261,6 +262,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 Deleter deleter,
                 ExecutionStateChangeDetector changeDetector,
                 ListenerManager listenerManager,
+                OutputSnapshotter outputSnapshotter,
                 OverlappingOutputDetector overlappingOutputDetector,
                 TimeoutHandler timeoutHandler,
                 ValidateStep.ValidationWarningReporter validationWarningReporter,
@@ -273,13 +275,13 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             return new DefaultWorkExecutor<>(
                 new LoadExecutionStateStep<>(
                 new ValidateStep<>(validationWarningReporter,
-                new CaptureStateBeforeExecutionStep(buildOperationExecutor, classLoaderHierarchyHasher, valueSnapshotter, overlappingOutputDetector,
+                new CaptureStateBeforeExecutionStep(buildOperationExecutor, classLoaderHierarchyHasher, outputSnapshotter, overlappingOutputDetector, valueSnapshotter,
                 new NoOpCachingStateStep(
                 new ResolveChangesStep<>(changeDetector,
                 new SkipUpToDateStep<>(
                 new BroadcastChangingOutputsStep<>(outputChangeListener,
                 new StoreExecutionStateStep<>(
-                new SnapshotOutputsStep<>(buildOperationExecutor, fixedUniqueId,
+                new SnapshotOutputsStep<>(buildOperationExecutor, fixedUniqueId, outputSnapshotter,
                 new CreateOutputsStep<>(
                 new TimeoutStep<>(timeoutHandler,
                 new ResolveInputChangesStep<>(
@@ -386,7 +388,6 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 ImmutableCachingTransformationWorkspaceProvider transformationWorkspaceProvider,
                 ArtifactTransformListener artifactTransformListener,
                 FileCollectionFactory fileCollectionFactory,
-                FileCollectionSnapshotter fileCollectionSnapshotter,
                 ProjectStateRegistry projectStateRegistry,
                 BuildOperationExecutor buildOperationExecutor
         ) {
@@ -396,7 +397,6 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 artifactTransformListener,
                 transformationWorkspaceProvider,
                 fileCollectionFactory,
-                fileCollectionSnapshotter,
                 projectStateRegistry,
                 buildOperationExecutor
             );

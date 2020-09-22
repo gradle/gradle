@@ -19,6 +19,7 @@ package org.gradle.internal.snapshot;
 import com.google.common.collect.ImmutableList;
 
 import java.util.Collection;
+import java.util.List;
 
 public class CompositeFileSystemSnapshot implements FileSystemSnapshot {
     private final ImmutableList<FileSystemSnapshot> snapshots;
@@ -27,11 +28,15 @@ public class CompositeFileSystemSnapshot implements FileSystemSnapshot {
         this.snapshots = ImmutableList.copyOf(snapshots);
     }
 
-    public static FileSystemSnapshot of(Collection<FileSystemSnapshot> snapshots) {
-        if (snapshots.isEmpty()) {
-            return EMPTY;
+    public static FileSystemSnapshot of(List<FileSystemSnapshot> snapshots) {
+        switch (snapshots.size()) {
+            case 0:
+                return EMPTY;
+            case 1:
+                return snapshots.get(0);
+            default:
+                return new CompositeFileSystemSnapshot(snapshots);
         }
-        return new CompositeFileSystemSnapshot(snapshots);
     }
 
     @Override

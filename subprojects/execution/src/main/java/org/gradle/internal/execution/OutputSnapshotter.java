@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,15 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.execution;
+package org.gradle.internal.execution;
 
 import com.google.common.collect.ImmutableSortedMap;
-import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.tasks.properties.FilePropertySpec;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 
-import java.util.SortedSet;
-
-public interface TaskSnapshotter {
-    ImmutableSortedMap<String, FileSystemSnapshot> snapshotTaskFiles(TaskInternal task, SortedSet<? extends FilePropertySpec> fileProperties);
+public interface OutputSnapshotter {
+    /**
+     * Takes a snapshot of the outputs of a work.
+     */
+    ImmutableSortedMap<String, FileSystemSnapshot> snapshotOutputs(UnitOfWork work);
 }

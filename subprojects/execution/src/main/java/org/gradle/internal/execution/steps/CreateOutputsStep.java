@@ -38,9 +38,7 @@ public class CreateOutputsStep<C extends Context, R extends Result> implements S
 
     @Override
     public R execute(C context) {
-        context.getWork().visitOutputProperties((name, type, root) -> {
-            ensureOutput(name, root, type);
-        });
+        context.getWork().visitOutputProperties((name, type, root, contents) -> ensureOutput(name, root, type));
         return delegate.execute(context);
     }
 

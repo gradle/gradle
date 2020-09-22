@@ -72,7 +72,7 @@ class CacheStepTest extends StepSpec<IncrementalChangesContext> implements Finge
 
         then:
         _ * work.allowedToLoadFromCache >> true
-        1 * buildCacheCommandFactory.createLoad(cacheKey, work) >> loadCommand
+        1 * buildCacheCommandFactory.createLoad(cacheKey, _) >> loadCommand
         1 * buildCacheController.load(loadCommand) >> Optional.of(loadMetadata)
 
         then:
@@ -103,7 +103,7 @@ class CacheStepTest extends StepSpec<IncrementalChangesContext> implements Finge
 
         then:
         _ * work.allowedToLoadFromCache >> true
-        1 * buildCacheCommandFactory.createLoad(cacheKey, work) >> loadCommand
+        1 * buildCacheCommandFactory.createLoad(cacheKey, _) >> loadCommand
         1 * buildCacheController.load(loadCommand) >> Optional.empty()
 
         then:
@@ -132,7 +132,7 @@ class CacheStepTest extends StepSpec<IncrementalChangesContext> implements Finge
 
         then:
         _ * work.allowedToLoadFromCache >> true
-        1 * buildCacheCommandFactory.createLoad(cacheKey, work) >> loadCommand
+        1 * buildCacheCommandFactory.createLoad(cacheKey, _) >> loadCommand
         1 * buildCacheController.load(loadCommand) >> { BuildCacheLoadCommand command ->
             loadedOutputFile << "output"
             loadedOutputDir.mkdirs()
@@ -156,7 +156,7 @@ class CacheStepTest extends StepSpec<IncrementalChangesContext> implements Finge
 
         then:
         _ * work.allowedToLoadFromCache >> true
-        1 * buildCacheCommandFactory.createLoad(cacheKey, work) >> loadCommand
+        1 * buildCacheCommandFactory.createLoad(cacheKey, _) >> loadCommand
         1 * buildCacheController.load(loadCommand) >> Optional.empty()
 
         then:
@@ -242,7 +242,7 @@ class CacheStepTest extends StepSpec<IncrementalChangesContext> implements Finge
         1 * delegateResult.finalOutputs >> finalOutputs
         1 * delegateResult.originMetadata >> originMetadata
         1 * originMetadata.executionTime >> 123L
-        1 * buildCacheCommandFactory.createStore(cacheKey, work, finalOutputs, 123L) >> storeCommand
+        1 * buildCacheCommandFactory.createStore(cacheKey, _, finalOutputs, 123L) >> storeCommand
         1 * buildCacheController.store(storeCommand) >> { storeResult() }
     }
 }

@@ -19,6 +19,7 @@ package org.gradle.internal.execution.steps;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.caching.BuildCacheKey;
+import org.gradle.caching.internal.CacheableEntity;
 import org.gradle.caching.internal.controller.BuildCacheCommandFactory;
 import org.gradle.caching.internal.controller.BuildCacheCommandFactory.LoadMetadata;
 import org.gradle.caching.internal.controller.BuildCacheController;
@@ -74,8 +75,9 @@ public class CacheStep implements Step<IncrementalChangesContext, CurrentSnapsho
 
     private CurrentSnapshotResult executeWithCache(IncrementalChangesContext context, BuildCacheKey cacheKey) {
         UnitOfWork work = context.getWork();
+        CacheableWork cacheableWork = new CacheableWork(work);
         return Try.ofFailable(() -> work.isAllowedToLoadFromCache()
-                ? buildCache.load(commandFactory.createLoad(cacheKey, work))
+                ? buildCache.load(commandFactory.createLoad(cacheKey, cacheableWork))
                 : Optional.<LoadMetadata>empty()
             )
             .map(successfulLoad -> successfulLoad
@@ -109,7 +111,7 @@ public class CacheStep implements Step<IncrementalChangesContext, CurrentSnapsho
                         }
                     };
                 })
-                .orElseGet(() -> executeAndStoreInCache(cacheKey, context))
+                .orElseGet(() -> executeAndStoreInCache(cacheableWork, cacheKey, context))
             )
             .getOrMapFailure(loadFailure -> {
                 throw new RuntimeException(
@@ -131,16 +133,16 @@ public class CacheStep implements Step<IncrementalChangesContext, CurrentSnapsho
         });
     }
 
-    private CurrentSnapshotResult executeAndStoreInCache(BuildCacheKey cacheKey, IncrementalChangesContext context) {
+    private CurrentSnapshotResult executeAndStoreInCache(CacheableWork work, BuildCacheKey cacheKey, IncrementalChangesContext context) {
         CurrentSnapshotResult executionResult = executeWithoutCache(context);
         executionResult.getOutcome().ifSuccessfulOrElse(
-            outcome -> store(context.getWork(), cacheKey, executionResult),
+            outcome -> store(work, cacheKey, executionResult),
             failure -> LOGGER.debug("Not storing result of {} in cache because the execution failed", context.getWork().getDisplayName())
         );
         return executionResult;
     }
 
-    private void store(UnitOfWork work, BuildCacheKey cacheKey, CurrentSnapshotResult result) {
+    private void store(CacheableWork work, BuildCacheKey cacheKey, CurrentSnapshotResult result) {
         try {
             buildCache.store(commandFactory.createStore(cacheKey, work, result.getFinalOutputs(), result.getOriginMetadata().getExecutionTime()));
             if (LOGGER.isInfoEnabled()) {
@@ -157,5 +159,33 @@ public class CacheStep implements Step<IncrementalChangesContext, CurrentSnapsho
 
     private CurrentSnapshotResult executeWithoutCache(IncrementalChangesContext context) {
         return delegate.execute(context);
+    }
+
+    private static class CacheableWork implements CacheableEntity {
+        private final UnitOfWork work;
+
+        public CacheableWork(UnitOfWork work) {
+            this.work = work;
+        }
+
+        @Override
+        public String getIdentity() {
+            return work.getIdentity();
+        }
+
+        @Override
+        public Class<?> getType() {
+            return work.getClass();
+        }
+
+        @Override
+        public String getDisplayName() {
+            return work.getDisplayName();
+        }
+
+        @Override
+        public void visitOutputTrees(CacheableTreeVisitor visitor) {
+            work.visitOutputProperties((propertyName, type, root, contents) -> visitor.visitOutputTree(propertyName, type, root));
+        }
     }
 }
