@@ -17,7 +17,8 @@
 package org.gradle.jvm.toolchain.internal;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.Sets;
+import com.google.common.base.Supplier;
+import com.google.common.base.Suppliers;
 import org.gradle.api.GradleException;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -25,15 +26,13 @@ import org.gradle.api.logging.Logging;
 import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 
 public class SharedJavaInstallationRegistry {
-
-    private final Set<InstallationSupplier> suppliers = Sets.newConcurrentHashSet();
+    private Supplier<Set<File>> installations;
     private final Logger logger;
 
     @Inject
@@ -42,20 +41,20 @@ public class SharedJavaInstallationRegistry {
     }
 
     private SharedJavaInstallationRegistry(List<InstallationSupplier> suppliers, Logger logger) {
-        this.suppliers.addAll(suppliers);
+        this.installations = Suppliers.memoize(() -> collectInstallations(suppliers));
         this.logger = logger;
     }
 
     @VisibleForTesting
-    static SharedJavaInstallationRegistry withLogger(Logger logger) {
-        return new SharedJavaInstallationRegistry(Collections.emptyList(), logger);
-    }
-
-    void add(InstallationSupplier provider) {
-        suppliers.add(provider);
+    static SharedJavaInstallationRegistry withLogger(List<InstallationSupplier> suppliers, Logger logger) {
+        return new SharedJavaInstallationRegistry(suppliers, logger);
     }
 
     public Set<File> listInstallations() {
+        return installations.get();
+    }
+
+    private Set<File> collectInstallations(List<InstallationSupplier> suppliers) {
         return suppliers.stream()
             .map(InstallationSupplier::get)
             .flatMap(Set::stream)

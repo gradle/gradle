@@ -27,17 +27,22 @@ import java.util.Set;
 
 public class AsdfInstallationSupplier extends AutoDetectingInstallationSupplier {
 
-    private final Provider<String> asdfHome;
+    private final Provider<String> asdfDataDir;
+    private final Provider<String> asdfUserHome;
 
     @Inject
     public AsdfInstallationSupplier(ProviderFactory factory) {
         super(factory);
-        asdfHome = getEnvironmentProperty("ASDF_DIR");
+        asdfDataDir = getEnvironmentProperty("ASDF_DATA_DIR");
+        asdfUserHome = getSystemProperty("user.home")
+            .map(home -> new File(home, ".asdf").getAbsolutePath());
     }
 
     @Override
     protected Set<InstallationLocation> findCandidates() {
-        return asdfHome.map(findJavaCandidates()).getOrElse(Collections.emptySet());
+        return asdfDataDir.map(findJavaCandidates())
+            .orElse(asdfUserHome.map(findJavaCandidates()))
+            .getOrElse(Collections.emptySet());
     }
 
     private Transformer<Set<InstallationLocation>, String> findJavaCandidates() {

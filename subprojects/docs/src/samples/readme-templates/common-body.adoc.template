@@ -11,7 +11,7 @@ You'll generate a ${language.raw} ${componentType.raw} that follows Gradle's con
 
 * A text editor or IDE - for example link:https://www.jetbrains.com/idea/download/[IntelliJ IDEA]
 * A Java Development Kit (JDK), version 8 or higher - for example link:https://adoptopenjdk.net/[AdoptOpenJDK]
-* A https://gradle.org/install[Gradle distribution], version {gradle-version} or newer
+* The latest https://gradle.org/install[Gradle distribution]
 ${toolChain.raw}
 
 == Create a project folder

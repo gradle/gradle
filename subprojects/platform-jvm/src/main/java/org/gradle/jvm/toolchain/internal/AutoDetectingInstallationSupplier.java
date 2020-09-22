@@ -47,6 +47,10 @@ public abstract class AutoDetectingInstallationSupplier implements InstallationS
         return factory.environmentVariable(propertyName).forUseAtConfigurationTime();
     }
 
+    protected Provider<String> getSystemProperty(String propertyName) {
+        return factory.systemProperty(propertyName).forUseAtConfigurationTime();
+    }
+
     protected abstract Set<InstallationLocation> findCandidates();
 
     private boolean isAutoDetectionEnabled() {

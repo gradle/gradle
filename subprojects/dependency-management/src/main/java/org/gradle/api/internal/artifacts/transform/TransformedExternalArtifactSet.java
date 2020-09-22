@@ -53,6 +53,7 @@ public class TransformedExternalArtifactSet extends AbstractTransformedArtifactS
 
     @Override
     public void visitDependencies(TaskDependencyResolveContext context) {
+        getTransformation().visitTransformationSteps(step -> context.add(getDependenciesResolver().computeDependencyNodes(step)));
     }
 
     public List<File> calculateResult() {

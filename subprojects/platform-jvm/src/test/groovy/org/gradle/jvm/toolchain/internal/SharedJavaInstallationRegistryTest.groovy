@@ -22,12 +22,11 @@ import spock.lang.Unroll
 
 class SharedJavaInstallationRegistryTest extends Specification {
 
-    def registry = new SharedJavaInstallationRegistry(Collections.emptyList())
     def tempFolder = createTempDir()
 
-    def "registry keeps track of newly added installations"() {
+    def "registry keeps track of initial installations"() {
         when:
-        registry.add(forDirectory(tempFolder))
+        def registry = newRegistry(tempFolder)
 
         then:
         registry.listInstallations() == [tempFolder] as Set
@@ -35,8 +34,7 @@ class SharedJavaInstallationRegistryTest extends Specification {
 
     def "registry filters non-unique locations"() {
         when:
-        registry.add(forDirectory(tempFolder))
-        registry.add(forDirectory(tempFolder))
+        def registry = newRegistry(tempFolder, tempFolder)
 
         then:
         registry.listInstallations() == [tempFolder] as Set
@@ -44,8 +42,7 @@ class SharedJavaInstallationRegistryTest extends Specification {
 
     def "duplicates are detected using canonical form"() {
         given:
-        registry.add(forDirectory(tempFolder))
-        registry.add(forDirectory(new File(tempFolder, "/.")))
+        def registry = newRegistry(tempFolder, new File(tempFolder, "/."))
 
         when:
         def installations = registry.listInstallations()
@@ -60,40 +57,22 @@ class SharedJavaInstallationRegistryTest extends Specification {
         def tmpDir3 = createTempDir()
 
         when:
-        def registry = new SharedJavaInstallationRegistry([forDirectory(tmpDir2), forDirectory(tmpDir3)])
-        registry.add(forDirectory(tempFolder))
+        def registry = newRegistry(tempFolder, tmpDir2, tmpDir3)
 
         then:
         registry.listInstallations().containsAll(tempFolder, tmpDir2, tmpDir2)
     }
 
-    @SuppressWarnings('GroovyAccessibility')
-    def "registry can be mutated at later point"() {
+    def "list of installations is cached"() {
         given:
-        def tmpDir2 = createTempDir()
-        def registry = new SharedJavaInstallationRegistry([forDirectory(tmpDir2)])
-
-        when:
-        def before = registry.listInstallations()
-        registry.add(forDirectory(tempFolder))
-        def after = registry.listInstallations()
-
-        then:
-        before.containsAll(tmpDir2)
-        after.containsAll(tmpDir2, tempFolder)
-    }
-
-    def "list of installations is not cached"() {
-        given:
-        registry.add(forDirectory(tempFolder))
-        registry.add(forDirectory(tempFolder))
+        def registry = newRegistry(tempFolder)
 
         when:
         def installations = registry.listInstallations()
         def installations2 = registry.listInstallations()
 
         then:
-        !installations.is(installations2)
+        installations.is(installations2)
     }
 
     @Unroll
@@ -104,8 +83,7 @@ class SharedJavaInstallationRegistryTest extends Specification {
         file.isDirectory() >> directory
         file.absolutePath >> path
         def logger = Mock(Logger)
-        def registry = SharedJavaInstallationRegistry.withLogger(logger)
-        registry.add(forDirectory(file))
+        def registry = SharedJavaInstallationRegistry.withLogger([forDirectory(file)], logger)
 
         when:
         def installations = registry.listInstallations()
@@ -128,5 +106,9 @@ class SharedJavaInstallationRegistryTest extends Specification {
         def file = File.createTempDir()
         file.deleteOnExit()
         file.canonicalFile
+    }
+
+    private SharedJavaInstallationRegistry newRegistry(File... location) {
+        new SharedJavaInstallationRegistry(location.collect { forDirectory(it) })
     }
 }
