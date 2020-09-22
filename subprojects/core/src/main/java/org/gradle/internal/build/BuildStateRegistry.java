@@ -73,6 +73,11 @@ public interface BuildStateRegistry {
     void beforeConfigureRootBuild();
 
     /**
+     * Notification that the root build has just finished configuration.
+     */
+    void afterConfigureRootBuild();
+
+    /**
      * Creates an included build. An included build is-a nested build whose projects and outputs are treated as part of the composite build.
      */
     IncludedBuildState addIncludedBuild(BuildDefinition buildDefinition);

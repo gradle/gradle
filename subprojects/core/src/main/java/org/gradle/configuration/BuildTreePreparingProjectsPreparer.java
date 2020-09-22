@@ -42,6 +42,7 @@ public class BuildTreePreparingProjectsPreparer implements ProjectsPreparer {
     public void prepareProjects(GradleInternal gradle) {
         if (gradle.isRootBuild()) {
             buildOperationExecutor.run(new PrepareBuildTree(gradle));
+            buildStateRegistry.afterConfigureRootBuild();
         } else {
             buildBuildSrcAndPrepareProjects(gradle);
         }

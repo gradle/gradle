@@ -19,10 +19,10 @@ package org.gradle.composite.internal;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.BuildDefinition;
+import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.initialization.GradleLauncher;
 import org.gradle.initialization.NestedBuildFactory;
-import org.gradle.internal.build.AbstractBuildState;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.StandAloneNestedBuild;
 import org.gradle.internal.concurrent.Stoppable;
@@ -32,7 +32,7 @@ import org.gradle.util.Path;
 
 import java.io.File;
 
-class DefaultNestedBuild extends AbstractBuildState implements StandAloneNestedBuild, Stoppable {
+class DefaultNestedBuild extends AbstractCompositeParticipantBuildState implements StandAloneNestedBuild, Stoppable {
     private final Path identityPath;
     private final BuildState owner;
     private final BuildIdentifier buildIdentifier;
@@ -100,5 +100,10 @@ class DefaultNestedBuild extends AbstractBuildState implements StandAloneNestedB
     @Override
     public File getBuildRootDir() {
         return gradleLauncher.getBuildRootDir();
+    }
+
+    @Override
+    public GradleInternal getBuild() {
+        return gradleLauncher.getGradle();
     }
 }
