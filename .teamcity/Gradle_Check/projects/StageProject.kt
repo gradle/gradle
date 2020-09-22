@@ -1,7 +1,11 @@
 package projects
 
 import Gradle_Check.configurations.FunctionalTestsPass
-import Gradle_Check.model.GradleBuildBucketProvider
+import Gradle_Check.configurations.PerformanceTestsPass
+import Gradle_Check.model.FunctionalTestBucketProvider
+import Gradle_Check.model.PerformanceTestBucketProvider
+import Gradle_Check.model.PerformanceTestCoverage
+import common.Os
 import configurations.FunctionalTest
 import configurations.PerformanceTestCoordinator
 import configurations.SanityCheck
@@ -12,11 +16,13 @@ import jetbrains.buildServer.configs.kotlin.v2019_2.FailureAction
 import jetbrains.buildServer.configs.kotlin.v2019_2.IdOwner
 import jetbrains.buildServer.configs.kotlin.v2019_2.Project
 import model.CIBuildModel
+import model.PerformanceTestType
 import model.SpecificBuild
 import model.Stage
+import model.StageNames
 import model.TestType
 
-class StageProject(model: CIBuildModel, gradleBuildBucketProvider: GradleBuildBucketProvider, stage: Stage, rootProjectUuid: String) : Project({
+class StageProject(model: CIBuildModel, functionalTestBucketProvider: FunctionalTestBucketProvider, performanceTestBucketProvider: PerformanceTestBucketProvider, stage: Stage, rootProjectUuid: String) : Project({
     this.uuid = "${model.projectPrefix}Stage_${stage.stageName.uuid}"
     this.id = AbsoluteId("${model.projectPrefix}Stage_${stage.stageName.id}")
     this.name = stage.stageName.stageName
@@ -47,6 +53,14 @@ class StageProject(model: CIBuildModel, gradleBuildBucketProvider: GradleBuildBu
         performanceTests = stage.performanceTests.map { PerformanceTestCoordinator(model, it, stage) }
         performanceTests.forEach(this::buildType)
 
+        if (stage.stageName == StageNames.EXPERIMENTAL_PERFORMANCE) {
+            createPerformanceTests(model, performanceTestBucketProvider, stage, PerformanceTestCoverage(PerformanceTestType.test, Os.LINUX))
+            createPerformanceTests(model, performanceTestBucketProvider, stage, PerformanceTestCoverage(PerformanceTestType.slow, Os.LINUX))
+            createPerformanceTests(model, performanceTestBucketProvider, stage, PerformanceTestCoverage(PerformanceTestType.historical, Os.LINUX))
+            createPerformanceTests(model, performanceTestBucketProvider, stage, PerformanceTestCoverage(PerformanceTestType.flakinessDetection, Os.LINUX))
+            createPerformanceTests(model, performanceTestBucketProvider, stage, PerformanceTestCoverage(PerformanceTestType.experiment, Os.LINUX))
+        }
+
         val (topLevelCoverage, allCoverage) = stage.functionalTests.partition { it.testType == TestType.soak || it.testDistribution }
         val topLevelFunctionalTests = topLevelCoverage
             .map { FunctionalTest(model, it.asConfigurationId(model), it.asName(), it.asName(), it, stage = stage) }
@@ -54,7 +68,7 @@ class StageProject(model: CIBuildModel, gradleBuildBucketProvider: GradleBuildBu
 
         val functionalTestProjects = allCoverage
             .map { testCoverage ->
-                val functionalTestProject = FunctionalTestProject(model, gradleBuildBucketProvider, testCoverage, stage)
+                val functionalTestProject = FunctionalTestProject(model, functionalTestBucketProvider, testCoverage, stage)
                 if (stage.functionalTestsDependOnSpecificBuilds) {
                     specificBuildTypes.forEach { specificBuildType ->
                         functionalTestProject.addDependencyForAllBuildTypes(specificBuildType)
@@ -71,7 +85,7 @@ class StageProject(model: CIBuildModel, gradleBuildBucketProvider: GradleBuildBu
             this@StageProject.buildType(FunctionalTestsPass(model, functionalTestProject))
         }
 
-        val deferredTestsForThisStage = gradleBuildBucketProvider.createDeferredFunctionalTestsFor(stage)
+        val deferredTestsForThisStage = functionalTestBucketProvider.createDeferredFunctionalTestsFor(stage)
         if (deferredTestsForThisStage.isNotEmpty()) {
             val deferredTestsProject = Project {
                 uuid = "${rootProjectUuid}_deferred_tests"
@@ -83,6 +97,12 @@ class StageProject(model: CIBuildModel, gradleBuildBucketProvider: GradleBuildBu
         }
 
         functionalTests = topLevelFunctionalTests + functionalTestProjects.flatMap(FunctionalTestProject::functionalTests) + deferredTestsForThisStage
+    }
+
+    private fun createPerformanceTests(model: CIBuildModel, performanceTestBucketProvider: PerformanceTestBucketProvider, stage: Stage, performanceTestCoverage: PerformanceTestCoverage) {
+        val performanceTestProject = PerformanceTestProject(model, performanceTestBucketProvider, stage, performanceTestCoverage)
+        subProject(performanceTestProject)
+        buildType(PerformanceTestsPass(model, performanceTestProject))
     }
 }
 
