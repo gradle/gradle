@@ -35,6 +35,12 @@ class PerformanceTestsPass(model: CIBuildModel, performanceTestProject: Performa
         publishBuildStatusToGithub(model)
     }
 
+    val performanceResultsDir = "perf-results"
+
+    artifactRules = """
+$performanceResultsDir
+"""
+
     dependencies {
         snapshotDependencies(performanceTestProject.performanceTests)
         performanceTestProject.performanceTests.forEach {
@@ -42,7 +48,7 @@ class PerformanceTestsPass(model: CIBuildModel, performanceTestProject: Performa
                 artifacts(it.id!!) {
                     id = "ARTIFACT_DEPENDENCY_${it.id!!}"
                     cleanDestination = true
-                    artifactRules = "results/performance/build/test-results-*.zip!performance-tests/perf-results.json => perf-results/${it.bucketIndex}/"
+                    artifactRules = "results/performance/build/test-results-*.zip!performance-tests/perf-results.json => ${performanceResultsDir}/${it.bucketIndex}/"
                 }
             }
         }
