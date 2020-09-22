@@ -233,7 +233,6 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
 
     private static class TransformerExecution implements UnitOfWork {
         private final Transformer transformer;
-        private final TransformationWorkspace workspace;
         private final File inputArtifact;
         private final String identityString;
         private final CompleteFileSystemLocationSnapshot inputArtifactSnapshot;
@@ -246,6 +245,8 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
 
         private final Timer executionTimer;
         private final Provider<FileSystemLocation> inputArtifactProvider;
+        private final File outputDir;
+        private final File resultsFile;
 
         public TransformerExecution(
             Transformer transformer,
@@ -264,7 +265,8 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
             this.dependenciesFingerprint = dependenciesFingerprint;
             this.inputArtifact = inputArtifact;
             this.transformer = transformer;
-            this.workspace = workspace;
+            this.outputDir = workspace.getOutputDirectory();
+            this.resultsFile = workspace.getResultsFile();
             this.identityString = identityString;
             this.executionHistoryStore = executionHistoryStore;
             this.dependencies = dependencies;
@@ -276,9 +278,6 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
 
         @Override
         public WorkResult execute(@Nullable InputChangesInternal inputChanges, InputChangesContext context) {
-            File outputDir = workspace.getOutputDirectory();
-            File resultsFile = workspace.getResultsFile();
-
             ImmutableList<File> result = transformer.transform(inputArtifactProvider, outputDir, dependencies, inputChanges);
             writeResultsFile(outputDir, resultsFile, result);
             return WorkResult.DID_WORK;
@@ -307,13 +306,13 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
         }
 
         private ImmutableList<File> loadResultsFile() {
-            Path transformerResultsPath = workspace.getResultsFile().toPath();
+            Path transformerResultsPath = resultsFile.toPath();
             try {
                 ImmutableList.Builder<File> builder = ImmutableList.builder();
                 List<String> paths = Files.readAllLines(transformerResultsPath, StandardCharsets.UTF_8);
                 for (String path : paths) {
                     if (path.startsWith(OUTPUT_FILE_PATH_PREFIX)) {
-                        builder.add(new File(workspace.getOutputDirectory(), path.substring(2)));
+                        builder.add(new File(outputDir, path.substring(2)));
                     } else if (path.startsWith(INPUT_FILE_PATH_PREFIX)) {
                         builder.add(new File(inputArtifact, path.substring(2)));
                     } else {
@@ -362,8 +361,8 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
 
         @Override
         public void visitOutputProperties(OutputPropertyVisitor visitor) {
-            visitor.visitOutputProperty(OUTPUT_DIRECTORY_PROPERTY_NAME, TreeType.DIRECTORY, workspace.getOutputDirectory(), fileCollectionFactory.fixed(workspace.getOutputDirectory()));
-            visitor.visitOutputProperty(RESULTS_FILE_PROPERTY_NAME, TreeType.FILE, workspace.getResultsFile(), fileCollectionFactory.fixed(workspace.getResultsFile()));
+            visitor.visitOutputProperty(OUTPUT_DIRECTORY_PROPERTY_NAME, TreeType.DIRECTORY, outputDir, fileCollectionFactory.fixed(outputDir));
+            visitor.visitOutputProperty(RESULTS_FILE_PROPERTY_NAME, TreeType.FILE, resultsFile, fileCollectionFactory.fixed(resultsFile));
         }
 
         @Override
