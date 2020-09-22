@@ -30,7 +30,7 @@ dependencies {
         api("com.gradle.publish:plugin-publish-plugin:0.11.0")
         api("gradle.plugin.org.jetbrains.gradle.plugin.idea-ext:gradle-idea-ext:0.7")
         api("me.champeau.gradle:japicmp-gradle-plugin:0.2.9")
-        api("me.champeau.gradle:jmh-gradle-plugin:0.5.0")
+        api("me.champeau.gradle:jmh-gradle-plugin:0.5.2")
         api("org.asciidoctor:asciidoctor-gradle-plugin:1.5.10")
         api("org.gradle:test-retry-gradle-plugin:1.1.7")
         api("org.gradle.kotlin:gradle-kotlin-dsl-conventions:0.5.0")
