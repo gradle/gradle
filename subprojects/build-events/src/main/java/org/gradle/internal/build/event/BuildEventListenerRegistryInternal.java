@@ -19,9 +19,12 @@ package org.gradle.internal.build.event;
 import org.gradle.api.provider.Provider;
 import org.gradle.build.event.BuildEventsListenerRegistry;
 import org.gradle.internal.operations.BuildOperationListener;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.util.List;
 
+@ServiceScope(Scope.Global.class)
 public interface BuildEventListenerRegistryInternal extends BuildEventsListenerRegistry {
     /**
      * Subscribes the given listener to build operation completion events. Note that no start events are forwarded to the listener.

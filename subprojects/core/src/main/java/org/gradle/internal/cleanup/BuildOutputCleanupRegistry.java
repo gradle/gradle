@@ -17,10 +17,13 @@
 package org.gradle.internal.cleanup;
 
 import org.gradle.api.file.FileCollection;
+import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.io.File;
 import java.util.Set;
 
+@ServiceScope(Scopes.Gradle.class)
 public interface BuildOutputCleanupRegistry {
 
     /**
