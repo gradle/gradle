@@ -16,14 +16,18 @@
 
 package org.gradle.internal.build;
 
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
+import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.initialization.IncludedBuildSpec;
 import org.gradle.initialization.NestedBuildFactory;
+import org.gradle.internal.Pair;
 import org.gradle.util.Path;
 
 import java.io.File;
+import java.util.Set;
 
 /**
  * Encapsulates the identity and state of a particular build in a build tree.
@@ -84,4 +88,16 @@ public interface BuildState {
      * The root directory of the build.
      */
     File getBuildRootDir();
+
+    /**
+     * Identities of the modules represented by the projects of this build.
+     */
+    Set<Pair<ModuleVersionIdentifier, ProjectComponentIdentifier>> getAvailableModules();
+
+    GradleInternal getBuild();
+
+    /**
+     * Creates a copy of the identifier for a project in this build, to use in the dependency resolution result from some other build
+     */
+    ProjectComponentIdentifier idToReferenceProjectFromAnotherBuild(ProjectComponentIdentifier identifier);
 }

@@ -24,6 +24,7 @@ import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.composite.CompositeBuildContext;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.internal.build.IncludedBuildState;
+import org.gradle.internal.build.RootBuildState;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.slf4j.Logger;
@@ -63,6 +64,10 @@ public class IncludedBuildDependencySubstitutionsBuilder {
             // Register the defined substitutions for included build
             context.registerSubstitution(substitutions.getRuleAction());
         }
+    }
+
+    public void build(RootBuildState rootBuildState) {
+        context.addAvailableModules(rootBuildState.getAvailableModules());
     }
 
     private DependencySubstitutionsInternal resolveDependencySubstitutions(IncludedBuildState build) {

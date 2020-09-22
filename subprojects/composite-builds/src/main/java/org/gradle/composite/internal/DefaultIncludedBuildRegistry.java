@@ -143,6 +143,11 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
     }
 
     @Override
+    public void afterConfigureRootBuild() {
+        dependencySubstitutionsBuilder.build(rootBuild);
+    }
+
+    @Override
     public void finalizeIncludedBuilds() {
         SettingsInternal rootSettings = getRootBuild().getLoadedSettings();
         while (!pendingIncludedBuilds.isEmpty()) {

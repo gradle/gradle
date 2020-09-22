@@ -19,15 +19,11 @@ package org.gradle.internal.build;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.DependencySubstitutions;
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
-import org.gradle.internal.Pair;
 
 import java.io.File;
-import java.util.Set;
 
 /**
  * Encapsulates the identity and state of an included build. An included build is a nested build that participates in dependency resolution and task execution with the root build and other included builds in the build tree.
@@ -37,12 +33,6 @@ public interface IncludedBuildState extends NestedBuildState {
     File getRootDirectory();
     IncludedBuild getModel();
     Action<? super DependencySubstitutions> getRegisteredDependencySubstitutions();
-    Set<Pair<ModuleVersionIdentifier, ProjectComponentIdentifier>> getAvailableModules();
-
-    /**
-     * Creates a copy of the identifier for a project in this build, to use in the dependency resolution result from some other build
-     */
-    ProjectComponentIdentifier idToReferenceProjectFromAnotherBuild(ProjectComponentIdentifier identifier);
 
     SettingsInternal loadSettings();
 
