@@ -43,6 +43,8 @@ class KotlinDslPluginGradlePluginCrossVersionSmokeTest(
         @Parameterized.Parameters(name = "{0}")
         @JvmStatic
         fun testedKotlinVersions() = listOf(
+            "1.4.10",
+            "1.4.0",
             embeddedKotlinVersion,
             "1.3.60",
             "1.3.40",
@@ -54,7 +56,7 @@ class KotlinDslPluginGradlePluginCrossVersionSmokeTest(
     @LeaksFileHandles("Kotlin Compiler Daemon working directory")
     @ToBeFixedForConfigurationCache(
         skip = ToBeFixedForConfigurationCache.Skip.FLAKY,
-        because = "OOME and stack overflows with 1.3.30, plus configuration cache does not work for <1.3.70"
+        because = "OOME and stack overflows with 1.3.30, plus configuration cache does not work for other versions"
     )
     fun `kotlin-dsl plugin in buildSrc and production code using kotlin-gradle-plugin `() {
 
