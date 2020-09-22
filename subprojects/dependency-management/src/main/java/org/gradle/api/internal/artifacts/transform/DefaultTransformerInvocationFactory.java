@@ -125,20 +125,54 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
 
             @Override
             public Try<ImmutableList<File>> invoke() {
-                return cachedResult != null
-                    ? cachedResult
-                    : doTransform(
-                    workspaceProvider,
-                    identity,
-                    transformer,
-                    subject,
-                    inputArtifact,
-                    inputArtifactSnapshot,
-                    dependencies,
-                    dependenciesFingerprint,
-                    fileCollectionFactory,
-                    inputArtifactFingerprinter
-                );
+                if (cachedResult != null) {
+                    return cachedResult;
+                }
+                return workspaceProvider.withWorkspace(identity, (identityString, workspace) -> buildOperationExecutor.call(new CallableBuildOperation<Try<ImmutableList<File>>>() {
+                    @Override
+                    public Try<ImmutableList<File>> call(BuildOperationContext context) {
+                        return fireTransformListeners(transformer, subject, () -> {
+                            String transformIdentity = "transform/" + identityString;
+                            ExecutionHistoryStore executionHistoryStore = workspaceProvider.getExecutionHistoryStore();
+
+                            TransformerExecution execution = new TransformerExecution(
+                                transformer,
+                                workspace,
+                                transformIdentity,
+                                inputArtifact,
+                                inputArtifactSnapshot,
+                                dependencies,
+                                dependenciesFingerprint,
+                                executionHistoryStore,
+                                fileCollectionFactory,
+                                inputArtifactFingerprinter
+                            );
+
+                            CachingResult outcome = workExecutor.execute(new ExecutionRequestContext() {
+                                @Override
+                                public UnitOfWork getWork() {
+                                    return execution;
+                                }
+
+                                @Override
+                                public Optional<String> getRebuildReason() {
+                                    return Optional.empty();
+                                }
+                            });
+
+                            return outcome.getOutcome()
+                                .tryMap(outcome1 -> execution.loadResultsFile())
+                                .mapFailure(failure -> new TransformException(String.format("Execution failed for %s.", execution.getDisplayName()), failure));
+                        });
+                    }
+
+                    @Override
+                    public BuildOperationDescriptor.Builder description() {
+                        String displayName = transformer.getDisplayName() + " " + inputArtifact.getName();
+                        return BuildOperationDescriptor.displayName(displayName)
+                            .progressDisplayName(displayName);
+                    }
+                }));
             }
 
             @Override
@@ -147,65 +181,6 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
                 return Optional.ofNullable(cachedResult);
             }
         };
-    }
-
-    private Try<ImmutableList<File>> doTransform(
-        CachingTransformationWorkspaceProvider workspaceProvider,
-        TransformationWorkspaceIdentity identity,
-        Transformer transformer,
-        TransformationSubject subject,
-        File inputArtifact,
-        CompleteFileSystemLocationSnapshot inputArtifactSnapshot,
-        ArtifactTransformDependencies dependencies,
-        CurrentFileCollectionFingerprint dependenciesFingerprint,
-        FileCollectionFactory fileCollectionFactory,
-        FileCollectionFingerprinter inputArtifactFingerprinter
-    ) {
-        return workspaceProvider.withWorkspace(identity, (identityString, workspace) -> buildOperationExecutor.call(new CallableBuildOperation<Try<ImmutableList<File>>>() {
-            @Override
-            public Try<ImmutableList<File>> call(BuildOperationContext context) {
-                return fireTransformListeners(transformer, subject, () -> {
-                    String transformIdentity = "transform/" + identityString;
-                    ExecutionHistoryStore executionHistoryStore = workspaceProvider.getExecutionHistoryStore();
-
-                    TransformerExecution execution = new TransformerExecution(
-                        transformer,
-                        workspace,
-                        transformIdentity,
-                        inputArtifact,
-                        inputArtifactSnapshot,
-                        dependencies,
-                        dependenciesFingerprint,
-                        executionHistoryStore,
-                        fileCollectionFactory,
-                        inputArtifactFingerprinter
-                    );
-
-                    CachingResult outcome = workExecutor.execute(new ExecutionRequestContext() {
-                        @Override
-                        public UnitOfWork getWork() {
-                            return execution;
-                        }
-
-                        @Override
-                        public Optional<String> getRebuildReason() {
-                            return Optional.empty();
-                        }
-                    });
-
-                    return outcome.getOutcome()
-                        .tryMap(outcome1 -> execution.loadResultsFile())
-                        .mapFailure(failure -> new TransformException(String.format("Execution failed for %s.", execution.getDisplayName()), failure));
-                });
-            }
-
-            @Override
-            public BuildOperationDescriptor.Builder description() {
-                String displayName = transformer.getDisplayName() + " " + inputArtifact.getName();
-                return BuildOperationDescriptor.displayName(displayName)
-                    .progressDisplayName(displayName);
-            }
-        }));
     }
 
     private static TransformationWorkspaceIdentity getTransformationIdentity(@Nullable ProjectInternal project, CompleteFileSystemLocationSnapshot inputArtifactSnapshot, String inputArtifactPath, Transformer transformer, CurrentFileCollectionFingerprint dependenciesFingerprint) {
