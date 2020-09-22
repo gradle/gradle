@@ -139,25 +139,33 @@ abstract class PerformanceTest extends DistributionTest {
         }
     }
 
+    /**
+     * Remove method filters from the filters passed via the commandline and add the as scenarios.
+     *
+     * We currently can't filter single unrolled methods due to a limitation with Spock and JUnit 4/5
+     * So we handle selecting the right methods by some custom code in our performance test infrastructure (`TestScenarioSelector.shouldRun()`).
+     * The classes filters are still handled by Gradle's/JUnit's infrastructure.
+     */
     private void moveMethodFiltersToScenarios() {
         DefaultTestFilter filter = getFilter() as DefaultTestFilter
         List<String> scenarios = []
-        Set<String> onlyClassFilters = filter.getCommandLineIncludePatterns().collect { includePattern ->
+        Set<String> classOnlyFilters = new LinkedHashSet<>()
+        filter.getCommandLineIncludePatterns().each { includePattern ->
             def lastDot = includePattern.lastIndexOf(".")
             if (lastDot == -1) {
-                return includePattern
+                classOnlyFilters.add(includePattern)
             } else {
                 def className = includePattern.substring(0, lastDot)
                 def methodName = includePattern.substring(lastDot + 1)
                 if (Character.isLowerCase(methodName.charAt(0))) {
                     scenarios.add(methodName)
-                    return className
+                    classOnlyFilters.add(className)
                 } else {
-                    return includePattern
+                    classOnlyFilters.add(includePattern)
                 }
             }
-        } as Set
-        filter.setCommandLineIncludePatterns(onlyClassFilters)
+        }
+        filter.setCommandLineIncludePatterns(classOnlyFilters)
         setScenarios(scenarios.join(";"))
     }
 
