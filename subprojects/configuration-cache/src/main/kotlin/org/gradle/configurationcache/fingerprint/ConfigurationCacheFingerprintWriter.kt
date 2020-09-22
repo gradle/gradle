@@ -62,12 +62,9 @@ class ConfigurationCacheFingerprintWriter(
 
         val buildStartTime: Long
 
+        fun fingerprintOf(fileCollection: FileCollectionInternal): HashCode
         fun hashCodeOf(file: File): HashCode?
 
-        fun fingerprintOf(
-            fileCollection: FileCollectionInternal,
-            owner: TaskInternal
-        ): HashCode
     }
 
     @Volatile
@@ -207,7 +204,7 @@ class ConfigurationCacheFingerprintWriter(
             ConfigurationCacheFingerprint.TaskInputs(
                 task.identityPath.path,
                 simplify(fileSystemInputs),
-                host.fingerprintOf(fileSystemInputs, task)
+                host.fingerprintOf(fileSystemInputs)
             )
         )
     }
