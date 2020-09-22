@@ -16,30 +16,62 @@
 
 package Gradle_Check.configurations
 
+import common.Os
 import common.applyDefaultSettings
 import configurations.BaseGradleBuildType
+import configurations.gradleRunnerStep
 import configurations.publishBuildStatusToGithub
 import configurations.snapshotDependencies
 import jetbrains.buildServer.configs.kotlin.v2019_2.AbsoluteId
 import model.CIBuildModel
+import model.PerformanceTestType
 import projects.PerformanceTestProject
+import java.util.Locale
 
 class PerformanceTestsPass(model: CIBuildModel, performanceTestProject: PerformanceTestProject) : BaseGradleBuildType(model, init = {
     uuid = performanceTestProject.uuid + "_Trigger"
     id = AbsoluteId(uuid)
     name = performanceTestProject.name + " (Trigger)"
 
-    applyDefaultSettings()
+    val os = Os.LINUX
+    val type = performanceTestProject.performanceTestCoverage.performanceTestType
+
+    applyDefaultSettings(os)
+    params {
+        param("env.GRADLE_OPTS", "-Xmx1536m -XX:MaxPermSize=384m")
+        param("env.JAVA_HOME", os.buildJavaHome())
+        param("env.BUILD_BRANCH", "%teamcity.build.branch%")
+        param("performance.db.username", "tcagent")
+        param("performance.channel", "${type.channel}${if (os == Os.LINUX) "" else "-${os.name.toLowerCase(Locale.US)}"}-%teamcity.build.branch%")
+    }
 
     features {
         publishBuildStatusToGithub(model)
     }
 
     val performanceResultsDir = "perf-results"
+    val performanceProjectName = "performance"
 
     artifactRules = """
 $performanceResultsDir
+subprojects/$performanceProjectName/build/performanceTest*Report => report/
 """
+
+    val taskName = if (performanceTestProject.performanceTestCoverage.performanceTestType == PerformanceTestType.flakinessDetection)
+        "performanceTestFlakinessReport"
+    else
+        "performanceTestReport"
+
+    gradleRunnerStep(
+        model,
+        ":$performanceProjectName:$taskName --channel %performance.channel%",
+        extraParameters = listOf(
+            "-Porg.gradle.performance.branchName" to "%teamcity.build.branch%",
+            "-Porg.gradle.performance.db.url" to "%performance.db.url%",
+            "-Porg.gradle.performance.db.username" to "%performance.db.username%",
+            "-Porg.gradle.performance.db.password" to "%performance.db.password.tcagent%"
+        ).joinToString(" ") { (key, value) -> os.escapeKeyValuePair(key, value) }
+    )
 
     dependencies {
         snapshotDependencies(performanceTestProject.performanceTests)
@@ -48,7 +80,7 @@ $performanceResultsDir
                 artifacts(it.id!!) {
                     id = "ARTIFACT_DEPENDENCY_${it.id!!}"
                     cleanDestination = true
-                    artifactRules = "results/performance/build/test-results-*.zip!performance-tests/perf-results.json => ${performanceResultsDir}/${it.bucketIndex}/"
+                    artifactRules = "results/performance/build/test-results-*.zip!performance-tests/perf-results.json => $performanceResultsDir/${it.bucketIndex}/"
                 }
             }
         }

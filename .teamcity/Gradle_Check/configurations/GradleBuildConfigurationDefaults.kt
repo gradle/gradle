@@ -80,7 +80,6 @@ fun ProjectFeatures.buildReportTab(title: String, startPage: String) {
     }
 }
 
-private
 fun BaseGradleBuildType.gradleRunnerStep(model: CIBuildModel, gradleTasks: String, os: Os = Os.LINUX, extraParameters: String = "", daemon: Boolean = true) {
     val buildScanTags = model.buildScanTags + listOfNotNull(stage?.id)
 
