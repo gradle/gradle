@@ -34,6 +34,7 @@ import gradlebuild.performance.tasks.BuildCommitDistribution
 import gradlebuild.performance.tasks.DetermineBaselines
 import gradlebuild.performance.tasks.DistributedPerformanceTest
 import gradlebuild.performance.tasks.PerformanceTest
+import gradlebuild.performance.tasks.PerformanceTestReport
 import gradlebuild.performance.tasks.RebaselinePerformanceTests
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -278,7 +279,7 @@ class PerformanceTestPlugin : Plugin<Project> {
                     setTestProjectGenerationTask(sampleGenerator)
                 }
                 val channelSuffix = if (OperatingSystem.current().isLinux) "" else "-${OperatingSystem.current().familyName.toLowerCase()}"
-                val performanceTest = create("${sampleGenerator.name}PerformanceTest") {
+                create("${sampleGenerator.name}PerformanceTest") {
                     performanceReporter = createPerformanceReporter()
                     channel = "commits$channelSuffix"
                     setTestProjectGenerationTask(sampleGenerator)
@@ -298,6 +299,26 @@ class PerformanceTestPlugin : Plugin<Project> {
                     }
                 }
             }
+        }
+
+        tasks.register<PerformanceTestReport>("performanceTestReport") {
+            reportGeneratorClass.set("org.gradle.performance.results.report.DefaultReportGenerator")
+        }
+
+        tasks.register<PerformanceTestReport>("performanceTestFlakinessReport") {
+            reportGeneratorClass.set("org.gradle.performance.results.report.FlakinessReportGenerator")
+        }
+
+        tasks.withType<PerformanceTestReport>().configureEach {
+            classpath.from(performanceSourceSet.runtimeClasspath)
+            performanceResultsDirectory.set(project.rootProject.file("perf-results"))
+            reportDir.set(project.layout.buildDirectory.dir(this@configureEach.name))
+            databaseParameters.set(project.propertiesForPerformanceDb())
+            val moduleIdentity = project.the<ModuleIdentityExtension>()
+            branchName.set(moduleIdentity.gradleBuildBranch)
+            channel.convention(branchName.map { "commits-$it" })
+            commitId.set(moduleIdentity.gradleBuildCommitId)
+            projectName.set(project.name)
         }
     }
 

@@ -42,8 +42,8 @@ class FlakinessDetectionPerformanceExecutionDataProvider extends PerformanceExec
             .thenComparing(comparing(ScenarioBuildResultData::getDifferencePercentage).reversed())
             .thenComparing(ScenarioBuildResultData::getScenarioName);
 
-    public FlakinessDetectionPerformanceExecutionDataProvider(ResultsStore resultsStore, File resultsJson) {
-        super(resultsStore, resultsJson);
+    public FlakinessDetectionPerformanceExecutionDataProvider(ResultsStore resultsStore, List<File> resultJsons) {
+        super(resultsStore, resultJsons);
     }
 
     @Override

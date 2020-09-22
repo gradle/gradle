@@ -47,10 +47,11 @@ public class DefaultPerformanceExecutionDataProvider extends PerformanceExecutio
         .thenComparing(comparing(ScenarioBuildResultData::isAboutToRegress).reversed())
         .thenComparing(comparing(ScenarioBuildResultData::getDifferenceSortKey).reversed())
         .thenComparing(comparing(ScenarioBuildResultData::getDifferencePercentage).reversed())
-        .thenComparing(ScenarioBuildResultData::getScenarioName);
+        .thenComparing(ScenarioBuildResultData::getScenarioName)
+        .thenComparing(ScenarioBuildResultData::getTestProject);
 
-    public DefaultPerformanceExecutionDataProvider(ResultsStore resultsStore, File resultsJson) {
-        super(resultsStore, resultsJson);
+    public DefaultPerformanceExecutionDataProvider(ResultsStore resultsStore, List<File> resultJsons) {
+        super(resultsStore, resultJsons);
     }
 
     @Override
@@ -96,6 +97,7 @@ public class DefaultPerformanceExecutionDataProvider extends PerformanceExecutio
         } else {
             ScenarioBuildResultData mergedScenario = new ScenarioBuildResultData();
             mergedScenario.setScenarioName(scenariosWithSameName.get(0).getScenarioName());
+            mergedScenario.setTestProject(scenariosWithSameName.get(0).getTestProject());
             mergedScenario.setRawData(scenariosWithSameName);
             mergedScenario.setStatus(determineMergedScenarioStatus(scenariosWithSameName));
             return mergedScenario;

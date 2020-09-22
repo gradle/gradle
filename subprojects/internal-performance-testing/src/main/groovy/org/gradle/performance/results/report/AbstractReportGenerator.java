@@ -31,17 +31,22 @@ import java.io.IOException;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.gradle.performance.results.report.PerformanceFlakinessDataProvider.EmptyPerformanceFlakinessDataProvider;
 
 public abstract class AbstractReportGenerator<R extends ResultsStore> {
     protected void generateReport(String... args) {
         File outputDirectory = new File(args[0]);
-        File resultJson = new File(args[1]);
-        String projectName = args[2];
+        String projectName = args[1];
+        List<File> resultJsons = new ArrayList<>();
+        for (int i = 2; i < args.length; i++) {
+            resultJsons.add(new File(args[i]));
+        }
 
         try (ResultsStore store = getResultsStore()) {
-            PerformanceExecutionDataProvider executionDataProvider = getExecutionDataProvider(store, resultJson);
+            PerformanceExecutionDataProvider executionDataProvider = getExecutionDataProvider(store, resultJsons);
             PerformanceFlakinessDataProvider flakinessDataProvider = getFlakinessDataProvider();
             generateReport(store, flakinessDataProvider, executionDataProvider, outputDirectory, projectName);
             checkResult(flakinessDataProvider, executionDataProvider);
@@ -54,8 +59,8 @@ public abstract class AbstractReportGenerator<R extends ResultsStore> {
         return EmptyPerformanceFlakinessDataProvider.INSTANCE;
     }
 
-    protected PerformanceExecutionDataProvider getExecutionDataProvider(ResultsStore store, File resultJson) {
-        return new DefaultPerformanceExecutionDataProvider(store, resultJson);
+    protected PerformanceExecutionDataProvider getExecutionDataProvider(ResultsStore store, List<File> resultJsons) {
+        return new DefaultPerformanceExecutionDataProvider(store, resultJsons);
     }
 
     protected void generateReport(ResultsStore store, PerformanceFlakinessDataProvider flakinessDataProvider, PerformanceExecutionDataProvider executionDataProvider, File outputDirectory, String projectName) throws IOException {

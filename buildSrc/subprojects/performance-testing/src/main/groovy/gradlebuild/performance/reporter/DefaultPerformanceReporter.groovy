@@ -20,8 +20,9 @@ import gradlebuild.performance.tasks.PerformanceTest
 import groovy.transform.CompileStatic
 import org.gradle.api.Action
 import org.gradle.api.GradleException
-import org.gradle.api.internal.ProcessOperations
-import org.gradle.api.internal.file.FileOperations
+import org.gradle.api.file.FileCollection
+import org.gradle.api.file.FileSystemOperations
+import org.gradle.process.ExecOperations
 import org.gradle.process.ExecResult
 import org.gradle.process.JavaExecSpec
 
@@ -32,19 +33,18 @@ import javax.inject.Inject
  */
 @CompileStatic
 class DefaultPerformanceReporter implements PerformanceReporter {
+    private final FileSystemOperations fileOperations
+    private final ExecOperations execOperations
+
     String reportGeneratorClass
-
-    FileOperations fileOperations
-
-    ProcessOperations processOperations
 
     String projectName
 
     String commitId
 
     @Inject
-    DefaultPerformanceReporter(ProcessOperations processOperations, FileOperations fileOperations) {
-        this.processOperations = processOperations
+    DefaultPerformanceReporter(ExecOperations execOperations, FileSystemOperations fileOperations) {
+        this.execOperations = execOperations
         this.fileOperations = fileOperations
     }
 
@@ -52,22 +52,49 @@ class DefaultPerformanceReporter implements PerformanceReporter {
     void report(PerformanceTest performanceTest) {
         performanceTest.generateResultsJson()
 
-        fileOperations.delete(performanceTest.reportDir)
+        report(
+            reportGeneratorClass,
+            performanceTest.reportDir,
+            [performanceTest.resultsJson],
+            performanceTest.databaseParameters,
+            performanceTest.channel,
+            performanceTest.branchName,
+            commitId,
+            performanceTest.classpath,
+            projectName
+        )
+    }
+
+    void report(
+        String reportGeneratorClass,
+        File reportDir,
+        Iterable<File> resultJsons,
+        Map<String, String> databaseParameters,
+        String channel,
+        String branchName,
+        String commitId,
+        FileCollection classpath,
+        String projectName
+    ) {
+        fileOperations.delete {
+           it.delete(reportDir)
+        }
         ByteArrayOutputStream output = new ByteArrayOutputStream()
 
-        ExecResult result = processOperations.javaexec(new Action<JavaExecSpec>() {
+        ExecResult result = execOperations.javaexec(new Action<JavaExecSpec>() {
             void execute(JavaExecSpec spec) {
                 spec.setMain(reportGeneratorClass)
-                spec.args(performanceTest.reportDir.path, performanceTest.resultsJson.path, projectName)
-                spec.systemProperties(performanceTest.databaseParameters)
-                spec.systemProperty("org.gradle.performance.execution.channel", performanceTest.channel)
-                spec.systemProperty("org.gradle.performance.execution.branch", performanceTest.branchName)
+                spec.args(reportDir.path, projectName)
+                spec.args(resultJsons*.path)
+                spec.systemProperties(databaseParameters)
+                spec.systemProperty("org.gradle.performance.execution.channel", channel)
+                spec.systemProperty("org.gradle.performance.execution.branch", branchName)
 
                 // For org.gradle.performance.util.Git
-                spec.systemProperty("gradleBuildBranch", performanceTest.branchName)
+                spec.systemProperty("gradleBuildBranch", branchName)
                 spec.systemProperty("gradleBuildCommitId", commitId)
 
-                spec.setClasspath(performanceTest.classpath)
+                spec.setClasspath(classpath)
 
                 spec.ignoreExitValue = true
                 spec.setErrorOutput(output)
