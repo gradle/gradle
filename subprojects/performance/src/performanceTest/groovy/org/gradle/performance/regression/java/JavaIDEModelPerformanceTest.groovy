@@ -33,7 +33,7 @@ class JavaIDEModelPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
     def "get IDE model for Eclipse"() {
         given:
-        setupTestProject()
+        setupRunner()
 
         runner.toolingApi("Eclipse model") {
             it.model(EclipseProject)
@@ -85,7 +85,7 @@ class JavaIDEModelPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
     def "get IDE model for IDEA"() {
         given:
-        setupTestProject()
+        setupRunner()
         runner.toolingApi("IDEA model") {
             it.model(IdeaProject)
         }.run { builder ->
@@ -131,7 +131,7 @@ class JavaIDEModelPerformanceTest extends AbstractCrossVersionPerformanceTest {
         result.assertCurrentVersionHasNotRegressed()
     }
 
-    private setupTestProject() {
+    private setupRunner() {
         runner.gradleOpts = runner.projectMemoryOptions
         def iterations = determineIterations()
         runner.warmUpRuns = iterations

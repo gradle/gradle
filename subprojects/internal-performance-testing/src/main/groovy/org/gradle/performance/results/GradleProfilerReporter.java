@@ -32,7 +32,7 @@ public class GradleProfilerReporter implements DataReporter<PerformanceTestResul
 
     public GradleProfilerReporter(File fallbackDirectory) {
         String debugArtifactsDirectoryPath = System.getProperty(DEBUG_ARTIFACTS_DIRECTORY_PROPERTY_NAME);
-        debugArtifactsDirectory = Strings.isNullOrEmpty(debugArtifactsDirectoryPath)
+        this.debugArtifactsDirectory = Strings.isNullOrEmpty(debugArtifactsDirectoryPath)
             ? fallbackDirectory
             : new File(debugArtifactsDirectoryPath);
 

@@ -80,7 +80,6 @@ class JavaConfigurationCachePerformanceTest extends AbstractCrossVersionPerforma
         then:
         result.assertCurrentVersionHasNotRegressed()
 
-
         where:
         daemon | action
         hot    | loading
