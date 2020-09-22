@@ -213,7 +213,7 @@ class PerformanceTestPlugin : Plugin<Project> {
     }
 
     private
-    fun Project.configureSampleGenerators(action: TaskCollection<*>.() -> Unit) {
+    fun Project.configureTestProjectGenerators(action: TaskCollection<*>.() -> Unit) {
         tasks.withType<ProjectGeneratorTask>().action()
         tasks.withType<RemoteProject>().action()
         tasks.withType<JavaExecProjectGeneratorTask>().action()
@@ -224,7 +224,7 @@ class PerformanceTestPlugin : Plugin<Project> {
     private
     fun Project.createCleanSamplesTask() =
         tasks.register("cleanSamples", Delete::class) {
-            configureSampleGenerators {
+            configureTestProjectGenerators {
                 this@register.delete(provider { map { it.outputs } })
             }
         }
@@ -270,17 +270,20 @@ class PerformanceTestPlugin : Plugin<Project> {
             .forUseAtConfigurationTime()
             .getOrElse("false") == "true"
 
-        configureSampleGenerators {
+        configureTestProjectGenerators {
             all {
                 val sampleGenerator = this
-                create("${sampleGenerator.name}PerformanceAdHocTest") {
+                val testProject = sampleGenerator.name
+                create("${testProject}PerformanceAdHocTest") {
+                    description = "Runs ad-hoc performance tests on $testProject - can be used locally"
                     performanceReporter = createPerformanceReporter()
                     channel = "adhoc"
                     outputs.doNotCacheIf("Is adhoc performance test") { true }
                     setTestProjectGenerationTask(sampleGenerator)
                 }
                 val channelSuffix = if (OperatingSystem.current().isLinux) "" else "-${OperatingSystem.current().familyName.toLowerCase()}"
-                create("${sampleGenerator.name}PerformanceTest") {
+                create("${testProject}PerformanceTest") {
+                    description = "Runs performance tests on $testProject - supposed to be used on CI"
                     performanceReporter = createPerformanceReporter()
                     channel = "commits$channelSuffix"
                     setTestProjectGenerationTask(sampleGenerator)
@@ -290,7 +293,7 @@ class PerformanceTestPlugin : Plugin<Project> {
                     }
 
                     if (shouldLoadScenariosFromFile) {
-                        val scenariosFromFile = loadScenariosFromFile(sampleGenerator.name)
+                        val scenariosFromFile = loadScenariosFromFile(testProject)
                         if (scenariosFromFile.isNotEmpty()) {
                             setTestNameIncludePatterns(scenariosFromFile)
                         }
@@ -533,7 +536,7 @@ class PerformanceTestPlugin : Plugin<Project> {
 
             registerTemplateInputsToPerformanceTest()
 
-            configureSampleGenerators {
+            configureTestProjectGenerators {
                 this@apply.mustRunAfter(this)
             }
             configureGitInfo()
@@ -552,7 +555,7 @@ class PerformanceTestPlugin : Plugin<Project> {
                 inputs.property(key, value).optional(true)
             }
         }
-        project.configureSampleGenerators {
+        project.configureTestProjectGenerators {
             // TODO: Remove this hack https://github.com/gradle/gradle-native/issues/864
             (project.tasks as DefaultTaskContainer).mutationGuard.withMutationEnabled<DefaultTaskContainer> {
                 all(registerInputs)
