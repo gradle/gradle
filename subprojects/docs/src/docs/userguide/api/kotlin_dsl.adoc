@@ -127,7 +127,7 @@ If the above doesn't work and you suspect an issue with the Kotlin DSL script ed
 * Run `./gradle tasks` to get more details
 * Check the logs in one of these locations:
 ** `$HOME/Library/Logs/gradle-kotlin-dsl` on Mac OS X
-** `$HOME/.gradle-kotlin-dsl/logs` on Linux
+** `$HOME/.gradle-kotlin-dsl/log` on Linux
 ** `$HOME/AppData/Local/gradle-kotlin-dsl/log` on Windows
 * Open an issue on the link:{gradle-issues}[Gradle issue tracker], including as much detail as you can.
 
