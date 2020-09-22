@@ -96,7 +96,7 @@ public class TransformationStep implements Transformation, TaskDependencyContain
                         doTransform(subjectToTransform, fingerprinterRegistry, dependencies, inputArtifacts)
                     );
                 } else {
-                    File inputArtifact = inputArtifacts.iterator().next();
+                    File inputArtifact = inputArtifacts.get(0);
                     return transformerInvocationFactory.createInvocation(transformer, inputArtifact, dependencies, subjectToTransform, fingerprinterRegistry)
                         .map(subjectToTransform::createSubjectFromResult);
                 }
