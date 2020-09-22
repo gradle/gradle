@@ -40,7 +40,7 @@ public class TestTransformationWorkspaceProvider implements CachingTransformatio
     @Override
     public Try<ImmutableList<File>> withWorkspace(TransformationWorkspaceIdentity identity, TransformationWorkspaceAction workspaceAction) {
         String identityString = identity.getIdentity();
-        return workspaceAction.useWorkspace(identityString, new DefaultTransformationWorkspace(new File(transformationsStoreDirectory, identityString)));
+        return workspaceAction.useWorkspace(identityString, new File(transformationsStoreDirectory, identityString));
     }
 
     @Nullable

@@ -40,7 +40,7 @@ import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
 @NotThreadSafe
 public class ImmutableTransformationWorkspaceProvider implements TransformationWorkspaceProvider, Closeable {
-    private static final int FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP = 1;
+    private static final int FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP = 2;
 
     private final SingleDepthFileAccessTracker fileAccessTracker;
     private final File filesOutputDirectory;
@@ -76,9 +76,8 @@ public class ImmutableTransformationWorkspaceProvider implements TransformationW
         return cache.withFileLock(() -> {
             String workspacePath = identity.getIdentity();
             File workspaceDir = new File(filesOutputDirectory, workspacePath);
-            TransformationWorkspace workspace = new DefaultTransformationWorkspace(workspaceDir);
             fileAccessTracker.markAccessed(workspaceDir);
-            return workspaceAction.useWorkspace(workspacePath, workspace);
+            return workspaceAction.useWorkspace(workspacePath, workspaceDir);
         });
     }
 

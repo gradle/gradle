@@ -35,11 +35,6 @@ public interface TransformationWorkspaceProvider {
 
     @FunctionalInterface
     interface TransformationWorkspaceAction {
-        Try<ImmutableList<File>> useWorkspace(String transformationIdentity, TransformationWorkspace workspace);
-    }
-
-    interface TransformationWorkspace {
-        File getOutputDirectory();
-        File getResultsFile();
+        Try<ImmutableList<File>> useWorkspace(String transformationIdentity, File workspaceDir);
     }
 }

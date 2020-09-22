@@ -21,7 +21,6 @@ import org.gradle.api.UncheckedIOException;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.file.RelativePath;
-import org.gradle.api.internal.artifacts.transform.TransformationWorkspaceProvider.TransformationWorkspace;
 import org.gradle.api.internal.file.DefaultFileSystemLocation;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -128,7 +127,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
                 if (cachedResult != null) {
                     return cachedResult;
                 }
-                return workspaceProvider.withWorkspace(identity, (identityString, workspace) -> buildOperationExecutor.call(new CallableBuildOperation<Try<ImmutableList<File>>>() {
+                return workspaceProvider.withWorkspace(identity, (identityString, workspaceDir) -> buildOperationExecutor.call(new CallableBuildOperation<Try<ImmutableList<File>>>() {
                     @Override
                     public Try<ImmutableList<File>> call(BuildOperationContext context) {
                         return fireTransformListeners(transformer, subject, () -> {
@@ -137,7 +136,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
 
                             TransformerExecution execution = new TransformerExecution(
                                 transformer,
-                                workspace,
+                                workspaceDir,
                                 transformIdentity,
                                 inputArtifact,
                                 inputArtifactSnapshot,
@@ -250,7 +249,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
 
         public TransformerExecution(
             Transformer transformer,
-            TransformationWorkspace workspace,
+            File workspaceDir,
             String identityString,
             File inputArtifact,
             CompleteFileSystemLocationSnapshot inputArtifactSnapshot,
@@ -265,8 +264,8 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
             this.dependenciesFingerprint = dependenciesFingerprint;
             this.inputArtifact = inputArtifact;
             this.transformer = transformer;
-            this.outputDir = workspace.getOutputDirectory();
-            this.resultsFile = workspace.getResultsFile();
+            this.outputDir = new File(workspaceDir, "transformed");
+            this.resultsFile = new File(workspaceDir, "results.bin");
             this.identityString = identityString;
             this.executionHistoryStore = executionHistoryStore;
             this.dependencies = dependencies;
