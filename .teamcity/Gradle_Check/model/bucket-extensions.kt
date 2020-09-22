@@ -59,7 +59,7 @@ fun <T, R> splitIntoBuckets(
         val buckets = arrayListOf(largestElement)
         var restCapacity = expectedBucketSize - toIntFunction(largestElement)
         while (restCapacity > 0 && list.isNotEmpty() && buckets.size < maxNumberInBucket) {
-            val smallestElement = list.findLast { canRunTogether(largestElement, it) } ?: break
+            val smallestElement = list.findLast { searched -> buckets.all { canRunTogether(it, searched) } } ?: break
             list.remove(smallestElement)
             buckets.add(smallestElement)
             restCapacity -= toIntFunction(smallestElement)

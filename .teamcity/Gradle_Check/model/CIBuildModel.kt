@@ -260,13 +260,23 @@ enum class TestType(val unitTests: Boolean = true, val functionalTests: Boolean 
     forceRealizeDependencyManagement(false, true, false)
 }
 
-enum class PerformanceTestType(val taskId: String, val displayName: String, val timeout: Int, val defaultBaselines: String = "", val channel: String, val extraParameters: String = "", val uuid: String? = null) {
+enum class PerformanceTestType(
+    val taskId: String,
+    val displayName: String,
+    val timeout: Int,
+    val defaultBaselines: String = "",
+    val channel: String,
+    val extraParameters: String = "",
+    val uuid: String? = null,
+    val numberOfBuckets: Int
+) {
     test(
         taskId = "PerformanceTest",
         displayName = "Performance Regression Test",
         timeout = 420,
         defaultBaselines = "defaults",
-        channel = "commits"
+        channel = "commits",
+        numberOfBuckets = 40
     ),
     slow(
         taskId = "SlowPerformanceTest",
@@ -274,7 +284,8 @@ enum class PerformanceTestType(val taskId: String, val displayName: String, val 
         timeout = 420,
         defaultBaselines = "defaults",
         channel = "commits",
-        uuid = "PerformanceExperimentCoordinator"
+        uuid = "PerformanceExperimentCoordinator",
+        numberOfBuckets = 40
     ),
     experiment(
         taskId = "PerformanceExperiment",
@@ -282,7 +293,8 @@ enum class PerformanceTestType(val taskId: String, val displayName: String, val 
         timeout = 420,
         defaultBaselines = "defaults",
         channel = "experiments",
-        uuid = "PerformanceExperimentOnlyCoordinator"
+        uuid = "PerformanceExperimentOnlyCoordinator",
+        numberOfBuckets = 40
     ),
     flakinessDetection(
         taskId = "FlakinessDetection",
@@ -290,7 +302,8 @@ enum class PerformanceTestType(val taskId: String, val displayName: String, val 
         timeout = 600,
         defaultBaselines = "flakiness-detection-commit",
         channel = "flakiness-detection",
-        extraParameters = "--checks none --rerun"
+        extraParameters = "--checks none --rerun",
+        numberOfBuckets = 40
     ),
     historical(
         taskId = "HistoricalPerformanceTest",
@@ -298,7 +311,8 @@ enum class PerformanceTestType(val taskId: String, val displayName: String, val 
         timeout = 2280,
         defaultBaselines = "3.5.1,4.10.3,5.6.4,last",
         channel = "historical",
-        extraParameters = "--checks none"
+        extraParameters = "--checks none",
+        numberOfBuckets = 40
     );
 
     fun asId(model: CIBuildModel): String =
