@@ -72,18 +72,14 @@ class ConfigurationOnDemandIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "evaluates only project referenced in the task list"() {
-        // The util project's classloaders will be created eagerly because util:impl
-        // will be evaluated before it
-        executer.withEagerClassLoaderCreationCheckDisabled()
-
         settingsFile << "include 'api', 'impl', 'util', 'util:impl'"
         buildFile << "allprojects { task foo }"
 
         when:
-        run(":foo", ":util:impl:foo")
+        run(":util:impl:foo")
 
         then:
-        fixture.assertProjectsConfigured(":", ":util:impl")
+        fixture.assertProjectsConfigured(":", ":util", ":util:impl")
     }
 
     def "does not show configuration on demand incubating message in a regular mode"() {
