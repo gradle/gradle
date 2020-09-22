@@ -303,8 +303,8 @@ class JarProducer extends DefaultTask {
     }
 
     /**
-     * Each project produces a 'blue' variant, and has a `resolve` task that resolves the 'green' variant and a transform that converts 'blue' to 'green'.
-     * By default the 'blue' variant will contain a single file, and the transform will produce a single 'green' file from this.
+     * Each project produces a 'blue' variant, and has a `resolve` task that resolves the 'green' variant and a transform that converts 'blue' to 'red' and another from 'red' to 'green'.
+     * The 'red' to 'green' transform also takes upstream dependencies.
      */
     void setupBuildWithChainedColorTransformThatTakesUpstreamArtifacts() {
         setupBuildWithColorAttributes()
@@ -328,6 +328,7 @@ class JarProducer extends DefaultTask {
 
                 void transform(TransformOutputs outputs) {
                     def input = inputArtifact.get().asFile
+                    assert input.file
                     println "processing \${input.name}"
                     def output = outputs.file(input.name + ".red")
                     output.text = input.text + "-red"

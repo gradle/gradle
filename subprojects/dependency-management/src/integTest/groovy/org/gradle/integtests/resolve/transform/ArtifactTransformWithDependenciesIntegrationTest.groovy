@@ -28,6 +28,7 @@ import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.hamcrest.CoreMatchers
 import spock.lang.IgnoreIf
+import spock.lang.Issue
 import spock.lang.Unroll
 
 import javax.annotation.Nonnull
@@ -387,6 +388,66 @@ project(':common') {
         then:
         outputDoesNotContain("transform")
         outputContains("result = [a.jar.local, test-1.2.jar.external.local]")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/14529")
+    def "transform of project artifact can consume transform of external artifact whose upstream dependency has been substituted with local project"() {
+        given:
+        def m1 = mavenRepo.module("test", "lib", "1.2").publish()
+        mavenRepo.module("test", "lib2", "1.2").dependsOn(m1).publish()
+
+        settingsFile << "include 'app', 'lib'"
+        setupBuildWithChainedColorTransformThatTakesUpstreamArtifacts()
+        buildFile << """
+            allprojects {
+                repositories {
+                    maven { url = '${mavenRepo.uri}' }
+                }
+            }
+            project(':lib') {
+                // To trigger the substitution: use coordinates that conflict with the published library but which are newer
+                group = 'test'
+                version = '2.0'
+            }
+            project(':app') {
+                dependencies {
+                    // To trigger the subsitution: include paths to the other project via both a project dependency and external dependency
+                    implementation "test:lib2:1.2"
+                    implementation project(':lib')
+
+                    artifactTypes {
+                        jar {
+                            attributes.attribute(color, 'red')
+                        }
+                    }
+                }
+                configurations.implementation.resolutionStrategy.dependencySubstitution.all {
+                    // To trigger the substitution: include dependency substitution rule to include external dependencies in the execution graph calculation
+                }
+
+                tasks.resolveArtifacts.collection = configurations.implementation.incoming.artifactView {
+                    attributes.attribute(color, 'green')
+                    // To trigger the problem: exclude the local library from the result, so that only the execution node edges that are reachable via the external dependency are included in the graph
+                    componentFilter { it instanceof ModuleComponentIdentifier }
+                }.artifacts
+
+            }
+        """
+
+        when:
+        run(":app:resolveArtifacts")
+
+        then:
+        outputContains("processing lib.jar")
+        outputContains("processing lib2-1.2.jar using [lib.jar.red]")
+        outputContains("files = [lib2-1.2.jar.green]")
+
+        when:
+        run(":app:resolveArtifacts")
+
+        then:
+        outputDoesNotContain("processing")
+        outputContains("files = [lib2-1.2.jar.green]")
     }
 
     def "transform with changed set of dependencies are re-executed"() {

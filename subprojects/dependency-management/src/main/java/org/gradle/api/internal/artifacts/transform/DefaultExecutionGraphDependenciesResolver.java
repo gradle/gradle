@@ -58,6 +58,7 @@ public class DefaultExecutionGraphDependenciesResolver implements ExecutionGraph
     private final DomainObjectContext owner;
     private final FilteredResultFactory filteredResultFactory;
     private Set<ComponentIdentifier> dependencies;
+    private TaskDependencyContainer taskDependencies;
 
     public DefaultExecutionGraphDependenciesResolver(ComponentIdentifier componentIdentifier, Factory<ResolverResults> graphResults, Factory<ResolverResults> artifactResults, DomainObjectContext owner, FilteredResultFactory filteredResultFactory) {
         this.componentIdentifier = componentIdentifier;
@@ -107,12 +108,15 @@ public class DefaultExecutionGraphDependenciesResolver implements ExecutionGraph
         if (!transformationStep.requiresDependencies()) {
             return TaskDependencyContainer.EMPTY;
         }
-        return context -> {
-            ResolverResults results = graphResults.create();
-            Set<ComponentIdentifier> buildDependencies = computeDependencies(componentIdentifier, ComponentIdentifier.class, results.getResolutionResult().getAllComponents(), true);
-            FileCollectionInternal files = filteredResultFactory.resultsMatching(transformationStep.getFromAttributes(), element -> buildDependencies.contains(element));
-            context.add(new FinalizeTransformDependencies(files, transformationStep));
-        };
+        if (taskDependencies == null) {
+            taskDependencies = context -> {
+                ResolverResults results = graphResults.create();
+                Set<ComponentIdentifier> buildDependencies = computeDependencies(componentIdentifier, ComponentIdentifier.class, results.getResolutionResult().getAllComponents(), true);
+                FileCollectionInternal files = filteredResultFactory.resultsMatching(transformationStep.getFromAttributes(), element -> buildDependencies.contains(element));
+                context.add(new FinalizeTransformDependencies(files, transformationStep));
+            };
+        }
+        return taskDependencies;
     }
 
     private static Set<ComponentIdentifier> computeDependencies(ComponentIdentifier componentIdentifier, Class<? extends ComponentIdentifier> type, Set<ResolvedComponentResult> componentResults, boolean strict) {
