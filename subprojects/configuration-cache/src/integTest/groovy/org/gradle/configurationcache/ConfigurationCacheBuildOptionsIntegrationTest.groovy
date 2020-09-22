@@ -621,13 +621,13 @@ class ConfigurationCacheBuildOptionsIntegrationTest extends AbstractConfiguratio
 
             abstract class MyTask extends DefaultTask {
                 @OutputDirectory
-                public abstract DirectoryProperty getOutputDir()
+                abstract DirectoryProperty getOutputDir()
 
                 @Input
-                public abstract Property<Integer> getInputCount()
+                abstract Property<Integer> getInputCount()
 
                 @TaskAction
-                public void doTask() {
+                void doTask() {
                     File outputFile = getOutputDir().get().asFile
                     outputFile.deleteDir()
                     outputFile.mkdirs()
@@ -639,13 +639,13 @@ class ConfigurationCacheBuildOptionsIntegrationTest extends AbstractConfiguratio
 
             abstract class ConsumerTask extends DefaultTask {
                 @InputFiles
-                public abstract ConfigurableFileCollection getMyInputs()
+                abstract ConfigurableFileCollection getMyInputs()
 
                 @OutputFile
-                public abstract RegularFileProperty getOutputFile()
+                abstract RegularFileProperty getOutputFile()
 
                 @TaskAction
-                public void doTask() {
+                void doTask() {
                     File outputFile = getOutputFile().get().asFile
                     outputFile.delete()
                     outputFile.parentFile.mkdirs()
@@ -701,6 +701,45 @@ class ConfigurationCacheBuildOptionsIntegrationTest extends AbstractConfiguratio
         then:
         consumedFileNames() == ['0', '2', '4'] as Set
         configurationCache.assertStateLoaded()
+    }
+
+    def "system property used at configuration time can be captured by task"() {
+        given:
+        buildFile """
+            def sysProp = providers.systemProperty("some.prop").forUseAtConfigurationTime()
+            println('sys prop value at configuration time = ' + sysProp.orNull)
+
+            task ok {
+                doLast {
+                    println('sys prop value at execution time = ' + sysProp.orNull)
+                }
+            }
+        """
+        def configurationCache = newConfigurationCacheFixture()
+
+        when:
+        configurationCacheRun 'ok', '-Dsome.prop=42'
+
+        then:
+        outputContains 'sys prop value at configuration time = 42'
+        outputContains 'sys prop value at execution time = 42'
+        configurationCache.assertStateStored()
+
+        when:
+        configurationCacheRun 'ok', '-Dsome.prop=42'
+
+        then:
+        outputDoesNotContain 'sys prop value at configuration time = 42'
+        outputContains 'sys prop value at execution time = 42'
+        configurationCache.assertStateLoaded()
+
+        when:
+        configurationCacheRun 'ok', '-Dsome.prop=37'
+
+        then:
+        outputContains 'sys prop value at configuration time = 37'
+        outputContains 'sys prop value at execution time = 37'
+        configurationCache.assertStateStored()
     }
 
     private static String getGreetTask() {
