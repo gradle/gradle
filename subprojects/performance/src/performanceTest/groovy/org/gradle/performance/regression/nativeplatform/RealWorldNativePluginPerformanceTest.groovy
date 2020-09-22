@@ -20,11 +20,8 @@ import org.apache.commons.io.FileUtils
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
 import org.gradle.profiler.BuildContext
 import org.gradle.profiler.BuildMutator
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 import spock.lang.Unroll
 
-@Requires(TestPrecondition.LINUX)
 class RealWorldNativePluginPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
     def setup() {
