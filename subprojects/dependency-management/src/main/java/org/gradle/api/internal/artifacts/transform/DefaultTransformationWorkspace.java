@@ -20,14 +20,12 @@ import java.io.File;
 
 public class DefaultTransformationWorkspace implements TransformationWorkspaceProvider.TransformationWorkspace {
 
-    private static final String RESULTS_FILE_SUFFIX = ".bin";
-
     private final File outputDirectory;
     private final File resultsFile;
 
     public DefaultTransformationWorkspace(File workspaceBase) {
-        this.outputDirectory = workspaceBase;
-        this.resultsFile = new File(workspaceBase.getParentFile(), workspaceBase.getName() + RESULTS_FILE_SUFFIX);
+        this.outputDirectory = new File(workspaceBase, "transformed");
+        this.resultsFile = new File(workspaceBase, "results.bin");
     }
 
     @Override

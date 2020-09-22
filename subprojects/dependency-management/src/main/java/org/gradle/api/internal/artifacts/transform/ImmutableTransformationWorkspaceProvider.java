@@ -75,9 +75,9 @@ public class ImmutableTransformationWorkspaceProvider implements TransformationW
     public Try<ImmutableList<File>> withWorkspace(TransformationWorkspaceIdentity identity, TransformationWorkspaceAction workspaceAction) {
         return cache.withFileLock(() -> {
             String workspacePath = identity.getIdentity();
-            TransformationWorkspace workspace = new DefaultTransformationWorkspace(new File(filesOutputDirectory, workspacePath));
-            fileAccessTracker.markAccessed(workspace.getResultsFile());
-            fileAccessTracker.markAccessed(workspace.getOutputDirectory());
+            File workspaceDir = new File(filesOutputDirectory, workspacePath);
+            TransformationWorkspace workspace = new DefaultTransformationWorkspace(workspaceDir);
+            fileAccessTracker.markAccessed(workspaceDir);
             return workspaceAction.useWorkspace(workspacePath, workspace);
         });
     }

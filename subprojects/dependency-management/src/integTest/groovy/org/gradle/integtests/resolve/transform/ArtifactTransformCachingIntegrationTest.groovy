@@ -17,7 +17,6 @@
 package org.gradle.integtests.resolve.transform
 
 import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
-import org.gradle.api.internal.artifacts.transform.DefaultTransformationWorkspace
 import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
@@ -1789,12 +1788,12 @@ ${getFileSizerBody(fileValue, 'outputs.dir(', 'outputs.file(')}
     }
 
     Set<TestFile> projectOutputDirs(String from, String to, Closure<String> stream = { output }) {
-        def parts = [Pattern.quote(temporaryFolder.getTestDirectory().absolutePath) + ".*", "build", ".transforms", "\\w+"]
+        def parts = [Pattern.quote(temporaryFolder.getTestDirectory().absolutePath) + ".*", "build", ".transforms", "\\w+", "transformed"]
         return outputDirs(from, to, parts.join(quotedFileSeparator), stream)
     }
 
     Set<TestFile> gradleUserHomeOutputDirs(String from, String to, Closure<String> stream = { output }) {
-        def parts = [Pattern.quote(cacheDir.file(CacheLayout.TRANSFORMS_STORE.getKey()).absolutePath), "\\w+"]
+        def parts = [Pattern.quote(cacheDir.file(CacheLayout.TRANSFORMS_STORE.getKey()).absolutePath), "\\w+", "transformed"]
         outputDirs(from, to, parts.join(quotedFileSeparator), stream)
     }
 
@@ -1824,9 +1823,7 @@ ${getFileSizerBody(fileValue, 'outputs.dir(', 'outputs.file(')}
         return getUserHomeCacheDir().file(CacheLayout.TRANSFORMS.getKey())
     }
 
-    void writeLastTransformationAccessTimeToJournal(TestFile outputDir, long millis) {
-        def workspace = new DefaultTransformationWorkspace(outputDir)
-        writeLastFileAccessTimeToJournal(workspace.getOutputDirectory(), millis)
-        writeLastFileAccessTimeToJournal(workspace.getResultsFile(), millis)
+    void writeLastTransformationAccessTimeToJournal(TestFile workspaceDir, long millis) {
+        writeLastFileAccessTimeToJournal(workspaceDir, millis)
     }
 }
