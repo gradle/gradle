@@ -28,7 +28,6 @@ import org.gradle.internal.time.Clock;
 import org.junit.platform.engine.DiscoverySelector;
 import org.junit.platform.engine.FilterResult;
 import org.junit.platform.engine.TestDescriptor;
-import org.junit.platform.engine.TestEngine;
 import org.junit.platform.engine.TestSource;
 import org.junit.platform.engine.discovery.DiscoverySelectors;
 import org.junit.platform.engine.support.descriptor.ClassSource;
@@ -41,17 +40,11 @@ import org.junit.platform.launcher.core.LauncherFactory;
 
 import javax.annotation.Nonnull;
 import java.lang.reflect.Modifier;
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
-import java.util.function.Function;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.stream.Stream;
+import java.util.stream.Collectors;
 
-import static java.util.stream.Collectors.toList;
 import static org.gradle.api.internal.tasks.testing.junit.JUnitTestClassExecutor.isNestedClassInsideEnclosedRunner;
 import static org.junit.platform.launcher.EngineFilter.excludeEngines;
 import static org.junit.platform.launcher.EngineFilter.includeEngines;
@@ -59,40 +52,10 @@ import static org.junit.platform.launcher.TagFilter.excludeTags;
 import static org.junit.platform.launcher.TagFilter.includeTags;
 
 public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProcessor<JUnitPlatformSpec> {
-
-    // see https://github.com/junit-team/junit5/pull/2264
-    private static final BigDecimal INITIAL_VINTAGE_ENGINE_VERSION_WITH_SPOCK_METHOD_SELECTOR_SUPPORT = new BigDecimal("5.7");
-
-    private final TestSelectionMatcher testSelectionMatcher;
-    private final Function<Class<?>, Stream<DiscoverySelector>> selectorProvider;
-
     private CollectAllTestClassesExecutor testClassExecutor;
 
     public JUnitPlatformTestClassProcessor(JUnitPlatformSpec spec, IdGenerator<?> idGenerator, ActorFactory actorFactory, Clock clock) {
         super(spec, idGenerator, actorFactory, clock);
-        testSelectionMatcher = createTestSelectionMatcher(spec);
-        selectorProvider = createSelectorProvider(testSelectionMatcher);
-    }
-
-    private static TestSelectionMatcher createTestSelectionMatcher(JUnitPlatformSpec spec) {
-        if (!spec.getIncludedTests().isEmpty() || !spec.getIncludedTestsCommandLine().isEmpty() || !spec.getExcludedTests().isEmpty()) {
-            return new TestSelectionMatcher(spec.getIncludedTests(), spec.getExcludedTests(), spec.getIncludedTestsCommandLine());
-        }
-        return null;
-    }
-
-    private static Function<Class<?>, Stream<DiscoverySelector>> createSelectorProvider(TestSelectionMatcher testSelectionMatcher) {
-        if (testSelectionMatcher != null && vintageEngineSupportsMethodSelectorsForSpockMethods()) {
-            return testClass -> {
-                Set<String> selectedMethods = testSelectionMatcher.determineSelectedMethods(testClass.getName());
-                if (!selectedMethods.isEmpty()) {
-                    return selectedMethods.stream()
-                        .map(methodName -> DiscoverySelectors.selectMethod(testClass, methodName));
-                }
-                return Stream.of(DiscoverySelectors.selectClass(testClass));
-            };
-        }
-        return testClass -> Stream.of(DiscoverySelectors.selectClass(testClass));
     }
 
     @Override
@@ -123,16 +86,11 @@ public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProce
 
         @Override
         public void execute(@Nonnull String testClassName) {
-            Class<?> testClass;
-            try {
-                testClass = loadApplicationClass(testClassName);
-            } catch (ClassNotFoundException e) {
-                throw UncheckedException.throwAsUncheckedException(e);
-            }
-            if (isInnerClass(testClass) || isNestedClassInsideEnclosedRunner(testClass)) {
+            Class<?> klass = loadClass(testClassName);
+            if (isInnerClass(klass) || isNestedClassInsideEnclosedRunner(klass)) {
                 return;
             }
-            testClasses.add(testClass);
+            testClasses.add(klass);
         }
 
         private void processAllTestClasses() {
@@ -142,25 +100,34 @@ public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProce
         }
     }
 
-    private boolean isInnerClass(Class<?> testClass) {
-        return testClass.getEnclosingClass() != null && !Modifier.isStatic(testClass.getModifiers());
+    private boolean isInnerClass(Class<?> klass) {
+        return klass.getEnclosingClass() != null && !Modifier.isStatic(klass.getModifiers());
+    }
+
+    private Class<?> loadClass(String className) {
+        try {
+            ClassLoader applicationClassloader = Thread.currentThread().getContextClassLoader();
+            return Class.forName(className, false, applicationClassloader);
+        } catch (ClassNotFoundException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        }
     }
 
     private LauncherDiscoveryRequest createLauncherDiscoveryRequest(List<Class<?>> testClasses) {
-        List<DiscoverySelector> selectors = testClasses.stream()
-            .flatMap(selectorProvider)
-            .collect(toList());
+        List<DiscoverySelector> classSelectors = testClasses.stream()
+            .map(DiscoverySelectors::selectClass)
+            .collect(Collectors.toList());
 
-        LauncherDiscoveryRequestBuilder requestBuilder = LauncherDiscoveryRequestBuilder.request().selectors(selectors);
+        LauncherDiscoveryRequestBuilder requestBuilder = LauncherDiscoveryRequestBuilder.request().selectors(classSelectors);
 
-        addTestNameFilter(requestBuilder);
-        addEngineFilters(requestBuilder);
-        addTagFilters(requestBuilder);
+        addTestNameFilters(requestBuilder);
+        addEnginesFilter(requestBuilder);
+        addTagsFilter(requestBuilder);
 
         return requestBuilder.build();
     }
 
-    private void addEngineFilters(LauncherDiscoveryRequestBuilder requestBuilder) {
+    private void addEnginesFilter(LauncherDiscoveryRequestBuilder requestBuilder) {
         if (!spec.getIncludeEngines().isEmpty()) {
             requestBuilder.filters(includeEngines(spec.getIncludeEngines()));
         }
@@ -169,7 +136,7 @@ public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProce
         }
     }
 
-    private void addTagFilters(LauncherDiscoveryRequestBuilder requestBuilder) {
+    private void addTagsFilter(LauncherDiscoveryRequestBuilder requestBuilder) {
         if (!spec.getIncludeTags().isEmpty()) {
             requestBuilder.filters(includeTags(spec.getIncludeTags()));
         }
@@ -178,39 +145,12 @@ public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProce
         }
     }
 
-    private void addTestNameFilter(LauncherDiscoveryRequestBuilder requestBuilder) {
-        if (testSelectionMatcher != null) {
-            requestBuilder.filters(new ClassMethodNameFilter(testSelectionMatcher));
+    private void addTestNameFilters(LauncherDiscoveryRequestBuilder requestBuilder) {
+        if (!spec.getIncludedTests().isEmpty() || !spec.getIncludedTestsCommandLine().isEmpty() || !spec.getExcludedTests().isEmpty()) {
+            TestSelectionMatcher matcher = new TestSelectionMatcher(spec.getIncludedTests(),
+                spec.getExcludedTests(), spec.getIncludedTestsCommandLine());
+            requestBuilder.filters(new ClassMethodNameFilter(matcher));
         }
-    }
-
-    private static boolean vintageEngineSupportsMethodSelectorsForSpockMethods() {
-        Optional<TestEngine> vintageTestEngine = instantiateVintageTestEngine();
-        return vintageTestEngine
-            .flatMap(JUnitPlatformTestClassProcessor::parseTestEngineMajorMinorVersion)
-            .filter(version -> version.compareTo(INITIAL_VINTAGE_ENGINE_VERSION_WITH_SPOCK_METHOD_SELECTOR_SUPPORT) >= 0)
-            .isPresent();
-    }
-
-    private static Optional<TestEngine> instantiateVintageTestEngine() {
-        try {
-            Class<?> result = loadApplicationClass("org.junit.vintage.engine.VintageTestEngine");
-            return Optional.of((TestEngine) result.getConstructor().newInstance());
-        } catch (Exception e) {
-            return Optional.empty();
-        }
-    }
-
-    private static Optional<BigDecimal> parseTestEngineMajorMinorVersion(TestEngine testEngine) {
-        return testEngine.getVersion()
-            .map(version -> Pattern.compile("^(\\d+\\.\\d+).*$").matcher(version))
-            .filter(Matcher::matches)
-            .map(matcher -> new BigDecimal(matcher.group(1)));
-    }
-
-    private static Class<?> loadApplicationClass(String className) throws ClassNotFoundException {
-        ClassLoader applicationClassloader = Thread.currentThread().getContextClassLoader();
-        return Class.forName(className, false, applicationClassloader);
     }
 
     private static class ClassMethodNameFilter implements PostDiscoveryFilter {
@@ -245,7 +185,7 @@ public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProce
                 }
                 if (descriptor.getChildren().isEmpty()) {
                     String className = ((ClassSource) source.get()).getClassName();
-                    return matcher.mayIncludeClass(className)
+                    return matcher.matchesTest(className, null)
                         || matcher.matchesTest(className, descriptor.getLegacyReportingName());
                 }
             }

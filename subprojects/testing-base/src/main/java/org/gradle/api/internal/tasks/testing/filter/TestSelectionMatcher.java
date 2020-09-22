@@ -15,17 +15,14 @@
  */
 package org.gradle.api.internal.tasks.testing.filter;
 
-import org.apache.commons.lang.StringUtils;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.regex.Pattern;
 
-import static java.util.Collections.emptySet;
+import org.apache.commons.lang.StringUtils;
+
 import static org.apache.commons.lang.StringUtils.splitPreserveAllTokens;
 import static org.apache.commons.lang.StringUtils.substringAfterLast;
 
@@ -71,17 +68,17 @@ public class TestSelectionMatcher {
             && !matchesExcludePattern(className, methodName);
     }
 
-    public boolean mayIncludeClass(String fullyQualifiedClassName) {
-        return mayIncludeClass(buildScriptIncludePatterns, fullyQualifiedClassName)
-            && mayIncludeClass(commandLineIncludePatterns, fullyQualifiedClassName)
-            && !mayExcludeClass(fullyQualifiedClassName);
+    public boolean mayIncludeClass(String fullQualifiedClassName) {
+        return mayIncludeClass(buildScriptIncludePatterns, fullQualifiedClassName)
+            && mayIncludeClass(commandLineIncludePatterns, fullQualifiedClassName)
+            && !mayExcludeClass(fullQualifiedClassName);
     }
 
-    private boolean mayIncludeClass(List<TestPattern> includePatterns, String fullyQualifiedClassName) {
+    private boolean mayIncludeClass(List<TestPattern> includePatterns, String fullQualifiedName) {
         if (includePatterns.isEmpty()) {
             return true;
         }
-        return !matchClass(includePatterns, fullyQualifiedClassName).isEmpty();
+        return mayMatchClass(includePatterns, fullQualifiedName);
     }
 
     private boolean mayExcludeClass(String fullQualifiedName) {
@@ -100,19 +97,17 @@ public class TestSelectionMatcher {
         return false;
     }
 
-    private List<TestPattern.Match> matchClass(List<TestPattern> patterns, String fullyQualifiedClassName) {
-        List<TestPattern.Match> matches = new ArrayList<TestPattern.Match>();
+    private boolean mayMatchClass(List<TestPattern> patterns, String fullQualifiedName) {
         for (TestPattern pattern : patterns) {
-            TestPattern.Match match = pattern.mayIncludeClass(fullyQualifiedClassName);
-            if (match != null) {
-                matches.add(match);
+            if (pattern.mayIncludeClass(fullQualifiedName)) {
+                return true;
             }
         }
-        return matches;
+        return false;
     }
 
     private boolean matchesPattern(List<TestPattern> includePatterns, String className,
-                                   String methodName) {
+        String methodName) {
         if (includePatterns.isEmpty()) {
             return true;
         }
@@ -123,7 +118,7 @@ public class TestSelectionMatcher {
         if (buildScriptExcludePatterns.isEmpty()) {
             return false;
         }
-        if (!matchClass(buildScriptExcludePatterns, className).isEmpty() && methodName == null) {
+        if (mayMatchClass(buildScriptExcludePatterns, className) && methodName == null) {
             // When there is a class name match, return true for excluding it so that we can keep
             // searching in individual test methods for an exact match. If we return false here
             // instead, then we'll give up searching individual test methods and just ignore the
@@ -134,7 +129,7 @@ public class TestSelectionMatcher {
     }
 
     private boolean matchesClassAndMethod(List<TestPattern> patterns, String className,
-                                          String methodName) {
+        String methodName) {
         for (TestPattern pattern : patterns) {
             if (pattern.matchesClassAndMethod(className, methodName)) {
                 return true;
@@ -146,71 +141,29 @@ public class TestSelectionMatcher {
         return false;
     }
 
-    public Set<String> determineSelectedMethods(String fullyQualifiedClassName) {
-        if (mayIncludeClass(fullyQualifiedClassName)) {
-            List<TestPattern.Match> buildScriptExcludeMatches = matchClass(buildScriptExcludePatterns, fullyQualifiedClassName);
-            if (!containsClassMatch(buildScriptExcludeMatches)) {
-                Set<String> buildScriptIncludes = collectMethodNames(matchClass(buildScriptIncludePatterns, fullyQualifiedClassName));
-                Set<String> commandLineIncludes = collectMethodNames(matchClass(commandLineIncludePatterns, fullyQualifiedClassName));
-                Set<String> result = new LinkedHashSet<String>(buildScriptIncludes);
-                if (buildScriptIncludePatterns.isEmpty()) {
-                    result.addAll(commandLineIncludes);
-                } else if (!commandLineIncludePatterns.isEmpty()) {
-                    result.retainAll(commandLineIncludes);
-                }
-                result.removeAll(collectMethodNames(buildScriptExcludeMatches));
-                return result;
-            }
-        }
-        return emptySet();
-    }
-
-    private static boolean containsClassMatch(List<TestPattern.Match> matches) {
-        for (TestPattern.Match match : matches) {
-            if (match.isClass()) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private Set<String> collectMethodNames(List<TestPattern.Match> matches) {
-        Set<String> methodNames = new LinkedHashSet<String>();
-        for (TestPattern.Match match : matches) {
-            if (match.isClass()) {
-                return emptySet();
-            }
-            methodNames.add(match.methodName);
-        }
-        return methodNames;
-    }
-
     private static class TestPattern {
-        private static final char WILDCARD = '*';
-        private final Pattern pattern;
-        private final String[] segmentsBeforeFirstWildcard;
-        private final String finalSegment;
-        private final LastElementMatcher lastElementMatcher;
-        private final ClassNameSelector classNameSelector;
+        private Pattern pattern;
+        private String[] segments;
+        private LastElementMatcher lastElementMatcher;
+        private ClassNameSelector classNameSelector;
 
         private TestPattern(String pattern) {
             this.pattern = preparePattern(pattern);
             this.classNameSelector = patternStartsWithUpperCase(pattern) ?
                 new SimpleClassNameSelector() : new FullQualifiedClassNameSelector();
-            finalSegment = StringUtils.substringAfterLast(pattern, ".");
-            int firstWildcardIndex = pattern.indexOf(WILDCARD);
+            int firstWildcardIndex = pattern.indexOf('*');
             if (firstWildcardIndex == -1) {
-                segmentsBeforeFirstWildcard = splitPreserveAllTokens(pattern, '.');
+                segments = splitPreserveAllTokens(pattern, '.');
                 lastElementMatcher = new NoWildcardMatcher();
             } else {
-                segmentsBeforeFirstWildcard = splitPreserveAllTokens(pattern.substring(0, firstWildcardIndex), '.');
+                segments = splitPreserveAllTokens(pattern.substring(0, firstWildcardIndex), '.');
                 lastElementMatcher = new WildcardMatcher();
             }
         }
 
         private static Pattern preparePattern(String input) {
             StringBuilder pattern = new StringBuilder();
-            String[] split = StringUtils.splitPreserveAllTokens(input, WILDCARD);
+            String[] split = StringUtils.splitPreserveAllTokens(input, '*');
             for (String s : split) {
                 if (s.equals("")) {
                     pattern.append(".*"); //replace wildcard '*' with '.*'
@@ -224,35 +177,25 @@ public class TestSelectionMatcher {
             return Pattern.compile(pattern.toString());
         }
 
-        private Match mayIncludeClass(String fullyQualifiedClassName) {
+        private boolean mayIncludeClass(String fullQualifiedName) {
             if (patternStartsWithWildcard()) {
-                return tryMatchingFinalSegmentAsMethodName(fullyQualifiedClassName);
+                return true;
             }
             String[] classNameArray =
-                classNameSelector.determineTargetClassName(fullyQualifiedClassName).split("\\.");
+                classNameSelector.determineTargetClassName(fullQualifiedName).split("\\.");
             if (classNameIsShorterThanPattern(classNameArray)) {
-                return null;
+                return false;
             }
-            for (int i = 0; i < segmentsBeforeFirstWildcard.length; ++i) {
+            for (int i = 0; i < segments.length; ++i) {
                 if (lastClassNameElementMatchesPenultimatePatternElement(classNameArray, i)) {
-                    return tryMatchingFinalSegmentAsMethodName(fullyQualifiedClassName);
+                    return true;
                 } else if (lastClassNameElementMatchesLastPatternElement(classNameArray, i)) {
-                    return tryMatchingFinalSegmentAsMethodName(fullyQualifiedClassName);
-                } else if (!classNameArray[i].equals(segmentsBeforeFirstWildcard[i])) {
-                    return null;
+                    return true;
+                } else if (!classNameArray[i].equals(segments[i])) {
+                    return false;
                 }
             }
-            return null;
-        }
-
-        private Match tryMatchingFinalSegmentAsMethodName(String fullyQualifiedClassName) {
-            return mayRepresentMethod(finalSegment) && matchesClassAndMethod(fullyQualifiedClassName, finalSegment)
-                ? Match.ofMethod(finalSegment)
-                : Match.ofClass();
-        }
-
-        private boolean mayRepresentMethod(String segment) {
-            return !segment.isEmpty() && segment.indexOf(WILDCARD) == -1;
+            return false;
         }
 
         private boolean matchesClass(String fullQualifiedName) {
@@ -267,48 +210,25 @@ public class TestSelectionMatcher {
         }
 
         private boolean lastClassNameElementMatchesPenultimatePatternElement(String[] className, int index) {
-            return index == segmentsBeforeFirstWildcard.length - 2 && index == className.length - 1 && classNameMatch(className[index], segmentsBeforeFirstWildcard[index]);
+            return index == segments.length - 2 && index == className.length - 1 && classNameMatch(className[index], segments[index]);
         }
 
         private boolean lastClassNameElementMatchesLastPatternElement(String[] className,
-                                                                      int index) {
-            return index == segmentsBeforeFirstWildcard.length - 1 && lastElementMatcher.match(className[index],
-                segmentsBeforeFirstWildcard[index]);
+            int index) {
+            return index == segments.length - 1 && lastElementMatcher.match(className[index],
+                segments[index]);
         }
 
         private boolean patternStartsWithWildcard() {
-            return segmentsBeforeFirstWildcard.length == 0;
+            return segments.length == 0;
         }
 
         private boolean classNameIsShorterThanPattern(String[] classNameArray) {
-            return classNameArray.length < segmentsBeforeFirstWildcard.length - 1;
+            return classNameArray.length < segments.length - 1;
         }
 
         private boolean patternStartsWithUpperCase(String pattern) {
             return pattern.length() > 0 && Character.isUpperCase(pattern.charAt(0));
-        }
-
-        private static class Match {
-
-            private static final Match CLASS_MATCH = new Match(null);
-
-            private final String methodName;
-
-            static Match ofClass() {
-                return CLASS_MATCH;
-            }
-
-            static Match ofMethod(String methodName) {
-                return new Match(methodName);
-            }
-
-            private Match(@Nullable String methodName) {
-                this.methodName = methodName;
-            }
-
-            public boolean isClass() {
-                return methodName == null;
-            }
         }
     }
 
@@ -351,20 +271,20 @@ public class TestSelectionMatcher {
     }
 
     private interface ClassNameSelector {
-        String determineTargetClassName(String fullyQualifiedClassName);
+        String determineTargetClassName(String fullQualifiedName);
     }
 
     private static class FullQualifiedClassNameSelector implements ClassNameSelector {
         @Override
-        public String determineTargetClassName(String fullyQualifiedClassName) {
-            return fullyQualifiedClassName;
+        public String determineTargetClassName(String fullQualifiedName) {
+            return fullQualifiedName;
         }
     }
 
     private static class SimpleClassNameSelector implements ClassNameSelector {
         @Override
-        public String determineTargetClassName(String fullyQualifiedClassName) {
-            return getSimpleName(fullyQualifiedClassName);
+        public String determineTargetClassName(String fullQualifiedName) {
+            return getSimpleName(fullQualifiedName);
         }
     }
 }
