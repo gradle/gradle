@@ -30,6 +30,7 @@ dependencies {
 
     integTestDistributionRuntimeOnly(project(":distributions-core"))
 
+    jmh(platform(project(":distributions-dependencies")))
     jmh(libs.bouncycastleProvider)
     jmh(libs.guava)
 }
