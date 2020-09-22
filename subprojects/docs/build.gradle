@@ -255,8 +255,9 @@ samples {
                 from(templates.javaUtilitiesLibraryAsSubproject)
             }
         }
-        buildingJavaModules {
+        javaModulesMultiProject {
             sampleDirectory = samplesRoot.dir("java/modules-multi-project")
+            displayName = "Building Java Modules"
             description = "Build Java Modules and a modular Java application."
             category = "Java Modules"
             common {
@@ -270,8 +271,9 @@ samples {
                 from(templates.javaJunit5TestForListLibrary)
             }
         }
-        buildingJavaModulesWithBlackboxTests {
+        javaModulesMultiProjectWithIntegrationTests {
             sampleDirectory = samplesRoot.dir("java/modules-multi-project-with-integration-tests")
+            displayName = "Building Java Modules with Blackbox Tests"
             description = "Build Java Modules with blackbox integration tests."
             category = "Java Modules"
             common {
@@ -290,8 +292,9 @@ samples {
                 from(templates.javaJunit5ModuleInfoForUtilitiesLibrary)
             }
         }
-        buildingJavaModulesWithLegacyLibraries {
+        javaModulesWithTransform {
             sampleDirectory = samplesRoot.dir("java/modules-with-transform")
+            displayName = "Building Java Modules with Legacy Libraries"
             description = "Build a modular Java application that integrates legacy libraries."
             category = "Java Modules"
             common {
