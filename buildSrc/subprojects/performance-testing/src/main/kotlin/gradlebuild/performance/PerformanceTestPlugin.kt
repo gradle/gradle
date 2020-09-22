@@ -83,7 +83,8 @@ object Config {
 
     const val performanceTestReportsDir = "performance-tests/report"
 
-    const val performanceTestResultsJson = "performance-tests/perf-results.json"
+    const val performanceTestResultsJsonName = "perf-results.json"
+    const val performanceTestResultsJson = "performance-tests/$performanceTestResultsJsonName"
 
     const val teamCityUrl = "https://builds.gradle.org/"
 }
@@ -500,7 +501,10 @@ class PerformanceTestPlugin : Plugin<Project> {
                     }
                 }
             }
-            from(performanceTest.get().debugArtifactsDirectory)
+            from(performanceTest.get().debugArtifactsDirectory) {
+                // Rename the json file specific per task, so we can copy multiple of those files from one build on Teamcity
+                rename(Config.performanceTestResultsJsonName, "perf-results-$name.json")
+            }
             destinationDirectory.set(buildDir)
             archiveFileName.set("test-results-${junitXmlDir.name}.zip")
         }

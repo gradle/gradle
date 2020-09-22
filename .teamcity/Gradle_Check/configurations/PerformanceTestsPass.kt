@@ -52,15 +52,15 @@ class PerformanceTestsPass(model: CIBuildModel, performanceTestProject: Performa
     val performanceResultsDir = "perf-results"
     val performanceProjectName = "performance"
 
-    artifactRules = """
-$performanceResultsDir
-subprojects/$performanceProjectName/build/performanceTest*Report => report/
-"""
-
     val taskName = if (performanceTestProject.performanceTestCoverage.performanceTestType == PerformanceTestType.flakinessDetection)
         "performanceTestFlakinessReport"
     else
         "performanceTestReport"
+
+    artifactRules = """
+$performanceResultsDir => perf-results/
+subprojects/$performanceProjectName/build/$taskName => report/
+"""
 
     gradleRunnerStep(
         model,
@@ -80,7 +80,7 @@ subprojects/$performanceProjectName/build/performanceTest*Report => report/
                 artifacts(it.id!!) {
                     id = "ARTIFACT_DEPENDENCY_${it.id!!}"
                     cleanDestination = true
-                    artifactRules = "results/performance/build/test-results-*.zip!performance-tests/perf-results.json => $performanceResultsDir/${it.bucketIndex}/"
+                    artifactRules = "results/performance/build/test-results-*.zip!performance-tests/perf-results*.json => $performanceResultsDir/${it.bucketIndex}/"
                 }
             }
         }
