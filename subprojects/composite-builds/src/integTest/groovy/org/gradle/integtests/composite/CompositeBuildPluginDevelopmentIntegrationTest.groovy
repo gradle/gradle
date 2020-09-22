@@ -483,6 +483,34 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
         failure.assertHasDescription("Plugin [id: 'org.test.plugin.pluginBuild'] was not found in any of the following sources:")
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/14552")
+    @ToBeFixedForConfigurationCache
+    def "can co-develop plugin with nested consumers using configure-on-demand"() {
+        given:
+        buildA = multiProjectBuild("cod", ["foo", "foo:bar"])
+        includeBuild pluginBuild
+
+        buildA.file("foo/build.gradle") << """
+plugins {
+    id 'java-library'
+    id 'org.test.plugin.pluginBuild'
+}
+"""
+        buildA.file('foo/bar/build.gradle') << """
+plugins {
+    id 'java-library'
+    id 'org.test.plugin.pluginBuild'
+}
+"""
+
+        when:
+        args "--configure-on-demand"
+        execute(buildA, ":foo:bar:classes", ":foo:classes")
+
+        then:
+        executed ":pluginBuild:jar", ":foo:classes", ":foo:bar:classes"
+    }
+
     def addLifecycleTasks(BuildTestFile build) {
         build.buildFile << """
             tasks.maybeCreate("assemble")
