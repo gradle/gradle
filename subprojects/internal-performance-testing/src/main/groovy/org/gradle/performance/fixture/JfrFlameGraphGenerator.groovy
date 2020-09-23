@@ -18,11 +18,8 @@ package org.gradle.performance.fixture
 
 import groovy.transform.CompileStatic
 import groovy.transform.PackageScope
-import org.openjdk.jmc.common.item.IItemCollection
-import org.openjdk.jmc.flightrecorder.JfrLoaderToolkit
 
 import static org.gradle.performance.fixture.JfrToStacksConverter.EventType
-import static org.gradle.performance.fixture.JfrToStacksConverter.Options
 
 /**
  * Generates flame graphs based on JFR recordings.
@@ -31,7 +28,6 @@ import static org.gradle.performance.fixture.JfrToStacksConverter.Options
 @PackageScope
 class JfrFlameGraphGenerator implements ProfilerFlameGraphGenerator {
 
-    private JfrToStacksConverter stacksConverter = new JfrToStacksConverter()
     private FlameGraphGenerator flameGraphGenerator = new FlameGraphGenerator()
     private final File flamesBaseDirectory
 
@@ -39,43 +35,19 @@ class JfrFlameGraphGenerator implements ProfilerFlameGraphGenerator {
         this.flamesBaseDirectory = flamesBaseDirectory
     }
 
-    @Override
-    void generateGraphs(BuildExperimentSpec experimentSpec) {
-        def jfrOutputDir = getJfrOutputDirectory(experimentSpec)
-        List<IItemCollection> recordings = jfrOutputDir.listFiles()
-            .findAll { it.name.endsWith(".jfr") }
-            .collect { JfrLoaderToolkit.loadEvents(it) }
-        File flamegraphDir = jfrOutputDir.getParentFile()
-        EventType.values().each { EventType type ->
-            DetailLevel.values().each { DetailLevel level ->
-                def stacks = generateStacks(flamegraphDir, recordings, type, level)
-                generateFlameGraph(stacks, type, level)
-                generateIcicleGraph(stacks, type, level)
-            }
-        }
-    }
 
     @Override
     File getJfrOutputDirectory(BuildExperimentSpec spec) {
         def fileSafeName = spec.displayName.replaceAll('[^a-zA-Z0-9.-]', '-').replaceAll('-+', '-')
-        def baseDir = new File(flamesBaseDirectory, fileSafeName)
-        def outputDir = new File(baseDir, "jfr-recordings")
+        def outputDir = new File(flamesBaseDirectory, fileSafeName)
         outputDir.mkdirs()
         return outputDir
     }
 
-    private File generateStacks(File baseDir, Collection<IItemCollection> recordings, EventType type, DetailLevel level) {
-        File stacks = File.createTempFile("stacks", ".txt")
-        stacksConverter.convertToStacks(recordings, stacks, new Options(type, level.isShowArguments(), level.isShowLineNumbers()))
-        File sanitizedStacks = stacksFileName(baseDir, type, level)
-        level.getSanitizer().sanitize(stacks, sanitizedStacks)
-        stacks.delete()
-        return sanitizedStacks
-    }
 
     @Override
-    void generateDifferentialGraphs() {
-        File[] experiments = flamesBaseDirectory.listFiles()
+    void generateDifferentialGraphs(BuildExperimentSpec experimentSpec) {
+        Collection<File> experiments = getJfrOutputDirectory(experimentSpec).listFiles().findAll { it.directory }
         experiments.each { File experiment ->
             EventType.values().each { EventType type ->
                 DetailLevel.values().each { DetailLevel level ->
@@ -194,5 +166,4 @@ class JfrFlameGraphGenerator implements ProfilerFlameGraphGenerator {
         }
 
     }
-
 }

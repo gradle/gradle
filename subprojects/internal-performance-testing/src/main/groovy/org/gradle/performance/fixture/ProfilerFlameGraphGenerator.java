@@ -22,18 +22,13 @@ import java.io.File;
 
 @CompileStatic
 public interface ProfilerFlameGraphGenerator {
-    void generateGraphs(BuildExperimentSpec experimentSpec);
-    void generateDifferentialGraphs();
+    void generateDifferentialGraphs(BuildExperimentSpec experiment);
     File getJfrOutputDirectory(BuildExperimentSpec spec);
 
     ProfilerFlameGraphGenerator NOOP = new ProfilerFlameGraphGenerator() {
 
         @Override
-        public void generateGraphs(BuildExperimentSpec experimentSpec) {
-        }
-
-        @Override
-        public void generateDifferentialGraphs() {
+        public void generateDifferentialGraphs(BuildExperimentSpec experiment) {
         }
 
         @Override
