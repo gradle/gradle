@@ -21,10 +21,15 @@ import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.tooling.provider.model.ToolingModelBuilder;
 import org.gradle.tooling.provider.model.UnknownModelException;
 
+import javax.annotation.Nullable;
+
 @ServiceScope(Scopes.Build.class)
 public interface ToolingModelBuilderLookup {
+    @Nullable
+    ToolingModelBuilder find(String modelName);
+
     /**
-     * Locates a model builder that runs as a top level build operation.
+     * Locates a model builder to be used to handle a tooling API client request.
      */
-    ToolingModelBuilder locate(String modelName) throws UnknownModelException;
+    ToolingModelBuilder locateForClientOperation(String modelName) throws UnknownModelException;
 }
