@@ -1,6 +1,7 @@
 package model
 
 import Gradle_Check.model.GradleSubprojectProvider
+import Gradle_Check.model.PerformanceTestCoverage
 import common.BuildCache
 import common.JvmCategory
 import common.JvmVendor
@@ -60,7 +61,7 @@ data class CIBuildModel(
                 TestCoverage(3, TestType.platform, Os.LINUX, JvmCategory.MIN_VERSION),
                 TestCoverage(4, TestType.platform, Os.WINDOWS, JvmCategory.MAX_VERSION),
                 TestCoverage(20, TestType.configCache, Os.LINUX, JvmCategory.MIN_VERSION)),
-            performanceTests = listOf(PerformanceTestType.test),
+            performanceTests = listOf(PerformanceTestCoverage(PerformanceTestType.test, Os.LINUX)),
             omitsSlowProjects = true),
         Stage(StageNames.READY_FOR_NIGHTLY,
             trigger = Trigger.eachCommit,
@@ -93,11 +94,11 @@ data class CIBuildModel(
                 TestCoverage(31, TestType.watchFs, Os.MACOS, JvmCategory.MIN_VERSION),
                 TestCoverage(30, TestType.watchFs, Os.WINDOWS, JvmCategory.MAX_VERSION)),
             performanceTests = listOf(
-                PerformanceTestType.slow)),
+                PerformanceTestCoverage(PerformanceTestType.slow, Os.LINUX))),
         Stage(StageNames.HISTORICAL_PERFORMANCE,
             trigger = Trigger.weekly,
-            performanceTests = listOf(
-                PerformanceTestType.historical, PerformanceTestType.flakinessDetection, PerformanceTestType.experiment)),
+            performanceTests = listOf(PerformanceTestType.historical, PerformanceTestType.flakinessDetection, PerformanceTestType.experiment)
+                .map { PerformanceTestCoverage(it, Os.LINUX) }),
         Stage(StageNames.EXPERIMENTAL,
             trigger = Trigger.never,
             runsIndependent = true,
@@ -199,7 +200,7 @@ interface StageName {
         get() = stageName.replace(" ", "").replace("-", "")
 }
 
-data class Stage(val stageName: StageName, val specificBuilds: List<SpecificBuild> = emptyList(), val performanceTests: List<PerformanceTestType> = emptyList(), val functionalTests: List<TestCoverage> = emptyList(), val trigger: Trigger = Trigger.never, val functionalTestsDependOnSpecificBuilds: Boolean = false, val runsIndependent: Boolean = false, val omitsSlowProjects: Boolean = false, val dependsOnSanityCheck: Boolean = false) {
+data class Stage(val stageName: StageName, val specificBuilds: List<SpecificBuild> = emptyList(), val performanceTests: List<PerformanceTestCoverage> = emptyList(), val functionalTests: List<TestCoverage> = emptyList(), val trigger: Trigger = Trigger.never, val functionalTestsDependOnSpecificBuilds: Boolean = false, val runsIndependent: Boolean = false, val omitsSlowProjects: Boolean = false, val dependsOnSanityCheck: Boolean = false) {
     val id = stageName.id
 }
 
