@@ -63,6 +63,24 @@ Sometimes, Ant's default excludes prove problematic, for example when you want t
 Changing Gradle's default excludes during the execution phase can lead to correctness problems with up-to-date checks, and is deprecated.
 You are only allowed to change Gradle's default excludes in the settings script, see the <<working_with_files.adoc#sec:change_default_excludes,user manual>> for an example.
 
+==== Using a Configuration directly as a dependency
+
+Gradle allowed instances of `Configuration` to be used directly as dependencies:
+
+```
+dependencies {
+    implementation(configurations.myConfiguration)
+}
+```
+
+This behavior is now deprecated as it is confusing: one could expect the "dependent configuration" to be resolved first and add the result of resolution as dependencies to the including configuration, which is not the case.
+The deprecated version can be replaced with the actual behavior, which is configuration inheritance:
+
+```
+configurations.implementation.extendsFrom(configurations.myConfiguration)
+```
+
+
 [[changes_6.6]]
 == Upgrading from 6.5
 
