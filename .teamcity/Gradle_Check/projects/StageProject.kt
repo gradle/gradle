@@ -5,7 +5,6 @@ import Gradle_Check.configurations.PerformanceTestsPass
 import Gradle_Check.model.FunctionalTestBucketProvider
 import Gradle_Check.model.PerformanceTestBucketProvider
 import Gradle_Check.model.PerformanceTestCoverage
-import common.Os
 import configurations.FunctionalTest
 import configurations.SanityCheck
 import configurations.buildReportTab
@@ -15,10 +14,8 @@ import jetbrains.buildServer.configs.kotlin.v2019_2.FailureAction
 import jetbrains.buildServer.configs.kotlin.v2019_2.IdOwner
 import jetbrains.buildServer.configs.kotlin.v2019_2.Project
 import model.CIBuildModel
-import model.PerformanceTestType
 import model.SpecificBuild
 import model.Stage
-import model.StageNames
 import model.TestType
 
 class StageProject(model: CIBuildModel, functionalTestBucketProvider: FunctionalTestBucketProvider, performanceTestBucketProvider: PerformanceTestBucketProvider, stage: Stage, rootProjectUuid: String) : Project({
@@ -50,14 +47,6 @@ class StageProject(model: CIBuildModel, functionalTestBucketProvider: Functional
         specificBuildTypes.forEach(this::buildType)
 
         performanceTests = stage.performanceTests.map { createPerformanceTests(model, performanceTestBucketProvider, stage, it) }
-
-        if (stage.stageName == StageNames.EXPERIMENTAL_PERFORMANCE) {
-            createPerformanceTests(model, performanceTestBucketProvider, stage, PerformanceTestCoverage(PerformanceTestType.test, Os.LINUX))
-            createPerformanceTests(model, performanceTestBucketProvider, stage, PerformanceTestCoverage(PerformanceTestType.slow, Os.LINUX))
-            createPerformanceTests(model, performanceTestBucketProvider, stage, PerformanceTestCoverage(PerformanceTestType.historical, Os.LINUX))
-            createPerformanceTests(model, performanceTestBucketProvider, stage, PerformanceTestCoverage(PerformanceTestType.flakinessDetection, Os.LINUX))
-            createPerformanceTests(model, performanceTestBucketProvider, stage, PerformanceTestCoverage(PerformanceTestType.experiment, Os.LINUX))
-        }
 
         val (topLevelCoverage, allCoverage) = stage.functionalTests.partition { it.testType == TestType.soak || it.testDistribution }
         val topLevelFunctionalTests = topLevelCoverage
