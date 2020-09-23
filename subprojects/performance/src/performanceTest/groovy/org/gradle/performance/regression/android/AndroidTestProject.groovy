@@ -27,7 +27,7 @@ class AndroidTestProject {
 
     public static final LARGE_ANDROID_BUILD = new AndroidTestProject(
         templateName: 'largeAndroidBuild',
-        memory: '5g',
+        memory: '12g',
     )
 
     public static final K9_ANDROID = new AndroidTestProject(
