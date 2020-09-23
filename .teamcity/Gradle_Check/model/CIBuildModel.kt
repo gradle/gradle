@@ -1,6 +1,7 @@
 package model
 
 import Gradle_Check.model.GradleSubprojectProvider
+import Gradle_Check.model.PerformanceTestCoverage
 import common.BuildCache
 import common.JvmCategory
 import common.JvmVendor
@@ -60,7 +61,7 @@ data class CIBuildModel(
                 TestCoverage(3, TestType.platform, Os.LINUX, JvmCategory.MIN_VERSION),
                 TestCoverage(4, TestType.platform, Os.WINDOWS, JvmCategory.MAX_VERSION),
                 TestCoverage(20, TestType.configCache, Os.LINUX, JvmCategory.MIN_VERSION)),
-            performanceTests = listOf(PerformanceTestType.test),
+            performanceTests = listOf(PerformanceTestCoverage(PerformanceTestType.test, Os.LINUX)),
             omitsSlowProjects = true),
         Stage(StageNames.READY_FOR_NIGHTLY,
             trigger = Trigger.eachCommit,
@@ -93,11 +94,11 @@ data class CIBuildModel(
                 TestCoverage(31, TestType.watchFs, Os.MACOS, JvmCategory.MIN_VERSION),
                 TestCoverage(30, TestType.watchFs, Os.WINDOWS, JvmCategory.MAX_VERSION)),
             performanceTests = listOf(
-                PerformanceTestType.slow)),
+                PerformanceTestCoverage(PerformanceTestType.slow, Os.LINUX))),
         Stage(StageNames.HISTORICAL_PERFORMANCE,
             trigger = Trigger.weekly,
-            performanceTests = listOf(
-                PerformanceTestType.historical, PerformanceTestType.flakinessDetection, PerformanceTestType.experiment)),
+            performanceTests = listOf(PerformanceTestType.historical, PerformanceTestType.flakinessDetection, PerformanceTestType.experiment)
+                .map { PerformanceTestCoverage(it, Os.LINUX) }),
         Stage(StageNames.EXPERIMENTAL,
             trigger = Trigger.never,
             runsIndependent = true,
@@ -199,7 +200,7 @@ interface StageName {
         get() = stageName.replace(" ", "").replace("-", "")
 }
 
-data class Stage(val stageName: StageName, val specificBuilds: List<SpecificBuild> = emptyList(), val performanceTests: List<PerformanceTestType> = emptyList(), val functionalTests: List<TestCoverage> = emptyList(), val trigger: Trigger = Trigger.never, val functionalTestsDependOnSpecificBuilds: Boolean = false, val runsIndependent: Boolean = false, val omitsSlowProjects: Boolean = false, val dependsOnSanityCheck: Boolean = false) {
+data class Stage(val stageName: StageName, val specificBuilds: List<SpecificBuild> = emptyList(), val performanceTests: List<PerformanceTestCoverage> = emptyList(), val functionalTests: List<TestCoverage> = emptyList(), val trigger: Trigger = Trigger.never, val functionalTestsDependOnSpecificBuilds: Boolean = false, val runsIndependent: Boolean = false, val omitsSlowProjects: Boolean = false, val dependsOnSanityCheck: Boolean = false) {
     val id = stageName.id
 }
 
@@ -260,12 +261,60 @@ enum class TestType(val unitTests: Boolean = true, val functionalTests: Boolean 
     forceRealizeDependencyManagement(false, true, false)
 }
 
-enum class PerformanceTestType(val taskId: String, val displayName: String, val timeout: Int, val defaultBaselines: String = "", val extraParameters: String = "", val uuid: String? = null) {
-    test("PerformanceTest", "Performance Regression Test", 420, "defaults"),
-    slow("SlowPerformanceTest", "Slow Performance Regression Test", 420, "defaults", uuid = "PerformanceExperimentCoordinator"),
-    experiment("PerformanceExperiment", "Performance Experiment", 420, "defaults", uuid = "PerformanceExperimentOnlyCoordinator"),
-    flakinessDetection("FlakinessDetection", "Performance Test Flakiness Detection", 600, "flakiness-detection-commit"),
-    historical("HistoricalPerformanceTest", "Historical Performance Test", 2280, "3.5.1,4.10.3,5.6.4,last", "--checks none");
+enum class PerformanceTestType(
+    val taskId: String,
+    val displayName: String,
+    val timeout: Int,
+    val defaultBaselines: String = "",
+    val channel: String,
+    val extraParameters: String = "",
+    val uuid: String? = null,
+    val numberOfBuckets: Int
+) {
+    test(
+        taskId = "PerformanceTest",
+        displayName = "Performance Regression Test",
+        timeout = 420,
+        defaultBaselines = "defaults",
+        channel = "commits",
+        numberOfBuckets = 40
+    ),
+    slow(
+        taskId = "SlowPerformanceTest",
+        displayName = "Slow Performance Regression Test",
+        timeout = 420,
+        defaultBaselines = "defaults",
+        channel = "commits",
+        uuid = "PerformanceExperimentCoordinator",
+        numberOfBuckets = 40
+    ),
+    experiment(
+        taskId = "PerformanceExperiment",
+        displayName = "Performance Experiment",
+        timeout = 420,
+        defaultBaselines = "defaults",
+        channel = "experiments",
+        uuid = "PerformanceExperimentOnlyCoordinator",
+        numberOfBuckets = 40
+    ),
+    flakinessDetection(
+        taskId = "FlakinessDetection",
+        displayName = "Performance Test Flakiness Detection",
+        timeout = 600,
+        defaultBaselines = "flakiness-detection-commit",
+        channel = "flakiness-detection",
+        extraParameters = "--checks none --rerun",
+        numberOfBuckets = 40
+    ),
+    historical(
+        taskId = "HistoricalPerformanceTest",
+        displayName = "Historical Performance Test",
+        timeout = 2280,
+        defaultBaselines = "3.5.1,4.10.3,5.6.4,last",
+        channel = "historical",
+        extraParameters = "--checks none",
+        numberOfBuckets = 40
+    );
 
     fun asId(model: CIBuildModel): String =
         "${model.projectPrefix}Performance${name.capitalize()}Coordinator"

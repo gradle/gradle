@@ -21,8 +21,8 @@ import groovy.transform.CompileStatic;
 import org.gradle.integtests.fixtures.executer.GradleDistribution;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.jvm.Jvm;
+import org.gradle.performance.results.GradleProfilerReporter;
 import org.gradle.performance.results.MeasuredOperationList;
-import org.gradle.profiler.BenchmarkResultCollector;
 import org.gradle.profiler.BuildAction;
 import org.gradle.profiler.BuildMutatorFactory;
 import org.gradle.profiler.DaemonControl;
@@ -59,8 +59,8 @@ public class GradleBuildExperimentRunner extends AbstractBuildExperimentRunner {
     private static final String GRADLE_USER_HOME_NAME = "gradleUserHome";
     private PidInstrumentation pidInstrumentation;
 
-    public GradleBuildExperimentRunner(BenchmarkResultCollector resultCollector) {
-        super(resultCollector);
+    public GradleBuildExperimentRunner(GradleProfilerReporter gradleProfilerReporter) {
+        super(gradleProfilerReporter);
         try {
             this.pidInstrumentation = new PidInstrumentation();
         } catch (IOException e) {
@@ -98,7 +98,7 @@ public class GradleBuildExperimentRunner extends AbstractBuildExperimentRunner {
         List<Sample<GradleBuildInvocationResult>> buildOperationSamples = scenarioDefinition.getMeasuredBuildOperations().stream()
             .map(GradleBuildInvocationResult::sampleBuildOperation)
             .collect(Collectors.toList());
-        Consumer<GradleBuildInvocationResult> scenarioReporter = getResultCollector().scenario(
+        Consumer<GradleBuildInvocationResult> scenarioReporter = getResultCollector(scenarioDefinition.getName()).scenario(
             scenarioDefinition,
             ImmutableList.<Sample<? super GradleBuildInvocationResult>>builder()
                 .add(GradleBuildInvocationResult.EXECUTION_TIME)

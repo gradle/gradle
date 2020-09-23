@@ -22,25 +22,29 @@ class CompositeResultsStoreTest extends Specification {
     def store1 = Mock(ResultsStore)
     def store2 = Mock(ResultsStore)
     def store = new CompositeResultsStore(store1, store2)
+    def a = new PerformanceExperiment('testProject1', 'a')
+    def b = new PerformanceExperiment('testProject2', 'b')
+    def c = new PerformanceExperiment('testProject1', 'c')
+    def d = new PerformanceExperiment('testProject1', 'd')
 
     def "returns union of test names"() {
         given:
-        store1.testNames >> ['a', 'b']
-        store2.testNames >> ['c', 'd']
+        store1.performanceExperiments >> [a, b]
+        store2.performanceExperiments >> [c, d]
 
         expect:
-        store.testNames == ['a', 'b', 'c', 'd']
+        store.performanceExperiments == [a, b, c, d]
     }
 
     def "delegates to appropriate store for details of given test"() {
         given:
-        store1.testNames >> ['a', 'b']
-        store2.testNames >> ['c', 'd']
+        store1.performanceExperiments >> [a, b]
+        store2.performanceExperiments >> [c, d]
 
         when:
-        store.getTestResults('c', 'commits')
+        store.getTestResults(c, 'commits')
 
         then:
-        1 * store2.getTestResults('c', 'commits')
+        1 * store2.getTestResults(c, 'commits')
     }
 }

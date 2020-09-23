@@ -16,6 +16,7 @@
 
 package org.gradle.performance.results.report;
 
+import org.gradle.performance.results.PerformanceExperiment;
 import org.gradle.performance.results.ResultsStore;
 import org.gradle.performance.results.ResultsStoreHelper;
 import org.gradle.performance.results.ScenarioBuildResultData;
@@ -124,10 +125,11 @@ public class IndexPageGenerator extends AbstractTablePageGenerator {
             }
 
             private void markFlakyTestInfo(ScenarioBuildResultData scenario, Set<Tag> result) {
-                BigDecimal rate = flakinessDataProvider.getFlakinessRate(scenario.getScenarioName());
+                PerformanceExperiment experiment = scenario.getPerformanceExperiment();
+                BigDecimal rate = flakinessDataProvider.getFlakinessRate(experiment);
                 if (rate != null && rate.doubleValue() > PerformanceFlakinessDataProvider.FLAKY_THRESHOLD) {
                     result.add(Tag.FlakinessInfoTag.createFlakinessRateTag(rate));
-                    BigDecimal failureThreshold = flakinessDataProvider.getFailureThreshold(scenario.getScenarioName());
+                    BigDecimal failureThreshold = flakinessDataProvider.getFailureThreshold(experiment);
                     result.add(Tag.FlakinessInfoTag.createFailureThresholdTag(failureThreshold));
                 }
             }

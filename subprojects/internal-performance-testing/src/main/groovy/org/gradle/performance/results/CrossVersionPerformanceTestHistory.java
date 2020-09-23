@@ -26,15 +26,15 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class CrossVersionPerformanceTestHistory implements PerformanceTestHistory {
-    private final String name;
+    private final PerformanceExperiment experiment;
     private final List<String> versions;
     private final List<String> branches;
     private final List<CrossVersionPerformanceResults> newestFirst;
     private List<CrossVersionPerformanceResults> oldestFirst;
     private List<String> knownVersions;
 
-    public CrossVersionPerformanceTestHistory(String name, List<String> versions, List<String> branches, List<CrossVersionPerformanceResults> newestFirst) {
-        this.name = name;
+    public CrossVersionPerformanceTestHistory(PerformanceExperiment experiment, List<String> versions, List<String> branches, List<CrossVersionPerformanceResults> newestFirst) {
+        this.experiment = experiment;
         this.versions = versions;
         this.branches = branches;
         this.newestFirst = newestFirst;
@@ -42,7 +42,7 @@ public class CrossVersionPerformanceTestHistory implements PerformanceTestHistor
 
     @Override
     public String getDisplayName() {
-        return name;
+        return experiment.getScenario();
     }
 
     public List<String> getBaselineVersions() {

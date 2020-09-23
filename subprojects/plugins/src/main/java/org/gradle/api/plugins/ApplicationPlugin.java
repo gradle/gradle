@@ -27,7 +27,6 @@ import org.gradle.api.distribution.DistributionContainer;
 import org.gradle.api.distribution.plugins.DistributionPlugin;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.plugins.internal.DefaultApplicationPluginConvention;
 import org.gradle.api.plugins.internal.DefaultJavaApplication;
 import org.gradle.api.provider.Provider;
@@ -172,7 +171,7 @@ public class ApplicationPlugin implements Plugin<Project> {
     private <T> Provider<T> getToolchainTool(Project project, BiFunction<JavaToolchainService, JavaToolchainSpec, Provider<T>> toolMapper) {
         final JavaPluginExtension extension = project.getExtensions().getByType(JavaPluginExtension.class);
         final JavaToolchainService service = project.getExtensions().getByType(JavaToolchainService.class);
-        return toolMapper.apply(service, extension.getToolchain()).orElse(Providers.notDefined());
+        return toolMapper.apply(service, extension.getToolchain());
     }
 
     // @Todo: refactor this task configuration to extend a copy task and use replace tokens

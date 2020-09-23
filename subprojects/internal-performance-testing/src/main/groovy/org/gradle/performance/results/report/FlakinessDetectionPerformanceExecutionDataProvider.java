@@ -42,8 +42,8 @@ class FlakinessDetectionPerformanceExecutionDataProvider extends PerformanceExec
             .thenComparing(comparing(ScenarioBuildResultData::getDifferencePercentage).reversed())
             .thenComparing(ScenarioBuildResultData::getScenarioName);
 
-    public FlakinessDetectionPerformanceExecutionDataProvider(ResultsStore resultsStore, File resultsJson) {
-        super(resultsStore, resultsJson);
+    public FlakinessDetectionPerformanceExecutionDataProvider(ResultsStore resultsStore, List<File> resultJsons) {
+        super(resultsStore, resultJsons);
     }
 
     @Override
@@ -58,7 +58,7 @@ class FlakinessDetectionPerformanceExecutionDataProvider extends PerformanceExec
     }
 
     private ScenarioBuildResultData queryExecutionData(ScenarioBuildResultData scenario) {
-        PerformanceTestHistory history = resultsStore.getTestResults(scenario.getScenarioName(), MOST_RECENT_EXECUTIONS, PERFORMANCE_DATE_RETRIEVE_DAYS, ResultsStoreHelper.determineChannel());
+        PerformanceTestHistory history = resultsStore.getTestResults(scenario.getPerformanceExperiment(), MOST_RECENT_EXECUTIONS, PERFORMANCE_DATE_RETRIEVE_DAYS, ResultsStoreHelper.determineChannel());
         List<? extends PerformanceTestExecution> currentExecutions = history.getExecutions().stream().filter(execution -> execution.getVcsCommits().contains(commitId)).collect(toList());
         scenario.setCurrentBuildExecutions(removeEmptyExecution(currentExecutions));
         return scenario;

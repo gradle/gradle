@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.TreeSet;
 import java.util.stream.Collector;
+import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toCollection;
 import static java.util.stream.Collectors.toList;
@@ -39,17 +40,17 @@ public abstract class PerformanceExecutionDataProvider {
     protected static final int PERFORMANCE_DATE_RETRIEVE_DAYS = 2;
     protected TreeSet<ScenarioBuildResultData> scenarioExecutionData;
     protected final ResultsStore resultsStore;
-    private final File resultsJson;
+    private final List<File> resultJsons;
     protected final String commitId = "testCommitId";
 
-    public PerformanceExecutionDataProvider(ResultsStore resultsStore, File resultsJson) {
-        this.resultsJson = resultsJson;
+    public PerformanceExecutionDataProvider(ResultsStore resultsStore, List<File> resultJsons) {
+        this.resultJsons = resultJsons;
         this.resultsStore = resultsStore;
     }
 
     public TreeSet<ScenarioBuildResultData> getScenarioExecutionData() {
         if (scenarioExecutionData == null) {
-            scenarioExecutionData = readResultJsonAndQueryFromDatabase(resultsJson);
+            scenarioExecutionData = readResultJsonAndQueryFromDatabase(resultJsons);
         }
 
         return scenarioExecutionData;
@@ -61,12 +62,16 @@ public abstract class PerformanceExecutionDataProvider {
 
     protected abstract TreeSet<ScenarioBuildResultData> queryExecutionData(List<ScenarioBuildResultData> scenarioList);
 
-    protected TreeSet<ScenarioBuildResultData> readResultJsonAndQueryFromDatabase(File resultJson) {
+    protected TreeSet<ScenarioBuildResultData> readResultJsonAndQueryFromDatabase(List<File> resultJsons) {
+        List<ScenarioBuildResultData> buildResultData = resultJsons.stream()
+            .flatMap(PerformanceExecutionDataProvider::parseResultsJson)
+            .collect(toList());
+        return queryExecutionData(buildResultData);
+    }
+
+    private static Stream<ScenarioBuildResultData> parseResultsJson(File resultsJson) {
         try {
-            // @formatter:off
-            List<ScenarioBuildResultData> list = new ObjectMapper().readValue(resultJson, new TypeReference<List<ScenarioBuildResultData>>() { });
-            // @formatter:on
-            return queryExecutionData(list);
+            return new ObjectMapper().readValue(resultsJson, new TypeReference<List<ScenarioBuildResultData>>() { }).stream();
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }

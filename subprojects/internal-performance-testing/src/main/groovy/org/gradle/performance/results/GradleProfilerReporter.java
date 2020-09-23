@@ -27,17 +27,14 @@ import java.io.UncheckedIOException;
 
 public class GradleProfilerReporter implements DataReporter<PerformanceTestResult> {
     private static final String DEBUG_ARTIFACTS_DIRECTORY_PROPERTY_NAME = "org.gradle.performance.debugArtifactsDirectory";
-    private final BenchmarkResultCollector resultCollector;
+    private BenchmarkResultCollector resultCollector;
+    private final File debugArtifactsDirectory;
 
     public GradleProfilerReporter(File fallbackDirectory) {
         String debugArtifactsDirectoryPath = System.getProperty(DEBUG_ARTIFACTS_DIRECTORY_PROPERTY_NAME);
-        File debugArtifactsDirectory = Strings.isNullOrEmpty(debugArtifactsDirectoryPath)
+        this.debugArtifactsDirectory = Strings.isNullOrEmpty(debugArtifactsDirectoryPath)
             ? fallbackDirectory
             : new File(debugArtifactsDirectoryPath);
-        this.resultCollector = new BenchmarkResultCollector(
-            new CsvGenerator(new File(debugArtifactsDirectory, "benchmark.csv"), CsvGenerator.Format.LONG),
-            new HtmlGenerator(new File(debugArtifactsDirectory, "benchmark.html"))
-        );
 
     }
 
@@ -53,7 +50,15 @@ public class GradleProfilerReporter implements DataReporter<PerformanceTestResul
         }
     }
 
-    public BenchmarkResultCollector getResultCollector() {
+    public BenchmarkResultCollector getResultCollector(String displayName) {
+        if (resultCollector == null) {
+            File baseDir = new File(debugArtifactsDirectory, displayName.replaceAll("[^a-zA-Z0-9]", "_"));
+            baseDir.mkdirs();
+            this.resultCollector = new BenchmarkResultCollector(
+                new CsvGenerator(new File(baseDir, "benchmark.csv"), CsvGenerator.Format.LONG),
+                new HtmlGenerator(new File(baseDir, "benchmark.html"))
+            );
+        }
         return resultCollector;
     }
 

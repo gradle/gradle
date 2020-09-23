@@ -34,7 +34,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class DefaultToolingModelBuilderRegistry implements ToolingModelBuilderRegistry, ToolingModelBuilderLookup {
-    private final ToolingModelBuilderRegistry parent;
+    private final ToolingModelBuilderLookup parent;
 
     private final List<ToolingModelBuilder> builders = new ArrayList<ToolingModelBuilder>();
     private final BuildOperationExecutor buildOperationExecutor;
@@ -45,7 +45,7 @@ public class DefaultToolingModelBuilderRegistry implements ToolingModelBuilderRe
         register(new VoidToolingModelBuilder());
     }
 
-    public DefaultToolingModelBuilderRegistry(BuildOperationExecutor buildOperationExecutor, ProjectStateRegistry projectStateRegistry, ToolingModelBuilderRegistry parent) {
+    public DefaultToolingModelBuilderRegistry(BuildOperationExecutor buildOperationExecutor, ProjectStateRegistry projectStateRegistry, ToolingModelBuilderLookup parent) {
         this.buildOperationExecutor = buildOperationExecutor;
         this.projectStateRegistry = projectStateRegistry;
         this.parent = parent;
@@ -58,19 +58,22 @@ public class DefaultToolingModelBuilderRegistry implements ToolingModelBuilderRe
 
     @Override
     public ToolingModelBuilder getBuilder(String modelName) throws UnsupportedOperationException {
-        ToolingModelBuilder builder = find(modelName);
-        if (builder != null) {
-            return builder;
-        }
-        if (parent != null) {
-            return parent.getBuilder(modelName);
-        }
+        ToolingModelBuilder builder = get(modelName);
+        return new LenientToolingModelBuilder(builder);
+    }
 
-        throw new UnknownModelException(String.format("No builders are available to build a model of type '%s'.", modelName));
+    @Override
+    public ToolingModelBuilder locateForClientOperation(String modelName) throws UnknownModelException {
+        ToolingModelBuilder builder = get(modelName);
+        if (builder instanceof ParameterizedToolingModelBuilder) {
+            return new ParameterizedBuildOperationWrappingToolingModelBuilder<>(Cast.uncheckedNonnullCast(builder));
+        } else {
+            return new BuildOperationWrappingToolingModelBuilder(builder);
+        }
     }
 
     @Nullable
-    private ToolingModelBuilder find(String modelName) {
+    public ToolingModelBuilder find(String modelName) {
         ToolingModelBuilder match = null;
         for (ToolingModelBuilder builder : builders) {
             if (builder.canBuild(modelName)) {
@@ -80,16 +83,44 @@ public class DefaultToolingModelBuilderRegistry implements ToolingModelBuilderRe
                 match = builder;
             }
         }
-        return match;
+        if (match != null) {
+            return match;
+        }
+        if (parent != null) {
+            return parent.find(modelName);
+        }
+        return null;
     }
 
-    @Override
-    public ToolingModelBuilder locate(String modelName) throws UnknownModelException {
-        ToolingModelBuilder builder = getBuilder(modelName);
-        if (builder instanceof ParameterizedToolingModelBuilder) {
-            return new ParameterizedBuildOperationWrappingToolingModelBuilder<>(Cast.uncheckedNonnullCast(builder));
-        } else {
-            return new BuildOperationWrappingToolingModelBuilder(builder);
+    private ToolingModelBuilder get(String modelName) {
+        ToolingModelBuilder builder = find(modelName);
+        if (builder != null) {
+            return builder;
+        }
+
+        throw new UnknownModelException(String.format("No builders are available to build a model of type '%s'.", modelName));
+    }
+
+    private class LenientToolingModelBuilder implements ToolingModelBuilder {
+        private final ToolingModelBuilder delegate;
+
+        public LenientToolingModelBuilder(ToolingModelBuilder delegate) {
+            this.delegate = delegate;
+        }
+
+        @Override
+        public boolean canBuild(String modelName) {
+            return delegate.canBuild(modelName);
+        }
+
+        @Override
+        public Object buildAll(String modelName, Project project) {
+            return projectStateRegistry.allowUncontrolledAccessToAnyProject(new Factory<Object>() {
+                @Override
+                public Object create() {
+                    return delegate.buildAll(modelName, project);
+                }
+            });
         }
     }
 

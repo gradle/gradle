@@ -18,21 +18,18 @@ package org.gradle.performance.experiment.buildcache
 
 import org.gradle.performance.AbstractCrossBuildPerformanceTest
 import org.gradle.performance.categories.PerformanceExperiment
+import org.gradle.performance.fixture.GradleBuildExperimentSpec
 import org.gradle.profiler.InvocationSettings
 import org.gradle.profiler.mutations.AbstractCleanupMutator
 import org.gradle.profiler.mutations.ClearBuildCacheMutator
 import org.junit.experimental.categories.Category
-import spock.lang.Unroll
 
 import static org.gradle.integtests.tooling.fixture.TextUtil.escapeString
-import static org.gradle.performance.generator.JavaTestProject.LARGE_JAVA_MULTI_PROJECT
-import static org.gradle.performance.generator.JavaTestProject.LARGE_MONOLITHIC_JAVA_PROJECT
 
 @Category(PerformanceExperiment)
 class LocalTaskOutputCacheCrossBuildPerformanceTest extends AbstractCrossBuildPerformanceTest {
 
-    @Unroll
-    def "#tasks on #testProject with local cache (build comparison)"() {
+    def "assemble with local cache (build comparison)"() {
         def noPushInitScript = temporaryFolder.file("no-push.gradle")
         noPushInitScript << """
             settingsEvaluated { settings ->
@@ -50,36 +47,46 @@ class LocalTaskOutputCacheCrossBuildPerformanceTest extends AbstractCrossBuildPe
         }
         runner.testGroup = "task output cache"
         runner.buildSpec {
-            projectName(testProject.projectName).displayName("always-miss pull-only cache").invocation {
-                tasksToRun(tasks.split(' ')).cleanTasks("clean").gradleOpts("-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}").args(
+            displayName("always-miss pull-only cache")
+            invocation {
+                cleanTasks("clean")
+                args(
                     "--build-cache",
-                    "--init-script", escapeString(noPushInitScript.absolutePath))
+                    "--init-script", escapeString(noPushInitScript.absolutePath)
+                )
+            }
+            warmUpCount = 2
+            invocationCount = 4
+        }
+        runner.buildSpec {
+            displayName("fully cached")
+            invocation {
+                cleanTasks("clean")
+                args("--build-cache")
             }
         }
         runner.buildSpec {
-            projectName(testProject.projectName).displayName("fully cached").invocation {
-                tasksToRun(tasks.split(' ')).cleanTasks("clean").gradleOpts("-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}").args(
-                    "--build-cache")
-            }
-        }
-        runner.buildSpec {
+            displayName("push-only")
             addBuildMutator { InvocationSettings invocationSettings ->
                 new ClearBuildCacheMutator(invocationSettings.gradleUserHome, AbstractCleanupMutator.CleanupSchedule.BUILD)
             }
-            projectName(testProject.projectName).displayName("push-only").invocation {
-                tasksToRun(tasks.split(' ')).cleanTasks("clean").gradleOpts("-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}").args(
-                    "--build-cache")
+            invocation {
+                cleanTasks("clean")
+                args("--build-cache")
             }
+            warmUpCount = 2
+            invocationCount = 4
         }
         runner.baseline {
-            projectName(testProject.projectName).displayName("fully up-to-date").invocation {
-                tasksToRun(tasks.split(' ')).gradleOpts("-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}")
-            }
+            displayName("fully up-to-date")
         }
         runner.baseline {
-            projectName(testProject.projectName).displayName("non-cached").invocation {
-                tasksToRun(tasks.split(' ')).cleanTasks('clean').gradleOpts("-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}")
+            displayName("non-cached")
+            invocation {
+                cleanTasks('clean')
             }
+            warmUpCount = 2
+            invocationCount = 4
         }
 
         when:
@@ -87,11 +94,14 @@ class LocalTaskOutputCacheCrossBuildPerformanceTest extends AbstractCrossBuildPe
 
         then:
         results
-
-        where:
-        testProject                   | tasks
-        LARGE_MONOLITHIC_JAVA_PROJECT | "assemble"
-        LARGE_JAVA_MULTI_PROJECT      | "assemble"
     }
 
+    @Override
+    protected void defaultSpec(GradleBuildExperimentSpec.GradleBuilder builder) {
+        super.defaultSpec(builder)
+        builder.invocation {
+            tasksToRun("assemble")
+            gradleOpts(runner.projectMemoryOptions)
+        }
+    }
 }

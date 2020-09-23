@@ -21,15 +21,12 @@ import org.gradle.performance.WithExternalRepository
 
 class ExcludeRuleMergingPerformanceTest extends AbstractCrossVersionPerformanceTest implements WithExternalRepository {
 
-    private final static TEST_PROJECT_NAME = 'excludeRuleMergingBuild'
-
     def setup() {
         runner.minimumBaseVersion = '4.9'
         runner.targetVersions = ["6.7-20200824220048+0000"]
     }
 
     def "merge exclude rules"() {
-        runner.testProject = TEST_PROJECT_NAME
         startServer()
 
         given:
@@ -48,7 +45,6 @@ class ExcludeRuleMergingPerformanceTest extends AbstractCrossVersionPerformanceT
     }
 
     def "merge exclude rules (parallel)"() {
-        runner.testProject = TEST_PROJECT_NAME
         startServer()
 
         given:

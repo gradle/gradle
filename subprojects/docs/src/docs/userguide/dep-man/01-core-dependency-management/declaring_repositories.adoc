@@ -408,7 +408,7 @@ In that case, the order of checking for sources is predefined.
 
 The following metadata sources are supported:
 
-.Repository transport protocols
+.Supported metadata sources
 [%header%autowidth,compact]
 |===
 | Metadata source | Description | Order | Maven | Ivy / flat dir

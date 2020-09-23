@@ -32,7 +32,6 @@ class GradleVsMavenPerformanceTestRunner extends AbstractCrossBuildPerformanceTe
 
     final M2Installation m2
 
-    String testProject
     List<String> gradleTasks
     List<String> equivalentMavenTasks
     List<Object> jvmOpts = []
@@ -110,6 +109,7 @@ class GradleVsMavenPerformanceTestRunner extends AbstractCrossBuildPerformanceTe
     GradleVsMavenBuildPerformanceResults newResult() {
         new GradleVsMavenBuildPerformanceResults(
             testId: testId,
+            testProject: testProject,
             testGroup: testGroup,
             jvm: Jvm.current().toString(),
             host: InetAddress.getLocalHost().getHostName(),

@@ -41,6 +41,7 @@ class BuildScanPerformanceTestRunner extends AbstractCrossBuildPerformanceTestRu
     CrossBuildPerformanceResults newResult() {
         new CrossBuildPerformanceResults(
             testId: testId,
+            testProject: testProject,
             testGroup: testGroup,
             jvm: Jvm.current().toString(),
             host: InetAddress.getLocalHost().getHostName(),

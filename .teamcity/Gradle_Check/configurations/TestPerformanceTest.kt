@@ -55,8 +55,8 @@ class TestPerformanceTest(model: CIBuildModel, stage: Stage) : BaseGradleBuildTy
 
     fun BuildSteps.adHocPerformanceTest(scenario: String) {
         gradleStep(listOf(
+            "-PperformanceBaselines=force-defaults",
             "performance:performanceAdHocTest",
-            "--baselines force-defaults",
             """--scenarios "$scenario" --warmups 2 --runs 2 --checks none""",
             """"-PtestJavaHome=${os.individualPerformanceTestJavaHome()}""""
         ))

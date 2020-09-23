@@ -34,11 +34,15 @@ import gradlebuild.performance.tasks.BuildCommitDistribution
 import gradlebuild.performance.tasks.DetermineBaselines
 import gradlebuild.performance.tasks.DistributedPerformanceTest
 import gradlebuild.performance.tasks.PerformanceTest
+import gradlebuild.performance.tasks.PerformanceTestReport
 import gradlebuild.performance.tasks.RebaselinePerformanceTests
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.internal.tasks.DefaultTaskContainer
+import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter
+import org.gradle.api.provider.Property
+import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.Delete
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.SourceSetContainer
@@ -54,6 +58,7 @@ import org.gradle.plugins.ide.idea.IdeaPlugin
 import org.gradle.plugins.ide.idea.model.IdeaModel
 import org.w3c.dom.Document
 import java.io.File
+import java.nio.charset.StandardCharsets
 import javax.xml.parsers.DocumentBuilderFactory
 import kotlin.reflect.KClass
 
@@ -65,22 +70,21 @@ object PropertyNames {
 
     const val workerTestTaskName = "org.gradle.performance.workerTestTaskName"
     const val performanceTestVerbose = "performanceTest.verbose"
-    const val baselines = "org.gradle.performance.baselines"
     const val buildTypeId = "org.gradle.performance.buildTypeId"
 
     const val teamCityToken = "teamCityToken"
+    const val baselines = "performanceBaselines"
 }
 
 
 object Config {
 
-    val baseLineList = listOf("1.1", "1.12", "2.0", "2.1", "2.4", "2.9", "2.12", "2.14.1", "last").toString()
-
     const val performanceTestScenarioListFileName = "performance-tests/scenario-list.csv"
 
     const val performanceTestReportsDir = "performance-tests/report"
 
-    const val performanceTestResultsJson = "performance-tests/perf-results.json"
+    const val performanceTestResultsJsonName = "perf-results.json"
+    const val performanceTestResultsJson = "performance-tests/$performanceTestResultsJsonName"
 
     const val teamCityUrl = "https://builds.gradle.org/"
 }
@@ -98,10 +102,18 @@ private
 const val slowPerformanceRegressionTestCategory = "org.gradle.performance.categories.SlowPerformanceRegressionTest"
 
 
+interface PerformanceTestExtension {
+    val baselines: Property<String>
+}
+
+
 @Suppress("unused")
 class PerformanceTestPlugin : Plugin<Project> {
 
     override fun apply(project: Project): Unit = project.run {
+        val performanceTestExtension = createExtension()
+        createAndWireCommitDistributionTask(performanceTestExtension)
+
         val performanceTestSourceSet = createPerformanceTestSourceSet()
         addPerformanceTestConfigurationAndDependencies()
         createCheckNoIdenticalBuildFilesTask()
@@ -115,6 +127,13 @@ class PerformanceTestPlugin : Plugin<Project> {
         createRebaselineTask(performanceTestSourceSet)
 
         configureIdePlugins(performanceTestSourceSet)
+    }
+
+    private
+    fun Project.createExtension(): PerformanceTestExtension {
+        val performanceTestExtension = extensions.create<PerformanceTestExtension>("performanceTest")
+        performanceTestExtension.baselines.set(stringPropertyOrNull(PropertyNames.baselines))
+        return performanceTestExtension
     }
 
     private
@@ -194,17 +213,18 @@ class PerformanceTestPlugin : Plugin<Project> {
     }
 
     private
-    fun Project.configureSampleGenerators(action: TaskCollection<*>.() -> Unit) {
+    fun Project.configureTestProjectGenerators(action: TaskCollection<*>.() -> Unit) {
         tasks.withType<ProjectGeneratorTask>().action()
         tasks.withType<RemoteProject>().action()
         tasks.withType<JavaExecProjectGeneratorTask>().action()
+        tasks.withType<Copy>().matching { it.name in setOf("archivePerformanceProject", "workerApiProject", "generateLotsOfDeprecationWarnings") }.action()
     }
 
 
     private
     fun Project.createCleanSamplesTask() =
         tasks.register("cleanSamples", Delete::class) {
-            configureSampleGenerators {
+            configureTestProjectGenerators {
                 this@register.delete(provider { map { it.outputs } })
             }
         }
@@ -220,9 +240,10 @@ class PerformanceTestPlugin : Plugin<Project> {
     private
     fun Project.createLocalPerformanceTestTasks(performanceSourceSet: SourceSet) {
 
-        fun create(name: String, configure: PerformanceTest.() -> Unit = {}) {
-            createLocalPerformanceTestTask(name, performanceSourceSet).configure(configure)
-        }
+        fun create(name: String, configure: PerformanceTest.() -> Unit = {}) =
+            createLocalPerformanceTestTask(name, performanceSourceSet).also {
+                it.configure(configure)
+            }
 
         create("performanceTest") {
             includeCategories(performanceRegressionTestCategory)
@@ -244,6 +265,78 @@ class PerformanceTestPlugin : Plugin<Project> {
             channel = "adhoc"
             outputs.doNotCacheIf("Is adhoc performance test") { true }
         }
+
+        val shouldLoadScenariosFromFile = project.providers.gradleProperty("includePerformanceTestScenarios")
+            .forUseAtConfigurationTime()
+            .getOrElse("false") == "true"
+
+        configureTestProjectGenerators {
+            all {
+                val sampleGenerator = this
+                val testProject = sampleGenerator.name
+                create("${testProject}PerformanceAdHocTest") {
+                    description = "Runs ad-hoc performance tests on $testProject - can be used locally"
+                    performanceReporter = createPerformanceReporter()
+                    channel = "adhoc"
+                    outputs.doNotCacheIf("Is adhoc performance test") { true }
+                    setTestProjectGenerationTask(sampleGenerator)
+                }
+                val channelSuffix = if (OperatingSystem.current().isLinux) "" else "-${OperatingSystem.current().familyName.toLowerCase()}"
+                create("${testProject}PerformanceTest") {
+                    description = "Runs performance tests on $testProject - supposed to be used on CI"
+                    performanceReporter = createPerformanceReporter()
+                    channel = "commits$channelSuffix"
+                    setTestProjectGenerationTask(sampleGenerator)
+
+                    retry {
+                        maxRetries.set(3)
+                    }
+
+                    if (shouldLoadScenariosFromFile) {
+                        val scenariosFromFile = loadScenariosFromFile(testProject)
+                        if (scenariosFromFile.isNotEmpty()) {
+                            setTestNameIncludePatterns(scenariosFromFile)
+                        }
+                        doFirst {
+                            assert((filter as DefaultTestFilter).includePatterns.isNotEmpty()) { "Running $name requires to add a test filter" }
+                        }
+                    }
+                }
+            }
+        }
+
+        tasks.register<PerformanceTestReport>("performanceTestReport") {
+            reportGeneratorClass.set("org.gradle.performance.results.report.DefaultReportGenerator")
+        }
+
+        tasks.register<PerformanceTestReport>("performanceTestFlakinessReport") {
+            reportGeneratorClass.set("org.gradle.performance.results.report.FlakinessReportGenerator")
+        }
+
+        tasks.withType<PerformanceTestReport>().configureEach {
+            classpath.from(performanceSourceSet.runtimeClasspath)
+            performanceResultsDirectory.set(project.rootProject.file("perf-results"))
+            reportDir.set(project.layout.buildDirectory.dir(this@configureEach.name))
+            databaseParameters.set(project.propertiesForPerformanceDb())
+            val moduleIdentity = project.the<ModuleIdentityExtension>()
+            branchName.set(moduleIdentity.gradleBuildBranch)
+            channel.convention(branchName.map { "commits-$it" })
+            commitId.set(moduleIdentity.gradleBuildCommitId)
+            projectName.set(project.name)
+        }
+    }
+
+    private
+    fun Project.loadScenariosFromFile(testProject: String): List<String> {
+        val scenarioFile = project.rootProject.file("performance-test-splits/include-$testProject-performance-scenarios.csv")
+        return if (scenarioFile.isFile)
+            scenarioFile.readLines(StandardCharsets.UTF_8)
+                .filter { it.isNotEmpty() }
+                .map {
+                    val (className, scenario) = it.split(";")
+                    "$className.$scenario"
+                }
+        else listOf()
     }
 
     private
@@ -273,7 +366,6 @@ class PerformanceTestPlugin : Plugin<Project> {
         }
         create("distributedHistoricalPerformanceTest", DistributedPerformanceTest::class) {
             excludeCategories(performanceExperimentCategory)
-            configuredBaselines.set(Config.baseLineList)
             checks = "none"
             channel = "historical$channelSuffix"
         }
@@ -328,8 +420,6 @@ class PerformanceTestPlugin : Plugin<Project> {
             distributedPerformanceReporter = createPerformanceReporter()
         }
 
-        createAndWireCommitDistributionTasks(performanceTest, true)
-
         afterEvaluate {
             performanceTest.configure {
                 branchName?.takeIf { it.isNotEmpty() }?.let { branchName ->
@@ -342,16 +432,16 @@ class PerformanceTestPlugin : Plugin<Project> {
     }
 
     private
-    fun Project.createAndWireCommitDistributionTasks(performanceTest: TaskProvider<out PerformanceTest>, isDistributed: Boolean) {
+    fun Project.createAndWireCommitDistributionTask(extension: PerformanceTestExtension) {
         // The data flow here is:
-        // performanceTest.configuredBaselines -> determineBaselines.configuredBaselines
-        // determineBaselines.determinedBaselines -> performanceTest.determinedBaselines
-        // determineBaselines.determinedBaselines -> buildCommitDistribution.commitBaseline
-        val determineBaselines = tasks.register("${performanceTest.name}DetermineBaselines", DetermineBaselines::class, isDistributed)
-        val buildCommitDistribution = tasks.register("${performanceTest.name}BuildCommitDistribution", BuildCommitDistribution::class)
+        // extension.baselines -> determineBaselines.configuredBaselines
+        // determineBaselines.determinedBaselines -> performanceTest.baselines
+        // determineBaselines.determinedBaselines -> buildCommitDistribution.baselines
+        val determineBaselines = tasks.register("determineBaselines", DetermineBaselines::class, false)
+        val buildCommitDistribution = tasks.register("buildCommitDistribution", BuildCommitDistribution::class)
 
         determineBaselines.configure {
-            configuredBaselines.set(performanceTest.flatMap { it.configuredBaselines })
+            configuredBaselines.set(extension.baselines)
         }
 
         buildCommitDistribution.configure {
@@ -359,9 +449,9 @@ class PerformanceTestPlugin : Plugin<Project> {
             commitBaseline.set(determineBaselines.flatMap { it.determinedBaselines })
         }
 
-        performanceTest.configure {
+        tasks.withType<PerformanceTest>().configureEach {
             dependsOn(buildCommitDistribution)
-            determinedBaselines.set(determineBaselines.flatMap { it.determinedBaselines })
+            baselines.set(determineBaselines.flatMap { it.determinedBaselines })
         }
     }
 
@@ -382,16 +472,13 @@ class PerformanceTestPlugin : Plugin<Project> {
                 }
             }
         }
-        createAndWireCommitDistributionTasks(performanceTest, false)
-
         val testResultsZipTask = testResultsZipTaskFor(performanceTest, name)
 
         performanceTest.configure {
             finalizedBy(testResultsZipTask)
         }
 
-        // TODO: Make this lazy, see https://github.com/gradle/gradle-native/issues/718
-        tasks.getByName("clean${name.capitalize()}") {
+        tasks.named("clean${name.capitalize()}") {
             delete(performanceTest)
             dependsOn(testResultsZipTask.map { "clean${it.name.capitalize()}" }) // Avoid realizing because of issue
         }
@@ -417,7 +504,10 @@ class PerformanceTestPlugin : Plugin<Project> {
                     }
                 }
             }
-            from(performanceTest.get().debugArtifactsDirectory)
+            from(performanceTest.get().debugArtifactsDirectory) {
+                // Rename the json file specific per task, so we can copy multiple of those files from one build on Teamcity
+                rename(Config.performanceTestResultsJsonName, "perf-results-$name.json")
+            }
             destinationDirectory.set(buildDir)
             archiveFileName.set("test-results-${junitXmlDir.name}.zip")
         }
@@ -442,15 +532,11 @@ class PerformanceTestPlugin : Plugin<Project> {
 
             useJUnitPlatform()
 
-            project.findProperty(PropertyNames.baselines)?.let { baselines ->
-                task.configuredBaselines.set(baselines as String)
-            }
-
             jvmArgs("-Xmx5g", "-XX:+HeapDumpOnOutOfMemoryError")
 
             registerTemplateInputsToPerformanceTest()
 
-            configureSampleGenerators {
+            configureTestProjectGenerators {
                 this@apply.mustRunAfter(this)
             }
             configureGitInfo()
@@ -469,7 +555,7 @@ class PerformanceTestPlugin : Plugin<Project> {
                 inputs.property(key, value).optional(true)
             }
         }
-        project.configureSampleGenerators {
+        project.configureTestProjectGenerators {
             // TODO: Remove this hack https://github.com/gradle/gradle-native/issues/864
             (project.tasks as DefaultTaskContainer).mutationGuard.withMutationEnabled<DefaultTaskContainer> {
                 all(registerInputs)

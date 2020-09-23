@@ -17,18 +17,18 @@
 package org.gradle.performance.fixture;
 
 import groovy.transform.CompileStatic;
+import org.gradle.performance.results.GradleProfilerReporter;
 import org.gradle.performance.results.MeasuredOperationList;
-import org.gradle.profiler.BenchmarkResultCollector;
 
 @CompileStatic
 public class GradleVsMavenBuildExperimentRunner extends AbstractBuildExperimentRunner {
     private final GradleBuildExperimentRunner gradleRunner;
     private final MavenBuildExperimentRunner mavenRunner;
 
-    public GradleVsMavenBuildExperimentRunner(BenchmarkResultCollector resultCollector) {
-        super(resultCollector);
-        this.gradleRunner = new GradleBuildExperimentRunner(resultCollector);
-        this.mavenRunner = new MavenBuildExperimentRunner(resultCollector);
+    public GradleVsMavenBuildExperimentRunner(GradleProfilerReporter gradleProfilerReporter) {
+        super(gradleProfilerReporter);
+        this.gradleRunner = new GradleBuildExperimentRunner(gradleProfilerReporter);
+        this.mavenRunner = new MavenBuildExperimentRunner(gradleProfilerReporter);
     }
 
     @Override

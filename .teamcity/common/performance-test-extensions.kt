@@ -41,7 +41,8 @@ fun BuildType.applyPerformanceTestSettings(os: Os = Os.LINUX, timeout: Int = 30)
 }
 
 fun performanceTestCommandLine(task: String, baselines: String, extraParameters: String = "", os: Os = Os.LINUX) = listOf(
-    "$task --baselines $baselines $extraParameters",
+    "$task${if (extraParameters.isEmpty()) "" else " $extraParameters" }",
+    "-PperformanceBaselines=$baselines",
     """"-PtestJavaHome=${os.individualPerformanceTestJavaHome()}""""
 ) + listOf(
     "-Porg.gradle.performance.branchName" to "%teamcity.build.branch%",

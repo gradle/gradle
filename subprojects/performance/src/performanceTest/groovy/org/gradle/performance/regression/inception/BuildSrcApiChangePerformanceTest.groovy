@@ -21,26 +21,9 @@ import org.gradle.profiler.BuildContext
 import org.gradle.profiler.BuildMutator
 import org.gradle.util.GradleVersion
 import org.junit.experimental.categories.Category
-import spock.lang.Issue
-import spock.lang.Unroll
 
-import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.createMirrorInitScript
-import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.gradlePluginRepositoryMirrorUrl
-import static org.gradle.performance.generator.JavaTestProject.LARGE_JAVA_MULTI_PROJECT
-import static org.gradle.performance.generator.JavaTestProject.LARGE_JAVA_MULTI_PROJECT_KOTLIN_DSL
-import static org.gradle.performance.generator.JavaTestProject.MEDIUM_MONOLITHIC_JAVA_PROJECT
-import static org.gradle.test.fixtures.server.http.MavenHttpPluginRepository.PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY
-
-@Issue('https://github.com/gradle/gradle-private/issues/1313')
 @Category(SlowPerformanceRegressionTest)
 class BuildSrcApiChangePerformanceTest extends AbstractCrossVersionPerformanceTest {
-
-    static List<String> extraGradleBuildArguments() {
-        ["-D${PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY}=${gradlePluginRepositoryMirrorUrl()}",
-         "-Dorg.gradle.ignoreBuildJavaVersionCheck=true",
-         "-PbuildSrcCheck=false",
-         "-I", createMirrorInitScript().absolutePath]
-    }
 
     def setup() {
         def targetVersion = "6.7-20200812220226+0000"
@@ -48,16 +31,13 @@ class BuildSrcApiChangePerformanceTest extends AbstractCrossVersionPerformanceTe
         runner.minimumBaseVersion = GradleVersion.version(targetVersion).baseVersion.version
     }
 
-    @Unroll
-    def "buildSrc api change in #testProject comparing gradle"() {
+    def "buildSrc abi change"() {
         given:
-        runner.testProject = testProject
         runner.tasksToRun = ['help']
-        runner.runs = runs
-        runner.args = extraGradleBuildArguments()
+        runner.runs = determineNumberOfRuns(runner.testProject)
 
         and:
-        def changingClassFilePath = "buildSrc/${buildSrcProjectDir}src/main/groovy/ChangingClass.groovy"
+        def changingClassFilePath = "buildSrc/src/main/groovy/ChangingClass.groovy"
         runner.addBuildMutator { invocationSettings ->
             new BuildMutator() {
                 @Override
@@ -79,11 +59,18 @@ class BuildSrcApiChangePerformanceTest extends AbstractCrossVersionPerformanceTe
 
         then:
         result.assertCurrentVersionHasNotRegressed()
+    }
 
-        where:
-        testProject                         | buildSrcProjectDir | runs
-        MEDIUM_MONOLITHIC_JAVA_PROJECT      | ""                 | 40
-        LARGE_JAVA_MULTI_PROJECT            | ""                 | 20
-        LARGE_JAVA_MULTI_PROJECT_KOTLIN_DSL | ""                 | 10
+    private static int determineNumberOfRuns(String testProject) {
+        switch (testProject) {
+            case 'mediumMonolithicJavaProject':
+                return 40
+            case 'largeJavaMultiProject':
+                return 20
+            case 'largeJavaMultiProjectKotlinDsl':
+                return 10
+            default:
+                20
+        }
     }
 }

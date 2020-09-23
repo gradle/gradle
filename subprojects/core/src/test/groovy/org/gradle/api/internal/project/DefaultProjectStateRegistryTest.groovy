@@ -255,6 +255,41 @@ class DefaultProjectStateRegistryTest extends ConcurrentSpec {
         thrown(IllegalStateException)
     }
 
+    def "thread can be granted uncontrolled access to all projects"() {
+        given:
+        registry.registerProjects(build("p1", "p2"))
+        def project1 = project("p1")
+        def state1 = registry.stateFor(project1)
+        state1.attachMutableModel(project1)
+
+        when:
+        async {
+            start {
+                state1.applyToMutableState { p ->
+                    instant.mutating1
+                    thread.blockUntil.finished1
+                }
+                state1.applyToMutableState { p ->
+                    instant.mutating2
+                    thread.blockUntil.finished2
+                }
+            }
+            start {
+                registry.allowUncontrolledAccessToAnyProject {
+                    thread.blockUntil.mutating1
+                    // both threads are accessing project
+                    instant.finished1
+                    thread.blockUntil.mutating2
+                    // both threads are accessing project
+                    instant.finished2
+                }
+            }
+        }
+
+        then:
+        noExceptionThrown()
+    }
+
     def "thread must own project state in order to set calculated value"() {
         given:
         registry.registerProjects(build("p1", "p2"))

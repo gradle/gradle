@@ -28,18 +28,18 @@ public class AllResultsStore implements ResultsStore, Closeable {
     private final CompositeResultsStore store = new CompositeResultsStore(crossVersion, crossBuild, gradleVsMaven);
 
     @Override
-    public List<String> getTestNames() {
-        return store.getTestNames();
+    public List<PerformanceExperiment> getPerformanceExperiments() {
+        return store.getPerformanceExperiments();
     }
 
     @Override
-    public PerformanceTestHistory getTestResults(String testName, String channel) {
-        return store.getTestResults(testName, channel);
+    public PerformanceTestHistory getTestResults(PerformanceExperiment experiment, String channel) {
+        return store.getTestResults(experiment, channel);
     }
 
     @Override
-    public PerformanceTestHistory getTestResults(String testName, int mostRecentN, int maxDaysOld, String channel) {
-        return store.getTestResults(testName, mostRecentN, maxDaysOld, channel);
+    public PerformanceTestHistory getTestResults(PerformanceExperiment experiment, int mostRecentN, int maxDaysOld, String channel) {
+        return store.getTestResults(experiment, mostRecentN, maxDaysOld, channel);
     }
 
     @Override

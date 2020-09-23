@@ -61,6 +61,10 @@ class JavaCompileToolchainIntegrationTest extends AbstractPluginIntegrationTest 
         buildFile << """
             apply plugin: "java"
 
+            compileJava {
+                // Make sure declaration ordering is not an issue
+            }
+
             java {
                 toolchain {
                     languageVersion = JavaLanguageVersion.of(${someJdk.javaVersion.majorVersion})

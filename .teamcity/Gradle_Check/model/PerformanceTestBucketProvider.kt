@@ -39,10 +39,10 @@ interface PerformanceTestBucketProvider {
 
 typealias OperatingSystemToTestProjectPerformanceTestTimes = Map<Os, Map<String, List<PerformanceTestTime>>>
 
-const val PERFORMANCE_TEST_BUCKET_NUMBER = 40
+const val MAX_TEST_PROJECTS_PER_BUCKET = 10
 
 data class PerformanceTestCoverage(val performanceTestType: PerformanceTestType, val os: Os) {
-    fun asConfigurationId(model: CIBuildModel, bucket: String = "") = "${model.projectPrefix}PerformanceTest${performanceTestType.name.capitalize()}${os.asName()}$bucket"
+    fun asConfigurationId(model: CIBuildModel, stage: Stage, bucket: String = "") = "${model.projectPrefix}PerformanceTest${performanceTestType.name.capitalize()}${os.asName()}$bucket"
     fun asName(): String =
         "${performanceTestType.displayName} - ${os.asName()}"
 }
@@ -66,7 +66,9 @@ class StatisticsBasedPerformanceTestBucketProvider(private val model: CIBuildMod
         for (performanceTestType in PerformanceTestType.values()) {
             val performanceTestCoverage = PerformanceTestCoverage(performanceTestType, Os.LINUX)
             val scenarios = determineScenariosFor(performanceTestCoverage, performanceTestConfigurations)
-            result[performanceTestCoverage] = splitBucketsByScenarios(performanceTestCoverage, scenarios, performanceTestTimes)
+            val testProjectToScenarioTimes = determineScenarioTestTimes(performanceTestCoverage.os, performanceTestTimes)
+            val repetitions = if (performanceTestType == PerformanceTestType.flakinessDetection) 3 else 1
+            result[performanceTestCoverage] = splitBucketsByScenarios(scenarios, testProjectToScenarioTimes, repetitions, performanceTestType.numberOfBuckets)
         }
         return result
     }
@@ -108,35 +110,42 @@ class StatisticsBasedPerformanceTestBucketProvider(private val model: CIBuildMod
 }
 
 private
-fun splitBucketsByScenarios(performanceTestCoverage: PerformanceTestCoverage, scenarios: List<PerformanceScenario>, performanceTestTimes: OperatingSystemToTestProjectPerformanceTestTimes): List<PerformanceTestBucket> {
-    val testProjectToScenarioTimes: Map<String, List<PerformanceTestTime>> = determineScenarioTestTimes(performanceTestCoverage, performanceTestTimes)
+fun splitBucketsByScenarios(scenarios: List<PerformanceScenario>, testProjectToScenarioTimes: Map<String, List<PerformanceTestTime>>, scenarioRepetitions: Int, numberOfBuckets: Int): List<PerformanceTestBucket> {
 
     val testProjectTimes = scenarios
         .groupBy({ it.testProject }, { testProjectToScenarioTimes.getValue(it.testProject).first { times -> times.scenario == it.scenario } })
         .entries
         .map { TestProjectTime(it.key, it.value) }
+        .flatMap { testProjectTime -> generateSequence { testProjectTime }.take(scenarioRepetitions).toList() }
         .sortedBy { -it.totalTime }
     return splitIntoBuckets(
         LinkedList(testProjectTimes),
         TestProjectTime::totalTime,
         { largeElement: TestProjectTime, size: Int -> largeElement.split(size) },
         { list: List<TestProjectTime> -> MultipleTestProjectBucket(list) },
-        PERFORMANCE_TEST_BUCKET_NUMBER,
-        MAX_PROJECT_NUMBER_IN_BUCKET,
-        { numEmptyBuckets -> (0 until numEmptyBuckets).map { EmptyTestProjectBucket(it) }.toList() }
+        numberOfBuckets,
+        MAX_TEST_PROJECTS_PER_BUCKET,
+        { numEmptyBuckets -> (0 until numEmptyBuckets).map { EmptyTestProjectBucket() }.toList() },
+        { tests1, tests2 -> tests1 != tests2 }
     )
 }
 
-fun determineScenarioTestTimes(performanceTestCoverage: PerformanceTestCoverage, performanceTestTimes: OperatingSystemToTestProjectPerformanceTestTimes): Map<String, List<PerformanceTestTime>> = performanceTestTimes.getValue(performanceTestCoverage.os)
+fun determineScenarioTestTimes(os: Os, performanceTestTimes: OperatingSystemToTestProjectPerformanceTestTimes): Map<String, List<PerformanceTestTime>> = performanceTestTimes.getValue(os)
 
-fun determineScenariosFor(performanceTestCoverage: PerformanceTestCoverage, performanceTestConfigurations: List<PerformanceTestConfiguration>): List<PerformanceScenario> =
-    performanceTestConfigurations.flatMap { configuration ->
+fun determineScenariosFor(performanceTestCoverage: PerformanceTestCoverage, performanceTestConfigurations: List<PerformanceTestConfiguration>): List<PerformanceScenario> {
+    val performanceTestType = if (performanceTestCoverage.performanceTestType in setOf(PerformanceTestType.historical, PerformanceTestType.flakinessDetection)) {
+        PerformanceTestType.test
+    } else {
+        performanceTestCoverage.performanceTestType
+    }
+    return performanceTestConfigurations.flatMap { configuration ->
         configuration.groups
-            .filter { it.performanceTestTypes[performanceTestCoverage.performanceTestType]?.contains(performanceTestCoverage.os) == true }
+            .filter { it.performanceTestTypes[performanceTestType]?.contains(performanceTestCoverage.os) == true }
             .map { PerformanceScenario(Scenario.fromTestId(configuration.testId), it.testProject) }
     }
+}
 
-class PerformanceTestTime(val scenario: Scenario, val buildTimeMs: Int) {
+data class PerformanceTestTime(val scenario: Scenario, val buildTimeMs: Int) {
     fun toCsvLine() = "${scenario.className};${scenario.scenario}"
 }
 
@@ -145,14 +154,10 @@ data class PerformanceScenario(val scenario: Scenario, val testProject: String)
 interface PerformanceTestBucket {
     fun createPerformanceTestsFor(model: CIBuildModel, stage: Stage, performanceTestCoverage: PerformanceTestCoverage, bucketIndex: Int): PerformanceTest
 
-    fun getUuid(model: CIBuildModel, performanceTestCoverage: PerformanceTestCoverage, bucketIndex: Int): String = performanceTestCoverage.asConfigurationId(model, "bucket${bucketIndex + 1}")
-
     fun getName(testCoverage: TestCoverage): String = throw UnsupportedOperationException()
-
-    fun getDescription(testCoverage: TestCoverage): String = throw UnsupportedOperationException()
 }
 
-class TestProjectTime(val testProject: String, val scenarioTimes: List<PerformanceTestTime>) {
+data class TestProjectTime(val testProject: String, val scenarioTimes: List<PerformanceTestTime>) {
     val totalTime: Int = scenarioTimes.sumBy { it.buildTimeMs }
 
     fun split(expectedBucketNumber: Int): List<PerformanceTestBucket> {
@@ -161,7 +166,7 @@ class TestProjectTime(val testProject: String, val scenarioTimes: List<Performan
         } else {
             val list = LinkedList(scenarioTimes.sortedBy { -it.buildTimeMs })
             val toIntFunction = PerformanceTestTime::buildTimeMs
-            val largeElementSplitFunction: (PerformanceTestTime, Int) -> List<List<PerformanceTestTime>> = { performanceTestTime: PerformanceTestTime, number: Int -> listOf(listOf(performanceTestTime)) }
+            val largeElementSplitFunction: (PerformanceTestTime, Int) -> List<List<PerformanceTestTime>> = { performanceTestTime: PerformanceTestTime, _: Int -> listOf(listOf(performanceTestTime)) }
             val smallElementAggregateFunction: (List<PerformanceTestTime>) -> List<PerformanceTestTime> = { it }
 
             val buckets: List<List<PerformanceTestTime>> = splitIntoBuckets(list, toIntFunction, largeElementSplitFunction, smallElementAggregateFunction, expectedBucketNumber, Integer.MAX_VALUE, { listOf() })
@@ -190,80 +195,80 @@ data class Scenario(val className: String, val scenario: String) {
 
 class SingleTestProjectBucket(val testProject: String, val scenarios: List<Scenario>) : PerformanceTestBucket {
     override
-    fun createPerformanceTestsFor(model: CIBuildModel, stage: Stage, performanceTestCoverage: PerformanceTestCoverage, bucketIndex: Int): PerformanceTest {
-        val uuid = getUuid(model, performanceTestCoverage, bucketIndex)
-        return PerformanceTest(
-            model,
-            PerformanceTestType.test,
-            stage,
-            uuid,
-            "Performance tests for $testProject",
-            "performance",
-            listOf(testProject),
-            performanceTestCoverage.os,
-            extraParameters = " -PincludePerformanceTestScenarios=true",
-            preBuildSteps = prepareScenariosStep(testProject, scenarios, performanceTestCoverage.os)
-        )
-    }
+    fun createPerformanceTestsFor(model: CIBuildModel, stage: Stage, performanceTestCoverage: PerformanceTestCoverage, bucketIndex: Int): PerformanceTest = createPerformanceTest(
+        model,
+        performanceTestCoverage,
+        stage,
+        bucketIndex,
+        "Performance tests for $testProject",
+        mapOf(testProject to scenarios)
+    )
 }
 
-class MultipleTestProjectBucket(val testProjects: List<TestProjectTime>) : PerformanceTestBucket {
+class MultipleTestProjectBucket(private val projectTimes: List<TestProjectTime>) : PerformanceTestBucket {
     override
-    fun createPerformanceTestsFor(model: CIBuildModel, stage: Stage, performanceTestCoverage: PerformanceTestCoverage, bucketIndex: Int): PerformanceTest {
-        val uuid = getUuid(model, performanceTestCoverage, bucketIndex)
-        return PerformanceTest(
+    fun createPerformanceTestsFor(model: CIBuildModel, stage: Stage, performanceTestCoverage: PerformanceTestCoverage, bucketIndex: Int): PerformanceTest = createPerformanceTest(
             model,
-            PerformanceTestType.test,
+            performanceTestCoverage,
             stage,
-            uuid,
-            "Performance tests for ${testProjects.joinToString(", ") { it.testProject }}",
-            "performance",
-            testProjects.map { it.testProject }.distinct(),
-            performanceTestCoverage.os,
-            extraParameters = " -PincludePerformanceTestScenarios=true",
-            preBuildSteps = {
-                testProjects.forEach { testProject ->
-                    prepareScenariosStep(testProject.testProject, testProject.scenarioTimes.map(PerformanceTestTime::scenario), performanceTestCoverage.os)()
-                }
+            bucketIndex,
+            "Performance tests for ${projectTimes.joinToString(", ") { it.testProject }}",
+            projectTimesToScenariosPerTestProject(projectTimes)
+        )
+}
+
+private
+fun projectTimesToScenariosPerTestProject(projectTimes: List<TestProjectTime>): Map<String, List<Scenario>> {
+    val timesPerTestProject = projectTimes.groupBy({ it.testProject }, { it.scenarioTimes })
+    timesPerTestProject.forEach { (key, value) -> if (value.size != 1) throw IllegalArgumentException("More than on scenario split for test project $key: $projectTimes") }
+    return timesPerTestProject
+        .mapValues { (_, times) -> times.flatten().map { it.scenario } }
+}
+
+class EmptyTestProjectBucket : PerformanceTestBucket {
+    override
+    fun createPerformanceTestsFor(model: CIBuildModel, stage: Stage, performanceTestCoverage: PerformanceTestCoverage, bucketIndex: Int): PerformanceTest = createPerformanceTest(
+        model,
+        performanceTestCoverage,
+        stage,
+        bucketIndex,
+        "Empty Performance Test bucket",
+        mapOf()
+    )
+}
+
+class TestProjectSplitBucket(val testProject: String, private val number: Int, val scenarios: List<PerformanceTestTime>) : PerformanceTestBucket {
+    override
+    fun createPerformanceTestsFor(model: CIBuildModel, stage: Stage, performanceTestCoverage: PerformanceTestCoverage, bucketIndex: Int): PerformanceTest = createPerformanceTest(
+        model,
+        performanceTestCoverage,
+        stage,
+        bucketIndex,
+        "Performance test for $testProject (bucket $number)",
+        mapOf(testProject to scenarios.map { it.scenario })
+    )
+}
+
+private
+fun createPerformanceTest(model: CIBuildModel, performanceTestCoverage: PerformanceTestCoverage, stage: Stage, bucketIndex: Int, description: String, tests: Map<String, List<Scenario>>): PerformanceTest {
+    val uuid = performanceTestCoverage.asConfigurationId(model, stage, "bucket${bucketIndex + 1}")
+    return PerformanceTest(
+        model,
+        performanceTestCoverage.performanceTestType,
+        stage,
+        uuid,
+        "$description - index $bucketIndex",
+        "performance",
+        tests.keys.toList(),
+        bucketIndex = bucketIndex,
+        os = performanceTestCoverage.os,
+        extraParameters = " -PincludePerformanceTestScenarios=true",
+        preBuildSteps = {
+            tests.forEach { (testProject, scenarios) ->
+                prepareScenariosStep(testProject, scenarios, performanceTestCoverage.os)()
             }
-        )
-    }
-}
-
-class EmptyTestProjectBucket(private val index: Int) : PerformanceTestBucket {
-    override
-    fun createPerformanceTestsFor(model: CIBuildModel, stage: Stage, performanceTestCoverage: PerformanceTestCoverage, bucketIndex: Int): PerformanceTest {
-        val uuid = getUuid(model, performanceTestCoverage, bucketIndex)
-        return PerformanceTest(
-            model,
-            PerformanceTestType.test,
-            stage,
-            uuid,
-            "EmptyPerformanceTestsFor$index",
-            "performance",
-            listOf(),
-            performanceTestCoverage.os
-        )
-    }
-}
-
-class TestProjectSplitBucket(val testProject: String, val number: Int, val scenarios: List<PerformanceTestTime>) : PerformanceTestBucket {
-    override
-    fun createPerformanceTestsFor(model: CIBuildModel, stage: Stage, performanceTestCoverage: PerformanceTestCoverage, bucketIndex: Int): PerformanceTest {
-        val uuid = getUuid(model, performanceTestCoverage, bucketIndex)
-        return PerformanceTest(
-            model,
-            PerformanceTestType.test,
-            stage,
-            uuid,
-            "Performance test for $testProject (bucket $number)",
-            "performance",
-            listOf(testProject),
-            performanceTestCoverage.os,
-            extraParameters = " -PincludePerformanceTestScenarios=true",
-            preBuildSteps = prepareScenariosStep(testProject, scenarios.map(PerformanceTestTime::scenario), performanceTestCoverage.os)
-        )
-    }
+        }
+    )
 }
 
 private
