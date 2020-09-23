@@ -25,7 +25,7 @@ abstract class AdHocPerformanceScenario(os: Os) : BuildType({
 
     params {
         text("baselines", "defaults", display = ParameterDisplay.PROMPT, allowEmpty = false)
-        text("templates", "", display = ParameterDisplay.PROMPT, allowEmpty = false)
+        text("testProject", "", display = ParameterDisplay.PROMPT, allowEmpty = false)
         param("channel", "adhoc")
         param("checks", "all")
         text("runs", "10", display = ParameterDisplay.PROMPT, allowEmpty = false)
@@ -56,7 +56,7 @@ abstract class AdHocPerformanceScenario(os: Os) : BuildType({
             workingDir = os.perfTestWorkingDir
             gradleParams = (
                 performanceTestCommandLine(
-                    "clean performance:%templates%PerformanceAdHocTest --tests \"%scenario%\"",
+                    "clean performance:%testProject%PerformanceAdHocTest --tests \"%scenario%\"",
                     "%baselines%",
                     """--warmups %warmups% --runs %runs% --checks %checks% --channel %channel% %flamegraphs% %additional.gradle.parameters%""",
                     os
