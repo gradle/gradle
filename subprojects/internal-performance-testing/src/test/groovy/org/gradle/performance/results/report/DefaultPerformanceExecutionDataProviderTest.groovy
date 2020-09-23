@@ -36,7 +36,7 @@ class DefaultPerformanceExecutionDataProviderTest extends ResultSpecification {
 
     def setup() {
         resultsJson << '[]'
-        provider = new DefaultPerformanceExecutionDataProvider(mockStore, resultsJson)
+        provider = new DefaultPerformanceExecutionDataProvider(mockStore, [resultsJson])
     }
 
     def 'can sort scenarios correctly'() {
