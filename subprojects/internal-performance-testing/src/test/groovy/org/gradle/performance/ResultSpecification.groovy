@@ -59,6 +59,7 @@ abstract class ResultSpecification extends Specification {
         def results = new CrossBuildPerformanceResults(
                 testId: "test-id",
                 testGroup: "test-group",
+                testProject: "test-project",
                 jvm: "java 7",
                 versionUnderTest: "Gradle 1.0",
                 operatingSystem: "windows",
@@ -75,6 +76,7 @@ abstract class ResultSpecification extends Specification {
     GradleVsMavenBuildPerformanceResults gradleVsMavenBuildResults(Map<String, ?> options = [:]) {
         def results = new GradleVsMavenBuildPerformanceResults(
                 testId: "test-id",
+                testProject: 'test-project',
                 testGroup: "test-group",
                 jvm: "java 7",
                 versionUnderTest: "Gradle 1.0",
@@ -108,7 +110,7 @@ abstract class ResultSpecification extends Specification {
         result2.version('5.0-mockbaseline-2').results.addAll(measuredOperations([2, 2]))
         result2.version('master').results.addAll(measuredOperations([1, 1]))
 
-        return new CrossVersionPerformanceTestHistory(new PerformanceExperiment('mockTestProject', 'mockScenario'),
+        return new CrossVersionPerformanceTestHistory(new PerformanceExperiment('test-project', 'mockScenario'),
             ['5.0-mockbaseline-1', '5.0-mockbaseline-2'],
             ['master'],
             [result2, result1]
