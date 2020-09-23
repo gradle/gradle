@@ -23,7 +23,7 @@ import static org.gradle.performance.regression.android.AndroidTestProject.K9_AN
 
 class RealLifeAndroidBuildPerformanceTest extends AbstractRealLifeAndroidBuildPerformanceTest {
     @Unroll
-    def "#tasks"() {
+    def "run #tasks"() {
         given:
         AndroidTestProject testProject = androidTestProject
         boolean parallel = testProject != K9_ANDROID
