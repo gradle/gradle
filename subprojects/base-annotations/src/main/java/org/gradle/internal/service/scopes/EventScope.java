@@ -25,6 +25,8 @@ import java.lang.annotation.RetentionPolicy;
  *
  * Events generated in a particular scope are visible to listeners in the same scope and ancestor scopes.
  * Events are not visible to listeners in descendent scopes.
+ *
+ * @see org.gradle.internal.service.scopes.Scopes
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Inherited
