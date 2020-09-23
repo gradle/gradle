@@ -29,7 +29,6 @@ import org.gradle.performance.results.GradleVsMavenBuildResultsStore
 import org.gradle.performance.results.WritableResultsStore
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 import org.junit.experimental.categories.Category
 import spock.lang.Specification
@@ -39,7 +38,6 @@ import static org.gradle.performance.results.ResultsStoreHelper.createResultsSto
 @Category(PerformanceExperiment)
 @CompileStatic
 @CleanupTestDirectory
-@UsesNativeServices
 class AbstractGradleVsMavenPerformanceTest extends Specification {
     private static final WritableResultsStore<GradleVsMavenBuildPerformanceResults> RESULT_STORE = createResultsStoreWhenDatabaseAvailable { new GradleVsMavenBuildResultsStore() }
 
@@ -72,5 +70,4 @@ class AbstractGradleVsMavenPerformanceTest extends Specification {
             ((Closeable) RESULT_STORE).close()
         }
     }
-
 }
