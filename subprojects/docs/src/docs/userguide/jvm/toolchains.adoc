@@ -155,6 +155,6 @@ By injecting the `JavaToolchainService` in the plugin, it is also possible to wi
 ```
 JavaPluginExtension extension = project.getExtensions().getByType(JavaPluginExtension.class);
 JavaToolchainService service = project.getExtensions().getByType(JavaToolchainService.class);
-Provider<JavaCompiler> defaultCompiler = service.compilerFor(extension.getToolchain()).orElse(Providers.notDefined());
+Provider<JavaCompiler> defaultCompiler = service.compilerFor(extension.getToolchain());
 myTask.getJavaCompiler().convention(defaultCompiler);
 ```

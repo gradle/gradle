@@ -18,7 +18,6 @@ package org.gradle.jvm.toolchain.internal;
 
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.provider.DefaultProvider;
-import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
@@ -52,10 +51,13 @@ public class JavaToolchainQueryService {
     }
 
     Provider<JavaToolchain> findMatchingToolchain(JavaToolchainSpec filter) {
-        if (!((DefaultToolchainSpec) filter).isConfigured()) {
-            return Providers.notDefined();
-        }
-        return new DefaultProvider<>(() -> query(filter));
+        return new DefaultProvider<>(() -> {
+            if (((DefaultToolchainSpec) filter).isConfigured()) {
+                return query(filter);
+            } else {
+                return null;
+            }
+        });
     }
 
     private JavaToolchain query(JavaToolchainSpec filter) {

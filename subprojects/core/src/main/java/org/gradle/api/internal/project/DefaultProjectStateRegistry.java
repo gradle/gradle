@@ -36,6 +36,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
@@ -48,6 +49,7 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
     private final Map<ProjectComponentIdentifier, ProjectStateImpl> projectsById = Maps.newLinkedHashMap();
     private final Map<Pair<BuildIdentifier, Path>, ProjectStateImpl> projectsByCompId = Maps.newLinkedHashMap();
     private final AtomicReference<Thread> ownerOfAllProjects = new AtomicReference<>();
+    private final Set<Thread> canDoAnything = new CopyOnWriteArraySet<>();
 
     public DefaultProjectStateRegistry(WorkerLeaseService workerLeaseService) {
         this.workerLeaseService = workerLeaseService;
@@ -141,6 +143,16 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
         }
     }
 
+    @Override
+    public <T> T allowUncontrolledAccessToAnyProject(Factory<T> factory) {
+        canDoAnything.add(Thread.currentThread());
+        try {
+            return factory.create();
+        } finally {
+            canDoAnything.remove(Thread.currentThread());
+        }
+    }
+
     private class ProjectStateImpl implements ProjectState {
         private final Path projectPath;
         private final String projectName;
@@ -230,6 +242,11 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
 
         @Override
         public <S> S fromMutableState(Function<? super ProjectInternal, ? extends S> function) {
+            if (canDoAnything.contains(Thread.currentThread())) {
+                // Current thread is allowed to access anything at any time, so run the function
+                return function.apply(getMutableModel());
+            }
+
             Thread currentOwner = ownerOfAllProjects.get();
             if (currentOwner != null) {
                 if (currentOwner == Thread.currentThread()) {
@@ -269,7 +286,8 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
 
         @Override
         public boolean hasMutableState() {
-            return ownerOfAllProjects.get() == Thread.currentThread() || workerLeaseService.getCurrentProjectLocks().contains(projectLock);
+            Thread currentThread = Thread.currentThread();
+            return canDoAnything.contains(currentThread) || ownerOfAllProjects.get() == currentThread || workerLeaseService.getCurrentProjectLocks().contains(projectLock);
         }
 
         @Override
