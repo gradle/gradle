@@ -16,6 +16,7 @@
 
 package org.gradle.internal.resource.transport.http;
 
+import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.authentication.http.BasicAuthentication;
 import org.gradle.authentication.http.DigestAuthentication;
 import org.gradle.authentication.http.HttpHeaderAuthentication;
@@ -43,8 +44,12 @@ public class HttpResourcesPluginServiceRegistry extends AbstractPluginServiceReg
             return new DefaultSslContextFactory();
         }
 
-        ResourceConnectorFactory createHttpConnectorFactory(SslContextFactory sslContextFactory) {
-            return new HttpConnectorFactory(sslContextFactory);
+        HttpClientHelper.Factory createHttpClientHelperFactory(DocumentationRegistry documentationRegistry) {
+            return HttpClientHelper.Factory.createFactory(documentationRegistry);
+        }
+
+        ResourceConnectorFactory createHttpConnectorFactory(SslContextFactory sslContextFactory, HttpClientHelper.Factory httpClientHelperFactory) {
+            return new HttpConnectorFactory(sslContextFactory, httpClientHelperFactory);
         }
     }
 

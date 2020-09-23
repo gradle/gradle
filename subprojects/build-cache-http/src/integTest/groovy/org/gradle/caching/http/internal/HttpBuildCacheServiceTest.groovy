@@ -19,6 +19,7 @@ package org.gradle.caching.http.internal
 import org.apache.http.HttpHeaders
 import org.apache.http.HttpStatus
 import org.gradle.api.UncheckedIOException
+import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.caching.BuildCacheEntryWriter
 import org.gradle.caching.BuildCacheException
 import org.gradle.caching.BuildCacheKey
@@ -27,6 +28,7 @@ import org.gradle.caching.BuildCacheServiceFactory
 import org.gradle.caching.http.HttpBuildCache
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.resource.transport.http.DefaultSslContextFactory
+import org.gradle.internal.resource.transport.http.HttpClientHelper
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.test.fixtures.server.http.AuthScheme
 import org.gradle.test.fixtures.server.http.HttpResourceInteraction
@@ -56,6 +58,7 @@ class HttpBuildCacheServiceTest extends Specification {
 
     BuildCacheService cache
     BuildCacheServiceFactory.Describer buildCacheDescriber
+    HttpClientHelper.Factory httpClientHelperFactory = HttpClientHelper.Factory.createFactory(new DocumentationRegistry())
 
     def key = new BuildCacheKey() {
         def hashCode = HashCode.fromString("01234567abcdef")
@@ -86,7 +89,7 @@ class HttpBuildCacheServiceTest extends Specification {
         def config = new HttpBuildCache()
         config.url = server.uri.resolve("/cache/")
         buildCacheDescriber = new NoopBuildCacheDescriber()
-        cache = new DefaultHttpBuildCacheServiceFactory(new DefaultSslContextFactory(), { it.addHeader("X-Gradle-Version", "3.0") })
+        cache = new DefaultHttpBuildCacheServiceFactory(new DefaultSslContextFactory(), { it.addHeader("X-Gradle-Version", "3.0") }, httpClientHelperFactory)
             .createBuildCacheService(config, buildCacheDescriber)
     }
 
@@ -273,7 +276,7 @@ class HttpBuildCacheServiceTest extends Specification {
         configuration.url = server.uri.resolve("/cache/")
         configuration.credentials.username = 'user'
         configuration.credentials.password = 'password'
-        cache = new DefaultHttpBuildCacheServiceFactory(new DefaultSslContextFactory(), {}).createBuildCacheService(configuration, buildCacheDescriber) as HttpBuildCacheService
+        cache = new DefaultHttpBuildCacheServiceFactory(new DefaultSslContextFactory(), {}, httpClientHelperFactory).createBuildCacheService(configuration, buildCacheDescriber) as HttpBuildCacheService
 
         server.authenticationScheme = AuthScheme.BASIC
 

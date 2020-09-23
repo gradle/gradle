@@ -16,6 +16,7 @@
 
 package org.gradle.internal.resource.transport.http
 
+import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.logging.LogLevel
 import org.gradle.internal.logging.CollectingTestOutputEventListener
 import org.gradle.internal.logging.ConfigureLogging
@@ -41,7 +42,7 @@ class CookieHeaderTest extends Specification {
         .withSslContextFactory(sslContextFactory)
         .withRedirectVerifier({})
         .build()
-    HttpClientHelper client = new HttpClientHelper(settings)
+    HttpClientHelper client = new HttpClientHelper(new DocumentationRegistry(), settings)
 
     def "cookie header with attributes #attributes can be parsed"() {
         httpServer.start()
