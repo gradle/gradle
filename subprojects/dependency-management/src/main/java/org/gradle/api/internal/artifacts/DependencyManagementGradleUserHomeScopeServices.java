@@ -25,16 +25,12 @@ import org.gradle.api.internal.artifacts.ivyservice.DefaultArtifactCaches;
 import org.gradle.api.internal.artifacts.transform.ImmutableCachingTransformationWorkspaceProvider;
 import org.gradle.api.internal.artifacts.transform.ImmutableTransformationWorkspaceProvider;
 import org.gradle.api.internal.cache.StringInterner;
-import org.gradle.api.internal.changedetection.state.DefaultExecutionHistoryCacheAccess;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.internal.CacheScopeMapping;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.internal.UsedGradleVersions;
 import org.gradle.initialization.RootBuildLifecycleListener;
 import org.gradle.internal.event.ListenerManager;
-import org.gradle.internal.execution.history.ExecutionHistoryCacheAccess;
-import org.gradle.internal.execution.history.ExecutionHistoryStore;
-import org.gradle.internal.execution.history.impl.DefaultExecutionHistoryStore;
 import org.gradle.internal.file.FileAccessTimeJournal;
 import org.gradle.internal.service.ServiceRegistry;
 
@@ -71,24 +67,20 @@ public class DependencyManagementGradleUserHomeScopeServices {
         return artifactCachesProvider;
     }
 
-    ExecutionHistoryCacheAccess createExecutionHistoryCacheAccess(CacheRepository cacheRepository) {
-        return new DefaultExecutionHistoryCacheAccess(null, cacheRepository);
-    }
-
-    ExecutionHistoryStore createExecutionHistoryStore(
-        ExecutionHistoryCacheAccess executionHistoryCacheAccess,
+    ImmutableTransformationWorkspaceProvider createTransformerWorkspaceProvider(
+        ArtifactCachesProvider artifactCaches,
+        CacheRepository cacheRepository,
+        FileAccessTimeJournal fileAccessTimeJournal,
         InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory,
         StringInterner stringInterner
     ) {
-        return new DefaultExecutionHistoryStore(
-            executionHistoryCacheAccess,
+        return new ImmutableTransformationWorkspaceProvider(
+            artifactCaches.getWritableCacheMetadata().getTransformsStoreDirectory(),
+            cacheRepository,
+            fileAccessTimeJournal,
             inMemoryCacheDecoratorFactory,
             stringInterner
         );
-    }
-
-    ImmutableTransformationWorkspaceProvider createTransformerWorkspaceProvider(ArtifactCachesProvider artifactCaches, CacheRepository cacheRepository, FileAccessTimeJournal fileAccessTimeJournal, ExecutionHistoryStore executionHistoryStore) {
-        return new ImmutableTransformationWorkspaceProvider(artifactCaches.getWritableCacheMetadata().getTransformsStoreDirectory(), cacheRepository, fileAccessTimeJournal, executionHistoryStore);
     }
 
     ImmutableCachingTransformationWorkspaceProvider createCachingTransformerWorkspaceProvider(ImmutableTransformationWorkspaceProvider immutableTransformationWorkspaceProvider, ListenerManager listenerManager) {
