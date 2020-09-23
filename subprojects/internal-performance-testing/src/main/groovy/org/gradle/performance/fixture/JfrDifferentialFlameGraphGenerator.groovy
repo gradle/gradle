@@ -19,22 +19,19 @@ package org.gradle.performance.fixture
 import groovy.transform.CompileStatic
 import groovy.transform.PackageScope
 
-import static org.gradle.performance.fixture.JfrToStacksConverter.EventType
-
 /**
  * Generates flame graphs based on JFR recordings.
  */
 @CompileStatic
 @PackageScope
-class JfrFlameGraphGenerator implements ProfilerFlameGraphGenerator {
+class JfrDifferentialFlameGraphGenerator implements ProfilerFlameGraphGenerator {
 
     private FlameGraphGenerator flameGraphGenerator = new FlameGraphGenerator()
     private final File flamesBaseDirectory
 
-    JfrFlameGraphGenerator(File flamesBaseDirectory) {
+    JfrDifferentialFlameGraphGenerator(File flamesBaseDirectory) {
         this.flamesBaseDirectory = flamesBaseDirectory
     }
-
 
     @Override
     File getJfrOutputDirectory(BuildExperimentSpec spec) {
@@ -81,20 +78,6 @@ class JfrFlameGraphGenerator implements ProfilerFlameGraphGenerator {
         new File(baseDir, "${type.id}/${level.name().toLowerCase()}/stacks.txt")
     }
 
-    private void generateFlameGraph(File stacks, EventType type, DetailLevel level) {
-        File flames = new File(stacks.parentFile, "flames.svg")
-        String[] options = ["--title", type.displayName + " Flame Graph", "--countname", type.unitOfMeasure] + level.flameGraphOptions
-        flameGraphGenerator.generateFlameGraph(stacks, flames, options)
-        flames
-    }
-
-    private void generateIcicleGraph(File stacks, EventType type, DetailLevel level) {
-        File icicles = new File(stacks.parentFile, "icicles.svg")
-        String[] options = ["--title", type.displayName + " Icicle Graph", "--countname", type.unitOfMeasure, "--reverse", "--invert", "--colors", "aqua"] + level.icicleGraphOptions
-        flameGraphGenerator.generateFlameGraph(stacks, icicles, options)
-        icicles
-    }
-
     private void generateDifferentialFlameGraph(File stacks, EventType type, DetailLevel level, boolean negate) {
         File flames = new File(stacks.parentFile, "flame-" + stacks.name.replace(".txt", ".svg"))
         List<String> options = ["--title", type.displayName + "${negate ? " Forward " : " Backward "}Differential Flame Graph", "--countname", type.unitOfMeasure] + level.flameGraphOptions
@@ -113,6 +96,23 @@ class JfrFlameGraphGenerator implements ProfilerFlameGraphGenerator {
         }
         flameGraphGenerator.generateFlameGraph(stacks, icicles, options as String[])
         icicles
+    }
+
+    enum EventType {
+        CPU("cpu", "CPU", "samples"),
+        ALLOCATION("allocation", "Allocation size", "kB"),
+        MONITOR_BLOCKED("monitor-blocked", "Java Monitor Blocked", "ms"),
+        IO("io", "File and Socket IO", "ms");
+
+        private final String id;
+        private final String displayName;
+        private final String unitOfMeasure;
+
+        EventType(String id, String displayName, String unitOfMeasure) {
+            this.id = id;
+            this.displayName = displayName;
+            this.unitOfMeasure = unitOfMeasure;
+        }
     }
 
     enum DetailLevel {
