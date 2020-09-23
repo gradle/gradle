@@ -90,7 +90,7 @@ class BuildTestFixture {
         rootMulti.with(cl)
         rootMulti.file("src/main/${language.name}/Dummy.${language.name}") << "public class Dummy {}"
         subprojects.each {
-            rootMulti.file(it, "src/main/${language.name}/Dummy.${language.name}") << "public class Dummy {}"
+            rootMulti.file(it.replace(':' as char, File.separatorChar), "src/main/${language.name}/Dummy.${language.name}") << "public class Dummy {}"
         }
         return rootMulti
     }
