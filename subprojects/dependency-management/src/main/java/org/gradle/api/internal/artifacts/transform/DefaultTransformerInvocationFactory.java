@@ -120,13 +120,8 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
         TransformationWorkspaceIdentity identity = getTransformationIdentity(producerProject, inputArtifactSnapshot, normalizedInputPath, transformer, dependenciesFingerprint);
 
         return new CacheableInvocation<ImmutableList<File>>() {
-            private Try<ImmutableList<File>> cachedResult;
-
             @Override
             public Try<ImmutableList<File>> invoke() {
-                if (cachedResult != null) {
-                    return cachedResult;
-                }
                 return workspaceProvider.withWorkspace(identity, (identityString, workspaceDir) -> buildOperationExecutor.call(new CallableBuildOperation<Try<ImmutableList<File>>>() {
                     @Override
                     public Try<ImmutableList<File>> call(BuildOperationContext context) {
@@ -176,8 +171,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
 
             @Override
             public Optional<Try<ImmutableList<File>>> getCachedResult() {
-                cachedResult = workspaceProvider.getCachedResult(identity);
-                return Optional.ofNullable(cachedResult);
+                return Optional.ofNullable(workspaceProvider.getCachedResult(identity));
             }
         };
     }
