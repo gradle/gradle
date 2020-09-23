@@ -111,7 +111,7 @@ public class BuildModelActionRunner implements BuildActionRunner {
         private ToolingModelBuilder getModelBuilder(GradleInternal gradle, String modelName) {
             ToolingModelBuilderLookup builderRegistry = getToolingModelBuilderRegistry(gradle);
             try {
-                return builderRegistry.locate(modelName);
+                return builderRegistry.locateForClientOperation(modelName);
             } catch (UnknownModelException e) {
                 modelFailure = e;
                 throw e;

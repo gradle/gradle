@@ -55,7 +55,7 @@ class DefaultBuildControllerTest extends Specification {
 
         given:
         _ * gradle.defaultProject >> project
-        _ * registry.locate('some.model') >> { throw failure }
+        _ * registry.locateForClientOperation('some.model') >> { throw failure }
 
         when:
         controller.getModel(null, modelId)
@@ -77,7 +77,7 @@ class DefaultBuildControllerTest extends Specification {
         _ * gradle.rootProject >> rootProject
         _ * rootProject.project(":some:path") >> project
         _ * rootProject.getProjectDir() >> rootDir
-        _ * registry.locate("some.model") >> modelBuilder
+        _ * registry.locateForClientOperation("some.model") >> modelBuilder
         _ * modelBuilder.buildAll("some.model", project) >> model
 
         when:
@@ -92,7 +92,7 @@ class DefaultBuildControllerTest extends Specification {
 
         given:
         _ * gradle.defaultProject >> project
-        _ * registry.locate("some.model") >> modelBuilder
+        _ * registry.locateForClientOperation("some.model") >> modelBuilder
         _ * modelBuilder.buildAll("some.model", project) >> model
 
         when:
@@ -119,7 +119,7 @@ class DefaultBuildControllerTest extends Specification {
 
         given:
         _ * gradle.defaultProject >> project
-        _ * registry.locate("some.model") >> modelBuilder
+        _ * registry.locateForClientOperation("some.model") >> modelBuilder
         _ * modelBuilder.buildAll("some.model", project) >> model
 
         when:
@@ -144,7 +144,7 @@ class DefaultBuildControllerTest extends Specification {
 
         given:
         _ * gradle.defaultProject >> project
-        _ * registry.locate("some.model") >> parameterizedModelBuilder
+        _ * registry.locateForClientOperation("some.model") >> parameterizedModelBuilder
         _ * parameterizedModelBuilder.getParameterType() >> parameterType
         _ * parameterizedModelBuilder.buildAll("some.model", _, project) >> { def modelName, CustomParameter param, projectInternal ->
             assert param != null
@@ -165,7 +165,7 @@ class DefaultBuildControllerTest extends Specification {
 
         given:
         _ * gradle.defaultProject >> project
-        _ * registry.locate("some.model") >> modelBuilder
+        _ * registry.locateForClientOperation("some.model") >> modelBuilder
         _ * modelBuilder.buildAll("some.model", project) >> model
 
         when:

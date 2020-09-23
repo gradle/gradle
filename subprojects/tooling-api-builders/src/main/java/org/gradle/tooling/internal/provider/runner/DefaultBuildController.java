@@ -150,7 +150,7 @@ class DefaultBuildController implements org.gradle.tooling.internal.protocol.Int
 
         ToolingModelBuilder builder;
         try {
-            builder = modelBuilderRegistry.locate(modelIdentifier.getName());
+            builder = modelBuilderRegistry.locateForClientOperation(modelIdentifier.getName());
         } catch (UnknownModelException e) {
             throw (InternalUnsupportedModelException) (new InternalUnsupportedModelException()).initCause(e);
         }
