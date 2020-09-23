@@ -21,7 +21,6 @@ import org.gradle.performance.AbstractCrossVersionPerformanceTest
 class DeprecationCreationPerformanceTest extends AbstractCrossVersionPerformanceTest {
     def "create many deprecation warnings"() {
         given:
-        runner.testProject = "generateLotsOfDeprecationWarnings"
         runner.tasksToRun = ['help']
         runner.gradleOpts = ["-Xms1g", "-Xmx1g"]
         runner.minimumBaseVersion = '4.9'
@@ -30,7 +29,6 @@ class DeprecationCreationPerformanceTest extends AbstractCrossVersionPerformance
         def result = runner.run()
 
         then:
-
         result.assertCurrentVersionHasNotRegressed()
     }
 }

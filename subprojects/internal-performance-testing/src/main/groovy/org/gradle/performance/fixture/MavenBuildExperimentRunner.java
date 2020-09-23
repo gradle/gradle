@@ -19,6 +19,7 @@ package org.gradle.performance.fixture;
 import com.google.common.collect.ImmutableList;
 import groovy.transform.CompileStatic;
 import org.gradle.internal.UncheckedException;
+import org.gradle.performance.results.GradleProfilerReporter;
 import org.gradle.performance.results.MeasuredOperationList;
 import org.gradle.profiler.BenchmarkResultCollector;
 import org.gradle.profiler.BuildInvoker;
@@ -44,8 +45,8 @@ import static java.util.Collections.emptyMap;
 
 @CompileStatic
 public class MavenBuildExperimentRunner extends AbstractBuildExperimentRunner {
-    public MavenBuildExperimentRunner(BenchmarkResultCollector resultCollector) {
-        super(resultCollector);
+    public MavenBuildExperimentRunner(GradleProfilerReporter gradleProfilerReporter) {
+        super(gradleProfilerReporter);
     }
 
     @Override
@@ -63,7 +64,7 @@ public class MavenBuildExperimentRunner extends AbstractBuildExperimentRunner {
             AtomicInteger iterationCount = new AtomicInteger(0);
             Logging.setupLogging(workingDirectory);
 
-            Consumer<BuildInvocationResult> scenarioReporter = getResultCollector().scenario(
+            Consumer<BuildInvocationResult> scenarioReporter = getResultCollector(scenarioDefinition.getName()).scenario(
                 scenarioDefinition,
                 ImmutableList.<Sample<? super BuildInvocationResult>>builder()
                     .add(BuildInvocationResult.EXECUTION_TIME)

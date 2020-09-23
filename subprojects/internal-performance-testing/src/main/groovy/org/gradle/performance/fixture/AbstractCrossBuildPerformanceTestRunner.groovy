@@ -22,6 +22,7 @@ import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
 import org.gradle.internal.time.Clock
 import org.gradle.internal.time.Time
+import org.gradle.performance.generator.TestProjects
 import org.gradle.performance.results.CrossBuildPerformanceResults
 import org.gradle.performance.results.DataReporter
 import org.gradle.performance.results.ResultsStore
@@ -45,6 +46,7 @@ abstract class AbstractCrossBuildPerformanceTestRunner<R extends CrossBuildPerfo
     String testClassName
     String testId
     String testGroup
+    String testProject
     List<BuildExperimentSpec> specs = []
 
     final DataReporter<R> reporter
@@ -56,6 +58,7 @@ abstract class AbstractCrossBuildPerformanceTestRunner<R extends CrossBuildPerfo
         this.experimentRunner = experimentRunner
         this.buildContext = buildContext
         this.gradleDistribution = new UnderDevelopmentGradleDistribution(buildContext)
+        this.testProject = TestScenarioSelector.loadConfiguredTestProject()
     }
 
     void baseline(@DelegatesTo(GradleBuildExperimentSpec.GradleBuilder) Closure<?> configureAction) {
@@ -64,12 +67,17 @@ abstract class AbstractCrossBuildPerformanceTestRunner<R extends CrossBuildPerfo
 
     void buildSpec(@DelegatesTo(GradleBuildExperimentSpec.GradleBuilder) Closure<?> configureAction) {
         def builder = GradleBuildExperimentSpec.builder()
+        builder.projectName = testProject
         configureGradleSpec(builder)
         configureAndAddSpec(builder, configureAction)
     }
 
     void addBuildMutator(Function<InvocationSettings, BuildMutator> buildMutator) {
         buildMutators.add(buildMutator)
+    }
+
+    List<String> getProjectMemoryOptions() {
+        TestProjects.getProjectMemoryOptions(testProject)
     }
 
     protected void configureGradleSpec(GradleBuildExperimentSpec.GradleBuilder builder) {
@@ -117,7 +125,8 @@ abstract class AbstractCrossBuildPerformanceTestRunner<R extends CrossBuildPerfo
         assert !specs.empty
         assert testId
 
-        Assume.assumeTrue(TestScenarioSelector.shouldRun(testClassName, testId, specs.projectName.toSet(), resultsStore))
+        // TODO: Make sure cross build scenarios only run on one test project
+        Assume.assumeTrue(TestScenarioSelector.shouldRun(testClassName, testId, specs.first().projectName, resultsStore))
 
         def results = newResult()
 

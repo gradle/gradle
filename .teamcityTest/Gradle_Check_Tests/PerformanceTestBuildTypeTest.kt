@@ -15,6 +15,7 @@
  */
 
 import Gradle_Check.model.JsonBasedGradleSubprojectProvider
+import Gradle_Check.model.PerformanceTestCoverage
 import common.JvmVendor
 import common.JvmVersion
 import common.Os
@@ -47,7 +48,7 @@ class PerformanceTestBuildTypeTest {
             functionalTests = listOf(
                 TestCoverage(1, TestType.platform, Os.LINUX, JvmVersion.java8),
                 TestCoverage(2, TestType.platform, Os.WINDOWS, JvmVersion.java11, vendor = JvmVendor.openjdk)),
-            performanceTests = listOf(PerformanceTestType.test),
+            performanceTests = listOf(PerformanceTestCoverage(PerformanceTestType.test, Os.LINUX)),
             omitsSlowProjects = true))
 
         assertEquals(listOf(
@@ -56,9 +57,7 @@ class PerformanceTestBuildTypeTest {
         ), performanceTest.steps.items.map(BuildStep::name))
 
         val expectedRunnerParams = listOf(
-            "--baselines",
-            "%performance.baselines%",
-            "",
+            "-PperformanceBaselines=%performance.baselines%",
             "\"-PtestJavaHome=%linux.java8.oracle.64bit%\"",
             "\"-Porg.gradle.performance.branchName=%teamcity.build.branch%\"",
             "\"-Porg.gradle.performance.db.url=%performance.db.url%\"",

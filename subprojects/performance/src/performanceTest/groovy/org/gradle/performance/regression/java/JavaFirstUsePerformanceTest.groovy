@@ -22,11 +22,8 @@ import org.gradle.profiler.mutations.AbstractCleanupMutator
 import org.gradle.profiler.mutations.ClearGradleUserHomeMutator
 import org.gradle.profiler.mutations.ClearProjectCacheMutator
 import org.junit.experimental.categories.Category
-import spock.lang.Unroll
 
-import static org.gradle.performance.generator.JavaTestProject.LARGE_JAVA_MULTI_PROJECT
 import static org.gradle.performance.generator.JavaTestProject.LARGE_JAVA_MULTI_PROJECT_KOTLIN_DSL
-import static org.gradle.performance.generator.JavaTestProject.LARGE_MONOLITHIC_JAVA_PROJECT
 
 @Category(SlowPerformanceRegressionTest)
 class JavaFirstUsePerformanceTest extends AbstractCrossVersionPerformanceTest {
@@ -35,13 +32,11 @@ class JavaFirstUsePerformanceTest extends AbstractCrossVersionPerformanceTest {
         runner.targetVersions = ["6.8-20200920220028+0000"]
     }
 
-    @Unroll
-    def "first use of #testProject"() {
+    def "first use"() {
         given:
-        runner.testProject = testProject
-        runner.gradleOpts = ["-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}"]
+        runner.gradleOpts = runner.projectMemoryOptions
         runner.tasksToRun = ['tasks']
-        runner.runs = runs
+        runner.runs = (runner.testProject == LARGE_JAVA_MULTI_PROJECT_KOTLIN_DSL.projectName) ? 5 : 10
         runner.useDaemon = false
         runner.addBuildMutator { invocationSettings ->
             new ClearGradleUserHomeMutator(invocationSettings.gradleUserHome, AbstractCleanupMutator.CleanupSchedule.BUILD)
@@ -55,19 +50,11 @@ class JavaFirstUsePerformanceTest extends AbstractCrossVersionPerformanceTest {
 
         then:
         result.assertCurrentVersionHasNotRegressed()
-
-        where:
-        testProject                         | runs
-        LARGE_MONOLITHIC_JAVA_PROJECT       | 10
-        LARGE_JAVA_MULTI_PROJECT            | 10
-        LARGE_JAVA_MULTI_PROJECT_KOTLIN_DSL | 5
     }
 
-    @Unroll
-    def "clean checkout of #testProject"() {
+    def "clean checkout"() {
         given:
-        runner.testProject = testProject
-        runner.gradleOpts = ["-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}"]
+        runner.gradleOpts = runner.projectMemoryOptions
         runner.tasksToRun = ['tasks']
         runner.useDaemon = false
         runner.addBuildMutator { invocationSettings ->
@@ -79,19 +66,11 @@ class JavaFirstUsePerformanceTest extends AbstractCrossVersionPerformanceTest {
 
         then:
         result.assertCurrentVersionHasNotRegressed()
-
-        where:
-        testProject                              | _
-        LARGE_MONOLITHIC_JAVA_PROJECT            | _
-        LARGE_JAVA_MULTI_PROJECT                 | _
-        LARGE_JAVA_MULTI_PROJECT_KOTLIN_DSL      | _
     }
 
-    @Unroll
-    def "cold daemon on #testProject"() {
+    def "cold daemon"() {
         given:
-        runner.testProject = testProject
-        runner.gradleOpts = ["-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}"]
+        runner.gradleOpts = runner.projectMemoryOptions
         runner.tasksToRun = ['tasks']
         runner.useDaemon = false
 
@@ -100,11 +79,5 @@ class JavaFirstUsePerformanceTest extends AbstractCrossVersionPerformanceTest {
 
         then:
         result.assertCurrentVersionHasNotRegressed()
-
-        where:
-        testProject                              | _
-        LARGE_MONOLITHIC_JAVA_PROJECT            | _
-        LARGE_JAVA_MULTI_PROJECT                 | _
-        LARGE_JAVA_MULTI_PROJECT_KOTLIN_DSL      | _
     }
 }

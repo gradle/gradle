@@ -33,8 +33,6 @@ import javax.servlet.http.HttpServletRequest
 import java.util.concurrent.atomic.AtomicInteger
 
 class ParallelDownloadsPerformanceTest extends AbstractCrossVersionPerformanceTest implements WithExternalRepository {
-    private final static String TEST_PROJECT_NAME = 'springBootApp'
-
     File tmpRepoDir = temporaryFolder.createDir('repository')
 
     @Override
@@ -65,7 +63,6 @@ class ParallelDownloadsPerformanceTest extends AbstractCrossVersionPerformanceTe
     }
 
     def "resolves dependencies from external repository"() {
-        runner.testProject = TEST_PROJECT_NAME
         startServer()
 
         given:
@@ -84,7 +81,6 @@ class ParallelDownloadsPerformanceTest extends AbstractCrossVersionPerformanceTe
     }
 
     def "resolves dependencies from external repository (parallel)"() {
-        runner.testProject = TEST_PROJECT_NAME
         startServer()
 
         given:

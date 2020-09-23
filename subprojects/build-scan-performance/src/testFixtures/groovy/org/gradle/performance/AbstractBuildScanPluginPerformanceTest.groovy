@@ -57,7 +57,7 @@ class AbstractBuildScanPluginPerformanceTest extends Specification {
         assert buildStampJsonData.commitId
         def pluginCommitId = buildStampJsonData.commitId as String
         def gradleProfilerReporter = new GradleProfilerReporter(tmpDir.testDirectory)
-        runner = new BuildScanPerformanceTestRunner(new GradleBuildExperimentRunner(gradleProfilerReporter.resultCollector), resultStore, resultStore, pluginCommitId, buildContext) {
+        runner = new BuildScanPerformanceTestRunner(new GradleBuildExperimentRunner(gradleProfilerReporter), resultStore, resultStore, pluginCommitId, buildContext) {
             @Override
             protected void defaultSpec(BuildExperimentSpec.Builder builder) {
                 super.defaultSpec(builder)

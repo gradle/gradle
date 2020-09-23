@@ -26,6 +26,7 @@ class ScenarioBuildResultData {
     String teamCityBuildId
     String scenarioName
     String scenarioClass
+    String testProject
     String webUrl
     String testFailure
     // SUCCESS/FAILURE/UNKNOWN

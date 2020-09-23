@@ -138,6 +138,14 @@ enum JavaTestProject {
         .assembleChangeFile()
         .withBuildSrc(false).create())
 
+    static JavaTestProject projectFor(String testProject) {
+        def javaTestProject = values().find { it.projectName == testProject }
+        if (javaTestProject == null) {
+            throw new IllegalArgumentException("Cannot find Java test project for ${testProject}")
+        }
+        return javaTestProject
+    }
+
     private TestProjectGeneratorConfiguration config
 
     JavaTestProject(TestProjectGeneratorConfiguration config) {

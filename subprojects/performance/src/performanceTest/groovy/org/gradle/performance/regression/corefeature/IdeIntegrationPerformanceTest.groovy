@@ -17,18 +17,12 @@
 package org.gradle.performance.regression.corefeature
 
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
-import spock.lang.Unroll
-
-import static org.gradle.performance.generator.JavaTestProject.LARGE_JAVA_MULTI_PROJECT
-import static org.gradle.performance.generator.JavaTestProject.LARGE_MONOLITHIC_JAVA_PROJECT
 
 class IdeIntegrationPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
-    @Unroll
-    def "eclipse on #testProject"() {
+    def "eclipse"() {
         given:
-        runner.testProject = testProject
-        runner.gradleOpts = ["-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}"]
+        runner.gradleOpts = runner.projectMemoryOptions
         runner.tasksToRun = ['eclipse']
         runner.targetVersions = ["6.7-20200824220048+0000"]
 
@@ -37,18 +31,11 @@ class IdeIntegrationPerformanceTest extends AbstractCrossVersionPerformanceTest 
 
         then:
         result.assertCurrentVersionHasNotRegressed()
-
-        where:
-        testProject                   | _
-        LARGE_MONOLITHIC_JAVA_PROJECT | _
-        LARGE_JAVA_MULTI_PROJECT      | _
     }
 
-    @Unroll
-    def "idea on #testProject"() {
+    def "idea"() {
         given:
-        runner.testProject = testProject
-        runner.gradleOpts = ["-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}"]
+        runner.gradleOpts = runner.projectMemoryOptions
         runner.tasksToRun = ['idea']
         runner.targetVersions = ["6.7-20200824220048+0000"]
 
@@ -57,10 +44,5 @@ class IdeIntegrationPerformanceTest extends AbstractCrossVersionPerformanceTest 
 
         then:
         result.assertCurrentVersionHasNotRegressed()
-
-        where:
-        testProject                   | _
-        LARGE_MONOLITHIC_JAVA_PROJECT | _
-        LARGE_JAVA_MULTI_PROJECT      | _
     }
 }
