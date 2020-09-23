@@ -28,19 +28,15 @@ import org.gradle.test.fixtures.maven.M2Installation
 import org.gradle.util.GradleVersion
 
 @CompileStatic
-class GradleVsMavenPerformanceTestRunner extends CrossBuildGradleProfilerPerformanceTestRunner<GradleVsMavenBuildPerformanceResults> {
+class GradleVsMavenPerformanceTestRunner extends AbstractCrossBuildPerformanceTestRunner<GradleVsMavenBuildPerformanceResults> {
 
     final M2Installation m2
 
     String testProject
     List<String> gradleTasks
-    List<String> gradleCleanTasks = []
     List<String> equivalentMavenTasks
-    List<String> equivalentMavenCleanTasks = []
     List<Object> jvmOpts = []
     List<Object> mvnArgs = []
-
-    InvocationCustomizer invocationCustomizer
 
     int warmUpRuns = 4
     int runs = 12
@@ -55,29 +51,20 @@ class GradleVsMavenPerformanceTestRunner extends CrossBuildGradleProfilerPerform
     }
 
     @Override
-    protected void defaultSpec(BuildExperimentSpec.Builder builder) {
-        super.defaultSpec(builder)
-        builder.setInvocationCustomizer(invocationCustomizer)
-        if (builder instanceof GradleBuildExperimentSpec.GradleBuilder) {
-            ((GradleInvocationSpec.InvocationBuilder) builder.invocation).distribution(gradleDistribution)
-        }
-    }
-
-    @Override
     GradleVsMavenBuildPerformanceResults run() {
         def commonBaseDisplayName = "${gradleTasks.join(' ')} on $testProject"
         baseline {
             warmUpCount = warmUpRuns
             invocationCount = runs
             projectName(testProject).displayName("Gradle $commonBaseDisplayName").invocation {
-                tasksToRun(gradleTasks).cleanTasks(gradleCleanTasks).gradleOpts(jvmOpts.collect { it.toString() })
+                tasksToRun(gradleTasks).gradleOpts(jvmOpts.collect { it.toString() })
             }
         }
         mavenBuildSpec {
             warmUpCount = warmUpRuns
             invocationCount = runs
             projectName(testProject).displayName("Maven $commonBaseDisplayName").invocation {
-                tasksToRun(equivalentMavenTasks).cleanTasks(equivalentMavenCleanTasks).mavenOpts(jvmOpts.collect { it.toString() }).args(mvnArgs.collect { it.toString() })
+                tasksToRun(equivalentMavenTasks).mavenOpts(jvmOpts.collect { it.toString() }).args(mvnArgs.collect { it.toString() })
             }
         }
         super.run()
@@ -89,33 +76,33 @@ class GradleVsMavenPerformanceTestRunner extends CrossBuildGradleProfilerPerform
 
     protected void finalizeSpec(BuildExperimentSpec.Builder builder) {
         super.finalizeSpec(builder)
-        if (builder instanceof GradleBuildExperimentSpec.GradleBuilder) {
-            def invocation = (GradleInvocationSpec.InvocationBuilder) builder.invocation
-            invocation.gradleOptions = customizeJvmOptions(invocation.gradleOptions)
-            if (!builder.displayName.startsWith("Gradle ")) {
-                throw new IllegalArgumentException("Gradle invocation display name must start with 'Gradle '")
+        if (builder instanceof MavenBuildExperimentSpec.MavenBuilder) {
+            finalizeMavenBuildSpec(builder)
+        }
+    }
+
+    private void finalizeMavenBuildSpec(MavenBuildExperimentSpec.MavenBuilder builder) {
+        def invocation = builder.invocation
+        invocation.jvmOpts = customizeJvmOptions(invocation.jvmOpts)
+        if (!invocation.args.find { it.startsWith("-Dmaven.repo.local=") }) {
+            def localRepoPath = m2.mavenRepo().rootDir.absolutePath
+            if (OperatingSystem.current().isWindows()) {
+                localRepoPath = localRepoPath.replace("\\", "\\\\").replace(" ", "\\ ")
+                invocation.args.add("-Dmaven.repo.local=${localRepoPath}".toString())
+            } else {
+                invocation.args.add("-Dmaven.repo.local=${localRepoPath}".toString())
             }
-        } else if (builder instanceof MavenBuildExperimentSpec.MavenBuilder) {
-            def invocation = ((MavenBuildExperimentSpec.MavenBuilder) builder).invocation
-            invocation.jvmOpts = customizeJvmOptions(invocation.jvmOpts)
-            if (!invocation.args.find { it.startsWith("-Dmaven.repo.local=") }) {
-                def localRepoPath = m2.mavenRepo().rootDir.absolutePath
-                if (OperatingSystem.current().isWindows()) {
-                    localRepoPath = localRepoPath.replace("\\", "\\\\").replace(" ", "\\ ")
-                    invocation.args.add("-Dmaven.repo.local=${localRepoPath}".toString())
-                } else {
-                    invocation.args.add("-Dmaven.repo.local=${localRepoPath}".toString())
-                }
-            }
-            if (!invocation.mavenHome) {
-                def home = System.getProperty("MAVEN_HOME")
-                if (home) {
-                    invocation.mavenHome(new File(home))
-                }
-            }
-            if (!builder.displayName.startsWith("Maven ")) {
-                throw new IllegalArgumentException("Maven invocation display name must start with 'Maven '")
-            }
+        }
+        if (!builder.displayName.startsWith("Maven ")) {
+            throw new IllegalArgumentException("Maven invocation display name must start with 'Maven '")
+        }
+    }
+
+    @Override
+    protected void finalizeGradleSpec(GradleBuildExperimentSpec.GradleBuilder builder) {
+        super.finalizeGradleSpec(builder)
+        if (!builder.displayName.startsWith("Gradle ")) {
+            throw new IllegalArgumentException("Gradle invocation display name must start with 'Gradle '")
         }
     }
 

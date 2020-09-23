@@ -33,4 +33,8 @@ public interface DataReporter<T extends PerformanceTestResult> extends Closeable
             Arrays.stream(columns).map(s -> "?").collect(Collectors.joining(", ")) +
             ")";
     }
+
+    default DataReporter<T> reportAlso(DataReporter<PerformanceTestResult> otherReporter) {
+        return CompositeDataReporter.of(this, otherReporter);
+    }
 }

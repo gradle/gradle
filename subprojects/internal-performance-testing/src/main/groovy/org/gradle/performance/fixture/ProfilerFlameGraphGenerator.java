@@ -16,8 +16,11 @@
 
 package org.gradle.performance.fixture;
 
+import groovy.transform.CompileStatic;
+
 import java.io.File;
 
+@CompileStatic
 public interface ProfilerFlameGraphGenerator {
     void generateGraphs(BuildExperimentSpec experimentSpec);
     void generateDifferentialGraphs();

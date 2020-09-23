@@ -17,7 +17,7 @@
 package org.gradle.performance.regression.corefeature
 
 import org.eclipse.jetty.webapp.WebAppContext
-import org.gradle.performance.AbstractCrossVersionGradleProfilerPerformanceTest
+import org.gradle.performance.AbstractCrossVersionPerformanceTest
 import org.gradle.performance.WithExternalRepository
 import org.gradle.profiler.BuildContext
 import org.gradle.profiler.BuildMutator
@@ -32,7 +32,7 @@ import javax.servlet.ServletResponse
 import javax.servlet.http.HttpServletRequest
 import java.util.concurrent.atomic.AtomicInteger
 
-class ParallelDownloadsPerformanceTest extends AbstractCrossVersionGradleProfilerPerformanceTest implements WithExternalRepository {
+class ParallelDownloadsPerformanceTest extends AbstractCrossVersionPerformanceTest implements WithExternalRepository {
     private final static String TEST_PROJECT_NAME = 'springBootApp'
 
     File tmpRepoDir = temporaryFolder.createDir('repository')

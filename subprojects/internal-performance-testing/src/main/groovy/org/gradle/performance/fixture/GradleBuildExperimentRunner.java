@@ -18,6 +18,7 @@ package org.gradle.performance.fixture;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import groovy.transform.CompileStatic;
 import org.gradle.integtests.fixtures.executer.GradleDistribution;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.jvm.Jvm;
@@ -37,6 +38,7 @@ import org.gradle.profiler.RunTasksAction;
 import org.gradle.profiler.instrument.PidInstrumentation;
 import org.gradle.profiler.report.CsvGenerator;
 import org.gradle.profiler.result.Sample;
+import org.gradle.tooling.internal.consumer.ConnectorServices;
 
 import java.io.File;
 import java.io.IOException;
@@ -51,7 +53,8 @@ import java.util.stream.Collectors;
  *
  * This runner uses Gradle profiler to execute the actual experiment.
  */
-public class GradleBuildExperimentRunner extends AbstractGradleProfilerBuildExperimentRunner {
+@CompileStatic
+public class GradleBuildExperimentRunner extends AbstractBuildExperimentRunner {
     private static final String GRADLE_USER_HOME_NAME = "gradleUserHome";
     private PidInstrumentation pidInstrumentation;
 
@@ -119,10 +122,11 @@ public class GradleBuildExperimentRunner extends AbstractGradleProfilerBuildExpe
             } catch (IOException e) {
                 e.printStackTrace();
             }
+            ConnectorServices.reset();
         }
     }
 
-    private GradleScenarioInvoker createScenarioInvoker(File gradleUserHome) throws IOException {
+    private GradleScenarioInvoker createScenarioInvoker(File gradleUserHome) {
         DaemonControl daemonControl = new DaemonControl(gradleUserHome);
         return new GradleScenarioInvoker(daemonControl, pidInstrumentation);
     }
@@ -163,7 +167,7 @@ public class GradleBuildExperimentRunner extends AbstractGradleProfilerBuildExpe
             experimentSpec.getDisplayName(),
             (GradleBuildInvoker) invocationSettings.getInvoker(),
             new GradleBuildConfiguration(gradleDistribution.getVersion(), gradleDistribution.getGradleHomeDir(), Jvm.current().getJavaHome(), invocationSpec.getJvmOpts(), false),
-            new RunTasksAction(invocationSettings.getTargets()),
+            experimentSpec.getInvocation().getBuildAction(),
             cleanTasks.isEmpty()
                 ? BuildAction.NO_OP
                 : new RunTasksAction(cleanTasks),

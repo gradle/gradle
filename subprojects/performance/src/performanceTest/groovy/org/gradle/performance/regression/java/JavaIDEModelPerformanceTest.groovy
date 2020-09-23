@@ -16,7 +16,8 @@
 
 package org.gradle.performance.regression.java
 
-import org.gradle.performance.AbstractToolingApiCrossVersionPerformanceTest
+import org.gradle.performance.AbstractCrossVersionPerformanceTest
+import org.gradle.performance.generator.JavaTestProject
 import org.gradle.tooling.model.ExternalDependency
 import org.gradle.tooling.model.eclipse.EclipseProject
 import org.gradle.tooling.model.idea.IdeaProject
@@ -25,63 +26,64 @@ import spock.lang.Unroll
 import static org.gradle.performance.generator.JavaTestProject.LARGE_JAVA_MULTI_PROJECT
 import static org.gradle.performance.generator.JavaTestProject.LARGE_MONOLITHIC_JAVA_PROJECT
 
-class JavaIDEModelPerformanceTest extends AbstractToolingApiCrossVersionPerformanceTest {
+class JavaIDEModelPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
-    private static final BASELINE_VERSION = "6.7-20200907231737+0000"
+    def setup() {
+        runner.targetVersions = ["6.7-20200907231737+0000"]
+        runner.minimumBaseVersion = "2.11"
+    }
 
     @Unroll
     def "get IDE model on #testProject for Eclipse"() {
         given:
-        experiment(testProject.projectName) {
-            minimumBaseVersion = "2.11"
-            targetVersions = [BASELINE_VERSION]
-            invocationCount = iterations
-            warmUpCount = iterations
-            action {
-                def model = model(tapiClass(EclipseProject)).setJvmArguments("-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}").get()
-                // we must actually do something to highlight some performance issues
-                forEachEclipseProject(model) {
-                    buildCommands.each {
-                        it.name
-                        it.arguments
-                    }
-                    withGradleProject(gradleProject)
-                    classpath.collect {
-                        [it.exported, it.file, it.gradleModuleVersion.group, it.gradleModuleVersion.name, it.gradleModuleVersion.version, it.javadoc, it.source]
-                    }
-                    javaSourceSettings?.jdk?.javaHome
-                    withJava(javaSourceSettings?.jdk?.javaVersion)
-                    withJava(javaSourceSettings?.sourceLanguageLevel)
-                    withJava(javaSourceSettings?.targetBytecodeVersion)
-                    projectNatures.each {
-                        it.id
-                    }
-                    projectDependencies.each {
-                        it.exported
-                        it.path
-                    }
-                    description
-                    name
-                    linkedResources.each {
-                        it.name
-                        it.location
-                        it.locationUri
-                        it.type
-                    }
-                    projectDirectory
-                    sourceDirectories.each {
-                        it.path
-                        it.directory
-                    }
+        setupTestProject(testProject, iterations)
+
+        runner.toolingApi("Eclipse model") {
+            it.model(EclipseProject)
+        }.run { builder ->
+            def model = builder.get()
+            // we must actually do something to highlight some performance issues
+            forEachEclipseProject(model) {
+                buildCommands.each {
+                    it.name
+                    it.arguments
+                }
+                withGradleProject(gradleProject)
+                classpath.collect {
+                    [it.exported, it.file, it.gradleModuleVersion.group, it.gradleModuleVersion.name, it.gradleModuleVersion.version, it.javadoc, it.source]
+                }
+                javaSourceSettings?.jdk?.javaHome
+                withJava(javaSourceSettings?.jdk?.javaVersion)
+                withJava(javaSourceSettings?.sourceLanguageLevel)
+                withJava(javaSourceSettings?.targetBytecodeVersion)
+                projectNatures.each {
+                    it.id
+                }
+                projectDependencies.each {
+                    it.exported
+                    it.path
+                }
+                description
+                name
+                linkedResources.each {
+                    it.name
+                    it.location
+                    it.locationUri
+                    it.type
+                }
+                projectDirectory
+                sourceDirectories.each {
+                    it.path
+                    it.directory
                 }
             }
         }
 
         when:
-        def results = performMeasurements()
+        def result = runner.run()
 
         then:
-        results.assertCurrentVersionHasNotRegressed()
+        result.assertCurrentVersionHasNotRegressed()
 
         where:
         testProject                   | iterations
@@ -92,58 +94,62 @@ class JavaIDEModelPerformanceTest extends AbstractToolingApiCrossVersionPerforma
     @Unroll
     def "get IDE model on #testProject for IDEA"() {
         given:
-        experiment(testProject.projectName) {
-            minimumBaseVersion = "2.11"
-            targetVersions = [BASELINE_VERSION]
-            invocationCount = iterations
-            warmUpCount = iterations
-            action {
-                def model = model(tapiClass(IdeaProject)).setJvmArguments("-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}").get()
-                // we must actually do something to highlight some performance issues
-                model.with {
-                    name
-                    description
-                    jdkName
-                    languageLevel.level
-                    withJava(javaLanguageSettings.languageLevel)
-                    withJava(javaLanguageSettings.targetBytecodeVersion)
-                    withJava(javaLanguageSettings.jdk.javaVersion)
-                    javaLanguageSettings.jdk.javaHome
-                    modules.each {
-                        it.compilerOutput.inheritOutputDirs
-                        it.compilerOutput.outputDir
-                        it.compilerOutput.testOutputDir
-                        it.contentRoots.each {
-                            it.excludeDirectories
-                            withIdeaSources(it.generatedSourceDirectories)
-                            withIdeaSources(it.generatedTestDirectories)
-                            withIdeaSources(it.sourceDirectories)
-                            withIdeaSources(it.testDirectories)
-                        }
-                        it.dependencies.each {
-                            it.scope.scope
-                            if (tapiClass(ExternalDependency).isAssignableFrom(it.class)) {
-                                it.gradleModuleVersion.group
-                                it.gradleModuleVersion.name
-                                it.gradleModuleVersion.version
-                            }
-                        }
-                        withGradleProject(it.gradleProject)
+        setupTestProject(testProject, iterations)
+        runner.toolingApi("IDEA model") {
+            it.model(IdeaProject)
+        }.run { builder ->
+            def model = builder.get()
+            // we must actually do something to highlight some performance issues
+            model.with {
+                name
+                description
+                jdkName
+                languageLevel.level
+                withJava(javaLanguageSettings.languageLevel)
+                withJava(javaLanguageSettings.targetBytecodeVersion)
+                withJava(javaLanguageSettings.jdk.javaVersion)
+                javaLanguageSettings.jdk.javaHome
+                modules.each {
+                    it.compilerOutput.inheritOutputDirs
+                    it.compilerOutput.outputDir
+                    it.compilerOutput.testOutputDir
+                    it.contentRoots.each {
+                        it.excludeDirectories
+                        withIdeaSources(it.generatedSourceDirectories)
+                        withIdeaSources(it.generatedTestDirectories)
+                        withIdeaSources(it.sourceDirectories)
+                        withIdeaSources(it.testDirectories)
                     }
+                    it.dependencies.each {
+                        it.scope.scope
+                        if (ExternalDependency.isAssignableFrom(it.class)) {
+                            it.gradleModuleVersion.group
+                            it.gradleModuleVersion.name
+                            it.gradleModuleVersion.version
+                        }
+                    }
+                    withGradleProject(it.gradleProject)
                 }
             }
         }
 
         when:
-        def results = performMeasurements()
+        def result = runner.run()
 
         then:
-        results.assertCurrentVersionHasNotRegressed()
+        result.assertCurrentVersionHasNotRegressed()
 
         where:
         testProject                   | iterations
         LARGE_MONOLITHIC_JAVA_PROJECT | 200
         LARGE_JAVA_MULTI_PROJECT      | 40
+    }
+
+    private setupTestProject(JavaTestProject testProject, int iterations) {
+        runner.testProject = testProject
+        runner.gradleOpts = ["-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}"]
+        runner.warmUpRuns = iterations
+        runner.runs = iterations
     }
 
     private static void forEachEclipseProject(def elm, @DelegatesTo(value=EclipseProject) Closure<?> action) {

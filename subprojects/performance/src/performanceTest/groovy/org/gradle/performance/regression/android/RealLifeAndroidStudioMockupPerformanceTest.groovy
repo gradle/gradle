@@ -16,36 +16,38 @@
 
 package org.gradle.performance.regression.android
 
-import org.gradle.performance.AbstractAndroidStudioMockupCrossVersionPerformanceTest
+import org.gradle.performance.AbstractCrossVersionPerformanceTest
+import org.gradle.performance.android.GetModel
+import org.gradle.performance.android.SyncAction
 import spock.lang.Unroll
 
-class RealLifeAndroidStudioMockupPerformanceTest extends AbstractAndroidStudioMockupCrossVersionPerformanceTest {
+class RealLifeAndroidStudioMockupPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
     @Unroll
     def "get IDE model on #testProject for Android Studio"() {
         given:
+        runner.testProject = testProject
+        runner.gradleOpts = ["-Xms5g", "-Xmx5g"]
+        runner.warmUpRuns = iterations
+        runner.runs = iterations
+        runner.minimumBaseVersion = "5.4.1"
+        runner.targetVersions = ["6.7-20200824220048+0000"]
 
-        experiment(testProject) {
-            // AGP 3.5 requires 5.4.1+
-            minimumBaseVersion = "5.4.1"
-            targetVersions = ["6.7-20200824220048+0000"]
-            action('org.gradle.performance.android.SyncAction') {
-                jvmArguments = ["-Xms5g", "-Xmx5g"]
-            }
-            invocationCount = iterations
-            warmUpCount = iterations
+        runner.toolingApi("Android Studio Sync") {
+            it.action(new GetModel())
+        }.run { modelBuilder ->
+            SyncAction.withModelBuilder(modelBuilder)
         }
 
         when:
-        def results = performMeasurements()
+        def result = runner.run()
 
         then:
-        results.assertCurrentVersionHasNotRegressed()
+        result.assertCurrentVersionHasNotRegressed()
 
         where:
         testProject         | iterations
         "k9AndroidBuild"    | 200
         "largeAndroidBuild" | 40
     }
-
 }

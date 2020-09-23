@@ -19,7 +19,7 @@ package org.gradle.performance.regression.buildcache
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream
 import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream
 import org.gradle.internal.hash.Hashing
-import org.gradle.performance.fixture.AbstractCrossVersionPerformanceTestRunner
+import org.gradle.performance.fixture.CrossVersionPerformanceTestRunner
 import org.gradle.performance.generator.JavaTestProject
 import org.gradle.profiler.BuildContext
 import org.gradle.profiler.BuildMutator
@@ -238,7 +238,7 @@ class TaskOutputCachingJavaPerformanceTest extends AbstractTaskOutputCachingPerf
         println "Changed file dates in $count cache artifacts in $dir in ${time} ms"
     }
 
-    static def setupTestProject(AbstractCrossVersionPerformanceTestRunner runner, JavaTestProject testProject, String tasks) {
+    static def setupTestProject(CrossVersionPerformanceTestRunner runner, JavaTestProject testProject, String tasks) {
         runner.testProject = testProject
         runner.gradleOpts = ["-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}"]
         runner.tasksToRun = tasks.split(' ') as List

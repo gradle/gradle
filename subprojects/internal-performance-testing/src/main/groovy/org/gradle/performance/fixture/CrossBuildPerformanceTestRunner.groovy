@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,14 +27,9 @@ import org.gradle.performance.util.Git
 import org.gradle.util.GradleVersion
 
 @CompileStatic
-class BuildScanPerformanceTestRunner extends AbstractCrossBuildPerformanceTestRunner<CrossBuildPerformanceResults> {
-    private final String pluginCommitSha
-
-    BuildScanPerformanceTestRunner(GradleBuildExperimentRunner experimentRunner, ResultsStore resultsStore, DataReporter<CrossBuildPerformanceResults> dataReporter, String pluginCommitSha, IntegrationTestBuildContext buildContext) {
+class CrossBuildPerformanceTestRunner extends AbstractCrossBuildPerformanceTestRunner<CrossBuildPerformanceResults> {
+    CrossBuildPerformanceTestRunner(AbstractBuildExperimentRunner experimentRunner, ResultsStore resultsStore, DataReporter<CrossBuildPerformanceResults> dataReporter, IntegrationTestBuildContext buildContext) {
         super(experimentRunner, resultsStore, dataReporter, buildContext)
-        this.pluginCommitSha = pluginCommitSha
-        this.testGroup = "build scan plugin"
-
     }
 
     @Override
@@ -47,7 +42,7 @@ class BuildScanPerformanceTestRunner extends AbstractCrossBuildPerformanceTestRu
             operatingSystem: OperatingSystem.current().toString(),
             versionUnderTest: GradleVersion.current().getVersion(),
             vcsBranch: Git.current().branchName,
-            vcsCommits: [Git.current().commitId, pluginCommitSha],
+            vcsCommits: [Git.current().commitId],
             startTime: clock.getCurrentTime(),
             channel: determineChannel(),
             teamCityBuildId: determineTeamCityBuildId()

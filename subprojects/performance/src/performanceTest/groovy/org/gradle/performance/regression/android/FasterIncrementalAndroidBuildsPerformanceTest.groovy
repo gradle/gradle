@@ -23,7 +23,6 @@ import org.gradle.integtests.fixtures.versions.AndroidGradlePluginVersions
 import org.gradle.internal.scan.config.fixtures.ApplyGradleEnterprisePluginFixture
 import org.gradle.performance.AbstractCrossBuildPerformanceTest
 import org.gradle.performance.categories.PerformanceExperiment
-import org.gradle.performance.fixture.BuildExperimentSpec
 import org.gradle.performance.fixture.GradleBuildExperimentSpec
 import org.gradle.profiler.BuildMutator
 import org.gradle.profiler.InvocationSettings
@@ -108,24 +107,22 @@ class FasterIncrementalAndroidBuildsPerformanceTest extends AbstractCrossBuildPe
     }
 
     @Override
-    protected void defaultSpec(BuildExperimentSpec.Builder builder) {
-        if (builder instanceof GradleBuildExperimentSpec.GradleBuilder) {
-            builder.invocation.args(AndroidGradlePluginVersions.OVERRIDE_VERSION_CHECK)
-            builder.invocation.args(
-                "-Dorg.gradle.workers.max=8",
-                "--no-build-cache",
-                "--no-scan"
-            )
-            builder.invocation.useToolingApi()
-            builder.warmUpCount(1)
-            builder.invocationCount(60)
-            applyEnterprisePlugin(builder)
-            builder.addBuildMutator { InvocationSettings invocationSettings ->
-                new ClearConfigurationCacheStateMutator(invocationSettings.projectDir, AbstractCleanupMutator.CleanupSchedule.SCENARIO)
-            }
-            builder.addBuildMutator { InvocationSettings invocationSettings ->
-                new ClearProjectCacheMutator(invocationSettings.projectDir, AbstractCleanupMutator.CleanupSchedule.SCENARIO)
-            }
+    protected void defaultSpec(GradleBuildExperimentSpec.GradleBuilder builder) {
+        builder.invocation.args(AndroidGradlePluginVersions.OVERRIDE_VERSION_CHECK)
+        builder.invocation.args(
+            "-Dorg.gradle.workers.max=8",
+            "--no-build-cache",
+            "--no-scan"
+        )
+        builder.invocation.useToolingApi()
+        builder.warmUpCount(1)
+        builder.invocationCount(60)
+        applyEnterprisePlugin(builder)
+        builder.addBuildMutator { InvocationSettings invocationSettings ->
+            new ClearConfigurationCacheStateMutator(invocationSettings.projectDir, AbstractCleanupMutator.CleanupSchedule.SCENARIO)
+        }
+        builder.addBuildMutator { InvocationSettings invocationSettings ->
+            new ClearProjectCacheMutator(invocationSettings.projectDir, AbstractCleanupMutator.CleanupSchedule.SCENARIO)
         }
     }
 
