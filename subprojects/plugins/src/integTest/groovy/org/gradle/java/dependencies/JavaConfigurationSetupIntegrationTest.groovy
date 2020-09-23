@@ -214,4 +214,33 @@ class JavaConfigurationSetupIntegrationTest extends AbstractIntegrationSpec {
         'java-library' | 'api'                          | FORBIDDEN
         'java-library' | 'compileOnlyApi'               | FORBIDDEN
     }
+
+    def "compileOnyApi dependency is part of compileOnly"() {
+        given:
+        mavenRepo.module("org", "a").publish()
+
+        buildFile << """
+            plugins {
+               id('java-library')
+            }
+            repositories {
+                maven { url '$mavenRepo.uri' }
+            }
+            dependencies {
+               compileOnlyApi 'org:a:1.0'
+            }
+            configurations.create('compileOnlyPath') {
+               extendsFrom(configurations.compileOnly)
+            }
+            tasks.register('resolveCompileOnly') {
+              doLast { println(configurations.compileOnlyPath.collect { it.name }) }
+            }
+        """
+
+        when:
+        succeeds 'resolveCompileOnly'
+
+        then:
+        outputContains('[a-1.0.jar]')
+    }
 }
