@@ -102,14 +102,6 @@ class JavaLibraryPluginTest extends AbstractProjectBuilderSpec {
         runtimeClasspath.extendsFrom == [runtimeOnly, runtime, implementation] as Set
 
         when:
-        def compileOnly = project.configurations.getByName(JavaPlugin.COMPILE_ONLY_CONFIGURATION_NAME)
-
-        then:
-        compileOnly.extendsFrom == [] as Set
-        !compileOnly.visible
-        compileOnly.transitive
-
-        when:
         def compileOnlyApi = project.configurations.getByName(JavaPlugin.COMPILE_ONLY_API_CONFIGURATION_NAME)
 
         then:
@@ -120,10 +112,18 @@ class JavaLibraryPluginTest extends AbstractProjectBuilderSpec {
         !compileOnlyApi.canBeResolved
 
         when:
+        def compileOnly = project.configurations.getByName(JavaPlugin.COMPILE_ONLY_CONFIGURATION_NAME)
+
+        then:
+        compileOnly.extendsFrom == [compileOnlyApi] as Set
+        !compileOnly.visible
+        compileOnly.transitive
+
+        when:
         def compileClasspath = project.configurations.getByName(JavaPlugin.COMPILE_CLASSPATH_CONFIGURATION_NAME)
 
         then:
-        compileClasspath.extendsFrom == toSet(compileOnly, implementation, compileOnlyApi)
+        compileClasspath.extendsFrom == toSet(compileOnly, implementation)
         !compileClasspath.visible
         compileClasspath.transitive
 
