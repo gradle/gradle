@@ -140,7 +140,7 @@ class DefaultExcludesIntegrationTest extends AbstractIntegrationSpec{
             "This is scheduled to be removed in Gradle 7.0. " +
             "Default excludes changed from ${defaultExcludesFromSettings} to ${defaultExcludesInTask}. " +
             "Configure default excludes in the settings script instead. " +
-            "See https://docs.gradle.org/current/userguide/working_with_files.html#sec:change_ant_excludes for more details.")
+            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_6.html#changing_default_excludes_during_the_execution_phase")
         run "copyTask"
         then:
         executedAndNotSkipped(":copyTask")
