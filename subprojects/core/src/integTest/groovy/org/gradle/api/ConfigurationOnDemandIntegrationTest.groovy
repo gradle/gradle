@@ -512,4 +512,23 @@ allprojects {
         result.assertTasksExecuted(":a:one")
         fixture.assertProjectsConfigured(":", ":b", ":b:child", ":a")
     }
+
+    def "extra properties defined in parent project are accessible to child"() {
+        settingsFile << "include 'a', 'a:child'"
+        file('a/build.gradle') << """
+ext.foo = "Moo!!!"
+"""
+        file('a/child/build.gradle') << """
+task printExt {
+    doLast {
+        println "The Foo says " + foo
+    }
+}
+"""
+        when:
+        run(":a:child:printExt")
+
+        then:
+        outputContains("The Foo says Moo!!!")
+    }
 }
