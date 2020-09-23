@@ -113,8 +113,7 @@ public class GradleBuildExperimentRunner extends AbstractBuildExperimentRunner {
             scenarioInvoker.doRun(scenarioDefinition,
                 invocationSettings,
                 consumerFor(scenarioDefinition, iterationCount, results, scenarioReporter));
-            getFlameGraphGenerator().generateGraphs(experiment);
-            getFlameGraphGenerator().generateDifferentialGraphs();
+            getFlameGraphGenerator().generateDifferentialGraphs(experiment);
         } catch (IOException | InterruptedException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         } finally {

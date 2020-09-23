@@ -60,7 +60,7 @@ public abstract class AbstractBuildExperimentRunner implements BuildExperimentRu
         String profilerTargetDir = getProfilerTargetDir();
         this.flameGraphGenerator = profilerTargetDir == null
             ? ProfilerFlameGraphGenerator.NOOP
-            : new JfrFlameGraphGenerator(new File(profilerTargetDir));
+            : new JfrDifferentialFlameGraphGenerator(new File(profilerTargetDir));
         this.profiler = createProfiler(profilerTargetDir);
         this.gradleProfilerReporter = gradleProfilerReporter;
     }

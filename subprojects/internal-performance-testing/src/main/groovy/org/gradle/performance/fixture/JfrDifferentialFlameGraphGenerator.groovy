@@ -18,64 +18,33 @@ package org.gradle.performance.fixture
 
 import groovy.transform.CompileStatic
 import groovy.transform.PackageScope
-import org.openjdk.jmc.common.item.IItemCollection
-import org.openjdk.jmc.flightrecorder.JfrLoaderToolkit
-
-import static org.gradle.performance.fixture.JfrToStacksConverter.EventType
-import static org.gradle.performance.fixture.JfrToStacksConverter.Options
 
 /**
  * Generates flame graphs based on JFR recordings.
  */
 @CompileStatic
 @PackageScope
-class JfrFlameGraphGenerator implements ProfilerFlameGraphGenerator {
+class JfrDifferentialFlameGraphGenerator implements ProfilerFlameGraphGenerator {
 
-    private JfrToStacksConverter stacksConverter = new JfrToStacksConverter()
     private FlameGraphGenerator flameGraphGenerator = new FlameGraphGenerator()
     private final File flamesBaseDirectory
 
-    JfrFlameGraphGenerator(File flamesBaseDirectory) {
+    JfrDifferentialFlameGraphGenerator(File flamesBaseDirectory) {
         this.flamesBaseDirectory = flamesBaseDirectory
-    }
-
-    @Override
-    void generateGraphs(BuildExperimentSpec experimentSpec) {
-        def jfrOutputDir = getJfrOutputDirectory(experimentSpec)
-        List<IItemCollection> recordings = jfrOutputDir.listFiles()
-            .findAll { it.name.endsWith(".jfr") }
-            .collect { JfrLoaderToolkit.loadEvents(it) }
-        File flamegraphDir = jfrOutputDir.getParentFile()
-        EventType.values().each { EventType type ->
-            DetailLevel.values().each { DetailLevel level ->
-                def stacks = generateStacks(flamegraphDir, recordings, type, level)
-                generateFlameGraph(stacks, type, level)
-                generateIcicleGraph(stacks, type, level)
-            }
-        }
     }
 
     @Override
     File getJfrOutputDirectory(BuildExperimentSpec spec) {
         def fileSafeName = spec.displayName.replaceAll('[^a-zA-Z0-9.-]', '-').replaceAll('-+', '-')
-        def baseDir = new File(flamesBaseDirectory, fileSafeName)
-        def outputDir = new File(baseDir, "jfr-recordings")
+        def outputDir = new File(flamesBaseDirectory, fileSafeName)
         outputDir.mkdirs()
         return outputDir
     }
 
-    private File generateStacks(File baseDir, Collection<IItemCollection> recordings, EventType type, DetailLevel level) {
-        File stacks = File.createTempFile("stacks", ".txt")
-        stacksConverter.convertToStacks(recordings, stacks, new Options(type, level.isShowArguments(), level.isShowLineNumbers()))
-        File sanitizedStacks = stacksFileName(baseDir, type, level)
-        level.getSanitizer().sanitize(stacks, sanitizedStacks)
-        stacks.delete()
-        return sanitizedStacks
-    }
 
     @Override
-    void generateDifferentialGraphs() {
-        File[] experiments = flamesBaseDirectory.listFiles()
+    void generateDifferentialGraphs(BuildExperimentSpec experimentSpec) {
+        Collection<File> experiments = getJfrOutputDirectory(experimentSpec).listFiles().findAll { it.directory }
         experiments.each { File experiment ->
             EventType.values().each { EventType type ->
                 DetailLevel.values().each { DetailLevel level ->
@@ -109,20 +78,6 @@ class JfrFlameGraphGenerator implements ProfilerFlameGraphGenerator {
         new File(baseDir, "${type.id}/${level.name().toLowerCase()}/stacks.txt")
     }
 
-    private void generateFlameGraph(File stacks, EventType type, DetailLevel level) {
-        File flames = new File(stacks.parentFile, "flames.svg")
-        String[] options = ["--title", type.displayName + " Flame Graph", "--countname", type.unitOfMeasure] + level.flameGraphOptions
-        flameGraphGenerator.generateFlameGraph(stacks, flames, options)
-        flames
-    }
-
-    private void generateIcicleGraph(File stacks, EventType type, DetailLevel level) {
-        File icicles = new File(stacks.parentFile, "icicles.svg")
-        String[] options = ["--title", type.displayName + " Icicle Graph", "--countname", type.unitOfMeasure, "--reverse", "--invert", "--colors", "aqua"] + level.icicleGraphOptions
-        flameGraphGenerator.generateFlameGraph(stacks, icicles, options)
-        icicles
-    }
-
     private void generateDifferentialFlameGraph(File stacks, EventType type, DetailLevel level, boolean negate) {
         File flames = new File(stacks.parentFile, "flame-" + stacks.name.replace(".txt", ".svg"))
         List<String> options = ["--title", type.displayName + "${negate ? " Forward " : " Backward "}Differential Flame Graph", "--countname", type.unitOfMeasure] + level.flameGraphOptions
@@ -141,6 +96,23 @@ class JfrFlameGraphGenerator implements ProfilerFlameGraphGenerator {
         }
         flameGraphGenerator.generateFlameGraph(stacks, icicles, options as String[])
         icicles
+    }
+
+    enum EventType {
+        CPU("cpu", "CPU", "samples"),
+        ALLOCATION("allocation", "Allocation size", "kB"),
+        MONITOR_BLOCKED("monitor-blocked", "Java Monitor Blocked", "ms"),
+        IO("io", "File and Socket IO", "ms");
+
+        private final String id;
+        private final String displayName;
+        private final String unitOfMeasure;
+
+        EventType(String id, String displayName, String unitOfMeasure) {
+            this.id = id;
+            this.displayName = displayName;
+            this.unitOfMeasure = unitOfMeasure;
+        }
     }
 
     enum DetailLevel {
@@ -194,5 +166,4 @@ class JfrFlameGraphGenerator implements ProfilerFlameGraphGenerator {
         }
 
     }
-
 }
