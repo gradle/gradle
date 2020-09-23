@@ -30,6 +30,7 @@ import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.internal.time.Clock
 import org.gradle.internal.time.Time
+import org.gradle.performance.generator.TestProjects
 import org.gradle.performance.results.CrossVersionPerformanceResults
 import org.gradle.performance.results.DataReporter
 import org.gradle.performance.results.MeasuredOperationList
@@ -96,6 +97,7 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
         this.experimentRunner = experimentRunner
         this.releases = releases
         this.buildContext = buildContext
+        this.testProject = TestScenarioSelector.loadConfiguredTestProject()
     }
 
     void addBuildMutator(Function<InvocationSettings, BuildMutator> buildMutator) {
@@ -106,18 +108,12 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
         return measuredBuildOperations
     }
 
-    CrossVersionPerformanceResults run() {
-        if (testId == null) {
-            throw new IllegalStateException("Test id has not been specified")
-        }
-        if (testProject == null) {
-            throw new IllegalStateException("Test project has not been specified")
-        }
-        if (workingDir == null) {
-            throw new IllegalStateException("Working directory has not been specified")
-        }
+    List<String> getProjectMemoryOptions() {
+        TestProjects.getProjectMemoryOptions(testProject)
+    }
 
-        Assume.assumeTrue(TestScenarioSelector.shouldRun(testClassName, testId, [testProject].toSet(), resultsStore))
+    CrossVersionPerformanceResults run() {
+        assumeShouldRun()
 
         def results = new CrossVersionPerformanceResults(
             testId: testId,
@@ -146,10 +142,10 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
             .build()
         int maxWorkingDirLength = allVersions.collect { sanitizeVersionWorkingDir(it) }*.length().max()
 
-        runVersion('current', current, perVersionWorkingDirectory('current', maxWorkingDirLength), results.current)
+        runVersion(testId, current, perVersionWorkingDirectory('current', maxWorkingDirLength), results.current)
 
         baselineVersions.each { baselineVersion ->
-            runVersion(baselineVersion.version, buildContext.distribution(baselineVersion.version), perVersionWorkingDirectory(baselineVersion.version, maxWorkingDirLength), baselineVersion.results)
+            runVersion(testId, buildContext.distribution(baselineVersion.version), perVersionWorkingDirectory(baselineVersion.version, maxWorkingDirLength), baselineVersion.results)
         }
 
         results.endTime = clock.getCurrentTime()
@@ -157,6 +153,20 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
         reporter.report(results)
 
         return results
+    }
+
+    void assumeShouldRun() {
+        if (testId == null) {
+            throw new IllegalStateException("Test id has not been specified")
+        }
+        if (testProject == null) {
+            throw new IllegalStateException("Test project has not been specified")
+        }
+        if (workingDir == null) {
+            throw new IllegalStateException("Working directory has not been specified")
+        }
+
+        Assume.assumeTrue(TestScenarioSelector.shouldRun(testClassName, testId, testProject, resultsStore))
     }
 
     private File perVersionWorkingDirectory(String version, int maxWorkingDirLength) {

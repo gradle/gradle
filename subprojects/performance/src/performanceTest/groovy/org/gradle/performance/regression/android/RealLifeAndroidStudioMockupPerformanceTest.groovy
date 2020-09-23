@@ -19,15 +19,14 @@ package org.gradle.performance.regression.android
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
 import org.gradle.performance.android.GetModel
 import org.gradle.performance.android.SyncAction
-import spock.lang.Unroll
 
 class RealLifeAndroidStudioMockupPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
-    @Unroll
-    def "get IDE model on #testProject for Android Studio"() {
+    def "get IDE model for Android Studio"() {
         given:
-        runner.testProject = testProject
-        runner.gradleOpts = ["-Xms5g", "-Xmx5g"]
+        def testProject = AndroidTestProject.getAndroidTestProject(runner.testProject)
+        testProject.configure(runner)
+        int iterations = (testProject == AndroidTestProject.K9_ANDROID) ? 200 : 40
         runner.warmUpRuns = iterations
         runner.runs = iterations
         runner.minimumBaseVersion = "5.4.1"
@@ -44,10 +43,5 @@ class RealLifeAndroidStudioMockupPerformanceTest extends AbstractCrossVersionPer
 
         then:
         result.assertCurrentVersionHasNotRegressed()
-
-        where:
-        testProject         | iterations
-        "k9AndroidBuild"    | 200
-        "largeAndroidBuild" | 40
     }
 }

@@ -36,6 +36,7 @@ class CrossBuildPerformanceTestRunner extends AbstractCrossBuildPerformanceTestR
     CrossBuildPerformanceResults newResult() {
         new CrossBuildPerformanceResults(
             testId: testId,
+            testProject: testProject,
             testGroup: testGroup,
             jvm: Jvm.current().toString(),
             host: InetAddress.getLocalHost().getHostName(),

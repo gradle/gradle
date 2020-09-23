@@ -51,7 +51,7 @@ class AbstractGradleVsMavenPerformanceTest extends Specification {
     GradleProfilerReporter gradleProfilerReporter = new GradleProfilerReporter(temporaryFolder.testDirectory)
     GradleVsMavenPerformanceTestRunner runner = new GradleVsMavenPerformanceTestRunner(
         temporaryFolder,
-        new GradleVsMavenBuildExperimentRunner(gradleProfilerReporter.getResultCollector()),
+        new GradleVsMavenBuildExperimentRunner(gradleProfilerReporter),
         RESULT_STORE,
         RESULT_STORE.reportAlso(gradleProfilerReporter),
         buildContext

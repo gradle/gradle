@@ -21,7 +21,6 @@ import org.gradle.api.Transformer
 
 @CompileStatic
 class CrossVersionPerformanceResults extends PerformanceTestResult {
-    String testProject
     List<String> args
     List<String> tasks
     List<String> cleanTasks

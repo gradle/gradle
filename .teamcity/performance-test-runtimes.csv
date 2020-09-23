@@ -76,6 +76,8 @@ org.gradle.performance.regression.corefeature.RichConsolePerformanceTest;clean a
 org.gradle.performance.regression.corefeature.RichConsolePerformanceTest;clean assemble with rich console;largeMonolithicJavaProject;linux;819000
 org.gradle.performance.regression.corefeature.RichConsolePerformanceTest;clean assemble with rich console;bigNative;linux;186000
 org.gradle.performance.regression.corefeature.RichConsolePerformanceTest;cleanTest test with rich console;withVerboseJUnit;linux;67000
+org.gradle.performance.regression.corefeature.TaskAvoidancePerformanceTest;help with lazy and eager tasks;largeJavaMultiProject;linux;149000
+org.gradle.performance.regression.corefeature.TaskAvoidancePerformanceTest;help with lazy and eager tasks;largeMonolithicJavaProject;linux;91000
 org.gradle.performance.regression.corefeature.TaskCreationPerformanceTest;create many tasks;createLotsOfTasks;linux;135000
 org.gradle.performance.regression.corefeature.VerboseTestOutputPerformanceTest;cleanTest test with verbose test output;withVerboseTestNG;linux;172000
 org.gradle.performance.regression.corefeature.VerboseTestOutputPerformanceTest;cleanTest test with verbose test output;withVerboseJUnit;linux;190000
@@ -108,3 +110,57 @@ org.gradle.performance.regression.android.RealLifeAndroidBuildPerformanceTest;ab
 org.gradle.performance.regression.android.RealLifeAndroidBuildPerformanceTest;non-abi change;santaTrackerAndroidBuild;linux;591000
 org.gradle.performance.regression.android.RealLifeAndroidStudioMockupPerformanceTest;get IDE model for Android Studio;largeAndroidBuild;linux;1251000
 org.gradle.performance.regression.android.RealLifeAndroidStudioMockupPerformanceTest;get IDE model for Android Studio;k9AndroidBuild;linux;253000
+org.gradle.performance.regression.android.RealLifeAndroidBuildSlowPerformanceTest;clean assembleDebug with clean transforms cache;largeAndroidBuild;linux;1571000
+org.gradle.performance.regression.android.RealLifeAndroidBuildSlowPerformanceTest;clean assembleDebug with clean transforms cache;santaTrackerAndroidBuild;linux;1887000
+org.gradle.performance.regression.android.RealLifeAndroidBuildSlowPerformanceTest;clean phthalic:assembleDebug with clean transforms cache;largeAndroidBuild;linux;929000
+org.gradle.performance.regression.android.FasterIncrementalAndroidBuildsPerformanceTest;faster non-abi change (build comparison);santaTrackerAndroidBuild;linux;428000
+org.gradle.performance.regression.android.FasterIncrementalAndroidBuildsPerformanceTest;faster non-abi change (build comparison);santaTrackerAndroidJavaBuild;linux;398000
+org.gradle.performance.regression.android.FasterIncrementalAndroidBuildsPerformanceTest;faster abi change (build comparison);santaTrackerAndroidBuild;linux;795000
+org.gradle.performance.regression.android.FasterIncrementalAndroidBuildsPerformanceTest;faster abi change (build comparison);santaTrackerAndroidJavaBuild;linux;425000
+org.gradle.performance.experiment.java.JavaLibraryPluginPerformanceTest;java-library vs java;largeJavaMultiProject;linux;352000
+org.gradle.performance.experiment.java.ParallelBuildPerformanceTest;clean assemble with 4 parallel workers;largeJavaMultiProject;linux;470000
+org.gradle.performance.experiment.java.ParallelBuildPerformanceTest;clean assemble with 4 parallel workers;largeMonolithicJavaProject;linux;354000
+org.gradle.performance.experiment.buildcache.LocalTaskOutputCacheCrossBuildPerformanceTest;assemble with local cache (build comparison);largeJavaMultiProject;linux;4676000
+org.gradle.performance.experiment.buildcache.LocalTaskOutputCacheCrossBuildPerformanceTest;assemble with local cache (build comparison);largeMonolithicJavaProject;linux;5472000
+org.gradle.performance.experiment.nativeplatform.NativeParallelPerformanceTest;clean assemble with parallel workers;smallNative;linux;112000
+org.gradle.performance.experiment.nativeplatform.NativeParallelPerformanceTest;clean assemble with parallel workers;mediumNative;linux;184000
+org.gradle.performance.experiment.nativeplatform.NativeParallelPerformanceTest;clean assemble with parallel workers;bigNative;linux;670000
+org.gradle.performance.experiment.nativeplatform.NativeParallelPerformanceTest;clean assemble with parallel workers;multiNative;linux;1734000
+org.gradle.performance.experiment.nativeplatform.NativePreCompiledHeaderPerformanceTest;clean assemble with precompiled headers;smallPCHNative;linux;123000
+org.gradle.performance.experiment.nativeplatform.NativePreCompiledHeaderPerformanceTest;clean assemble with precompiled headers;mediumPCHNative;linux;295000
+org.gradle.performance.experiment.nativeplatform.NativePreCompiledHeaderPerformanceTest;clean assemble with precompiled headers;bigPCHNative;linux;1072000
+org.gradle.performance.experiment.maven.JavaTestGradleVsMavenPerformanceTest;clean assemble (Gradle vs Maven);mediumMonolithicJavaProject;linux;189000
+org.gradle.performance.experiment.maven.JavaTestGradleVsMavenPerformanceTest;clean assemble (Gradle vs Maven);mediumJavaMultiProject;linux;414000
+org.gradle.performance.experiment.maven.JavaTestGradleVsMavenPerformanceTest;clean test (Gradle vs Maven);mediumMonolithicJavaProject;linux;535000
+org.gradle.performance.experiment.maven.JavaTestGradleVsMavenPerformanceTest;clean test (Gradle vs Maven);mediumJavaMultiProject;linux;1220000
+org.gradle.performance.experiment.maven.JavaTestGradleVsMavenPerformanceTest;assemble for non-abi change (Gradle vs Maven);mediumMonolithicJavaProject;linux;293000
+org.gradle.performance.experiment.maven.JavaTestGradleVsMavenPerformanceTest;assemble for non-abi change (Gradle vs Maven);mediumJavaMultiProject;linux;682000
+org.gradle.performance.experiment.maven.JavaTestGradleVsMavenPerformanceTest;test for non-abi change (Gradle vs Maven);mediumMonolithicJavaProject;linux;870000
+org.gradle.performance.experiment.maven.JavaTestGradleVsMavenPerformanceTest;test for non-abi change (Gradle vs Maven);mediumJavaMultiProject;linux;1853000
+org.gradle.performance.regression.inception.BuildSrcApiChangePerformanceTest;buildSrc abi change;largeJavaMultiProject;linux;1018000
+org.gradle.performance.regression.inception.BuildSrcApiChangePerformanceTest;buildSrc abi change;largeJavaMultiProjectKotlinDsl;linux;2352000
+org.gradle.performance.regression.inception.BuildSrcApiChangePerformanceTest;buildSrc abi change;mediumMonolithicJavaProject;linux;243000
+org.gradle.performance.regression.java.JavaFirstUsePerformanceTest;first use;largeMonolithicJavaProject;linux;412000
+org.gradle.performance.regression.java.JavaFirstUsePerformanceTest;first use;largeJavaMultiProject;linux;758000
+org.gradle.performance.regression.java.JavaFirstUsePerformanceTest;first use;largeJavaMultiProjectKotlinDsl;linux;1206000
+org.gradle.performance.regression.java.JavaFirstUsePerformanceTest;clean checkout;largeMonolithicJavaProject;linux;380000
+org.gradle.performance.regression.java.JavaFirstUsePerformanceTest;clean checkout;largeJavaMultiProject;linux;1067000
+org.gradle.performance.regression.java.JavaFirstUsePerformanceTest;clean checkout;largeJavaMultiProjectKotlinDsl;linux;1015000
+org.gradle.performance.regression.java.JavaFirstUsePerformanceTest;cold daemon;largeMonolithicJavaProject;linux;323000
+org.gradle.performance.regression.java.JavaFirstUsePerformanceTest;cold daemon;largeJavaMultiProject;linux;1029000
+org.gradle.performance.regression.java.JavaFirstUsePerformanceTest;cold daemon;largeJavaMultiProjectKotlinDsl;linux;985000
+org.gradle.performance.regression.nativeplatform.NativeCleanBuildPerformanceTest;clean assemble (native);smallNative;linux;308000
+org.gradle.performance.regression.nativeplatform.NativeCleanBuildPerformanceTest;clean assemble (native);mediumNative;linux;268000
+org.gradle.performance.regression.nativeplatform.NativeCleanBuildPerformanceTest;clean assemble (native);bigNative;linux;751000
+org.gradle.performance.regression.nativeplatform.NativeCleanBuildPerformanceTest;clean assemble (native);multiNative;linux;1822000
+org.gradle.performance.regression.nativeplatform.NativeCleanBuildPerformanceTest;clean assemble (native);smallCppApp;linux;295000
+org.gradle.performance.regression.nativeplatform.NativeCleanBuildPerformanceTest;clean assemble (native);mediumCppApp;linux;226000
+org.gradle.performance.regression.nativeplatform.NativeCleanBuildPerformanceTest;clean assemble (native);mediumCppAppWithMacroIncludes;linux;234000
+org.gradle.performance.regression.nativeplatform.NativeCleanBuildPerformanceTest;clean assemble (native);bigCppApp;linux;509000
+org.gradle.performance.regression.nativeplatform.NativeCleanBuildPerformanceTest;clean assemble (native);smallCppMulti;linux;320000
+org.gradle.performance.regression.nativeplatform.NativeCleanBuildPerformanceTest;clean assemble (native);mediumCppMulti;linux;488000
+org.gradle.performance.regression.nativeplatform.NativeCleanBuildPerformanceTest;clean assemble (native);mediumCppMultiWithMacroIncludes;linux;481000
+org.gradle.performance.regression.nativeplatform.NativeCleanBuildPerformanceTest;clean assemble (native);bigCppMulti;linux;1492000
+org.gradle.performance.regression.nativeplatform.NativeCleanBuildPerformanceTest;clean assemble (native, parallel);manyProjectsNative;linux;696000
+org.gradle.performance.regression.nativeplatform.SwiftCleanBuildPerformanceTest;clean assemble (swift);mediumSwiftMulti;linux;1060000
+org.gradle.performance.regression.nativeplatform.SwiftCleanBuildPerformanceTest;clean assemble (swift);bigSwiftApp;linux;734000

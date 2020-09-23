@@ -25,7 +25,6 @@ class ArchiveTreePerformanceTest extends AbstractCrossVersionPerformanceTest {
 
     def "visiting zip trees"() {
         given:
-        runner.testProject = "archivePerformanceProject"
         runner.tasksToRun = ['visitZip']
 
         when:
@@ -36,7 +35,6 @@ class ArchiveTreePerformanceTest extends AbstractCrossVersionPerformanceTest {
     }
     def "visiting tar trees"() {
         given:
-        runner.testProject = "archivePerformanceProject"
         runner.tasksToRun = ['visitTar']
 
         when:
@@ -48,7 +46,6 @@ class ArchiveTreePerformanceTest extends AbstractCrossVersionPerformanceTest {
 
     def "visiting gzip tar trees"() {
         given:
-        runner.testProject = "archivePerformanceProject"
         runner.tasksToRun = ['visitTarGz']
 
         when:

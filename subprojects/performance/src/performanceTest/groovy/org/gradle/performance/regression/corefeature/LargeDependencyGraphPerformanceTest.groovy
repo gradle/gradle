@@ -23,7 +23,6 @@ import spock.lang.Unroll
 
 class LargeDependencyGraphPerformanceTest extends AbstractCrossVersionPerformanceTest implements WithExternalRepository {
 
-    private final static TEST_PROJECT_NAME = 'excludeRuleMergingBuild'
     public static final String MIN_MEMORY = "-Xms800m"
     public static final String MAX_MEMORY = "-Xmx800m"
 
@@ -33,8 +32,6 @@ class LargeDependencyGraphPerformanceTest extends AbstractCrossVersionPerformanc
     }
 
     def "resolve large dependency graph from file repo"() {
-        runner.testProject = TEST_PROJECT_NAME
-
         given:
         runner.tasksToRun = ['resolveDependencies']
         runner.gradleOpts = [MIN_MEMORY, MAX_MEMORY]
@@ -49,7 +46,6 @@ class LargeDependencyGraphPerformanceTest extends AbstractCrossVersionPerformanc
 
     @Unroll
     def "resolve large dependency graph (parallel = #parallel, locking = #locking)"() {
-        runner.testProject = TEST_PROJECT_NAME
         startServer()
 
         given:
@@ -81,7 +77,6 @@ class LargeDependencyGraphPerformanceTest extends AbstractCrossVersionPerformanc
     @Ignore
     def "resolve large dependency graph with strict versions"() {
         runner.minimumBaseVersion = '6.0'
-        runner.testProject = TEST_PROJECT_NAME
         startServer()
 
         given:

@@ -29,14 +29,19 @@ import static org.gradle.performance.regression.android.IncrementalAndroidTestPr
 class RealLifeAndroidBuildSlowPerformanceTest extends AbstractRealLifeAndroidBuildPerformanceTest {
 
     @Unroll
-    def "clean #tasks on #testProject with clean transforms cache"() {
+    def "clean #tasks with clean transforms cache"() {
         given:
+        def testProject = androidTestProject
+        boolean isLargeProject = androidTestProject == LARGE_ANDROID_BUILD
+        if (isLargeProject) {
+            runner.warmUpRuns = 2
+            runner.runs = 8
+        }
+
         testProject.configure(runner)
         runner.tasksToRun = tasks.split(' ')
         runner.args.add('-Dorg.gradle.parallel=true')
-        runner.warmUpRuns = warmUpRuns
         runner.cleanTasks = ["clean"]
-        runner.runs = runs
         runner.addBuildMutator { invocationSettings ->
             new ClearArtifactTransformCacheMutator(invocationSettings.getGradleUserHome(), AbstractCleanupMutator.CleanupSchedule.BUILD)
         }
@@ -54,9 +59,6 @@ class RealLifeAndroidBuildSlowPerformanceTest extends AbstractRealLifeAndroidBui
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject          | warmUpRuns | runs | tasks
-        LARGE_ANDROID_BUILD  | 2          | 8    | 'phthalic:assembleDebug'
-        LARGE_ANDROID_BUILD  | 2          | 8    | 'assembleDebug'
-        SANTA_TRACKER_KOTLIN | null       | null | 'assembleDebug'
+        tasks << ['assembleDebug', 'phthalic:assembleDebug']
     }
 }

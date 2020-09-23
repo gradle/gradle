@@ -27,55 +27,76 @@ import common.performanceTestCommandLine
 import common.removeSubstDirOnWindows
 import common.substDirOnWindows
 import configurations.BaseGradleBuildType
+import configurations.applyDefaultDependencies
 import configurations.buildScanTag
 import jetbrains.buildServer.configs.kotlin.v2019_2.AbsoluteId
 import jetbrains.buildServer.configs.kotlin.v2019_2.BuildSteps
 import model.CIBuildModel
 import model.PerformanceTestType
 import model.Stage
+import java.util.Locale
 
-class PerformanceTest(model: CIBuildModel, type: PerformanceTestType, stage: Stage, uuid: String, description: String, performanceSubProject: String, testProjects: List<String>, os: Os = Os.LINUX, extraParameters: String = "", preBuildSteps: BuildSteps.() -> Unit = {}) : BaseGradleBuildType(model, stage = stage, init = {
-    this.uuid = uuid
-    this.id = AbsoluteId(uuid)
-    this.name = description
-    val performanceTestTaskNames = getPerformanceTestTaskNames(performanceSubProject, testProjects)
-    applyPerformanceTestSettings(os = os, timeout = type.timeout)
-    artifactRules = individualPerformanceTestArtifactRules
+class PerformanceTest(
+    model: CIBuildModel,
+    type: PerformanceTestType,
+    stage: Stage,
+    uuid: String,
+    description: String,
+    performanceSubProject: String,
+    val testProjects: List<String>,
+    val bucketIndex: Int,
+    os: Os = Os.LINUX,
+    extraParameters: String = "",
+    preBuildSteps: BuildSteps.() -> Unit = {}
+) : BaseGradleBuildType(
+    model,
+    stage = stage,
+    init = {
+        this.uuid = uuid
+        this.id = AbsoluteId(uuid)
+        this.name = description
+        val performanceTestTaskNames = getPerformanceTestTaskNames(performanceSubProject, testProjects)
+        applyPerformanceTestSettings(os = os, timeout = type.timeout)
+        artifactRules = individualPerformanceTestArtifactRules
 
-    params {
-        param("performance.baselines", type.defaultBaselines)
-        param("env.ANDROID_HOME", os.androidHome)
-        when (os) {
-            Os.WINDOWS -> param("env.PATH", "%env.PATH%;C:/Program Files/7-zip")
-            else -> param("env.PATH", "%env.PATH%:/opt/swift/4.2.3/usr/bin")
-        }
-    }
-    if (testProjects.isNotEmpty()) {
-        steps {
-            preBuildSteps()
-            killGradleProcessesStep(os)
-            substDirOnWindows(os)
-            gradleWrapper {
-                name = "GRADLE_RUNNER"
-                tasks = ""
-                workingDir = os.perfTestWorkingDir
-                gradleParams = (
-                    performanceTestCommandLine(
-                        "clean ${performanceTestTaskNames.joinToString(" ")}",
-                        "%performance.baselines%",
-                        extraParameters,
-                        os
-                    ) +
-                        buildToolGradleParameters(isContinue = false) +
-                        buildScanTag("PerformanceTest") +
-                        model.parentBuildCache.gradleParameters(os)
-                    ).joinToString(separator = " ")
+        params {
+            param("performance.baselines", type.defaultBaselines)
+            param("performance.channel", "${type.channel}${if (os == Os.LINUX) "" else "-${os.name.toLowerCase(Locale.US)}"}-%teamcity.build.branch%")
+            param("env.ANDROID_HOME", os.androidHome)
+            when (os) {
+                Os.WINDOWS -> param("env.PATH", "%env.PATH%;C:/Program Files/7-zip")
+                else -> param("env.PATH", "%env.PATH%:/opt/swift/4.2.3/usr/bin")
             }
-            removeSubstDirOnWindows(os)
-            checkCleanM2(os)
         }
+        if (testProjects.isNotEmpty()) {
+            steps {
+                preBuildSteps()
+                killGradleProcessesStep(os)
+                substDirOnWindows(os)
+                gradleWrapper {
+                    name = "GRADLE_RUNNER"
+                    tasks = ""
+                    workingDir = os.perfTestWorkingDir
+                    gradleParams = (
+                        performanceTestCommandLine(
+                            "clean ${performanceTestTaskNames.joinToString(" ") { "$it --channel %performance.channel% ${type.extraParameters}" }}",
+                            "%performance.baselines%",
+                            extraParameters,
+                            os
+                        ) +
+                            buildToolGradleParameters(isContinue = false) +
+                            buildScanTag("PerformanceTest") +
+                            model.parentBuildCache.gradleParameters(os)
+                        ).joinToString(separator = " ")
+                }
+                removeSubstDirOnWindows(os)
+                checkCleanM2(os)
+            }
+        }
+
+        applyDefaultDependencies(model, this, true)
     }
-})
+)
 
 fun getPerformanceTestTaskNames(performanceSubProject: String, testProjects: List<String>): List<String> {
     return testProjects.map {

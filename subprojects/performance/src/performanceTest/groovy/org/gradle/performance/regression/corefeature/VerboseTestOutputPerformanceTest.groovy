@@ -17,17 +17,14 @@
 package org.gradle.performance.regression.corefeature
 
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
-import spock.lang.Unroll
 
 class VerboseTestOutputPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
-    @Unroll
-    def "cleanTest test on #testProject with verbose test output"() {
+    def "cleanTest test with verbose test output"() {
         given:
-        runner.testProject = testProject
         runner.tasksToRun = ['cleanTest', 'test']
         runner.args = ['-q']
-        runner.gradleOpts = ["-Xms256m", "-Xmx256m"]
+        runner.gradleOpts = runner.projectMemoryOptions
         runner.targetVersions = ["6.7-20200824220048+0000"]
 
         when:
@@ -35,10 +32,5 @@ class VerboseTestOutputPerformanceTest extends AbstractCrossVersionPerformanceTe
 
         then:
         result.assertCurrentVersionHasNotRegressed()
-
-        where:
-        testProject         | _
-        "withVerboseTestNG" | _
-        "withVerboseJUnit"  | _
     }
 }

@@ -7,7 +7,6 @@ import Gradle_Check.model.PerformanceTestBucketProvider
 import Gradle_Check.model.PerformanceTestCoverage
 import common.Os
 import configurations.FunctionalTest
-import configurations.PerformanceTestCoordinator
 import configurations.SanityCheck
 import configurations.buildReportTab
 import jetbrains.buildServer.configs.kotlin.v2019_2.AbsoluteId
@@ -30,7 +29,7 @@ class StageProject(model: CIBuildModel, functionalTestBucketProvider: Functional
 }) {
     val specificBuildTypes: List<BuildType>
 
-    val performanceTests: List<PerformanceTestCoordinator>
+    val performanceTests: List<PerformanceTestsPass>
 
     val functionalTests: List<FunctionalTest>
 
@@ -50,8 +49,7 @@ class StageProject(model: CIBuildModel, functionalTestBucketProvider: Functional
         }
         specificBuildTypes.forEach(this::buildType)
 
-        performanceTests = stage.performanceTests.map { PerformanceTestCoordinator(model, it, stage) }
-        performanceTests.forEach(this::buildType)
+        performanceTests = stage.performanceTests.map { createPerformanceTests(model, performanceTestBucketProvider, stage, it) }
 
         if (stage.stageName == StageNames.EXPERIMENTAL_PERFORMANCE) {
             createPerformanceTests(model, performanceTestBucketProvider, stage, PerformanceTestCoverage(PerformanceTestType.test, Os.LINUX))
@@ -99,10 +97,10 @@ class StageProject(model: CIBuildModel, functionalTestBucketProvider: Functional
         functionalTests = topLevelFunctionalTests + functionalTestProjects.flatMap(FunctionalTestProject::functionalTests) + deferredTestsForThisStage
     }
 
-    private fun createPerformanceTests(model: CIBuildModel, performanceTestBucketProvider: PerformanceTestBucketProvider, stage: Stage, performanceTestCoverage: PerformanceTestCoverage) {
+    private fun createPerformanceTests(model: CIBuildModel, performanceTestBucketProvider: PerformanceTestBucketProvider, stage: Stage, performanceTestCoverage: PerformanceTestCoverage): PerformanceTestsPass {
         val performanceTestProject = PerformanceTestProject(model, performanceTestBucketProvider, stage, performanceTestCoverage)
         subProject(performanceTestProject)
-        buildType(PerformanceTestsPass(model, performanceTestProject))
+        return PerformanceTestsPass(model, performanceTestProject).also(this::buildType)
     }
 }
 
