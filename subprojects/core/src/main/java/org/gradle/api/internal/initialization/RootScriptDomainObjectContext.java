@@ -90,7 +90,7 @@ public class RootScriptDomainObjectContext implements DomainObjectContext, Model
     }
 
     private static class CalculatedModelValueImpl<T> implements CalculatedModelValue<T> {
-        private T value;
+        private volatile T value;
 
         CalculatedModelValueImpl(@Nullable T initialValue) {
             value = initialValue;
