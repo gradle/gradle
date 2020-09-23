@@ -20,14 +20,15 @@ import org.apache.commons.lang.StringUtils;
 import org.gradle.performance.results.FileRenderer;
 import org.gradle.performance.results.NoResultsStore;
 import org.gradle.performance.results.PerformanceDatabase;
-import org.gradle.performance.results.PerformanceExperiment;
 import org.gradle.performance.results.PerformanceTestHistory;
 import org.gradle.performance.results.ResultsStore;
 import org.gradle.performance.results.ResultsStoreHelper;
+import org.gradle.performance.results.ScenarioBuildResultData;
 import org.gradle.util.GFileUtils;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.net.URL;
@@ -66,10 +67,13 @@ public abstract class AbstractReportGenerator<R extends ResultsStore> {
     protected void generateReport(ResultsStore store, PerformanceFlakinessDataProvider flakinessDataProvider, PerformanceExecutionDataProvider executionDataProvider, File outputDirectory, String projectName) throws IOException {
         renderIndexPage(flakinessDataProvider, executionDataProvider, new File(outputDirectory, "index.html"));
 
-        for (PerformanceExperiment experiment : store.getPerformanceExperiments()) {
-            PerformanceTestHistory testResults = store.getTestResults(experiment, 500, 90, ResultsStoreHelper.determineChannel());
-            renderScenarioPage(projectName, outputDirectory, testResults);
-        }
+        executionDataProvider.getScenarioExecutionData().stream()
+            .map(ScenarioBuildResultData::getPerformanceExperiment)
+            .distinct()
+            .forEach(experiment -> {
+                PerformanceTestHistory testResults = store.getTestResults(experiment, 500, 90, ResultsStoreHelper.determineChannel());
+                renderScenarioPage(projectName, outputDirectory, testResults);
+            });
 
         copyResource("jquery.min-3.5.1.js", outputDirectory);
         copyResource("flot-0.8.1-min.js", outputDirectory);
@@ -87,12 +91,16 @@ public abstract class AbstractReportGenerator<R extends ResultsStore> {
     protected void checkResult(PerformanceFlakinessDataProvider flakinessDataProvider, PerformanceExecutionDataProvider executionDataProvider) {
     }
 
-    protected void renderScenarioPage(String projectName, File outputDirectory, PerformanceTestHistory testResults) throws IOException {
+    protected void renderScenarioPage(String projectName, File outputDirectory, PerformanceTestHistory testResults) {
         FileRenderer fileRenderer = new FileRenderer();
         TestPageGenerator testHtmlRenderer = new TestPageGenerator(projectName);
         TestDataGenerator testDataRenderer = new TestDataGenerator();
-        fileRenderer.render(testResults, testHtmlRenderer, new File(outputDirectory, "tests/" + testResults.getId() + ".html"));
-        fileRenderer.render(testResults, testDataRenderer, new File(outputDirectory, "tests/" + testResults.getId() + ".json"));
+        try {
+            fileRenderer.render(testResults, testHtmlRenderer, new File(outputDirectory, "tests/" + testResults.getId() + ".html"));
+            fileRenderer.render(testResults, testDataRenderer, new File(outputDirectory, "tests/" + testResults.getId() + ".json"));
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
     }
 
     protected ResultsStore getResultsStore() throws ReflectiveOperationException {
