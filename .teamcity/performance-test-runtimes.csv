@@ -81,8 +81,8 @@ org.gradle.performance.regression.corefeature.TaskAvoidancePerformanceTest;help 
 org.gradle.performance.regression.corefeature.TaskCreationPerformanceTest;create many tasks;createLotsOfTasks;linux;135000
 org.gradle.performance.regression.corefeature.VerboseTestOutputPerformanceTest;cleanTest test with verbose test output;withVerboseTestNG;linux;172000
 org.gradle.performance.regression.corefeature.VerboseTestOutputPerformanceTest;cleanTest test with verbose test output;withVerboseJUnit;linux;190000
-org.gradle.performance.regression.nativeplatform.NativeBuildDependentsPerformanceTest;libA0:buildDependentsLibA0;nativeDependents;linux;549000
-org.gradle.performance.regression.nativeplatform.NativeBuildDependentsPerformanceTest;libA0:dependentComponents;nativeDependents;linux;546000
+org.gradle.performance.regression.nativeplatform.NativeBuildDependentsPerformanceTest;run libA0:buildDependentsLibA0;nativeDependents;linux;549000
+org.gradle.performance.regression.nativeplatform.NativeBuildDependentsPerformanceTest;run libA0:dependentComponents;nativeDependents;linux;546000
 org.gradle.performance.regression.nativeplatform.NativeBuildPerformanceTest;up-to-date assemble (native);bigCppMulti;linux;271000
 org.gradle.performance.regression.nativeplatform.NativeBuildPerformanceTest;up-to-date assemble (native);bigCppApp;linux;111000
 org.gradle.performance.regression.nativeplatform.NativeBuildPerformanceTest;assemble with header file change;bigCppMulti;linux;279000
@@ -100,12 +100,12 @@ org.gradle.performance.regression.nativeplatform.SwiftBuildPerformanceTest;up-to
 org.gradle.performance.regression.nativeplatform.SwiftBuildPerformanceTest;up-to-date assemble (swift);bigSwiftApp;linux;114000
 org.gradle.performance.regression.nativeplatform.SwiftBuildPerformanceTest;incremental compile;mediumSwiftMulti;linux;534000
 org.gradle.performance.regression.nativeplatform.SwiftBuildPerformanceTest;incremental compile;bigSwiftApp;linux;184000
-org.gradle.performance.regression.android.RealLifeAndroidBuildPerformanceTest;help;k9AndroidBuild;linux;133000
-org.gradle.performance.regression.android.RealLifeAndroidBuildPerformanceTest;help;largeAndroidBuild;linux;217000
-org.gradle.performance.regression.android.RealLifeAndroidBuildPerformanceTest;assembleDebug;k9AndroidBuild;linux;170000
-org.gradle.performance.regression.android.RealLifeAndroidBuildPerformanceTest;assembleDebug;largeAndroidBuild;linux;694000
-org.gradle.performance.regression.android.RealLifeAndroidBuildPerformanceTest;assembleDebug;santaTrackerAndroidBuild;linux;476000
-org.gradle.performance.regression.android.RealLifeAndroidBuildPerformanceTest;clean phthalic:assembleDebug;largeAndroidBuild;linux;608000
+org.gradle.performance.regression.android.RealLifeAndroidBuildPerformanceTest;run help;k9AndroidBuild;linux;133000
+org.gradle.performance.regression.android.RealLifeAndroidBuildPerformanceTest;run help;largeAndroidBuild;linux;217000
+org.gradle.performance.regression.android.RealLifeAndroidBuildPerformanceTest;run assembleDebug;k9AndroidBuild;linux;170000
+org.gradle.performance.regression.android.RealLifeAndroidBuildPerformanceTest;run assembleDebug;largeAndroidBuild;linux;694000
+org.gradle.performance.regression.android.RealLifeAndroidBuildPerformanceTest;run assembleDebug;santaTrackerAndroidBuild;linux;476000
+org.gradle.performance.regression.android.RealLifeAndroidBuildPerformanceTest;run clean phthalic:assembleDebug;largeAndroidBuild;linux;608000
 org.gradle.performance.regression.android.RealLifeAndroidBuildPerformanceTest;abi change;santaTrackerAndroidBuild;linux;883000
 org.gradle.performance.regression.android.RealLifeAndroidBuildPerformanceTest;non-abi change;santaTrackerAndroidBuild;linux;591000
 org.gradle.performance.regression.android.RealLifeAndroidStudioMockupPerformanceTest;get IDE model for Android Studio;largeAndroidBuild;linux;1251000

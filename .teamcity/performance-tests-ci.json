@@ -737,7 +737,7 @@
             ]
         },
         {
-            "testId" : "org.gradle.performance.regression.nativeplatform.NativeBuildDependentsPerformanceTest.libA0:buildDependentsLibA0",
+            "testId" : "org.gradle.performance.regression.nativeplatform.NativeBuildDependentsPerformanceTest.run libA0:buildDependentsLibA0",
             "groups" : [
                 {
                     "testProject" : "nativeDependents",
@@ -748,7 +748,7 @@
             ]
         },
         {
-            "testId" : "org.gradle.performance.regression.nativeplatform.NativeBuildDependentsPerformanceTest.libA0:dependentComponents",
+            "testId" : "org.gradle.performance.regression.nativeplatform.NativeBuildDependentsPerformanceTest.run libA0:dependentComponents",
             "groups" : [
                 {
                     "testProject" : "nativeDependents",
@@ -911,7 +911,7 @@
             ]
         },
         {
-            "testId" : "org.gradle.performance.regression.android.RealLifeAndroidBuildPerformanceTest.help",
+            "testId" : "org.gradle.performance.regression.android.RealLifeAndroidBuildPerformanceTest.run help",
             "groups" : [
                 {
                     "testProject" : "k9AndroidBuild",
@@ -928,7 +928,7 @@
             ]
         },
         {
-            "testId" : "org.gradle.performance.regression.android.RealLifeAndroidBuildPerformanceTest.assembleDebug",
+            "testId" : "org.gradle.performance.regression.android.RealLifeAndroidBuildPerformanceTest.run assembleDebug",
             "groups" : [
                 {
                     "testProject" : "k9AndroidBuild",
@@ -951,7 +951,7 @@
             ]
         },
         {
-            "testId" : "org.gradle.performance.regression.android.RealLifeAndroidBuildPerformanceTest.clean phthalic:assembleDebug",
+            "testId" : "org.gradle.performance.regression.android.RealLifeAndroidBuildPerformanceTest.run clean phthalic:assembleDebug",
             "groups" : [
                 {
                     "testProject" : "largeAndroidBuild",

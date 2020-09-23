@@ -27,7 +27,7 @@ class NativeBuildDependentsPerformanceTest extends AbstractCrossVersionPerforman
     }
 
     @Unroll
-    def "#task"() {
+    def "run #task"() {
         // TODO Enable once runnable on CI (google test & target platform)
         // 'largeNativeBuild'     | 'project432:buildDependentsExternalComponent111'
         // TODO Re-evaluate this scenario: memory consumption stress case, gradleOpts = ['-Xms4g', '-Xmx4g']
@@ -49,7 +49,7 @@ class NativeBuildDependentsPerformanceTest extends AbstractCrossVersionPerforman
     }
 
     @Unroll
-    def "#subprojectPath:dependentComponents"() {
+    def "run #subprojectPath:dependentComponents"() {
         // TODO Enable once runnable on CI (google test & target platform)
         // 'largeNativeBuild'     | 'project432'
         // TODO Re-evaluate this scenario: memory consumption stress case, gradleOpts = ['-Xms4g', '-Xmx4g']
