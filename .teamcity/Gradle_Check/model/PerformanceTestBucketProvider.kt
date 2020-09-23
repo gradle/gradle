@@ -42,7 +42,7 @@ typealias OperatingSystemToTestProjectPerformanceTestTimes = Map<Os, Map<String,
 const val MAX_TEST_PROJECTS_PER_BUCKET = 10
 
 data class PerformanceTestCoverage(val performanceTestType: PerformanceTestType, val os: Os) {
-    fun asConfigurationId(model: CIBuildModel, stage: Stage, bucket: String = "") = "${model.projectPrefix}${stage.stageName.uuid}PerformanceTest${performanceTestType.name.capitalize()}${os.asName()}$bucket"
+    fun asConfigurationId(model: CIBuildModel, stage: Stage, bucket: String = "") = "${model.projectPrefix}PerformanceTest${performanceTestType.name.capitalize()}${os.asName()}$bucket"
     fun asName(): String =
         "${performanceTestType.displayName} - ${os.asName()}"
 }
@@ -154,8 +154,6 @@ data class PerformanceScenario(val scenario: Scenario, val testProject: String)
 interface PerformanceTestBucket {
     fun createPerformanceTestsFor(model: CIBuildModel, stage: Stage, performanceTestCoverage: PerformanceTestCoverage, bucketIndex: Int): PerformanceTest
 
-    fun getUuid(model: CIBuildModel, performanceTestCoverage: PerformanceTestCoverage, bucketIndex: Int): String = performanceTestCoverage.asConfigurationId(model, "bucket${bucketIndex + 1}")
-
     fun getName(testCoverage: TestCoverage): String = throw UnsupportedOperationException()
 }
 
@@ -253,7 +251,7 @@ class TestProjectSplitBucket(val testProject: String, private val number: Int, v
 
 private
 fun createPerformanceTest(model: CIBuildModel, performanceTestCoverage: PerformanceTestCoverage, stage: Stage, bucketIndex: Int, description: String, tests: Map<String, List<Scenario>>): PerformanceTest {
-    val uuid = performanceTestCoverage.asConfigurationId(model, "bucket${bucketIndex + 1}")
+    val uuid = performanceTestCoverage.asConfigurationId(model, stage, "bucket${bucketIndex + 1}")
     return PerformanceTest(
         model,
         performanceTestCoverage.performanceTestType,
