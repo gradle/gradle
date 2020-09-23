@@ -9,7 +9,7 @@ import model.CIBuildModel
 import model.Stage
 
 class PerformanceTestProject(model: CIBuildModel, performanceTestBucketProvider: PerformanceTestBucketProvider, stage: Stage, val performanceTestCoverage: PerformanceTestCoverage) : Project({
-    this.uuid = performanceTestCoverage.asConfigurationId(model, stage)
+    this.uuid = performanceTestCoverage.asConfigurationId(model)
     this.id = AbsoluteId(uuid)
     this.name = performanceTestCoverage.asName()
 }) {
