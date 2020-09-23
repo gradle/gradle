@@ -39,8 +39,9 @@ import org.gradle.performance.util.Git
 import org.gradle.profiler.BuildAction
 import org.gradle.profiler.BuildMutator
 import org.gradle.profiler.GradleInvoker
+import org.gradle.profiler.GradleInvokerBuildAction
 import org.gradle.profiler.InvocationSettings
-import org.gradle.profiler.ToolingApiInvoker
+import org.gradle.profiler.ToolingApiGradleClient
 import org.gradle.tooling.LongRunningOperation
 import org.gradle.tooling.ProjectConnection
 import org.gradle.util.GradleVersion
@@ -140,7 +141,7 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
         )
 
         def baselineVersions = toBaselineVersions(releases, targetVersions, minimumBaseVersion).collect { results.baseline(it) }
-        def allVersions = ImmutableList.<String>builder()
+        def allVersions = ImmutableList.<String> builder()
             .add('current')
             .addAll(baselineVersions*.version as List<String>)
             .build()
@@ -304,7 +305,7 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
     }
 }
 
-class ToolingApiAction<T extends LongRunningOperation> implements BuildAction {
+class ToolingApiAction<T extends LongRunningOperation> extends GradleInvokerBuildAction {
     private final Function<ProjectConnection, T> initialAction
     private final String displayName
     private Consumer<T> tapiAction
@@ -336,7 +337,7 @@ class ToolingApiAction<T extends LongRunningOperation> implements BuildAction {
     @Override
     void run(GradleInvoker buildInvoker, List<String> gradleArgs, List<String> jvmArgs) {
         // TODO: Add a public API to configure this in a nice way on the Gradle profiler side
-        def toolingApiInvoker = (ToolingApiInvoker) buildInvoker
+        def toolingApiInvoker = (ToolingApiGradleClient) buildInvoker
         def projectConnection = toolingApiInvoker.projectConnection
         def longRunningOperation = initialAction.apply(projectConnection)
         toolingApiInvoker.run(longRunningOperation) { builder ->
