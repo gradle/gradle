@@ -154,8 +154,6 @@ data class PerformanceScenario(val scenario: Scenario, val testProject: String)
 interface PerformanceTestBucket {
     fun createPerformanceTestsFor(model: CIBuildModel, stage: Stage, performanceTestCoverage: PerformanceTestCoverage, bucketIndex: Int): PerformanceTest
 
-    fun getUuid(model: CIBuildModel, performanceTestCoverage: PerformanceTestCoverage, bucketIndex: Int): String = performanceTestCoverage.asConfigurationId(model, "bucket${bucketIndex + 1}")
-
     fun getName(testCoverage: TestCoverage): String = throw UnsupportedOperationException()
 
     fun getDescription(testCoverage: TestCoverage): String = throw UnsupportedOperationException()
@@ -255,7 +253,7 @@ class TestProjectSplitBucket(val testProject: String, val number: Int, val scena
 
 private
 fun createPerformanceTest(model: CIBuildModel, performanceTestCoverage: PerformanceTestCoverage, stage: Stage, bucketIndex: Int, description: String, tests: Map<String, List<Scenario>>): PerformanceTest {
-    val uuid = performanceTestCoverage.asConfigurationId(model, "bucket${bucketIndex + 1}")
+    val uuid = performanceTestCoverage.asConfigurationId(model, stage, "bucket${bucketIndex + 1}")
     return PerformanceTest(
         model,
         performanceTestCoverage.performanceTestType,
