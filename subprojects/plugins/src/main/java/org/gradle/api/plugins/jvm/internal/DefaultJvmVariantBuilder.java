@@ -213,7 +213,7 @@ public class DefaultJvmVariantBuilder implements JvmVariantBuilderInternal {
         });
         if (mainSourceSet) {
             // we need to wire the compile only and runtime only to the classpath configurations
-            configurations.getByName(sourceSet.getCompileClasspathConfigurationName()).extendsFrom(implementation, compileOnly, compileOnlyApi);
+            configurations.getByName(sourceSet.getCompileClasspathConfigurationName()).extendsFrom(implementation, compileOnly);
             configurations.getByName(sourceSet.getRuntimeClasspathConfigurationName()).extendsFrom(implementation, runtimeOnly);
             // and we also want the feature dependencies to be available on the test classpath
             configurations.getByName(JavaPlugin.TEST_COMPILE_CLASSPATH_CONFIGURATION_NAME).extendsFrom(implementation);
