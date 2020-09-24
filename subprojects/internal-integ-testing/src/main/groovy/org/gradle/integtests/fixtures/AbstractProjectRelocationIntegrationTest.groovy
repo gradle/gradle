@@ -22,7 +22,6 @@ abstract class AbstractProjectRelocationIntegrationTest extends AbstractIntegrat
 
     @ToBeFixedForConfigurationCache(bottomSpecs = [
         "JavaGradlePluginRelocationTest",
-        "CheckstyleRelocationIntegrationTest",
         "PmdRelocationIntegrationTest",
         "CodeNarcRelocationIntegrationTest",
         "ScalaCompileRelocationIntegrationTest"

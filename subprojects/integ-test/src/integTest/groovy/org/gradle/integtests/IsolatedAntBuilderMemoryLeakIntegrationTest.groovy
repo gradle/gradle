@@ -112,7 +112,6 @@ class IsolatedAntBuilderMemoryLeakIntegrationTest extends AbstractIntegrationSpe
     }
 
     @Unroll
-    @ToBeFixedForConfigurationCache(because = "checkstyle plugin")
     void "does not fail with a PermGen space error or a missing method exception"() {
         given:
         initGitDir()
