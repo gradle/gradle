@@ -15,40 +15,32 @@
  */
 package org.gradle.configuration;
 
-import org.gradle.StartParameter;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.execution.ProjectConfigurer;
-import org.gradle.initialization.BuildLoader;
 import org.gradle.initialization.ModelConfigurationListener;
 import org.gradle.initialization.ProjectsEvaluatedNotifier;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.util.IncubationLogger;
 
 public class DefaultProjectsPreparer implements ProjectsPreparer {
-    private final BuildLoader buildLoader;
     private final BuildOperationExecutor buildOperationExecutor;
     private final ProjectConfigurer projectConfigurer;
     private final ModelConfigurationListener modelConfigurationListener;
 
     public DefaultProjectsPreparer(
             ProjectConfigurer projectConfigurer,
-            BuildLoader buildLoader,
             ModelConfigurationListener modelConfigurationListener,
             BuildOperationExecutor buildOperationExecutor
     ) {
         this.projectConfigurer = projectConfigurer;
-        this.buildLoader = buildLoader;
         this.modelConfigurationListener = modelConfigurationListener;
         this.buildOperationExecutor = buildOperationExecutor;
     }
 
     @Override
     public void prepareProjects(GradleInternal gradle) {
-        maybeInformAboutIncubatingMode(gradle);
-
-        buildLoader.load(gradle.getSettings(), gradle);
-
         if (gradle.getStartParameter().isConfigureOnDemand()) {
+            IncubationLogger.incubatingFeatureUsed("Configuration on demand");
             projectConfigurer.configure(gradle.getRootProject());
         } else {
             projectConfigurer.configureHierarchy(gradle.getRootProject());
@@ -56,13 +48,5 @@ public class DefaultProjectsPreparer implements ProjectsPreparer {
         }
 
         modelConfigurationListener.onConfigure(gradle);
-    }
-
-    private void maybeInformAboutIncubatingMode(GradleInternal gradle) {
-        StartParameter startParameter = gradle.getStartParameter();
-
-        if (startParameter.isConfigureOnDemand()) {
-            IncubationLogger.incubatingFeatureUsed("Configuration on demand");
-        }
     }
 }

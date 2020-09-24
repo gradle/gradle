@@ -17,59 +17,48 @@
 package org.gradle.configuration;
 
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
+import org.gradle.initialization.BuildLoader;
 import org.gradle.initialization.buildsrc.BuildSourceBuilder;
 import org.gradle.internal.build.BuildStateRegistry;
-import org.gradle.internal.operations.BuildOperationContext;
-import org.gradle.internal.operations.BuildOperationDescriptor;
-import org.gradle.internal.operations.BuildOperationExecutor;
-import org.gradle.internal.operations.RunnableBuildOperation;
+import org.gradle.internal.classpath.ClassPath;
 
 public class BuildTreePreparingProjectsPreparer implements ProjectsPreparer {
     private final ProjectsPreparer delegate;
-    private final BuildOperationExecutor buildOperationExecutor;
     private final BuildStateRegistry buildStateRegistry;
     private final BuildSourceBuilder buildSourceBuilder;
+    private final BuildLoader buildLoader;
 
-    public BuildTreePreparingProjectsPreparer(ProjectsPreparer delegate, BuildOperationExecutor buildOperationExecutor, BuildStateRegistry buildStateRegistry, BuildSourceBuilder buildSourceBuilder) {
+    public BuildTreePreparingProjectsPreparer(ProjectsPreparer delegate, BuildLoader buildLoader, BuildStateRegistry buildStateRegistry, BuildSourceBuilder buildSourceBuilder) {
         this.delegate = delegate;
-        this.buildOperationExecutor = buildOperationExecutor;
+        this.buildLoader = buildLoader;
         this.buildStateRegistry = buildStateRegistry;
         this.buildSourceBuilder = buildSourceBuilder;
     }
 
     @Override
     public void prepareProjects(GradleInternal gradle) {
-        if (gradle.isRootBuild()) {
-            buildOperationExecutor.run(new PrepareBuildTree(gradle));
-        } else {
-            buildBuildSrcAndPrepareProjects(gradle);
-        }
-    }
-
-    private void buildBuildSrcAndPrepareProjects(GradleInternal gradle) {
-        ClassLoaderScope baseProjectClassLoaderScope = buildSourceBuilder.buildAndCreateClassLoader(gradle);
+        // Setup classloader for root project, all other projects will be derived from this.
+        SettingsInternal settings = gradle.getSettings();
+        ClassLoaderScope parentClassLoaderScope = settings.getClassLoaderScope();
+        ClassLoaderScope baseProjectClassLoaderScope = parentClassLoaderScope.createChild(settings.getBuildSrcDir().getAbsolutePath());
         gradle.setBaseProjectClassLoaderScope(baseProjectClassLoaderScope);
+
+        // attaches root project
+        buildLoader.load(gradle.getSettings(), gradle);
+        // Makes included build substitutions available
+        if (gradle.isRootBuild()) {
+            buildStateRegistry.beforeConfigureRootBuild();
+        }
+        // Build buildSrc and export classpath to root project
+        buildBuildSrcAndLockClassloader(gradle, baseProjectClassLoaderScope);
+
         delegate.prepareProjects(gradle);
     }
 
-    private class PrepareBuildTree implements RunnableBuildOperation {
-        private final GradleInternal gradle;
-
-        public PrepareBuildTree(GradleInternal gradle) {
-            this.gradle = gradle;
-        }
-
-        @Override
-        public void run(BuildOperationContext context) {
-            buildStateRegistry.beforeConfigureRootBuild();
-            buildBuildSrcAndPrepareProjects(gradle);
-        }
-
-        @Override
-        public BuildOperationDescriptor.Builder description() {
-            BuildOperationDescriptor.Builder builder = BuildOperationDescriptor.displayName(gradle.contextualize("Prepare build tree"));
-            return builder;
-        }
+    private void buildBuildSrcAndLockClassloader(GradleInternal gradle, ClassLoaderScope baseProjectClassLoaderScope) {
+        ClassPath buildSrcClassPath = buildSourceBuilder.buildAndGetClassPath(gradle);
+        baseProjectClassLoaderScope.export(buildSrcClassPath).lock();
     }
 }

@@ -80,20 +80,17 @@ class CompositeBuildBuildSrcBuildOperationsIntegrationTest extends AbstractCompo
         loadOps[2].details.buildPath == ":buildB:buildSrc"
         loadOps[2].parentId == buildSrcOps[0].id
 
-        def buildTreeOp = operations.only(/Prepare build tree/)
-        buildTreeOp.parentId == root.id
-
         def configureOps = operations.all(ConfigureBuildBuildOperationType)
         configureOps.size() == 3
-        configureOps[0].displayName == "Configure build (:buildB:buildSrc)"
-        configureOps[0].details.buildPath == ":buildB:buildSrc"
-        configureOps[0].parentId == buildSrcOps[0].id
+        configureOps[0].displayName == "Configure build"
+        configureOps[0].details.buildPath == ":"
+        configureOps[0].parentId == root.id
         configureOps[1].displayName == "Configure build (:buildB)"
         configureOps[1].details.buildPath == ":buildB"
-        configureOps[1].parentId == buildTreeOp.id
-        configureOps[2].displayName == "Configure build"
-        configureOps[2].details.buildPath == ":"
-        configureOps[2].parentId == buildTreeOp.id
+        configureOps[1].parentId == configureOps[0].id
+        configureOps[2].displayName == "Configure build (:buildB:buildSrc)"
+        configureOps[2].details.buildPath == ":buildB:buildSrc"
+        configureOps[2].parentId == buildSrcOps[0].id
 
         def taskGraphOps = operations.all(CalculateTaskGraphBuildOperationType)
         taskGraphOps.size() == 3
@@ -157,9 +154,9 @@ class CompositeBuildBuildSrcBuildOperationsIntegrationTest extends AbstractCompo
         def buildSrcOps = operations.all(BuildBuildSrcBuildOperationType)
         buildSrcOps.size() == 2
         buildSrcOps[0].displayName == "Build buildSrc"
-        buildSrcOps[0].details.buildPath == ":buildB"
+        // TODO should have a buildPath associated
         buildSrcOps[1].displayName == "Build buildSrc"
-        buildSrcOps[1].details.buildPath == ":"
+        // TODO should have a buildPath associated
 
         def loadOps = operations.all(LoadBuildBuildOperationType)
         loadOps.size() == 4
@@ -179,41 +176,33 @@ class CompositeBuildBuildSrcBuildOperationsIntegrationTest extends AbstractCompo
         loadOps[3].details.buildPath == ":buildSrc"
         loadOps[3].parentId == buildSrcOps[1].id
 
-        def buildTreeOp = operations.only(/Prepare build tree/)
-        buildTreeOp.parentId == root.id
 
         def configureOps = operations.all(ConfigureBuildBuildOperationType)
         configureOps.size() == 4
-        configureOps[0].displayName == "Configure build (:buildB:buildSrc)"
-        configureOps[0].details.buildPath == ":buildB:buildSrc"
-        configureOps[0].parentId == buildSrcOps[0].id
-
+        configureOps[0].displayName == "Configure build"
+        configureOps[0].details.buildPath == ":"
+        configureOps[0].parentId == root.id
         configureOps[1].displayName == "Configure build (:buildB)"
         configureOps[1].details.buildPath == ":buildB"
-        configureOps[1].parentId == buildTreeOp.id
-
-        configureOps[2].displayName == "Configure build (:buildSrc)"
-        configureOps[2].details.buildPath == ":buildSrc"
-        configureOps[2].parentId == buildSrcOps[1].id
-
-        configureOps[3].displayName == "Configure build"
-        configureOps[3].details.buildPath == ":"
-        configureOps[3].parentId == buildTreeOp.id
+        configureOps[1].parentId == configureOps[0].id
+        configureOps[2].displayName == "Configure build (:buildB:buildSrc)"
+        configureOps[2].details.buildPath == ":buildB:buildSrc"
+        configureOps[2].parentId == buildSrcOps[0].id
+        configureOps[3].displayName == "Configure build (:buildSrc)"
+        configureOps[3].details.buildPath == ":buildSrc"
+        configureOps[3].parentId == buildSrcOps[1].id
 
         def taskGraphOps = operations.all(CalculateTaskGraphBuildOperationType)
         taskGraphOps.size() == 4
         taskGraphOps[0].displayName == "Calculate task graph (:buildB:buildSrc)"
         taskGraphOps[0].details.buildPath == ":buildB:buildSrc"
         taskGraphOps[0].parentId == buildSrcOps[0].id
-
         taskGraphOps[1].displayName == "Calculate task graph (:buildSrc)"
         taskGraphOps[1].details.buildPath == ":buildSrc"
         taskGraphOps[1].parentId == buildSrcOps[1].id
-
         taskGraphOps[2].displayName == "Calculate task graph"
         taskGraphOps[2].details.buildPath == ":"
         taskGraphOps[2].parentId == root.id
-
         taskGraphOps[3].displayName == "Calculate task graph (:buildB)"
         taskGraphOps[3].details.buildPath == ":buildB"
         taskGraphOps[3].parentId == taskGraphOps[2].id
@@ -234,15 +223,12 @@ class CompositeBuildBuildSrcBuildOperationsIntegrationTest extends AbstractCompo
         graphNotifyOps[0].displayName == "Notify task graph whenReady listeners (:buildB:buildSrc)"
         graphNotifyOps[0].details.buildPath == ":buildB:buildSrc"
         graphNotifyOps[0].parentId == taskGraphOps[0].id
-
         graphNotifyOps[1].displayName == 'Notify task graph whenReady listeners (:buildSrc)'
         graphNotifyOps[1].details.buildPath == ':buildSrc'
         graphNotifyOps[1].parentId == taskGraphOps[1].id
-
         graphNotifyOps[2].displayName == "Notify task graph whenReady listeners"
         graphNotifyOps[2].details.buildPath == ":"
         graphNotifyOps[2].parentId == taskGraphOps[2].id
-
         graphNotifyOps[3].displayName == "Notify task graph whenReady listeners (:buildB)"
         graphNotifyOps[3].details.buildPath == ":buildB"
         graphNotifyOps[3].parentId == taskGraphOps[3].id
