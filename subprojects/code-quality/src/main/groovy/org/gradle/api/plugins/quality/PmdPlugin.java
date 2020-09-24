@@ -63,7 +63,7 @@ public class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
     protected CodeQualityExtension createExtension() {
         extension = project.getExtensions().create("pmd", PmdExtension.class, project);
         extension.setToolVersion(DEFAULT_PMD_VERSION);
-        extension.setRuleSets(new ArrayList<String>(Arrays.asList("category/java/errorprone.xml")));
+        extension.setRuleSets(new ArrayList<>(Arrays.asList("category/java/errorprone.xml")));
         extension.setRuleSetFiles(project.getLayout().files());
         conventionMappingOf(extension).map("targetJdk", () ->
             getDefaultTargetJdk(getJavaPluginConvention().getSourceCompatibility()));
@@ -104,13 +104,13 @@ public class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
     private void configureTaskConventionMapping(Configuration configuration, final Pmd task) {
         ConventionMapping taskMapping = task.getConventionMapping();
         taskMapping.map("pmdClasspath", () -> configuration);
-        taskMapping.map("ruleSets", () ->  extension.getRuleSets());
-        taskMapping.map("ruleSetConfig", () ->  extension.getRuleSetConfig());
-        taskMapping.map("ruleSetFiles", () ->  extension.getRuleSetFiles());
+        taskMapping.map("ruleSets", () -> extension.getRuleSets());
+        taskMapping.map("ruleSetConfig", () -> extension.getRuleSetConfig());
+        taskMapping.map("ruleSetFiles", () -> extension.getRuleSetFiles());
         taskMapping.map("ignoreFailures", () -> extension.isIgnoreFailures());
-        taskMapping.map("rulePriority", () ->  extension.getRulePriority());
-        taskMapping.map("consoleOutput", () ->  extension.isConsoleOutput());
-        taskMapping.map("targetJdk", () ->  extension.getTargetJdk());
+        taskMapping.map("rulePriority", () -> extension.getRulePriority());
+        taskMapping.map("consoleOutput", () -> extension.isConsoleOutput());
+        taskMapping.map("targetJdk", () -> extension.getTargetJdk());
 
         task.getMaxFailures().convention(extension.getMaxFailures());
         task.getIncrementalAnalysis().convention(extension.getIncrementalAnalysis());

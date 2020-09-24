@@ -18,7 +18,6 @@ package org.gradle.api.plugins.quality;
 import com.google.common.util.concurrent.Callables;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.DependencySet;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.internal.ConventionMapping;
@@ -74,53 +73,20 @@ public class CheckstylePlugin extends AbstractCodeQualityPlugin<Checkstyle> {
     }
 
     private void configureDefaultDependencies(Configuration configuration) {
-        configuration.defaultDependencies(new Action<DependencySet>() {
-            @Override
-            public void execute(DependencySet dependencies) {
-                dependencies.add(project.getDependencies().create("com.puppycrawl.tools:checkstyle:" + extension.getToolVersion()));
-            }
-        });
+        configuration.defaultDependencies(dependencies ->
+            dependencies.add(project.getDependencies().create("com.puppycrawl.tools:checkstyle:" + extension.getToolVersion()))
+        );
     }
 
     private void configureTaskConventionMapping(Configuration configuration, Checkstyle task) {
         ConventionMapping taskMapping = task.getConventionMapping();
         taskMapping.map("checkstyleClasspath", Callables.returning(configuration));
-        taskMapping.map("config", new Callable<TextResource>() {
-            @Override
-            public TextResource call() {
-                return extension.getConfig();
-            }
-        });
-        taskMapping.map("configProperties", new Callable<Map<String, Object>>() {
-            @Override
-            public Map<String, Object> call() {
-                return extension.getConfigProperties();
-            }
-        });
-        taskMapping.map("ignoreFailures", new Callable<Boolean>() {
-            @Override
-            public Boolean call() {
-                return extension.isIgnoreFailures();
-            }
-        });
-        taskMapping.map("showViolations", new Callable<Boolean>() {
-            @Override
-            public Boolean call() {
-                return extension.isShowViolations();
-            }
-        });
-        taskMapping.map("maxErrors", new Callable<Integer>() {
-            @Override
-            public Integer call() {
-                return extension.getMaxErrors();
-            }
-        });
-        taskMapping.map("maxWarnings", new Callable<Integer>() {
-            @Override
-            public Integer call() {
-                return extension.getMaxWarnings();
-            }
-        });
+        taskMapping.map("config", (Callable<TextResource>) () -> extension.getConfig());
+        taskMapping.map("configProperties", (Callable<Map<String, Object>>) () -> extension.getConfigProperties());
+        taskMapping.map("ignoreFailures", (Callable<Boolean>) () -> extension.isIgnoreFailures());
+        taskMapping.map("showViolations", (Callable<Boolean>) () -> extension.isShowViolations());
+        taskMapping.map("maxErrors", (Callable<Integer>) () -> extension.getMaxErrors());
+        taskMapping.map("maxWarnings", (Callable<Integer>) () -> extension.getMaxWarnings());
 
         task.getConfigDirectory().convention(extension.getConfigDirectory());
     }

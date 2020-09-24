@@ -80,9 +80,9 @@ public class CodeNarcPlugin extends AbstractCodeQualityPlugin<CodeNarc> {
     }
 
     private void configureDefaultDependencies(Configuration configuration) {
-        configuration.defaultDependencies(dependencies -> {
-            dependencies.add(project.getDependencies().create("org.codenarc:CodeNarc:" + extension.getToolVersion()));
-        });
+        configuration.defaultDependencies(dependencies ->
+            dependencies.add(project.getDependencies().create("org.codenarc:CodeNarc:" + extension.getToolVersion()))
+        );
     }
 
     private void configureTaskConventionMapping(Configuration configuration, CodeNarc task) {
