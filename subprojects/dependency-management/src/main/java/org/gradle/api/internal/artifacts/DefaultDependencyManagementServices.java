@@ -120,6 +120,7 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.configuration.internal.UserCodeApplicationContext;
+import org.gradle.initialization.DependencyResolutionManagementInternal;
 import org.gradle.initialization.InternalBuildFinishedListener;
 import org.gradle.initialization.ProjectAccessListener;
 import org.gradle.internal.Try;
@@ -516,7 +517,13 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                                                                     UserCodeApplicationContext userCodeApplicationContext,
                                                                     DomainObjectCollectionFactory domainObjectCollectionFactory,
                                                                     NotationParser<Object, ComponentSelector> moduleSelectorNotationParser,
-                                                                    ObjectFactory objectFactory) {
+                                                                    ObjectFactory objectFactory,
+                                                                    ServiceRegistry serviceRegistry) {
+            Optional<SettingsInternal> settingsInternal = safeSettings(serviceRegistry);
+            DependencyResolutionManagementInternal drm = null;
+            if (settingsInternal.isPresent()) {
+                drm = settingsInternal.get().getDependencyResolutionManagement();
+            }
             return instantiator.newInstance(DefaultConfigurationContainer.class,
                 configurationResolver,
                 instantiator,
@@ -541,7 +548,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 userCodeApplicationContext,
                 domainObjectCollectionFactory,
                 moduleSelectorNotationParser,
-                objectFactory
+                objectFactory,
+                drm
             );
         }
 

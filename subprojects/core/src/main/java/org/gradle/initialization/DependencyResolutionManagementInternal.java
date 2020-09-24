@@ -15,6 +15,7 @@
  */
 package org.gradle.initialization;
 
+import org.gradle.api.artifacts.ResolutionStrategy;
 import org.gradle.api.artifacts.dsl.ComponentMetadataHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.initialization.DependencyResolutionManagement;
@@ -23,4 +24,6 @@ public interface DependencyResolutionManagementInternal extends DependencyResolu
     RepositoryHandler getRepositoryHandler();
 
     void applyRules(ComponentMetadataHandler target);
+
+    void applyResolutionStrategy(ResolutionStrategy target);
 }

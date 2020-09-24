@@ -17,6 +17,7 @@ package org.gradle.api.initialization;
 
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
+import org.gradle.api.artifacts.ResolutionStrategy;
 import org.gradle.api.artifacts.dsl.ComponentMetadataHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.internal.HasInternalProtocol;
@@ -42,5 +43,14 @@ public interface DependencyResolutionManagement {
      */
     void components(Action<? super ComponentMetadataHandler> registration);
 
+    /**
+     * Returns a handler for registering component metadata rules.
+     */
     ComponentMetadataHandler getComponents();
+
+    /**
+     * Configures resolution strategy for all projects of this build.
+     */
+    void resolutionStrategy(Action<? super ResolutionStrategy> configuration);
+
 }

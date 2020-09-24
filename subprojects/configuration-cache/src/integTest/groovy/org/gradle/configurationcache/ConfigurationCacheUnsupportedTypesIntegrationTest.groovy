@@ -67,7 +67,7 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultDependencyConst
 import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultDependencyHandler
 import org.gradle.api.internal.artifacts.ivyservice.ErrorHandlingConfigurationResolver.ErrorHandlingLenientConfiguration
 import org.gradle.api.internal.artifacts.ivyservice.ErrorHandlingConfigurationResolver.ErrorHandlingResolvedConfiguration
-import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultResolutionStrategy
+import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.SettingsAwareResolutionStrategy
 import org.gradle.api.internal.artifacts.query.DefaultArtifactResolutionQuery
 import org.gradle.api.internal.artifacts.repositories.DefaultMavenArtifactRepository
 import org.gradle.api.internal.artifacts.result.DefaultArtifactResolutionResult
@@ -186,7 +186,7 @@ class ConfigurationCacheUnsupportedTypesIntegrationTest extends AbstractConfigur
         DefaultSourceSet                      | SourceSet                      | "project.sourceSets['main']"
         // Dependency Resolution Types
         DefaultConfigurationContainer         | ConfigurationContainer         | "project.configurations"
-        DefaultResolutionStrategy             | ResolutionStrategy             | "project.configurations.maybeCreate('some').resolutionStrategy"
+        SettingsAwareResolutionStrategy       | ResolutionStrategy             | "project.configurations.maybeCreate('some').resolutionStrategy"
         ErrorHandlingResolvedConfiguration    | ResolvedConfiguration          | "project.configurations.maybeCreate('some').resolvedConfiguration"
         ErrorHandlingLenientConfiguration     | LenientConfiguration           | "project.configurations.maybeCreate('some').resolvedConfiguration.lenientConfiguration"
         ConfigurationResolvableDependencies   | ResolvableDependencies         | "project.configurations.maybeCreate('some').incoming"

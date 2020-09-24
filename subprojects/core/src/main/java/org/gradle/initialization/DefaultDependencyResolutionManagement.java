@@ -21,6 +21,7 @@ import org.gradle.api.Action;
 import org.gradle.api.ActionConfiguration;
 import org.gradle.api.artifacts.ComponentMetadataDetails;
 import org.gradle.api.artifacts.ComponentMetadataRule;
+import org.gradle.api.artifacts.ResolutionStrategy;
 import org.gradle.api.artifacts.dsl.ComponentMetadataHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.internal.artifacts.CrossProjectResolutionServices;
@@ -31,6 +32,7 @@ import java.util.List;
 public class DefaultDependencyResolutionManagement implements DependencyResolutionManagementInternal {
     private final CrossProjectResolutionServices services;
     private final List<Action<? super ComponentMetadataHandler>> componentMetadataRulesActions = Lists.newArrayList();
+    private final List<Action<? super ResolutionStrategy>> resolutionStrategyActions = Lists.newArrayList();
 
     public DefaultDependencyResolutionManagement(CrossProjectResolutionServices services) {
         this.services = services;
@@ -56,6 +58,11 @@ public class DefaultDependencyResolutionManagement implements DependencyResoluti
     }
 
     @Override
+    public void resolutionStrategy(Action<? super ResolutionStrategy> configuration) {
+        resolutionStrategyActions.add(configuration);
+    }
+
+    @Override
     public RepositoryHandler getRepositoryHandler() {
         return getDependencyResolutionServices().getResolveRepositoryHandler();
     }
@@ -64,6 +71,13 @@ public class DefaultDependencyResolutionManagement implements DependencyResoluti
     public void applyRules(ComponentMetadataHandler target) {
         for (Action<? super ComponentMetadataHandler> rule : componentMetadataRulesActions) {
             rule.execute(target);
+        }
+    }
+
+    @Override
+    public void applyResolutionStrategy(ResolutionStrategy target) {
+        for (Action<? super ResolutionStrategy> action : resolutionStrategyActions) {
+            action.execute(target);
         }
     }
 

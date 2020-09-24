@@ -94,7 +94,8 @@ class DefaultConfigurationContainerTest extends Specification {
         userCodeApplicationContext,
         TestUtil.domainObjectCollectionFactory(),
         Mock(NotationParser),
-        TestUtil.objectFactory()
+        TestUtil.objectFactory(),
+        null
     )
 
     def addsNewConfigurationWhenConfiguringSelf() {
