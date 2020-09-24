@@ -46,6 +46,19 @@ Garbage collection time goes from [2.6 seconds](https://scans.gradle.com/s/3bg67
 
 While the impact on your build may vary, most builds can expect a noticeably shorter feedback loop when editing Kotlin DSL build logic thanks to this improvement.
 
+### Configuration cache improvements
+
+#### Supported core plugins
+
+In this release a number of core Gradle plugins got improved to support the configuration cache:
+
+* [`checkstyle`](userguide/checkstyle_plugin.html)
+* [`pmd`](userguide/pmd_plugin.html)
+* [`codenarc`](userguide/codenarc_plugin.html)
+* [`jacoco`](userguide/jacoco_plugin.html)
+
+See the [matrix of supported core plugins](userguide/configuration_cache.html#config_cache:plugins:core) in the user manual.
+
 ## Security Improvements
 
 ### Outdated TLS versions are no longer enabled by default
