@@ -17,6 +17,8 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import com.google.common.collect.ImmutableList;
+import org.gradle.api.Project;
+import org.gradle.api.artifacts.ExternalModuleDependency;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.UnresolvedDependency;
 import org.gradle.api.artifacts.component.BuildIdentifier;
@@ -27,6 +29,7 @@ import org.gradle.api.internal.artifacts.ComponentSelectorConverter;
 import org.gradle.api.internal.artifacts.ConfigurationResolver;
 import org.gradle.api.internal.artifacts.GlobalDependencyResolutionRules;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
+import org.gradle.api.internal.artifacts.Module;
 import org.gradle.api.internal.artifacts.ResolverResults;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.configurations.ConflictResolution;
@@ -60,11 +63,13 @@ import org.gradle.api.internal.artifacts.transform.ArtifactTransforms;
 import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
 import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.cache.internal.BinaryStore;
 import org.gradle.cache.internal.Store;
 import org.gradle.internal.Transformers;
+import org.gradle.internal.build.BuildState;
 import org.gradle.internal.component.local.model.DslOriginDependencyMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.locking.DependencyLockingArtifactVisitor;
@@ -76,7 +81,6 @@ import java.util.List;
 import java.util.Set;
 
 public class DefaultConfigurationResolver implements ConfigurationResolver {
-    private static final Spec<DependencyMetadata> IS_LOCAL_EDGE = element -> element instanceof DslOriginDependencyMetadata && ((DslOriginDependencyMetadata) element).getSource() instanceof ProjectDependency;
     private final ArtifactDependencyResolver resolver;
     private final RepositoryHandler repositories;
     private final GlobalDependencyResolutionRules metadataHandler;
@@ -94,6 +98,23 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
     private final DependencyVerificationOverride dependencyVerificationOverride;
     private final ComponentSelectionDescriptorFactory componentSelectionDescriptorFactory;
 
+    private BuildState currentBuildState;
+
+    private final Spec<DependencyMetadata> isLocalEdge = element -> {
+        if (element instanceof DslOriginDependencyMetadata && ((DslOriginDependencyMetadata) element).getSource() instanceof ProjectDependency) {
+            return true;
+        } else if (element instanceof DslOriginDependencyMetadata && ((DslOriginDependencyMetadata) element).getSource() instanceof ExternalModuleDependency) {
+            ExternalModuleDependency moduleIdentifier = (ExternalModuleDependency) ((DslOriginDependencyMetadata) element).getSource();
+            for (Project projectState : currentBuildState.getBuild().getRootProject().getAllprojects()) {
+                Module module = ((ProjectInternal) projectState).getModule();
+                if (module.getGroup().equals(moduleIdentifier.getGroup()) && module.getName().equals(moduleIdentifier.getName())) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    };
+
     public DefaultConfigurationResolver(ArtifactDependencyResolver resolver, RepositoryHandler repositories,
                                         GlobalDependencyResolutionRules metadataHandler,
                                         ResolutionResultsStoreFactory storeFactory,
@@ -105,7 +126,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
                                         ArtifactTypeRegistry artifactTypeRegistry,
                                         ComponentSelectorConverter componentSelectorConverter,
                                         AttributeContainerSerializer attributeContainerSerializer,
-                                        BuildIdentifier currentBuild, AttributeDesugaring attributeDesugaring,
+                                        BuildState currentBuild, AttributeDesugaring attributeDesugaring,
                                         DependencyVerificationOverride dependencyVerificationOverride,
                                         ComponentSelectionDescriptorFactory componentSelectionDescriptorFactory) {
         this.resolver = resolver;
@@ -120,10 +141,12 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         this.artifactTypeRegistry = artifactTypeRegistry;
         this.componentSelectorConverter = componentSelectorConverter;
         this.attributeContainerSerializer = attributeContainerSerializer;
-        this.currentBuild = currentBuild;
+        this.currentBuild = currentBuild.getBuildIdentifier();
         this.attributeDesugaring = attributeDesugaring;
         this.dependencyVerificationOverride = dependencyVerificationOverride;
         this.componentSelectionDescriptorFactory = componentSelectionDescriptorFactory;
+
+        this.currentBuildState = currentBuild;
     }
 
     @Override
@@ -133,7 +156,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         InMemoryResolutionResultBuilder resolutionResultBuilder = new InMemoryResolutionResultBuilder();
         CompositeDependencyGraphVisitor graphVisitor = new CompositeDependencyGraphVisitor(failureCollector, resolutionResultBuilder);
         DefaultResolvedArtifactsBuilder artifactsVisitor = new DefaultResolvedArtifactsBuilder(currentBuild, buildProjectDependencies, resolutionStrategy.getSortOrder());
-        resolver.resolve(configuration, ImmutableList.of(), metadataHandler, IS_LOCAL_EDGE, graphVisitor, artifactsVisitor, attributesSchema, artifactTypeRegistry);
+        resolver.resolve(configuration, ImmutableList.of(), metadataHandler, isLocalEdge, graphVisitor, artifactsVisitor, attributesSchema, artifactTypeRegistry);
         result.graphResolved(resolutionResultBuilder.getResolutionResult(), new ResolvedLocalComponentsResultGraphVisitor(currentBuild), new BuildDependenciesOnlyVisitedArtifactSet(failureCollector.complete(Collections.emptySet()), artifactsVisitor.complete(), artifactTransforms, configuration.getDependenciesResolver()));
     }
 

@@ -50,6 +50,29 @@ class CompositeBuildRootProjectIntegrationTest extends AbstractCompositeBuildInt
         result.assertTaskExecuted(":compileJava")
     }
 
+    def "non-composite build can refer to own subprojects by GA coordinates"() {
+        given:
+        def buildB = multiProjectBuild("buildB", ['c1', 'c2', 'c3']) {
+            buildFile << """
+            allprojects {
+                apply plugin: 'java-library'
+            }
+            """
+        }
+        dependency(buildB, "org.test:c1")
+        dependency(buildB, "org.test:c2:1.0")
+        dependency(new BuildTestFile(buildB.file('c3'), 'c3'), "org.test:buildB") // dependency to root
+
+        when:
+        execute(buildB, "c3:jar")
+
+        then:
+        result.assertTaskExecuted(":c1:compileJava")
+        result.assertTaskExecuted(":c2:compileJava")
+        result.assertTaskExecuted(":c3:compileJava")
+        result.assertTaskExecuted(":compileJava")
+    }
+
     @ToBeImplemented("https://github.com/gradle/gradle/issues/6229")
     def "included build can depend on including build"() {
         given:

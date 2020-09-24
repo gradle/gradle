@@ -15,9 +15,12 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 
+import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
+import org.gradle.api.internal.artifacts.Module;
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentResolvers;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
@@ -26,6 +29,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs
 import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.component.ArtifactType;
+import org.gradle.api.internal.project.ProjectState;
 import org.gradle.internal.component.local.model.DefaultProjectComponentSelector;
 import org.gradle.internal.component.local.model.LocalComponentMetadata;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
@@ -89,6 +93,16 @@ public class ProjectDependencyResolver implements ComponentMetaDataResolver, Dep
                 result.failed(new ModuleVersionResolveException(selector, () -> projectId + " not found."));
             } else {
                 result.resolved(componentMetaData);
+            }
+        } else if (dependency.getSelector() instanceof ModuleComponentSelector) {
+            ModuleIdentifier moduleIdentifier = ((ModuleComponentSelector) dependency.getSelector()).getModuleIdentifier();
+            for (ProjectState projectState: artifactResolver.getAllProjects()) {
+                Module module = projectState.getMutableModel().getModule();
+                if (module.getGroup().equals(moduleIdentifier.getGroup()) && module.getName().equals(moduleIdentifier.getName())) {
+                    LocalComponentMetadata componentMetaData = localComponentRegistry.getComponent(module.getProjectId());
+                    result.resolved(componentMetaData);
+                    break;
+                }
             }
         }
     }

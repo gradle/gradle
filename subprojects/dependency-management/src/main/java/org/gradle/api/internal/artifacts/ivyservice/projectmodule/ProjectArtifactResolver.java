@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.component.ArtifactType;
+import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
@@ -30,6 +31,7 @@ import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.io.File;
+import java.util.Collection;
 
 @ServiceScope(Scopes.Build.class)
 public class ProjectArtifactResolver implements ArtifactResolver {
@@ -54,5 +56,9 @@ public class ProjectArtifactResolver implements ArtifactResolver {
         } else {
             result.notFound(projectArtifact.getId());
         }
+    }
+
+    Collection<? extends ProjectState> getAllProjects() {
+        return projectStateRegistry.getAllProjects();
     }
 }

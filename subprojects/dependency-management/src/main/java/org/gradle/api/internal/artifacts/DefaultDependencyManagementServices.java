@@ -654,7 +654,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                                     artifactTypeRegistry,
                                     componentSelectorConverter,
                                     attributeContainerSerializer,
-                                    currentBuild.getBuildIdentifier(),
+                                    currentBuild,
                                     new AttributeDesugaring(attributesFactory),
                                     dependencyVerificationOverride,
                                 componentSelectionDescriptorFactory),
