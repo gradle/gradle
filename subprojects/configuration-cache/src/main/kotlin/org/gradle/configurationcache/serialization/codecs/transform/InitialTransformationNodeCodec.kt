@@ -25,13 +25,11 @@ import org.gradle.configurationcache.serialization.ReadContext
 import org.gradle.configurationcache.serialization.WriteContext
 import org.gradle.configurationcache.serialization.readNonNull
 import org.gradle.configurationcache.serialization.withCodec
-import org.gradle.internal.operations.BuildOperationExecutor
 
 
 internal
 class InitialTransformationNodeCodec(
     private val userTypesCodec: Codec<Any?>,
-    private val buildOperationExecutor: BuildOperationExecutor,
     private val transformListener: ArtifactTransformListener
 ) : AbstractTransformationNodeCodec<TransformationNode.InitialTransformationNode>() {
 
@@ -51,6 +49,6 @@ class InitialTransformationNodeCodec(
             (read() as TransformDependencies).recreate()
         }
         val artifacts = ArtifactBackedResolvedVariant.SingleLocalArtifactSet(readNonNull())
-        return TransformationNode.initial(transformationStep, artifacts, resolver, buildOperationExecutor, transformListener)
+        return TransformationNode.initial(transformationStep, artifacts, resolver, transformListener)
     }
 }

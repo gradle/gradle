@@ -24,13 +24,11 @@ import org.gradle.configurationcache.serialization.ReadContext
 import org.gradle.configurationcache.serialization.WriteContext
 import org.gradle.configurationcache.serialization.readNonNull
 import org.gradle.configurationcache.serialization.withCodec
-import org.gradle.internal.operations.BuildOperationExecutor
 
 
 internal
 class ChainedTransformationNodeCodec(
     private val userTypesCodec: Codec<Any?>,
-    private val buildOperationExecutor: BuildOperationExecutor,
     private val transformListener: ArtifactTransformListener
 ) : AbstractTransformationNodeCodec<TransformationNode.ChainedTransformationNode>() {
 
@@ -50,6 +48,6 @@ class ChainedTransformationNodeCodec(
             (read() as TransformDependencies).recreate()
         }
         val previousStep = readNonNull<TransformationNode>()
-        return TransformationNode.chained(transformationStep, previousStep, resolver, buildOperationExecutor, transformListener)
+        return TransformationNode.chained(transformationStep, previousStep, resolver, transformListener)
     }
 }

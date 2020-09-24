@@ -177,8 +177,8 @@ class Codecs(
         fileCollectionTypes(directoryFileTreeFactory, fileCollectionFactory, fileOperations, fileFactory, patternSetFactory)
 
         bind(TaskNodeCodec(userTypesCodec, taskNodeFactory))
-        bind(InitialTransformationNodeCodec(userTypesCodec, buildOperationExecutor, transformListener))
-        bind(ChainedTransformationNodeCodec(userTypesCodec, buildOperationExecutor, transformListener))
+        bind(InitialTransformationNodeCodec(userTypesCodec, transformListener))
+        bind(ChainedTransformationNodeCodec(userTypesCodec, transformListener))
         bind(IsolateTransformerParametersNodeCodec(userTypesCodec))
         bind(WorkNodeActionCodec)
         bind(ActionNodeCodec)

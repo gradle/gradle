@@ -21,7 +21,6 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Resol
 import org.gradle.api.internal.tasks.TaskDependencyContainer
 import org.gradle.execution.plan.Node
 import org.gradle.execution.plan.TaskDependencyResolver
-import org.gradle.internal.operations.BuildOperationExecutor
 import spock.lang.Specification
 
 class TransformationNodeSpec extends Specification {
@@ -31,7 +30,6 @@ class TransformationNodeSpec extends Specification {
     def hardSuccessor = Mock(Action)
     def transformationStep = Mock(TransformationStep)
     def graphDependenciesResolver = Mock(ExecutionGraphDependenciesResolver)
-    def buildOperationExecutor = Mock(BuildOperationExecutor)
     def transformListener = Mock(ArtifactTransformListener)
 
     def "initial node adds dependency on artifact node and dependencies"() {
@@ -42,7 +40,7 @@ class TransformationNodeSpec extends Specification {
         def isolationNode = node()
 
         given:
-        def node = TransformationNode.initial(transformationStep, artifact, graphDependenciesResolver, buildOperationExecutor, transformListener)
+        def node = TransformationNode.initial(transformationStep, artifact, graphDependenciesResolver, transformListener)
 
         when:
         node.resolveDependencies(dependencyResolver, hardSuccessor)
@@ -64,10 +62,10 @@ class TransformationNodeSpec extends Specification {
         def container = Stub(TaskDependencyContainer)
         def additionalNode = node()
         def isolationNode = node()
-        def initialNode = TransformationNode.initial(Stub(TransformationStep), artifact, graphDependenciesResolver, buildOperationExecutor, transformListener)
+        def initialNode = TransformationNode.initial(Stub(TransformationStep), artifact, graphDependenciesResolver, transformListener)
 
         given:
-        def node = TransformationNode.chained(transformationStep, initialNode, graphDependenciesResolver, buildOperationExecutor, transformListener)
+        def node = TransformationNode.chained(transformationStep, initialNode, graphDependenciesResolver, transformListener)
 
         when:
         node.resolveDependencies(dependencyResolver, hardSuccessor)
