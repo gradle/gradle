@@ -895,6 +895,14 @@ But it can't be shared between developers or CI machines.
 
 See link:{gradle-issues}13510[gradle/gradle#13510].
 
+[[config_cache:not_implemented:store_parallel_execution]]
+=== Parallel task execution on cache misses
+
+When there's no configuration cache available and the work graph needs to be calculated, tasks are not executed in parallel by default.
+Only builds that reuse the configuration cache currently execute all tasks in parallel by default.
+
+See link:{gradle-issues}14624[gradle/gradle#14624].
+
 [[config_cache:not_yet_implemented:normalization]]
 === Custom input normalization
 
