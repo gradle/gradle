@@ -29,9 +29,9 @@ import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
+import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.ForeignBuildIdentifier;
-import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.tasks.TaskReference;
@@ -42,7 +42,6 @@ import org.gradle.internal.Pair;
 import org.gradle.internal.build.AbstractBuildState;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.IncludedBuildState;
-import org.gradle.internal.component.local.model.DefaultLocalComponentMetadata;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.work.WorkerLeaseRegistry;
 import org.gradle.internal.work.WorkerLeaseService;
@@ -164,10 +163,8 @@ public class DefaultIncludedBuild extends AbstractBuildState implements Included
     }
 
     private void registerProject(Set<Pair<ModuleVersionIdentifier, ProjectComponentIdentifier>> availableModules, ProjectInternal project) {
-        LocalComponentRegistry localComponentRegistry = project.getServices().get(LocalComponentRegistry.class);
         ProjectComponentIdentifier projectIdentifier = new DefaultProjectComponentIdentifier(buildIdentifier, project.getIdentityPath(), project.getProjectPath(), project.getName());
-        DefaultLocalComponentMetadata originalComponent = (DefaultLocalComponentMetadata) localComponentRegistry.getComponent(projectIdentifier);
-        ModuleVersionIdentifier moduleId = originalComponent.getModuleVersionId();
+        ModuleVersionIdentifier moduleId = DefaultModuleVersionIdentifier.newId(project.getModule());
         LOGGER.info("Registering " + project + " in composite build. Will substitute for module '" + moduleId.getModule() + "'.");
         availableModules.add(Pair.of(moduleId, projectIdentifier));
     }
