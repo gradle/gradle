@@ -34,7 +34,7 @@ abstract class PmdInvoker {
         def pmdClasspath = pmdTask.pmdClasspath.filter(new FileExistFilter())
         def targetJdk = pmdTask.targetJdk
         def ruleSets = pmdTask.ruleSets
-        def rulePriority = pmdTask.rulePriority
+        def rulePriority = pmdTask.rulesMinimumPriority.get()
         def antBuilder = pmdTask.antBuilder
         def source = pmdTask.source
         def ruleSetFiles = pmdTask.ruleSetFiles

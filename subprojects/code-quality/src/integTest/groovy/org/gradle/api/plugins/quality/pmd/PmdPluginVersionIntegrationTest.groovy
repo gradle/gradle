@@ -118,7 +118,7 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
         badCode()
         buildFile << """
             pmd {
-                rulePriority = 2
+                rulesMinimumPriority = 2
             }
         """
 
@@ -135,24 +135,24 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
         goodCode()
         buildFile << """
         pmd {
-            rulePriority = 11
+            rulesMinimumPriority = 11
         }
 """
         expect:
         fails("check")
-        failure.assertHasCause("Invalid rulePriority '11'.  Valid range 1 (highest) to 5 (lowest).")
+        failure.assertHasCause("Invalid rulesMinimumPriority '11'.  Valid range 1 (highest) to 5 (lowest).")
     }
 
     def "gets reasonable message when priority level threshold is out of range from task"() {
         goodCode()
         buildFile << """
         pmdMain {
-            rulePriority = 11
+            rulesMinimumPriority = 11
         }
 """
         expect:
         fails("check")
-        failure.assertHasCause("Invalid rulePriority '11'.  Valid range 1 (highest) to 5 (lowest).")
+        failure.assertHasCause("Invalid rulesMinimumPriority '11'.  Valid range 1 (highest) to 5 (lowest).")
     }
 
     def "can configure reporting"() {

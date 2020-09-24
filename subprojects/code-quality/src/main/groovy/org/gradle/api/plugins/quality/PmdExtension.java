@@ -21,6 +21,7 @@ import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.provider.Property;
 import org.gradle.api.resources.TextResource;
+import org.gradle.internal.deprecation.DeprecationLogger;
 
 import javax.annotation.Nullable;
 import java.util.Arrays;
@@ -37,15 +38,16 @@ public class PmdExtension extends CodeQualityExtension {
 
     private List<String> ruleSets;
     private TargetJdk targetJdk;
-    private int rulePriority = 5;
     private TextResource ruleSetConfig;
     private ConfigurableFileCollection ruleSetFiles;
     private boolean consoleOutput;
+    private Property<Integer> rulesMinimumPriority;
     private Property<Integer> maxFailures;
     private Property<Boolean> incrementalAnalysis;
 
     public PmdExtension(Project project) {
         this.project = project;
+        this.rulesMinimumPriority = project.getObjects().property(Integer.class).convention(5);
         this.incrementalAnalysis = project.getObjects().property(Boolean.class).convention(true);
         this.maxFailures = project.getObjects().property(Integer.class).convention(0);
     }
@@ -131,19 +133,44 @@ public class PmdExtension extends CodeQualityExtension {
      * See the official documentation for the <a href="https://pmd.github.io/pmd-6.26.0/pmd_userdocs_configuring_rules.html">list of priorities</a>.
      *
      * <pre>
-     *     rulePriority = 3
+     *     rulesMinimumPriority = 3
      * </pre>
+     *
+     * @since 6.8
      */
+    @Incubating
+    public Property<Integer> getRulesMinimumPriority() {
+        return rulesMinimumPriority;
+    }
+
+    /**
+     * The rule priority threshold.
+     *
+     * @deprecated See {@link #getRulesMinimumPriority()}
+     */
+    @Deprecated
     public int getRulePriority() {
-        return rulePriority;
+        DeprecationLogger.deprecateProperty(PmdExtension.class, "rulePriority")
+            .replaceWith("rulesMinimumPriority")
+            .willBeRemovedInGradle7()
+            .withDslReference()
+            .nagUser();
+        return rulesMinimumPriority.get();
     }
 
     /**
      * Sets the rule priority threshold.
+     *
+     * @deprecated See {@link #getRulesMinimumPriority()}
      */
+    @Deprecated
     public void setRulePriority(int intValue) {
-        Pmd.validate(intValue);
-        rulePriority = intValue;
+        DeprecationLogger.deprecateProperty(PmdExtension.class, "rulePriority")
+            .replaceWith("rulesMinimumPriority")
+            .willBeRemovedInGradle7()
+            .withDslReference()
+            .nagUser();
+        rulesMinimumPriority.set(intValue);
     }
 
     /**

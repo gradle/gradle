@@ -41,7 +41,7 @@
                 <td><literal>0</literal></td>
             </tr>
             <tr>
-                <td>rulePriority</td>
+                <td>rulesMinimumPriority</td>
                 <td><literal>5</literal></td>
             </tr>
             <tr>

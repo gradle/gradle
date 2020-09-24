@@ -108,10 +108,10 @@ public class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
         taskMapping.map("ruleSetConfig", () -> extension.getRuleSetConfig());
         taskMapping.map("ruleSetFiles", () -> extension.getRuleSetFiles());
         taskMapping.map("ignoreFailures", () -> extension.isIgnoreFailures());
-        taskMapping.map("rulePriority", () -> extension.getRulePriority());
         taskMapping.map("consoleOutput", () -> extension.isConsoleOutput());
         taskMapping.map("targetJdk", () -> extension.getTargetJdk());
 
+        task.getRulesMinimumPriority().convention(extension.getRulesMinimumPriority());
         task.getMaxFailures().convention(extension.getMaxFailures());
         task.getIncrementalAnalysis().convention(extension.getIncrementalAnalysis());
     }
