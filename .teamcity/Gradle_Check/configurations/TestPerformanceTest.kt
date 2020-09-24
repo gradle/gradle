@@ -45,23 +45,15 @@ class TestPerformanceTest(model: CIBuildModel, stage: Stage) : BaseGradleBuildTy
         }
     }
 
-    fun BuildSteps.movePerformanceResults(postfix: String) {
-        script {
-            name = "MOVE_TEST_RESULTS"
-            scriptContent = """
-                cp subprojects/performance/build/test-results-${testProject}PerformanceAdHocTest.zip subprojects/performance/build/test-results-${testProject}PerformanceAdHocTest-$postfix.zip
-            """.trimIndent()
-        }
-    }
-
-    fun BuildSteps.adHocPerformanceTest(test: String) {
+    fun BuildSteps.adHocPerformanceTest(tests: List<String>) {
         gradleStep(listOf(
             "-PperformanceBaselines=force-defaults",
+            "clean",
             "performance:${testProject}PerformanceAdHocTest",
-            """--tests "$test" --warmups 2 --runs 2 --checks none""",
+            tests.map { """--tests "$it""""}.joinToString(" "),
+            """--warmups 2 --runs 2 --checks none""",
             """"-PtestJavaHome=${os.individualPerformanceTestJavaHome()}""""
         ))
-        movePerformanceResults("[^\\p{Alpha}]".toRegex().replace(test, ""))
     }
 
     uuid = "${model.projectPrefix}TestPerformanceTest"
@@ -78,10 +70,11 @@ class TestPerformanceTest(model: CIBuildModel, stage: Stage) : BaseGradleBuildTy
             executionMode = BuildStep.ExecutionMode.ALWAYS
             scriptContent = os.killAllGradleProcesses
         }
-        gradleStep(listOf("clean"))
-        adHocPerformanceTest("org.gradle.performance.regression.java.JavaIDEModelPerformanceTest.get IDE model for IDEA")
-        adHocPerformanceTest("org.gradle.performance.regression.java.JavaUpToDatePerformanceTest.up-to-date assemble (parallel true)")
-        adHocPerformanceTest("org.gradle.performance.regression.corefeature.TaskAvoidancePerformanceTest.help with lazy and eager tasks")
+        adHocPerformanceTest(listOf(
+            "org.gradle.performance.regression.java.JavaIDEModelPerformanceTest.get IDE model for IDEA",
+            "org.gradle.performance.regression.java.JavaUpToDatePerformanceTest.up-to-date assemble (parallel true)",
+            "org.gradle.performance.regression.corefeature.TaskAvoidancePerformanceTest.help with lazy and eager tasks"
+        ))
 
         checkCleanM2(os)
     }
