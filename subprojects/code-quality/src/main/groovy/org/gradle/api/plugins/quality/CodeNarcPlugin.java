@@ -15,12 +15,18 @@
  */
 package org.gradle.api.plugins.quality;
 
+import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.file.ProjectLayout;
+import org.gradle.api.file.RegularFile;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.plugins.GroovyBasePlugin;
 import org.gradle.api.plugins.quality.internal.AbstractCodeQualityPlugin;
+import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.ProviderFactory;
+import org.gradle.api.reporting.SingleFileReport;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.internal.metaobject.DynamicObject;
 
@@ -90,13 +96,39 @@ public class CodeNarcPlugin extends AbstractCodeQualityPlugin<CodeNarc> {
     }
 
     private void configureReportsConventionMapping(CodeNarc task, final String baseName) {
-        task.getReports().all(report -> {
-            report.getRequired().convention(project.getProviders().provider(() -> report.getName().equals(extension.getReportFormat())));
-            report.getOutputLocation().convention(project.getLayout().getProjectDirectory().file(project.provider(() -> {
+        ProjectLayout layout = project.getLayout();
+        ProviderFactory providers = project.getProviders();
+        Provider<String> reportFormat = providers.provider(() -> extension.getReportFormat());
+        Provider<RegularFile> reportsDir = layout.file(providers.provider(() -> extension.getReportsDir()));
+        task.getReports().all(
+            new ReportsConventionMappingAction(layout, providers, reportFormat, reportsDir, baseName)
+        );
+    }
+
+    private static class ReportsConventionMappingAction implements Action<SingleFileReport> {
+
+        private final ProjectLayout layout;
+        private final ProviderFactory providers;
+        private final Provider<String> reportFormat;
+        private final Provider<RegularFile> reportsDir;
+        private final String baseName;
+
+        public ReportsConventionMappingAction(ProjectLayout layout, ProviderFactory providers, Provider<String> reportFormat, Provider<RegularFile> reportsDir, String baseName) {
+            this.layout = layout;
+            this.providers = providers;
+            this.reportFormat = reportFormat;
+            this.reportsDir = reportsDir;
+            this.baseName = baseName;
+        }
+
+        @Override
+        public void execute(SingleFileReport report) {
+            report.getRequired().convention(providers.provider(() -> report.getName().equals(reportFormat.get())));
+            report.getOutputLocation().convention(layout.getProjectDirectory().file(providers.provider(() -> {
                 String fileSuffix = report.getName().equals("text") ? "txt" : report.getName();
-                return new File(extension.getReportsDir(), baseName + "." + fileSuffix).getAbsolutePath();
+                return new File(reportsDir.get().getAsFile(), baseName + "." + fileSuffix).getAbsolutePath();
             })));
-        });
+        }
     }
 
     @Override
