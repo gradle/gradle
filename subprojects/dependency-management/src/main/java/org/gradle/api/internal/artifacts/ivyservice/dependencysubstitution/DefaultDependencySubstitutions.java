@@ -75,7 +75,7 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
     private final NotationParser<Object, Capability> capabilityNotationParser;
 
     private MutationValidator mutationValidator = MutationValidator.IGNORE;
-    private boolean hasDependencySubstitutionRule;
+    private boolean rulesMayAddProjectDependency;
 
     public static DefaultDependencySubstitutions forResolutionStrategy(ComponentIdentifierFactory componentIdentifierFactory,
                                                                        NotationParser<Object, ComponentSelector> moduleSelectorNotationParser,
@@ -140,8 +140,8 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
     }
 
     @Override
-    public boolean hasRules() {
-        return hasDependencySubstitutionRule;
+    public boolean rulesMayAddProjectDependency() {
+        return rulesMayAddProjectDependency;
     }
 
     @Override
@@ -152,7 +152,7 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
     protected void addSubstitution(Action<? super DependencySubstitution> rule, boolean projectInvolved) {
         addRule(rule);
         if (projectInvolved) {
-            hasDependencySubstitutionRule = true;
+            rulesMayAddProjectDependency = true;
         }
     }
 
@@ -164,7 +164,7 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
     @Override
     public DependencySubstitutions all(Action<? super DependencySubstitution> rule) {
         addRule(rule);
-        hasDependencySubstitutionRule = true;
+        rulesMayAddProjectDependency = true;
         return this;
     }
 

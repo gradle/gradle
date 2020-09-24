@@ -233,7 +233,10 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
 
     @Override
     public boolean resolveGraphToDetermineTaskDependencies() {
-        return assumeFluidDependencies || dependencySubstitutions.hasRules() || globalDependencySubstitutionRules.hasRules() || vcsResolver.hasRules();
+        return assumeFluidDependencies
+                || dependencySubstitutions.rulesMayAddProjectDependency()
+                || globalDependencySubstitutionRules.rulesMayAddProjectDependency()
+                || vcsResolver.hasRules();
     }
 
     @Override
