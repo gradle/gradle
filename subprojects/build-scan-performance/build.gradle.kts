@@ -69,7 +69,6 @@ subprojects {
 }
 
 tasks.withType<PerformanceTest>().configureEach {
-    dependsOn(generateTemplate)
     systemProperties["incomingArtifactDir"] = "$rootDir/incoming/"
 
     environment("ARTIFACTORY_USERNAME", System.getenv("ARTIFACTORY_USERNAME"))
