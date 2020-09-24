@@ -466,11 +466,6 @@ class PerformanceTestPlugin : Plugin<Project> {
             if (project.hasProperty(PropertyNames.performanceTestVerbose)) {
                 testLogging.showStandardStreams = true
             }
-            if (project.name == "build-scan-performance") {
-                performanceReporter = createPerformanceReporter().also {
-                    it.reportGeneratorClass = "org.gradle.performance.results.BuildScanReportGenerator"
-                }
-            }
         }
         val testResultsZipTask = testResultsZipTaskFor(performanceTest, name)
 
