@@ -29,17 +29,19 @@ import org.gradle.performance.results.BaselineVersion
 import org.gradle.performance.results.BuildScanResultsStore
 import org.gradle.performance.results.CrossBuildPerformanceResults
 import org.gradle.performance.results.GradleProfilerReporter
+import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.AutoCleanup
 import spock.lang.Shared
 import spock.lang.Specification
 
+@CleanupTestDirectory
 class AbstractBuildScanPluginPerformanceTest extends Specification {
 
     static String incomingDir = "../../incoming"
     @Rule
-    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
+    TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
 
     @Rule
     PerformanceTestIdProvider performanceTestIdProvider = new PerformanceTestIdProvider()
@@ -60,12 +62,12 @@ class AbstractBuildScanPluginPerformanceTest extends Specification {
         def buildStampJsonData = new JsonSlurper().parse(buildStampJsonFile) as Map<String, ?>
         assert buildStampJsonData.commitId
         def pluginCommitId = buildStampJsonData.commitId as String
-        def gradleProfilerReporter = new GradleProfilerReporter(tmpDir.testDirectory)
+        def gradleProfilerReporter = new GradleProfilerReporter(temporaryFolder.testDirectory)
         runner = new BuildScanPerformanceTestRunner(new GradleBuildExperimentRunner(gradleProfilerReporter), resultStore, resultStore, pluginCommitId, buildContext) {
             @Override
             protected void defaultSpec(BuildExperimentSpec.Builder builder) {
                 super.defaultSpec(builder)
-                builder.workingDirectory = tmpDir.testDirectory
+                builder.workingDirectory = temporaryFolder.testDirectory
                 (builder.invocation as GradleInvocationSpec.InvocationBuilder).buildLog(new File(builder.workingDirectory, "build.log"))
             }
         }
