@@ -50,7 +50,7 @@ class TestPerformanceTest(model: CIBuildModel, stage: Stage) : BaseGradleBuildTy
             "-PperformanceBaselines=force-defaults",
             "clean",
             "performance:${testProject}PerformanceAdHocTest",
-            tests.map { """--tests "$it""""}.joinToString(" "),
+            tests.map { """--tests "$it"""" }.joinToString(" "),
             """--warmups 2 --runs 2 --checks none""",
             """"-PtestJavaHome=${os.individualPerformanceTestJavaHome()}""""
         ))
