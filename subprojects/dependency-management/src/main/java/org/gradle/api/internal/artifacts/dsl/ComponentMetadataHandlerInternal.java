@@ -20,4 +20,5 @@ import org.gradle.internal.component.external.model.VariantDerivationStrategy;
 public interface ComponentMetadataHandlerInternal {
     void setVariantDerivationStrategy(VariantDerivationStrategy strategy);
     VariantDerivationStrategy getVariantDerivationStrategy();
+    boolean doesNotHaveRules();
 }

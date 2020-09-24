@@ -366,4 +366,9 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
     public void dependencyResolutionManagement(Action<? super DependencyResolutionManagement> dependencyResolutionConfiguration) {
         dependencyResolutionConfiguration.execute(dependencyResolutionManagement);
     }
+
+    @Override
+    public DependencyResolutionManagementInternal getDependencyResolutionManagement() {
+        return dependencyResolutionManagement;
+    }
 }

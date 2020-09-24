@@ -60,9 +60,9 @@ import org.gradle.api.internal.artifacts.configurations.DefaultConfiguration.Con
 import org.gradle.api.internal.artifacts.configurations.DefaultConfiguration.ConfigurationResolvableDependencies.LenientResolutionResult
 import org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
-import org.gradle.api.internal.artifacts.dsl.DefaultComponentMetadataHandler
 import org.gradle.api.internal.artifacts.dsl.DefaultComponentModuleMetadataHandler
 import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler
+import org.gradle.api.internal.artifacts.dsl.SettingsAwareComponentMetadataHandler
 import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultDependencyConstraintHandler
 import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultDependencyHandler
 import org.gradle.api.internal.artifacts.ivyservice.ErrorHandlingConfigurationResolver.ErrorHandlingLenientConfiguration
@@ -97,7 +97,6 @@ import java.util.concurrent.Executor
 import java.util.concurrent.Executors.DefaultThreadFactory
 import java.util.concurrent.Executors.FinalizableDelegatedExecutorService
 import java.util.concurrent.ThreadFactory
-
 
 class ConfigurationCacheUnsupportedTypesIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
@@ -197,7 +196,7 @@ class ConfigurationCacheUnsupportedTypesIntegrationTest extends AbstractConfigur
         DefaultMavenArtifactRepository        | ArtifactRepository             | "project.repositories.mavenCentral()"
         DefaultDependencyHandler              | DependencyHandler              | "project.dependencies"
         DefaultDependencyConstraintHandler    | DependencyConstraintHandler    | "project.dependencies.constraints"
-        DefaultComponentMetadataHandler       | ComponentMetadataHandler       | "project.dependencies.components"
+        SettingsAwareComponentMetadataHandler | ComponentMetadataHandler       | "project.dependencies.components"
         DefaultComponentModuleMetadataHandler | ComponentModuleMetadataHandler | "project.dependencies.modules"
         DefaultAttributesSchema               | AttributesSchema               | "project.dependencies.attributesSchema"
         DefaultAttributeMatchingStrategy      | AttributeMatchingStrategy      | "project.dependencies.attributesSchema.attribute(Usage.USAGE_ATTRIBUTE)"

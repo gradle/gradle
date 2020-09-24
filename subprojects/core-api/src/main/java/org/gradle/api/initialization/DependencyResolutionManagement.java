@@ -17,6 +17,7 @@ package org.gradle.api.initialization;
 
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
+import org.gradle.api.artifacts.dsl.ComponentMetadataHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.internal.HasInternalProtocol;
 
@@ -34,4 +35,12 @@ public interface DependencyResolutionManagement {
      * @param repositoryConfiguration the repositories configuration
      */
     void repositories(Action<? super RepositoryHandler> repositoryConfiguration);
+
+    /**
+     * Registers component metadata rules used by all projects
+     * @param registration the registration action
+     */
+    void components(Action<? super ComponentMetadataHandler> registration);
+
+    ComponentMetadataHandler getComponents();
 }
