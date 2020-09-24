@@ -21,7 +21,7 @@ import org.gradle.util.ToBeImplemented
 
 class CompositeBuildRootProjectIntegrationTest extends AbstractCompositeBuildIntegrationTest {
 
-    def "can refer to own subproject by GA coordinates"() {
+    def "root of a composite build can refer to own subprojects by GA coordinates"() {
         given:
         def buildB = multiProjectBuild("buildB", ['c1', 'c2', 'c3']) {
             buildFile << """
@@ -33,6 +33,10 @@ class CompositeBuildRootProjectIntegrationTest extends AbstractCompositeBuildInt
         dependency(buildB, "org.test:c1")
         dependency(buildB, "org.test:c2:1.0")
         dependency(new BuildTestFile(buildB.file('c3'), 'c3'), "org.test:buildB") // dependency to root
+
+        buildB.settingsFile << """
+            includeBuild('${buildA.toURI()}')
+        """
 
         when:
         execute(buildB, "c3:jar")

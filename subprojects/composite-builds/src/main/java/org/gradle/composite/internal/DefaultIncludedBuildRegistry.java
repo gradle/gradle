@@ -144,7 +144,9 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
 
     @Override
     public void afterConfigureRootBuild() {
-        dependencySubstitutionsBuilder.build(rootBuild);
+        if (!includedBuildsByRootDir.isEmpty()) {
+            dependencySubstitutionsBuilder.build(rootBuild);
+        }
     }
 
     @Override
