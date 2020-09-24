@@ -106,10 +106,7 @@ class DefaultConfigurationCache internal constructor(
             false
         }
         else -> {
-            val checkedFingerprint = cacheRepository.useForFingerprintCheck(
-                cacheKey.string,
-                this::checkFingerprint
-            )
+            val checkedFingerprint = checkFingerprint()
             when (checkedFingerprint) {
                 is CheckedFingerprint.NotFound -> {
                     logBootstrapSummary(
@@ -131,6 +128,14 @@ class DefaultConfigurationCache internal constructor(
                 }
             }
         }
+    }
+
+    private
+    fun checkFingerprint(): CheckedFingerprint {
+        return cacheRepository.useForFingerprintCheck(
+            cacheKey.string,
+            this::checkFingerprint
+        )
     }
 
     override fun prepareForConfiguration() {
