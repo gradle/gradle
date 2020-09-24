@@ -35,6 +35,7 @@ abstract class ResultSpecification extends Specification {
 
     CrossVersionPerformanceResults crossVersionResults(Map<String, ?> options = [:]) {
         def results = new CrossVersionPerformanceResults()
+        results.testClass = "org.gradle.performance.MyPerformanceTest"
         results.testId = "test-id"
         results.previousTestIds = []
         results.testProject = "test-project"
@@ -57,6 +58,7 @@ abstract class ResultSpecification extends Specification {
 
     CrossBuildPerformanceResults crossBuildResults(Map<String, ?> options = [:]) {
         def results = new CrossBuildPerformanceResults(
+                testClass: "org.gradle.performance.MyCrossBuildPerformanceTest",
                 testId: "test-id",
                 testGroup: "test-group",
                 testProject: "test-project",
@@ -75,6 +77,7 @@ abstract class ResultSpecification extends Specification {
 
     GradleVsMavenBuildPerformanceResults gradleVsMavenBuildResults(Map<String, ?> options = [:]) {
         def results = new GradleVsMavenBuildPerformanceResults(
+                testClass: "org.gradle.performance.MyGradleVsMavenPerformanceTest",
                 testId: "test-id",
                 testProject: 'test-project',
                 testGroup: "test-group",

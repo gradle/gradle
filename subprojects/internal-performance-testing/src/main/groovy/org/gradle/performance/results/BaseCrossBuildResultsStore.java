@@ -53,22 +53,23 @@ public class BaseCrossBuildResultsStore<R extends CrossBuildPerformanceResults> 
         try {
             db.withConnection((ConnectionAction<Void>) connection -> {
                 long executionId;
-                PreparedStatement statement = connection.prepareStatement("insert into testExecution(testId, testProject, startTime, endTime, versionUnderTest, operatingSystem, jvm, vcsBranch, vcsCommit, testGroup, resultType, channel, host, teamCityBuildId) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS);
+                PreparedStatement statement = connection.prepareStatement("insert into testExecution(testClass, testId, testProject, startTime, endTime, versionUnderTest, operatingSystem, jvm, vcsBranch, vcsCommit, testGroup, resultType, channel, host, teamCityBuildId) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS);
                 try {
-                    statement.setString(1, results.getTestId());
-                    statement.setString(2, results.getTestProject());
-                    statement.setTimestamp(3, new Timestamp(results.getStartTime()));
-                    statement.setTimestamp(4, new Timestamp(results.getEndTime()));
-                    statement.setString(5, results.getVersionUnderTest());
-                    statement.setString(6, results.getOperatingSystem());
-                    statement.setString(7, results.getJvm());
-                    statement.setString(8, results.getVcsBranch());
-                    statement.setString(9, Joiner.on(",").join(results.getVcsCommits()));
-                    statement.setString(10, results.getTestGroup());
-                    statement.setString(11, resultType);
-                    statement.setString(12, results.getChannel());
-                    statement.setString(13, results.getHost());
-                    statement.setString(14, results.getTeamCityBuildId());
+                    statement.setString(1, results.getTestClass());
+                    statement.setString(2, results.getTestId());
+                    statement.setString(3, results.getTestProject());
+                    statement.setTimestamp(4, new Timestamp(results.getStartTime()));
+                    statement.setTimestamp(5, new Timestamp(results.getEndTime()));
+                    statement.setString(6, results.getVersionUnderTest());
+                    statement.setString(7, results.getOperatingSystem());
+                    statement.setString(8, results.getJvm());
+                    statement.setString(9, results.getVcsBranch());
+                    statement.setString(10, Joiner.on(",").join(results.getVcsCommits()));
+                    statement.setString(11, results.getTestGroup());
+                    statement.setString(12, resultType);
+                    statement.setString(13, results.getChannel());
+                    statement.setString(14, results.getHost());
+                    statement.setString(15, results.getTeamCityBuildId());
                     statement.execute();
                     ResultSet keys = statement.getGeneratedKeys();
                     keys.next();

@@ -125,29 +125,30 @@ public class CrossVersionResultsStore implements WritableResultsStore<CrossVersi
 
     private long insertExecution(Connection connection, CrossVersionPerformanceResults results) throws SQLException {
         String insertStatement = insertStatement("testExecution",
-            "testId", "startTime", "endTime", "targetVersion", "testProject", "tasks", "args", "gradleOpts", "daemon", "operatingSystem",
+            "testClass", "testId", "startTime", "endTime", "targetVersion", "testProject", "tasks", "args", "gradleOpts", "daemon", "operatingSystem",
             "jvm", "vcsBranch", "vcsCommit", "channel", "host", "cleanTasks", "teamCityBuildId", "currentMedian", "baselineMedian", "diffConfidence");
 
 
         try (PreparedStatement statement = connection.prepareStatement(insertStatement, Statement.RETURN_GENERATED_KEYS)) {
-            statement.setString(1, results.getTestId());
-            statement.setTimestamp(2, new Timestamp(results.getStartTime()));
-            statement.setTimestamp(3, new Timestamp(results.getEndTime()));
-            statement.setString(4, results.getVersionUnderTest());
-            statement.setString(5, results.getTestProject());
-            statement.setObject(6, toArray(results.getTasks()));
-            statement.setObject(7, toArray(results.getArgs()));
-            statement.setObject(8, toArray(results.getGradleOpts()));
-            statement.setBoolean(9, results.getDaemon());
-            statement.setString(10, results.getOperatingSystem());
-            statement.setString(11, results.getJvm());
-            statement.setString(12, results.getVcsBranch());
+            statement.setString(1, results.getTestClass());
+            statement.setString(2, results.getTestId());
+            statement.setTimestamp(3, new Timestamp(results.getStartTime()));
+            statement.setTimestamp(4, new Timestamp(results.getEndTime()));
+            statement.setString(5, results.getVersionUnderTest());
+            statement.setString(6, results.getTestProject());
+            statement.setObject(7, toArray(results.getTasks()));
+            statement.setObject(8, toArray(results.getArgs()));
+            statement.setObject(9, toArray(results.getGradleOpts()));
+            statement.setBoolean(10, results.getDaemon());
+            statement.setString(11, results.getOperatingSystem());
+            statement.setString(12, results.getJvm());
+            statement.setString(13, results.getVcsBranch());
             String vcs = results.getVcsCommits() == null ? null : Joiner.on(",").join(results.getVcsCommits());
-            statement.setString(13, vcs);
-            statement.setString(14, results.getChannel());
-            statement.setString(15, results.getHost());
-            statement.setObject(16, toArray(results.getCleanTasks()));
-            statement.setString(17, results.getTeamCityBuildId());
+            statement.setString(14, vcs);
+            statement.setString(15, results.getChannel());
+            statement.setString(16, results.getHost());
+            statement.setObject(17, toArray(results.getCleanTasks()));
+            statement.setString(18, results.getTeamCityBuildId());
 
             if (results.getBaselineVersions().size() == 1) {
                 MeasuredOperationList current = results.getCurrent();
@@ -156,13 +157,13 @@ public class CrossVersionResultsStore implements WritableResultsStore<CrossVersi
                 BigDecimal currentMedian = current.getTotalTime().getMedian().toUnits(Duration.MILLI_SECONDS).getValue();
                 BigDecimal baselineMedian = baseline.getTotalTime().getMedian().toUnits(Duration.MILLI_SECONDS).getValue();
                 BigDecimal diffConfidence = new BigDecimal(DataSeries.confidenceInDifference(current.getTotalTime(), baseline.getTotalTime()));
-                statement.setBigDecimal(18, currentMedian);
-                statement.setBigDecimal(19, baselineMedian);
-                statement.setBigDecimal(20, diffConfidence);
+                statement.setBigDecimal(19, currentMedian);
+                statement.setBigDecimal(20, baselineMedian);
+                statement.setBigDecimal(21, diffConfidence);
             } else {
-                statement.setBigDecimal(18, null);
                 statement.setBigDecimal(19, null);
                 statement.setBigDecimal(20, null);
+                statement.setBigDecimal(21, null);
             }
 
             statement.execute();
