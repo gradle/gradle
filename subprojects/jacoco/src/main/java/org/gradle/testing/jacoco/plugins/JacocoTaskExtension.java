@@ -18,8 +18,8 @@ package org.gradle.testing.jacoco.plugins;
 
 import com.google.common.base.Joiner;
 import org.apache.commons.lang.StringUtils;
-import org.gradle.api.Project;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Classpath;
@@ -80,14 +80,14 @@ public class JacocoTaskExtension {
     /**
      * Creates a Jacoco task extension.
      *
-     * @param project the project
+     * @param objects the object factory
      * @param agent the agent JAR to use for analysis
      * @param task the task we extend
      */
-    public JacocoTaskExtension(Project project, JacocoAgentJar agent, JavaForkOptions task) {
+    public JacocoTaskExtension(ObjectFactory objects, JacocoAgentJar agent, JavaForkOptions task) {
         this.agent = agent;
         this.task = task;
-        destinationFile = project.getObjects().property(File.class);
+        destinationFile = objects.property(File.class);
     }
 
     /**
