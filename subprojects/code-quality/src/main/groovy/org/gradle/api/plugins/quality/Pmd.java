@@ -68,7 +68,7 @@ public class Pmd extends SourceTask implements VerificationTask, Reporting<PmdRe
     private FileCollection ruleSetFiles;
     private final PmdReports reports;
     private boolean ignoreFailures;
-    private int rulePriority;
+    private int rulePriority = 5;
     private boolean consoleOutput;
     private FileCollection classpath;
     private final Property<Integer> maxFailures;
