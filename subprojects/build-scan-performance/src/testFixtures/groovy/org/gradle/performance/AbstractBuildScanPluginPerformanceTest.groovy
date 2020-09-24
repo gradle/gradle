@@ -22,6 +22,7 @@ import org.gradle.performance.fixture.BuildExperimentSpec
 import org.gradle.performance.fixture.BuildScanPerformanceTestRunner
 import org.gradle.performance.fixture.GradleBuildExperimentRunner
 import org.gradle.performance.fixture.GradleInvocationSpec
+import org.gradle.performance.fixture.PerformanceTestIdProvider
 import org.gradle.performance.measure.Amount
 import org.gradle.performance.measure.MeasuredOperation
 import org.gradle.performance.results.BaselineVersion
@@ -39,6 +40,9 @@ class AbstractBuildScanPluginPerformanceTest extends Specification {
     static String incomingDir = "../../incoming"
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
+
+    @Rule
+    PerformanceTestIdProvider performanceTestIdProvider = new PerformanceTestIdProvider()
 
     @AutoCleanup
     @Shared
@@ -65,6 +69,7 @@ class AbstractBuildScanPluginPerformanceTest extends Specification {
                 (builder.invocation as GradleInvocationSpec.InvocationBuilder).buildLog(new File(builder.workingDirectory, "build.log"))
             }
         }
+        performanceTestIdProvider.setTestSpec(runner)
     }
 
     private static resolvePluginVersion() {
