@@ -278,7 +278,7 @@ class DefaultDependencySubstitutionsSpec extends Specification {
         substitutions.all(action)
 
         then:
-        substitutions.hasRules()
+        substitutions.rulesMayAddProjectDependency()
     }
 
     @Unroll
@@ -292,7 +292,7 @@ class DefaultDependencySubstitutionsSpec extends Specification {
         substitutions.substitute(fromComponent).with(toComponent)
 
         then:
-        substitutions.hasRules() == result
+        substitutions.rulesMayAddProjectDependency() == result
 
         where:
         from       | to             | result

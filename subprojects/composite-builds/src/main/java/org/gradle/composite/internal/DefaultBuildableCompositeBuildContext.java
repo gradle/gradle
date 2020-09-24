@@ -59,7 +59,7 @@ public class DefaultBuildableCompositeBuildContext implements CompositeBuildCont
     }
 
     @Override
-    public boolean hasRules() {
+    public boolean rulesMayAddProjectDependency() {
         return !(availableModules.isEmpty() && substitutionRules.isEmpty());
     }
 }

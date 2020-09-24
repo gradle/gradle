@@ -31,12 +31,12 @@ public interface DependencySubstitutionRules {
         }
 
         @Override
-        public boolean hasRules() {
+        public boolean rulesMayAddProjectDependency() {
             return false;
         }
     };
 
     Action<DependencySubstitution> getRuleAction();
 
-    boolean hasRules();
+    boolean rulesMayAddProjectDependency();
 }

@@ -205,7 +205,7 @@ empty=
     @Unroll
     def 'can filter lock entries impacted by dependency substitutions (Unique: #unique)'() {
         given:
-        dependencySubstitutionRules.hasRules() >> true
+        dependencySubstitutionRules.rulesMayAddProjectDependency() >> true
         Action< DependencySubstitution> substitutionAction = Mock()
         dependencySubstitutionRules.ruleAction >> substitutionAction
         substitutionAction.execute(_ as DependencySubstitution) >> { DependencySubstitution ds ->

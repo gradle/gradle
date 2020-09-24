@@ -179,7 +179,7 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
     }
 
     private boolean isSubstitutedInComposite(ModuleComponentIdentifier lockedIdentifier) {
-        if (dependencySubstitutionRules.hasRules()) {
+        if (dependencySubstitutionRules.rulesMayAddProjectDependency()) {
             LockingDependencySubstitution lockingDependencySubstitution = new LockingDependencySubstitution(toComponentSelector(lockedIdentifier));
             dependencySubstitutionRules.getRuleAction().execute(lockingDependencySubstitution);
             return lockingDependencySubstitution.didSubstitute();

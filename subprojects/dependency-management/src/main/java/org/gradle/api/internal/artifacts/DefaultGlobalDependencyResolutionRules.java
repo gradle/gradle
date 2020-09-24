@@ -65,9 +65,9 @@ public class DefaultGlobalDependencyResolutionRules implements GlobalDependencyR
         }
 
         @Override
-        public boolean hasRules() {
+        public boolean rulesMayAddProjectDependency() {
             for (DependencySubstitutionRules ruleProvider : ruleProviders) {
-                if (ruleProvider.hasRules()) {
+                if (ruleProvider.rulesMayAddProjectDependency()) {
                     return true;
                 }
             }
