@@ -32,6 +32,7 @@ import model.Stage
 
 class TestPerformanceTest(model: CIBuildModel, stage: Stage) : BaseGradleBuildType(model, stage, init = {
     val os = Os.LINUX
+    val testProject = "smallJavaMultiProject"
 
     fun BuildSteps.gradleStep(tasks: List<String>) {
         gradleWrapper {
@@ -48,19 +49,19 @@ class TestPerformanceTest(model: CIBuildModel, stage: Stage) : BaseGradleBuildTy
         script {
             name = "MOVE_TEST_RESULTS"
             scriptContent = """
-                cp subprojects/performance/build/test-results-performanceAdhocTest.zip subprojects/performance/build/test-results-performanceAdhocTest-$postfix.zip
+                cp subprojects/performance/build/test-results-${testProject}PerformanceAdHocTest.zip subprojects/performance/build/test-results-${testProject}PerformanceAdHocTest-$postfix.zip
             """.trimIndent()
         }
     }
 
-    fun BuildSteps.adHocPerformanceTest(scenario: String) {
+    fun BuildSteps.adHocPerformanceTest(test: String) {
         gradleStep(listOf(
             "-PperformanceBaselines=force-defaults",
-            "performance:performanceAdHocTest",
-            """--scenarios "$scenario" --warmups 2 --runs 2 --checks none""",
+            "performance:${testProject}PerformanceAdHocTest",
+            """--tests "$test" --warmups 2 --runs 2 --checks none""",
             """"-PtestJavaHome=${os.individualPerformanceTestJavaHome()}""""
         ))
-        movePerformanceResults("[^\\p{Alpha}]".toRegex().replace(scenario, ""))
+        movePerformanceResults("[^\\p{Alpha}]".toRegex().replace(test, ""))
     }
 
     uuid = "${model.projectPrefix}TestPerformanceTest"
@@ -77,10 +78,10 @@ class TestPerformanceTest(model: CIBuildModel, stage: Stage) : BaseGradleBuildTy
             executionMode = BuildStep.ExecutionMode.ALWAYS
             scriptContent = os.killAllGradleProcesses
         }
-        gradleStep(listOf("clean", "largeMonolithicJavaProject"))
-        adHocPerformanceTest("get IDE model on largeMonolithicJavaProject for IDEA")
-        adHocPerformanceTest("up-to-date assemble on largeMonolithicJavaProject (parallel false)")
-        adHocPerformanceTest("help on largeMonolithicJavaProject with lazy and eager tasks")
+        gradleStep(listOf("clean"))
+        adHocPerformanceTest("org.gradle.performance.regression.java.JavaIDEModelPerformanceTest.get IDE model for IDEA")
+        adHocPerformanceTest("org.gradle.performance.regression.java.JavaUpToDatePerformanceTest.up-to-date assemble (parallel true)")
+        adHocPerformanceTest("org.gradle.performance.regression.corefeature.TaskAvoidancePerformanceTest.help with lazy and eager tasks")
 
         checkCleanM2(os)
     }
