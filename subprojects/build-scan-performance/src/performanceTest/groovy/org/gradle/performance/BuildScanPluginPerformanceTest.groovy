@@ -38,17 +38,14 @@ class BuildScanPluginPerformanceTest extends AbstractBuildScanPluginPerformanceT
     public static final int INVOCATIONS = 20
 
     @Unroll
-    def "large java project with and without plugin application (#scenario)"() {
+    def "with and without plugin application (#scenario)"() {
         given:
-        def sourceProject = "javaProject"
         def jobArgs = ['--continue', '-Dscan.capture-task-input-files'] + scenarioArgs
         def opts = ['-Xms4096m', '-Xmx4096m']
 
-        runner.testId = "large java project with and without plugin application ($scenario)"
         runner.baseline {
             warmUpCount WARMUPS
             invocationCount INVOCATIONS
-            projectName(sourceProject)
             displayName(WITHOUT_PLUGIN_LABEL)
             invocation {
                 args(*jobArgs)
@@ -68,7 +65,6 @@ class BuildScanPluginPerformanceTest extends AbstractBuildScanPluginPerformanceT
         runner.buildSpec {
             warmUpCount WARMUPS
             invocationCount INVOCATIONS
-            projectName(sourceProject)
             displayName(WITH_PLUGIN_LABEL)
             invocation {
                 args(*jobArgs)
