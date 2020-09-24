@@ -300,7 +300,7 @@ a|
 [horizontal]
 link:{gradle-issues}13475[[.red]#✖#]:: <<checkstyle_plugin.adoc#checkstyle_plugin,Checkstyle>>
 link:{gradle-issues}13476[[.red]#✖#]:: <<pmd_plugin.adoc#pmd_plugin,PMD>>
-link:{gradle-issues}13477[[.red]#✖#]:: <<jacoco_plugin.adoc#jacoco_plugin,JaCoCo>>
+link:{gradle-issues}13477[[.green]#✓#]:: <<jacoco_plugin.adoc#jacoco_plugin,JaCoCo>>
 link:{gradle-issues}13478[[.red]#✖#]:: <<codenarc_plugin.adoc#codenarc_plugin,CodeNarc>>
 
 a|
