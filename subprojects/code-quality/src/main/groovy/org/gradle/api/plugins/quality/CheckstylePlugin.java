@@ -19,8 +19,12 @@ import com.google.common.util.concurrent.Callables;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.DependencySet;
+import org.gradle.api.file.ProjectLayout;
+import org.gradle.api.file.RegularFile;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.plugins.quality.internal.AbstractCodeQualityPlugin;
+import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.reporting.SingleFileReport;
 import org.gradle.api.resources.TextResource;
 import org.gradle.api.tasks.SourceSet;
@@ -122,13 +126,38 @@ public class CheckstylePlugin extends AbstractCodeQualityPlugin<Checkstyle> {
     }
 
     private void configureReportsConventionMapping(Checkstyle task, final String baseName) {
-        task.getReports().all(new Action<SingleFileReport>() {
-            @Override
-            public void execute(final SingleFileReport report) {
-                report.getRequired().convention(true);
-                report.getOutputLocation().convention(project.getLayout().getProjectDirectory().file(project.provider(() -> new File(extension.getReportsDir(), baseName + "." + report.getName()).getAbsolutePath())));
-            }
-        });
+        ProjectLayout layout = project.getLayout();
+        ProviderFactory providers = project.getProviders();
+        Provider<RegularFile> reportsDir = layout.file(providers.provider(() -> extension.getReportsDir()));
+        task.getReports().all(
+            new ReportsConventionMappingAction(layout, providers, reportsDir, baseName)
+        );
+    }
+
+    private static class ReportsConventionMappingAction implements Action<SingleFileReport> {
+
+        private final ProjectLayout layout;
+        private final ProviderFactory providers;
+        private final Provider<RegularFile> reportsDir;
+        private final String baseName;
+
+        public ReportsConventionMappingAction(ProjectLayout layout, ProviderFactory providers, Provider<RegularFile> reportsDir, String baseName) {
+            this.layout = layout;
+            this.providers = providers;
+            this.reportsDir = reportsDir;
+            this.baseName = baseName;
+        }
+
+        @Override
+        public void execute(SingleFileReport report) {
+            report.getRequired().convention(true);
+            report.getOutputLocation().convention(
+                layout.getProjectDirectory().file(providers.provider(() -> {
+                    String reportFileName = baseName + "." + report.getName();
+                    return new File(reportsDir.get().getAsFile(), reportFileName).getAbsolutePath();
+                }))
+            );
+        }
     }
 
     @Override
