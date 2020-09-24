@@ -305,7 +305,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
 
                 @Override
                 public BuildOperationDescriptor.Builder description() {
-                    String displayName = transformer.getDisplayName() + " " + inputArtifact.getName();
+                    String displayName = "Transforming " + inputArtifact.getName() + " with " + transformer.getDisplayName();
                     return BuildOperationDescriptor.displayName(displayName)
                         .progressDisplayName(displayName);
                 }
