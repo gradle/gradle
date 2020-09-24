@@ -44,6 +44,25 @@ class TestPerformanceTest(model: CIBuildModel, stage: Stage) : BaseGradleBuildTy
         }
     }
 
+    fun BuildSteps.movePerformanceResults(postfix: String) {
+        script {
+            name = "MOVE_TEST_RESULTS"
+            scriptContent = """
+                cp subprojects/performance/build/test-results-performanceAdhocTest.zip subprojects/performance/build/test-results-performanceAdhocTest-$postfix.zip
+            """.trimIndent()
+        }
+    }
+
+    fun BuildSteps.adHocPerformanceTest(scenario: String) {
+        gradleStep(listOf(
+            "-PperformanceBaselines=force-defaults",
+            "performance:performanceAdHocTest",
+            """--scenarios "$scenario" --warmups 2 --runs 2 --checks none""",
+            """"-PtestJavaHome=${os.individualPerformanceTestJavaHome()}""""
+        ))
+        movePerformanceResults("[^\\p{Alpha}]".toRegex().replace(scenario, ""))
+    }
+
     uuid = "${model.projectPrefix}TestPerformanceTest"
     id = AbsoluteId(uuid)
     name = "Test performance test tasks - Java8 Linux"
@@ -59,6 +78,9 @@ class TestPerformanceTest(model: CIBuildModel, stage: Stage) : BaseGradleBuildTy
             scriptContent = os.killAllGradleProcesses
         }
         gradleStep(listOf("clean", "largeMonolithicJavaProject"))
+        adHocPerformanceTest("get IDE model on largeMonolithicJavaProject for IDEA")
+        adHocPerformanceTest("up-to-date assemble on largeMonolithicJavaProject (parallel false)")
+        adHocPerformanceTest("help on largeMonolithicJavaProject with lazy and eager tasks")
 
         checkCleanM2(os)
     }
