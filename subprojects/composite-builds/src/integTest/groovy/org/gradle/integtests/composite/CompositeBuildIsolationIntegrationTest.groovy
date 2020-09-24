@@ -54,4 +54,36 @@ class CompositeBuildIsolationIntegrationTest extends AbstractIntegrationSpec {
         expect:
         succeeds("assemble")
     }
+
+    @ToBeFixedForConfigurationCache
+    def "included build can access root project sneakily when used as a plugin"() {
+        given:
+        buildTestFixture.withBuildInSubDir()
+        singleProjectBuild("included") {
+            buildFile << """
+                apply plugin: 'java'
+
+                def rootGradleBuild = gradle
+                while (rootGradleBuild.parent != null) {
+                    rootGradleBuild = rootGradleBuild.parent
+                }
+                assert rootGradleBuild.rootProject.name == "root"
+            """
+            settingsFile << "rootProject.name = 'included'"
+        }
+        buildFile << """
+            buildscript {
+                dependencies {
+                    classpath "org.test:included"
+                }
+            }
+        """
+        settingsFile << """
+            rootProject.name = "root"
+            includeBuild("included")
+        """
+
+        expect:
+        succeeds("help")
+    }
 }
