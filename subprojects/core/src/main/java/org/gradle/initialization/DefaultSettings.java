@@ -19,6 +19,7 @@ import org.gradle.StartParameter;
 import org.gradle.api.Action;
 import org.gradle.api.UnknownProjectException;
 import org.gradle.api.initialization.ConfigurableIncludedBuild;
+import org.gradle.api.initialization.DependencyResolutionManagement;
 import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.initialization.dsl.ScriptHandler;
@@ -26,6 +27,7 @@ import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.FeaturePreviews.Feature;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
+import org.gradle.api.internal.artifacts.CrossProjectResolutionServices;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
@@ -39,6 +41,7 @@ import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.Actions;
 import org.gradle.internal.deprecation.DeprecationLogger;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resource.TextUriResourceLoader;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
@@ -69,10 +72,17 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
     private final ServiceRegistry services;
 
     private final List<IncludedBuildSpec> includedBuildSpecs = new ArrayList<IncludedBuildSpec>();
+    private final DependencyResolutionManagementInternal dependencyResolutionManagement;
 
-    public DefaultSettings(ServiceRegistryFactory serviceRegistryFactory, GradleInternal gradle,
-                           ClassLoaderScope classLoaderScope, ClassLoaderScope baseClassLoaderScope, ScriptHandler settingsScriptHandler,
-                           File settingsDir, ScriptSource settingsScript, StartParameter startParameter) {
+    public DefaultSettings(ServiceRegistryFactory serviceRegistryFactory,
+                           GradleInternal gradle,
+                           ClassLoaderScope classLoaderScope,
+                           ClassLoaderScope baseClassLoaderScope,
+                           ScriptHandler settingsScriptHandler,
+                           File settingsDir,
+                           ScriptSource settingsScript,
+                           StartParameter startParameter,
+                           Instantiator instantiator) {
         this.gradle = gradle;
         this.classLoaderScope = classLoaderScope;
         this.baseClassLoaderScope = baseClassLoaderScope;
@@ -80,8 +90,9 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
         this.settingsDir = settingsDir;
         this.settingsScript = settingsScript;
         this.startParameter = startParameter;
-        services = serviceRegistryFactory.createFor(this);
-        rootProjectDescriptor = createProjectDescriptor(null, settingsDir.getName(), settingsDir);
+        this.services = serviceRegistryFactory.createFor(this);
+        this.rootProjectDescriptor = createProjectDescriptor(null, settingsDir.getName(), settingsDir);
+        this.dependencyResolutionManagement = instantiator.newInstance(DefaultDependencyResolutionManagement.class, services.get(CrossProjectResolutionServices.class));
     }
 
     @Override
@@ -349,5 +360,10 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
                 .withUserManual("feature_lifecycle", "feature_preview")
                 .nagUser();
         }
+    }
+
+    @Override
+    public void dependencyResolutionManagement(Action<? super DependencyResolutionManagement> dependencyResolutionConfiguration) {
+        dependencyResolutionConfiguration.execute(dependencyResolutionManagement);
     }
 }

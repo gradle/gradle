@@ -143,7 +143,7 @@ class DefaultArtifactResolutionQueryTest extends Specification {
     }
 
     private DefaultArtifactResolutionQuery createArtifactResolutionQuery(ComponentTypeRegistry componentTypeRegistry) {
-        new DefaultArtifactResolutionQuery(configurationContainerInternal, repositoryHandler, resolveIvyFactory, globalDependencyResolutionRules, componentTypeRegistry, AttributeTestUtil.attributesFactory(), ruleExecutor)
+        new DefaultArtifactResolutionQuery(configurationContainerInternal, { [] }, resolveIvyFactory, globalDependencyResolutionRules, componentTypeRegistry, AttributeTestUtil.attributesFactory(), ruleExecutor)
     }
 
     private ComponentTypeRegistry createTestComponentTypeRegistry() {

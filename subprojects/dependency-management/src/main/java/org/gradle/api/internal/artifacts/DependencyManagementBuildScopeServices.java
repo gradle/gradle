@@ -28,8 +28,11 @@ import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.component.DefaultComponentIdentifierFactory;
+import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParserFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
+import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
+import org.gradle.api.internal.artifacts.dsl.dependencies.UnknownProjectFinder;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheLockingManager;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetadata;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCachesProvider;
@@ -109,11 +112,13 @@ import org.gradle.api.internal.artifacts.verification.signatures.DefaultSignatur
 import org.gradle.api.internal.artifacts.verification.signatures.SignatureVerificationServiceFactory;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.file.TmpDirTemporaryFileProvider;
 import org.gradle.api.internal.filestore.ArtifactIdentifierFileStore;
 import org.gradle.api.internal.filestore.DefaultArtifactIdentifierFileStore;
 import org.gradle.api.internal.filestore.TwoStageArtifactIdentifierFileStore;
+import org.gradle.api.internal.initialization.RootScriptDomainObjectContext;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.api.internal.notations.ClientModuleNotationParserFactory;
 import org.gradle.api.internal.notations.DependencyConstraintNotationParser;
@@ -170,6 +175,7 @@ import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
 import org.gradle.internal.resource.local.ivy.LocallyAvailableResourceFinderFactory;
 import org.gradle.internal.resource.transfer.CachingTextUriResourceLoader;
 import org.gradle.internal.resource.transport.http.HttpConnectorFactory;
+import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.snapshot.ValueSnapshotter;
@@ -194,6 +200,23 @@ class DependencyManagementBuildScopeServices {
         registration.add(ProjectArtifactResolver.class);
         registration.add(ProjectArtifactSetResolver.class);
         registration.add(ProjectDependencyResolver.class);
+    }
+
+    CrossProjectResolutionServices createCrossProjectResolutionServices(DependencyManagementServices dependencyManagementServices,
+                                                                        FileResolver fileResolver,
+                                                                        FileCollectionFactory fileCollectionFactory,
+                                                                        DependencyMetaDataProvider dependencyMetaDataProvider) {
+        DefaultServiceRegistry registry = new DefaultServiceRegistry();
+        registry.addProvider(new Object() {
+            private ProjectFinder makeUnknownProjectFinder() {
+                return new UnknownProjectFinder("Unexpected project dependency during global consistency resolution");
+            }
+
+            DependencyResolutionServices createDependencyResolutionServices() {
+                return dependencyManagementServices.create(fileResolver, fileCollectionFactory, dependencyMetaDataProvider, makeUnknownProjectFinder(), RootScriptDomainObjectContext.INSTANCE);
+            }
+        });
+        return () -> registry.get(DependencyResolutionServices.class);
     }
 
     DependencyManagementServices createDependencyManagementServices(ServiceRegistry parent) {

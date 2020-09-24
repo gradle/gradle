@@ -21,6 +21,7 @@ import groovy.lang.Closure
 import org.gradle.StartParameter
 import org.gradle.api.Action
 import org.gradle.api.initialization.ConfigurableIncludedBuild
+import org.gradle.api.initialization.DependencyResolutionManagement
 import org.gradle.api.initialization.ProjectDescriptor
 import org.gradle.api.initialization.Settings
 import org.gradle.api.initialization.dsl.ScriptHandler
@@ -127,4 +128,7 @@ abstract class SettingsDelegate : Settings {
 
     override fun getSourceControl(): SourceControl =
         delegate.sourceControl
+
+    override fun dependencyResolutionManagement(dependencyResolutionConfiguration: Action<in DependencyResolutionManagement>) =
+        delegate.dependencyResolutionManagement(dependencyResolutionConfiguration)
 }
