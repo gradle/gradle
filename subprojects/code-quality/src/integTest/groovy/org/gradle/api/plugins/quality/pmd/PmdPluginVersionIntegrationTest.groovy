@@ -15,7 +15,6 @@
  */
 package org.gradle.api.plugins.quality.pmd
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.util.VersionNumber
 import org.hamcrest.Matcher
 import spock.lang.Issue
@@ -49,7 +48,6 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
         """.stripIndent()
     }
 
-    @ToBeFixedForConfigurationCache
     def "analyze good code"() {
         goodCode()
 
@@ -59,7 +57,6 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
         file("build/reports/pmd/test.xml").exists()
     }
 
-    @ToBeFixedForConfigurationCache
     def "analyze bad code"() {
         badCode()
 
@@ -71,7 +68,6 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
         file("build/reports/pmd/test.xml").assertContents(containsClass("org.gradle.Class1Test"))
     }
 
-    @ToBeFixedForConfigurationCache
     void "can ignore failures"() {
         badCode()
         buildFile << """
@@ -87,7 +83,6 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
         output.contains("2 PMD rule violations were found. See the report at:")
     }
 
-    @ToBeFixedForConfigurationCache
     void "can set max failures"() {
         badCode()
         buildFile << """
@@ -103,7 +98,6 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
         output.contains("2 PMD rule violations were found. See the report at:")
     }
 
-    @ToBeFixedForConfigurationCache
     void "does not ignore more than max failures"() {
         badCode()
         buildFile << """
@@ -120,7 +114,6 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
         file("build/reports/pmd/test.xml").assertContents(containsClass("org.gradle.Class1Test"))
     }
 
-    @ToBeFixedForConfigurationCache
     void "can configure priority level threshold"() {
         badCode()
         buildFile << """
@@ -162,7 +155,6 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
         failure.assertHasCause("Invalid rulePriority '11'.  Valid range 1 (highest) to 5 (lowest).")
     }
 
-    @ToBeFixedForConfigurationCache
     def "can configure reporting"() {
         goodCode()
         buildFile << """
@@ -180,7 +172,6 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
         file("htmlReport.html").exists()
     }
 
-    @ToBeFixedForConfigurationCache
     def "use custom rule set files"() {
         assumeTrue(fileLockingIssuesSolved())
 
@@ -202,7 +193,6 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
         file("build/reports/pmd/main.xml").assertContents(containsClass("org.gradle.Class2"))
     }
 
-    @ToBeFixedForConfigurationCache
     def "add custom rule set files"() {
         assumeTrue(fileLockingIssuesSolved())
 
@@ -225,7 +215,6 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
         file("build/reports/pmd/main.xml").assertContents(containsClass("org.gradle.Class2"))
     }
 
-    @ToBeFixedForConfigurationCache
     def "use custom rule set"() {
         customCode()
 
@@ -245,7 +234,6 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
 
     }
 
-    @ToBeFixedForConfigurationCache
     def "can enable console output"() {
         buildFile << """
             pmd {
@@ -264,7 +252,6 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
     }
 
     @Issue("https://github.com/gradle/gradle/issues/2326")
-    @ToBeFixedForConfigurationCache
     def "check task should not be up-to-date after clean if it only outputs to console"() {
         given:
         badCode()
