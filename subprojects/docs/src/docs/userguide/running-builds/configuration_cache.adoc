@@ -886,12 +886,6 @@ Instead, you can connect the `Provider` returned by link:{javadocPath}/org/gradl
 Support for using configuration caching with certain Gradle features is not yet implemented.
 Support for these features will be added in later Gradle releases.
 
-[[config_cache:not_yet_implemented:build_scan]]
-=== Build scan support
-
-Build scan functionality with configuration caching enabled requires Gradle Enterprise plugin version 3.4 or later.
-When using an earlier version, build scan publishing will be automatically disabled when configuration caching is used.
-
 [[config_cache:not_yet_implemented:sharing]]
 === Sharing the configuration cache
 
