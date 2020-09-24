@@ -32,6 +32,7 @@ import model.Stage
 
 class TestPerformanceTest(model: CIBuildModel, stage: Stage) : BaseGradleBuildType(model, stage, init = {
     val os = Os.LINUX
+    val testProject = "smallJavaMultiProject"
 
     fun BuildSteps.gradleStep(tasks: List<String>) {
         gradleWrapper {
@@ -42,6 +43,17 @@ class TestPerformanceTest(model: CIBuildModel, stage: Stage) : BaseGradleBuildTy
                     builtInRemoteBuildCacheNode.gradleParameters(os)
                 ).joinToString(separator = " ")
         }
+    }
+
+    fun BuildSteps.adHocPerformanceTest(tests: List<String>) {
+        gradleStep(listOf(
+            "-PperformanceBaselines=force-defaults",
+            "clean",
+            "performance:${testProject}PerformanceAdHocTest",
+            tests.map { """--tests "$it""""}.joinToString(" "),
+            """--warmups 2 --runs 2 --checks none""",
+            """"-PtestJavaHome=${os.individualPerformanceTestJavaHome()}""""
+        ))
     }
 
     uuid = "${model.projectPrefix}TestPerformanceTest"
@@ -58,7 +70,11 @@ class TestPerformanceTest(model: CIBuildModel, stage: Stage) : BaseGradleBuildTy
             executionMode = BuildStep.ExecutionMode.ALWAYS
             scriptContent = os.killAllGradleProcesses
         }
-        gradleStep(listOf("clean", "largeMonolithicJavaProject"))
+        adHocPerformanceTest(listOf(
+            "org.gradle.performance.regression.java.JavaIDEModelPerformanceTest.get IDE model for IDEA",
+            "org.gradle.performance.regression.java.JavaUpToDatePerformanceTest.up-to-date assemble (parallel true)",
+            "org.gradle.performance.regression.corefeature.TaskAvoidancePerformanceTest.help with lazy and eager tasks"
+        ))
 
         checkCleanM2(os)
     }
