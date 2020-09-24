@@ -26,11 +26,9 @@ import javax.annotation.Nullable;
 
 class TransformationOperation implements TransformationResult, RunnableBuildOperation {
     private final CacheableInvocation<TransformationSubject> invocation;
-    private final String displayName;
     private Try<TransformationSubject> transformedSubject;
 
-    TransformationOperation(CacheableInvocation<TransformationSubject> invocation, String displayName) {
-        this.displayName = displayName;
+    TransformationOperation(CacheableInvocation<TransformationSubject> invocation) {
         this.invocation = invocation;
     }
 
@@ -41,7 +39,7 @@ class TransformationOperation implements TransformationResult, RunnableBuildOper
 
     @Override
     public BuildOperationDescriptor.Builder description() {
-        return BuildOperationDescriptor.displayName(displayName)
+        return BuildOperationDescriptor.displayName("Transform artifacts")
             .metadata(BuildOperationCategory.UNCATEGORIZED);
     }
 

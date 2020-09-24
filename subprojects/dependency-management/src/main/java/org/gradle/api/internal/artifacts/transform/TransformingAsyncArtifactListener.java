@@ -76,8 +76,7 @@ public class TransformingAsyncArtifactListener implements ResolvedArtifactSet.As
     }
 
     private TransformationResult createTransformationResult(TransformationSubject initialSubject) {
-        CacheableInvocation<TransformationSubject> invocation = transformation.createInvocation(initialSubject, dependenciesResolver, null);
-        TransformationOperation operation = new TransformationOperation(invocation, "Transform " + initialSubject.getDisplayName() + " with " + transformation.getDisplayName());
+        TransformationOperation operation = new TransformationOperation(transformation.createInvocation(initialSubject, dependenciesResolver, null));
         actions.add(operation);
         return operation;
     }
