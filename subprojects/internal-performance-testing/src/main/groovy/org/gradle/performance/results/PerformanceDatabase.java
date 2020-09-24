@@ -72,6 +72,14 @@ public class PerformanceDatabase {
         return action.execute(connection);
     }
 
+    public <T> T withConnection(String actionName, ConnectionAction<T> action) {
+        try {
+            return withConnection(action);
+        } catch (SQLException e) {
+            throw new RuntimeException(String.format("Could not %s from datastore '%s'.", actionName, getUrl()), e);
+        }
+    }
+
     public String getUrl() {
         String baseUrl = System.getProperty(PERFORMANCE_DB_URL_PROPERTY_NAME);
         if (baseUrl == null) {

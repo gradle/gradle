@@ -51,7 +51,7 @@ import static org.gradle.performance.results.ResultsStoreHelper.toArray;
 /**
  * A {@link DataReporter} implementation that stores results in an H2 relational database.
  */
-public class CrossVersionResultsStore implements WritableResultsStore<CrossVersionPerformanceResults> {
+public class CrossVersionResultsStore extends AbstractWritableResultsStore<CrossVersionPerformanceResults> {
     private static final String FLAKINESS_RATE_SQL =
         "SELECT TESTCLASS, TESTID, TESTPROJECT, AVG(\n" +
             "  CASE WHEN DIFFCONFIDENCE > 0.97 THEN 1.0\n" +
@@ -65,10 +65,11 @@ public class CrossVersionResultsStore implements WritableResultsStore<CrossVersi
             "FROM testExecution\n" +
             "WHERE (CHANNEL = 'flakiness-detection-master' or CHANNEL= 'flakiness-detection-release') AND STARTTIME > ? AND DIFFCONFIDENCE > 0.97\n" +
             "GROUP BY TESTID, TESTPROJECT";
+
+
     // Only the flakiness detection results within 90 days will be considered.
     private static final int FLAKINESS_DETECTION_DAYS = 90;
     private final long ignoreV17Before;
-    private final PerformanceDatabase db;
     private final Map<String, GradleVersion> gradleVersionCache = new HashMap<>();
 
     public CrossVersionResultsStore() {
@@ -76,7 +77,7 @@ public class CrossVersionResultsStore implements WritableResultsStore<CrossVersi
     }
 
     public CrossVersionResultsStore(String databaseName) {
-        db = new PerformanceDatabase(databaseName);
+        super(new PerformanceDatabase(databaseName));
 
         // Ignore some broken samples before the given date
         DateFormat timeStampFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -90,16 +91,12 @@ public class CrossVersionResultsStore implements WritableResultsStore<CrossVersi
 
     @Override
     public void report(final CrossVersionPerformanceResults results) {
-        try {
-            db.withConnection((ConnectionAction<Void>) connection -> {
-                long testId = insertExecution(connection, results);
-                batchInsertOperation(connection, results, testId);
-                updatePreviousTestId(connection, results);
-                return null;
-            });
-        } catch (Exception e) {
-            throw new RuntimeException(String.format("Could not open results datastore '%s'.", db.getUrl()), e);
-        }
+        withConnection("write results", (ConnectionAction<Void>) connection -> {
+            long testId = insertExecution(connection, results);
+            batchInsertOperation(connection, results, testId);
+            updatePreviousTestId(connection, results);
+            return null;
+        });
     }
 
     private void updatePreviousTestId(Connection connection, CrossVersionPerformanceResults results) throws SQLException {
@@ -156,7 +153,7 @@ public class CrossVersionResultsStore implements WritableResultsStore<CrossVersi
 
                 BigDecimal currentMedian = current.getTotalTime().getMedian().toUnits(Duration.MILLI_SECONDS).getValue();
                 BigDecimal baselineMedian = baseline.getTotalTime().getMedian().toUnits(Duration.MILLI_SECONDS).getValue();
-                BigDecimal diffConfidence = new BigDecimal(DataSeries.confidenceInDifference(current.getTotalTime(), baseline.getTotalTime()));
+                BigDecimal diffConfidence = BigDecimal.valueOf(DataSeries.confidenceInDifference(current.getTotalTime(), baseline.getTotalTime()));
                 statement.setBigDecimal(19, currentMedian);
                 statement.setBigDecimal(20, baselineMedian);
                 statement.setBigDecimal(21, diffConfidence);
@@ -167,13 +164,9 @@ public class CrossVersionResultsStore implements WritableResultsStore<CrossVersi
             }
 
             statement.execute();
-            ResultSet keys = null;
-            try {
-                keys = statement.getGeneratedKeys();
+            try (ResultSet keys = statement.getGeneratedKeys()) {
                 keys.next();
                 return keys.getLong(1);
-            } finally {
-                closeResultSet(keys);
             }
         }
     }
@@ -189,31 +182,21 @@ public class CrossVersionResultsStore implements WritableResultsStore<CrossVersi
 
     @Override
     public List<PerformanceExperiment> getPerformanceExperiments() {
-        try {
-            return db.withConnection(connection -> {
+        return withConnection("load test history", connection -> {
+            try (
+                Statement statement = connection.createStatement();
+                ResultSet testExecutions = statement.executeQuery("select distinct testClass, testId, testProject from testExecution order by testClass, testId, testProject")
+            ) {
                 List<PerformanceExperiment> testNames = new ArrayList<>();
-                Statement statement = null;
-                ResultSet testExecutions = null;
-
-                try {
-                    statement = connection.createStatement();
-                    testExecutions = statement.executeQuery("select distinct testClass, testId, testProject from testExecution order by testClass, testId, testProject");
-                    while (testExecutions.next()) {
-                        String testClass = testExecutions.getString(1);
-                        String testId = testExecutions.getString(2);
-                        String testProject = testExecutions.getString(3);
-                        testNames.add(new PerformanceExperiment(testProject, new PerformanceScenario(testClass, testId)));
-                    }
-                } finally {
-                    closeStatement(statement);
-                    closeResultSet(testExecutions);
+                while (testExecutions.next()) {
+                    String testClass = testExecutions.getString(1);
+                    String testId = testExecutions.getString(2);
+                    String testProject = testExecutions.getString(3);
+                    testNames.add(new PerformanceExperiment(testProject, new PerformanceScenario(testClass, testId)));
                 }
-
                 return testNames;
-            });
-        } catch (Exception e) {
-            throw new RuntimeException(String.format("Could not load test history from datastore '%s'.", db.getUrl()), e);
-        }
+            }
+        });
     }
 
     @Override
@@ -224,19 +207,16 @@ public class CrossVersionResultsStore implements WritableResultsStore<CrossVersi
 
     @Override
     public CrossVersionPerformanceTestHistory getTestResults(final PerformanceExperiment experiment, final int mostRecentN, final int maxDaysOld, final String channel) {
-        try {
-            return db.withConnection(connection -> {
-                Map<Long, CrossVersionPerformanceResults> results = Maps.newLinkedHashMap();
-                Set<String> allVersions = new TreeSet<>(Comparator.comparing(this::resolveGradleVersion));
-                Set<String> allBranches = new TreeSet<>();
+            return withConnection("load results", connection -> {
+                try (
+                    PreparedStatement executionsForName = connection.prepareStatement("select id, startTime, endTime, targetVersion, tasks, args, gradleOpts, daemon, operatingSystem, jvm, vcsBranch, vcsCommit, channel, host, cleanTasks, teamCityBuildId from testExecution where testClass = ? and testId = ? and testProject = ? and startTime >= ? and channel = ? order by startTime desc limit ?");
+                    PreparedStatement operationsForExecution = connection.prepareStatement("select version, testExecution, totalTime from testOperation "
+                        + "where testExecution in (select t.* from ( select id from testExecution where testClass = ? and testId = ? and testProject = ? and startTime >= ? and channel = ? order by startTime desc limit ?) as t)")
+                ) {
+                    Map<Long, CrossVersionPerformanceResults> results = Maps.newLinkedHashMap();
+                    Set<String> allVersions = new TreeSet<>(Comparator.comparing(this::resolveGradleVersion));
+                    Set<String> allBranches = new TreeSet<>();
 
-                PreparedStatement executionsForName = null;
-                PreparedStatement operationsForExecution = null;
-                ResultSet testExecutions = null;
-                ResultSet operations = null;
-
-                try {
-                    executionsForName = connection.prepareStatement("select id, startTime, endTime, targetVersion, tasks, args, gradleOpts, daemon, operatingSystem, jvm, vcsBranch, vcsCommit, channel, host, cleanTasks, teamCityBuildId from testExecution where testClass = ? and testId = ? and testProject = ? and startTime >= ? and channel = ? order by startTime desc limit ?");
                     executionsForName.setFetchSize(mostRecentN);
                     executionsForName.setString(1, experiment.getScenario().getClassName());
                     executionsForName.setString(2, experiment.getScenario().getTestName());
@@ -246,35 +226,34 @@ public class CrossVersionResultsStore implements WritableResultsStore<CrossVersi
                     executionsForName.setString(5, channel);
                     executionsForName.setInt(6, mostRecentN);
 
-                    testExecutions = executionsForName.executeQuery();
-                    while (testExecutions.next()) {
-                        long id = testExecutions.getLong(1);
-                        CrossVersionPerformanceResults performanceResults = new CrossVersionPerformanceResults();
-                        performanceResults.setTestClass(experiment.getScenario().getClassName());
-                        performanceResults.setTestId(experiment.getScenario().getTestName());
-                        performanceResults.setTestProject(experiment.getTestProject());
-                        performanceResults.setStartTime(testExecutions.getTimestamp(2).getTime());
-                        performanceResults.setEndTime(testExecutions.getTimestamp(3).getTime());
-                        performanceResults.setVersionUnderTest(testExecutions.getString(4));
-                        performanceResults.setTasks(ResultsStoreHelper.toList(testExecutions.getObject(5)));
-                        performanceResults.setArgs(ResultsStoreHelper.toList(testExecutions.getObject(6)));
-                        performanceResults.setGradleOpts(ResultsStoreHelper.toList(testExecutions.getObject(7)));
-                        performanceResults.setDaemon((Boolean) testExecutions.getObject(8));
-                        performanceResults.setOperatingSystem(testExecutions.getString(9));
-                        performanceResults.setJvm(testExecutions.getString(10));
-                        performanceResults.setVcsBranch(testExecutions.getString(11).trim());
-                        performanceResults.setVcsCommits(ResultsStoreHelper.split(testExecutions.getString(12)));
-                        performanceResults.setChannel(testExecutions.getString(13));
-                        performanceResults.setHost(testExecutions.getString(14));
-                        performanceResults.setCleanTasks(ResultsStoreHelper.toList(testExecutions.getObject(15)));
-                        performanceResults.setTeamCityBuildId(testExecutions.getString(16));
+                    try (ResultSet testExecutions = executionsForName.executeQuery()) {
+                        while (testExecutions.next()) {
+                            long id = testExecutions.getLong(1);
+                            CrossVersionPerformanceResults performanceResults = new CrossVersionPerformanceResults();
+                            performanceResults.setTestClass(experiment.getScenario().getClassName());
+                            performanceResults.setTestId(experiment.getScenario().getTestName());
+                            performanceResults.setTestProject(experiment.getTestProject());
+                            performanceResults.setStartTime(testExecutions.getTimestamp(2).getTime());
+                            performanceResults.setEndTime(testExecutions.getTimestamp(3).getTime());
+                            performanceResults.setVersionUnderTest(testExecutions.getString(4));
+                            performanceResults.setTasks(ResultsStoreHelper.toList(testExecutions.getObject(5)));
+                            performanceResults.setArgs(ResultsStoreHelper.toList(testExecutions.getObject(6)));
+                            performanceResults.setGradleOpts(ResultsStoreHelper.toList(testExecutions.getObject(7)));
+                            performanceResults.setDaemon((Boolean) testExecutions.getObject(8));
+                            performanceResults.setOperatingSystem(testExecutions.getString(9));
+                            performanceResults.setJvm(testExecutions.getString(10));
+                            performanceResults.setVcsBranch(testExecutions.getString(11).trim());
+                            performanceResults.setVcsCommits(ResultsStoreHelper.split(testExecutions.getString(12)));
+                            performanceResults.setChannel(testExecutions.getString(13));
+                            performanceResults.setHost(testExecutions.getString(14));
+                            performanceResults.setCleanTasks(ResultsStoreHelper.toList(testExecutions.getObject(15)));
+                            performanceResults.setTeamCityBuildId(testExecutions.getString(16));
 
-                        results.put(id, performanceResults);
-                        allBranches.add(performanceResults.getVcsBranch());
+                            results.put(id, performanceResults);
+                            allBranches.add(performanceResults.getVcsBranch());
+                        }
                     }
 
-                    operationsForExecution = connection.prepareStatement("select version, testExecution, totalTime from testOperation "
-                        + "where testExecution in (select t.* from ( select id from testExecution where testClass = ? and testId = ? and testProject = ? and startTime >= ? and channel = ? order by startTime desc limit ?) as t)");
                     operationsForExecution.setFetchSize(10 * results.size());
                     operationsForExecution.setString(1, experiment.getScenario().getClassName());
                     operationsForExecution.setString(2, experiment.getScenario().getTestName());
@@ -283,41 +262,32 @@ public class CrossVersionResultsStore implements WritableResultsStore<CrossVersi
                     operationsForExecution.setString(5, channel);
                     operationsForExecution.setInt(6, mostRecentN);
 
-                    operations = operationsForExecution.executeQuery();
-                    while (operations.next()) {
-                        CrossVersionPerformanceResults result = results.get(operations.getLong(2));
-                        if (result == null) {
-                            continue;
-                        }
-                        String version = operations.getString(1);
-                        if ("1.7".equals(version) && result.getStartTime() <= ignoreV17Before) {
-                            // Ignore some broken samples
-                            continue;
-                        }
-                        MeasuredOperation operation = new MeasuredOperation();
-                        operation.setTotalTime(Duration.millis(operations.getBigDecimal(3)));
+                    try (ResultSet operations = operationsForExecution.executeQuery()){
+                        while (operations.next()) {
+                            CrossVersionPerformanceResults result = results.get(operations.getLong(2));
+                            if (result == null) {
+                                continue;
+                            }
+                            String version = operations.getString(1);
+                            if ("1.7".equals(version) && result.getStartTime() <= ignoreV17Before) {
+                                // Ignore some broken samples
+                                continue;
+                            }
+                            MeasuredOperation operation = new MeasuredOperation();
+                            operation.setTotalTime(Duration.millis(operations.getBigDecimal(3)));
 
-                        if (version == null) {
-                            result.getCurrent().add(operation);
-                        } else {
-                            BaselineVersion baselineVersion = result.baseline(version);
-                            baselineVersion.getResults().add(operation);
-                            allVersions.add(version);
+                            if (version == null) {
+                                result.getCurrent().add(operation);
+                            } else {
+                                BaselineVersion baselineVersion = result.baseline(version);
+                                baselineVersion.getResults().add(operation);
+                                allVersions.add(version);
+                            }
                         }
                     }
-
-                } finally {
-                    closeResultSet(operations);
-                    closeStatement(operationsForExecution);
-                    closeResultSet(testExecutions);
-                    closeStatement(executionsForName);
+                    return new CrossVersionPerformanceTestHistory(experiment, new ArrayList<>(allVersions), new ArrayList<>(allBranches), Lists.newArrayList(results.values()));
                 }
-
-                return new CrossVersionPerformanceTestHistory(experiment, new ArrayList<>(allVersions), new ArrayList<>(allBranches), Lists.newArrayList(results.values()));
             });
-        } catch (Exception e) {
-            throw new RuntimeException(String.format("Could not load results from datastore '%s'.", db.getUrl()), e);
-        }
     }
 
     protected GradleVersion resolveGradleVersion(String version) {
@@ -327,23 +297,6 @@ public class CrossVersionResultsStore implements WritableResultsStore<CrossVersi
             gradleVersionCache.put(version, gradleVersion);
         }
         return gradleVersion;
-    }
-
-    @Override
-    public void close() {
-        db.close();
-    }
-
-    private void closeStatement(Statement statement) throws SQLException {
-        if (statement != null) {
-            statement.close();
-        }
-    }
-
-    private void closeResultSet(ResultSet resultSet) throws SQLException {
-        if (resultSet != null) {
-            resultSet.close();
-        }
     }
 
     public Map<PerformanceExperiment, BigDecimal> getFlakinessRates() {
@@ -363,22 +316,21 @@ public class CrossVersionResultsStore implements WritableResultsStore<CrossVersi
     }
 
     private Map<PerformanceExperiment, BigDecimal> queryFlakinessData(String sql, Timestamp time) {
-        try {
-            return db.withConnection(connection -> {
-                Map<PerformanceExperiment, BigDecimal> results = Maps.newHashMap();
-                try (PreparedStatement statement = prepareStatement(connection, sql, time); ResultSet resultSet = statement.executeQuery()) {
-                    while (resultSet.next()) {
-                        String testClass = resultSet.getString(1);
-                        String testName = resultSet.getString(2);
-                        String testProject = resultSet.getString(3);
-                        BigDecimal value = resultSet.getBigDecimal(4);
-                        results.put(new PerformanceExperiment(testProject, new PerformanceScenario(testClass, testName)), value);
-                    }
+        return withConnection("query flakiness data", connection -> {
+            Map<PerformanceExperiment, BigDecimal> results = Maps.newHashMap();
+            try (
+                PreparedStatement statement = prepareStatement(connection, sql, time);
+                ResultSet resultSet = statement.executeQuery()
+            ) {
+                while (resultSet.next()) {
+                    String testClass = resultSet.getString(1);
+                    String testName = resultSet.getString(2);
+                    String testProject = resultSet.getString(3);
+                    BigDecimal value = resultSet.getBigDecimal(4);
+                    results.put(new PerformanceExperiment(testProject, new PerformanceScenario(testClass, testName)), value);
                 }
-                return results;
-            });
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
+            }
+            return results;
+        });
     }
 }
