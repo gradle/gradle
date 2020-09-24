@@ -117,14 +117,15 @@ public class BaseCrossBuildResultsStore<R extends CrossBuildPerformanceResults> 
         try {
             return db.withConnection((ConnectionAction<List<PerformanceExperiment>>) connection -> {
                 Set<PerformanceExperiment> testNames = Sets.newLinkedHashSet();
-                PreparedStatement testIdsStatement = connection.prepareStatement("select distinct testId, testProject from testExecution where resultType = ? order by testId, testProject");
+                PreparedStatement testIdsStatement = connection.prepareStatement("select distinct testClass, testId, testProject from testExecution where resultType = ? order by testClass, testId, testProject");
                 testIdsStatement.setString(1, resultType);
                 ResultSet testExecutions = testIdsStatement.executeQuery();
                 while (testExecutions.next()) {
-                    // TODO: Add testProject to cross_build_results DB
-                    String testProject = testExecutions.getString(2);
-                    if (testProject != null) {
-                        testNames.add(new PerformanceExperiment(testProject, testExecutions.getString(1)));
+                    String testClass = testExecutions.getString(1);
+                    String testName = testExecutions.getString(2);
+                    String testProject = testExecutions.getString(3);
+                    if (testProject != null && testClass != null) {
+                        testNames.add(new PerformanceExperiment(testProject, new PerformanceScenario(testClass, testName)));
                     }
                 }
                 testExecutions.close();
@@ -147,19 +148,21 @@ public class BaseCrossBuildResultsStore<R extends CrossBuildPerformanceResults> 
             return db.withConnection(connection -> {
                 List<CrossBuildPerformanceResults> results = Lists.newArrayList();
                 Set<BuildDisplayInfo> builds = Sets.newTreeSet(Comparator.comparing(BuildDisplayInfo::getDisplayName));
-                PreparedStatement executionsForName = connection.prepareStatement("select id, startTime, endTime, versionUnderTest, operatingSystem, jvm, vcsBranch, vcsCommit, testGroup, channel, host, teamCityBuildId from testExecution where testId = ? and testProject = ? and startTime >= ? and channel = ? order by startTime desc limit ?");
+                PreparedStatement executionsForName = connection.prepareStatement("select id, startTime, endTime, versionUnderTest, operatingSystem, jvm, vcsBranch, vcsCommit, testGroup, channel, host, teamCityBuildId from testExecution where testClass = ? and testId = ? and testProject = ? and startTime >= ? and channel = ? order by startTime desc limit ?");
                 PreparedStatement operationsForExecution = connection.prepareStatement("select displayName, tasks, args, gradleOpts, daemon, totalTime, cleanTasks from testOperation where testExecution = ?");
-                executionsForName.setString(1, experiment.getScenario());
-                executionsForName.setString(2, experiment.getTestProject());
+                executionsForName.setString(1, experiment.getScenario().getClassName());
+                executionsForName.setString(2, experiment.getScenario().getTestName());
+                executionsForName.setString(3, experiment.getTestProject());
                 Timestamp minDate = new Timestamp(LocalDate.now().minusDays(maxDaysOld).toDate().getTime());
-                executionsForName.setTimestamp(3, minDate);
-                executionsForName.setString(4, channel);
-                executionsForName.setInt(5, mostRecentN);
+                executionsForName.setTimestamp(4, minDate);
+                executionsForName.setString(5, channel);
+                executionsForName.setInt(6, mostRecentN);
                 ResultSet testExecutions = executionsForName.executeQuery();
                 while (testExecutions.next()) {
                     long id = testExecutions.getLong(1);
                     CrossBuildPerformanceResults performanceResults = new CrossBuildPerformanceResults();
-                    performanceResults.setTestId(experiment.getScenario());
+                    performanceResults.setTestClass(experiment.getScenario().getClassName());
+                    performanceResults.setTestId(experiment.getScenario().getTestName());
                     performanceResults.setTestProject(experiment.getTestProject());
                     performanceResults.setStartTime(testExecutions.getTimestamp(2).getTime());
                     performanceResults.setEndTime(testExecutions.getTimestamp(3).getTime());
@@ -201,7 +204,7 @@ public class BaseCrossBuildResultsStore<R extends CrossBuildPerformanceResults> 
                 operationsForExecution.close();
                 executionsForName.close();
 
-                return new CrossBuildPerformanceTestHistory(experiment.getScenario(), ImmutableList.copyOf(builds), results);
+                return new CrossBuildPerformanceTestHistory(experiment.getScenario().getTestName(), ImmutableList.copyOf(builds), results);
             });
         } catch (Exception e) {
             throw new RuntimeException(String.format("Could not load results from datastore '%s'.", db.getUrl()), e);

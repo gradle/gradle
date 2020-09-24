@@ -48,6 +48,7 @@ public class DefaultPerformanceExecutionDataProvider extends PerformanceExecutio
         .thenComparing(comparing(ScenarioBuildResultData::getDifferenceSortKey).reversed())
         .thenComparing(comparing(ScenarioBuildResultData::getDifferencePercentage).reversed())
         .thenComparing(ScenarioBuildResultData::getScenarioName)
+        .thenComparing(ScenarioBuildResultData::getScenarioClass)
         .thenComparing(ScenarioBuildResultData::getTestProject);
 
     public DefaultPerformanceExecutionDataProvider(ResultsStore resultsStore, List<File> resultJsons) {

@@ -32,7 +32,7 @@ class CrossBuildResultsStoreTest extends ResultSpecification {
     SetSystemProperties properties = new SetSystemProperties("org.gradle.performance.db.url": "jdbc:h2:" + tmpDir.testDirectory)
 
     final dbName = "cross-build-results"
-    def experiment1 = new PerformanceExperiment("testProject1", "test1")
+    def experiment1 = new PerformanceExperiment("testProject1", new PerformanceScenario("org.gradle.performance.MyPerformanceTest", "test1"))
 
     def "persists results"() {
         given:

@@ -53,7 +53,7 @@ import static org.gradle.performance.results.ResultsStoreHelper.toArray;
  */
 public class CrossVersionResultsStore implements WritableResultsStore<CrossVersionPerformanceResults> {
     private static final String FLAKINESS_RATE_SQL =
-        "SELECT TESTID, TESTPROJECT, AVG(\n" +
+        "SELECT TESTCLASS, TESTID, TESTPROJECT, AVG(\n" +
             "  CASE WHEN DIFFCONFIDENCE > 0.97 THEN 1.0\n" +
             "    ELSE 0.0\n" +
             "  END) AS FAILURE_RATE \n" +
@@ -61,7 +61,7 @@ public class CrossVersionResultsStore implements WritableResultsStore<CrossVersi
             " WHERE (CHANNEL = 'flakiness-detection-master' OR CHANNEL = 'flakiness-detection-release') AND STARTTIME> ?\n" +
             "GROUP BY TESTID, TESTPROJECT ORDER by FAILURE_RATE;";
     private static final String FAILURE_THRESOLD_SQL =
-        "SELECT TESTID, TESTPROJECT, MAX(ABS((BASELINEMEDIAN-CURRENTMEDIAN)/BASELINEMEDIAN)) as THRESHOLD\n" +
+        "SELECT TESTCLASS, TESTID, TESTPROJECT, MAX(ABS((BASELINEMEDIAN-CURRENTMEDIAN)/BASELINEMEDIAN)) as THRESHOLD\n" +
             "FROM testExecution\n" +
             "WHERE (CHANNEL = 'flakiness-detection-master' or CHANNEL= 'flakiness-detection-release') AND STARTTIME > ? AND DIFFCONFIDENCE > 0.97\n" +
             "GROUP BY TESTID, TESTPROJECT";
@@ -197,9 +197,12 @@ public class CrossVersionResultsStore implements WritableResultsStore<CrossVersi
 
                 try {
                     statement = connection.createStatement();
-                    testExecutions = statement.executeQuery("select distinct testId, testProject from testExecution order by testId, testProject");
+                    testExecutions = statement.executeQuery("select distinct testClass, testId, testProject from testExecution order by testClass, testId, testProject");
                     while (testExecutions.next()) {
-                        testNames.add(new PerformanceExperiment(testExecutions.getString(2), testExecutions.getString(1)));
+                        String testClass = testExecutions.getString(1);
+                        String testId = testExecutions.getString(2);
+                        String testProject = testExecutions.getString(3);
+                        testNames.add(new PerformanceExperiment(testProject, new PerformanceScenario(testClass, testId)));
                     }
                 } finally {
                     closeStatement(statement);
@@ -233,20 +236,22 @@ public class CrossVersionResultsStore implements WritableResultsStore<CrossVersi
                 ResultSet operations = null;
 
                 try {
-                    executionsForName = connection.prepareStatement("select id, startTime, endTime, targetVersion, tasks, args, gradleOpts, daemon, operatingSystem, jvm, vcsBranch, vcsCommit, channel, host, cleanTasks, teamCityBuildId from testExecution where testId = ? and testProject = ? and startTime >= ? and channel = ? order by startTime desc limit ?");
+                    executionsForName = connection.prepareStatement("select id, startTime, endTime, targetVersion, tasks, args, gradleOpts, daemon, operatingSystem, jvm, vcsBranch, vcsCommit, channel, host, cleanTasks, teamCityBuildId from testExecution where testClass = ? and testId = ? and testProject = ? and startTime >= ? and channel = ? order by startTime desc limit ?");
                     executionsForName.setFetchSize(mostRecentN);
-                    executionsForName.setString(1, experiment.getScenario());
-                    executionsForName.setString(2, experiment.getTestProject());
+                    executionsForName.setString(1, experiment.getScenario().getClassName());
+                    executionsForName.setString(2, experiment.getScenario().getTestName());
+                    executionsForName.setString(3, experiment.getTestProject());
                     Timestamp minDate = new Timestamp(LocalDate.now().minusDays(maxDaysOld).toDate().getTime());
-                    executionsForName.setTimestamp(3, minDate);
-                    executionsForName.setString(4, channel);
-                    executionsForName.setInt(5, mostRecentN);
+                    executionsForName.setTimestamp(4, minDate);
+                    executionsForName.setString(5, channel);
+                    executionsForName.setInt(6, mostRecentN);
 
                     testExecutions = executionsForName.executeQuery();
                     while (testExecutions.next()) {
                         long id = testExecutions.getLong(1);
                         CrossVersionPerformanceResults performanceResults = new CrossVersionPerformanceResults();
-                        performanceResults.setTestId(experiment.getScenario());
+                        performanceResults.setTestClass(experiment.getScenario().getClassName());
+                        performanceResults.setTestId(experiment.getScenario().getTestName());
                         performanceResults.setTestProject(experiment.getTestProject());
                         performanceResults.setStartTime(testExecutions.getTimestamp(2).getTime());
                         performanceResults.setEndTime(testExecutions.getTimestamp(3).getTime());
@@ -269,13 +274,14 @@ public class CrossVersionResultsStore implements WritableResultsStore<CrossVersi
                     }
 
                     operationsForExecution = connection.prepareStatement("select version, testExecution, totalTime from testOperation "
-                        + "where testExecution in (select t.* from ( select id from testExecution where testId = ? and testProject = ? and startTime >= ? and channel = ? order by startTime desc limit ?) as t)");
+                        + "where testExecution in (select t.* from ( select id from testExecution where testClass = ? and testId = ? and testProject = ? and startTime >= ? and channel = ? order by startTime desc limit ?) as t)");
                     operationsForExecution.setFetchSize(10 * results.size());
-                    operationsForExecution.setString(1, experiment.getScenario());
-                    operationsForExecution.setString(2, experiment.getTestProject());
-                    operationsForExecution.setTimestamp(3, minDate);
-                    operationsForExecution.setString(4, channel);
-                    operationsForExecution.setInt(5, mostRecentN);
+                    operationsForExecution.setString(1, experiment.getScenario().getClassName());
+                    operationsForExecution.setString(2, experiment.getScenario().getTestName());
+                    operationsForExecution.setString(3, experiment.getTestProject());
+                    operationsForExecution.setTimestamp(4, minDate);
+                    operationsForExecution.setString(5, channel);
+                    operationsForExecution.setInt(6, mostRecentN);
 
                     operations = operationsForExecution.executeQuery();
                     while (operations.next()) {
@@ -362,10 +368,11 @@ public class CrossVersionResultsStore implements WritableResultsStore<CrossVersi
                 Map<PerformanceExperiment, BigDecimal> results = Maps.newHashMap();
                 try (PreparedStatement statement = prepareStatement(connection, sql, time); ResultSet resultSet = statement.executeQuery()) {
                     while (resultSet.next()) {
-                        String scenario = resultSet.getString(1);
-                        String testProject = resultSet.getString(2);
-                        BigDecimal value = resultSet.getBigDecimal(3);
-                        results.put(new PerformanceExperiment(testProject, scenario), value);
+                        String testClass = resultSet.getString(1);
+                        String testName = resultSet.getString(2);
+                        String testProject = resultSet.getString(3);
+                        BigDecimal value = resultSet.getBigDecimal(4);
+                        results.put(new PerformanceExperiment(testProject, new PerformanceScenario(testClass, testName)), value);
                     }
                 }
                 return results;

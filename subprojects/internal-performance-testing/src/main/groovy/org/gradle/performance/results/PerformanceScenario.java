@@ -18,21 +18,21 @@ package org.gradle.performance.results;
 
 import java.util.Objects;
 
-public class PerformanceExperiment {
-    private final String testProject;
-    private final PerformanceScenario scenario;
+public class PerformanceScenario {
+    private final String className;
+    private final String testName;
 
-    public PerformanceExperiment(String testProject, PerformanceScenario scenario) {
-        this.testProject = testProject;
-        this.scenario = scenario;
+    public PerformanceScenario(String className, String testName) {
+        this.className = className;
+        this.testName = testName;
     }
 
-    public String getTestProject() {
-        return testProject;
+    public String getClassName() {
+        return className;
     }
 
-    public PerformanceScenario getScenario() {
-        return scenario;
+    public String getTestName() {
+        return testName;
     }
 
     @Override
@@ -43,21 +43,21 @@ public class PerformanceExperiment {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        PerformanceExperiment that = (PerformanceExperiment) o;
-        return testProject.equals(that.testProject) &&
-            scenario.equals(that.scenario);
+        PerformanceScenario that = (PerformanceScenario) o;
+        return Objects.equals(className, that.className) &&
+            Objects.equals(testName, that.testName);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(testProject, scenario);
+        return Objects.hash(className, testName);
     }
 
     @Override
     public String toString() {
-        return "PerformanceExperiment{" +
-            "testProject='" + testProject + '\'' +
-            ", scenario='" + scenario + '\'' +
+        return "PerformanceScenario{" +
+            "className='" + className + '\'' +
+            ", scenario='" + testName + '\'' +
             '}';
     }
 }

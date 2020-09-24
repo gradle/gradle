@@ -27,6 +27,7 @@ import org.gradle.performance.results.CrossVersionPerformanceTestHistory
 import org.gradle.performance.results.GradleVsMavenBuildPerformanceResults
 import org.gradle.performance.results.MeasuredOperationList
 import org.gradle.performance.results.PerformanceExperiment
+import org.gradle.performance.results.PerformanceScenario
 import org.gradle.performance.results.PerformanceTestHistory
 import spock.lang.Specification
 
@@ -113,7 +114,7 @@ abstract class ResultSpecification extends Specification {
         result2.version('5.0-mockbaseline-2').results.addAll(measuredOperations([2, 2]))
         result2.version('master').results.addAll(measuredOperations([1, 1]))
 
-        return new CrossVersionPerformanceTestHistory(new PerformanceExperiment('test-project', 'mockScenario'),
+        return new CrossVersionPerformanceTestHistory(new PerformanceExperiment('test-project', new PerformanceScenario('org.gradle.performance.MyPerformanceTest', 'mockScenario')),
             ['5.0-mockbaseline-1', '5.0-mockbaseline-2'],
             ['master'],
             [result2, result1]
