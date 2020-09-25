@@ -70,15 +70,12 @@ public class BuildSourceBuilder {
         this.publicBuildPath = publicBuildPath;
     }
 
-    public ClassLoaderScope buildAndCreateClassLoader(GradleInternal gradle) {
+    public ClassPath buildAndGetClassPath(GradleInternal gradle) {
         SettingsInternal settings = gradle.getSettings();
         File buildSrcDir = settings.getBuildSrcDir();
         ClassLoaderScope parentClassLoaderScope = settings.getClassLoaderScope();
 
-        ClassPath classpath = createBuildSourceClasspath(buildSrcDir, gradle.getStartParameter(), parentClassLoaderScope);
-        return parentClassLoaderScope.createChild(buildSrcDir.getAbsolutePath())
-            .export(classpath)
-            .lock();
+        return createBuildSourceClasspath(buildSrcDir, gradle.getStartParameter(), parentClassLoaderScope);
     }
 
     private ClassPath createBuildSourceClasspath(File buildSrcDir, final StartParameter containingBuildParameters, ClassLoaderScope parentClassLoaderScope) {
