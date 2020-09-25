@@ -44,6 +44,8 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Collections;
 
+import static org.gradle.api.internal.lambdas.SerializableLambdas.spec;
+
 /**
  * Extension including common properties and methods for Jacoco.
  */
@@ -171,7 +173,7 @@ public class JacocoPluginExtension {
         );
         task.getOutputs().doNotCacheIf(
             "JaCoCo configured to not produce its output as a file",
-            element -> doNotCachePredicate.get()
+            spec(targetTask -> doNotCachePredicate.get())
         );
     }
 
