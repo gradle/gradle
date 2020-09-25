@@ -23,6 +23,7 @@ import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.file.FileSystemOperations;
 import org.gradle.api.file.ProjectLayout;
+import org.gradle.api.file.RegularFile;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -41,7 +42,6 @@ import org.gradle.process.JavaForkOptions;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Collections;
-import java.util.concurrent.Callable;
 
 /**
  * Extension including common properties and methods for Jacoco.
@@ -121,12 +121,7 @@ public class JacocoPluginExtension {
         final String taskName = task.getName();
         LOGGER.debug("Applying Jacoco to " + taskName);
         final JacocoTaskExtension extension = task.getExtensions().create(TASK_EXTENSION_NAME, JacocoTaskExtension.class, objects, agent, task);
-        extension.setDestinationFile(providers.provider(new Callable<File>() {
-            @Override
-            public File call() {
-                return layout.getBuildDirectory().file("jacoco/" + taskName + ".exec").get().getAsFile();
-            }
-        }));
+        extension.setDestinationFile(layout.getBuildDirectory().file("jacoco/" + taskName + ".exec").map(RegularFile::getAsFile));
 
         task.getJvmArgumentProviders().add(new JacocoAgent(extension));
         task.doFirst(new JacocoOutputCleanupTestTaskAction(
@@ -189,7 +184,7 @@ public class JacocoPluginExtension {
 
         @Override
         public Iterable<String> asArguments() {
-            return jacoco.isEnabled() ? ImmutableList.of(jacoco.getAsJvmArg()) : Collections.<String>emptyList();
+            return jacoco.isEnabled() ? ImmutableList.of(jacoco.getAsJvmArg()) : Collections.emptyList();
         }
 
         @Internal
