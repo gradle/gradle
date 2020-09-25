@@ -97,6 +97,23 @@ class AggregatingProcessorTest extends Specification {
         result.getAggregatedTypes() == ["A", "C"] as Set
     }
 
+    def "doesn't aggregated types which have source when annotation isn't at top level"() {
+        given:
+        delegate.getSupportedAnnotationTypes() >> annotationTypes.collect { it.getQualifiedName().toString() }
+        roundEnvironment = Stub(RoundEnvironment) {
+            getRootElements() >> ([type("A"), type("B"), type("C")] as Set)
+            getElementsAnnotatedWith(_ as TypeElement) >> { TypeElement annotationType ->
+                [method("foo", type("A")), type("C")] as Set
+            }
+        }
+
+        when:
+        processor.process(annotationTypes, roundEnvironment)
+
+        then:
+        result.getAggregatedTypes() == ["A", "C"] as Set
+    }
+
     def "aggregating processors do not work with source retention annotations"() {
         given:
         def sourceRetentionAnnotation = annotation("Broken", RetentionPolicy.SOURCE)
@@ -120,6 +137,17 @@ class AggregatingProcessorTest extends Specification {
             }
             getAnnotation(Retention) >> Stub(Retention) {
                 value() >> retentionPolicy
+            }
+        }
+    }
+
+    Symbol method(String name, Symbol parent) {
+        Stub(Symbol.MethodSymbol) {
+            getEnclosingElement() >> parent
+            getQualifiedName()  >> {
+                Stub(Name) {
+                    toString() >> name
+                }
             }
         }
     }

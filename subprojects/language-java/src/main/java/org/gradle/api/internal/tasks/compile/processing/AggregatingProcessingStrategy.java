@@ -74,11 +74,14 @@ class AggregatingProcessingStrategy extends IncrementalProcessingStrategy {
         if (orig == null || orig.isEmpty()) {
             return Collections.emptySet();
         }
-        return ElementUtils.getTopLevelTypeNames(orig.stream()
+        return orig
+            .stream()
+            .map(ElementUtils::getTopLevelType)
             .filter(Symbol.ClassSymbol.class::isInstance)
             .map(Symbol.ClassSymbol.class::cast)
             .filter(e -> e.sourcefile != null)
-            .collect(Collectors.toSet()));
+            .map(ElementUtils::getElementName)
+            .collect(Collectors.toSet());
     }
 
     @Override
