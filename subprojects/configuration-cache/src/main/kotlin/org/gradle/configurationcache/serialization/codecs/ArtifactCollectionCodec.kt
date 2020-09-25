@@ -235,6 +235,7 @@ class FixedArtifactCollection(
                     }
                 }
                 is TransformedLocalArtifactSpec -> {
+                    element.transformation.isolateParameters()
                     val displayName = Describables.of(element.ownerId, element.variantAttributes)
                     for (output in element.transformation.createInvocation(TransformationSubject.initial(element.origin), noDependencies, null).invoke().get().files) {
                         val artifactId = ComponentFileArtifactIdentifier(element.ownerId, output.name)

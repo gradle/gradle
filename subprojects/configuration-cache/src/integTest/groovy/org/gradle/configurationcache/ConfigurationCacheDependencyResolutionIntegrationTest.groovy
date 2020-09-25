@@ -215,11 +215,17 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
         file('out.txt').text == "12,10"
     }
 
-    def setupBuildWithArtifactTransformOfProjectDependencies() {
+    def setupBuildWithArtifactTransformOfProjectDependencies(boolean legacy) {
         settingsFile << """
             include 'a', 'b'
         """
-        setupBuildWithLegacyColorTransformImplementation()
+
+        if (legacy) {
+            setupBuildWithLegacyColorTransformImplementation()
+        } else {
+            setupBuildWithColorTransformImplementation()
+        }
+
         buildFile << """
             dependencies.artifactTypes {
                 green {
@@ -228,7 +234,6 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
             }
             dependencies {
                 implementation project(':a')
-                implementation files('root.green')
                 implementation project(':b')
             }
         """
@@ -238,14 +243,14 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
     def "task input file collection can include the output of artifact transform of project dependencies"() {
         def configurationCache = newConfigurationCacheFixture()
 
-        setupBuildWithArtifactTransformOfProjectDependencies()
+        setupBuildWithArtifactTransformOfProjectDependencies(legacy)
 
         when:
         configurationCacheRun(":resolve")
 
         then:
         assertTransformed("a.jar", "b.jar")
-        outputContains("result = [root.green, a.jar.green, b.jar.green]")
+        outputContains("result = [a.jar.green, b.jar.green]")
 
         when:
         configurationCacheRun(":resolve")
@@ -257,7 +262,7 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
         result.assertTaskSkipped(":a:producer")
         result.assertTaskSkipped(":b:producer")
         assertTransformed()
-        outputContains("result = [root.green, a.jar.green, b.jar.green]")
+        outputContains("result = [a.jar.green, b.jar.green]")
 
         when:
         configurationCacheRun(":resolve", "-PaContent=changed")
@@ -269,22 +274,25 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
         assertTransformed("a.jar")
         result.assertTaskNotSkipped(":a:producer")
         result.assertTaskSkipped(":b:producer")
-        outputContains("result = [root.green, a.jar.green, b.jar.green]")
+        outputContains("result = [a.jar.green, b.jar.green]")
+
+        where:
+        legacy << [true, false]
     }
 
     def "task input artifact collection can include the output of artifact transform of project dependencies"() {
         def configurationCache = newConfigurationCacheFixture()
 
-        setupBuildWithArtifactTransformOfProjectDependencies()
+        setupBuildWithArtifactTransformOfProjectDependencies(legacy)
 
         when:
         configurationCacheRun(":resolveArtifacts")
 
         then:
         assertTransformed("a.jar", "b.jar")
-        outputContains("files = [root.green, a.jar.green, b.jar.green]")
-        outputContains("artifacts = [root.green, a.jar.green (project :a), b.jar.green (project :b)]")
-        outputContains("variants = [{artifactType=green, color=green}, {artifactType=jar, color=green}, {artifactType=jar, color=green}]")
+        outputContains("files = [a.jar.green, b.jar.green]")
+        outputContains("artifacts = [a.jar.green (project :a), b.jar.green (project :b)]")
+        outputContains("variants = [{artifactType=jar, color=green}, {artifactType=jar, color=green}]")
 
         when:
         configurationCacheRun(":resolveArtifacts")
@@ -296,9 +304,9 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
         result.assertTaskSkipped(":a:producer")
         result.assertTaskSkipped(":b:producer")
         assertTransformed()
-        outputContains("files = [root.green, a.jar.green, b.jar.green]")
-        outputContains("artifacts = [root.green, a.jar.green (project :a), b.jar.green (project :b)]")
-        outputContains("variants = [{artifactType=green, color=green}, {artifactType=jar, color=green}, {artifactType=jar, color=green}]")
+        outputContains("files = [a.jar.green, b.jar.green]")
+        outputContains("artifacts = [a.jar.green (project :a), b.jar.green (project :b)]")
+        outputContains("variants = [{artifactType=jar, color=green}, {artifactType=jar, color=green}]")
 
         when:
         configurationCacheRun(":resolveArtifacts", "-PaContent=changed")
@@ -310,17 +318,25 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
         result.assertTaskNotSkipped(":a:producer")
         result.assertTaskSkipped(":b:producer")
         assertTransformed("a.jar")
-        outputContains("files = [root.green, a.jar.green, b.jar.green]")
-        outputContains("artifacts = [root.green, a.jar.green (project :a), b.jar.green (project :b)]")
-        outputContains("variants = [{artifactType=green, color=green}, {artifactType=jar, color=green}, {artifactType=jar, color=green}]")
+        outputContains("files = [a.jar.green, b.jar.green]")
+        outputContains("artifacts = [a.jar.green (project :a), b.jar.green (project :b)]")
+        outputContains("variants = [{artifactType=jar, color=green}, {artifactType=jar, color=green}]")
+
+        where:
+        legacy << [true, false]
     }
 
-    def setupBuildWithArtifactTransformsOfExternalDependencies() {
+    def setupBuildWithArtifactTransformsOfExternalDependencies(boolean legacy) {
         httpServer.start()
         withColorVariants(remoteRepo.module("group", "thing1", "1.2")).publish().allowAll()
         withColorVariants(remoteRepo.module("group", "thing2", "1.2")).publish().allowAll()
 
-        setupBuildWithLegacyColorTransformImplementation()
+        if (legacy) {
+            setupBuildWithLegacyColorTransformImplementation()
+        } else {
+            setupBuildWithColorTransformImplementation()
+        }
+
         buildFile << """
             repositories {
                 maven {
@@ -338,7 +354,7 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
     def "task input file collection can include the output of artifact transform of external dependencies"() {
         def configurationCache = newConfigurationCacheFixture()
 
-        setupBuildWithArtifactTransformsOfExternalDependencies()
+        setupBuildWithArtifactTransformsOfExternalDependencies(legacy)
 
         when:
         configurationCacheRun(":resolve")
@@ -354,12 +370,15 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
         configurationCache.assertStateLoaded()
         assertTransformed()
         outputContains("result = [thing1-1.2.jar.green, thing2-1.2.jar.green]")
+
+        where:
+        legacy << [true, false]
     }
 
     def "task input artifact collection can include the output of artifact transform of external dependencies"() {
         def configurationCache = newConfigurationCacheFixture()
 
-        setupBuildWithArtifactTransformsOfExternalDependencies()
+        setupBuildWithArtifactTransformsOfExternalDependencies(legacy)
 
         when:
         configurationCacheRun(":resolveArtifacts")
@@ -379,13 +398,18 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
         outputContains("files = [thing1-1.2.jar.green, thing2-1.2.jar.green]")
         outputContains("artifacts = [thing1-1.2.jar.green (group:thing1:1.2), thing2-1.2.jar.green (group:thing2:1.2)]")
         outputContains("variants = [{artifactType=jar, color=green, org.gradle.status=release}, {artifactType=jar, color=green, org.gradle.status=release}]")
+
+        where:
+        legacy << [true, false]
     }
 
-    def setupBuildWithArtifactTransformsOfPrebuiltFileDependencies() {
-        settingsFile << """
-            include 'a'
-        """
-        setupBuildWithLegacyColorTransformImplementation()
+    def setupBuildWithArtifactTransformsOfPrebuiltFileDependencies(boolean legacy) {
+        if (legacy) {
+            setupBuildWithLegacyColorTransformImplementation()
+        } else {
+            setupBuildWithColorTransformImplementation()
+        }
+
         buildFile << """
             dependencies.artifactTypes {
                 blue {
@@ -394,72 +418,75 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
             }
             dependencies {
                 implementation files('root.blue')
-                implementation project(':a')
-            }
-            project(':a') {
-                dependencies {
-                    implementation files('a.blue')
-                }
             }
         """
         file('root.blue') << 'root'
-        file('a/a.blue') << 'a'
     }
 
     def "task input file collection can include the output of artifact transforms of prebuilt file dependencies"() {
         def configurationCache = newConfigurationCacheFixture()
 
-        setupBuildWithArtifactTransformsOfPrebuiltFileDependencies()
+        setupBuildWithArtifactTransformsOfPrebuiltFileDependencies(legacy)
 
         when:
         configurationCacheRun(":resolve")
 
         then:
-        assertTransformed("root.blue", "a.blue", "a.jar")
-        outputContains("result = [root.blue.green, a.jar.green, a.blue.green]")
+        assertTransformed("root.blue")
+        outputContains("result = [root.blue.green]")
 
         when:
         configurationCacheRun(":resolve")
 
         then: // everything up-to-date
         configurationCache.assertStateLoaded()
-        result.assertTaskOrder(":a:producer", ":resolve")
         assertTransformed()
-        outputContains("result = [root.blue.green, a.jar.green, a.blue.green]")
+        outputContains("result = [root.blue.green]")
+
+        where:
+        legacy << [true, false]
     }
 
     def "task input artifact collection can include the output of artifact transforms of prebuilt file dependencies"() {
         def configurationCache = newConfigurationCacheFixture()
 
-        setupBuildWithArtifactTransformsOfPrebuiltFileDependencies()
+        setupBuildWithArtifactTransformsOfPrebuiltFileDependencies(legacy)
 
         when:
         configurationCacheRun(":resolveArtifacts")
 
         then:
-        assertTransformed("root.blue", "a.blue", "a.jar")
-        outputContains("files = [root.blue.green, a.jar.green, a.blue.green]")
-        outputContains("artifacts = [root.blue.green (root.blue), a.jar.green (project :a), a.blue.green (a.blue)]")
-        outputContains("variants = [{artifactType=blue, color=green}, {artifactType=jar, color=green}, {artifactType=blue, color=green}]")
+        assertTransformed("root.blue")
+        outputContains("files = [root.blue.green]")
+        outputContains("artifacts = [root.blue.green (root.blue)]")
+        outputContains("variants = [{artifactType=blue, color=green}]")
 
         when:
         configurationCacheRun(":resolveArtifacts")
 
         then: // everything up-to-date
         configurationCache.assertStateLoaded()
-        result.assertTaskOrder(":a:producer", ":resolveArtifacts")
         assertTransformed()
-        outputContains("files = [root.blue.green, a.jar.green, a.blue.green]")
-        outputContains("artifacts = [root.blue.green (root.blue), a.jar.green (project :a), a.blue.green (a.blue)]")
-        outputContains("variants = [{artifactType=blue, color=green}, {artifactType=jar, color=green}, {artifactType=blue, color=green}]")
+        outputContains("files = [root.blue.green]")
+        outputContains("artifacts = [root.blue.green (root.blue)]")
+        outputContains("variants = [{artifactType=blue, color=green}]")
+
+        where:
+        legacy << [true, false]
     }
 
-    def setupBuildWithArtifactTransformsOfFileDependenciesThatContainTaskOutputs() {
+    def setupBuildWithArtifactTransformsOfFileDependenciesThatContainTaskOutputs(boolean legacy) {
         settingsFile << """
             rootProject.name = 'root'
             include 'a'
         """
-        setupBuildWithLegacyColorTransformImplementation()
+
+        if (legacy) {
+            setupBuildWithLegacyColorTransformImplementation()
+        } else {
+            setupBuildWithColorTransformImplementation()
+        }
+
         buildFile << """
             allprojects {
                 task additionalFile(type: FileProducer) {
@@ -488,7 +515,7 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
     def "task input file collection can include the output of artifact transforms of file dependencies that include task outputs"() {
         def configurationCache = newConfigurationCacheFixture()
 
-        setupBuildWithArtifactTransformsOfFileDependenciesThatContainTaskOutputs()
+        setupBuildWithArtifactTransformsOfFileDependenciesThatContainTaskOutputs(legacy)
 
         when:
         configurationCacheRun(":resolve")
@@ -507,13 +534,16 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
         result.assertTaskOrder(":additionalFile", ":resolve")
         assertTransformed()
         outputContains("result = [root.additional.blue.green, root.blue.green, a.jar.green, a.additional.blue.green]")
+
+        where:
+        legacy << [true, false]
     }
 
     @Issue("https://github.com/gradle/gradle/issues/13200")
     def "task input artifact collection can include the output of artifact transforms of file dependencies that include task outputs"() {
         def configurationCache = newConfigurationCacheFixture()
 
-        setupBuildWithArtifactTransformsOfFileDependenciesThatContainTaskOutputs()
+        setupBuildWithArtifactTransformsOfFileDependenciesThatContainTaskOutputs(legacy)
 
         when:
         configurationCacheRun(":resolveArtifacts")
@@ -536,6 +566,9 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
         outputContains("files = [root.additional.blue.green, root.blue.green, a.jar.green, a.additional.blue.green]")
         outputContains("artifacts = [root.additional.blue.green (root.additional.blue), root.blue.green (root.blue), a.jar.green (project :a), a.additional.blue.green (a.additional.blue)]")
         outputContains("variants = [{artifactType=blue, color=green}, {artifactType=blue, color=green}, {artifactType=jar, color=green}, {artifactType=blue, color=green}]")
+
+        where:
+        legacy << [true, false]
     }
 
     def "task input file collection can include the output of chained artifact transform of project dependencies"() {
