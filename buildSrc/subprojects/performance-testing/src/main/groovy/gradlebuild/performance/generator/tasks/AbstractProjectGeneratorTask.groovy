@@ -16,7 +16,8 @@
 
 package gradlebuild.performance.generator.tasks
 
-
+import gradlebuild.performance.generator.RepositoryBuilder
+import gradlebuild.performance.generator.TestProject
 import groovy.text.SimpleTemplateEngine
 import groovy.text.Template
 import org.gradle.api.GradleException
@@ -29,8 +30,6 @@ import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
-import gradlebuild.performance.generator.RepositoryBuilder
-import gradlebuild.performance.generator.TestProject
 
 /**
  * Original tangled mess of a project generator.
@@ -302,7 +301,7 @@ abstract class AbstractProjectGeneratorTask extends TemplateProjectGeneratorTask
         destFile.parentFile.mkdirs()
         destFile.withWriter { Writer writer ->
             if (templateName.endsWith('.gradle')) {
-                writer << "// Generated ${UUID.randomUUID()}\n"
+                writer << "// Generated for subproject ${templateArgs.projectName}\n"
             }
             getTemplate(templateFiles.last()).make(templateArgs).writeTo(writer)
         }

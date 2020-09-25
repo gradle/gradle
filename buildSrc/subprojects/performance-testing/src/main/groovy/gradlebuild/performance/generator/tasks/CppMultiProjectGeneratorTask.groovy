@@ -16,9 +16,8 @@
 
 package gradlebuild.performance.generator.tasks
 
-
-import org.gradle.api.tasks.Internal
 import gradlebuild.performance.generator.TestProject
+import org.gradle.api.tasks.Internal
 
 // TODO: Remove this and replace it with a BuildBuilderGenerator instead.
 class CppMultiProjectGeneratorTask extends AbstractProjectGeneratorTask {
@@ -33,6 +32,7 @@ class CppMultiProjectGeneratorTask extends AbstractProjectGeneratorTask {
                                "project${it}"
                            },
                            sourceFiles: testProject.sourceFiles,
+                           projectName: testProject.name,
                            useMacroIncludes: false
         ] + args
         generateWithTemplate(projectDir, 'build.gradle', 'build.gradle', projectArgs)
