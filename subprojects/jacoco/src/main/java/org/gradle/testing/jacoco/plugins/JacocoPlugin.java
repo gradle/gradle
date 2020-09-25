@@ -16,7 +16,6 @@
 package org.gradle.testing.jacoco.plugins;
 
 import org.apache.commons.lang.StringUtils;
-import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
@@ -26,7 +25,6 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.ReportingBasePlugin;
 import org.gradle.api.provider.Provider;
-import org.gradle.api.reporting.ConfigurableReport;
 import org.gradle.api.reporting.Report;
 import org.gradle.api.reporting.ReportingExtension;
 import org.gradle.api.tasks.SourceSetContainer;
@@ -42,7 +40,8 @@ import org.gradle.testing.jacoco.tasks.JacocoReport;
 
 import javax.inject.Inject;
 import java.io.File;
-import java.io.Serializable;
+
+import static org.gradle.api.internal.lambdas.SerializableLambdas.action;
 
 /**
  * Plugin that provides support for generating Jacoco coverage data.
@@ -145,17 +144,17 @@ public class JacocoPlugin implements Plugin<Project> {
     }
 
     private void configureJacocoReportDefaults(final JacocoPluginExtension extension, final JacocoReport reportTask) {
-        reportTask.getReports().all((Action<ConfigurableReport> & Serializable) report ->
+        reportTask.getReports().all(action(report ->
             report.setEnabled(report.getName().equals("html"))
-        );
+        ));
         Provider<File> reportsDir = project.provider(extension::getReportsDir);
-        reportTask.getReports().all((Action<ConfigurableReport> & Serializable) report -> {
+        reportTask.getReports().all(action(report -> {
             if (report.getOutputType().equals(Report.OutputType.DIRECTORY)) {
                 report.setDestination(reportsDir.map(dir -> new File(dir, reportTask.getName() + "/" + report.getName())));
             } else {
                 report.setDestination(reportsDir.map(dir -> new File(dir, reportTask.getName() + "/" + reportTask.getName() + "." + report.getName())));
             }
-        });
+        }));
     }
 
     /**
@@ -183,7 +182,7 @@ public class JacocoPlugin implements Plugin<Project> {
                 reportTask.sourceSets(project.getExtensions().getByType(SourceSetContainer.class).getByName("main"));
                 // TODO: Change the default location for these reports to follow the convention defined in ReportOutputDirectoryAction
                 Provider<File> reportsDir = project.provider(extension::getReportsDir);
-                reportTask.getReports().all((Action<ConfigurableReport> & Serializable) report -> {
+                reportTask.getReports().all(action(report -> {
                     // For someone looking for the difference between this and the duplicate code above
                     // this one uses the `testTaskProvider` and the `reportTask`. The other just
                     // uses the `reportTask`.
@@ -193,7 +192,7 @@ public class JacocoPlugin implements Plugin<Project> {
                     } else {
                         report.setDestination(reportsDir.map(dir -> new File(dir, testTaskName + "/" + reportTask.getName() + "." + report.getName())));
                     }
-                });
+                }));
             });
     }
 
