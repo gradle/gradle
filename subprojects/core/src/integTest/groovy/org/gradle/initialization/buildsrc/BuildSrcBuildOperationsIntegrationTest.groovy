@@ -59,17 +59,14 @@ class BuildSrcBuildOperationsIntegrationTest extends AbstractIntegrationSpec {
         loadOps[1].details.buildPath == ':buildSrc'
         loadOps[1].parentId == buildSrcOps[0].id
 
-        def buildTreeOp = ops.only(/Prepare build tree/)
-        buildTreeOp.parentId == root.id
-
         def configureOps = ops.all(ConfigureBuildBuildOperationType)
         configureOps.size() == 2
-        configureOps[0].displayName == "Configure build (:buildSrc)"
-        configureOps[0].details.buildPath == ":buildSrc"
-        configureOps[0].parentId == buildSrcOps[0].id
-        configureOps[1].displayName == "Configure build"
-        configureOps[1].details.buildPath == ":"
-        configureOps[1].parentId == buildTreeOp.id
+        configureOps[0].displayName == "Configure build"
+        configureOps[0].details.buildPath == ":"
+        configureOps[0].parentId == root.id
+        configureOps[1].displayName == "Configure build (:buildSrc)"
+        configureOps[1].details.buildPath == ":buildSrc"
+        configureOps[1].parentId == buildSrcOps[0].id
 
         def taskGraphOps = ops.all(CalculateTaskGraphBuildOperationType)
         taskGraphOps.size() == 2
