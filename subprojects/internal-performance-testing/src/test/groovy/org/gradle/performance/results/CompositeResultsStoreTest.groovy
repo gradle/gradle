@@ -22,10 +22,11 @@ class CompositeResultsStoreTest extends Specification {
     def store1 = Mock(ResultsStore)
     def store2 = Mock(ResultsStore)
     def store = new CompositeResultsStore(store1, store2)
-    def a = new PerformanceExperiment('testProject1', 'a')
-    def b = new PerformanceExperiment('testProject2', 'b')
-    def c = new PerformanceExperiment('testProject1', 'c')
-    def d = new PerformanceExperiment('testProject1', 'd')
+    def className = 'org.gradle.performance.MyPerformanceTest'
+    def a = new PerformanceExperiment('testProject1', new PerformanceScenario(className, 'a'))
+    def b = new PerformanceExperiment('testProject2', new PerformanceScenario(className, 'b'))
+    def c = new PerformanceExperiment('testProject1', new PerformanceScenario(className, 'c'))
+    def d = new PerformanceExperiment('testProject1', new PerformanceScenario(className, 'd'))
 
     def "returns union of test names"() {
         given:

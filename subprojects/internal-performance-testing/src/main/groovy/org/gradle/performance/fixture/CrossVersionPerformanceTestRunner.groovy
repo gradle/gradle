@@ -117,6 +117,7 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
         assumeShouldRun()
 
         def results = new CrossVersionPerformanceResults(
+            testClass: testClassName,
             testId: testId,
             previousTestIds: previousTestIds.collect { it.toString() }, // Convert GString instances
             testProject: testProject,

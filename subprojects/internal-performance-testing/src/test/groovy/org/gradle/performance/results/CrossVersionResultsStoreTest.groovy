@@ -30,8 +30,8 @@ class CrossVersionResultsStoreTest extends ResultSpecification {
     @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     @Rule SetSystemProperties properties = new SetSystemProperties("org.gradle.performance.db.url": "jdbc:h2:" + tmpDir.testDirectory)
     final dbFile = tmpDir.file("results")
-    def experiment1 = new PerformanceExperiment("testProject1", "test1")
-    def experiment2 = new PerformanceExperiment("testProject1", "test2")
+    def experiment1 = new PerformanceExperiment("testProject1", new PerformanceScenario("org.gradle.performance.MyPerformanceTest", "test1"))
+    def experiment2 = new PerformanceExperiment("testProject1", new PerformanceScenario("org.gradle.performance.MyPerformanceTest", "test2"))
 
     @Shared long now = Calendar.getInstance().time.time
 
@@ -324,7 +324,7 @@ class CrossVersionResultsStoreTest extends ResultSpecification {
     def "returns empty results for unknown id"() {
         given:
         def store = new CrossVersionResultsStore(dbFile.name)
-        def unknown = new PerformanceExperiment("unknown", "unknown")
+        def unknown = new PerformanceExperiment("unknown", new PerformanceScenario("unknownClass", "unknown"))
 
         expect:
         store.getTestResults(unknown, channel).baselineVersions.empty
