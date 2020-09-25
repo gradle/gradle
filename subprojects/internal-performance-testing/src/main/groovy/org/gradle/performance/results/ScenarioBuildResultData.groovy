@@ -91,7 +91,7 @@ class ScenarioBuildResultData {
     }
 
     PerformanceExperiment getPerformanceExperiment() {
-        new PerformanceExperiment(getTestProject(), getScenarioName())
+        new PerformanceExperiment(getTestProject(), new PerformanceScenario(getScenarioClass(), getScenarioName()))
     }
 
     List<ExecutionData> getExecutions() {

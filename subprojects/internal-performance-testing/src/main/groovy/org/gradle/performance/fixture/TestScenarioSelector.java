@@ -23,6 +23,7 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.io.Files;
 import org.gradle.performance.results.PerformanceExperiment;
+import org.gradle.performance.results.PerformanceScenario;
 import org.gradle.performance.results.PerformanceTestExecution;
 import org.gradle.performance.results.PerformanceTestHistory;
 import org.gradle.performance.results.ResultsStore;
@@ -58,7 +59,7 @@ public class TestScenarioSelector {
 
     private static void addToScenarioList(String fullClassName, String testId, String testProject, File scenarioList, ResultsStore resultsStore) {
         try {
-            long estimatedRuntime = getEstimatedRuntime(testId, testProject, resultsStore);
+            long estimatedRuntime = getEstimatedRuntime(fullClassName, testId, testProject, resultsStore);
             List<String> args = Lists.newArrayList();
             args.add(fullClassName);
             args.add(testId);
@@ -71,9 +72,9 @@ public class TestScenarioSelector {
         }
     }
 
-    private static long getEstimatedRuntime(String testId, String testProject, ResultsStore resultsStore) {
+    private static long getEstimatedRuntime(String testClass, String testId, String testProject, ResultsStore resultsStore) {
         String channel = ResultsStoreHelper.determineChannel();
-        PerformanceTestHistory history = resultsStore.getTestResults(new PerformanceExperiment(testProject, testId), 1, 365, channel);
+        PerformanceTestHistory history = resultsStore.getTestResults(new PerformanceExperiment(testProject, new PerformanceScenario(testClass, testId)), 1, 365, channel);
         PerformanceTestExecution lastRun = Iterables.getFirst(history.getExecutions(), null);
         if (lastRun == null) {
             return 0;
