@@ -19,7 +19,6 @@ package org.gradle.launcher.daemon.server;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.dispatch.Receive;
 import org.gradle.internal.remote.internal.RemoteConnection;
-import org.gradle.launcher.daemon.protocol.OutputMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,9 +38,6 @@ public class SynchronizedDispatchConnection<T> implements Receive<T>, Stoppable 
     }
 
     public void dispatchAndFlush(T message) {
-        if (!(message instanceof OutputMessage)) {
-            LOGGER.debug("thread {}: dispatching {}", Thread.currentThread().getId(), message);
-        }
         synchronized (lock) {
             if (dispatching) {
                 // Safety check: dispatching a message should not cause the thread to dispatch another message (eg should not do any logging)
