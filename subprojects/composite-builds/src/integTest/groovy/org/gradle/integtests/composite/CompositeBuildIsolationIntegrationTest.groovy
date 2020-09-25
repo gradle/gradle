@@ -16,12 +16,11 @@
 
 package org.gradle.integtests.composite
 
-import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
 class CompositeBuildIsolationIntegrationTest extends AbstractIntegrationSpec {
-    @NotYetImplemented
+    @spock.lang.Ignore
     @ToBeFixedForConfigurationCache
     def "included build can access root project sneakily"() {
         given:
