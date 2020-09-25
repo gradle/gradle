@@ -16,18 +16,19 @@
 
 package org.gradle.launcher.daemon.server;
 
-import org.gradle.launcher.daemon.protocol.OutputMessage;
-import org.gradle.internal.remote.internal.MessageIOException;
+import org.gradle.internal.concurrent.Stoppable;
+import org.gradle.internal.dispatch.Receive;
 import org.gradle.internal.remote.internal.RemoteConnection;
+import org.gradle.launcher.daemon.protocol.OutputMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Connection decorator that synchronizes dispatching.
+ * Connection decorator that synchronizes dispatching and always flushes after each message.
  *
  * The plan is to replace this with a Connection implementation that queues outgoing messages and dispatches them from a worker thread.
  */
-public class SynchronizedDispatchConnection<T> implements RemoteConnection<T> {
+public class SynchronizedDispatchConnection<T> implements Receive<T>, Stoppable {
     private static final Logger LOGGER = LoggerFactory.getLogger(SynchronizedDispatchConnection.class);
     private final Object lock = new Object();
     private final RemoteConnection<T> delegate;
@@ -37,8 +38,7 @@ public class SynchronizedDispatchConnection<T> implements RemoteConnection<T> {
         this.delegate = delegate;
     }
 
-    @Override
-    public void dispatch(final T message) {
+    public void dispatchAndFlush(T message) {
         if (!(message instanceof OutputMessage)) {
             LOGGER.debug("thread {}: dispatching {}", Thread.currentThread().getId(), message);
         }
@@ -50,16 +50,10 @@ public class SynchronizedDispatchConnection<T> implements RemoteConnection<T> {
             dispatching = true;
             try {
                 delegate.dispatch(message);
+                delegate.flush();
             } finally {
                 dispatching = false;
             }
-        }
-    }
-
-    @Override
-    public void flush() throws MessageIOException {
-        synchronized (lock) {
-            delegate.flush();
         }
     }
 
