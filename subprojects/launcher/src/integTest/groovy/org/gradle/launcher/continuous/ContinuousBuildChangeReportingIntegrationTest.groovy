@@ -85,7 +85,6 @@ class ContinuousBuildChangeReportingIntegrationTest extends AbstractContinuousIn
         assertReportsChanges(inputFiles.collect { new ChangeEntry('new file', it) }, true)
     }
 
-    @Ignore('https://github.com/gradle/gradle-private/issues/3205')
     @Unroll
     def "should report the changes when files are removed with #changesCount"(changesCount) {
         given:
