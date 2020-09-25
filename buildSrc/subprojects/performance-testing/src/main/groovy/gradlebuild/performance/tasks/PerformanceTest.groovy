@@ -242,9 +242,8 @@ abstract class PerformanceTest extends DistributionTest {
         FileUtils.write(resultsJson, JsonOutput.toJson(resultData), Charset.defaultCharset())
     }
 
-    static String collectFailures(JUnitTestSuite testSuite) {
-        List<JUnitTestCase> testCases = testSuite.testCases ?: []
-        List<JUnitFailure> failures = testCases.collect { it.failures ?: [] }.flatten() as List<JUnitFailure>
+    static String collectFailures(JUnitTestCase testCase) {
+        List<JUnitFailure> failures = testCase.failures ?: []
         return failures.collect { it.value }.join("\n")
     }
 
@@ -260,7 +259,7 @@ abstract class PerformanceTest extends DistributionTest {
                 teamCityBuildId: buildId,
                 agentName: agentName,
                 status: (it.errors || it.failures) ? "FAILURE" : "SUCCESS",
-                testFailure: collectFailures(testSuite))
+                testFailure: collectFailures(it))
         }
     }
 
