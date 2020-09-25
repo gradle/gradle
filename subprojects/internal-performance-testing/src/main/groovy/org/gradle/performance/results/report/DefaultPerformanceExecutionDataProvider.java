@@ -99,6 +99,7 @@ public class DefaultPerformanceExecutionDataProvider extends PerformanceExecutio
             ScenarioBuildResultData mergedScenario = new ScenarioBuildResultData();
             mergedScenario.setScenarioName(scenariosWithSameName.get(0).getScenarioName());
             mergedScenario.setTestProject(scenariosWithSameName.get(0).getTestProject());
+            mergedScenario.setScenarioClass(scenariosWithSameName.get(0).getScenarioClass());
             mergedScenario.setRawData(scenariosWithSameName);
             mergedScenario.setStatus(determineMergedScenarioStatus(scenariosWithSameName));
             return mergedScenario;
