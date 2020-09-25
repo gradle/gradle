@@ -98,7 +98,7 @@ class JacocoPluginMultiVersionIntegrationTest extends JacocoMultiVersionIntegrat
                 reports.csv.enabled = true
             }
             jacoco {
-                reportsDir = new File(buildDir, "$customReportDirectory")
+                reportsDirectory = new File(buildDir, "$customReportDirectory")
             }
             """
 

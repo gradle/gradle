@@ -21,6 +21,7 @@ import org.gradle.api.GradleException;
 import org.gradle.api.Named;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
+import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileSystemOperations;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.file.RegularFile;
@@ -28,13 +29,13 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.TaskCollection;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.jacoco.JacocoAgentJar;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.JavaForkOptions;
@@ -51,7 +52,10 @@ public class JacocoPluginExtension {
     public static final String TASK_EXTENSION_NAME = "jacoco";
 
     private static final Logger LOGGER = Logging.getLogger(JacocoPluginExtension.class);
+
+    @Deprecated
     protected final Project project;
+
     private final ProviderFactory providers;
     private final ObjectFactory objects;
     private final ProjectLayout layout;
@@ -59,7 +63,7 @@ public class JacocoPluginExtension {
     private final JacocoAgentJar agent;
 
     private String toolVersion;
-    private final Property<File> reportsDir;
+    private final DirectoryProperty reportsDirectory;
 
     /**
      * Creates a Jacoco plugin extension.
@@ -74,7 +78,7 @@ public class JacocoPluginExtension {
         this.objects = project.getObjects();
         this.layout = project.getLayout();
         this.fs = ((ProjectInternal) project).getServices().get(FileSystemOperations.class);
-        reportsDir = project.getObjects().property(File.class);
+        reportsDirectory = project.getObjects().directoryProperty();
     }
 
     /**
@@ -90,9 +94,20 @@ public class JacocoPluginExtension {
 
     /**
      * The directory where reports will be generated.
+     *
+     * @since 6.8
      */
+    public DirectoryProperty getReportsDirectory() {
+        return reportsDirectory;
+    }
+
+    /**
+     * The directory where reports will be generated.
+     */
+    @Deprecated
     public File getReportsDir() {
-        return reportsDir.get();
+        nagReportsDirDeprecation();
+        return reportsDirectory.get().getAsFile();
     }
 
     /**
@@ -100,13 +115,32 @@ public class JacocoPluginExtension {
      *
      * @param reportsDir Reports directory provider
      * @since 4.0
+     * @deprecated See {@link #getReportsDirectory()}
      */
+    @Deprecated
     public void setReportsDir(Provider<File> reportsDir) {
-        this.reportsDir.set(reportsDir);
+        nagReportsDirDeprecation();
+        this.reportsDirectory.set(layout.dir(reportsDir));
     }
 
+    /**
+     * Set the provider for calculating the report directory.
+     *
+     * @param reportsDir Reports directory
+     * @deprecated See {@link #getReportsDirectory()}
+     */
+    @Deprecated
     public void setReportsDir(File reportsDir) {
-        this.reportsDir.set(reportsDir);
+        nagReportsDirDeprecation();
+        this.reportsDirectory.set(reportsDir);
+    }
+
+    private void nagReportsDirDeprecation() {
+        DeprecationLogger.deprecateProperty(JacocoPluginExtension.class, "reportsDir")
+            .replaceWith("reportsDirectory")
+            .willBeRemovedInGradle8()
+            .withDslReference()
+            .nagUser();
     }
 
     /**
