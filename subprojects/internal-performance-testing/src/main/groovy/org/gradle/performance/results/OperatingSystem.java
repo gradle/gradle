@@ -17,17 +17,17 @@
 package org.gradle.performance.results;
 
 public enum OperatingSystem {
-    LINUX("linux%"),
-    MAC_OS("mac os%"),
-    WINDOWS("windows");
+    LINUX(""),
+    MAC_OS("-macos"),
+    WINDOWS("-windows");
 
-    private final String sqlMatcher;
+    private final String channelSuffix;
 
-    OperatingSystem(String sqlMatcher) {
-        this.sqlMatcher = sqlMatcher;
+    OperatingSystem(String channelSuffix) {
+        this.channelSuffix = channelSuffix;
     }
 
-    public String getSqlMatcher() {
-        return sqlMatcher;
+    public String getChannelSuffix() {
+        return channelSuffix;
     }
 }

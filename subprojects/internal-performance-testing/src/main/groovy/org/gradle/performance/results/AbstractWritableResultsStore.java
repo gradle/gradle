@@ -16,13 +16,16 @@
 
 package org.gradle.performance.results;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public abstract class AbstractWritableResultsStore<T extends PerformanceTestResult> implements WritableResultsStore<T> {
     private final PerformanceDatabase db;
@@ -42,8 +45,7 @@ public abstract class AbstractWritableResultsStore<T extends PerformanceTestResu
         "   max(id) as lastId\n" +
         "   from testExecution\n" +
         "   where startTime > ?\n" +
-        "   and operatingSystem like ?\n" +
-        "   and (channel in ('commits-master','experiments-master'))\n" +
+        "   and (channel in (?, ?))\n" +
         "   and testProject is not null\n" +
         "   group by testClass,\n" +
         "   testId,\n" +
@@ -66,7 +68,11 @@ public abstract class AbstractWritableResultsStore<T extends PerformanceTestResu
             ImmutableMap.Builder<PerformanceExperiment, Long> builder = ImmutableMap.builder();
             try (PreparedStatement statement = connection.prepareStatement(SELECT_LATEST_EXECUTION_TIMES)) {
                 statement.setTimestamp(1, since);
-                statement.setString(2, operatingSystem.getSqlMatcher());
+                List<String> channels = ImmutableList.of("commits", "experiments").stream()
+                    .map(channel -> channel + operatingSystem.getChannelSuffix() + "-master")
+                    .collect(Collectors.toList());
+                statement.setString(2, channels.get(0));
+                statement.setString(3, channels.get(1));
                 try (ResultSet experimentTimes = statement.executeQuery()) {
                     while (experimentTimes.next()) {
                         String testClass = experimentTimes.getString(1);
