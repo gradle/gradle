@@ -376,4 +376,34 @@ class RepositoriesDeclaredInSettingsIntegrationTest extends AbstractModuleDepend
         then:
         failure.assertHasCause("Could not find org:module:1.0.")
     }
+
+    def "mutation of repositories is project local"() {
+        repository {
+            'org:module:1.0'()
+        }
+
+        buildFile << """
+            dependencies {
+                conf 'org:module:1.0'
+            }
+            repositories.all {
+                throw new RuntimeException("Shouldn't be called because no repositories are defined for this project")
+            }
+        """
+
+        when:
+        repositoryInteractions {
+            'org:module:1.0' {
+                expectResolve()
+            }
+        }
+        run ':checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module('org:module:1.0')
+            }
+        }
+    }
 }
