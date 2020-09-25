@@ -134,8 +134,9 @@ public class JacocoPlugin implements Plugin<Project> {
     }
 
     private void configureDefaultOutputPathForJacocoMerge() {
+        Provider<File> buildDirectory = project.getLayout().getBuildDirectory().getAsFile();
         project.getTasks().withType(JacocoMerge.class).configureEach(task ->
-            task.setDestinationFile(project.provider(() -> new File(project.getBuildDir(), "/jacoco/" + task.getName() + ".exec")))
+            task.setDestinationFile(buildDirectory.map(buildDir -> new File(buildDir, "jacoco/" + task.getName() + ".exec")))
         );
     }
 
@@ -145,7 +146,7 @@ public class JacocoPlugin implements Plugin<Project> {
 
     private void configureJacocoReportDefaults(final JacocoPluginExtension extension, final JacocoReport reportTask) {
         reportTask.getReports().all(new ReportEnabledAction(project.getProviders()));
-        reportTask.getReports().all(new ReportOutputDirectoryAction(project.getProviders(), reportTask, project.provider(extension::getReportsDir)));
+        reportTask.getReports().all(new ReportOutputDirectoryAction(reportTask, project.provider(extension::getReportsDir)));
     }
 
     private static class ReportEnabledAction implements Action<ConfigurableReport> {
@@ -164,12 +165,10 @@ public class JacocoPlugin implements Plugin<Project> {
 
     private static class ReportOutputDirectoryAction implements Action<ConfigurableReport> {
 
-        private final ProviderFactory providers;
         private final JacocoReport reportTask;
         private final Provider<File> reportsDir;
 
-        private ReportOutputDirectoryAction(ProviderFactory providers, JacocoReport reportTask, Provider<File> reportsDir) {
-            this.providers = providers;
+        private ReportOutputDirectoryAction(JacocoReport reportTask, Provider<File> reportsDir) {
             this.reportTask = reportTask;
             this.reportsDir = reportsDir;
         }
@@ -177,9 +176,9 @@ public class JacocoPlugin implements Plugin<Project> {
         @Override
         public void execute(ConfigurableReport report) {
             if (report.getOutputType().equals(Report.OutputType.DIRECTORY)) {
-                report.setDestination(providers.provider(() -> new File(reportsDir.get(), reportTask.getName() + "/" + report.getName())));
+                report.setDestination(reportsDir.map(dir -> new File(dir, reportTask.getName() + "/" + report.getName())));
             } else {
-                report.setDestination(providers.provider(() -> new File(reportsDir.get(), reportTask.getName() + "/" + reportTask.getName() + "." + report.getName())));
+                report.setDestination(reportsDir.map(dir -> new File(dir, reportTask.getName() + "/" + reportTask.getName() + "." + report.getName())));
             }
         }
     }
@@ -208,7 +207,7 @@ public class JacocoPlugin implements Plugin<Project> {
                 reportTask.executionData(testTaskProvider.get());
                 reportTask.sourceSets(project.getExtensions().getByType(SourceSetContainer.class).getByName("main"));
                 // TODO: Change the default location for these reports to follow the convention defined in ReportOutputDirectoryAction
-                reportTask.getReports().all(new TestTaskReportOutputDirectoryAction(project.getProviders(), reportTask, project.provider(extension::getReportsDir), testTaskName));
+                reportTask.getReports().all(new TestTaskReportOutputDirectoryAction(reportTask, project.provider(extension::getReportsDir), testTaskName));
             });
     }
 
@@ -220,13 +219,11 @@ public class JacocoPlugin implements Plugin<Project> {
      */
     private static class TestTaskReportOutputDirectoryAction implements Action<ConfigurableReport> {
 
-        private final ProviderFactory providers;
         private final JacocoReport reportTask;
         private final Provider<File> reportsDir;
         private final String testTaskName;
 
-        private TestTaskReportOutputDirectoryAction(ProviderFactory providers, JacocoReport reportTask, Provider<File> reportsDir, String testTaskName) {
-            this.providers = providers;
+        private TestTaskReportOutputDirectoryAction(JacocoReport reportTask, Provider<File> reportsDir, String testTaskName) {
             this.reportTask = reportTask;
             this.reportsDir = reportsDir;
             this.testTaskName = testTaskName;
@@ -235,9 +232,9 @@ public class JacocoPlugin implements Plugin<Project> {
         @Override
         public void execute(ConfigurableReport report) {
             if (report.getOutputType().equals(Report.OutputType.DIRECTORY)) {
-                report.setDestination(providers.provider(() -> new File(reportsDir.get(), testTaskName + "/" + report.getName())));
+                report.setDestination(reportsDir.map(dir -> new File(dir, testTaskName + "/" + report.getName())));
             } else {
-                report.setDestination(providers.provider(() -> new File(reportsDir.get(), testTaskName + "/" + reportTask.getName() + "." + report.getName())));
+                report.setDestination(reportsDir.map(dir -> new File(dir, testTaskName + "/" + reportTask.getName() + "." + report.getName())));
             }
         }
     }
