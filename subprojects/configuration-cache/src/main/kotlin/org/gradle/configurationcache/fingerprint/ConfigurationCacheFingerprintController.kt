@@ -186,9 +186,7 @@ class ConfigurationCacheFingerprintController internal constructor(
         override fun hashCodeOf(file: File) =
             fileSystemAccess.hashCodeOf(file)
 
-        override fun fingerprintOf(
-            fileCollection: FileCollectionInternal
-        ): HashCode =
+        override fun fingerprintOf(fileCollection: FileCollectionInternal): HashCode =
             fileCollectionFingerprinter.fingerprint(fileCollection).hash
 
         override fun displayNameOf(fileOrDirectory: File): String =
