@@ -15,7 +15,6 @@
  */
 package org.gradle.api.plugins.quality;
 
-import org.gradle.api.Action;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.file.ProjectLayout;
@@ -24,13 +23,14 @@ import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.plugins.quality.internal.AbstractCodeQualityPlugin;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
-import org.gradle.api.reporting.SingleFileReport;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.util.VersionNumber;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
+
+import static org.gradle.api.internal.lambdas.SerializableLambdas.action;
 
 /**
  * A plugin for the <a href="https://pmd.github.io/">PMD</a> source code analyzer.
@@ -120,28 +120,7 @@ public class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
         ProjectLayout layout = project.getLayout();
         ProviderFactory providers = project.getProviders();
         Provider<RegularFile> reportsDir = layout.file(providers.provider(() -> extension.getReportsDir()));
-        task.getReports().all(
-            new ReportsConventionMappingAction(layout, providers, reportsDir, baseName)
-        );
-    }
-
-    private static class ReportsConventionMappingAction implements Action<SingleFileReport> {
-
-        private final ProjectLayout layout;
-        private final ProviderFactory providers;
-        private final Provider<RegularFile> reportsDir;
-        private final String baseName;
-
-        public ReportsConventionMappingAction(ProjectLayout layout, ProviderFactory providers, Provider<RegularFile> reportsDir, String baseName) {
-
-            this.layout = layout;
-            this.providers = providers;
-            this.reportsDir = reportsDir;
-            this.baseName = baseName;
-        }
-
-        @Override
-        public void execute(SingleFileReport report) {
+        task.getReports().all(action(report -> {
             report.getRequired().convention(true);
             report.getOutputLocation().convention(
                 layout.getProjectDirectory().file(providers.provider(() -> {
@@ -149,7 +128,7 @@ public class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
                     return new File(reportsDir.get().getAsFile(), reportFileName).getAbsolutePath();
                 }))
             );
-        }
+        }));
     }
 
     private String calculateDefaultDependencyNotation(VersionNumber toolVersion) {
