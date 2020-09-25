@@ -31,10 +31,6 @@ public abstract class AbstractWritableResultsStore<T extends PerformanceTestResu
         this.db = db;
     }
 
-    public PerformanceDatabase getDb() {
-        return db;
-    }
-
     private static final int LATEST_EXECUTION_TIMES_DAYS = 14;
     private static final String SELECT_LATEST_EXECUTION_TIMES = "with last as\n" +
         "(\n" +
@@ -65,7 +61,7 @@ public abstract class AbstractWritableResultsStore<T extends PerformanceTestResu
 
     @Override
     public Map<PerformanceExperiment, Long> getEstimatedExperimentTimes(OperatingSystem operatingSystem) {
-        return db.withConnection("load estimated runtimes", connection -> {
+        return withConnection("load estimated runtimes", connection -> {
             Timestamp since = Timestamp.valueOf(LocalDateTime.now().minusDays(LATEST_EXECUTION_TIMES_DAYS));
             ImmutableMap.Builder<PerformanceExperiment, Long> builder = ImmutableMap.builder();
             try (PreparedStatement statement = connection.prepareStatement(SELECT_LATEST_EXECUTION_TIMES)) {
@@ -78,8 +74,10 @@ public abstract class AbstractWritableResultsStore<T extends PerformanceTestResu
                         String testProject = experimentTimes.getString(3);
                         long startTime = experimentTimes.getTimestamp(4).getTime();
                         long endTime = experimentTimes.getTimestamp(5).getTime();
-                        PerformanceExperiment performanceExperiment = new PerformanceExperiment(testProject, new PerformanceScenario(testClass, testName));
-                        builder.put(performanceExperiment, endTime - startTime);
+                        if (testProject != null && testClass != null) {
+                            PerformanceExperiment performanceExperiment = new PerformanceExperiment(testProject, new PerformanceScenario(testClass, testName));
+                            builder.put(performanceExperiment, endTime - startTime);
+                        }
                     }
                     return builder.build();
                 }
