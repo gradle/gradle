@@ -58,6 +58,9 @@ public interface ExtensiblePolymorphicDomainObjectContainer<T> extends Polymorph
      * the binding's implementation type. If the implementation type has a constructor annotated with
      * {@link javax.inject.Inject}, its arguments will be injected.
      *
+     * <p>The implementation type may also be an interface that has a read-only {@code name} property of type String,
+     * and is otherwise empty or consists entirely of managed properties.</p>
+     *
      * <p>In general, registering a binding is preferable over implementing and registering a factory.
      *
      * @param type a public domain object type

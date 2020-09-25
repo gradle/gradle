@@ -121,11 +121,24 @@ Note that for a property to be considered a read only managed nested property, _
 The property must not have any setter methods.
 In addition, the property getter must be annotated with `@link:{javadocPath}/org/gradle/api/tasks/Nested.html[Nested]`.
 
+[[read_only_managed_name_property]]
+==== Read-only managed "name" property
+
+If the type contains an abstract property called "name" of type `String`, Gradle provides an implementation for the getter
+method, and extends each constructor with a "name" parameter, which comes before all other constructor parameters. If the
+type is an interface, Gradle will provide a constructor with a single "name" parameter and `@Inject` semantics.
+
+You can have your type implement or extend the link:{javadocPath}/org/gradle/api/Named.html[Named] interface, which defines
+such a read-only "name" property.
+
 [[managed_types]]
 === Managed types
 
 A _managed type_ is an abstract class or interface with no fields and whose properties are all managed.
 That is, it is a type whose state is entirely managed by Gradle.
+
+A _named managed type_ is a managed type that additionally has an abstract property "name" of type `String`. Named
+managed types are especially useful as the element type of link:{javadocPath}/org/gradle/api/NamedDomainObjectContainer.html[NamedDomainObjectContainer] (see below).
 
 == DSL support and extensibility
 
@@ -239,9 +252,14 @@ generally better to use the injected `ObjectFactory` service instead of passing 
 
 You can also create a container instance using a <<read_only_managed_properties,read-only managed property>>, described above.
 
-In order to use a type with any of the `domainObjectContainer()` methods, it must expose a property named "`name`" as the unique, and constant, name for the object.
-The `domainObjectContainer(Class)` variant of the method creates new instances by calling the constructor of the class that takes a string argument, which is the desired name of the object.
-Objects created this way are treated as custom Gradle types, and so can make use of the features discussed in this chapter, for example service injection or managed properties.
+In order to use a type with any of the `domainObjectContainer()` methods, it must either
+
+- be a <<managed_types,named managed type>>; or
+- expose a property named "`name`" as the unique, and constant, name for the object. The `domainObjectContainer(Class)`
+  variant of the method creates new instances by calling the constructor of the class that takes a string argument, which is the desired name of the object.
+
+Objects created this way are treated as custom Gradle types, and so can make use of the features discussed in this chapter, for example service injection or
+managed properties.
 
 See the above link for `domainObjectContainer()` method variants that allow custom instantiation strategies.
 
@@ -252,6 +270,18 @@ See the above link for `domainObjectContainer()` method variants that allow cust
 ----
 include::{snippetsPath}/plugins/namedDomainObjectContainer/groovy/buildSrc/src/main/java/DownloadExtension.java[]
 include::{snippetsPath}/plugins/namedDomainObjectContainer/groovy/buildSrc/src/main/java/Resource.java[tags=resource]
+----
+====
+
+To be even more concise, you can define this model entirely using interfaces, and take advantage of Gradle's managed types:
+
+.Managing a collection of objects based on interfaces
+====
+[source.multi-language-sample,java]
+.DownloadExtension.java
+----
+include::{snippetsPath}/plugins/namedDomainObjectContainerInterfaces/groovy/buildSrc/src/main/java/DownloadExtension.java[]
+include::{snippetsPath}/plugins/namedDomainObjectContainerInterfaces/groovy/buildSrc/src/main/java/Resource.java[tags=resource]
 ----
 ====
 
