@@ -93,9 +93,6 @@ abstract class PerformanceTest extends DistributionTest {
     @Input
     String channel
 
-    @Input
-    boolean flamegraphs
-
     /************** properties configured by PerformanceTestPlugin ***************/
     @Internal
     String buildId
@@ -200,10 +197,10 @@ abstract class PerformanceTest extends DistributionTest {
         this.channel = channel
     }
 
-    @Option(option = "flamegraphs", description = "If set to 'true', activates flamegraphs and stores them into the 'flames' directory name under the debug artifacts directory.")
-    void setFlamegraphs(String flamegraphs) {
-        this.flamegraphs = Boolean.parseBoolean(flamegraphs)
-    }
+    @Option(option = "profiler", description = "Allows configuring a profiler to use. The same options as for Gradle profilers --profiler command line option are available")
+    @Optional
+    @Input
+    abstract Property<String> getProfiler()
 
     @Optional
     @Input
@@ -282,9 +279,10 @@ abstract class PerformanceTest extends DistributionTest {
             addSystemPropertyIfExist(result, "org.gradle.performance.execution.channel", channel)
             addSystemPropertyIfExist(result, "org.gradle.performance.debugArtifactsDirectory", getDebugArtifactsDirectory())
 
-            if (flamegraphs) {
+            if (profiler.isPresent()) {
                 File artifactsDirectory = new File(getDebugArtifactsDirectory(), "flames")
                 addSystemPropertyIfExist(result, "org.gradle.performance.flameGraphTargetDir", artifactsDirectory.getAbsolutePath())
+                addSystemPropertyIfExist(result, "org.gradle.performance.profiler", profiler.get())
             }
         }
 
