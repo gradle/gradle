@@ -21,8 +21,8 @@ import org.gradle.api.GradleException;
 import org.gradle.api.Named;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
+import org.gradle.api.file.FileSystemOperations;
 import org.gradle.api.file.ProjectLayout;
-import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -30,7 +30,6 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
-import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
@@ -52,11 +51,11 @@ public class JacocoPluginExtension {
     public static final String TASK_EXTENSION_NAME = "jacoco";
 
     private static final Logger LOGGER = Logging.getLogger(JacocoPluginExtension.class);
-    protected final transient Project project;
-    private final ProviderFactory providerFactory;
+    protected final Project project;
+    private final ProviderFactory providers;
     private final ObjectFactory objects;
-    private final ProjectLayout projectLayout;
-    private final FileOperations fileOperations;
+    private final ProjectLayout layout;
+    private final FileSystemOperations fs;
     private final JacocoAgentJar agent;
 
     private String toolVersion;
@@ -71,10 +70,10 @@ public class JacocoPluginExtension {
     public JacocoPluginExtension(Project project, JacocoAgentJar agent) {
         this.project = project;
         this.agent = agent;
-        this.providerFactory = project.getProviders();
+        this.providers = project.getProviders();
         this.objects = project.getObjects();
-        this.projectLayout = project.getLayout();
-        this.fileOperations = ((ProjectInternal) project).getServices().get(FileOperations.class);
+        this.layout = project.getLayout();
+        this.fs = ((ProjectInternal) project).getServices().get(FileSystemOperations.class);
         reportsDir = project.getObjects().property(File.class);
     }
 
@@ -122,38 +121,55 @@ public class JacocoPluginExtension {
         final String taskName = task.getName();
         LOGGER.debug("Applying Jacoco to " + taskName);
         final JacocoTaskExtension extension = task.getExtensions().create(TASK_EXTENSION_NAME, JacocoTaskExtension.class, objects, agent, task);
-        extension.setDestinationFile(providerFactory.provider(new Callable<File>() {
+        extension.setDestinationFile(providers.provider(new Callable<File>() {
             @Override
             public File call() {
-                return fileOperations.file(projectLayout.getBuildDirectory().get().getAsFile() + "/jacoco/" + taskName + ".exec");
+                return layout.getBuildDirectory().file("jacoco/" + taskName + ".exec").get().getAsFile();
             }
         }));
 
         task.getJvmArgumentProviders().add(new JacocoAgent(extension));
-        task.doFirst(new Action<Task>() {
-            @Override
-            public void execute(Task task) {
-                if (extension.isEnabled() && extension.getOutput() == JacocoTaskExtension.Output.FILE) {
-                    // Delete the coverage file before the task executes, so we don't append to a leftover file from the last execution.
-                    // This makes the task cacheable even if multiple JVMs write to same destination file, e.g. when executing tests in parallel.
-                    // The JaCoCo agent supports writing in parallel to the same file, see https://github.com/jacoco/jacoco/pull/52.
-                    File coverageFile = extension.getDestinationFile();
-                    if (coverageFile == null) {
-                        throw new GradleException("JaCoCo destination file must not be null if output type is FILE");
-                    }
-                    fileOperations.delete(coverageFile);
-                }
-            }
-        });
+        task.doFirst(new JacocoOutputCleanupTestTaskAction(
+            fs,
+            providers.provider(() -> extension.isEnabled() && extension.getOutput() == JacocoTaskExtension.Output.FILE),
+            providers.provider(extension::getDestinationFile)
+        ));
 
         // Do not cache the task if we are not writing execution data to a file
-        task.getOutputs().doNotCacheIf("JaCoCo configured to not produce its output as a file", new Spec<Task>() {
-            @Override
-            public boolean isSatisfiedBy(Task element) {
-                // Do not cache Test task if Jacoco doesn't produce its output as files
-                return extension.isEnabled() && extension.getOutput() != JacocoTaskExtension.Output.FILE;
+        Provider<Boolean> doNotCachePredicate = providers.provider(() ->
+            // Do not cache Test task if Jacoco doesn't produce its output as files
+            extension.isEnabled() && extension.getOutput() != JacocoTaskExtension.Output.FILE
+        );
+        task.getOutputs().doNotCacheIf(
+            "JaCoCo configured to not produce its output as a file",
+            element -> doNotCachePredicate.get()
+        );
+    }
+
+    private static class JacocoOutputCleanupTestTaskAction implements Action<Task> {
+        private final FileSystemOperations fs;
+        private final Provider<Boolean> hasFileOutput;
+        private final Provider<File> destinationFile;
+
+        private JacocoOutputCleanupTestTaskAction(FileSystemOperations fs, Provider<Boolean> hasFileOutput, Provider<File> destinationFile) {
+            this.fs = fs;
+            this.hasFileOutput = hasFileOutput;
+            this.destinationFile = destinationFile;
+        }
+
+        @Override
+        public void execute(Task task) {
+            if (hasFileOutput.get()) {
+                // Delete the coverage file before the task executes, so we don't append to a leftover file from the last execution.
+                // This makes the task cacheable even if multiple JVMs write to same destination file, e.g. when executing tests in parallel.
+                // The JaCoCo agent supports writing in parallel to the same file, see https://github.com/jacoco/jacoco/pull/52.
+                File coverageFile = destinationFile.getOrNull();
+                if (coverageFile == null) {
+                    throw new GradleException("JaCoCo destination file must not be null if output type is FILE");
+                }
+                fs.delete(spec -> spec.delete(coverageFile));
             }
-        });
+        }
     }
 
     private static class JacocoAgent implements CommandLineArgumentProvider, Named {
