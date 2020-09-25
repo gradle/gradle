@@ -49,13 +49,13 @@ abstract class AdHocPerformanceScenario(os: Os) : BuildType({
             allowEmpty = false,
             description = "Which performance test to run. Should be the fully qualified class name dot (unrolled) method name. E.g. org.gradle.performance.regression.java.JavaUpToDatePerformanceTest.up-to-date assemble (parallel true)"
         )
-
+        val profilerDescription = "Command line option for the performance test task to enable profiling. For example `--profiler jfr` and `--profiler async-profiler`."
         when (os) {
             Os.WINDOWS -> {
-                param("flamegraphs", "--flamegraphs false")
+                text("profiler", "", description = profilerDescription)
             }
             else -> {
-                param("flamegraphs", "--flamegraphs true")
+                text("profiler", "--profiler jfr", description = profilerDescription)
                 param("env.FG_HOME_DIR", "/opt/FlameGraph")
                 param("env.PATH", "%env.PATH%:/opt/swift/4.2.3/usr/bin")
                 param("env.HP_HOME_DIR", "/opt/honest-profiler")
@@ -76,7 +76,7 @@ abstract class AdHocPerformanceScenario(os: Os) : BuildType({
                 performanceTestCommandLine(
                     "clean performance:%testProject%PerformanceAdHocTest --tests \"%scenario%\"",
                     "%baselines%",
-                    """--warmups %warmups% --runs %runs% --checks %checks% --channel %channel% %flamegraphs% %additional.gradle.parameters%""",
+                    """--warmups %warmups% --runs %runs% --checks %checks% --channel %channel% %profiler% %additional.gradle.parameters%""",
                     os
                 ) +
                     buildToolGradleParameters(isContinue = false) +
