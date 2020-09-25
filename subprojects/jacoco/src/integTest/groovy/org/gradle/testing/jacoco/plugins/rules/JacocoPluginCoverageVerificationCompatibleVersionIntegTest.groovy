@@ -17,7 +17,6 @@
 package org.gradle.testing.jacoco.plugins.rules
 
 import org.gradle.integtests.fixtures.TargetCoverage
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.testing.jacoco.plugins.JacocoMultiVersionIntegrationTest
 import org.gradle.testing.jacoco.plugins.fixtures.JacocoCoverage
 
@@ -41,7 +40,6 @@ class JacocoPluginCoverageVerificationCompatibleVersionIntegTest extends JacocoM
         """
     }
 
-    @ToBeFixedForConfigurationCache
     def "can verify code coverage metrics for compatible versions"() {
         when:
         succeeds TEST_AND_JACOCO_COVERAGE_VERIFICATION_TASK_PATHS

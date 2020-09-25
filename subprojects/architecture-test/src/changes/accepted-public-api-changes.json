@@ -1,3 +1,12 @@
 {
-    "acceptedApiChanges": []
+    "acceptedApiChanges": [
+        {
+            "type": "org.gradle.testing.jacoco.plugins.JacocoTaskExtension",
+            "member": "Constructor org.gradle.testing.jacoco.plugins.JacocoTaskExtension(org.gradle.api.Project,org.gradle.internal.jacoco.JacocoAgentJar,org.gradle.process.JavaForkOptions)",
+            "acceptation": "Remove Project reference",
+            "changes": [
+                "Constructor has been removed"
+            ]
+        }
+    ]
 }

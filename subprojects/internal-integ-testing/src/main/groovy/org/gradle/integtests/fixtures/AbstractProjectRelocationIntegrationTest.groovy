@@ -25,7 +25,6 @@ abstract class AbstractProjectRelocationIntegrationTest extends AbstractIntegrat
         "CheckstyleRelocationIntegrationTest",
         "PmdRelocationIntegrationTest",
         "CodeNarcRelocationIntegrationTest",
-        "JacocoTestRelocationIntegrationTest",
         "ScalaCompileRelocationIntegrationTest"
     ])
     def "project is relocatable"() {
