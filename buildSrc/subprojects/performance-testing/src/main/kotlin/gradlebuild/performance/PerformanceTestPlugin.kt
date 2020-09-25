@@ -21,8 +21,6 @@ import gradlebuild.basics.kotlindsl.selectStringProperties
 import gradlebuild.basics.kotlindsl.stringPropertyOrNull
 import gradlebuild.identity.extension.ModuleIdentityExtension
 import gradlebuild.integrationtests.addDependenciesAndConfigurations
-import gradlebuild.integrationtests.excludeCategories
-import gradlebuild.integrationtests.includeCategories
 import gradlebuild.performance.generator.tasks.AbstractProjectGeneratorTask
 import gradlebuild.performance.generator.tasks.JavaExecProjectGeneratorTask
 import gradlebuild.performance.generator.tasks.JvmProjectGeneratorTask
@@ -32,14 +30,11 @@ import gradlebuild.performance.generator.tasks.TemplateProjectGeneratorTask
 import gradlebuild.performance.reporter.DefaultPerformanceReporter
 import gradlebuild.performance.tasks.BuildCommitDistribution
 import gradlebuild.performance.tasks.DetermineBaselines
-import gradlebuild.performance.tasks.DistributedPerformanceTest
 import gradlebuild.performance.tasks.PerformanceTest
 import gradlebuild.performance.tasks.PerformanceTestReport
 import gradlebuild.performance.tasks.RebaselinePerformanceTests
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.Task
-import org.gradle.api.internal.tasks.DefaultTaskContainer
 import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Copy
@@ -50,7 +45,6 @@ import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.tasks.TaskCollection
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.api.tasks.bundling.Zip
-import org.gradle.internal.hash.HashUtil
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.kotlin.dsl.*
 import org.gradle.plugins.ide.eclipse.EclipsePlugin
@@ -61,7 +55,6 @@ import org.w3c.dom.Document
 import java.io.File
 import java.nio.charset.StandardCharsets
 import javax.xml.parsers.DocumentBuilderFactory
-import kotlin.reflect.KClass
 
 
 object PropertyNames {
@@ -69,11 +62,8 @@ object PropertyNames {
     const val dbUsername = "org.gradle.performance.db.username"
     const val dbPassword = "org.gradle.performance.db.password"
 
-    const val workerTestTaskName = "org.gradle.performance.workerTestTaskName"
     const val performanceTestVerbose = "performanceTest.verbose"
-    const val buildTypeId = "org.gradle.performance.buildTypeId"
 
-    const val teamCityToken = "teamCityToken"
     const val baselines = "performanceBaselines"
 }
 
@@ -91,18 +81,6 @@ object Config {
 }
 
 
-private
-const val performanceExperimentCategory = "org.gradle.performance.categories.PerformanceExperiment"
-
-
-private
-const val performanceRegressionTestCategory = "org.gradle.performance.categories.PerformanceRegressionTest"
-
-
-private
-const val slowPerformanceRegressionTestCategory = "org.gradle.performance.categories.SlowPerformanceRegressionTest"
-
-
 interface PerformanceTestExtension {
     val baselines: Property<String>
 }
@@ -117,13 +95,11 @@ class PerformanceTestPlugin : Plugin<Project> {
 
         val performanceTestSourceSet = createPerformanceTestSourceSet()
         addPerformanceTestConfigurationAndDependencies()
-        createCheckNoIdenticalBuildFilesTask()
         configureGeneratorTasks()
 
         createCleanSamplesTask()
 
         createLocalPerformanceTestTasks(performanceTestSourceSet)
-        createDistributedPerformanceTestTasks(performanceTestSourceSet)
 
         createRebaselineTask(performanceTestSourceSet)
 
@@ -163,31 +139,6 @@ class PerformanceTestPlugin : Plugin<Project> {
         dependencies {
             "performanceTestImplementation"(project(":internal-performance-testing"))
             junit("junit:junit:4.13")
-        }
-    }
-
-    private
-    fun Project.createCheckNoIdenticalBuildFilesTask() {
-        tasks.register("checkNoIdenticalBuildFiles") {
-            doLast {
-                val filesBySha1 = mutableMapOf<String, MutableList<File>>()
-                buildDir.walkTopDown().forEach { file ->
-                    if (file.name.endsWith(".gradle")) {
-                        val sha1 = sha1StringFor(file)
-                        val files = filesBySha1[sha1]
-                        when (files) {
-                            null -> filesBySha1[sha1] = mutableListOf(file)
-                            else -> files.add(file)
-                        }
-                    }
-                }
-
-                filesBySha1.forEach { (hash, candidates) ->
-                    if (candidates.size > 1) {
-                        logger.lifecycle("Duplicate build files found for hash '$hash' : $candidates")
-                    }
-                }
-            }
         }
     }
 
@@ -245,27 +196,6 @@ class PerformanceTestPlugin : Plugin<Project> {
             createLocalPerformanceTestTask(name, performanceSourceSet).also {
                 it.configure(configure)
             }
-
-        create("performanceTest") {
-            includeCategories(performanceRegressionTestCategory)
-            excludeCategories(slowPerformanceRegressionTestCategory)
-        }
-
-        create("slowPerformanceTest") {
-            includeCategories(slowPerformanceRegressionTestCategory)
-        }
-
-        create("performanceExperiment") {
-            includeCategories(performanceExperimentCategory)
-        }
-
-        create("fullPerformanceTest")
-
-        create("performanceAdhocTest") {
-            performanceReporter = createPerformanceReporter()
-            channel = "adhoc"
-            outputs.doNotCacheIf("Is adhoc performance test") { true }
-        }
 
         val shouldLoadScenariosFromFile = project.providers.gradleProperty("includePerformanceTestScenarios")
             .forUseAtConfigurationTime()
@@ -350,45 +280,6 @@ class PerformanceTestPlugin : Plugin<Project> {
     }
 
     private
-    fun Project.createDistributedPerformanceTestTasks(performanceSourceSet: SourceSet) {
-
-        fun create(name: String, clazz: KClass<out DistributedPerformanceTest>, configure: DistributedPerformanceTest.() -> Unit = {}) {
-            createDistributedPerformanceTestTask(name, clazz, performanceSourceSet).configure(configure)
-        }
-
-        val channelSuffix = if (OperatingSystem.current().isLinux) "" else "-${OperatingSystem.current().familyName.toLowerCase()}"
-
-        create("distributedPerformanceTest", DistributedPerformanceTest::class) {
-            includeCategories(performanceRegressionTestCategory)
-            excludeCategories(slowPerformanceRegressionTestCategory)
-            channel = "commits$channelSuffix"
-            retryFailedScenarios()
-        }
-        create("distributedSlowPerformanceTest", DistributedPerformanceTest::class) {
-            includeCategories(slowPerformanceRegressionTestCategory)
-            channel = "commits$channelSuffix"
-            retryFailedScenarios()
-        }
-        create("distributedPerformanceExperiment", DistributedPerformanceTest::class) {
-            includeCategories(performanceExperimentCategory)
-            channel = "experiments$channelSuffix"
-            retryFailedScenarios()
-        }
-        create("distributedHistoricalPerformanceTest", DistributedPerformanceTest::class) {
-            excludeCategories(performanceExperimentCategory)
-            checks = "none"
-            channel = "historical$channelSuffix"
-        }
-        create("distributedFlakinessDetection", DistributedPerformanceTest::class) {
-            includeCategories(performanceRegressionTestCategory)
-            distributedPerformanceReporter.reportGeneratorClass = "org.gradle.performance.results.report.FlakinessReportGenerator"
-            repeatScenarios(3)
-            checks = "none"
-            channel = "flakiness-detection$channelSuffix"
-        }
-    }
-
-    private
     fun Project.configureIdePlugins(performanceTestSourceSet: SourceSet) {
         val performanceTestCompileClasspath by configurations
         val performanceTestRuntimeClasspath by configurations
@@ -411,34 +302,6 @@ class PerformanceTestPlugin : Plugin<Project> {
                 }
             }
         }
-    }
-
-
-    private
-    fun Project.createDistributedPerformanceTestTask(
-        name: String,
-        clazz: KClass<out DistributedPerformanceTest>,
-        performanceSourceSet: SourceSet
-    ): TaskProvider<out DistributedPerformanceTest> {
-        val performanceTest = tasks.register(name, clazz) {
-            configureForAnyPerformanceTestTask(this, performanceSourceSet)
-            scenarioList = layout.buildDirectory.file("$name/${Config.performanceTestScenarioListFileName}").get().asFile
-            buildTypeId = stringPropertyOrNull(PropertyNames.buildTypeId)
-            workerTestTaskName = stringPropertyOrNull(PropertyNames.workerTestTaskName) ?: "fullPerformanceTest"
-            teamCityUrl = Config.teamCityUrl
-            teamCityToken = stringPropertyOrNull(PropertyNames.teamCityToken)
-            distributedPerformanceReporter = createPerformanceReporter()
-        }
-
-        afterEvaluate {
-            performanceTest.configure {
-                branchName?.takeIf { it.isNotEmpty() }?.let { branchName ->
-                    channel = "$channel-$branchName"
-                }
-            }
-        }
-
-        return performanceTest
     }
 
     private
@@ -539,8 +402,6 @@ class PerformanceTestPlugin : Plugin<Project> {
 
             jvmArgs("-Xmx5g", "-XX:+HeapDumpOnOutOfMemoryError")
 
-            registerTemplateInputsToPerformanceTest()
-
             configureTestProjectGenerators {
                 this@apply.mustRunAfter(this)
             }
@@ -548,22 +409,6 @@ class PerformanceTestPlugin : Plugin<Project> {
 
             retry {
                 maxRetries.set(0)
-            }
-        }
-    }
-
-    private
-    fun PerformanceTest.registerTemplateInputsToPerformanceTest() {
-        val registerInputs: (Task) -> Unit = { prepareSampleTask ->
-            val prepareSampleTaskInputs = prepareSampleTask.inputs.properties.mapKeys { entry -> "${prepareSampleTask.name}_${entry.key}" }
-            prepareSampleTaskInputs.forEach { key, value ->
-                inputs.property(key, value).optional(true)
-            }
-        }
-        project.configureTestProjectGenerators {
-            // TODO: Remove this hack https://github.com/gradle/gradle-native/issues/864
-            (project.tasks as DefaultTaskContainer).mutationGuard.withMutationEnabled<DefaultTaskContainer> {
-                all(registerInputs)
             }
         }
     }
@@ -592,8 +437,3 @@ fun allTestsWereSkipped(junitXmlFile: File): Boolean =
 private
 fun parseXmlFile(file: File): Document =
     DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(file)
-
-
-private
-fun sha1StringFor(file: File) =
-    HashUtil.createHash(file, "sha1").asHexString()

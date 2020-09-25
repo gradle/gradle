@@ -20,7 +20,7 @@ import gradlebuild.cleanup.WhenNotEmpty
 import gradlebuild.cleanup.extension.TestFileCleanUpExtension
 import gradlebuild.docs.FindBrokenInternalLinks
 import gradlebuild.integrationtests.tasks.DistributionTest
-import gradlebuild.performance.tasks.DistributedPerformanceTest
+import gradlebuild.performance.tasks.PerformanceTest
 import me.champeau.gradle.japicmp.JapicmpTask
 import org.gradle.api.internal.tasks.testing.junit.result.TestResultSerializer
 import java.io.FileOutputStream
@@ -147,7 +147,7 @@ fun Task.failedTaskCustomReports() = when (this) {
 
 fun Task.attachedReportLocations() = when (this) {
     is JapicmpTask -> listOf(richReport.destinationDir.resolve(richReport.reportName) to project.name)
-    is DistributedPerformanceTest -> listOf(reportDir.parentFile to project.name)
+    is PerformanceTest -> listOf(reportDir.parentFile to project.name)
     else -> emptyList()
 }
 
