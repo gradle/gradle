@@ -69,7 +69,6 @@ class PerformanceTestBuildTypeTest {
             "-s",
             "--daemon",
             "",
-            "-Dorg.gradle.internal.tasks.createops",
             "-Porg.gradle.performance.buildTypeId=Gradle_Check_IndividualPerformanceScenarioWorkersLinux",
             "-Porg.gradle.performance.workerTestTaskName=fullPerformanceTest",
             "-Porg.gradle.performance.coordinatorBuildId=%teamcity.build.id%",

@@ -124,8 +124,7 @@ fun buildToolGradleParameters(daemon: Boolean = true, isContinue: Boolean = true
         "-PmaxParallelForks=%maxParallelForks%",
         "-s",
         if (daemon) "--daemon" else "--no-daemon",
-        if (isContinue) "--continue" else "",
-        "-Dorg.gradle.internal.tasks.createops"
+        if (isContinue) "--continue" else ""
     )
 
 fun Dependencies.compileAllDependency(compileAllId: String = "Gradle_Check_CompileAll") {
