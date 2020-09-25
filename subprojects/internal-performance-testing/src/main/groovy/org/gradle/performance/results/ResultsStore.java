@@ -18,7 +18,6 @@ package org.gradle.performance.results;
 
 import java.io.Closeable;
 import java.util.List;
-import java.util.Map;
 
 public interface ResultsStore extends Closeable {
     /**
@@ -35,6 +34,4 @@ public interface ResultsStore extends Closeable {
      * Returns the n most recent instances of the given test which are younger than the max age.
      */
     PerformanceTestHistory getTestResults(PerformanceExperiment experiment, int mostRecentN, int maxDaysOld, String channel);
-
-    Map<PerformanceExperiment, Long> getEstimatedExperimentTimes(OperatingSystem operatingSystem);
 }

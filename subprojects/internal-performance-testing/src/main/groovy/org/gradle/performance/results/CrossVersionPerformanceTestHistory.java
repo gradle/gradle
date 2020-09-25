@@ -42,7 +42,7 @@ public class CrossVersionPerformanceTestHistory implements PerformanceTestHistor
 
     @Override
     public String getDisplayName() {
-        return experiment.getScenario().getTestName();
+        return experiment.getScenario();
     }
 
     public List<String> getBaselineVersions() {

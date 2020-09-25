@@ -35,17 +35,12 @@ class NoResultsStore<T extends PerformanceTestResult> implements WritableResults
 
     @Override
     PerformanceTestHistory getTestResults(PerformanceExperiment experiment, String channel) {
-        new EmptyPerformanceTestHistory(experiment.getScenario().getTestName())
+        new EmptyPerformanceTestHistory(experiment.getScenario())
     }
 
     @Override
     PerformanceTestHistory getTestResults(PerformanceExperiment experiment, int mostRecentN, int maxDaysOld, String channel) {
-        new EmptyPerformanceTestHistory(experiment.getScenario().getTestName())
-    }
-
-    @Override
-    Map<PerformanceExperiment, Long> getEstimatedExperimentTimes(OperatingSystem operatingSystem) {
-        return Collections.emptyMap()
+        new EmptyPerformanceTestHistory(experiment.getScenario())
     }
 
     @Override

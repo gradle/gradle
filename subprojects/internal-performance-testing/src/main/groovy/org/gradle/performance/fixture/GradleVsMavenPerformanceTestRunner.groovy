@@ -108,7 +108,6 @@ class GradleVsMavenPerformanceTestRunner extends AbstractCrossBuildPerformanceTe
     @Override
     GradleVsMavenBuildPerformanceResults newResult() {
         new GradleVsMavenBuildPerformanceResults(
-            testClass: testClassName,
             testId: testId,
             testProject: testProject,
             testGroup: testGroup,

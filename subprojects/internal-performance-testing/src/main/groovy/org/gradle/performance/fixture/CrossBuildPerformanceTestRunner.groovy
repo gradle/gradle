@@ -35,7 +35,6 @@ class CrossBuildPerformanceTestRunner extends AbstractCrossBuildPerformanceTestR
     @Override
     CrossBuildPerformanceResults newResult() {
         new CrossBuildPerformanceResults(
-            testClass: testClassName,
             testId: testId,
             testProject: testProject,
             testGroup: testGroup,

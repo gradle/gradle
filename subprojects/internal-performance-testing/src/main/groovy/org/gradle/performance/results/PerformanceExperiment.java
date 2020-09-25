@@ -20,9 +20,9 @@ import java.util.Objects;
 
 public class PerformanceExperiment {
     private final String testProject;
-    private final PerformanceScenario scenario;
+    private final String scenario;
 
-    public PerformanceExperiment(String testProject, PerformanceScenario scenario) {
+    public PerformanceExperiment(String testProject, String scenario) {
         this.testProject = testProject;
         this.scenario = scenario;
     }
@@ -31,7 +31,7 @@ public class PerformanceExperiment {
         return testProject;
     }
 
-    public PerformanceScenario getScenario() {
+    public String getScenario() {
         return scenario;
     }
 

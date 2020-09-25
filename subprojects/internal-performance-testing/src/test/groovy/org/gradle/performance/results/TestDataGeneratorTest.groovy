@@ -19,8 +19,10 @@ package org.gradle.performance.results
 import groovy.json.JsonSlurper
 import org.gradle.performance.ResultSpecification
 import org.gradle.performance.results.report.TestDataGenerator
+import spock.lang.Ignore
 import spock.lang.Subject
 
+@Ignore
 class TestDataGeneratorTest extends ResultSpecification {
     @Subject
     TestDataGenerator generator = new TestDataGenerator()
