@@ -33,9 +33,9 @@ class DeprecatedTLSVersionTest extends Specification {
     @Rule
     final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
     @Rule
-    BlockingHttpsServer server = new BlockingHttpsServer()
-    @Rule
     TestResources resources = new TestResources(temporaryFolder)
+    @Rule
+    BlockingHttpsServer server = new BlockingHttpsServer()
     TestKeyStore keyStore = TestKeyStore.init(resources.dir)
     HttpSettings settings = DefaultHttpSettings.builder()
         .withAuthenticationSettings([])
@@ -63,6 +63,8 @@ class DeprecatedTLSVersionTest extends Specification {
         )
         and:
         humanReadableException.cause instanceof SSLHandshakeException
+        cleanup:
+        client.close()
     }
 
     def "server that only supports current TLS versions"() {
@@ -76,5 +78,7 @@ class DeprecatedTLSVersionTest extends Specification {
         client.performGet("${server.getUri()}/test", false)
         then:
         noExceptionThrown()
+        cleanup:
+        client.close()
     }
 }

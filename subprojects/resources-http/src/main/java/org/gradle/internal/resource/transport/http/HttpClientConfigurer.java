@@ -84,21 +84,27 @@ import java.util.Collections;
 
 public class HttpClientConfigurer {
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpClientConfigurer.class);
-    private static final int MAX_HTTP_CONNECTIONS = 20;
-    private static final String[] SSL_PROTOCOLS;
-
     private static final String HTTPS_PROTOCOLS = "https.protocols";
+    private static final int MAX_HTTP_CONNECTIONS = 20;
 
-    static {
+    /**
+     * Determines the HTTPS protocols to support for the client.
+     *
+     * @implNote To support the Gradle embedded test runner, this method's return value should not be cached in a static field.
+     */
+    private static String[] determineHttpsProtocols() {
+        /*
+         * System property retrieval is executed within the constructor to support the Gradle embedded test runner.
+         */
         String httpsProtocols = System.getProperty(HTTPS_PROTOCOLS);
         if (httpsProtocols != null) {
-            SSL_PROTOCOLS = httpsProtocols.split(",");
+            return httpsProtocols.split(",");
         } else if (JavaVersion.current().isJava8() && Jvm.current().isIbmJvm()) {
-            SSL_PROTOCOLS = new String[]{"TLSv1.2"};
+            return new String[]{"TLSv1.2"};
         } else if (jdkSupportsTLSProtocol("TLSv1.3")) {
-            SSL_PROTOCOLS = new String[]{"TLSv1.2", "TLSv1.3"};
+            return new String[]{"TLSv1.2", "TLSv1.3"};
         } else {
-            SSL_PROTOCOLS = new String[]{"TLSv1.2"};
+            return new String[]{"TLSv1.2"};
         }
     }
 
@@ -116,12 +122,14 @@ public class HttpClientConfigurer {
     }
 
     static Collection<String> supportedTlsVersions() {
-        return Arrays.asList(SSL_PROTOCOLS);
+        return Arrays.asList(determineHttpsProtocols());
     }
 
+    private final String[] sslProtocols;
     private final HttpSettings httpSettings;
 
     public HttpClientConfigurer(HttpSettings httpSettings) {
+        this.sslProtocols = determineHttpsProtocols();
         this.httpSettings = httpSettings;
     }
 
@@ -142,7 +150,7 @@ public class HttpClientConfigurer {
     }
 
     private void configureSslSocketConnectionFactory(HttpClientBuilder builder, SslContextFactory sslContextFactory, HostnameVerifier hostnameVerifier) {
-        builder.setSSLSocketFactory(new SSLConnectionSocketFactory(sslContextFactory.createSslContext(), SSL_PROTOCOLS, null, hostnameVerifier));
+        builder.setSSLSocketFactory(new SSLConnectionSocketFactory(sslContextFactory.createSslContext(), sslProtocols, null, hostnameVerifier));
     }
 
     private void configureAuthSchemeRegistry(HttpClientBuilder builder) {
