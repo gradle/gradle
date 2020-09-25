@@ -42,6 +42,8 @@ import org.gradle.initialization.SettingsPreparer
 import org.gradle.initialization.TaskExecutionPreparer
 import org.gradle.internal.Factory
 import org.gradle.internal.build.BuildState
+import org.gradle.internal.build.BuildStateRegistry
+import org.gradle.internal.build.IncludedBuildState
 import org.gradle.internal.file.PathToFileResolver
 import org.gradle.internal.operations.BuildOperationCategory
 import org.gradle.internal.operations.BuildOperationContext
@@ -51,6 +53,7 @@ import org.gradle.internal.operations.RunnableBuildOperation
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.resource.StringTextResource
 import org.gradle.internal.service.scopes.BuildScopeServiceRegistryFactory
+import org.gradle.kotlin.dsl.support.serviceOf
 import org.gradle.util.Path
 import java.io.File
 
@@ -74,17 +77,20 @@ class ConfigurationCacheHost internal constructor(
     override fun <T> factory(serviceType: Class<T>): Factory<T> =
         gradle.services.getFactory(serviceType)
 
+    private
     class DefaultVintageGradleBuild(override val gradle: GradleInternal) : VintageGradleBuild {
 
         override val scheduledWork: List<Node>
             get() = gradle.taskGraph.scheduledWork
     }
 
+    private
     inner class DefaultConfigurationCacheBuild(
         override val gradle: GradleInternal,
         private val fileResolver: PathToFileResolver,
         private val rootProjectName: String
     ) : ConfigurationCacheBuild {
+
         private
         val buildDirs = mutableMapOf<Path, File>()
 
@@ -99,8 +105,6 @@ class ConfigurationCacheHost internal constructor(
                     service<BuildDefinition>().fromBuild
                 )
                 settingsPreparer.prepareSettings(this)
-
-                includedBuilds = emptyList()
 
                 setBaseProjectClassLoaderScope(coreScope)
                 projectDescriptorRegistry.rootProject!!.name = rootProjectName
@@ -179,7 +183,16 @@ class ConfigurationCacheHost internal constructor(
                     // TODO:configuration-cache - perhaps move this so it wraps loading tasks from cache file
                 },
                 service<BuildOperationExecutor>()
-            ).prepareForTaskExecution(gradle)
+            ).run {
+                prepareForTaskExecution(gradle)
+            }
+        }
+
+        override fun addIncludedBuild(buildDefinition: BuildDefinition): Pair<IncludedBuildState, ConfigurationCacheBuild> {
+            val includedBuild = service<BuildStateRegistry>().addIncludedBuild(buildDefinition) as IncludedBuildState
+            return includedBuild to includedBuild.withState { includedGradle ->
+                includedGradle.serviceOf<ConfigurationCacheHost>().createBuild(includedBuild.name)
+            }
         }
 
         private

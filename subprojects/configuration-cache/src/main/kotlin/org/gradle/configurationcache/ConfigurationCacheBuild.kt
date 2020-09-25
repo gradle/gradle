@@ -16,9 +16,11 @@
 
 package org.gradle.configurationcache
 
+import org.gradle.api.internal.BuildDefinition
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.execution.plan.Node
+import org.gradle.internal.build.IncludedBuildState
 import java.io.File
 
 
@@ -33,4 +35,6 @@ interface ConfigurationCacheBuild {
     fun registerProjects()
 
     fun scheduleNodes(nodes: Collection<Node>)
+
+    fun addIncludedBuild(buildDefinition: BuildDefinition): Pair<IncludedBuildState, ConfigurationCacheBuild>
 }

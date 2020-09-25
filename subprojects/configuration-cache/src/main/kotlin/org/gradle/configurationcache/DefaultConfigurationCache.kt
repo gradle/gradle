@@ -204,7 +204,7 @@ class DefaultConfigurationCache internal constructor(
         service<ProjectStateRegistry>().withMutableStateOfAllProjects {
             withWriteContextFor(stateFile, "state") {
                 configurationCacheState().run {
-                    writeState()
+                    writeState(host.currentBuild)
                 }
             }
         }
@@ -214,14 +214,14 @@ class DefaultConfigurationCache internal constructor(
     fun readConfigurationCacheState(stateFile: File) {
         withReadContextFor(stateFile) {
             configurationCacheState().run {
-                readState()
+                readState(host::createBuild)
             }
         }
     }
 
     private
     fun configurationCacheState() =
-        ConfigurationCacheState(codecs(), host, relevantProjectsRegistry)
+        ConfigurationCacheState(codecs())
 
     private
     fun startCollectingCacheFingerprint() {
