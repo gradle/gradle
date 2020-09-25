@@ -26,13 +26,15 @@ import org.gradle.performance.results.MeasuredOperationList;
 import org.gradle.profiler.BenchmarkResultCollector;
 import org.gradle.profiler.BuildMutator;
 import org.gradle.profiler.InvocationSettings;
+import org.gradle.profiler.Profiler;
+import org.gradle.profiler.ProfilerFactory;
 import org.gradle.profiler.ScenarioDefinition;
-import org.gradle.profiler.jfr.JfrProfilerFactory;
 import org.gradle.profiler.result.BuildInvocationResult;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.util.Collections;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -47,34 +49,33 @@ import java.util.function.Supplier;
 @CompileStatic
 public abstract class AbstractBuildExperimentRunner implements BuildExperimentRunner {
     private static final String PROFILER_TARGET_DIR_KEY = "org.gradle.performance.flameGraphTargetDir";
+    private static final String PROFILER_KEY = "org.gradle.performance.profiler";
 
     private final ProfilerFlameGraphGenerator flameGraphGenerator;
     private final GradleProfilerReporter gradleProfilerReporter;
-    private final org.gradle.profiler.Profiler profiler;
+    private final Profiler profiler;
 
     public static String getProfilerTargetDir() {
         return System.getProperty(PROFILER_TARGET_DIR_KEY);
     }
 
     public AbstractBuildExperimentRunner(GradleProfilerReporter gradleProfilerReporter) {
+        String profilerName = System.getProperty(PROFILER_KEY);
+        boolean profile = profilerName != null && !profilerName.isEmpty();
         String profilerTargetDir = getProfilerTargetDir();
-        this.flameGraphGenerator = profilerTargetDir == null
-            ? ProfilerFlameGraphGenerator.NOOP
-            : new JfrDifferentialFlameGraphGenerator(new File(profilerTargetDir));
-        this.profiler = createProfiler(profilerTargetDir);
+        this.flameGraphGenerator = profile
+            ? new JfrDifferentialFlameGraphGenerator(new File(profilerTargetDir))
+            : ProfilerFlameGraphGenerator.NOOP;
+        this.profiler = profile ? createProfiler(profilerName) : Profiler.NONE;
         this.gradleProfilerReporter = gradleProfilerReporter;
     }
 
-    private org.gradle.profiler.Profiler createProfiler(String jfrProfileTargetDir) {
-        if (jfrProfileTargetDir == null) {
-            return org.gradle.profiler.Profiler.NONE;
-        } else {
-            OptionParser optionParser = new OptionParser();
-            optionParser.accepts("profiler");
-            JfrProfilerFactory jfrProfilerFactory = new JfrProfilerFactory();
-            jfrProfilerFactory.addOptions(optionParser);
-            return jfrProfilerFactory.createFromOptions(optionParser.parse());
-        }
+    private Profiler createProfiler(String profilerName) {
+        OptionParser optionParser = new OptionParser();
+        optionParser.accepts("profiler");
+        ProfilerFactory profilerFactory = ProfilerFactory.of(Collections.singletonList(profilerName));
+        profilerFactory.addOptions(optionParser);
+        return profilerFactory.createFromOptions(optionParser.parse());
     }
 
     protected ProfilerFlameGraphGenerator getFlameGraphGenerator() {
@@ -85,7 +86,7 @@ public abstract class AbstractBuildExperimentRunner implements BuildExperimentRu
         return gradleProfilerReporter.getResultCollector(name);
     }
 
-    protected org.gradle.profiler.Profiler getProfiler() {
+    protected Profiler getProfiler() {
         return profiler;
     }
 
