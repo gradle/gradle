@@ -47,9 +47,7 @@ public class DefaultPerformanceExecutionDataProvider extends PerformanceExecutio
         .thenComparing(comparing(ScenarioBuildResultData::isAboutToRegress).reversed())
         .thenComparing(comparing(ScenarioBuildResultData::getDifferenceSortKey).reversed())
         .thenComparing(comparing(ScenarioBuildResultData::getDifferencePercentage).reversed())
-        .thenComparing(ScenarioBuildResultData::getScenarioName)
-        .thenComparing(ScenarioBuildResultData::getScenarioClass)
-        .thenComparing(ScenarioBuildResultData::getTestProject);
+        .thenComparing(ScenarioBuildResultData::getPerformanceExperiment);
 
     public DefaultPerformanceExecutionDataProvider(ResultsStore resultsStore, List<File> resultJsons) {
         super(resultsStore, resultJsons);
@@ -62,7 +60,8 @@ public class DefaultPerformanceExecutionDataProvider extends PerformanceExecutio
             .collect(groupingBy(ScenarioBuildResultData::getPerformanceExperiment))
             .values()
             .stream()
-            .map(this::queryAndSortExecutionData).collect(treeSetCollector(SCENARIO_COMPARATOR));
+            .map(this::queryAndSortExecutionData)
+            .collect(treeSetCollector(SCENARIO_COMPARATOR));
     }
 
     private ScenarioBuildResultData queryAndSortExecutionData(List<ScenarioBuildResultData> scenarios) {

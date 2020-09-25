@@ -16,9 +16,14 @@
 
 package org.gradle.performance.results;
 
+import java.util.Comparator;
 import java.util.Objects;
 
-public class PerformanceExperiment {
+public class PerformanceExperiment implements Comparable<PerformanceExperiment> {
+    private static final Comparator<PerformanceExperiment> PERFORMANCE_EXPERIMENT_COMPARATOR = Comparator
+        .comparing(PerformanceExperiment::getScenario)
+        .thenComparing(PerformanceExperiment::getTestProject);
+
     private final String testProject;
     private final PerformanceScenario scenario;
 
@@ -59,5 +64,10 @@ public class PerformanceExperiment {
             "testProject='" + testProject + '\'' +
             ", scenario='" + scenario + '\'' +
             '}';
+    }
+
+    @Override
+    public int compareTo(PerformanceExperiment o) {
+        return PERFORMANCE_EXPERIMENT_COMPARATOR.compare(this, o);
     }
 }
