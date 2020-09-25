@@ -59,12 +59,12 @@ public class CrossVersionResultsStore extends AbstractWritableResultsStore<Cross
             "  END) AS FAILURE_RATE \n" +
             "  FROM testExecution\n" +
             " WHERE (CHANNEL = 'flakiness-detection-master' OR CHANNEL = 'flakiness-detection-release') AND STARTTIME> ?\n" +
-            "GROUP BY TESTID, TESTPROJECT ORDER by FAILURE_RATE;";
+            "GROUP BY TESTCLASS, TESTID, TESTPROJECT ORDER by FAILURE_RATE;";
     private static final String FAILURE_THRESOLD_SQL =
         "SELECT TESTCLASS, TESTID, TESTPROJECT, MAX(ABS((BASELINEMEDIAN-CURRENTMEDIAN)/BASELINEMEDIAN)) as THRESHOLD\n" +
             "FROM testExecution\n" +
             "WHERE (CHANNEL = 'flakiness-detection-master' or CHANNEL= 'flakiness-detection-release') AND STARTTIME > ? AND DIFFCONFIDENCE > 0.97\n" +
-            "GROUP BY TESTID, TESTPROJECT";
+            "GROUP BY TESTCLASS, TESTID, TESTPROJECT";
 
 
     // Only the flakiness detection results within 90 days will be considered.
@@ -101,10 +101,11 @@ public class CrossVersionResultsStore extends AbstractWritableResultsStore<Cross
 
     private void updatePreviousTestId(Connection connection, CrossVersionPerformanceResults results) throws SQLException {
         for (String previousId : results.getPreviousTestIds()) {
-            try (PreparedStatement statement = connection.prepareStatement("update testExecution set testId = ? where testId = ? and testProject = ?")) {
+            try (PreparedStatement statement = connection.prepareStatement("update testExecution set testId = ? where testId = ? and testProject = ? and testClass = ?")) {
                 statement.setString(1, results.getTestId());
                 statement.setString(2, previousId);
                 statement.setString(3, results.getTestProject());
+                statement.setString(4, results.getTestClass());
                 statement.execute();
             }
         }
