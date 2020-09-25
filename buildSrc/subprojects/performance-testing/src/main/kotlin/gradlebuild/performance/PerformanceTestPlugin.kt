@@ -289,7 +289,7 @@ class PerformanceTestPlugin : Plugin<Project> {
                     setTestProjectGenerationTask(sampleGenerator)
 
                     retry {
-                        maxRetries.set(3)
+                        maxRetries.set(1)
                     }
 
                     if (shouldLoadScenariosFromFile) {
