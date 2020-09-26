@@ -29,7 +29,7 @@ import java.util.regex.Pattern
  */
 class SdkManJvmLocator {
 
-    private static final Pattern JDKMAN_SDK_DIR = Pattern.compile("(\\d+\\.\\d+\\.\\d+(_\\d+)?).*")
+    private static final Pattern JDKMAN_SDK_DIR = Pattern.compile("(\\d+\\.\\w+\\.\\d+(_\\d+)?).*")
     private static final String SDKMAN_CANDIDATES_DIR_ENV_NAME = "SDKMAN_CANDIDATES_DIR"
     private final FileCanonicalizer fileCanonicalizer
 
