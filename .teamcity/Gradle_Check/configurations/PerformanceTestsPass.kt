@@ -23,6 +23,7 @@ import configurations.gradleRunnerStep
 import configurations.publishBuildStatusToGithub
 import configurations.snapshotDependencies
 import jetbrains.buildServer.configs.kotlin.v2019_2.AbsoluteId
+import jetbrains.buildServer.configs.kotlin.v2019_2.ReuseBuilds
 import model.CIBuildModel
 import model.PerformanceTestType
 import projects.PerformanceTestProject
@@ -74,7 +75,11 @@ subprojects/$performanceProjectName/build/$taskName => report/
     )
 
     dependencies {
-        snapshotDependencies(performanceTestProject.performanceTests)
+        snapshotDependencies(performanceTestProject.performanceTests) {
+            if (type == PerformanceTestType.flakinessDetection) {
+                reuseBuilds = ReuseBuilds.NO
+            }
+        }
         performanceTestProject.performanceTests.forEach {
             if (it.testProjects.isNotEmpty()) {
                 artifacts(it.id!!) {

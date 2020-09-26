@@ -11,6 +11,7 @@ import jetbrains.buildServer.configs.kotlin.v2019_2.BuildStep
 import jetbrains.buildServer.configs.kotlin.v2019_2.BuildType
 import jetbrains.buildServer.configs.kotlin.v2019_2.Dependencies
 import jetbrains.buildServer.configs.kotlin.v2019_2.FailureAction
+import jetbrains.buildServer.configs.kotlin.v2019_2.SnapshotDependency
 import jetbrains.buildServer.configs.kotlin.v2019_2.buildSteps.script
 import jetbrains.buildServer.configs.kotlin.v2019_2.triggers.ScheduleTrigger
 import jetbrains.buildServer.configs.kotlin.v2019_2.triggers.VcsTrigger
@@ -108,10 +109,12 @@ fun stageTriggerId(model: CIBuildModel, stage: Stage) = stageTriggerId(model, st
 
 fun stageTriggerId(model: CIBuildModel, stageName: StageName) = AbsoluteId("${model.projectPrefix}Stage_${stageName.id}_Trigger")
 
-fun Dependencies.snapshotDependencies(buildTypes: Iterable<BuildType>) {
+fun Dependencies.snapshotDependencies(buildTypes: Iterable<BuildType>, snapshotConfig: SnapshotDependency.() -> Unit = {}) {
     buildTypes.forEach {
         dependency(it.id!!) {
-            snapshot {}
+            snapshot {
+                snapshotConfig()
+            }
         }
     }
 }
