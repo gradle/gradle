@@ -63,7 +63,7 @@ include::sample[dir="snippets/testing/jacoco-quickstart/kotlin",files="build.gra
 [%header%autowidth,compact]
 |===
 | Property | Gradle default
-| reportsDir | `__$buildDir__/reports/jacoco`
+| reportsDirectory | `__$buildDir__/reports/jacoco`
 |===
 
 

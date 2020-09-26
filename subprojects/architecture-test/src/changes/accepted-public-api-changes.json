@@ -7,6 +7,14 @@
             "changes": [
                 "Constructor has been removed"
             ]
+        },
+        {
+            "type": "org.gradle.testing.jacoco.plugins.JacocoPluginExtension",
+            "member": "Method org.gradle.testing.jacoco.plugins.JacocoPluginExtension.getReportsDirectory()",
+            "acceptation": "Replace existing stable `reportsDir` property",
+            "changes": [
+                "METHOD_ADDED_TO_PUBLIC_CLASS"
+            ]
         }
     ]
 }

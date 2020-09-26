@@ -252,6 +252,12 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
             return new WithDeprecationTimeline(this);
         }
 
+        @Override
+        public WithDeprecationTimeline willBeRemovedInGradle8() {
+            setDeprecationTimeline(DeprecationTimeline.willBeRemovedInVersion(GRADLE8));
+            return new WithDeprecationTimeline(this);
+        }
+
         public class WithDeprecationTimeline extends DeprecationMessageBuilder.WithDeprecationTimeline {
             private final DeprecateProperty builder;
 

@@ -16,18 +16,17 @@
 package org.gradle.testing.jacoco.plugins;
 
 import org.apache.commons.lang.StringUtils;
-import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.file.Directory;
+import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.ReportingBasePlugin;
 import org.gradle.api.provider.Provider;
-import org.gradle.api.provider.ProviderFactory;
-import org.gradle.api.reporting.ConfigurableReport;
 import org.gradle.api.reporting.Report;
 import org.gradle.api.reporting.ReportingExtension;
 import org.gradle.api.tasks.SourceSetContainer;
@@ -43,6 +42,8 @@ import org.gradle.testing.jacoco.tasks.JacocoReport;
 
 import javax.inject.Inject;
 import java.io.File;
+
+import static org.gradle.api.internal.lambdas.SerializableLambdas.action;
 
 /**
  * Plugin that provides support for generating Jacoco coverage data.
@@ -76,7 +77,7 @@ public class JacocoPlugin implements Plugin<Project> {
         JacocoPluginExtension extension = project.getExtensions().create(PLUGIN_EXTENSION_NAME, JacocoPluginExtension.class, project, agent);
         extension.setToolVersion(DEFAULT_JACOCO_VERSION);
         final ReportingExtension reportingExtension = (ReportingExtension) project.getExtensions().getByName(ReportingExtension.NAME);
-        extension.setReportsDir(project.provider(() -> reportingExtension.file("jacoco")));
+        extension.getReportsDirectory().set(project.getLayout().dir(project.provider(() -> reportingExtension.file("jacoco"))));
 
         configureAgentDependencies(agent, extension);
         configureTaskClasspathDefaults(extension);
@@ -134,8 +135,9 @@ public class JacocoPlugin implements Plugin<Project> {
     }
 
     private void configureDefaultOutputPathForJacocoMerge() {
+        Provider<File> buildDirectory = project.getLayout().getBuildDirectory().getAsFile();
         project.getTasks().withType(JacocoMerge.class).configureEach(task ->
-            task.setDestinationFile(project.provider(() -> new File(project.getBuildDir(), "/jacoco/" + task.getName() + ".exec")))
+            task.setDestinationFile(buildDirectory.map(buildDir -> new File(buildDir, "jacoco/" + task.getName() + ".exec")))
         );
     }
 
@@ -144,44 +146,17 @@ public class JacocoPlugin implements Plugin<Project> {
     }
 
     private void configureJacocoReportDefaults(final JacocoPluginExtension extension, final JacocoReport reportTask) {
-        reportTask.getReports().all(new ReportEnabledAction(project.getProviders()));
-        reportTask.getReports().all(new ReportOutputDirectoryAction(project.getProviders(), reportTask, project.provider(extension::getReportsDir)));
-    }
-
-    private static class ReportEnabledAction implements Action<ConfigurableReport> {
-
-        private final ProviderFactory providers;
-
-        private ReportEnabledAction(ProviderFactory providers) {
-            this.providers = providers;
-        }
-
-        @Override
-        public void execute(ConfigurableReport report) {
-            report.setEnabled(providers.provider(() -> report.getName().equals("html")));
-        }
-    }
-
-    private static class ReportOutputDirectoryAction implements Action<ConfigurableReport> {
-
-        private final ProviderFactory providers;
-        private final JacocoReport reportTask;
-        private final Provider<File> reportsDir;
-
-        private ReportOutputDirectoryAction(ProviderFactory providers, JacocoReport reportTask, Provider<File> reportsDir) {
-            this.providers = providers;
-            this.reportTask = reportTask;
-            this.reportsDir = reportsDir;
-        }
-
-        @Override
-        public void execute(ConfigurableReport report) {
+        reportTask.getReports().all(action(report ->
+            report.setEnabled(report.getName().equals("html"))
+        ));
+        DirectoryProperty reportsDir = extension.getReportsDirectory();
+        reportTask.getReports().all(action(report -> {
             if (report.getOutputType().equals(Report.OutputType.DIRECTORY)) {
-                report.setDestination(providers.provider(() -> new File(reportsDir.get(), reportTask.getName() + "/" + report.getName())));
+                report.setDestination(reportsDir.dir(reportTask.getName() + "/" + report.getName()).map(Directory::getAsFile));
             } else {
-                report.setDestination(providers.provider(() -> new File(reportsDir.get(), reportTask.getName() + "/" + reportTask.getName() + "." + report.getName())));
+                report.setDestination(reportsDir.dir(reportTask.getName() + "/" + reportTask.getName() + "." + report.getName()).map(Directory::getAsFile));
             }
-        }
+        }));
     }
 
     /**
@@ -208,38 +183,19 @@ public class JacocoPlugin implements Plugin<Project> {
                 reportTask.executionData(testTaskProvider.get());
                 reportTask.sourceSets(project.getExtensions().getByType(SourceSetContainer.class).getByName("main"));
                 // TODO: Change the default location for these reports to follow the convention defined in ReportOutputDirectoryAction
-                reportTask.getReports().all(new TestTaskReportOutputDirectoryAction(project.getProviders(), reportTask, project.provider(extension::getReportsDir), testTaskName));
+                DirectoryProperty reportsDir = extension.getReportsDirectory();
+                reportTask.getReports().all(action(report -> {
+                    // For someone looking for the difference between this and the duplicate code above
+                    // this one uses the `testTaskProvider` and the `reportTask`. The other just
+                    // uses the `reportTask`.
+                    // https://github.com/gradle/gradle/issues/6343
+                    if (report.getOutputType().equals(Report.OutputType.DIRECTORY)) {
+                        report.setDestination(reportsDir.dir(testTaskName + "/" + report.getName()).map(Directory::getAsFile));
+                    } else {
+                        report.setDestination(reportsDir.dir(testTaskName + "/" + reportTask.getName() + "." + report.getName()).map(Directory::getAsFile));
+                    }
+                }));
             });
-    }
-
-    /*
-     * For someone looking for the difference between this and the duplicate code above
-     * this one uses the `testTaskProvider` and the `reportTask`. The other just
-     * uses the `reportTask`.
-     * https://github.com/gradle/gradle/issues/6343
-     */
-    private static class TestTaskReportOutputDirectoryAction implements Action<ConfigurableReport> {
-
-        private final ProviderFactory providers;
-        private final JacocoReport reportTask;
-        private final Provider<File> reportsDir;
-        private final String testTaskName;
-
-        private TestTaskReportOutputDirectoryAction(ProviderFactory providers, JacocoReport reportTask, Provider<File> reportsDir, String testTaskName) {
-            this.providers = providers;
-            this.reportTask = reportTask;
-            this.reportsDir = reportsDir;
-            this.testTaskName = testTaskName;
-        }
-
-        @Override
-        public void execute(ConfigurableReport report) {
-            if (report.getOutputType().equals(Report.OutputType.DIRECTORY)) {
-                report.setDestination(providers.provider(() -> new File(reportsDir.get(), testTaskName + "/" + report.getName())));
-            } else {
-                report.setDestination(providers.provider(() -> new File(reportsDir.get(), testTaskName + "/" + reportTask.getName() + "." + report.getName())));
-            }
-        }
     }
 
     private void addDefaultCoverageVerificationTask(final TaskProvider<Task> testTaskProvider) {
