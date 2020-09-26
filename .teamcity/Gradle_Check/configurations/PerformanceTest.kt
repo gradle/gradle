@@ -16,6 +16,7 @@
 
 package Gradle_Check.configurations
 
+import Gradle_Check.model.PerformanceTestCoverage
 import common.Os
 import common.applyPerformanceTestSettings
 import common.buildToolGradleParameters
@@ -32,36 +33,34 @@ import configurations.buildScanTag
 import jetbrains.buildServer.configs.kotlin.v2019_2.AbsoluteId
 import jetbrains.buildServer.configs.kotlin.v2019_2.BuildSteps
 import model.CIBuildModel
-import model.PerformanceTestType
 import model.Stage
-import java.util.Locale
 
 class PerformanceTest(
     model: CIBuildModel,
-    type: PerformanceTestType,
     stage: Stage,
-    uuid: String,
+    performanceTestCoverage: PerformanceTestCoverage,
     description: String,
     performanceSubProject: String,
     val testProjects: List<String>,
     val bucketIndex: Int,
-    os: Os = Os.LINUX,
     extraParameters: String = "",
     preBuildSteps: BuildSteps.() -> Unit = {}
 ) : BaseGradleBuildType(
     model,
     stage = stage,
     init = {
-        this.uuid = uuid
+        this.uuid = performanceTestCoverage.asConfigurationId(model, stage, "bucket${bucketIndex + 1}")
         this.id = AbsoluteId(uuid)
         this.name = description
+        val type = performanceTestCoverage.performanceTestType
+        val os = performanceTestCoverage.os
         val performanceTestTaskNames = getPerformanceTestTaskNames(performanceSubProject, testProjects)
         applyPerformanceTestSettings(os = os, timeout = type.timeout)
         artifactRules = individualPerformanceTestArtifactRules
 
         params {
             param("performance.baselines", type.defaultBaselines)
-            param("performance.channel", "${type.channel}${if (os == Os.LINUX) "" else "-${os.name.toLowerCase(Locale.US)}"}-%teamcity.build.branch%")
+            param("performance.channel", performanceTestCoverage.channel())
             param("env.ANDROID_HOME", os.androidHome)
             when (os) {
                 Os.WINDOWS -> param("env.PATH", "%env.PATH%;C:/Program Files/7-zip")
