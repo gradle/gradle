@@ -136,14 +136,16 @@ fun splitBucketsByScenarios(scenarios: List<PerformanceScenario>, testProjectToS
 fun determineScenarioTestTimes(os: Os, performanceTestTimes: OperatingSystemToTestProjectPerformanceTestTimes): Map<String, List<PerformanceTestTime>> = performanceTestTimes.getValue(os)
 
 fun determineScenariosFor(performanceTestCoverage: PerformanceTestCoverage, performanceTestConfigurations: List<PerformanceTestConfiguration>): List<PerformanceScenario> {
-    val performanceTestType = if (performanceTestCoverage.performanceTestType in setOf(PerformanceTestType.historical, PerformanceTestType.flakinessDetection)) {
-        PerformanceTestType.test
+    val performanceTestTypes = if (performanceTestCoverage.performanceTestType in setOf(PerformanceTestType.historical, PerformanceTestType.flakinessDetection)) {
+        listOf(PerformanceTestType.test, PerformanceTestType.slow)
     } else {
-        performanceTestCoverage.performanceTestType
+        listOf(performanceTestCoverage.performanceTestType)
     }
     return performanceTestConfigurations.flatMap { configuration ->
         configuration.groups
-            .filter { it.performanceTestTypes[performanceTestType]?.contains(performanceTestCoverage.os) == true }
+            .filter { group -> performanceTestTypes.any { type ->
+                group.performanceTestTypes[type]?.contains(performanceTestCoverage.os) == true
+            } }
             .map { PerformanceScenario(Scenario.fromTestId(configuration.testId), it.testProject) }
     }
 }
@@ -183,7 +185,7 @@ data class TestProjectTime(val testProject: String, val scenarioTimes: List<Perf
 
     override
     fun toString(): String {
-        return "TestProjectScenarioTime(testProject=$testProject, totalTime=$totalTime)"
+        return "TestProjectTime(testProject=$testProject, totalTime=$totalTime, scenarios = ${scenarioTimes.map { it.scenario } }"
     }
 }
 
@@ -194,6 +196,10 @@ data class Scenario(val className: String, val scenario: String) {
             return Scenario(testId.substring(0, dotBeforeScenarioName), testId.substring(dotBeforeScenarioName + 1))
         }
     }
+
+    override
+    fun toString(): String =
+        "$className.$scenario"
 }
 
 class SingleTestProjectBucket(val testProject: String, val scenarios: List<Scenario>) : PerformanceTestBucket {
