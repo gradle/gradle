@@ -59,7 +59,10 @@ class FlakinessDetectionPerformanceExecutionDataProvider extends PerformanceExec
 
     private ScenarioBuildResultData queryExecutionData(ScenarioBuildResultData scenario) {
         PerformanceTestHistory history = resultsStore.getTestResults(scenario.getPerformanceExperiment(), MOST_RECENT_EXECUTIONS, PERFORMANCE_DATE_RETRIEVE_DAYS, ResultsStoreHelper.determineChannel());
-        List<? extends PerformanceTestExecution> currentExecutions = history.getExecutions().stream().filter(execution -> execution.getVcsCommits().contains(commitId)).collect(toList());
+        List<? extends PerformanceTestExecution> executionsOfSameCommit = history.getExecutions().stream().filter(execution -> execution.getVcsCommits().contains(commitId)).collect(toList());
+        List<? extends PerformanceTestExecution> currentExecutions = executionsOfSameCommit.isEmpty()
+            ? history.getExecutions().stream().limit(3).collect(toList())
+            : executionsOfSameCommit;
         scenario.setCurrentBuildExecutions(removeEmptyExecution(currentExecutions));
         return scenario;
     }
