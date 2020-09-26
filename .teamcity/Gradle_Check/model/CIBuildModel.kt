@@ -286,7 +286,7 @@ enum class PerformanceTestType(
         defaultBaselines = "defaults",
         channel = "commits",
         uuid = "PerformanceExperimentCoordinator",
-        numberOfBuckets = 40
+        numberOfBuckets = 30
     ),
     experiment(
         taskId = "PerformanceExperiment",
