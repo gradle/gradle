@@ -36,7 +36,7 @@ class PmdPluginDependenciesIntegrationTest extends AbstractIntegrationSpec {
         badCode()
     }
 
-    @ToBeFixedForConfigurationCache
+    @ToBeFixedForConfigurationCache(because = ":dependencies")
     def "allows configuring tool dependencies explicitly"() {
         def testDependency = 'net.sourceforge.pmd:pmd:5.1.1'
         expect: //defaults exist and can be inspected
@@ -63,7 +63,6 @@ class PmdPluginDependenciesIntegrationTest extends AbstractIntegrationSpec {
         output.contains "$testDependency"
     }
 
-    @ToBeFixedForConfigurationCache
     def "fails properly using older version of PMD without incremental analysis support"() {
         given:
         buildFile << """

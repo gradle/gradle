@@ -17,7 +17,6 @@ package org.gradle.integtests.samples
 
 import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
 import org.gradle.integtests.fixtures.Sample
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.test.fixtures.file.TestFile
 import org.junit.Rule
@@ -30,7 +29,6 @@ class SamplesCodeQualityIntegrationTest extends AbstractSampleIntegrationTest {
 
     @Unroll
     @UsesSample('codeQuality/codeQuality')
-    @ToBeFixedForConfigurationCache
     def "can generate reports with #dsl dsl"() {
         TestFile projectDir = sample.dir.file(dsl)
         TestFile buildDir = projectDir.file('build')

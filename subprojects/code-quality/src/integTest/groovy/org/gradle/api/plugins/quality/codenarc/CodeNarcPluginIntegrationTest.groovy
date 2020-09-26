@@ -36,7 +36,6 @@ class CodeNarcPluginIntegrationTest extends WellBehavedPluginTest {
         writeConfigFile()
     }
 
-    @ToBeFixedForConfigurationCache(because = "Task.getProject() during execution")
     def "adds codenarc task for each source set"() {
         given:
         buildFile << '''
@@ -62,20 +61,15 @@ class CodeNarcPluginIntegrationTest extends WellBehavedPluginTest {
                     assert ignoreFailures == false
                 }
             }
-            task assertTaskForEachSourceSet {
-                doLast {
-                    assertTaskConfiguration('codenarcMain', project.sourceSets.main)
-                    assertTaskConfiguration('codenarcTest', project.sourceSets.test)
-                    assertTaskConfiguration('codenarcOther', project.sourceSets.other)
-                }
-            }
+            assertTaskConfiguration('codenarcMain', project.sourceSets.main)
+            assertTaskConfiguration('codenarcTest', project.sourceSets.test)
+            assertTaskConfiguration('codenarcOther', project.sourceSets.other)
         '''.stripIndent()
 
         expect:
-        succeeds 'assertTaskForEachSourceSet'
+        succeeds 'help'
     }
 
-    @ToBeFixedForConfigurationCache
     def "adds codenarc tasks from each source sets to check lifecycle task"() {
         given:
         buildFile << '''
@@ -97,7 +91,6 @@ class CodeNarcPluginIntegrationTest extends WellBehavedPluginTest {
         notExecuted(":codenarcCustom")
     }
 
-    @ToBeFixedForConfigurationCache(because = "Task.getProject() during execution")
     def "can customize per-source-set tasks via extension"() {
         given:
         buildFile << '''
@@ -132,20 +125,15 @@ class CodeNarcPluginIntegrationTest extends WellBehavedPluginTest {
                     assert ignoreFailures == true
                 }
             }
-            task assertHasCustomizedSettings {
-                doLast {
-                    hasCustomizedSettings('codenarcMain', project.sourceSets.main)
-                    hasCustomizedSettings('codenarcTest', project.sourceSets.test)
-                    hasCustomizedSettings('codenarcOther', project.sourceSets.other)
-                }
-            }
+            hasCustomizedSettings('codenarcMain', project.sourceSets.main)
+            hasCustomizedSettings('codenarcTest', project.sourceSets.test)
+            hasCustomizedSettings('codenarcOther', project.sourceSets.other)
         '''.stripIndent()
 
         expect:
-        succeeds 'assertHasCustomizedSettings'
+        succeeds 'help'
     }
 
-    @ToBeFixedForConfigurationCache
     def "can customize which tasks are added to check lifecycle task"() {
         given:
         buildFile << '''
@@ -170,28 +158,23 @@ class CodeNarcPluginIntegrationTest extends WellBehavedPluginTest {
         notExecuted(':codenarcCustom')
     }
 
-    @ToBeFixedForConfigurationCache(because = "Task.getProject() during execution")
     def "can use legacy configFile extension property"() {
         given:
         buildFile << '''
             codenarc {
                 configFile = project.file("codenarc-config")
             }
-            task assertCodeNarcConfiguration {
-                doLast {
-                    assert project.codenarc.configFile == project.file("codenarc-config") // computed property
-                    assert project.tasks.codenarcMain.configFile == project.file("codenarc-config")
-                    assert project.tasks.codenarcTest.configFile == project.file("codenarc-config")
-                }
-            }
+            assert project.codenarc.configFile == project.file("codenarc-config") // computed property
+            assert project.tasks.codenarcMain.configFile == project.file("codenarc-config")
+            assert project.tasks.codenarcTest.configFile == project.file("codenarc-config")
         '''.stripIndent()
 
         expect:
-        succeeds 'assertCodeNarcConfiguration'
+        succeeds 'help'
     }
 
     @Unroll
-    @ToBeFixedForConfigurationCache
+    @ToBeFixedForConfigurationCache(because = ":dependencies")
     def "allows configuring tool dependencies explicitly via #method"(String method, String buildScriptSnippet) {
         expect: //defaults exist and can be inspected
         succeeds("dependencies", "--configuration", "codenarc")
