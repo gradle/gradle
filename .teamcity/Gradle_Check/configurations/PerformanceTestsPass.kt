@@ -27,7 +27,6 @@ import jetbrains.buildServer.configs.kotlin.v2019_2.ReuseBuilds
 import model.CIBuildModel
 import model.PerformanceTestType
 import projects.PerformanceTestProject
-import java.util.Locale
 
 class PerformanceTestsPass(model: CIBuildModel, performanceTestProject: PerformanceTestProject) : BaseGradleBuildType(model, init = {
     uuid = performanceTestProject.uuid + "_Trigger"
@@ -43,7 +42,7 @@ class PerformanceTestsPass(model: CIBuildModel, performanceTestProject: Performa
         param("env.JAVA_HOME", os.buildJavaHome())
         param("env.BUILD_BRANCH", "%teamcity.build.branch%")
         param("performance.db.username", "tcagent")
-        param("performance.channel", "${type.channel}${if (os == Os.LINUX) "" else "-${os.name.toLowerCase(Locale.US)}"}-%teamcity.build.branch%")
+        param("performance.channel", performanceTestProject.performanceTestCoverage.channel())
     }
 
     features {
