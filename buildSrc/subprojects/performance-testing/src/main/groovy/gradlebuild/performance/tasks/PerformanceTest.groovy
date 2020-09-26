@@ -23,6 +23,7 @@ import gradlebuild.performance.reporter.PerformanceReporter
 import groovy.json.JsonOutput
 import groovy.transform.CompileStatic
 import org.apache.commons.io.FileUtils
+import org.gradle.api.GradleException
 import org.gradle.api.Task
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter
@@ -131,6 +132,15 @@ abstract class PerformanceTest extends DistributionTest {
         }
         try {
             super.executeTests()
+        } catch (GradleException e) {
+            // Ignore test failure message, so the reporter can report the failures
+            if (performanceReporter != PerformanceReporter.NoOpPerformanceReporter.INSTANCE &&
+                e.getMessage()?.startsWith("There were failing tests")
+            ) {
+                logger.warn(e.getMessage())
+            } else {
+                throw e
+            }
         } finally {
             performanceReporter.report(this)
         }

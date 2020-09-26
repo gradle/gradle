@@ -23,6 +23,7 @@ import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class CompositeResultsStore implements ResultsStore {
     private final List<ResultsStore> stores;
@@ -46,6 +47,13 @@ public class CompositeResultsStore implements ResultsStore {
     @Override
     public PerformanceTestHistory getTestResults(PerformanceExperiment experiment, int mostRecentN, int maxDaysOld, String channel) {
         return getStoreForTest(experiment).getTestResults(experiment, mostRecentN, maxDaysOld, channel);
+    }
+
+    @Override
+    public Map<PerformanceExperiment, Long> getEstimatedExperimentTimes(OperatingSystem operatingSystem) {
+        return stores.stream()
+            .flatMap(store -> store.getEstimatedExperimentTimes(operatingSystem).entrySet().stream())
+            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, Math::max));
     }
 
     private ResultsStore getStoreForTest(PerformanceExperiment experiment) {

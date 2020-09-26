@@ -40,6 +40,7 @@ class BuildScanPerformanceTestRunner extends AbstractCrossBuildPerformanceTestRu
     @Override
     CrossBuildPerformanceResults newResult() {
         new CrossBuildPerformanceResults(
+            testClass: testClassName,
             testId: testId,
             testProject: testProject,
             testGroup: testGroup,

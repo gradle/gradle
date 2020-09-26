@@ -40,7 +40,7 @@ class FlakinessDetectionPerformanceExecutionDataProvider extends PerformanceExec
             .thenComparing(comparing(ScenarioBuildResultData::isBuildFailed).reversed())
             .thenComparing(comparing(org.gradle.performance.results.report.FlakinessDetectionPerformanceExecutionDataProvider::isFlaky).reversed())
             .thenComparing(comparing(ScenarioBuildResultData::getDifferencePercentage).reversed())
-            .thenComparing(ScenarioBuildResultData::getScenarioName);
+            .thenComparing(ScenarioBuildResultData::getPerformanceExperiment);
 
     public FlakinessDetectionPerformanceExecutionDataProvider(ResultsStore resultsStore, List<File> resultJsons) {
         super(resultsStore, resultJsons);
@@ -50,7 +50,7 @@ class FlakinessDetectionPerformanceExecutionDataProvider extends PerformanceExec
     protected TreeSet<ScenarioBuildResultData> queryExecutionData(List<ScenarioBuildResultData> scenarioList) {
         Set<ScenarioBuildResultData> distinctScenarios = scenarioList
             .stream()
-            .collect(treeSetCollector(comparing(ScenarioBuildResultData::getScenarioName)));
+            .collect(treeSetCollector(comparing(ScenarioBuildResultData::getPerformanceExperiment)));
 
         return distinctScenarios.stream()
             .map(this::queryExecutionData)
