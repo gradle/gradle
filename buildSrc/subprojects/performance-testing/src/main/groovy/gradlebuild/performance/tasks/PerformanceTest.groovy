@@ -113,15 +113,20 @@ abstract class PerformanceTest extends DistributionTest {
 
     PerformanceTest() {
         getJvmArgumentProviders().add(new PerformanceTestJvmArgumentsProvider())
-        getOutputs().cacheIf("baselines don't contain version 'flakiness-detection-commit', 'last' or 'nightly'", { notContainsSpecialVersions() })
-        getOutputs().upToDateWhen { notContainsSpecialVersions() }
+        getOutputs().doNotCacheIf("baselines contain version 'flakiness-detection-commit', 'last' or 'nightly'", { containsSpecialVersions() })
+        getOutputs().doNotCacheIf("flakiness detection", { flakinessDetection })
+        getOutputs().upToDateWhen { !containsSpecialVersions() && !flakinessDetection }
     }
 
-    private boolean notContainsSpecialVersions() {
-        return !baselines.getOrElse("")
+    private boolean containsSpecialVersions() {
+        return baselines.getOrElse("")
             .split(",")
             .collect { it.toString().trim() }
             .any { NON_CACHEABLE_VERSIONS.contains(it) }
+    }
+
+    private boolean isFlakinessDetection() {
+        return channel.startsWith("flakiness-detection")
     }
 
     @Override
