@@ -50,8 +50,8 @@ data class PerformanceTestCoverage(val performanceTestType: PerformanceTestType,
         "${performanceTestType.channel}${if (os == Os.LINUX) "" else "-${os.name.toLowerCase(Locale.US)}"}-$branch"
 }
 
-class StatisticsBasedPerformanceTestBucketProvider(private val model: CIBuildModel, performanceTestTimeDataCsv: File, performanceTestsCiJson: File) : PerformanceTestBucketProvider {
-    private val buckets: Map<PerformanceTestCoverage, List<PerformanceTestBucket>> = buildBuckets(performanceTestTimeDataCsv, performanceTestsCiJson)
+class StatisticsBasedPerformanceTestBucketProvider(private val model: CIBuildModel, performanceTestTimeDataJson: File, performanceTestsCiJson: File) : PerformanceTestBucketProvider {
+    private val buckets: Map<PerformanceTestCoverage, List<PerformanceTestBucket>> = buildBuckets(performanceTestTimeDataJson, performanceTestsCiJson)
 
     override fun createPerformanceTestsFor(stage: Stage, performanceTestCoverage: PerformanceTestCoverage): List<PerformanceTest> {
         return buckets.getValue(performanceTestCoverage).mapIndexed { bucketIndex: Int, bucket: PerformanceTestBucket ->
@@ -60,10 +60,10 @@ class StatisticsBasedPerformanceTestBucketProvider(private val model: CIBuildMod
     }
 
     private
-    fun buildBuckets(performanceTestTimeDataCsv: File, performanceTestsCiJson: File): Map<PerformanceTestCoverage, List<PerformanceTestBucket>> {
+    fun buildBuckets(performanceTestTimeDataJson: File, performanceTestsCiJson: File): Map<PerformanceTestCoverage, List<PerformanceTestBucket>> {
         val performanceTestConfigurations = readPerformanceTestConfigurations(performanceTestsCiJson)
 
-        val performanceTestTimes: OperatingSystemToTestProjectPerformanceTestTimes = readPerformanceTestTimes(performanceTestTimeDataCsv)
+        val performanceTestTimes: OperatingSystemToTestProjectPerformanceTestTimes = readPerformanceTestTimes(performanceTestTimeDataJson)
 
         val result = mutableMapOf<PerformanceTestCoverage, List<PerformanceTestBucket>>()
         for (performanceTestType in PerformanceTestType.values()) {
@@ -77,14 +77,23 @@ class StatisticsBasedPerformanceTestBucketProvider(private val model: CIBuildMod
     }
 
     private
-    fun readPerformanceTestTimes(performanceTestTimeDataCsv: File): OperatingSystemToTestProjectPerformanceTestTimes {
-        val pairs: List<Pair<Os, Pair<String, PerformanceTestTime>>> = performanceTestTimeDataCsv.readLines(StandardCharsets.UTF_8)
-            .map { line ->
-                val (className, scenarioId, testProject, os, durationInMs) = line.split(';')
-                val scenario = Scenario(className, scenarioId)
-                val performanceTestTime = PerformanceTestTime(scenario, durationInMs.toInt())
-                Os.valueOf(os.toUpperCase(Locale.US)) to (testProject to performanceTestTime)
+    fun readPerformanceTestTimes(performanceTestTimeDataJson: File): OperatingSystemToTestProjectPerformanceTestTimes {
+        val times = JSON.parseArray(performanceTestTimeDataJson.readText(StandardCharsets.UTF_8))
+        val pairs = times.flatMap { it ->
+            val scenarioTimes = it as JSONObject
+            val scenario = Scenario.fromTestId(scenarioTimes["scenario"] as String)
+            (scenarioTimes["runtimes"] as JSONArray).flatMap {
+                val runtime = it as JSONObject
+                val testProject = runtime["testProject"] as String
+                runtime.entries
+                    .filter { (key, _) -> key != "testProject" }
+                    .map { (osString, timeInMs) ->
+                        val os = Os.valueOf(osString.toUpperCase(Locale.US))
+                        val performanceTestTime = PerformanceTestTime(scenario, timeInMs as Int)
+                        os to (testProject to performanceTestTime)
+                    }
             }
+        }
         return pairs.groupBy({ it.first }, { it.second })
             .mapValues { entry -> entry.value.groupBy({ it.first }, { it.second }) }
     }
