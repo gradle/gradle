@@ -22,15 +22,15 @@ import java.util.List;
 
 public class EmptyPerformanceTestHistory implements PerformanceTestHistory {
 
-    private final String name;
+    private final PerformanceExperiment experiment;
 
-    public EmptyPerformanceTestHistory(String name) {
-        this.name = name;
+    public EmptyPerformanceTestHistory(PerformanceExperiment experiment) {
+        this.experiment = experiment;
     }
 
     @Override
-    public String getDisplayName() {
-        return name;
+    public PerformanceExperiment getExperiment() {
+        return experiment;
     }
 
     @Override

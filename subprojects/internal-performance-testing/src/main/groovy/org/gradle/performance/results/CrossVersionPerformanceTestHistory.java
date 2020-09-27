@@ -16,9 +16,6 @@
 
 package org.gradle.performance.results;
 
-import com.google.common.base.Function;
-import com.google.common.collect.Lists;
-
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -41,8 +38,8 @@ public class CrossVersionPerformanceTestHistory implements PerformanceTestHistor
     }
 
     @Override
-    public String getDisplayName() {
-        return experiment.getScenario().getTestName();
+    public PerformanceExperiment getExperiment() {
+        return experiment;
     }
 
     public List<String> getBaselineVersions() {
@@ -91,45 +88,47 @@ public class CrossVersionPerformanceTestHistory implements PerformanceTestHistor
         if (newestFirst.isEmpty()) {
             return Collections.emptyList();
         }
-        final CrossVersionPerformanceResults mostRecent = newestFirst.get(0);
-        return Lists.transform(getKnownVersions(), (Function<String, ScenarioDefinition>) input -> new ScenarioDefinition() {
-            @Override
-            public String getDisplayName() {
-                return input;
-            }
+        CrossVersionPerformanceResults mostRecent = newestFirst.get(0);
+        return getKnownVersions().stream()
+            .map(input -> new ScenarioDefinition() {
+                @Override
+                public String getDisplayName() {
+                    return input;
+                }
 
-            @Override
-            public String getTestProject() {
-                return mostRecent.getTestProject();
-            }
+                @Override
+                public String getTestProject() {
+                    return mostRecent.getTestProject();
+                }
 
-            @Override
-            public List<String> getTasks() {
-                return mostRecent.getTasks();
-            }
+                @Override
+                public List<String> getTasks() {
+                    return mostRecent.getTasks();
+                }
 
-            @Override
-            public List<String> getCleanTasks() {
-                return mostRecent.getCleanTasks();
-            }
+                @Override
+                public List<String> getCleanTasks() {
+                    return mostRecent.getCleanTasks();
+                }
 
-            @Override
-            public List<String> getArgs() {
-                return mostRecent.getArgs();
-            }
+                @Override
+                public List<String> getArgs() {
+                    return mostRecent.getArgs();
+                }
 
-            @Nullable
-            @Override
-            public List<String> getGradleOpts() {
-                return mostRecent.getGradleOpts();
-            }
+                @Nullable
+                @Override
+                public List<String> getGradleOpts() {
+                    return mostRecent.getGradleOpts();
+                }
 
-            @Nullable
-            @Override
-            public Boolean getDaemon() {
-                return mostRecent.getDaemon();
-            }
-        });
+                @Nullable
+                @Override
+                public Boolean getDaemon() {
+                    return mostRecent.getDaemon();
+                }
+            })
+            .collect(Collectors.toList());
     }
 
     @Override
