@@ -79,12 +79,22 @@ subprojects/$performanceProjectName/build/$taskName => report/
                 reuseBuilds = ReuseBuilds.NO
             }
         }
-        performanceTestProject.performanceTests.forEach {
-            if (it.testProjects.isNotEmpty()) {
-                artifacts(it.id!!) {
-                    id = "ARTIFACT_DEPENDENCY_${it.id!!}"
+        performanceTestProject.performanceTests.forEachIndexed { index, performanceTest ->
+            if (performanceTest.testProjects.isNotEmpty()) {
+                artifacts(performanceTest.id!!) {
+                    id = "ARTIFACT_DEPENDENCY_${performanceTest.id!!}"
                     cleanDestination = true
-                    artifactRules = "results/performance/build/test-results-*.zip!performance-tests/perf-results*.json => $performanceResultsDir/${it.bucketIndex}/"
+                    val perfResultArtifactRule = """results/performance/build/test-results-*.zip!performance-tests/perf-results*.json => $performanceResultsDir/${performanceTest.bucketIndex}/"""
+                    artifactRules = if (index == 0) {
+                        // The artifact rule report/css/*.css => performanceResultsDir is there to clean up the target directory.
+                        // If we don't clean that up there might be leftover json files from other report builds running on the same machine.
+                        """
+                            results/performance/build/test-results-*.zip!performance-tests/report/css/*.css => $performanceResultsDir/
+                            $perfResultArtifactRule
+                        """.trimIndent()
+                    } else {
+                        perfResultArtifactRule
+                    }
                 }
             }
         }
