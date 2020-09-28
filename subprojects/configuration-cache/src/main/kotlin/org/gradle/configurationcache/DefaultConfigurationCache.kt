@@ -200,9 +200,12 @@ class DefaultConfigurationCache internal constructor(
     private
     fun writeConfigurationCacheState(stateFile: File) {
         service<ProjectStateRegistry>().withMutableStateOfAllProjects {
-            withWriteContextFor(stateFile, "state") {
-                configurationCacheState().run {
-                    writeState(host.currentBuild)
+            val state = configurationCacheState()
+            writerContextFor(stateFile.outputStream(), "state", state.codecs).useToRun {
+                runWriteOperation {
+                    state.run {
+                        writeState(host.currentBuild)
+                    }
                 }
             }
         }
@@ -210,8 +213,9 @@ class DefaultConfigurationCache internal constructor(
 
     private
     fun readConfigurationCacheState(stateFile: File) {
-        withReadContextFor(stateFile) {
-            configurationCacheState().run {
+        val state = configurationCacheState()
+        withReadContextFor(stateFile, state.codecs) {
+            state.run {
                 readState(host::createBuild)
             }
         }
@@ -239,7 +243,7 @@ class DefaultConfigurationCache internal constructor(
 
     private
     fun cacheFingerprintWriterContextFor(outputStream: OutputStream) =
-        writerContextFor(outputStream, "fingerprint").apply {
+        writerContextFor(outputStream, "fingerprint", codecs()).apply {
             push(IsolateOwner.OwnerHost(host), codecs().userTypesCodec)
         }
 
@@ -251,7 +255,7 @@ class DefaultConfigurationCache internal constructor(
 
     private
     fun checkConfigurationCacheFingerprintFile(fingerprintFile: File): InvalidationReason? =
-        withReadContextFor(fingerprintFile) {
+        withReadContextFor(fingerprintFile, codecs()) {
             withHostIsolate {
                 cacheFingerprintController.run {
                     checkFingerprint()
@@ -272,26 +276,20 @@ class DefaultConfigurationCache internal constructor(
     }
 
     private
-    fun withWriteContextFor(file: File, profile: String, writeOperation: suspend DefaultWriteContext.() -> Unit) {
-        writerContextFor(file.outputStream(), profile).useToRun {
-            runWriteOperation(writeOperation)
-        }
-    }
-
-    private
-    fun writerContextFor(outputStream: OutputStream, profile: String) =
+    fun writerContextFor(outputStream: OutputStream, profile: String, codecs: Codecs) =
         KryoBackedEncoder(outputStream).let { encoder ->
             writeContextFor(
                 encoder,
                 if (logger.isDebugEnabled) LoggingTracer(profile, encoder::getWritePosition, logger)
-                else null
+                else null,
+                codecs
             )
         }
 
     private
-    fun <R> withReadContextFor(file: File, readOperation: suspend DefaultReadContext.() -> R): R =
+    fun <R> withReadContextFor(file: File, codecs: Codecs, readOperation: suspend DefaultReadContext.() -> R): R =
         KryoBackedDecoder(file.inputStream()).use { decoder ->
-            readContextFor(decoder).run {
+            readContextFor(decoder, codecs).run {
                 initClassLoader(javaClass.classLoader)
                 runReadOperation(readOperation)
             }
@@ -300,9 +298,10 @@ class DefaultConfigurationCache internal constructor(
     private
     fun writeContextFor(
         encoder: Encoder,
-        tracer: Tracer?
+        tracer: Tracer?,
+        codecs: Codecs
     ) = DefaultWriteContext(
-        codecs().userTypesCodec,
+        codecs.userTypesCodec,
         encoder,
         scopeRegistryListener,
         logger,
@@ -312,9 +311,10 @@ class DefaultConfigurationCache internal constructor(
 
     private
     fun readContextFor(
-        decoder: KryoBackedDecoder
+        decoder: KryoBackedDecoder,
+        codecs: Codecs
     ) = DefaultReadContext(
-        codecs().userTypesCodec,
+        codecs.userTypesCodec,
         decoder,
         service(),
         beanConstructors,

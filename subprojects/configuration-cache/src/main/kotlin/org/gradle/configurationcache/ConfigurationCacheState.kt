@@ -57,7 +57,7 @@ import java.util.ArrayList
 
 internal
 class ConfigurationCacheState(
-    private val codecs: Codecs
+    val codecs: Codecs
 ) {
 
     suspend fun DefaultWriteContext.writeState(build: VintageGradleBuild) {
