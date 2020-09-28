@@ -14,68 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.performance.generator
+package org.gradle.performance.fixture
 
 import org.gradle.integtests.fixtures.versions.AndroidGradlePluginVersions
-import org.gradle.performance.fixture.CrossVersionPerformanceTestRunner
-import org.gradle.performance.fixture.GradleBuildExperimentSpec
 import org.gradle.profiler.InvocationSettings
 import org.gradle.profiler.mutations.ApplyAbiChangeToSourceFileMutator
 import org.gradle.profiler.mutations.ApplyNonAbiChangeToSourceFileMutator
-
-import javax.annotation.Nullable
-
-class AndroidTestProject implements TestProject {
-
-    public static final LARGE_ANDROID_BUILD = new AndroidTestProject(
-        templateName: 'largeAndroidBuild',
-        memory: '5g',
-    )
-
-    public static final K9_ANDROID = new AndroidTestProject(
-        templateName: 'k9AndroidBuild',
-        memory: '1g',
-    )
-
-    public static final List<AndroidTestProject> ANDROID_TEST_PROJECTS = [
-        LARGE_ANDROID_BUILD,
-        K9_ANDROID,
-        IncrementalAndroidTestProject.SANTA_TRACKER_JAVA,
-        IncrementalAndroidTestProject.SANTA_TRACKER_KOTLIN
-    ]
-
-    String templateName
-    String memory
-
-    static AndroidTestProject projectFor(String testProject) {
-        def foundProject = findProjectFor(testProject)
-        if (!foundProject) {
-            throw new IllegalArgumentException("Android project ${testProject} not found")
-        }
-        return foundProject
-    }
-
-    @Nullable
-    static AndroidTestProject findProjectFor(String testProject) {
-        return ANDROID_TEST_PROJECTS.find { it.templateName == testProject }
-    }
-
-    @Override
-    void configure(CrossVersionPerformanceTestRunner runner) {
-        runner.gradleOpts = ["-Xms$memory", "-Xmx$memory"]
-    }
-
-    void configure(GradleBuildExperimentSpec.GradleBuilder builder) {
-        builder.invocation {
-            gradleOpts("-Xms$memory", "-Xmx$memory")
-        }
-    }
-
-    @Override
-    String toString() {
-        templateName
-    }
-}
 
 class IncrementalAndroidTestProject extends AndroidTestProject implements IncrementalTestProject {
 

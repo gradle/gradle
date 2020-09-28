@@ -14,9 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.performance.generator;
-
-import org.gradle.performance.fixture.CrossVersionPerformanceTestRunner;
+package org.gradle.performance.fixture;
 
 public interface TestProject {
     void configure(CrossVersionPerformanceTestRunner runner);

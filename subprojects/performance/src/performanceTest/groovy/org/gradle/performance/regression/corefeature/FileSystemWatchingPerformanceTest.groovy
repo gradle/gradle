@@ -18,9 +18,9 @@ package org.gradle.performance.regression.corefeature
 
 import org.gradle.initialization.StartParameterBuildOptions
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
-import org.gradle.performance.generator.IncrementalAndroidTestProject
-import org.gradle.performance.generator.IncrementalTestProject
-import org.gradle.performance.generator.TestProjects
+import org.gradle.performance.fixture.IncrementalAndroidTestProject
+import org.gradle.performance.fixture.IncrementalTestProject
+import org.gradle.performance.fixture.TestProjects
 
 class FileSystemWatchingPerformanceTest extends AbstractCrossVersionPerformanceTest {
     private static final String AGP_TARGET_VERSION = "4.0"

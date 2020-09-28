@@ -17,19 +17,12 @@
 package org.gradle.performance.generator
 
 import groovy.transform.CompileStatic
-import org.gradle.performance.fixture.CrossVersionPerformanceTestRunner
-import org.gradle.performance.mutator.ApplyAbiChangeToGroovySourceFileMutator
-import org.gradle.performance.mutator.ApplyNonAbiChangeToGroovySourceFileMutator
-import org.gradle.profiler.mutations.ApplyAbiChangeToJavaSourceFileMutator
-import org.gradle.profiler.mutations.ApplyNonAbiChangeToJavaSourceFileMutator
 import org.gradle.test.fixtures.language.Language
-
-import javax.annotation.Nullable
 
 import static org.gradle.test.fixtures.dsl.GradleDsl.KOTLIN
 
 @CompileStatic
-enum JavaTestProject implements IncrementalTestProject {
+enum JavaTestProjectGenerator {
     HUGE_JAVA_MULTI_PROJECT(new TestProjectGeneratorConfigurationBuilder('hugeJavaMultiProject')
         .withSourceFiles(500)
         .withSubProjects(500)
@@ -145,22 +138,10 @@ enum JavaTestProject implements IncrementalTestProject {
         .assembleChangeFile()
         .withBuildSrc(false).create())
 
-    static JavaTestProject projectFor(String testProject) {
-        def javaTestProject = findProjectFor(testProject)
-        if (javaTestProject == null) {
-            throw new IllegalArgumentException("Cannot find Java test project for ${testProject}")
-        }
-        return javaTestProject
-    }
-
-    @Nullable
-    static JavaTestProject findProjectFor(String testProject) {
-        return values().find { it.projectName == testProject }
-    }
 
     private TestProjectGeneratorConfiguration config
 
-    JavaTestProject(TestProjectGeneratorConfiguration config) {
+    JavaTestProjectGenerator(TestProjectGeneratorConfiguration config) {
         this.config = config
     }
 
@@ -187,32 +168,5 @@ enum JavaTestProject implements IncrementalTestProject {
     @Override
     String toString() {
         return config.projectName
-    }
-
-    void configure(CrossVersionPerformanceTestRunner runner) {
-        runner.gradleOpts.addAll(["-Xms${daemonMemory}".toString(), "-Xmx${daemonMemory}".toString()])
-    }
-
-    @Override
-    void configureForAbiChange(CrossVersionPerformanceTestRunner runner) {
-        configure(runner)
-        runner.addBuildMutator { invocationSettings ->
-            File fileToChange = new File(invocationSettings.projectDir, config.fileToChangeByScenario['assemble'])
-            (config.language == Language.GROOVY) ?
-                new ApplyAbiChangeToGroovySourceFileMutator(fileToChange) :
-                new ApplyAbiChangeToJavaSourceFileMutator(fileToChange)
-        }
-    }
-
-    @Override
-    void configureForNonAbiChange(CrossVersionPerformanceTestRunner runner) {
-        configure(runner)
-        runner.addBuildMutator { invocationSettings ->
-            File fileToChange = new File(invocationSettings.projectDir, config.fileToChangeByScenario['assemble'])
-            (config.language == Language.GROOVY) ?
-                new ApplyNonAbiChangeToGroovySourceFileMutator(fileToChange) :
-                new ApplyNonAbiChangeToJavaSourceFileMutator(fileToChange)
-        }
-
     }
 }

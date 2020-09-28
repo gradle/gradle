@@ -17,7 +17,7 @@
 package org.gradle.performance.regression.java
 
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
-import org.gradle.performance.generator.JavaTestProject
+import org.gradle.performance.fixture.JavaTestProject
 import org.gradle.performance.mutator.ApplyNonAbiChangeToGroovySourceFileMutator
 import org.gradle.profiler.mutations.ApplyNonAbiChangeToJavaSourceFileMutator
 import spock.lang.Unroll

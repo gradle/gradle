@@ -19,7 +19,7 @@ package org.gradle.performance.regression.android
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
 import org.gradle.performance.android.GetModel
 import org.gradle.performance.android.SyncAction
-import org.gradle.performance.generator.AndroidTestProject
+import org.gradle.performance.fixture.AndroidTestProject
 
 class RealLifeAndroidStudioMockupPerformanceTest extends AbstractCrossVersionPerformanceTest {
 

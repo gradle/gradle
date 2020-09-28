@@ -17,17 +17,16 @@
 package org.gradle.performance.regression.java
 
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
-import org.gradle.performance.generator.JavaTestProject
 import spock.lang.Unroll
 
-import static org.gradle.performance.generator.JavaTestProject.LARGE_JAVA_MULTI_PROJECT
+import static org.gradle.performance.generator.JavaTestProjectGenerator.LARGE_JAVA_MULTI_PROJECT
 
 class JavaDependencyReportPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
     @Unroll
     def "generate dependency report"() {
         given:
-        def subProject = (JavaTestProject.projectFor(runner.testProject) == LARGE_JAVA_MULTI_PROJECT) ? 'project363:' : ''
+        def subProject = (runner.testProject == LARGE_JAVA_MULTI_PROJECT.projectName) ? 'project363:' : ''
         runner.gradleOpts = runner.projectMemoryOptions
         runner.tasksToRun = ["${subProject}dependencyReport"]
         runner.targetVersions = ["6.7-20200824220048+0000"]

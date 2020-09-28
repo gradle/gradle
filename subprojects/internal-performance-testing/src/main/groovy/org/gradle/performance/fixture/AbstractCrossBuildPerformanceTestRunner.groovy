@@ -22,7 +22,6 @@ import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
 import org.gradle.internal.time.Clock
 import org.gradle.internal.time.Time
-import org.gradle.performance.generator.TestProjects
 import org.gradle.performance.results.CrossBuildPerformanceResults
 import org.gradle.performance.results.DataReporter
 import org.gradle.performance.results.ResultsStore

@@ -19,7 +19,7 @@ package org.gradle.performance.regression.android
 import org.gradle.integtests.fixtures.versions.AndroidGradlePluginVersions
 import org.gradle.internal.scan.config.fixtures.ApplyGradleEnterprisePluginFixture
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
-import org.gradle.performance.generator.AndroidTestProject
+import org.gradle.performance.fixture.AndroidTestProject
 import org.gradle.profiler.BuildMutator
 import org.gradle.profiler.ScenarioContext
 

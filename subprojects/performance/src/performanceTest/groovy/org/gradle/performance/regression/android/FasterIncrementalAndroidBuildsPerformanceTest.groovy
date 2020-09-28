@@ -23,9 +23,9 @@ import org.gradle.integtests.fixtures.versions.AndroidGradlePluginVersions
 import org.gradle.internal.scan.config.fixtures.ApplyGradleEnterprisePluginFixture
 import org.gradle.performance.AbstractCrossBuildPerformanceTest
 import org.gradle.performance.categories.PerformanceExperiment
+import org.gradle.performance.fixture.AndroidTestProject
 import org.gradle.performance.fixture.GradleBuildExperimentSpec
-import org.gradle.performance.generator.AndroidTestProject
-import org.gradle.performance.generator.IncrementalAndroidTestProject
+import org.gradle.performance.fixture.IncrementalAndroidTestProject
 import org.gradle.profiler.BuildMutator
 import org.gradle.profiler.InvocationSettings
 import org.gradle.profiler.ScenarioContext
@@ -34,7 +34,7 @@ import org.gradle.profiler.mutations.ClearConfigurationCacheStateMutator
 import org.gradle.profiler.mutations.ClearProjectCacheMutator
 import org.junit.experimental.categories.Category
 
-import static org.gradle.performance.generator.IncrementalAndroidTestProject.SANTA_TRACKER_KOTLIN
+import static org.gradle.performance.fixture.IncrementalAndroidTestProject.SANTA_TRACKER_KOTLIN
 
 @Category(PerformanceExperiment)
 class FasterIncrementalAndroidBuildsPerformanceTest extends AbstractCrossBuildPerformanceTest {

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.performance.generator
+package org.gradle.performance.fixture
 
 class TestProjects {
     static List<String> getProjectMemoryOptions(String testProject) {
