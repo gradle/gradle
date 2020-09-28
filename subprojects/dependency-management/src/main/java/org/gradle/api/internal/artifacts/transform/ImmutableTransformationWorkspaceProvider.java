@@ -17,19 +17,16 @@
 package org.gradle.api.internal.artifacts.transform;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.CleanupAction;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.internal.CompositeCleanupAction;
-import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup;
 import org.gradle.cache.internal.SingleDepthFilesFinder;
 import org.gradle.internal.Try;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
-import org.gradle.internal.execution.history.impl.DefaultExecutionHistoryStore;
 import org.gradle.internal.file.FileAccessTimeJournal;
 import org.gradle.internal.file.impl.SingleDepthFileAccessTracker;
 
@@ -49,13 +46,7 @@ public class ImmutableTransformationWorkspaceProvider implements TransformationW
     private final ExecutionHistoryStore executionHistoryStore;
     private final PersistentCache cache;
 
-    public ImmutableTransformationWorkspaceProvider(
-        File baseDirectory,
-        CacheRepository cacheRepository,
-        FileAccessTimeJournal fileAccessTimeJournal,
-        InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory,
-        StringInterner stringInterner
-    ) {
+    public ImmutableTransformationWorkspaceProvider(File baseDirectory, CacheRepository cacheRepository, FileAccessTimeJournal fileAccessTimeJournal, ExecutionHistoryStore executionHistoryStore) {
         this.baseDirectory = baseDirectory;
         this.cache = cacheRepository
             .cache(baseDirectory)
@@ -65,7 +56,7 @@ public class ImmutableTransformationWorkspaceProvider implements TransformationW
             .withLockOptions(mode(FileLockManager.LockMode.OnDemand)) // Lock on demand
             .open();
         this.fileAccessTracker = new SingleDepthFileAccessTracker(fileAccessTimeJournal, baseDirectory, FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP);
-        this.executionHistoryStore = new DefaultExecutionHistoryStore(() -> cache, inMemoryCacheDecoratorFactory, stringInterner);
+        this.executionHistoryStore = executionHistoryStore;
     }
 
     private CleanupAction createCleanupAction(File filesOutputDirectory, FileAccessTimeJournal fileAccessTimeJournal) {
