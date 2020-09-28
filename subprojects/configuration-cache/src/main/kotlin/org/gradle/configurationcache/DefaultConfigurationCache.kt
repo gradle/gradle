@@ -29,7 +29,6 @@ import org.gradle.configurationcache.serialization.DefaultReadContext
 import org.gradle.configurationcache.serialization.DefaultWriteContext
 import org.gradle.configurationcache.serialization.IsolateOwner
 import org.gradle.configurationcache.serialization.LoggingTracer
-import org.gradle.configurationcache.serialization.MutableIsolateContext
 import org.gradle.configurationcache.serialization.Tracer
 import org.gradle.configurationcache.serialization.beans.BeanConstructors
 import org.gradle.configurationcache.serialization.codecs.Codecs
@@ -255,10 +254,12 @@ class DefaultConfigurationCache internal constructor(
 
     private
     fun checkConfigurationCacheFingerprintFile(fingerprintFile: File): InvalidationReason? =
-        withReadContextFor(fingerprintFile, codecs()) {
-            withHostIsolate {
-                cacheFingerprintController.run {
-                    checkFingerprint()
+        codecs().let { codecs ->
+            withReadContextFor(fingerprintFile, codecs) {
+                withIsolate(IsolateOwner.OwnerHost(host), codecs.userTypesCodec) {
+                    cacheFingerprintController.run {
+                        checkFingerprint()
+                    }
                 }
             }
         }
@@ -352,12 +353,6 @@ class DefaultConfigurationCache internal constructor(
             fileFactory = service(),
             includedTaskGraph = service()
         )
-
-    private
-    inline fun <T : MutableIsolateContext, R> T.withHostIsolate(block: T.() -> R): R =
-        withIsolate(IsolateOwner.OwnerHost(host), codecs().userTypesCodec) {
-            block()
-        }
 
     private
     fun logBootstrapSummary(message: String, vararg args: Any?) {
