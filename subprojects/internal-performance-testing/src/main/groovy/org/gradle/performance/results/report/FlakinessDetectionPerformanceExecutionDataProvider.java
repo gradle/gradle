@@ -40,7 +40,7 @@ class FlakinessDetectionPerformanceExecutionDataProvider extends PerformanceExec
             .thenComparing(comparing(ScenarioBuildResultData::isBuildFailed).reversed())
             .thenComparing(comparing(org.gradle.performance.results.report.FlakinessDetectionPerformanceExecutionDataProvider::isFlaky).reversed())
             .thenComparing(comparing(ScenarioBuildResultData::getDifferencePercentage).reversed())
-            .thenComparing(ScenarioBuildResultData::getScenarioName);
+            .thenComparing(ScenarioBuildResultData::getPerformanceExperiment);
 
     public FlakinessDetectionPerformanceExecutionDataProvider(ResultsStore resultsStore, List<File> resultJsons) {
         super(resultsStore, resultJsons);
@@ -50,7 +50,7 @@ class FlakinessDetectionPerformanceExecutionDataProvider extends PerformanceExec
     protected TreeSet<ScenarioBuildResultData> queryExecutionData(List<ScenarioBuildResultData> scenarioList) {
         Set<ScenarioBuildResultData> distinctScenarios = scenarioList
             .stream()
-            .collect(treeSetCollector(comparing(ScenarioBuildResultData::getScenarioName)));
+            .collect(treeSetCollector(comparing(ScenarioBuildResultData::getPerformanceExperiment)));
 
         return distinctScenarios.stream()
             .map(this::queryExecutionData)
@@ -59,7 +59,10 @@ class FlakinessDetectionPerformanceExecutionDataProvider extends PerformanceExec
 
     private ScenarioBuildResultData queryExecutionData(ScenarioBuildResultData scenario) {
         PerformanceTestHistory history = resultsStore.getTestResults(scenario.getPerformanceExperiment(), MOST_RECENT_EXECUTIONS, PERFORMANCE_DATE_RETRIEVE_DAYS, ResultsStoreHelper.determineChannel());
-        List<? extends PerformanceTestExecution> currentExecutions = history.getExecutions().stream().filter(execution -> execution.getVcsCommits().contains(commitId)).collect(toList());
+        List<? extends PerformanceTestExecution> executionsOfSameCommit = history.getExecutions().stream().filter(execution -> execution.getVcsCommits().contains(commitId)).collect(toList());
+        List<? extends PerformanceTestExecution> currentExecutions = executionsOfSameCommit.isEmpty()
+            ? history.getExecutions().stream().limit(3).collect(toList())
+            : executionsOfSameCommit;
         scenario.setCurrentBuildExecutions(removeEmptyExecution(currentExecutions));
         return scenario;
     }

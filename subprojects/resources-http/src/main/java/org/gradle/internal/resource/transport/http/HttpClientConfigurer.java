@@ -63,6 +63,7 @@ import org.gradle.authentication.Authentication;
 import org.gradle.authentication.http.BasicAuthentication;
 import org.gradle.authentication.http.DigestAuthentication;
 import org.gradle.authentication.http.HttpHeaderAuthentication;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.authentication.AllSchemesAuthentication;
 import org.gradle.internal.authentication.AuthenticationInternal;
 import org.gradle.internal.jvm.Jvm;
@@ -74,31 +75,61 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.SSLContext;
 import java.net.ProxySelector;
+import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 
 public class HttpClientConfigurer {
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpClientConfigurer.class);
-    private static final int MAX_HTTP_CONNECTIONS = 20;
-    private static final String[] SSL_PROTOCOLS;
-
     private static final String HTTPS_PROTOCOLS = "https.protocols";
+    private static final int MAX_HTTP_CONNECTIONS = 20;
 
-    static {
+    /**
+     * Determines the HTTPS protocols to support for the client.
+     *
+     * @implNote To support the Gradle embedded test runner, this method's return value should not be cached in a static field.
+     */
+    private static String[] determineHttpsProtocols() {
+        /*
+         * System property retrieval is executed within the constructor to support the Gradle embedded test runner.
+         */
         String httpsProtocols = System.getProperty(HTTPS_PROTOCOLS);
         if (httpsProtocols != null) {
-            SSL_PROTOCOLS = httpsProtocols.split(",");
-        } else if (JavaVersion.current().isJava7() || (JavaVersion.current().isJava8() && Jvm.current().isIbmJvm())) {
-            SSL_PROTOCOLS = new String[]{"TLSv1", "TLSv1.1", "TLSv1.2"};
+            return httpsProtocols.split(",");
+        } else if (JavaVersion.current().isJava8() && Jvm.current().isIbmJvm()) {
+            return new String[]{"TLSv1.2"};
+        } else if (jdkSupportsTLSProtocol("TLSv1.3")) {
+            return new String[]{"TLSv1.2", "TLSv1.3"};
         } else {
-            SSL_PROTOCOLS = null;
+            return new String[]{"TLSv1.2"};
         }
     }
 
+    private static boolean jdkSupportsTLSProtocol(@SuppressWarnings("SameParameterValue") final String protocol) {
+        try {
+            for (String supportedProtocol : SSLContext.getDefault().getSupportedSSLParameters().getProtocols()) {
+                if (protocol.equals(supportedProtocol)) {
+                    return true;
+                }
+            }
+            return false;
+        } catch (NoSuchAlgorithmException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        }
+    }
+
+    static Collection<String> supportedTlsVersions() {
+        return Arrays.asList(determineHttpsProtocols());
+    }
+
+    private final String[] sslProtocols;
     private final HttpSettings httpSettings;
 
     public HttpClientConfigurer(HttpSettings httpSettings) {
+        this.sslProtocols = determineHttpsProtocols();
         this.httpSettings = httpSettings;
     }
 
@@ -119,7 +150,7 @@ public class HttpClientConfigurer {
     }
 
     private void configureSslSocketConnectionFactory(HttpClientBuilder builder, SslContextFactory sslContextFactory, HostnameVerifier hostnameVerifier) {
-        builder.setSSLSocketFactory(new SSLConnectionSocketFactory(sslContextFactory.createSslContext(), SSL_PROTOCOLS, null, hostnameVerifier));
+        builder.setSSLSocketFactory(new SSLConnectionSocketFactory(sslContextFactory.createSslContext(), sslProtocols, null, hostnameVerifier));
     }
 
     private void configureAuthSchemeRegistry(HttpClientBuilder builder) {
@@ -135,7 +166,7 @@ public class HttpClientConfigurer {
     }
 
     private void configureCredentials(HttpClientBuilder builder, CredentialsProvider credentialsProvider, Collection<Authentication> authentications) {
-        if(authentications.size() > 0) {
+        if (authentications.size() > 0) {
             useCredentials(credentialsProvider, authentications);
 
             // Use preemptive authorisation if no other authorisation has been established

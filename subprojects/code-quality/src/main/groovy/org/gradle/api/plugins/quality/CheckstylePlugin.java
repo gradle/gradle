@@ -16,18 +16,21 @@
 package org.gradle.api.plugins.quality;
 
 import com.google.common.util.concurrent.Callables;
-import org.gradle.api.Action;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.DependencySet;
+import org.gradle.api.file.ProjectLayout;
+import org.gradle.api.file.RegularFile;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.plugins.quality.internal.AbstractCodeQualityPlugin;
-import org.gradle.api.reporting.SingleFileReport;
+import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.resources.TextResource;
 import org.gradle.api.tasks.SourceSet;
 
 import java.io.File;
 import java.util.Map;
 import java.util.concurrent.Callable;
+
+import static org.gradle.api.internal.lambdas.SerializableLambdas.action;
 
 /**
  * Checkstyle Plugin.
@@ -70,65 +73,37 @@ public class CheckstylePlugin extends AbstractCodeQualityPlugin<Checkstyle> {
     }
 
     private void configureDefaultDependencies(Configuration configuration) {
-        configuration.defaultDependencies(new Action<DependencySet>() {
-            @Override
-            public void execute(DependencySet dependencies) {
-                dependencies.add(project.getDependencies().create("com.puppycrawl.tools:checkstyle:" + extension.getToolVersion()));
-            }
-        });
+        configuration.defaultDependencies(dependencies ->
+            dependencies.add(project.getDependencies().create("com.puppycrawl.tools:checkstyle:" + extension.getToolVersion()))
+        );
     }
 
     private void configureTaskConventionMapping(Configuration configuration, Checkstyle task) {
         ConventionMapping taskMapping = task.getConventionMapping();
         taskMapping.map("checkstyleClasspath", Callables.returning(configuration));
-        taskMapping.map("config", new Callable<TextResource>() {
-            @Override
-            public TextResource call() {
-                return extension.getConfig();
-            }
-        });
-        taskMapping.map("configProperties", new Callable<Map<String, Object>>() {
-            @Override
-            public Map<String, Object> call() {
-                return extension.getConfigProperties();
-            }
-        });
-        taskMapping.map("ignoreFailures", new Callable<Boolean>() {
-            @Override
-            public Boolean call() {
-                return extension.isIgnoreFailures();
-            }
-        });
-        taskMapping.map("showViolations", new Callable<Boolean>() {
-            @Override
-            public Boolean call() {
-                return extension.isShowViolations();
-            }
-        });
-        taskMapping.map("maxErrors", new Callable<Integer>() {
-            @Override
-            public Integer call() {
-                return extension.getMaxErrors();
-            }
-        });
-        taskMapping.map("maxWarnings", new Callable<Integer>() {
-            @Override
-            public Integer call() {
-                return extension.getMaxWarnings();
-            }
-        });
+        taskMapping.map("config", (Callable<TextResource>) () -> extension.getConfig());
+        taskMapping.map("configProperties", (Callable<Map<String, Object>>) () -> extension.getConfigProperties());
+        taskMapping.map("ignoreFailures", (Callable<Boolean>) () -> extension.isIgnoreFailures());
+        taskMapping.map("showViolations", (Callable<Boolean>) () -> extension.isShowViolations());
+        taskMapping.map("maxErrors", (Callable<Integer>) () -> extension.getMaxErrors());
+        taskMapping.map("maxWarnings", (Callable<Integer>) () -> extension.getMaxWarnings());
 
         task.getConfigDirectory().convention(extension.getConfigDirectory());
     }
 
     private void configureReportsConventionMapping(Checkstyle task, final String baseName) {
-        task.getReports().all(new Action<SingleFileReport>() {
-            @Override
-            public void execute(final SingleFileReport report) {
-                report.getRequired().convention(true);
-                report.getOutputLocation().convention(project.getLayout().getProjectDirectory().file(project.provider(() -> new File(extension.getReportsDir(), baseName + "." + report.getName()).getAbsolutePath())));
-            }
-        });
+        ProjectLayout layout = project.getLayout();
+        ProviderFactory providers = project.getProviders();
+        Provider<RegularFile> reportsDir = layout.file(providers.provider(() -> extension.getReportsDir()));
+        task.getReports().all(action(report -> {
+            report.getRequired().convention(true);
+            report.getOutputLocation().convention(
+                layout.getProjectDirectory().file(providers.provider(() -> {
+                    String reportFileName = baseName + "." + report.getName();
+                    return new File(reportsDir.get().getAsFile(), reportFileName).getAbsolutePath();
+                }))
+            );
+        }));
     }
 
     @Override

@@ -22,7 +22,7 @@ Gradle also applies some performance improvements to task execution as well.
 The configuration cache is conceptually similar to the <<build_cache#build_cache,build cache>>, but caches different information.
 The build cache takes care of caching the outputs and intermediate files of the build, such as task outputs or artifact transform outputs.
 The configuration cache takes care of caching the build configuration for a particular set of tasks.
-In other words, the configuration cache caches the output of the configuration phase, and the build cache caches the outputs of the execution phase.
+In other words, the configuration cache saves the output of the configuration phase, and the build cache saves the outputs of the execution phase.
 
 [IMPORTANT]
 ====
@@ -298,10 +298,10 @@ h| Utility
 
 a|
 [horizontal]
-link:{gradle-issues}13475[[.red]#✖#]:: <<checkstyle_plugin.adoc#checkstyle_plugin,Checkstyle>>
-link:{gradle-issues}13476[[.red]#✖#]:: <<pmd_plugin.adoc#pmd_plugin,PMD>>
-link:{gradle-issues}13477[[.red]#✖#]:: <<jacoco_plugin.adoc#jacoco_plugin,JaCoCo>>
-link:{gradle-issues}13478[[.red]#✖#]:: <<codenarc_plugin.adoc#codenarc_plugin,CodeNarc>>
+link:{gradle-issues}13475[[.green]#✓#]:: <<checkstyle_plugin.adoc#checkstyle_plugin,Checkstyle>>
+link:{gradle-issues}13476[[.green]#✓#]:: <<pmd_plugin.adoc#pmd_plugin,PMD>>
+link:{gradle-issues}13477[[.green]#✓#]:: <<jacoco_plugin.adoc#jacoco_plugin,JaCoCo>>
+link:{gradle-issues}13478[[.green]#✓#]:: <<codenarc_plugin.adoc#codenarc_plugin,CodeNarc>>
 
 a|
 [horizontal]
@@ -886,12 +886,6 @@ Instead, you can connect the `Provider` returned by link:{javadocPath}/org/gradl
 Support for using configuration caching with certain Gradle features is not yet implemented.
 Support for these features will be added in later Gradle releases.
 
-[[config_cache:not_yet_implemented:build_scan]]
-=== Build scan support
-
-Build scan functionality with configuration caching enabled requires Gradle Enterprise plugin version 3.4 or later.
-When using an earlier version, build scan publishing will be automatically disabled when configuration caching is used.
-
 [[config_cache:not_yet_implemented:sharing]]
 === Sharing the configuration cache
 
@@ -900,6 +894,14 @@ It can be reused by hot or cold local Gradle daemons.
 But it can't be shared between developers or CI machines.
 
 See link:{gradle-issues}13510[gradle/gradle#13510].
+
+[[config_cache:not_implemented:store_parallel_execution]]
+=== Parallel task execution on cache misses
+
+When there's no configuration cache available and the work graph needs to be calculated, tasks are not executed in parallel by default.
+Only builds that reuse the configuration cache currently execute all tasks in parallel by default.
+
+See link:{gradle-issues}14624[gradle/gradle#14624].
 
 [[config_cache:not_yet_implemented:normalization]]
 === Custom input normalization

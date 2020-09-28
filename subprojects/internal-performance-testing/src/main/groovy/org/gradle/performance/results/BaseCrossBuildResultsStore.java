@@ -24,7 +24,6 @@ import org.gradle.performance.measure.Duration;
 import org.gradle.performance.measure.MeasuredOperation;
 import org.joda.time.LocalDate;
 
-import java.io.Closeable;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -38,58 +37,48 @@ import static org.gradle.performance.results.ResultsStoreHelper.split;
 import static org.gradle.performance.results.ResultsStoreHelper.toArray;
 import static org.gradle.performance.results.ResultsStoreHelper.toList;
 
-public class BaseCrossBuildResultsStore<R extends CrossBuildPerformanceResults> implements WritableResultsStore<R>, Closeable {
+public class BaseCrossBuildResultsStore<R extends CrossBuildPerformanceResults> extends AbstractWritableResultsStore<R> {
 
-    private final PerformanceDatabase db;
     private final String resultType;
 
     public BaseCrossBuildResultsStore(String resultType) {
-        this.db = new PerformanceDatabase("cross_build_results");
+        super(new PerformanceDatabase("cross_build_results"));
         this.resultType = resultType;
     }
 
     @Override
     public void report(final R results) {
-        try {
-            db.withConnection((ConnectionAction<Void>) connection -> {
-                long executionId;
-                PreparedStatement statement = connection.prepareStatement("insert into testExecution(testId, testProject, startTime, endTime, versionUnderTest, operatingSystem, jvm, vcsBranch, vcsCommit, testGroup, resultType, channel, host, teamCityBuildId) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS);
-                try {
-                    statement.setString(1, results.getTestId());
-                    statement.setString(2, results.getTestProject());
-                    statement.setTimestamp(3, new Timestamp(results.getStartTime()));
-                    statement.setTimestamp(4, new Timestamp(results.getEndTime()));
-                    statement.setString(5, results.getVersionUnderTest());
-                    statement.setString(6, results.getOperatingSystem());
-                    statement.setString(7, results.getJvm());
-                    statement.setString(8, results.getVcsBranch());
-                    statement.setString(9, Joiner.on(",").join(results.getVcsCommits()));
-                    statement.setString(10, results.getTestGroup());
-                    statement.setString(11, resultType);
-                    statement.setString(12, results.getChannel());
-                    statement.setString(13, results.getHost());
-                    statement.setString(14, results.getTeamCityBuildId());
-                    statement.execute();
-                    ResultSet keys = statement.getGeneratedKeys();
-                    keys.next();
-                    executionId = keys.getLong(1);
-                } finally {
-                    statement.close();
+        withConnection("write results", (ConnectionAction<Void>) connection -> {
+            long executionId;
+            try (PreparedStatement statement = connection.prepareStatement("insert into testExecution(testClass, testId, testProject, startTime, endTime, versionUnderTest, operatingSystem, jvm, vcsBranch, vcsCommit, testGroup, resultType, channel, host, teamCityBuildId) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS)) {
+                statement.setString(1, results.getTestClass());
+                statement.setString(2, results.getTestId());
+                statement.setString(3, results.getTestProject());
+                statement.setTimestamp(4, new Timestamp(results.getStartTime()));
+                statement.setTimestamp(5, new Timestamp(results.getEndTime()));
+                statement.setString(6, results.getVersionUnderTest());
+                statement.setString(7, results.getOperatingSystem());
+                statement.setString(8, results.getJvm());
+                statement.setString(9, results.getVcsBranch());
+                statement.setString(10, Joiner.on(",").join(results.getVcsCommits()));
+                statement.setString(11, results.getTestGroup());
+                statement.setString(12, resultType);
+                statement.setString(13, results.getChannel());
+                statement.setString(14, results.getHost());
+                statement.setString(15, results.getTeamCityBuildId());
+                statement.execute();
+                ResultSet keys = statement.getGeneratedKeys();
+                keys.next();
+                executionId = keys.getLong(1);
+            }
+            try (PreparedStatement statement = connection.prepareStatement("insert into testOperation(testExecution, displayName, tasks, args, gradleOpts, daemon, totalTime, cleanTasks) values (?, ?, ?, ?, ?, ?, ?, ?)")) {
+                for (BuildDisplayInfo displayInfo : results.getBuilds()) {
+                    addOperations(statement, executionId, displayInfo, results.buildResult(displayInfo));
                 }
-                statement = connection.prepareStatement("insert into testOperation(testExecution, displayName, tasks, args, gradleOpts, daemon, totalTime, cleanTasks) values (?, ?, ?, ?, ?, ?, ?, ?)");
-                try {
-                    for (BuildDisplayInfo displayInfo : results.getBuilds()) {
-                        addOperations(statement, executionId, displayInfo, results.buildResult(displayInfo));
-                    }
-                    statement.executeBatch();
-                } finally {
-                    statement.close();
-                }
-                return null;
-            });
-        } catch (Exception e) {
-            throw new RuntimeException(String.format("Could not open results datastore '%s'.", db.getUrl()), e);
-        }
+                statement.executeBatch();
+            }
+            return null;
+        });
     }
 
     private void addOperations(PreparedStatement statement, long executionId, BuildDisplayInfo displayInfo, MeasuredOperationList operations) throws SQLException {
@@ -107,32 +96,24 @@ public class BaseCrossBuildResultsStore<R extends CrossBuildPerformanceResults> 
     }
 
     @Override
-    public void close() {
-        db.close();
-    }
-
-    @Override
     public List<PerformanceExperiment> getPerformanceExperiments() {
-        try {
-            return db.withConnection((ConnectionAction<List<PerformanceExperiment>>) connection -> {
-                Set<PerformanceExperiment> testNames = Sets.newLinkedHashSet();
-                PreparedStatement testIdsStatement = connection.prepareStatement("select distinct testId, testProject from testExecution where resultType = ? order by testId, testProject");
+        return withConnection("load test history", connection -> {
+            Set<PerformanceExperiment> testNames = Sets.newLinkedHashSet();
+            try (PreparedStatement testIdsStatement = connection.prepareStatement("select distinct testClass, testId, testProject from testExecution where resultType = ? order by testClass, testId, testProject")) {
                 testIdsStatement.setString(1, resultType);
-                ResultSet testExecutions = testIdsStatement.executeQuery();
-                while (testExecutions.next()) {
-                    // TODO: Add testProject to cross_build_results DB
-                    String testProject = testExecutions.getString(2);
-                    if (testProject != null) {
-                        testNames.add(new PerformanceExperiment(testProject, testExecutions.getString(1)));
+                try (ResultSet testExecutions = testIdsStatement.executeQuery()) {
+                    while (testExecutions.next()) {
+                        String testClass = testExecutions.getString(1);
+                        String testName = testExecutions.getString(2);
+                        String testProject = testExecutions.getString(3);
+                        if (testProject != null && testClass != null) {
+                            testNames.add(new PerformanceExperiment(testProject, new PerformanceScenario(testClass, testName)));
+                        }
                     }
+                    return Lists.newArrayList(testNames);
                 }
-                testExecutions.close();
-                testIdsStatement.close();
-                return Lists.newArrayList(testNames);
-            });
-        } catch (Exception e) {
-            throw new RuntimeException(String.format("Could not load test history from datastore '%s'.", db.getUrl()), e);
-        }
+            }
+        });
     }
 
     @Override
@@ -142,69 +123,67 @@ public class BaseCrossBuildResultsStore<R extends CrossBuildPerformanceResults> 
 
     @Override
     public CrossBuildPerformanceTestHistory getTestResults(final PerformanceExperiment experiment, final int mostRecentN, final int maxDaysOld, final String channel) {
-        try {
-            return db.withConnection(connection -> {
-                List<CrossBuildPerformanceResults> results = Lists.newArrayList();
-                Set<BuildDisplayInfo> builds = Sets.newTreeSet(Comparator.comparing(BuildDisplayInfo::getDisplayName));
-                PreparedStatement executionsForName = connection.prepareStatement("select id, startTime, endTime, versionUnderTest, operatingSystem, jvm, vcsBranch, vcsCommit, testGroup, channel, host, teamCityBuildId from testExecution where testId = ? and testProject = ? and startTime >= ? and channel = ? order by startTime desc limit ?");
-                PreparedStatement operationsForExecution = connection.prepareStatement("select displayName, tasks, args, gradleOpts, daemon, totalTime, cleanTasks from testOperation where testExecution = ?");
-                executionsForName.setString(1, experiment.getScenario());
-                executionsForName.setString(2, experiment.getTestProject());
+        return withConnection("load results", connection -> {
+            try (
+                PreparedStatement executionsForName = connection.prepareStatement("select id, startTime, endTime, versionUnderTest, operatingSystem, jvm, vcsBranch, vcsCommit, testGroup, channel, host, teamCityBuildId from testExecution where testClass = ? and testId = ? and testProject = ? and startTime >= ? and channel = ? order by startTime desc limit ?");
+                PreparedStatement operationsForExecution = connection.prepareStatement("select displayName, tasks, args, gradleOpts, daemon, totalTime, cleanTasks from testOperation where testExecution = ?")
+            ) {
+                executionsForName.setString(1, experiment.getScenario().getClassName());
+                executionsForName.setString(2, experiment.getScenario().getTestName());
+                executionsForName.setString(3, experiment.getTestProject());
                 Timestamp minDate = new Timestamp(LocalDate.now().minusDays(maxDaysOld).toDate().getTime());
-                executionsForName.setTimestamp(3, minDate);
-                executionsForName.setString(4, channel);
-                executionsForName.setInt(5, mostRecentN);
-                ResultSet testExecutions = executionsForName.executeQuery();
-                while (testExecutions.next()) {
-                    long id = testExecutions.getLong(1);
-                    CrossBuildPerformanceResults performanceResults = new CrossBuildPerformanceResults();
-                    performanceResults.setTestId(experiment.getScenario());
-                    performanceResults.setTestProject(experiment.getTestProject());
-                    performanceResults.setStartTime(testExecutions.getTimestamp(2).getTime());
-                    performanceResults.setEndTime(testExecutions.getTimestamp(3).getTime());
-                    performanceResults.setVersionUnderTest(testExecutions.getString(4));
-                    performanceResults.setOperatingSystem(testExecutions.getString(5));
-                    performanceResults.setJvm(testExecutions.getString(6));
-                    performanceResults.setVcsBranch(testExecutions.getString(7).trim());
-                    performanceResults.setVcsCommits(split(testExecutions.getString(8)));
-                    performanceResults.setTestGroup(testExecutions.getString(9));
-                    performanceResults.setChannel(testExecutions.getString(10));
-                    performanceResults.setHost(testExecutions.getString(11));
-                    performanceResults.setTeamCityBuildId(testExecutions.getString(12));
+                executionsForName.setTimestamp(4, minDate);
+                executionsForName.setString(5, channel);
+                executionsForName.setInt(6, mostRecentN);
+                try (ResultSet testExecutions = executionsForName.executeQuery()) {
+                    List<CrossBuildPerformanceResults> results = Lists.newArrayList();
+                    Set<BuildDisplayInfo> builds = Sets.newTreeSet(Comparator.comparing(BuildDisplayInfo::getDisplayName));
+                    while (testExecutions.next()) {
+                        long id = testExecutions.getLong(1);
+                        CrossBuildPerformanceResults performanceResults = new CrossBuildPerformanceResults();
+                        performanceResults.setTestClass(experiment.getScenario().getClassName());
+                        performanceResults.setTestId(experiment.getScenario().getTestName());
+                        performanceResults.setTestProject(experiment.getTestProject());
+                        performanceResults.setStartTime(testExecutions.getTimestamp(2).getTime());
+                        performanceResults.setEndTime(testExecutions.getTimestamp(3).getTime());
+                        performanceResults.setVersionUnderTest(testExecutions.getString(4));
+                        performanceResults.setOperatingSystem(testExecutions.getString(5));
+                        performanceResults.setJvm(testExecutions.getString(6));
+                        performanceResults.setVcsBranch(testExecutions.getString(7).trim());
+                        performanceResults.setVcsCommits(split(testExecutions.getString(8)));
+                        performanceResults.setTestGroup(testExecutions.getString(9));
+                        performanceResults.setChannel(testExecutions.getString(10));
+                        performanceResults.setHost(testExecutions.getString(11));
+                        performanceResults.setTeamCityBuildId(testExecutions.getString(12));
 
-                    if (ignore(performanceResults)) {
-                        continue;
+                        if (ignore(performanceResults)) {
+                            continue;
+                        }
+
+                        results.add(performanceResults);
+
+                        operationsForExecution.setLong(1, id);
+                        try (ResultSet resultSet = operationsForExecution.executeQuery()) {
+                            while (resultSet.next()) {
+                                String displayName = resultSet.getString(1);
+                                List<String> tasksToRun = toList(resultSet.getObject(2));
+                                List<String> cleanTasks = toList(resultSet.getObject(7));
+                                List<String> args = toList(resultSet.getObject(3));
+                                List<String> gradleOpts = toList(resultSet.getObject(4));
+                                Boolean daemon = (Boolean) resultSet.getObject(5);
+                                BuildDisplayInfo displayInfo = new BuildDisplayInfo(experiment.getTestProject(), displayName, tasksToRun, cleanTasks, args, gradleOpts, daemon);
+
+                                MeasuredOperation operation = new MeasuredOperation();
+                                operation.setTotalTime(Duration.millis(resultSet.getBigDecimal(6)));
+                                performanceResults.buildResult(displayInfo).add(operation);
+                                builds.add(displayInfo);
+                            }
+                        }
                     }
-
-                    results.add(performanceResults);
-
-                    operationsForExecution.setLong(1, id);
-                    ResultSet resultSet = operationsForExecution.executeQuery();
-                    while (resultSet.next()) {
-                        String displayName = resultSet.getString(1);
-                        List<String> tasksToRun = toList(resultSet.getObject(2));
-                        List<String> cleanTasks = toList(resultSet.getObject(7));
-                        List<String> args = toList(resultSet.getObject(3));
-                        List<String> gradleOpts = toList(resultSet.getObject(4));
-                        Boolean daemon = (Boolean) resultSet.getObject(5);
-                        BuildDisplayInfo displayInfo = new BuildDisplayInfo(experiment.getTestProject(), displayName, tasksToRun, cleanTasks, args, gradleOpts, daemon);
-
-                        MeasuredOperation operation = new MeasuredOperation();
-                        operation.setTotalTime(Duration.millis(resultSet.getBigDecimal(6)));
-                        performanceResults.buildResult(displayInfo).add(operation);
-                        builds.add(displayInfo);
-                    }
-                    resultSet.close();
+                    return new CrossBuildPerformanceTestHistory(experiment, ImmutableList.copyOf(builds), results);
                 }
-                testExecutions.close();
-                operationsForExecution.close();
-                executionsForName.close();
-
-                return new CrossBuildPerformanceTestHistory(experiment.getScenario(), ImmutableList.copyOf(builds), results);
-            });
-        } catch (Exception e) {
-            throw new RuntimeException(String.format("Could not load results from datastore '%s'.", db.getUrl()), e);
-        }
+            }
+        });
     }
 
     protected boolean ignore(CrossBuildPerformanceResults performanceResults) {

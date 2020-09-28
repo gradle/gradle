@@ -48,7 +48,7 @@ tasks.withType(Checkstyle) {
 pmd {
     consoleOutput = true
     toolVersion = "6.21.0"
-    rulePriority = 5
+    rulesMinimumPriority = 5
     ruleSets = ["category/java/errorprone.xml", "category/java/bestpractices.xml"]
 }
 // end::customize-pmd[]

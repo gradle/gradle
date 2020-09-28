@@ -46,6 +46,23 @@ Garbage collection time goes from [2.6 seconds](https://scans.gradle.com/s/3bg67
 
 While the impact on your build may vary, most builds can expect a noticeably shorter feedback loop when editing Kotlin DSL build logic thanks to this improvement.
 
+## Security Improvements
+
+### Outdated TLS versions are no longer enabled by default
+
+This version of Gradle removes TLS protocols v1.0 and v1.1 from the default list of allowed protocols. Gradle will no longer fallback to TLS v1.0 or v1.1 by default when resolving dependencies. Only TLS v1.2 or TLS v1.3 are allowed by default.
+
+These TLS versions can be re-enabled by manually specifying the system property `https.protocols` with
+a comma separated list of protocols required by your build. 
+
+The vast majority of builds should not need to change in any way. [Maven Central](https://central.sonatype.org/articles/2018/May/04/discontinued-support-for-tlsv11-and-below/) and [JCenter/Bintray](https://jfrog.com/knowledge-base/why-am-i-failing-to-work-with-jfrog-cloud-services-with-tls-1-0-1-1/) dropped support for TLS v1.0 and TLS v1.1 two years ago. Java has had TLS v1.2+ available for several years. Disabling these protocols in Gradle protects builds from downgrade attacks.
+
+Depending on the version of Java you use, Gradle will negotiate TLS v1.2 or TLS v1.3 when communicating with remote repositories.
+
+**Note**: Early versions of JDK 11 & JDK 12 contained [race condition bug in the `TLSv1.3` handling logic](https://bugs.openjdk.java.net/browse/JDK-8213202)
+which causes the exception `javax.net.ssl.SSLException: No PSK available. Unable to resume`. If you run into this issue,
+we recommend updating to the latest minor JDK version.
+
 ## Promoted features
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
 See the User Manual section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
@@ -55,7 +72,6 @@ The following are the features that have been promoted in this Gradle release.
 <!--
 ### Example promoted
 -->
-
 ## Fixed issues
 
 ## Known issues

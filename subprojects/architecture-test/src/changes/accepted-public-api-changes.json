@@ -1,3 +1,20 @@
 {
-    "acceptedApiChanges": []
+    "acceptedApiChanges": [
+        {
+            "type": "org.gradle.testing.jacoco.plugins.JacocoTaskExtension",
+            "member": "Constructor org.gradle.testing.jacoco.plugins.JacocoTaskExtension(org.gradle.api.Project,org.gradle.internal.jacoco.JacocoAgentJar,org.gradle.process.JavaForkOptions)",
+            "acceptation": "Remove Project reference",
+            "changes": [
+                "Constructor has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.testing.jacoco.plugins.JacocoPluginExtension",
+            "member": "Method org.gradle.testing.jacoco.plugins.JacocoPluginExtension.getReportsDirectory()",
+            "acceptation": "Replace existing stable `reportsDir` property",
+            "changes": [
+                "METHOD_ADDED_TO_PUBLIC_CLASS"
+            ]
+        }
+    ]
 }

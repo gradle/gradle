@@ -14,6 +14,7 @@ import org.gradle.api.internal.classpath.Module
 import org.gradle.internal.classpath.DefaultClassPath
 
 import org.gradle.kotlin.dsl.accessors.TestWithClassPath
+import org.gradle.test.fixtures.file.LeaksFileHandles
 
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
@@ -21,6 +22,7 @@ import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
 
 
+@LeaksFileHandles("embedded Kotlin compiler environment keepalive")
 class KotlinScriptClassPathProviderTest : TestWithClassPath() {
 
     @Test

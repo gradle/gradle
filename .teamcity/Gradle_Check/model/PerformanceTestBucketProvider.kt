@@ -45,10 +45,13 @@ data class PerformanceTestCoverage(val performanceTestType: PerformanceTestType,
     fun asConfigurationId(model: CIBuildModel, stage: Stage, bucket: String = "") = "${model.projectPrefix}PerformanceTest${performanceTestType.name.capitalize()}${os.asName()}$bucket"
     fun asName(): String =
         "${performanceTestType.displayName} - ${os.asName()}"
+
+    fun channel(branch: String = "%teamcity.build.branch%") =
+        "${performanceTestType.channel}${if (os == Os.LINUX) "" else "-${os.name.toLowerCase(Locale.US)}"}-$branch"
 }
 
-class StatisticsBasedPerformanceTestBucketProvider(private val model: CIBuildModel, performanceTestTimeDataCsv: File, performanceTestsCiJson: File) : PerformanceTestBucketProvider {
-    private val buckets: Map<PerformanceTestCoverage, List<PerformanceTestBucket>> = buildBuckets(performanceTestTimeDataCsv, performanceTestsCiJson)
+class StatisticsBasedPerformanceTestBucketProvider(private val model: CIBuildModel, performanceTestTimeDataJson: File, performanceTestsCiJson: File) : PerformanceTestBucketProvider {
+    private val buckets: Map<PerformanceTestCoverage, List<PerformanceTestBucket>> = buildBuckets(performanceTestTimeDataJson, performanceTestsCiJson)
 
     override fun createPerformanceTestsFor(stage: Stage, performanceTestCoverage: PerformanceTestCoverage): List<PerformanceTest> {
         return buckets.getValue(performanceTestCoverage).mapIndexed { bucketIndex: Int, bucket: PerformanceTestBucket ->
@@ -57,10 +60,10 @@ class StatisticsBasedPerformanceTestBucketProvider(private val model: CIBuildMod
     }
 
     private
-    fun buildBuckets(performanceTestTimeDataCsv: File, performanceTestsCiJson: File): Map<PerformanceTestCoverage, List<PerformanceTestBucket>> {
+    fun buildBuckets(performanceTestTimeDataJson: File, performanceTestsCiJson: File): Map<PerformanceTestCoverage, List<PerformanceTestBucket>> {
         val performanceTestConfigurations = readPerformanceTestConfigurations(performanceTestsCiJson)
 
-        val performanceTestTimes: OperatingSystemToTestProjectPerformanceTestTimes = readPerformanceTestTimes(performanceTestTimeDataCsv)
+        val performanceTestTimes: OperatingSystemToTestProjectPerformanceTestTimes = readPerformanceTestTimes(performanceTestTimeDataJson)
 
         val result = mutableMapOf<PerformanceTestCoverage, List<PerformanceTestBucket>>()
         for (performanceTestType in PerformanceTestType.values()) {
@@ -74,14 +77,23 @@ class StatisticsBasedPerformanceTestBucketProvider(private val model: CIBuildMod
     }
 
     private
-    fun readPerformanceTestTimes(performanceTestTimeDataCsv: File): OperatingSystemToTestProjectPerformanceTestTimes {
-        val pairs: List<Pair<Os, Pair<String, PerformanceTestTime>>> = performanceTestTimeDataCsv.readLines(StandardCharsets.UTF_8)
-            .map { line ->
-                val (className, scenarioId, testProject, os, durationInMs) = line.split(';')
-                val scenario = Scenario(className, scenarioId)
-                val performanceTestTime = PerformanceTestTime(scenario, durationInMs.toInt())
-                Os.valueOf(os.toUpperCase(Locale.US)) to (testProject to performanceTestTime)
+    fun readPerformanceTestTimes(performanceTestTimeDataJson: File): OperatingSystemToTestProjectPerformanceTestTimes {
+        val times = JSON.parseArray(performanceTestTimeDataJson.readText(StandardCharsets.UTF_8))
+        val pairs = times.flatMap { it ->
+            val scenarioTimes = it as JSONObject
+            val scenario = Scenario.fromTestId(scenarioTimes["scenario"] as String)
+            (scenarioTimes["runtimes"] as JSONArray).flatMap {
+                val runtime = it as JSONObject
+                val testProject = runtime["testProject"] as String
+                runtime.entries
+                    .filter { (key, _) -> key != "testProject" }
+                    .map { (osString, timeInMs) ->
+                        val os = Os.valueOf(osString.toUpperCase(Locale.US))
+                        val performanceTestTime = PerformanceTestTime(scenario, timeInMs as Int)
+                        os to (testProject to performanceTestTime)
+                    }
             }
+        }
         return pairs.groupBy({ it.first }, { it.second })
             .mapValues { entry -> entry.value.groupBy({ it.first }, { it.second }) }
     }
@@ -125,7 +137,7 @@ fun splitBucketsByScenarios(scenarios: List<PerformanceScenario>, testProjectToS
         { list: List<TestProjectTime> -> MultipleTestProjectBucket(list) },
         numberOfBuckets,
         MAX_TEST_PROJECTS_PER_BUCKET,
-        { numEmptyBuckets -> (0 until numEmptyBuckets).map { EmptyTestProjectBucket() }.toList() },
+        { numEmptyBuckets -> (0 until numEmptyBuckets).map { EmptyTestProjectBucket(it) }.toList() },
         { tests1, tests2 -> tests1 != tests2 }
     )
 }
@@ -133,14 +145,16 @@ fun splitBucketsByScenarios(scenarios: List<PerformanceScenario>, testProjectToS
 fun determineScenarioTestTimes(os: Os, performanceTestTimes: OperatingSystemToTestProjectPerformanceTestTimes): Map<String, List<PerformanceTestTime>> = performanceTestTimes.getValue(os)
 
 fun determineScenariosFor(performanceTestCoverage: PerformanceTestCoverage, performanceTestConfigurations: List<PerformanceTestConfiguration>): List<PerformanceScenario> {
-    val performanceTestType = if (performanceTestCoverage.performanceTestType in setOf(PerformanceTestType.historical, PerformanceTestType.flakinessDetection)) {
-        PerformanceTestType.test
+    val performanceTestTypes = if (performanceTestCoverage.performanceTestType in setOf(PerformanceTestType.historical, PerformanceTestType.flakinessDetection)) {
+        listOf(PerformanceTestType.test, PerformanceTestType.slow)
     } else {
-        performanceTestCoverage.performanceTestType
+        listOf(performanceTestCoverage.performanceTestType)
     }
     return performanceTestConfigurations.flatMap { configuration ->
         configuration.groups
-            .filter { it.performanceTestTypes[performanceTestType]?.contains(performanceTestCoverage.os) == true }
+            .filter { group -> performanceTestTypes.any { type ->
+                group.performanceTestTypes[type]?.contains(performanceTestCoverage.os) == true
+            } }
             .map { PerformanceScenario(Scenario.fromTestId(configuration.testId), it.testProject) }
     }
 }
@@ -180,7 +194,7 @@ data class TestProjectTime(val testProject: String, val scenarioTimes: List<Perf
 
     override
     fun toString(): String {
-        return "TestProjectScenarioTime(testProject=$testProject, totalTime=$totalTime)"
+        return "TestProjectTime(testProject=$testProject, totalTime=$totalTime, scenarios = ${scenarioTimes.map { it.scenario } }"
     }
 }
 
@@ -191,6 +205,10 @@ data class Scenario(val className: String, val scenario: String) {
             return Scenario(testId.substring(0, dotBeforeScenarioName), testId.substring(dotBeforeScenarioName + 1))
         }
     }
+
+    override
+    fun toString(): String =
+        "$className.$scenario"
 }
 
 class SingleTestProjectBucket(val testProject: String, val scenarios: List<Scenario>) : PerformanceTestBucket {
@@ -225,14 +243,14 @@ fun projectTimesToScenariosPerTestProject(projectTimes: List<TestProjectTime>): 
         .mapValues { (_, times) -> times.flatten().map { it.scenario } }
 }
 
-class EmptyTestProjectBucket : PerformanceTestBucket {
+class EmptyTestProjectBucket(private val index: Int) : PerformanceTestBucket {
     override
     fun createPerformanceTestsFor(model: CIBuildModel, stage: Stage, performanceTestCoverage: PerformanceTestCoverage, bucketIndex: Int): PerformanceTest = createPerformanceTest(
         model,
         performanceTestCoverage,
         stage,
         bucketIndex,
-        "Empty Performance Test bucket",
+        "Empty Performance Test bucket $index",
         mapOf()
     )
 }
@@ -251,24 +269,24 @@ class TestProjectSplitBucket(val testProject: String, private val number: Int, v
 
 private
 fun createPerformanceTest(model: CIBuildModel, performanceTestCoverage: PerformanceTestCoverage, stage: Stage, bucketIndex: Int, description: String, tests: Map<String, List<Scenario>>): PerformanceTest {
-    val uuid = performanceTestCoverage.asConfigurationId(model, stage, "bucket${bucketIndex + 1}")
+    val descriptionWithMaybeBucketIndex = if (performanceTestCoverage.performanceTestType == PerformanceTestType.flakinessDetection)
+        "$description - index $bucketIndex"
+    else
+        description
     return PerformanceTest(
         model,
-        performanceTestCoverage.performanceTestType,
         stage,
-        uuid,
-        "$description - index $bucketIndex",
-        "performance",
-        tests.keys.toList(),
+        performanceTestCoverage,
+        description = descriptionWithMaybeBucketIndex,
+        performanceSubProject = "performance",
+        testProjects = tests.keys.toList(),
         bucketIndex = bucketIndex,
-        os = performanceTestCoverage.os,
-        extraParameters = " -PincludePerformanceTestScenarios=true",
-        preBuildSteps = {
-            tests.forEach { (testProject, scenarios) ->
-                prepareScenariosStep(testProject, scenarios, performanceTestCoverage.os)()
-            }
+        extraParameters = " -PincludePerformanceTestScenarios=true"
+    ) {
+        tests.forEach { (testProject, scenarios) ->
+            prepareScenariosStep(testProject, scenarios, performanceTestCoverage.os)()
         }
-    )
+    }
 }
 
 private

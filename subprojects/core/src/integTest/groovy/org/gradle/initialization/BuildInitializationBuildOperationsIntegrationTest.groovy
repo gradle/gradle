@@ -200,21 +200,21 @@ class BuildInitializationBuildOperationsIntegrationTest extends AbstractIntegrat
         ]
 
         def configureOrder = [
-                ":nested:buildSrc:buildSrc",
-                ":nested:buildSrc",
-                ":nested",
-                ":nested-cli:buildSrc:buildSrc",
-                ":nested-cli:buildSrc",
-                ":nested-cli",
-                ":nested-nested:buildSrc:buildSrc",
-                ":nested-nested:buildSrc",
-                ":nested-nested",
-                ":nested-cli-nested:buildSrc:buildSrc",
-                ":nested-cli-nested:buildSrc",
-                ":nested-cli-nested",
-                ":buildSrc:buildSrc",
-                ":buildSrc",
                 ":",
+                ":nested",
+                ":nested:buildSrc",
+                ":nested:buildSrc:buildSrc",
+                ":nested-cli",
+                ":nested-cli:buildSrc",
+                ":nested-cli:buildSrc:buildSrc",
+                ":nested-nested",
+                ":nested-nested:buildSrc",
+                ":nested-nested:buildSrc:buildSrc",
+                ":nested-cli-nested",
+                ":nested-cli-nested:buildSrc",
+                ":nested-cli-nested:buildSrc:buildSrc",
+                ":buildSrc",
+                ":buildSrc:buildSrc",
         ]
 
         def configureBuildBuildOperations = buildOperations.all(ConfigureBuildBuildOperationType)

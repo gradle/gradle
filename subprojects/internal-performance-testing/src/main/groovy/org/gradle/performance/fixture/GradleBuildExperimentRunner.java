@@ -113,8 +113,7 @@ public class GradleBuildExperimentRunner extends AbstractBuildExperimentRunner {
             scenarioInvoker.doRun(scenarioDefinition,
                 invocationSettings,
                 consumerFor(scenarioDefinition, iterationCount, results, scenarioReporter));
-            getFlameGraphGenerator().generateGraphs(experiment);
-            getFlameGraphGenerator().generateDifferentialGraphs();
+            getFlameGraphGenerator().generateDifferentialGraphs(experiment);
         } catch (IOException | InterruptedException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         } finally {
@@ -165,7 +164,7 @@ public class GradleBuildExperimentRunner extends AbstractBuildExperimentRunner {
         GradleDistribution gradleDistribution = invocationSpec.getGradleDistribution();
         List<String> cleanTasks = invocationSpec.getCleanTasks();
         return new GradleScenarioDefinition(
-            experimentSpec.getDisplayName(),
+            safeScenarioName(experimentSpec.getDisplayName()),
             experimentSpec.getDisplayName(),
             (GradleBuildInvoker) invocationSettings.getInvoker(),
             new GradleBuildConfiguration(gradleDistribution.getVersion(), gradleDistribution.getGradleHomeDir(), Jvm.current().getJavaHome(), invocationSpec.getJvmOpts(), false),
@@ -187,5 +186,7 @@ public class GradleBuildExperimentRunner extends AbstractBuildExperimentRunner {
         );
     }
 
-
+    private String safeScenarioName(String name) {
+        return name.replaceAll("[^a-zA-Z0-9.-]", "_");
+    }
 }

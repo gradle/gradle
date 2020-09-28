@@ -26,6 +26,8 @@ import java.lang.annotation.RetentionPolicy;
  *
  * Services are visible to other services in the same scope and descendent scopes.
  * Services are not visible to services in ancestor scopes.
+ *
+ * @see org.gradle.internal.service.scopes.Scopes
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Inherited

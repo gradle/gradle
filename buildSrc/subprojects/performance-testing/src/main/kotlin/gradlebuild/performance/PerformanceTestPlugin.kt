@@ -44,6 +44,7 @@ import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.Delete
+import org.gradle.api.tasks.JavaExec
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.tasks.TaskCollection
@@ -289,7 +290,7 @@ class PerformanceTestPlugin : Plugin<Project> {
                     setTestProjectGenerationTask(sampleGenerator)
 
                     retry {
-                        maxRetries.set(3)
+                        maxRetries.set(1)
                     }
 
                     if (shouldLoadScenariosFromFile) {
@@ -311,6 +312,15 @@ class PerformanceTestPlugin : Plugin<Project> {
 
         tasks.register<PerformanceTestReport>("performanceTestFlakinessReport") {
             reportGeneratorClass.set("org.gradle.performance.results.report.FlakinessReportGenerator")
+        }
+
+        tasks.register<JavaExec>("writePerformanceTimes") {
+            classpath(performanceSourceSet.runtimeClasspath)
+            mainClass.set("org.gradle.performance.results.PerformanceTestRuntimesGenerator")
+            systemProperties(project.propertiesForPerformanceDb())
+            args(project.rootProject.file(".teamcity/performance-test-runtimes.json").absolutePath)
+            // Never up-to-date since it reads data from the database.
+            outputs.upToDateWhen { false }
         }
 
         tasks.withType<PerformanceTestReport>().configureEach {
@@ -465,11 +475,6 @@ class PerformanceTestPlugin : Plugin<Project> {
 
             if (project.hasProperty(PropertyNames.performanceTestVerbose)) {
                 testLogging.showStandardStreams = true
-            }
-            if (project.name == "buildScanPerformance") {
-                performanceReporter = createPerformanceReporter().also {
-                    it.reportGeneratorClass = "org.gradle.performance.results.BuildScanReportGenerator"
-                }
             }
         }
         val testResultsZipTask = testResultsZipTaskFor(performanceTest, name)

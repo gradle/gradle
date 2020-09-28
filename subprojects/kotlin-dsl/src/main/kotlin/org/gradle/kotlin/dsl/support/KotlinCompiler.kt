@@ -16,9 +16,11 @@
 
 package org.gradle.kotlin.dsl.support
 
+import org.gradle.internal.SystemProperties
 import org.gradle.internal.io.NullOutputStream
 
 import org.jetbrains.kotlin.cli.common.CLIConfigurationKeys
+import org.jetbrains.kotlin.cli.common.KOTLIN_COMPILER_ENVIRONMENT_KEEPALIVE_PROPERTY
 
 import org.jetbrains.kotlin.cli.common.config.addKotlinSourceRoot
 import org.jetbrains.kotlin.cli.common.config.addKotlinSourceRoots
@@ -373,11 +375,16 @@ fun CompilerConfiguration.addScriptDefinition(scriptDef: ScriptDefinition) {
 private
 fun Disposable.kotlinCoreEnvironmentFor(configuration: CompilerConfiguration): KotlinCoreEnvironment {
     org.jetbrains.kotlin.cli.common.environment.setIdeaIoUseFallback()
-    return KotlinCoreEnvironment.createForProduction(
-        this,
-        configuration,
-        EnvironmentConfigFiles.JVM_CONFIG_FILES
-    )
+    return SystemProperties.getInstance().withSystemProperty(
+        KOTLIN_COMPILER_ENVIRONMENT_KEEPALIVE_PROPERTY,
+        "true"
+    ) {
+        KotlinCoreEnvironment.createForProduction(
+            this,
+            configuration,
+            EnvironmentConfigFiles.JVM_CONFIG_FILES
+        )
+    }
 }
 
 

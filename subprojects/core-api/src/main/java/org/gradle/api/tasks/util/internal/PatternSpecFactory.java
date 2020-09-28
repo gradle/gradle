@@ -103,7 +103,7 @@ public class PatternSpecFactory {
             .withContext(String.format("Default excludes changed from %s to %s.", sortedExcludesFromSettings, sortedNewExcludes))
             .withAdvice("Configure default excludes in the settings script instead.")
             .willBeRemovedInGradle7()
-            .withUserManual("working_with_files", "sec:change_ant_excludes")
+            .withUpgradeGuideSection(6, "changing_default_excludes_during_the_execution_phase")
             .nagUser();
     }
 

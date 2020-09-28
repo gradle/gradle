@@ -132,6 +132,8 @@ Specify user name to download Gradle distributions from servers using HTTP Basic
 Specify password for downloading a Gradle distribution using the Gradle wrapper.
 `gradle.user.home=(path to directory)`::
 Specify the Gradle user home directory.
+`https.protocols`::
+Specify the supported TLS versions in a comma separated format. For example: `TLSv1.2,TLSv1.3`.
 
 In a multi project build, “`systemProp.`” properties set in any project except the root will be ignored. That is, only the root project's `gradle.properties` file will be checked for properties that begin with the “`systemProp.`” prefix.
 

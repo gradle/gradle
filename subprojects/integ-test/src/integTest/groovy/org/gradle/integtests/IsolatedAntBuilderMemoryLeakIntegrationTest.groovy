@@ -17,7 +17,6 @@
 package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.TestPrecondition
 import spock.lang.Unroll
@@ -86,7 +85,6 @@ class IsolatedAntBuilderMemoryLeakIntegrationTest extends AbstractIntegrationSpe
     }
 
     @Unroll
-    @ToBeFixedForConfigurationCache(because = "codenarc plugin")
     void 'CodeNarc does not fail with PermGen space error, Groovy #groovyVersion'() {
         given:
         withCodenarc(groovyVersion)
@@ -112,7 +110,6 @@ class IsolatedAntBuilderMemoryLeakIntegrationTest extends AbstractIntegrationSpe
     }
 
     @Unroll
-    @ToBeFixedForConfigurationCache(because = "checkstyle plugin")
     void "does not fail with a PermGen space error or a missing method exception"() {
         given:
         initGitDir()

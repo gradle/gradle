@@ -17,14 +17,20 @@ package org.gradle.api.plugins.quality;
 
 import org.gradle.api.JavaVersion;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.file.ProjectLayout;
+import org.gradle.api.file.RegularFile;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.plugins.quality.internal.AbstractCodeQualityPlugin;
+import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.util.VersionNumber;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
+
+import static org.gradle.api.internal.lambdas.SerializableLambdas.action;
 
 /**
  * A plugin for the <a href="https://pmd.github.io/">PMD</a> source code analyzer.
@@ -57,7 +63,7 @@ public class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
     protected CodeQualityExtension createExtension() {
         extension = project.getExtensions().create("pmd", PmdExtension.class, project);
         extension.setToolVersion(DEFAULT_PMD_VERSION);
-        extension.setRuleSets(new ArrayList<String>(Arrays.asList("category/java/errorprone.xml")));
+        extension.setRuleSets(new ArrayList<>(Arrays.asList("category/java/errorprone.xml")));
         extension.setRuleSetFiles(project.getLayout().files());
         conventionMappingOf(extension).map("targetJdk", () ->
             getDefaultTargetJdk(getJavaPluginConvention().getSourceCompatibility()));
@@ -98,23 +104,31 @@ public class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
     private void configureTaskConventionMapping(Configuration configuration, final Pmd task) {
         ConventionMapping taskMapping = task.getConventionMapping();
         taskMapping.map("pmdClasspath", () -> configuration);
-        taskMapping.map("ruleSets", () ->  extension.getRuleSets());
-        taskMapping.map("ruleSetConfig", () ->  extension.getRuleSetConfig());
-        taskMapping.map("ruleSetFiles", () ->  extension.getRuleSetFiles());
+        taskMapping.map("ruleSets", () -> extension.getRuleSets());
+        taskMapping.map("ruleSetConfig", () -> extension.getRuleSetConfig());
+        taskMapping.map("ruleSetFiles", () -> extension.getRuleSetFiles());
         taskMapping.map("ignoreFailures", () -> extension.isIgnoreFailures());
-        taskMapping.map("rulePriority", () ->  extension.getRulePriority());
-        taskMapping.map("consoleOutput", () ->  extension.isConsoleOutput());
-        taskMapping.map("targetJdk", () ->  extension.getTargetJdk());
+        taskMapping.map("consoleOutput", () -> extension.isConsoleOutput());
+        taskMapping.map("targetJdk", () -> extension.getTargetJdk());
 
+        task.getRulesMinimumPriority().convention(extension.getRulesMinimumPriority());
         task.getMaxFailures().convention(extension.getMaxFailures());
         task.getIncrementalAnalysis().convention(extension.getIncrementalAnalysis());
     }
 
     private void configureReportsConventionMapping(Pmd task, final String baseName) {
-        task.getReports().all(report -> {
+        ProjectLayout layout = project.getLayout();
+        ProviderFactory providers = project.getProviders();
+        Provider<RegularFile> reportsDir = layout.file(providers.provider(() -> extension.getReportsDir()));
+        task.getReports().all(action(report -> {
             report.getRequired().convention(true);
-            report.getOutputLocation().convention(project.getLayout().getProjectDirectory().file(project.provider(() -> new File(extension.getReportsDir(), baseName + "." + report.getName()).getAbsolutePath())));
-        });
+            report.getOutputLocation().convention(
+                layout.getProjectDirectory().file(providers.provider(() -> {
+                    String reportFileName = baseName + "." + report.getName();
+                    return new File(reportsDir.get().getAsFile(), reportFileName).getAbsolutePath();
+                }))
+            );
+        }));
     }
 
     private String calculateDefaultDependencyNotation(VersionNumber toolVersion) {

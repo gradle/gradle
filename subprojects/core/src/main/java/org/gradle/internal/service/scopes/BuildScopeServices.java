@@ -517,17 +517,16 @@ public class BuildScopeServices extends DefaultServiceRegistry {
 
     protected ProjectsPreparer createBuildConfigurer(ProjectConfigurer projectConfigurer, BuildSourceBuilder buildSourceBuilder, BuildStateRegistry buildStateRegistry, BuildLoader buildLoader, ListenerManager listenerManager, BuildOperationExecutor buildOperationExecutor) {
         ModelConfigurationListener modelConfigurationListener = listenerManager.getBroadcaster(ModelConfigurationListener.class);
-        return new BuildTreePreparingProjectsPreparer(
-                new BuildOperationFiringProjectsPreparer(
-                        new DefaultProjectsPreparer(
-                                projectConfigurer,
+        return new BuildOperationFiringProjectsPreparer(
+                        new BuildTreePreparingProjectsPreparer(
+                                new DefaultProjectsPreparer(
+                                        projectConfigurer,
+                                        modelConfigurationListener,
+                                        buildOperationExecutor),
                                 buildLoader,
-                                modelConfigurationListener,
-                                buildOperationExecutor),
-                        buildOperationExecutor),
-                buildOperationExecutor,
-                buildStateRegistry,
-                buildSourceBuilder);
+                                buildStateRegistry,
+                                buildSourceBuilder),
+                        buildOperationExecutor);
     }
 
     protected ProjectAccessHandler createProjectAccessHandler() {

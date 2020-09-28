@@ -1,4 +1,5 @@
 import gradlebuild.performance.generator.tasks.JvmProjectGeneratorTask
+import gradlebuild.performance.reporter.DefaultPerformanceReporter
 import gradlebuild.performance.tasks.PerformanceTest
 
 /*
@@ -69,9 +70,12 @@ subprojects {
 }
 
 tasks.withType<PerformanceTest>().configureEach {
-    dependsOn(generateTemplate)
     systemProperties["incomingArtifactDir"] = "$rootDir/incoming/"
 
     environment("ARTIFACTORY_USERNAME", System.getenv("ARTIFACTORY_USERNAME"))
     environment("ARTIFACTORY_PASSWORD", System.getenv("ARTIFACTORY_PASSWORD"))
+
+    if (performanceReporter is DefaultPerformanceReporter) {
+        (performanceReporter as DefaultPerformanceReporter).reportGeneratorClass = "org.gradle.performance.results.BuildScanReportGenerator"
+    }
 }

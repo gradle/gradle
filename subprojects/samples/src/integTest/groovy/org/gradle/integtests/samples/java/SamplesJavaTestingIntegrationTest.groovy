@@ -36,6 +36,7 @@ class SamplesJavaTestingIntegrationTest extends AbstractSampleIntegrationTest {
     @UsesSample("java/basic")
     def "can execute simple Java tests with #dsl dsl"() {
         given:
+        configureExecuterForToolchains('11')
         TestFile dslDir = sample.dir.file(dsl)
         executer.inDirectory(dslDir)
 
@@ -326,6 +327,7 @@ class SamplesJavaTestingIntegrationTest extends AbstractSampleIntegrationTest {
     @UsesSample("java/basic")
     def "can run simple Java integration tests with #dsl dsl"() {
         given:
+        configureExecuterForToolchains('11')
         TestFile dslDir = sample.dir.file(dsl)
         executer.inDirectory(dslDir)
 
@@ -349,6 +351,7 @@ class SamplesJavaTestingIntegrationTest extends AbstractSampleIntegrationTest {
     @UsesSample("java/basic")
     def "can skip the tests with an `onlyIf` condition with #dsl dsl"() {
         given:
+        configureExecuterForToolchains('11')
         TestFile dslDir = sample.dir.file(dsl)
         executer.inDirectory(dslDir).withArgument("-PmySkipTests")
 

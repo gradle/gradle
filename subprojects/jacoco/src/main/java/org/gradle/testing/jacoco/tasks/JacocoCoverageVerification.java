@@ -18,7 +18,6 @@ package org.gradle.testing.jacoco.tasks;
 
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
-import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.jacoco.AntJacocoCheck;
@@ -56,6 +55,8 @@ public class JacocoCoverageVerification extends JacocoReportBase {
         return violationRules;
     }
 
+    private final String projectName = getProject().getName();
+
     /**
      * Configures the violation rules for this task.
      */
@@ -66,20 +67,13 @@ public class JacocoCoverageVerification extends JacocoReportBase {
 
     @TaskAction
     public void check() {
-        final Spec<File> fileExistsSpec = new Spec<File>() {
-            @Override
-            public boolean isSatisfiedBy(File file) {
-                return file.exists();
-            }
-        };
-
         JacocoCheckResult checkResult = new AntJacocoCheck(getAntBuilder()).execute(
-                getJacocoClasspath(),
-                getProject().getName(),
-                getAllClassDirs().filter(fileExistsSpec),
-                getAllSourceDirs().filter(fileExistsSpec),
-                getExecutionData(),
-                getViolationRules()
+            getJacocoClasspath(),
+            projectName,
+            getAllClassDirs().filter(File::exists),
+            getAllSourceDirs().filter(File::exists),
+            getExecutionData(),
+            getViolationRules()
         );
 
         if (!checkResult.isSuccess()) {

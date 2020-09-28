@@ -286,7 +286,7 @@ enum class PerformanceTestType(
         defaultBaselines = "defaults",
         channel = "commits",
         uuid = "PerformanceExperimentCoordinator",
-        numberOfBuckets = 40
+        numberOfBuckets = 30
     ),
     experiment(
         taskId = "PerformanceExperiment",
@@ -295,7 +295,7 @@ enum class PerformanceTestType(
         defaultBaselines = "defaults",
         channel = "experiments",
         uuid = "PerformanceExperimentOnlyCoordinator",
-        numberOfBuckets = 40
+        numberOfBuckets = 20
     ),
     flakinessDetection(
         taskId = "FlakinessDetection",
@@ -304,7 +304,7 @@ enum class PerformanceTestType(
         defaultBaselines = "flakiness-detection-commit",
         channel = "flakiness-detection",
         extraParameters = "--checks none --rerun",
-        numberOfBuckets = 40
+        numberOfBuckets = 60
     ),
     historical(
         taskId = "HistoricalPerformanceTest",
@@ -313,7 +313,7 @@ enum class PerformanceTestType(
         defaultBaselines = "3.5.1,4.10.3,5.6.4,last",
         channel = "historical",
         extraParameters = "--checks none",
-        numberOfBuckets = 40
+        numberOfBuckets = 60
     );
 
     fun asId(model: CIBuildModel): String =

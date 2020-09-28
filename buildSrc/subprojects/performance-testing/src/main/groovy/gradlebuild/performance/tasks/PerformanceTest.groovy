@@ -23,6 +23,7 @@ import gradlebuild.performance.reporter.PerformanceReporter
 import groovy.json.JsonOutput
 import groovy.transform.CompileStatic
 import org.apache.commons.io.FileUtils
+import org.gradle.api.GradleException
 import org.gradle.api.Task
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter
@@ -93,9 +94,6 @@ abstract class PerformanceTest extends DistributionTest {
     @Input
     String channel
 
-    @Input
-    boolean flamegraphs
-
     /************** properties configured by PerformanceTestPlugin ***************/
     @Internal
     String buildId
@@ -115,15 +113,20 @@ abstract class PerformanceTest extends DistributionTest {
 
     PerformanceTest() {
         getJvmArgumentProviders().add(new PerformanceTestJvmArgumentsProvider())
-        getOutputs().cacheIf("baselines don't contain version 'flakiness-detection-commit', 'last' or 'nightly'", { notContainsSpecialVersions() })
-        getOutputs().upToDateWhen { notContainsSpecialVersions() }
+        getOutputs().doNotCacheIf("baselines contain version 'flakiness-detection-commit', 'last' or 'nightly'", { containsSpecialVersions() })
+        getOutputs().doNotCacheIf("flakiness detection", { flakinessDetection })
+        getOutputs().upToDateWhen { !containsSpecialVersions() && !flakinessDetection }
     }
 
-    private boolean notContainsSpecialVersions() {
-        return !baselines.getOrElse("")
+    private boolean containsSpecialVersions() {
+        return baselines.getOrElse("")
             .split(",")
             .collect { it.toString().trim() }
             .any { NON_CACHEABLE_VERSIONS.contains(it) }
+    }
+
+    private boolean isFlakinessDetection() {
+        return channel.startsWith("flakiness-detection")
     }
 
     @Override
@@ -134,6 +137,15 @@ abstract class PerformanceTest extends DistributionTest {
         }
         try {
             super.executeTests()
+        } catch (GradleException e) {
+            // Ignore test failure message, so the reporter can report the failures
+            if (performanceReporter != PerformanceReporter.NoOpPerformanceReporter.INSTANCE &&
+                e.getMessage()?.startsWith("There were failing tests")
+            ) {
+                logger.warn(e.getMessage())
+            } else {
+                throw e
+            }
         } finally {
             performanceReporter.report(this)
         }
@@ -200,10 +212,10 @@ abstract class PerformanceTest extends DistributionTest {
         this.channel = channel
     }
 
-    @Option(option = "flamegraphs", description = "If set to 'true', activates flamegraphs and stores them into the 'flames' directory name under the debug artifacts directory.")
-    void setFlamegraphs(String flamegraphs) {
-        this.flamegraphs = Boolean.parseBoolean(flamegraphs)
-    }
+    @Option(option = "profiler", description = "Allows configuring a profiler to use. The same options as for Gradle profilers --profiler command line option are available")
+    @Optional
+    @Input
+    abstract Property<String> getProfiler()
 
     @Optional
     @Input
@@ -242,9 +254,8 @@ abstract class PerformanceTest extends DistributionTest {
         FileUtils.write(resultsJson, JsonOutput.toJson(resultData), Charset.defaultCharset())
     }
 
-    static String collectFailures(JUnitTestSuite testSuite) {
-        List<JUnitTestCase> testCases = testSuite.testCases ?: []
-        List<JUnitFailure> failures = testCases.collect { it.failures ?: [] }.flatten() as List<JUnitFailure>
+    static String collectFailures(JUnitTestCase testCase) {
+        List<JUnitFailure> failures = testCase.failures ?: []
         return failures.collect { it.value }.join("\n")
     }
 
@@ -260,7 +271,7 @@ abstract class PerformanceTest extends DistributionTest {
                 teamCityBuildId: buildId,
                 agentName: agentName,
                 status: (it.errors || it.failures) ? "FAILURE" : "SUCCESS",
-                testFailure: collectFailures(testSuite))
+                testFailure: collectFailures(it))
         }
     }
 
@@ -283,9 +294,10 @@ abstract class PerformanceTest extends DistributionTest {
             addSystemPropertyIfExist(result, "org.gradle.performance.execution.channel", channel)
             addSystemPropertyIfExist(result, "org.gradle.performance.debugArtifactsDirectory", getDebugArtifactsDirectory())
 
-            if (flamegraphs) {
+            if (profiler.isPresent()) {
                 File artifactsDirectory = new File(getDebugArtifactsDirectory(), "flames")
                 addSystemPropertyIfExist(result, "org.gradle.performance.flameGraphTargetDir", artifactsDirectory.getAbsolutePath())
+                addSystemPropertyIfExist(result, "org.gradle.performance.profiler", profiler.get())
             }
         }
 
