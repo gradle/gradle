@@ -76,7 +76,7 @@ dependencies {
         api(libs.googleHttpClient)      { version { strictly(googleApiVersion) }}
         api(libs.googleHttpClientJackson2) { version { strictly(googleApiVersion) }}
         api(libs.googleOauthClient)     { version { strictly(googleApiVersion) }}
-        api(libs.gradleProfiler)        { version { strictly("0.15.0-alpha7") }}
+        api(libs.gradleProfiler)        { version { strictly("0.15.0-alpha8") }}
         api(libs.groovy)                { version { strictly("1.3-${libs.groovyVersion}"); because("emulating the Groovy 2.4-style groovy-all.jar, see https://github.com/gradle/gradle-groovy-all") }}
         api(libs.gson)                  { version { strictly("2.8.5") }}
         api(libs.guava)                 { version { strictly("27.1-android"); because("JRE variant introduces regression - https://github.com/google/guava/issues/3223") }}
