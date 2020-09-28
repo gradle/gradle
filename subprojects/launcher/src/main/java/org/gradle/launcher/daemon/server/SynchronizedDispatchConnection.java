@@ -23,6 +23,9 @@ import org.gradle.launcher.daemon.protocol.OutputMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+
 /**
  * Connection decorator that synchronizes dispatching and always flushes after each message.
  *
@@ -30,7 +33,7 @@ import org.slf4j.LoggerFactory;
  */
 public class SynchronizedDispatchConnection<T> implements Receive<T>, Stoppable {
     private static final Logger LOGGER = LoggerFactory.getLogger(SynchronizedDispatchConnection.class);
-    private final Object lock = new Object();
+    private final Lock lock = new ReentrantLock();
     private final RemoteConnection<T> delegate;
     private boolean dispatching;
 
@@ -42,7 +45,8 @@ public class SynchronizedDispatchConnection<T> implements Receive<T>, Stoppable 
         if (!(message instanceof OutputMessage)) {
             LOGGER.debug("thread {}: dispatching {}", Thread.currentThread().getId(), message);
         }
-        synchronized (lock) {
+        lock.lock();
+        try {
             if (dispatching) {
                 // Safety check: dispatching a message should not cause the thread to dispatch another message (eg should not do any logging)
                 throw new IllegalStateException("This thread is already dispatching a message.");
@@ -54,6 +58,8 @@ public class SynchronizedDispatchConnection<T> implements Receive<T>, Stoppable 
             } finally {
                 dispatching = false;
             }
+        } finally {
+            lock.unlock();
         }
     }
 
