@@ -17,7 +17,7 @@ class RootProject(model: CIBuildModel, functionalTestBucketProvider: FunctionalT
     id = AbsoluteId(uuid)
     parentId = AbsoluteId("Gradle")
     name = model.rootProjectName
-    val performanceTestBucketProvider = StatisticsBasedPerformanceTestBucketProvider(model, File("performance-test-runtimes.csv"), File("performance-tests-ci.json"))
+    val performanceTestBucketProvider = StatisticsBasedPerformanceTestBucketProvider(model, File("performance-test-runtimes.json"), File("performance-tests-ci.json"))
 
     features {
         versionedSettings {
