@@ -44,8 +44,8 @@ public class AllResultsStore implements ResultsStore, Closeable {
     }
 
     @Override
-    public Map<PerformanceExperiment, Long> getEstimatedExperimentTimes(OperatingSystem operatingSystem) {
-        return store.getEstimatedExperimentTimes(operatingSystem);
+    public Map<PerformanceExperiment, Long> getEstimatedExperimentTimesInMillis(OperatingSystem operatingSystem) {
+        return store.getEstimatedExperimentTimesInMillis(operatingSystem);
     }
 
     @Override

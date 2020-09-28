@@ -36,5 +36,8 @@ public interface ResultsStore extends Closeable {
      */
     PerformanceTestHistory getTestResults(PerformanceExperiment experiment, int mostRecentN, int maxDaysOld, String channel);
 
-    Map<PerformanceExperiment, Long> getEstimatedExperimentTimes(OperatingSystem operatingSystem);
+    /**
+     * Returns the estimated runtime for each experiment in milliseconds.
+     */
+    Map<PerformanceExperiment, Long> getEstimatedExperimentTimesInMillis(OperatingSystem operatingSystem);
 }

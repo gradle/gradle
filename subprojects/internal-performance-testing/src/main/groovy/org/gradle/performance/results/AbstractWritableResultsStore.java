@@ -62,7 +62,7 @@ public abstract class AbstractWritableResultsStore<T extends PerformanceTestResu
         "order by last.testClass,last.testId,last.testProject";
 
     @Override
-    public Map<PerformanceExperiment, Long> getEstimatedExperimentTimes(OperatingSystem operatingSystem) {
+    public Map<PerformanceExperiment, Long> getEstimatedExperimentTimesInMillis(OperatingSystem operatingSystem) {
         return withConnection("load estimated runtimes", connection -> {
             Timestamp since = Timestamp.valueOf(LocalDateTime.now().minusDays(LATEST_EXECUTION_TIMES_DAYS));
             ImmutableMap.Builder<PerformanceExperiment, Long> builder = ImmutableMap.builder();

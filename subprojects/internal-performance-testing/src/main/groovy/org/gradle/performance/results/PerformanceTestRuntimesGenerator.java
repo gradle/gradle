@@ -34,7 +34,7 @@ public class PerformanceTestRuntimesGenerator {
 
     public void generate(File runtimesFile) throws IOException {
         AllResultsStore resultsStore = new AllResultsStore();
-        Map<PerformanceExperiment, Long> estimatedExperimentTimes = resultsStore.getEstimatedExperimentTimes(OperatingSystem.LINUX);
+        Map<PerformanceExperiment, Long> estimatedExperimentTimes = resultsStore.getEstimatedExperimentTimesInMillis(OperatingSystem.LINUX);
         Map<PerformanceScenario, List<Map.Entry<PerformanceExperiment, Long>>> performanceScenarioMap =
             estimatedExperimentTimes.entrySet().stream()
                 .collect(Collectors.groupingBy(
