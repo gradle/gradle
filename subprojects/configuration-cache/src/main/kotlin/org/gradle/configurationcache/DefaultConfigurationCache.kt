@@ -61,8 +61,7 @@ class DefaultConfigurationCache internal constructor(
     private val scopeRegistryListener: ConfigurationCacheClassLoaderScopeRegistryListener,
     private val cacheFingerprintController: ConfigurationCacheFingerprintController,
     private val beanConstructors: BeanConstructors,
-    private val gradlePropertiesController: GradlePropertiesController,
-    private val relevantProjectsRegistry: RelevantProjectsRegistry
+    private val gradlePropertiesController: GradlePropertiesController
 ) : ConfigurationCache {
 
     interface Host {
@@ -106,8 +105,7 @@ class DefaultConfigurationCache internal constructor(
             false
         }
         else -> {
-            val checkedFingerprint = checkFingerprint()
-            when (checkedFingerprint) {
+            when (val checkedFingerprint = checkFingerprint()) {
                 is CheckedFingerprint.NotFound -> {
                     logBootstrapSummary(
                         "Calculating task graph as no configuration cache is available for tasks: {}",
