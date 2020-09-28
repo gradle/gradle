@@ -12,9 +12,11 @@ class SmokeTests(model: CIBuildModel, stage: Stage, testJava: JvmCategory, task:
     name = "Smoke Tests with 3rd Party Plugins ($task) - ${testJava.version.name.capitalize()} Linux"
     description = "Smoke tests against third party plugins to see if they still work with the current Gradle version"
 
+    val buildJavaHome = LINUX.buildJavaHome()
+    val testJavaHome = LINUX.javaHome(testJava.version, testJava.vendor)
     params {
         param("env.ANDROID_HOME", LINUX.androidHome)
-        param("env.JAVA_HOME", LINUX.buildJavaHome())
+        param("env.JAVA_HOME", buildJavaHome)
     }
 
     features {
@@ -27,6 +29,6 @@ class SmokeTests(model: CIBuildModel, stage: Stage, testJava: JvmCategory, task:
         ":smoke-test:$task",
         timeout = 120,
         notQuick = true,
-        extraParameters = buildScanTag("SmokeTests") + " -PtestJavaHome=%linux.${testJava.version.name}.${testJava.vendor.name}.64bit%"
+        extraParameters = buildScanTag("SmokeTests") + " -PtestJavaHome=$testJavaHome" + explicitToolchains("$buildJavaHome,$testJavaHome")
     )
 })

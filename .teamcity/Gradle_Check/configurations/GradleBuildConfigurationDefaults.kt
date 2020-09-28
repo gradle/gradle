@@ -223,3 +223,9 @@ fun applyDefaultDependencies(model: CIBuildModel, buildType: BuildType, notQuick
         }
     }
 }
+
+fun explicitToolchains(paths: String) = listOf(
+    // Disable toolchain detection and rely on explicit references
+    "-Porg.gradle.java.installations.auto-detect=false",
+    "-Porg.gradle.java.installations.auto-download=false",
+    """"-Porg.gradle.java.installations.paths=$paths"""")

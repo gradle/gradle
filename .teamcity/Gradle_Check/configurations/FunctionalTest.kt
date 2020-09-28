@@ -1,5 +1,7 @@
 package configurations
 
+import Gradle_Check.model.slowSubprojects
+import common.JvmVendor
 import common.Os
 import jetbrains.buildServer.configs.kotlin.v2019_2.AbsoluteId
 import jetbrains.buildServer.configs.kotlin.v2019_2.BuildSteps
@@ -42,9 +44,13 @@ class FunctionalTest(
 
     val enableTestDistribution = testCoverage.testDistribution
 
+    val buildJavaHome = testCoverage.os.javaHome(testCoverage.buildJvmVersion, JvmVendor.openjdk)
+    val testJavaHome = testCoverage.os.javaHome(testCoverage.testJvmVersion, testCoverage.vendor)
+
     applyTestDefaults(model, this, testTasks, notQuick = !testCoverage.isQuick, os = testCoverage.os,
         extraParameters = (
-            listOf(""""-PtestJavaHome=${testCoverage.os.javaHome(testCoverage.testJvmVersion, testCoverage.vendor)}"""") +
+            listOf(""""-PtestJavaHome=$testJavaHome"""") +
+                explicitToolchains("$testJavaHome,$buildJavaHome") +
                 buildScanTags.map { buildScanTag(it) } +
                 buildScanValues.map { buildScanCustomValue(it.key, it.value) } +
                 if (enableExperimentalTestDistribution(testCoverage, subprojects)) "-DenableTestDistribution=%enableTestDistribution%" else "" +
@@ -59,7 +65,7 @@ class FunctionalTest(
             param("env.GRADLE_ENTERPRISE_ACCESS_KEY", "%e.grdev.net.access.key%")
         }
 
-        param("env.JAVA_HOME", "%${testCoverage.os.name.toLowerCase()}.${testCoverage.buildJvmVersion}.openjdk.64bit%")
+        param("env.JAVA_HOME", buildJavaHome)
         param("env.ANDROID_HOME", testCoverage.os.androidHome)
         if (testCoverage.os == Os.MACOS) {
             // Use fewer parallel forks on macOs, since the agents are not very powerful.
