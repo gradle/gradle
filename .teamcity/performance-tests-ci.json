@@ -547,6 +547,40 @@
             ]
         },
         {
+            "testId" : "org.gradle.performance.regression.corefeature.FileSystemWatchingPerformanceTest.non-abi change with file system watching",
+            "groups" : [
+                {
+                    "testProject" : "santaTrackerAndroidBuild",
+                    "coverage" : {
+                        "test":  ["linux", "windows", "macOs"]
+                    }
+                },
+                {
+                    "testProject" : "largeJavaMultiProject",
+                    "coverage" : {
+                        "test":  ["linux", "windows", "macOs"]
+                    }
+                }
+            ]
+        },
+        {
+            "testId" : "org.gradle.performance.regression.corefeature.FileSystemWatchingPerformanceTest.abi change with file system watching",
+            "groups" : [
+                {
+                    "testProject" : "santaTrackerAndroidBuild",
+                    "coverage" : {
+                        "test":  ["linux", "windows", "macOs"]
+                    }
+                },
+                {
+                    "testProject" : "largeJavaMultiProject",
+                    "coverage" : {
+                        "test":  ["linux", "windows", "macOs"]
+                    }
+                }
+            ]
+        },
+        {
             "testId" : "org.gradle.performance.regression.corefeature.IdeIntegrationPerformanceTest.eclipse",
             "groups" : [
                 {

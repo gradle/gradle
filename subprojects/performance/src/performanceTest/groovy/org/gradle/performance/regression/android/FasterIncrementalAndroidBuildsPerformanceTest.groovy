@@ -24,6 +24,8 @@ import org.gradle.internal.scan.config.fixtures.ApplyGradleEnterprisePluginFixtu
 import org.gradle.performance.AbstractCrossBuildPerformanceTest
 import org.gradle.performance.categories.PerformanceExperiment
 import org.gradle.performance.fixture.GradleBuildExperimentSpec
+import org.gradle.performance.generator.AndroidTestProject
+import org.gradle.performance.generator.IncrementalAndroidTestProject
 import org.gradle.profiler.BuildMutator
 import org.gradle.profiler.InvocationSettings
 import org.gradle.profiler.ScenarioContext
@@ -32,7 +34,7 @@ import org.gradle.profiler.mutations.ClearConfigurationCacheStateMutator
 import org.gradle.profiler.mutations.ClearProjectCacheMutator
 import org.junit.experimental.categories.Category
 
-import static org.gradle.performance.regression.android.IncrementalAndroidTestProject.SANTA_TRACKER_KOTLIN
+import static org.gradle.performance.generator.IncrementalAndroidTestProject.SANTA_TRACKER_KOTLIN
 
 @Category(PerformanceExperiment)
 class FasterIncrementalAndroidBuildsPerformanceTest extends AbstractCrossBuildPerformanceTest {
@@ -67,7 +69,7 @@ class FasterIncrementalAndroidBuildsPerformanceTest extends AbstractCrossBuildPe
     }
 
     private IncrementalAndroidTestProject getTestProject() {
-        AndroidTestProject.getAndroidTestProject(runner.testProject) as IncrementalAndroidTestProject
+        AndroidTestProject.projectFor(runner.testProject) as IncrementalAndroidTestProject
     }
 
     private void buildSpecForSupportedOptimizations(IncrementalAndroidTestProject testProject, @DelegatesTo(GradleBuildExperimentSpec.GradleBuilder) Closure scenarioConfiguration) {

@@ -16,10 +16,11 @@
 
 package org.gradle.performance.regression.android
 
-
+import org.gradle.performance.generator.AndroidTestProject
+import org.gradle.performance.generator.IncrementalAndroidTestProject
 import spock.lang.Unroll
 
-import static org.gradle.performance.regression.android.AndroidTestProject.K9_ANDROID
+import static org.gradle.performance.generator.AndroidTestProject.K9_ANDROID
 
 class RealLifeAndroidBuildPerformanceTest extends AbstractRealLifeAndroidBuildPerformanceTest {
     @Unroll

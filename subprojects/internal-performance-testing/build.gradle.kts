@@ -34,6 +34,9 @@ dependencies {
     api(libs.gradleProfiler) {
         because("Consumers need to instantiate BuildMutators")
     }
+    compileOnly("com.github.javaparser:javaparser-core:3.1.3") {
+        because("The Groovy compiler inspects the dependencies at compile time")
+    }
 
     api(libs.jettyWebApp)
 

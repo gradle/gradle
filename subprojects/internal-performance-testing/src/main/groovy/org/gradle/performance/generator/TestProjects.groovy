@@ -72,4 +72,9 @@ class TestProjects {
                 return JavaTestProject.projectFor(testProject).daemonMemory
         }
     }
+
+    static <T extends TestProject> T projectFor(String testProject) {
+        (AndroidTestProject.findProjectFor(testProject) ?:
+            JavaTestProject.projectFor(testProject)) as T
+    }
 }

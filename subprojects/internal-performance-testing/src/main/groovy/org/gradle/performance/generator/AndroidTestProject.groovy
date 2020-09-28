@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.performance.regression.android
+package org.gradle.performance.generator
 
 import org.gradle.integtests.fixtures.versions.AndroidGradlePluginVersions
 import org.gradle.performance.fixture.CrossVersionPerformanceTestRunner
@@ -23,7 +23,9 @@ import org.gradle.profiler.InvocationSettings
 import org.gradle.profiler.mutations.ApplyAbiChangeToSourceFileMutator
 import org.gradle.profiler.mutations.ApplyNonAbiChangeToSourceFileMutator
 
-class AndroidTestProject {
+import javax.annotation.Nullable
+
+class AndroidTestProject implements TestProject {
 
     public static final LARGE_ANDROID_BUILD = new AndroidTestProject(
         templateName: 'largeAndroidBuild',
@@ -45,21 +47,25 @@ class AndroidTestProject {
     String templateName
     String memory
 
-    static getAndroidTestProject(String testProject) {
-        def foundProject = ANDROID_TEST_PROJECTS.find { it.templateName == testProject }
+    static AndroidTestProject projectFor(String testProject) {
+        def foundProject = findProjectFor(testProject)
         if (!foundProject) {
             throw new IllegalArgumentException("Android project ${testProject} not found")
         }
         return foundProject
     }
 
+    @Nullable
+    static AndroidTestProject findProjectFor(String testProject) {
+        return ANDROID_TEST_PROJECTS.find { it.templateName == testProject }
+    }
+
+    @Override
     void configure(CrossVersionPerformanceTestRunner runner) {
-        runner.testProject = templateName
         runner.gradleOpts = ["-Xms$memory", "-Xmx$memory"]
     }
 
     void configure(GradleBuildExperimentSpec.GradleBuilder builder) {
-        builder.projectName(templateName)
         builder.invocation {
             gradleOpts("-Xms$memory", "-Xmx$memory")
         }
@@ -71,7 +77,7 @@ class AndroidTestProject {
     }
 }
 
-class IncrementalAndroidTestProject extends AndroidTestProject {
+class IncrementalAndroidTestProject extends AndroidTestProject implements IncrementalTestProject {
 
     private static final AndroidGradlePluginVersions AGP_VERSIONS = new AndroidGradlePluginVersions()
     private static final String ENABLE_AGP_IDE_MODE_ARG = "-Pandroid.injected.invoked.from.ide=true"
@@ -115,6 +121,7 @@ class IncrementalAndroidTestProject extends AndroidTestProject {
         builder.invocation.args("-DagpVersion=${AGP_VERSIONS.getLatestOfMinor(lowerBound)}")
     }
 
+    @Override
     void configureForAbiChange(CrossVersionPerformanceTestRunner runner) {
         configure(runner)
         runner.tasksToRun = [taskToRunForChange]
@@ -133,6 +140,7 @@ class IncrementalAndroidTestProject extends AndroidTestProject {
         }
     }
 
+    @Override
     void configureForNonAbiChange(CrossVersionPerformanceTestRunner runner) {
         configure(runner)
         runner.tasksToRun = [taskToRunForChange]
