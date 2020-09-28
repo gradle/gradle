@@ -20,10 +20,8 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.ExecutorFactory;
-import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.concurrent.ManagedExecutor;
-import org.gradle.internal.remote.internal.Connection;
-import org.gradle.internal.remote.internal.RemoteConnection;
+import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.logging.DaemonMessages;
 import org.gradle.launcher.daemon.protocol.Command;
@@ -51,19 +49,19 @@ public class DefaultIncomingConnectionHandler implements IncomingConnectionHandl
     private final ExecutorFactory executorFactory;
     private final Lock lock = new ReentrantLock();
     private final Condition condition = lock.newCondition();
-    private final Set<Connection<?>> inProgress = new HashSet<Connection<?>>();
+    private final Set<SynchronizedDispatchConnection<Message>> inProgress = new HashSet<>();
 
     public DefaultIncomingConnectionHandler(DaemonCommandExecuter commandExecuter, DaemonContext daemonContext, DaemonStateControl daemonStateControl, ExecutorFactory executorFactory, byte[] token) {
         this.commandExecuter = commandExecuter;
         this.daemonContext = daemonContext;
         this.daemonStateControl = daemonStateControl;
         this.executorFactory = executorFactory;
-        workers = executorFactory.create("Daemon");
+        this.workers = executorFactory.create("Daemon");
         this.token = token;
     }
 
     @Override
-    public void handle(final RemoteConnection<Message> connection) {
+    public void handle(SynchronizedDispatchConnection<Message> connection) {
         // Mark the connection has being handled
         onStartHandling(connection);
 
@@ -73,7 +71,7 @@ public class DefaultIncomingConnectionHandler implements IncomingConnectionHandl
         workers.execute(new ConnectionWorker(connection));
     }
 
-    private void onStartHandling(Connection<?> connection) {
+    private void onStartHandling(SynchronizedDispatchConnection<Message> connection) {
         lock.lock();
         try {
             inProgress.add(connection);
@@ -82,7 +80,7 @@ public class DefaultIncomingConnectionHandler implements IncomingConnectionHandl
         }
     }
 
-    private void onFinishHandling(Connection<?> connection) {
+    private void onFinishHandling(SynchronizedDispatchConnection<Message> connection) {
         lock.lock();
         try {
             inProgress.remove(connection);
@@ -112,9 +110,9 @@ public class DefaultIncomingConnectionHandler implements IncomingConnectionHandl
     }
 
     private class ConnectionWorker implements Runnable {
-        private final RemoteConnection<Message> connection;
+        private final SynchronizedDispatchConnection<Message> connection;
 
-        public ConnectionWorker(RemoteConnection<Message> connection) {
+        public ConnectionWorker(SynchronizedDispatchConnection<Message> connection) {
             this.connection = connection;
         }
 

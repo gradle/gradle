@@ -16,11 +16,12 @@
 
 package org.gradle.launcher.daemon.server
 
-import org.gradle.launcher.daemon.protocol.CloseInput
-import org.gradle.launcher.daemon.protocol.ForwardInput
-import org.gradle.launcher.daemon.server.api.StdinHandler
 import org.gradle.internal.remote.internal.MessageIOException
 import org.gradle.internal.remote.internal.RemoteConnection
+import org.gradle.launcher.daemon.protocol.CloseInput
+import org.gradle.launcher.daemon.protocol.ForwardInput
+import org.gradle.launcher.daemon.protocol.Message
+import org.gradle.launcher.daemon.server.api.StdinHandler
 import org.gradle.util.ConcurrentSpecification
 
 import java.util.concurrent.CountDownLatch
@@ -28,7 +29,7 @@ import java.util.concurrent.TimeUnit
 
 class DefaultDaemonConnectionTest extends ConcurrentSpecification {
     final TestConnection connection = new TestConnection()
-    final DefaultDaemonConnection daemonConnection = new DefaultDaemonConnection(connection, executorFactory)
+    final DefaultDaemonConnection daemonConnection = new DefaultDaemonConnection(new SynchronizedDispatchConnection<Message>(connection), executorFactory)
 
     def cleanup() {
         connection.disconnect()
@@ -242,7 +243,7 @@ class DefaultDaemonConnectionTest extends ConcurrentSpecification {
         daemonConnection.stop()
 
         then:
-        result == ["incoming1", "incoming2", "incoming3"]
+        result*.message == ["incoming1", "incoming2", "incoming3"]
     }
 
     def "receive blocks until message available"() {
@@ -262,7 +263,8 @@ class DefaultDaemonConnectionTest extends ConcurrentSpecification {
         received.await()
 
         then:
-        result == "incoming"
+        result instanceof Received
+        result.message == "incoming"
     }
 
     def "receive blocks until connection stopped"() {
@@ -344,15 +346,16 @@ class DefaultDaemonConnectionTest extends ConcurrentSpecification {
         daemonConnection.stop()
 
         then:
-        result == ["incoming1", "incoming2"]
+        result*.message == ["incoming1", "incoming2"]
     }
 
-    static class TestConnection implements RemoteConnection<Object> {
-        final Object lock = new Object()
-        final Object endInput = new Object()
-        final LinkedList<Object> receiveQueue = new LinkedList<Object>()
+    static class TestConnection implements RemoteConnection<Message> {
+        private final def lock = new Object()
+        private final def endInput = new Received("end")
+        private final def receiveQueue = new LinkedList<Message>()
 
-        void dispatch(Object message) {
+        @Override
+        void dispatch(Message message) throws MessageIOException {
             throw new UnsupportedOperationException()
         }
 
@@ -361,7 +364,11 @@ class DefaultDaemonConnectionTest extends ConcurrentSpecification {
             throw new UnsupportedOperationException()
         }
 
-        void queueIncoming(Object message) {
+        void queueIncoming(String message) {
+            queueIncoming(new Received(message))
+        }
+
+        void queueIncoming(Message message) {
             synchronized (lock) {
                 receiveQueue << message
                 lock.notifyAll()
@@ -369,18 +376,18 @@ class DefaultDaemonConnectionTest extends ConcurrentSpecification {
         }
 
         void queueBroken(Throwable failure = new RuntimeException()) {
-            queueIncoming(failure)
+            queueIncoming(new Failure(failure))
         }
 
-        Object receive() {
+        Message receive() {
             synchronized (lock) {
                 while (receiveQueue.empty) {
                     lock.wait()
                 }
                 def message = receiveQueue.removeFirst()
-                if (message instanceof Throwable) {
-                    message.fillInStackTrace()
-                    throw message
+                if (message instanceof Failure) {
+                    message.failure.fillInStackTrace()
+                    throw message.failure
                 }
                 return message == endInput ? null : message
             }
@@ -392,6 +399,22 @@ class DefaultDaemonConnectionTest extends ConcurrentSpecification {
 
         void disconnect() {
             queueIncoming(endInput)
+        }
+    }
+
+    private static class Failure extends Message {
+        final Throwable failure
+
+        Failure(Throwable failure) {
+            this.failure = failure
+        }
+    }
+
+    private static class Received extends Message {
+        final String message
+
+        Received(String message) {
+            this.message = message
         }
     }
 }
