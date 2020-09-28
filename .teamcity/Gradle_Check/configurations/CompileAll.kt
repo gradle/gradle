@@ -23,7 +23,7 @@ class CompileAll(model: CIBuildModel, stage: Stage) : BaseGradleBuildType(model,
         model,
         this,
         "compileAllBuild -PignoreIncomingBuildReceipt=true -DdisableLocalCache=true",
-        extraParameters = buildScanTag("CompileAll")
+        extraParameters = buildScanTag("CompileAll") + explicitToolchains(LINUX.buildJavaHome()).joinToString(separator = " ")
     )
 
     artifactRules = """$artifactRules

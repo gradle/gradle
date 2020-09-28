@@ -11,8 +11,9 @@ class SanityCheck(model: CIBuildModel, stage: Stage) : BaseGradleBuildType(model
     name = "Sanity Check"
     description = "Static code analysis, checkstyle, release notes verification, etc."
 
+    val javaHome = LINUX.buildJavaHome()
     params {
-        param("env.JAVA_HOME", LINUX.buildJavaHome())
+        param("env.JAVA_HOME", javaHome)
     }
 
     features {
@@ -24,7 +25,7 @@ class SanityCheck(model: CIBuildModel, stage: Stage) : BaseGradleBuildType(model
             model,
             this,
             "sanityCheck",
-            extraParameters = "-DenableCodeQuality=true ${buildScanTag("SanityCheck")}"
+            extraParameters = "-DenableCodeQuality=true ${buildScanTag("SanityCheck")}" + explicitToolchains(javaHome).joinToString(" ")
     )
 }) {
     companion object {

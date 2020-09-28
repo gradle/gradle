@@ -19,10 +19,7 @@ package Gradle_Check.configurations
 import Gradle_Check.model.PerformanceTestProjectSpec
 import common.Os
 import common.applyDefaultSettings
-import configurations.BaseGradleBuildType
-import configurations.gradleRunnerStep
-import configurations.publishBuildStatusToGithub
-import configurations.snapshotDependencies
+import configurations.*
 import jetbrains.buildServer.configs.kotlin.v2019_2.AbsoluteId
 import jetbrains.buildServer.configs.kotlin.v2019_2.ReuseBuilds
 import model.CIBuildModel
@@ -71,7 +68,8 @@ subprojects/$performanceProjectName/build/performance-test-results.zip
                 "-Porg.gradle.performance.db.url" to "%performance.db.url%",
                 "-Porg.gradle.performance.db.username" to "%performance.db.username%",
                 "-Porg.gradle.performance.db.password" to "%performance.db.password.tcagent%"
-            ).joinToString(" ") { (key, value) -> os.escapeKeyValuePair(key, value) }
+            ).joinToString(" ") { (key, value) -> os.escapeKeyValuePair(key, value) } +
+                explicitToolchains(os.buildJavaHome()).joinToString(" ")
         )
     }
 

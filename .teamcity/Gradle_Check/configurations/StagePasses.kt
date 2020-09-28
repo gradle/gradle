@@ -63,8 +63,9 @@ class StagePasses(model: CIBuildModel, stage: Stage, prevStage: Stage?, stagePro
         }
     }
 
+    val buildJavaHome = LINUX.buildJavaHome()
     params {
-        param("env.JAVA_HOME", LINUX.buildJavaHome())
+        param("env.JAVA_HOME", buildJavaHome)
     }
 
     val baseBuildType = this
@@ -73,7 +74,8 @@ class StagePasses(model: CIBuildModel, stage: Stage, prevStage: Stage?, stagePro
     val defaultGradleParameters = (
         buildToolGradleParameters() +
             baseBuildType.buildCache.gradleParameters(LINUX) +
-            buildScanTags.map(::buildScanTag)
+            buildScanTags.map(::buildScanTag) +
+            explicitToolchains(buildJavaHome)
         ).joinToString(" ")
     steps {
         gradleWrapper {
