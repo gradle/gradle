@@ -105,7 +105,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
     public void addNodes(Collection<? extends Node> nodes) {
         Deque<Node> queue = new ArrayDeque<>(nodes);
         for (Node node : nodes) {
-            assert node.getDependenciesProcessed();
+            assert node.getDependenciesProcessed() || node instanceof TaskInAnotherBuild;
             assert node.isInKnownState();
             if (node.isRequired()) {
                 entryNodes.add(node);

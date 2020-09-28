@@ -24,6 +24,7 @@ import org.gradle.configurationcache.serialization.ReadContext
 import org.gradle.configurationcache.serialization.WriteContext
 import org.gradle.configurationcache.serialization.readNonNull
 import org.gradle.configurationcache.serialization.withGradleIsolate
+import org.gradle.execution.plan.TaskInAnotherBuild
 
 
 internal
@@ -99,7 +100,9 @@ class WorkNodeCodec(
             isRequired -> node.require()
             else -> node.mustNotRun() // finalizer nodes and their dependencies
         }
-        node.dependenciesProcessed()
+        if (node !is TaskInAnotherBuild) {
+            node.dependenciesProcessed()
+        }
     }
 
     private
