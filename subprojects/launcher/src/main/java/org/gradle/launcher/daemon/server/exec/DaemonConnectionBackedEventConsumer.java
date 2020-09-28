@@ -49,6 +49,10 @@ class DaemonConnectionBackedEventConsumer implements BuildEventConsumer {
         private volatile boolean stopped;
         private boolean ableToSend = true;
 
+        public ForwardEvents() {
+            super("Daemon client event forwarder");
+        }
+
         @Override
         public void run() {
             while (moreMessagesToSend()) {
