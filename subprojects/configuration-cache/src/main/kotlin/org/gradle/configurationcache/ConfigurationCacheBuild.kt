@@ -36,5 +36,7 @@ interface ConfigurationCacheBuild {
 
     fun scheduleNodes(nodes: Collection<Node>)
 
+    fun prepareForTaskExecution()
+
     fun addIncludedBuild(buildDefinition: BuildDefinition): Pair<IncludedBuildState, ConfigurationCacheBuild>
 }

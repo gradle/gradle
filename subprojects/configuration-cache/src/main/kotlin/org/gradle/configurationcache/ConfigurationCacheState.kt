@@ -23,7 +23,6 @@ import org.gradle.api.internal.BuildDefinition
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.provider.Provider
 import org.gradle.caching.configuration.BuildCache
-import org.gradle.composite.internal.IncludedBuildControllers
 import org.gradle.configurationcache.problems.DocumentationSection.NotYetImplementedSourceDependencies
 import org.gradle.configurationcache.serialization.DefaultReadContext
 import org.gradle.configurationcache.serialization.DefaultWriteContext
@@ -67,7 +66,7 @@ class ConfigurationCacheState(
         writeInt(0x1ecac8e)
     }
 
-    suspend fun DefaultReadContext.readState(createBuild: (String) -> ConfigurationCacheBuild) {
+    suspend fun DefaultReadContext.readRootBuildState(createBuild: (String) -> ConfigurationCacheBuild) {
         readRootBuild(createBuild)
         require(readInt() == 0x1ecac8e) {
             "corrupt state file"
@@ -90,6 +89,7 @@ class ConfigurationCacheState(
         val build = createBuild(rootProjectName)
         readBuildTreeState(build.gradle)
         readBuildState(build)
+        build.prepareForTaskExecution()
     }
 
     internal
@@ -120,9 +120,6 @@ class ConfigurationCacheState(
             readWork()
         }
 
-        if (build.gradle.isRootBuild) {
-            build.gradle.serviceOf<IncludedBuildControllers>().populateTaskGraphs()
-        }
         build.scheduleNodes(scheduledNodes)
     }
 

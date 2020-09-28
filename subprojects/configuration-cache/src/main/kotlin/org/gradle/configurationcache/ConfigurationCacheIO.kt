@@ -73,7 +73,7 @@ class ConfigurationCacheIO internal constructor(
     fun readConfigurationCacheState(stateFile: File) {
         withReadContextFor(stateFile) { codecs ->
             ConfigurationCacheState(codecs, stateFile).run {
-                readState(host::createBuild)
+                readRootBuildState(host::createBuild)
             }
         }
     }

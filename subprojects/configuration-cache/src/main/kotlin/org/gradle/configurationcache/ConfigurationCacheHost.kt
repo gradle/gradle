@@ -173,7 +173,9 @@ class ConfigurationCacheHost internal constructor(
                 addNodes(nodes)
                 populate()
             }
+        }
 
+        override fun prepareForTaskExecution() {
             // Fire build operation required by build scan to determine when task execution starts
             // Currently this operation is not around the actual task graph calculation/populate for configuration cache (just to make this a smaller step)
             // This might be better done as a new build operation type
@@ -190,6 +192,7 @@ class ConfigurationCacheHost internal constructor(
 
         override fun addIncludedBuild(buildDefinition: BuildDefinition): Pair<IncludedBuildState, ConfigurationCacheBuild> {
             val includedBuild = service<BuildStateRegistry>().addIncludedBuild(buildDefinition) as IncludedBuildState
+            includedBuild.markConfiguredByCache()
             return includedBuild to includedBuild.withState { includedGradle ->
                 includedGradle.serviceOf<ConfigurationCacheHost>().createBuild(includedBuild.name)
             }

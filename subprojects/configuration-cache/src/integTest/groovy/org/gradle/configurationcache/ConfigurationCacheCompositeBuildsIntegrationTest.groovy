@@ -79,7 +79,7 @@ class ConfigurationCacheCompositeBuildsIntegrationTest extends AbstractConfigura
 
         and: 'rerunning the build'
         inDirectory 'app'
-        configurationCacheRunLenient 'run', '-q'
+        configurationCacheRunLenient 'run'
 
         then: 'it should pick up the changes'
         outputContains 'After!'
