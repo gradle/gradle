@@ -17,7 +17,6 @@
 package org.gradle.performance.results;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.ImmutableMap;
 
 import java.io.File;
 import java.io.IOException;
@@ -34,7 +33,7 @@ public class PerformanceTestRuntimesGenerator {
 
     public void generate(File runtimesFile) throws IOException {
         AllResultsStore resultsStore = new AllResultsStore();
-        Map<PerformanceExperiment, Long> estimatedExperimentTimes = resultsStore.getEstimatedExperimentTimes(OperatingSystem.LINUX);
+        Map<PerformanceExperiment, Long> estimatedExperimentTimes = resultsStore.getEstimatedExperimentTimesInMillis(OperatingSystem.LINUX);
         Map<PerformanceScenario, List<Map.Entry<PerformanceExperiment, Long>>> performanceScenarioMap =
             estimatedExperimentTimes.entrySet().stream()
                 .collect(Collectors.groupingBy(
@@ -42,17 +41,20 @@ public class PerformanceTestRuntimesGenerator {
                     LinkedHashMap::new,
                     Collectors.toList())
                 );
-        List<Map<String, Object>> json = performanceScenarioMap.entrySet().stream()
+        List<PerformanceScenarioRuntimes> json = performanceScenarioMap.entrySet().stream()
             .map(entry -> {
                 PerformanceScenario scenario = entry.getKey();
                 List<Map.Entry<PerformanceExperiment, Long>> times = entry.getValue();
-                return ImmutableMap.of(
-                    "scenario", scenario.getClassName() + "." + scenario.getTestName(),
-                    "runtimes", times.stream()
-                        .map(experimentEntry -> ImmutableMap.of(
-                            "testProject", experimentEntry.getKey().getTestProject(),
-                            "linux", experimentEntry.getValue()
-                        ))
+                return new PerformanceScenarioRuntimes(
+                    scenario.getClassName() + "." + scenario.getTestName(),
+                    times.stream()
+                        .map(experimentEntry -> new TestProjectRuntime(
+                            experimentEntry.getKey().getTestProject(),
+                            experimentEntry.getValue(),
+                            null,
+                            null
+                            )
+                        )
                         .collect(Collectors.toList())
                 );
             })

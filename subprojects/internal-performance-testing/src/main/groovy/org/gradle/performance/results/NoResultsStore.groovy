@@ -44,7 +44,7 @@ class NoResultsStore<T extends PerformanceTestResult> implements WritableResults
     }
 
     @Override
-    Map<PerformanceExperiment, Long> getEstimatedExperimentTimes(OperatingSystem operatingSystem) {
+    Map<PerformanceExperiment, Long> getEstimatedExperimentTimesInMillis(OperatingSystem operatingSystem) {
         return Collections.emptyMap()
     }
 
