@@ -52,15 +52,17 @@ import org.gradle.kotlin.dsl.support.serviceOf
 import org.gradle.plugin.management.internal.PluginRequests
 import org.gradle.tooling.events.OperationCompletionListener
 import org.gradle.vcs.internal.VcsMappingsStore
+import java.io.File
 import java.util.ArrayList
 
 
 internal
 class ConfigurationCacheState(
-    val codecs: Codecs
+    private val codecs: Codecs,
+    private val stateFile: File
 ) {
 
-    suspend fun DefaultWriteContext.writeState(build: VintageGradleBuild) {
+    suspend fun DefaultWriteContext.writeRootBuildState(build: VintageGradleBuild) {
         writeRootBuild(build)
         writeInt(0x1ecac8e)
     }
@@ -79,7 +81,7 @@ class ConfigurationCacheState(
             writeString(gradle.rootProject.name)
             writeBuildTreeState(gradle)
         }
-        writeBuildState(gradle, build)
+        writeBuildState(build)
     }
 
     private
@@ -90,21 +92,21 @@ class ConfigurationCacheState(
         readBuildState(build)
     }
 
-    private
-    suspend fun DefaultWriteContext.writeBuildState(gradle: GradleInternal, build: VintageGradleBuild) {
+    internal
+    suspend fun DefaultWriteContext.writeBuildState(build: VintageGradleBuild) {
         withDebugFrame({ "Gradle" }) {
-            writeGradleState(gradle)
+            writeGradleState(build.gradle)
         }
         withDebugFrame({ "Work Graph" }) {
             val scheduledNodes = build.scheduledWork
-            writeRelevantProjectsFor(scheduledNodes, gradle.serviceOf<RelevantProjectsRegistry>())
-            WorkNodeCodec(gradle, internalTypesCodec).run {
+            writeRelevantProjectsFor(scheduledNodes, build.gradle.serviceOf<RelevantProjectsRegistry>())
+            WorkNodeCodec(build.gradle, internalTypesCodec).run {
                 writeWork(scheduledNodes)
             }
         }
     }
 
-    private
+    internal
     suspend fun DefaultReadContext.readBuildState(build: ConfigurationCacheBuild) {
         readGradleState(build)
 
@@ -125,6 +127,26 @@ class ConfigurationCacheState(
     }
 
     private
+    suspend fun DefaultWriteContext.writeBuildTreeState(gradle: GradleInternal) {
+        withGradleIsolate(gradle, userTypesCodec) {
+            // per build tree
+            withDebugFrame({ "listener subscriptions" }) {
+                writeBuildEventListenerSubscriptions(gradle)
+            }
+            writeGradleEnterprisePluginManager(gradle)
+        }
+    }
+
+    private
+    suspend fun DefaultReadContext.readBuildTreeState(gradle: GradleInternal) {
+        withGradleIsolate(gradle, userTypesCodec) {
+            // per build tree
+            readBuildEventListenerSubscriptions(gradle)
+            readGradleEnterprisePluginManager(gradle)
+        }
+    }
+
+    private
     suspend fun DefaultWriteContext.writeGradleState(gradle: GradleInternal) {
         withGradleIsolate(gradle, userTypesCodec) {
             // per build
@@ -141,17 +163,6 @@ class ConfigurationCacheState(
     }
 
     private
-    suspend fun DefaultWriteContext.writeBuildTreeState(gradle: GradleInternal) {
-        withGradleIsolate(gradle, userTypesCodec) {
-            // per build tree
-            withDebugFrame({ "listener subscriptions" }) {
-                writeBuildEventListenerSubscriptions(gradle)
-            }
-            writeGradleEnterprisePluginManager(gradle)
-        }
-    }
-
-    private
     suspend fun DefaultReadContext.readGradleState(build: ConfigurationCacheBuild) {
         val gradle = build.gradle
         withGradleIsolate(gradle, userTypesCodec) {
@@ -159,15 +170,6 @@ class ConfigurationCacheState(
             readChildBuildsOf(build)
             readBuildCacheConfiguration(gradle)
             readBuildOutputCleanupRegistrations(gradle)
-        }
-    }
-
-    private
-    suspend fun DefaultReadContext.readBuildTreeState(gradle: GradleInternal) {
-        withGradleIsolate(gradle, userTypesCodec) {
-            // per build tree
-            readBuildEventListenerSubscriptions(gradle)
-            readGradleEnterprisePluginManager(gradle)
         }
     }
 
@@ -213,9 +215,8 @@ class ConfigurationCacheState(
             writeFile(buildRootDir)
             write(fromBuild)
         }
-        writeBuildState(
-            includedGradle,
-            includedGradle.serviceOf<DefaultConfigurationCache.Host>().currentBuild
+        includedGradle.serviceOf<ConfigurationCacheIO>().writeIncludedConfigurationCacheState(
+            stateFileFor(buildDefinition)
         )
     }
 
@@ -235,7 +236,10 @@ class ConfigurationCacheState(
         )
 
         val (includedBuild, confCacheBuild) = parentBuild.addIncludedBuild(buildDefinition)
-        readBuildState(confCacheBuild)
+        confCacheBuild.gradle.serviceOf<ConfigurationCacheIO>().readIncludedConfigurationCacheState(
+            stateFileFor(buildDefinition),
+            confCacheBuild
+        )
         return includedBuild
     }
 
@@ -324,6 +328,12 @@ class ConfigurationCacheState(
             build.createProject(projectPath, projectDir, buildDir)
         }
     }
+
+    private
+    fun stateFileFor(buildDefinition: BuildDefinition) =
+        stateFile.run {
+            resolveSibling("$name.${buildDefinition.name!!}")
+        }
 
     private
     val internalTypesCodec

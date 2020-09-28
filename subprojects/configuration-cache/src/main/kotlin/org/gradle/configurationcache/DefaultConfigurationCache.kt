@@ -25,25 +25,14 @@ import org.gradle.configurationcache.fingerprint.InvalidationReason
 import org.gradle.configurationcache.initialization.ConfigurationCacheBuildEnablement
 import org.gradle.configurationcache.initialization.ConfigurationCacheStartParameter
 import org.gradle.configurationcache.problems.ConfigurationCacheProblems
-import org.gradle.configurationcache.serialization.DefaultReadContext
 import org.gradle.configurationcache.serialization.DefaultWriteContext
 import org.gradle.configurationcache.serialization.IsolateOwner
-import org.gradle.configurationcache.serialization.LoggingTracer
-import org.gradle.configurationcache.serialization.Tracer
-import org.gradle.configurationcache.serialization.beans.BeanConstructors
-import org.gradle.configurationcache.serialization.codecs.Codecs
-import org.gradle.configurationcache.serialization.runReadOperation
-import org.gradle.configurationcache.serialization.runWriteOperation
 import org.gradle.configurationcache.serialization.withIsolate
 import org.gradle.initialization.ConfigurationCache
 import org.gradle.initialization.GradlePropertiesController
 import org.gradle.internal.Factory
 import org.gradle.internal.classpath.Instrumented
 import org.gradle.internal.operations.BuildOperationExecutor
-import org.gradle.internal.serialize.Encoder
-import org.gradle.internal.serialize.kryo.KryoBackedDecoder
-import org.gradle.internal.serialize.kryo.KryoBackedEncoder
-import org.gradle.kotlin.dsl.support.useToRun
 import org.gradle.util.IncubationLogger
 import java.io.File
 import java.io.OutputStream
@@ -58,8 +47,8 @@ class DefaultConfigurationCache internal constructor(
     private val problems: ConfigurationCacheProblems,
     private val systemPropertyListener: SystemPropertyAccessListener,
     private val scopeRegistryListener: ConfigurationCacheClassLoaderScopeRegistryListener,
+    private val cacheIO: ConfigurationCacheIO,
     private val cacheFingerprintController: ConfigurationCacheFingerprintController,
-    private val beanConstructors: BeanConstructors,
     private val gradlePropertiesController: GradlePropertiesController
 ) : ConfigurationCache {
 
@@ -185,7 +174,7 @@ class DefaultConfigurationCache internal constructor(
 
         buildOperationExecutor.withLoadOperation {
             cacheRepository.useForStateLoad(cacheKey.string) { stateFile ->
-                readConfigurationCacheState(stateFile)
+                cacheIO.readConfigurationCacheState(stateFile)
             }
         }
     }
@@ -199,30 +188,13 @@ class DefaultConfigurationCache internal constructor(
     private
     fun writeConfigurationCacheState(stateFile: File) {
         service<ProjectStateRegistry>().withMutableStateOfAllProjects {
-            val state = configurationCacheState()
-            writerContextFor(stateFile.outputStream(), "state", state.codecs).useToRun {
-                runWriteOperation {
-                    state.run {
-                        writeState(host.currentBuild)
-                    }
-                }
-            }
+            cacheIO.writeRootConfigurationCacheState(stateFile)
         }
     }
 
     private
-    fun readConfigurationCacheState(stateFile: File) {
-        val state = configurationCacheState()
-        withReadContextFor(stateFile, state.codecs) {
-            state.run {
-                readState(host::createBuild)
-            }
-        }
-    }
-
-    private
-    fun configurationCacheState() =
-        ConfigurationCacheState(codecs())
+    fun writeConfigurationCacheFingerprint(fingerprintFile: File) =
+        cacheFingerprintController.commitFingerprintTo(fingerprintFile)
 
     private
     fun startCollectingCacheFingerprint() {
@@ -237,14 +209,12 @@ class DefaultConfigurationCache internal constructor(
     }
 
     private
-    fun writeConfigurationCacheFingerprint(fingerprintFile: File) =
-        cacheFingerprintController.commitFingerprintTo(fingerprintFile)
-
-    private
-    fun cacheFingerprintWriterContextFor(outputStream: OutputStream) =
-        writerContextFor(outputStream, "fingerprint", codecs()).apply {
-            push(IsolateOwner.OwnerHost(host), codecs().userTypesCodec)
+    fun cacheFingerprintWriterContextFor(outputStream: OutputStream): DefaultWriteContext {
+        val (context, codecs) = cacheIO.writerContextFor(outputStream, "fingerprint")
+        return context.apply {
+            push(IsolateOwner.OwnerHost(host), codecs.userTypesCodec)
         }
+    }
 
     private
     fun checkFingerprint(fingerprintFile: File): InvalidationReason? {
@@ -254,12 +224,10 @@ class DefaultConfigurationCache internal constructor(
 
     private
     fun checkConfigurationCacheFingerprintFile(fingerprintFile: File): InvalidationReason? =
-        codecs().let { codecs ->
-            withReadContextFor(fingerprintFile, codecs) {
-                withIsolate(IsolateOwner.OwnerHost(host), codecs.userTypesCodec) {
-                    cacheFingerprintController.run {
-                        checkFingerprint()
-                    }
+        cacheIO.withReadContextFor(fingerprintFile) { codecs ->
+            withIsolate(IsolateOwner.OwnerHost(host), codecs.userTypesCodec) {
+                cacheFingerprintController.run {
+                    checkFingerprint()
                 }
             }
         }
@@ -275,84 +243,6 @@ class DefaultConfigurationCache internal constructor(
     fun invalidateConfigurationCacheState(layout: ConfigurationCacheRepository.Layout) {
         layout.fingerprint.delete()
     }
-
-    private
-    fun writerContextFor(outputStream: OutputStream, profile: String, codecs: Codecs) =
-        KryoBackedEncoder(outputStream).let { encoder ->
-            writeContextFor(
-                encoder,
-                if (logger.isDebugEnabled) LoggingTracer(profile, encoder::getWritePosition, logger)
-                else null,
-                codecs
-            )
-        }
-
-    private
-    fun <R> withReadContextFor(file: File, codecs: Codecs, readOperation: suspend DefaultReadContext.() -> R): R =
-        KryoBackedDecoder(file.inputStream()).use { decoder ->
-            readContextFor(decoder, codecs).run {
-                initClassLoader(javaClass.classLoader)
-                runReadOperation(readOperation)
-            }
-        }
-
-    private
-    fun writeContextFor(
-        encoder: Encoder,
-        tracer: Tracer?,
-        codecs: Codecs
-    ) = DefaultWriteContext(
-        codecs.userTypesCodec,
-        encoder,
-        scopeRegistryListener,
-        logger,
-        tracer,
-        problems
-    )
-
-    private
-    fun readContextFor(
-        decoder: KryoBackedDecoder,
-        codecs: Codecs
-    ) = DefaultReadContext(
-        codecs.userTypesCodec,
-        decoder,
-        service(),
-        beanConstructors,
-        logger,
-        problems
-    )
-
-    private
-    fun codecs(): Codecs =
-        Codecs(
-            directoryFileTreeFactory = service(),
-            fileCollectionFactory = service(),
-            fileLookup = service(),
-            propertyFactory = service(),
-            filePropertyFactory = service(),
-            fileResolver = service(),
-            instantiator = service(),
-            listenerManager = service(),
-            taskNodeFactory = service(),
-            fingerprinterRegistry = service(),
-            buildOperationExecutor = service(),
-            classLoaderHierarchyHasher = service(),
-            isolatableFactory = service(),
-            valueSnapshotter = service(),
-            buildServiceRegistry = service(),
-            managedFactoryRegistry = service(),
-            parameterScheme = service(),
-            actionScheme = service(),
-            attributesFactory = service(),
-            transformListener = service(),
-            transformationNodeRegistry = service(),
-            valueSourceProviderFactory = service(),
-            patternSetFactory = factory(),
-            fileOperations = service(),
-            fileFactory = service(),
-            includedTaskGraph = service()
-        )
 
     private
     fun logBootstrapSummary(message: String, vararg args: Any?) {
@@ -376,10 +266,6 @@ class DefaultConfigurationCache internal constructor(
         host.service<T>()
 
     private
-    inline fun <reified T> factory() =
-        host.factory(T::class.java)
-
-    private
     val isConfigurationCacheEnabled: Boolean
         get() = buildEnablement.isEnabledForCurrentBuild
 
@@ -397,5 +283,5 @@ inline fun <reified T> DefaultConfigurationCache.Host.service(): T =
     service(T::class.java)
 
 
-private
+internal
 val logger = Logging.getLogger(DefaultConfigurationCache::class.java)
