@@ -488,6 +488,10 @@ public class DefaultExecutionPlan implements ExecutionPlan {
     }
 
     public List<Node> getScheduledNodes() {
+        return ImmutableList.copyOf(nodeMapping.nodes);
+    }
+
+    public List<Node> getScheduledNodesPlusDependencies() {
         Set<Node> nodes = nodeMapping.nodes;
         ImmutableList.Builder<Node> builder = ImmutableList.<Node>builder();
         for (Node node : dependenciesWhichRequireMonitoring) {
