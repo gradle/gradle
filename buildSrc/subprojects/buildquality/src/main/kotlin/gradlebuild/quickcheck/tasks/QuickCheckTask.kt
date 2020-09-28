@@ -37,6 +37,9 @@ abstract class QuickCheckTask : DefaultTask() {
 
         project.configurations.create("quickCheck")
         val checks = Check.values().filter { it.filter(changedFiles).isNotEmpty() }
+        if (checks.isNotEmpty()) {
+            project.repositories.mavenCentral()
+        }
         checks.forEach { it.addDependencies(project) }
         checks.forEach { it.runCheck(project, it.filter(changedFiles)) }
     }
