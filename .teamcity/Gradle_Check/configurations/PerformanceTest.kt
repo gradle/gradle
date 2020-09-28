@@ -52,7 +52,7 @@ class PerformanceTest(
         this.uuid = performanceTestCoverage.asConfigurationId(model, stage, "bucket${bucketIndex + 1}")
         this.id = AbsoluteId(uuid)
         this.name = description
-        val type = performanceTestCoverage.performanceTestType
+        val type = performanceTestCoverage.type
         val os = performanceTestCoverage.os
         val performanceTestTaskNames = getPerformanceTestTaskNames(performanceSubProject, testProjects)
         applyPerformanceTestSettings(os = os, timeout = type.timeout)
