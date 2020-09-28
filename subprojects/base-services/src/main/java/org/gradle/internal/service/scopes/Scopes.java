@@ -29,7 +29,11 @@ public interface Scopes {
     interface UserHome extends Scope.Global {}
 
     /**
-     * These services are reused across build invocations when in continuous mode.
+     * These services are reused across build invocations in a session.
+     *
+     * A build session can be long-lived in a continuous build (where these services would be reused) or short-lived in a
+     * regular, single build.
+     *
      * They are closed at the end of the build session.
      *
      * <p>{@link UserHome} and parent scope services are visible to {@link BuildSession} scope services, but not vice versa.</p>
@@ -37,7 +41,7 @@ public interface Scopes {
     interface BuildSession extends UserHome {}
 
     /**
-     * These services are recreated when in continuous mode and shared across all nested builds.
+     * These services are recreated when in continuous build and shared across all nested builds.
      * They are closed when the build invocation is completed.
      *
      * <p>{@link BuildSession} and parent scope services are visible to {@link BuildTree} scope services, but not vice versa.</p>
