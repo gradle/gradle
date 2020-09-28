@@ -104,16 +104,5 @@ class TwoStageArtifactIdentifierFileStoreTest extends Specification {
         1 * writeStore.getFileAccessTracker() >> fat2
         1 * fat1.markAccessed(file)
         1 * fat2.markAccessed(file)
-
-        when:
-        twoStageStore.getFileAccessTracker().markAccessed([file])
-
-        then:
-        1 * readStore.getFileAccessTracker() >> fat1
-        1 * writeStore.getFileAccessTracker() >> fat2
-        1 * fat1.markAccessed([file])
-        1 * fat2.markAccessed([file])
     }
-
-
 }

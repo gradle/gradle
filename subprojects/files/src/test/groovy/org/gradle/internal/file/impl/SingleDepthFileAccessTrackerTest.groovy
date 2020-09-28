@@ -46,8 +46,11 @@ class SingleDepthFileAccessTrackerTest extends Specification {
         def file2 = baseDir.file("b/bb/bbb/2")
         def expectedTouchedFiles = touchedPaths.collect { baseDir.file(it) }
 
+        def tracker = new SingleDepthFileAccessTracker(journal, baseDir, depth)
+
         when:
-        new SingleDepthFileAccessTracker(journal, baseDir, depth).markAccessed([file1, file2])
+        tracker.markAccessed(file1)
+        tracker.markAccessed(file2)
 
         then:
         expectedTouchedFiles.empty || expectedTouchedFiles.each {

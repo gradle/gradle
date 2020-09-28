@@ -20,12 +20,8 @@ import com.google.common.base.Preconditions;
 import org.gradle.internal.file.FileAccessTimeJournal;
 import org.gradle.internal.file.FileAccessTracker;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.nio.file.Path;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  * Tracks access to files and directories at the supplied depth within the supplied base
@@ -49,36 +45,10 @@ public class SingleDepthFileAccessTracker implements FileAccessTracker {
 
     @Override
     public void markAccessed(File file) {
-        markAccessed(toSubPath(file));
-    }
-
-    @Override
-    public void markAccessed(Collection<File> files) {
-        for (Path path : collectSubPaths(files)) {
-            markAccessed(path);
-        }
-    }
-
-    private void markAccessed(@Nullable Path path) {
-        if (path != null) {
-            journal.setLastAccessTime(path.toFile(), System.currentTimeMillis());
-        }
-    }
-
-    private Set<Path> collectSubPaths(Collection<File> files) {
-        Set<Path> paths = new HashSet<Path>();
-        for (File file : files) {
-            paths.add(toSubPath(file));
-        }
-        return paths;
-    }
-
-    @Nullable
-    private Path toSubPath(File file) {
         Path path = file.toPath().toAbsolutePath();
         if (path.getNameCount() >= endNameIndex && path.startsWith(baseDir)) {
-            return baseDir.resolve(path.subpath(startNameIndex, endNameIndex));
+            path = baseDir.resolve(path.subpath(startNameIndex, endNameIndex));
+            journal.setLastAccessTime(path.toFile(), System.currentTimeMillis());
         }
-        return null;
     }
 }

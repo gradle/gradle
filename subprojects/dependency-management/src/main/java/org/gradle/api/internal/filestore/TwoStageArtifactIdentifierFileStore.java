@@ -23,7 +23,6 @@ import org.gradle.internal.resource.local.FileStoreException;
 import org.gradle.internal.resource.local.LocallyAvailableResource;
 
 import java.io.File;
-import java.util.Collection;
 import java.util.Set;
 
 public class TwoStageArtifactIdentifierFileStore implements ArtifactIdentifierFileStore {
@@ -74,12 +73,6 @@ public class TwoStageArtifactIdentifierFileStore implements ArtifactIdentifierFi
         public void markAccessed(File file) {
             readOnlyStore.getFileAccessTracker().markAccessed(file);
             writableStore.getFileAccessTracker().markAccessed(file);
-        }
-
-        @Override
-        public void markAccessed(Collection<File> files) {
-            readOnlyStore.getFileAccessTracker().markAccessed(files);
-            writableStore.getFileAccessTracker().markAccessed(files);
         }
     }
 }
