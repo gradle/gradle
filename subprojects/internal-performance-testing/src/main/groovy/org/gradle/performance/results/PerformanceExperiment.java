@@ -32,6 +32,10 @@ public class PerformanceExperiment implements Comparable<PerformanceExperiment> 
         this.scenario = scenario;
     }
 
+    public String getDisplayName() {
+        return getScenario().getTestName() + " | " + getTestProject();
+    }
+
     public String getTestProject() {
         return testProject;
     }

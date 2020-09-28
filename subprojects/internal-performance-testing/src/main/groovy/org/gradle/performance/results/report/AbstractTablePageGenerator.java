@@ -19,6 +19,7 @@ package org.gradle.performance.results.report;
 import org.gradle.performance.measure.DataSeries;
 import org.gradle.performance.measure.Duration;
 import org.gradle.performance.results.FormatSupport;
+import org.gradle.performance.results.PerformanceExperiment;
 import org.gradle.performance.results.PerformanceTestHistory;
 import org.gradle.performance.results.ResultsStore;
 import org.gradle.performance.results.ScenarioBuildResultData;
@@ -158,6 +159,7 @@ public abstract class AbstractTablePageGenerator extends HtmlPageGenerator<Resul
             }
 
             private void renderScenario(int index, ScenarioBuildResultData scenario) {
+                PerformanceExperiment experiment = scenario.getPerformanceExperiment();
                 Set<Tag> tags = determineTags(scenario);
                 div().classAttr("card m-0 p-0 alert " + determineScenarioBackgroundColorCss(scenario)).attr("tag", tags.stream().map(Tag::getName).collect(joining(","))).id("scenario" + index);
                     div().id("heading" + index).classAttr("card-header");
@@ -168,12 +170,12 @@ public abstract class AbstractTablePageGenerator extends HtmlPageGenerator<Resul
                                 end();
                             end();
                             div().classAttr("col-6");
-                                big().text(scenario.getScenarioName() + " | " + scenario.getTestProject()).end();
+                                big().text(experiment.getDisplayName()).end();
                                 tags.stream().filter(Tag::isValid).forEach(this::renderTag);
                             end();
                             div().classAttr("col-3");
                                 renderScenarioButtons(index, scenario);
-                                a().target("_blank").classAttr("btn btn-primary btn-sm").href("tests/" + urlEncode(PerformanceTestHistory.convertToId(scenario.getScenarioName()) + ".html")).text("Graph").end();
+                                a().target("_blank").classAttr("btn btn-primary btn-sm").href("tests/" + urlEncode(PerformanceTestHistory.convertToId(experiment.getDisplayName()) + ".html")).text("Graph").end();
                                 a().classAttr("btn btn-primary btn-sm collapsed").href("#").attr("data-toggle", "collapse", "data-target", "#collapse" + index).text("Detail").end();
                             end();
                             div().classAttr("col-2 p-0");

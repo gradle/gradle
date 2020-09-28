@@ -180,7 +180,7 @@ public class BaseCrossBuildResultsStore<R extends CrossBuildPerformanceResults> 
                             }
                         }
                     }
-                    return new CrossBuildPerformanceTestHistory(experiment.getScenario().getTestName(), ImmutableList.copyOf(builds), results);
+                    return new CrossBuildPerformanceTestHistory(experiment, ImmutableList.copyOf(builds), results);
                 }
             }
         });

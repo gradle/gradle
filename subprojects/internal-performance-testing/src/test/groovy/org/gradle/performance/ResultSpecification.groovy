@@ -130,7 +130,7 @@ abstract class ResultSpecification extends Specification {
         CrossBuildPerformanceResults result2  = crossBuildResults(startTime: 200)
         result1.buildResult(info2).addAll(measuredOperations([2]))
 
-        return new CrossBuildPerformanceTestHistory('mockCrossBuild', [info1, info2], [result2, result1])
+        return new CrossBuildPerformanceTestHistory(new PerformanceExperiment("test-project", new PerformanceScenario("org.gradle.performance.MyCrossBuildPerformanceTest", "my scenario name")), [info1, info2], [result2, result1])
     }
 
     List<MeasuredOperation> measuredOperations(List<Integer> values) {
