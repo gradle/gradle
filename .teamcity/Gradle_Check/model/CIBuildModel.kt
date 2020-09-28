@@ -61,7 +61,7 @@ data class CIBuildModel(
                 TestCoverage(3, TestType.platform, Os.LINUX, JvmCategory.MIN_VERSION),
                 TestCoverage(4, TestType.platform, Os.WINDOWS, JvmCategory.MAX_VERSION),
                 TestCoverage(20, TestType.configCache, Os.LINUX, JvmCategory.MIN_VERSION)),
-            performanceTests = listOf(PerformanceTestCoverage(PerformanceTestType.test, Os.LINUX)),
+            performanceTests = listOf(PerformanceTestCoverage(1, PerformanceTestType.test, Os.LINUX, oldUuid = "PerformanceTestTestLinux")),
             omitsSlowProjects = true),
         Stage(StageNames.READY_FOR_NIGHTLY,
             trigger = Trigger.eachCommit,
@@ -94,11 +94,11 @@ data class CIBuildModel(
                 TestCoverage(31, TestType.watchFs, Os.MACOS, JvmCategory.MIN_VERSION),
                 TestCoverage(30, TestType.watchFs, Os.WINDOWS, JvmCategory.MAX_VERSION)),
             performanceTests = listOf(
-                PerformanceTestCoverage(PerformanceTestType.slow, Os.LINUX))),
+                PerformanceTestCoverage(2, PerformanceTestType.slow, Os.LINUX, oldUuid = "PerformanceTestSlowLinux"))),
         Stage(StageNames.HISTORICAL_PERFORMANCE,
             trigger = Trigger.weekly,
             performanceTests = listOf(PerformanceTestType.historical, PerformanceTestType.flakinessDetection, PerformanceTestType.experiment)
-                .map { PerformanceTestCoverage(it, Os.LINUX) }),
+                .mapIndexed { index, type -> PerformanceTestCoverage(index + 3, type, Os.LINUX, oldUuid = "PerformanceTest${ type.name.capitalize() }Linux") }),
         Stage(StageNames.EXPERIMENTAL,
             trigger = Trigger.never,
             runsIndependent = true,
