@@ -173,7 +173,6 @@ include 'consumer', 'producer'
         succeeds("resolve")
 
     }
-    @ToBeFixedForConfigurationCache
     def "can use defaultDependencies in a composite build"() {
         buildTestFixture.withBuildInSubDir()
 
