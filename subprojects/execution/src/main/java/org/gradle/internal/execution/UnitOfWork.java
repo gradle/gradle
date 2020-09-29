@@ -40,6 +40,24 @@ import java.util.function.Supplier;
 
 public interface UnitOfWork extends Describable {
     /**
+     * Determine the identity of the work unit that uniquely identifies it
+     * among the other work units of the same type in the current build.
+     */
+    Identity identify(Map<String, ValueSnapshot> identityInputs, Map<String, CurrentFileCollectionFingerprint> identityFileInputs);
+
+    interface Identity {
+        String getUniqueId();
+
+        /**
+         * Returns the {@link ExecutionHistoryStore} to use to store the execution state of this work.
+         * When {@link Optional#empty()} no execution history will be maintained.
+         */
+        default Optional<ExecutionHistoryStore> getHistory() {
+            return Optional.empty();
+        }
+    }
+
+    /**
      * Executes the work synchronously.
      */
     WorkResult execute(@Nullable InputChangesInternal inputChanges, InputChangesContext context);
@@ -109,12 +127,6 @@ public interface UnitOfWork extends Describable {
     enum IdentityKind {
         NON_IDENTITY, IDENTITY
     }
-
-    /**
-     * Determine the identity of the work unit that uniquely identifies it
-     * among the other work units of the same type in the current build.
-     */
-    String identify(Map<String, ValueSnapshot> identityInputs, Map<String, CurrentFileCollectionFingerprint> identityFileInputs);
 
     void visitOutputProperties(OutputPropertyVisitor visitor);
 
@@ -228,14 +240,6 @@ public interface UnitOfWork extends Describable {
         public boolean requiresInputChanges() {
             return requiresInputChanges;
         }
-    }
-
-    /**
-     * Returns the {@link ExecutionHistoryStore} to use to store the execution state of this work.
-     * When {@link Optional#empty()} no execution history will be maintained.
-     */
-    default Optional<ExecutionHistoryStore> getExecutionHistoryStore() {
-        return Optional.empty();
     }
 
     /**

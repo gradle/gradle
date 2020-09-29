@@ -78,7 +78,7 @@ public class CaptureStateBeforeExecutionStep extends BuildOperationStep<AfterPre
 
     @Override
     public CachingResult execute(AfterPreviousExecutionContext context) {
-        Optional<BeforeExecutionState> beforeExecutionState = context.getWork().getExecutionHistoryStore()
+        Optional<BeforeExecutionState> beforeExecutionState = context.getIdentity().getHistory()
             .map(executionHistoryStore -> captureExecutionStateOp(context));
         return delegate.execute(new BeforeExecutionContext() {
             @Override
@@ -106,7 +106,7 @@ public class CaptureStateBeforeExecutionStep extends BuildOperationStep<AfterPre
             }
 
             @Override
-            public String getIdentity() {
+            public UnitOfWork.Identity getIdentity() {
                 return context.getIdentity();
             }
 

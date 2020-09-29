@@ -22,6 +22,7 @@ import org.gradle.internal.execution.IdentityContext;
 import org.gradle.internal.execution.Result;
 import org.gradle.internal.execution.Step;
 import org.gradle.internal.execution.UnitOfWork;
+import org.gradle.internal.execution.UnitOfWork.Identity;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.snapshot.ValueSnapshot;
 
@@ -38,7 +39,7 @@ public class IdentifyStep<C extends ExecutionRequestContext, R extends Result> i
     public R execute(C context) {
         ImmutableSortedMap<String, ValueSnapshot> identityInputProperties = ImmutableSortedMap.of();
         ImmutableSortedMap<String, CurrentFileCollectionFingerprint> identityInputFileProperties = ImmutableSortedMap.of();
-        String identity = context.getWork().identify(identityInputProperties, identityInputFileProperties);
+        Identity identity = context.getWork().identify(identityInputProperties, identityInputFileProperties);
         return delegate.execute(new IdentityContext() {
             @Override
             public Optional<String> getRebuildReason() {
@@ -56,7 +57,7 @@ public class IdentifyStep<C extends ExecutionRequestContext, R extends Result> i
             }
 
             @Override
-            public String getIdentity() {
+            public Identity getIdentity() {
                 return identity;
             }
 

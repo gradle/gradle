@@ -17,6 +17,7 @@
 package org.gradle.internal.execution;
 
 import com.google.common.collect.ImmutableSortedMap;
+import org.gradle.internal.execution.UnitOfWork.Identity;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.snapshot.ValueSnapshot;
 
@@ -35,5 +36,5 @@ public interface IdentityContext extends ExecutionRequestContext {
      * Returns an identity for the given work item that uniquely identifies it
      * among all the other work items of the same type in the current build.
      */
-    String getIdentity();
+    Identity getIdentity();
 }

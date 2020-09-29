@@ -35,6 +35,8 @@ import org.gradle.internal.snapshot.ValueSnapshot
 import org.gradle.internal.snapshot.ValueSnapshotter
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot
 
+import static org.gradle.internal.execution.UnitOfWork.IdentityKind.NON_IDENTITY
+import static org.gradle.internal.execution.UnitOfWork.InputPropertyType.NON_INCREMENTAL
 import static org.gradle.internal.execution.UnitOfWork.OverlappingOutputHandling.DETECT_OVERLAPS
 import static org.gradle.internal.execution.UnitOfWork.OverlappingOutputHandling.IGNORE_OVERLAPS
 import static org.gradle.internal.execution.steps.CaptureStateBeforeExecutionStep.Operation.Result
@@ -52,7 +54,14 @@ class CaptureStateBeforeExecutionStepTest extends StepSpec<AfterPreviousExecutio
 
     @Override
     protected AfterPreviousExecutionContext createContext() {
-        Stub(AfterPreviousExecutionContext)
+        Stub(AfterPreviousExecutionContext) {
+            getInputProperties() >> ImmutableSortedMap.of()
+            getInputFileProperties() >> ImmutableSortedMap.of()
+        }
+    }
+
+    def setup() {
+        _ * identity.history >> Optional.of(executionHistoryStore)
     }
 
     def "no state is captured when task history is not maintained"() {
@@ -60,7 +69,7 @@ class CaptureStateBeforeExecutionStepTest extends StepSpec<AfterPreviousExecutio
         step.execute(context)
         then:
         assertNoOperation()
-        _ * work.executionHistoryStore >> Optional.empty()
+        _ * identity.history >> Optional.empty()
         1 * delegate.execute(_) >> { BeforeExecutionContext beforeExecution ->
             assert !beforeExecution.beforeExecutionState.present
         }
@@ -103,7 +112,7 @@ class CaptureStateBeforeExecutionStepTest extends StepSpec<AfterPreviousExecutio
         step.execute(context)
         then:
         _ * work.visitInputProperties(_) >> { UnitOfWork.InputPropertyVisitor visitor ->
-            visitor.visitInputProperty("inputString", inputPropertyValue,)
+            visitor.visitInputProperty("inputString", inputPropertyValue, NON_IDENTITY)
         }
         1 * valueSnapshotter.snapshot(inputPropertyValue) >> valueSnapshot
         interaction { fingerprintInputs() }
@@ -129,7 +138,7 @@ class CaptureStateBeforeExecutionStepTest extends StepSpec<AfterPreviousExecutio
         1 * afterPreviousExecutionState.inputProperties >> ImmutableSortedMap.<String, ValueSnapshot>of("inputString", valueSnapshot)
         1 * afterPreviousExecutionState.outputFileProperties >> ImmutableSortedMap.<String, FileCollectionFingerprint>of()
         _ * work.visitInputProperties(_) >> { UnitOfWork.InputPropertyVisitor visitor ->
-            visitor.visitInputProperty("inputString", inputPropertyValue,)
+            visitor.visitInputProperty("inputString", inputPropertyValue, NON_IDENTITY)
         }
         1 * valueSnapshotter.snapshot(inputPropertyValue, valueSnapshot) >> valueSnapshot
         interaction { fingerprintInputs() }
@@ -151,7 +160,7 @@ class CaptureStateBeforeExecutionStepTest extends StepSpec<AfterPreviousExecutio
 
         then:
         _ * work.visitInputFileProperties(_) >> { UnitOfWork.InputFilePropertyVisitor visitor ->
-            visitor.visitInputFileProperty("inputFile", "ignored", false, { -> fingerprint })
+            visitor.visitInputFileProperty("inputFile", "ignored", NON_INCREMENTAL, NON_IDENTITY, { -> fingerprint })
         }
         interaction { fingerprintInputs() }
         1 * delegate.execute(_) >> { BeforeExecutionContext beforeExecution ->
@@ -282,7 +291,7 @@ class CaptureStateBeforeExecutionStepTest extends StepSpec<AfterPreviousExecutio
         _ * work.visitInputFileProperties(_ as UnitOfWork.InputFilePropertyVisitor)
         _ * work.overlappingOutputHandling >> IGNORE_OVERLAPS
         _ * outputSnapshotter.snapshotOutputs(work) >> ImmutableSortedMap.of()
-        _ * work.executionHistoryStore >> Optional.of(executionHistoryStore)
+        _ * context.history >> Optional.of(executionHistoryStore)
     }
 
     private void assertOperationForInputsBeforeExecution() {

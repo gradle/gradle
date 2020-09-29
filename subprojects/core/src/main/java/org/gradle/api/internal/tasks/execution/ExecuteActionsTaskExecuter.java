@@ -236,8 +236,20 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         }
 
         @Override
-        public String identify(Map<String, ValueSnapshot> identityInputs, Map<String, CurrentFileCollectionFingerprint> identityFileInputs) {
-            return task.getPath();
+        public Identity identify(Map<String, ValueSnapshot> identityInputs, Map<String, CurrentFileCollectionFingerprint> identityFileInputs) {
+            return new Identity() {
+                @Override
+                public String getUniqueId() {
+                    return task.getPath();
+                }
+
+                @Override
+                public Optional<ExecutionHistoryStore> getHistory() {
+                    return context.getTaskExecutionMode().isTaskHistoryMaintained()
+                        ? Optional.of(executionHistoryStore)
+                        : Optional.empty();
+                }
+            };
         }
 
         @Override
@@ -265,13 +277,6 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
                 task.getState().setExecuting(false);
                 actionListener.afterActions(task);
             }
-        }
-
-        @Override
-        public Optional<ExecutionHistoryStore> getExecutionHistoryStore() {
-            return context.getTaskExecutionMode().isTaskHistoryMaintained()
-                ? Optional.of(executionHistoryStore)
-                : Optional.empty();
         }
 
         @Override

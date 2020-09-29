@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.internal.execution.BeforeExecutionContext;
 import org.gradle.internal.execution.CurrentSnapshotResult;
 import org.gradle.internal.execution.Step;
+import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.history.changes.ChangeDetectorVisitor;
@@ -41,12 +42,13 @@ public class StoreExecutionStateStep<C extends BeforeExecutionContext> implement
     @Override
     public CurrentSnapshotResult execute(C context) {
         CurrentSnapshotResult result = delegate.execute(context);
-        context.getWork().getExecutionHistoryStore()
-            .ifPresent(executionHistoryStore -> storeState(context, executionHistoryStore, result));
+        UnitOfWork.Identity identity = context.getIdentity();
+        identity.getHistory()
+            .ifPresent(history -> storeState(context, history, identity.getUniqueId(), result));
         return result;
     }
 
-    private void storeState(C context, ExecutionHistoryStore executionHistoryStore, CurrentSnapshotResult result) {
+    private void storeState(C context, ExecutionHistoryStore executionHistoryStore, String uniqueId, CurrentSnapshotResult result) {
         ImmutableSortedMap<String, CurrentFileCollectionFingerprint> finalOutputs = result.getFinalOutputs();
         context.getBeforeExecutionState().ifPresent(beforeExecutionState -> {
             boolean successful = result.getOutcome().isSuccessful();
@@ -55,7 +57,7 @@ public class StoreExecutionStateStep<C extends BeforeExecutionContext> implement
             if (successful
                 || didChangeOutput(context.getAfterPreviousExecutionState(), finalOutputs)) {
                 executionHistoryStore.store(
-                    context.getIdentity(),
+                    uniqueId,
                     result.getOriginMetadata(),
                     beforeExecutionState.getImplementation(),
                     beforeExecutionState.getAdditionalImplementations(),

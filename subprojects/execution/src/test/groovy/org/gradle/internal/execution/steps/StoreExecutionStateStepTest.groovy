@@ -57,7 +57,7 @@ class StoreExecutionStateStepTest extends StepSpec<BeforeExecutionContext> imple
     }
 
     def setup() {
-        _ * work.executionHistoryStore >> Optional.of(executionHistoryStore)
+        _ * identity.history >> Optional.of(executionHistoryStore)
     }
 
     def "output snapshots are stored after successful execution"() {
@@ -147,7 +147,7 @@ class StoreExecutionStateStepTest extends StepSpec<BeforeExecutionContext> imple
     void expectStore(boolean successful, ImmutableSortedMap<String, CurrentFileCollectionFingerprint> finalOutputs) {
         1 * delegateResult.originMetadata >> originMetadata
         1 * executionHistoryStore.store(
-            identity,
+            identity.uniqueId,
             originMetadata,
             implementationSnapshot,
             additionalImplementations,

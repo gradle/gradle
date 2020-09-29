@@ -149,13 +149,15 @@ class GenerateProjectAccessors(
         return UnitOfWork.WorkResult.DID_WORK
     }
 
-    override fun identify(identityInputs: MutableMap<String, ValueSnapshot>, identityFileInputs: MutableMap<String, CurrentFileCollectionFingerprint>) = cacheKey
+    override fun identify(identityInputs: MutableMap<String, ValueSnapshot>, identityFileInputs: MutableMap<String, CurrentFileCollectionFingerprint>) = object : UnitOfWork.Identity {
+        override fun getUniqueId() = cacheKey
+
+        override fun getHistory(): Optional<ExecutionHistoryStore> = Optional.of(executionHistoryStore)
+    }
 
     override fun getDisplayName(): String = "Kotlin DSL accessors for $project"
 
     override fun markExecutionTime(): Long = 0
-
-    override fun getExecutionHistoryStore(): Optional<ExecutionHistoryStore> = Optional.of(executionHistoryStore)
 
     override fun visitImplementations(visitor: UnitOfWork.ImplementationVisitor) {
         visitor.visitImplementation(GenerateProjectAccessors::class.java)

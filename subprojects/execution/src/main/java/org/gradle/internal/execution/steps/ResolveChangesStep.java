@@ -103,7 +103,7 @@ public class ResolveChangesStep<R extends Result> implements Step<CachingContext
             }
 
             @Override
-            public String getIdentity() {
+            public UnitOfWork.Identity getIdentity() {
                 return context.getIdentity();
             }
 

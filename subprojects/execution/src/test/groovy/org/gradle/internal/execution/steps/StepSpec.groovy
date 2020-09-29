@@ -34,7 +34,9 @@ abstract class StepSpec<C extends Context> extends Specification {
     final buildOperationExecutor = new TestBuildOperationExecutor()
 
     final displayName = "job ':test'"
-    final identity = ":test"
+    final identity = Stub(UnitOfWork.Identity) {
+        getUniqueId() >> ":test"
+    }
     final delegate = Mock(Step)
     final work = Stub(UnitOfWork)
     final C context = createContext()
@@ -43,8 +45,9 @@ abstract class StepSpec<C extends Context> extends Specification {
 
     def setup() {
         _ * context.work >> work
+        _ * context.identity >> identity
         _ * work.displayName >> displayName
-        _ * work.identity >> identity
+        _ * work.identify(_, _) >> identity
     }
 
     protected TestFile file(Object... path) {

@@ -752,14 +752,24 @@ class IncrementalExecutionIntegrationTest extends Specification {
                 boolean executed
 
                 @Override
-                UnitOfWork.WorkResult execute(@Nullable InputChangesInternal inputChanges, InputChangesContext context) {
-                    executed = true
-                    return work.get()
+                UnitOfWork.Identity identify(Map<String, ValueSnapshot> identityInputs, Map<String, CurrentFileCollectionFingerprint> identityFileInputs) {
+                    new UnitOfWork.Identity() {
+                        @Override
+                        String getUniqueId() {
+                            "myId"
+                        }
+
+                        @Override
+                        Optional<ExecutionHistoryStore> getHistory() {
+                            return Optional.of(IncrementalExecutionIntegrationTest.this.executionHistoryStore)
+                        }
+                    }
                 }
 
                 @Override
-                Optional<ExecutionHistoryStore> getExecutionHistoryStore() {
-                    return Optional.of(IncrementalExecutionIntegrationTest.this.executionHistoryStore)
+                UnitOfWork.WorkResult execute(@Nullable InputChangesInternal inputChanges, InputChangesContext context) {
+                    executed = true
+                    return work.get()
                 }
 
                 @Override
@@ -827,11 +837,6 @@ class IncrementalExecutionIntegrationTest extends Specification {
                 @Override
                 boolean isAllowedToLoadFromCache() {
                     throw new UnsupportedOperationException()
-                }
-
-                @Override
-                String identify(Map<String, ValueSnapshot> identityInputs, Map<String, CurrentFileCollectionFingerprint> identityFileInputs) {
-                    "myId"
                 }
 
                 @Override

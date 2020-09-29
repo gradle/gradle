@@ -155,13 +155,15 @@ class GeneratePluginAccessors(
         return UnitOfWork.WorkResult.DID_WORK
     }
 
-    override fun identify(identityInputs: MutableMap<String, ValueSnapshot>, identityFileInputs: MutableMap<String, CurrentFileCollectionFingerprint>) = classLoaderHash.toString()
+    override fun identify(identityInputs: MutableMap<String, ValueSnapshot>, identityFileInputs: MutableMap<String, CurrentFileCollectionFingerprint>) = object : UnitOfWork.Identity {
+        override fun getUniqueId() = classLoaderHash.toString()
+
+        override fun getHistory(): Optional<ExecutionHistoryStore> = Optional.of(executionHistoryStore)
+    }
 
     override fun getDisplayName(): String = "Kotlin DSL plugin accessors for classpath '$classLoaderHash'"
 
     override fun markExecutionTime(): Long = 0
-
-    override fun getExecutionHistoryStore(): Optional<ExecutionHistoryStore> = Optional.of(executionHistoryStore)
 
     override fun visitImplementations(visitor: UnitOfWork.ImplementationVisitor) {
         visitor.visitImplementation(GeneratePluginAccessors::class.java)

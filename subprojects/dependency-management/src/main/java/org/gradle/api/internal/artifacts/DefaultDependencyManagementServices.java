@@ -327,7 +327,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 }
 
                 @Override
-                public String getIdentity() {
+                public UnitOfWork.Identity getIdentity() {
                     return context.getIdentity();
                 }
 

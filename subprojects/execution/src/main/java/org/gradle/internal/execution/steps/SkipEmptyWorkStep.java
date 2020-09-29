@@ -44,10 +44,11 @@ public class SkipEmptyWorkStep<C extends AfterPreviousExecutionContext> implemen
         ImmutableSortedMap<String, FileCollectionFingerprint> outputFilesAfterPreviousExecution = context.getAfterPreviousExecutionState()
             .map(AfterPreviousExecutionState::getOutputFileProperties)
             .orElse(ImmutableSortedMap.of());
+        UnitOfWork.Identity identity = context.getIdentity();
         return work.skipIfInputsEmpty(outputFilesAfterPreviousExecution)
             .map(skippedOutcome -> {
-                work.getExecutionHistoryStore()
-                    .ifPresent(executionHistoryStore -> executionHistoryStore.remove(context.getIdentity()));
+                identity.getHistory()
+                    .ifPresent(history -> history.remove(identity.getUniqueId()));
                 return (CachingResult) new CachingResult() {
                     @Override
                     public Try<ExecutionOutcome> getOutcome() {

@@ -276,8 +276,18 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
         }
 
         @Override
-        public String identify(Map<String, ValueSnapshot> identityInputs, Map<String, CurrentFileCollectionFingerprint> identityFileInputs) {
-            return identityString;
+        public Identity identify(Map<String, ValueSnapshot> identityInputs, Map<String, CurrentFileCollectionFingerprint> identityFileInputs) {
+            return new Identity() {
+                @Override
+                public String getUniqueId() {
+                    return identityString;
+                }
+
+                @Override
+                public Optional<ExecutionHistoryStore> getHistory() {
+                    return Optional.of(executionHistoryStore);
+                }
+            };
         }
 
         @Override
@@ -327,11 +337,6 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
             } catch (IOException e) {
                 throw new UncheckedIOException(e);
             }
-        }
-
-        @Override
-        public Optional<ExecutionHistoryStore> getExecutionHistoryStore() {
-            return Optional.of(executionHistoryStore);
         }
 
         @Override

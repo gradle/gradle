@@ -76,7 +76,7 @@ public class ResolveInputChangesStep<C extends IncrementalChangesContext> implem
             }
 
             @Override
-            public String getIdentity() {
+            public UnitOfWork.Identity getIdentity() {
                 return context.getIdentity();
             }
 

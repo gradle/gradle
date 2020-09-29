@@ -115,7 +115,7 @@ public class ResolveCachingStateStep implements Step<BeforeExecutionContext, Cac
             }
 
             @Override
-            public String getIdentity() {
+            public UnitOfWork.Identity getIdentity() {
                 return context.getIdentity();
             }
 
