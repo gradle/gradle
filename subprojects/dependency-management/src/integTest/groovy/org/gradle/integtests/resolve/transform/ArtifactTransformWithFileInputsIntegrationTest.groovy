@@ -265,7 +265,6 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
         outputContains("result = [b.jar.green, c.jar.green]")
     }
 
-    @ToBeFixedForConfigurationCache(because = "included build is used but not detected by problem reporting")
     def "transform can receive a file collection containing substituted external dependencies as parameter"() {
         file("tools/settings.gradle") << """
             include 'tool-a', 'tool-b'
