@@ -57,6 +57,7 @@ class JavaTestProject implements IncrementalTestProject {
     @Override
     void configureForAbiChange(CrossVersionPerformanceTestRunner runner) {
         configure(runner)
+        runner.tasksToRun = ['assemble']
         runner.addBuildMutator { invocationSettings ->
             File fileToChange = new File(invocationSettings.projectDir, generator.config.fileToChangeByScenario['assemble'])
             (generator.config.language == Language.GROOVY) ?
@@ -68,6 +69,7 @@ class JavaTestProject implements IncrementalTestProject {
     @Override
     void configureForNonAbiChange(CrossVersionPerformanceTestRunner runner) {
         configure(runner)
+        runner.tasksToRun = ['assemble']
         runner.addBuildMutator { invocationSettings ->
             File fileToChange = new File(invocationSettings.projectDir, config.fileToChangeByScenario['assemble'])
             (config.language == Language.GROOVY) ?
