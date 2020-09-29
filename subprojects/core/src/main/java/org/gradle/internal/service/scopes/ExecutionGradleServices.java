@@ -51,6 +51,7 @@ import org.gradle.internal.execution.steps.CaptureStateBeforeExecutionStep;
 import org.gradle.internal.execution.steps.CleanupOutputsStep;
 import org.gradle.internal.execution.steps.CreateOutputsStep;
 import org.gradle.internal.execution.steps.ExecuteStep;
+import org.gradle.internal.execution.steps.IdentifyStep;
 import org.gradle.internal.execution.steps.LoadExecutionStateStep;
 import org.gradle.internal.execution.steps.RecordOutputsStep;
 import org.gradle.internal.execution.steps.ResolveCachingStateStep;
@@ -152,6 +153,7 @@ public class ExecutionGradleServices {
     ) {
         // @formatter:off
         return new DefaultWorkExecutor<>(
+            new IdentifyStep<>(
             new LoadExecutionStateStep<>(
             new MarkSnapshottingInputsStartedStep<>(
             new SkipEmptyWorkStep<>(
@@ -172,7 +174,7 @@ public class ExecutionGradleServices {
             new ResolveInputChangesStep<>(
             new CleanupOutputsStep<>(deleter, outputChangeListener,
             new ExecuteStep<>(
-        )))))))))))))))))))));
+        ))))))))))))))))))))));
         // @formatter:on
     }
 

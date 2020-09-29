@@ -50,6 +50,7 @@ import org.gradle.internal.execution.steps.CancelExecutionStep
 import org.gradle.internal.execution.steps.CaptureStateBeforeExecutionStep
 import org.gradle.internal.execution.steps.CleanupOutputsStep
 import org.gradle.internal.execution.steps.ExecuteStep
+import org.gradle.internal.execution.steps.IdentifyStep
 import org.gradle.internal.execution.steps.LoadExecutionStateStep
 import org.gradle.internal.execution.steps.ResolveCachingStateStep
 import org.gradle.internal.execution.steps.ResolveChangesStep
@@ -145,6 +146,7 @@ class ExecuteActionsTaskExecuterTest extends Specification {
 
     // @formatter:off
     def workExecutor = new DefaultWorkExecutor<>(
+        new IdentifyStep<>(
         new LoadExecutionStateStep<>(
         new SkipEmptyWorkStep<>(
         new ValidateStep<>(validationWarningReporter,
@@ -158,7 +160,7 @@ class ExecuteActionsTaskExecuterTest extends Specification {
         new ResolveInputChangesStep<>(
         new CleanupOutputsStep<>(deleter, outputChangeListener,
         new ExecuteStep<>(
-    ))))))))))))))
+    )))))))))))))))
     // @formatter:on
 
     def executer = new ExecuteActionsTaskExecuter(

@@ -150,6 +150,7 @@ import org.gradle.internal.execution.steps.CaptureStateBeforeExecutionStep;
 import org.gradle.internal.execution.steps.CleanupOutputsStep;
 import org.gradle.internal.execution.steps.CreateOutputsStep;
 import org.gradle.internal.execution.steps.ExecuteStep;
+import org.gradle.internal.execution.steps.IdentifyStep;
 import org.gradle.internal.execution.steps.LoadExecutionStateStep;
 import org.gradle.internal.execution.steps.ResolveChangesStep;
 import org.gradle.internal.execution.steps.ResolveInputChangesStep;
@@ -273,6 +274,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             UniqueId fixedUniqueId = UniqueId.from("dhwwyv4tqrd43cbxmdsf24wquu");
             // @formatter:off
             return new DefaultWorkExecutor<>(
+                new IdentifyStep<>(
                 new LoadExecutionStateStep<>(
                 new ValidateStep<>(validationWarningReporter,
                 new CaptureStateBeforeExecutionStep(buildOperationExecutor, classLoaderHierarchyHasher, outputSnapshotter, overlappingOutputDetector, valueSnapshotter,
@@ -287,7 +289,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 new ResolveInputChangesStep<>(
                 new CleanupOutputsStep<>(deleter, outputChangeListener,
                 new ExecuteStep<>(
-            )))))))))))))));
+            ))))))))))))))));
             // @formatter:on
         }
     }

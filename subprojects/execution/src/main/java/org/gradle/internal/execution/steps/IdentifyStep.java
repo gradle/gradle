@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,33 +16,24 @@
 
 package org.gradle.internal.execution.steps;
 
-import org.gradle.internal.execution.AfterPreviousExecutionContext;
+import org.gradle.internal.execution.ExecutionRequestContext;
 import org.gradle.internal.execution.IdentityContext;
 import org.gradle.internal.execution.Result;
 import org.gradle.internal.execution.Step;
 import org.gradle.internal.execution.UnitOfWork;
-import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 
 import java.util.Optional;
 
-public class LoadExecutionStateStep<C extends IdentityContext, R extends Result> implements Step<C, R> {
-    private final Step<? super AfterPreviousExecutionContext, ? extends R> delegate;
+public class IdentifyStep<C extends ExecutionRequestContext, R extends Result> implements Step<C, R> {
+    private final Step<? super IdentityContext, ? extends R> delegate;
 
-    public LoadExecutionStateStep(Step<? super AfterPreviousExecutionContext, ? extends R> delegate) {
+    public IdentifyStep(Step<? super IdentityContext, ? extends R> delegate) {
         this.delegate = delegate;
     }
 
     @Override
     public R execute(C context) {
-        UnitOfWork work = context.getWork();
-        Optional<AfterPreviousExecutionState> afterPreviousExecutionState = work.getExecutionHistoryStore()
-            .flatMap(executionHistoryStore -> executionHistoryStore.load(work.getIdentity()));
-        return delegate.execute(new AfterPreviousExecutionContext() {
-            @Override
-            public Optional<AfterPreviousExecutionState> getAfterPreviousExecutionState() {
-                return afterPreviousExecutionState;
-            }
-
+        return delegate.execute(new IdentityContext() {
             @Override
             public Optional<String> getRebuildReason() {
                 return context.getRebuildReason();
@@ -50,7 +41,7 @@ public class LoadExecutionStateStep<C extends IdentityContext, R extends Result>
 
             @Override
             public UnitOfWork getWork() {
-                return work;
+                return context.getWork();
             }
         });
     }
