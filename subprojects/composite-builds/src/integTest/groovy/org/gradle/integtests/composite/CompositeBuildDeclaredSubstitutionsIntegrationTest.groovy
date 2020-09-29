@@ -16,7 +16,6 @@
 
 package org.gradle.integtests.composite
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import spock.lang.Issue
@@ -57,7 +56,6 @@ class CompositeBuildDeclaredSubstitutionsIntegrationTest extends AbstractComposi
         }
     }
 
-    @ToBeFixedForConfigurationCache
     def "will only make declared substitutions when defined for included build"() {
         given:
         dependency "org.test:buildB:1.0"
@@ -83,7 +81,6 @@ class CompositeBuildDeclaredSubstitutionsIntegrationTest extends AbstractComposi
         }
     }
 
-    @ToBeFixedForConfigurationCache
     def "can combine included builds with declared and discovered substitutions"() {
         given:
         dependency "org.test:b1:1.0"
@@ -107,7 +104,6 @@ class CompositeBuildDeclaredSubstitutionsIntegrationTest extends AbstractComposi
         }
     }
 
-    @ToBeFixedForConfigurationCache
     def "can inject substitutions into other builds"() {
         given:
         mavenRepo.module("org.test", "plugin", "1.0").publish()
@@ -134,7 +130,6 @@ class CompositeBuildDeclaredSubstitutionsIntegrationTest extends AbstractComposi
     }
 
     @Issue("https://github.com/gradle/gradle/issues/5871")
-    @ToBeFixedForConfigurationCache
     def "can inject substitutions into other builds when root build does not reference included builds via a dependency and included build has non-empty script classpath"() {
         mavenRepo.module("org.test", "plugin", "1.0").publish()
 
@@ -165,7 +160,6 @@ class CompositeBuildDeclaredSubstitutionsIntegrationTest extends AbstractComposi
         result.assertTaskExecuted(":buildC:jar")
     }
 
-    @ToBeFixedForConfigurationCache
     def "can substitute arbitrary coordinates for included build"() {
         given:
         dependency "org.test:buildX:1.0"
@@ -184,7 +178,6 @@ class CompositeBuildDeclaredSubstitutionsIntegrationTest extends AbstractComposi
         }
     }
 
-    @ToBeFixedForConfigurationCache
     def "resolves project substitution for build based on rootProject name"() {
         given:
         def buildB2 = rootDir.file("hierarchy", "buildB");
@@ -214,7 +207,6 @@ class CompositeBuildDeclaredSubstitutionsIntegrationTest extends AbstractComposi
         }
     }
 
-    @ToBeFixedForConfigurationCache
     def "substitutes external dependency with project dependency from same participant build"() {
         given:
         dependency "org.test:buildB:1.0"
@@ -239,7 +231,6 @@ class CompositeBuildDeclaredSubstitutionsIntegrationTest extends AbstractComposi
         }
     }
 
-    @ToBeFixedForConfigurationCache
     def "preserves the requested attributes when performing a composite substitution"() {
         platformDependency 'org.test:platform:1.0'
 
@@ -271,7 +262,6 @@ class CompositeBuildDeclaredSubstitutionsIntegrationTest extends AbstractComposi
 
     }
 
-    @ToBeFixedForConfigurationCache
     @Unroll
     def "preserves the requested attributes when performing a composite substitution using mapping"() {
         platformDependency 'org.test:platform:1.0'
@@ -310,7 +300,6 @@ class CompositeBuildDeclaredSubstitutionsIntegrationTest extends AbstractComposi
         'module("org.test:platform")'           | 'project(":")'
     }
 
-    @ToBeFixedForConfigurationCache
     def "preserves the requested capabilities when performing a composite substitution"() {
         buildA.buildFile << """
             dependencies {
@@ -342,7 +331,6 @@ class CompositeBuildDeclaredSubstitutionsIntegrationTest extends AbstractComposi
 
     }
 
-    @ToBeFixedForConfigurationCache
     def "preserves the requested capabilities when performing a composite substitution using mapping"() {
         buildA.buildFile << """
             dependencies {
