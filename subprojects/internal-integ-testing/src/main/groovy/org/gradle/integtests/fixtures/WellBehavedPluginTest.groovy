@@ -146,7 +146,6 @@ abstract class WellBehavedPluginTest extends AbstractPluginIntegrationTest {
         }
     }
 
-    @ToBeFixedForConfigurationCache(because = "composite builds")
     def "does not realize all possible tasks if the build is included"() {
         Assume.assumeFalse(pluginName in ['xctest', 'visual-studio', 'xcode', 'play-application'])
 
