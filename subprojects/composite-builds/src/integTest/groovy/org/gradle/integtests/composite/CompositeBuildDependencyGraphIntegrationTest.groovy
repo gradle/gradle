@@ -713,7 +713,7 @@ afterEvaluate {
             "  - None of the consumable configurations have attributes.")
     }
 
-    @ToBeFixedForConfigurationCache(because = "composite builds")
+    @ToBeFixedForConfigurationCache(because = "Resolve test fixture doesn't support configuration cache")
     def "includes build identifier in error message on failure to resolve dependencies of included build"() {
         def m = mavenRepo.module("org.test", "test", "1.2")
 
