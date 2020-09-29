@@ -31,55 +31,61 @@ abstract class AbstractWritableResultsStore<T extends PerformanceTestResult> imp
     }
 
     private static final int LATEST_EXECUTION_TIMES_DAYS = 14
-    private static final String SELECT_LATEST_EXECUTION_TIMES = '''
+    private static final String SELECT_LATEST_EXECUTION_TIMES = """
         with last as
         (
-           select
-           testClass,
-           testId,
-           testProject,
-           operatingSystem,
-           max(id) as lastId
-           from testExecution
+           ${ OperatingSystem.values().collect { os -> """
+            select
+               testClass,
+               testId,
+               testProject,
+               '${os.name()}' as os,
+               max(id) as lastId
+            from testExecution
            where startTime > ?
-           and (channel in (?, ?))
-           and testProject is not null
-           group by testClass,
-           testId,
-           testProject
+             and (channel in (?, ?))
+             and testProject is not null
+           group by testClass, testId, testProject
+           """ }.join("UNION") }
         )
         select
         last.testClass,
         last.testId,
         last.testProject,
+        last.os,
         testExecution.startTime,
         testExecution.endTime
         from last
         join testExecution on testExecution.id = last.lastId
-        order by last.testClass,last.testId,last.testProject
-    '''
+        order by last.testClass, last.testId, last.testProject, last.os
+    """
 
     @Override
-    public Map<PerformanceExperiment, Long> getEstimatedExperimentTimesInMillis(OperatingSystem operatingSystem) {
-        return this.<Map<PerformanceExperiment, Long>>withConnection("load estimated runtimes") { connection ->
+    public Map<PerformanceExperimentOnOs, Long> getEstimatedExperimentTimesInMillis() {
+        return this.<Map<PerformanceExperimentOnOs, Long>>withConnection("load estimated runtimes") { connection ->
             Timestamp since = Timestamp.valueOf(LocalDateTime.now().minusDays(LATEST_EXECUTION_TIMES_DAYS))
-            ImmutableMap.Builder<PerformanceExperiment, Long> builder = ImmutableMap.builder()
+            ImmutableMap.Builder<PerformanceExperimentOnOs, Long> builder = ImmutableMap.builder()
             connection.prepareStatement(SELECT_LATEST_EXECUTION_TIMES).withCloseable { statement ->
-                statement.setTimestamp(1, since)
-                List<String> channels = ['commits', 'experiments'].stream()
-                    .collect { channel -> "${channel}${operatingSystem.getChannelSuffix()}-master".toString() }
-                statement.setString(2, channels.get(0))
-                statement.setString(3, channels.get(1))
+                int idx = 0
+                OperatingSystem.values().each { os ->
+                    statement.setTimestamp(++idx, since)
+                    List<String> channels = ['commits', 'experiments'].stream()
+                        .collect { channel -> "${channel}${os.channelSuffix}-master".toString() }
+                    statement.setString(++idx, channels.get(0))
+                    statement.setString(++idx, channels.get(1))
+                }
                 statement.executeQuery().withCloseable { experimentTimes ->
                     while (experimentTimes.next()) {
-                        String testClass = experimentTimes.getString(1)
-                        String testName = experimentTimes.getString(2)
-                        String testProject = experimentTimes.getString(3)
-                        long startTime = experimentTimes.getTimestamp(4).getTime()
-                        long endTime = experimentTimes.getTimestamp(5).getTime()
+                        int resultIdx = 0
+                        String testClass = experimentTimes.getString(++resultIdx)
+                        String testName = experimentTimes.getString(++resultIdx)
+                        String testProject = experimentTimes.getString(++resultIdx)
+                        OperatingSystem os = OperatingSystem.valueOf(experimentTimes.getString(++resultIdx))
+                        long startTime = experimentTimes.getTimestamp(++resultIdx).getTime()
+                        long endTime = experimentTimes.getTimestamp(++resultIdx).getTime()
                         if (testProject != null && testClass != null) {
                             PerformanceExperiment performanceExperiment = new PerformanceExperiment(testProject, new PerformanceScenario(testClass, testName))
-                            builder.put(performanceExperiment, endTime - startTime)
+                            builder.put(new PerformanceExperimentOnOs(performanceExperiment, os), endTime - startTime)
                         }
                     }
                     return builder.build()

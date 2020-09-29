@@ -39,5 +39,5 @@ public interface ResultsStore extends Closeable {
     /**
      * Returns the estimated runtime for each experiment in milliseconds.
      */
-    Map<PerformanceExperiment, Long> getEstimatedExperimentTimesInMillis(OperatingSystem operatingSystem);
+    Map<PerformanceExperimentOnOs, Long> getEstimatedExperimentTimesInMillis();
 }
