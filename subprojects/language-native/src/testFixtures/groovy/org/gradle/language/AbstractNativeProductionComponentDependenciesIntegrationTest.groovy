@@ -47,7 +47,10 @@ abstract class AbstractNativeProductionComponentDependenciesIntegrationTest exte
         result.assertTasksExecuted(assembleReleaseTasks, ':assembleRelease')
     }
 
-    @ToBeFixedForConfigurationCache
+    @ToBeFixedForConfigurationCache(bottomSpecs = [
+        'CppLibraryDependenciesIntegrationTest',
+        'CppApplicationDependenciesIntegrationTest',
+    ])
     def "can define an included build implementation dependency on a binary"() {
         settingsFile << 'includeBuild "lib"'
         makeComponentWithIncludedBuildLibrary()
