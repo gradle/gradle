@@ -95,13 +95,7 @@ public class MavenBuildExperimentRunner extends AbstractBuildExperimentRunner {
             .setProfiler(getProfiler())
             .setBenchmark(true)
             .setOutputDir(outputDir)
-            .setInvoker(
-                new BuildInvoker() {
-                    @Override
-                    public String toString() {
-                        return "Maven";
-                    }
-                })
+            .setInvoker(BuildInvoker.Maven)
             .setVersions(ImmutableList.of(experimentSpec.getInvocation().getMavenVersion()))
             .setTargets(experimentSpec.getInvocation().getTasksToRun())
             .setSysProperties(emptyMap())
