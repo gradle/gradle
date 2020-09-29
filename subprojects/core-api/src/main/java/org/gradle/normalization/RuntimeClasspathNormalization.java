@@ -33,6 +33,22 @@ public interface RuntimeClasspathNormalization extends InputNormalization {
     void ignore(String pattern);
 
     /**
+     * Normalize files matching {@code pattern} as properties files, ignoring comments and property order, applying the rules provided by {@code configuration}.
+     *
+     * @since 6.8
+     */
+    @Incubating
+    void properties(String pattern, Action<? super PropertiesFileNormalization> configuration);
+
+    /**
+     * Normalize all properties files according to the rules provided by {@code configuration}.  This is equivalent to calling {@link RuntimeClasspathNormalization#properties(String, Action)} with the '**\/*.properties' pattern.
+     *
+     * @since 6.8
+     */
+    @Incubating
+    void properties(Action<? super PropertiesFileNormalization> configuration);
+
+    /**
      * Configures the normalization strategy for the {@code META-INF} directory in archives.
      *
      * @since 6.6

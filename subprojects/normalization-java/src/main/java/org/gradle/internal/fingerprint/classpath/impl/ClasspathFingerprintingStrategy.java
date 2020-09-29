@@ -22,8 +22,8 @@ import com.google.common.collect.Iterables;
 import org.gradle.api.internal.changedetection.state.DefaultRegularFileSnapshotContext;
 import org.gradle.api.internal.changedetection.state.IgnoringResourceHasher;
 import org.gradle.api.internal.changedetection.state.ManifestFileZipEntryHasher;
-import org.gradle.api.internal.changedetection.state.PropertiesFileZipEntryHasher;
 import org.gradle.api.internal.changedetection.state.RegularFileSnapshotContext;
+import org.gradle.api.internal.changedetection.state.PropertiesFileAwareClasspathResourceHasher;
 import org.gradle.api.internal.changedetection.state.ResourceEntryFilter;
 import org.gradle.api.internal.changedetection.state.ResourceFilter;
 import org.gradle.api.internal.changedetection.state.ResourceHasher;
@@ -88,8 +88,9 @@ public class ClasspathFingerprintingStrategy extends AbstractFingerprintingStrat
         this.zipHasherConfigurationHash = hasher.hash();
     }
 
-    public static ClasspathFingerprintingStrategy runtimeClasspath(ResourceFilter classpathResourceFilter, ResourceEntryFilter manifestAttributeResourceEntryFilter, ResourceEntryFilter manifestPropertyResourceEntryFilter, RuntimeClasspathResourceHasher runtimeClasspathResourceHasher, ResourceSnapshotterCacheService cacheService, Interner<String> stringInterner) {
-        ResourceHasher resourceHasher = metaInfAwareClasspathResourceHasher(runtimeClasspathResourceHasher, manifestAttributeResourceEntryFilter, manifestPropertyResourceEntryFilter);
+    public static ClasspathFingerprintingStrategy runtimeClasspath(ResourceFilter classpathResourceFilter, ResourceEntryFilter manifestAttributeResourceEntryFilter, Map<String, ResourceEntryFilter> propertiesFileFilters, RuntimeClasspathResourceHasher runtimeClasspathResourceHasher, ResourceSnapshotterCacheService cacheService, Interner<String> stringInterner) {
+        ResourceHasher resourceHasher = propertiesFileHasher(runtimeClasspathResourceHasher, propertiesFileFilters);
+        resourceHasher = metaInfAwareClasspathResourceHasher(resourceHasher, manifestAttributeResourceEntryFilter);
         resourceHasher = ignoringResourceHasher(resourceHasher, classpathResourceFilter);
         return new ClasspathFingerprintingStrategy("CLASSPATH", USE_FILE_HASH, resourceHasher, cacheService, stringInterner);
     }
@@ -102,12 +103,12 @@ public class ClasspathFingerprintingStrategy extends AbstractFingerprintingStrat
         return new IgnoringResourceHasher(delegate, resourceFilter);
     }
 
-    private static ResourceHasher metaInfAwareClasspathResourceHasher(ResourceHasher resourceHasher, ResourceEntryFilter manifestAttributeResourceEntryFilter, ResourceEntryFilter manifestPropertyResourceEntryFilter) {
-        return new MetaInfAwareClasspathResourceHasher(
-            resourceHasher,
-            new ManifestFileZipEntryHasher(manifestAttributeResourceEntryFilter),
-            new PropertiesFileZipEntryHasher(manifestPropertyResourceEntryFilter)
-        );
+    private static ResourceHasher propertiesFileHasher(ResourceHasher delegate, Map<String, ResourceEntryFilter> propertiesFileFilters) {
+        return new PropertiesFileAwareClasspathResourceHasher(delegate, propertiesFileFilters);
+    }
+
+    private static ResourceHasher metaInfAwareClasspathResourceHasher(ResourceHasher delegate, ResourceEntryFilter manifestAttributeResourceEntryFilter) {
+        return new MetaInfAwareClasspathResourceHasher(delegate, new ManifestFileZipEntryHasher(manifestAttributeResourceEntryFilter));
     }
 
     @Override

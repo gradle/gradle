@@ -16,14 +16,11 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import org.gradle.api.internal.file.archive.ZipEntry;
-import org.gradle.internal.file.FilePathUtil;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
-import java.util.function.Supplier;
 
 public class IgnoringResourceHasher implements ResourceHasher {
     private final ResourceHasher delegate;
@@ -48,19 +45,6 @@ public class IgnoringResourceHasher implements ResourceHasher {
     @Nullable
     @Override
     public HashCode hash(ZipEntryContext zipEntryContext) throws IOException {
-        return resourceFilter.shouldBeIgnored(new ZipEntryRelativePath(zipEntryContext.getEntry())) ? null : delegate.hash(zipEntryContext);
-    }
-
-    static class ZipEntryRelativePath implements Supplier<String[]> {
-        private final ZipEntry zipEntry;
-
-        ZipEntryRelativePath(ZipEntry zipEntry) {
-            this.zipEntry = zipEntry;
-        }
-
-        @Override
-        public String[] get() {
-            return FilePathUtil.getPathSegments(zipEntry.getName());
-        }
+        return resourceFilter.shouldBeIgnored(zipEntryContext.getRelativePathSegments()) ? null : delegate.hash(zipEntryContext);
     }
 }

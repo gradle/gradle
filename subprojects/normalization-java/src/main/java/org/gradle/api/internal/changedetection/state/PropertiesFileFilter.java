@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,18 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.normalization.internal;
+package org.gradle.api.internal.changedetection.state;
 
-import org.gradle.api.internal.changedetection.state.ResourceEntryFilter;
-import org.gradle.api.internal.changedetection.state.ResourceFilter;
-import org.gradle.normalization.RuntimeClasspathNormalization;
+import com.google.common.collect.ImmutableMap;
 
 import java.util.Map;
 
-public interface RuntimeClasspathNormalizationInternal extends RuntimeClasspathNormalization {
-     ResourceFilter getClasspathResourceFilter();
+public interface PropertiesFileFilter {
+    String ALL_PROPERTIES = "**/*.properties";
 
-     ResourceEntryFilter getManifestAttributeResourceEntryFilter();
+    Map<String, ResourceEntryFilter> FILTER_NOTHING = ImmutableMap.of();
 
-     Map<String, ResourceEntryFilter> getPropertiesFileFilters();
+    Map<String, ResourceEntryFilter> getFilters();
 }

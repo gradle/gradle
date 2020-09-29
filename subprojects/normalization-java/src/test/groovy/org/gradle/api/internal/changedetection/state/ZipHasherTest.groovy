@@ -42,9 +42,9 @@ class ZipHasherTest extends Specification {
     ZipHasher ignoringZipHasher = new ZipHasher(resourceHasher(manifestResourceFilter, propertyResourceFilter))
 
     static ResourceHasher resourceHasher(ResourceEntryFilter manifestResourceFilter, ResourceEntryFilter propertyResourceFilter) {
-        ManifestFileZipEntryHasher manifestZipEntryHasher = new ManifestFileZipEntryHasher(manifestResourceFilter)
-        PropertiesFileZipEntryHasher propertyZipEntryHasher = new PropertiesFileZipEntryHasher(propertyResourceFilter)
-        return new MetaInfAwareClasspathResourceHasher(new RuntimeClasspathResourceHasher(), manifestZipEntryHasher, propertyZipEntryHasher)
+        ResourceHasher hasher = new RuntimeClasspathResourceHasher()
+        ResourceHasher propertiesFileHasher = new PropertiesFileAwareClasspathResourceHasher(hasher, ['**/*.properties': propertyResourceFilter])
+        return new MetaInfAwareClasspathResourceHasher(propertiesFileHasher, new ManifestFileZipEntryHasher(manifestResourceFilter))
     }
 
     def "adding an empty jar inside another jar changes the hashcode"() {

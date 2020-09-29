@@ -18,6 +18,7 @@ package org.gradle.internal.fingerprint.classpath.impl
 
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.changedetection.state.DefaultResourceSnapshotterCacheService
+import org.gradle.api.internal.changedetection.state.PropertiesFileFilter
 import org.gradle.api.internal.changedetection.state.ResourceEntryFilter
 import org.gradle.api.internal.changedetection.state.ResourceFilter
 import org.gradle.api.internal.file.TestFiles
@@ -51,7 +52,7 @@ class DefaultClasspathFingerprinterTest extends Specification {
         fileCollectionSnapshotter,
         ResourceFilter.FILTER_NOTHING,
         ResourceEntryFilter.FILTER_NOTHING,
-        ResourceEntryFilter.FILTER_NOTHING,
+        PropertiesFileFilter.FILTER_NOTHING,
         stringInterner)
 
     def "directories and missing files are ignored"() {
