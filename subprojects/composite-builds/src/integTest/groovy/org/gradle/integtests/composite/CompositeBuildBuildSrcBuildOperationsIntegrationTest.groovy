@@ -20,7 +20,6 @@ import org.gradle.execution.taskgraph.NotifyTaskGraphWhenReadyBuildOperationType
 import org.gradle.initialization.ConfigureBuildBuildOperationType
 import org.gradle.initialization.LoadBuildBuildOperationType
 import org.gradle.initialization.buildsrc.BuildBuildSrcBuildOperationType
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType
 import org.gradle.launcher.exec.RunBuildBuildOperationType
@@ -44,7 +43,6 @@ class CompositeBuildBuildSrcBuildOperationsIntegrationTest extends AbstractCompo
     }
 
     @Unroll
-    @ToBeFixedForConfigurationCache
     def "generates configure, task graph and run tasks operations for buildSrc of included builds with #display"() {
         given:
         dependency 'org.test:buildB:1.0'
@@ -132,7 +130,6 @@ class CompositeBuildBuildSrcBuildOperationsIntegrationTest extends AbstractCompo
     }
 
     @Unroll
-    @ToBeFixedForConfigurationCache
     def "generates configure, task graph and run tasks operations when all builds have buildSrc with #display"() {
         given:
         dependency 'org.test:buildB:1.0'
