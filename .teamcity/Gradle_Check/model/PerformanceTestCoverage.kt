@@ -26,7 +26,8 @@ data class PerformanceTestCoverage(
     val type: PerformanceTestType,
     val os: Os,
     val numberOfBuckets: Int = 40,
-    val oldUuid: String? = null
+    val oldUuid: String? = null,
+    val withoutDependencies: Boolean = false
 ) {
     fun asConfigurationId(model: CIBuildModel, bucket: String = "") =
         "${model.projectPrefix}${oldUuid ?: "PerformanceTest$uuid"}$bucket"
