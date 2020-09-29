@@ -16,11 +16,14 @@
 
 package org.gradle.internal.execution.steps;
 
+import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.internal.execution.ExecutionRequestContext;
 import org.gradle.internal.execution.IdentityContext;
 import org.gradle.internal.execution.Result;
 import org.gradle.internal.execution.Step;
 import org.gradle.internal.execution.UnitOfWork;
+import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
+import org.gradle.internal.snapshot.ValueSnapshot;
 
 import java.util.Optional;
 
@@ -37,6 +40,16 @@ public class IdentifyStep<C extends ExecutionRequestContext, R extends Result> i
             @Override
             public Optional<String> getRebuildReason() {
                 return context.getRebuildReason();
+            }
+
+            @Override
+            public ImmutableSortedMap<String, ValueSnapshot> getInputProperties() {
+                return ImmutableSortedMap.of();
+            }
+
+            @Override
+            public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getInputFileProperties() {
+                return ImmutableSortedMap.of();
             }
 
             @Override

@@ -16,12 +16,15 @@
 
 package org.gradle.internal.execution.steps;
 
+import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.internal.execution.AfterPreviousExecutionContext;
 import org.gradle.internal.execution.IdentityContext;
 import org.gradle.internal.execution.Result;
 import org.gradle.internal.execution.Step;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
+import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
+import org.gradle.internal.snapshot.ValueSnapshot;
 
 import java.util.Optional;
 
@@ -46,6 +49,16 @@ public class LoadExecutionStateStep<C extends IdentityContext, R extends Result>
             @Override
             public Optional<String> getRebuildReason() {
                 return context.getRebuildReason();
+            }
+
+            @Override
+            public ImmutableSortedMap<String, ValueSnapshot> getInputProperties() {
+                return context.getInputProperties();
+            }
+
+            @Override
+            public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getInputFileProperties() {
+                return context.getInputFileProperties();
             }
 
             @Override

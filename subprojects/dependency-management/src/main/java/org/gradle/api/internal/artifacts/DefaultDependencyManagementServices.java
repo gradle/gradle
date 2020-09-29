@@ -161,6 +161,7 @@ import org.gradle.internal.execution.steps.TimeoutStep;
 import org.gradle.internal.execution.steps.ValidateStep;
 import org.gradle.internal.execution.timeout.TimeoutHandler;
 import org.gradle.internal.file.Deleter;
+import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry;
 import org.gradle.internal.fingerprint.FileCollectionSnapshotter;
@@ -183,6 +184,7 @@ import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshotter;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.internal.vfs.FileSystemAccess;
@@ -312,6 +314,16 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 @Override
                 public Optional<String> getRebuildReason() {
                     return context.getRebuildReason();
+                }
+
+                @Override
+                public ImmutableSortedMap<String, ValueSnapshot> getInputProperties() {
+                    return context.getInputProperties();
+                }
+
+                @Override
+                public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getInputFileProperties() {
+                    return context.getInputFileProperties();
                 }
 
                 @Override

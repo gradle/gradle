@@ -92,6 +92,20 @@ public class CaptureStateBeforeExecutionStep extends BuildOperationStep<AfterPre
             }
 
             @Override
+            public ImmutableSortedMap<String, ValueSnapshot> getInputProperties() {
+                return getBeforeExecutionState()
+                    .map(BeforeExecutionState::getInputProperties)
+                    .orElseGet(context::getInputProperties);
+            }
+
+            @Override
+            public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getInputFileProperties() {
+                return getBeforeExecutionState()
+                    .map(BeforeExecutionState::getInputFileProperties)
+                    .orElseGet(context::getInputFileProperties);
+            }
+
+            @Override
             public Optional<AfterPreviousExecutionState> getAfterPreviousExecutionState() {
                 return context.getAfterPreviousExecutionState();
             }
@@ -150,9 +164,17 @@ public class CaptureStateBeforeExecutionStep extends BuildOperationStep<AfterPre
                 throw new AssertionError();
         }
 
-        ImmutableSortedMap<String, ValueSnapshot> inputProperties = InputFingerprintUtil.fingerprintInputProperties(work, previousInputProperties, valueSnapshotter, ImmutableSortedMap.naturalOrder())
+        ImmutableSortedMap<String, ValueSnapshot> inputProperties = InputFingerprintUtil.fingerprintInputProperties(
+            work,
+            previousInputProperties,
+            valueSnapshotter,
+            ImmutableSortedMap.<String, ValueSnapshot>naturalOrder()
+                .putAll(context.getInputProperties()))
             .build();
-        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFileFingerprints = InputFingerprintUtil.fingerprintInputFiles(work, ImmutableSortedMap.naturalOrder())
+        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFileFingerprints = InputFingerprintUtil.fingerprintInputFiles(
+            work,
+            ImmutableSortedMap.<String, CurrentFileCollectionFingerprint>naturalOrder()
+                .putAll(context.getInputFileProperties()))
             .build();
         ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputFileFingerprints = fingerprintOutputFiles(
             outputSnapshotsAfterPreviousExecution,

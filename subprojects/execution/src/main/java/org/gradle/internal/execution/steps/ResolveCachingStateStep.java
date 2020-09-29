@@ -37,8 +37,10 @@ import org.gradle.internal.execution.caching.impl.DefaultCachingStateBuilder;
 import org.gradle.internal.execution.caching.impl.LoggingCachingStateBuilder;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.execution.history.BeforeExecutionState;
+import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.fingerprint.overlap.OverlappingOutputs;
+import org.gradle.internal.snapshot.ValueSnapshot;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -100,6 +102,16 @@ public class ResolveCachingStateStep implements Step<BeforeExecutionContext, Cac
             @Override
             public Optional<String> getRebuildReason() {
                 return context.getRebuildReason();
+            }
+
+            @Override
+            public ImmutableSortedMap<String, ValueSnapshot> getInputProperties() {
+                return context.getInputProperties();
+            }
+
+            @Override
+            public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getInputFileProperties() {
+                return context.getInputFileProperties();
             }
 
             @Override

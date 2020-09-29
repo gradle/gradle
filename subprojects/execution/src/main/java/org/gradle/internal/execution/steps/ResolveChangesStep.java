@@ -17,6 +17,7 @@
 package org.gradle.internal.execution.steps;
 
 import com.google.common.collect.ImmutableBiMap;
+import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.internal.execution.CachingContext;
 import org.gradle.internal.execution.IncrementalChangesContext;
@@ -31,6 +32,8 @@ import org.gradle.internal.execution.history.changes.ExecutionStateChangeDetecto
 import org.gradle.internal.execution.history.changes.ExecutionStateChanges;
 import org.gradle.internal.execution.history.changes.IncrementalInputProperties;
 import org.gradle.internal.execution.history.changes.RebuildExecutionStateChanges;
+import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
+import org.gradle.internal.snapshot.ValueSnapshot;
 
 import java.util.Optional;
 
@@ -87,6 +90,16 @@ public class ResolveChangesStep<R extends Result> implements Step<CachingContext
             @Override
             public Optional<String> getRebuildReason() {
                 return context.getRebuildReason();
+            }
+
+            @Override
+            public ImmutableSortedMap<String, ValueSnapshot> getInputProperties() {
+                return context.getInputProperties();
+            }
+
+            @Override
+            public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getInputFileProperties() {
+                return context.getInputFileProperties();
             }
 
             @Override
