@@ -145,7 +145,11 @@ data class CIBuildModel(
             )),
         Stage(StageNames.EXPERIMENTAL_PERFORMANCE,
             trigger = Trigger.never,
-            runsIndependent = true
+            runsIndependent = true,
+            performanceTests = listOf(
+                PerformanceTestCoverage(6, PerformanceTestType.test, Os.WINDOWS),
+                PerformanceTestCoverage(7, PerformanceTestType.test, Os.MACOS)
+            )
         )
     ),
     val subprojects: GradleSubprojectProvider
