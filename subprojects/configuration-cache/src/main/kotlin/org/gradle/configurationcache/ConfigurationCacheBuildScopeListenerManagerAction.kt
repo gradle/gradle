@@ -37,8 +37,10 @@ class ConfigurationCacheBuildScopeListenerManagerAction(
 ) : BuildScopeListenerManagerAction {
 
     override fun execute(manager: ListenerManager) {
-        if (buildEnablement.isEnabledForCurrentBuild) {
+        if (buildEnablement.isEnabledForClassLoaderScopeRegistry) {
             scopeRegistryListener.attach(manager)
+        }
+        if (buildEnablement.isEnabledForCurrentBuild) {
             manager.addListener(problemsListener)
         }
     }

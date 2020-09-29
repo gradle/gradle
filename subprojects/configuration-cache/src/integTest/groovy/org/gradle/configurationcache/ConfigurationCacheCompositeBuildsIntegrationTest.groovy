@@ -16,34 +16,15 @@
 
 package org.gradle.configurationcache
 
+import org.gradle.test.fixtures.file.TestFile
+
 
 class ConfigurationCacheCompositeBuildsIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
     def "can use lib produced by included build"() {
         given:
         def configurationCache = newConfigurationCacheFixture()
-        createDir('app') {
-            file('settings.gradle') << """
-                includeBuild '../lib'
-            """
-            file('build.gradle') << """
-                plugins {
-                    id 'java'
-                    id 'application'
-                }
-                application {
-                   mainClass = 'Main'
-                }
-                dependencies {
-                    implementation 'org.test:lib:1.0'
-                }
-            """
-            file('src/main/java/Main.java') << """
-                class Main { public static void main(String[] args) {
-                    Lib.main();
-                } }
-            """
-        }
+        withAppBuild()
         createDir('lib') {
             file('settings.gradle') << """
                 rootProject.name = 'lib'
@@ -84,6 +65,91 @@ class ConfigurationCacheCompositeBuildsIntegrationTest extends AbstractConfigura
         then: 'it should pick up the changes'
         outputContains 'After!'
         configurationCache.assertStateLoaded()
+    }
+
+    def "can use lib produced by multi-project included build with custom task"() {
+        given:
+        def configurationCache = newConfigurationCacheFixture()
+        withAppBuild()
+        createDir('lib') {
+            file('settings.gradle') << """
+                rootProject.name = 'lib-root'
+                include 'lib'
+            """
+
+            file('lib/build.gradle') << """
+                plugins { id 'java' }
+                group = 'org.test'
+                version = '1.0'
+
+                class CustomTask extends DefaultTask {
+                    @TaskAction def act() {
+                        println 'custom task...'
+                    }
+                }
+
+                def customTask = tasks.register('customTask', CustomTask)
+                tasks.named('jar') {
+                    dependsOn customTask
+                }
+            """
+
+            file('lib/src/main/java/Lib.java') << """
+                public class Lib { public static void main() {
+                    System.out.println("Before!");
+                } }
+            """
+        }
+
+        when:
+        inDirectory 'app'
+        configurationCacheRunLenient 'run'
+
+        then:
+        outputContains 'custom task...'
+        outputContains 'Before!'
+        configurationCache.assertStateStored()
+
+        when: 'changing source file from included build'
+        file('lib/lib/src/main/java/Lib.java').text = """
+            public class Lib { public static void main() {
+                System.out.println("After!");
+            } }
+        """
+
+        and: 'rerunning the build'
+        inDirectory 'app'
+        configurationCacheRunLenient 'run'
+
+        then: 'it should pick up the changes'
+        outputContains 'custom task...'
+        outputContains 'After!'
+        configurationCache.assertStateLoaded()
+    }
+
+    private TestFile withAppBuild() {
+        createDir('app') {
+            file('settings.gradle') << """
+                includeBuild '../lib'
+            """
+            file('build.gradle') << """
+                plugins {
+                    id 'java'
+                    id 'application'
+                }
+                application {
+                   mainClass = 'Main'
+                }
+                dependencies {
+                    implementation 'org.test:lib:1.0'
+                }
+            """
+            file('src/main/java/Main.java') << """
+                class Main { public static void main(String[] args) {
+                    Lib.main();
+                } }
+            """
+        }
     }
 
     def "reports a problem when source dependencies are present"() {
