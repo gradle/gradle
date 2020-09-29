@@ -174,7 +174,7 @@ public class DefaultGradleLauncher implements GradleLauncher {
         runWork();
     }
 
-    public void markConfiguredByCache() {
+    public void setConfiguredByCache() {
         stage = Stage.TaskGraph;
     }
 

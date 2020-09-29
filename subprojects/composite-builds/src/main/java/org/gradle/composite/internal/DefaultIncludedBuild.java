@@ -73,9 +73,9 @@ public class DefaultIncludedBuild extends AbstractCompositeParticipantBuildState
         this.gradleLauncher = owner.getNestedBuildFactory().nestedInstance(buildDefinition.newInstance(), this);
     }
 
-    public void markConfiguredByCache() {
-        ((DefaultGradleLauncher) gradleLauncher).markConfiguredByCache();
+    public void setConfiguredByCache() {
         configuredByCache = true;
+        ((DefaultGradleLauncher) gradleLauncher).setConfiguredByCache();
     }
 
     @Override

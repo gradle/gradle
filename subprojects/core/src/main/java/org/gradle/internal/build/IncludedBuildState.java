@@ -43,5 +43,5 @@ public interface IncludedBuildState extends NestedBuildState {
 
     <T> T withState(Transformer<T, ? super GradleInternal> action);
 
-    void markConfiguredByCache();
+    void setConfiguredByCache();
 }

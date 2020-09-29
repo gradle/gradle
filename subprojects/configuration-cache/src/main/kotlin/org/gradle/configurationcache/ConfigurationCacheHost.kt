@@ -192,7 +192,7 @@ class ConfigurationCacheHost internal constructor(
 
         override fun addIncludedBuild(buildDefinition: BuildDefinition): Pair<IncludedBuildState, ConfigurationCacheBuild> {
             val includedBuild = service<BuildStateRegistry>().addIncludedBuild(buildDefinition) as IncludedBuildState
-            includedBuild.markConfiguredByCache()
+            includedBuild.setConfiguredByCache()
             return includedBuild to includedBuild.withState { includedGradle ->
                 includedGradle.serviceOf<ConfigurationCacheHost>().createBuild(includedBuild.name)
             }
