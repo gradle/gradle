@@ -16,10 +16,10 @@
 
 package org.gradle.integtests.composite
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import spock.lang.Issue
+
 /**
  * Tests for classloading related bugs with a composite build.
  */
@@ -27,7 +27,6 @@ class CompositeBuildClassloadingIntegrationTest extends AbstractCompositeBuildIn
 
     @Issue('GRADLE-3553')
     @LeaksFileHandles
-    @ToBeFixedForConfigurationCache(because = "composite builds")
     def "init-script with project dependent classpath and included build"() {
         given:
         file('gradle-user-home/init.gradle') << """
