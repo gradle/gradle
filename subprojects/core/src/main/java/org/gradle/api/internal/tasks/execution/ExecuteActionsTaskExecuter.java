@@ -288,7 +288,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
             for (Map.Entry<String, Object> entry : inputPropertyValues.entrySet()) {
                 String propertyName = entry.getKey();
                 Object value = entry.getValue();
-                visitor.visitInputProperty(propertyName, value);
+                visitor.visitInputProperty(propertyName, value, IdentityKind.NON_IDENTITY);
             }
         }
 
@@ -306,7 +306,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
                         ? InputPropertyType.INCREMENTAL
                         : InputPropertyType.NON_INCREMENTAL;
                 String propertyName = inputFileProperty.getPropertyName();
-                visitor.visitInputFileProperty(propertyName, value, type, () -> {
+                visitor.visitInputFileProperty(propertyName, value, type, IdentityKind.NON_IDENTITY, () -> {
                     FileCollectionFingerprinter fingerprinter = fingerprinterRegistry.getFingerprinter(inputFileProperty.getNormalizer());
                     return fingerprinter.fingerprint(inputFileProperty.getPropertyFiles());
                 });

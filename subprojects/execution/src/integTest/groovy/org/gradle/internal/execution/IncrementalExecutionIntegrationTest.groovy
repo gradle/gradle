@@ -67,6 +67,7 @@ import java.util.function.Supplier
 
 import static org.gradle.internal.execution.ExecutionOutcome.EXECUTED_NON_INCREMENTALLY
 import static org.gradle.internal.execution.ExecutionOutcome.UP_TO_DATE
+import static org.gradle.internal.execution.UnitOfWork.IdentityKind.NON_IDENTITY
 import static org.gradle.internal.execution.UnitOfWork.InputPropertyType.NON_INCREMENTAL
 import static org.gradle.internal.reflect.TypeValidationContext.Severity.ERROR
 
@@ -777,7 +778,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
                 @Override
                 void visitInputProperties(UnitOfWork.InputPropertyVisitor visitor) {
                     inputProperties.each { propertyName, value ->
-                        visitor.visitInputProperty(propertyName, value)
+                        visitor.visitInputProperty(propertyName, value, NON_IDENTITY)
                     }
                 }
 
@@ -788,6 +789,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
                             entry.key,
                             entry.value,
                             NON_INCREMENTAL,
+                            NON_IDENTITY,
                             { -> fingerprinter.fingerprint(TestFiles.fixed(entry.value)) }
                         )
                     }

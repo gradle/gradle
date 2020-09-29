@@ -27,7 +27,7 @@ import org.gradle.internal.snapshot.ValueSnapshotter;
 public class InputFingerprintUtil {
 
     public static <B extends ImmutableMap.Builder<String, ValueSnapshot>> B fingerprintInputProperties(UnitOfWork work, ImmutableSortedMap<String, ValueSnapshot> previousSnapshots, ValueSnapshotter valueSnapshotter, B builder) {
-        work.visitInputProperties((propertyName, value) -> {
+        work.visitInputProperties((propertyName, value, identity) -> {
             try {
                 ValueSnapshot previousSnapshot = previousSnapshots.get(propertyName);
                 if (previousSnapshot == null) {
@@ -44,7 +44,7 @@ public class InputFingerprintUtil {
     }
 
     public static <B extends ImmutableMap.Builder<String, CurrentFileCollectionFingerprint>> B fingerprintInputFiles(UnitOfWork work, B builder) {
-        work.visitInputFileProperties((propertyName, value, type, fingerprinter) -> builder.put(propertyName, fingerprinter.get()));
+        work.visitInputFileProperties((propertyName, value, type, identity, fingerprinter) -> builder.put(propertyName, fingerprinter.get()));
         return builder;
     }
 }

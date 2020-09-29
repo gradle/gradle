@@ -130,7 +130,7 @@ public class ResolveChangesStep<R extends Result> implements Step<CachingContext
                 return IncrementalInputProperties.ALL;
             case INCREMENTAL_PARAMETERS:
                 ImmutableBiMap.Builder<String, Object> builder = ImmutableBiMap.builder();
-                work.visitInputFileProperties((propertyName, value, type, fingerprinter) -> {
+                work.visitInputFileProperties((propertyName, value, type, identity, fingerprinter) -> {
                     if (type.isIncremental()) {
                         if (value == null) {
                             throw new InvalidUserDataException("Must specify a value for incremental input property '" + propertyName + "'.");

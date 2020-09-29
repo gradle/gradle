@@ -63,13 +63,13 @@ public interface UnitOfWork extends Describable {
     void visitInputProperties(InputPropertyVisitor visitor);
 
     interface InputPropertyVisitor {
-        void visitInputProperty(String propertyName, Object value);
+        void visitInputProperty(String propertyName, Object value, IdentityKind identity);
     }
 
     void visitInputFileProperties(InputFilePropertyVisitor visitor);
 
     interface InputFilePropertyVisitor {
-        void visitInputFileProperty(String propertyName, @Nullable Object value, InputPropertyType type, Supplier<CurrentFileCollectionFingerprint> fingerprinter);
+        void visitInputFileProperty(String propertyName, @Nullable Object value, InputPropertyType type, IdentityKind identity, Supplier<CurrentFileCollectionFingerprint> fingerprinter);
     }
 
     enum InputPropertyType {
@@ -104,6 +104,10 @@ public interface UnitOfWork extends Describable {
         public boolean isSkipWhenEmpty() {
             return skipWhenEmpty;
         }
+    }
+
+    enum IdentityKind {
+        NON_IDENTITY, IDENTITY
     }
 
     void visitOutputProperties(OutputPropertyVisitor visitor);

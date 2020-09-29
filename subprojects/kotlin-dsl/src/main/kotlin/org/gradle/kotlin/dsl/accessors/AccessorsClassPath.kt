@@ -160,7 +160,7 @@ class GenerateProjectAccessors(
     }
 
     override fun visitInputProperties(visitor: UnitOfWork.InputPropertyVisitor) {
-        visitor.visitInputProperty(CACHE_KEY_INPUT_PROPERTY, cacheKey)
+        visitor.visitInputProperty(CACHE_KEY_INPUT_PROPERTY, cacheKey, UnitOfWork.IdentityKind.IDENTITY)
     }
 
     override fun visitInputFileProperties(visitor: UnitOfWork.InputFilePropertyVisitor) = Unit

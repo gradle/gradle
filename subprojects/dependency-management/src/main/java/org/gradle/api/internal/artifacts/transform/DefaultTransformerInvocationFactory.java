@@ -68,6 +68,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
+import static org.gradle.internal.execution.UnitOfWork.IdentityKind.IDENTITY;
 import static org.gradle.internal.execution.UnitOfWork.InputPropertyType.NON_INCREMENTAL;
 import static org.gradle.internal.execution.UnitOfWork.InputPropertyType.PRIMARY;
 
@@ -344,14 +345,14 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
         @Override
         public void visitInputProperties(InputPropertyVisitor visitor) {
             // Emulate secondary inputs as a single property for now
-            visitor.visitInputProperty(SECONDARY_INPUTS_HASH_PROPERTY_NAME, transformer.getSecondaryInputHash().toString());
+            visitor.visitInputProperty(SECONDARY_INPUTS_HASH_PROPERTY_NAME, transformer.getSecondaryInputHash().toString(), IDENTITY);
         }
 
         @Override
         public void visitInputFileProperties(InputFilePropertyVisitor visitor) {
-            visitor.visitInputFileProperty(INPUT_ARTIFACT_PROPERTY_NAME, inputArtifactProvider, PRIMARY,
+            visitor.visitInputFileProperty(INPUT_ARTIFACT_PROPERTY_NAME, inputArtifactProvider, PRIMARY, IDENTITY,
                 () -> inputArtifactFingerprinter.fingerprint(ImmutableList.of(inputArtifactSnapshot)));
-            visitor.visitInputFileProperty(DEPENDENCIES_PROPERTY_NAME, dependencies, NON_INCREMENTAL,
+            visitor.visitInputFileProperty(DEPENDENCIES_PROPERTY_NAME, dependencies, NON_INCREMENTAL, IDENTITY,
                 () -> dependenciesFingerprint);
         }
 

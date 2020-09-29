@@ -166,7 +166,7 @@ class GeneratePluginAccessors(
     }
 
     override fun visitInputProperties(visitor: UnitOfWork.InputPropertyVisitor) {
-        visitor.visitInputProperty(BUILD_SRC_CLASSLOADER_INPUT_PROPERTY, classLoaderHash)
+        visitor.visitInputProperty(BUILD_SRC_CLASSLOADER_INPUT_PROPERTY, classLoaderHash, UnitOfWork.IdentityKind.IDENTITY)
     }
 
     override fun visitInputFileProperties(visitor: UnitOfWork.InputFilePropertyVisitor) = Unit
