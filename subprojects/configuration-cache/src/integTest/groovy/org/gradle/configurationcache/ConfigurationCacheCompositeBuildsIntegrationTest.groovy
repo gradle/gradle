@@ -45,7 +45,7 @@ class ConfigurationCacheCompositeBuildsIntegrationTest extends AbstractConfigura
 
         when:
         inDirectory 'app'
-        configurationCacheRunLenient 'run'
+        configurationCacheRun'run'
 
         then:
         outputContains 'Before!'
@@ -60,7 +60,7 @@ class ConfigurationCacheCompositeBuildsIntegrationTest extends AbstractConfigura
 
         and: 'rerunning the build'
         inDirectory 'app'
-        configurationCacheRunLenient 'run'
+        configurationCacheRun 'run'
 
         then: 'it should pick up the changes'
         outputContains 'After!'
@@ -103,7 +103,7 @@ class ConfigurationCacheCompositeBuildsIntegrationTest extends AbstractConfigura
 
         when:
         inDirectory 'app'
-        configurationCacheRunLenient 'run'
+        configurationCacheRun 'run'
 
         then:
         outputContains 'custom task...'
@@ -119,7 +119,7 @@ class ConfigurationCacheCompositeBuildsIntegrationTest extends AbstractConfigura
 
         and: 'rerunning the build'
         inDirectory 'app'
-        configurationCacheRunLenient 'run'
+        configurationCacheRun 'run'
 
         then: 'it should pick up the changes'
         outputContains 'custom task...'
