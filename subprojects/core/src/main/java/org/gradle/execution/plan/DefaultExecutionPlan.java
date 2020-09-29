@@ -529,7 +529,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
             return null;
         }
 
-        for (Iterator<Node> iterator = dependenciesWhichRequireMonitoring.iterator(); iterator.hasNext(); ) {
+        for (Iterator<Node> iterator = dependenciesWhichRequireMonitoring.iterator(); iterator.hasNext();) {
             Node node = iterator.next();
             if (node.isComplete()) {
                 LOGGER.debug("Monitored node {} completed", node);
