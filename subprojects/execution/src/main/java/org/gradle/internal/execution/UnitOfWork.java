@@ -69,7 +69,41 @@ public interface UnitOfWork extends Describable {
     void visitInputFileProperties(InputFilePropertyVisitor visitor);
 
     interface InputFilePropertyVisitor {
-        void visitInputFileProperty(String propertyName, @Nullable Object value, boolean incremental, Supplier<CurrentFileCollectionFingerprint> fingerprinter);
+        void visitInputFileProperty(String propertyName, @Nullable Object value, InputPropertyType type, Supplier<CurrentFileCollectionFingerprint> fingerprinter);
+    }
+
+    enum InputPropertyType {
+        /**
+         * Non-incremental inputs.
+         */
+        NON_INCREMENTAL(false, false),
+
+        /**
+         * Incremental inputs.
+         */
+        INCREMENTAL(true, false),
+
+        /**
+         * These are the primary inputs to the incremental work item;
+         * if they are empty the work item shouldn't be executed.
+         */
+        PRIMARY(true, true);
+
+        private final boolean incremental;
+        private final boolean skipWhenEmpty;
+
+        InputPropertyType(boolean incremental, boolean skipWhenEmpty) {
+            this.incremental = incremental;
+            this.skipWhenEmpty = skipWhenEmpty;
+        }
+
+        public boolean isIncremental() {
+            return incremental;
+        }
+
+        public boolean isSkipWhenEmpty() {
+            return skipWhenEmpty;
+        }
     }
 
     void visitOutputProperties(OutputPropertyVisitor visitor);

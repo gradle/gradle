@@ -44,7 +44,7 @@ public class InputFingerprintUtil {
     }
 
     public static <B extends ImmutableMap.Builder<String, CurrentFileCollectionFingerprint>> B fingerprintInputFiles(UnitOfWork work, B builder) {
-        work.visitInputFileProperties((propertyName, value, incremental, fingerprinter) -> builder.put(propertyName, fingerprinter.get()));
+        work.visitInputFileProperties((propertyName, value, type, fingerprinter) -> builder.put(propertyName, fingerprinter.get()));
         return builder;
     }
 }

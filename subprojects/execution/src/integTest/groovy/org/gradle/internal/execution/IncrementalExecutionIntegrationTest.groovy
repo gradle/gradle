@@ -67,6 +67,7 @@ import java.util.function.Supplier
 
 import static org.gradle.internal.execution.ExecutionOutcome.EXECUTED_NON_INCREMENTALLY
 import static org.gradle.internal.execution.ExecutionOutcome.UP_TO_DATE
+import static org.gradle.internal.execution.UnitOfWork.InputPropertyType.NON_INCREMENTAL
 import static org.gradle.internal.reflect.TypeValidationContext.Severity.ERROR
 
 class IncrementalExecutionIntegrationTest extends Specification {
@@ -783,7 +784,10 @@ class IncrementalExecutionIntegrationTest extends Specification {
                 @Override
                 void visitInputFileProperties(UnitOfWork.InputFilePropertyVisitor visitor) {
                     for (entry in inputs.entrySet()) {
-                        visitor.visitInputFileProperty(entry.key, entry.value, false,
+                        visitor.visitInputFileProperty(
+                            entry.key,
+                            entry.value,
+                            NON_INCREMENTAL,
                             { -> fingerprinter.fingerprint(TestFiles.fixed(entry.value)) }
                         )
                     }
