@@ -117,7 +117,8 @@ fun DataInputStream.unpackFilesTo(outputDir: File): Long {
     while (true) {
 
         val path = readUTF()
-        if (path.isEmpty()) break
+            .takeIf(String::isNotEmpty)
+            ?: break
 
         val isFile = readBoolean()
 
