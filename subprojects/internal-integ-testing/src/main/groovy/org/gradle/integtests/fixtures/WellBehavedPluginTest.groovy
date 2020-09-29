@@ -145,4 +145,28 @@ abstract class WellBehavedPluginTest extends AbstractPluginIntegrationTest {
             outputContains("configuring :help")
         }
     }
+
+    @ToBeFixedForConfigurationCache(because = "composite builds")
+    def "does not realize all possible tasks if the build is included"() {
+        Assume.assumeFalse(pluginName in ['xctest', 'visual-studio', 'xcode', 'play-application'])
+
+        def includedBuildFile = file("included/build.gradle")
+
+        settingsFile << """
+            includeBuild 'included'
+        """
+
+        applyPlugin(includedBuildFile)
+        includedBuildFile << """
+            tasks.configureEach {
+                println("configuring \${it.path}")
+            }
+        """
+
+        when:
+        succeeds("help")
+
+        then:
+        assert output.count("configuring :") == 0
+    }
 }
