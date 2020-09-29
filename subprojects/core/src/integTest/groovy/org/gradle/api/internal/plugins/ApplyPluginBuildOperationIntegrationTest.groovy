@@ -18,7 +18,6 @@ package org.gradle.api.internal.plugins
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
 class ApplyPluginBuildOperationIntegrationTest extends AbstractIntegrationSpec {
 
@@ -143,7 +142,6 @@ class ApplyPluginBuildOperationIntegrationTest extends AbstractIntegrationSpec {
         p2.details.pluginClass == "Plugin2"
     }
 
-    @ToBeFixedForConfigurationCache(because = "composite builds")
     def "associates target to correct build"() {
         when:
         settingsFile << """
