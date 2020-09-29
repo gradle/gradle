@@ -30,7 +30,7 @@ import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.gradlePluginRep
 
 public class SetMirrorsSampleModifier implements SampleModifier {
 
-    private File initScript = RepoScriptBlockUtil.createMirrorInitScript();
+    private final File initScript = RepoScriptBlockUtil.createMirrorInitScript();
 
     @Override
     public Sample modify(Sample sample) {

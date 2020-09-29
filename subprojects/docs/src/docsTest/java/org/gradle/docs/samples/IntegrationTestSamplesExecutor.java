@@ -42,7 +42,7 @@ class IntegrationTestSamplesExecutor extends CommandExecutor {
     private final boolean expectFailure;
     private final GradleExecuter gradle;
 
-    public IntegrationTestSamplesExecutor(File workingDir, boolean expectFailure) {
+    IntegrationTestSamplesExecutor(File workingDir, boolean expectFailure) {
         this.workingDir = workingDir;
         this.expectFailure = expectFailure;
         GradleDistribution distribution = new UnderDevelopmentGradleDistribution(IntegrationTestBuildContext.INSTANCE);
