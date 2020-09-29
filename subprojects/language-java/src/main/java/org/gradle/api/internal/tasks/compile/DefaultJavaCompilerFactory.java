@@ -32,22 +32,28 @@ import javax.tools.JavaCompiler;
 public class DefaultJavaCompilerFactory implements JavaCompilerFactory {
     private final WorkerDirectoryProvider workingDirProvider;
     private final WorkerDaemonFactory workerDaemonFactory;
-    private final Factory<JavaCompiler> javaHomeBasedJavaCompilerFactory;
     private final JavaForkOptionsFactory forkOptionsFactory;
     private final ExecHandleFactory execHandleFactory;
     private final AnnotationProcessorDetector processorDetector;
     private final ClassPathRegistry classPathRegistry;
     private final ActionExecutionSpecFactory actionExecutionSpecFactory;
+    private Factory<JavaCompiler> javaHomeBasedJavaCompilerFactory;
 
-    public DefaultJavaCompilerFactory(WorkerDirectoryProvider workingDirProvider, WorkerDaemonFactory workerDaemonFactory, Factory<JavaCompiler> javaHomeBasedJavaCompilerFactory, JavaForkOptionsFactory forkOptionsFactory, ExecHandleFactory execHandleFactory, AnnotationProcessorDetector processorDetector, ClassPathRegistry classPathRegistry, ActionExecutionSpecFactory actionExecutionSpecFactory) {
+    public DefaultJavaCompilerFactory(WorkerDirectoryProvider workingDirProvider, WorkerDaemonFactory workerDaemonFactory, JavaForkOptionsFactory forkOptionsFactory, ExecHandleFactory execHandleFactory, AnnotationProcessorDetector processorDetector, ClassPathRegistry classPathRegistry, ActionExecutionSpecFactory actionExecutionSpecFactory) {
         this.workingDirProvider = workingDirProvider;
         this.workerDaemonFactory = workerDaemonFactory;
-        this.javaHomeBasedJavaCompilerFactory = javaHomeBasedJavaCompilerFactory;
         this.forkOptionsFactory = forkOptionsFactory;
         this.execHandleFactory = execHandleFactory;
         this.processorDetector = processorDetector;
         this.classPathRegistry = classPathRegistry;
         this.actionExecutionSpecFactory = actionExecutionSpecFactory;
+    }
+
+    private Factory<JavaCompiler> getJavaHomeBasedJavaCompilerFactory() {
+        if (javaHomeBasedJavaCompilerFactory == null) {
+            javaHomeBasedJavaCompilerFactory = new JavaHomeBasedJavaCompilerFactory(classPathRegistry.getClassPath("JAVA-COMPILER-PLUGIN").getAsFiles());
+        }
+        return javaHomeBasedJavaCompilerFactory;
     }
 
     @Override
@@ -68,9 +74,9 @@ public class DefaultJavaCompilerFactory implements JavaCompilerFactory {
         }
 
         if (ForkingJavaCompileSpec.class.isAssignableFrom(type)) {
-            return (Compiler<T>) new DaemonJavaCompiler(workingDirProvider.getWorkingDirectory(), JdkJavaCompiler.class, new Object[]{javaHomeBasedJavaCompilerFactory}, workerDaemonFactory, forkOptionsFactory, classPathRegistry, actionExecutionSpecFactory);
+            return (Compiler<T>) new DaemonJavaCompiler(workingDirProvider.getWorkingDirectory(), JdkJavaCompiler.class, new Object[]{getJavaHomeBasedJavaCompilerFactory()}, workerDaemonFactory, forkOptionsFactory, classPathRegistry, actionExecutionSpecFactory);
         } else {
-            return (Compiler<T>) new JdkJavaCompiler(javaHomeBasedJavaCompilerFactory);
+            return (Compiler<T>) new JdkJavaCompiler(getJavaHomeBasedJavaCompilerFactory());
         }
     }
 }
