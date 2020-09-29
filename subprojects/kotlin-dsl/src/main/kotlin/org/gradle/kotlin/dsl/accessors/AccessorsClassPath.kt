@@ -378,8 +378,7 @@ fun classNamesFromTypeString(typeString: String): ClassNamesFromTypeString {
     var buffer = StringBuilder()
 
     fun nonPrimitiveKotlinType(): String? =
-        if (buffer.isEmpty()) null
-        else buffer.toString().let {
+        buffer.takeIf(StringBuilder::isNotEmpty)?.toString()?.let {
             if (it in primitiveKotlinTypeNames) null
             else it
         }

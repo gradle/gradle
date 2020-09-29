@@ -30,8 +30,9 @@ class ClassGraph(
     val entryPoints: MutableSet<ClassDetails> = linkedSetOf()
 
     val shadowPackagePrefix =
-        if (shadowPackage.isEmpty()) ""
-        else shadowPackage.replace('.', '/') + "/"
+        shadowPackage.takeIf(String::isNotEmpty)
+            ?.let { it.replace('.', '/') + "/" }
+            ?: ""
 
     operator fun get(className: String) =
         classes.computeIfAbsent(className) {
