@@ -44,6 +44,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 
+import static org.gradle.api.internal.SettingsInternal.BUILD_SRC;
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
 @ServiceScope(Scopes.Build.class)
@@ -91,7 +92,7 @@ public class BuildSourceBuilder {
         buildSrcStartParameter.setProfile(containingBuildParameters.isProfile());
         final BuildDefinition buildDefinition = BuildDefinition.fromStartParameterForBuild(
             buildSrcStartParameter,
-            "buildSrc",
+            BUILD_SRC,
             buildSrcDir,
             PluginRequests.EMPTY,
             Actions.doNothing(),

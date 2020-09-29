@@ -22,6 +22,8 @@ import org.gradle.cli.CommandLineConverter;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
 
+import static org.gradle.api.internal.SettingsInternal.BUILD_SRC;
+
 public class LayoutCommandLineConverter extends AbstractCommandLineConverter<BuildLayoutParameters> {
     private final CommandLineConverter<BuildLayoutParameters> converter = new BuildLayoutParametersBuildOptions().commandLineConverter();
 
@@ -33,7 +35,7 @@ public class LayoutCommandLineConverter extends AbstractCommandLineConverter<Bui
             target.setSearchUpwards(false);
         }
 
-        if (target.getSearchDir().getName().equals("buildSrc")) {
+        if (target.getSearchDir().getName().equals(BUILD_SRC)) {
             target.setSearchUpwards(false);
         }
 
