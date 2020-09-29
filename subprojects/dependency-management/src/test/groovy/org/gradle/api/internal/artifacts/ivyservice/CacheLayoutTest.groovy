@@ -71,22 +71,10 @@ class CacheLayoutTest extends Specification {
 
         then:
         cacheLayout.name == 'transforms'
-        cacheLayout.key == 'transforms-2'
-        cacheLayout.version == CacheVersion.parse("2")
-        cacheLayout.version.toString() == '2'
-        cacheLayout.getPath(new File('some/dir')) == new File('some/dir/transforms-2')
-    }
-
-    def "use transforms store layout"() {
-        when:
-        CacheLayout cacheLayout = CacheLayout.TRANSFORMS_STORE
-
-        then:
-        cacheLayout.name == 'files'
-        cacheLayout.key == 'files-2.1'
-        cacheLayout.version == CacheVersion.parse("2.1")
-        cacheLayout.version.toString() == '2.1'
-        cacheLayout.getPath(new File('some/dir')) == new File('some/dir/files-2.1')
+        cacheLayout.key == 'transforms-3'
+        cacheLayout.version == CacheVersion.parse("3")
+        cacheLayout.version.toString() == '3'
+        cacheLayout.getPath(new File('some/dir')) == new File('some/dir/transforms-3')
     }
 
 }

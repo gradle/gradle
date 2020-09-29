@@ -34,7 +34,6 @@ import javax.annotation.concurrent.NotThreadSafe;
 import java.io.Closeable;
 import java.io.File;
 
-import static org.gradle.api.internal.artifacts.ivyservice.CacheLayout.TRANSFORMS_STORE;
 import static org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup.DEFAULT_MAX_AGE_IN_DAYS_FOR_RECREATABLE_CACHE_ENTRIES;
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
@@ -43,26 +42,26 @@ public class ImmutableTransformationWorkspaceProvider implements TransformationW
     private static final int FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP = 1;
 
     private final SingleDepthFileAccessTracker fileAccessTracker;
-    private final File filesOutputDirectory;
+    private final File baseDirectory;
     private final ExecutionHistoryStore executionHistoryStore;
     private final PersistentCache cache;
 
-    public ImmutableTransformationWorkspaceProvider(File transformsStoreDirectory, CacheRepository cacheRepository, FileAccessTimeJournal fileAccessTimeJournal, ExecutionHistoryStore executionHistoryStore) {
-        filesOutputDirectory = new File(transformsStoreDirectory, TRANSFORMS_STORE.getKey());
-        this.executionHistoryStore = executionHistoryStore;
-        cache = cacheRepository
-            .cache(transformsStoreDirectory)
-            .withCleanup(createCleanupAction(filesOutputDirectory, fileAccessTimeJournal))
+    public ImmutableTransformationWorkspaceProvider(File baseDirectory, CacheRepository cacheRepository, FileAccessTimeJournal fileAccessTimeJournal, ExecutionHistoryStore executionHistoryStore) {
+        this.baseDirectory = baseDirectory;
+        this.cache = cacheRepository
+            .cache(baseDirectory)
+            .withCleanup(createCleanupAction(baseDirectory, fileAccessTimeJournal))
             .withCrossVersionCache(CacheBuilder.LockTarget.DefaultTarget)
             .withDisplayName("Artifact transforms cache")
             .withLockOptions(mode(FileLockManager.LockMode.OnDemand)) // Lock on demand
             .open();
-        fileAccessTracker = new SingleDepthFileAccessTracker(fileAccessTimeJournal, filesOutputDirectory, FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP);
+        this.fileAccessTracker = new SingleDepthFileAccessTracker(fileAccessTimeJournal, baseDirectory, FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP);
+        this.executionHistoryStore = executionHistoryStore;
     }
 
-    private CleanupAction createCleanupAction(File filesOutputDirectory, FileAccessTimeJournal fileAccessTimeJournal) {
+    private CleanupAction createCleanupAction(File baseDirectory, FileAccessTimeJournal fileAccessTimeJournal) {
         return CompositeCleanupAction.builder()
-            .add(filesOutputDirectory, new LeastRecentlyUsedCacheCleanup(new SingleDepthFilesFinder(FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP), fileAccessTimeJournal, DEFAULT_MAX_AGE_IN_DAYS_FOR_RECREATABLE_CACHE_ENTRIES))
+            .add(baseDirectory, new LeastRecentlyUsedCacheCleanup(new SingleDepthFilesFinder(FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP), fileAccessTimeJournal, DEFAULT_MAX_AGE_IN_DAYS_FOR_RECREATABLE_CACHE_ENTRIES))
             .build();
     }
 
@@ -75,10 +74,9 @@ public class ImmutableTransformationWorkspaceProvider implements TransformationW
     public Try<ImmutableList<File>> withWorkspace(TransformationWorkspaceIdentity identity, TransformationWorkspaceAction workspaceAction) {
         return cache.withFileLock(() -> {
             String workspacePath = identity.getIdentity();
-            TransformationWorkspace workspace = new DefaultTransformationWorkspace(new File(filesOutputDirectory, workspacePath));
-            fileAccessTracker.markAccessed(workspace.getResultsFile());
-            fileAccessTracker.markAccessed(workspace.getOutputDirectory());
-            return workspaceAction.useWorkspace(workspacePath, workspace);
+            File workspaceDir = new File(baseDirectory, workspacePath);
+            fileAccessTracker.markAccessed(workspaceDir);
+            return workspaceAction.useWorkspace(workspacePath, workspaceDir);
         });
     }
 

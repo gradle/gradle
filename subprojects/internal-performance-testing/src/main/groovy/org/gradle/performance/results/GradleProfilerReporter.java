@@ -18,6 +18,7 @@ package org.gradle.performance.results;
 
 import com.google.common.base.Strings;
 import org.gradle.profiler.BenchmarkResultCollector;
+import org.gradle.profiler.InvocationSettings;
 import org.gradle.profiler.report.CsvGenerator;
 import org.gradle.profiler.report.HtmlGenerator;
 
@@ -44,7 +45,11 @@ public class GradleProfilerReporter implements DataReporter<PerformanceTestResul
             System.out.println("  " + line)
         );
         try {
-            resultCollector.write();
+            // TODO Properly pass in the invocation settings for this benchmark here
+            InvocationSettings settings = new InvocationSettings.InvocationSettingsBuilder()
+                .setBenchmarkTitle(results.getTestId())
+                .build();
+            resultCollector.write(settings);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }

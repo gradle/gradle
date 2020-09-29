@@ -245,7 +245,7 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
         then:
         result.get().size() == 1
         def transformedFile = result.get()[0]
-        transformedFile.parentFile.parentFile == workspaceDirectory(transformationType)
+        transformedFile.parentFile.parentFile.parentFile == workspaceDirectory(transformationType)
 
         where:
         transformationType << TransformationType.values()
