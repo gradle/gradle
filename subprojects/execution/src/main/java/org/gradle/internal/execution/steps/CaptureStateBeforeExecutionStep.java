@@ -19,7 +19,6 @@ package org.gradle.internal.execution.steps;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Maps;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.execution.AfterPreviousExecutionContext;
 import org.gradle.internal.execution.BeforeExecutionContext;
 import org.gradle.internal.execution.CachingResult;
@@ -30,6 +29,7 @@ import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.execution.history.ExecutionState;
 import org.gradle.internal.execution.history.impl.DefaultBeforeExecutionState;
+import org.gradle.internal.execution.impl.InputFingerprintUtil;
 import org.gradle.internal.execution.impl.OutputFilterUtil;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
@@ -150,8 +150,10 @@ public class CaptureStateBeforeExecutionStep extends BuildOperationStep<AfterPre
                 throw new AssertionError();
         }
 
-        ImmutableSortedMap<String, ValueSnapshot> inputProperties = fingerprintInputProperties(work, previousInputProperties, valueSnapshotter);
-        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFileFingerprints = fingerprintInputFiles(work);
+        ImmutableSortedMap<String, ValueSnapshot> inputProperties = InputFingerprintUtil.fingerprintInputProperties(work, previousInputProperties, valueSnapshotter, ImmutableSortedMap.naturalOrder())
+            .build();
+        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFileFingerprints = InputFingerprintUtil.fingerprintInputFiles(work, ImmutableSortedMap.naturalOrder())
+            .build();
         ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputFileFingerprints = fingerprintOutputFiles(
             outputSnapshotsAfterPreviousExecution,
             outputFileSnapshots,
@@ -166,37 +168,6 @@ public class CaptureStateBeforeExecutionStep extends BuildOperationStep<AfterPre
             outputFileSnapshots,
             overlappingOutputs
         );
-    }
-
-    private static ImmutableSortedMap<String, ValueSnapshot> fingerprintInputProperties(UnitOfWork work, ImmutableSortedMap<String, ValueSnapshot> previousSnapshots, ValueSnapshotter valueSnapshotter) {
-        ImmutableSortedMap.Builder<String, ValueSnapshot> builder = ImmutableSortedMap.naturalOrder();
-        work.visitInputProperties((propertyName, value) -> {
-            try {
-                ValueSnapshot previousSnapshot = previousSnapshots.get(propertyName);
-                if (previousSnapshot == null) {
-                    builder.put(propertyName, valueSnapshotter.snapshot(value));
-                } else {
-                    builder.put(propertyName, valueSnapshotter.snapshot(value, previousSnapshot));
-                }
-            } catch (Exception e) {
-                throw new UncheckedIOException(String.format("Unable to store input properties for %s. Property '%s' with value '%s' cannot be serialized.",
-                    work.getDisplayName(), propertyName, value), e);
-            }
-        });
-
-        return builder.build();
-    }
-
-    private static ImmutableSortedMap<String, CurrentFileCollectionFingerprint> fingerprintInputFiles(UnitOfWork work) {
-        ImmutableSortedMap.Builder<String, CurrentFileCollectionFingerprint> builder = ImmutableSortedMap.naturalOrder();
-        work.visitInputFileProperties((propertyName, value, incremental, fingerprinter) -> {
-            if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("Fingerprinting property {} for {}", propertyName, work.getDisplayName());
-            }
-            CurrentFileCollectionFingerprint result = fingerprinter.get();
-            builder.put(propertyName, result);
-        });
-        return builder.build();
     }
 
     private static ImmutableSortedMap<String, CurrentFileCollectionFingerprint> fingerprintOutputFiles(
