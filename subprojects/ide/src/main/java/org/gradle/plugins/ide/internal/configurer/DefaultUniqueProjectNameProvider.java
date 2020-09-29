@@ -31,11 +31,12 @@ public class DefaultUniqueProjectNameProvider implements UniqueProjectNameProvid
 
     @Override
     public String getUniqueName(Project project) {
-        String uniqueName = getDeduplicatedNames().get(projectRegistry.stateFor(project));
+        ProjectState projectState = projectRegistry.stateFor(project);
+        String uniqueName = getDeduplicatedNames().get(projectState);
         if (uniqueName != null) {
             return uniqueName;
         }
-        return project.getName();
+        return getUniqueProjectName(projectState);
     }
 
     private synchronized Map<ProjectState, String> getDeduplicatedNames() {
@@ -46,10 +47,15 @@ public class DefaultUniqueProjectNameProvider implements UniqueProjectNameProvid
         return deduplicated;
     }
 
+    private static String getUniqueProjectName(ProjectState projectState) {
+        String identityName = projectState.getIdentityPath().getName();
+        return identityName != null ? identityName : projectState.getName();
+    }
+
     private static class ProjectPathDeduplicationAdapter implements HierarchicalElementAdapter<ProjectState> {
         @Override
         public String getName(ProjectState element) {
-            return element.getName();
+            return getUniqueProjectName(element);
         }
 
         @Override
