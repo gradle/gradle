@@ -40,7 +40,6 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
     }
 
     @Unroll
-    @ToBeFixedForConfigurationCache
     def "can co-develop plugin and consumer with plugin as included build #pluginsBlock, #withVersion"() {
         given:
         applyPlugin(buildA, pluginsBlock, withVersion)
@@ -113,7 +112,6 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
     }
 
     @Issue("https://github.com/gradle/gradle/issues/5234")
-    @ToBeFixedForConfigurationCache
     def "can co-develop plugin and multiple consumers as included builds with transitive plugin library dependency"() {
         given:
         def buildB = singleProjectBuild("buildB") {
@@ -172,7 +170,6 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
         pluginsBlock << [true, false]
     }
 
-    @ToBeFixedForConfigurationCache
     def "can develop a transitive plugin dependency as included build"() {
         given:
         applyPlugin(buildA, pluginsBlock)
@@ -241,7 +238,6 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
         executed ":pluginDependencyA:jar"
     }
 
-    @ToBeFixedForConfigurationCache
     def "can use an included build that provides both a buildscript dependency and a compile dependency"() {
         given:
         def buildB = multiProjectBuild("buildB", ['b1', 'b2']) {
