@@ -1163,6 +1163,23 @@ you should consider configuring such normalization in a <<sharing_build_logic_be
 The effect of this configuration would be that changes to `build-info.properties` would be ignored for up-to-date checks and <<build_cache.adoc#build_cache,build cache>> key calculations.
 Note that this will not change the runtime behavior of the `test` task — i.e. any test is still able to load `build-info.properties` and the runtime classpath is still the same as before.
 
+[[sec:property_file_normalization]]
+==== Properties file normalization
+
+By default, properties files (i.e. files that end in a `.properties` extension) will be normalized to ignore differences in comments, whitespace and the order of properties.  It is sometimes the case, though, that certain properties have a runtime impact, while others do not.  If a property is changing that does not have an impact on the runtime classpath, it may be desirable to exclude it from up-to-date checks and <<build_cache.adoc#build_cache,build cache>> key calculations.  However, excluding the entire file would also exclude the properties that do have a runtime impact.  In this case, properties can be excluded selectively from any or all properties files on the runtime classpath.
+
+.Ignore a property in selected properties files
+====
+include::sample[dir="snippets/tasks/inputNormalizationPropertiesFiles/groovy",files="build.gradle[tags=ignore-property-selected]"]
+include::sample[dir="snippets/tasks/inputNormalizationPropertiesFiles/kotlin",files="build.gradle.kts[tags=ignore-property-selected]"]
+====
+
+.Ignore a property in all properties files
+====
+include::sample[dir="snippets/tasks/inputNormalizationPropertiesFiles/groovy",files="build.gradle[tags=ignore-property-all]"]
+include::sample[dir="snippets/tasks/inputNormalizationPropertiesFiles/kotlin",files="build.gradle.kts[tags=ignore-property-all]"]
+====
+
 [[sec:meta_inf_normalization]]
 ===== Java `META-INF` normalization
 
