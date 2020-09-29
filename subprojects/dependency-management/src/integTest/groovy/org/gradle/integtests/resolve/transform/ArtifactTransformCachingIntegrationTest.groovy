@@ -1436,7 +1436,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         when:
         run '--stop' // ensure daemon does not cache file access times in memory
         def beforeCleanup = MILLISECONDS.toSeconds(System.currentTimeMillis())
-        writeLastTransformationAccessTimeToJournal(outputDir1, daysAgo(MAX_CACHE_AGE_IN_DAYS + 1))
+        writeLastTransformationAccessTimeToJournal(outputDir1.parentFile, daysAgo(MAX_CACHE_AGE_IN_DAYS + 1))
         gcFile.lastModified = daysAgo(2)
 
         and:

@@ -39,7 +39,7 @@ import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
 @NotThreadSafe
 public class ImmutableTransformationWorkspaceProvider implements TransformationWorkspaceProvider, Closeable {
-    private static final int FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP = 2;
+    private static final int FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP = 1;
 
     private final SingleDepthFileAccessTracker fileAccessTracker;
     private final File baseDirectory;
@@ -59,9 +59,9 @@ public class ImmutableTransformationWorkspaceProvider implements TransformationW
         this.executionHistoryStore = executionHistoryStore;
     }
 
-    private CleanupAction createCleanupAction(File filesOutputDirectory, FileAccessTimeJournal fileAccessTimeJournal) {
+    private CleanupAction createCleanupAction(File baseDirectory, FileAccessTimeJournal fileAccessTimeJournal) {
         return CompositeCleanupAction.builder()
-            .add(filesOutputDirectory, new LeastRecentlyUsedCacheCleanup(new SingleDepthFilesFinder(FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP), fileAccessTimeJournal, DEFAULT_MAX_AGE_IN_DAYS_FOR_RECREATABLE_CACHE_ENTRIES))
+            .add(baseDirectory, new LeastRecentlyUsedCacheCleanup(new SingleDepthFilesFinder(FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP), fileAccessTimeJournal, DEFAULT_MAX_AGE_IN_DAYS_FOR_RECREATABLE_CACHE_ENTRIES))
             .build();
     }
 
