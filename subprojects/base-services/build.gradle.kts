@@ -22,6 +22,7 @@ dependencies {
     implementation(libs.commonsLang)
     implementation(libs.commonsIo)
     implementation(libs.asm)
+    implementation(libs.inject)
 
     integTestImplementation(project(":logging"))
 

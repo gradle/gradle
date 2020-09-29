@@ -891,19 +891,9 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
             if (serviceType.isInterface()) {
                 throw new ServiceValidationException("Cannot register an interface for construction.");
             }
-            Constructor<?>[] constructors = serviceType.getDeclaredConstructors();
-            Constructor<?> match = null;
-            for (Constructor<?> constructor : constructors) {
-                if (Modifier.isPrivate(constructor.getModifiers())) {
-                    continue;
-                }
-                if (match != null) {
-                    throw new ServiceValidationException(String.format("Expected a single non-private constructor for %s.", format(serviceType)));
-                }
-                match = constructor;
-            }
-            if (match == null) {
-                throw new ServiceValidationException(String.format("Expected a single non-private constructor for %s.", format(serviceType)));
+            Constructor<?> match = InjectUtil.selectConstructor(serviceType);
+            if (InjectUtil.isPackagePrivate(match.getModifiers()) || Modifier.isPrivate(match.getModifiers())) {
+                match.setAccessible(true);
             }
             this.constructor = match;
         }
@@ -1175,31 +1165,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
     }
 
     private static String format(Type type) {
-        if (type instanceof Class) {
-            Class<?> aClass = (Class) type;
-            Class<?> enclosingClass = aClass.getEnclosingClass();
-            if (enclosingClass != null) {
-                return format(enclosingClass) + "$" + aClass.getSimpleName();
-            } else {
-                return aClass.getSimpleName();
-            }
-        } else if (type instanceof ParameterizedType) {
-            ParameterizedType parameterizedType = (ParameterizedType) type;
-            StringBuilder builder = new StringBuilder();
-            builder.append(format(parameterizedType.getRawType()));
-            builder.append("<");
-            for (int i = 0; i < parameterizedType.getActualTypeArguments().length; i++) {
-                Type typeParam = parameterizedType.getActualTypeArguments()[i];
-                if (i > 0) {
-                    builder.append(", ");
-                }
-                builder.append(format(typeParam));
-            }
-            builder.append(">");
-            return builder.toString();
-        }
-
-        return type.toString();
+        return TypeStringFormatter.format(type);
     }
 
     private class ThisAsService implements ServiceProvider, Service {
