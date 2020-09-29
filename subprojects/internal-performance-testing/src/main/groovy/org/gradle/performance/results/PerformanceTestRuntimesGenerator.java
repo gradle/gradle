@@ -33,27 +33,35 @@ public class PerformanceTestRuntimesGenerator {
 
     public void generate(File runtimesFile) throws IOException {
         AllResultsStore resultsStore = new AllResultsStore();
-        Map<PerformanceExperiment, Long> estimatedExperimentTimes = resultsStore.getEstimatedExperimentTimesInMillis(OperatingSystem.LINUX);
-        Map<PerformanceScenario, List<Map.Entry<PerformanceExperiment, Long>>> performanceScenarioMap =
+        Map<PerformanceExperimentOnOs, Long> estimatedExperimentTimes = resultsStore.getEstimatedExperimentTimesInMillis();
+        Map<PerformanceScenario, List<Map.Entry<PerformanceExperimentOnOs, Long>>> performanceScenarioMap =
             estimatedExperimentTimes.entrySet().stream()
                 .collect(Collectors.groupingBy(
-                    it -> it.getKey().getScenario(),
+                    it -> it.getKey().getPerformanceExperiment().getScenario(),
                     LinkedHashMap::new,
                     Collectors.toList())
                 );
         List<PerformanceScenarioRuntimes> json = performanceScenarioMap.entrySet().stream()
             .map(entry -> {
                 PerformanceScenario scenario = entry.getKey();
-                List<Map.Entry<PerformanceExperiment, Long>> times = entry.getValue();
+                Map<String, Map<OperatingSystem, Long>> perTestProject = entry.getValue().stream()
+                    .collect(Collectors.groupingBy(
+                        it -> it.getKey().getPerformanceExperiment().getTestProject(),
+                        LinkedHashMap::new,
+                        Collectors.toMap(it -> it.getKey().getOperatingSystem(), Map.Entry::getValue)
+                    ));
                 return new PerformanceScenarioRuntimes(
                     scenario.getClassName() + "." + scenario.getTestName(),
-                    times.stream()
-                        .map(experimentEntry -> new TestProjectRuntime(
-                            experimentEntry.getKey().getTestProject(),
-                            experimentEntry.getValue(),
-                            null,
-                            null
-                            )
+                    perTestProject.entrySet().stream()
+                        .map(experimentEntry -> {
+                                Map<OperatingSystem, Long> perOs = experimentEntry.getValue();
+                                return new TestProjectRuntime(
+                                    experimentEntry.getKey(),
+                                    perOs.get(OperatingSystem.LINUX),
+                                    perOs.get(OperatingSystem.WINDOWS),
+                                    perOs.get(OperatingSystem.MAC_OS)
+                                );
+                            }
                         )
                         .collect(Collectors.toList())
                 );
