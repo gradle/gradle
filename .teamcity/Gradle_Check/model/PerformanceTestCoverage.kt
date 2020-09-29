@@ -19,11 +19,16 @@ package Gradle_Check.model
 import common.Os
 import model.CIBuildModel
 import model.PerformanceTestType
-import model.Stage
 import java.util.Locale
 
-data class PerformanceTestCoverage(val uuid: Int, val type: PerformanceTestType, val os: Os, val oldUuid: String? = null) {
-    fun asConfigurationId(model: CIBuildModel, stage: Stage, bucket: String = "") =
+data class PerformanceTestCoverage(
+    val uuid: Int,
+    val type: PerformanceTestType,
+    val os: Os,
+    val numberOfBuckets: Int = 40,
+    val oldUuid: String? = null
+) {
+    fun asConfigurationId(model: CIBuildModel, bucket: String = "") =
         "${model.projectPrefix}${oldUuid ?: "PerformanceTest$uuid"}$bucket"
     fun asName(): String =
         "${type.displayName} - ${os.asName()}"

@@ -49,7 +49,7 @@ class PerformanceTest(
     model,
     stage = stage,
     init = {
-        this.uuid = performanceTestCoverage.asConfigurationId(model, stage, "bucket${bucketIndex + 1}")
+        this.uuid = performanceTestCoverage.asConfigurationId(model, "bucket${bucketIndex + 1}")
         this.id = AbsoluteId(uuid)
         this.name = description
         val type = performanceTestCoverage.type
