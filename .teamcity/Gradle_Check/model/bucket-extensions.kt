@@ -17,6 +17,7 @@
 package Gradle_Check.model
 
 import java.util.LinkedList
+import kotlin.math.min
 
 /**
  * Split a list of elements into nearly even sublist. If an element is too large, largeElementSplitFunction will be used to split the large element into several smaller pieces;
@@ -38,11 +39,11 @@ fun <T, R> splitIntoBuckets(
     noElementSplitFunction: (Int) -> List<R> = { throw IllegalArgumentException("More buckets than things to split") },
     canRunTogether: (T, T) -> Boolean = { _, _ -> true }
 ): List<R> {
-    if (expectedBucketNumber == 1) {
-        return listOf(smallElementAggregateFunction(list))
-    }
     if (list.isEmpty()) {
         return noElementSplitFunction(expectedBucketNumber)
+    }
+    if (expectedBucketNumber == 1) {
+        return listOf(smallElementAggregateFunction(list))
     }
 
     val expectedBucketSize = list.sumBy(toIntFunction) / expectedBucketNumber
@@ -52,7 +53,12 @@ fun <T, R> splitIntoBuckets(
     val largestElementSize = toIntFunction(largestElement)
 
     return if (largestElementSize >= expectedBucketSize) {
-        val bucketsOfFirstElement = largeElementSplitFunction(largestElement, if (largestElementSize % expectedBucketSize == 0) largestElementSize / expectedBucketSize else largestElementSize / expectedBucketSize + 1)
+        val bucketNumberOfFirstElement = if (largestElementSize % expectedBucketSize == 0)
+            largestElementSize / expectedBucketSize
+        else
+            // Leave at least one bucket for the remaining elements
+            min(largestElementSize / expectedBucketSize + 1, expectedBucketNumber - 1)
+        val bucketsOfFirstElement = largeElementSplitFunction(largestElement, bucketNumberOfFirstElement)
         val bucketsOfRestElements = splitIntoBuckets(list, toIntFunction, largeElementSplitFunction, smallElementAggregateFunction, expectedBucketNumber - bucketsOfFirstElement.size, maxNumberInBucket, noElementSplitFunction, canRunTogether)
         bucketsOfFirstElement + bucketsOfRestElements
     } else {

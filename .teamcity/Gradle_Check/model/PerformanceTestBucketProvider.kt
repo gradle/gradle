@@ -44,38 +44,28 @@ const val MAX_TEST_PROJECTS_PER_BUCKET = 10
 data class PerformanceTestSpec(val performanceTestType: PerformanceTestType, val os: Os)
 
 class StatisticsBasedPerformanceTestBucketProvider(private val model: CIBuildModel, performanceTestTimeDataJson: File, performanceTestsCiJson: File) : PerformanceTestBucketProvider {
-    private val buckets: Map<PerformanceTestSpec, List<PerformanceTestBucket>> = buildBuckets(performanceTestTimeDataJson, performanceTestsCiJson)
+    private
+    val performanceTestConfigurations = readPerformanceTestConfigurations(performanceTestsCiJson)
+    private
+    val performanceTestTimes: OperatingSystemToTestProjectPerformanceTestTimes = readPerformanceTestTimes(performanceTestTimeDataJson)
 
     override fun createPerformanceTestsFor(stage: Stage, performanceTestCoverage: PerformanceTestCoverage): List<PerformanceTest> {
-        return buckets.getValue(PerformanceTestSpec(performanceTestCoverage.type, performanceTestCoverage.os)).mapIndexed { bucketIndex: Int, bucket: PerformanceTestBucket ->
+        val performanceTestType = performanceTestCoverage.type
+        val performanceTestSpec = PerformanceTestSpec(performanceTestType, performanceTestCoverage.os)
+        val scenarios = determineScenariosFor(performanceTestSpec, performanceTestConfigurations)
+        val testProjectToScenarioTimes = determineScenarioTestTimes(performanceTestSpec.os, performanceTestTimes)
+        val testProjectScenarioTimesFallback = determineScenarioTestTimes(Os.LINUX, performanceTestTimes)
+        val repetitions = if (performanceTestType == PerformanceTestType.flakinessDetection) 3 else 1
+        val buckets = splitBucketsByScenarios(
+            scenarios,
+            testProjectToScenarioTimes,
+            testProjectScenarioTimesFallback,
+            repetitions,
+            performanceTestCoverage.numberOfBuckets
+        )
+        return buckets.mapIndexed { bucketIndex: Int, bucket: PerformanceTestBucket ->
             bucket.createPerformanceTestsFor(model, stage, performanceTestCoverage, bucketIndex)
         }
-    }
-
-    private
-    fun buildBuckets(performanceTestTimeDataJson: File, performanceTestsCiJson: File): Map<PerformanceTestSpec, List<PerformanceTestBucket>> {
-        val performanceTestConfigurations = readPerformanceTestConfigurations(performanceTestsCiJson)
-
-        val performanceTestTimes: OperatingSystemToTestProjectPerformanceTestTimes = readPerformanceTestTimes(performanceTestTimeDataJson)
-
-        val result = mutableMapOf<PerformanceTestSpec, List<PerformanceTestBucket>>()
-        for (performanceTestType in PerformanceTestType.values()) {
-            for (os in Os.values()) {
-                val performanceTestSpec = PerformanceTestSpec(performanceTestType, os)
-                val scenarios = determineScenariosFor(performanceTestSpec, performanceTestConfigurations)
-                val testProjectToScenarioTimes = determineScenarioTestTimes(performanceTestSpec.os, performanceTestTimes)
-                val testProjectScenarioTimesFallback = determineScenarioTestTimes(Os.LINUX, performanceTestTimes)
-                val repetitions = if (performanceTestType == PerformanceTestType.flakinessDetection) 3 else 1
-                result[performanceTestSpec] = splitBucketsByScenarios(
-                    scenarios,
-                    testProjectToScenarioTimes,
-                    testProjectScenarioTimesFallback,
-                    repetitions,
-                    performanceTestType.numberOfBuckets
-                )
-            }
-        }
-        return result
     }
 
     private
