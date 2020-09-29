@@ -37,7 +37,7 @@ class BuildCacheCompositeConfigurationIntegrationTest extends AbstractIntegratio
     }
 
     @Unroll
-    @ToBeFixedForConfigurationCache(because = "composite builds & GradleBuild")
+    @ToBeFixedForConfigurationCache(because = "GradleBuild")
     def "can configure with settings.gradle - enabled by #by"() {
         def enablingCode = by == EnabledBy.PROGRAMMATIC ? """\ngradle.startParameter.buildCacheEnabled = true\n""" : ""
         if (by == EnabledBy.INVOCATION_SWITCH) {
