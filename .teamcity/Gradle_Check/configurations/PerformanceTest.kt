@@ -93,7 +93,7 @@ class PerformanceTest(
             }
         }
 
-        applyDefaultDependencies(model, this, true)
+        applyDefaultDependencies(model, this, !performanceTestCoverage.withoutDependencies)
     }
 )
 
