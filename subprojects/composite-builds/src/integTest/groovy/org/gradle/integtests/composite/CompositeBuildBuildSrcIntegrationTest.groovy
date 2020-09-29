@@ -17,12 +17,10 @@
 package org.gradle.integtests.composite
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.build.BuildTestFile
 
 class CompositeBuildBuildSrcIntegrationTest extends AbstractIntegrationSpec {
 
-    @ToBeFixedForConfigurationCache(because = "composite builds")
     def "included and composing builds can contain buildSrc builds"() {
         def outerBuild = new BuildTestFile(testDirectory, "root")
         def childBuild = new BuildTestFile(testDirectory.file("child"), "child")
