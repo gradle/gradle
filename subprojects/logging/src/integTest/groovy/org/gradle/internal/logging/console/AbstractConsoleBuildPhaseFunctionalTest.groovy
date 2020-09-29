@@ -122,7 +122,7 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractConsoleGr
         gradle.waitForFinish()
     }
 
-    @ToBeFixedForConfigurationCache(because = "composite builds", skip = ToBeFixedForConfigurationCache.Skip.FAILS_TO_CLEANUP)
+    @ToBeFixedForConfigurationCache(because = "build listener", skip = ToBeFixedForConfigurationCache.Skip.FAILS_TO_CLEANUP)
     def "shows progress bar and percent phase completion with included build"() {
         settingsFile << """
             ${server.callFromBuild('settings')}
