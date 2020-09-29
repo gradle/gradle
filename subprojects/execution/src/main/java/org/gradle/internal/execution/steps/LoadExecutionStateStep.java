@@ -39,7 +39,7 @@ public class LoadExecutionStateStep<C extends IdentityContext, R extends Result>
     public R execute(C context) {
         UnitOfWork work = context.getWork();
         Optional<AfterPreviousExecutionState> afterPreviousExecutionState = work.getExecutionHistoryStore()
-            .flatMap(executionHistoryStore -> executionHistoryStore.load(work.getIdentity()));
+            .flatMap(executionHistoryStore -> executionHistoryStore.load(context.getIdentity()));
         return delegate.execute(new AfterPreviousExecutionContext() {
             @Override
             public Optional<AfterPreviousExecutionState> getAfterPreviousExecutionState() {
@@ -59,6 +59,11 @@ public class LoadExecutionStateStep<C extends IdentityContext, R extends Result>
             @Override
             public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getInputFileProperties() {
                 return context.getInputFileProperties();
+            }
+
+            @Override
+            public String getIdentity() {
+                return context.getIdentity();
             }
 
             @Override

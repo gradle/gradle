@@ -32,9 +32,11 @@ import org.gradle.internal.execution.WorkExecutor
 import org.gradle.internal.execution.history.ExecutionHistoryStore
 import org.gradle.internal.execution.history.changes.InputChangesInternal
 import org.gradle.internal.file.TreeType
+import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.Hasher
 import org.gradle.internal.hash.Hashing
+import org.gradle.internal.snapshot.ValueSnapshot
 import org.gradle.kotlin.dsl.cache.KotlinDslWorkspaceProvider
 import org.gradle.kotlin.dsl.codegen.fileHeaderFor
 import org.gradle.kotlin.dsl.codegen.kotlinDslPackageName
@@ -147,7 +149,7 @@ class GenerateProjectAccessors(
         return UnitOfWork.WorkResult.DID_WORK
     }
 
-    override fun getIdentity() = cacheKey
+    override fun identify(identityInputs: MutableMap<String, ValueSnapshot>, identityFileInputs: MutableMap<String, CurrentFileCollectionFingerprint>) = cacheKey
 
     override fun getDisplayName(): String = "Kotlin DSL accessors for $project"
 

@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.internal.execution.BeforeExecutionContext;
 import org.gradle.internal.execution.CurrentSnapshotResult;
 import org.gradle.internal.execution.Step;
-import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.history.changes.ChangeDetectorVisitor;
@@ -55,9 +54,8 @@ public class StoreExecutionStateStep<C extends BeforeExecutionContext> implement
             // For example the current execution fails because of a compile failure and for the next execution the source file is fixed, so only the one changed source file needs to be compiled.
             if (successful
                 || didChangeOutput(context.getAfterPreviousExecutionState(), finalOutputs)) {
-                UnitOfWork work = context.getWork();
                 executionHistoryStore.store(
-                    work.getIdentity(),
+                    context.getIdentity(),
                     result.getOriginMetadata(),
                     beforeExecutionState.getImplementation(),
                     beforeExecutionState.getAdditionalImplementations(),

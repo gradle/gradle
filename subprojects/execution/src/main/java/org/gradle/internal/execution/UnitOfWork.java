@@ -28,17 +28,17 @@ import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.fingerprint.overlap.OverlappingOutputs;
 import org.gradle.internal.reflect.TypeValidationContext;
+import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 
 import javax.annotation.Nullable;
 import java.io.File;
 import java.time.Duration;
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
 
 public interface UnitOfWork extends Describable {
-    String getIdentity();
-
     /**
      * Executes the work synchronously.
      */
@@ -109,6 +109,12 @@ public interface UnitOfWork extends Describable {
     enum IdentityKind {
         NON_IDENTITY, IDENTITY
     }
+
+    /**
+     * Determine the identity of the work unit that uniquely identifies it
+     * among the other work units of the same type in the current build.
+     */
+    String identify(Map<String, ValueSnapshot> identityInputs, Map<String, CurrentFileCollectionFingerprint> identityFileInputs);
 
     void visitOutputProperties(OutputPropertyVisitor visitor);
 

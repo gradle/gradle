@@ -66,6 +66,7 @@ import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.history.changes.InputChangesInternal;
 import org.gradle.internal.file.ReservedFileSystemLocationRegistry;
+import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinter;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry;
@@ -76,6 +77,7 @@ import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationRef;
 import org.gradle.internal.operations.RunnableBuildOperation;
+import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.work.AsyncWorkTracker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -234,7 +236,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         }
 
         @Override
-        public String getIdentity() {
+        public String identify(Map<String, ValueSnapshot> identityInputs, Map<String, CurrentFileCollectionFingerprint> identityFileInputs) {
             return task.getPath();
         }
 

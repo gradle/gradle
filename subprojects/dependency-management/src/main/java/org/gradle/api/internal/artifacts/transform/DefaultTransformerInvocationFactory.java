@@ -51,6 +51,7 @@ import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
+import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
 import org.gradle.internal.vfs.FileSystemAccess;
@@ -63,6 +64,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -274,6 +276,11 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
         }
 
         @Override
+        public String identify(Map<String, ValueSnapshot> identityInputs, Map<String, CurrentFileCollectionFingerprint> identityFileInputs) {
+            return identityString;
+        }
+
+        @Override
         public WorkResult execute(@Nullable InputChangesInternal inputChanges, InputChangesContext context) {
             ImmutableList<File> result = transformer.transform(inputArtifactProvider, outputDir, dependencies, inputChanges);
             writeResultsFile(outputDir, resultsFile, result);
@@ -372,11 +379,6 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
             return transformer.isCacheable()
                 ? Optional.empty()
                 : Optional.of(NOT_CACHEABLE);
-        }
-
-        @Override
-        public String getIdentity() {
-            return identityString;
         }
 
         @Override

@@ -43,6 +43,7 @@ import org.gradle.internal.execution.steps.SnapshotOutputsStep
 import org.gradle.internal.execution.steps.StoreExecutionStateStep
 import org.gradle.internal.execution.steps.ValidateStep
 import org.gradle.internal.file.TreeType
+import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.fingerprint.impl.AbsolutePathFileCollectionFingerprinter
 import org.gradle.internal.fingerprint.impl.DefaultFileCollectionSnapshotter
 import org.gradle.internal.fingerprint.overlap.OverlappingOutputs
@@ -52,6 +53,7 @@ import org.gradle.internal.hash.HashCode
 import org.gradle.internal.id.UniqueId
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId
+import org.gradle.internal.snapshot.ValueSnapshot
 import org.gradle.internal.snapshot.impl.DefaultValueSnapshotter
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot
 import org.gradle.internal.vfs.VirtualFileSystem
@@ -828,7 +830,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
                 }
 
                 @Override
-                String getIdentity() {
+                String identify(Map<String, ValueSnapshot> identityInputs, Map<String, CurrentFileCollectionFingerprint> identityFileInputs) {
                     "myId"
                 }
 

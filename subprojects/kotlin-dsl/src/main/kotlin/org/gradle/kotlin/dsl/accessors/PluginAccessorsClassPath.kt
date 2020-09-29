@@ -34,8 +34,10 @@ import org.gradle.internal.execution.WorkExecutor
 import org.gradle.internal.execution.history.ExecutionHistoryStore
 import org.gradle.internal.execution.history.changes.InputChangesInternal
 import org.gradle.internal.file.TreeType
+import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import org.gradle.internal.hash.HashCode
+import org.gradle.internal.snapshot.ValueSnapshot
 import org.gradle.kotlin.dsl.cache.KotlinDslWorkspaceProvider
 import org.gradle.kotlin.dsl.codegen.fileHeader
 import org.gradle.kotlin.dsl.codegen.fileHeaderFor
@@ -153,7 +155,7 @@ class GeneratePluginAccessors(
         return UnitOfWork.WorkResult.DID_WORK
     }
 
-    override fun getIdentity(): String = classLoaderHash.toString()
+    override fun identify(identityInputs: MutableMap<String, ValueSnapshot>, identityFileInputs: MutableMap<String, CurrentFileCollectionFingerprint>) = classLoaderHash.toString()
 
     override fun getDisplayName(): String = "Kotlin DSL plugin accessors for classpath '$classLoaderHash'"
 

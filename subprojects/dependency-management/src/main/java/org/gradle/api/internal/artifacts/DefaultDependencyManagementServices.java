@@ -327,6 +327,11 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 }
 
                 @Override
+                public String getIdentity() {
+                    return context.getIdentity();
+                }
+
+                @Override
                 public Optional<AfterPreviousExecutionState> getAfterPreviousExecutionState() {
                     return context.getAfterPreviousExecutionState();
                 }

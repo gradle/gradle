@@ -47,7 +47,7 @@ public class SkipEmptyWorkStep<C extends AfterPreviousExecutionContext> implemen
         return work.skipIfInputsEmpty(outputFilesAfterPreviousExecution)
             .map(skippedOutcome -> {
                 work.getExecutionHistoryStore()
-                    .ifPresent(executionHistoryStore -> executionHistoryStore.remove(work.getIdentity()));
+                    .ifPresent(executionHistoryStore -> executionHistoryStore.remove(context.getIdentity()));
                 return (CachingResult) new CachingResult() {
                     @Override
                     public Try<ExecutionOutcome> getOutcome() {

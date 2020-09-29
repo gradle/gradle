@@ -103,6 +103,11 @@ public class ResolveChangesStep<R extends Result> implements Step<CachingContext
             }
 
             @Override
+            public String getIdentity() {
+                return context.getIdentity();
+            }
+
+            @Override
             public Optional<AfterPreviousExecutionState> getAfterPreviousExecutionState() {
                 return context.getAfterPreviousExecutionState();
             }

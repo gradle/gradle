@@ -75,7 +75,7 @@ public class CacheStep implements Step<IncrementalChangesContext, CurrentSnapsho
 
     private CurrentSnapshotResult executeWithCache(IncrementalChangesContext context, BuildCacheKey cacheKey) {
         UnitOfWork work = context.getWork();
-        CacheableWork cacheableWork = new CacheableWork(work);
+        CacheableWork cacheableWork = new CacheableWork(context.getIdentity(), work);
         return Try.ofFailable(() -> work.isAllowedToLoadFromCache()
                 ? buildCache.load(commandFactory.createLoad(cacheKey, cacheableWork))
                 : Optional.<LoadMetadata>empty()
@@ -162,15 +162,17 @@ public class CacheStep implements Step<IncrementalChangesContext, CurrentSnapsho
     }
 
     private static class CacheableWork implements CacheableEntity {
+        private final String identity;
         private final UnitOfWork work;
 
-        public CacheableWork(UnitOfWork work) {
+        public CacheableWork(String identity, UnitOfWork work) {
+            this.identity = identity;
             this.work = work;
         }
 
         @Override
         public String getIdentity() {
-            return work.getIdentity();
+            return identity;
         }
 
         @Override

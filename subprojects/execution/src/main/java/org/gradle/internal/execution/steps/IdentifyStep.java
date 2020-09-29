@@ -36,6 +36,9 @@ public class IdentifyStep<C extends ExecutionRequestContext, R extends Result> i
 
     @Override
     public R execute(C context) {
+        ImmutableSortedMap<String, ValueSnapshot> identityInputProperties = ImmutableSortedMap.of();
+        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> identityInputFileProperties = ImmutableSortedMap.of();
+        String identity = context.getWork().identify(identityInputProperties, identityInputFileProperties);
         return delegate.execute(new IdentityContext() {
             @Override
             public Optional<String> getRebuildReason() {
@@ -44,12 +47,17 @@ public class IdentifyStep<C extends ExecutionRequestContext, R extends Result> i
 
             @Override
             public ImmutableSortedMap<String, ValueSnapshot> getInputProperties() {
-                return ImmutableSortedMap.of();
+                return identityInputProperties;
             }
 
             @Override
             public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getInputFileProperties() {
-                return ImmutableSortedMap.of();
+                return identityInputFileProperties;
+            }
+
+            @Override
+            public String getIdentity() {
+                return identity;
             }
 
             @Override
