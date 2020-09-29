@@ -66,12 +66,8 @@ public class ArtifactRepositoriesPluginResolver implements PluginResolver {
     public void resolve(PluginRequestInternal pluginRequest, PluginResolutionResult result) throws InvalidPluginRequestException {
         ModuleDependency markerDependency = getMarkerDependency(pluginRequest);
         String markerVersion = markerDependency.getVersion();
-        if (isNullOrEmpty(markerVersion)) {
-            result.notFound(SOURCE_NAME, "plugin dependency must include a version number for this source");
-            return;
-        }
 
-        if (versionSelectorScheme.parseSelector(markerVersion).isDynamic()) {
+        if (markerVersion != null && versionSelectorScheme.parseSelector(markerVersion).isDynamic()) {
             result.notFound(SOURCE_NAME, "dynamic plugin versions are not supported");
             return;
         }
@@ -112,8 +108,14 @@ public class ArtifactRepositoriesPluginResolver implements PluginResolver {
      * Checks whether the plugin marker artifact exists in the backing artifacts repositories.
      */
     private boolean exists(ModuleDependency dependency) {
+        ModuleDependency toResolve;
+        if (dependency.getVersion() == null) {
+            toResolve = new DefaultExternalModuleDependency(dependency.getGroup(), dependency.getName(), "+");
+        } else {
+            toResolve = dependency;
+        }
         ConfigurationContainer configurations = resolution.getConfigurationContainer();
-        Configuration configuration = configurations.detachedConfiguration(dependency);
+        Configuration configuration = configurations.detachedConfiguration(toResolve);
         configuration.setTransitive(false);
         return !configuration.getResolvedConfiguration().hasError();
     }
@@ -129,6 +131,9 @@ public class ArtifactRepositoriesPluginResolver implements PluginResolver {
     }
 
     private String getNotation(Dependency dependency) {
+        if (dependency.getVersion() == null) {
+            return Joiner.on(':').join(dependency.getGroup(), dependency.getName());
+        }
         return Joiner.on(':').join(dependency.getGroup(), dependency.getName(), dependency.getVersion());
     }
 }

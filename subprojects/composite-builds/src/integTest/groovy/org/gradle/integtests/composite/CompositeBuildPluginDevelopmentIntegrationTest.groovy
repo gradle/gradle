@@ -16,11 +16,13 @@
 
 package org.gradle.integtests.composite
 
-
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import spock.lang.Issue
 import spock.lang.Unroll
+
+import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.gradlePluginRepositoryDefinition
+
 /**
  * Tests for plugin development scenarios within a composite build.
  */
@@ -481,6 +483,35 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
 
         then:
         failure.assertHasDescription("Plugin [id: 'org.test.plugin.pluginBuild'] was not found in any of the following sources:")
+    }
+
+    def "plugins on the classpath can be applied without version"() {
+        given:
+        pluginBuild.buildFile << """
+            repositories {
+                ${gradlePluginRepositoryDefinition()}
+            }
+            dependencies {
+                api("org.gradle.test-retry:org.gradle.test-retry.gradle.plugin:1.1.7")
+            }
+        """
+
+        includeBuild pluginBuild
+
+        buildA.buildFile.text = """
+            plugins {
+                id 'org.test.plugin.pluginBuild'
+                id 'org.gradle.test-retry'
+                // id 'org.gradle.guide' version '0.16.8' // brings in 'asciidoctor', but without plugin marker
+                // id "org.asciidoctor.convert"
+            }
+        """ + buildA.buildFile.text
+
+        when:
+        execute(buildA, "help")
+
+        then:
+        true
     }
 
     def addLifecycleTasks(BuildTestFile build) {
