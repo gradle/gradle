@@ -23,7 +23,6 @@ import java.util.concurrent.TimeUnit
 
 abstract class PlayBinaryApplicationIntegrationTest extends PlayMultiVersionRunApplicationIntegrationTest {
 
-    @ToBeFixedForConfigurationCache(bottomSpecs = "PlayCompositeBuildIntegrationTest")
     def "can build play app binary"() {
         when:
         succeeds("assemble")
