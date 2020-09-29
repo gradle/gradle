@@ -46,6 +46,7 @@ class ParallelDownloadsPerformanceTest extends AbstractCrossVersionPerformanceTe
         runner.minimumBaseVersion = "4.9"
         runner.warmUpRuns = 5
         runner.runs = 15
+        runner.useDaemon = false
         runner.addBuildMutator { invocationSettings ->
             new BuildMutator() {
                 @Override

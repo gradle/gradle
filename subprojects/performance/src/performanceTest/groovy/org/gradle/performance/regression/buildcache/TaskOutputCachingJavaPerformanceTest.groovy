@@ -43,6 +43,7 @@ class TaskOutputCachingJavaPerformanceTest extends AbstractTaskOutputCachingPerf
         setupTestProject(runner)
         protocol = "http"
         pushToRemote = true
+        runner.useDaemon = false
         runner.addBuildMutator { cleanLocalCache() }
         runner.addBuildMutator() { touchCacheArtifacts() }
 
@@ -57,6 +58,7 @@ class TaskOutputCachingJavaPerformanceTest extends AbstractTaskOutputCachingPerf
         setupTestProject(runner)
         protocol = "https"
         pushToRemote = true
+        runner.useDaemon = false
         runner.addBuildMutator { cleanLocalCache() }
         runner.addBuildMutator { touchCacheArtifacts() }
 
@@ -78,6 +80,7 @@ class TaskOutputCachingJavaPerformanceTest extends AbstractTaskOutputCachingPerf
         runner.warmUpRuns = 6
         runner.runs = 8
         pushToRemote = false
+        runner.useDaemon = false
         runner.addBuildMutator { cleanLocalCache() }
 
         when:
@@ -93,6 +96,7 @@ class TaskOutputCachingJavaPerformanceTest extends AbstractTaskOutputCachingPerf
         runner.warmUpRuns = 6
         runner.runs = 8
         pushToRemote = true
+        runner.useDaemon = false
         runner.addBuildMutator { cleanLocalCache() }
         runner.addBuildMutator { cleanRemoteCache() }
 
