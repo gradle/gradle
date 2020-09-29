@@ -19,7 +19,6 @@ package org.gradle.configuration.project
 import org.gradle.execution.taskgraph.NotifyTaskGraphWhenReadyBuildOperationType
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
 class LifecycleProjectEvaluatorIntegrationTest extends AbstractIntegrationSpec {
 
@@ -49,7 +48,6 @@ class LifecycleProjectEvaluatorIntegrationTest extends AbstractIntegrationSpec {
         output =~ /> Outer\s+< Outer\s+Inner/
     }
 
-    @ToBeFixedForConfigurationCache(because = "composite builds")
     def "captures lifecycle operations"() {
         given:
         file('buildSrc/buildSrcWhenReady.gradle') << ""
