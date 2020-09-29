@@ -16,7 +16,6 @@
 
 package org.gradle.integtests.composite
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.build.BuildTestFile
 
 /**
@@ -46,7 +45,6 @@ class CompositeBuildDetectionIntegrationTest extends AbstractCompositeBuildInteg
         buildB.buildFile << detectionMethods
     }
 
-    @ToBeFixedForConfigurationCache
     def "can detect composite build"() {
         when:
         buildA.buildFile << """
@@ -58,7 +56,6 @@ class CompositeBuildDetectionIntegrationTest extends AbstractCompositeBuildInteg
         execute(buildA, "jar")
     }
 
-    @ToBeFixedForConfigurationCache
     def "included build is flagged as a nested build without composite parent on initial configuration"() {
         when:
         buildB.buildFile << """
@@ -73,7 +70,6 @@ class CompositeBuildDetectionIntegrationTest extends AbstractCompositeBuildInteg
         execute(buildA, "jar")
     }
 
-    @ToBeFixedForConfigurationCache
     def "included build with declared substitutions is flagged as a nested build with composite parent"() {
         when:
         buildA.settingsFile << """
