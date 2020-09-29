@@ -121,7 +121,7 @@ public class DefaultIncludedBuild extends AbstractCompositeParticipantBuildState
 
     @Override
     public NestedBuildFactory getNestedBuildFactory() {
-        return gradleLauncher.getGradle().getServices().get(NestedBuildFactory.class);
+        return gradleService(NestedBuildFactory.class);
     }
 
     @Override
@@ -159,7 +159,7 @@ public class DefaultIncludedBuild extends AbstractCompositeParticipantBuildState
 
     @Override
     public SettingsInternal getLoadedSettings() {
-        return gradleLauncher.getGradle().getSettings();
+        return gradle().getSettings();
     }
 
     @Override
@@ -175,7 +175,7 @@ public class DefaultIncludedBuild extends AbstractCompositeParticipantBuildState
     @Override
     public <T> T withState(Transformer<T, ? super GradleInternal> action) {
         // This should apply some locking, but most access to the build state does not happen via this method yet
-        return action.transform(gradleLauncher.getGradle());
+        return action.transform(gradle());
     }
 
     @Override
@@ -192,11 +192,16 @@ public class DefaultIncludedBuild extends AbstractCompositeParticipantBuildState
     public synchronized void execute(final Iterable<String> tasks, final Object listener) {
         gradleLauncher.addListener(listener);
         scheduleTasks(tasks);
-        WorkerLeaseService workerLeaseService = gradleLauncher.getGradle().getServices().get(WorkerLeaseService.class);
+        WorkerLeaseService workerLeaseService = gradleService(WorkerLeaseService.class);
         workerLeaseService.withSharedLease(
             parentLease,
             gradleLauncher::executeTasks
         );
+    }
+
+    @Override
+    public void stop() {
+        gradleLauncher.stop();
     }
 
     private void scheduleTasks(Iterable<String> taskPaths) {
@@ -206,8 +211,11 @@ public class DefaultIncludedBuild extends AbstractCompositeParticipantBuildState
         gradleLauncher.scheduleTasks(taskPaths);
     }
 
-    @Override
-    public void stop() {
-        gradleLauncher.stop();
+    private <T> T gradleService(Class<T> serviceType) {
+        return gradle().getServices().get(serviceType);
+    }
+
+    private GradleInternal gradle() {
+        return gradleLauncher.getGradle();
     }
 }
