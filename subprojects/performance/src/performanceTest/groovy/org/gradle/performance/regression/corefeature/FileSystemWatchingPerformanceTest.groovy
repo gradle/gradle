@@ -25,7 +25,7 @@ import org.gradle.performance.fixture.TestProjects
 class FileSystemWatchingPerformanceTest extends AbstractCrossVersionPerformanceTest {
     private static final String AGP_TARGET_VERSION = "4.0"
 
-    def "non-abi change with file system watching"() {
+    def "assemble for non-abi change with file system watching"() {
         IncrementalTestProject testProject = findTestProjectAndSetupRunnerForFsWatching()
         testProject.configureForNonAbiChange(runner)
 
