@@ -17,7 +17,6 @@
 package org.gradle.internal.file;
 
 import java.io.File;
-import java.util.Collection;
 
 /**
  * Tracks access to files.
@@ -26,17 +25,10 @@ public interface FileAccessTracker {
     /**
      * Marks the supplied file as accessed.
      *
-     * @see #markAccessed(Collection)
-     */
-    void markAccessed(File file);
-
-    /**
-     * Marks the supplied files as accessed.
-     *
-     * If the supplied files are unknown to this tracker, implementations must
-     * simply ignore them instead of throwing an exception. However, depending
-     * on their use case, implementations may throw an exception when marking a
+     * If the supplied file is unknown to this tracker, implementations must
+     * simply ignore it instead of throwing an exception. However, depending
+     * on the use case, implementations may throw an exception when marking a
      * known file fails.
      */
-    void markAccessed(Collection<File> files);
+    void markAccessed(File file);
 }
