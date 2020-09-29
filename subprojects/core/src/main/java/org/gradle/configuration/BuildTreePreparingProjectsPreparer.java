@@ -55,6 +55,11 @@ public class BuildTreePreparingProjectsPreparer implements ProjectsPreparer {
         buildBuildSrcAndLockClassloader(gradle, baseProjectClassLoaderScope);
 
         delegate.prepareProjects(gradle);
+
+        // Make root build substitutions available
+        if (gradle.isRootBuild()) {
+            buildStateRegistry.afterConfigureRootBuild();
+        }
     }
 
     private void buildBuildSrcAndLockClassloader(GradleInternal gradle, ClassLoaderScope baseProjectClassLoaderScope) {
