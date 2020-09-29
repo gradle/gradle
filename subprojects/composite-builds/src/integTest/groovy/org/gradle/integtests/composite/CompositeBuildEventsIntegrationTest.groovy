@@ -79,7 +79,7 @@ class CompositeBuildEventsIntegrationTest extends AbstractCompositeBuildIntegrat
         includedBuilds << buildC
     }
 
-    @ToBeFixedForConfigurationCache(because = "composite builds")
+    @ToBeFixedForConfigurationCache(because = "build listener")
     def "fires build listener events on included builds"() {
         given:
         dependency 'org.test:buildB:1.0'
@@ -92,7 +92,7 @@ class CompositeBuildEventsIntegrationTest extends AbstractCompositeBuildIntegrat
         verifyBuildEvents()
     }
 
-    @ToBeFixedForConfigurationCache(because = "composite builds")
+    @ToBeFixedForConfigurationCache(because = "build listener")
     def "fires build listener events for unused included builds"() {
         when:
         execute()
@@ -106,7 +106,7 @@ class CompositeBuildEventsIntegrationTest extends AbstractCompositeBuildIntegrat
         loggedOncePerBuild('gradle.buildFinished')
     }
 
-    @ToBeFixedForConfigurationCache
+    @ToBeFixedForConfigurationCache(because = "build listener")
     def "fires build listener events for included build that provides buildscript and compile dependencies"() {
         given:
         def pluginBuild = pluginProjectBuild("pluginD")
@@ -130,7 +130,7 @@ class CompositeBuildEventsIntegrationTest extends AbstractCompositeBuildIntegrat
         logged("Ignoring listeners of task graph ready event, as this build (:buildB) has already executed work.")
     }
 
-    @ToBeFixedForConfigurationCache(because = "composite builds")
+    @ToBeFixedForConfigurationCache(because = "build listener")
     def "fires build listener events for included builds with additional discovered (compileOnly) dependencies"() {
         given:
         // BuildB will be initially evaluated with a single dependency on 'b1'.
@@ -150,7 +150,7 @@ class CompositeBuildEventsIntegrationTest extends AbstractCompositeBuildIntegrat
         verifyBuildEvents()
     }
 
-    @ToBeFixedForConfigurationCache(because = "composite builds")
+    @ToBeFixedForConfigurationCache(because = "build listener")
     def "buildFinished for root build is guaranteed to complete after included builds"() {
         given:
 
@@ -206,7 +206,7 @@ class CompositeBuildEventsIntegrationTest extends AbstractCompositeBuildIntegrat
         lateIncludedBuildTaskPosition < rootBuildFinishedPosition
     }
 
-    @ToBeFixedForConfigurationCache(because = "composite builds")
+    @ToBeFixedForConfigurationCache(because = "build listener")
     def "fires build finished events for all builds when build finished event is other builds fail"() {
         given:
         buildA.buildFile << """
@@ -247,7 +247,7 @@ class CompositeBuildEventsIntegrationTest extends AbstractCompositeBuildIntegrat
                 .assertHasLineNumber(9)
     }
 
-    @ToBeFixedForConfigurationCache(because = "composite builds")
+    @ToBeFixedForConfigurationCache(because = "build listener")
     def "fires build finished events for all builds when other builds fail"() {
         given:
         buildA.buildFile << """
