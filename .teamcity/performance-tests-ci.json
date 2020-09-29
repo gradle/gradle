@@ -337,13 +337,13 @@
                 {
                     "testProject" : "largeJavaMultiProject",
                     "coverage" : {
-                        "test":  ["linux", "windows"]
+                        "slow":  ["linux", "windows"]
                     }
                 },
                 {
                     "testProject" : "largeMonolithicJavaProject",
                     "coverage" : {
-                        "test":  ["linux", "windows"]
+                        "slow":  ["linux", "windows"]
                     }
                 }
             ]
@@ -354,13 +354,13 @@
                 {
                     "testProject" : "largeJavaMultiProject",
                     "coverage" : {
-                        "test":  ["linux", "windows"]
+                        "slow":  ["linux", "windows"]
                     }
                 },
                 {
                     "testProject" : "largeMonolithicJavaProject",
                     "coverage" : {
-                        "test":  ["linux", "windows"]
+                        "slow":  ["linux", "windows"]
                     }
                 }
             ]
@@ -371,13 +371,13 @@
                 {
                     "testProject" : "largeJavaMultiProject",
                     "coverage" : {
-                        "test":  ["linux", "windows"]
+                        "slow":  ["linux", "windows"]
                     }
                 },
                 {
                     "testProject" : "largeMonolithicJavaProject",
                     "coverage" : {
-                        "test":  ["linux", "windows"]
+                        "slow":  ["linux", "windows"]
                     }
                 }
             ]
@@ -388,13 +388,13 @@
                 {
                     "testProject" : "largeJavaMultiProject",
                     "coverage" : {
-                        "test":  ["linux", "windows"]
+                        "slow":  ["linux", "windows"]
                     }
                 },
                 {
                     "testProject" : "largeMonolithicJavaProject",
                     "coverage" : {
-                        "test":  ["linux", "windows"]
+                        "slow":  ["linux", "windows"]
                     }
                 }
             ]
@@ -641,7 +641,7 @@
                 {
                     "testProject" : "springBootApp",
                     "coverage" : {
-                        "test":  ["linux"]
+                        "slow":  ["linux"]
                     }
                 }
             ]
@@ -652,7 +652,7 @@
                 {
                     "testProject" : "springBootApp",
                     "coverage" : {
-                        "test":  ["linux"]
+                        "slow":  ["linux"]
                     }
                 }
             ]

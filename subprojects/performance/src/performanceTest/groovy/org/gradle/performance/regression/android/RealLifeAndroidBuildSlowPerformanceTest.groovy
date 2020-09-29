@@ -42,6 +42,7 @@ class RealLifeAndroidBuildSlowPerformanceTest extends AbstractRealLifeAndroidBui
         runner.tasksToRun = tasks.split(' ')
         runner.args.add('-Dorg.gradle.parallel=true')
         runner.cleanTasks = ["clean"]
+        runner.useDaemon = false
         runner.addBuildMutator { invocationSettings ->
             new ClearArtifactTransformCacheMutator(invocationSettings.getGradleUserHome(), AbstractCleanupMutator.CleanupSchedule.BUILD)
         }

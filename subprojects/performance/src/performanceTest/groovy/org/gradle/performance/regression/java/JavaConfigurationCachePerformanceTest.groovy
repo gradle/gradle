@@ -19,11 +19,9 @@ package org.gradle.performance.regression.java
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheOption
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
 import org.gradle.performance.categories.PerformanceRegressionTest
-import org.gradle.performance.fixture.GradleBuildExperimentRunner
 import org.gradle.profiler.BuildContext
 import org.gradle.profiler.BuildMutator
 import org.gradle.profiler.InvocationSettings
-import org.gradle.profiler.instrument.PidInstrumentation
 import org.junit.experimental.categories.Category
 import spock.lang.Unroll
 
@@ -39,26 +37,6 @@ class JavaConfigurationCachePerformanceTest extends AbstractCrossVersionPerforma
         stateDirectory = temporaryFolder.file(".gradle/configuration-cache")
     }
 
-    // Disable pid instrumentation in case of configuration cache code daemon
-    // Otherwise it complains: Gradle daemon was reused but should not be reused because init script is not executed properly
-    // https://github.com/gradle/gradle-profiler/pull/238
-    private void disablePidInstrumentationOnCodeDaemon(String daemon) {
-        if (daemon == 'cold') {
-            (runner.experimentRunner as GradleBuildExperimentRunner).with {
-                it.pidInstrumentation = new PidInstrumentation() {
-                    @Override
-                    void calculateGradleArgs(List<String> gradleArgs) {
-                    }
-
-                    @Override
-                    String getPidForLastBuild() {
-                        return UUID.randomUUID().toString()
-                    }
-                }
-            }
-        }
-    }
-
     @Unroll
     def "assemble #action configuration cache state with #daemon daemon"() {
         given:
@@ -68,7 +46,6 @@ class JavaConfigurationCachePerformanceTest extends AbstractCrossVersionPerforma
         runner.args = ["-D${ConfigurationCacheOption.PROPERTY_NAME}=true"]
 
         and:
-        disablePidInstrumentationOnCodeDaemon(daemon)
         runner.useDaemon = daemon == hot
         runner.addBuildMutator { configurationCacheInvocationListenerFor(it, action, stateDirectory) }
         runner.warmUpRuns = daemon == hot ? 20 : 1
