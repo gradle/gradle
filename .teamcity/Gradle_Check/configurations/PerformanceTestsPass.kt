@@ -34,7 +34,7 @@ class PerformanceTestsPass(model: CIBuildModel, performanceTestProject: Performa
     name = performanceTestProject.name + " (Trigger)"
 
     val os = Os.LINUX
-    val type = performanceTestProject.performanceTestCoverage.performanceTestType
+    val type = performanceTestProject.performanceTestCoverage.type
 
     applyDefaultSettings(os)
     params {
@@ -52,7 +52,7 @@ class PerformanceTestsPass(model: CIBuildModel, performanceTestProject: Performa
     val performanceResultsDir = "perf-results"
     val performanceProjectName = "performance"
 
-    val taskName = if (performanceTestProject.performanceTestCoverage.performanceTestType == PerformanceTestType.flakinessDetection)
+    val taskName = if (performanceTestProject.performanceTestCoverage.type == PerformanceTestType.flakinessDetection)
         "performanceTestFlakinessReport"
     else
         "performanceTestReport"

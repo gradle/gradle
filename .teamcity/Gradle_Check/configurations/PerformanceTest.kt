@@ -49,10 +49,10 @@ class PerformanceTest(
     model,
     stage = stage,
     init = {
-        this.uuid = performanceTestCoverage.asConfigurationId(model, stage, "bucket${bucketIndex + 1}")
+        this.uuid = performanceTestCoverage.asConfigurationId(model, "bucket${bucketIndex + 1}")
         this.id = AbsoluteId(uuid)
         this.name = description
-        val type = performanceTestCoverage.performanceTestType
+        val type = performanceTestCoverage.type
         val os = performanceTestCoverage.os
         val performanceTestTaskNames = getPerformanceTestTaskNames(performanceSubProject, testProjects)
         applyPerformanceTestSettings(os = os, timeout = type.timeout)
@@ -93,7 +93,7 @@ class PerformanceTest(
             }
         }
 
-        applyDefaultDependencies(model, this, true)
+        applyDefaultDependencies(model, this, !performanceTestCoverage.withoutDependencies)
     }
 )
 
