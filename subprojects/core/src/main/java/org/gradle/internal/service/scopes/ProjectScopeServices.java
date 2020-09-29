@@ -274,6 +274,11 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
         public boolean isScript() {
             return true;
         }
+
+        @Override
+        public boolean isRootScript() {
+            return false;
+        }
     }
 
     protected DependencyMetaDataProvider createDependencyMetaDataProvider() {

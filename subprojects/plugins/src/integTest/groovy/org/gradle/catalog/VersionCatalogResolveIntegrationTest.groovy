@@ -138,9 +138,8 @@ class VersionCatalogResolveIntegrationTest extends AbstractHttpDependencyResolut
                 }
             }
         """
-        file("gradle/dependency-locks/buildscript-incomingPlatformsForLibs.lockfile") << """
+        file("gradle/dependency-locks/settings-incomingPlatformsForLibs.lockfile") << """
 org.gradle.test:my-platform:1.0
-unspecified:unspecified:unspecified
 """
 
         buildFile << """

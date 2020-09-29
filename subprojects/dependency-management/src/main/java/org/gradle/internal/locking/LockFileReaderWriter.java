@@ -53,6 +53,7 @@ public class LockFileReaderWriter {
     static final List<String> LOCKFILE_HEADER_LIST = ImmutableList.of("# This is a Gradle generated file for dependency locking.", "# Manual edits can break the build and are not advised.", "# This file is expected to be part of source control.");
     static final String EMPTY_CONFIGURATIONS_ENTRY = "empty=";
     static final String BUILD_SCRIPT_PREFIX = "buildscript-";
+    static final String SETTINGS_SCRIPT_PREFIX = "settings-";
 
     private final Path lockFilesRoot;
     private final DomainObjectContext context;
@@ -120,6 +121,9 @@ public class LockFileReaderWriter {
 
     private String decorate(String configurationName) {
         if (context.isScript()) {
+            if (context.isRootScript()) {
+                return SETTINGS_SCRIPT_PREFIX + configurationName;
+            }
             return BUILD_SCRIPT_PREFIX + configurationName;
         } else {
             return configurationName;
