@@ -36,6 +36,8 @@ class TaskOutputCachingJavaPerformanceTest extends AbstractTaskOutputCachingPerf
         protocol = "http"
         pushToRemote = true
         runner.useDaemon = false
+        runner.warmUpRuns = 2
+        runner.runs = 8
         runner.addBuildMutator { cleanLocalCache() }
 
         when:
@@ -50,6 +52,8 @@ class TaskOutputCachingJavaPerformanceTest extends AbstractTaskOutputCachingPerf
         protocol = "https"
         pushToRemote = true
         runner.useDaemon = false
+        runner.warmUpRuns = 2
+        runner.runs = 8
         runner.addBuildMutator { cleanLocalCache() }
 
         def keyStore = TestKeyStore.init(temporaryFolder.file('ssl-keystore'))
@@ -67,7 +71,7 @@ class TaskOutputCachingJavaPerformanceTest extends AbstractTaskOutputCachingPerf
     def "clean assemble with empty local cache"() {
         given:
         setupTestProject(runner)
-        runner.warmUpRuns = 6
+        runner.warmUpRuns = 2
         runner.runs = 8
         pushToRemote = false
         runner.useDaemon = false
@@ -83,7 +87,7 @@ class TaskOutputCachingJavaPerformanceTest extends AbstractTaskOutputCachingPerf
     def "clean assemble with empty remote http cache"() {
         given:
         setupTestProject(runner)
-        runner.warmUpRuns = 6
+        runner.warmUpRuns = 2
         runner.runs = 8
         pushToRemote = true
         runner.useDaemon = false
