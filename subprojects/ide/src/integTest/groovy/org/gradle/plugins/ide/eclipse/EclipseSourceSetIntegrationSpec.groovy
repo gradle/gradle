@@ -196,7 +196,7 @@ class EclipseSourceSetIntegrationSpec extends AbstractEclipseIntegrationSpec {
     }
 
     @ToBeFixedForConfigurationCache
-    def "Custom source set defined on dependencies"() {
+    def "custom source set defined on dependencies"() {
         setup:
         buildFile << """
             apply plugin: 'java'
