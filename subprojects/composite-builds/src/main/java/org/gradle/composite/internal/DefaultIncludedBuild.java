@@ -17,9 +17,7 @@
 package org.gradle.composite.internal;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Sets;
 import org.gradle.api.Action;
-import org.gradle.api.Project;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.DependencySubstitutions;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
@@ -29,32 +27,22 @@ import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
-import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
-import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier;
-import org.gradle.api.internal.artifacts.ForeignBuildIdentifier;
-import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.invocation.Gradle;
 import org.gradle.api.tasks.TaskReference;
 import org.gradle.initialization.GradleLauncher;
 import org.gradle.initialization.IncludedBuildSpec;
 import org.gradle.initialization.NestedBuildFactory;
 import org.gradle.internal.Pair;
-import org.gradle.internal.build.AbstractBuildState;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.work.WorkerLeaseRegistry;
 import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.util.Path;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.Set;
 
-public class DefaultIncludedBuild extends AbstractBuildState implements IncludedBuildState, IncludedBuild, Stoppable {
-    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultIncludedBuild.class);
-
+public class DefaultIncludedBuild extends AbstractCompositeParticipantBuildState implements IncludedBuildState, IncludedBuild, Stoppable {
     private final BuildIdentifier buildIdentifier;
     private final Path identityPath;
     private final BuildDefinition buildDefinition;
@@ -151,32 +139,6 @@ public class DefaultIncludedBuild extends AbstractBuildState implements Included
     }
 
     @Override
-    public synchronized Set<Pair<ModuleVersionIdentifier, ProjectComponentIdentifier>> getAvailableModules() {
-        if (availableModules == null) {
-            Gradle gradle = getConfiguredBuild();
-            availableModules = Sets.newLinkedHashSet();
-            for (Project project : gradle.getRootProject().getAllprojects()) {
-                registerProject(availableModules, (ProjectInternal) project);
-            }
-        }
-        return availableModules;
-    }
-
-    private void registerProject(Set<Pair<ModuleVersionIdentifier, ProjectComponentIdentifier>> availableModules, ProjectInternal project) {
-        ProjectComponentIdentifier projectIdentifier = new DefaultProjectComponentIdentifier(buildIdentifier, project.getIdentityPath(), project.getProjectPath(), project.getName());
-        ModuleVersionIdentifier moduleId = DefaultModuleVersionIdentifier.newId(project.getModule());
-        LOGGER.info("Registering " + project + " in composite build. Will substitute for module '" + moduleId.getModule() + "'.");
-        availableModules.add(Pair.of(moduleId, projectIdentifier));
-    }
-
-    @Override
-    public ProjectComponentIdentifier idToReferenceProjectFromAnotherBuild(ProjectComponentIdentifier identifier) {
-        // Need to use a 'foreign' build id to make BuildIdentifier.isCurrentBuild and BuildIdentifier.name work in dependency results
-        DefaultProjectComponentIdentifier original = (DefaultProjectComponentIdentifier) identifier;
-        return new DefaultProjectComponentIdentifier(new ForeignBuildIdentifier(buildIdentifier.getName(), getName()), original.getIdentityPath(), original.projectPath(), original.getProjectName());
-    }
-
-    @Override
     public SettingsInternal loadSettings() {
         return gradleLauncher.getLoadedSettings();
     }
@@ -189,6 +151,11 @@ public class DefaultIncludedBuild extends AbstractBuildState implements Included
     @Override
     public GradleInternal getConfiguredBuild() {
         return gradleLauncher.getConfiguredBuild();
+    }
+
+    @Override
+    public GradleInternal getBuild() {
+        return getConfiguredBuild();
     }
 
     @Override

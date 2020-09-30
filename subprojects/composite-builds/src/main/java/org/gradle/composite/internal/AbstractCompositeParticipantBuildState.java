@@ -1,0 +1,69 @@
+/*
+ * Copyright 2020 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.gradle.composite.internal;
+
+import com.google.common.collect.Sets;
+import org.gradle.api.Project;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
+import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
+import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier;
+import org.gradle.api.internal.artifacts.ForeignBuildIdentifier;
+import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.invocation.Gradle;
+import org.gradle.internal.Pair;
+import org.gradle.internal.build.AbstractBuildState;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.Set;
+
+public abstract class AbstractCompositeParticipantBuildState extends AbstractBuildState {
+    private static final Logger LOGGER = LoggerFactory.getLogger(AbstractCompositeParticipantBuildState.class);
+
+    private Set<Pair<ModuleVersionIdentifier, ProjectComponentIdentifier>> availableModules;
+
+    @Override
+    public synchronized Set<Pair<ModuleVersionIdentifier, ProjectComponentIdentifier>> getAvailableModules() {
+        if (availableModules == null) {
+            Gradle gradle = getBuild();
+            availableModules = Sets.newLinkedHashSet();
+            for (Project project : gradle.getRootProject().getAllprojects()) {
+                registerProject(availableModules, (ProjectInternal) project);
+            }
+        }
+        return availableModules;
+    }
+
+    private void registerProject(Set<Pair<ModuleVersionIdentifier, ProjectComponentIdentifier>> availableModules, ProjectInternal project) {
+        ProjectComponentIdentifier projectIdentifier = new DefaultProjectComponentIdentifier(getBuildIdentifier(), project.getIdentityPath(), project.getProjectPath(), project.getName());
+        ModuleVersionIdentifier moduleId = DefaultModuleVersionIdentifier.newId(project.getModule());
+        LOGGER.info("Registering " + project + " in composite build. Will substitute for module '" + moduleId.getModule() + "'.");
+        availableModules.add(Pair.of(moduleId, projectIdentifier));
+    }
+
+    @Override
+    public ProjectComponentIdentifier idToReferenceProjectFromAnotherBuild(ProjectComponentIdentifier identifier) {
+        // Need to use a 'foreign' build id to make BuildIdentifier.isCurrentBuild and BuildIdentifier.name work in dependency results
+        DefaultProjectComponentIdentifier original = (DefaultProjectComponentIdentifier) identifier;
+        String name = getIdentityPath().getName();
+        if (name == null) {
+             name = getBuildIdentifier().getName();
+        }
+        return new DefaultProjectComponentIdentifier(new ForeignBuildIdentifier(getBuildIdentifier().getName(), name), original.getIdentityPath(), original.projectPath(), original.getProjectName());
+    }
+}

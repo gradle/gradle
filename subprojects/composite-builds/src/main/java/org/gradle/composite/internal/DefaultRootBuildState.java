@@ -28,7 +28,6 @@ import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.initialization.IncludedBuildSpec;
 import org.gradle.initialization.NestedBuildFactory;
 import org.gradle.initialization.RootBuildLifecycleListener;
-import org.gradle.internal.build.AbstractBuildState;
 import org.gradle.internal.build.RootBuildState;
 import org.gradle.internal.buildtree.BuildTreeState;
 import org.gradle.internal.concurrent.Stoppable;
@@ -39,7 +38,7 @@ import org.gradle.util.Path;
 
 import java.io.File;
 
-class DefaultRootBuildState extends AbstractBuildState implements RootBuildState, Stoppable {
+class DefaultRootBuildState extends AbstractCompositeParticipantBuildState implements RootBuildState, Stoppable {
     private final ListenerManager listenerManager;
     private final GradleLauncher gradleLauncher;
 
@@ -113,5 +112,10 @@ class DefaultRootBuildState extends AbstractBuildState implements RootBuildState
     @Override
     public Path getIdentityPathForProject(Path path) {
         return path;
+    }
+
+    @Override
+    public GradleInternal getBuild() {
+        return gradleLauncher.getGradle();
     }
 }
