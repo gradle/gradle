@@ -68,6 +68,44 @@ class FasterIncrementalAndroidBuildsPerformanceTest extends AbstractCrossBuildPe
         results
     }
 
+    def "file system watching baseline non-abi change (build comparison)"() {
+        given:
+        runner.buildSpec {
+            displayName("non-abi change with file system watching")
+            configureForNonParallel(delegate)
+            testProject.configureForNonAbiChange(delegate)
+            invocation {
+                args.addAll(Optimization.WATCH_FS.arguments)
+            }
+        }
+        runner.buildSpec {
+            displayName("non-abi change with file system watching - Gradle 6.7")
+            configureForNonParallel(delegate)
+            testProject.configureForNonAbiChange(delegate)
+            invocation {
+                args.addAll(Optimization.WATCH_FS.arguments)
+                distribution(buildContext.distribution("6.7-rc-2"))
+            }
+        }
+        runner.buildSpec {
+            displayName("non-abi change")
+            configureForNonParallel(delegate)
+            testProject.configureForNonAbiChange(delegate)
+        }
+
+        when:
+        def results = runner.run()
+        then:
+        results
+    }
+
+    private void configureForNonParallel(GradleBuildExperimentSpec.GradleBuilder builder) {
+        builder.invocation {
+            args.add("-Dorg.gradle.parallel=false")
+            args.add("-Dorg.gradle.workers.max=1")
+        }
+    }
+
     private IncrementalAndroidTestProject getTestProject() {
         AndroidTestProject.projectFor(runner.testProject) as IncrementalAndroidTestProject
     }
@@ -76,7 +114,6 @@ class FasterIncrementalAndroidBuildsPerformanceTest extends AbstractCrossBuildPe
         supportedOptimizations(testProject).each { name, Set<Optimization> enabledOptimizations ->
             runner.buildSpec {
                 invocation.args(*enabledOptimizations*.arguments.flatten())
-                IncrementalAndroidTestProject.configureForLatestAgpVersionOfMinor(delegate, AGP_TARGET_VERSION)
                 displayName(name)
 
                 final Closure clonedClosure = scenarioConfiguration.clone() as Closure
@@ -105,6 +142,7 @@ class FasterIncrementalAndroidBuildsPerformanceTest extends AbstractCrossBuildPe
     @Override
     protected void defaultSpec(GradleBuildExperimentSpec.GradleBuilder builder) {
         builder.invocation.args(AndroidGradlePluginVersions.OVERRIDE_VERSION_CHECK)
+        IncrementalAndroidTestProject.configureForLatestAgpVersionOfMinor(builder, AGP_TARGET_VERSION)
         builder.invocation.args(
             "-Dorg.gradle.workers.max=8",
             "--no-build-cache",

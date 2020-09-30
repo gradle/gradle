@@ -254,6 +254,12 @@
     "linux" : 413000
   } ]
 }, {
+  "scenario" : "org.gradle.performance.regression.android.FasterIncrementalAndroidBuildsPerformanceTest.file system watching baseline non-abi change (build comparison)",
+  "runtimes" : [ {
+    "testProject" : "santaTrackerAndroidBuild",
+    "linux" : 413000
+  } ]
+}, {
   "scenario" : "org.gradle.performance.regression.nativeplatform.RealWorldNativePluginPerformanceTest.build with build file change",
   "runtimes" : [ {
     "testProject" : "smallNativeMonolithic",
