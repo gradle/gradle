@@ -6,7 +6,7 @@ plugins {
 normalization {
     runtimeClasspath {
         properties("**/build-info.properties") {
-            ignoreProperty 'timestamp'
+            ignoreProperty("timestamp")
         }
     }
 }
@@ -16,7 +16,7 @@ normalization {
 normalization {
     runtimeClasspath {
         properties {
-            ignoreProperty 'timestamp'
+            ignoreProperty("timestamp")
         }
     }
 }
