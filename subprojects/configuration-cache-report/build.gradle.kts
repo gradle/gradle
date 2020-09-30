@@ -52,11 +52,20 @@ tasks {
     }
 
     val assembleReport by registering(MergeReportAssets::class) {
-        htmlFile.set(browserProductionWebpack.map { layout.projectDirectory.file(it.destinationDirectory.resolve("configuration-cache-report.html").absolutePath) })
-        logoFile.set(browserProductionWebpack.map { layout.projectDirectory.file(it.destinationDirectory.resolve("configuration-cache-report-logo.png").absolutePath) })
-        cssFile.set(browserProductionWebpack.map { layout.projectDirectory.file(it.destinationDirectory.resolve("configuration-cache-report.css").absolutePath) })
-        jsFile.set(browserProductionWebpack.map { layout.projectDirectory.file(it.destinationDirectory.resolve("configuration-cache-report.js").absolutePath) })
-        kotlinJs.set(unpackKotlinJsStdlib.map { layout.projectDirectory.file(it.destinationDir.resolve("kotlin.js").absolutePath) })
+
+        fun projectFile(f: File) =
+            layout.projectDirectory.file(f.absolutePath)
+
+        fun webpackFile(fileName: String) =
+            browserProductionWebpack.map {
+                projectFile(it.destinationDirectory.resolve(fileName))
+            }
+
+        htmlFile.set(webpackFile("configuration-cache-report.html"))
+        logoFile.set(webpackFile("configuration-cache-report-logo.png"))
+        cssFile.set(webpackFile("configuration-cache-report.css"))
+        jsFile.set(webpackFile("configuration-cache-report.js"))
+        kotlinJs.set(unpackKotlinJsStdlib.map { projectFile(it.destinationDir.resolve("kotlin.js")) })
         outputFile.set(layout.buildDirectory.file("$name/configuration-cache-report.html"))
     }
 
