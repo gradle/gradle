@@ -71,7 +71,7 @@ class FasterIncrementalAndroidBuildsPerformanceTest extends AbstractCrossBuildPe
     def "file system watching baseline non-abi change (build comparison)"() {
         given:
         runner.buildSpec {
-            displayName("non-abi change with file system watching")
+            displayName("with file system watching")
             configureForNonParallel(delegate)
             testProject.configureForNonAbiChange(delegate)
             invocation {
@@ -79,7 +79,7 @@ class FasterIncrementalAndroidBuildsPerformanceTest extends AbstractCrossBuildPe
             }
         }
         runner.buildSpec {
-            displayName("non-abi change with file system watching - Gradle 6.7")
+            displayName("with file system watching - Gradle 6.7")
             configureForNonParallel(delegate)
             testProject.configureForNonAbiChange(delegate)
             invocation {
@@ -88,7 +88,7 @@ class FasterIncrementalAndroidBuildsPerformanceTest extends AbstractCrossBuildPe
             }
         }
         runner.buildSpec {
-            displayName("non-abi change")
+            displayName("without file system watching")
             configureForNonParallel(delegate)
             testProject.configureForNonAbiChange(delegate)
         }
