@@ -32,14 +32,12 @@ import org.gradle.internal.reflect.TypeValidationContext.ReplayingTypeValidation
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.function.Consumer;
-import java.util.function.Supplier;
 
 @NonNullApi
 public class DefaultTaskProperties implements TaskProperties {
 
-    private final Supplier<Map<String, Object>> inputPropertyValues;
+    private final ImmutableSortedSet<InputPropertySpec> inputProperties;
     private final ImmutableSortedSet<InputFilePropertySpec> inputFileProperties;
     private final ImmutableSortedSet<OutputFilePropertySpec> outputFileProperties;
     private final FileCollection inputFiles;
@@ -54,9 +52,9 @@ public class DefaultTaskProperties implements TaskProperties {
 
     public static TaskProperties resolve(PropertyWalker propertyWalker, FileCollectionFactory fileCollectionFactory, TaskInternal task) {
         String beanName = task.toString();
+        GetInputPropertiesVisitor inputPropertiesVisitor = new GetInputPropertiesVisitor();
         GetInputFilesVisitor inputFilesVisitor = new GetInputFilesVisitor(beanName, fileCollectionFactory);
         GetOutputFilesVisitor outputFilesVisitor = new GetOutputFilesVisitor(beanName, fileCollectionFactory);
-        GetInputPropertiesVisitor inputPropertiesVisitor = new GetInputPropertiesVisitor(beanName);
         GetLocalStateVisitor localStateVisitor = new GetLocalStateVisitor(beanName, fileCollectionFactory);
         GetDestroyablesVisitor destroyablesVisitor = new GetDestroyablesVisitor(beanName, fileCollectionFactory);
         ValidationVisitor validationVisitor = new ValidationVisitor();
@@ -76,7 +74,7 @@ public class DefaultTaskProperties implements TaskProperties {
 
         return new DefaultTaskProperties(
             task.toString(),
-            inputPropertiesVisitor.getPropertyValuesSupplier(),
+            inputPropertiesVisitor.getProperties(),
             inputFilesVisitor.getFileProperties(),
             outputFilesVisitor.getFileProperties(),
             outputFilesVisitor.hasDeclaredOutputs(),
@@ -88,7 +86,7 @@ public class DefaultTaskProperties implements TaskProperties {
 
     private DefaultTaskProperties(
         String name,
-        Supplier<Map<String, Object>> inputPropertyValues,
+        ImmutableSortedSet<InputPropertySpec> inputProperties,
         ImmutableSortedSet<InputFilePropertySpec> inputFileProperties,
         ImmutableSortedSet<OutputFilePropertySpec> outputFileProperties,
         boolean hasDeclaredOutputs,
@@ -100,7 +98,7 @@ public class DefaultTaskProperties implements TaskProperties {
         this.validatingProperties = validatingProperties;
         this.validationProblems = validationProblems;
 
-        this.inputPropertyValues = inputPropertyValues;
+        this.inputProperties = inputProperties;
         this.inputFileProperties = inputFileProperties;
         this.outputFileProperties = outputFileProperties;
         this.hasDeclaredOutputs = hasDeclaredOutputs;
@@ -201,8 +199,8 @@ public class DefaultTaskProperties implements TaskProperties {
     }
 
     @Override
-    public Supplier<Map<String, Object>> getInputPropertyValues() {
-        return inputPropertyValues;
+    public ImmutableSortedSet<InputPropertySpec> getInputProperties() {
+        return inputProperties;
     }
 
     @Override
@@ -218,7 +216,7 @@ public class DefaultTaskProperties implements TaskProperties {
     private static class GetLocalStateVisitor extends PropertyVisitor.Adapter {
         private final String beanName;
         private final FileCollectionFactory fileCollectionFactory;
-        private List<Object> localState = new ArrayList<>();
+        private final List<Object> localState = new ArrayList<>();
 
         public GetLocalStateVisitor(String beanName, FileCollectionFactory fileCollectionFactory) {
             this.beanName = beanName;
@@ -238,7 +236,7 @@ public class DefaultTaskProperties implements TaskProperties {
     private static class GetDestroyablesVisitor extends PropertyVisitor.Adapter {
         private final String beanName;
         private final FileCollectionFactory fileCollectionFactory;
-        private List<Object> destroyables = new ArrayList<>();
+        private final List<Object> destroyables = new ArrayList<>();
 
         public GetDestroyablesVisitor(String beanName, FileCollectionFactory fileCollectionFactory) {
             this.beanName = beanName;

@@ -25,6 +25,7 @@ import org.gradle.api.internal.tasks.properties.DefaultTypeMetadataStore
 import org.gradle.api.internal.tasks.properties.GetInputFilesVisitor
 import org.gradle.api.internal.tasks.properties.GetInputPropertiesVisitor
 import org.gradle.api.internal.tasks.properties.InputFilePropertyType
+import org.gradle.api.internal.tasks.properties.InputParameterUtils
 import org.gradle.api.internal.tasks.properties.PropertyValue
 import org.gradle.api.internal.tasks.properties.PropertyVisitor
 import org.gradle.api.internal.tasks.properties.annotations.NoOpPropertyAnnotationHandler
@@ -334,9 +335,9 @@ class DefaultTaskInputsTest extends Specification {
     }
 
     def inputProperties() {
-        def visitor = new GetInputPropertiesVisitor("test")
+        def visitor = new GetInputPropertiesVisitor()
         TaskPropertyUtils.visitProperties(walker, task, visitor)
-        return visitor.propertyValuesSupplier.get()
+        return visitor.properties.collectEntries {[it.propertyName, InputParameterUtils.prepareInputParameterValue(it.value) ] }
     }
 
     def inputFileProperties() {

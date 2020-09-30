@@ -19,6 +19,7 @@ import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Lists;
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.execution.TaskActionListener;
 import org.gradle.api.execution.TaskExecutionListener;
 import org.gradle.api.file.FileCollection;
@@ -41,6 +42,8 @@ import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskExecutionOutcome;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.internal.tasks.properties.InputFilePropertySpec;
+import org.gradle.api.internal.tasks.properties.InputParameterUtils;
+import org.gradle.api.internal.tasks.properties.InputPropertySpec;
 import org.gradle.api.internal.tasks.properties.OutputFilePropertySpec;
 import org.gradle.api.internal.tasks.properties.TaskProperties;
 import org.gradle.api.tasks.CacheableTask;
@@ -307,11 +310,15 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
 
         @Override
         public void visitInputProperties(InputPropertyVisitor visitor) {
-            Map<String, Object> inputPropertyValues = context.getTaskProperties().getInputPropertyValues().get();
-            for (Map.Entry<String, Object> entry : inputPropertyValues.entrySet()) {
-                String propertyName = entry.getKey();
-                Object value = entry.getValue();
-                visitor.visitInputProperty(propertyName, value, IdentityKind.NON_IDENTITY);
+            ImmutableSortedSet<InputPropertySpec> inputProperties = context.getTaskProperties().getInputProperties();
+            for (InputPropertySpec inputProperty : inputProperties) {
+                Object value;
+                try {
+                    value = InputParameterUtils.prepareInputParameterValue(inputProperty.getValue());
+                } catch (Exception ex) {
+                    throw new InvalidUserDataException(String.format("Error while evaluating property '%s' of %s", inputProperty.getPropertyName(), task), ex);
+                }
+                visitor.visitInputProperty(inputProperty.getPropertyName(), value, IdentityKind.NON_IDENTITY);
             }
         }
 

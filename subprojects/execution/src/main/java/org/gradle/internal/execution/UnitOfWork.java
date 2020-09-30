@@ -106,7 +106,7 @@ public interface UnitOfWork extends Describable {
     void visitInputProperties(InputPropertyVisitor visitor);
 
     interface InputPropertyVisitor {
-        void visitInputProperty(String propertyName, Object value, IdentityKind identity);
+        void visitInputProperty(String propertyName, @Nullable Object value, IdentityKind identity);
     }
 
     void visitInputFileProperties(InputFilePropertyVisitor visitor);
