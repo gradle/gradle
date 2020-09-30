@@ -17,27 +17,35 @@
 package org.gradle.tooling.internal.consumer.connection
 
 import org.gradle.api.Action
-import org.gradle.tooling.BuildController
 import org.gradle.tooling.UnsupportedVersionException
+import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter
+import org.gradle.tooling.internal.consumer.versioning.ModelMapping
 import org.gradle.tooling.internal.consumer.versioning.VersionDetails
+import org.gradle.tooling.internal.protocol.BuildResult
+import org.gradle.tooling.internal.protocol.InternalBuildController
 import spock.lang.Specification
 
 class BuildControllerWithoutParameterSupportTest extends Specification {
     def version = Mock(VersionDetails)
-    def delegate = Mock(BuildController)
-    def controller = new BuildControllerWithoutParameterSupport(version, delegate)
+    def delegate = Mock(InternalBuildController)
+    def modelMapping = new ModelMapping()
+    def controller = new BuildControllerWithoutParameterSupport(delegate, new ProtocolToModelAdapter(), modelMapping, new File("root dir"), version)
 
     def "delegates when no parameter is given"() {
         def model = new Object()
-        def modelType = Object.class
-
-        given:
-        _ * delegate.getModel(_, modelType, null, null) >> model
+        def modelType = Object
+        def buildResult = Stub(BuildResult) {
+            getModel() >> model
+        }
 
         when:
         def result = controller.getModel(null, modelType, null, null)
 
         then:
+        1 * delegate.getModel(null, {it.name == Object.name}) >> buildResult
+        0 * delegate._
+
+        and:
         result == model
     }
 

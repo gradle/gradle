@@ -17,13 +17,44 @@
 package org.gradle.tooling.internal.consumer.connection;
 
 import org.gradle.api.Action;
+import org.gradle.tooling.BuildAction;
 import org.gradle.tooling.BuildController;
 import org.gradle.tooling.UnknownModelException;
 import org.gradle.tooling.UnsupportedVersionException;
+import org.gradle.tooling.internal.adapter.ObjectGraphAdapter;
+import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
+import org.gradle.tooling.internal.adapter.ViewBuilder;
+import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
+import org.gradle.tooling.internal.gradle.DefaultProjectIdentifier;
+import org.gradle.tooling.internal.protocol.BuildResult;
+import org.gradle.tooling.internal.protocol.InternalUnsupportedModelException;
+import org.gradle.tooling.internal.protocol.ModelIdentifier;
 import org.gradle.tooling.model.Model;
+import org.gradle.tooling.model.ProjectModel;
 import org.gradle.tooling.model.gradle.GradleBuild;
+import org.gradle.tooling.model.internal.Exceptions;
+
+import javax.annotation.Nullable;
+import java.io.File;
+import java.lang.reflect.Proxy;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 abstract class AbstractBuildController extends HasCompatibilityMapping implements BuildController {
+    private final ProtocolToModelAdapter adapter;
+    private final ObjectGraphAdapter resultAdapter;
+    private final ModelMapping modelMapping;
+    private final File rootDir;
+
+    public AbstractBuildController(ProtocolToModelAdapter adapter, ModelMapping modelMapping, File rootDir) {
+        this.adapter = adapter;
+        // Treat all models returned to the action as part of the same object graph
+        this.resultAdapter = adapter.newGraph();
+        this.modelMapping = modelMapping;
+        this.rootDir = rootDir;
+    }
+
     @Override
     public <T> T getModel(Class<T> modelType) throws UnknownModelException {
         return getModel(null, modelType);
@@ -63,9 +94,69 @@ abstract class AbstractBuildController extends HasCompatibilityMapping implement
     public <T, P> T findModel(Model target, Class<T> modelType, Class<P> parameterType, Action<? super P> parameterInitializer) {
         try {
             return getModel(target, modelType, parameterType, parameterInitializer);
-        } catch (UnsupportedVersionException e) {
+        } catch (UnknownModelException e) {
             // Ignore
             return null;
         }
+    }
+
+    @Override
+    public <T, P> T getModel(Model target, Class<T> modelType, Class<P> parameterType, Action<? super P> parameterInitializer) throws UnsupportedVersionException, UnknownModelException {
+        ModelIdentifier modelIdentifier = modelMapping.getModelIdentifierFromModelType(modelType);
+        Object originalTarget = target == null ? null : adapter.unpack(target);
+
+        P parameter = initializeParameter(parameterType, parameterInitializer);
+
+        BuildResult<?> result;
+        try {
+            result = getModel(originalTarget, modelIdentifier, parameter);
+        } catch (InternalUnsupportedModelException e) {
+            throw Exceptions.unknownModel(modelType, e);
+        }
+
+        ViewBuilder<T> viewBuilder = resultAdapter.builder(modelType);
+        applyCompatibilityMapping(viewBuilder, new DefaultProjectIdentifier(rootDir, getProjectPath(target)));
+        return viewBuilder.build(result.getModel());
+    }
+
+    private <P> P initializeParameter(Class<P> parameterType, Action<? super P> parameterInitializer) {
+        validateParameters(parameterType, parameterInitializer);
+        if (parameterType != null) {
+            // TODO: move this to ObjectFactory
+            P parameter = parameterType.cast(Proxy.newProxyInstance(parameterType.getClassLoader(), new Class<?>[]{parameterType}, new ToolingParameterProxy()));
+            parameterInitializer.execute(parameter);
+            return parameter;
+        } else {
+            return null;
+        }
+    }
+
+    private <P> void validateParameters(Class<P> parameterType, Action<? super P> parameterInitializer) {
+        if ((parameterType == null && parameterInitializer != null) || (parameterType != null && parameterInitializer == null)) {
+            throw new NullPointerException("parameterType and parameterInitializer both need to be set for a parameterized model request.");
+        }
+
+        if (parameterType != null) {
+            ToolingParameterProxy.validateParameter(parameterType);
+        }
+    }
+
+    private String getProjectPath(Model target) {
+        if (target instanceof ProjectModel) {
+            return ((ProjectModel) target).getProjectIdentifier().getProjectPath();
+        } else {
+            return ":";
+        }
+    }
+
+    protected abstract BuildResult<?> getModel(@Nullable Object target, ModelIdentifier modelIdentifier, @Nullable Object parameter) throws InternalUnsupportedModelException;
+
+    @Override
+    public <T> List<T> run(Collection<? extends BuildAction<? extends T>> actions) {
+        List<T> results = new ArrayList<T>(actions.size());
+        for (BuildAction<? extends T> action : actions) {
+            results.add(action.execute(this));
+        }
+        return results;
     }
 }

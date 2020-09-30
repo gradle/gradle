@@ -28,6 +28,7 @@ import org.gradle.tooling.internal.gradle.GradleBuildIdentity;
 import org.gradle.tooling.internal.gradle.GradleProjectIdentity;
 import org.gradle.tooling.internal.protocol.BuildExceptionVersion1;
 import org.gradle.tooling.internal.protocol.BuildResult;
+import org.gradle.tooling.internal.protocol.InternalActionAwareBuildController;
 import org.gradle.tooling.internal.protocol.InternalBuildControllerVersion2;
 import org.gradle.tooling.internal.protocol.InternalUnsupportedModelException;
 import org.gradle.tooling.internal.protocol.ModelIdentifier;
@@ -37,8 +38,12 @@ import org.gradle.tooling.provider.model.ToolingModelBuilder;
 import org.gradle.tooling.provider.model.UnknownModelException;
 import org.gradle.tooling.provider.model.internal.ToolingModelBuilderLookup;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Supplier;
+
 @SuppressWarnings("deprecation")
-class DefaultBuildController implements org.gradle.tooling.internal.protocol.InternalBuildController, InternalBuildControllerVersion2 {
+class DefaultBuildController implements org.gradle.tooling.internal.protocol.InternalBuildController, InternalBuildControllerVersion2, InternalActionAwareBuildController {
     private final GradleInternal gradle;
 
     public DefaultBuildController(GradleInternal gradle) {
@@ -87,7 +92,16 @@ class DefaultBuildController implements org.gradle.tooling.internal.protocol.Int
                 new UnknownModelException(String.format("No parameterized builders are available to build a model of type '%s'.", modelName)));
         }
 
-        return new ProviderBuildResult<Object>(model);
+        return new ProviderBuildResult<>(model);
+    }
+
+    @Override
+    public <T> List<T> run(List<Supplier<T>> actions) {
+        List<T> results = new ArrayList<T>(actions.size());
+        for (Supplier<T> action : actions) {
+            results.add(action.get());
+        }
+        return results;
     }
 
     private <T> Object getParameterizedModel(ProjectInternal project,

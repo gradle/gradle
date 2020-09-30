@@ -23,6 +23,7 @@ import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter
 import org.gradle.tooling.internal.adapter.ViewBuilder
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping
 import org.gradle.tooling.internal.protocol.BuildResult
+import org.gradle.tooling.internal.protocol.InternalBuildControllerVersion2
 import org.gradle.tooling.internal.protocol.InternalProtocolInterface
 import org.gradle.tooling.internal.protocol.InternalUnsupportedModelException
 import org.gradle.tooling.internal.protocol.ModelIdentifier
@@ -30,8 +31,7 @@ import org.gradle.tooling.model.Element
 import org.gradle.tooling.model.gradle.GradleBuild
 import spock.lang.Specification
 
-class BuildControllerAdapterTest extends Specification {
-    def internalController = Mock(InternalBuildControllerAdapter)
+class ParameterAwareBuildControllerAdapterTest extends Specification {
     def graphAdapter = Mock(ObjectGraphAdapter)
     def adapter = Mock(ProtocolToModelAdapter) {
         newGraph() >> graphAdapter
@@ -43,13 +43,14 @@ class BuildControllerAdapterTest extends Specification {
             }
         }
     }
-    def controller = new BuildControllerAdapter(adapter, internalController, mapping, new File("root"))
+    def delegate = Mock(InternalBuildControllerVersion2)
+    def controller = new ParameterAwareBuildControllerAdapter(delegate, adapter, mapping, new File("root"))
 
     def "unpacks unsupported model exception"() {
         def failure = new RuntimeException()
 
         given:
-        _ * internalController.getModel(null, _, null) >> { throw new InternalUnsupportedModelException().initCause(failure) }
+        _ * delegate.getModel(null, _, null) >> { throw new InternalUnsupportedModelException().initCause(failure) }
 
         when:
         controller.getModel(String)
@@ -74,7 +75,7 @@ class BuildControllerAdapterTest extends Specification {
 
         and:
         1 * adapter.unpack(modelElement) >> targetElement
-        1 * internalController.getModel(targetElement, _, null) >> { def target, ModelIdentifier identifier, parameter ->
+        1 * delegate.getModel(targetElement, _, null) >> { def target, ModelIdentifier identifier, parameter ->
             assert identifier.name == 'GradleBuild'
             assert parameter == null
             return Stub(BuildResult) {
@@ -108,7 +109,7 @@ class BuildControllerAdapterTest extends Specification {
 
         and:
         1 * adapter.unpack(modelElement) >> targetElement
-        1 * internalController.getModel(targetElement, _, _) >> { def target, ModelIdentifier identifier, ValidParameter parameter ->
+        1 * delegate.getModel(targetElement, _, _) >> { def target, ModelIdentifier identifier, ValidParameter parameter ->
             assert identifier.name == 'GradleBuild'
             assert parameter.getValue() == "myValue"
             assert parameter.isBooleanValue()
@@ -133,7 +134,7 @@ class BuildControllerAdapterTest extends Specification {
 
         and:
         1 * adapter.unpack(modelElement) >> targetElement
-        1 * internalController.getModel(targetElement, _, _) >> { throw new InternalUnsupportedModelException() }
+        1 * delegate.getModel(targetElement, _, _) >> { throw new InternalUnsupportedModelException() }
     }
 
     def "fetches build model"() {
@@ -147,7 +148,7 @@ class BuildControllerAdapterTest extends Specification {
         result == modelView
 
         and:
-        1 * internalController.getModel(null, _, _) >> { def target, ModelIdentifier identifier, parameter ->
+        1 * delegate.getModel(null, _, _) >> { def target, ModelIdentifier identifier, parameter ->
             assert identifier.name == 'GradleBuild'
             assert parameter == null
             return Stub(BuildResult) {
@@ -167,7 +168,7 @@ class BuildControllerAdapterTest extends Specification {
         result == null
 
         and:
-        1 * internalController.getModel(null, _, _) >> { throw new InternalUnsupportedModelException() }
+        1 * delegate.getModel(null, _, _) >> { throw new InternalUnsupportedModelException() }
     }
 
     def "error when parameterType or parameterInitializer null"() {
@@ -198,13 +199,16 @@ class BuildControllerAdapterTest extends Specification {
 
         then:
         IllegalArgumentException e1 = thrown()
-        e1.message == "org.gradle.tooling.internal.consumer.connection.BuildControllerAdapterTest\$InvalidParameter is not a valid parameter type. It must be an interface."
+        e1.message == "${InvalidParameter.name} is not a valid parameter type. It must be an interface."
     }
 
     interface ValidParameter {
         void setValue(String value)
+
         String getValue()
+
         void setBooleanValue(boolean booleanValue)
+
         boolean isBooleanValue()
     }
 
