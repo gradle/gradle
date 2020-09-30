@@ -24,7 +24,7 @@ import spock.lang.Unroll
 class LatestModuleConflictResolverTest extends AbstractConflictResolverTest {
 
     def setup() {
-        resolver = new LatestModuleConflictResolver(new DefaultVersionComparator(new FeaturePreviews()), new VersionParser())
+        resolver = new LatestModuleConflictResolver(new DefaultVersionComparator(new FeaturePreviews()), new VersionParser(), true)
     }
 
     @Unroll
@@ -70,6 +70,19 @@ class LatestModuleConflictResolverTest extends AbstractConflictResolverTest {
 
         then:
         selected '1.0-beta-1'
+    }
+
+    def "does not select a release version over unqualified"() {
+        resolver = new LatestModuleConflictResolver(new DefaultVersionComparator(new FeaturePreviews()), new VersionParser(), false)
+        given:
+        prefer('1.0-beta-1').release()
+        prefer('1.0-beta-2')
+
+        when:
+        resolveConflicts()
+
+        then:
+        selected '1.0-beta-2'
     }
 
 }

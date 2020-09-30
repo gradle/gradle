@@ -531,7 +531,8 @@ class DependencyManagementBuildScopeServices {
                                                                 VersionParser versionParser,
                                                                 ComponentMetadataSupplierRuleExecutor componentMetadataSupplierRuleExecutor,
                                                                 InstantiatorFactory instantiatorFactory,
-                                                                ComponentSelectionDescriptorFactory componentSelectionDescriptorFactory) {
+                                                                ComponentSelectionDescriptorFactory componentSelectionDescriptorFactory,
+                                                                FeaturePreviews featurePreviews) {
         return new DefaultArtifactDependencyResolver(
             buildOperationExecutor,
             resolverFactories,
@@ -546,7 +547,8 @@ class DependencyManagementBuildScopeServices {
             versionParser,
             componentMetadataSupplierRuleExecutor,
             instantiatorFactory,
-            componentSelectionDescriptorFactory);
+            componentSelectionDescriptorFactory,
+            featurePreviews);
     }
 
     ProjectPublicationRegistry createProjectPublicationRegistry() {
