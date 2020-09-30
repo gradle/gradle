@@ -211,7 +211,7 @@ fun Project.applyGroovyProjectConventions() {
         testImplementation("org.spockframework:spock-core:1.3-groovy-2.5") {
             exclude(group = "org.codehaus.groovy")
         }
-        testImplementation("net.bytebuddy:byte-buddy:1.8.21")
+        testImplementation("net.bytebuddy:byte-buddy") { version { strictly("1.8.21") } }
         testImplementation("org.objenesis:objenesis:2.6")
     }
 
