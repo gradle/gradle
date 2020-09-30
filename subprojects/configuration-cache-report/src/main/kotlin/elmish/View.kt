@@ -18,9 +18,9 @@ package elmish
 
 import org.w3c.dom.Element
 import org.w3c.dom.events.Event
-import kotlin.dom.addClass
-import kotlin.dom.appendElement
-import kotlin.dom.appendText
+import kotlinx.dom.addClass
+import kotlinx.dom.appendElement
+import kotlinx.dom.appendText
 
 
 val empty = View.Empty
@@ -189,7 +189,7 @@ private
 fun <I> Element.appendElementFor(view: View<I>, send: (I) -> Unit) {
     when (view) {
         is View.Element -> appendElement(view.elementName) {
-            view.innerText?.let(::appendText)
+            view.innerText?.let(this::appendText)
             view.children.forEach { child ->
                 appendElementFor(child, send)
             }

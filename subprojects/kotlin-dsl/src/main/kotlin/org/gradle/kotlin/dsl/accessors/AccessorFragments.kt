@@ -34,6 +34,7 @@ import org.gradle.kotlin.dsl.support.bytecode.KmTypeBuilder
 import org.gradle.kotlin.dsl.support.bytecode.LDC
 import org.gradle.kotlin.dsl.support.bytecode.RETURN
 import org.gradle.kotlin.dsl.support.bytecode.actionTypeOf
+import org.gradle.kotlin.dsl.support.bytecode.extensionFunctionTypeOf
 import org.gradle.kotlin.dsl.support.bytecode.genericTypeOf
 import org.gradle.kotlin.dsl.support.bytecode.internalName
 import org.gradle.kotlin.dsl.support.bytecode.jvmGetterSignatureFor
@@ -614,6 +615,10 @@ fun fragmentsForExtension(accessor: Accessor.ForExtension): Fragments {
                     INVOKEINTERFACE(GradleTypeName.extensionAware, "getExtensions", "()Lorg/gradle/api/plugins/ExtensionContainer;")
                     LDC(name.original)
                     ALOAD(1)
+                    invokeRuntime(
+                        "functionToAction",
+                        "(Lkotlin/jvm/functions/Function1;)Lorg/gradle/api/Action;"
+                    )
                     INVOKEINTERFACE(GradleTypeName.extensionContainer, "configure", "(Ljava/lang/String;Lorg/gradle/api/Action;)V")
                     RETURN()
                 }
@@ -623,7 +628,7 @@ fun fragmentsForExtension(accessor: Accessor.ForExtension): Fragments {
                     receiverType = receiverType,
                     returnType = KotlinType.unit,
                     parameters = {
-                        visitParameter("configure", actionTypeOf(kotlinReturnType))
+                        visitParameter("configure", extensionFunctionTypeOf(kotlinReturnType, KotlinType.unit))
                     },
                     name = propertyName,
                     signature = signature
@@ -631,7 +636,7 @@ fun fragmentsForExtension(accessor: Accessor.ForExtension): Fragments {
             },
             signature = JvmMethodSignature(
                 propertyName,
-                "(L$receiverTypeName;Lorg/gradle/api/Action;)V"
+                "(L$receiverTypeName;Lkotlin/jvm/functions/Function1;)V"
             )
         )
     )

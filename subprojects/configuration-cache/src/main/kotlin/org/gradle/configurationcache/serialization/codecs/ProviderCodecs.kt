@@ -102,9 +102,9 @@ class FixedValueReplacingProviderCodec(valueSourceProviderFactory: ValueSourcePr
                 val value = read() as BrokenValue
                 ValueSupplier.ExecutionTimeValue.changingValue(DefaultProvider { value.rethrow() })
             }
-            1.toByte() -> ValueSupplier.ExecutionTimeValue.missing()
+            1.toByte() -> ValueSupplier.ExecutionTimeValue.missing<Any>()
             2.toByte() -> ValueSupplier.ExecutionTimeValue.ofNullable(read()) // nullable because serialization may replace value with null, eg when using provider of Task
-            3.toByte() -> ValueSupplier.ExecutionTimeValue.changingValue(providerWithChangingValueCodec.run { decode() }!!.uncheckedCast())
+            3.toByte() -> ValueSupplier.ExecutionTimeValue.changingValue<Any>(providerWithChangingValueCodec.run { decode() }!!.uncheckedCast())
             else -> throw IllegalStateException("Unexpected provider value")
         }
     }

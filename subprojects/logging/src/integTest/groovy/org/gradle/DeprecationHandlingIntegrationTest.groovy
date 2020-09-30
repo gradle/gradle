@@ -223,7 +223,7 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
     def 'DeprecatedPlugin from applied kotlin script - #scenario'() {
         given:
         file("project.gradle.kts") << """
-           apply(plugin = "org.acme.deprecated") // line 1
+           apply(plugin = "org.acme.deprecated") // line 2
         """.stripIndent()
 
         buildFile << """
@@ -240,9 +240,9 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
         run()
 
         then:
-        output.contains('build.gradle:3)')
+        output.contains('project.gradle.kts:2)')
+        output.contains('build.gradle:3)') == withFullStacktrace
         output.contains('build.gradle:2)') == withFullStacktrace
-        output.contains('Project_gradle.<init>') == withFullStacktrace
         output.count(PLUGIN_DEPRECATION_MESSAGE) == 1
 
         withFullStacktrace ? (output.count('\tat') > 1) : (output.count('\tat') == 1)

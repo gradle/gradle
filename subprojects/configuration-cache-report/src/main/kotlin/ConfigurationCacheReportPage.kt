@@ -30,7 +30,7 @@ import elmish.tree.Tree
 import elmish.tree.TreeView
 import elmish.tree.viewSubTrees
 
-import kotlin.browser.window
+import kotlinx.browser.window
 
 
 internal

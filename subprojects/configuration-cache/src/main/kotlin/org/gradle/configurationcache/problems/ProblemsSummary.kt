@@ -29,6 +29,7 @@ private
 const val maxConsoleProblems = 15
 
 
+@Suppress("DEPRECATION") // TODO Fix once we build with Kotlin 1.4
 internal
 fun buildConsoleSummary(cacheAction: String, problems: List<PropertyProblem>, reportFile: File): String {
     val documentationRegistry = DocumentationRegistry()

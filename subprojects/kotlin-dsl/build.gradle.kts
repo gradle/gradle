@@ -63,7 +63,7 @@ dependencies {
     implementation(libs.futureKotlin("scripting-jvm")) {
         isTransitive = false
     }
-    implementation(libs.futureKotlin("scripting-jvm-host-embeddable")) {
+    implementation(libs.futureKotlin("scripting-jvm-host")) {
         isTransitive = false
     }
     implementation(libs.futureKotlin("scripting-compiler-embeddable")) {

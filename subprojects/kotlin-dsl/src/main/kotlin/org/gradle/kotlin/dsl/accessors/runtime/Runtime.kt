@@ -103,3 +103,7 @@ fun externalModuleDependencyFor(
         "ext" to ext
     )
 ) as ExternalModuleDependency
+
+
+fun functionToAction(f: (Any?) -> Unit): Action<Any?> =
+    Action { f(it) }

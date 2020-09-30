@@ -77,7 +77,7 @@ class NonNullDynamicPropertyDelegate(
 
     override fun <T> getValue(receiver: Any?, property: KProperty<*>): T =
         owner.tryGetProperty(name).run {
-            if (isFound && value != null) uncheckedCast(value)
+            if (isFound && value != null) uncheckedCast<T>(value)
             else throw InvalidUserCodeException("Cannot get non-null property '$name' on ${describeOwner()} as it ${if (isFound) "is null" else "does not exist"}")
         }
 }

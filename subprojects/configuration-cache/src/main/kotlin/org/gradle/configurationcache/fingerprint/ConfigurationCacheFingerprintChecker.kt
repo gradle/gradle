@@ -62,14 +62,12 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
                     }
                 }
                 is ConfigurationCacheFingerprint.ValueSource -> input.run {
-                    checkFingerprintValueIsUpToDate(obtainedValue)?.let { reason ->
-                        return reason
-                    }
+                    val reason = checkFingerprintValueIsUpToDate(obtainedValue)
+                    if (reason != null) return reason
                 }
                 is ConfigurationCacheFingerprint.InitScripts -> input.run {
-                    checkInitScriptsAreUpToDate(fingerprints, host.allInitScripts)?.let { reason ->
-                        return reason
-                    }
+                    val reason = checkInitScriptsAreUpToDate(fingerprints, host.allInitScripts)
+                    if (reason != null) return reason
                 }
                 is ConfigurationCacheFingerprint.UndeclaredSystemProperty -> input.run {
                     if (isDefined(key)) {

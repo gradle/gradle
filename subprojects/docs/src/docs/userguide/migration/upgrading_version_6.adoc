@@ -42,6 +42,11 @@ Some plugins will break with this new version of Gradle, for example because the
 
 - JaCoCo has been updated to http://www.jacoco.org/jacoco/trunk/doc/changes.html[0.8.6].
 
+==== Updates to bundled Gradle dependencies
+
+- Kotlin has been updated to https://blog.jetbrains.com/kotlin/2020/08/kotlin-1-4-released-with-a-focus-on-quality-and-performance/[Kotlin 1.4.10].
+  Note that Gradle scripts are still using the Kotlin 1.3 language.
+
 [[changes_6.7]]
 == Upgrading from 6.6
 

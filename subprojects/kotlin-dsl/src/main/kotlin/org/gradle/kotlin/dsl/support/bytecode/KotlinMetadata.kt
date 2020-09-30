@@ -18,6 +18,7 @@ package org.gradle.kotlin.dsl.support.bytecode
 
 import kotlinx.metadata.Flag
 import kotlinx.metadata.Flags
+import kotlinx.metadata.KmAnnotation
 import kotlinx.metadata.KmFunctionVisitor
 import kotlinx.metadata.KmPackageExtensionVisitor
 import kotlinx.metadata.KmTypeVisitor
@@ -27,6 +28,7 @@ import kotlinx.metadata.jvm.JvmFunctionExtensionVisitor
 import kotlinx.metadata.jvm.JvmMethodSignature
 import kotlinx.metadata.jvm.JvmPackageExtensionVisitor
 import kotlinx.metadata.jvm.JvmPropertyExtensionVisitor
+import kotlinx.metadata.jvm.JvmTypeExtensionVisitor
 import kotlinx.metadata.jvm.KotlinClassHeader
 import kotlinx.metadata.jvm.KotlinClassMetadata
 import kotlinx.metadata.jvm.KotlinModuleMetadata
@@ -275,11 +277,19 @@ fun actionTypeOf(parameterType: KmTypeBuilder): KmTypeBuilder = {
 }
 
 
+/**
+ * [receiverType].() -> [returnType]
+ */
 internal
-fun functionTypeOf(parameterType: KmTypeBuilder, returnType: KmTypeBuilder): KmTypeBuilder = {
+fun extensionFunctionTypeOf(receiverType: KmTypeBuilder, returnType: KmTypeBuilder): KmTypeBuilder = {
     visitClass("kotlin/Function1")
-    visitArgument(0, KmVariance.INVARIANT).with(parameterType)
+    visitArgument(0, KmVariance.INVARIANT).with(receiverType)
     visitArgument(0, KmVariance.INVARIANT).with(returnType)
+    (visitExtensions(JvmTypeExtensionVisitor.TYPE) as JvmTypeExtensionVisitor).run {
+        visit(false)
+        visitAnnotation(KmAnnotation(className = "kotlin/ExtensionFunctionType", arguments = emptyMap()))
+        visitEnd()
+    }
 }
 
 

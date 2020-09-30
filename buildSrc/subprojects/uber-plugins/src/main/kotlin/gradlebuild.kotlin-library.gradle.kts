@@ -77,7 +77,7 @@ fun KotlinCompile.configureKotlinCompilerForGradleBuild() {
             "-Xjsr305=strict",
             "-java-parameters",
             "-Xskip-runtime-version-check",
-            "-progressive"
+            "-Xskip-metadata-version-check"
         )
         jvmTarget = "1.8"
     }

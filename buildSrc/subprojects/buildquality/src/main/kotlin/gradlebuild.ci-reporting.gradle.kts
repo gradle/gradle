@@ -100,7 +100,7 @@ fun prepareReportsForCiPublishing(failedTasks: List<Task>, executedTasks: List<T
 
 fun Project.tmpTestFiles() =
     layout.buildDirectory.dir("tmp/test files").get().asFile.listFiles()?.filter {
-        Files.walk(it.toPath()).use { paths -> !paths.allMatch(Files::isDirectory) }
+        Files.walk(it.toPath()).use { paths -> !paths.allMatch { it.toFile().isDirectory } }
     }?.map {
         it to name
     } ?: emptyList()
