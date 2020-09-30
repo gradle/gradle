@@ -21,10 +21,14 @@ plugins {
 }
 
 val testJavaHomePropertyName = "testJavaHome"
+val testJavaVersionPropertyName = "testJavaVersion"
 
 val testJavaHomePath = providers.gradleProperty(testJavaHomePropertyName).forUseAtConfigurationTime()
     .orElse(providers.systemProperty(testJavaHomePropertyName).forUseAtConfigurationTime())
     .orElse(providers.environmentVariable(testJavaHomePropertyName).forUseAtConfigurationTime())
 val testJavaHome = repoRoot().dir(testJavaHomePath)
+val testJavaVersion = providers.gradleProperty(testJavaVersionPropertyName).forUseAtConfigurationTime()
+    .orElse(providers.systemProperty(testJavaVersionPropertyName).forUseAtConfigurationTime())
+    .orElse(providers.environmentVariable(testJavaVersionPropertyName).forUseAtConfigurationTime())
 
-extensions.create<BuildJvms>("buildJvms", javaInstalls, testJavaHome)
+extensions.create<BuildJvms>("buildJvms", javaInstalls, testJavaHome, testJavaVersion)

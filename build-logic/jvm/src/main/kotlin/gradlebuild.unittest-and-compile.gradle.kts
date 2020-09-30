@@ -159,15 +159,18 @@ fun configureJarTasks() {
 
 fun Test.configureJvmForTest() {
     val jvmForTest = project.the<BuildJvms>().testJvm.get()
+    val jvmVersionForTest = JavaLanguageVersion.of(project.buildJvms.testJavaVersion.get())
 
     jvmArgumentProviders.add(CiEnvironmentProvider(this))
-    executable = jvmForTest.javaExecutable.asFile.absolutePath
-    environment["JAVA_HOME"] = jvmForTest.installationDirectory.asFile.absolutePath
-    if (jvmForTest.javaVersion.isJava7) {
+    val launcher = project.javaToolchains.launcherFor {
+        languageVersion.set(jvmVersionForTest)
+    }
+    javaLauncher.set(launcher)
+    environment["JAVA_HOME"] = javaLauncher.get().metadata.installationPath.asFile.absolutePath
+    if (jvmVersionForTest == JavaLanguageVersion.of(7)) {
         // enable class unloading
         jvmArgs("-XX:+UseConcMarkSweepGC", "-XX:+CMSClassUnloadingEnabled")
-    }
-    if (jvmForTest.javaVersion.isJava9Compatible) {
+    } else if (jvmVersionForTest.canCompileOrRun(9)) {
         // allow embedded executer to modify environment variables
         jvmArgs("--add-opens", "java.base/java.util=ALL-UNNAMED")
         // allow embedded executer to inject legacy types into the system classloader
