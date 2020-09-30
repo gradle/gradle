@@ -123,18 +123,16 @@ public class DefaultFileSystemAccess implements FileSystemAccess {
             visitor.accept(readLocation(location));
         } else {
             FileSystemSnapshot filteredSnapshot = virtualFileSystem.getRoot().getSnapshot(location)
-                .filter(CompleteFileSystemLocationSnapshot.class::isInstance)
                 .map(snapshot -> FileSystemSnapshotFilter.filterSnapshot(filter.getAsSnapshotPredicate(), snapshot))
                 .orElseGet(() -> producingSnapshots.guardByKey(location,
                     () -> virtualFileSystem.getRoot().getSnapshot(location)
                         .map(snapshot -> FileSystemSnapshotFilter.filterSnapshot(filter.getAsSnapshotPredicate(), snapshot))
                         .orElseGet(() -> {
-                            AtomicBoolean hasBeenFiltered = new AtomicBoolean(false);
-                            CompleteFileSystemLocationSnapshot snapshot = directorySnapshotter.snapshot(location, filter.getAsDirectoryWalkerPredicate(), hasBeenFiltered);
-                            if (!hasBeenFiltered.get()) {
-                                virtualFileSystem.update((root, changeListener) -> root.store(snapshot.getAbsolutePath(), snapshot, changeListener));
-                            }
-                            return snapshot;
+                            CompleteFileSystemLocationSnapshot snapshot = snapshot(location, filter);
+                            return snapshot.getType() == FileType.Directory
+                                // Directory snapshots have been filtered while walking the file system
+                                ? snapshot
+                                : FileSystemSnapshotFilter.filterSnapshot(filter.getAsSnapshotPredicate(), snapshot);
                         })
                 ));
 
@@ -144,7 +142,7 @@ public class DefaultFileSystemAccess implements FileSystemAccess {
         }
     }
 
-    private CompleteFileSystemLocationSnapshot snapshot(String location) {
+    private CompleteFileSystemLocationSnapshot snapshot(String location, SnapshottingFilter filter) {
         File file = new File(location);
         FileMetadata fileMetadata = this.stat.stat(file);
         switch (fileMetadata.getType()) {
@@ -158,8 +156,11 @@ public class DefaultFileSystemAccess implements FileSystemAccess {
                 virtualFileSystem.update((root, changeListener) -> root.store(missingFileSnapshot.getAbsolutePath(), missingFileSnapshot, changeListener));
                 return missingFileSnapshot;
             case Directory:
-                CompleteFileSystemLocationSnapshot directorySnapshot = directorySnapshotter.snapshot(location, null, new AtomicBoolean(false));
-                virtualFileSystem.update((root, changeListener) -> root.store(directorySnapshot.getAbsolutePath(), directorySnapshot, changeListener));
+                AtomicBoolean hasBeenFiltered = new AtomicBoolean(false);
+                CompleteFileSystemLocationSnapshot directorySnapshot = directorySnapshotter.snapshot(location, filter.isEmpty() ? null : filter.getAsDirectoryWalkerPredicate(), hasBeenFiltered);
+                if (!hasBeenFiltered.get()) {
+                    virtualFileSystem.update((root, changeListener) -> root.store(directorySnapshot.getAbsolutePath(), directorySnapshot, changeListener));
+                }
                 return directorySnapshot;
             default:
                 throw new UnsupportedOperationException();
@@ -169,7 +170,7 @@ public class DefaultFileSystemAccess implements FileSystemAccess {
     private CompleteFileSystemLocationSnapshot readLocation(String location) {
         return virtualFileSystem.getRoot().getSnapshot(location)
             .orElseGet(() -> producingSnapshots.guardByKey(location,
-                () -> virtualFileSystem.getRoot().getSnapshot(location).orElseGet(() -> snapshot(location)))
+                () -> virtualFileSystem.getRoot().getSnapshot(location).orElseGet(() -> snapshot(location, SnapshottingFilter.EMPTY)))
             );
     }
 
