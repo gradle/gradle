@@ -76,7 +76,7 @@ class FasterIncrementalAndroidBuildsPerformanceTest extends AbstractCrossBuildPe
         supportedOptimizations(testProject).each { name, Set<Optimization> enabledOptimizations ->
             runner.buildSpec {
                 invocation.args(*enabledOptimizations*.arguments.flatten())
-                testProject.configureForLatestAgpVersionOfMinor(delegate, AGP_TARGET_VERSION)
+                IncrementalAndroidTestProject.configureForLatestAgpVersionOfMinor(delegate, AGP_TARGET_VERSION)
                 displayName(name)
 
                 final Closure clonedClosure = scenarioConfiguration.clone() as Closure

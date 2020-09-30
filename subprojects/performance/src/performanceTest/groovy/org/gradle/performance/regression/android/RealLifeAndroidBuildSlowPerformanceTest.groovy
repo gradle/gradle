@@ -51,7 +51,7 @@ class RealLifeAndroidBuildSlowPerformanceTest extends AbstractRealLifeAndroidBui
 
         and:
         if (testProject == SANTA_TRACKER_KOTLIN) {
-            (testProject as IncrementalAndroidTestProject).configureForLatestAgpVersionOfMinor(runner, SANTA_AGP_TARGET_VERSION)
+            IncrementalAndroidTestProject.configureForLatestAgpVersionOfMinor(runner, SANTA_AGP_TARGET_VERSION)
         }
 
         when:

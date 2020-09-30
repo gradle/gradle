@@ -49,7 +49,7 @@ class FileSystemWatchingPerformanceTest extends AbstractCrossVersionPerformanceT
     IncrementalTestProject findTestProjectAndSetupRunnerForFsWatching() {
         IncrementalTestProject testProject = TestProjects.projectFor(runner.testProject)
         if (testProject instanceof IncrementalAndroidTestProject) {
-            testProject.configureForLatestAgpVersionOfMinor(runner, AGP_TARGET_VERSION)
+            IncrementalAndroidTestProject.configureForLatestAgpVersionOfMinor(runner, AGP_TARGET_VERSION)
         }
         runner.args.add("--${StartParameterBuildOptions.WatchFileSystemOption.LONG_OPTION}")
         testProject
