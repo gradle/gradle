@@ -152,7 +152,9 @@ data class CIBuildModel(
             runsIndependent = true,
             performanceTests = listOf(
                 PerformanceTestCoverage(6, PerformanceTestType.test, Os.WINDOWS, numberOfBuckets = 5, withoutDependencies = true),
-                PerformanceTestCoverage(7, PerformanceTestType.test, Os.MACOS, numberOfBuckets = 5, withoutDependencies = true)
+                PerformanceTestCoverage(7, PerformanceTestType.test, Os.MACOS, numberOfBuckets = 5, withoutDependencies = true),
+                PerformanceTestCoverage(8, PerformanceTestType.experiment, Os.WINDOWS, numberOfBuckets = 5, withoutDependencies = true),
+                PerformanceTestCoverage(9, PerformanceTestType.experiment, Os.MACOS, numberOfBuckets = 5, withoutDependencies = true)
             )
         )
     ),
