@@ -64,7 +64,7 @@ tasks {
         dependsOn(assembleReport)
     }
 
-    val stageDir = layout.buildDirectory.dir(name)
+    val stageDir = layout.buildDirectory.dir("stageDevReport")
 
     val stageDevReport by registering(Sync::class) {
         from(assembleReport)
