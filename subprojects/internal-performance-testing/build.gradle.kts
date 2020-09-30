@@ -34,7 +34,7 @@ dependencies {
     api(libs.gradleProfiler) {
         because("Consumers need to instantiate BuildMutators")
     }
-    compileOnly("com.github.javaparser:javaparser-core:3.1.3") {
+    implementation(libs.javaParser) {
         because("The Groovy compiler inspects the dependencies at compile time")
     }
 
@@ -77,7 +77,7 @@ dependencies {
     implementation(testFixtures(project(":core")))
     implementation(testFixtures(project(":tooling-api")))
 
-    runtimeOnly("mysql:mysql-connector-java:8.0.17")
+    runtimeOnly(libs.mySqlConnector)
 
     integTestDistributionRuntimeOnly(project(":distributions-core"))
 }

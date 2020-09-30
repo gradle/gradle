@@ -138,7 +138,6 @@ enum JavaTestProjectGenerator {
         .assembleChangeFile()
         .withBuildSrc(false).create())
 
-
     private TestProjectGeneratorConfiguration config
 
     JavaTestProjectGenerator(TestProjectGeneratorConfiguration config) {

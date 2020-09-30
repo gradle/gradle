@@ -158,9 +158,10 @@ dependencies {
         api(libs.guice)                 { version { strictly("2.0") }}
         api(libs.httpmime)              { version { strictly("4.5.10") }}
         api(libs.jacksonKotlin)         { version { strictly("2.9.2") }}
+        api(libs.javaParser)            { version { strictly("3.1.3") }}
         api(libs.jetty)                 { version { strictly(jettyVersion) }}
         api(libs.jettySecurity)         { version { strictly(jettyVersion) }}
-        api(libs.jettyWebApp)         { version { strictly(jettyVersion) }}
+        api(libs.jettyWebApp)           { version { strictly(jettyVersion) }}
         api(libs.jsoup)                 { version { strictly("1.11.3") }}
         api(libs.jtar)                  { version { strictly("2.3") }}
         api(libs.kotlinCoroutines)      { version { strictly("1.3.9") }}
@@ -169,6 +170,7 @@ dependencies {
         api(libs.mina)                  { version { strictly("2.0.17") }}
         api(libs.mockitoKotlin)         { version { strictly("1.6.0") }}
         api(libs.mockitoKotlin2)        { version { strictly("2.1.0") }}
+        api(libs.mySqlConnector)        { version { strictly("8.0.17") }}
         api(libs.sampleCheck)           { version { strictly("0.12.6") }}
         api(libs.snappy)                { version { strictly("0.4") }}
         api(libs.spock)                 { version { strictly("1.3-groovy-2.5") }}
