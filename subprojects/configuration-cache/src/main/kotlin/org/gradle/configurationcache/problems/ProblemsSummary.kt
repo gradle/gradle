@@ -29,27 +29,26 @@ private
 const val maxConsoleProblems = 15
 
 
-@Suppress("DEPRECATION") // TODO Fix once we build with Kotlin 1.4
 internal
 fun buildConsoleSummary(cacheAction: String, problems: List<PropertyProblem>, reportFile: File): String {
     val documentationRegistry = DocumentationRegistry()
     val uniquePropertyProblems = uniquePropertyProblems(problems)
     return StringBuilder().apply {
-        appendln()
-        appendln(buildSummaryHeader(cacheAction, problems.size, uniquePropertyProblems))
+        appendLine()
+        appendLine(buildSummaryHeader(cacheAction, problems.size, uniquePropertyProblems))
         uniquePropertyProblems.take(maxConsoleProblems).forEach { problem ->
             append("- ")
             append(problem.userCodeLocation.capitalize())
             append(": ")
-            appendln(problem.message)
+            appendLine(problem.message)
             if (problem.documentationSection != null) {
-                appendln("  See ${documentationRegistry.getDocumentationFor("configuration_cache", problem.documentationSection)}")
+                appendLine("  See ${documentationRegistry.getDocumentationFor("configuration_cache", problem.documentationSection)}")
             }
         }
         if (uniquePropertyProblems.size > maxConsoleProblems) {
-            appendln("plus ${uniquePropertyProblems.size - maxConsoleProblems} more problems. Please see the report for details.")
+            appendLine("plus ${uniquePropertyProblems.size - maxConsoleProblems} more problems. Please see the report for details.")
         }
-        appendln()
+        appendLine()
         append(buildSummaryReportLink(reportFile))
     }.toString()
 }

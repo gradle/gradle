@@ -446,8 +446,7 @@ data class ScriptCompilationException(val errors: List<ScriptCompilationError>) 
 
     private
     val maxLineNumberStringLength: Int by lazy {
-        @Suppress("DEPRECATION") // TODO Fix once we build with Kotlin 1.4
-        errors.mapNotNull { it.location?.line }.max().toString().length
+        errors.mapNotNull { it.location?.line }.maxOrNull()?.toString()?.length ?: 0
     }
 }
 

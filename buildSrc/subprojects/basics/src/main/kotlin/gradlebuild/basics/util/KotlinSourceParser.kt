@@ -108,9 +108,9 @@ class KotlinSourceParser {
     fun CompilerConfiguration.configureKotlinCompilerForGradleBuild() {
 
         put(CommonConfigurationKeys.LANGUAGE_VERSION_SETTINGS, LanguageVersionSettingsImpl(
-            languageVersion = LanguageVersion.KOTLIN_1_3,
-            apiVersion = ApiVersion.KOTLIN_1_3,
-            analysisFlags = kotlin.collections.mapOf(JvmAnalysisFlags.jsr305 to Jsr305State.STRICT)
+            languageVersion = LanguageVersion.KOTLIN_1_4,
+            apiVersion = ApiVersion.KOTLIN_1_4,
+            analysisFlags = mapOf(JvmAnalysisFlags.jsr305 to Jsr305State.STRICT)
         ))
 
         put(JVMConfigurationKeys.PARAMETERS_METADATA, true)

@@ -290,7 +290,6 @@ object ResolverCoordinator {
 
     private
     fun sameClassPathBlocksHashAs(previousDependencies: KotlinScriptExternalDependencies?, hash: ByteArray?) =
-        @Suppress("DEPRECATION") // TODO Fix once we build with Kotlin 1.4
         hash?.let { nonNullHash -> classPathBlocksHashOf(previousDependencies)?.contentEquals(nonNullHash) }
             ?: false
 

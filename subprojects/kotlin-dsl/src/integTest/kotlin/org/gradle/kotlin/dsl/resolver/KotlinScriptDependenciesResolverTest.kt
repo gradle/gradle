@@ -65,7 +65,7 @@ class KotlinScriptDependenciesResolverTest : AbstractKotlinIntegrationTest() {
         val javaHome = System.getProperty("java.home")
         val env = arrayOf("gradleJavaHome" to javaHome)
         assertThat(
-            resolvedScriptDependencies(env = *env)?.javaHome,
+            resolvedScriptDependencies(env = env)?.javaHome,
             equalTo(javaHome)
         )
     }
@@ -195,7 +195,7 @@ class KotlinScriptDependenciesResolverTest : AbstractKotlinIntegrationTest() {
         val editedScript = withBuildScript("")
 
         val wrongEnv = arrayOf("gradleHome" to existing("absent"))
-        resolvedScriptDependencies(editedScript, env = *wrongEnv).apply {
+        resolvedScriptDependencies(editedScript, env = wrongEnv).apply {
             assertThat(this, nullValue())
         }
 
