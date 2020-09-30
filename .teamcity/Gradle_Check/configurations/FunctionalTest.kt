@@ -49,7 +49,7 @@ class FunctionalTest(
 
     applyTestDefaults(model, this, testTasks, notQuick = !testCoverage.isQuick, os = testCoverage.os,
         extraParameters = (
-            listOf(""""-PtestJavaHome=$testJavaHome"""") +
+            listOf(""""-PtestJavaHome=$testJavaHome"""", """"-PtestJavaVersion=${testCoverage.testJvmVersion.major}"""") +
                 explicitToolchains("$testJavaHome,$buildJavaHome") +
                 buildScanTags.map { buildScanTag(it) } +
                 buildScanValues.map { buildScanCustomValue(it.key, it.value) } +

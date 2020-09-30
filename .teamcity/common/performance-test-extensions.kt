@@ -17,6 +17,7 @@
 package common
 
 import configurations.buildScanTag
+import configurations.explicitToolchains
 import jetbrains.buildServer.configs.kotlin.v2019_2.BuildStep
 import jetbrains.buildServer.configs.kotlin.v2019_2.BuildSteps
 import jetbrains.buildServer.configs.kotlin.v2019_2.BuildType
@@ -43,7 +44,9 @@ fun BuildType.applyPerformanceTestSettings(os: Os = Os.LINUX, timeout: Int = 30)
 fun performanceTestCommandLine(task: String, baselines: String, extraParameters: String = "", os: Os = Os.LINUX) = listOf(
     "$task${if (extraParameters.isEmpty()) "" else " $extraParameters" }",
     "-PperformanceBaselines=$baselines",
-    """"-PtestJavaHome=${os.individualPerformanceTestJavaHome()}""""
+    """"-PtestJavaHome=${os.individualPerformanceTestJavaHome()}"""",
+    """"-PtestJavaVersion=${os.perfTestJavaVersion.major}""""
+) + (explicitToolchains("${os.buildJavaHome()},${os.individualPerformanceTestJavaHome()}")
 ) + listOf(
     "-Porg.gradle.performance.branchName" to "%teamcity.build.branch%",
     "-Porg.gradle.performance.db.url" to "%performance.db.url%",

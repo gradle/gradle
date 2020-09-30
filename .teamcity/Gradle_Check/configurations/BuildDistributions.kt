@@ -15,7 +15,10 @@ class BuildDistributions(model: CIBuildModel, stage: Stage) : BaseGradleBuildTyp
         model,
         this,
         "packageBuild",
-        extraParameters = buildScanTag("BuildDistributions") + " -PtestJavaHome=${LINUX.buildJavaHome()}" + explicitToolchains(LINUX.buildJavaHome()).joinToString(separator = " ")
+        extraParameters = buildScanTag("BuildDistributions") +
+            " -PtestJavaHome=${LINUX.buildJavaHome()}" +
+            " -PtestJavaVersion=${LINUX.buildJavaVersion.major} " +
+            explicitToolchains(LINUX.buildJavaHome()).joinToString(separator = " ")
     )
 
     features {
