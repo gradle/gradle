@@ -29,6 +29,7 @@ import org.gradle.internal.snapshot.ValueSnapshotter;
 
 import java.util.Optional;
 
+import static org.gradle.internal.execution.UnitOfWork.IdentityKind.IDENTITY;
 import static org.gradle.internal.execution.impl.InputFingerprintUtil.fingerprintInputFiles;
 import static org.gradle.internal.execution.impl.InputFingerprintUtil.fingerprintInputProperties;
 
@@ -50,10 +51,12 @@ public class IdentifyStep<C extends ExecutionRequestContext, R extends Result> i
             context.getWork(),
             ImmutableSortedMap.of(),
             valueSnapshotter,
-            ImmutableSortedMap.of());
+            ImmutableSortedMap.of(),
+            (propertyName, identity) -> identity == IDENTITY);
         ImmutableSortedMap<String, CurrentFileCollectionFingerprint> identityInputFileProperties = fingerprintInputFiles(
             context.getWork(),
-            ImmutableSortedMap.of());
+            ImmutableSortedMap.of(),
+            (propertyName, type, identity) -> identity == IDENTITY);
         Identity identity = context.getWork().identify(identityInputProperties, identityInputFileProperties);
         return delegate.execute(new IdentityContext() {
             @Override

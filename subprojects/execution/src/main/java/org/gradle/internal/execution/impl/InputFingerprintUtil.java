@@ -29,12 +29,16 @@ public class InputFingerprintUtil {
         UnitOfWork work,
         ImmutableSortedMap<String, ValueSnapshot> previousSnapshots,
         ValueSnapshotter valueSnapshotter,
-        ImmutableSortedMap<String, ValueSnapshot> alreadyKnownSnapshots
+        ImmutableSortedMap<String, ValueSnapshot> alreadyKnownSnapshots,
+        InputPropertyPredicate filter
     ) {
         ImmutableSortedMap.Builder<String, ValueSnapshot> builder = ImmutableSortedMap.naturalOrder();
         builder.putAll(alreadyKnownSnapshots);
         work.visitInputProperties((propertyName, value, identity) -> {
             if (alreadyKnownSnapshots.containsKey(propertyName)) {
+                return;
+            }
+            if (!filter.include(propertyName, identity)) {
                 return;
             }
             try {
@@ -52,9 +56,14 @@ public class InputFingerprintUtil {
         return builder.build();
     }
 
+    public interface InputPropertyPredicate {
+        boolean include(String propertyName, UnitOfWork.IdentityKind identity);
+    }
+
     public static ImmutableSortedMap<String, CurrentFileCollectionFingerprint> fingerprintInputFiles(
         UnitOfWork work,
-        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> alreadyKnownFingerprints
+        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> alreadyKnownFingerprints,
+        InputFilePropertyPredicate filter
     ) {
         ImmutableSortedMap.Builder<String, CurrentFileCollectionFingerprint> builder = ImmutableSortedMap.naturalOrder();
         builder.putAll(alreadyKnownFingerprints);
@@ -62,8 +71,15 @@ public class InputFingerprintUtil {
             if (alreadyKnownFingerprints.containsKey(propertyName)) {
                 return;
             }
+            if (!filter.include(propertyName, type, identity)) {
+                return;
+            }
             builder.put(propertyName, fingerprinter.get());
         });
         return builder.build();
+    }
+
+    public interface InputFilePropertyPredicate {
+        boolean include(String propertyName, UnitOfWork.InputPropertyType type, UnitOfWork.IdentityKind identity);
     }
 }

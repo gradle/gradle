@@ -51,6 +51,7 @@ import java.io.File;
 import java.util.List;
 import java.util.Optional;
 
+import static org.gradle.internal.execution.UnitOfWork.IdentityKind.NON_IDENTITY;
 import static org.gradle.internal.execution.impl.InputFingerprintUtil.fingerprintInputFiles;
 import static org.gradle.internal.execution.impl.InputFingerprintUtil.fingerprintInputProperties;
 
@@ -181,10 +182,12 @@ public class CaptureStateBeforeExecutionStep extends BuildOperationStep<AfterPre
             work,
             previousInputProperties,
             valueSnapshotter,
-            context.getInputProperties());
+            context.getInputProperties(),
+            (propertyName, identity) -> identity == NON_IDENTITY);
         ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFileFingerprints = fingerprintInputFiles(
             work,
-            context.getInputFileProperties());
+            context.getInputFileProperties(),
+            (propertyName, type, identity) -> identity == NON_IDENTITY);
         ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputFileFingerprints = fingerprintOutputFiles(
             outputSnapshotsAfterPreviousExecution,
             outputFileSnapshots,
