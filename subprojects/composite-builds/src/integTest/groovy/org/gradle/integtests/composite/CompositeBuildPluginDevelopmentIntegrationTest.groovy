@@ -476,7 +476,6 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
     }
 
     @Issue("https://github.com/gradle/gradle/issues/14552")
-    @ToBeFixedForConfigurationCache
     def "can co-develop plugin with nested consumers using configure-on-demand"() {
         given:
         buildA = multiProjectBuild("cod", ["foo", "foo:bar"])
