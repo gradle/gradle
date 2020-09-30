@@ -257,8 +257,11 @@ public class EclipsePlugin extends IdePlugin {
                 ((IConventionAware) model.getClasspath()).getConventionMapping().map("classFolders", new Callable<List<File>>() {
                     @Override
                     public List<File> call() {
-                        SourceSetContainer sourceSets = project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets();
-                        return Lists.newArrayList(Iterables.concat(sourceSets.getByName("main").getOutput().getDirs(), sourceSets.getByName("test").getOutput().getDirs()));
+                        List<File> result = Lists.newArrayList();
+                        for (SourceSet sourceSet : project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets()) {
+                            result.addAll(sourceSet.getOutput().getDirs().getFiles());
+                        }
+                        return result;
                     }
                 });
 
