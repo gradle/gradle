@@ -48,6 +48,8 @@ While the impact on your build may vary, most builds can expect a noticeably sho
 
 ### Configuration cache improvements
 
+[//]: # (TODO context and overview of improvements)
+
 #### Supported core plugins
 
 In this release a number of core Gradle plugins got improved to support the configuration cache:
