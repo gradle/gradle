@@ -27,6 +27,7 @@ import org.gradle.api.Incubating;
 public interface PropertiesFileNormalization {
     /**
      * Specifies that the value of a certain property should be ignored when normalizing properties files.  {@code propertyName} is matched case-sensitively with the property key.
+     * This method can be called multiple times to declare additional properties to be ignored.
      * @param propertyName
      */
     void ignoreProperty(String propertyName);

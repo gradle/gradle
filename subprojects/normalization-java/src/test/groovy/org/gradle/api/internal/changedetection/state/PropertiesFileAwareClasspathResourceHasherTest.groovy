@@ -22,7 +22,7 @@ import org.gradle.api.internal.file.archive.ZipEntry
 import spock.lang.Specification
 import spock.lang.Unroll
 
-class PropertiesFileAwareClasspathResouceHasherTest extends Specification {
+class PropertiesFileAwareClasspathResourceHasherTest extends Specification {
     Map<String, ResourceEntryFilter> filters = Maps.newHashMap()
     ResourceHasher delegate = new RuntimeClasspathResourceHasher()
     ResourceHasher unfilteredHasher = new PropertiesFileAwareClasspathResourceHasher(delegate, PropertiesFileFilter.FILTER_NOTHING)

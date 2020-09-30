@@ -20,6 +20,9 @@ import org.gradle.internal.hash.Hasher;
 
 import java.util.Collection;
 
+/**
+ * This represents a composite resource entry filter which ignores the entry if any of the filters would ignore the entry.
+ */
 public class UnionResourceEntryFilter implements ResourceEntryFilter {
     private final Collection<ResourceEntryFilter> filters;
 
