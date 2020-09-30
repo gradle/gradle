@@ -615,18 +615,36 @@ class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractInte
     class PropertiesResource extends TestResource {
         PropertiesResource(TestFile backingFile, Map<String, String> initialProps, Closure finalizedBy={}) {
             super(backingFile, finalizedBy)
-            Properties props = new Properties()
-            props.putAll(initialProps)
-            props.store(backingFile.newOutputStream(), "")
+            withProperties() { Properties props ->
+                props.putAll(initialProps)
+            }
         }
 
         PropertiesResource changeProperty(String key, String value) {
-            Properties props = new Properties()
-            props.load(backingFile.newInputStream())
-            props.setProperty(key, value)
-            props.store(backingFile.newOutputStream(), "")
+            withProperties(true) { Properties props ->
+                props.setProperty(key, value)
+            }
             changed()
             return this
+        }
+
+        private withProperties(boolean loadFromExisting = false, Closure action) {
+            Properties props = new Properties()
+            if (loadFromExisting) {
+                def inputStream = backingFile.newInputStream()
+                try {
+                    props.load(inputStream)
+                } finally {
+                    inputStream.close()
+                }
+            }
+            action.call(props)
+            def outputStream = backingFile.newOutputStream()
+            try {
+                props.store(outputStream, "")
+            } finally {
+                outputStream.close()
+            }
         }
     }
 }
