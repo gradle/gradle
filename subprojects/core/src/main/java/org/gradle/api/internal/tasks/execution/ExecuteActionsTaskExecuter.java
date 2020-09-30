@@ -96,6 +96,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
+import static org.gradle.internal.execution.UnitOfWork.IdentityKind.NON_IDENTITY;
 import static org.gradle.internal.work.AsyncWorkTracker.ProjectLockRetention.RELEASE_AND_REACQUIRE_PROJECT_LOCKS;
 import static org.gradle.internal.work.AsyncWorkTracker.ProjectLockRetention.RELEASE_PROJECT_LOCKS;
 
@@ -309,7 +310,10 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         }
 
         @Override
-        public void visitInputProperties(InputPropertyVisitor visitor) {
+        public void visitInputProperties(Set<IdentityKind> filter, InputPropertyVisitor visitor) {
+            if (!filter.contains(NON_IDENTITY)) {
+                return;
+            }
             ImmutableSortedSet<InputPropertySpec> inputProperties = context.getTaskProperties().getInputProperties();
             for (InputPropertySpec inputProperty : inputProperties) {
                 Object value;
@@ -318,12 +322,15 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
                 } catch (Exception ex) {
                     throw new InvalidUserDataException(String.format("Error while evaluating property '%s' of %s", inputProperty.getPropertyName(), task), ex);
                 }
-                visitor.visitInputProperty(inputProperty.getPropertyName(), value, IdentityKind.NON_IDENTITY);
+                visitor.visitInputProperty(inputProperty.getPropertyName(), value);
             }
         }
 
         @Override
-        public void visitInputFileProperties(InputFilePropertyVisitor visitor) {
+        public void visitInputFileProperties(Set<IdentityKind> filter, InputFilePropertyVisitor visitor) {
+            if (!filter.contains(NON_IDENTITY)) {
+                return;
+            }
             ImmutableSortedSet<InputFilePropertySpec> inputFileProperties = context.getTaskProperties().getInputFileProperties();
             for (InputFilePropertySpec inputFileProperty : inputFileProperties) {
                 Object value = inputFileProperty.getValue();
@@ -336,7 +343,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
                         ? InputPropertyType.INCREMENTAL
                         : InputPropertyType.NON_INCREMENTAL;
                 String propertyName = inputFileProperty.getPropertyName();
-                visitor.visitInputFileProperty(propertyName, value, type, IdentityKind.NON_IDENTITY, () -> {
+                visitor.visitInputFileProperty(propertyName, value, type, () -> {
                     FileCollectionFingerprinter fingerprinter = fingerprinterRegistry.getFingerprinter(inputFileProperty.getNormalizer());
                     return fingerprinter.fingerprint(inputFileProperty.getPropertyFiles());
                 });

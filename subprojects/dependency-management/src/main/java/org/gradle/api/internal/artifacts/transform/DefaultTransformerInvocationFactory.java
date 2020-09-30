@@ -68,6 +68,7 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
@@ -389,17 +390,21 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
         }
 
         @Override
-        public void visitInputProperties(InputPropertyVisitor visitor) {
-            // Emulate secondary inputs as a single property for now
-            visitor.visitInputProperty(SECONDARY_INPUTS_HASH_PROPERTY_NAME, transformer.getSecondaryInputHash().toString(), IDENTITY);
+        public void visitInputProperties(Set<IdentityKind> filter, InputPropertyVisitor visitor) {
+            if (filter.contains(IDENTITY)) {
+                // Emulate secondary inputs as a single property for now
+                visitor.visitInputProperty(SECONDARY_INPUTS_HASH_PROPERTY_NAME, transformer.getSecondaryInputHash().toString());
+            }
         }
 
         @Override
-        public void visitInputFileProperties(InputFilePropertyVisitor visitor) {
-            visitor.visitInputFileProperty(INPUT_ARTIFACT_PROPERTY_NAME, inputArtifactProvider, PRIMARY, IDENTITY,
-                () -> inputArtifactFingerprinter.fingerprint(ImmutableList.of(inputArtifactSnapshot)));
-            visitor.visitInputFileProperty(DEPENDENCIES_PROPERTY_NAME, dependencies, NON_INCREMENTAL, IDENTITY,
-                () -> dependenciesFingerprint);
+        public void visitInputFileProperties(Set<IdentityKind> filter, InputFilePropertyVisitor visitor) {
+            if (filter.contains(IDENTITY)) {
+                visitor.visitInputFileProperty(INPUT_ARTIFACT_PROPERTY_NAME, inputArtifactProvider, PRIMARY,
+                    () -> inputArtifactFingerprinter.fingerprint(ImmutableList.of(inputArtifactSnapshot)));
+                visitor.visitInputFileProperty(DEPENDENCIES_PROPERTY_NAME, dependencies, NON_INCREMENTAL,
+                    () -> dependenciesFingerprint);
+            }
         }
 
         @Override

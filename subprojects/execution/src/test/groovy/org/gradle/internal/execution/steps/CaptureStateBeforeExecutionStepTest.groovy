@@ -111,8 +111,9 @@ class CaptureStateBeforeExecutionStepTest extends StepSpec<AfterPreviousExecutio
         when:
         step.execute(context)
         then:
-        _ * work.visitInputProperties(_) >> { UnitOfWork.InputPropertyVisitor visitor ->
-            visitor.visitInputProperty("inputString", inputPropertyValue, NON_IDENTITY)
+        _ * work.visitInputProperties(_, _) >> { Set<UnitOfWork.IdentityKind> filter, UnitOfWork.InputPropertyVisitor visitor ->
+            assert filter == [NON_IDENTITY] as Set
+            visitor.visitInputProperty("inputString", inputPropertyValue)
         }
         1 * valueSnapshotter.snapshot(inputPropertyValue) >> valueSnapshot
         interaction { fingerprintInputs() }
@@ -137,8 +138,9 @@ class CaptureStateBeforeExecutionStepTest extends StepSpec<AfterPreviousExecutio
         _ * context.afterPreviousExecutionState >> Optional.of(afterPreviousExecutionState)
         1 * afterPreviousExecutionState.inputProperties >> ImmutableSortedMap.<String, ValueSnapshot>of("inputString", valueSnapshot)
         1 * afterPreviousExecutionState.outputFileProperties >> ImmutableSortedMap.<String, FileCollectionFingerprint>of()
-        _ * work.visitInputProperties(_) >> { UnitOfWork.InputPropertyVisitor visitor ->
-            visitor.visitInputProperty("inputString", inputPropertyValue, NON_IDENTITY)
+        _ * work.visitInputProperties(_, _) >> { Set<UnitOfWork.IdentityKind> filter, UnitOfWork.InputPropertyVisitor visitor ->
+            assert filter == [NON_IDENTITY] as Set
+            visitor.visitInputProperty("inputString", inputPropertyValue)
         }
         1 * valueSnapshotter.snapshot(inputPropertyValue, valueSnapshot) >> valueSnapshot
         interaction { fingerprintInputs() }
@@ -159,8 +161,9 @@ class CaptureStateBeforeExecutionStepTest extends StepSpec<AfterPreviousExecutio
         step.execute(context)
 
         then:
-        _ * work.visitInputFileProperties(_) >> { UnitOfWork.InputFilePropertyVisitor visitor ->
-            visitor.visitInputFileProperty("inputFile", "ignored", NON_INCREMENTAL, NON_IDENTITY, { -> fingerprint })
+        _ * work.visitInputFileProperties(_, _) >> { Set<UnitOfWork.IdentityKind> filter, UnitOfWork.InputFilePropertyVisitor visitor ->
+            assert filter == [NON_IDENTITY] as Set
+            visitor.visitInputFileProperty("inputFile", "ignored", NON_INCREMENTAL, { -> fingerprint })
         }
         interaction { fingerprintInputs() }
         1 * delegate.execute(_) >> { BeforeExecutionContext beforeExecution ->
@@ -287,8 +290,12 @@ class CaptureStateBeforeExecutionStepTest extends StepSpec<AfterPreviousExecutio
         _ * work.visitImplementations(_ as UnitOfWork.ImplementationVisitor) >> { UnitOfWork.ImplementationVisitor visitor ->
             visitor.visitImplementation(implementationSnapshot)
         }
-        _ * work.visitInputProperties(_ as UnitOfWork.InputPropertyVisitor)
-        _ * work.visitInputFileProperties(_ as UnitOfWork.InputFilePropertyVisitor)
+        _ * work.visitInputProperties(_, _) >> { Set<UnitOfWork.IdentityKind> filter, UnitOfWork.InputPropertyVisitor visitor ->
+            assert filter == [NON_IDENTITY] as Set
+        }
+        _ * work.visitInputFileProperties(_, _) >> { Set<UnitOfWork.IdentityKind> filter, UnitOfWork.InputFilePropertyVisitor visitor ->
+            assert filter == [NON_IDENTITY] as Set
+        }
         _ * work.overlappingOutputHandling >> IGNORE_OVERLAPS
         _ * outputSnapshotter.snapshotOutputs(work, _) >> ImmutableSortedMap.of()
         _ * context.history >> Optional.of(executionHistoryStore)

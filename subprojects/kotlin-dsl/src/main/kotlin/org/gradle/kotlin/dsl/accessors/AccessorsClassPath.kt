@@ -27,6 +27,7 @@ import org.gradle.internal.execution.CachingResult
 import org.gradle.internal.execution.ExecutionRequestContext
 import org.gradle.internal.execution.InputChangesContext
 import org.gradle.internal.execution.UnitOfWork
+import org.gradle.internal.execution.UnitOfWork.IdentityKind.IDENTITY
 import org.gradle.internal.execution.WorkExecutor
 import org.gradle.internal.execution.history.ExecutionHistoryStore
 import org.gradle.internal.execution.history.changes.InputChangesInternal
@@ -174,13 +175,17 @@ class GenerateProjectAccessors(
         visitor.visitImplementation(GenerateProjectAccessors::class.java)
     }
 
-    override fun visitInputProperties(visitor: UnitOfWork.InputPropertyVisitor) {
-        visitor.visitInputProperty(PROJECT_SCHEMA_INPUT_PROPERTY, hashCodeFor(projectSchema), UnitOfWork.IdentityKind.IDENTITY)
+    override fun visitInputProperties(filter: Set<UnitOfWork.IdentityKind>, visitor: UnitOfWork.InputPropertyVisitor) {
+        if (filter.contains(IDENTITY)) {
+            visitor.visitInputProperty(PROJECT_SCHEMA_INPUT_PROPERTY, hashCodeFor(projectSchema))
+        }
     }
 
-    override fun visitInputFileProperties(visitor: UnitOfWork.InputFilePropertyVisitor) {
-        visitor.visitInputFileProperty(CLASSPATH_INPUT_PROPERTY, classPath, UnitOfWork.InputPropertyType.NON_INCREMENTAL, UnitOfWork.IdentityKind.IDENTITY) {
-            classpathFingerprinter.fingerprint(fileCollectionFactory.fixed(classPath.asFiles))
+    override fun visitInputFileProperties(filter: Set<UnitOfWork.IdentityKind>, visitor: UnitOfWork.InputFilePropertyVisitor) {
+        if (filter.contains(IDENTITY)) {
+            visitor.visitInputFileProperty(CLASSPATH_INPUT_PROPERTY, classPath, UnitOfWork.InputPropertyType.NON_INCREMENTAL) {
+                classpathFingerprinter.fingerprint(fileCollectionFactory.fixed(classPath.asFiles))
+            }
         }
     }
 

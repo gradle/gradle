@@ -17,8 +17,10 @@
 package org.gradle.internal.execution.steps;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import org.gradle.internal.execution.AfterPreviousExecutionContext;
 import org.gradle.internal.execution.BeforeExecutionContext;
 import org.gradle.internal.execution.CachingResult;
@@ -57,6 +59,7 @@ import static org.gradle.internal.execution.impl.InputFingerprintUtil.fingerprin
 
 public class CaptureStateBeforeExecutionStep extends BuildOperationStep<AfterPreviousExecutionContext, CachingResult> {
     private static final Logger LOGGER = LoggerFactory.getLogger(CaptureStateBeforeExecutionStep.class);
+    private static final ImmutableSet<UnitOfWork.IdentityKind> NON_IDENTITY_FILTER = Sets.immutableEnumSet(NON_IDENTITY);
 
     private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
     private final OutputSnapshotter outputSnapshotter;
@@ -183,11 +186,11 @@ public class CaptureStateBeforeExecutionStep extends BuildOperationStep<AfterPre
             previousInputProperties,
             valueSnapshotter,
             context.getInputProperties(),
-            (propertyName, identity) -> identity == NON_IDENTITY);
+            NON_IDENTITY_FILTER);
         ImmutableSortedMap<String, CurrentFileCollectionFingerprint> inputFileFingerprints = fingerprintInputFiles(
             work,
             context.getInputFileProperties(),
-            (propertyName, type, identity) -> identity == NON_IDENTITY);
+            NON_IDENTITY_FILTER);
         ImmutableSortedMap<String, CurrentFileCollectionFingerprint> outputFileFingerprints = fingerprintOutputFiles(
             outputSnapshotsAfterPreviousExecution,
             outputFileSnapshots,

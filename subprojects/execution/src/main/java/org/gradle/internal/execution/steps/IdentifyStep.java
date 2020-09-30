@@ -16,7 +16,9 @@
 
 package org.gradle.internal.execution.steps;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
+import com.google.common.collect.Sets;
 import org.gradle.internal.execution.ExecutionRequestContext;
 import org.gradle.internal.execution.IdentityContext;
 import org.gradle.internal.execution.Result;
@@ -34,6 +36,8 @@ import static org.gradle.internal.execution.impl.InputFingerprintUtil.fingerprin
 import static org.gradle.internal.execution.impl.InputFingerprintUtil.fingerprintInputProperties;
 
 public class IdentifyStep<C extends ExecutionRequestContext, R extends Result> implements Step<C, R> {
+    public static final ImmutableSet<UnitOfWork.IdentityKind> IDENTITY_FILTER = Sets.immutableEnumSet(IDENTITY);
+
     private final Step<? super IdentityContext, ? extends R> delegate;
     private final ValueSnapshotter valueSnapshotter;
 
@@ -52,11 +56,11 @@ public class IdentifyStep<C extends ExecutionRequestContext, R extends Result> i
             ImmutableSortedMap.of(),
             valueSnapshotter,
             ImmutableSortedMap.of(),
-            (propertyName, identity) -> identity == IDENTITY);
+            IDENTITY_FILTER);
         ImmutableSortedMap<String, CurrentFileCollectionFingerprint> identityInputFileProperties = fingerprintInputFiles(
             context.getWork(),
             ImmutableSortedMap.of(),
-            (propertyName, type, identity) -> identity == IDENTITY);
+            IDENTITY_FILTER);
         Identity identity = context.getWork().identify(identityInputProperties, identityInputFileProperties);
         return delegate.execute(new IdentityContext() {
             @Override

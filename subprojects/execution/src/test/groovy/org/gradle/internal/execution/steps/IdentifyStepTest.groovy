@@ -24,6 +24,7 @@ import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.snapshot.ValueSnapshot
 import org.gradle.internal.snapshot.ValueSnapshotter
 
+
 class IdentifyStepTest extends StepSpec<ExecutionRequestContext> {
     def delegateResult = Mock(Result)
     def valueSnapshotter = Stub(ValueSnapshotter) {
@@ -44,22 +45,16 @@ class IdentifyStepTest extends StepSpec<ExecutionRequestContext> {
         then:
         result == delegateResult
 
-        _ * work.visitInputProperties(_) >> { UnitOfWork.InputPropertyVisitor visitor ->
-            visitor.visitInputProperty("non-identity", Mock(Object), UnitOfWork.IdentityKind.NON_IDENTITY)
-            visitor.visitInputProperty("identity", 123, UnitOfWork.IdentityKind.IDENTITY)
+        _ * work.visitInputProperties(_, _) >> { Set<UnitOfWork.IdentityKind> filter, UnitOfWork.InputPropertyVisitor visitor ->
+            assert filter == [UnitOfWork.IdentityKind.IDENTITY] as Set
+            visitor.visitInputProperty("identity", 123)
         }
-        _ * work.visitInputFileProperties(_) >> { UnitOfWork.InputFilePropertyVisitor visitor ->
-            visitor.visitInputFileProperty(
-                "non-identity-file",
-                Mock(Object),
-                UnitOfWork.InputPropertyType.NON_INCREMENTAL,
-                UnitOfWork.IdentityKind.NON_IDENTITY,
-                { -> throw new RuntimeException("Shouldn't fingerprint this") })
+        _ * work.visitInputFileProperties(_, _) >> { Set<UnitOfWork.IdentityKind> filter, UnitOfWork.InputFilePropertyVisitor visitor ->
+            assert filter == [UnitOfWork.IdentityKind.IDENTITY] as Set
             visitor.visitInputFileProperty(
                 "identity-file",
                 Mock(Object),
                 UnitOfWork.InputPropertyType.NON_INCREMENTAL,
-                UnitOfWork.IdentityKind.IDENTITY,
                 { -> Mock(CurrentFileCollectionFingerprint) })
         }
 

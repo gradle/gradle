@@ -17,7 +17,9 @@
 package org.gradle.internal.execution.steps;
 
 import com.google.common.collect.ImmutableBiMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
+import com.google.common.collect.Sets;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.internal.execution.CachingContext;
 import org.gradle.internal.execution.IncrementalChangesContext;
@@ -36,11 +38,14 @@ import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.snapshot.ValueSnapshot;
 
 import java.io.File;
+import java.util.EnumSet;
 import java.util.Optional;
 
 public class ResolveChangesStep<R extends Result> implements Step<CachingContext, R> {
-    private final ExecutionStateChangeDetector changeDetector;
     private static final String NO_HISTORY = "No history is available.";
+    private static final ImmutableSet<UnitOfWork.IdentityKind> ALL_PROPERTIES_FILTER = Sets.immutableEnumSet(EnumSet.allOf(UnitOfWork.IdentityKind.class));
+
+    private final ExecutionStateChangeDetector changeDetector;
 
     private final Step<? super IncrementalChangesContext, R> delegate;
 
@@ -141,7 +146,7 @@ public class ResolveChangesStep<R extends Result> implements Step<CachingContext
                 return IncrementalInputProperties.ALL;
             case INCREMENTAL_PARAMETERS:
                 ImmutableBiMap.Builder<String, Object> builder = ImmutableBiMap.builder();
-                work.visitInputFileProperties((propertyName, value, type, identity, fingerprinter) -> {
+                work.visitInputFileProperties(ALL_PROPERTIES_FILTER, (propertyName, value, type, fingerprinter) -> {
                     if (type.isIncremental()) {
                         if (value == null) {
                             throw new InvalidUserDataException("Must specify a value for incremental input property '" + propertyName + "'.");

@@ -30,6 +30,7 @@ import org.gradle.internal.execution.CachingResult
 import org.gradle.internal.execution.ExecutionRequestContext
 import org.gradle.internal.execution.InputChangesContext
 import org.gradle.internal.execution.UnitOfWork
+import org.gradle.internal.execution.UnitOfWork.IdentityKind.IDENTITY
 import org.gradle.internal.execution.WorkExecutor
 import org.gradle.internal.execution.history.ExecutionHistoryStore
 import org.gradle.internal.execution.history.changes.InputChangesInternal
@@ -174,11 +175,13 @@ class GeneratePluginAccessors(
         visitor.visitImplementation(GeneratePluginAccessors::class.java)
     }
 
-    override fun visitInputProperties(visitor: UnitOfWork.InputPropertyVisitor) {
-        visitor.visitInputProperty(BUILD_SRC_CLASSLOADER_INPUT_PROPERTY, classLoaderHash, UnitOfWork.IdentityKind.IDENTITY)
+    override fun visitInputProperties(filter: Set<UnitOfWork.IdentityKind>, visitor: UnitOfWork.InputPropertyVisitor) {
+        if (filter.contains(IDENTITY)) {
+            visitor.visitInputProperty(BUILD_SRC_CLASSLOADER_INPUT_PROPERTY, classLoaderHash)
+        }
     }
 
-    override fun visitInputFileProperties(visitor: UnitOfWork.InputFilePropertyVisitor) = Unit
+    override fun visitInputFileProperties(filter: Set<UnitOfWork.IdentityKind>, visitor: UnitOfWork.InputFilePropertyVisitor) = Unit
 
     override fun visitOutputProperties(workspace: File, visitor: UnitOfWork.OutputPropertyVisitor) {
         val sourcesOutputDir = getSourcesOutputDir(workspace)

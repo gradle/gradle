@@ -36,6 +36,7 @@ import java.io.File;
 import java.time.Duration;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Supplier;
 
 public interface UnitOfWork extends Describable {
@@ -103,16 +104,16 @@ public interface UnitOfWork extends Describable {
         void visitAdditionalImplementation(ImplementationSnapshot implementation);
     }
 
-    void visitInputProperties(InputPropertyVisitor visitor);
+    void visitInputProperties(Set<IdentityKind> filter, InputPropertyVisitor visitor);
 
     interface InputPropertyVisitor {
-        void visitInputProperty(String propertyName, @Nullable Object value, IdentityKind identity);
+        void visitInputProperty(String propertyName, @Nullable Object value);
     }
 
-    void visitInputFileProperties(InputFilePropertyVisitor visitor);
+    void visitInputFileProperties(Set<IdentityKind> filter, InputFilePropertyVisitor visitor);
 
     interface InputFilePropertyVisitor {
-        void visitInputFileProperty(String propertyName, @Nullable Object value, InputPropertyType type, IdentityKind identity, Supplier<CurrentFileCollectionFingerprint> fingerprinter);
+        void visitInputFileProperty(String propertyName, @Nullable Object value, InputPropertyType type, Supplier<CurrentFileCollectionFingerprint> fingerprinter);
     }
 
     enum InputPropertyType {
