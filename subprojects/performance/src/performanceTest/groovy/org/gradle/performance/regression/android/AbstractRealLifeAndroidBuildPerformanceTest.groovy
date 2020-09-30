@@ -19,6 +19,7 @@ package org.gradle.performance.regression.android
 import org.gradle.integtests.fixtures.versions.AndroidGradlePluginVersions
 import org.gradle.internal.scan.config.fixtures.ApplyGradleEnterprisePluginFixture
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
+import org.gradle.performance.fixture.AndroidTestProject
 import org.gradle.profiler.BuildMutator
 import org.gradle.profiler.ScenarioContext
 
@@ -48,6 +49,6 @@ class AbstractRealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionPe
         // We assume here already, since the test may try to cast the returned test project to `IncrementalAndroidTestProject`,
         // which fails when the test project is non-incremental.
         runner.assumeShouldRun()
-        AndroidTestProject.getAndroidTestProject(runner.testProject)
+        AndroidTestProject.projectFor(runner.testProject)
     }
 }

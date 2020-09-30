@@ -16,10 +16,11 @@
 
 package org.gradle.performance.regression.android
 
-
+import org.gradle.performance.fixture.AndroidTestProject
+import org.gradle.performance.fixture.IncrementalAndroidTestProject
 import spock.lang.Unroll
 
-import static org.gradle.performance.regression.android.AndroidTestProject.K9_ANDROID
+import static org.gradle.performance.fixture.AndroidTestProject.K9_ANDROID
 
 class RealLifeAndroidBuildPerformanceTest extends AbstractRealLifeAndroidBuildPerformanceTest {
     @Unroll
@@ -38,7 +39,7 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractRealLifeAndroidBuildPe
 
         and:
         if (testProject instanceof IncrementalAndroidTestProject) {
-            testProject.configureForLatestAgpVersionOfMinor(runner, SANTA_AGP_TARGET_VERSION)
+            IncrementalAndroidTestProject.configureForLatestAgpVersionOfMinor(runner, SANTA_AGP_TARGET_VERSION)
         }
 
         when:
@@ -58,7 +59,7 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractRealLifeAndroidBuildPe
         given:
         def testProject = androidTestProject as IncrementalAndroidTestProject
         testProject.configureForAbiChange(runner)
-        testProject.configureForLatestAgpVersionOfMinor(runner, SANTA_AGP_TARGET_VERSION)
+        IncrementalAndroidTestProject.configureForLatestAgpVersionOfMinor(runner, SANTA_AGP_TARGET_VERSION)
         runner.args.add('-Dorg.gradle.parallel=true')
         applyEnterprisePlugin()
 
@@ -73,7 +74,7 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractRealLifeAndroidBuildPe
         given:
         def testProject = androidTestProject as IncrementalAndroidTestProject
         testProject.configureForNonAbiChange(runner)
-        testProject.configureForLatestAgpVersionOfMinor(runner, SANTA_AGP_TARGET_VERSION)
+        IncrementalAndroidTestProject.configureForLatestAgpVersionOfMinor(runner, SANTA_AGP_TARGET_VERSION)
         runner.args.add('-Dorg.gradle.parallel=true')
         applyEnterprisePlugin()
 

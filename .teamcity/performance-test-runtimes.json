@@ -748,4 +748,22 @@
     "testProject" : "withVerboseJUnit",
     "linux" : 65000
   } ]
+}, {
+  "scenario" : "org.gradle.performance.regression.corefeature.FileSystemWatchingPerformanceTest.assemble for non-abi change with file system watching",
+  "runtimes" : [ {
+    "testProject" : "santaTrackerAndroidBuild",
+    "linux" : 451000
+  }, {
+    "testProject" : "largeJavaMultiProject",
+    "linux" : 258000
+  } ]
+}, {
+  "scenario" : "org.gradle.performance.regression.corefeature.FileSystemWatchingPerformanceTest.assemble for abi change with file system watching",
+  "runtimes" : [ {
+    "testProject" : "santaTrackerAndroidBuild",
+    "linux" : 500000
+  }, {
+    "testProject" : "largeJavaMultiProject",
+    "linux" : 300000
+  } ]
 } ]

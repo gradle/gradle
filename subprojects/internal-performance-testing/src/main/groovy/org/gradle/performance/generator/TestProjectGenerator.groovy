@@ -110,7 +110,7 @@ class TestProjectGenerator {
         def projectName = args[0]
         def outputDir = new File(args[1])
 
-        JavaTestProject project = JavaTestProject.values().find { it.projectName == projectName }
+        JavaTestProjectGenerator project = JavaTestProjectGenerator.values().find { it.projectName == projectName }
         if (project == null) {
             throw new IllegalArgumentException("Project not defined: $projectName")
         }

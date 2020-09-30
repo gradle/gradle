@@ -22,7 +22,7 @@ import org.gradle.test.fixtures.language.Language
 import static org.gradle.test.fixtures.dsl.GradleDsl.KOTLIN
 
 @CompileStatic
-enum JavaTestProject {
+enum JavaTestProjectGenerator {
     HUGE_JAVA_MULTI_PROJECT(new TestProjectGeneratorConfigurationBuilder('hugeJavaMultiProject')
         .withSourceFiles(500)
         .withSubProjects(500)
@@ -138,17 +138,9 @@ enum JavaTestProject {
         .assembleChangeFile()
         .withBuildSrc(false).create())
 
-    static JavaTestProject projectFor(String testProject) {
-        def javaTestProject = values().find { it.projectName == testProject }
-        if (javaTestProject == null) {
-            throw new IllegalArgumentException("Cannot find Java test project for ${testProject}")
-        }
-        return javaTestProject
-    }
-
     private TestProjectGeneratorConfiguration config
 
-    JavaTestProject(TestProjectGeneratorConfiguration config) {
+    JavaTestProjectGenerator(TestProjectGeneratorConfiguration config) {
         this.config = config
     }
 

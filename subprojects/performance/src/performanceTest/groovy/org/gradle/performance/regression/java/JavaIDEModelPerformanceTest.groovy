@@ -17,12 +17,11 @@
 package org.gradle.performance.regression.java
 
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
-import org.gradle.performance.generator.JavaTestProject
 import org.gradle.tooling.model.ExternalDependency
 import org.gradle.tooling.model.eclipse.EclipseProject
 import org.gradle.tooling.model.idea.IdeaProject
 
-import static org.gradle.performance.generator.JavaTestProject.LARGE_MONOLITHIC_JAVA_PROJECT
+import static org.gradle.performance.generator.JavaTestProjectGenerator.LARGE_MONOLITHIC_JAVA_PROJECT
 
 class JavaIDEModelPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
@@ -139,8 +138,7 @@ class JavaIDEModelPerformanceTest extends AbstractCrossVersionPerformanceTest {
     }
 
     private determineIterations() {
-        def testProject = JavaTestProject.projectFor(runner.testProject)
-        return testProject == LARGE_MONOLITHIC_JAVA_PROJECT ? 200 : 40
+        return runner.testProject == LARGE_MONOLITHIC_JAVA_PROJECT.projectName ? 200 : 40
     }
 
     private static void forEachEclipseProject(def elm, @DelegatesTo(value=EclipseProject) Closure<?> action) {

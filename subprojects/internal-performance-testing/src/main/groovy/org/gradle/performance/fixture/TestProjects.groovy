@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.performance.generator
+package org.gradle.performance.fixture
 
 class TestProjects {
     static List<String> getProjectMemoryOptions(String testProject) {
@@ -71,5 +71,10 @@ class TestProjects {
             default:
                 return JavaTestProject.projectFor(testProject).daemonMemory
         }
+    }
+
+    static <T extends TestProject> T projectFor(String testProject) {
+        (AndroidTestProject.findProjectFor(testProject) ?:
+            JavaTestProject.projectFor(testProject)) as T
     }
 }

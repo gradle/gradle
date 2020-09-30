@@ -17,7 +17,7 @@
 package org.gradle.performance.regression.buildcache
 
 import org.gradle.performance.fixture.CrossVersionPerformanceTestRunner
-import org.gradle.performance.generator.JavaTestProject
+import org.gradle.performance.fixture.JavaTestProject
 import org.gradle.profiler.mutations.ApplyAbiChangeToJavaSourceFileMutator
 import org.gradle.profiler.mutations.ApplyNonAbiChangeToJavaSourceFileMutator
 import org.gradle.test.fixtures.keystore.TestKeyStore

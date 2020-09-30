@@ -55,7 +55,7 @@ class StatisticsBasedPerformanceTestBucketProvider(private val model: CIBuildMod
         val scenarios = determineScenariosFor(performanceTestSpec, performanceTestConfigurations)
         val testProjectToScenarioTimes = determineScenarioTestTimes(performanceTestSpec.os, performanceTestTimes)
         val testProjectScenarioTimesFallback = determineScenarioTestTimes(Os.LINUX, performanceTestTimes)
-        val repetitions = if (performanceTestType == PerformanceTestType.flakinessDetection) 3 else 1
+        val repetitions = if (performanceTestType == PerformanceTestType.flakinessDetection) 2 else 1
         val buckets = splitBucketsByScenarios(
             scenarios,
             testProjectToScenarioTimes,
@@ -305,17 +305,15 @@ echo "Performance tests to be ${action}d in this build"
 cat $performanceTestSplitDirectoryName/$action-$fileNamePostfix
 """
 
-    val linesWithEcho = csvLines.joinToString("\n") { "echo $it" }
+    val linesWithEcho = csvLines.joinToString("\n") { """echo $it >> $performanceTestSplitDirectoryName\$action-$fileNamePostfix""" }
 
     val windowsScript = """
 mkdir $performanceTestSplitDirectoryName
 del /f /q $performanceTestSplitDirectoryName\include-$fileNamePostfix
 del /f /q $performanceTestSplitDirectoryName\exclude-$fileNamePostfix
-(
 $linesWithEcho
-) > $performanceTestSplitDirectoryName\$action-$fileNamePostfix
 
-echo "Performance tests to be ${action}d in this build"
+echo Performance tests to be ${action}d in this build
 type $performanceTestSplitDirectoryName\$action-$fileNamePostfix
 """
 

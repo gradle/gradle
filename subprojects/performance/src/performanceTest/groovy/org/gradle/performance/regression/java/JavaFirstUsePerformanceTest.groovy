@@ -23,7 +23,7 @@ import org.gradle.profiler.mutations.ClearGradleUserHomeMutator
 import org.gradle.profiler.mutations.ClearProjectCacheMutator
 import org.junit.experimental.categories.Category
 
-import static org.gradle.performance.generator.JavaTestProject.LARGE_JAVA_MULTI_PROJECT_KOTLIN_DSL
+import static org.gradle.performance.generator.JavaTestProjectGenerator.LARGE_JAVA_MULTI_PROJECT_KOTLIN_DSL
 
 @Category(SlowPerformanceRegressionTest)
 class JavaFirstUsePerformanceTest extends AbstractCrossVersionPerformanceTest {

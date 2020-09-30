@@ -7,7 +7,7 @@
                 {
                     "testProject" : "largeJavaMultiProject",
                     "coverage" : {
-                        "test":  ["linux"]
+                        "test":  ["linux", "windows"]
                     }
                 }
             ]
@@ -542,6 +542,40 @@
                     "testProject" : "excludeRuleMergingBuild",
                     "coverage" : {
                         "test":  ["linux"]
+                    }
+                }
+            ]
+        },
+        {
+            "testId" : "org.gradle.performance.regression.corefeature.FileSystemWatchingPerformanceTest.assemble for non-abi change with file system watching",
+            "groups" : [
+                {
+                    "testProject" : "santaTrackerAndroidBuild",
+                    "coverage" : {
+                        "test":  ["linux", "windows", "macOs"]
+                    }
+                },
+                {
+                    "testProject" : "largeJavaMultiProject",
+                    "coverage" : {
+                        "test":  ["linux", "windows", "macOs"]
+                    }
+                }
+            ]
+        },
+        {
+            "testId" : "org.gradle.performance.regression.corefeature.FileSystemWatchingPerformanceTest.assemble for abi change with file system watching",
+            "groups" : [
+                {
+                    "testProject" : "santaTrackerAndroidBuild",
+                    "coverage" : {
+                        "test":  ["linux", "windows", "macOs"]
+                    }
+                },
+                {
+                    "testProject" : "largeJavaMultiProject",
+                    "coverage" : {
+                        "test":  ["linux", "windows", "macOs"]
                     }
                 }
             ]
