@@ -39,7 +39,9 @@ enum class Os(
     val androidHome: String,
     val jprofilerHome: String,
     val killAllGradleProcesses: String,
-    val perfTestWorkingDir: String = "%teamcity.build.checkoutDir%"
+    val perfTestWorkingDir: String = "%teamcity.build.checkoutDir%",
+    val buildJavaVersion: JvmVersion = JvmVersion.java11,
+    val perfTestJavaVersion: JvmVersion = JvmVersion.java8
 ) {
     LINUX("Linux",
         androidHome = "/opt/android/sdk",
@@ -62,9 +64,9 @@ enum class Os(
 
     fun asName() = name.toLowerCase().capitalize()
 
-    fun buildJavaHome() = javaHome(JvmVersion.java11, JvmVendor.openjdk)
+    fun buildJavaHome() = javaHome(buildJavaVersion, JvmVendor.openjdk)
 
-    fun individualPerformanceTestJavaHome() = javaHome(JvmVersion.java8, JvmVendor.oracle)
+    fun individualPerformanceTestJavaHome() = javaHome(perfTestJavaVersion, JvmVendor.oracle)
 
     fun javaHome(jvmVersion: JvmVersion, vendor: JvmVendor) = "%${name.toLowerCase()}.$jvmVersion.$vendor.64bit%"
 }

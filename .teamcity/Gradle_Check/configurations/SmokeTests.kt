@@ -29,6 +29,9 @@ class SmokeTests(model: CIBuildModel, stage: Stage, testJava: JvmCategory, task:
         ":smoke-test:$task",
         timeout = 120,
         notQuick = true,
-        extraParameters = buildScanTag("SmokeTests") + " -PtestJavaHome=$testJavaHome" + explicitToolchains("$buildJavaHome,$testJavaHome")
+        extraParameters = buildScanTag("SmokeTests") +
+            " -PtestJavaHome=$testJavaHome" +
+            " -PtestJavaVersion=${testJava.version.major} " +
+            explicitToolchains("$buildJavaHome,$testJavaHome")
     )
 })

@@ -25,7 +25,7 @@ class SanityCheck(model: CIBuildModel, stage: Stage) : BaseGradleBuildType(model
             model,
             this,
             "sanityCheck",
-            extraParameters = "-DenableCodeQuality=true ${buildScanTag("SanityCheck")}" + explicitToolchains(javaHome).joinToString(" ")
+            extraParameters = "-DenableCodeQuality=true ${buildScanTag("SanityCheck")} " + explicitToolchains(javaHome).joinToString(" ")
     )
 }) {
     companion object {

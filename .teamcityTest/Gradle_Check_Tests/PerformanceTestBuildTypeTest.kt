@@ -66,6 +66,10 @@ class PerformanceTestBuildTypeTest {
         val expectedRunnerParams = listOf(
             "-PperformanceBaselines=%performance.baselines%",
             "\"-PtestJavaHome=%linux.java8.oracle.64bit%\"",
+            "\"-PtestJavaVersion=8\"",
+            "-Porg.gradle.java.installations.auto-detect=false",
+            "-Porg.gradle.java.installations.auto-download=false",
+            "\"-Porg.gradle.java.installations.paths=%linux.java11.openjdk.64bit%,%linux.java8.oracle.64bit%\"",
             "\"-Porg.gradle.performance.branchName=%teamcity.build.branch%\"",
             "\"-Porg.gradle.performance.db.url=%performance.db.url%\"",
             "\"-Porg.gradle.performance.db.username=%performance.db.username%\"",
