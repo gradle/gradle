@@ -16,11 +16,9 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
-import com.google.common.collect.ImmutableList;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.provider.Provider;
-import org.gradle.internal.Try;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.file.ReservedFileSystemLocation;
 
@@ -44,7 +42,7 @@ public class MutableTransformationWorkspaceProvider implements TransformationWor
     }
 
     @Override
-    public Try<ImmutableList<File>> withWorkspace(TransformationWorkspaceIdentity identity, TransformationWorkspaceAction workspaceAction) {
+    public <T> T withWorkspace(TransformationWorkspaceIdentity identity, TransformationWorkspaceAction<T> workspaceAction) {
         String workspacePath = identity.getIdentity();
         File workspaceDir = new File(baseDirectory.get().getAsFile(), workspacePath);
         return workspaceAction.useWorkspace(workspacePath, workspaceDir);

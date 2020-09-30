@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
-import com.google.common.collect.ImmutableList;
 import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.CleanupAction;
@@ -25,7 +24,6 @@ import org.gradle.cache.PersistentCache;
 import org.gradle.cache.internal.CompositeCleanupAction;
 import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup;
 import org.gradle.cache.internal.SingleDepthFilesFinder;
-import org.gradle.internal.Try;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.file.FileAccessTimeJournal;
 import org.gradle.internal.file.impl.SingleDepthFileAccessTracker;
@@ -71,7 +69,7 @@ public class ImmutableTransformationWorkspaceProvider implements TransformationW
     }
 
     @Override
-    public Try<ImmutableList<File>> withWorkspace(TransformationWorkspaceIdentity identity, TransformationWorkspaceAction workspaceAction) {
+    public <T> T withWorkspace(TransformationWorkspaceIdentity identity, TransformationWorkspaceAction<T> workspaceAction) {
         return cache.withFileLock(() -> {
             String workspacePath = identity.getIdentity();
             File workspaceDir = new File(baseDirectory, workspacePath);

@@ -16,8 +16,6 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
-import com.google.common.collect.ImmutableList;
-import org.gradle.internal.Try;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 
 import java.io.File;
@@ -26,7 +24,7 @@ public interface TransformationWorkspaceProvider {
     /**
      * Provides a workspace for executing the transformation.
      */
-    Try<ImmutableList<File>> withWorkspace(TransformationWorkspaceIdentity identity, TransformationWorkspaceAction workspaceAction);
+    <T> T withWorkspace(TransformationWorkspaceIdentity identity, TransformationWorkspaceAction<T> workspaceAction);
 
     /**
      * The execution history store for transformations using the provided workspaces.
@@ -34,7 +32,7 @@ public interface TransformationWorkspaceProvider {
     ExecutionHistoryStore getExecutionHistoryStore();
 
     @FunctionalInterface
-    interface TransformationWorkspaceAction {
-        Try<ImmutableList<File>> useWorkspace(String transformationIdentity, File workspaceDir);
+    interface TransformationWorkspaceAction<T> {
+        T useWorkspace(String transformationIdentity, File workspaceDir);
     }
 }

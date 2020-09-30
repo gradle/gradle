@@ -16,8 +16,6 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
-import com.google.common.collect.ImmutableList;
-import org.gradle.internal.Try;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 
 import javax.annotation.Nullable;
@@ -38,14 +36,14 @@ public class TestTransformationWorkspaceProvider implements CachingTransformatio
     }
 
     @Override
-    public Try<ImmutableList<File>> withWorkspace(TransformationWorkspaceIdentity identity, TransformationWorkspaceAction workspaceAction) {
+    public <T> T withWorkspace(TransformationWorkspaceIdentity identity, TransformationWorkspaceAction<T> workspaceAction) {
         String identityString = identity.getIdentity();
         return workspaceAction.useWorkspace(identityString, new File(transformationsStoreDirectory, identityString));
     }
 
     @Nullable
     @Override
-    public Try<ImmutableList<File>> getCachedResult(TransformationWorkspaceIdentity identity) {
+    public <T> T getCachedResult(TransformationWorkspaceIdentity identity) {
         return null;
     }
 }

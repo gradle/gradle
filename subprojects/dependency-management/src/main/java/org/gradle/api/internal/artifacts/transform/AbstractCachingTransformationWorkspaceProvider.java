@@ -18,21 +18,19 @@ package org.gradle.api.internal.artifacts.transform;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import com.google.common.collect.ImmutableList;
-import org.gradle.internal.Try;
+import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
-import java.io.File;
 import java.util.concurrent.ExecutionException;
 
 @ThreadSafe
 public abstract class AbstractCachingTransformationWorkspaceProvider implements CachingTransformationWorkspaceProvider {
 
     private final TransformationWorkspaceProvider delegate;
-    private final Cache<TransformationWorkspaceIdentity, Try<ImmutableList<File>>> inMemoryResultCache = CacheBuilder.newBuilder().build();
+    private final Cache<TransformationWorkspaceIdentity, Object> inMemoryResultCache = CacheBuilder.newBuilder().build();
 
     public AbstractCachingTransformationWorkspaceProvider(TransformationWorkspaceProvider delegate) {
         this.delegate = delegate;
@@ -45,14 +43,14 @@ public abstract class AbstractCachingTransformationWorkspaceProvider implements 
 
     @Nullable
     @Override
-    public Try<ImmutableList<File>> getCachedResult(TransformationWorkspaceIdentity identity) {
-        return inMemoryResultCache.getIfPresent(identity);
+    public <T> T getCachedResult(TransformationWorkspaceIdentity identity) {
+        return Cast.uncheckedCast(inMemoryResultCache.getIfPresent(identity));
     }
 
     @Override
-    public Try<ImmutableList<File>> withWorkspace(TransformationWorkspaceIdentity identity, TransformationWorkspaceAction workspaceAction) {
+    public <T> T withWorkspace(TransformationWorkspaceIdentity identity, TransformationWorkspaceAction<T> workspaceAction) {
         try {
-            return inMemoryResultCache.get(identity, () -> delegate.withWorkspace(identity, workspaceAction));
+            return Cast.uncheckedNonnullCast(inMemoryResultCache.get(identity, () -> delegate.withWorkspace(identity, workspaceAction)));
         } catch (ExecutionException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }

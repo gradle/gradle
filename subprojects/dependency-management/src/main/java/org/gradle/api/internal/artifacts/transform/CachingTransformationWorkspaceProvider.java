@@ -16,14 +16,10 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
-import com.google.common.collect.ImmutableList;
-import org.gradle.internal.Try;
-
 import javax.annotation.Nullable;
-import java.io.File;
 
 public interface CachingTransformationWorkspaceProvider extends TransformationWorkspaceProvider {
 
     @Nullable
-    Try<ImmutableList<File>> getCachedResult(TransformationWorkspaceIdentity identity);
+    <T> T getCachedResult(TransformationWorkspaceIdentity identity);
 }
