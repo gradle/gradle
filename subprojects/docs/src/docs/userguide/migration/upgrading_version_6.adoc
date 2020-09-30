@@ -49,7 +49,7 @@ Some plugins will break with this new version of Gradle, for example because the
 
 ==== Eclipse plugin has updated classpath
 
-Previously, the default Eclipse classpath was calcuated from a fixed set of dependency configurations: `compileClasspath`, `runtimeClasspath`,`testCompileClasspath`, and `testRuntimeClasspath`.
+Previously, projects imported by Eclipse only included dependencies for the main and test source sets. The compile and runtime classpaths of custom source sets were ignored.
 
 Since Gradle 6.8, the the default classpath automatically contains all `xxxCompileClasspath` and `xxxRuntimeClasspath` for every custom
 source sets defined by the build.
