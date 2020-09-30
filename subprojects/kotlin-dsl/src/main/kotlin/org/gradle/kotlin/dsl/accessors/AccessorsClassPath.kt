@@ -96,14 +96,13 @@ class ProjectAccessorsClassPathGenerator @Inject constructor(
                     executionHistoryStore,
                     fileCollectionFactory
                 )
-                workExecutor.execute(object : ExecutionRequestContext {
+                val result = workExecutor.execute(object : ExecutionRequestContext {
                     override fun getWork() = work
                     override fun getRebuildReason() = Optional.empty<String>()
                 })
-                AccessorsClassPath(
-                    DefaultClassPath.of(classesOutputDir),
-                    DefaultClassPath.of(sourcesOutputDir)
-                )
+                result.executionResult
+                    .map { executionResult -> executionResult.output as AccessorsClassPath }
+                    .get()
             }
         }
     }
@@ -149,9 +148,14 @@ class GenerateProjectAccessors(
         return object : UnitOfWork.WorkOutput {
             override fun getDidWork() = UnitOfWork.WorkResult.DID_WORK
 
-            override fun getOutput() = throw UnsupportedOperationException()
+            override fun getOutput() = loadRestoredOutput()
         }
     }
+
+    override fun loadRestoredOutput() = AccessorsClassPath(
+        DefaultClassPath.of(classesOutputDir),
+        DefaultClassPath.of(sourcesOutputDir)
+    )
 
     override fun identify(identityInputs: MutableMap<String, ValueSnapshot>, identityFileInputs: MutableMap<String, CurrentFileCollectionFingerprint>) = object : UnitOfWork.Identity {
         override fun getUniqueId() = cacheKey
