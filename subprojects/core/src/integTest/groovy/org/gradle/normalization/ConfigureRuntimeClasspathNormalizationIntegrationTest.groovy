@@ -340,6 +340,44 @@ class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractInte
     }
 
     @ToBeFixedForConfigurationCache(because = "classpath normalization")
+    def "properties files are normalized against changes to whitespace and comments"() {
+        def project = new ProjectWithRuntimeClasspathNormalization(true)
+        project.propertiesFileInDir.overwriteProperties([
+            'foo': 'bar',
+            'bar': 'baz',
+            'fizz': 'fuzz'
+        ] as LinkedHashMap)
+
+        when:
+        succeeds project.customTask
+        then:
+        executedAndNotSkipped(project.customTask)
+
+        when:
+        succeeds project.customTask
+        then:
+        skipped(project.customTask)
+
+        when:
+        project.propertiesFileInDir
+            .setComment('this comment should be ignored')
+            .overwriteProperties([
+                'bar': 'baz',
+                'fizz': 'fuzz',
+                'foo': 'bar'
+            ] as LinkedHashMap)
+        succeeds project.customTask
+        then:
+        skipped(project.customTask)
+
+        when:
+        project.propertiesFileInDir.changeProperty('foo', 'baz')
+        succeeds project.customTask
+        then:
+        executedAndNotSkipped(project.customTask)
+    }
+
+    @ToBeFixedForConfigurationCache(because = "classpath normalization")
     def "can add rules to the default properties rule"() {
         def project = new ProjectWithRuntimeClasspathNormalization(true)
         def barProperties = new PropertiesResource(project.root.file('classpath/dirEntry/bar.properties'), ['ignore-me': 'this should not actually be ignored'])
@@ -613,6 +651,8 @@ class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractInte
     }
 
     class PropertiesResource extends TestResource {
+        String comment = ""
+
         PropertiesResource(TestFile backingFile, Map<String, String> initialProps, Closure finalizedBy={}) {
             super(backingFile, finalizedBy)
             withProperties() { Properties props ->
@@ -623,6 +663,23 @@ class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractInte
         PropertiesResource changeProperty(String key, String value) {
             withProperties(true) { Properties props ->
                 props.setProperty(key, value)
+            }
+            changed()
+            return this
+        }
+
+        PropertiesResource setComment(String comment) {
+            this.comment = comment
+            return this
+        }
+
+        PropertiesResource overwriteProperties(Map<String, String> propertiesMap) {
+            // Preserve the order of the properties in the map when writing the properties file
+            backingFile.withWriter {writer ->
+                writer.write("# ${comment}\n")
+                propertiesMap.each {key, value ->
+                    writer.write("${key}: ${value}\n")
+                }
             }
             changed()
             return this
@@ -641,7 +698,7 @@ class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractInte
             action.call(props)
             def outputStream = backingFile.newOutputStream()
             try {
-                props.store(outputStream, "")
+                props.store(outputStream, comment)
             } finally {
                 outputStream.close()
             }
