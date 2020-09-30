@@ -64,7 +64,22 @@ public interface UnitOfWork extends Describable {
     /**
      * Executes the work synchronously.
      */
-    WorkResult execute(@Nullable InputChangesInternal inputChanges, InputChangesContext context);
+    WorkOutput execute(@Nullable InputChangesInternal inputChanges, InputChangesContext context);
+
+    interface WorkOutput {
+        WorkResult getDidWork();
+
+        Object getOutput();
+    }
+
+    enum WorkResult {
+        DID_WORK,
+        DID_NO_WORK
+    }
+
+    default Object loadRestoredOutput() {
+        throw new UnsupportedOperationException();
+    }
 
     default Optional<Duration> getTimeout() {
         return Optional.empty();
@@ -210,11 +225,6 @@ public interface UnitOfWork extends Describable {
      */
     default boolean shouldCleanupOutputsOnNonIncrementalExecution() {
         return true;
-    }
-
-    enum WorkResult {
-        DID_WORK,
-        DID_NO_WORK
     }
 
     enum InputChangeTrackingStrategy {

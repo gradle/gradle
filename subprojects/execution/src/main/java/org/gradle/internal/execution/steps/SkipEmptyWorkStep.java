@@ -51,8 +51,18 @@ public class SkipEmptyWorkStep<C extends AfterPreviousExecutionContext> implemen
                     .ifPresent(history -> history.remove(identity.getUniqueId()));
                 return (CachingResult) new CachingResult() {
                     @Override
-                    public Try<ExecutionOutcome> getOutcome() {
-                        return Try.successful(skippedOutcome);
+                    public Try<ExecutionResult> getExecutionResult() {
+                        return Try.successful(new ExecutionResult() {
+                            @Override
+                            public ExecutionOutcome getOutcome() {
+                                return skippedOutcome;
+                            }
+
+                            @Override
+                            public Object getOutput() {
+                                return work.loadRestoredOutput();
+                            }
+                        });
                     }
 
                     @Override

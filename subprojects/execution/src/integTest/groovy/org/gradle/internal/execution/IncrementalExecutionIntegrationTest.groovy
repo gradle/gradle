@@ -165,7 +165,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
         def result = execute(unitOfWork)
 
         then:
-        result.outcome.get() == EXECUTED_NON_INCREMENTALLY
+        result.executionResult.get().outcome == EXECUTED_NON_INCREMENTALLY
         !result.reusedOutputOriginMetadata.present
 
         def allDirs = ["outDir1", "outDir2"].collect { file(it) }
@@ -184,7 +184,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
         def result = execute(unitOfWork)
 
         then:
-        result.outcome.get() == EXECUTED_NON_INCREMENTALLY
+        result.executionResult.get().outcome == EXECUTED_NON_INCREMENTALLY
         !result.reusedOutputOriginMetadata.present
 
         result.finalOutputs.keySet() == ["dir", "emptyDir", "file", "missingDir", "missingFile"] as Set
@@ -199,7 +199,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
         def result = execute(unitOfWork)
 
         then:
-        result.outcome.get() == EXECUTED_NON_INCREMENTALLY
+        result.executionResult.get().outcome == EXECUTED_NON_INCREMENTALLY
         !result.reusedOutputOriginMetadata.present
 
         def finalOutputs = result.finalOutputs
@@ -211,7 +211,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
         }.build())
 
         then:
-        result.outcome.get() == UP_TO_DATE
+        result.executionResult.get().outcome == UP_TO_DATE
         result.finalOutputs.values()*.rootHashes == finalOutputs.values()*.rootHashes
     }
 
@@ -220,7 +220,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
         def result = execute(unitOfWork)
 
         then:
-        result.outcome.get() == EXECUTED_NON_INCREMENTALLY
+        result.executionResult.get().outcome == EXECUTED_NON_INCREMENTALLY
         !result.reusedOutputOriginMetadata.present
 
         when:
@@ -239,7 +239,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
             throw failure
         }.build())
         then:
-        result.outcome.failure.get() == failure
+        result.executionResult.failure.get() == failure
         !result.reusedOutputOriginMetadata.present
 
         when:
@@ -247,7 +247,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
         result = outOfDate(builder.build(), "Task has failed previously.")
 
         then:
-        result.outcome.get() == EXECUTED_NON_INCREMENTALLY
+        result.executionResult.get().outcome == EXECUTED_NON_INCREMENTALLY
         !result.reusedOutputOriginMetadata.present
     }
 
@@ -256,7 +256,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
         def result = execute(unitOfWork)
 
         then:
-        result.outcome.get() == EXECUTED_NON_INCREMENTALLY
+        result.executionResult.get().outcome == EXECUTED_NON_INCREMENTALLY
         !result.reusedOutputOriginMetadata.present
         result.executionReasons == ["No history is available."]
     }
@@ -270,7 +270,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
         def result = execute(unitOfWork)
 
         then:
-        result.outcome.get() == EXECUTED_NON_INCREMENTALLY
+        result.executionResult.get().outcome == EXECUTED_NON_INCREMENTALLY
         !result.reusedOutputOriginMetadata.present
         result.executionReasons == ["Output property 'file' file ${outputFile.absolutePath} has been removed."]
     }
@@ -284,7 +284,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
         def result = execute(unitOfWork)
 
         then:
-        result.outcome.get() == EXECUTED_NON_INCREMENTALLY
+        result.executionResult.get().outcome == EXECUTED_NON_INCREMENTALLY
         !result.reusedOutputOriginMetadata.present
         result.executionReasons == ["Output property 'dir' file ${outputDirFile.absolutePath} has been removed."]
     }
@@ -299,7 +299,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
         def result = execute(unitOfWork)
 
         then:
-        !result.outcome.successful
+        !result.executionResult.successful
         !result.reusedOutputOriginMetadata.present
         result.executionReasons == ["Output property 'file' file ${outputFile.absolutePath} has changed."]
     }
@@ -314,7 +314,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
         def result = execute(unitOfWork)
 
         then:
-        !result.outcome.successful
+        !result.executionResult.successful
         !result.reusedOutputOriginMetadata.present
         result.executionReasons == ["Output property 'dir' file ${outputDirFile.absolutePath} has changed."]
     }
@@ -327,7 +327,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
         outputFile << "new content"
         def result = execute(unitOfWork)
         then:
-        result.outcome.get() == EXECUTED_NON_INCREMENTALLY
+        result.executionResult.get().outcome == EXECUTED_NON_INCREMENTALLY
         !result.reusedOutputOriginMetadata.present
         result.executionReasons == ["Output property 'file' file ${outputFile.absolutePath} has changed."]
     }
@@ -340,7 +340,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
         outputDirFile << "new content"
         def result = execute(unitOfWork)
         then:
-        result.outcome.get() == EXECUTED_NON_INCREMENTALLY
+        result.executionResult.get().outcome == EXECUTED_NON_INCREMENTALLY
         !result.reusedOutputOriginMetadata.present
         result.executionReasons == ["Output property 'dir' file ${outputDirFile.absolutePath} has changed."]
     }
@@ -364,7 +364,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
         def result = execute(outputFilesRemovedUnitOfWork)
 
         then:
-        result.outcome.get() == EXECUTED_NON_INCREMENTALLY
+        result.executionResult.get().outcome == EXECUTED_NON_INCREMENTALLY
         !result.reusedOutputOriginMetadata.present
         result.executionReasons == ["Output property 'file' has been removed for ${outputFilesRemovedUnitOfWork.displayName}"]
     }
@@ -610,7 +610,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
 
     UpToDateResult outOfDate(UnitOfWork unitOfWork, List<String> expectedReasons) {
         def result = execute(unitOfWork)
-        assert result.outcome.get() == EXECUTED_NON_INCREMENTALLY
+        assert result.executionResult.get().outcome == EXECUTED_NON_INCREMENTALLY
         !result.reusedOutputOriginMetadata.present
         assert result.executionReasons == expectedReasons
         return result
@@ -618,7 +618,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
 
     UpToDateResult upToDate(UnitOfWork unitOfWork) {
         def result = execute(unitOfWork)
-        assert result.outcome.get() == UP_TO_DATE
+        assert result.executionResult.get().outcome == UP_TO_DATE
         return result
     }
 
@@ -767,9 +767,20 @@ class IncrementalExecutionIntegrationTest extends Specification {
                 }
 
                 @Override
-                UnitOfWork.WorkResult execute(@Nullable InputChangesInternal inputChanges, InputChangesContext context) {
+                UnitOfWork.WorkOutput execute(@Nullable InputChangesInternal inputChanges, InputChangesContext context) {
+                    def didWork = work.get()
                     executed = true
-                    return work.get()
+                    return new UnitOfWork.WorkOutput() {
+                        @Override
+                        UnitOfWork.WorkResult getDidWork() {
+                            return didWork
+                        }
+
+                        @Override
+                        Object getOutput() {
+                            throw new UnsupportedOperationException()
+                        }
+                    }
                 }
 
                 @Override

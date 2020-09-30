@@ -91,8 +91,18 @@ public class CacheStep implements Step<IncrementalChangesContext, CurrentSnapsho
                     ImmutableSortedMap<String, CurrentFileCollectionFingerprint> finalOutputs = cacheHit.getResultingSnapshots();
                     return (CurrentSnapshotResult) new CurrentSnapshotResult() {
                         @Override
-                        public Try<ExecutionOutcome> getOutcome() {
-                            return Try.successful(ExecutionOutcome.FROM_CACHE);
+                        public Try<ExecutionResult> getExecutionResult() {
+                            return Try.successful(new ExecutionResult() {
+                                @Override
+                                public ExecutionOutcome getOutcome() {
+                                    return ExecutionOutcome.FROM_CACHE;
+                                }
+
+                                @Override
+                                public Object getOutput() {
+                                    return work.loadRestoredOutput();
+                                }
+                            });
                         }
 
                         @Override
@@ -134,12 +144,12 @@ public class CacheStep implements Step<IncrementalChangesContext, CurrentSnapsho
     }
 
     private CurrentSnapshotResult executeAndStoreInCache(CacheableWork work, BuildCacheKey cacheKey, IncrementalChangesContext context) {
-        CurrentSnapshotResult executionResult = executeWithoutCache(context);
-        executionResult.getOutcome().ifSuccessfulOrElse(
-            outcome -> store(work, cacheKey, executionResult),
+        CurrentSnapshotResult result = executeWithoutCache(context);
+        result.getExecutionResult().ifSuccessfulOrElse(
+            executionResult -> store(work, cacheKey, result),
             failure -> LOGGER.debug("Not storing result of {} in cache because the execution failed", context.getWork().getDisplayName())
         );
-        return executionResult;
+        return result;
     }
 
     private void store(CacheableWork work, BuildCacheKey cacheKey, CurrentSnapshotResult result) {

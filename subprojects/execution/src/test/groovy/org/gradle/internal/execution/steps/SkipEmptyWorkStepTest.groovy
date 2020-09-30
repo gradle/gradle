@@ -64,7 +64,7 @@ class SkipEmptyWorkStepTest extends StepSpec<AfterPreviousExecutionContext> {
         def result = step.execute(context)
 
         then:
-        result.outcome.get() == outcome
+        result.executionResult.get().outcome == outcome
 
         _ * context.afterPreviousExecutionState >> Optional.of(afterPreviousExecutionState)
         1 * afterPreviousExecutionState.outputFileProperties >> outputFingerprints

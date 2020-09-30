@@ -131,7 +131,6 @@ import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.BeforeExecutionContext;
 import org.gradle.internal.execution.CachingContext;
 import org.gradle.internal.execution.CachingResult;
-import org.gradle.internal.execution.ExecutionOutcome;
 import org.gradle.internal.execution.ExecutionRequestContext;
 import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.OutputSnapshotter;
@@ -368,8 +367,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 }
 
                 @Override
-                public Try<ExecutionOutcome> getOutcome() {
-                    return result.getOutcome();
+                public Try<ExecutionResult> getExecutionResult() {
+                    return result.getExecutionResult();
                 }
             };
         }

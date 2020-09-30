@@ -186,8 +186,8 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
                 return context.getTaskExecutionMode().getRebuildReason();
             }
         });
-        result.getOutcome().ifSuccessfulOrElse(
-            outcome -> state.setOutcome(TaskExecutionOutcome.valueOf(outcome)),
+        result.getExecutionResult().ifSuccessfulOrElse(
+            executionResult -> state.setOutcome(TaskExecutionOutcome.valueOf(executionResult.getOutcome())),
             failure -> state.setOutcome(new TaskExecutionException(task, failure))
         );
         return new TaskExecuterResult() {
@@ -198,8 +198,8 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
 
             @Override
             public boolean executedIncrementally() {
-                return result.getOutcome()
-                    .map(executionOutcome -> executionOutcome == ExecutionOutcome.EXECUTED_INCREMENTALLY)
+                return result.getExecutionResult()
+                    .map(executionResult -> executionResult.getOutcome() == ExecutionOutcome.EXECUTED_INCREMENTALLY)
                     .getOrMapFailure(throwable -> false);
             }
 
@@ -253,14 +253,25 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         }
 
         @Override
-        public WorkResult execute(@Nullable InputChangesInternal inputChanges, InputChangesContext context) {
+        public WorkOutput execute(@Nullable InputChangesInternal inputChanges, InputChangesContext context) {
             FileCollection previousFiles = context.getAfterPreviousExecutionState()
                 .map(afterPreviousExecutionState -> (FileCollection) new PreviousOutputFileCollection(task, afterPreviousExecutionState))
                 .orElseGet(fileCollectionFactory::empty);
             TaskOutputsInternal outputs = task.getOutputs();
             outputs.setPreviousOutputFiles(previousFiles);
             try {
-                return executeWithPreviousOutputFiles(inputChanges);
+                WorkResult didWork = executeWithPreviousOutputFiles(inputChanges);
+                return new WorkOutput() {
+                    @Override
+                    public WorkResult getDidWork() {
+                        return didWork;
+                    }
+
+                    @Override
+                    public Object getOutput() {
+                        throw new UnsupportedOperationException();
+                    }
+                };
             } finally {
                 outputs.setPreviousOutputFiles(null);
             }

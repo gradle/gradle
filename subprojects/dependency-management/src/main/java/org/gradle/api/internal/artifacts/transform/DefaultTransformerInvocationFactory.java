@@ -27,6 +27,7 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.provider.Provider;
+import org.gradle.internal.Cast;
 import org.gradle.internal.Try;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.execution.CachingResult;
@@ -148,7 +149,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
                                 inputArtifactFingerprinter
                             );
 
-                            CachingResult outcome = workExecutor.execute(new ExecutionRequestContext() {
+                            CachingResult result = workExecutor.execute(new ExecutionRequestContext() {
                                 @Override
                                 public UnitOfWork getWork() {
                                     return execution;
@@ -160,8 +161,8 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
                                 }
                             });
 
-                            return outcome.getOutcome()
-                                .tryMap(outcome1 -> execution.loadResultsFile())
+                            return result.getExecutionResult()
+                                .tryMap(executionResult -> Cast.<ImmutableList<File>>uncheckedNonnullCast(executionResult.getOutput()))
                                 .mapFailure(failure -> new TransformException(String.format("Execution failed for %s.", execution.getDisplayName()), failure));
                         });
                     }
@@ -291,10 +292,25 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
         }
 
         @Override
-        public WorkResult execute(@Nullable InputChangesInternal inputChanges, InputChangesContext context) {
+        public WorkOutput execute(@Nullable InputChangesInternal inputChanges, InputChangesContext context) {
             ImmutableList<File> result = transformer.transform(inputArtifactProvider, outputDir, dependencies, inputChanges);
             writeResultsFile(outputDir, resultsFile, result);
-            return WorkResult.DID_WORK;
+            return new WorkOutput() {
+                @Override
+                public WorkResult getDidWork() {
+                    return WorkResult.DID_WORK;
+                }
+
+                @Override
+                public Object getOutput() {
+                    return result;
+                }
+            };
+        }
+
+        @Override
+        public Object loadRestoredOutput() {
+            return loadResultsFile();
         }
 
         private void writeResultsFile(File outputDir, File resultsFile, ImmutableList<File> result) {

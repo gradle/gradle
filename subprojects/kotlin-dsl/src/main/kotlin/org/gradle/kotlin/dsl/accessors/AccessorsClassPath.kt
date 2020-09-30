@@ -137,7 +137,7 @@ class GenerateProjectAccessors(
         const val CLASSES_OUTPUT_PROPERTY = "classes"
     }
 
-    override fun execute(inputChanges: InputChangesInternal?, context: InputChangesContext): UnitOfWork.WorkResult {
+    override fun execute(inputChanges: InputChangesInternal?, context: InputChangesContext): UnitOfWork.WorkOutput {
         withAsynchronousIO(project) {
             buildAccessorsFor(
                 projectSchema,
@@ -146,7 +146,11 @@ class GenerateProjectAccessors(
                 binDir = classesOutputDir
             )
         }
-        return UnitOfWork.WorkResult.DID_WORK
+        return object : UnitOfWork.WorkOutput {
+            override fun getDidWork() = UnitOfWork.WorkResult.DID_WORK
+
+            override fun getOutput() = throw UnsupportedOperationException()
+        }
     }
 
     override fun identify(identityInputs: MutableMap<String, ValueSnapshot>, identityFileInputs: MutableMap<String, CurrentFileCollectionFingerprint>) = object : UnitOfWork.Identity {

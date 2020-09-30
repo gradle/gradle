@@ -19,5 +19,11 @@ package org.gradle.internal.execution;
 import org.gradle.internal.Try;
 
 public interface Result {
-    Try<ExecutionOutcome> getOutcome();
+    Try<ExecutionResult> getExecutionResult();
+
+    interface ExecutionResult {
+        ExecutionOutcome getOutcome();
+
+        Object getOutput();
+    }
 }

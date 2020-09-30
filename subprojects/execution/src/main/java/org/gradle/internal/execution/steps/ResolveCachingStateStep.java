@@ -25,7 +25,6 @@ import org.gradle.internal.Try;
 import org.gradle.internal.execution.BeforeExecutionContext;
 import org.gradle.internal.execution.CachingContext;
 import org.gradle.internal.execution.CachingResult;
-import org.gradle.internal.execution.ExecutionOutcome;
 import org.gradle.internal.execution.Step;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.UpToDateResult;
@@ -156,8 +155,8 @@ public class ResolveCachingStateStep implements Step<BeforeExecutionContext, Cac
             }
 
             @Override
-            public Try<ExecutionOutcome> getOutcome() {
-                return result.getOutcome();
+            public Try<ExecutionResult> getExecutionResult() {
+                return result.getExecutionResult();
             }
         };
     }

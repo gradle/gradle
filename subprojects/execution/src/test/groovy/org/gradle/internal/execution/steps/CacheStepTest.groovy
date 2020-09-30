@@ -28,6 +28,7 @@ import org.gradle.internal.execution.CurrentSnapshotResult
 import org.gradle.internal.execution.ExecutionOutcome
 import org.gradle.internal.execution.IncrementalChangesContext
 import org.gradle.internal.execution.OutputChangeListener
+import org.gradle.internal.execution.Result
 import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.execution.caching.CachingDisabledReason
 import org.gradle.internal.execution.caching.CachingDisabledReasonCategory
@@ -63,7 +64,7 @@ class CacheStepTest extends StepSpec<IncrementalChangesContext> implements Finge
         def result = step.execute(context)
 
         then:
-        result.outcome.get() == ExecutionOutcome.FROM_CACHE
+        result.executionResult.get().outcome == ExecutionOutcome.FROM_CACHE
         result.reused
         result.originMetadata == cachedOriginMetadata
         result.finalOutputs == outputsFromCache
@@ -108,7 +109,7 @@ class CacheStepTest extends StepSpec<IncrementalChangesContext> implements Finge
 
         then:
         1 * delegate.execute(context) >> delegateResult
-        1 * delegateResult.outcome >> Try.successful(ExecutionOutcome.EXECUTED_NON_INCREMENTALLY)
+        1 * delegateResult.executionResult >> Try.successful(Mock(Result.ExecutionResult))
 
         then:
         interaction { outputStored {} }
@@ -161,7 +162,7 @@ class CacheStepTest extends StepSpec<IncrementalChangesContext> implements Finge
 
         then:
         1 * delegate.execute(context) >> delegateResult
-        1 * delegateResult.outcome >> Try.failure(new RuntimeException("failure"))
+        1 * delegateResult.executionResult >> Try.failure(new RuntimeException("failure"))
 
         then:
         0 * buildCacheController.store(_)
@@ -182,7 +183,7 @@ class CacheStepTest extends StepSpec<IncrementalChangesContext> implements Finge
 
         then:
         1 * delegate.execute(context) >> delegateResult
-        1 * delegateResult.outcome >> Try.successful(ExecutionOutcome.EXECUTED_NON_INCREMENTALLY)
+        1 * delegateResult.executionResult >> Try.successful(Mock(Result.ExecutionResult))
 
         then:
         interaction { outputStored {} }
@@ -207,7 +208,7 @@ class CacheStepTest extends StepSpec<IncrementalChangesContext> implements Finge
 
         then:
         1 * delegate.execute(context) >> delegateResult
-        1 * delegateResult.outcome >> Try.successful(ExecutionOutcome.EXECUTED_NON_INCREMENTALLY)
+        1 * delegateResult.executionResult >> Try.successful(Mock(Result.ExecutionResult))
 
         then:
         interaction { outputStored { throw failure } }
