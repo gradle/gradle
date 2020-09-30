@@ -51,8 +51,7 @@ Some plugins will break with this new version of Gradle, for example because the
 
 Previously, projects imported by Eclipse only included dependencies for the main and test source sets. The compile and runtime classpaths of custom source sets were ignored.
 
-Since Gradle 6.8, the the default classpath automatically contains all `xxxCompileClasspath` and `xxxRuntimeClasspath` for every custom
-source sets defined by the build.
+Since Gradle 6.8, projects imported into Eclipse include the compile and runtime classpath for every source set defined by the build.
 
 [[changes_6.7]]
 == Upgrading from 6.6
