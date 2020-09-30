@@ -55,7 +55,7 @@ class StatisticsBasedPerformanceTestBucketProvider(private val model: CIBuildMod
         val scenarios = determineScenariosFor(performanceTestSpec, performanceTestConfigurations)
         val testProjectToScenarioTimes = determineScenarioTestTimes(performanceTestSpec.os, performanceTestTimes)
         val testProjectScenarioTimesFallback = determineScenarioTestTimes(Os.LINUX, performanceTestTimes)
-        val repetitions = if (performanceTestType == PerformanceTestType.flakinessDetection) 3 else 1
+        val repetitions = if (performanceTestType == PerformanceTestType.flakinessDetection) 2 else 1
         val buckets = splitBucketsByScenarios(
             scenarios,
             testProjectToScenarioTimes,
