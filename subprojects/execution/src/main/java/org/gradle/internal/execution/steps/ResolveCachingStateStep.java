@@ -43,6 +43,7 @@ import org.gradle.internal.snapshot.ValueSnapshot;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.util.Formatter;
 import java.util.List;
 import java.util.Optional;
@@ -116,6 +117,11 @@ public class ResolveCachingStateStep implements Step<BeforeExecutionContext, Cac
             @Override
             public UnitOfWork.Identity getIdentity() {
                 return context.getIdentity();
+            }
+
+            @Override
+            public File getWorkspace() {
+                return context.getWorkspace();
             }
 
             @Override

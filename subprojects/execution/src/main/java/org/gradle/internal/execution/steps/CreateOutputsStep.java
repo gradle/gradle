@@ -16,9 +16,9 @@
 
 package org.gradle.internal.execution.steps;
 
-import org.gradle.internal.execution.Context;
 import org.gradle.internal.execution.Result;
 import org.gradle.internal.execution.Step;
+import org.gradle.internal.execution.WorkspaceContext;
 import org.gradle.internal.file.TreeType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,7 +27,7 @@ import java.io.File;
 
 import static org.gradle.util.GFileUtils.mkdirs;
 
-public class CreateOutputsStep<C extends Context, R extends Result> implements Step<C, R> {
+public class CreateOutputsStep<C extends WorkspaceContext, R extends Result> implements Step<C, R> {
     private static final Logger LOGGER = LoggerFactory.getLogger(CreateOutputsStep.class);
 
     private final Step<? super C, ? extends R> delegate;
@@ -38,7 +38,7 @@ public class CreateOutputsStep<C extends Context, R extends Result> implements S
 
     @Override
     public R execute(C context) {
-        context.getWork().visitOutputProperties((name, type, root, contents) -> ensureOutput(name, root, type));
+        context.getWork().visitOutputProperties(context.getWorkspace(), (name, type, root, contents) -> ensureOutput(name, root, type));
         return delegate.execute(context);
     }
 

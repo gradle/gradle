@@ -14,22 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.execution.workspace;
-
-import org.gradle.internal.execution.history.ExecutionHistoryStore;
+package org.gradle.internal.execution;
 
 import java.io.File;
 
-public interface ImmutableWorkspaceProvider {
-    /**
-     * Provides a workspace and execution history store for executing the transformation.
-     */
-    <T> T withWorkspace(String identity, WorkspaceAction<T> action);
-
-    ExecutionHistoryStore getHistory();
-
-    @FunctionalInterface
-    interface WorkspaceAction<T> {
-        T executeInWorkspace(File workspace, ExecutionHistoryStore executionHistoryStore);
-    }
+public interface WorkspaceContext extends IdentityContext {
+    File getWorkspace();
 }

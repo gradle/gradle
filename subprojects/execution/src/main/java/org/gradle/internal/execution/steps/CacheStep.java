@@ -37,6 +37,7 @@ import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.Optional;
@@ -75,7 +76,7 @@ public class CacheStep implements Step<IncrementalChangesContext, CurrentSnapsho
 
     private CurrentSnapshotResult executeWithCache(IncrementalChangesContext context, BuildCacheKey cacheKey) {
         UnitOfWork work = context.getWork();
-        CacheableWork cacheableWork = new CacheableWork(context.getIdentity().getUniqueId(), work);
+        CacheableWork cacheableWork = new CacheableWork(context.getIdentity().getUniqueId(), context.getWorkspace(), work);
         return Try.ofFailable(() -> work.isAllowedToLoadFromCache()
                 ? buildCache.load(commandFactory.createLoad(cacheKey, cacheableWork))
                 : Optional.<LoadMetadata>empty()
@@ -100,7 +101,7 @@ public class CacheStep implements Step<IncrementalChangesContext, CurrentSnapsho
 
                                 @Override
                                 public Object getOutput() {
-                                    return work.loadRestoredOutput();
+                                    return work.loadRestoredOutput(context.getWorkspace());
                                 }
                             });
                         }
@@ -173,10 +174,12 @@ public class CacheStep implements Step<IncrementalChangesContext, CurrentSnapsho
 
     private static class CacheableWork implements CacheableEntity {
         private final String identity;
+        private final File workspace;
         private final UnitOfWork work;
 
-        public CacheableWork(String identity, UnitOfWork work) {
+        public CacheableWork(String identity, File workspace, UnitOfWork work) {
             this.identity = identity;
+            this.workspace = workspace;
             this.work = work;
         }
 
@@ -197,7 +200,7 @@ public class CacheStep implements Step<IncrementalChangesContext, CurrentSnapsho
 
         @Override
         public void visitOutputTrees(CacheableTreeVisitor visitor) {
-            work.visitOutputProperties((propertyName, type, root, contents) -> visitor.visitOutputTree(propertyName, type, root));
+            work.visitOutputProperties(workspace, (propertyName, type, root, contents) -> visitor.visitOutputTree(propertyName, type, root));
         }
     }
 }

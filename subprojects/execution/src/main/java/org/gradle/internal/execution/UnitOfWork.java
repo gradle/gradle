@@ -61,6 +61,12 @@ public interface UnitOfWork extends Describable {
         }
     }
 
+    <T> T withWorkspace(String identity, WorkspaceAction<T> action);
+
+    interface WorkspaceAction<T> {
+        T executeInWorkspace(File workspace);
+    }
+
     /**
      * Executes the work synchronously.
      */
@@ -77,7 +83,7 @@ public interface UnitOfWork extends Describable {
         DID_NO_WORK
     }
 
-    default Object loadRestoredOutput() {
+    default Object loadRestoredOutput(File workspace) {
         throw new UnsupportedOperationException();
     }
 
@@ -147,7 +153,7 @@ public interface UnitOfWork extends Describable {
         NON_IDENTITY, IDENTITY
     }
 
-    void visitOutputProperties(OutputPropertyVisitor visitor);
+    void visitOutputProperties(File workspace, OutputPropertyVisitor visitor);
 
     interface OutputPropertyVisitor {
         void visitOutputProperty(String propertyName, TreeType type, File root, FileCollection contents);

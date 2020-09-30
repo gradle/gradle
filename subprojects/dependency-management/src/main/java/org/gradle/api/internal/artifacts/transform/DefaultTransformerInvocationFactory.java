@@ -309,8 +309,13 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
         }
 
         @Override
-        public Object loadRestoredOutput() {
+        public Object loadRestoredOutput(File workspace) {
             return loadResultsFile();
+        }
+
+        @Override
+        public <T> T withWorkspace(String identity, WorkspaceAction<T> action) {
+            return action.executeInWorkspace(null);
         }
 
         private void writeResultsFile(File outputDir, File resultsFile, ImmutableList<File> result) {
@@ -385,7 +390,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
         }
 
         @Override
-        public void visitOutputProperties(OutputPropertyVisitor visitor) {
+        public void visitOutputProperties(File workspace, OutputPropertyVisitor visitor) {
             visitor.visitOutputProperty(OUTPUT_DIRECTORY_PROPERTY_NAME, TreeType.DIRECTORY, outputDir, fileCollectionFactory.fixed(outputDir));
             visitor.visitOutputProperty(RESULTS_FILE_PROPERTY_NAME, TreeType.FILE, resultsFile, fileCollectionFactory.fixed(resultsFile));
         }

@@ -60,7 +60,7 @@ public class CleanupOutputsStep<C extends InputChangesContext, R extends Result>
                 if (hasOverlappingOutputs) {
                     cleanupOverlappingOutputs(context, work);
                 } else {
-                    cleanupExclusiveOutputs(work);
+                    cleanupExclusiveOutputs(context, work);
                 }
             }
         }
@@ -70,7 +70,7 @@ public class CleanupOutputsStep<C extends InputChangesContext, R extends Result>
     private void cleanupOverlappingOutputs(BeforeExecutionContext context, UnitOfWork work) {
         context.getAfterPreviousExecutionState().ifPresent(previousOutputs -> {
             Set<File> outputDirectoriesToPreserve = new HashSet<>();
-            work.visitOutputProperties((name, type, root, contents) -> {
+            work.visitOutputProperties(context.getWorkspace(), (name, type, root, contents) -> {
                 switch (type) {
                     case FILE:
                         File parentFile = root.getParentFile();
@@ -102,8 +102,8 @@ public class CleanupOutputsStep<C extends InputChangesContext, R extends Result>
         });
     }
 
-    private void cleanupExclusiveOutputs(UnitOfWork work) {
-        work.visitOutputProperties((name, type, root, contents) -> {
+    private void cleanupExclusiveOutputs(BeforeExecutionContext context, UnitOfWork work) {
+        work.visitOutputProperties(context.getWorkspace(), (name, type, root, contents) -> {
             if (root.exists()) {
                 try {
                     switch (type) {

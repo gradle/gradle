@@ -60,7 +60,7 @@ public class SkipEmptyWorkStep<C extends AfterPreviousExecutionContext> implemen
 
                             @Override
                             public Object getOutput() {
-                                return work.loadRestoredOutput();
+                                return work.loadRestoredOutput(context.getWorkspace());
                             }
                         });
                     }

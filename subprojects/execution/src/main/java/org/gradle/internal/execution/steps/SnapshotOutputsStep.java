@@ -114,7 +114,7 @@ public class SnapshotOutputsStep<C extends BeforeExecutionContext> extends Build
             .flatMap(BeforeExecutionState::getDetectedOverlappingOutputs)
             .isPresent();
 
-        ImmutableSortedMap<String, FileSystemSnapshot> afterExecutionOutputSnapshots = outputSnapshotter.snapshotOutputs(work);
+        ImmutableSortedMap<String, FileSystemSnapshot> afterExecutionOutputSnapshots = outputSnapshotter.snapshotOutputs(work, context.getWorkspace());
 
         return copyOfSorted(transformEntries(
             afterExecutionOutputSnapshots,

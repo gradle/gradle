@@ -35,6 +35,7 @@ import org.gradle.internal.execution.history.changes.RebuildExecutionStateChange
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.snapshot.ValueSnapshot;
 
+import java.io.File;
 import java.util.Optional;
 
 public class ResolveChangesStep<R extends Result> implements Step<CachingContext, R> {
@@ -105,6 +106,11 @@ public class ResolveChangesStep<R extends Result> implements Step<CachingContext
             @Override
             public UnitOfWork.Identity getIdentity() {
                 return context.getIdentity();
+            }
+
+            @Override
+            public File getWorkspace() {
+                return context.getWorkspace();
             }
 
             @Override

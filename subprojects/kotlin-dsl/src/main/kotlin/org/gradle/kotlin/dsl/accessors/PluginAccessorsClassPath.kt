@@ -100,26 +100,19 @@ class PluginAccessorClassPathGenerator @Inject constructor(
         rootProject.getOrCreateProperty("gradleKotlinDsl.pluginAccessorsClassPath") {
             val buildSrcClassLoaderScope = baseClassLoaderScopeOf(rootProject)
             val classLoaderHash = requireNotNull(classLoaderHierarchyHasher.getClassLoaderHash(buildSrcClassLoaderScope.exportClassLoader))
-            workspaceProvider.withWorkspace("$accessorsWorkspacePrefix/$classLoaderHash") { workspace, executionHistoryStore ->
-                val sourcesOutputDir = File(workspace, "sources")
-                val classesOutputDir = File(workspace, "classes")
-                val work = GeneratePluginAccessors(
-                    rootProject,
-                    buildSrcClassLoaderScope,
-                    classLoaderHash,
-                    sourcesOutputDir,
-                    classesOutputDir,
-                    executionHistoryStore,
-                    fileCollectionFactory
-                )
-                val result = workExecutor.execute(object : ExecutionRequestContext {
-                    override fun getWork() = work
-                    override fun getRebuildReason() = Optional.empty<String>()
-                })
-                result.executionResult
-                    .map { executionResult -> executionResult.output as AccessorsClassPath }
-                    .get()
-            }
+            val work = GeneratePluginAccessors(
+                rootProject,
+                buildSrcClassLoaderScope,
+                classLoaderHash,
+                workspaceProvider.history,
+                fileCollectionFactory,
+                workspaceProvider
+            )
+            val result = workExecutor.execute(object : ExecutionRequestContext {
+                override fun getWork() = work
+                override fun getRebuildReason() = Optional.empty<String>()
+            })
+            result.executionResult.get().output as AccessorsClassPath
         }
     }
 }
@@ -129,10 +122,9 @@ class GeneratePluginAccessors(
     private val rootProject: Project,
     private val buildSrcClassLoaderScope: ClassLoaderScope,
     private val classLoaderHash: HashCode,
-    private val sourcesOutputDir: File,
-    private val classesOutputDir: File,
     private val executionHistoryStore: ExecutionHistoryStore,
-    private val fileCollectionFactory: FileCollectionFactory
+    private val fileCollectionFactory: FileCollectionFactory,
+    private val workspaceProvider: KotlinDslWorkspaceProvider
 ) : UnitOfWork {
 
     companion object {
@@ -146,21 +138,21 @@ class GeneratePluginAccessors(
             withAsynchronousIO(rootProject) {
                 buildPluginAccessorsFor(
                     pluginDescriptorsClassPath = exportClassPathFromHierarchyOf(buildSrcClassLoaderScope),
-                    srcDir = sourcesOutputDir,
-                    binDir = classesOutputDir
+                    srcDir = getSourcesOutputDir(context.workspace),
+                    binDir = getClassesOutputDir(context.workspace)
                 )
             }
         }
         return object : UnitOfWork.WorkOutput {
             override fun getDidWork() = UnitOfWork.WorkResult.DID_WORK
 
-            override fun getOutput() = loadRestoredOutput()
+            override fun getOutput() = loadRestoredOutput(context.workspace)
         }
     }
 
-    override fun loadRestoredOutput() = AccessorsClassPath(
-        DefaultClassPath.of(classesOutputDir),
-        DefaultClassPath.of(sourcesOutputDir)
+    override fun loadRestoredOutput(workspace: File) = AccessorsClassPath(
+        DefaultClassPath.of(getClassesOutputDir(workspace)),
+        DefaultClassPath.of(getSourcesOutputDir(workspace))
     )
 
     override fun identify(identityInputs: MutableMap<String, ValueSnapshot>, identityFileInputs: MutableMap<String, CurrentFileCollectionFingerprint>) = object : UnitOfWork.Identity {
@@ -168,6 +160,11 @@ class GeneratePluginAccessors(
 
         override fun getHistory(): Optional<ExecutionHistoryStore> = Optional.of(executionHistoryStore)
     }
+
+    override fun <T : Any?> withWorkspace(identity: String, action: UnitOfWork.WorkspaceAction<T>): T =
+        workspaceProvider.withWorkspace("$accessorsWorkspacePrefix/$identity") { workspace, _ ->
+            action.executeInWorkspace(workspace)
+        }
 
     override fun getDisplayName(): String = "Kotlin DSL plugin accessors for classpath '$classLoaderHash'"
 
@@ -183,11 +180,21 @@ class GeneratePluginAccessors(
 
     override fun visitInputFileProperties(visitor: UnitOfWork.InputFilePropertyVisitor) = Unit
 
-    override fun visitOutputProperties(visitor: UnitOfWork.OutputPropertyVisitor) {
+    override fun visitOutputProperties(workspace: File, visitor: UnitOfWork.OutputPropertyVisitor) {
+        val sourcesOutputDir = getSourcesOutputDir(workspace)
+        val classesOutputDir = getClassesOutputDir(workspace)
         visitor.visitOutputProperty(SOURCES_OUTPUT_PROPERTY, TreeType.DIRECTORY, sourcesOutputDir, fileCollectionFactory.fixed(sourcesOutputDir))
         visitor.visitOutputProperty(CLASSES_OUTPUT_PROPERTY, TreeType.DIRECTORY, classesOutputDir, fileCollectionFactory.fixed(classesOutputDir))
     }
 }
+
+
+private
+fun getClassesOutputDir(workspace: File) = File(workspace, "classes")
+
+
+private
+fun getSourcesOutputDir(workspace: File): File = File(workspace, "sources")
 
 
 fun writeSourceCodeForPluginSpecBuildersFor(

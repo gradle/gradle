@@ -291,6 +291,11 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         }
 
         @Override
+        public <T> T withWorkspace(String identity, WorkspaceAction<T> action) {
+            return action.executeInWorkspace(null);
+        }
+
+        @Override
         public void visitImplementations(ImplementationVisitor visitor) {
             visitor.visitImplementation(task.getClass());
 
@@ -332,7 +337,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         }
 
         @Override
-        public void visitOutputProperties(OutputPropertyVisitor visitor) {
+        public void visitOutputProperties(File workspace, OutputPropertyVisitor visitor) {
             for (OutputFilePropertySpec property : context.getTaskProperties().getOutputFileProperties()) {
                 File outputFile = property.getOutputFile();
                 if (outputFile != null) {

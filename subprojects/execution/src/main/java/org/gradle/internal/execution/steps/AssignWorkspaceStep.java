@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,36 +17,31 @@
 package org.gradle.internal.execution.steps;
 
 import com.google.common.collect.ImmutableSortedMap;
-import org.gradle.internal.execution.AfterPreviousExecutionContext;
+import org.gradle.internal.execution.IdentityContext;
 import org.gradle.internal.execution.Result;
 import org.gradle.internal.execution.Step;
 import org.gradle.internal.execution.UnitOfWork;
-import org.gradle.internal.execution.UnitOfWork.Identity;
 import org.gradle.internal.execution.WorkspaceContext;
-import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.snapshot.ValueSnapshot;
 
 import java.io.File;
 import java.util.Optional;
 
-public class LoadExecutionStateStep<C extends WorkspaceContext, R extends Result> implements Step<C, R> {
-    private final Step<? super AfterPreviousExecutionContext, ? extends R> delegate;
+public class AssignWorkspaceStep<C extends IdentityContext, R extends Result> implements Step<C, R> {
+    private final Step<? super WorkspaceContext, ? extends R> delegate;
 
-    public LoadExecutionStateStep(Step<? super AfterPreviousExecutionContext, ? extends R> delegate) {
+    public AssignWorkspaceStep(Step<? super WorkspaceContext, ? extends R> delegate) {
         this.delegate = delegate;
     }
 
     @Override
     public R execute(C context) {
         UnitOfWork work = context.getWork();
-        Identity identity = context.getIdentity();
-        Optional<AfterPreviousExecutionState> afterPreviousExecutionState = identity.getHistory()
-            .flatMap(history -> history.load(identity.getUniqueId()));
-        return delegate.execute(new AfterPreviousExecutionContext() {
+        return work.withWorkspace(context.getIdentity().getUniqueId(), workspace -> delegate.execute(new WorkspaceContext() {
             @Override
-            public Optional<AfterPreviousExecutionState> getAfterPreviousExecutionState() {
-                return afterPreviousExecutionState;
+            public UnitOfWork getWork() {
+                return work;
             }
 
             @Override
@@ -65,19 +60,14 @@ public class LoadExecutionStateStep<C extends WorkspaceContext, R extends Result
             }
 
             @Override
-            public Identity getIdentity() {
+            public UnitOfWork.Identity getIdentity() {
                 return context.getIdentity();
             }
 
             @Override
             public File getWorkspace() {
-                return context.getWorkspace();
+                return workspace;
             }
-
-            @Override
-            public UnitOfWork getWork() {
-                return work;
-            }
-        });
+        }));
     }
 }

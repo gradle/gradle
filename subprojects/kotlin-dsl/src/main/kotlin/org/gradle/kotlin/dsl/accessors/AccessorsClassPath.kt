@@ -83,27 +83,20 @@ class ProjectAccessorsClassPathGenerator @Inject constructor(
             // TODO:accessors make cache key computation more efficient
             val cacheKeySpec = cacheKeyFor(projectSchema, classPath)
             val cacheKey = cacheKeyBuilder.build(cacheKeySpec)
-            workspaceProvider.withWorkspace(cacheKey) { workspace, executionHistoryStore ->
-                val sourcesOutputDir = File(workspace, "sources")
-                val classesOutputDir = File(workspace, "classes")
-                val work = GenerateProjectAccessors(
-                    project,
-                    projectSchema,
-                    classPath,
-                    cacheKey,
-                    sourcesOutputDir,
-                    classesOutputDir,
-                    executionHistoryStore,
-                    fileCollectionFactory
-                )
-                val result = workExecutor.execute(object : ExecutionRequestContext {
-                    override fun getWork() = work
-                    override fun getRebuildReason() = Optional.empty<String>()
-                })
-                result.executionResult
-                    .map { executionResult -> executionResult.output as AccessorsClassPath }
-                    .get()
-            }
+            val work = GenerateProjectAccessors(
+                project,
+                projectSchema,
+                classPath,
+                cacheKey,
+                workspaceProvider.history,
+                fileCollectionFactory,
+                workspaceProvider
+            )
+            val result = workExecutor.execute(object : ExecutionRequestContext {
+                override fun getWork() = work
+                override fun getRebuildReason() = Optional.empty<String>()
+            })
+            result.executionResult.get().output as AccessorsClassPath
         }
     }
 
@@ -124,10 +117,9 @@ class GenerateProjectAccessors(
     private val projectSchema: TypedProjectSchema,
     private val classPath: ClassPath,
     private val cacheKey: String,
-    private val sourcesOutputDir: File,
-    private val classesOutputDir: File,
     private val executionHistoryStore: ExecutionHistoryStore,
-    private val fileCollectionFactory: FileCollectionFactory
+    private val fileCollectionFactory: FileCollectionFactory,
+    private val workspaceProvider: KotlinDslWorkspaceProvider
 ) : UnitOfWork {
 
     companion object {
@@ -137,6 +129,8 @@ class GenerateProjectAccessors(
     }
 
     override fun execute(inputChanges: InputChangesInternal?, context: InputChangesContext): UnitOfWork.WorkOutput {
+        val sourcesOutputDir = File(context.workspace, "sources")
+        val classesOutputDir = File(context.workspace, "classes")
         withAsynchronousIO(project) {
             buildAccessorsFor(
                 projectSchema,
@@ -148,13 +142,13 @@ class GenerateProjectAccessors(
         return object : UnitOfWork.WorkOutput {
             override fun getDidWork() = UnitOfWork.WorkResult.DID_WORK
 
-            override fun getOutput() = loadRestoredOutput()
+            override fun getOutput() = loadRestoredOutput(context.workspace)
         }
     }
 
-    override fun loadRestoredOutput() = AccessorsClassPath(
-        DefaultClassPath.of(classesOutputDir),
-        DefaultClassPath.of(sourcesOutputDir)
+    override fun loadRestoredOutput(workspace: File) = AccessorsClassPath(
+        DefaultClassPath.of(getClassesOutputDir(workspace)),
+        DefaultClassPath.of(getSourcesOutputDir(workspace))
     )
 
     override fun identify(identityInputs: MutableMap<String, ValueSnapshot>, identityFileInputs: MutableMap<String, CurrentFileCollectionFingerprint>) = object : UnitOfWork.Identity {
@@ -162,6 +156,11 @@ class GenerateProjectAccessors(
 
         override fun getHistory(): Optional<ExecutionHistoryStore> = Optional.of(executionHistoryStore)
     }
+
+    override fun <T : Any?> withWorkspace(identity: String, action: UnitOfWork.WorkspaceAction<T>): T =
+        workspaceProvider.withWorkspace("$accessorsWorkspacePrefix/$identity") { workspace, _ ->
+            action.executeInWorkspace(workspace)
+        }
 
     override fun getDisplayName(): String = "Kotlin DSL accessors for $project"
 
@@ -177,11 +176,21 @@ class GenerateProjectAccessors(
 
     override fun visitInputFileProperties(visitor: UnitOfWork.InputFilePropertyVisitor) = Unit
 
-    override fun visitOutputProperties(visitor: UnitOfWork.OutputPropertyVisitor) {
+    override fun visitOutputProperties(workspace: File, visitor: UnitOfWork.OutputPropertyVisitor) {
+        val sourcesOutputDir = getSourcesOutputDir(workspace)
+        val classesOutputDir = getClassesOutputDir(workspace)
         visitor.visitOutputProperty(SOURCES_OUTPUT_PROPERTY, TreeType.DIRECTORY, sourcesOutputDir, fileCollectionFactory.fixed(sourcesOutputDir))
         visitor.visitOutputProperty(CLASSES_OUTPUT_PROPERTY, TreeType.DIRECTORY, classesOutputDir, fileCollectionFactory.fixed(classesOutputDir))
     }
 }
+
+
+private
+fun getClassesOutputDir(workspace: File) = File(workspace, "classes")
+
+
+private
+fun getSourcesOutputDir(workspace: File): File = File(workspace, "sources")
 
 
 data class AccessorsClassPath(val bin: ClassPath, val src: ClassPath) {

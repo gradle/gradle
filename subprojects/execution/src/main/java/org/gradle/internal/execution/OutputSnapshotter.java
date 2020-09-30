@@ -19,9 +19,11 @@ package org.gradle.internal.execution;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 
+import java.io.File;
+
 public interface OutputSnapshotter {
     /**
      * Takes a snapshot of the outputs of a work.
      */
-    ImmutableSortedMap<String, FileSystemSnapshot> snapshotOutputs(UnitOfWork work);
+    ImmutableSortedMap<String, FileSystemSnapshot> snapshotOutputs(UnitOfWork work, File workspace);
 }

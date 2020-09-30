@@ -27,6 +27,7 @@ import org.gradle.internal.execution.history.OutputFilesRepository
 import org.gradle.internal.execution.history.changes.DefaultExecutionStateChangeDetector
 import org.gradle.internal.execution.history.changes.InputChangesInternal
 import org.gradle.internal.execution.impl.DefaultWorkExecutor
+import org.gradle.internal.execution.steps.AssignWorkspaceStep
 import org.gradle.internal.execution.steps.BroadcastChangingOutputsStep
 import org.gradle.internal.execution.steps.CaptureStateBeforeExecutionStep
 import org.gradle.internal.execution.steps.CleanupOutputsStep
@@ -132,6 +133,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
         // @formatter:off
         new DefaultWorkExecutor<>(
             new IdentifyStep<>(
+            new AssignWorkspaceStep<>(
             new LoadExecutionStateStep<>(
             new ValidateStep<>(validationWarningReporter,
             new CaptureStateBeforeExecutionStep<>(buildOperationExecutor, classloaderHierarchyHasher, outputSnapshotter, overlappingOutputDetector, valueSnapshotter,
@@ -146,7 +148,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
             new ResolveInputChangesStep<>(
             new CleanupOutputsStep<>(deleter, outputChangeListener,
             new ExecuteStep<>(
-        ))))))))))))))))
+        )))))))))))))))))
         // @formatter:on
     }
 
@@ -767,6 +769,11 @@ class IncrementalExecutionIntegrationTest extends Specification {
                 }
 
                 @Override
+                <T> T withWorkspace(String identity, UnitOfWork.WorkspaceAction<T> action) {
+                    return action.executeInWorkspace(null)
+                }
+
+                @Override
                 UnitOfWork.WorkOutput execute(@Nullable InputChangesInternal inputChanges, InputChangesContext context) {
                     def didWork = work.get()
                     executed = true
@@ -819,7 +826,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
                 }
 
                 @Override
-                void visitOutputProperties(UnitOfWork.OutputPropertyVisitor visitor) {
+                void visitOutputProperties(File workspace, UnitOfWork.OutputPropertyVisitor visitor) {
                     outputs.forEach { name, spec ->
                         visitor.visitOutputProperty(name, spec.treeType, spec.root, TestFiles.fixed(spec.root))
                     }

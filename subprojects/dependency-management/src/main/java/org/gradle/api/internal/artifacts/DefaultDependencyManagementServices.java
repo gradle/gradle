@@ -144,6 +144,7 @@ import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.history.changes.ExecutionStateChangeDetector;
 import org.gradle.internal.execution.impl.DefaultWorkExecutor;
+import org.gradle.internal.execution.steps.AssignWorkspaceStep;
 import org.gradle.internal.execution.steps.BroadcastChangingOutputsStep;
 import org.gradle.internal.execution.steps.CaptureStateBeforeExecutionStep;
 import org.gradle.internal.execution.steps.CleanupOutputsStep;
@@ -191,6 +192,7 @@ import org.gradle.util.internal.SimpleMapInterner;
 import org.gradle.vcs.internal.VcsMappingsStore;
 
 import javax.annotation.Nullable;
+import java.io.File;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -276,6 +278,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             // @formatter:off
             return new DefaultWorkExecutor<>(
                 new IdentifyStep<>(
+                new AssignWorkspaceStep<>(
                 new LoadExecutionStateStep<>(
                 new ValidateStep<>(validationWarningReporter,
                 new CaptureStateBeforeExecutionStep(buildOperationExecutor, classLoaderHierarchyHasher, outputSnapshotter, overlappingOutputDetector, valueSnapshotter,
@@ -290,7 +293,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 new ResolveInputChangesStep<>(
                 new CleanupOutputsStep<>(deleter, outputChangeListener,
                 new ExecuteStep<>(
-            ))))))))))))))));
+            )))))))))))))))));
             // @formatter:on
         }
     }
@@ -328,6 +331,11 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 @Override
                 public UnitOfWork.Identity getIdentity() {
                     return context.getIdentity();
+                }
+
+                @Override
+                public File getWorkspace() {
+                    return context.getWorkspace();
                 }
 
                 @Override

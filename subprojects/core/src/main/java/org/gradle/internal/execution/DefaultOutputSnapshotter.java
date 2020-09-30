@@ -20,14 +20,11 @@ import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.internal.fingerprint.FileCollectionSnapshotter;
 import org.gradle.internal.snapshot.CompositeFileSystemSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.util.List;
 
 public class DefaultOutputSnapshotter implements OutputSnapshotter {
-    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultOutputSnapshotter.class);
-
     private final FileCollectionSnapshotter fileCollectionSnapshotter;
 
     public DefaultOutputSnapshotter(FileCollectionSnapshotter fileCollectionSnapshotter) {
@@ -35,10 +32,9 @@ public class DefaultOutputSnapshotter implements OutputSnapshotter {
     }
 
     @Override
-    public ImmutableSortedMap<String, FileSystemSnapshot> snapshotOutputs(UnitOfWork work) {
+    public ImmutableSortedMap<String, FileSystemSnapshot> snapshotOutputs(UnitOfWork work, File workspace) {
         ImmutableSortedMap.Builder<String, FileSystemSnapshot> builder = ImmutableSortedMap.naturalOrder();
-        work.visitOutputProperties((propertyName, type, root, contents) -> {
-            LOGGER.debug("Snapshotting property {} for {}", propertyName, work);
+        work.visitOutputProperties(workspace, (propertyName, type, root, contents) -> {
             List<FileSystemSnapshot> results = fileCollectionSnapshotter.snapshot(contents);
             builder.put(propertyName, CompositeFileSystemSnapshot.of(results));
         });
