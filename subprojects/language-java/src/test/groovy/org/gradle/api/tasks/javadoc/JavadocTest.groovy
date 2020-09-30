@@ -20,6 +20,8 @@ import org.apache.commons.io.FileUtils
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.tasks.javadoc.internal.JavadocToolAdapter
 import org.gradle.jvm.internal.toolchain.JavaToolChainInternal
+import org.gradle.jvm.toolchain.JavaInstallationMetadata
+import org.gradle.jvm.toolchain.JavaLanguageVersion
 import org.gradle.language.base.internal.compile.Compiler
 import org.gradle.platform.base.internal.toolchain.ToolProvider
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
@@ -60,6 +62,7 @@ class JavadocTest extends AbstractProjectBuilderSpec {
 
     def usesToolchainIfConfigured() {
         def tool = Mock(JavadocToolAdapter)
+        def toolMetadata = Mock(JavaInstallationMetadata)
         task.setDestinationDir(destDir)
         task.source(srcDir)
 
@@ -70,6 +73,8 @@ class JavadocTest extends AbstractProjectBuilderSpec {
         execute(task)
 
         then:
+        1 * tool.metadata >> toolMetadata
+        1 * toolMetadata.languageVersion >> JavaLanguageVersion.of(11)
         1 * tool.execute(!null)
     }
 

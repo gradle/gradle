@@ -106,6 +106,54 @@ class JavadocToolchainIntegrationTest extends AbstractIntegrationSpec {
         noExceptionThrown()
     }
 
+    @IgnoreIf({ AvailableJavaHomes.differentVersion == null })
+    def 'changing toolchain invalidates task'() {
+        def currentJdk = Jvm.current()
+        def someJdk = AvailableJavaHomes.differentVersion
+
+        buildFile << """
+            plugins {
+                id 'java'
+            }
+
+            // need to do as separate task as -version stop javadoc generation
+            javadoc {
+                javadocTool = javaToolchains.javadocToolFor {
+                    def version = ${currentJdk.javaVersion.majorVersion}
+                    version = providers.gradleProperty('test.javadoc.version').forUseAtConfigurationTime().getOrElse(version)
+                    languageVersion = JavaLanguageVersion.of(version)
+                }
+            }
+
+        """
+        file('src/main/java/Lib.java') << testLib()
+
+        when:
+        result = executer
+            .withArgument("-Porg.gradle.java.installations.auto-detect=false")
+            .withArgument("-Porg.gradle.java.installations.paths=" + someJdk.javaHome.absolutePath)
+            .withArgument("--info")
+            .withTasks("javadoc")
+            .run()
+
+        then:
+        file("build/docs/javadoc/Lib.html").text.contains("Some API documentation.")
+        noExceptionThrown()
+
+        when:
+        result = executer
+            .withArgument("-Porg.gradle.java.installations.auto-detect=false")
+            .withArgument("-Porg.gradle.java.installations.paths=" + someJdk.javaHome.absolutePath)
+            .withArgument("-Ptest.javadoc.version=${someJdk.javaVersion.majorVersion}")
+            .withArgument("--info")
+            .withTasks("javadoc")
+            .run()
+
+        then:
+        result.assertTaskNotSkipped(':javadoc')
+        noExceptionThrown()
+    }
+
     private static String testLib() {
         return """
             public class Lib {

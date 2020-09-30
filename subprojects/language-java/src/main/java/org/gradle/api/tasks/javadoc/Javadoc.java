@@ -243,7 +243,8 @@ public class Javadoc extends SourceTask {
      * @since 6.7
      */
     @Incubating
-    @Internal
+    @Nested
+    @Optional
     public Property<JavadocTool> getJavadocTool() {
         return javadocTool;
     }
