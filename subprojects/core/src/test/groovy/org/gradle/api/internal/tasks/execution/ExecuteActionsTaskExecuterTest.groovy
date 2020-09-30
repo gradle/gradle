@@ -147,7 +147,7 @@ class ExecuteActionsTaskExecuterTest extends Specification {
 
     // @formatter:off
     def workExecutor = new DefaultWorkExecutor<>(
-        new IdentifyStep<>(
+        new IdentifyStep<>(valueSnapshotter,
         new AssignWorkspaceStep<>(
         new LoadExecutionStateStep<>(
         new SkipEmptyWorkStep<>(

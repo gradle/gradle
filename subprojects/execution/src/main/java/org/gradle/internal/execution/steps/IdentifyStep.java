@@ -25,20 +25,35 @@ import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.UnitOfWork.Identity;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.snapshot.ValueSnapshot;
+import org.gradle.internal.snapshot.ValueSnapshotter;
 
 import java.util.Optional;
 
+import static org.gradle.internal.execution.impl.InputFingerprintUtil.fingerprintInputFiles;
+import static org.gradle.internal.execution.impl.InputFingerprintUtil.fingerprintInputProperties;
+
 public class IdentifyStep<C extends ExecutionRequestContext, R extends Result> implements Step<C, R> {
     private final Step<? super IdentityContext, ? extends R> delegate;
+    private final ValueSnapshotter valueSnapshotter;
 
-    public IdentifyStep(Step<? super IdentityContext, ? extends R> delegate) {
+    public IdentifyStep(
+        ValueSnapshotter valueSnapshotter,
+        Step<? super IdentityContext, ? extends R> delegate
+    ) {
+        this.valueSnapshotter = valueSnapshotter;
         this.delegate = delegate;
     }
 
     @Override
     public R execute(C context) {
-        ImmutableSortedMap<String, ValueSnapshot> identityInputProperties = ImmutableSortedMap.of();
-        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> identityInputFileProperties = ImmutableSortedMap.of();
+        ImmutableSortedMap<String, ValueSnapshot> identityInputProperties = fingerprintInputProperties(
+            context.getWork(),
+            ImmutableSortedMap.of(),
+            valueSnapshotter,
+            ImmutableSortedMap.of());
+        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> identityInputFileProperties = fingerprintInputFiles(
+            context.getWork(),
+            ImmutableSortedMap.of());
         Identity identity = context.getWork().identify(identityInputProperties, identityInputFileProperties);
         return delegate.execute(new IdentityContext() {
             @Override

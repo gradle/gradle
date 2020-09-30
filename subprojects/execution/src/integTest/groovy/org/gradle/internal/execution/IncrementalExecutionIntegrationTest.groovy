@@ -132,7 +132,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
     WorkExecutor<ExecutionRequestContext, CachingResult> getExecutor() {
         // @formatter:off
         new DefaultWorkExecutor<>(
-            new IdentifyStep<>(
+            new IdentifyStep<>(valueSnapshotter,
             new AssignWorkspaceStep<>(
             new LoadExecutionStateStep<>(
             new ValidateStep<>(validationWarningReporter,

@@ -16,7 +16,6 @@
 
 package org.gradle.internal.execution.impl;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.execution.UnitOfWork;
@@ -26,8 +25,18 @@ import org.gradle.internal.snapshot.ValueSnapshotter;
 
 public class InputFingerprintUtil {
 
-    public static <B extends ImmutableMap.Builder<String, ValueSnapshot>> B fingerprintInputProperties(UnitOfWork work, ImmutableSortedMap<String, ValueSnapshot> previousSnapshots, ValueSnapshotter valueSnapshotter, B builder) {
+    public static ImmutableSortedMap<String, ValueSnapshot> fingerprintInputProperties(
+        UnitOfWork work,
+        ImmutableSortedMap<String, ValueSnapshot> previousSnapshots,
+        ValueSnapshotter valueSnapshotter,
+        ImmutableSortedMap<String, ValueSnapshot> alreadyKnownSnapshots
+    ) {
+        ImmutableSortedMap.Builder<String, ValueSnapshot> builder = ImmutableSortedMap.naturalOrder();
+        builder.putAll(alreadyKnownSnapshots);
         work.visitInputProperties((propertyName, value, identity) -> {
+            if (alreadyKnownSnapshots.containsKey(propertyName)) {
+                return;
+            }
             try {
                 ValueSnapshot previousSnapshot = previousSnapshots.get(propertyName);
                 if (previousSnapshot == null) {
@@ -40,11 +49,21 @@ public class InputFingerprintUtil {
                     work.getDisplayName(), propertyName, value), e);
             }
         });
-        return builder;
+        return builder.build();
     }
 
-    public static <B extends ImmutableMap.Builder<String, CurrentFileCollectionFingerprint>> B fingerprintInputFiles(UnitOfWork work, B builder) {
-        work.visitInputFileProperties((propertyName, value, type, identity, fingerprinter) -> builder.put(propertyName, fingerprinter.get()));
-        return builder;
+    public static ImmutableSortedMap<String, CurrentFileCollectionFingerprint> fingerprintInputFiles(
+        UnitOfWork work,
+        ImmutableSortedMap<String, CurrentFileCollectionFingerprint> alreadyKnownFingerprints
+    ) {
+        ImmutableSortedMap.Builder<String, CurrentFileCollectionFingerprint> builder = ImmutableSortedMap.naturalOrder();
+        builder.putAll(alreadyKnownFingerprints);
+        work.visitInputFileProperties((propertyName, value, type, identity, fingerprinter) -> {
+            if (alreadyKnownFingerprints.containsKey(propertyName)) {
+                return;
+            }
+            builder.put(propertyName, fingerprinter.get());
+        });
+        return builder.build();
     }
 }
