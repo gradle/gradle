@@ -16,12 +16,13 @@
 
 package org.gradle.internal.vfs.impl
 
-
 import org.gradle.internal.snapshot.CompleteDirectorySnapshot
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot
 import org.gradle.internal.snapshot.FileSystemSnapshotVisitor
 import org.gradle.test.fixtures.file.TestFile
+import spock.lang.Unroll
 
+@Unroll
 class DefaultFileSystemAccessTest extends AbstractFileSystemAccessTest {
 
     def "can read a file"() {
@@ -199,6 +200,34 @@ class DefaultFileSystemAccessTest extends AbstractFileSystemAccessTest {
         snapshot = read(excludedFile)
         then:
         assertIsFileSnapshot(snapshot, excludedFile)
+    }
+
+    def "can read a filtered tree of #type including the file"() {
+        def file = temporaryFolder."${method}"("file")
+        when:
+        allowFileSystemAccess(true)
+        def snapshot = read(file, new FileNameFilter({ true }))
+        then:
+        snapshot == read(file)
+
+        where:
+        type           | method
+        'missing file' | 'file'
+        'regular file' | 'createFile'
+    }
+
+    def "can read a filtered tree of #type excluding the file"() {
+        def file = temporaryFolder."${method}"("file")
+        when:
+        allowFileSystemAccess(true)
+        def snapshot = read(file, new FileNameFilter({ false }))
+        then:
+        snapshot == null
+
+        where:
+        type           | method
+        'missing file' | 'file'
+        'regular file' | 'createFile'
     }
 
     def "reuses cached unfiltered trees when looking for details of a filtered tree"() {
