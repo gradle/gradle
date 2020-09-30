@@ -80,7 +80,7 @@ class ExtraPropertiesExtensionsTest {
         val extra = mock<ExtraPropertiesExtension>()
 
         run {
-            val property by extra { null as Int? }
+            val property by extra { null }
 
             // property is set eagerly
             verify(extra).set("property", null)
