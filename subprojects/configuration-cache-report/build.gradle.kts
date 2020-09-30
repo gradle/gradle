@@ -77,11 +77,11 @@ tasks {
         doLast {
             stageDir.get().asFile.let { stage ->
                 val stagedFiles = stage.listFiles()
-                val expected = listOf(
+                val expected = setOf(
                     stage.resolve("configuration-cache-report.html"),
                     stage.resolve("configuration-cache-report-data.js")
                 )
-                require(stagedFiles == expected) {
+                require(stagedFiles.toSet() == expected) {
                     "Unexpected staged files, found ${stagedFiles.map { it.relativeTo(stage).path }}"
                 }
             }
