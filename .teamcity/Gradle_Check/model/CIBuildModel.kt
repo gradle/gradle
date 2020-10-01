@@ -61,7 +61,7 @@ data class CIBuildModel(
                 TestCoverage(3, TestType.platform, Os.LINUX, JvmCategory.MIN_VERSION),
                 TestCoverage(4, TestType.platform, Os.WINDOWS, JvmCategory.MAX_VERSION),
                 TestCoverage(20, TestType.configCache, Os.LINUX, JvmCategory.MIN_VERSION)),
-            performanceTests = listOf(PerformanceTestCoverage(PerformanceTestType.test, Os.LINUX)),
+            performanceTests = listOf(PerformanceTestCoverage(1, PerformanceTestType.test, Os.LINUX, numberOfBuckets = 40, oldUuid = "PerformanceTestTestLinux")),
             omitsSlowProjects = true),
         Stage(StageNames.READY_FOR_NIGHTLY,
             trigger = Trigger.eachCommit,
@@ -94,11 +94,15 @@ data class CIBuildModel(
                 TestCoverage(31, TestType.watchFs, Os.MACOS, JvmCategory.MIN_VERSION),
                 TestCoverage(30, TestType.watchFs, Os.WINDOWS, JvmCategory.MAX_VERSION)),
             performanceTests = listOf(
-                PerformanceTestCoverage(PerformanceTestType.slow, Os.LINUX))),
+                PerformanceTestCoverage(2, PerformanceTestType.slow, Os.LINUX, numberOfBuckets = 30, oldUuid = "PerformanceTestSlowLinux")
+            )),
         Stage(StageNames.HISTORICAL_PERFORMANCE,
             trigger = Trigger.weekly,
-            performanceTests = listOf(PerformanceTestType.historical, PerformanceTestType.flakinessDetection, PerformanceTestType.experiment)
-                .map { PerformanceTestCoverage(it, Os.LINUX) }),
+            performanceTests = listOf(
+                PerformanceTestCoverage(3, PerformanceTestType.historical, Os.LINUX, numberOfBuckets = 60, oldUuid = "PerformanceTestHistoricalLinux"),
+                PerformanceTestCoverage(4, PerformanceTestType.flakinessDetection, Os.LINUX, numberOfBuckets = 60, oldUuid = "PerformanceTestFlakinessDetectionLinux"),
+                PerformanceTestCoverage(5, PerformanceTestType.experiment, Os.LINUX, numberOfBuckets = 20, oldUuid = "PerformanceTestExperimentLinux")
+            )),
         Stage(StageNames.EXPERIMENTAL,
             trigger = Trigger.never,
             runsIndependent = true,
@@ -145,7 +149,11 @@ data class CIBuildModel(
             )),
         Stage(StageNames.EXPERIMENTAL_PERFORMANCE,
             trigger = Trigger.never,
-            runsIndependent = true
+            runsIndependent = true,
+            performanceTests = listOf(
+                PerformanceTestCoverage(6, PerformanceTestType.test, Os.WINDOWS, numberOfBuckets = 5, withoutDependencies = true),
+                PerformanceTestCoverage(7, PerformanceTestType.test, Os.MACOS, numberOfBuckets = 5, withoutDependencies = true)
+            )
         )
     ),
     val subprojects: GradleSubprojectProvider
@@ -268,16 +276,14 @@ enum class PerformanceTestType(
     val defaultBaselines: String = "",
     val channel: String,
     val extraParameters: String = "",
-    val uuid: String? = null,
-    val numberOfBuckets: Int
+    val uuid: String? = null
 ) {
     test(
         taskId = "PerformanceTest",
         displayName = "Performance Regression Test",
         timeout = 420,
         defaultBaselines = "defaults",
-        channel = "commits",
-        numberOfBuckets = 40
+        channel = "commits"
     ),
     slow(
         taskId = "SlowPerformanceTest",
@@ -285,8 +291,7 @@ enum class PerformanceTestType(
         timeout = 420,
         defaultBaselines = "defaults",
         channel = "commits",
-        uuid = "PerformanceExperimentCoordinator",
-        numberOfBuckets = 30
+        uuid = "PerformanceExperimentCoordinator"
     ),
     experiment(
         taskId = "PerformanceExperiment",
@@ -294,8 +299,7 @@ enum class PerformanceTestType(
         timeout = 420,
         defaultBaselines = "defaults",
         channel = "experiments",
-        uuid = "PerformanceExperimentOnlyCoordinator",
-        numberOfBuckets = 20
+        uuid = "PerformanceExperimentOnlyCoordinator"
     ),
     flakinessDetection(
         taskId = "FlakinessDetection",
@@ -303,8 +307,7 @@ enum class PerformanceTestType(
         timeout = 600,
         defaultBaselines = "flakiness-detection-commit",
         channel = "flakiness-detection",
-        extraParameters = "--checks none --rerun",
-        numberOfBuckets = 60
+        extraParameters = "--checks none --rerun"
     ),
     historical(
         taskId = "HistoricalPerformanceTest",
@@ -312,8 +315,7 @@ enum class PerformanceTestType(
         timeout = 2280,
         defaultBaselines = "3.5.1,4.10.3,5.6.4,last",
         channel = "historical",
-        extraParameters = "--checks none",
-        numberOfBuckets = 60
+        extraParameters = "--checks none"
     );
 
     fun asId(model: CIBuildModel): String =
