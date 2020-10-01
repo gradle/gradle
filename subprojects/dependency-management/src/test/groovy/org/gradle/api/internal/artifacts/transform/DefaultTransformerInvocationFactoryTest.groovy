@@ -251,7 +251,7 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
         transformationType << TransformationType.values()
     }
 
-    def "returns cached result on second run"() {
+    def "up-to-date on second run"() {
         def inputArtifact = temporaryFolder.file("input")
         inputArtifact.text = "my input"
         int transformerInvocations = 0
@@ -278,14 +278,20 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
         1 * artifactTransformListener.afterTransformerInvocation(_, _)
     }
 
-    def "returns cached result when previous execution failed"() {
+    def "re-runs transform when previous execution failed"() {
         def inputArtifact = temporaryFolder.file("input")
         inputArtifact.text = "my input"
         def failure = new RuntimeException("broken")
         int transformerInvocations = 0
         def transformer = TestTransformer.create { input, outputDir ->
             transformerInvocations++
-            throw failure
+            def outputFile = new File(outputDir, input.name)
+            assert !outputFile.exists()
+            outputFile.text = input.text + "transformed"
+            if (transformerInvocations == 1) {
+                throw failure
+            }
+            return [outputFile]
         }
 
         when:
@@ -301,9 +307,36 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
         when:
         invoke(transformer, inputArtifact, dependencies, TransformationSubject.initial(inputArtifact), fingerprinterRegistry)
         then:
-        transformerInvocations == 1
+        transformerInvocations == 2
         1 * artifactTransformListener.beforeTransformerInvocation(_, _)
         1 * artifactTransformListener.afterTransformerInvocation(_, _)
+    }
+
+    def "re-runs transform when output has been modified"() {
+        def inputArtifact = temporaryFolder.file("input")
+        inputArtifact.text = "my input"
+        File outputFile = null
+        int transformerInvocations = 0
+        def transformer = TestTransformer.create { input, outputDir ->
+            transformerInvocations++
+            outputFile = new File(outputDir, input.name)
+            assert !outputFile.exists()
+            outputFile.text = input.text + " transformed"
+            return [outputFile]
+        }
+
+        when:
+        invoke(transformer, inputArtifact, dependencies, TransformationSubject.initial(inputArtifact), fingerprinterRegistry)
+        then:
+        transformerInvocations == 1
+        outputFile?.isFile()
+
+        when:
+        fileSystemAccess.write([outputFile.absolutePath], { -> outputFile.text = "changed" })
+
+        invoke(transformer, inputArtifact, dependencies, TransformationSubject.initial(inputArtifact), fingerprinterRegistry)
+        then:
+        transformerInvocations == 2
     }
 
     @Unroll
