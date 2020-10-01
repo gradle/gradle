@@ -18,6 +18,7 @@ package gradlebuild.performance.tasks
 
 import com.google.common.collect.Sets
 import gradlebuild.integrationtests.tasks.DistributionTest
+import gradlebuild.performance.PerformanceTestService
 import gradlebuild.performance.ScenarioBuildResultData
 import gradlebuild.performance.reporter.PerformanceReporter
 import groovy.json.JsonOutput
@@ -118,6 +119,9 @@ abstract class PerformanceTest extends DistributionTest {
 
     private final PerformanceReporter performanceReporter = project.objects.newInstance(PerformanceReporter)
 
+    @Internal
+    abstract Property<PerformanceTestService> getPerformanceTestService()
+
     PerformanceTest() {
         getJvmArgumentProviders().add(new PerformanceTestJvmArgumentsProvider())
         getOutputs().doNotCacheIf("baselines contain version 'flakiness-detection-commit', 'last' or 'nightly'", { containsSpecialVersions() })
@@ -141,6 +145,7 @@ abstract class PerformanceTest extends DistributionTest {
     @Override
     @TaskAction
     void executeTests() {
+        performanceTestService.get()
         if (getScenarios() == null) {
             moveMethodFiltersToScenarios()
         }

@@ -37,6 +37,7 @@ import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter
 import org.gradle.api.provider.Property
+import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Delete
 import org.gradle.api.tasks.JavaExec
 import org.gradle.api.tasks.SourceSet
@@ -97,7 +98,8 @@ class PerformanceTestPlugin : Plugin<Project> {
 
     private
     fun Project.createExtension(performanceTestSourceSet: SourceSet, cleanTestProjectsTask: TaskProvider<Delete>): PerformanceTestExtension {
-        val performanceTestExtension = extensions.create<PerformanceTestExtension>("performanceTest", this, performanceTestSourceSet, cleanTestProjectsTask)
+        val buildService = registerBuildService()
+        val performanceTestExtension = extensions.create<PerformanceTestExtension>("performanceTest", this, performanceTestSourceSet, cleanTestProjectsTask, buildService)
         performanceTestExtension.baselines.set(stringPropertyOrNull(PropertyNames.baselines))
         return performanceTestExtension
     }
@@ -216,6 +218,12 @@ class PerformanceTestPlugin : Plugin<Project> {
     }
 
     private
+    fun Project.registerBuildService(): Provider<PerformanceTestService> =
+        gradle.sharedServices.registerIfAbsent("performanceTestService", PerformanceTestService::class) {
+            maxParallelUsages.set(1)
+        }
+
+    private
     fun Project.createAndWireCommitDistributionTask(extension: PerformanceTestExtension) {
         // The data flow here is:
         // extension.baselines -> determineBaselines.configuredBaselines
@@ -242,7 +250,12 @@ class PerformanceTestPlugin : Plugin<Project> {
 
 
 abstract
-class PerformanceTestExtension(private val project: Project, private val performanceSourceSet: SourceSet, private val cleanTestProjectsTask: TaskProvider<Delete>) {
+class PerformanceTestExtension(
+    private val project: Project,
+    private val performanceSourceSet: SourceSet,
+    private val cleanTestProjectsTask: TaskProvider<Delete>,
+    private val buildService: Provider<PerformanceTestService>
+) {
     private
     val registeredPerformanceTests: MutableList<TaskProvider<out Task>> = mutableListOf()
     private
@@ -313,6 +326,8 @@ class PerformanceTestExtension(private val project: Project, private val perform
             addDatabaseParameters(project.propertiesForPerformanceDb())
             testClassesDirs = performanceSourceSet.output.classesDirs
             classpath = performanceSourceSet.runtimeClasspath
+
+            performanceTestService.set(buildService)
 
             testProjectName.set(generatorTask.name)
             testProjectFiles.from(generatorTask)
