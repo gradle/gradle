@@ -77,7 +77,7 @@ class ExtractPrecompiledScriptPluginPluginsTest : TestWithTempFiles() {
                 """
                 buildscript {}
                 plugins { java }
-            """
+                """
             )
         )
 
@@ -100,14 +100,14 @@ class ExtractPrecompiledScriptPluginPluginsTest : TestWithTempFiles() {
                 "no-plugins.gradle.kts",
                 """
                 buildscript {}
-            """
+                """
             ),
 
             scriptPlugin(
                 "empty-plugins.gradle.kts",
                 """
                 plugins {}
-            """
+                """
             )
         )
 

@@ -138,7 +138,7 @@ class PluginAccessorsClassPathTest : TestWithClassPath() {
                      */
                     val `MyOwnPluginGroup`.`plugin`: PluginDependencySpec
                         get() = plugins.id("my.own.plugin")
-            """
+                    """
                 )
             )
         )

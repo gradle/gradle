@@ -20,7 +20,7 @@ class DelegatedGradlePropertiesIntegrationTest : AbstractKotlinIntegrationTest()
             """
             val nonExisting: String by settings
             println(nonExisting)
-        """
+            """
         )
 
         assertThat(
@@ -33,7 +33,7 @@ class DelegatedGradlePropertiesIntegrationTest : AbstractKotlinIntegrationTest()
             """
             val nonExisting: String by project
             println(nonExisting)
-        """
+            """
         )
 
         assertThat(
@@ -102,7 +102,7 @@ class DelegatedGradlePropertiesIntegrationTest : AbstractKotlinIntegrationTest()
             buildscript {
                 ${requirePropertiesFromProject()}
             }
-        """
+            """
         )
 
         // then:

@@ -81,7 +81,7 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
                             "theGradleProperty",
                             property
                         )
-                    """
+                        """
                     )
                 }
                 "gradlePropertyPluginConsumer" {
@@ -90,7 +90,7 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
                         dependencies {
                             implementation(project(":gradlePropertyPlugin"))
                         }
-                    """
+                        """
                     )
                     withFile(
                         "src/main/kotlin/gradlePropertyPluginConsumer.gradle.kts",
@@ -100,7 +100,7 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
                         if (theGradleProperty.isPresent) {
                             println("property is present in consumer!")
                         }
-                    """
+                        """
                     )
                 }
 
@@ -108,7 +108,7 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
                     """
                     include("gradlePropertyPlugin")
                     include("gradlePropertyPluginConsumer")
-                """
+                    """
                 )
                 withBuildScriptIn(
                     relativePath,
@@ -119,7 +119,7 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
                             runtimeOnly(project(it.path))
                         }
                     }
-                """
+                    """
                 )
             }
         }
@@ -127,7 +127,7 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
         withBuildScript(
             """
             plugins { gradlePropertyPluginConsumer }
-        """
+            """
         )
 
         build("help", "-PtheGradleProperty=42").apply {
@@ -172,7 +172,7 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
         withDefaultSettings().appendText(
             """
             rootProject.name = "invalid-plugin"
-        """
+            """
         )
 
         withKotlinDslPlugin()
@@ -183,7 +183,7 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
             plugins {
                 id("a.plugin") version "1.0"
             }
-        """
+            """
         )
 
         assertThat(
@@ -191,7 +191,7 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
             containsMultiLineString(
                 """
                 Invalid plugin request [id: 'a.plugin', version: '1.0']. Plugin requests from precompiled scripts must not include a version number. Please remove the version from the offending request and make sure the module containing the requested plugin 'a.plugin' is an implementation dependency of root project 'invalid-plugin'.
-            """
+                """
             )
         )
     }
@@ -214,7 +214,7 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
                     """
                     plugins { `external-app` }
                     println("*using " + external.name + " from local-app in " + project.name + "*")
-                """
+                    """
                 )
 
                 withFile(
@@ -222,7 +222,7 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
                     """
                     plugins { `external-lib` }
                     println("*using " + external.name + " from local-lib in " + project.name + "*")
-                """
+                    """
                 )
             }
         }
@@ -231,7 +231,7 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
             """
             include("foo")
             include("bar")
-        """
+            """
         )
 
         withFolders {
@@ -240,7 +240,7 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
                     "build.gradle.kts",
                     """
                     plugins { `local-app` }
-                """
+                    """
                 )
             }
             "bar" {
@@ -248,7 +248,7 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
                     "build.gradle.kts",
                     """
                     plugins { `local-lib` }
-                """
+                    """
                 )
             }
         }
@@ -280,7 +280,7 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
             dependencies {
                 implementation(kotlin("gradle-plugin"))
             }
-        """
+            """
         )
 
         withPrecompiledKotlinScript(
@@ -293,7 +293,7 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
 
             tasks.compileKotlin { kotlinOptions { } }
 
-        """
+            """
         )
 
         build("generatePrecompiledScriptPluginAccessors")
@@ -311,7 +311,7 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
             "my-java-library.gradle.kts",
             """
             plugins { java }
-        """
+            """
         )
 
         withPrecompiledKotlinScript(
@@ -322,7 +322,7 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
             java { }
 
             tasks.compileJava { }
-        """
+            """
         )
 
         compileKotlin()
@@ -348,7 +348,7 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
                         package app
                         plugins { `external-app` }
                         println("*using " + external.name + " from app/model in " + project.name + "*")
-                    """
+                        """
                     )
                     withFile(
                         "lib/model.gradle.kts",
@@ -356,7 +356,7 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
                         package lib
                         plugins { `external-lib` }
                         println("*using " + external.name + " from lib/model in " + project.name + "*")
-                    """
+                        """
                     )
                 }
             }
@@ -366,7 +366,7 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
             """
             include("lib")
             include("app")
-        """
+            """
         )
 
         withFolders {
@@ -375,7 +375,7 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
                     "build.gradle.kts",
                     """
                     plugins { lib.model }
-                """
+                    """
                 )
             }
             "app" {
@@ -383,7 +383,7 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
                     "build.gradle.kts",
                     """
                     plugins { app.model }
-                """
+                    """
                 )
             }
         }
@@ -408,7 +408,7 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
             "java-plugin.gradle.kts",
             """
             plugins { java }
-        """
+            """
         )
 
         withPrecompiledKotlinScript(
@@ -422,7 +422,7 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
             java { }
 
             tasks.compileJava { }
-        """
+            """
         )
 
         compileKotlin()
@@ -439,7 +439,7 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
             """
             package my
             plugins { java }
-        """
+            """
         )
 
         withPrecompiledKotlinScript(
@@ -450,7 +450,7 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
             java { }
 
             tasks.compileJava { }
-        """
+            """
         )
 
         compileKotlin()
@@ -464,7 +464,7 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
             "java-project.gradle.kts",
             """
             plugins { java }
-        """
+            """
         )
 
         val generatedSourceFiles =
@@ -528,7 +528,7 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
                 java
             }
 
-        """
+            """
         )
 
         val (project, pluginManager) = projectAndPluginManagerMocks()
@@ -586,7 +586,7 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
             dependencies {
                 implementation("com.github.jruby-gradle:jruby-gradle-plugin:1.4.0")
             }
-        """
+            """
         )
 
         withPrecompiledKotlinScript(
@@ -595,7 +595,7 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
             plugins {
                 com.github.`jruby-gradle`.base
             }
-        """
+            """
         )
 
         assertPrecompiledScriptPluginApplies(
@@ -630,7 +630,7 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
                 implementation(files("${pluginJar.normalisedPath}"))
             }
 
-        """
+            """
         )
 
         withPrecompiledKotlinScript(
@@ -639,7 +639,7 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
 
             plugins { $pluginId }
 
-        """
+            """
         )
     }
 
@@ -672,7 +672,7 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
                         """
                         $packageDeclaration
                         println("*external-foo applied*")
-                    """
+                        """
                     )
                 }
                 "external-bar" {
@@ -682,13 +682,13 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
                         """
                         $packageDeclaration
                         println("*external-bar applied*")
-                    """
+                        """
                     )
                 }
                 withDefaultSettingsIn(relativePath).appendText(
                     """
                     include("external-foo", "external-bar")
-                """
+                    """
                 )
             }
             build("assemble")
@@ -705,14 +705,14 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
                         """
                         $packageDeclaration
                         plugins { $packageQualifier`external-foo` }
-                    """
+                        """
                     )
                     withKotlinDslPlugin().appendText(
                         """
                         dependencies {
                             implementation(files("${externalFoo.normalisedPath}"))
                         }
-                    """
+                        """
                     )
                 }
                 "local-bar" {
@@ -721,20 +721,20 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
                         """
                         $packageDeclaration
                         plugins { $packageQualifier`external-bar` }
-                    """
+                        """
                     )
                     withKotlinDslPlugin().appendText(
                         """
                         dependencies {
                             implementation(files("${externalBar.normalisedPath}"))
                         }
-                    """
+                        """
                     )
                 }
                 withDefaultSettingsIn(relativePath).appendText(
                     """
                     include("local-foo", "local-bar")
-                """
+                    """
                 )
                 withFile(
                     "build.gradle.kts",
@@ -744,7 +744,7 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
                             runtimeOnly(project(it.path))
                         }
                     }
-                """
+                    """
                 )
             }
         }
@@ -754,7 +754,7 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
                 $packageQualifier`local-foo`
                 $packageQualifier`local-bar`
             }
-        """
+            """
         )
 
         assertThat(
@@ -779,20 +779,20 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
                             """
                             open class App { var name: String = "app" }
                             open class Lib { var name: String = "lib" }
-                        """
+                            """
                         )
                     }
                     withFile(
                         "external-app.gradle.kts",
                         """
                         extensions.create("external", App::class)
-                    """
+                        """
                     )
                     withFile(
                         "external-lib.gradle.kts",
                         """
                         extensions.create("external", Lib::class)
-                    """
+                        """
                     )
                 }
             }

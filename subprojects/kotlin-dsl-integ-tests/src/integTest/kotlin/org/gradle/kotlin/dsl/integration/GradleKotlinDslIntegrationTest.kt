@@ -96,13 +96,13 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
                     println("*" + answer + "*")
                 }
             }
-        """
+            """
         )
 
         withBuildScript(
             """
             apply(from = "other.gradle.kts")
-        """
+            """
         )
 
         assert(
@@ -120,7 +120,7 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
             class DeepThought {
                 def compute() { 42 }
             }
-        """
+            """
         )
 
         withBuildScript(
@@ -132,7 +132,7 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
                     println("*" + answer + "*")
                 }
             }
-        """
+            """
         )
 
         assert(
@@ -154,7 +154,7 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
             class DeepThought() {
                 fun compute(handler: (Int) -> Unit) { handler(42) }
             }
-        """
+            """
         )
 
         withFile(
@@ -178,7 +178,7 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
                     }
                 }
             }
-        """
+            """
         )
 
         withBuildScript(
@@ -191,7 +191,7 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
                 }
             }
             apply<build.DeepThoughtPlugin>()
-        """
+            """
         )
 
         val output = build("compute").output
@@ -237,7 +237,7 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
                     println(KotlinCompilerVersion.VERSION + compileOptions)
                 }
             }
-        """
+            """
         )
 
         assertThat(
@@ -261,7 +261,7 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
                     println(plugins.map { "*" + it::class.simpleName + "*" })
                 }
             }
-        """
+            """
         )
 
         assertThat(
@@ -279,7 +279,7 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
             gradle.buildFinished(closureOf<org.gradle.BuildResult> {
                 println("*" + action + "*") // <- BuildResult.getAction()
             })
-        """
+            """
         )
 
         assert(
@@ -297,7 +297,7 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
             buildscript { // line 4
                 throw IllegalStateException() // line 5
             }
-        """
+            """
         )
 
         assertThat(
@@ -313,7 +313,7 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
             """ // line 1
             buildscript {}  // line 2
             buildscript {}  // line 3
-        """
+            """
         )
 
         assertThat(
@@ -329,7 +329,7 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
             """ // line 1
             plugins {}      // line 2
             plugins {}      // line 3
-        """
+            """
         )
 
         assertThat(
@@ -358,7 +358,7 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
                 $block {
                     val module = "foo:bar:${'$'}fooBarVersion"
                 }
-            """
+                """
             )
 
         assertThat(
@@ -377,7 +377,7 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
             buildscript {
                 dependencies { classpath(files("fixture.jar")) }
             }
-        """
+            """
         )
 
         withSettings("include(\"sub-project\")")
@@ -392,7 +392,7 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
                     println("*" + answer + "*")
                 }
             }
-        """
+            """
         )
 
         assert(
@@ -415,13 +415,13 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
             "settings.gradle",
             """
             println 'Groovy DSL Settings'
-        """
+            """
         )
 
         withBuildScript(
             """
             println("Kotlin DSL Build Script")
-        """
+            """
         )
 
         assertThat(
@@ -448,7 +448,7 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
             val groups = regex.matchEntire("abc")?.groups
             println("*" + groups?.get("bla")?.value + "*")
 
-        """
+            """
         )
 
         assertThat(
@@ -470,7 +470,7 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
             }
 
             println(org.apache.commons.lang3.StringUtils.reverse("Gradle"))
-        """
+            """
         )
 
         assertThat(
@@ -488,13 +488,13 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
             fun Project.targetName() = "Project"
             fun Settings.targetName() = "Settings"
             println("Target is " + targetName())
-        """
+            """
         )
 
         withSettings(
             """
             apply(from = "common.gradle.kts")
-        """
+            """
         )
 
         assertThat(
@@ -506,7 +506,7 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
         withBuildScript(
             """
             apply(from = "common.gradle.kts")
-        """
+            """
         )
 
         assertThat(
@@ -559,7 +559,7 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
             inline fun bar(f: (Any) -> Boolean) = print("*" + f(Unit) + "*")
 
             bar(::foo)
-        """
+            """
         )
 
         assertThat(
@@ -590,7 +590,7 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
                           ^ Unresolved reference: foo
 
                 1 error
-            """.replaceIndent()
+                """.replaceIndent()
             )
         )
     }
@@ -615,7 +615,7 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
                               public val PluginDependenciesSpec.publishing: PluginDependencySpec defined in org.gradle.kotlin.dsl
 
                 2 errors
-            """.replaceIndent()
+                """.replaceIndent()
             )
         )
     }
@@ -637,28 +637,28 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
                     * What went wrong:
                     Script compilation errors:
 
-                """.replaceIndent()
+                    """.replaceIndent()
                 ),
 
                 containsString(
                     """
-                |  Line 01: println(foo)
-                |                   ^ Unresolved reference: foo
-                """.trimMargin()
+                    |  Line 01: println(foo)
+                    |                   ^ Unresolved reference: foo
+                    """.trimMargin()
                 ),
 
                 containsString(
                     """
-                |  Line 06: println("foo").bar.bazar
-                |                          ^ Unresolved reference: bar
-                """.trimMargin()
+                    |  Line 06: println("foo").bar.bazar
+                    |                          ^ Unresolved reference: bar
+                    """.trimMargin()
                 ),
 
                 containsString(
                     """
-                |  Line 10: println(cathedral)
-                |                   ^ Unresolved reference: cathedral
-                """.trimMargin()
+                    |  Line 10: println(cathedral)
+                    |                   ^ Unresolved reference: cathedral
+                    """.trimMargin()
                 )
             )
         )
@@ -679,7 +679,7 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
 
             val answer by extra { "42" }
 
-        """
+            """
         )
 
         MockWebServer().use { server ->
@@ -694,7 +694,7 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
                 apply(from = "$remoteScriptUrl")
                 val answer: String by extra
                 println("*" + answer + "*")
-            """
+                """
             )
 
             assert(build().output.contains("*42*"))
@@ -731,7 +731,7 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
 
             val answer by extra { "42" }
 
-        """
+            """
         )
 
         withBuildScript(
@@ -744,7 +744,7 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
 
             val answer: String by extra
             println("*" + answer + "*")
-        """
+            """
         )
 
         assert(build().output.contains("*42*"))
@@ -757,27 +757,27 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
             "some.init.gradle.kts",
             """
             println("init: ${'$'}{initscript.sourceFile}")
-        """
+            """
         )
 
         val settings = withSettings(
             """
             println("settings: ${'$'}{buildscript.sourceFile}")
-        """
+            """
         )
 
         val other = withFile(
             "other.gradle.kts",
             """
             println("other: ${'$'}{buildscript.sourceFile}")
-        """
+            """
         )
 
         val main = withBuildScript(
             """
             apply(from = "other.gradle.kts")
             println("main: ${'$'}{buildscript.sourceFile}")
-        """
+            """
         )
 
         assertThat(
@@ -788,7 +788,7 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
                 settings: ${settings.absolutePath}
                 other: ${other.absolutePath}
                 main: ${main.absolutePath}
-            """
+                """
             )
         )
     }
@@ -810,7 +810,7 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
                     }
                 }
             }
-        """
+            """
         )
 
         withSettings(
@@ -823,7 +823,7 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
                     }
                 }
             }
-        """
+            """
         )
 
         withBuildScript(
@@ -835,7 +835,7 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
                     }
                 }
             }
-        """
+            """
         )
 
         withFile(
@@ -851,7 +851,7 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
                     println("*" + deep.compute() + "*")
                 }
             }
-        """
+            """
         )
 
         assertThat(
@@ -861,7 +861,7 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
                 *0*
                 *23*
                 *42*
-            """
+                """
             )
         )
     }
@@ -891,7 +891,7 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
             }
 
             $repositoriesBlock
-        """
+            """
         )
 
         withFile(
@@ -911,7 +911,7 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
                     extensions.add(typeOf<NamedDomainObjectContainer<Book>>(), "books", container(Book::class))
                 }
             }
-        """
+            """
         )
 
         withBuildScript(
@@ -936,7 +936,7 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
                 create("The Dosadi experiment")
             }
             require(the<NamedDomainObjectContainer<my.Book>>().size == 1)
-        """
+            """
         )
 
         build("help")
@@ -953,7 +953,7 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
                     println(project.properties.getOrDefault("non-existent-property", "default-value"))
                 }
             }
-        """
+            """
         )
 
         assertThat(
@@ -970,13 +970,13 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
             """
             package gradle
             task("ok") { doLast { println("ok!") } }
-        """
+            """
         )
 
         withBuildScript(
             """
             apply(from = "gradle/script.gradle.kts")
-        """
+            """
         )
 
         assertThat(

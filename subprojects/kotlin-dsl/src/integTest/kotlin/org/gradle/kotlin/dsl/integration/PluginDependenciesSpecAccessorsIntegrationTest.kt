@@ -40,7 +40,7 @@ class PluginDependenciesSpecAccessorsIntegrationTest : AbstractKotlinIntegration
             """
             package my
             println("*my.plugin-a*")
-        """
+            """
         )
 
         withDefaultSettings()
@@ -49,7 +49,7 @@ class PluginDependenciesSpecAccessorsIntegrationTest : AbstractKotlinIntegration
             plugins {
                 my.`plugin-a`
             }
-        """
+            """
         )
 
         assertThat(

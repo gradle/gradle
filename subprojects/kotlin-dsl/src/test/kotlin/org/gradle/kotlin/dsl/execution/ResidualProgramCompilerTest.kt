@@ -403,7 +403,7 @@ class ResidualProgramCompilerTest : TestWithCompiler() {
             buildscript { println("stage 1 buildscript") }
             plugins { println("stage 1 plugins") }
             print("stage 2")
-        """.replaceIndent()
+            """.replaceIndent()
         )
 
         val buildscript = Program.Buildscript(source.fragment(0..10, 12..45))
@@ -455,7 +455,7 @@ class ResidualProgramCompilerTest : TestWithCompiler() {
             """
             pluginManagement { println("stage 1 pluginManagement") }
             plugins { println("stage 1 plugins") }
-        """.replaceIndent()
+            """.replaceIndent()
         )
         val pluginManagement = Program.PluginManagement(source.fragment(0..15, 17..55))
         val plugins = Program.Plugins(source.fragment(57..62, 64..94))

@@ -62,7 +62,7 @@ class PrecompiledScriptPluginTemplatesTest : AbstractPrecompiledScriptPluginTest
 
             task("my-task")
 
-        """
+            """
         )
 
         val task = mock<Task>()
@@ -93,7 +93,7 @@ class PrecompiledScriptPluginTemplatesTest : AbstractPrecompiledScriptPluginTest
 
             include("my-project")
 
-        """
+            """
         )
 
         val settings = mock<Settings>()
@@ -118,7 +118,7 @@ class PrecompiledScriptPluginTemplatesTest : AbstractPrecompiledScriptPluginTest
 
             useLogger("my-logger")
 
-        """
+            """
         )
 
         val gradle = mock<Gradle>()
@@ -146,7 +146,7 @@ class PrecompiledScriptPluginTemplatesTest : AbstractPrecompiledScriptPluginTest
             "src/main/kotlin/my-project-script.gradle.kts",
             """
             throw IllegalStateException("$expectedMessage")
-        """
+            """
         )
 
         // when:
@@ -180,7 +180,7 @@ class PrecompiledScriptPluginTemplatesTest : AbstractPrecompiledScriptPluginTest
 
             task<Jar>("jar")
 
-        """
+            """
         )
 
         val task = mock<Jar>()
@@ -217,7 +217,7 @@ class PrecompiledScriptPluginTemplatesTest : AbstractPrecompiledScriptPluginTest
                         "my-plugin.gradle.kts",
                         """
                         println("my-plugin applied!")
-                    """
+                        """
                     )
 
                     // Settings plugins must be named `*.settings.gradle.kts`
@@ -225,7 +225,7 @@ class PrecompiledScriptPluginTemplatesTest : AbstractPrecompiledScriptPluginTest
                         "my-settings-plugin.settings.gradle.kts",
                         """
                         println("my-settings-plugin applied!")
-                    """
+                        """
                     )
 
                     // Gradle object plugins, a.k.a., precompiled init script plugins,
@@ -234,7 +234,7 @@ class PrecompiledScriptPluginTemplatesTest : AbstractPrecompiledScriptPluginTest
                         "my-init-plugin.init.gradle.kts",
                         """
                         println("my-init-plugin applied!")
-                    """
+                        """
                     )
 
                     // plugin id for script with package declaration is the
@@ -245,7 +245,7 @@ class PrecompiledScriptPluginTemplatesTest : AbstractPrecompiledScriptPluginTest
                         package org.acme
 
                         println("my-other-plugin applied!")
-                    """
+                        """
                     )
                 }
 
@@ -275,7 +275,7 @@ class PrecompiledScriptPluginTemplatesTest : AbstractPrecompiledScriptPluginTest
 
             gradle.apply<MyInitPluginPlugin>()
             apply(plugin = "my-settings-plugin")
-        """
+            """
         )
 
         withFile(
@@ -284,7 +284,7 @@ class PrecompiledScriptPluginTemplatesTest : AbstractPrecompiledScriptPluginTest
             dependencies {
                 api files("../${movedPluginJar.name}")
             }
-        """
+            """
         )
 
         withBuildScript(
@@ -293,7 +293,7 @@ class PrecompiledScriptPluginTemplatesTest : AbstractPrecompiledScriptPluginTest
                 id("my-plugin")
                 id("org.acme.my-other-plugin")
             }
-        """
+            """
         )
 
 
@@ -320,7 +320,7 @@ class PrecompiledScriptPluginTemplatesTest : AbstractPrecompiledScriptPluginTest
                 "my-plugin.gradle.kts",
                 """
                 println("my-plugin applied!")
-            """
+                """
             )
 
             withFile(
@@ -329,7 +329,7 @@ class PrecompiledScriptPluginTemplatesTest : AbstractPrecompiledScriptPluginTest
                 package org.acme
 
                 println("org.acme.my-other-plugin applied!")
-            """
+                """
             )
 
             withFile(
@@ -338,7 +338,7 @@ class PrecompiledScriptPluginTemplatesTest : AbstractPrecompiledScriptPluginTest
                 package org.acme.plugins
 
                 println("org.acme.plugins.my-init applied!")
-            """
+                """
             )
         }
 
@@ -349,7 +349,7 @@ class PrecompiledScriptPluginTemplatesTest : AbstractPrecompiledScriptPluginTest
             pluginManagement {
                 $repositoriesBlock
             }
-        """
+            """
         )
 
         withBuildScript(
@@ -358,7 +358,7 @@ class PrecompiledScriptPluginTemplatesTest : AbstractPrecompiledScriptPluginTest
                 id("my-plugin") version "1.0"
                 id("org.acme.my-other-plugin") version "1.0"
             }
-        """
+            """
         )
 
         val initScript =
@@ -377,7 +377,7 @@ class PrecompiledScriptPluginTemplatesTest : AbstractPrecompiledScriptPluginTest
 
                 // TODO: can't apply plugin by id
                 // apply(plugin = "org.acme.plugins.my-init")
-            """
+                """
             )
 
         assertThat(
@@ -408,7 +408,7 @@ class PrecompiledScriptPluginTemplatesTest : AbstractPrecompiledScriptPluginTest
                 42UL -> print("42!")
                 else -> throw IllegalStateException()
             }
-        """
+            """
         )
 
         assertStandardOutputOf("42!") {
@@ -474,7 +474,7 @@ class PrecompiledScriptPluginTemplatesTest : AbstractPrecompiledScriptPluginTest
                     java
                 }
             }
-        """
+            """
         )
 
         buildAndFail("classes").run {
@@ -505,7 +505,7 @@ class PrecompiledScriptPluginTemplatesTest : AbstractPrecompiledScriptPluginTest
 
                 apply { plugin<GradlePlugin>() }
 
-            """
+                """
             )
 
             withFile(
@@ -520,7 +520,7 @@ class PrecompiledScriptPluginTemplatesTest : AbstractPrecompiledScriptPluginTest
 
                 apply { plugin<SettingsPlugin>() }
 
-            """
+                """
             )
 
             withFile(
@@ -540,7 +540,7 @@ class PrecompiledScriptPluginTemplatesTest : AbstractPrecompiledScriptPluginTest
                 subprojects {
                     apply { plugin<ProjectPlugin>() }
                 }
-            """
+                """
             )
         }
 
@@ -559,13 +559,13 @@ class PrecompiledScriptPluginTemplatesTest : AbstractPrecompiledScriptPluginTest
             rootProject.name = "foo"
 
             include("bar")
-        """
+            """
         )
 
         withBuildScript(
             """
             plugins { id("MyProject") }
-        """
+            """
         )
 
         assertThat(
@@ -591,7 +591,7 @@ class PrecompiledScriptPluginTemplatesTest : AbstractPrecompiledScriptPluginTest
             project(":nested") {
                 apply(from = "./gradle/conventions.gradle.kts")
             }
-        """
+            """
         )
 
         val configurationAction = mock<ObjectConfigurationAction>()
@@ -637,7 +637,7 @@ class PrecompiledScriptPluginTemplatesTest : AbstractPrecompiledScriptPluginTest
             """
             val ${T::class.simpleName}.receiver get() = this
             (receiver as ${HasConvention::class.qualifiedName}).convention.add("receiver", receiver)
-        """
+            """
         )
 
         val convention = mock<Convention>()
@@ -669,7 +669,7 @@ class PrecompiledScriptPluginTemplatesTest : AbstractPrecompiledScriptPluginTest
                 require(this === receiver)
                 print("42!")
             }
-        """
+            """
         )
 
         assertStandardOutputOf("42!") {
@@ -722,7 +722,7 @@ class PrecompiledScriptPluginTemplatesTest : AbstractPrecompiledScriptPluginTest
                     publishing {
                         ${repositoriesBlockFor(repository)}
                     }
-                """
+                    """
                 )
             }
         }

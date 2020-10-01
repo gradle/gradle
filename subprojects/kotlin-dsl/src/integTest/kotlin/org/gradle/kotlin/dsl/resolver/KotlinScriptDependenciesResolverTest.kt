@@ -133,7 +133,7 @@ class KotlinScriptDependenciesResolverTest : AbstractKotlinIntegrationTest() {
         withDefaultSettings().appendText(
             """
             apply(plugin = "my-plugin")
-        """
+            """
         )
 
         assertSucceedsForScriptWithReceiver(
@@ -153,7 +153,7 @@ class KotlinScriptDependenciesResolverTest : AbstractKotlinIntegrationTest() {
             plugins {
                 id("my-plugin")
             }
-        """
+            """
         )
 
         assertSucceedsForScriptWithReceiver(
@@ -186,7 +186,7 @@ class KotlinScriptDependenciesResolverTest : AbstractKotlinIntegrationTest() {
                 require(System.getProperty("myGradleSysProp") == "systemValue") { "gradleOptions system property" }
                 require(findProperty("myGradleProp") == "gradleValue") { "gradleOptions Gradle property" }
                 require(System.getenv("myEnvVar") == "envValue") { "gradleEnvironmentVariables" }
-            """
+                """
             ),
             "gradleJvmOptions" to listOf("-DmyJvmSysProp=systemValue"),
             "gradleOptions" to listOf("-DmyGradleSysProp=systemValue", "-PmyGradleProp=gradleValue"),
@@ -240,7 +240,7 @@ class KotlinScriptDependenciesResolverTest : AbstractKotlinIntegrationTest() {
             "buildSrc/src/main/kotlin/Foo.kt",
             """
             BOOM
-        """
+            """
         )
 
         val editedScript = withBuildScript("")
@@ -287,7 +287,7 @@ class KotlinScriptDependenciesResolverTest : AbstractKotlinIntegrationTest() {
         val editedScript = withBuildScript(
             """
             doNotExists()
-        """
+            """
         )
 
         resolvedScriptDependencies(editedScript).apply {
@@ -307,14 +307,14 @@ class KotlinScriptDependenciesResolverTest : AbstractKotlinIntegrationTest() {
         withDefaultSettings().appendText(
             """
             include("a", "b")
-        """
+            """
         )
         withBuildScript("")
         withBuildScriptIn(
             "a",
             """
             doNotExists()
-        """
+            """
         )
         val editedScript = withBuildScriptIn("b", "")
 
@@ -335,7 +335,7 @@ class KotlinScriptDependenciesResolverTest : AbstractKotlinIntegrationTest() {
         val editedScript = withBuildScript(
             """
             configurations.getByName("doNotExists")
-        """
+            """
         )
 
         resolvedScriptDependencies(editedScript).apply {
@@ -356,12 +356,12 @@ class KotlinScriptDependenciesResolverTest : AbstractKotlinIntegrationTest() {
             "gradle.properties",
             """
             ${EditorReports.locationAwareEditorHintsPropertyName}=true
-        """
+            """
         )
         val editedScript = withBuildScript(
             """
             configurations.getByName("doNotExists")
-        """
+            """
         )
 
         resolvedScriptDependencies(editedScript).apply {
@@ -381,14 +381,14 @@ class KotlinScriptDependenciesResolverTest : AbstractKotlinIntegrationTest() {
         withDefaultSettings().appendText(
             """
             include("a", "b")
-        """
+            """
         )
         withBuildScript("")
         withBuildScriptIn(
             "a",
             """
             configurations.getByName("doNotExists")
-        """
+            """
         )
         val editedScript = withBuildScriptIn("b", "")
 

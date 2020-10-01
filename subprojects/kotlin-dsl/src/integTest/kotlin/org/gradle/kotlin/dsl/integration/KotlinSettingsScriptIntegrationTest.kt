@@ -39,7 +39,7 @@ class KotlinSettingsScriptIntegrationTest : AbstractKotlinIntegrationTest() {
             apply {
                 plugin<MySettingsPlugin>()
             }
-        """
+            """
         )
 
         withBuildScript("")
@@ -59,7 +59,7 @@ class KotlinSettingsScriptIntegrationTest : AbstractKotlinIntegrationTest() {
             plugins {
                 id("test.MySettingsPlugin").version("1.0")
             }
-        """
+            """
         )
 
         assertThat(
@@ -75,7 +75,7 @@ class KotlinSettingsScriptIntegrationTest : AbstractKotlinIntegrationTest() {
             "gradle/my.settings.gradle.kts",
             """
             apply(from = "./answer.settings.gradle.kts")
-        """
+            """
         )
 
         withFile(
@@ -84,20 +84,20 @@ class KotlinSettingsScriptIntegrationTest : AbstractKotlinIntegrationTest() {
             gradle.rootProject {
                 val answer by extra { "42" }
             }
-        """
+            """
         )
 
         withSettings(
             """
             apply(from = "gradle/my.settings.gradle.kts")
-        """
+            """
         )
 
         withBuildScript(
             """
             val answer: String by extra
             println("*" + answer + "*")
-        """
+            """
         )
 
         assertThat(
@@ -113,7 +113,7 @@ class KotlinSettingsScriptIntegrationTest : AbstractKotlinIntegrationTest() {
             """
             pluginManagement {}
             pluginManagement {}
-        """
+            """
         )
 
         assertThat(
@@ -143,13 +143,13 @@ class KotlinSettingsScriptIntegrationTest : AbstractKotlinIntegrationTest() {
                     }
                 }
             }
-        """
+            """
         )
 
         withSettings(
             """
             apply(from = "other.settings.gradle.kts")
-        """
+            """
         )
 
         assert(

@@ -60,7 +60,7 @@ class TestKitIntegrationTest : AbstractKotlinIntegrationTest() {
 
             $repositoriesBlock
 
-        """
+            """
         )
 
         withFile(
@@ -81,7 +81,7 @@ class TestKitIntegrationTest : AbstractKotlinIntegrationTest() {
             open class TestExtension {
                 fun ack() = println("Ack!")
             }
-        """
+            """
         )
 
         withFile(
@@ -134,7 +134,7 @@ class TestKitIntegrationTest : AbstractKotlinIntegrationTest() {
 
                 @Rule @JvmField val temporaryFolder = TemporaryFolder()
             }
-        """
+            """
         )
 
         println(

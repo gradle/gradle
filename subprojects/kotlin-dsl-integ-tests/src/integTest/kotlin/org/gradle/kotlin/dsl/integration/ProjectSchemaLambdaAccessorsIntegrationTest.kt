@@ -55,7 +55,7 @@ class ProjectSchemaLambdaAccessorsIntegrationTest : AbstractPluginIntegrationTes
 
             val casted = closureExtension as groovy.lang.Closure<*>
             println(casted.call("some"))
-        """
+            """
         )
 
         build("help").apply {
@@ -76,7 +76,7 @@ class ProjectSchemaLambdaAccessorsIntegrationTest : AbstractPluginIntegrationTes
             extensions.add("lambdaExtension", { name: String ->
                 name.toUpperCase()
             })
-        """
+            """
         )
 
         withBuildScript(
@@ -91,7 +91,7 @@ class ProjectSchemaLambdaAccessorsIntegrationTest : AbstractPluginIntegrationTes
 
             val casted = lambdaExtension as (String) -> String
             println(casted.invoke("some"))
-        """
+            """
         )
 
         build("help").apply {
@@ -119,7 +119,7 @@ class ProjectSchemaLambdaAccessorsIntegrationTest : AbstractPluginIntegrationTes
                     }
                 }
             }
-        """
+            """
         )
         withFile(
             "buildSrc/src/main/java/my/MyPlugin.java",
@@ -135,7 +135,7 @@ class ProjectSchemaLambdaAccessorsIntegrationTest : AbstractPluginIntegrationTes
                     project.getExtensions().add("lambdaExtension", lambda);
                 }
             }
-        """
+            """
         )
 
         withBuildScript(
@@ -152,7 +152,7 @@ class ProjectSchemaLambdaAccessorsIntegrationTest : AbstractPluginIntegrationTes
 
             val casted = lambdaExtension as Function<String, String>
             println(casted.apply("some"))
-        """
+            """
         )
 
         build("help").apply {
@@ -189,7 +189,7 @@ class ProjectSchemaLambdaAccessorsIntegrationTest : AbstractPluginIntegrationTes
             println("closureExtension: " + typeOf(closureExtension))
 
             println(closureExtension.call("some"))
-        """
+            """
         )
 
         build("help").apply {
@@ -211,7 +211,7 @@ class ProjectSchemaLambdaAccessorsIntegrationTest : AbstractPluginIntegrationTes
             val typeToken = typeOf<(String) -> String>()
             val lambda = { name: String ->  name.toUpperCase() }
             extensions.add(typeToken, "lambdaExtension", lambda)
-        """
+            """
         )
 
         withBuildScript(
@@ -225,7 +225,7 @@ class ProjectSchemaLambdaAccessorsIntegrationTest : AbstractPluginIntegrationTes
             println("lambdaExtension: " + typeOf(lambdaExtension))
 
             println(lambdaExtension("some"))
-        """
+            """
         )
 
         build("help").apply {
@@ -255,7 +255,7 @@ class ProjectSchemaLambdaAccessorsIntegrationTest : AbstractPluginIntegrationTes
                     }
                 }
             }
-        """
+            """
         )
         withFile(
             "buildSrc/src/main/java/my/MyPlugin.java",
@@ -273,7 +273,7 @@ class ProjectSchemaLambdaAccessorsIntegrationTest : AbstractPluginIntegrationTes
                     project.getExtensions().add(typeToken, "lambdaExtension", lambda);
                 }
             }
-        """
+            """
         )
 
         withBuildScript(
@@ -290,7 +290,7 @@ class ProjectSchemaLambdaAccessorsIntegrationTest : AbstractPluginIntegrationTes
 
             val casted = lambdaExtension as Function<String, String>
             println(casted.apply("some"))
-        """
+            """
         )
 
 

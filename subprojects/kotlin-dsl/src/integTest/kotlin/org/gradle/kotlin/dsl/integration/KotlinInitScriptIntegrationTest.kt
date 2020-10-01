@@ -29,7 +29,7 @@ class KotlinInitScriptIntegrationTest : AbstractKotlinIntegrationTest() {
                 val computer = ${DeepThought::class.qualifiedName}()
                 val answer = computer.compute()
                 println("*" + answer + "*")
-            """
+                """
             )
 
         assert(
@@ -46,7 +46,7 @@ class KotlinInitScriptIntegrationTest : AbstractKotlinIntegrationTest() {
                 "gradle/init.gradle.kts",
                 """
                 apply(from = "./answer.gradle.kts")
-            """
+                """
             )
 
         withFile(
@@ -55,14 +55,14 @@ class KotlinInitScriptIntegrationTest : AbstractKotlinIntegrationTest() {
             rootProject {
                 val answer by extra { "42" }
             }
-        """
+            """
         )
 
         withBuildScript(
             """
             val answer: String by extra
             println("*" + answer + "*")
-        """
+            """
         )
 
         assert(
@@ -90,7 +90,7 @@ class KotlinInitScriptIntegrationTest : AbstractKotlinIntegrationTest() {
                             }
                         }
                     }
-                """
+                    """
                 )
             }
         }
@@ -102,7 +102,7 @@ class KotlinInitScriptIntegrationTest : AbstractKotlinIntegrationTest() {
                     println("*" + it.name + "*")
                 }
             }
-        """
+            """
         )
 
         executer.withGradleUserHomeDir(guh)
@@ -135,7 +135,7 @@ class KotlinInitScriptIntegrationTest : AbstractKotlinIntegrationTest() {
                     }
                 }
             }
-        """
+            """
         )
 
         val initScript =
@@ -143,7 +143,7 @@ class KotlinInitScriptIntegrationTest : AbstractKotlinIntegrationTest() {
                 "init.gradle.kts",
                 """
                 apply(from = "plugin.init.gradle.kts")
-            """
+                """
             )
 
         withSettings("")

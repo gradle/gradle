@@ -117,7 +117,7 @@ class SinceAndIncubatingRulesKotlinTest : AbstractBinaryCompatibilityTest() {
 
             const val cathedral = "cathedral"
 
-        """
+            """
         ) {
 
             assertHasNoInformation()
@@ -198,7 +198,7 @@ class SinceAndIncubatingRulesKotlinTest : AbstractBinaryCompatibilityTest() {
 
                     /** @since 2.0 */
                     const val cathedral = "cathedral"
-                """
+                    """
                 )
             }
         ) {
@@ -242,7 +242,7 @@ class SinceAndIncubatingRulesKotlinTest : AbstractBinaryCompatibilityTest() {
 
             object Cathedral
 
-        """
+            """
         ) {
 
             assertHasNoInformation()
@@ -278,7 +278,7 @@ class SinceAndIncubatingRulesKotlinTest : AbstractBinaryCompatibilityTest() {
             @Incubating
             object Cathedral
 
-        """
+            """
         ) {
 
             assertHasNoWarning()
@@ -325,7 +325,7 @@ class SinceAndIncubatingRulesKotlinTest : AbstractBinaryCompatibilityTest() {
                 $publicKotlinMembers
             }
 
-        """
+            """
         ) {
 
             assertHasNoInformation()
@@ -373,7 +373,7 @@ class SinceAndIncubatingRulesKotlinTest : AbstractBinaryCompatibilityTest() {
                 $annotatedKotlinMembers
             }
 
-        """
+            """
         ) {
 
             assertHasNoWarning()

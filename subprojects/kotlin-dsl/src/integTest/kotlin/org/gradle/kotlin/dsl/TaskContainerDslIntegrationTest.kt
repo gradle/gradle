@@ -119,7 +119,7 @@ class TaskContainerDslIntegrationTest : AbstractKotlinIntegrationTest() {
                 description += "!"
                 destinationDir = file("out")
             }
-        """
+            """
         )
     }
 
@@ -194,7 +194,7 @@ class TaskContainerDslIntegrationTest : AbstractKotlinIntegrationTest() {
                     destinationDir = file("out")
                 }
             }
-        """
+            """
         )
     }
 
@@ -257,7 +257,7 @@ class TaskContainerDslIntegrationTest : AbstractKotlinIntegrationTest() {
 
             untyped()
             typed()
-        """
+            """
         )
     }
 
@@ -325,7 +325,7 @@ class TaskContainerDslIntegrationTest : AbstractKotlinIntegrationTest() {
 
             untyped()
             typed()
-        """
+            """
         )
     }
 

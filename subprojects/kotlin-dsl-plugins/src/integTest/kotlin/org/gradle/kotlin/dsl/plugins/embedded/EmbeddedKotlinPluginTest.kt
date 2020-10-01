@@ -47,7 +47,7 @@ class EmbeddedKotlinPluginTest : AbstractPluginTest() {
 
             $repositoriesBlock
 
-        """
+            """
         )
 
         val result = build("assemble")
@@ -85,7 +85,7 @@ class EmbeddedKotlinPluginTest : AbstractPluginTest() {
                 }
             }
 
-        """
+            """
         )
 
         build("assertions")
@@ -113,7 +113,7 @@ class EmbeddedKotlinPluginTest : AbstractPluginTest() {
 
             configurations["compileClasspath"].files.map { println(it) }
 
-        """
+            """
         )
 
         val result = build("dependencies")
@@ -171,7 +171,7 @@ class EmbeddedKotlinPluginTest : AbstractPluginTest() {
 
             printFileNamesOf<SourcesArtifact>()
             printFileNamesOf<JavadocArtifact>()
-        """
+            """
         )
 
         val result = build("help")
@@ -200,7 +200,7 @@ class EmbeddedKotlinPluginTest : AbstractPluginTest() {
             customConfiguration.extendsFrom(configurations["embeddedKotlin"])
 
             configurations["customConfiguration"].files.map { println(it) }
-        """
+            """
         )
 
         val result = build("dependencies", "--configuration", "customConfiguration")
@@ -227,7 +227,7 @@ class EmbeddedKotlinPluginTest : AbstractPluginTest() {
 
             $repositoriesBlock
 
-        """
+            """
         )
 
         withFile("src/main/kotlin/source.kt", """var foo = "bar"""")

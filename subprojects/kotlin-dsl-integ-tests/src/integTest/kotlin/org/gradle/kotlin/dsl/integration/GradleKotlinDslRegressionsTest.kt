@@ -32,7 +32,7 @@ class GradleKotlinDslRegressionsTest : AbstractPluginIntegrationTest() {
             dependencies {
                 compileOnly(gradleKotlinDsl())
             }
-        """
+            """
         )
 
         build("help")

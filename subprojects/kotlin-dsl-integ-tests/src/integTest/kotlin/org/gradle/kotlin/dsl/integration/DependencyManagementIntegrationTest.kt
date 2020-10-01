@@ -96,7 +96,7 @@ class DependencyManagementIntegrationTest : AbstractKotlinIntegrationTest() {
                     }
                 }
             }
-        """
+            """
         )
 
         build("dependencies", "--configuration", "api").apply {
@@ -113,7 +113,7 @@ class DependencyManagementIntegrationTest : AbstractKotlinIntegrationTest() {
                 +--- direct:accessor-with-action (n)
                 +--- direct-block:string-invoke (n)
                 \--- direct-block:string-invoke-with-action (n)
-            """
+                """
                 )
             )
         }

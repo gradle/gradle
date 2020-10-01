@@ -92,7 +92,7 @@ abstract class Classycle @Inject constructor(
                             """
                             show allResults
                             check absenceOfPackageCycles > 1 in org.gradle.*
-                        """
+                            """
                         ) {
 
                             withFilesetOf(classesDirs, excludePatterns.get())

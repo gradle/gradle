@@ -113,7 +113,7 @@ abstract class AbstractBinaryCompatibilityTest {
                     import javax.annotation.Nullable
 
                     $v1
-                """
+                    """
                 )
             },
             v2 = {
@@ -126,7 +126,7 @@ abstract class AbstractBinaryCompatibilityTest {
                     import javax.annotation.Nullable
 
                     $v2
-                """
+                    """
                 )
             },
             block = block
@@ -145,7 +145,7 @@ abstract class AbstractBinaryCompatibilityTest {
                     import javax.annotation.Nullable;
 
                     $v1
-                """
+                    """
                 )
             },
             v2 = {
@@ -158,7 +158,7 @@ abstract class AbstractBinaryCompatibilityTest {
                     import javax.annotation.Nullable;
 
                     $v2
-                """
+                    """
                 )
             },
             block = block
@@ -256,7 +256,7 @@ abstract class AbstractBinaryCompatibilityTest {
                             "2.0"
                         )
                     }
-                """
+                    """
                 )
             }
         }

@@ -36,7 +36,7 @@ class EmbeddedKotlinProviderTest : AbstractKotlinIntegrationTest() {
                     classpath("org.jetbrains.kotlin:kotlin-reflect:1.0")
                 }
             }
-        """
+            """
         )
 
         val result = build("buildEnvironment")
@@ -54,7 +54,7 @@ class EmbeddedKotlinProviderTest : AbstractKotlinIntegrationTest() {
             plugins {
                 kotlin("jvm") version "1.3.31"
             }
-        """
+            """
         )
 
         val result = build("buildEnvironment")
@@ -75,7 +75,7 @@ class EmbeddedKotlinProviderTest : AbstractKotlinIntegrationTest() {
                     classpath("org.jetbrains.kotlin:kotlin-compiler-embeddable:1.3.31")
                 }
             }
-        """
+            """
         )
 
         val result = build("buildEnvironment")
@@ -96,7 +96,7 @@ class EmbeddedKotlinProviderTest : AbstractKotlinIntegrationTest() {
                     }
                 }
             }
-        """
+            """
         )
 
         val result = buildAndFail("buildEnvironment")

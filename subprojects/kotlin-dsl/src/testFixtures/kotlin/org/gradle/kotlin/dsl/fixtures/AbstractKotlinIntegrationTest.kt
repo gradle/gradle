@@ -109,7 +109,7 @@ abstract class AbstractKotlinIntegrationTest : AbstractIntegrationTest() {
             """
             package build
             class Foo {}
-        """
+            """
         )
 
     protected
@@ -123,7 +123,7 @@ abstract class AbstractKotlinIntegrationTest : AbstractIntegrationTest() {
             }
 
             $repositoriesBlock
-        """
+            """
         )
     }
 

@@ -29,7 +29,7 @@ class KotlinDslPluginTest : AbstractPluginTest() {
         withDefaultSettings().appendText(
             """
             rootProject.name = "forty-two"
-        """
+            """
         )
 
         val appliedKotlinDslPluginsVersion = futurePluginVersions["org.gradle.kotlin.kotlin-dsl"]
@@ -56,7 +56,7 @@ class KotlinDslPluginTest : AbstractPluginTest() {
             // src/generated
             import org.gradle.kotlin.dsl.embeddedKotlinVersion
 
-        """
+            """
         )
 
         val result = build("classes")
@@ -83,7 +83,7 @@ class KotlinDslPluginTest : AbstractPluginTest() {
                 testImplementation("junit:junit:4.13")
             }
 
-        """
+            """
         )
 
         withFile(
@@ -101,7 +101,7 @@ class KotlinDslPluginTest : AbstractPluginTest() {
                     }
                 }
             }
-        """
+            """
         )
 
         withFile(
@@ -121,7 +121,7 @@ class KotlinDslPluginTest : AbstractPluginTest() {
                     }
                 }
             }
-        """
+            """
         )
 
         assertThat(
@@ -159,7 +159,7 @@ class KotlinDslPluginTest : AbstractPluginTest() {
                 }
             }
 
-        """
+            """
         )
 
         withFile(
@@ -175,7 +175,7 @@ class KotlinDslPluginTest : AbstractPluginTest() {
                     println("Plugin Using Embedded Kotlin " + embeddedKotlinVersion)
                 }
             }
-        """
+            """
         )
 
         withFile(
@@ -225,7 +225,7 @@ class KotlinDslPluginTest : AbstractPluginTest() {
                 }
             }
 
-        """
+            """
         )
 
         assertThat(
@@ -258,7 +258,7 @@ class KotlinDslPluginTest : AbstractPluginTest() {
                 }
             }
 
-        """
+            """
         )
 
         val result = build("classes")
@@ -281,7 +281,7 @@ class KotlinDslPluginTest : AbstractPluginTest() {
                     STRING
                     foo
                     bar
-                """
+                    """
                 )
             )
 
@@ -314,7 +314,7 @@ class KotlinDslPluginTest : AbstractPluginTest() {
                     STRING
                     foo
                     bar
-                """
+                    """
                 )
             )
 
@@ -354,7 +354,7 @@ class KotlinDslPluginTest : AbstractPluginTest() {
             $repositoriesBlock
 
             $buildSrcScript
-        """
+            """
         )
 
         withFile(
@@ -381,7 +381,7 @@ class KotlinDslPluginTest : AbstractPluginTest() {
                     println(toLowerCase())
                 }
             }
-        """
+            """
         )
 
         withBuildScript(
@@ -391,7 +391,7 @@ class KotlinDslPluginTest : AbstractPluginTest() {
                 doLast { my.test() }
             }
 
-         """
+            """
         )
     }
 

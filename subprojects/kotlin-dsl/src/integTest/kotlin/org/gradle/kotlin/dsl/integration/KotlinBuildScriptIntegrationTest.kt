@@ -27,7 +27,7 @@ class KotlinBuildScriptIntegrationTest : AbstractKotlinIntegrationTest() {
             """
             rootProject.name = "foo"
             include("bar")
-        """
+            """
         )
 
         withBuildScript(
@@ -46,7 +46,7 @@ class KotlinBuildScriptIntegrationTest : AbstractKotlinIntegrationTest() {
             subprojects {
                 apply { plugin<ProjectPlugin>() }
             }
-        """
+            """
         )
 
         assertThat(
@@ -65,7 +65,7 @@ class KotlinBuildScriptIntegrationTest : AbstractKotlinIntegrationTest() {
             """
             fun Project.implicitReceiver() = this
             require(implicitReceiver() === rootProject)
-        """
+            """
         )
 
         build("help")
@@ -79,7 +79,7 @@ class KotlinBuildScriptIntegrationTest : AbstractKotlinIntegrationTest() {
             tasks.register("run") {
                 doLast { println("*42*") }
             }
-        """
+            """
         )
 
         assertThat(
@@ -127,7 +127,7 @@ class KotlinBuildScriptIntegrationTest : AbstractKotlinIntegrationTest() {
                     }
                 }
             }
-        """
+            """
         )
 
         assertThat(
@@ -150,7 +150,7 @@ class KotlinBuildScriptIntegrationTest : AbstractKotlinIntegrationTest() {
                     id("java-base")
                 }
             }
-        """
+            """
         )
 
         buildAndFail("help").apply {
@@ -172,7 +172,7 @@ class KotlinBuildScriptIntegrationTest : AbstractKotlinIntegrationTest() {
                     id("java")
                 }
             }
-        """
+            """
         )
 
         buildAndFail("help").apply {
@@ -197,7 +197,7 @@ class KotlinBuildScriptIntegrationTest : AbstractKotlinIntegrationTest() {
             fun <T> create(name: String, factory: org.gradle.api.NamedDomainObjectFactory<T>): T = factory.create(name)
 
             fun <T : Any> create(type: kotlin.reflect.KClass<T>, factory: org.gradle.api.NamedDomainObjectFactory<T>): T = factory.create(type.simpleName!!)
-        """
+            """
         )
 
         withBuildScript(
@@ -221,7 +221,7 @@ class KotlinBuildScriptIntegrationTest : AbstractKotlinIntegrationTest() {
                     }
                 }
             }
-         """.replaceIndent()
+            """.replaceIndent()
         )
 
         assertThat(
@@ -234,7 +234,7 @@ class KotlinBuildScriptIntegrationTest : AbstractKotlinIntegrationTest() {
                 STRING
                 STRING
                 ACTION
-            """
+                """
             )
         )
     }
@@ -254,13 +254,13 @@ class KotlinBuildScriptIntegrationTest : AbstractKotlinIntegrationTest() {
             "init.gradle.kts",
             """
             println("INIT: " + $fileTreeFromMap)
-        """
+            """
         )
 
         withSettings(
             """
             println("SETTINGS: " + $fileTreeFromMap)
-        """
+            """
         )
 
         withBuildScript(
@@ -268,7 +268,7 @@ class KotlinBuildScriptIntegrationTest : AbstractKotlinIntegrationTest() {
             task("test") {
                 doLast { println("PROJECT: " + $fileTreeFromMap) }
             }
-        """
+            """
         )
 
         assertThat(
@@ -278,7 +278,7 @@ class KotlinBuildScriptIntegrationTest : AbstractKotlinIntegrationTest() {
                 INIT: foo.txt
                 SETTINGS: foo.txt
                 PROJECT: foo.txt
-            """.replaceIndent()
+                """.replaceIndent()
             )
         )
     }

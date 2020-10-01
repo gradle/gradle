@@ -46,7 +46,7 @@ class JacocoIntegrationTest : AbstractPluginIntegrationTest() {
                     }
                 }
             }
-        """
+            """
         )
 
         withFile("src/main/kotlin/foo.gradle.kts", "plugins { base }")

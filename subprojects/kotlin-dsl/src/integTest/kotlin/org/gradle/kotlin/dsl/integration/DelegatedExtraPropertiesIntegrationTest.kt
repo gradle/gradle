@@ -18,7 +18,7 @@ class DelegatedExtraPropertiesIntegrationTest : AbstractKotlinIntegrationTest() 
             val myTask = task("myTask") {}
             val foo: Int by myTask.extra
             foo.toString()
-        """
+            """
         )
 
         assertThat(
@@ -37,7 +37,7 @@ class DelegatedExtraPropertiesIntegrationTest : AbstractKotlinIntegrationTest() 
             }
             val foo: Int by myTask.extra
             foo.toString()
-        """
+            """
         )
 
         assertThat(

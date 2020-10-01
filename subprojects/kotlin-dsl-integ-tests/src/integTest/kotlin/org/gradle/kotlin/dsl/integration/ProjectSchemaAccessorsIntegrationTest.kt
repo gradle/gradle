@@ -45,7 +45,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
         withDefaultSettings().appendText(
             """
             include(":sub")
-        """
+            """
         )
 
         withKotlinBuildSrc()
@@ -54,7 +54,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
             """
             package my
             tasks.register("myBaseTask")
-        """
+            """
         )
 
         withBuildScriptIn(
@@ -75,7 +75,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
                     }
                 }
             }
-        """
+            """
         )
 
         withBuildScript(
@@ -94,7 +94,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
                     }
                 }
             }
-        """
+            """
         )
 
         assertThat(
@@ -118,14 +118,14 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
                         """
                         internal
                         class Extension
-                    """
+                        """
                     )
 
                 withFile(
                     "plugin.gradle.kts",
                     """
                     extensions.add("extension", Extension())
-                """
+                    """
                 )
             }
         }
@@ -139,7 +139,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
 
             println("extension: " + typeOf(extension))
             extension { println("extension{} " + typeOf(this)) }
-        """
+            """
         )
 
         // The internal Extension type is not accessible
@@ -150,7 +150,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
                 """
                 extension: java.lang.Object
                 extension{} java.lang.Object
-            """
+                """
             )
         )
 
@@ -161,7 +161,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
             """
             public
             class Extension
-        """
+            """
         )
 
         assertThat(
@@ -170,7 +170,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
                 """
                 extension: Extension
                 extension{} Extension
-            """
+                """
             )
         )
     }
@@ -189,14 +189,14 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
                     class Extension(private val name: String) : org.gradle.api.Named {
                         override fun getName() = name
                     }
-                """
+                    """
                 )
 
                 withFile(
                     "plugin.gradle.kts",
                     """
                     extensions.add("extension", Extension("foo"))
-                """
+                    """
                 )
             }
         }
@@ -210,7 +210,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
 
             println("extension: " + typeOf(extension))
             extension { println("extension{} " + typeOf(this)) }
-        """
+            """
         )
 
         assertThat(
@@ -219,7 +219,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
                 """
                 extension: Extension
                 extension{} Extension
-            """
+                """
             )
         )
     }
@@ -235,14 +235,14 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
                     "CustomTask.kt",
                     """
                     open class CustomTask : org.gradle.api.DefaultTask()
-                """
+                    """
                 )
 
                 withFile(
                     "plugin.gradle.kts",
                     """
                     tasks.register<CustomTask>("customTask")
-                """
+                    """
                 )
             }
         }
@@ -256,7 +256,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
 
             println("task: " + typeOf(tasks.customTask))
             tasks.customTask { println("task{} " + typeOf(this)) }
-        """
+            """
         )
 
         assertThat(
@@ -265,7 +265,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
                 """
                 task: org.gradle.api.tasks.TaskProvider<CustomTask>
                 task{} CustomTask
-            """
+                """
             )
         )
     }
@@ -287,7 +287,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
                             override fun getName() = name
                         }
                     }
-                """
+                    """
                 )
 
                 withFile(
@@ -297,7 +297,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
 
                     extensions.add("nested", Nested.Extension("foo"))
                     extensions.add("beans", container(Nested.Extension::class))
-                """
+                    """
                 )
             }
         }
@@ -318,7 +318,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
             // ensure API usage
             println(beans.create("bar").name)
             beans.create("baz") { println(name) }
-        """
+            """
         )
 
         assertThat(
@@ -331,7 +331,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
                 beans{} org.gradle.api.NamedDomainObjectContainer<my.Nested.Extension>
                 bar
                 baz
-            """
+                """
             )
         )
     }
@@ -352,7 +352,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
                     data class NamedString(val name: String, var value: String? = null)
 
                     data class NamedLong(val name: String, var value: Long? = null)
-                """
+                    """
                 )
 
                 withFile(
@@ -373,7 +373,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
                             longs.forEach { println("long: " + it) }
                         }
                     }
-                """
+                    """
                 )
             }
         }
@@ -385,7 +385,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
 
             strings.create("foo") { value = "bar" }
             longs.create("ltuae") { value = 42L }
-        """
+            """
         )
 
         assertThat(
@@ -394,7 +394,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
                 """
                 string: NamedString(name=foo, value=bar)
                 long: NamedLong(name=ltuae, value=42)
-            """
+                """
             )
         )
     }
@@ -416,19 +416,19 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
                         package my
                         open class App { lateinit var name: String }
                         open class Lib { lateinit var name: String }
-                    """
+                        """
                     )
                     withFile(
                         "app.gradle.kts",
                         """
                         extensions.create("my", my.App::class)
-                    """
+                        """
                     )
                     withFile(
                         "lib.gradle.kts",
                         """
                         extensions.create("my", my.Lib::class)
-                    """
+                        """
                     )
                 }
             }
@@ -439,7 +439,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
                     """
                     plugins { id("$plugin") }
                     my { name = "kotlin-dsl" }
-                """
+                    """
                 )
 
             "app" {
@@ -454,7 +454,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
                 "settings.gradle.kts",
                 """
                 include("app", "lib")
-            """
+                """
             )
         }
 
@@ -478,7 +478,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
                         package my
                         open class App { lateinit var name: String }
                         open class Lib { lateinit var name: String }
-                    """
+                        """
                     )
                     withFile(
                         "app-or-lib.gradle.kts",
@@ -486,7 +486,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
                         val my: String? by project
                         val extensionType = if (my == "app") my.App::class else my.Lib::class
                         extensions.create("my", extensionType)
-                    """
+                        """
                     )
                 }
             }
@@ -496,7 +496,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
                 """
                 plugins { id("app-or-lib") }
                 my { name = "kotlin-dsl" }
-            """
+                """
             )
         }
 
@@ -517,7 +517,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
             }
 
             $repositoriesBlock
-        """
+            """
         )
     }
 
@@ -546,7 +546,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
                 api("org.apache.commons:commons-lang3:3.5")
             }
 
-        """
+            """
         )
 
         build("generatePom")
@@ -579,7 +579,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
 
                 data class Book(val name: String)
 
-            """
+                """
             )
             existing("build.gradle.kts").appendText(
                 """
@@ -591,7 +591,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
                         }
                     }
                 }
-            """
+                """
             )
         }
 
@@ -615,7 +615,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
                 }
             }
 
-        """
+            """
         )
 
         assertThat(
@@ -637,7 +637,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
             task("mainClassName") {
                 doLast { println("*" + application.mainClass.get() + "*") }
             }
-        """
+            """
         )
 
         assertThat(
@@ -652,14 +652,14 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
         withDefaultSettings().appendText(
             """
             include("a", "b", "c")
-        """
+            """
         )
 
         withBuildScriptIn(
             "a",
             """
             plugins { `java-library` }
-        """
+            """
         )
 
         withBuildScriptIn(
@@ -672,7 +672,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
             }
 
             ${jcenterRepository(GradleDsl.KOTLIN)}
-        """
+            """
         )
 
         withBuildScriptIn(
@@ -697,7 +697,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
             configurations.compileClasspath.files.forEach {
                 println(org.gradle.util.TextUtil.normaliseFileSeparators(it.path))
             }
-        """
+            """
         )
 
         val result = build("help", "-q")
@@ -739,7 +739,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
             }
 
             $repositoriesBlock
-        """
+            """
         )
 
         withFile(
@@ -754,7 +754,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
                     configurations.create("myConfig")
                 }
             }
-        """
+            """
         )
 
         withBuildScript(
@@ -789,7 +789,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
                     println("${'$'}{config.name} -> ${'$'}{artifact.name}:${'$'}{artifact.extension}:${'$'}{artifact.type}")
                 }
             }
-        """
+            """
         )
 
         val result = build("help", "-q")
@@ -812,7 +812,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
         withDefaultSettings().appendText(
             """
             include("a")
-        """
+            """
         )
         withBuildScriptIn("a", "")
 
@@ -836,7 +836,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
             rootProject {
                 it.extensions.create("testExtension", TestExtension)
             }
-        """
+            """
         )
 
         withBuildScript(
@@ -847,7 +847,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
             testExtension {
                 println("Type of `testExtension` receiver is " + typeOf(this@testExtension))
             }
-        """
+            """
         )
 
         val result = build("help", "-I", "init.gradle")
@@ -877,7 +877,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
             }
 
             $repositoriesBlock
-        """
+            """
         )
 
         withFile(
@@ -895,7 +895,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
                     extensions.add("mine", MyExtension<String>())
                 }
             }
-        """
+            """
         )
 
         withBuildScript(
@@ -909,7 +909,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
             mine {
                 println("Type of `mine` receiver is " + typeOf(this@mine))
             }
-        """
+            """
         )
 
         val result = build("help")
@@ -939,7 +939,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
             }
 
             $repositoriesBlock
-        """
+            """
         )
 
         withFile(
@@ -984,7 +984,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
 
             abstract class MyConvention @javax.inject.Inject constructor(val value: String) : ExtensionAware {
             }
-        """
+            """
         )
 
         withBuildScript(
@@ -1006,7 +1006,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
                     require(deepExtension == listOf("bazar", "cathedral"), { "rootConvention.nestedExtension.deepExtension" })
                 }
             }
-        """
+            """
         )
 
         build("help")
@@ -1035,7 +1035,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
             }
 
             $repositoriesBlock
-        """
+            """
         )
 
         withFile(
@@ -1051,7 +1051,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
                     convention.plugins.put("myConvention", MyPrivateConventionImpl())
                 }
             }
-        """
+            """
         )
 
         withFile(
@@ -1063,7 +1063,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
 
             internal
             class MyPrivateConventionImpl : MyConvention
-        """
+            """
         )
 
         withBuildScript(
@@ -1077,7 +1077,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
             myConvention {
                 println("Type of `myConvention` receiver is " + typeOf(this@myConvention))
             }
-        """
+            """
         )
 
         assertThat(
@@ -1099,7 +1099,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
             class MyPrivateConventionImpl : MyConvention, HasPublicType {
                 override fun getPublicType() = typeOf<MyConvention>()
             }
-        """
+            """
         )
 
         assertThat(
@@ -1128,7 +1128,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
                     failOnVersionConflict()
                 }
             }
-        """
+            """
         )
 
         build("help")
@@ -1158,7 +1158,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
                     dependsOn(myCheck)
                 }
             }
-        """
+            """
         )
 
         build("help")
@@ -1199,7 +1199,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
                 check { dependsOn(integTest) }
             }
 
-        """
+            """
         )
 
         build("help")
@@ -1219,7 +1219,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
                     distributionBaseName.set("the-distro")
                 }
             }
-        """
+            """
         )
 
         build("help")
@@ -1237,13 +1237,13 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
                 val some = 19
                 val more = 23
             }
-        """
+            """
         )
         withFile(
             "buildSrc/src/main/kotlin/my-plugin.gradle.kts",
             """
             (dependencies as ExtensionAware).extensions.create<Mine>("mine")
-        """
+            """
         )
 
         withBuildScript(
@@ -1286,7 +1286,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
                                 project.getExtensions().create("java11", Java11Extension.class);
                             }
                         }
-                    """
+                        """
                     )
                 }
                 withFile("settings.gradle.kts")
@@ -1311,7 +1311,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
                             }
                         }
                     }
-                """
+                    """
                 )
             }
         }
@@ -1321,7 +1321,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
             plugins { id("java11") }
 
             java11 { println(this.javaClass.name) }
-        """
+            """
         )
 
         assertThat(
@@ -1347,7 +1347,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
             internal open class MyCustomTaskImpl : MyCustomTask()
 
             internal open class MyOtherInternalTask : DefaultTask()
-        """
+            """
         )
         withFile(
             "buildSrc/src/main/kotlin/my/custom.gradle.kts",
@@ -1356,7 +1356,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
 
             tasks.register<MyCustomTaskImpl>("custom")
             tasks.register<MyOtherInternalTask>("other")
-        """
+            """
         )
 
         withBuildScript(
@@ -1372,7 +1372,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
 
             println("tasks.other: " + typeOf(tasks.other))
             tasks.other { println("tasks.other{}: " + typeOf(this)) }
-        """
+            """
         )
 
         assertThat(
@@ -1383,7 +1383,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
                 tasks.other: org.gradle.api.tasks.TaskProvider<org.gradle.api.DefaultTask>
                 tasks.custom{}: my.MyCustomTask
                 tasks.other{}: org.gradle.api.DefaultTask
-            """
+                """
             )
         )
     }

@@ -17,7 +17,7 @@ class ImplicitImportsTest : AbstractKotlinIntegrationTest() {
 
             println("*" + Jar::class.qualifiedName + "*")
 
-        """
+            """
         )
 
         // when:
@@ -37,7 +37,7 @@ class ImplicitImportsTest : AbstractKotlinIntegrationTest() {
             val c = File("some")
             val d = BigDecimal.ONE
             val e = BigInteger.ONE
-        """
+            """
         )
 
         build("help")

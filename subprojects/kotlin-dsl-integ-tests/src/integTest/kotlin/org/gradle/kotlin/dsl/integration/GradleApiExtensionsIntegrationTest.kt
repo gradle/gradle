@@ -70,7 +70,7 @@ class GradleApiExtensionsIntegrationTest : AbstractPluginIntegrationTest() {
                     println(inferredTypeOf(td))
                 }
             }
-        """
+            """
         )
 
         assertThat(
@@ -83,7 +83,7 @@ class GradleApiExtensionsIntegrationTest : AbstractPluginIntegrationTest() {
                 ${DomainObjectCollection::class.qualifiedName}<Build_gradle.B>
                 ${TaskCollection::class.qualifiedName}<${Task::class.qualifiedName}>
                 ${TaskCollection::class.qualifiedName}<${Delete::class.qualifiedName}>
-            """
+                """
             )
         )
     }
@@ -98,7 +98,7 @@ class GradleApiExtensionsIntegrationTest : AbstractPluginIntegrationTest() {
             allprojects {
                 container(String::class)
             }
-        """
+            """
         )
 
         withDefaultSettings().appendText(
@@ -112,14 +112,14 @@ class GradleApiExtensionsIntegrationTest : AbstractPluginIntegrationTest() {
                     }
                 }
             }
-        """
+            """
         )
 
         withBuildScript(
             """
             container(String::class)
             apply(from = "plugin.gradle.kts")
-        """
+            """
         )
 
         withFile(
@@ -141,7 +141,7 @@ class GradleApiExtensionsIntegrationTest : AbstractPluginIntegrationTest() {
                 // Class<T> + Groovy named arguments to KClass<T> + vararg of Pair
                 filter(ReplaceTokens::class, "foo" to "bar")
             }
-        """
+            """
         )
 
         build("foo", "-I", "init.gradle.kts")
@@ -173,7 +173,7 @@ class GradleApiExtensionsIntegrationTest : AbstractPluginIntegrationTest() {
                     project.container(Long::class)
                 }
             }
-        """
+            """
         )
 
         withFile(
@@ -182,7 +182,7 @@ class GradleApiExtensionsIntegrationTest : AbstractPluginIntegrationTest() {
             package foo
 
             tasks.register("foo", FooTask::class)
-        """
+            """
         )
 
         withBuildScript(
@@ -190,7 +190,7 @@ class GradleApiExtensionsIntegrationTest : AbstractPluginIntegrationTest() {
             plugins {
                 id("foo.foo")
             }
-        """
+            """
         )
 
         build("foo")

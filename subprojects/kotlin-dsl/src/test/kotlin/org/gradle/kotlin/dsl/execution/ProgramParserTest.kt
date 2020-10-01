@@ -105,7 +105,7 @@ class ProgramParserTest {
             buildscript { println("stage 1 buildscript") }
             plugins { println("stage 1 plugins") }
             print("stage 2")
-        """.replaceIndent()
+            """.replaceIndent()
         )
 
         val expectedScript = "" +
@@ -167,7 +167,7 @@ class ProgramParserTest {
             buildscript { println("stage 1 buildscript") }
             plugins { println("stage 1 plugins") }
             print("stage 2")
-        """.replaceIndent()
+            """.replaceIndent()
         )
 
         val expectedScript = "" +
@@ -208,7 +208,7 @@ class ProgramParserTest {
             dependencies {
                 implementation("org.acme:lib:1.0")
             }
-        """
+            """
         )
 
         val expectedScriptSource = programSourceWith(

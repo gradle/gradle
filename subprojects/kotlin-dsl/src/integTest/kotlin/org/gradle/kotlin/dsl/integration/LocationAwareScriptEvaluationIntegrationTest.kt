@@ -132,7 +132,7 @@ class LocationAwareScriptEvaluationIntegrationTest : AbstractKotlinIntegrationTe
             """
             println("In Kotlin Script")
             $boom
-        """
+            """
         )
 
         assertFailingBuildOutputOf("help") {
@@ -161,7 +161,7 @@ class LocationAwareScriptEvaluationIntegrationTest : AbstractKotlinIntegrationTe
             """
             println("In Groovy Script")
             throw new InternalError("BOOM!")
-        """
+            """
         )
 
         assertFailingBuildOutputOf("help") {

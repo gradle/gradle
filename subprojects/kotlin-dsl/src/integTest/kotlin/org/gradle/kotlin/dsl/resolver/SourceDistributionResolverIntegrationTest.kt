@@ -21,7 +21,7 @@ class SourceDistributionResolverIntegrationTest : AbstractKotlinIntegrationTest(
                 "Expected source directories but got none"
             }
 
-        """
+            """
         )
 
         build()

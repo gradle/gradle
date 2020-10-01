@@ -343,10 +343,10 @@ class GradleApiExtensionsTest : TestWithClassPath() {
             useDir.resolve("usage$idx.kt").also {
                 it.writeText(
                     """
-                import org.gradle.kotlin.dsl.fixtures.codegen.*
-                import org.gradle.kotlin.dsl.*
+                    import org.gradle.kotlin.dsl.fixtures.codegen.*
+                    import org.gradle.kotlin.dsl.*
 
-                $usage
+                    $usage
                     """.trimIndent()
                 )
             }

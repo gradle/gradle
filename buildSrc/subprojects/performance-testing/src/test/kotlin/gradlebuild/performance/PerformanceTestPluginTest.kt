@@ -32,7 +32,7 @@ class PerformanceTestPluginTest {
                 <?xml version="1.0" encoding="UTF-8"?>
                 <testsuite name="TestSuite" tests="$tests" skipped="$skipped" failures="0" errors="0">
                 </testsuite>
-            """.replaceIndent()
+                """.replaceIndent()
             )
         }
 }

@@ -56,7 +56,7 @@ class NamedContainersDslTest : AbstractDslTest() {
             val hill: NamedDomainObjectProvider<Configuration> = configurations.register("hill") {
                 extendsFrom(valley.get())
             }
-        """
+            """
         )
     }
 
@@ -72,23 +72,23 @@ class NamedContainersDslTest : AbstractDslTest() {
                 val bar: Configuration = getByName("bar") {
                     extendsFrom(foo)
                 }
-    
+
                 val bazar: Configuration = create("bazar")
                 val cathedral: Configuration = create("cathedral") {
                     extendsFrom(bazar)
                 }
-    
+
                 val cabin: NamedDomainObjectProvider<Configuration> = named("cabin")
                 val castle: NamedDomainObjectProvider<Configuration> = named("castle") {
                     extendsFrom(cabin.get())
                 }
-    
+
                 val valley: NamedDomainObjectProvider<Configuration> = register("valley")
                 val hill: NamedDomainObjectProvider<Configuration> = register("hill") {
                     extendsFrom(valley.get())
                 }
             }
-        """
+            """
         )
     }
 
@@ -118,7 +118,7 @@ class NamedContainersDslTest : AbstractDslTest() {
             val hill: NamedDomainObjectProvider<Configuration> by configurations.registering {
                 extendsFrom(valley.get())
             }
-        """
+            """
         )
     }
 
@@ -150,7 +150,7 @@ class NamedContainersDslTest : AbstractDslTest() {
                     extendsFrom(valley.get())
                 }
             }
-        """
+            """
         )
     }
 
@@ -172,7 +172,7 @@ class NamedContainersDslTest : AbstractDslTest() {
                     extendsFrom(cabin.get())
                 }
             }
-        """
+            """
         ) {
             configurations {
                 val bazar by creating

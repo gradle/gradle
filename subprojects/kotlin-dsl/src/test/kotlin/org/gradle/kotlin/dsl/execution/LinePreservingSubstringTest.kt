@@ -98,7 +98,7 @@ class LinePreservingSubstringTest {
                 |
                 |
                 |// line 10
-            """.trimMargin()
+                """.trimMargin()
             )
         )
     }
