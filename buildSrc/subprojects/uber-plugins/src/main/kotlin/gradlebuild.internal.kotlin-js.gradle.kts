@@ -64,4 +64,6 @@ tasks {
         dependsOn(named("test"))
         dependsOn(ktlintCheckTasks)
     }
+
+    register("platformTest")
 }
