@@ -59,4 +59,9 @@ tasks {
     named("codeQuality") {
         dependsOn(ktlintCheckTasks)
     }
+
+    register("quickTest") {
+        dependsOn(named("test"))
+        dependsOn(ktlintCheckTasks)
+    }
 }
