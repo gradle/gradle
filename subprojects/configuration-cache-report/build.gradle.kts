@@ -148,13 +148,15 @@ abstract class MergeReportAssets : DefaultTask() {
                 </style>
                 """.trimIndent()
             ).replace(
-                kotlinJsTag, """
+                kotlinJsTag,
+                """
                 <script type="text/javascript">
                 ${kotlinJs.get().asFile.readText()}
                 </script>
                 """.trimIndent()
             ).replace(
-                jsTag, """
+                jsTag,
+                """
                 <script type="text/javascript">
                 ${jsFile.get().asFile.readText()}
                 </script>
