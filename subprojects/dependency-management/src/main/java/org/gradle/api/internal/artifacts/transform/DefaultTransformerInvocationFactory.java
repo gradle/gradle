@@ -130,37 +130,26 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
         return new CacheableInvocation<ImmutableList<File>>() {
             @Override
             public Try<ImmutableList<File>> invoke() {
-                return buildOperationExecutor.call(new CallableBuildOperation<Try<ImmutableList<File>>>() {
-                    @Override
-                    public Try<ImmutableList<File>> call(BuildOperationContext context) {
-                        return fireTransformListeners(transformer, subject, () -> {
-                            TransformerExecution execution = new TransformerExecution(
-                                transformer,
-                                identity,
-                                inputArtifact,
-                                inputArtifactSnapshot,
-                                dependencies,
-                                dependenciesFingerprint,
-                                workspaceProvider.getExecutionHistoryStore(),
-                                fileCollectionFactory,
-                                inputArtifactFingerprinter,
-                                workspaceProvider
-                            );
+                return fireTransformListeners(transformer, subject, () -> {
+                    TransformerExecution execution = new TransformerExecution(
+                        transformer,
+                        identity,
+                        inputArtifact,
+                        inputArtifactSnapshot,
+                        dependencies,
+                        dependenciesFingerprint,
+                        buildOperationExecutor,
+                        workspaceProvider.getExecutionHistoryStore(),
+                        fileCollectionFactory,
+                        inputArtifactFingerprinter,
+                        workspaceProvider
+                    );
 
-                            CachingResult result = workExecutor.execute(execution, null);
+                    CachingResult result = workExecutor.execute(execution, null);
 
-                            return result.getExecutionResult()
-                                .tryMap(executionResult -> Cast.<ImmutableList<File>>uncheckedNonnullCast(executionResult.getOutput()))
-                                .mapFailure(failure -> new TransformException(String.format("Execution failed for %s.", execution.getDisplayName()), failure));
-                        });
-                    }
-
-                    @Override
-                    public BuildOperationDescriptor.Builder description() {
-                        String displayName = transformer.getDisplayName() + " " + inputArtifact.getName();
-                        return BuildOperationDescriptor.displayName(displayName)
-                            .progressDisplayName(displayName);
-                    }
+                    return result.getExecutionResult()
+                        .tryMap(executionResult -> Cast.<ImmutableList<File>>uncheckedNonnullCast(executionResult.getOutput()))
+                        .mapFailure(failure -> new TransformException(String.format("Execution failed for %s.", execution.getDisplayName()), failure));
                 });
             }
 
@@ -216,7 +205,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
         return projectStateRegistry.stateFor(projectComponentIdentifier).getMutableModel();
     }
 
-    private Try<ImmutableList<File>> fireTransformListeners(Transformer transformer, TransformationSubject subject, Supplier<Try<ImmutableList<File>>> execution) {
+    private <T> T fireTransformListeners(Transformer transformer, TransformationSubject subject, Supplier<T> execution) {
         artifactTransformListener.beforeTransformerInvocation(transformer, subject);
         try {
             return execution.get();
@@ -233,6 +222,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
         private final ArtifactTransformDependencies dependencies;
         private final CurrentFileCollectionFingerprint dependenciesFingerprint;
 
+        private final BuildOperationExecutor buildOperationExecutor;
         private final ExecutionHistoryStore executionHistoryStore;
         private final FileCollectionFactory fileCollectionFactory;
         private final FileCollectionFingerprinter inputArtifactFingerprinter;
@@ -249,12 +239,14 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
             ArtifactTransformDependencies dependencies,
             CurrentFileCollectionFingerprint dependenciesFingerprint,
 
+            BuildOperationExecutor buildOperationExecutor,
             ExecutionHistoryStore executionHistoryStore,
             FileCollectionFactory fileCollectionFactory,
             FileCollectionFingerprinter inputArtifactFingerprinter,
             TransformationWorkspaceProvider workspaceProvider
         ) {
             this.identity = identity;
+            this.buildOperationExecutor = buildOperationExecutor;
             this.workspaceProvider = workspaceProvider;
             this.inputArtifactSnapshot = inputArtifactSnapshot;
             this.dependenciesFingerprint = dependenciesFingerprint;
@@ -276,8 +268,22 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
         @Override
         public WorkOutput execute(@Nullable InputChangesInternal inputChanges, InputChangesContext context) {
             File workspace = context.getWorkspace();
-            ImmutableList<File> result = transformer.transform(inputArtifactProvider, getOutputDir(workspace), dependencies, inputChanges);
-            writeResultsFile(workspace, result);
+            ImmutableList<File> result = buildOperationExecutor.call(new CallableBuildOperation<ImmutableList<File>>() {
+                @Override
+                public ImmutableList<File> call(BuildOperationContext context) {
+                    ImmutableList<File> result = transformer.transform(inputArtifactProvider, getOutputDir(workspace), dependencies, inputChanges);
+                    writeResultsFile(workspace, result);
+                    return result;
+                }
+
+                @Override
+                public BuildOperationDescriptor.Builder description() {
+                    String displayName = transformer.getDisplayName() + " " + inputArtifact.getName();
+                    return BuildOperationDescriptor.displayName(displayName)
+                        .progressDisplayName(displayName);
+                }
+            });
+
             return new WorkOutput() {
                 @Override
                 public WorkResult getDidWork() {
