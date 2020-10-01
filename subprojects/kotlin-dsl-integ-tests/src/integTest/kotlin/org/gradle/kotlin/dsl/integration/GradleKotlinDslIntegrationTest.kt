@@ -69,7 +69,7 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
                     println("*" + answer + "*")
                 }
             }
-        """.let(buildscriptTransformation)
+            """.let(buildscriptTransformation)
         )
 
         assert(
