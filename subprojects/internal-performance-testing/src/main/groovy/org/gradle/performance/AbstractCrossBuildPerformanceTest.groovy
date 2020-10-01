@@ -30,6 +30,7 @@ import org.gradle.performance.results.GradleProfilerReporter
 import org.gradle.performance.results.WritableResultsStore
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -37,6 +38,7 @@ import static org.gradle.performance.results.ResultsStoreHelper.createResultsSto
 
 @CompileStatic
 @CleanupTestDirectory
+@UsesNativeServices // The TAPI invoker uses native services
 class AbstractCrossBuildPerformanceTest extends Specification {
     private static final WritableResultsStore<CrossBuildPerformanceResults> RESULTS_STORE = createResultsStoreWhenDatabaseAvailable { new CrossBuildResultsStore() }
 

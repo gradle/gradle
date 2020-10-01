@@ -75,7 +75,6 @@ class FasterIncrementalAndroidBuildsPerformanceTest extends AbstractCrossBuildPe
             configureForNonParallel(delegate)
             testProject.configureForNonAbiChange(delegate)
             invocation {
-                useToolingApi(false)
                 args.addAll(Optimization.WATCH_FS.arguments)
             }
         }
@@ -84,7 +83,6 @@ class FasterIncrementalAndroidBuildsPerformanceTest extends AbstractCrossBuildPe
             configureForNonParallel(delegate)
             testProject.configureForNonAbiChange(delegate)
             invocation {
-                useToolingApi(false)
                 args.addAll(Optimization.WATCH_FS.arguments)
                 distribution(buildContext.distribution("6.7-rc-2"))
             }
@@ -93,9 +91,6 @@ class FasterIncrementalAndroidBuildsPerformanceTest extends AbstractCrossBuildPe
             displayName("without file system watching")
             configureForNonParallel(delegate)
             testProject.configureForNonAbiChange(delegate)
-            invocation {
-                useToolingApi(false)
-            }
         }
 
         when:
@@ -104,7 +99,7 @@ class FasterIncrementalAndroidBuildsPerformanceTest extends AbstractCrossBuildPe
         results
     }
 
-    private void configureForNonParallel(GradleBuildExperimentSpec.GradleBuilder builder) {
+    private static void configureForNonParallel(GradleBuildExperimentSpec.GradleBuilder builder) {
         builder.invocation {
             args.add("-Dorg.gradle.parallel=false")
             args.add("-Dorg.gradle.workers.max=1")
