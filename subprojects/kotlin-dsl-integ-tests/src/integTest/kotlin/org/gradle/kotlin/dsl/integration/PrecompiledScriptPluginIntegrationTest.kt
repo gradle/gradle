@@ -27,7 +27,7 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
             }
 
             $repositoriesBlock
-        """
+            """
         )
 
         withPrecompiledKotlinScript(
@@ -36,7 +36,8 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
             plugins {
                 org.gradle.base
             }
-        """
+
+            """.trimIndent()
         )
         withPrecompiledKotlinScript(
             "org/gradle/plugins/plugin-with-package.gradle.kts",
@@ -46,10 +47,24 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
             plugins {
                 org.gradle.base
             }
-        """
+
+            """.trimIndent()
         )
 
         build("generateScriptPluginAdapters")
+
+        // https://github.com/JLLeitschuh/ktlint-gradle/issues/395
+        fun expectKtlintDeprecationWarning(sourceSet: String) {
+            val taskFragment = sourceSet.capitalize()
+            executer.expectDocumentedDeprecationWarning(
+                "Querying the mapped value of task ':ktlint${taskFragment}SourceSetCheck' property 'reporterOutputDir' before task ':ktlint${taskFragment}SourceSetCheck' has completed has been deprecated. " +
+                    "This will fail with an error in Gradle 7.0. " +
+                    "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_6.html#querying_a_mapped_output_property_of_a_task_before_the_task_has_completed"
+            )
+        }
+
+        expectKtlintDeprecationWarning("main")
+        expectKtlintDeprecationWarning("test")
 
         build("ktlintCheck", "-x", "ktlintKotlinScriptCheck")
     }
@@ -70,14 +85,14 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
                     directory = file("${cacheDir.normalisedPath}")
                 }
             }
-        """
+            """
         )
         withBuildScriptIn(
             firstLocation,
             """
             plugins { `kotlin-dsl` }
             ${jcenterRepository(GradleDsl.KOTLIN)}
-        """
+            """
         )
 
         withFile("$firstLocation/src/main/kotlin/plugin-without-package.gradle.kts")
@@ -85,7 +100,7 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
             "$firstLocation/src/main/kotlin/plugins/plugin-with-package.gradle.kts",
             """
             package plugins
-        """
+            """
         )
 
 
@@ -130,7 +145,7 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
             """
             plugins { `kotlin-dsl` }
             ${jcenterRepository(GradleDsl.KOTLIN)}
-        """
+            """
         )
 
         val fooScript = withFile("src/main/kotlin/foo.gradle.kts", "")
@@ -154,7 +169,7 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
             "buildSrc/src/main/kotlin/my-plugin.gradle.kts",
             """
             tasks.register("myTask") {}
-        """
+            """
         )
 
         withDefaultSettings()
@@ -164,7 +179,7 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
             plugins {
                 id 'my-plugin'
             }
-        """
+            """
         )
 
         build("myTask")
@@ -183,7 +198,7 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
             base.archivesBaseName = "my"
 
             println("base")
-        """
+            """
         )
 
         withDefaultSettings()
@@ -192,7 +207,7 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
             plugins {
                 `my-plugin`
             }
-        """
+            """
         )
 
         build("help").apply {
@@ -223,7 +238,7 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
             plugins { base }
 
             base.archivesBaseName = "my"
-        """
+            """
         )
 
         withDefaultSettings()
@@ -232,7 +247,7 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
             plugins {
                 `my-plugin`
             }
-        """
+            """
         )
 
         build("clean")
@@ -249,7 +264,7 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
             $defaultSettingsScript
 
             include("consumer", "producer")
-        """
+            """
         )
 
         withBuildScript(
@@ -266,7 +281,7 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
             dependencies {
                 api(project(":consumer"))
             }
-        """
+            """
         )
 
         withFolders {
@@ -297,14 +312,14 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
                     dependencies {
                         implementation(project(":producer"))
                     }
-                """
+                    """
                 )
 
                 withFile(
                     "src/main/kotlin/consumer-plugin.gradle.kts",
                     """
                     plugins { `stable-producer-plugin` }
-                """
+                    """
                 )
             }
 
@@ -313,14 +328,14 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
                     "build.gradle.kts",
                     """
                     plugins { id("org.gradle.kotlin.kotlin-dsl") }
-                """
+                    """
                 )
                 withFile("src/main/kotlin/changing-producer-plugin.gradle.kts")
                 withFile(
                     "src/main/kotlin/stable-producer-plugin.gradle.kts",
                     """
                     println("*42*")
-                """
+                    """
                 )
             }
         }
