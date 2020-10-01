@@ -16,6 +16,8 @@
 
 package org.gradle.internal.execution;
 
-public interface WorkExecutor<C extends Context, R extends Result> {
-    R execute(C context);
+import javax.annotation.Nullable;
+
+public interface WorkExecutor {
+    CachingResult execute(UnitOfWork work, @Nullable String rebuildReason);
 }

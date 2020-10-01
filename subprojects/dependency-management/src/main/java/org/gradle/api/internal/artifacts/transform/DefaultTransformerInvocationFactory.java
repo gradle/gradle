@@ -31,7 +31,6 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.Try;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.execution.CachingResult;
-import org.gradle.internal.execution.ExecutionRequestContext;
 import org.gradle.internal.execution.InputChangesContext;
 import org.gradle.internal.execution.Result;
 import org.gradle.internal.execution.UnitOfWork;
@@ -88,7 +87,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
     private static final String OUTPUT_FILE_PATH_PREFIX = "o/";
 
     private final FileSystemAccess fileSystemAccess;
-    private final WorkExecutor<ExecutionRequestContext, CachingResult> workExecutor;
+    private final WorkExecutor workExecutor;
     private final ArtifactTransformListener artifactTransformListener;
     private final CachingTransformationWorkspaceProvider immutableTransformationWorkspaceProvider;
     private final FileCollectionFactory fileCollectionFactory;
@@ -96,7 +95,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
     private final BuildOperationExecutor buildOperationExecutor;
 
     public DefaultTransformerInvocationFactory(
-        WorkExecutor<ExecutionRequestContext, CachingResult> workExecutor,
+        WorkExecutor workExecutor,
         FileSystemAccess fileSystemAccess,
         ArtifactTransformListener artifactTransformListener,
         CachingTransformationWorkspaceProvider immutableTransformationWorkspaceProvider,
@@ -148,17 +147,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
                                 workspaceProvider
                             );
 
-                            CachingResult result = workExecutor.execute(new ExecutionRequestContext() {
-                                @Override
-                                public UnitOfWork getWork() {
-                                    return execution;
-                                }
-
-                                @Override
-                                public Optional<String> getRebuildReason() {
-                                    return Optional.empty();
-                                }
-                            });
+                            CachingResult result = workExecutor.execute(execution, null);
 
                             return result.getExecutionResult()
                                 .tryMap(executionResult -> Cast.<ImmutableList<File>>uncheckedNonnullCast(executionResult.getOutput()))

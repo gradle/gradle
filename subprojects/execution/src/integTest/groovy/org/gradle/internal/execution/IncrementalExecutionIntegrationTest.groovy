@@ -129,9 +129,9 @@ class IncrementalExecutionIntegrationTest extends Specification {
     def overlappingOutputDetector = new DefaultOverlappingOutputDetector()
     def deleter = TestFiles.deleter()
 
-    WorkExecutor<ExecutionRequestContext, CachingResult> getExecutor() {
+    WorkExecutor getExecutor() {
         // @formatter:off
-        new DefaultWorkExecutor<>(
+        new DefaultWorkExecutor(
             new IdentifyStep<>(valueSnapshotter,
             new AssignWorkspaceStep<>(
             new LoadExecutionStateStep<>(
@@ -626,18 +626,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
 
     UpToDateResult execute(UnitOfWork unitOfWork) {
         virtualFileSystem.update(VirtualFileSystem.INVALIDATE_ALL)
-
-        executor.execute(new ExecutionRequestContext() {
-            @Override
-            UnitOfWork getWork() {
-                unitOfWork
-            }
-
-            @Override
-            Optional<String> getRebuildReason() {
-                Optional.empty()
-            }
-        })
+        executor.execute(unitOfWork, null)
     }
 
     private TestFile file(Object... path) {

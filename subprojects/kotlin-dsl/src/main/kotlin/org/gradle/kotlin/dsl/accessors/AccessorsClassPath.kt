@@ -23,8 +23,6 @@ import org.gradle.cache.internal.CacheKeyBuilder.CacheKeySpec
 import org.gradle.internal.classanalysis.AsmConstants.ASM_LEVEL
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
-import org.gradle.internal.execution.CachingResult
-import org.gradle.internal.execution.ExecutionRequestContext
 import org.gradle.internal.execution.InputChangesContext
 import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.execution.UnitOfWork.IdentityKind.IDENTITY
@@ -67,7 +65,7 @@ class ProjectAccessorsClassPathGenerator @Inject constructor(
     private val classpathFingerprinter: ClasspathFingerprinter,
     private val fileCollectionFactory: FileCollectionFactory,
     private val projectSchemaProvider: ProjectSchemaProvider,
-    private val workExecutor: WorkExecutor<ExecutionRequestContext, CachingResult>,
+    private val workExecutor: WorkExecutor,
     private val workspaceProvider: KotlinDslWorkspaceProvider
 ) {
 
@@ -90,10 +88,7 @@ class ProjectAccessorsClassPathGenerator @Inject constructor(
                 fileCollectionFactory,
                 workspaceProvider
             )
-            val result = workExecutor.execute(object : ExecutionRequestContext {
-                override fun getWork() = work
-                override fun getRebuildReason() = Optional.empty<String>()
-            })
+            val result = workExecutor.execute(work, null)
             result.executionResult.get().output as AccessorsClassPath
         }
     }

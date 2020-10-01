@@ -16,20 +16,34 @@
 
 package org.gradle.internal.execution.impl;
 
-import org.gradle.internal.execution.Context;
-import org.gradle.internal.execution.Result;
+import org.gradle.internal.execution.CachingResult;
+import org.gradle.internal.execution.ExecutionRequestContext;
 import org.gradle.internal.execution.Step;
+import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.WorkExecutor;
 
-public class DefaultWorkExecutor<C extends Context, R extends Result> implements WorkExecutor<C, R> {
-    private final Step<? super C, ? extends R> executeStep;
+import javax.annotation.Nullable;
+import java.util.Optional;
 
-    public DefaultWorkExecutor(Step<? super C, ? extends R> executeStep) {
+public class DefaultWorkExecutor implements WorkExecutor {
+    private final Step<? super ExecutionRequestContext, ? extends CachingResult> executeStep;
+
+    public DefaultWorkExecutor(Step<? super ExecutionRequestContext, ? extends CachingResult> executeStep) {
         this.executeStep = executeStep;
     }
 
     @Override
-    public R execute(C context) {
-        return executeStep.execute(context);
+    public CachingResult execute(UnitOfWork work, @Nullable String rebuildReason) {
+        return executeStep.execute(new ExecutionRequestContext() {
+            @Override
+            public Optional<String> getRebuildReason() {
+                return Optional.ofNullable(rebuildReason);
+            }
+
+            @Override
+            public UnitOfWork getWork() {
+                return work;
+            }
+        });
     }
 }

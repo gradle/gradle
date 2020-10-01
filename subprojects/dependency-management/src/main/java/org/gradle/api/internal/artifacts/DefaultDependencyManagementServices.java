@@ -131,7 +131,6 @@ import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.BeforeExecutionContext;
 import org.gradle.internal.execution.CachingContext;
 import org.gradle.internal.execution.CachingResult;
-import org.gradle.internal.execution.ExecutionRequestContext;
 import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.OutputSnapshotter;
 import org.gradle.internal.execution.Step;
@@ -260,7 +259,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
          *
          * Currently used for running artifact transformations in buildscript blocks.
          */
-        WorkExecutor<ExecutionRequestContext, CachingResult> createWorkExecutor(
+        WorkExecutor createWorkExecutor(
                 BuildOperationExecutor buildOperationExecutor,
                 ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
                 Deleter deleter,
@@ -276,7 +275,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             // TODO: Figure out how to get rid of origin scope id in snapshot outputs step
             UniqueId fixedUniqueId = UniqueId.from("dhwwyv4tqrd43cbxmdsf24wquu");
             // @formatter:off
-            return new DefaultWorkExecutor<>(
+            return new DefaultWorkExecutor(
                 new IdentifyStep<>(valueSnapshotter,
                 new AssignWorkspaceStep<>(
                 new LoadExecutionStateStep<>(
@@ -409,7 +408,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         }
 
         TransformerInvocationFactory createTransformerInvocationFactory(
-                WorkExecutor<ExecutionRequestContext, CachingResult> workExecutor,
+                WorkExecutor workExecutor,
                 FileSystemAccess fileSystemAccess,
                 ImmutableCachingTransformationWorkspaceProvider transformationWorkspaceProvider,
                 ArtifactTransformListener artifactTransformListener,

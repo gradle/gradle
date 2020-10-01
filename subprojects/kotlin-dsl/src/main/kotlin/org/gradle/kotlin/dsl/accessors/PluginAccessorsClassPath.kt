@@ -26,8 +26,6 @@ import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
-import org.gradle.internal.execution.CachingResult
-import org.gradle.internal.execution.ExecutionRequestContext
 import org.gradle.internal.execution.InputChangesContext
 import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.execution.UnitOfWork.IdentityKind.IDENTITY
@@ -93,7 +91,7 @@ import javax.inject.Inject
 class PluginAccessorClassPathGenerator @Inject constructor(
     private val classLoaderHierarchyHasher: ClassLoaderHierarchyHasher,
     private val fileCollectionFactory: FileCollectionFactory,
-    private val workExecutor: WorkExecutor<ExecutionRequestContext, CachingResult>,
+    private val workExecutor: WorkExecutor,
     private val workspaceProvider: KotlinDslWorkspaceProvider
 ) {
     fun pluginSpecBuildersClassPath(project: Project): AccessorsClassPath = project.rootProject.let { rootProject ->
@@ -109,10 +107,7 @@ class PluginAccessorClassPathGenerator @Inject constructor(
                 fileCollectionFactory,
                 workspaceProvider
             )
-            val result = workExecutor.execute(object : ExecutionRequestContext {
-                override fun getWork() = work
-                override fun getRebuildReason() = Optional.empty<String>()
-            })
+            val result = workExecutor.execute(work, null)
             result.executionResult.get().output as AccessorsClassPath
         }
     }

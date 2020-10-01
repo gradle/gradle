@@ -32,8 +32,6 @@ import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager;
 import org.gradle.internal.event.ListenerManager;
-import org.gradle.internal.execution.CachingResult;
-import org.gradle.internal.execution.ExecutionRequestContext;
 import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.OutputSnapshotter;
 import org.gradle.internal.execution.WorkExecutor;
@@ -134,7 +132,7 @@ public class ExecutionGradleServices {
         return listenerManager.getBroadcaster(OutputChangeListener.class);
     }
 
-    public WorkExecutor<ExecutionRequestContext, CachingResult> createWorkExecutor(
+    public WorkExecutor createWorkExecutor(
         BuildCacheCommandFactory buildCacheCommandFactory,
         BuildCacheController buildCacheController,
         BuildCancellationToken cancellationToken,
@@ -153,7 +151,7 @@ public class ExecutionGradleServices {
         ValueSnapshotter valueSnapshotter
     ) {
         // @formatter:off
-        return new DefaultWorkExecutor<>(
+        return new DefaultWorkExecutor(
             new IdentifyStep<>(valueSnapshotter,
             new AssignWorkspaceStep<>(
             new LoadExecutionStateStep<>(

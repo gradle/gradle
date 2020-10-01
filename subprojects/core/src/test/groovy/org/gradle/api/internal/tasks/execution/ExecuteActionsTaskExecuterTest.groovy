@@ -146,7 +146,7 @@ class ExecuteActionsTaskExecuterTest extends Specification {
     def validationWarningReporter = Stub(ValidateStep.ValidationWarningReporter)
 
     // @formatter:off
-    def workExecutor = new DefaultWorkExecutor<>(
+    def workExecutor = new DefaultWorkExecutor(
         new IdentifyStep<>(valueSnapshotter,
         new AssignWorkspaceStep<>(
         new LoadExecutionStateStep<>(
