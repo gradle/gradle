@@ -35,7 +35,7 @@ import org.gradle.internal.execution.caching.CachingDisabledReasonCategory
 import org.gradle.internal.execution.caching.CachingState
 import org.gradle.internal.file.Deleter
 
-class CacheStepTest extends StepSpec<IncrementalChangesContext> implements FingerprinterFixture {
+class BuildCacheStepTest extends StepSpec<IncrementalChangesContext> implements FingerprinterFixture {
     def buildCacheController = Mock(BuildCacheController)
     def buildCacheCommandFactory = Mock(BuildCacheCommandFactory)
 
@@ -45,7 +45,7 @@ class CacheStepTest extends StepSpec<IncrementalChangesContext> implements Finge
     def deleter = Mock(Deleter)
     def outputChangeListener = Mock(OutputChangeListener)
 
-    def step = new CacheStep(buildCacheController, buildCacheCommandFactory, deleter, outputChangeListener, delegate)
+    def step = new BuildCacheStep(buildCacheController, buildCacheCommandFactory, deleter, outputChangeListener, delegate)
     def delegateResult = Mock(CurrentSnapshotResult)
 
     @Override

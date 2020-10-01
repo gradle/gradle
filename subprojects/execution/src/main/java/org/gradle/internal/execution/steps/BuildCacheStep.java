@@ -42,8 +42,8 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.Optional;
 
-public class CacheStep implements Step<IncrementalChangesContext, CurrentSnapshotResult> {
-    private static final Logger LOGGER = LoggerFactory.getLogger(CacheStep.class);
+public class BuildCacheStep implements Step<IncrementalChangesContext, CurrentSnapshotResult> {
+    private static final Logger LOGGER = LoggerFactory.getLogger(BuildCacheStep.class);
 
     private final BuildCacheController buildCache;
     private final BuildCacheCommandFactory commandFactory;
@@ -51,7 +51,7 @@ public class CacheStep implements Step<IncrementalChangesContext, CurrentSnapsho
     private final OutputChangeListener outputChangeListener;
     private final Step<? super IncrementalChangesContext, ? extends CurrentSnapshotResult> delegate;
 
-    public CacheStep(
+    public BuildCacheStep(
         BuildCacheController buildCache,
         BuildCacheCommandFactory commandFactory,
         Deleter deleter,
