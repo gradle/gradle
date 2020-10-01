@@ -39,7 +39,7 @@ class SkipEmptyWorkStepTest extends StepSpec<AfterPreviousExecutionContext> {
     }
 
     def setup() {
-        _ * identity.history >> Optional.of(executionHistoryStore)
+        _ * work.history >> Optional.of(executionHistoryStore)
     }
 
     def "delegates when work is not skipped"() {

@@ -61,7 +61,7 @@ class CaptureStateBeforeExecutionStepTest extends StepSpec<AfterPreviousExecutio
     }
 
     def setup() {
-        _ * identity.history >> Optional.of(executionHistoryStore)
+        _ * work.history >> Optional.of(executionHistoryStore)
     }
 
     def "no state is captured when task history is not maintained"() {
@@ -69,7 +69,7 @@ class CaptureStateBeforeExecutionStepTest extends StepSpec<AfterPreviousExecutio
         step.execute(context)
         then:
         assertNoOperation()
-        _ * identity.history >> Optional.empty()
+        _ * work.history >> Optional.empty()
         1 * delegate.execute(_) >> { BeforeExecutionContext beforeExecution ->
             assert !beforeExecution.beforeExecutionState.present
         }
