@@ -91,6 +91,7 @@ class PerformanceTestPlugin : Plugin<Project> {
         val performanceTestExtension = createExtension(performanceTestSourceSet, cleanTestProjectsTask)
 
         createAndWireCommitDistributionTask(performanceTestExtension)
+        createAdditionalTasks(performanceTestSourceSet)
         createRebaselineTask(performanceTestSourceSet)
         configureIdePlugins(performanceTestSourceSet)
     }
