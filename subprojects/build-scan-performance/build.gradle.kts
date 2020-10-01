@@ -1,5 +1,4 @@
 import gradlebuild.performance.generator.tasks.JvmProjectGeneratorTask
-import gradlebuild.performance.reporter.DefaultPerformanceReporter
 import gradlebuild.performance.tasks.PerformanceTest
 
 /*
@@ -75,7 +74,5 @@ tasks.withType<PerformanceTest>().configureEach {
     environment("ARTIFACTORY_USERNAME", System.getenv("ARTIFACTORY_USERNAME"))
     environment("ARTIFACTORY_PASSWORD", System.getenv("ARTIFACTORY_PASSWORD"))
 
-    if (performanceReporter is DefaultPerformanceReporter) {
-        (performanceReporter as DefaultPerformanceReporter).reportGeneratorClass = "org.gradle.performance.results.BuildScanReportGenerator"
-    }
+    reportGeneratorClass.set("org.gradle.performance.results.BuildScanReportGenerator")
 }

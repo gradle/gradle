@@ -26,7 +26,6 @@ import gradlebuild.performance.generator.tasks.AbstractProjectGeneratorTask
 import gradlebuild.performance.generator.tasks.JvmProjectGeneratorTask
 import gradlebuild.performance.generator.tasks.ProjectGeneratorTask
 import gradlebuild.performance.generator.tasks.TemplateProjectGeneratorTask
-import gradlebuild.performance.reporter.DefaultPerformanceReporter
 import gradlebuild.performance.tasks.BuildCommitDistribution
 import gradlebuild.performance.tasks.DetermineBaselines
 import gradlebuild.performance.tasks.PerformanceTest
@@ -318,11 +317,13 @@ class PerformanceTestExtension(private val project: Project, private val perform
             testProjectName.set(generatorTask.name)
             testProjectFiles.from(generatorTask)
 
-            performanceReporter = project.createPerformanceReporter()
-
-            val gradleBuildBranch = project.the<ModuleIdentityExtension>().gradleBuildBranch.get()
+            val identityExtension = project.the<ModuleIdentityExtension>()
+            val gradleBuildBranch = identityExtension.gradleBuildBranch.get()
             branchName = gradleBuildBranch
             systemProperty("gradleBuildBranch", gradleBuildBranch)
+            commitId.set(identityExtension.gradleBuildCommitId)
+
+            reportGeneratorClass.set("org.gradle.performance.results.report.DefaultReportGenerator")
 
             maxParallelForks = 1
             useJUnitPlatform()
@@ -392,15 +393,6 @@ fun Project.loadScenariosFromFile(testProject: String): List<String> {
             }
     else listOf()
 }
-
-
-private
-fun Project.createPerformanceReporter() =
-    objects.newInstance(DefaultPerformanceReporter::class).also {
-        it.projectName = name
-        it.reportGeneratorClass = "org.gradle.performance.results.report.DefaultReportGenerator"
-        it.commitId = the<ModuleIdentityExtension>().gradleBuildCommitId.get()
-    }
 
 
 @VisibleForTesting

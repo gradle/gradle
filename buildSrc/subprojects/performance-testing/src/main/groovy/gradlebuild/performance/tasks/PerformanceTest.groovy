@@ -101,21 +101,30 @@ abstract class PerformanceTest extends DistributionTest {
     @Internal
     String branchName
 
+    @Internal
+    abstract Property<String> getCommitId()
+
+    @Input
+    abstract Property<String> getProjectName()
+
     @OutputDirectory
     File reportDir
 
     @OutputFile
     File resultsJson
 
-    // Disable report by default, we don't need it in worker build - unless it's AdHoc performance test
-    @Internal
-    PerformanceReporter performanceReporter = PerformanceReporter.NoOpPerformanceReporter.INSTANCE
+    @Input
+    abstract Property<String> getReportGeneratorClass()
+
+    private final PerformanceReporter performanceReporter = project.objects.newInstance(PerformanceReporter)
 
     PerformanceTest() {
         getJvmArgumentProviders().add(new PerformanceTestJvmArgumentsProvider())
         getOutputs().doNotCacheIf("baselines contain version 'flakiness-detection-commit', 'last' or 'nightly'", { containsSpecialVersions() })
         getOutputs().doNotCacheIf("flakiness detection", { flakinessDetection })
         getOutputs().upToDateWhen { !containsSpecialVersions() && !flakinessDetection }
+
+        projectName.set(project.name)
     }
 
     private boolean containsSpecialVersions() {
@@ -139,7 +148,7 @@ abstract class PerformanceTest extends DistributionTest {
             super.executeTests()
         } catch (GradleException e) {
             // Ignore test failure message, so the reporter can report the failures
-            if (performanceReporter != PerformanceReporter.NoOpPerformanceReporter.INSTANCE &&
+            if (databaseUrl != null &&
                 e.getMessage()?.startsWith("There were failing tests")
             ) {
                 logger.warn(e.getMessage())
@@ -147,7 +156,18 @@ abstract class PerformanceTest extends DistributionTest {
                 throw e
             }
         } finally {
-            performanceReporter.report(this)
+            generateResultsJson()
+            performanceReporter.report(
+                reportGeneratorClass.get(),
+                reportDir,
+                [resultsJson],
+                databaseParameters,
+                channel,
+                branchName,
+                commitId.get(),
+                classpath,
+                projectName.get()
+            )
         }
     }
 
