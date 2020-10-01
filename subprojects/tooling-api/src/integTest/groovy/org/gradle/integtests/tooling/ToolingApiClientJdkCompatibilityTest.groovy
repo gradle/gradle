@@ -84,88 +84,91 @@ import java.io.File;
 
 public class ToolingApiCompatibilityClient {
     public static void main(String[] args) throws Exception {
-        try {
-            // parameters
-            // 1. action
-            // 2. project directory
-            // 3. target gradle version (or home)
-            // 4. target JDK
-            // 5. gradle user home
-            if (args.length == 5) {
-                String action = args[0];
-                File projectDir = new File(args[1]);
-                String gradleVersion = args[2];
-                File javaHome = new File(args[3]);
-                File gradleUserHome = new File(args[4]);
-                System.out.println("action = " + action);
-                System.out.println("projectDir = " + projectDir);
-                System.out.println("gradleVersion = " + gradleVersion);
-                System.out.println("javaHome = " + javaHome);
-                System.out.println("gradleUserHome = " + gradleUserHome);
-                if (action.equals("help")) {
-                    runHelp(projectDir, gradleVersion, javaHome, gradleUserHome);
-                    System.exit(0);
-                } else if (action.equals("action")) {
-                    buildAction(projectDir, gradleVersion, javaHome, gradleUserHome);
-                    System.exit(0);
-                }
+        // parameters
+        // 1. action
+        // 2. project directory
+        // 3. target gradle version (or home)
+        // 4. target JDK
+        // 5. gradle user home
+        if (args.length == 5) {
+            String action = args[0];
+            File projectDir = new File(args[1]);
+            String gradleVersion = args[2];
+            File javaHome = new File(args[3]);
+            File gradleUserHome = new File(args[4]);
+            System.out.println("action = " + action);
+            System.out.println("projectDir = " + projectDir);
+            System.out.println("gradleVersion = " + gradleVersion);
+            System.out.println("javaHome = " + javaHome);
+            System.out.println("gradleUserHome = " + gradleUserHome);
+            if (action.equals("help")) {
+                int result = runHelp(projectDir, gradleVersion, javaHome, gradleUserHome);
+                System.exit(result);
+            } else if (action.equals("action")) {
+                int result = buildAction(projectDir, gradleVersion, javaHome, gradleUserHome);
+                System.exit(result);
             }
-        } catch(Throwable t) {
-            System.err.println("Caught throwable: " + t.getMessage());
-            t.printStackTrace();
-        } finally {
-            System.err.println("something went wrong");
-            System.exit(1);
         }
     }
 
-    private static void runHelp(File projectLocation, String gradleVersion, File javaHome, File gradleUserHome) throws Exception {
+    private static int runHelp(File projectLocation, String gradleVersion, File javaHome, File gradleUserHome) {
         GradleConnector connector = GradleConnector.newConnector();
         connector.useGradleVersion(gradleVersion);
 
-        ProjectConnection connection = connector.forProjectDirectory(projectLocation).useGradleUserHomeDir(gradleUserHome).connect();
-
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        ByteArrayOutputStream err = new ByteArrayOutputStream();
-
-        connection.newBuild()
-            .forTasks("help")
-            .setStandardOutput(out)
-            .setStandardError(err)
-            .setJavaHome(javaHome)
-            .run();
-
-        assert out.toString().contains("Hello from");
-        System.err.println(err.toString());
-
-        connection.close();
-    }
-
-   private static void buildAction(File projectLocation, String gradleVersion, File javaHome, File gradleUserHome) throws Exception {
-        GradleConnector connector = GradleConnector.newConnector();
-        connector.useGradleVersion(gradleVersion);
-
-        ProjectConnection connection = connector.forProjectDirectory(projectLocation).useGradleUserHomeDir(gradleUserHome).connect();
-
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        ByteArrayOutputStream err = new ByteArrayOutputStream();
+        ProjectConnection connection = null;
 
         try {
+            connection = connector.forProjectDirectory(projectLocation).useGradleUserHomeDir(gradleUserHome).connect();
+
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            ByteArrayOutputStream err = new ByteArrayOutputStream();
+
+            connection.newBuild()
+                .forTasks("help")
+                .setStandardOutput(out)
+                .setStandardError(err)
+                .setJavaHome(javaHome)
+                .run();
+
+            assert out.toString().contains("Hello from");
+            System.err.println(err.toString());
+            return 0;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return 1;
+        } finally {
+            if (connection != null) {
+                connection.close();
+            }
+        }
+    }
+
+   private static int buildAction(File projectLocation, String gradleVersion, File javaHome, File gradleUserHome) {
+        GradleConnector connector = GradleConnector.newConnector();
+        connector.useGradleVersion(gradleVersion);
+
+        ProjectConnection connection = null;
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        ByteArrayOutputStream err = new ByteArrayOutputStream();
+        try {
+            connection = connector.forProjectDirectory(projectLocation).useGradleUserHomeDir(gradleUserHome).connect();
             String result = connection.action(new ToolingApiCompatibilityBuildAction())
                 .setStandardOutput(out)
                 .setStandardError(err)
                 .setJavaHome(javaHome)
                 .run();
             assert result.contains("Build action result");
+            return 0;
         } catch(Exception e) {
             e.printStackTrace();
-            throw e;
+            return 1;
         } finally {
             System.out.println(out.toString());
             System.err.println(err.toString());
+            if (connection != null) {
+                connection.close();
+            }
         }
-
-        connection.close();
    }
 }
 """
