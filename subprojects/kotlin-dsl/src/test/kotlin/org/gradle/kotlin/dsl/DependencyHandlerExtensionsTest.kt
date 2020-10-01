@@ -37,7 +37,8 @@ class DependencyHandlerExtensionsTest {
             "version" to "v",
             "configuration" to "cfg",
             "classifier" to "cls",
-            "ext" to "x")
+            "ext" to "x"
+        )
 
         val dependencies = newDependencyHandlerMock()
         val dependency: ExternalModuleDependency = mock()
@@ -50,8 +51,10 @@ class DependencyHandlerExtensionsTest {
                 version = "v",
                 configuration = "cfg",
                 classifier = "cls",
-                ext = "x"),
-            sameInstance(dependency))
+                ext = "x"
+            ),
+            sameInstance(dependency)
+        )
     }
 
     @Test
@@ -81,13 +84,15 @@ class DependencyHandlerExtensionsTest {
                     exclude(group = "g", module = "m")
                 assertThat(
                     configuredDependency,
-                    sameInstance(dependency))
+                    sameInstance(dependency)
+                )
             }
         }
 
         assertThat(
             events,
-            equalTo(listOf("created", "configured", "added")))
+            equalTo(listOf("created", "configured", "added"))
+        )
     }
 
     @Test
@@ -115,13 +120,15 @@ class DependencyHandlerExtensionsTest {
                 events.add("configured")
                 assertThat(
                     dependencyProject,
-                    sameInstance(project))
+                    sameInstance(project)
+                )
             }
         }
 
         assertThat(
             events,
-            equalTo(listOf("created", "configured", "added")))
+            equalTo(listOf("created", "configured", "added"))
+        )
     }
 
     @Test
@@ -198,7 +205,8 @@ class DependencyHandlerExtensionsTest {
                     // Configures the inner module dependencies
                     dependencies(
                         "org.apache.ant:ant-launcher:1.9.6@jar",
-                        "org.apache.ant:ant-junit:1.9.6")
+                        "org.apache.ant:ant-junit:1.9.6"
+                    )
                 }
             }
             add("runtime", groovy)

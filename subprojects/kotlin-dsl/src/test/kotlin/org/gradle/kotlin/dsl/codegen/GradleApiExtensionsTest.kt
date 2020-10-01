@@ -341,12 +341,14 @@ class GradleApiExtensionsTest : TestWithClassPath() {
         val useDir = file("use").also { it.mkdirs() }
         val usageFiles = extensionsUsages.mapIndexed { idx, usage ->
             useDir.resolve("usage$idx.kt").also {
-                it.writeText("""
+                it.writeText(
+                    """
                 import org.gradle.kotlin.dsl.fixtures.codegen.*
                 import org.gradle.kotlin.dsl.*
 
                 $usage
-                """.trimIndent())
+                    """.trimIndent()
+                )
             }
         }
 

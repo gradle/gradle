@@ -33,7 +33,9 @@ class NamedContainersDslTest : AbstractDslTest() {
     @Test
     fun `monomorphic named domain object container api`() {
 
-        testConfigurationContainerVia("api", """
+        testConfigurationContainerVia(
+            "api",
+            """
 
             val foo: Configuration = configurations.getByName("foo")
             val bar: Configuration = configurations.getByName("bar") {
@@ -54,13 +56,16 @@ class NamedContainersDslTest : AbstractDslTest() {
             val hill: NamedDomainObjectProvider<Configuration> = configurations.register("hill") {
                 extendsFrom(valley.get())
             }
-        """)
+        """
+        )
     }
 
     @Test
     fun `monomorphic named domain object container scope api`() {
 
-        testConfigurationContainerVia("scope-api", """
+        testConfigurationContainerVia(
+            "scope-api",
+            """
             configurations {
 
                 val foo: Configuration = getByName("foo")
@@ -83,13 +88,16 @@ class NamedContainersDslTest : AbstractDslTest() {
                     extendsFrom(valley.get())
                 }
             }
-        """)
+        """
+        )
     }
 
     @Test
     fun `monomorphic named domain object container delegated properties`() {
 
-        testConfigurationContainerVia("delegated-properties", """
+        testConfigurationContainerVia(
+            "delegated-properties",
+            """
 
             val foo: Configuration by configurations.getting
             val bar: Configuration by configurations.getting {
@@ -110,13 +118,16 @@ class NamedContainersDslTest : AbstractDslTest() {
             val hill: NamedDomainObjectProvider<Configuration> by configurations.registering {
                 extendsFrom(valley.get())
             }
-        """)
+        """
+        )
     }
 
     @Test
     fun `monomorphic named domain object container scope delegated properties`() {
 
-        testConfigurationContainerVia("scope-delegated-properties", """
+        testConfigurationContainerVia(
+            "scope-delegated-properties",
+            """
             configurations {
 
                 val foo: Configuration by getting
@@ -139,13 +150,16 @@ class NamedContainersDslTest : AbstractDslTest() {
                     extendsFrom(valley.get())
                 }
             }
-        """)
+        """
+        )
     }
 
     @Test
     fun `monomorphic named domain object container scope string invoke`() {
 
-        testConfigurationContainerVia("scope-string-invoke", """
+        testConfigurationContainerVia(
+            "scope-string-invoke",
+            """
             configurations {
 
                 val foo: NamedDomainObjectProvider<Configuration> = "foo"()
@@ -158,7 +172,8 @@ class NamedContainersDslTest : AbstractDslTest() {
                     extendsFrom(cabin.get())
                 }
             }
-        """) {
+        """
+        ) {
             configurations {
                 val bazar by creating
                 create("cathedral") {

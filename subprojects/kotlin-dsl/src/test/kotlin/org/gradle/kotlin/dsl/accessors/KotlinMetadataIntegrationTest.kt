@@ -57,14 +57,17 @@ class KotlinMetadataIntegrationTest : TestWithTempFiles() {
                 outputDir,
                 moduleName,
                 listOf(
-                    newFile("ConfigurationAccessors.kt", """
+                    newFile(
+                        "ConfigurationAccessors.kt",
+                        """
                         package org.gradle.kotlin.dsl
 
                         import org.gradle.api.artifacts.*
 
                         val ConfigurationContainer.api: Configuration
                             inline get() = TODO()
-                    """)
+                        """
+                    )
                 ),
                 loggerFor<KotlinMetadataIntegrationTest>(),
                 testRuntimeClassPath.asFiles

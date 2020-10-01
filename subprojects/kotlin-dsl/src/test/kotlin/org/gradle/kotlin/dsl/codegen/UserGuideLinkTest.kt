@@ -21,7 +21,8 @@ class UserGuideLinkTest {
             assertThat(
                 "$it is linked",
                 UserGuideLink.forPlugin(it),
-                notNullValue())
+                notNullValue()
+            )
         }
     }
 
@@ -31,7 +32,8 @@ class UserGuideLinkTest {
             assertThat(
                 "$it is not linked",
                 UserGuideLink.forPlugin(it),
-                nullValue())
+                nullValue()
+            )
         }
     }
 }
@@ -86,7 +88,8 @@ val linkedPlugins =
         "scala", "scala-base", "signing", "standard-tool-chains",
         "visual-studio",
         "war",
-        "windows-resource-script", "windows-resources")
+        "windows-resource-script", "windows-resources"
+    )
 
 
 val unlinkedPlugins =
@@ -97,4 +100,5 @@ val unlinkedPlugins =
         "publishing",
         "rhino",
         "scala-lang",
-        "wrapper")
+        "wrapper"
+    )

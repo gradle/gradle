@@ -15,14 +15,16 @@ class KotlinTypeStringTest {
     fun `#kotlinTypeStringFor array type`() {
         assertThat(
             kotlinTypeStringFor(typeOf<Array<String>>()),
-            equalTo("Array<String>"))
+            equalTo("Array<String>")
+        )
     }
 
     @Test
     fun `#kotlinTypeStringFor parameterized type`() {
         assertThat(
             kotlinTypeStringFor(typeOf<List<Array<String>>>()),
-            equalTo("java.util.List<Array<String>>"))
+            equalTo("java.util.List<Array<String>>")
+        )
     }
 
     @Test
@@ -57,9 +59,11 @@ class KotlinTypeStringTest {
     inline fun <reified T> assertPrimitiveTypeName(primitiveTypeClass: Class<*>) {
         assertThat(
             kotlinTypeStringFor(typeOf(primitiveTypeClass)),
-            equalTo(T::class.simpleName))
+            equalTo(T::class.simpleName)
+        )
         assertThat(
             kotlinTypeStringFor(typeOf<T>()),
-            equalTo(T::class.simpleName))
+            equalTo(T::class.simpleName)
+        )
     }
 }

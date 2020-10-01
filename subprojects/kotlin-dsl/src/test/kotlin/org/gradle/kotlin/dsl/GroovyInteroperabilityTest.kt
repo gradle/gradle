@@ -65,7 +65,8 @@ class GroovyInteroperabilityTest {
 
         assertEquals(
             "GROOVY",
-            closure { "GROOVY" }.call())
+            closure { "GROOVY" }.call()
+        )
     }
 
     @Test
@@ -74,7 +75,8 @@ class GroovyInteroperabilityTest {
 
         assertEquals(
             null,
-            closure { null }.call())
+            closure { null }.call()
+        )
     }
 
     @Test
@@ -84,7 +86,8 @@ class GroovyInteroperabilityTest {
 
         assertEquals(
             "GROOVY",
-            closure { toUpperCase() }.call("groovy"))
+            closure { toUpperCase() }.call("groovy")
+        )
     }
 
     @Test
@@ -93,7 +96,8 @@ class GroovyInteroperabilityTest {
 
         assertEquals(
             null,
-            closure { null }.call(null))
+            closure { null }.call(null)
+        )
     }
 
     @Test
@@ -103,7 +107,8 @@ class GroovyInteroperabilityTest {
 
         assertEquals(
             "foobar",
-            closure { x, y -> x + y }.call("foo", "bar"))
+            closure { x, y -> x + y }.call("foo", "bar")
+        )
     }
 
     @Test
@@ -113,7 +118,8 @@ class GroovyInteroperabilityTest {
 
         assertEquals(
             null,
-            closure { _, _ -> null }.call(null, null))
+            closure { _, _ -> null }.call(null, null)
+        )
     }
 
     @Test
@@ -123,7 +129,8 @@ class GroovyInteroperabilityTest {
 
         assertEquals(
             "foobarbaz",
-            closure { x, y, z -> x + y + z }.call("foo", "bar", "baz"))
+            closure { x, y, z -> x + y + z }.call("foo", "bar", "baz")
+        )
     }
 
     @Test
@@ -133,7 +140,8 @@ class GroovyInteroperabilityTest {
 
         assertEquals(
             null,
-            closure { _, _, _ -> null }.call(null, null, null))
+            closure { _, _, _ -> null }.call(null, null, null)
+        )
     }
 
     @Test
@@ -172,7 +180,8 @@ class GroovyInteroperabilityTest {
 
         assertThat(
             invocations,
-            equalTo(listOf("c0", "c1(42)", "c2(11, 33)", "c3(23, 7, 12)")))
+            equalTo(listOf("c0", "c1(42)", "c2(11, 33)", "c3(23, 7, 12)"))
+        )
     }
 
     @Test

@@ -161,7 +161,8 @@ class DelegatedGradlePropertiesExtensionsTest {
                 mock<DynamicAwareSettingsMockType>(name = "settings") {
                     on { asDynamicObject } doReturn dynamicObject
                 },
-                dynamicObject)
+                dynamicObject
+            )
         }
 
     private
@@ -171,7 +172,8 @@ class DelegatedGradlePropertiesExtensionsTest {
                 mock<DynamicAwareProjectMockType>(name = "project") {
                     on { asDynamicObject } doReturn dynamicObject
                 },
-                dynamicObject)
+                dynamicObject
+            )
         }
 
     private

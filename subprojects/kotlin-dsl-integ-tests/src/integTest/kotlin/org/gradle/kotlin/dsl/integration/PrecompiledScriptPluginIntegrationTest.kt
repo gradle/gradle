@@ -19,27 +19,35 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
     @ToBeFixedForConfigurationCache
     fun `generated code follows kotlin-dsl coding conventions`() {
 
-        withBuildScript("""
+        withBuildScript(
+            """
             plugins {
                 `kotlin-dsl`
                 id("org.gradle.kotlin-dsl.ktlint-convention") version "0.6.0"
             }
 
             $repositoriesBlock
-        """)
+        """
+        )
 
-        withPrecompiledKotlinScript("plugin-without-package.gradle.kts", """
+        withPrecompiledKotlinScript(
+            "plugin-without-package.gradle.kts",
+            """
             plugins {
                 org.gradle.base
             }
-        """)
-        withPrecompiledKotlinScript("org/gradle/plugins/plugin-with-package.gradle.kts", """
+        """
+        )
+        withPrecompiledKotlinScript(
+            "org/gradle/plugins/plugin-with-package.gradle.kts",
+            """
             package org.gradle.plugins
 
             plugins {
                 org.gradle.base
             }
-        """)
+        """
+        )
 
         build("generateScriptPluginAdapters")
 
@@ -54,23 +62,31 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
         val secondLocation = "second-location"
         val cacheDir = newDir("cache-dir")
 
-        withDefaultSettingsIn(firstLocation).appendText("""
+        withDefaultSettingsIn(firstLocation).appendText(
+            """
             rootProject.name = "test"
             buildCache {
                 local {
                     directory = file("${cacheDir.normalisedPath}")
                 }
             }
-        """)
-        withBuildScriptIn(firstLocation, """
+        """
+        )
+        withBuildScriptIn(
+            firstLocation,
+            """
             plugins { `kotlin-dsl` }
             ${jcenterRepository(GradleDsl.KOTLIN)}
-        """)
+        """
+        )
 
         withFile("$firstLocation/src/main/kotlin/plugin-without-package.gradle.kts")
-        withFile("$firstLocation/src/main/kotlin/plugins/plugin-with-package.gradle.kts", """
+        withFile(
+            "$firstLocation/src/main/kotlin/plugins/plugin-with-package.gradle.kts",
+            """
             package plugins
-        """)
+        """
+        )
 
 
         val firstDir = existing(firstLocation)
@@ -110,10 +126,12 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
     @ToBeFixedForConfigurationCache
     fun `precompiled script plugins adapters generation clean stale outputs`() {
 
-        withBuildScript("""
+        withBuildScript(
+            """
             plugins { `kotlin-dsl` }
             ${jcenterRepository(GradleDsl.KOTLIN)}
-        """)
+        """
+        )
 
         val fooScript = withFile("src/main/kotlin/foo.gradle.kts", "")
 
@@ -132,16 +150,22 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
     fun `can apply precompiled script plugin from groovy script`() {
 
         withKotlinBuildSrc()
-        withFile("buildSrc/src/main/kotlin/my-plugin.gradle.kts", """
+        withFile(
+            "buildSrc/src/main/kotlin/my-plugin.gradle.kts",
+            """
             tasks.register("myTask") {}
-        """)
+        """
+        )
 
         withDefaultSettings()
-        withFile("build.gradle", """
+        withFile(
+            "build.gradle",
+            """
             plugins {
                 id 'my-plugin'
             }
-        """)
+        """
+        )
 
         build("myTask")
     }
@@ -151,29 +175,36 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
     fun `accessors are available after script body change`() {
 
         withKotlinBuildSrc()
-        val myPluginScript = withFile("buildSrc/src/main/kotlin/my-plugin.gradle.kts", """
+        val myPluginScript = withFile(
+            "buildSrc/src/main/kotlin/my-plugin.gradle.kts",
+            """
             plugins { base }
 
             base.archivesBaseName = "my"
 
             println("base")
-        """)
+        """
+        )
 
         withDefaultSettings()
-        withBuildScript("""
+        withBuildScript(
+            """
             plugins {
                 `my-plugin`
             }
-        """)
+        """
+        )
 
         build("help").apply {
             assertThat(output, containsString("base"))
         }
 
-        myPluginScript.appendText("""
+        myPluginScript.appendText(
+            """
 
             println("modified")
-        """.trimIndent())
+            """.trimIndent()
+        )
 
         build("help").apply {
             assertThat(output, containsString("base"))
@@ -186,18 +217,23 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
     fun `accessors are available after re-running tasks`() {
 
         withKotlinBuildSrc()
-        withFile("buildSrc/src/main/kotlin/my-plugin.gradle.kts", """
+        withFile(
+            "buildSrc/src/main/kotlin/my-plugin.gradle.kts",
+            """
             plugins { base }
 
             base.archivesBaseName = "my"
-        """)
+        """
+        )
 
         withDefaultSettings()
-        withBuildScript("""
+        withBuildScript(
+            """
             plugins {
                 `my-plugin`
             }
-        """)
+        """
+        )
 
         build("clean")
 
@@ -208,13 +244,16 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
     @ToBeFixedForConfigurationCache(because = "Kotlin Gradle Plugin")
     fun `accessors are available after renaming precompiled script plugin from project dependency`() {
 
-        withSettings("""
+        withSettings(
+            """
             $defaultSettingsScript
 
             include("consumer", "producer")
-        """)
+        """
+        )
 
-        withBuildScript("""
+        withBuildScript(
+            """
             plugins {
                 `java-library`
                 `kotlin-dsl` apply false
@@ -227,12 +266,15 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
             dependencies {
                 api(project(":consumer"))
             }
-        """)
+        """
+        )
 
         withFolders {
 
             "consumer" {
-                withFile("build.gradle.kts", """
+                withFile(
+                    "build.gradle.kts",
+                    """
                     plugins {
                         id("org.gradle.kotlin.kotlin-dsl")
                     }
@@ -255,21 +297,31 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
                     dependencies {
                         implementation(project(":producer"))
                     }
-                """)
+                """
+                )
 
-                withFile("src/main/kotlin/consumer-plugin.gradle.kts", """
+                withFile(
+                    "src/main/kotlin/consumer-plugin.gradle.kts",
+                    """
                     plugins { `stable-producer-plugin` }
-                """)
+                """
+                )
             }
 
             "producer" {
-                withFile("build.gradle.kts", """
+                withFile(
+                    "build.gradle.kts",
+                    """
                     plugins { id("org.gradle.kotlin.kotlin-dsl") }
-                """)
+                """
+                )
                 withFile("src/main/kotlin/changing-producer-plugin.gradle.kts")
-                withFile("src/main/kotlin/stable-producer-plugin.gradle.kts", """
+                withFile(
+                    "src/main/kotlin/stable-producer-plugin.gradle.kts",
+                    """
                     println("*42*")
-                """)
+                """
+                )
             }
         }
 

@@ -45,11 +45,13 @@ class KotlinScriptClassPathProviderTest : TestWithClassPath() {
             coreAndPluginsScope = mock(),
             gradleApiJarsProvider = { gradleApiJar },
             jarCache = { id, generator -> file("$id.jar").apply(generator) },
-            progressMonitorProvider = progressMonitorProvider)
+            progressMonitorProvider = progressMonitorProvider
+        )
 
         assertThat(
             subject.gradleKotlinDsl.asFiles.toList(),
-            equalTo(gradleApiJar + generatedKotlinExtensions))
+            equalTo(gradleApiJar + generatedKotlinExtensions)
+        )
 
         verifyProgressMonitor(kotlinExtensionsMonitor)
     }
@@ -62,8 +64,11 @@ class KotlinScriptClassPathProviderTest : TestWithClassPath() {
 
     private
     fun mockGradleApiMetadataModule() =
-        withZip("gradle-api-metadata-0.jar", sequenceOf(
-            "gradle-api-declaration.properties" to "includes=\nexcludes=\n".toByteArray())
+        withZip(
+            "gradle-api-metadata-0.jar",
+            sequenceOf(
+                "gradle-api-declaration.properties" to "includes=\nexcludes=\n".toByteArray()
+            )
         ).let { jar ->
             mock<Module> { on { classpath } doReturn DefaultClassPath.of(listOf(jar)) }
         }

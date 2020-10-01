@@ -509,14 +509,17 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
     private
     fun dumpKotlinMetadataOf(moduleDir: File) {
         withClassLoaderFor(DefaultClassPath.of(moduleDir)) {
-            visitMetadataOfModule(moduleDir, moduleDir.name, object : KmModuleVisitor() {
-                override fun visitPackageParts(fqName: String, fileFacades: List<String>, multiFileClassParts: Map<String, String>) {
-                    fileFacades.forEach {
-                        val fileFacadeClassName = it.replace('/', '.')
-                        dumpFileFacadeHeaderOf(loadClass(fileFacadeClassName))
+            visitMetadataOfModule(
+                moduleDir, moduleDir.name,
+                object : KmModuleVisitor() {
+                    override fun visitPackageParts(fqName: String, fileFacades: List<String>, multiFileClassParts: Map<String, String>) {
+                        fileFacades.forEach {
+                            val fileFacadeClassName = it.replace('/', '.')
+                            dumpFileFacadeHeaderOf(loadClass(fileFacadeClassName))
+                        }
                     }
                 }
-            })
+            )
         }
     }
 }

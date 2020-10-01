@@ -152,7 +152,8 @@ class SimplifiedKotlinScriptEvaluator(
             DummyCompiledScript(
                 classLoaderFor(scriptRuntimeClassPath + DefaultClassPath.of(location))
                     .also { classLoaders += it }
-                    .loadClass(className))
+                    .loadClass(className)
+            )
 
         override fun applyPluginsTo(scriptHost: KotlinScriptHost<*>, pluginRequests: PluginRequests) = Unit
 

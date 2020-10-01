@@ -162,11 +162,13 @@ class NamedDomainObjectContainerExtensionsTest {
 
         assertThat(
             alice,
-            equalTo(DomainObject("alice-foo", true)))
+            equalTo(DomainObject("alice-foo", true))
+        )
 
         assertThat(
             bob,
-            equalTo(DomainObject("bob-foo", false)))
+            equalTo(DomainObject("bob-foo", false))
+        )
     }
 
     sealed class DomainObjectBase {
@@ -210,11 +212,13 @@ class NamedDomainObjectContainerExtensionsTest {
 
         assertThat(
             alice,
-            equalTo(DomainObjectBase.Foo("foo")))
+            equalTo(DomainObjectBase.Foo("foo"))
+        )
 
         assertThat(
             bob,
-            equalTo(DomainObjectBase.Bar()))
+            equalTo(DomainObjectBase.Bar())
+        )
     }
 
     @Test
