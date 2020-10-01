@@ -68,6 +68,11 @@ public interface Hasher {
     void putHash(HashCode hashCode);
 
     /**
+     * Puts a hashable value into the hasher.
+     */
+    void put(Hashable hashable);
+
+    /**
      * Feed a {@code null} value into the hasher.
      */
     void putNull();
