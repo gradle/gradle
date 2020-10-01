@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.recomp;
 
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.gradle.api.internal.tasks.compile.incremental.classpath.ClasspathEntrySnapshot;
 import org.gradle.api.internal.tasks.compile.incremental.classpath.ClasspathSnapshot;
@@ -27,6 +26,8 @@ import org.gradle.api.tasks.incremental.InputFileDetails;
 
 import java.io.File;
 import java.util.Deque;
+import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.Set;
 
 public class ClasspathChangeDependentsFinder {
@@ -96,9 +97,9 @@ public class ClasspathChangeDependentsFinder {
     }
 
     private DependentsSet collectDependentsFromClasspath(Set<String> modified) {
-        final Set<String> privateDependentClasses = Sets.newHashSet(modified);
-        final Set<String> accessibleDependentClasses = Sets.newHashSet(modified);
-        final Deque<String> queue = Lists.newLinkedList(modified);
+        final Set<String> privateDependentClasses = new HashSet<>(modified);
+        final Set<String> accessibleDependentClasses = new HashSet<>(modified);
+        final Deque<String> queue = new LinkedList<>(modified);
         while (!queue.isEmpty()) {
             final String dependentClass = queue.poll();
             for (File entry : classpathSnapshot.getEntries()) {

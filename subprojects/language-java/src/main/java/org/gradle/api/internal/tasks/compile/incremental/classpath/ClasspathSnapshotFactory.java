@@ -16,8 +16,6 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.classpath;
 
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.operations.BuildOperationContext;
@@ -27,7 +25,9 @@ import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.operations.RunnableBuildOperation;
 
 import java.io.File;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 public class ClasspathSnapshotFactory {
@@ -43,10 +43,10 @@ public class ClasspathSnapshotFactory {
     ClasspathSnapshot createSnapshot(final Iterable<File> entries) {
         final Set<CreateSnapshot> snapshotOperations = snapshotAll(entries);
 
-        final LinkedHashMap<File, ClasspathEntrySnapshot> snapshots = Maps.newLinkedHashMap();
-        final LinkedHashMap<File, HashCode> hashes = Maps.newLinkedHashMap();
-        final Set<String> allClasses = Sets.newHashSet();
-        final Set<String> duplicateClasses = Sets.newHashSet();
+        final LinkedHashMap<File, ClasspathEntrySnapshot> snapshots = new LinkedHashMap<>();
+        final LinkedHashMap<File, HashCode> hashes = new LinkedHashMap<>();
+        final Set<String> allClasses = new HashSet<>();
+        final Set<String> duplicateClasses = new HashSet<>();
 
         for (CreateSnapshot operation : snapshotOperations) {
             File entry = operation.entry;
@@ -67,16 +67,13 @@ public class ClasspathSnapshotFactory {
     }
 
     private Set<CreateSnapshot> snapshotAll(final Iterable<File> entries) {
-        final Set<CreateSnapshot> snapshotOperations = Sets.newLinkedHashSet();
+        final Set<CreateSnapshot> snapshotOperations = new LinkedHashSet<>();
 
-        buildOperationExecutor.runAll(new Action<BuildOperationQueue<CreateSnapshot>>() {
-            @Override
-            public void execute(BuildOperationQueue<CreateSnapshot> buildOperationQueue) {
-                for (File entry : entries) {
-                    CreateSnapshot operation = new CreateSnapshot(entry);
-                    snapshotOperations.add(operation);
-                    buildOperationQueue.add(operation);
-                }
+        buildOperationExecutor.runAll((Action<BuildOperationQueue<CreateSnapshot>>) buildOperationQueue -> {
+            for (File entry : entries) {
+                CreateSnapshot operation = new CreateSnapshot(entry);
+                snapshotOperations.add(operation);
+                buildOperationQueue.add(operation);
             }
         });
         return snapshotOperations;

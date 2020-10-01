@@ -38,7 +38,7 @@ public class AnnotationProcessingData {
     private final String fullRebuildCause;
 
     public AnnotationProcessingData() {
-        this(ImmutableMap.<String, Set<String>>of(), ImmutableSet.<String>of(), ImmutableSet.<String>of(), ImmutableMap.<String, Set<GeneratedResource>>of(), ImmutableSet.<GeneratedResource>of(), null);
+        this(ImmutableMap.of(), ImmutableSet.of(), ImmutableSet.of(), ImmutableMap.of(), ImmutableSet.of(), null);
     }
 
     public AnnotationProcessingData(Map<String, Set<String>> generatedTypesByOrigin, Set<String> aggregatedTypes, Set<String> generatedTypesDependingOnAllOthers, Map<String,
@@ -84,12 +84,12 @@ public class AnnotationProcessingData {
 
         public Serializer(StringInterner interner) {
             InterningStringSerializer stringSerializer = new InterningStringSerializer(interner);
-            typesSerializer = new SetSerializer<String>(stringSerializer);
-            generatedTypesSerializer = new MapSerializer<String, Set<String>>(stringSerializer, typesSerializer);
+            typesSerializer = new SetSerializer<>(stringSerializer);
+            generatedTypesSerializer = new MapSerializer<>(stringSerializer, typesSerializer);
 
             GeneratedResourceSerializer resourceSerializer = new GeneratedResourceSerializer(stringSerializer);
-            this.resourcesSerializer = new SetSerializer<GeneratedResource>(resourceSerializer);
-            this.generatedResourcesSerializer = new MapSerializer<String, Set<GeneratedResource>>(stringSerializer, resourcesSerializer);
+            this.resourcesSerializer = new SetSerializer<>(resourceSerializer);
+            this.generatedResourcesSerializer = new MapSerializer<>(stringSerializer, resourcesSerializer);
         }
 
         @Override

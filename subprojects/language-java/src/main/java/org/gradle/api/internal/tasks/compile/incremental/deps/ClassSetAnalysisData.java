@@ -18,7 +18,6 @@ package org.gradle.api.internal.tasks.compile.incremental.deps;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Sets;
 import it.unimi.dsi.fastutil.ints.IntSet;
 import it.unimi.dsi.fastutil.ints.IntSets;
 import org.apache.commons.lang.StringUtils;
@@ -31,6 +30,7 @@ import org.gradle.internal.serialize.IntSetSerializer;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -62,7 +62,7 @@ public class ClassSetAnalysisData {
     }
 
     private DependentsSet getDependentsOfPackage(String packageName) {
-        Set<String> typesInPackage = Sets.newHashSet();
+        Set<String> typesInPackage = new HashSet<>();
         for (String type : classes) {
             int i = type.lastIndexOf(".");
             if (i < 0 && packageName == null || i > 0 && type.substring(0, i).equals(packageName)) {

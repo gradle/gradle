@@ -22,8 +22,6 @@ import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.Serializer;
 
-import java.io.EOFException;
-
 public class GeneratedResourceSerializer extends AbstractSerializer<GeneratedResource> {
     private static final Serializer<GeneratedResource.Location> LOCATION_SERIALIZER = new BaseSerializerFactory().getSerializerFor(GeneratedResource.Location.class);
     private final Serializer<String> stringSerializer;
@@ -33,7 +31,7 @@ public class GeneratedResourceSerializer extends AbstractSerializer<GeneratedRes
     }
 
     @Override
-    public GeneratedResource read(Decoder decoder) throws EOFException, Exception {
+    public GeneratedResource read(Decoder decoder) throws Exception {
         return new GeneratedResource(LOCATION_SERIALIZER.read(decoder), stringSerializer.read(decoder));
     }
 
