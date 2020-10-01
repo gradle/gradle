@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
+import com.google.common.cache.Cache;
+import org.gradle.internal.execution.CachingResult;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 
@@ -31,6 +33,8 @@ public interface TransformationWorkspaceProvider {
      * The execution history store for transformations using the provided workspaces.
      */
     ExecutionHistoryStore getExecutionHistoryStore();
+
+    Cache<UnitOfWork.Identity, CachingResult> getIdentityCache();
 
     @FunctionalInterface
     interface TransformationWorkspaceAction<T> {

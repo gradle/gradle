@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
+import com.google.common.cache.Cache;
 import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.CleanupAction;
@@ -24,6 +25,7 @@ import org.gradle.cache.PersistentCache;
 import org.gradle.cache.internal.CompositeCleanupAction;
 import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup;
 import org.gradle.cache.internal.SingleDepthFilesFinder;
+import org.gradle.internal.execution.CachingResult;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.file.FileAccessTimeJournal;
@@ -40,6 +42,7 @@ import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 public class ImmutableTransformationWorkspaceProvider implements TransformationWorkspaceProvider, Closeable {
     private static final int FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP = 1;
 
+    private final Cache<UnitOfWork.Identity, CachingResult> identityCache = com.google.common.cache.CacheBuilder.newBuilder().build();
     private final SingleDepthFileAccessTracker fileAccessTracker;
     private final File baseDirectory;
     private final ExecutionHistoryStore executionHistoryStore;
@@ -67,6 +70,11 @@ public class ImmutableTransformationWorkspaceProvider implements TransformationW
     @Override
     public ExecutionHistoryStore getExecutionHistoryStore() {
         return executionHistoryStore;
+    }
+
+    @Override
+    public Cache<UnitOfWork.Identity, CachingResult> getIdentityCache() {
+        return identityCache;
     }
 
     @Override

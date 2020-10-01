@@ -16,8 +16,6 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
@@ -90,7 +88,6 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
     private static final String INPUT_FILE_PATH_PREFIX = "i/";
     private static final String OUTPUT_FILE_PATH_PREFIX = "o/";
 
-    private final Cache<UnitOfWork.Identity, CachingResult> identityCache = CacheBuilder.newBuilder().build();
     private final FileSystemAccess fileSystemAccess;
     private final WorkExecutor workExecutor;
     private final ArtifactTransformListener artifactTransformListener;
@@ -147,7 +144,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
                 workspaceProvider
             );
 
-            return workExecutor.executeDeferred(execution, null, identityCache, new DeferredResultProcessor<CachingResult, CacheableInvocation<ImmutableList<File>>>() {
+            return workExecutor.executeDeferred(execution, null, workspaceProvider.getIdentityCache(), new DeferredResultProcessor<CachingResult, CacheableInvocation<ImmutableList<File>>>() {
                 @Override
                 public CacheableInvocation<ImmutableList<File>> processCachedResult(CachingResult cachedResult) {
                     return CacheableInvocation.cached(mapResult(cachedResult));
