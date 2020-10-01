@@ -28,12 +28,11 @@ class RelevantProjectsRegistry : ProjectAccessHandler {
     private
     val targetProjects = mutableSetOf<ProjectInternal>()
 
-    fun relevantProjects(nodes: List<Node>): List<ProjectInternal> {
-        return (targetProjects + nodes.mapNotNullTo(mutableListOf()) { node ->
-            node.owningProject
-                ?.takeIf { it.parent != null }
-        }).toList()
-    }
+    fun relevantProjects(nodes: List<Node>): List<ProjectInternal> =
+        targetProjects.toList() +
+            nodes.mapNotNullTo(mutableListOf()) { node ->
+                node.owningProject?.takeIf { it.parent != null }
+            }
 
     override fun beforeRequestingTaskByPath(targetProject: ProjectInternal) {
     }

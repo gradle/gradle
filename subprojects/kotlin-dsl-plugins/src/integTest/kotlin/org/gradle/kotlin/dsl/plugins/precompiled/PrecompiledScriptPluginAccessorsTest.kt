@@ -70,7 +70,9 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
             "buildSrc" {
                 "gradlePropertyPlugin" {
                     withKotlinDslPlugin()
-                    withFile("src/main/kotlin/gradlePropertyPlugin.gradle.kts", """
+                    withFile(
+                        "src/main/kotlin/gradlePropertyPlugin.gradle.kts",
+                        """
                         val property = providers.gradleProperty("theGradleProperty").forUseAtConfigurationTime()
                         if (property.isPresent) {
                             println("property is present in plugin!")
@@ -79,41 +81,54 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
                             "theGradleProperty",
                             property
                         )
-                    """)
+                        """
+                    )
                 }
                 "gradlePropertyPluginConsumer" {
-                    withKotlinDslPlugin().appendText("""
+                    withKotlinDslPlugin().appendText(
+                        """
                         dependencies {
                             implementation(project(":gradlePropertyPlugin"))
                         }
-                    """)
-                    withFile("src/main/kotlin/gradlePropertyPluginConsumer.gradle.kts", """
+                        """
+                    )
+                    withFile(
+                        "src/main/kotlin/gradlePropertyPluginConsumer.gradle.kts",
+                        """
                         plugins { id("gradlePropertyPlugin") }
 
                         if (theGradleProperty.isPresent) {
                             println("property is present in consumer!")
                         }
-                    """)
+                        """
+                    )
                 }
 
-                withDefaultSettingsIn(relativePath).appendText("""
+                withDefaultSettingsIn(relativePath).appendText(
+                    """
                     include("gradlePropertyPlugin")
                     include("gradlePropertyPluginConsumer")
-                """)
-                withBuildScriptIn(relativePath, """
+                    """
+                )
+                withBuildScriptIn(
+                    relativePath,
+                    """
                     plugins { `java-library` }
                     dependencies {
                         subprojects.forEach {
                             runtimeOnly(project(it.path))
                         }
                     }
-                """)
+                    """
+                )
             }
         }
 
-        withBuildScript("""
+        withBuildScript(
+            """
             plugins { gradlePropertyPluginConsumer }
-        """)
+            """
+        )
 
         build("help", "-PtheGradleProperty=42").apply {
             assertThat(
@@ -133,7 +148,8 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
 
         withKotlinDslPlugin()
 
-        withPrecompiledKotlinScript("my-java-library.gradle.kts",
+        withPrecompiledKotlinScript(
+            "my-java-library.gradle.kts",
             replaceLineSeparatorsOf(
                 """
                 plugins { java }
@@ -153,23 +169,30 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
     @ToBeFixedForConfigurationCache
     fun `fails the build with help message for plugin spec with version`() {
 
-        withDefaultSettings().appendText("""
+        withDefaultSettings().appendText(
+            """
             rootProject.name = "invalid-plugin"
-        """)
+            """
+        )
 
         withKotlinDslPlugin()
 
-        withPrecompiledKotlinScript("invalid-plugin.gradle.kts", """
+        withPrecompiledKotlinScript(
+            "invalid-plugin.gradle.kts",
+            """
             plugins {
                 id("a.plugin") version "1.0"
             }
-        """)
+            """
+        )
 
         assertThat(
             buildFailureOutput("assemble"),
-            containsMultiLineString("""
+            containsMultiLineString(
+                """
                 Invalid plugin request [id: 'a.plugin', version: '1.0']. Plugin requests from precompiled scripts must not include a version number. Please remove the version from the offending request and make sure the module containing the requested plugin 'a.plugin' is an implementation dependency of root project 'invalid-plugin'.
-            """)
+                """
+            )
         )
     }
 
@@ -186,33 +209,47 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
                     implementationDependencyOn(externalPlugins)
                 )
 
-                withFile("src/main/kotlin/local-app.gradle.kts", """
+                withFile(
+                    "src/main/kotlin/local-app.gradle.kts",
+                    """
                     plugins { `external-app` }
                     println("*using " + external.name + " from local-app in " + project.name + "*")
-                """)
+                    """
+                )
 
-                withFile("src/main/kotlin/local-lib.gradle.kts", """
+                withFile(
+                    "src/main/kotlin/local-lib.gradle.kts",
+                    """
                     plugins { `external-lib` }
                     println("*using " + external.name + " from local-lib in " + project.name + "*")
-                """)
+                    """
+                )
             }
         }
 
-        withDefaultSettings().appendText("""
+        withDefaultSettings().appendText(
+            """
             include("foo")
             include("bar")
-        """)
+            """
+        )
 
         withFolders {
             "foo" {
-                withFile("build.gradle.kts", """
+                withFile(
+                    "build.gradle.kts",
+                    """
                     plugins { `local-app` }
-                """)
+                    """
+                )
             }
             "bar" {
-                withFile("build.gradle.kts", """
+                withFile(
+                    "build.gradle.kts",
+                    """
                     plugins { `local-lib` }
-                """)
+                    """
+                )
             }
         }
 
@@ -238,13 +275,17 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
 
         assumeNonEmbeddedGradleExecuter() // Unknown issue with accessing the plugin portal from pre-compiled script plugin in embedded test mode
 
-        withKotlinDslPlugin().appendText("""
+        withKotlinDslPlugin().appendText(
+            """
             dependencies {
                 implementation(kotlin("gradle-plugin"))
             }
-        """)
+            """
+        )
 
-        withPrecompiledKotlinScript("kotlin-library.gradle.kts", """
+        withPrecompiledKotlinScript(
+            "kotlin-library.gradle.kts",
+            """
 
             plugins { kotlin("jvm") }
 
@@ -252,7 +293,8 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
 
             tasks.compileKotlin { kotlinOptions { } }
 
-        """)
+            """
+        )
 
         build("generatePrecompiledScriptPluginAccessors")
 
@@ -265,17 +307,23 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
 
         withKotlinDslPlugin()
 
-        withPrecompiledKotlinScript("my-java-library.gradle.kts", """
+        withPrecompiledKotlinScript(
+            "my-java-library.gradle.kts",
+            """
             plugins { java }
-        """)
+            """
+        )
 
-        withPrecompiledKotlinScript("my-java-module.gradle.kts", """
+        withPrecompiledKotlinScript(
+            "my-java-module.gradle.kts",
+            """
             plugins { id("my-java-library") }
 
             java { }
 
             tasks.compileJava { }
-        """)
+            """
+        )
 
         compileKotlin()
     }
@@ -294,35 +342,49 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
                     implementationDependencyOn(externalPlugins)
                 )
                 "src/main/kotlin" {
-                    withFile("app/model.gradle.kts", """
+                    withFile(
+                        "app/model.gradle.kts",
+                        """
                         package app
                         plugins { `external-app` }
                         println("*using " + external.name + " from app/model in " + project.name + "*")
-                    """)
-                    withFile("lib/model.gradle.kts", """
+                        """
+                    )
+                    withFile(
+                        "lib/model.gradle.kts",
+                        """
                         package lib
                         plugins { `external-lib` }
                         println("*using " + external.name + " from lib/model in " + project.name + "*")
-                    """)
+                        """
+                    )
                 }
             }
         }
 
-        withDefaultSettings().appendText("""
+        withDefaultSettings().appendText(
+            """
             include("lib")
             include("app")
-        """)
+            """
+        )
 
         withFolders {
             "lib" {
-                withFile("build.gradle.kts", """
+                withFile(
+                    "build.gradle.kts",
+                    """
                     plugins { lib.model }
-                """)
+                    """
+                )
             }
             "app" {
-                withFile("build.gradle.kts", """
+                withFile(
+                    "build.gradle.kts",
+                    """
                     plugins { app.model }
-                """)
+                    """
+                )
             }
         }
 
@@ -342,11 +404,16 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
         withKotlinDslPlugin()
 
         withPrecompiledKotlinScript("no-plugins.gradle.kts", "")
-        withPrecompiledKotlinScript("java-plugin.gradle.kts", """
+        withPrecompiledKotlinScript(
+            "java-plugin.gradle.kts",
+            """
             plugins { java }
-        """)
+            """
+        )
 
-        withPrecompiledKotlinScript("plugins.gradle.kts", """
+        withPrecompiledKotlinScript(
+            "plugins.gradle.kts",
+            """
             plugins {
                 id("no-plugins")
                 id("java-plugin")
@@ -355,7 +422,8 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
             java { }
 
             tasks.compileJava { }
-        """)
+            """
+        )
 
         compileKotlin()
     }
@@ -366,18 +434,24 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
 
         withKotlinDslPlugin()
 
-        withPrecompiledKotlinScript("my/java-plugin.gradle.kts", """
+        withPrecompiledKotlinScript(
+            "my/java-plugin.gradle.kts",
+            """
             package my
             plugins { java }
-        """)
+            """
+        )
 
-        withPrecompiledKotlinScript("plugins.gradle.kts", """
+        withPrecompiledKotlinScript(
+            "plugins.gradle.kts",
+            """
             plugins { id("my.java-plugin") }
 
             java { }
 
             tasks.compileJava { }
-        """)
+            """
+        )
 
         compileKotlin()
     }
@@ -386,9 +460,12 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
     @ToBeFixedForConfigurationCache
     fun `generated type-safe accessors are internal`() {
 
-        givenPrecompiledKotlinScript("java-project.gradle.kts", """
+        givenPrecompiledKotlinScript(
+            "java-project.gradle.kts",
+            """
             plugins { java }
-        """)
+            """
+        )
 
         val generatedSourceFiles =
             existing("build/generated-sources")
@@ -443,13 +520,16 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
     @ToBeFixedForConfigurationCache
     fun `can use core plugin spec builders`() {
 
-        givenPrecompiledKotlinScript("java-project.gradle.kts", """
+        givenPrecompiledKotlinScript(
+            "java-project.gradle.kts",
+            """
 
             plugins {
                 java
             }
 
-        """)
+            """
+        )
 
         val (project, pluginManager) = projectAndPluginManagerMocks()
 
@@ -501,17 +581,22 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
     @ToBeFixedForConfigurationCache
     fun `can use plugin specs with jruby-gradle-plugin`() {
 
-        withKotlinDslPlugin().appendText("""
+        withKotlinDslPlugin().appendText(
+            """
             dependencies {
                 implementation("com.github.jruby-gradle:jruby-gradle-plugin:1.4.0")
             }
-        """)
+            """
+        )
 
-        withPrecompiledKotlinScript("plugin.gradle.kts", """
+        withPrecompiledKotlinScript(
+            "plugin.gradle.kts",
+            """
             plugins {
                 com.github.`jruby-gradle`.base
             }
-        """)
+            """
+        )
 
         assertPrecompiledScriptPluginApplies(
             "com.github.jruby-gradle.base",
@@ -538,19 +623,24 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
     private
     fun withPrecompiledScriptApplying(pluginId: String, pluginJar: File) {
 
-        withKotlinDslPlugin().appendText("""
+        withKotlinDslPlugin().appendText(
+            """
 
             dependencies {
                 implementation(files("${pluginJar.normalisedPath}"))
             }
 
-        """)
+            """
+        )
 
-        withPrecompiledKotlinScript("plugin.gradle.kts", """
+        withPrecompiledKotlinScript(
+            "plugin.gradle.kts",
+            """
 
             plugins { $pluginId }
 
-        """)
+            """
+        )
     }
 
     @Test
@@ -577,21 +667,29 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
             withFolders {
                 "external-foo" {
                     withKotlinDslPlugin()
-                    withFile("src/main/kotlin/external-foo.gradle.kts", """
+                    withFile(
+                        "src/main/kotlin/external-foo.gradle.kts",
+                        """
                         $packageDeclaration
                         println("*external-foo applied*")
-                    """)
+                        """
+                    )
                 }
                 "external-bar" {
                     withKotlinDslPlugin()
-                    withFile("src/main/kotlin/external-bar.gradle.kts", """
+                    withFile(
+                        "src/main/kotlin/external-bar.gradle.kts",
+                        """
                         $packageDeclaration
                         println("*external-bar applied*")
-                    """)
+                        """
+                    )
                 }
-                withDefaultSettingsIn(relativePath).appendText("""
+                withDefaultSettingsIn(relativePath).appendText(
+                    """
                     include("external-foo", "external-bar")
-                """)
+                    """
+                )
             }
             build("assemble")
         }
@@ -602,45 +700,62 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
         withFolders {
             "buildSrc" {
                 "local-foo" {
-                    withFile("src/main/kotlin/local-foo.gradle.kts", """
+                    withFile(
+                        "src/main/kotlin/local-foo.gradle.kts",
+                        """
                         $packageDeclaration
                         plugins { $packageQualifier`external-foo` }
-                    """)
-                    withKotlinDslPlugin().appendText("""
+                        """
+                    )
+                    withKotlinDslPlugin().appendText(
+                        """
                         dependencies {
                             implementation(files("${externalFoo.normalisedPath}"))
                         }
-                    """)
+                        """
+                    )
                 }
                 "local-bar" {
-                    withFile("src/main/kotlin/local-bar.gradle.kts", """
+                    withFile(
+                        "src/main/kotlin/local-bar.gradle.kts",
+                        """
                         $packageDeclaration
                         plugins { $packageQualifier`external-bar` }
-                    """)
-                    withKotlinDslPlugin().appendText("""
+                        """
+                    )
+                    withKotlinDslPlugin().appendText(
+                        """
                         dependencies {
                             implementation(files("${externalBar.normalisedPath}"))
                         }
-                    """)
+                        """
+                    )
                 }
-                withDefaultSettingsIn(relativePath).appendText("""
+                withDefaultSettingsIn(relativePath).appendText(
+                    """
                     include("local-foo", "local-bar")
-                """)
-                withFile("build.gradle.kts", """
+                    """
+                )
+                withFile(
+                    "build.gradle.kts",
+                    """
                     dependencies {
                         subprojects.forEach {
                             runtimeOnly(project(it.path))
                         }
                     }
-                """)
+                    """
+                )
             }
         }
-        withBuildScript("""
+        withBuildScript(
+            """
             plugins {
                 $packageQualifier`local-foo`
                 $packageQualifier`local-bar`
             }
-        """)
+            """
+        )
 
         assertThat(
             build("tasks").output,
@@ -659,17 +774,26 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
             withFolders {
                 "src/main/kotlin" {
                     "extensions" {
-                        withFile("Extensions.kt", """
+                        withFile(
+                            "Extensions.kt",
+                            """
                             open class App { var name: String = "app" }
                             open class Lib { var name: String = "lib" }
-                        """)
+                            """
+                        )
                     }
-                    withFile("external-app.gradle.kts", """
+                    withFile(
+                        "external-app.gradle.kts",
+                        """
                         extensions.create("external", App::class)
-                    """)
-                    withFile("external-lib.gradle.kts", """
+                        """
+                    )
+                    withFile(
+                        "external-lib.gradle.kts",
+                        """
                         extensions.create("external", Lib::class)
-                    """)
+                        """
+                    )
                 }
             }
             build("assemble")

@@ -308,10 +308,12 @@ fun BufferedWriter.appendSourceCodeForPluginAccessors(
     format: AccessorFormat
 ) {
 
-    appendReproducibleNewLine("""
+    appendReproducibleNewLine(
+        """
         import ${PluginDependenciesSpec::class.qualifiedName}
         import ${PluginDependencySpec::class.qualifiedName}
-    """.replaceIndent())
+        """.replaceIndent()
+    )
 
     defaultPackageTypesIn(accessors).forEach {
         appendReproducibleNewLine("import $it")
@@ -324,30 +326,38 @@ fun BufferedWriter.appendSourceCodeForPluginAccessors(
         val pluginsRef = pluginDependenciesSpecOf(extendedType)
         when (this) {
             is PluginAccessor.ForPlugin -> {
-                appendReproducibleNewLine(format("""
-                    /**
-                     * The `$id` plugin implemented by [$implementationClass].
-                     */
-                    val `$extendedType`.`${extension.name}`: PluginDependencySpec
-                        get() = $pluginsRef.id("$id")
-                """))
+                appendReproducibleNewLine(
+                    format(
+                        """
+                        /**
+                         * The `$id` plugin implemented by [$implementationClass].
+                         */
+                        val `$extendedType`.`${extension.name}`: PluginDependencySpec
+                            get() = $pluginsRef.id("$id")
+                        """
+                    )
+                )
             }
             is PluginAccessor.ForGroup -> {
                 val groupType = extension.returnType.sourceName
-                appendReproducibleNewLine(format("""
-                    /**
-                     * The `$id` plugin group.
-                     */
-                    @org.gradle.api.Generated
-                    class `$groupType`(internal val plugins: PluginDependenciesSpec)
+                appendReproducibleNewLine(
+                    format(
+                        """
+                        /**
+                         * The `$id` plugin group.
+                         */
+                        @org.gradle.api.Generated
+                        class `$groupType`(internal val plugins: PluginDependenciesSpec)
 
 
-                    /**
-                     * Plugin ids starting with `$id`.
-                     */
-                    val `$extendedType`.`${extension.name}`: `$groupType`
-                        get() = `$groupType`($pluginsRef)
-                """))
+                        /**
+                         * Plugin ids starting with `$id`.
+                         */
+                        val `$extendedType`.`${extension.name}`: `$groupType`
+                            get() = `$groupType`($pluginsRef)
+                        """
+                    )
+                )
             }
         }
     }

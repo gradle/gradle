@@ -573,7 +573,8 @@ class PerformanceTestPlugin : Plugin<Project> {
         selectStringProperties(
             PropertyNames.dbUrl,
             PropertyNames.dbUsername,
-            PropertyNames.dbPassword)
+            PropertyNames.dbPassword
+        )
 
     private
     fun PerformanceTest.configureGitInfo() {

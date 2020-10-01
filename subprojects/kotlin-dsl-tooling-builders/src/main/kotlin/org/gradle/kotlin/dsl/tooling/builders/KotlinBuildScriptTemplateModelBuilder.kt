@@ -44,7 +44,8 @@ object KotlinBuildScriptTemplateModelBuilder : ToolingModelBuilder {
                     .map { getModule(it) }
                     .flatMap { it.allRequiredModules }
                     .fold(ClassPath.EMPTY) { classPath, module -> classPath + module.classpath }
-                    .asFiles)
+                    .asFiles
+            )
         }
 }
 

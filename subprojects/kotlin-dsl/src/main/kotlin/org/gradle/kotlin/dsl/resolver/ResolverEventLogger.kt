@@ -101,9 +101,10 @@ object DefaultResolverEventLogger : ResolverEventLogger {
         OperatingSystem.current().run {
             when {
                 isMacOsX -> userHome().resolve("Library/Logs/gradle-kotlin-dsl")
-                isWindows -> System.getenv("LOCALAPPDATA")
-                    ?.let { File("$it/gradle-kotlin-dsl/log") }
-                    ?: userHome().resolve("AppData/Local/gradle-kotlin-dsl/log")
+                isWindows ->
+                    System.getenv("LOCALAPPDATA")
+                        ?.let { File("$it/gradle-kotlin-dsl/log") }
+                        ?: userHome().resolve("AppData/Local/gradle-kotlin-dsl/log")
                 else -> userHome().resolve(".gradle-kotlin-dsl/log")
             }
         }
@@ -154,7 +155,9 @@ fun prettyPrint(e: ResolverEvent): String = e.run {
                 sequenceOf(
                     "correlationId" to correlationId,
                     "scriptFile" to scriptFile,
-                    "request" to prettyPrintAny(request, indentation = 2)))
+                    "request" to prettyPrintAny(request, indentation = 2)
+                )
+            )
 
         is ReceivedModelResponse ->
             prettyPrint(
@@ -162,7 +165,9 @@ fun prettyPrint(e: ResolverEvent): String = e.run {
                 sequenceOf(
                     "correlationId" to correlationId,
                     "scriptFile" to scriptFile,
-                    "response" to prettyPrint(response, indentation = 2)))
+                    "response" to prettyPrint(response, indentation = 2)
+                )
+            )
 
         is ResolutionFailure ->
             prettyPrint(
@@ -170,7 +175,9 @@ fun prettyPrint(e: ResolverEvent): String = e.run {
                 sequenceOf(
                     "correlationId" to correlationId,
                     "scriptFile" to scriptFile,
-                    "failure" to stringForException(failure, indentation = 2)))
+                    "failure" to stringForException(failure, indentation = 2)
+                )
+            )
         else ->
             prettyPrintAny(this)
     }
@@ -186,7 +193,8 @@ fun prettyPrintAny(any: Any, indentation: Int? = null) =
             .asSequence()
             .filterIsInstance<KProperty1<Any, Any?>>()
             .map { it.name to it.get(any) },
-        indentation)
+        indentation
+    )
 
 
 private
@@ -198,8 +206,10 @@ fun prettyPrint(model: KotlinBuildScriptModel, indentation: Int?) = model.run {
             "sourcePath" to compactStringFor(sourcePath),
             "implicitImports" to compactStringFor(implicitImports, '.'),
             "editorReports" to editorReports.toString(),
-            "exceptions" to stringForExceptions(exceptions, indentation)),
-        indentation)
+            "exceptions" to stringForExceptions(exceptions, indentation)
+        ),
+        indentation
+    )
 }
 
 

@@ -33,7 +33,7 @@ import javax.inject.Inject
 
 @CacheableTask
 open class IncubatingApiAggregateReportTask
-    @Inject constructor(private val workerExecutor: WorkerExecutor) : DefaultTask() {
+@Inject constructor(private val workerExecutor: WorkerExecutor) : DefaultTask() {
 
     @Internal
     var reports: Map<String, File>? = null
@@ -88,7 +88,8 @@ open class GenerateReport @Inject constructor(private val reports: Map<String, F
     fun generateReport(data: Map<String, ReportNameToProblems>) {
         outputFile.parentFile.mkdirs()
         outputFile.printWriter(Charsets.UTF_8).use { writer ->
-            writer.println("""<html lang="en">
+            writer.println(
+                """<html lang="en">
     <head>
        <META http-equiv="Content-Type" content="text/html; charset=UTF-8">
        <title>Incubating APIs</title>
@@ -101,7 +102,8 @@ open class GenerateReport @Inject constructor(private val reports: Map<String, F
        <h1>Incubating APIs</h1>
        <h2>Index</h2>
        <ul>
-    """)
+    """
+            )
 
             data.toSortedMap().forEach { version, _ ->
                 writer.println("<li><a href=\"#$version\">Incubating since $version</a><br></li>")

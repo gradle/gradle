@@ -168,7 +168,8 @@ fun problemNodesByLocation(problems: List<ImportedProblem>): Sequence<List<Probl
                 errorOrWarningNodeFor(
                     problem.problem,
                     messageNodeFor(problem),
-                    docLinkFor(problem.problem))
+                    docLinkFor(problem.problem)
+                )
             )
             exceptionNodeFor(problem.problem)?.let {
                 add(it)

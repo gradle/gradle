@@ -157,6 +157,8 @@ fun publishNormalizedToLocalRepository() {
 tasks.register("promotionBuild") {
     description = "Build production distros, smoke test them and publish"
     group = "publishing"
-    dependsOn(":distributions-full:verifyIsProductionBuildEnvironment", ":distributions-full:buildDists", ":distributions-full:copyDistributionsToRootBuild",
-        ":distributions-integ-tests:forkingIntegTest", ":docs:releaseNotes", "publish", ":docs:incubationReport", ":docs:checkDeadInternalLinks")
+    dependsOn(
+        ":distributions-full:verifyIsProductionBuildEnvironment", ":distributions-full:buildDists", ":distributions-full:copyDistributionsToRootBuild",
+        ":distributions-integ-tests:forkingIntegTest", ":docs:releaseNotes", "publish", ":docs:incubationReport", ":docs:checkDeadInternalLinks"
+    )
 }

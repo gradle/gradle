@@ -34,7 +34,8 @@ class KotlinBuildScriptTemplateModelIntegrationTest : AbstractKotlinIntegrationT
         loadClassesFrom(
             model.classPath,
             KotlinBuildScript::class.qualifiedName!!,
-            KotlinBuildScriptDependenciesResolver::class.qualifiedName!!)
+            KotlinBuildScriptDependenciesResolver::class.qualifiedName!!
+        )
     }
 
     private

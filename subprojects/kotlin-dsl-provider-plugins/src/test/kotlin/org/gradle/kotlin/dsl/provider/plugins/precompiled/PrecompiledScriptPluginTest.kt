@@ -80,7 +80,8 @@ class PrecompiledScriptPluginTest : TestWithTempFiles() {
 
         assertThat(
             firstNonBlankLineOf(expectedFile),
-            equalTo("package org.acme"))
+            equalTo("package org.acme")
+        )
     }
 
     @Test
@@ -97,14 +98,17 @@ class PrecompiledScriptPluginTest : TestWithTempFiles() {
 
         assertThat(
             expectedFile.readText(),
-            startsWith("""
+            startsWith(
+                """
                 /**
                  * Precompiled [my-script.gradle.kts][My_script_gradle] script plugin.
                  *
                  * @see My_script_gradle
                  */
                 class MyScriptPlugin
-            """.trimIndent()))
+                """.trimIndent()
+            )
+        )
     }
 
     @Test

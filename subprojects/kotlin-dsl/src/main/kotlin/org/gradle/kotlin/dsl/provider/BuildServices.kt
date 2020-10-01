@@ -60,7 +60,8 @@ object BuildServices {
             classLoaderScopeRegistry.coreAndPluginsScope,
             gradleApiJarsProviderFor(dependencyFactory),
             versionedJarCacheFor(jarCache),
-            StandardJarGenerationProgressMonitorProvider(progressLoggerFactory))
+            StandardJarGenerationProgressMonitorProvider(progressLoggerFactory)
+        )
 
     @Suppress("unused")
     fun createPluginRequestsHandler(

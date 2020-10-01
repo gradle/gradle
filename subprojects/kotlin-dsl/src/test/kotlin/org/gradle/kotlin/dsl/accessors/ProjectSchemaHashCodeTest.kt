@@ -36,18 +36,24 @@ class ProjectSchemaHashCodeTest : TestWithClassPath() {
             hashCodeFor(
                 configurations = listOf("api")
             ),
-            equalTo(hashCodeFor(
-                configurations = listOf("api")
-            ))
+            equalTo(
+                hashCodeFor(
+                    configurations = listOf("api")
+                )
+            )
         )
 
         assertThat(
             hashCodeFor(
                 configurations = listOf("api")
             ),
-            not(equalTo(hashCodeFor(
-                configurations = listOf("implementation")
-            )))
+            not(
+                equalTo(
+                    hashCodeFor(
+                        configurations = listOf("implementation")
+                    )
+                )
+            )
         )
     }
 
@@ -58,9 +64,11 @@ class ProjectSchemaHashCodeTest : TestWithClassPath() {
             hashCodeFor(
                 configurations = listOf("api", "implementation")
             ),
-            equalTo(hashCodeFor(
-                configurations = listOf("implementation", "api")
-            ))
+            equalTo(
+                hashCodeFor(
+                    configurations = listOf("implementation", "api")
+                )
+            )
         )
     }
 
@@ -73,11 +81,13 @@ class ProjectSchemaHashCodeTest : TestWithClassPath() {
                     entry<TaskContainer, DefaultTask>("assemble")
                 )
             ),
-            equalTo(hashCodeFor(
-                containerElements = listOf(
-                    entry<TaskContainer, DefaultTask>("assemble")
+            equalTo(
+                hashCodeFor(
+                    containerElements = listOf(
+                        entry<TaskContainer, DefaultTask>("assemble")
+                    )
                 )
-            ))
+            )
         )
 
         assertThat(
@@ -86,11 +96,15 @@ class ProjectSchemaHashCodeTest : TestWithClassPath() {
                     entry<TaskContainer, DefaultTask>("assemble")
                 )
             ),
-            not(equalTo(hashCodeFor(
-                containerElements = listOf(
-                    entry<TaskContainer, DefaultTask>("clean")
+            not(
+                equalTo(
+                    hashCodeFor(
+                        containerElements = listOf(
+                            entry<TaskContainer, DefaultTask>("clean")
+                        )
+                    )
                 )
-            )))
+            )
         )
     }
 
@@ -103,11 +117,13 @@ class ProjectSchemaHashCodeTest : TestWithClassPath() {
                     entry<TaskContainer, Delete>("clean")
                 )
             ),
-            equalTo(hashCodeFor(
-                containerElements = listOf(
-                    entry<TaskContainer, Delete>("clean")
+            equalTo(
+                hashCodeFor(
+                    containerElements = listOf(
+                        entry<TaskContainer, Delete>("clean")
+                    )
                 )
-            ))
+            )
         )
 
         assertThat(
@@ -116,11 +132,15 @@ class ProjectSchemaHashCodeTest : TestWithClassPath() {
                     entry<TaskContainer, Delete>("clean")
                 )
             ),
-            not(equalTo(hashCodeFor(
-                containerElements = listOf(
-                    entry<TaskContainer, DefaultTask>("clean")
+            not(
+                equalTo(
+                    hashCodeFor(
+                        containerElements = listOf(
+                            entry<TaskContainer, DefaultTask>("clean")
+                        )
+                    )
                 )
-            )))
+            )
         )
     }
 
@@ -133,11 +153,13 @@ class ProjectSchemaHashCodeTest : TestWithClassPath() {
                     entry<TaskContainer, DefaultTask>("assemble")
                 )
             ),
-            equalTo(hashCodeFor(
-                tasks = listOf(
-                    entry<TaskContainer, DefaultTask>("assemble")
+            equalTo(
+                hashCodeFor(
+                    tasks = listOf(
+                        entry<TaskContainer, DefaultTask>("assemble")
+                    )
                 )
-            ))
+            )
         )
 
         assertThat(
@@ -146,11 +168,15 @@ class ProjectSchemaHashCodeTest : TestWithClassPath() {
                     entry<TaskContainer, DefaultTask>("assemble")
                 )
             ),
-            not(equalTo(hashCodeFor(
-                tasks = listOf(
-                    entry<TaskContainer, DefaultTask>("clean")
+            not(
+                equalTo(
+                    hashCodeFor(
+                        tasks = listOf(
+                            entry<TaskContainer, DefaultTask>("clean")
+                        )
+                    )
                 )
-            )))
+            )
         )
     }
 
@@ -163,11 +189,13 @@ class ProjectSchemaHashCodeTest : TestWithClassPath() {
                     entry<TaskContainer, Delete>("clean")
                 )
             ),
-            equalTo(hashCodeFor(
-                tasks = listOf(
-                    entry<TaskContainer, Delete>("clean")
+            equalTo(
+                hashCodeFor(
+                    tasks = listOf(
+                        entry<TaskContainer, Delete>("clean")
+                    )
                 )
-            ))
+            )
         )
 
         assertThat(
@@ -176,11 +204,15 @@ class ProjectSchemaHashCodeTest : TestWithClassPath() {
                     entry<TaskContainer, Delete>("clean")
                 )
             ),
-            not(equalTo(hashCodeFor(
-                tasks = listOf(
-                    entry<TaskContainer, DefaultTask>("clean")
+            not(
+                equalTo(
+                    hashCodeFor(
+                        tasks = listOf(
+                            entry<TaskContainer, DefaultTask>("clean")
+                        )
+                    )
                 )
-            )))
+            )
         )
     }
 
@@ -195,27 +227,39 @@ class ProjectSchemaHashCodeTest : TestWithClassPath() {
             hashCodeFor(
                 extensions = entries
             ),
-            not(equalTo(hashCodeFor(
-                conventions = entries
-            )))
+            not(
+                equalTo(
+                    hashCodeFor(
+                        conventions = entries
+                    )
+                )
+            )
         )
 
         assertThat(
             hashCodeFor(
                 extensions = entries
             ),
-            not(equalTo(hashCodeFor(
-                containerElements = entries
-            )))
+            not(
+                equalTo(
+                    hashCodeFor(
+                        containerElements = entries
+                    )
+                )
+            )
         )
 
         assertThat(
             hashCodeFor(
                 conventions = entries
             ),
-            not(equalTo(hashCodeFor(
-                containerElements = entries
-            )))
+            not(
+                equalTo(
+                    hashCodeFor(
+                        containerElements = entries
+                    )
+                )
+            )
         )
     }
 
@@ -226,11 +270,13 @@ class ProjectSchemaHashCodeTest : TestWithClassPath() {
         tasks: TypedProjectSchemaEntryList = emptyList(),
         containerElements: TypedProjectSchemaEntryList = emptyList(),
         configurations: List<String> = emptyList()
-    ) = hashCodeFor(projectSchemaWith(
-        extensions = extensions,
-        conventions = conventions,
-        tasks = tasks,
-        containerElements = containerElements,
-        configurations = configurations
-    ))
+    ) = hashCodeFor(
+        projectSchemaWith(
+            extensions = extensions,
+            conventions = conventions,
+            tasks = tasks,
+            containerElements = containerElements,
+            configurations = configurations
+        )
+    )
 }

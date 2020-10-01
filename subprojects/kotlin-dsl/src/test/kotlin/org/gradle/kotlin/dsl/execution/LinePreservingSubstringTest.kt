@@ -37,12 +37,14 @@ class LinePreservingSubstringTest {
         val end = original.indexOf("}")
         assertThat(
             original.linePreservingSubstring(begin..end),
-            equalTo("""
+            equalTo(
+                """
 
 
                 buildscript {
                     // line 4
-                }""".replaceIndent())
+                }""".replaceIndent()
+            )
         )
     }
 
@@ -57,10 +59,12 @@ class LinePreservingSubstringTest {
         val end = original.indexOf("}")
         assertThat(
             original.linePreservingSubstring(begin..end),
-            equalTo("""
+            equalTo(
+                """
                 buildscript {
                     // line 2
-                }""".replaceIndent())
+                }""".replaceIndent()
+            )
         )
     }
 
@@ -82,7 +86,8 @@ class LinePreservingSubstringTest {
         val pluginsRange = original.indexOf("plugins")..original.lastIndexOf("}")
         assertThat(
             original.linePreservingBlankRanges(listOf(buildscriptRange, pluginsRange)),
-            equalTo("""
+            equalTo(
+                """
                 |// line 1
                 |// line 2
                 |
@@ -93,6 +98,8 @@ class LinePreservingSubstringTest {
                 |
                 |
                 |// line 10
-            """.trimMargin()))
+                """.trimMargin()
+            )
+        )
     }
 }

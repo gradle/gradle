@@ -16,31 +16,39 @@ class DelegatedGradlePropertiesIntegrationTest : AbstractKotlinIntegrationTest()
     @Test
     fun `non-nullable delegated property access of non-existing gradle property throws`() {
 
-        withSettings("""
+        withSettings(
+            """
             val nonExisting: String by settings
             println(nonExisting)
-        """)
+            """
+        )
 
         assertThat(
             buildAndFail("help").error,
-            containsString("Cannot get non-null property 'nonExisting' on settings '${projectRoot.name}' as it does not exist"))
+            containsString("Cannot get non-null property 'nonExisting' on settings '${projectRoot.name}' as it does not exist")
+        )
 
         withSettings("")
-        withBuildScript("""
+        withBuildScript(
+            """
             val nonExisting: String by project
             println(nonExisting)
-        """)
+            """
+        )
 
         assertThat(
             buildAndFail("help").error,
-            containsString("Cannot get non-null property 'nonExisting' on root project '${projectRoot.name}' as it does not exist"))
+            containsString("Cannot get non-null property 'nonExisting' on root project '${projectRoot.name}' as it does not exist")
+        )
     }
 
     @Test
     fun `delegated properties follow Gradle mechanics and allow to model optional properties via nullable kotlin types`() {
 
         // given: build root gradle.properties file
-        withFile("gradle.properties", """
+        withFile(
+            "gradle.properties",
+            """
             setBuildProperty=build value
             emptyBuildProperty=
 
@@ -48,10 +56,13 @@ class DelegatedGradlePropertiesIntegrationTest : AbstractKotlinIntegrationTest()
             cliOverriddenBuildProperty=build value
 
             projectMutatedBuildProperty=build value
-        """.trimIndent())
+            """.trimIndent()
+        )
 
         // and: gradle user home gradle.properties file
-        withFile("gradle-user-home/gradle.properties", """
+        withFile(
+            "gradle-user-home/gradle.properties",
+            """
             setUserHomeProperty=user home value
             emptyUserHomeProperty=
 
@@ -59,7 +70,8 @@ class DelegatedGradlePropertiesIntegrationTest : AbstractKotlinIntegrationTest()
             cliOverriddenUserHomeProperty=user home value
 
             projectMutatedUserHomeProperty=user home value
-        """.trimIndent())
+            """.trimIndent()
+        )
 
         // and: isolated gradle user home
         executer.withGradleUserHomeDir(existing("gradle-user-home"))
@@ -73,7 +85,8 @@ class DelegatedGradlePropertiesIntegrationTest : AbstractKotlinIntegrationTest()
             "-PcliOverriddenUserHomeProperty=cli value",
             "-Dorg.gradle.project.setOrgGradleProjectSystemProperty=system property value",
             "-Dorg.gradle.project.emptyOrgGradleProjectSystemProperty=",
-            "help")
+            "help"
+        )
 
         // when: both settings and project scripts asserting on delegated properties
         withSettings(requirePropertiesFromSettings())
@@ -84,11 +97,13 @@ class DelegatedGradlePropertiesIntegrationTest : AbstractKotlinIntegrationTest()
 
         // when: project script buildscript block asserting on delegated properties
         withSettings("")
-        withBuildScript("""
+        withBuildScript(
+            """
             buildscript {
                 ${requirePropertiesFromProject()}
             }
-        """)
+            """
+        )
 
         // then:
         build(*buildArguments)

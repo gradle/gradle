@@ -12,11 +12,13 @@ class ImplicitImportsTest : AbstractKotlinIntegrationTest() {
     fun `implicit imports are fully qualified to allow use of the preferred type amongst those with same simple name in different Gradle API packages`() {
 
         // given:
-        withBuildScript("""
+        withBuildScript(
+            """
 
             println("*" + Jar::class.qualifiedName + "*")
 
-        """)
+            """
+        )
 
         // when:
         val result = build("help")
@@ -28,13 +30,15 @@ class ImplicitImportsTest : AbstractKotlinIntegrationTest() {
     @Test
     fun `can use kotlin-dsl implicit imports`() {
 
-        withBuildScript("""
+        withBuildScript(
+            """
             val a = Callable { "some" }
             val b = TimeUnit.DAYS
             val c = File("some")
             val d = BigDecimal.ONE
             val e = BigInteger.ONE
-        """)
+            """
+        )
 
         build("help")
     }

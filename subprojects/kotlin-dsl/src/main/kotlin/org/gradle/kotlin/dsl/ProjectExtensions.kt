@@ -230,13 +230,13 @@ inline fun <reified T> Project.container(noinline factory: (String) -> T): Named
  * @return The dependency.
  */
 fun Project.gradleKotlinDsl(): Dependency =
-        DefaultSelfResolvingDependency(
-                OpaqueComponentIdentifier(DependencyFactory.ClassPathNotation.GRADLE_KOTLIN_DSL),
-                project.fileCollectionOf(
-                        gradleKotlinDslOf(project),
-                        "gradleKotlinDsl"
-                ) as FileCollectionInternal
-        )
+    DefaultSelfResolvingDependency(
+        OpaqueComponentIdentifier(DependencyFactory.ClassPathNotation.GRADLE_KOTLIN_DSL),
+        project.fileCollectionOf(
+            gradleKotlinDslOf(project),
+            "gradleKotlinDsl"
+        ) as FileCollectionInternal
+    )
 
 
 /**

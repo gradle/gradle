@@ -52,7 +52,8 @@ class EmbeddedKotlinPlugin @Inject internal constructor(
             embeddedKotlin.addDependenciesTo(
                 dependencies,
                 embeddedKotlinConfiguration.name,
-                "stdlib-jdk8", "reflect")
+                "stdlib-jdk8", "reflect"
+            )
 
             kotlinArtifactConfigurationNames.forEach {
                 configurations.getByName(it).extendsFrom(embeddedKotlinConfiguration)

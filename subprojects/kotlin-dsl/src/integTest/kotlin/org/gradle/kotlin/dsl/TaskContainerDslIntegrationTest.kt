@@ -52,7 +52,9 @@ class TaskContainerDslIntegrationTest : AbstractKotlinIntegrationTest() {
     @Test
     fun `polymorphic named domain object container api`() {
 
-        testTaskContainerVia("api", script = """
+        testTaskContainerVia(
+            "api",
+            script = """
 
             val t1: Task = tasks.getByName("foo")
             val t2: Task = tasks.getByName("foo", Task::class)
@@ -117,13 +119,16 @@ class TaskContainerDslIntegrationTest : AbstractKotlinIntegrationTest() {
                 description += "!"
                 destinationDir = file("out")
             }
-        """)
+            """
+        )
     }
 
     @Test
     fun `polymorphic named domain object container scope api`() {
 
-        testTaskContainerVia("scope-api", script = """
+        testTaskContainerVia(
+            "scope-api",
+            script = """
             tasks {
                 val t1: Task = getByName("foo")
                 val t2: Task = getByName("foo", Task::class)
@@ -189,13 +194,16 @@ class TaskContainerDslIntegrationTest : AbstractKotlinIntegrationTest() {
                     destinationDir = file("out")
                 }
             }
-        """)
+            """
+        )
     }
 
     @Test
     fun `polymorphic named domain object container delegated properties`() {
 
-        testTaskContainerVia("delegated-properties", before = beforeDelegatedProperties, script = """
+        testTaskContainerVia(
+            "delegated-properties", before = beforeDelegatedProperties,
+            script = """
 
             fun untyped() {
 
@@ -249,13 +257,16 @@ class TaskContainerDslIntegrationTest : AbstractKotlinIntegrationTest() {
 
             untyped()
             typed()
-        """)
+            """
+        )
     }
 
     @Test
     fun `polymorphic named domain object container scope delegated properties`() {
 
-        testTaskContainerVia("scope-delegated-properties", before = beforeDelegatedProperties, script = """
+        testTaskContainerVia(
+            "scope-delegated-properties", before = beforeDelegatedProperties,
+            script = """
 
             fun untyped() {
 
@@ -314,7 +325,8 @@ class TaskContainerDslIntegrationTest : AbstractKotlinIntegrationTest() {
 
             untyped()
             typed()
-        """)
+            """
+        )
     }
 
     private
@@ -331,7 +343,9 @@ class TaskContainerDslIntegrationTest : AbstractKotlinIntegrationTest() {
     @Test
     fun `polymorphic named domain object container scope string invoke`() {
 
-        testTaskContainerVia("scope-string invoke", script = """
+        testTaskContainerVia(
+            "scope-string invoke",
+            script = """
 
             tasks {
 
@@ -346,12 +360,14 @@ class TaskContainerDslIntegrationTest : AbstractKotlinIntegrationTest() {
                     destinationDir = file("out")
                 }
             }
-        """, tasksAssertions = listOf(
-            taskAssertion("foo"),
-            taskAssertion("bar", Task::class, equalTo("null!")),
-            taskAssertion("bat"),
-            taskAssertion("pipistrelle", Copy::class, equalTo("null!"))
-        ))
+        """,
+            tasksAssertions = listOf(
+                taskAssertion("foo"),
+                taskAssertion("bar", Task::class, equalTo("null!")),
+                taskAssertion("bat"),
+                taskAssertion("pipistrelle", Copy::class, equalTo("null!"))
+            )
+        )
     }
 
     private

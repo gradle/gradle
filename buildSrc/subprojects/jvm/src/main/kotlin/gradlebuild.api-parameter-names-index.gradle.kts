@@ -24,10 +24,12 @@ plugins {
 
 val main = sourceSets.main.get()
 val parameterNamesIndex by tasks.registering(ParameterNamesIndex::class) {
-    sources.from(main.allJava.matching {
-        include(PublicApi.includes)
-        exclude(PublicApi.excludes)
-    })
+    sources.from(
+        main.allJava.matching {
+            include(PublicApi.includes)
+            exclude(PublicApi.excludes)
+        }
+    )
     classpath.from(main.compileClasspath)
     classpath.from(tasks.named<JavaCompile>("compileJava"))
     destinationFile.set(

@@ -110,13 +110,15 @@ class SinceAndIncubatingRulesKotlinTest : AbstractBinaryCompatibilityTest() {
     @Test
     fun `new top-level kotlin members`() {
 
-        checkNotBinaryCompatibleKotlin(v2 = """
+        checkNotBinaryCompatibleKotlin(
+            v2 = """
 
            $publicKotlinMembers
 
             const val cathedral = "cathedral"
 
-        """) {
+            """
+        ) {
 
             assertHasNoInformation()
             assertHasNoWarning()
@@ -184,7 +186,9 @@ class SinceAndIncubatingRulesKotlinTest : AbstractBinaryCompatibilityTest() {
         // new file-facade class can be annotated with @Incubating, members must be annotated with @since
         checkBinaryCompatible(
             v2 = {
-                withFile("kotlin/com/example/Source.kt", """
+                withFile(
+                    "kotlin/com/example/Source.kt",
+                    """
                     @file:Incubating
                     package com.example
 
@@ -194,7 +198,8 @@ class SinceAndIncubatingRulesKotlinTest : AbstractBinaryCompatibilityTest() {
 
                     /** @since 2.0 */
                     const val cathedral = "cathedral"
-                """)
+                    """
+                )
             }
         ) {
 
@@ -216,7 +221,8 @@ class SinceAndIncubatingRulesKotlinTest : AbstractBinaryCompatibilityTest() {
                 newApi("Method", "SourceKt.setBazar(java.lang.String)"),
                 newApi("Method", "SourceKt.setBazarExt(int,java.lang.String)"),
                 newApi("Method", "SourceKt.setBazool(boolean)"),
-                newApi("Method", "SourceKt.setFool(boolean)"))
+                newApi("Method", "SourceKt.setFool(boolean)")
+            )
         }
     }
 
@@ -225,7 +231,8 @@ class SinceAndIncubatingRulesKotlinTest : AbstractBinaryCompatibilityTest() {
 
         // Singleton INSTANCE fields of `object`s are public
 
-        checkNotBinaryCompatibleKotlin(v2 = """
+        checkNotBinaryCompatibleKotlin(
+            v2 = """
 
             interface Foo
 
@@ -235,7 +242,8 @@ class SinceAndIncubatingRulesKotlinTest : AbstractBinaryCompatibilityTest() {
 
             object Cathedral
 
-        """) {
+            """
+        ) {
 
             assertHasNoInformation()
             assertHasNoWarning()
@@ -251,7 +259,8 @@ class SinceAndIncubatingRulesKotlinTest : AbstractBinaryCompatibilityTest() {
             )
         }
 
-        checkBinaryCompatibleKotlin(v2 = """
+        checkBinaryCompatibleKotlin(
+            v2 = """
 
             /** @since 2.0 */
             @Incubating
@@ -269,7 +278,8 @@ class SinceAndIncubatingRulesKotlinTest : AbstractBinaryCompatibilityTest() {
             @Incubating
             object Cathedral
 
-        """) {
+            """
+        ) {
 
             assertHasNoWarning()
             assertHasInformation(
@@ -297,7 +307,9 @@ class SinceAndIncubatingRulesKotlinTest : AbstractBinaryCompatibilityTest() {
 
         """
 
-        checkNotBinaryCompatibleKotlin(v1 = baseline, v2 = """
+        checkNotBinaryCompatibleKotlin(
+            v1 = baseline,
+            v2 = """
 
             /** @since 1.0 */
             interface Foo : AutoCloseable {
@@ -313,7 +325,8 @@ class SinceAndIncubatingRulesKotlinTest : AbstractBinaryCompatibilityTest() {
                 $publicKotlinMembers
             }
 
-        """) {
+            """
+        ) {
 
             assertHasNoInformation()
             assertHasNoWarning()
@@ -338,7 +351,9 @@ class SinceAndIncubatingRulesKotlinTest : AbstractBinaryCompatibilityTest() {
             )
         }
 
-        checkBinaryCompatibleKotlin(v1 = baseline, v2 = """
+        checkBinaryCompatibleKotlin(
+            v1 = baseline,
+            v2 = """
 
             /** @since 1.0 */
             interface Foo {
@@ -358,7 +373,8 @@ class SinceAndIncubatingRulesKotlinTest : AbstractBinaryCompatibilityTest() {
                 $annotatedKotlinMembers
             }
 
-        """) {
+            """
+        ) {
 
             assertHasNoWarning()
             assertHasInformation(

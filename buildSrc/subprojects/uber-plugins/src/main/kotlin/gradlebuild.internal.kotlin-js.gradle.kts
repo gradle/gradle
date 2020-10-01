@@ -16,7 +16,6 @@
 
 import org.jetbrains.kotlin.gradle.dsl.KotlinJsCompile
 import org.jlleitschuh.gradle.ktlint.KtlintCheckTask
-import org.jlleitschuh.gradle.ktlint.KtlintFormatTask
 
 plugins {
     kotlin("js")
@@ -44,10 +43,6 @@ kotlin {
 tasks {
     withType<KotlinJsCompile>().configureEach {
         kotlinOptions.allWarningsAsErrors = true
-    }
-
-    withType<KtlintFormatTask>().configureEach {
-        enabled = false
     }
 
     val ktlintCheckTasks = withType<KtlintCheckTask>()

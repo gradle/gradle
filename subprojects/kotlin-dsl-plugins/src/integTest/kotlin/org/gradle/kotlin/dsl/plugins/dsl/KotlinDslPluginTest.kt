@@ -26,9 +26,11 @@ class KotlinDslPluginTest : AbstractPluginTest() {
         // (see publishedKotlinDslPluginsVersion in kotlin-dsl.gradle.kts)
         withKotlinDslPlugin()
 
-        withDefaultSettings().appendText("""
+        withDefaultSettings().appendText(
+            """
             rootProject.name = "forty-two"
-        """)
+            """
+        )
 
         val appliedKotlinDslPluginsVersion = futurePluginVersions["org.gradle.kotlin.kotlin-dsl"]
         build("help").apply {
@@ -44,7 +46,9 @@ class KotlinDslPluginTest : AbstractPluginTest() {
 
         withKotlinDslPlugin()
 
-        withFile("src/main/kotlin/code.kt", """
+        withFile(
+            "src/main/kotlin/code.kt",
+            """
 
             // src/main/kotlin
             import org.gradle.kotlin.dsl.GradleDsl
@@ -52,7 +56,8 @@ class KotlinDslPluginTest : AbstractPluginTest() {
             // src/generated
             import org.gradle.kotlin.dsl.embeddedKotlinVersion
 
-        """)
+            """
+        )
 
         val result = build("classes")
 
@@ -65,7 +70,8 @@ class KotlinDslPluginTest : AbstractPluginTest() {
 
         assumeNonEmbeddedGradleExecuter() // Requires a Gradle distribution on the test-under-test classpath, but gradleApi() does not offer the full distribution
 
-        withBuildScript("""
+        withBuildScript(
+            """
 
             plugins {
                 `kotlin-dsl`
@@ -77,9 +83,12 @@ class KotlinDslPluginTest : AbstractPluginTest() {
                 testImplementation("junit:junit:4.13")
             }
 
-        """)
+            """
+        )
 
-        withFile("src/main/kotlin/code.kt", """
+        withFile(
+            "src/main/kotlin/code.kt",
+            """
 
             import org.gradle.api.Plugin
             import org.gradle.api.Project
@@ -92,9 +101,12 @@ class KotlinDslPluginTest : AbstractPluginTest() {
                     }
                 }
             }
-        """)
+            """
+        )
 
-        withFile("src/test/kotlin/test.kt", """
+        withFile(
+            "src/test/kotlin/test.kt",
+            """
 
             import org.gradle.testfixtures.ProjectBuilder
             import org.junit.Test
@@ -109,11 +121,13 @@ class KotlinDslPluginTest : AbstractPluginTest() {
                     }
                 }
             }
-        """)
+            """
+        )
 
         assertThat(
             outputOf("test", "-i"),
-            containsString("Plugin Using Embedded Kotlin "))
+            containsString("Plugin Using Embedded Kotlin ")
+        )
     }
 
     @Test
@@ -121,7 +135,8 @@ class KotlinDslPluginTest : AbstractPluginTest() {
     fun `gradle kotlin dsl api is available in test-kit injected plugin classpath`() {
         assumeNonEmbeddedGradleExecuter() // requires a full distribution to run tests with test kit
 
-        withBuildScript("""
+        withBuildScript(
+            """
 
             plugins {
                 `kotlin-dsl`
@@ -144,9 +159,12 @@ class KotlinDslPluginTest : AbstractPluginTest() {
                 }
             }
 
-        """)
+            """
+        )
 
-        withFile("src/main/kotlin/my/code.kt", """
+        withFile(
+            "src/main/kotlin/my/code.kt",
+            """
             package my
 
             import org.gradle.api.*
@@ -157,9 +175,12 @@ class KotlinDslPluginTest : AbstractPluginTest() {
                     println("Plugin Using Embedded Kotlin " + embeddedKotlinVersion)
                 }
             }
-        """)
+            """
+        )
 
-        withFile("src/test/kotlin/test.kt", """
+        withFile(
+            "src/test/kotlin/test.kt",
+            """
 
             import java.io.File
 
@@ -204,11 +225,13 @@ class KotlinDslPluginTest : AbstractPluginTest() {
                 }
             }
 
-        """)
+            """
+        )
 
         assertThat(
             outputOf("test", "-i"),
-            containsString("Plugin Using Embedded Kotlin "))
+            containsString("Plugin Using Embedded Kotlin ")
+        )
     }
 
     @Test
@@ -217,7 +240,9 @@ class KotlinDslPluginTest : AbstractPluginTest() {
 
         withKotlinDslPlugin()
 
-        withFile("src/main/kotlin/code.kt", """
+        withFile(
+            "src/main/kotlin/code.kt",
+            """
 
             import org.gradle.api.Plugin
             import org.gradle.api.Project
@@ -233,7 +258,8 @@ class KotlinDslPluginTest : AbstractPluginTest() {
                 }
             }
 
-        """)
+            """
+        )
 
         val result = build("classes")
 
@@ -250,11 +276,13 @@ class KotlinDslPluginTest : AbstractPluginTest() {
 
             assertThat(
                 output.also(::println),
-                containsMultiLineString("""
+                containsMultiLineString(
+                    """
                     STRING
                     foo
                     bar
-                """)
+                    """
+                )
             )
 
             assertThat(
@@ -281,11 +309,13 @@ class KotlinDslPluginTest : AbstractPluginTest() {
 
             assertThat(
                 output.also(::println),
-                containsMultiLineString("""
+                containsMultiLineString(
+                    """
                     STRING
                     foo
                     bar
-                """)
+                    """
+                )
             )
 
             assertThat(
@@ -313,7 +343,9 @@ class KotlinDslPluginTest : AbstractPluginTest() {
 
         withDefaultSettingsIn("buildSrc")
 
-        withBuildScriptIn("buildSrc", """
+        withBuildScriptIn(
+            "buildSrc",
+            """
 
             plugins {
                 `kotlin-dsl`
@@ -322,9 +354,12 @@ class KotlinDslPluginTest : AbstractPluginTest() {
             $repositoriesBlock
 
             $buildSrcScript
-        """)
+            """
+        )
 
-        withFile("buildSrc/src/main/kotlin/my.kt", """
+        withFile(
+            "buildSrc/src/main/kotlin/my.kt",
+            """
             package my
 
             // Action<T> is a SAM with receiver
@@ -346,15 +381,18 @@ class KotlinDslPluginTest : AbstractPluginTest() {
                     println(toLowerCase())
                 }
             }
-        """)
+            """
+        )
 
-        withBuildScript("""
+        withBuildScript(
+            """
 
             task("test") {
                 doLast { my.test() }
             }
 
-         """)
+            """
+        )
     }
 
     private

@@ -66,7 +66,8 @@ class IntegrationTestFixtureVisitor : AbstractAstVisitor() {
     private
     fun checkIndirectOutputContains(objectExpr: Expression, call: MethodCallExpression) {
         if (objectExpr is VariableExpression
-            && objectExpr.name == "result") {
+            && objectExpr.name == "result"
+        ) {
             val arg = AstUtil.getNodeText(call.arguments, sourceCode)
             addViolation(call, "Should use outputContains($arg) or failure.assertHasCause($arg) instead")
         }

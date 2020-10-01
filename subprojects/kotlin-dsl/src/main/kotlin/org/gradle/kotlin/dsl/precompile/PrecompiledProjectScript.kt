@@ -52,7 +52,8 @@ open class PrecompiledProjectScript(
             PluginDependenciesSpec { pluginId ->
                 project.pluginManager.apply(pluginId)
                 NullPluginDependencySpec
-            })
+            }
+        )
     }
 
     object NullPluginDependencySpec : PluginDependencySpec {

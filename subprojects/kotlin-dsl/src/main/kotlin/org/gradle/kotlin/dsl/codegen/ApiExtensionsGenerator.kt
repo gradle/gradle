@@ -115,16 +115,16 @@ fun relativeSourcePathOf(type: ApiType) =
 
 private
 fun signatureKey(extension: KotlinExtensionFunction): List<Any> = extension.run {
-    (listOf(targetType.sourceName, name)
-        + parameters.flatMap { apiTypeKey(it.type) })
+    listOf(targetType.sourceName, name) +
+        parameters.flatMap { apiTypeKey(it.type) }
 }
 
 
 private
 fun apiTypeKey(usage: ApiTypeUsage): List<Any> = usage.run {
-    (listOf(sourceName, isNullable, isRaw, variance)
-        + typeArguments.flatMap(::apiTypeKey)
-        + bounds.flatMap(::apiTypeKey))
+    listOf(sourceName, isNullable, isRaw, variance) +
+        typeArguments.flatMap(::apiTypeKey) +
+        bounds.flatMap(::apiTypeKey)
 }
 
 
@@ -172,15 +172,17 @@ fun kotlinExtensionFunctionsFor(type: ApiType): Sequence<KotlinExtensionFunction
                     targetType = type,
                     name = function.name,
                     parameters = function.newMappedParameters().groovyNamedArgumentsToVarargs().javaClassToKotlinClass(),
-                    returnType = function.returnType))
+                    returnType = function.returnType
+                )
+            )
         }
 
 
 private
 fun ApiTypeUsage.hasJavaClass(): Boolean =
-    (isJavaClass
-        || isKotlinArray && typeArguments.single().isJavaClass
-        || isKotlinCollection && typeArguments.single().isJavaClass)
+    isJavaClass ||
+        isKotlinArray && typeArguments.single().isJavaClass ||
+        isKotlinCollection && typeArguments.single().isJavaClass
 
 
 private
@@ -226,9 +228,13 @@ fun List<MappedApiFunctionParameter>.groovyNamedArgumentsToVarargs() =
                         typeArguments = listOf(
                             ApiTypeUsage("String"),
                             ApiTypeUsage("Any", isNullable = true)
-                        )))),
+                        )
+                    )
+                )
+            ),
             isVarargs = true,
-            asArgument = "mapOf(*${first.asArgument})")
+            asArgument = "mapOf(*${first.asArgument})"
+        )
         if (last().type.isSAM) last().let { action -> drop(1).dropLast(1) + mappedMapParameter + action }
         else drop(1) + mappedMapParameter
     } ?: this
@@ -271,13 +277,15 @@ data class KotlinExtensionFunction(
 
     fun toKotlinString(): String = StringBuilder().apply {
 
-        appendReproducibleNewLine("""
+        appendReproducibleNewLine(
+            """
             /**
              * $description.
              *
              * @see ${targetType.sourceName}.$name
              */
-        """.trimIndent())
+            """.trimIndent()
+        )
         if (isDeprecated) appendReproducibleNewLine("""@Deprecated("Deprecated Gradle API")""")
         if (isIncubating) appendReproducibleNewLine("@org.gradle.api.Incubating")
         append("inline fun ")
@@ -473,10 +481,10 @@ val ApiTypeUsage.isKotlinCollection
 
 private
 fun isCandidateForExtension(function: ApiFunction): Boolean = function.run {
-    (name !in functionNameBlackList
-        && isPublic
-        && !isStatic
-        && parameters.none { it.type.isGroovyClosure })
+    name !in functionNameBlackList &&
+        isPublic &&
+        !isStatic &&
+        parameters.none { it.type.isGroovyClosure }
 }
 
 

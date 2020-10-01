@@ -180,8 +180,9 @@
      */
     fun ArtifactHandler.`api`(
         artifactNotation: Any,
-        configureAction:  ConfigurablePublishArtifact.() -> Unit): PublishArtifact =
-            add("api", artifactNotation, configureAction)
+        configureAction:  ConfigurablePublishArtifact.() -> Unit
+    ): PublishArtifact =
+        add("api", artifactNotation, configureAction)
 
 
     /**
@@ -312,6 +313,7 @@
      */
     fun ArtifactHandler.`compile`(
         artifactNotation: Any,
-        configureAction:  ConfigurablePublishArtifact.() -> Unit): PublishArtifact =
-            add("compile", artifactNotation, configureAction)
+        configureAction:  ConfigurablePublishArtifact.() -> Unit
+    ): PublishArtifact =
+        add("compile", artifactNotation, configureAction)
 

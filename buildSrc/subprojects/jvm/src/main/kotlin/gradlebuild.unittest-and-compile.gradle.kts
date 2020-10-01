@@ -97,9 +97,10 @@ fun configureCompileTask(compileTask: AbstractCompile, options: CompileOptions, 
     options.forkOptions.jvmArgs?.add("-XX:+HeapDumpOnOutOfMemoryError")
     options.forkOptions.memoryMaximumSize = "1g"
     options.compilerArgs.addAll(mutableListOf("-Xlint:-options", "-Xlint:-path"))
-    compileTask.inputs.property("javaInstallation", Callable {
-        jdkForCompilation.vendorAndMajorVersion()
-    })
+    compileTask.inputs.property(
+        "javaInstallation",
+        Callable { jdkForCompilation.vendorAndMajorVersion() }
+    )
 }
 
 fun configureClasspathManifestGeneration() {
@@ -149,9 +150,12 @@ fun configureJarTasks() {
     tasks.withType<Jar>().configureEach {
         archiveBaseName.set(moduleIdentity.baseName)
         archiveVersion.set(moduleIdentity.version.map { it.baseVersion.version })
-        manifest.attributes(mapOf(
-            Attributes.Name.IMPLEMENTATION_TITLE.toString() to "Gradle",
-            Attributes.Name.IMPLEMENTATION_VERSION.toString() to moduleIdentity.version.map { it.baseVersion.version }))
+        manifest.attributes(
+            mapOf(
+                Attributes.Name.IMPLEMENTATION_TITLE.toString() to "Gradle",
+                Attributes.Name.IMPLEMENTATION_VERSION.toString() to moduleIdentity.version.map { it.baseVersion.version }
+            )
+        )
     }
 }
 

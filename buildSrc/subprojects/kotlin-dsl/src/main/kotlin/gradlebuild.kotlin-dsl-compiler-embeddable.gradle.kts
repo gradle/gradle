@@ -38,18 +38,24 @@ tasks {
 
     val patchKotlinCompilerEmbeddable by registering(PatchKotlinCompilerEmbeddable::class) {
         dependsOn(checkKotlinCompilerEmbeddableDependencies)
-        excludes.set(listOf(
-            "META-INF/services/javax.annotation.processing.Processor",
-            "META-INF/native/**/*jansi.*"
-        ))
+        excludes.set(
+            listOf(
+                "META-INF/services/javax.annotation.processing.Processor",
+                "META-INF/native/**/*jansi.*"
+            )
+        )
         originalFiles.from(kotlinCompilerEmbeddable)
-        dependencies.from(configurations.detachedConfiguration(
-            project.dependencies.project(":distributions-dependencies"),
-            project.dependencies.create(libs.jansi)
-        ))
-        dependenciesIncludes.set(mapOf(
-            "jansi-" to listOf("META-INF/native/**", "org/fusesource/jansi/internal/CLibrary*.class")
-        ))
+        dependencies.from(
+            configurations.detachedConfiguration(
+                project.dependencies.project(":distributions-dependencies"),
+                project.dependencies.create(libs.jansi)
+            )
+        )
+        dependenciesIncludes.set(
+            mapOf(
+                "jansi-" to listOf("META-INF/native/**", "org/fusesource/jansi/internal/CLibrary*.class")
+            )
+        )
         additionalRootFiles.from(classpathManifest)
 
         outputFile.set(jar.get().archiveFile)

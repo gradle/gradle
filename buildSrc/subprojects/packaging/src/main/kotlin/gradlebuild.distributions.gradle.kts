@@ -98,10 +98,12 @@ val generateRelocatedPackageList by tasks.registering(PackageListGenerator::clas
 
 // Extract pubic API metadata from source code of Gradle module Jars packaged in the distribution (used by the two tasks below to handle default imports in build scripts)
 val dslMetaData by tasks.registering(ExtractDslMetaDataTask::class) {
-    source(sourcesPath.incoming.artifactView { lenient(true) }.files.asFileTree.matching {
-        include(PublicApi.includes)
-        exclude(PublicApi.excludes)
-    })
+    source(
+        sourcesPath.incoming.artifactView { lenient(true) }.files.asFileTree.matching {
+            include(PublicApi.includes)
+            exclude(PublicApi.excludes)
+        }
+    )
     destinationFile.set(generatedBinFileFor("dsl-meta-data.bin"))
 }
 
@@ -131,9 +133,12 @@ val emptyClasspathManifest by tasks.registering(ClasspathManifest::class) {
 // Jar task to package all metadata in 'gradle-runtime-api-info.jar'
 val runtimeApiInfoJar by tasks.registering(Jar::class) {
     archiveVersion.set(moduleIdentity.version.map { it.baseVersion.version })
-    manifest.attributes(mapOf(
-        Attributes.Name.IMPLEMENTATION_TITLE.toString() to "Gradle",
-        Attributes.Name.IMPLEMENTATION_VERSION.toString() to moduleIdentity.version.map { it.baseVersion.version }))
+    manifest.attributes(
+        mapOf(
+            Attributes.Name.IMPLEMENTATION_TITLE.toString() to "Gradle",
+            Attributes.Name.IMPLEMENTATION_VERSION.toString() to moduleIdentity.version.map { it.baseVersion.version }
+        )
+    )
     archiveBaseName.set(runtimeApiJarName)
     into("org/gradle/api/internal/runtimeshaded") {
         from(generateRelocatedPackageList)
@@ -163,10 +168,12 @@ configureDistribution("src", srcDistributionSpec(), buildDists)
 
 fun pluginsManifestTask(runtimeClasspath: Configuration, coreRuntimeClasspath: Configuration, api: GradleModuleApiAttribute) =
     tasks.registering(PluginsManifest::class) {
-        pluginsClasspath.from(runtimeClasspath.incoming.artifactView {
-            lenient(true)
-            attributes.attribute(GradleModuleApiAttribute.attribute, api)
-        }.files)
+        pluginsClasspath.from(
+            runtimeClasspath.incoming.artifactView {
+                lenient(true)
+                attributes.attribute(GradleModuleApiAttribute.attribute, api)
+            }.files
+        )
         coreClasspath.from(coreRuntimeClasspath)
         manifestFile.set(generatedPropertiesFileFor("gradle${if (api == GradleModuleApiAttribute.API) "" else "-implementation"}-plugins"))
     }

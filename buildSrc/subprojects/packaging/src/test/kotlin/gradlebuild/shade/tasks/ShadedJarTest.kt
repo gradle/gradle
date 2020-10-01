@@ -24,19 +24,21 @@ internal
 class ShadedJarTest {
     @Test
     fun aggregates_class_trees() {
-        val result = buildClassTrees(listOf(
-            mapOf("First.class" to emptyList()),
-            mapOf(
-                "First.class" to listOf("Second.class", "Third.class"),
-                "Second.class" to emptyList(),
-                "Third.class" to emptyList()
-            ),
-            mapOf(
-                "First.class" to listOf("Forth.class"),
-                "Third.class" to listOf("First.class"),
-                "Forth.class" to emptyList()
+        val result = buildClassTrees(
+            listOf(
+                mapOf("First.class" to emptyList()),
+                mapOf(
+                    "First.class" to listOf("Second.class", "Third.class"),
+                    "Second.class" to emptyList(),
+                    "Third.class" to emptyList()
+                ),
+                mapOf(
+                    "First.class" to listOf("Forth.class"),
+                    "Third.class" to listOf("First.class"),
+                    "Forth.class" to emptyList()
+                )
             )
-        ))
+        )
 
         assertEquals(
             mapOf(
@@ -44,6 +46,8 @@ class ShadedJarTest {
                 "Second.class" to emptySet(),
                 "Third.class" to setOf("First.class"),
                 "Forth.class" to emptySet()
-            ), result)
+            ),
+            result
+        )
     }
 }

@@ -71,48 +71,59 @@ abstract class Classycle @Inject constructor(
         val classesDirs = existingClassesDir
         val classpath = configurations["classycle"].files
         reportFile.parentFile.mkdirs()
-        antBuilder.withClasspath(classpath).execute(closureOf<AntBuilderDelegate> {
-            ant.withGroovyBuilder {
-                "taskdef"(
-                    "name" to "classycleDependencyCheck",
-                    "classname" to "classycle.ant.DependencyCheckingTask")
-                "taskdef"(
-                    "name" to "classycleReport",
-                    "classname" to "classycle.ant.ReportTask")
-                try {
-                    "classycleDependencyCheck"(
-                        mapOf(
-                            "reportFile" to reportFile,
-                            "failOnUnwantedDependencies" to true,
-                            "mergeInnerClasses" to true),
-                        """
+        antBuilder.withClasspath(classpath).execute(
+            closureOf<AntBuilderDelegate> {
+                ant.withGroovyBuilder {
+                    "taskdef"(
+                        "name" to "classycleDependencyCheck",
+                        "classname" to "classycle.ant.DependencyCheckingTask"
+                    )
+                    "taskdef"(
+                        "name" to "classycleReport",
+                        "classname" to "classycle.ant.ReportTask"
+                    )
+                    try {
+                        "classycleDependencyCheck"(
+                            mapOf(
+                                "reportFile" to reportFile,
+                                "failOnUnwantedDependencies" to true,
+                                "mergeInnerClasses" to true
+                            ),
+                            """
                             show allResults
                             check absenceOfPackageCycles > 1 in org.gradle.*
-                        """) {
-
-                        withFilesetOf(classesDirs, excludePatterns.get())
-                    }
-                } catch (ex: Exception) {
-                    try {
-                        "unzip"(
-                            "src" to reportResourcesZip.get().asFile,
-                            "dest" to reportDir)
-                        "classycleReport"(
-                            "reportFile" to analysisFile,
-                            "reportType" to "xml",
-                            "mergeInnerClasses" to true,
-                            "title" to "$name $reportName ($path)") {
+                            """
+                        ) {
 
                             withFilesetOf(classesDirs, excludePatterns.get())
                         }
                     } catch (ex: Exception) {
-                        ex.printStackTrace()
+                        try {
+                            "unzip"(
+                                "src" to reportResourcesZip.get().asFile,
+                                "dest" to reportDir
+                            )
+                            "classycleReport"(
+                                "reportFile" to analysisFile,
+                                "reportType" to "xml",
+                                "mergeInnerClasses" to true,
+                                "title" to "$name $reportName ($path)"
+                            ) {
+
+                                withFilesetOf(classesDirs, excludePatterns.get())
+                            }
+                        } catch (ex: Exception) {
+                            ex.printStackTrace()
+                        }
+                        throw RuntimeException(
+                            "Classycle check failed: $ex.message. " +
+                                "See failure report at ${clickableUrl(reportFile)} and analysis report at ${clickableUrl(analysisFile)}",
+                            ex
+                        )
                     }
-                    throw RuntimeException("Classycle check failed: $ex.message. " +
-                        "See failure report at ${clickableUrl(reportFile)} and analysis report at ${clickableUrl(analysisFile)}", ex)
                 }
             }
-        })
+        )
     }
 }
 

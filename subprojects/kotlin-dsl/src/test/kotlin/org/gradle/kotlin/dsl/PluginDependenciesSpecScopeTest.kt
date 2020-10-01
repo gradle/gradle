@@ -77,7 +77,8 @@ class PluginDependenciesSpecScopeTest {
 fun expecting(vararg expected: Plugin, block: PluginDependenciesSpec.() -> Unit) {
     assertThat(
         plugins(block).map { Plugin(it.id.id, it.version, it.isApply) },
-        equalTo(expected.asList()))
+        equalTo(expected.asList())
+    )
 }
 
 

@@ -11,18 +11,23 @@ tasks.withType<UpdateReleasedVersions>().configureEach {
 }
 
 tasks.register<UpdateReleasedVersions>("updateReleasedVersions") {
-    currentReleasedVersion.set(ReleasedVersion(
-        project.findProperty("currentReleasedVersion").toString(),
-        project.findProperty("currentReleasedVersionBuildTimestamp").toString()))
+    currentReleasedVersion.set(
+        ReleasedVersion(
+            project.findProperty("currentReleasedVersion").toString(),
+            project.findProperty("currentReleasedVersionBuildTimestamp").toString()
+        )
+    )
 }
 
 tasks.register<UpdateReleasedVersions>("updateReleasedVersionsToLatestNightly") {
-    currentReleasedVersion.set(project.provider {
-        val jsonText = URL("https://services.gradle.org/versions/nightly").readText()
-        println(jsonText)
-        val versionInfo = Gson().fromJson(jsonText, VersionBuildTimeInfo::class.java)
-        ReleasedVersion(versionInfo.version, versionInfo.buildTime)
-    })
+    currentReleasedVersion.set(
+        project.provider {
+            val jsonText = URL("https://services.gradle.org/versions/nightly").readText()
+            println(jsonText)
+            val versionInfo = Gson().fromJson(jsonText, VersionBuildTimeInfo::class.java)
+            ReleasedVersion(versionInfo.version, versionInfo.buildTime)
+        }
+    )
 }
 
 tasks.register<UpdateBranchStatus>("updateBranchStatus")
