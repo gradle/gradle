@@ -23,7 +23,6 @@ import org.gradle.internal.hash.HashCode;
 
 import java.io.Closeable;
 import java.io.File;
-import java.io.IOException;
 
 /**
  * A {@link ClasspathEntrySnapshotCache} that delegates to the global cache for files that are known to be immutable.
@@ -59,7 +58,7 @@ public class SplitClasspathEntrySnapshotCache implements ClasspathEntrySnapshotC
     }
 
     @Override
-    public void close() throws IOException {
+    public void close() {
         CompositeStoppable.stoppable(localCache).stop();
     }
 }

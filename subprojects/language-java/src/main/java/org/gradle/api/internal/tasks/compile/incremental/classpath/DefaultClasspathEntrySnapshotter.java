@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.tasks.compile.incremental.classpath;
 
-import com.google.common.collect.Maps;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.internal.file.FileOperations;
@@ -31,6 +30,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.InputStream;
+import java.util.HashMap;
 import java.util.Map;
 
 import static org.gradle.internal.FileUtils.hasExtension;
@@ -51,7 +51,7 @@ public class DefaultClasspathEntrySnapshotter {
     }
 
     public ClasspathEntrySnapshot createSnapshot(HashCode hash, File classpathEntry) {
-        final Map<String, HashCode> hashes = Maps.newHashMap();
+        final Map<String, HashCode> hashes = new HashMap<>();
         final ClassDependentsAccumulator accumulator = new ClassDependentsAccumulator();
 
         try {

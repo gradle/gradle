@@ -19,22 +19,21 @@ package org.gradle.api.internal.tasks.compile.incremental.deps;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Multimap;
-import com.google.common.collect.Sets;
 import it.unimi.dsi.fastutil.ints.IntSet;
 
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
 public class ClassDependentsAccumulator {
 
-    private final Set<String> dependenciesToAll = Sets.newHashSet();
-    private final Map<String, Set<String>> privateDependents = new HashMap<String, Set<String>>();
-    private final Map<String, Set<String>> accessibleDependents = new HashMap<String, Set<String>>();
+    private final Set<String> dependenciesToAll = new HashSet<>();
+    private final Map<String, Set<String>> privateDependents = new HashMap<>();
+    private final Map<String, Set<String>> accessibleDependents = new HashMap<>();
     private final ImmutableMap.Builder<String, IntSet> classesToConstants = ImmutableMap.builder();
-    private final Set<String> seenClasses = Sets.newHashSet();
+    private final Set<String> seenClasses = new HashSet<>();
     private String fullRebuildCause;
 
     public void addClass(ClassAnalysis classAnalysis) {
@@ -71,7 +70,7 @@ public class ClassDependentsAccumulator {
     private Set<String> rememberClass(Map<String, Set<String>> dependents, String className) {
         Set<String> d = dependents.get(className);
         if (d == null) {
-            d = Sets.newHashSet();
+            d = new HashSet<>();
             dependents.put(className, d);
         }
         return d;
@@ -86,7 +85,7 @@ public class ClassDependentsAccumulator {
         for (String s : dependenciesToAll) {
             builder.put(s, DependentsSet.dependencyToAll());
         }
-        Set<String> collected = Sets.newHashSet();
+        Set<String> collected = new HashSet<>();
         for (Map.Entry<String, Set<String>> entry : accessibleDependents.entrySet()) {
             if (collected.add(entry.getKey())) {
                 builder.put(entry.getKey(), DependentsSet.dependentClasses(privateDependents.getOrDefault(entry.getKey(), Collections.emptySet()), entry.getValue()));
@@ -118,11 +117,4 @@ public class ClassDependentsAccumulator {
         return new ClassSetAnalysisData(ImmutableSet.copyOf(seenClasses), getDependentsMap(), getClassesToConstants(), fullRebuildCause);
     }
 
-    private static <K, V> Map<K, Set<V>> asMap(Multimap<K, V> multimap) {
-        ImmutableMap.Builder<K, Set<V>> builder = ImmutableMap.builder();
-        for (K key : multimap.keySet()) {
-            builder.put(key, ImmutableSet.copyOf(multimap.get(key)));
-        }
-        return builder.build();
-    }
 }

@@ -16,8 +16,6 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.recomp;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
@@ -33,6 +31,8 @@ import org.gradle.language.base.internal.tasks.StaleOutputCleaner;
 import org.gradle.work.FileChange;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
@@ -96,13 +96,13 @@ abstract class AbstractRecompilationSpecProvider implements RecompilationSpecPro
     }
 
     protected void addClassesToProcess(JavaCompileSpec spec, RecompilationSpec recompilationSpec) {
-        Set<String> classesToProcess = Sets.newHashSet(recompilationSpec.getClassesToProcess());
+        Set<String> classesToProcess = new HashSet<>(recompilationSpec.getClassesToProcess());
         classesToProcess.removeAll(recompilationSpec.getClassesToCompile());
         spec.setClasses(classesToProcess);
     }
 
     protected void includePreviousCompilationOutputOnClasspath(JavaCompileSpec spec) {
-        List<File> classpath = Lists.newArrayList(spec.getCompileClasspath());
+        List<File> classpath = new ArrayList<>(spec.getCompileClasspath());
         File destinationDir = spec.getDestinationDir();
         classpath.add(destinationDir);
         spec.setCompileClasspath(classpath);

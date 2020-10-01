@@ -17,17 +17,17 @@
 package org.gradle.api.internal.tasks.compile.incremental.deps;
 
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Sets;
 import org.gradle.api.internal.tasks.compile.incremental.processing.GeneratedResource;
 
 import javax.annotation.Nullable;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Set;
 
 public abstract class DependentsSet {
 
     public static DependentsSet dependentClasses(Set<String> privateDependentClasses, Set<String> accessibleDependentClasses) {
-        return dependents(privateDependentClasses, accessibleDependentClasses, Collections.<GeneratedResource>emptySet());
+        return dependents(privateDependentClasses, accessibleDependentClasses, Collections.emptySet());
     }
 
     public static DependentsSet dependents(Set<String> privateDependentClasses, Set<String> accessibleDependentClasses, Set<GeneratedResource> dependentResources) {
@@ -154,7 +154,7 @@ public abstract class DependentsSet {
             if (accessibleDependentClasses.isEmpty()) {
                 return privateDependentClasses;
             }
-            Set<String> r = Sets.newHashSet(accessibleDependentClasses);
+            Set<String> r = new HashSet<>(accessibleDependentClasses);
             r.addAll(privateDependentClasses);
             return r;
         }

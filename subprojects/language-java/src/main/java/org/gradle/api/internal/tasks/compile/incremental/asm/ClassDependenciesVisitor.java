@@ -16,8 +16,7 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.asm;
 
-import com.google.common.base.Predicate;
-import com.google.common.collect.Sets;
+import java.util.function.Predicate;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 import org.gradle.api.internal.cache.StringInterner;
@@ -32,6 +31,7 @@ import org.objectweb.asm.Type;
 import org.objectweb.asm.TypePath;
 
 import java.lang.annotation.RetentionPolicy;
+import java.util.HashSet;
 import java.util.Set;
 
 public class ClassDependenciesVisitor extends ClassVisitor {
@@ -50,8 +50,8 @@ public class ClassDependenciesVisitor extends ClassVisitor {
     private ClassDependenciesVisitor(Predicate<String> typeFilter, ClassReader reader, StringInterner interner) {
         super(API);
         this.constants = new IntOpenHashSet(2);
-        this.privateTypes = Sets.newHashSet();
-        this.accessibleTypes = Sets.newHashSet();
+        this.privateTypes = new HashSet<>();
+        this.accessibleTypes = new HashSet<>();
         this.retentionPolicyVisitor = new RetentionPolicyVisitor();
         this.typeFilter = typeFilter;
         this.interner = interner;
@@ -118,7 +118,7 @@ public class ClassDependenciesVisitor extends ClassVisitor {
     }
 
     protected void maybeAddDependentType(Set<String> types, String type) {
-        if (typeFilter.apply(type)) {
+        if (typeFilter.test(type)) {
             types.add(intern(type));
         }
     }

@@ -30,19 +30,19 @@ import java.util.Set;
  */
 public class AnnotationProcessingResult implements Serializable {
 
-    private final Map<String, Set<String>> generatedTypesByOrigin = new LinkedHashMap<String, Set<String>>();
-    private final Map<String, Set<GeneratedResource>> generatedResourcesByOrigin = new LinkedHashMap<String, Set<GeneratedResource>>();
-    private final Set<String> aggregatedTypes = new HashSet<String>();
-    private final Set<String> generatedTypesDependingOnAllOthers = new HashSet<String>();
-    private final Set<GeneratedResource> getGeneratedResourcesDependingOnAllOthers = new HashSet<GeneratedResource>();
-    private final List<AnnotationProcessorResult> annotationProcessorResults = new ArrayList<AnnotationProcessorResult>();
+    private final Map<String, Set<String>> generatedTypesByOrigin = new LinkedHashMap<>();
+    private final Map<String, Set<GeneratedResource>> generatedResourcesByOrigin = new LinkedHashMap<>();
+    private final Set<String> aggregatedTypes = new HashSet<>();
+    private final Set<String> generatedTypesDependingOnAllOthers = new HashSet<>();
+    private final Set<GeneratedResource> getGeneratedResourcesDependingOnAllOthers = new HashSet<>();
+    private final List<AnnotationProcessorResult> annotationProcessorResults = new ArrayList<>();
     private String fullRebuildCause;
 
     public void addGeneratedType(String name, Set<String> originatingElements) {
         for (String originatingElement : originatingElements) {
             Set<String> derived = generatedTypesByOrigin.get(originatingElement);
             if (derived == null) {
-                derived = new LinkedHashSet<String>();
+                derived = new LinkedHashSet<>();
                 generatedTypesByOrigin.put(originatingElement, derived);
             }
             derived.add(name);
@@ -53,7 +53,7 @@ public class AnnotationProcessingResult implements Serializable {
         for (String originatingElement : originatingElements) {
             Set<GeneratedResource> derived = generatedResourcesByOrigin.get(originatingElement);
             if (derived == null) {
-                derived = new LinkedHashSet<GeneratedResource>();
+                derived = new LinkedHashSet<>();
                 generatedResourcesByOrigin.put(originatingElement, derived);
             }
             derived.add(resource);
