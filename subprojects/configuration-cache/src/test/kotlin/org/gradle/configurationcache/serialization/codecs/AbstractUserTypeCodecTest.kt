@@ -75,11 +75,14 @@ abstract class AbstractUserTypeCodecTest {
     private
     fun writeToByteArray(graph: Any, codec: Codec<Any?>): ByteArray {
         val outputStream = ByteArrayOutputStream()
-        writeTo(outputStream, graph, codec, object : ProblemsListener {
-            override fun onProblem(problem: PropertyProblem) {
-                println(problem)
+        writeTo(
+            outputStream, graph, codec,
+            object : ProblemsListener {
+                override fun onProblem(problem: PropertyProblem) {
+                    println(problem)
+                }
             }
-        })
+        )
         return outputStream.toByteArray()
     }
 

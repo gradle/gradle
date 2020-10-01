@@ -21,7 +21,8 @@ internal
 fun excludeMapFor(group: String?, module: String?): Map<String, String> =
     mapOfNonNullValuesOf(
         "group" to group,
-        "module" to module)
+        "module" to module
+    )
 
 
 internal

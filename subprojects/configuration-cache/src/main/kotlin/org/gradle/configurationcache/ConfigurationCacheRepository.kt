@@ -142,9 +142,11 @@ class ConfigurationCacheRepository(
 
     private
     fun <T> withBaseCacheDirFor(cacheKey: String, action: (File) -> T): T =
-        cache.withFileLock(Factory {
-            action(cache.baseDirFor(cacheKey))
-        })
+        cache.withFileLock(
+            Factory {
+                action(cache.baseDirFor(cacheKey))
+            }
+        )
 
     private
     fun PersistentCache.baseDirFor(cacheKey: String) =

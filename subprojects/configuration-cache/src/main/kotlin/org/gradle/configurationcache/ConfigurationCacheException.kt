@@ -41,10 +41,10 @@ interface ConfigurationCacheThrowable
 class ConfigurationCacheError internal constructor(
     error: String,
     cause: Throwable? = null
-) : Exception(
+) : ConfigurationCacheThrowable, Exception(
     "Configuration cache state could not be cached: $error",
     cause
-), ConfigurationCacheThrowable
+)
 
 
 @Contextual

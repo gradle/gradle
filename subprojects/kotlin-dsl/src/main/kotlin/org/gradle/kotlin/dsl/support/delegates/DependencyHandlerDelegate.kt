@@ -44,7 +44,7 @@ abstract class DependencyHandlerDelegate : DependencyHandler {
     abstract val delegate: DependencyHandler
 
     override fun getExtensions(): ExtensionContainer =
-            delegate.extensions
+        delegate.extensions
 
     override fun add(configurationName: String, dependencyNotation: Any): Dependency? =
         delegate.add(configurationName, dependencyNotation)

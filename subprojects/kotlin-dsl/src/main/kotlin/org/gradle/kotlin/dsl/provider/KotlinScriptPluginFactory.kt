@@ -55,7 +55,8 @@ class KotlinScriptPluginFactory @Inject internal constructor(
                     targetScope,
                     baseScope,
                     topLevelScript,
-                    kotlinScriptOptions())
+                    kotlinScriptOptions()
+                )
         }
 
     private

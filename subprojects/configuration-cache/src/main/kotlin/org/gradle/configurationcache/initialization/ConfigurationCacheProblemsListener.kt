@@ -63,11 +63,13 @@ class DefaultConfigurationCacheProblemsListener internal constructor(
         } else {
             PropertyTrace.Task(GeneratedSubclasses.unpackType(task), task.identityPath.path)
         }
-        problems.onProblem(taskExecutionAccessProblem(
-            location,
-            invocationDescription,
-            exception
-        ))
+        problems.onProblem(
+            taskExecutionAccessProblem(
+                location,
+                invocationDescription,
+                exception
+            )
+        )
     }
 
     private
@@ -88,11 +90,13 @@ class DefaultConfigurationCacheProblemsListener internal constructor(
             val exception = InvalidUserCodeException(
                 "Listener registration '$invocationDescription' by $invocationSource is unsupported."
             )
-            problems.onProblem(listenerRegistrationProblem(
-                userCodeApplicationContext.location(null),
-                invocationDescription,
-                exception
-            ))
+            problems.onProblem(
+                listenerRegistrationProblem(
+                    userCodeApplicationContext.location(null),
+                    invocationDescription,
+                    exception
+                )
+            )
         }
     }
 

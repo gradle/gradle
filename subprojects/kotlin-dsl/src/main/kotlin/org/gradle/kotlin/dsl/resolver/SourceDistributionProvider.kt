@@ -97,7 +97,8 @@ class SourceDistributionResolver(val project: Project) : SourceDistributionProvi
         version = dependencyVersion(gradleVersion),
         configuration = null,
         classifier = "src",
-        ext = "zip")
+        ext = "zip"
+    )
 
     private
     fun createSourceRepository() = ivy {

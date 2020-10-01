@@ -83,24 +83,26 @@ class FileCollectionCodec(
         return decodePreservingIdentity { id ->
             val contents = read()
             val collection = if (contents is Collection<*>) {
-                fileCollectionFactory.resolving(contents.map { element ->
-                    when (element) {
-                        is File -> element
-                        is TransformationNode -> Callable { element.transformedSubject.get().files }
-                        is SubtractingFileCollectionSpec -> element.left.minus(element.right)
-                        is FilteredFileCollectionSpec -> element.collection.filter(element.filter)
-                        is ProviderBackedFileCollectionSpec -> element.provider
-                        is FileTree -> element
-                        is TransformedExternalArtifactSet -> Callable {
-                            element.calculateResult()
+                fileCollectionFactory.resolving(
+                    contents.map { element ->
+                        when (element) {
+                            is File -> element
+                            is TransformationNode -> Callable { element.transformedSubject.get().files }
+                            is SubtractingFileCollectionSpec -> element.left.minus(element.right)
+                            is FilteredFileCollectionSpec -> element.collection.filter(element.filter)
+                            is ProviderBackedFileCollectionSpec -> element.provider
+                            is FileTree -> element
+                            is TransformedExternalArtifactSet -> Callable {
+                                element.calculateResult()
+                            }
+                            is TransformedLocalFileSpec -> Callable {
+                                element.transformation.isolateParameters()
+                                element.transformation.createInvocation(TransformationSubject.initial(element.origin), noDependencies, null).invoke().get().files
+                            }
+                            else -> throw IllegalArgumentException("Unexpected item $element in file collection contents")
                         }
-                        is TransformedLocalFileSpec -> Callable {
-                            element.transformation.isolateParameters()
-                            element.transformation.createInvocation(TransformationSubject.initial(element.origin), noDependencies, null).invoke().get().files
-                        }
-                        else -> throw IllegalArgumentException("Unexpected item $element in file collection contents")
                     }
-                })
+                )
             } else {
                 fileCollectionFactory.create(ErrorFileSet(contents as BrokenValue))
             }

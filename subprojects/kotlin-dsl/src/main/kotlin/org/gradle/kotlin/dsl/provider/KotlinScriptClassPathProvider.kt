@@ -275,5 +275,6 @@ fun toURI(url: URL): URI =
             url.protocol,
             url.host,
             url.port,
-            url.file.replace(" ", "%20")).toURI()
+            url.file.replace(" ", "%20")
+        ).toURI()
     }

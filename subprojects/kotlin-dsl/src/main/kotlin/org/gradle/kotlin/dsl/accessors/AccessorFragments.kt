@@ -865,9 +865,13 @@ fun BytecodeFragmentScope.publicStaticMaybeDeprecatedMethod(
     methodBody: MethodVisitor.() -> Unit
 ) {
     if (config.hasDeclarationDeprecations()) {
-        publicStaticMethod(jvmMethodSignature, signature, exceptions, true, {
-            kotlinDeprecation(config.getDeclarationDeprecationMessage())
-        }, methodBody)
+        publicStaticMethod(
+            jvmMethodSignature, signature, exceptions, true,
+            {
+                kotlinDeprecation(config.getDeclarationDeprecationMessage())
+            },
+            methodBody
+        )
     } else {
         publicStaticMethod(jvmMethodSignature, signature, exceptions, false, {}, methodBody)
     }

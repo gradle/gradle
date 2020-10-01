@@ -200,7 +200,8 @@ class StandardKotlinScriptEvaluator(
                 pluginRequests,
                 scriptHost.scriptHandler as ScriptHandlerInternal,
                 scriptHost.target as PluginAwareInternal,
-                scriptHost.targetScope)
+                scriptHost.targetScope
+            )
         }
 
         override fun applyBasePluginsTo(project: Project) {

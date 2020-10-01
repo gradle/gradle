@@ -64,16 +64,19 @@ import kotlin.script.templates.ScriptTemplateDefinition
  */
 @ScriptTemplateDefinition(
     resolver = KotlinBuildScriptDependenciesResolver::class,
-    scriptFilePattern = "^(settings|.+\\.settings)\\.gradle\\.kts$")
-@ScriptTemplateAdditionalCompilerArguments([
-    "-language-version", "1.3",
-    "-api-version", "1.3",
-    "-jvm-target", "1.8",
-    "-Xjsr305=strict",
-    "-XXLanguage:+NewInference",
-    "-XXLanguage:+SamConversionForKotlinFunctions",
-    "-XXLanguage:+ReferencesToSyntheticJavaProperties"
-])
+    scriptFilePattern = "^(settings|.+\\.settings)\\.gradle\\.kts$"
+)
+@ScriptTemplateAdditionalCompilerArguments(
+    [
+        "-language-version", "1.3",
+        "-api-version", "1.3",
+        "-jvm-target", "1.8",
+        "-Xjsr305=strict",
+        "-XXLanguage:+NewInference",
+        "-XXLanguage:+SamConversionForKotlinFunctions",
+        "-XXLanguage:+ReferencesToSyntheticJavaProperties"
+    ]
+)
 @SamWithReceiverAnnotations("org.gradle.api.HasImplicitReceiver")
 @GradleDsl
 abstract class KotlinSettingsScript(
@@ -104,8 +107,10 @@ abstract class KotlinSettingsScript(
     @Incubating
     @Suppress("unused")
     open fun plugins(@Suppress("unused_parameter") block: PluginDependenciesSpecScope.() -> Unit): Unit =
-        throw Exception("The plugins {} block must not be used here. "
-            + "If you need to apply a plugin imperatively, please use apply<PluginType>() or apply(plugin = \"id\") instead.")
+        throw Exception(
+            "The plugins {} block must not be used here. "
+                + "If you need to apply a plugin imperatively, please use apply<PluginType>() or apply(plugin = \"id\") instead."
+        )
 }
 
 

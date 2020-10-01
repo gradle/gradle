@@ -37,7 +37,8 @@ dependencies {
 }
 
 val pluginBundles = listOf(
-    ":kotlin-dsl-plugins")
+    ":kotlin-dsl-plugins"
+)
 
 pluginBundles.forEach {
     evaluationDependsOn(it)

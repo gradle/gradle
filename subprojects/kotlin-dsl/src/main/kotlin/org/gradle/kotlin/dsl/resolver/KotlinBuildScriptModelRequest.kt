@@ -72,9 +72,11 @@ typealias ModelBuilderCustomization = ModelBuilder<KotlinBuildScriptModel>.() ->
 
 internal
 fun fetchKotlinBuildScriptModelFor(request: KotlinBuildScriptModelRequest): KotlinBuildScriptModel =
-    fetchKotlinBuildScriptModelFor(request.toFetchParametersWith {
-        setJavaHome(request.javaHome)
-    })
+    fetchKotlinBuildScriptModelFor(
+        request.toFetchParametersWith {
+            setJavaHome(request.javaHome)
+        }
+    )
 
 
 @VisibleForTesting

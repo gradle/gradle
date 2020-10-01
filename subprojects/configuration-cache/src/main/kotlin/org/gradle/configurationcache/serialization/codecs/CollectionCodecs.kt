@@ -55,7 +55,8 @@ val treeSetCodec: Codec<TreeSet<Any?>> = codec(
         @Suppress("unchecked_cast")
         val comparator = read() as Comparator<Any?>?
         readCollectionInto { TreeSet(comparator) }
-    })
+    }
+)
 
 
 internal
@@ -89,10 +90,13 @@ fun <T : MutableMap<Any?, Any?>> mapCodec(factory: (Int) -> T): Codec<T> = codec
 
 
 internal
-val arrayCodec: Codec<Array<*>> = codec({
-    writeArray(it) { element ->
-        write(element)
+val arrayCodec: Codec<Array<*>> = codec(
+    {
+        writeArray(it) { element ->
+            write(element)
+        }
+    },
+    {
+        readArray { read() }
     }
-}, {
-    readArray { read() }
-})
+)

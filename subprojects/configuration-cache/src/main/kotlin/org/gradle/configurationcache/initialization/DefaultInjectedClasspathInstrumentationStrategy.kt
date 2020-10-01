@@ -37,12 +37,14 @@ class DefaultInjectedClasspathInstrumentationStrategy(
             // For now, disable the instrumentation
             CachedClasspathTransformer.StandardTransform.None
         } else if (isAgentPresent) {
-            problems.onProblem(PropertyProblem(
-                PropertyTrace.Gradle,
-                StructuredMessage.build { text("support for using a Java agent with TestKit builds is not yet implemented with the configuration cache.") },
-                null,
-                DocumentationSection.NotYetImplementedTestKitJavaAgent
-            ))
+            problems.onProblem(
+                PropertyProblem(
+                    PropertyTrace.Gradle,
+                    StructuredMessage.build { text("support for using a Java agent with TestKit builds is not yet implemented with the configuration cache.") },
+                    null,
+                    DocumentationSection.NotYetImplementedTestKitJavaAgent
+                )
+            )
             CachedClasspathTransformer.StandardTransform.BuildLogic
         } else {
             CachedClasspathTransformer.StandardTransform.BuildLogic

@@ -231,7 +231,8 @@ object UserGuideLink {
             "war" to "war_plugin.html",
 
             "windows-resource-script" to "native_software.html#native_binaries:windows-resources",
-            "windows-resources" to "native_software.html#native_binaries:windows-resources")
+            "windows-resources" to "native_software.html#native_binaries:windows-resources"
+        )
 }
 
 
