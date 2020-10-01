@@ -16,34 +16,37 @@
 
 package org.gradle.internal.execution.steps;
 
+import com.google.common.cache.Cache;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Sets;
+import org.gradle.internal.Try;
+import org.gradle.internal.execution.DeferredResultProcessor;
 import org.gradle.internal.execution.ExecutionRequestContext;
 import org.gradle.internal.execution.IdentityContext;
 import org.gradle.internal.execution.Result;
-import org.gradle.internal.execution.Step;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.UnitOfWork.Identity;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshotter;
 
+import javax.annotation.Nonnull;
 import java.util.Optional;
 
 import static org.gradle.internal.execution.UnitOfWork.IdentityKind.IDENTITY;
 import static org.gradle.internal.execution.impl.InputFingerprintUtil.fingerprintInputFiles;
 import static org.gradle.internal.execution.impl.InputFingerprintUtil.fingerprintInputProperties;
 
-public class IdentifyStep<C extends ExecutionRequestContext, R extends Result> implements Step<C, R> {
+public class IdentifyStep<C extends ExecutionRequestContext, R extends Result> implements DeferredExecutionAwareStep<C, R> {
     public static final ImmutableSet<UnitOfWork.IdentityKind> IDENTITY_FILTER = Sets.immutableEnumSet(IDENTITY);
 
-    private final Step<? super IdentityContext, ? extends R> delegate;
+    private final DeferredExecutionAwareStep<? super IdentityContext, ? extends R> delegate;
     private final ValueSnapshotter valueSnapshotter;
 
     public IdentifyStep(
         ValueSnapshotter valueSnapshotter,
-        Step<? super IdentityContext, ? extends R> delegate
+        DeferredExecutionAwareStep<? super IdentityContext, ? extends R> delegate
     ) {
         this.valueSnapshotter = valueSnapshotter;
         this.delegate = delegate;
@@ -51,6 +54,16 @@ public class IdentifyStep<C extends ExecutionRequestContext, R extends Result> i
 
     @Override
     public R execute(C context) {
+        return delegate.execute(createIdentityContext(context));
+    }
+
+    @Override
+    public <T, O> T executeDeferred(C context, Cache<Identity, Try<O>> cache, DeferredResultProcessor<O, T> processor) {
+        return delegate.executeDeferred(createIdentityContext(context), cache, processor);
+    }
+
+    @Nonnull
+    private IdentityContext createIdentityContext(C context) {
         ImmutableSortedMap<String, ValueSnapshot> identityInputProperties = fingerprintInputProperties(
             context.getWork(),
             ImmutableSortedMap.of(),
@@ -62,7 +75,7 @@ public class IdentifyStep<C extends ExecutionRequestContext, R extends Result> i
             ImmutableSortedMap.of(),
             IDENTITY_FILTER);
         Identity identity = context.getWork().identify(identityInputProperties, identityInputFileProperties);
-        return delegate.execute(new IdentityContext() {
+        return new IdentityContext() {
             @Override
             public Optional<String> getRebuildReason() {
                 return context.getRebuildReason();
@@ -87,6 +100,6 @@ public class IdentifyStep<C extends ExecutionRequestContext, R extends Result> i
             public UnitOfWork getWork() {
                 return context.getWork();
             }
-        });
+        };
     }
 }

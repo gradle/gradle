@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.execution;
+package org.gradle.internal.execution.steps;
 
 import com.google.common.cache.Cache;
 import org.gradle.internal.Try;
+import org.gradle.internal.execution.Context;
+import org.gradle.internal.execution.DeferredResultProcessor;
+import org.gradle.internal.execution.Result;
+import org.gradle.internal.execution.Step;
 import org.gradle.internal.execution.UnitOfWork.Identity;
 
-import javax.annotation.Nullable;
-
-public interface WorkExecutor {
-    CachingResult execute(UnitOfWork work, @Nullable String rebuildReason);
-
-    <T, O> T executeDeferred(UnitOfWork work, @Nullable String rebuildReason, Cache<Identity, Try<O>> cache, DeferredResultProcessor<O, T> processor);
+public interface DeferredExecutionAwareStep<C extends Context, R extends Result> extends Step<C, R> {
+    <T, O> T executeDeferred(C context, Cache<Identity, Try<O>> cache, DeferredResultProcessor<O, T> processor);
 }

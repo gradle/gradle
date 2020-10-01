@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,12 @@
 
 package org.gradle.internal.execution;
 
-import com.google.common.cache.Cache;
 import org.gradle.internal.Try;
-import org.gradle.internal.execution.UnitOfWork.Identity;
 
-import javax.annotation.Nullable;
+import java.util.function.Supplier;
 
-public interface WorkExecutor {
-    CachingResult execute(UnitOfWork work, @Nullable String rebuildReason);
+public interface DeferredResultProcessor<O, T> {
+    T processCachedResult(Try<O> cachedResult);
 
-    <T, O> T executeDeferred(UnitOfWork work, @Nullable String rebuildReason, Cache<Identity, Try<O>> cache, DeferredResultProcessor<O, T> processor);
+    T processDeferredResult(Supplier<Try<O>> deferredExecution);
 }
