@@ -16,7 +16,6 @@
 
 import org.jetbrains.kotlin.gradle.tasks.Kotlin2JsCompile
 import org.jlleitschuh.gradle.ktlint.KtlintCheckTask
-import org.jlleitschuh.gradle.ktlint.KtlintFormatTask
 
 plugins {
     id("kotlin2js")
@@ -31,10 +30,6 @@ apply(from = "$rootDir/gradle/shared-with-buildSrc/code-quality-configuration.gr
 tasks {
     withType<Kotlin2JsCompile>().configureEach {
         kotlinOptions.allWarningsAsErrors = true
-    }
-
-    withType<KtlintFormatTask>().configureEach {
-        enabled = false
     }
 
     val ktlintCheckTasks = withType<KtlintCheckTask>()

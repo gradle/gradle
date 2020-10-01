@@ -19,7 +19,6 @@ import org.gradle.api.internal.initialization.DefaultClassLoaderScope
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 import org.jlleitschuh.gradle.ktlint.KtlintCheckTask
-import org.jlleitschuh.gradle.ktlint.KtlintFormatTask
 
 import gradlebuild.basics.accessors.kotlin
 
@@ -45,10 +44,6 @@ tasks {
             // Make sure the classes dir is used for test compilation (required by tests accessing internal methods) - https://github.com/gradle/gradle/issues/11501
             classpath = sourceSets.main.get().output.classesDirs + classpath - files(tasks.jar)
         }
-    }
-
-    withType<KtlintFormatTask>().configureEach {
-        enabled = false
     }
 
     val ktlintCheckTasks = withType<KtlintCheckTask>()
