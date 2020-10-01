@@ -17,7 +17,6 @@
 package org.gradle.internal.execution.impl;
 
 import com.google.common.cache.Cache;
-import org.gradle.internal.Try;
 import org.gradle.internal.execution.CachingResult;
 import org.gradle.internal.execution.DeferredExecutionAwareStep;
 import org.gradle.internal.execution.DeferredResultProcessor;
@@ -30,9 +29,9 @@ import javax.annotation.Nullable;
 import java.util.Optional;
 
 public class DefaultWorkExecutor implements WorkExecutor {
-    private final DeferredExecutionAwareStep<? super ExecutionRequestContext, ? extends CachingResult> executeStep;
+    private final DeferredExecutionAwareStep<? super ExecutionRequestContext, CachingResult> executeStep;
 
-    public DefaultWorkExecutor(DeferredExecutionAwareStep<? super ExecutionRequestContext, ? extends CachingResult> executeStep) {
+    public DefaultWorkExecutor(DeferredExecutionAwareStep<? super ExecutionRequestContext, CachingResult> executeStep) {
         this.executeStep = executeStep;
     }
 
@@ -42,7 +41,7 @@ public class DefaultWorkExecutor implements WorkExecutor {
     }
 
     @Override
-    public <T, O> T executeDeferred(UnitOfWork work, @Nullable String rebuildReason, Cache<Identity, Try<O>> cache, DeferredResultProcessor<O, T> processor) {
+    public <T> T executeDeferred(UnitOfWork work, @Nullable String rebuildReason, Cache<Identity, CachingResult> cache, DeferredResultProcessor<CachingResult, T> processor) {
         return executeStep.executeDeferred(new Request(work, rebuildReason), cache, processor);
     }
 

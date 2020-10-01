@@ -17,8 +17,6 @@
 package org.gradle.internal.execution.steps;
 
 import com.google.common.cache.Cache;
-import org.gradle.internal.Cast;
-import org.gradle.internal.Try;
 import org.gradle.internal.execution.DeferredExecutionAwareStep;
 import org.gradle.internal.execution.DeferredResultProcessor;
 import org.gradle.internal.execution.IdentityContext;
@@ -42,18 +40,15 @@ public class IdentityCacheStep<C extends IdentityContext, R extends Result> impl
     }
 
     @Override
-    public <T, O> T executeDeferred(C context, Cache<Identity, Try<O>> cache, DeferredResultProcessor<O, T> processor) {
+    public <T> T executeDeferred(C context, Cache<Identity, R> cache, DeferredResultProcessor<R, T> processor) {
         Identity identity = context.getIdentity();
-        Try<O> cachedResult = cache.getIfPresent(identity);
+        R cachedResult = cache.getIfPresent(identity);
         if (cachedResult != null) {
             return processor.processCachedResult(cachedResult);
         } else {
             return processor.processDeferredResult(() -> {
                 try {
-                    return cache.get(identity, () ->
-                        execute(context).getExecutionResult()
-                            .map(Result.ExecutionResult::getOutput)
-                            .map(Cast::uncheckedNonnullCast));
+                    return cache.get(identity, () -> execute(context));
                 } catch (ExecutionException e) {
                     throw new IllegalStateException(e);
                 }

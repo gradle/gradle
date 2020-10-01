@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
@@ -31,6 +33,7 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.Try;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.execution.CachingResult;
+import org.gradle.internal.execution.DeferredResultProcessor;
 import org.gradle.internal.execution.InputChangesContext;
 import org.gradle.internal.execution.Result;
 import org.gradle.internal.execution.UnitOfWork;
@@ -57,6 +60,7 @@ import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
 import org.gradle.internal.vfs.FileSystemAccess;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
@@ -86,10 +90,11 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
     private static final String INPUT_FILE_PATH_PREFIX = "i/";
     private static final String OUTPUT_FILE_PATH_PREFIX = "o/";
 
+    private final Cache<UnitOfWork.Identity, CachingResult> identityCache = CacheBuilder.newBuilder().build();
     private final FileSystemAccess fileSystemAccess;
     private final WorkExecutor workExecutor;
     private final ArtifactTransformListener artifactTransformListener;
-    private final CachingTransformationWorkspaceProvider immutableTransformationWorkspaceProvider;
+    private final TransformationWorkspaceProvider immutableWorkspaceProvider;
     private final FileCollectionFactory fileCollectionFactory;
     private final ProjectStateRegistry projectStateRegistry;
     private final BuildOperationExecutor buildOperationExecutor;
@@ -98,7 +103,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
         WorkExecutor workExecutor,
         FileSystemAccess fileSystemAccess,
         ArtifactTransformListener artifactTransformListener,
-        CachingTransformationWorkspaceProvider immutableTransformationWorkspaceProvider,
+        TransformationWorkspaceProvider immutableWorkspaceProvider,
         FileCollectionFactory fileCollectionFactory,
         ProjectStateRegistry projectStateRegistry,
         BuildOperationExecutor buildOperationExecutor
@@ -106,7 +111,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
         this.workExecutor = workExecutor;
         this.fileSystemAccess = fileSystemAccess;
         this.artifactTransformListener = artifactTransformListener;
-        this.immutableTransformationWorkspaceProvider = immutableTransformationWorkspaceProvider;
+        this.immutableWorkspaceProvider = immutableWorkspaceProvider;
         this.fileCollectionFactory = fileCollectionFactory;
         this.projectStateRegistry = projectStateRegistry;
         this.buildOperationExecutor = buildOperationExecutor;
@@ -115,7 +120,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
     @Override
     public CacheableInvocation<ImmutableList<File>> createInvocation(Transformer transformer, File inputArtifact, ArtifactTransformDependencies dependencies, TransformationSubject subject, FileCollectionFingerprinterRegistry fingerprinterRegistry) {
         ProjectInternal producerProject = determineProducerProject(subject);
-        CachingTransformationWorkspaceProvider workspaceProvider = determineWorkspaceProvider(producerProject);
+        TransformationWorkspaceProvider workspaceProvider = determineWorkspaceProvider(producerProject);
 
         FileCollectionFingerprinter inputArtifactFingerprinter = fingerprinterRegistry.getFingerprinter(transformer.getInputArtifactNormalizer());
         // This could be injected directly to DefaultTransformerInvocationFactory, too
@@ -127,43 +132,41 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
 
         UnitOfWork.Identity identity = getTransformationIdentity(producerProject, inputArtifactSnapshot, normalizedInputPath, transformer, dependenciesFingerprint);
 
-        return new CacheableInvocation<ImmutableList<File>>() {
-            @Override
-            public Try<ImmutableList<File>> invoke() {
-                return fireTransformListeners(transformer, subject, () -> {
-                    TransformerExecution execution = new TransformerExecution(
-                        transformer,
-                        identity,
-                        inputArtifact,
-                        inputArtifactSnapshot,
-                        dependencies,
-                        dependenciesFingerprint,
-                        buildOperationExecutor,
-                        workspaceProvider.getExecutionHistoryStore(),
-                        fileCollectionFactory,
-                        inputArtifactFingerprinter,
-                        workspaceProvider
-                    );
+        return fireTransformListeners(transformer, subject, () -> {
+            TransformerExecution execution = new TransformerExecution(
+                transformer,
+                identity,
+                inputArtifact,
+                inputArtifactSnapshot,
+                dependencies,
+                dependenciesFingerprint,
+                buildOperationExecutor,
+                workspaceProvider.getExecutionHistoryStore(),
+                fileCollectionFactory,
+                inputArtifactFingerprinter,
+                workspaceProvider
+            );
 
-                    CachingResult result = workExecutor.execute(execution, null);
-
-                    return result.getExecutionResult()
-                        .tryMap(executionResult -> Cast.<ImmutableList<File>>uncheckedNonnullCast(executionResult.getOutput()))
-                        .mapFailure(failure -> new TransformException(String.format("Execution failed for %s.", execution.getDisplayName()), failure));
-                });
-            }
-
-            @Override
-            public Optional<Try<ImmutableList<File>>> getCachedResult() {
-                Result cachedResult = workspaceProvider.getCachedResult(identity);
-                if (cachedResult == null) {
-                    return Optional.empty();
-                } else {
-                    return Optional.of(cachedResult.getExecutionResult()
-                        .map(executionResult -> Cast.uncheckedNonnullCast(executionResult.getOutput())));
+            return workExecutor.executeDeferred(execution, null, identityCache, new DeferredResultProcessor<CachingResult, CacheableInvocation<ImmutableList<File>>>() {
+                @Override
+                public CacheableInvocation<ImmutableList<File>> processCachedResult(CachingResult cachedResult) {
+                    return CacheableInvocation.cached(mapResult(cachedResult));
                 }
-            }
-        };
+
+                @Override
+                public CacheableInvocation<ImmutableList<File>> processDeferredResult(Supplier<CachingResult> deferredExecution) {
+                    return CacheableInvocation.nonCached(() -> mapResult(deferredExecution.get()));
+                }
+
+                @Nonnull
+                private Try<ImmutableList<File>> mapResult(CachingResult result) {
+                    return result.getExecutionResult()
+                        .mapFailure(failure -> new TransformException(String.format("Execution failed for %s.", execution.getDisplayName()), failure))
+                        .map(Result.ExecutionResult::getOutput)
+                        .map(Cast::uncheckedNonnullCast);
+                }
+            });
+        });
     }
 
     private static UnitOfWork.Identity getTransformationIdentity(@Nullable ProjectInternal project, CompleteFileSystemLocationSnapshot inputArtifactSnapshot, String inputArtifactPath, Transformer transformer, CurrentFileCollectionFingerprint dependenciesFingerprint) {
@@ -189,11 +192,11 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
         );
     }
 
-    private CachingTransformationWorkspaceProvider determineWorkspaceProvider(@Nullable ProjectInternal producerProject) {
+    private TransformationWorkspaceProvider determineWorkspaceProvider(@Nullable ProjectInternal producerProject) {
         if (producerProject == null) {
-            return immutableTransformationWorkspaceProvider;
+            return immutableWorkspaceProvider;
         }
-        return producerProject.getServices().get(CachingTransformationWorkspaceProvider.class);
+        return producerProject.getServices().get(TransformationWorkspaceProvider.class);
     }
 
     @Nullable

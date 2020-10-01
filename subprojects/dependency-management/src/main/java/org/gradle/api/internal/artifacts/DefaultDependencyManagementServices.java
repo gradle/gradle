@@ -87,8 +87,7 @@ import org.gradle.api.internal.artifacts.transform.DefaultTransformedVariantFact
 import org.gradle.api.internal.artifacts.transform.DefaultTransformerInvocationFactory;
 import org.gradle.api.internal.artifacts.transform.DefaultVariantTransformRegistry;
 import org.gradle.api.internal.artifacts.transform.ExecutionGraphDependenciesResolver;
-import org.gradle.api.internal.artifacts.transform.ImmutableCachingTransformationWorkspaceProvider;
-import org.gradle.api.internal.artifacts.transform.MutableCachingTransformationWorkspaceProvider;
+import org.gradle.api.internal.artifacts.transform.ImmutableTransformationWorkspaceProvider;
 import org.gradle.api.internal.artifacts.transform.MutableTransformationWorkspaceProvider;
 import org.gradle.api.internal.artifacts.transform.Transformation;
 import org.gradle.api.internal.artifacts.transform.TransformationNode;
@@ -405,14 +404,10 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             return new MutableTransformationWorkspaceProvider(projectLayout.getBuildDirectory().dir(".transforms"), executionHistoryStore);
         }
 
-        MutableCachingTransformationWorkspaceProvider createCachingTransformerWorkspaceProvider(MutableTransformationWorkspaceProvider workspaceProvider) {
-            return new MutableCachingTransformationWorkspaceProvider(workspaceProvider);
-        }
-
         TransformerInvocationFactory createTransformerInvocationFactory(
                 WorkExecutor workExecutor,
                 FileSystemAccess fileSystemAccess,
-                ImmutableCachingTransformationWorkspaceProvider transformationWorkspaceProvider,
+                ImmutableTransformationWorkspaceProvider transformationWorkspaceProvider,
                 ArtifactTransformListener artifactTransformListener,
                 FileCollectionFactory fileCollectionFactory,
                 ProjectStateRegistry projectStateRegistry,

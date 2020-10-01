@@ -20,7 +20,6 @@ import com.google.common.cache.Cache;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Sets;
-import org.gradle.internal.Try;
 import org.gradle.internal.execution.DeferredExecutionAwareStep;
 import org.gradle.internal.execution.DeferredResultProcessor;
 import org.gradle.internal.execution.ExecutionRequestContext;
@@ -42,12 +41,12 @@ import static org.gradle.internal.execution.impl.InputFingerprintUtil.fingerprin
 public class IdentifyStep<C extends ExecutionRequestContext, R extends Result> implements DeferredExecutionAwareStep<C, R> {
     public static final ImmutableSet<UnitOfWork.IdentityKind> IDENTITY_FILTER = Sets.immutableEnumSet(IDENTITY);
 
-    private final DeferredExecutionAwareStep<? super IdentityContext, ? extends R> delegate;
+    private final DeferredExecutionAwareStep<? super IdentityContext, R> delegate;
     private final ValueSnapshotter valueSnapshotter;
 
     public IdentifyStep(
         ValueSnapshotter valueSnapshotter,
-        DeferredExecutionAwareStep<? super IdentityContext, ? extends R> delegate
+        DeferredExecutionAwareStep<? super IdentityContext, R> delegate
     ) {
         this.valueSnapshotter = valueSnapshotter;
         this.delegate = delegate;
@@ -59,7 +58,7 @@ public class IdentifyStep<C extends ExecutionRequestContext, R extends Result> i
     }
 
     @Override
-    public <T, O> T executeDeferred(C context, Cache<Identity, Try<O>> cache, DeferredResultProcessor<O, T> processor) {
+    public <T> T executeDeferred(C context, Cache<Identity, R> cache, DeferredResultProcessor<R, T> processor) {
         return delegate.executeDeferred(createIdentityContext(context), cache, processor);
     }
 

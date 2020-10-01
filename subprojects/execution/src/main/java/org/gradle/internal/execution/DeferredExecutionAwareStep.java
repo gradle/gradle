@@ -17,9 +17,8 @@
 package org.gradle.internal.execution;
 
 import com.google.common.cache.Cache;
-import org.gradle.internal.Try;
 import org.gradle.internal.execution.UnitOfWork.Identity;
 
 public interface DeferredExecutionAwareStep<C extends Context, R extends Result> extends Step<C, R> {
-    <T, O> T executeDeferred(C context, Cache<Identity, Try<O>> cache, DeferredResultProcessor<O, T> processor);
+    <T> T executeDeferred(C context, Cache<Identity, R> cache, DeferredResultProcessor<R, T> processor);
 }
