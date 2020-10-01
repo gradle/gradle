@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.consumer;
+package org.gradle.tooling.internal.consumer
 
 
 import spock.lang.Specification
 
-public class ConnectorServicesTest extends Specification {
+class ConnectorServicesTest extends Specification {
 
     def "services sharing configuration"() {
         when:
