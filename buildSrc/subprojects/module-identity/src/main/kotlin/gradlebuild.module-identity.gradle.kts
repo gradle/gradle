@@ -46,9 +46,11 @@ fun Project.collectVersionDetails(moduleIdentity: ModuleIdentityExtension): Stri
     val rcNumber = gradleProperty("rcNumber")
     val milestoneNumber = gradleProperty("milestoneNumber")
 
-    if ((finalRelease.isPresent && rcNumber.isPresent) ||
+    if (
+        (finalRelease.isPresent && rcNumber.isPresent) ||
         (finalRelease.isPresent && milestoneNumber.isPresent) ||
-        (rcNumber.isPresent && milestoneNumber.isPresent)) {
+        (rcNumber.isPresent && milestoneNumber.isPresent)
+    ) {
         throw InvalidUserDataException("Cannot set any combination of milestoneNumber, rcNumber and finalRelease at the same time")
     }
 
@@ -82,15 +84,21 @@ fun Project.collectVersionDetails(moduleIdentity: ModuleIdentityExtension): Stri
     moduleIdentity.promotionBuild.convention(isPromotionBuild())
 
     moduleIdentity.gradleBuildBranch.convention(environmentVariable(BuildEnvironment.BUILD_BRANCH).orElse(currentGitBranch()))
-    moduleIdentity.gradleBuildCommitId.convention(environmentVariable(BuildEnvironment.BUILD_COMMIT_ID)
-        .orElse(gradleProperty("promotionCommitId"))
-        .orElse(environmentVariable(BuildEnvironment.BUILD_VCS_NUMBER))
-        .orElse(currentGitCommit())
+    moduleIdentity.gradleBuildCommitId.convention(
+        environmentVariable(BuildEnvironment.BUILD_COMMIT_ID)
+            .orElse(gradleProperty("promotionCommitId"))
+            .orElse(environmentVariable(BuildEnvironment.BUILD_VCS_NUMBER))
+            .orElse(currentGitCommit())
     )
 
-    moduleIdentity.releasedVersions.set(provider {
-        ReleasedVersionsDetails(moduleIdentity.version.forUseAtConfigurationTime().get().baseVersion, rootProject.layout.projectDirectory.file("released-versions.json"))
-    })
+    moduleIdentity.releasedVersions.set(
+        provider {
+            ReleasedVersionsDetails(
+                moduleIdentity.version.forUseAtConfigurationTime().get().baseVersion,
+                rootProject.layout.projectDirectory.file("released-versions.json")
+            )
+        }
+    )
 
     return versionNumber
 }
@@ -154,9 +162,9 @@ fun Project.buildTimestamp(): Provider<String> =
             runningOnCi.set(
                 environmentVariable(BuildEnvironment.CI_ENVIRONMENT_VARIABLE).presence()
             )
-            runningInstallTask.set(provider {
-                isRunningInstallTask()
-            })
+            runningInstallTask.set(
+                provider { isRunningInstallTask() }
+            )
         }
     }.forUseAtConfigurationTime()
 

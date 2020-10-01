@@ -55,7 +55,8 @@ plugins.withId("java-base") {
             // local projects are already minified
             if (isCanBeConsumed && !isCanBeResolved) {
                 if (attributes.getAttribute(Category.CATEGORY_ATTRIBUTE)?.name == Category.LIBRARY
-                    && attributes.getAttribute(Bundling.BUNDLING_ATTRIBUTE)?.name == Bundling.EXTERNAL) {
+                    && attributes.getAttribute(Bundling.BUNDLING_ATTRIBUTE)?.name == Bundling.EXTERNAL
+                ) {
                     attributes.attribute(minified, true)
                 }
             }

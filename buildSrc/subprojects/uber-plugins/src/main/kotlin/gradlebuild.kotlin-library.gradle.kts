@@ -59,7 +59,8 @@ tasks {
         // enables stricter ClassLoaderScope behaviour
         systemProperty(
             DefaultClassLoaderScope.STRICT_MODE_PROPERTY,
-            true)
+            true
+        )
     }
 }
 

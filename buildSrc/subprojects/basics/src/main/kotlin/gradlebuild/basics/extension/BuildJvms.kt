@@ -49,9 +49,7 @@ abstract class BuildJvms(javaInstallationRegistry: JavaInstallationRegistry, tes
     }
 
     fun whenTestingWithEarlierThan(version: JavaVersion, action: (jvm: JavaInstallation) -> Unit) {
-        if (testJvm.map {
-                it.javaVersion < version
-            }.get()) {
+        if (testJvm.map { it.javaVersion < version }.get()) {
             action(testJvm.get())
         }
     }

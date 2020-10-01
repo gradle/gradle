@@ -122,11 +122,13 @@ fun KtFile.collectKtFunctionsFor(qualifiedBaseName: String, method: CtMethod): L
     val functionFqName = "$qualifiedBaseName.${method.name}"
 
     return collectDescendantsOfType { ktFunction ->
-        ktFunction.fqName?.asString() == functionFqName && ((
+        if (ktFunction.fqName?.asString() != functionFqName) false
+        else if (
             couldBeExtensionFunction && ktFunction.receiverTypeReference != null &&
-                method.firstParameterMatches(ktFunction.receiverTypeReference!!) &&
-                ktFunction.valueParameters.size == paramCountWithReceiver)
-            || ktFunction.valueParameters.size == paramCount)
+            method.firstParameterMatches(ktFunction.receiverTypeReference!!) &&
+            ktFunction.valueParameters.size == paramCountWithReceiver
+        ) true
+        else ktFunction.valueParameters.size == paramCount
     }
 }
 

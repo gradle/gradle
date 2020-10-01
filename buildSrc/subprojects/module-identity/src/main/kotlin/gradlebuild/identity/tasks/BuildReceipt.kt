@@ -89,14 +89,17 @@ abstract class BuildReceipt : DefaultTask() {
         val file = receiptFolder.file(buildReceiptLocation).get().asFile.also {
             it.parentFile.mkdirs()
         }
-        ReproduciblePropertiesWriter.store(Properties().apply {
-            put("commitId", commitId.getOrElse("HEAD"))
-            put("versionNumber", version.get())
-            put("baseVersion", baseVersion.get())
-            put("isSnapshot", snapshot.get().toString())
-            put("buildTimestamp", getBuildTimestampAsString())
-            put("buildTimestampIso", getBuildTimestampAsIsoString())
-        }, file)
+        ReproduciblePropertiesWriter.store(
+            Properties().apply {
+                put("commitId", commitId.getOrElse("HEAD"))
+                put("versionNumber", version.get())
+                put("baseVersion", baseVersion.get())
+                put("isSnapshot", snapshot.get().toString())
+                put("buildTimestamp", getBuildTimestampAsString())
+                put("buildTimestampIso", getBuildTimestampAsIsoString())
+            },
+            file
+        )
     }
 
     private

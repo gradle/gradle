@@ -79,7 +79,8 @@ abstract class BuildCommitDistribution : DefaultTask() {
             ":distributions-full:install",
             "-Pgradle_installPath=" + commitDistributionHome.get().asFile.absolutePath,
             ":tooling-api:installToolingApiShadedJar",
-            "-PtoolingApiShadedJarInstallPath=" + commitDistributionToolingApiJar.get().asFile.absolutePath)
+            "-PtoolingApiShadedJarInstallPath=" + commitDistributionToolingApiJar.get().asFile.absolutePath
+        )
 
         if (project.gradle.startParameter.isBuildCacheEnabled) {
             buildCommands.add("--build-cache")

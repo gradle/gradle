@@ -41,8 +41,8 @@ class BinaryCompatibilityRepositorySetupRule(private val params: Map<String, Any
     @Suppress("unchecked_cast")
     override fun execute(context: ViolationCheckContext) {
         (context.userData as MutableMap<String, Any?>)[REPOSITORY_CONTEXT_KEY] = BinaryCompatibilityRepository.openRepositoryFor(
-                param(Params.sourceRoots),
-                param(Params.sourceCompilationClasspath)
+            param(Params.sourceRoots),
+            param(Params.sourceCompilationClasspath)
         )
     }
 
