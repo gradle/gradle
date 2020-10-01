@@ -19,6 +19,7 @@ package org.gradle.internal.execution.steps;
 import com.google.common.cache.Cache;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Try;
+import org.gradle.internal.execution.DeferredExecutionAwareStep;
 import org.gradle.internal.execution.DeferredResultProcessor;
 import org.gradle.internal.execution.IdentityContext;
 import org.gradle.internal.execution.Result;

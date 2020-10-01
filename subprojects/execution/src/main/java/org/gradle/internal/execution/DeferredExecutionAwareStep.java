@@ -14,14 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.execution.steps;
+package org.gradle.internal.execution;
 
 import com.google.common.cache.Cache;
 import org.gradle.internal.Try;
-import org.gradle.internal.execution.Context;
-import org.gradle.internal.execution.DeferredResultProcessor;
-import org.gradle.internal.execution.Result;
-import org.gradle.internal.execution.Step;
 import org.gradle.internal.execution.UnitOfWork.Identity;
 
 public interface DeferredExecutionAwareStep<C extends Context, R extends Result> extends Step<C, R> {

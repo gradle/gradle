@@ -17,7 +17,7 @@
 package org.gradle.internal.execution.steps
 
 import org.gradle.internal.execution.Context
-import org.gradle.internal.execution.Step
+import org.gradle.internal.execution.DeferredExecutionAwareStep
 import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.operations.BuildOperationType
 import org.gradle.internal.operations.TestBuildOperationExecutor
@@ -37,7 +37,7 @@ abstract class StepSpec<C extends Context> extends Specification {
     final identity = Stub(UnitOfWork.Identity) {
         getUniqueId() >> ":test"
     }
-    final delegate = Mock(Step)
+    final delegate = Mock(DeferredExecutionAwareStep)
     final work = Stub(UnitOfWork)
     final C context = createContext()
 
