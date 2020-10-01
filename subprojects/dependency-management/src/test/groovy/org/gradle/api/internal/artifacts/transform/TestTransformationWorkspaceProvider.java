@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
+import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 
 import javax.annotation.Nullable;
@@ -36,14 +37,14 @@ public class TestTransformationWorkspaceProvider implements CachingTransformatio
     }
 
     @Override
-    public <T> T withWorkspace(TransformationWorkspaceIdentity identity, TransformationWorkspaceAction<T> workspaceAction) {
-        String identityString = identity.getIdentity();
+    public <T> T withWorkspace(UnitOfWork.Identity identity, TransformationWorkspaceAction<T> workspaceAction) {
+        String identityString = identity.getUniqueId();
         return workspaceAction.useWorkspace(identityString, new File(transformationsStoreDirectory, identityString));
     }
 
     @Nullable
     @Override
-    public <T> T getCachedResult(TransformationWorkspaceIdentity identity) {
+    public <T> T getCachedResult(UnitOfWork.Identity identity) {
         return null;
     }
 }
