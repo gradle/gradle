@@ -58,8 +58,7 @@ class PerformanceTestsPass(model: CIBuildModel, performanceTestProject: Performa
         "performanceTestReport"
 
     artifactRules = """
-$performanceResultsDir => perf-results/
-subprojects/$performanceProjectName/build/$taskName => report/
+subprojects/$performanceProjectName/build/performance-test-results.zip
 """
 
     gradleRunnerStep(

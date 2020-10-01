@@ -161,14 +161,8 @@ class PerformanceTestPlugin : Plugin<Project> {
 
     private
     fun Project.createAdditionalTasks(performanceSourceSet: SourceSet) {
-
-        tasks.register<PerformanceTestReport>("performanceTestReport") {
-            reportGeneratorClass.set("org.gradle.performance.results.report.DefaultReportGenerator")
-        }
-
-        tasks.register<PerformanceTestReport>("performanceTestFlakinessReport") {
-            reportGeneratorClass.set("org.gradle.performance.results.report.FlakinessReportGenerator")
-        }
+        createPerformanceTestReportTask("performanceTestReport", "org.gradle.performance.results.report.DefaultReportGenerator")
+        createPerformanceTestReportTask("performanceTestFlakinessReport", "org.gradle.performance.results.report.FlakinessReportGenerator")
 
         tasks.withType<PerformanceTestReport>().configureEach {
             classpath.from(performanceSourceSet.runtimeClasspath)
@@ -190,6 +184,22 @@ class PerformanceTestPlugin : Plugin<Project> {
             // Never up-to-date since it reads data from the database.
             outputs.upToDateWhen { false }
         }
+    }
+
+    private
+    fun Project.createPerformanceTestReportTask(name: String, reportGeneratorClass: String): TaskProvider<PerformanceTestReport> {
+        val performanceTestReport = tasks.register<PerformanceTestReport>(name) {
+            this.reportGeneratorClass.set(reportGeneratorClass)
+        }
+        val performanceTestReportZipTask = performanceReportZipTaskFor(performanceTestReport)
+        performanceTestReport.configure {
+            finalizedBy(performanceTestReportZipTask)
+        }
+        project.tasks.named<Delete>("clean${name.capitalize()}") {
+            delete(performanceTestReport)
+            dependsOn("clean${performanceTestReportZipTask.name.capitalize()}")
+        }
+        return performanceTestReport
     }
 
     private
@@ -247,6 +257,20 @@ class PerformanceTestPlugin : Plugin<Project> {
         }
     }
 }
+
+
+private
+fun Project.performanceReportZipTaskFor(performanceReport: TaskProvider<out PerformanceTestReport>): TaskProvider<Zip> =
+    tasks.register("${performanceReport.name}ResultsZip", Zip::class) {
+        from(performanceReport.get().reportDir) {
+            into("report")
+        }
+        from(performanceReport.get().performanceResults) {
+            into("perf-results")
+        }
+        destinationDirectory.set(buildDir)
+        archiveFileName.set("performance-test-results.zip")
+    }
 
 
 abstract
