@@ -26,7 +26,7 @@ import org.gradle.tooling.internal.protocol.ModelIdentifier;
 import javax.annotation.Nullable;
 import java.io.File;
 
-class ParameterAwareBuildControllerAdapter extends AbstractBuildController {
+class ParameterAwareBuildControllerAdapter extends UnparameterizedBuildController {
     private final InternalBuildControllerVersion2 buildController;
 
     public ParameterAwareBuildControllerAdapter(InternalBuildControllerVersion2 buildController, ProtocolToModelAdapter adapter, ModelMapping modelMapping, File rootDir) {

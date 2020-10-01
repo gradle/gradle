@@ -20,9 +20,12 @@ import org.gradle.BuildListener
 import org.gradle.BuildResult
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.StartParameterInternal
+import org.gradle.api.internal.project.ProjectStateRegistry
+import org.gradle.initialization.BuildCancellationToken
 import org.gradle.initialization.BuildEventConsumer
 import org.gradle.internal.build.event.BuildEventSubscriptions
 import org.gradle.internal.invocation.BuildController
+import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.tooling.internal.protocol.InternalBuildActionFailureException
 import org.gradle.tooling.internal.protocol.InternalBuildActionVersion2
@@ -60,6 +63,9 @@ class ClientProvidedPhasedActionRunnerTest extends Specification {
         getServices() >> Stub(ServiceRegistry) {
             get(PayloadSerializer) >> payloadSerializer
             get(BuildEventConsumer) >> buildEventConsumer
+            get(BuildCancellationToken) >> Stub(BuildCancellationToken)
+            get(BuildOperationExecutor) >> Stub(BuildOperationExecutor)
+            get(ProjectStateRegistry) >> Stub(ProjectStateRegistry)
         }
     }
     def buildResult = Mock(BuildResult)

@@ -32,11 +32,11 @@ class MultipleBuildOperationFailuresTest extends Specification {
     def "format for a single failure"() {
         given:
         def failures = [ new TestException(0) ]
-        def exception = new MultipleBuildOperationFailures("<message>", failures, LOG_LOCATION)
+        def exception = new MultipleBuildOperationFailures(failures, LOG_LOCATION)
         when:
         def message = exception.getMessage()
         then:
-        TextUtil.normaliseLineSeparators(message) == """<message>
+        TextUtil.normaliseLineSeparators(message) == """A build operation failed.
     <test message 0>
 See the complete log at: $LOG_LOCATION"""
     }
@@ -44,11 +44,11 @@ See the complete log at: $LOG_LOCATION"""
     def "format for multiple failures at limit"() {
         given:
         def failures = (0..9).collect { new TestException(it) }
-        def exception = new MultipleBuildOperationFailures("<message>", failures, LOG_LOCATION)
+        def exception = new MultipleBuildOperationFailures(failures, LOG_LOCATION)
         when:
         def message = exception.getMessage()
         then:
-        TextUtil.normaliseLineSeparators(message) == """<message>
+        TextUtil.normaliseLineSeparators(message) == """Multiple build operations failed.
     <test message 0>
     <test message 1>
     <test message 2>
@@ -65,11 +65,11 @@ See the complete log at: $LOG_LOCATION"""
     def "format for multiple failures just over limit"() {
         given:
         def failures = (0..10).collect { new TestException(it) }
-        def exception = new MultipleBuildOperationFailures("<message>", failures, LOG_LOCATION)
+        def exception = new MultipleBuildOperationFailures(failures, LOG_LOCATION)
         when:
         def message = exception.getMessage()
         then:
-        TextUtil.normaliseLineSeparators(message) == """<message>
+        TextUtil.normaliseLineSeparators(message) == """Multiple build operations failed.
     <test message 0>
     <test message 1>
     <test message 2>
@@ -87,11 +87,11 @@ See the complete log at: $LOG_LOCATION"""
     def "format for multiple failures beyond limit"() {
         given:
         def failures = (0..14).collect { new TestException(it) }
-        def exception = new MultipleBuildOperationFailures("<message>", failures, LOG_LOCATION)
+        def exception = new MultipleBuildOperationFailures(failures, LOG_LOCATION)
         when:
         def message = exception.getMessage()
         then:
-        TextUtil.normaliseLineSeparators(message) == """<message>
+        TextUtil.normaliseLineSeparators(message) == """Multiple build operations failed.
     <test message 0>
     <test message 1>
     <test message 2>
@@ -109,11 +109,11 @@ See the complete log at: $LOG_LOCATION"""
     def "omits location when null"() {
         given:
         def failures = (0..14).collect { new TestException(it) }
-        def exception = new MultipleBuildOperationFailures("<message>", failures, null)
+        def exception = new MultipleBuildOperationFailures(failures, null)
         when:
         def message = exception.getMessage()
         then:
-        TextUtil.normaliseLineSeparators(message) == """<message>
+        TextUtil.normaliseLineSeparators(message) == """Multiple build operations failed.
     <test message 0>
     <test message 1>
     <test message 2>

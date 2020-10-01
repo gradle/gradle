@@ -30,7 +30,7 @@ import javax.annotation.Nullable;
 import java.io.File;
 
 @SuppressWarnings("deprecation")
-public class BuildControllerWithoutParameterSupport extends AbstractBuildController {
+public class BuildControllerWithoutParameterSupport extends UnparameterizedBuildController {
     private final org.gradle.tooling.internal.protocol.InternalBuildController buildController;
     private final VersionDetails gradleVersion;
 

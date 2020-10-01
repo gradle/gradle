@@ -17,13 +17,18 @@
 package org.gradle.integtests.tooling.r68
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
+import org.gradle.integtests.tooling.fixture.TextUtil
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
+import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.tooling.BuildActionFailureException
-import spock.lang.Ignore
+import org.junit.Rule
 
 @ToolingApiVersion(">=6.8")
 class ParallelActionExecutionCrossVersionSpec extends ToolingApiSpecification {
+    @Rule
+    BlockingHttpServer server = new BlockingHttpServer()
+
     def setup() {
         buildFile << """
             import javax.inject.Inject
@@ -79,10 +84,35 @@ class ParallelActionExecutionCrossVersionSpec extends ToolingApiSpecification {
         models.projects.path == [':', ':a', ':b']
     }
 
-    @Ignore
     @TargetGradleVersion(">=6.8")
     def "nested actions run in parallel when target Gradle version supports it"() {
-        expect: false
+        given:
+        server.start()
+
+        settingsFile << """
+            rootProject.name = 'root'
+            include 'a', 'b'
+        """
+        buildFile << """
+            allprojects {
+                apply plugin: CustomPlugin
+                apply plugin: 'java-library'
+
+                configurations.runtimeClasspath.incoming.beforeResolve {
+                    ${server.callFromBuildUsingExpression('project.name')}
+                }
+            }
+            dependencies {
+                implementation project('a')
+                implementation project('b')
+            }
+        """
+        expect:
+        server.expectConcurrent('root', 'a', 'b')
+        def models = withConnection {
+            action(new ActionRunsNestedActions()).run()
+        }
+        models.projects.path == [':', ':a', ':b']
     }
 
     def "propagates nested action failures"() {
@@ -94,6 +124,8 @@ class ParallelActionExecutionCrossVersionSpec extends ToolingApiSpecification {
         then:
         def e = thrown(BuildActionFailureException)
         e.cause instanceof RuntimeException
-        e.cause.message == "broken: one"
+        TextUtil.normaliseLineSeparators(e.cause.message) == """Multiple build operations failed.
+    broken: one
+    broken: two"""
     }
 }

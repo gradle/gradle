@@ -19,13 +19,16 @@ package org.gradle.tooling.internal.provider.runner;
 import org.gradle.BuildResult;
 import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.execution.ProjectConfigurer;
+import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.InternalBuildAdapter;
 import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.invocation.BuildActionRunner;
 import org.gradle.internal.invocation.BuildController;
+import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.tooling.internal.protocol.InternalBuildActionFailureException;
 import org.gradle.tooling.internal.protocol.InternalBuildActionVersion2;
 import org.gradle.tooling.internal.provider.ClientProvidedBuildAction;
@@ -33,7 +36,7 @@ import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
 
 public class ClientProvidedBuildActionRunner implements BuildActionRunner {
     @Override
-    public Result run(BuildAction action, final BuildController buildController) {
+    public Result run(BuildAction action, BuildController buildController) {
         if (!(action instanceof ClientProvidedBuildAction)) {
             return Result.nothing();
         }
@@ -108,7 +111,7 @@ public class ClientProvidedBuildActionRunner implements BuildActionRunner {
 
         @SuppressWarnings("deprecation")
         private void buildResult(Object clientAction, GradleInternal gradle) {
-            DefaultBuildController internalBuildController = new DefaultBuildController(gradle);
+            DefaultBuildController internalBuildController = new DefaultBuildController(gradle, gradle.getServices().get(BuildCancellationToken.class), gradle.getServices().get(BuildOperationExecutor.class), gradle.getServices().get(ProjectStateRegistry.class));
             try {
                 if (clientAction instanceof InternalBuildActionVersion2<?>) {
                     result = ((InternalBuildActionVersion2) clientAction).execute(internalBuildController);

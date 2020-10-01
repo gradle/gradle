@@ -18,12 +18,15 @@ package org.gradle.tooling.internal.provider.runner;
 
 import org.gradle.BuildResult;
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.invocation.Gradle;
+import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.BuildEventConsumer;
 import org.gradle.internal.InternalBuildAdapter;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.invocation.BuildActionRunner;
 import org.gradle.internal.invocation.BuildController;
+import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.tooling.internal.protocol.InternalBuildActionFailureException;
 import org.gradle.tooling.internal.protocol.InternalBuildActionVersion2;
 import org.gradle.tooling.internal.protocol.InternalPhasedAction;
@@ -37,7 +40,7 @@ import javax.annotation.Nullable;
 
 public class ClientProvidedPhasedActionRunner implements BuildActionRunner {
     @Override
-    public Result run(BuildAction action, final BuildController buildController) {
+    public Result run(BuildAction action, BuildController buildController) {
         if (!(action instanceof ClientProvidedPhasedAction)) {
             return Result.nothing();
         }
@@ -114,7 +117,7 @@ public class ClientProvidedPhasedActionRunner implements BuildActionRunner {
         }
 
         private <T> SerializedPayload runAction(InternalBuildActionVersion2<T> action, GradleInternal gradle) {
-            DefaultBuildController internalBuildController = new DefaultBuildController(gradle);
+            DefaultBuildController internalBuildController = new DefaultBuildController(gradle, gradle.getServices().get(BuildCancellationToken.class), gradle.getServices().get(BuildOperationExecutor.class), gradle.getServices().get(ProjectStateRegistry.class));
             T model;
             try {
                 model = action.execute(internalBuildController);

@@ -224,7 +224,7 @@ class DefaultBuildOperationExecutorParallelExecutionTest extends ConcurrentSpec 
     def "multi-cause error when there are failures both enqueuing and running operations"() {
         def operationFailures = [new Exception("failed operation 1"), new Exception("failed operation 2")]
         def buildQueue = Mock(BuildOperationQueue) {
-            waitForCompletion() >> { throw new MultipleBuildOperationFailures("operations failed", operationFailures, null) }
+            waitForCompletion() >> { throw new MultipleBuildOperationFailures(operationFailures, null) }
         }
         def buildOperationQueueFactory = Mock(BuildOperationQueueFactory) {
             create(_, _) >> { buildQueue }

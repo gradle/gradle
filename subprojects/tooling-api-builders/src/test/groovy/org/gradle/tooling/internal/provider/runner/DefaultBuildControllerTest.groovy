@@ -19,7 +19,9 @@ package org.gradle.tooling.internal.provider.runner
 import org.gradle.api.BuildCancelledException
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.initialization.BuildCancellationToken
+import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.tooling.internal.gradle.GradleProjectIdentity
 import org.gradle.tooling.internal.protocol.InternalUnsupportedModelException
@@ -48,7 +50,9 @@ class DefaultBuildControllerTest extends Specification {
     }
     def modelBuilder = Stub(ToolingModelBuilder)
     def parameterizedModelBuilder = Stub(ParameterizedToolingModelBuilder)
-    def controller = new DefaultBuildController(gradle)
+    def buildOperationExecutor = Stub(BuildOperationExecutor)
+    def projectStateRegistry = Stub(ProjectStateRegistry)
+    def controller = new DefaultBuildController(gradle, cancellationToken, buildOperationExecutor, projectStateRegistry)
 
     def "adapts model not found exception to protocol exception"() {
         def failure = new UnknownModelException("not found")
@@ -138,6 +142,7 @@ class DefaultBuildControllerTest extends Specification {
             String getValue() {
                 return "myValue"
             }
+
             @Override
             void setValue(String value) {}
         }
@@ -177,6 +182,7 @@ class DefaultBuildControllerTest extends Specification {
 
     interface CustomParameter {
         String getValue()
+
         void setValue(String value)
     }
 }
