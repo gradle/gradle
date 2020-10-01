@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.transform
 
 import com.google.common.collect.ImmutableList
 import org.gradle.internal.Try
+import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.execution.history.ExecutionHistoryStore
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -94,7 +95,7 @@ class AbstractCachingTransformationWorkspaceProviderTest extends ConcurrentSpec 
         !workspaceProvider.getCachedResult(new TestWorkspaceIdentity("second"))
     }
 
-    private static class TestWorkspaceIdentity implements TransformationWorkspaceIdentity {
+    private static class TestWorkspaceIdentity implements UnitOfWork.Identity {
         private final String name
 
         TestWorkspaceIdentity(String name) {
@@ -102,7 +103,7 @@ class AbstractCachingTransformationWorkspaceProviderTest extends ConcurrentSpec 
         }
 
         @Override
-        String getIdentity() {
+        String getUniqueId() {
             return name
         }
 

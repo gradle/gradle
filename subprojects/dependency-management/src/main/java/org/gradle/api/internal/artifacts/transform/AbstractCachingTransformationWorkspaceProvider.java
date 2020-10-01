@@ -20,6 +20,7 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 
 import javax.annotation.Nullable;
@@ -30,7 +31,7 @@ import java.util.concurrent.ExecutionException;
 public abstract class AbstractCachingTransformationWorkspaceProvider implements CachingTransformationWorkspaceProvider {
 
     private final TransformationWorkspaceProvider delegate;
-    private final Cache<TransformationWorkspaceIdentity, Object> inMemoryResultCache = CacheBuilder.newBuilder().build();
+    private final Cache<UnitOfWork.Identity, Object> inMemoryResultCache = CacheBuilder.newBuilder().build();
 
     public AbstractCachingTransformationWorkspaceProvider(TransformationWorkspaceProvider delegate) {
         this.delegate = delegate;
@@ -43,12 +44,12 @@ public abstract class AbstractCachingTransformationWorkspaceProvider implements 
 
     @Nullable
     @Override
-    public <T> T getCachedResult(TransformationWorkspaceIdentity identity) {
+    public <T> T getCachedResult(UnitOfWork.Identity identity) {
         return Cast.uncheckedCast(inMemoryResultCache.getIfPresent(identity));
     }
 
     @Override
-    public <T> T withWorkspace(TransformationWorkspaceIdentity identity, TransformationWorkspaceAction<T> workspaceAction) {
+    public <T> T withWorkspace(UnitOfWork.Identity identity, TransformationWorkspaceAction<T> workspaceAction) {
         try {
             return Cast.uncheckedNonnullCast(inMemoryResultCache.get(identity, () -> delegate.withWorkspace(identity, workspaceAction)));
         } catch (ExecutionException e) {

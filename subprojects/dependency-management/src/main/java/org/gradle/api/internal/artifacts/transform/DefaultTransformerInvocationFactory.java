@@ -125,7 +125,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
         String normalizedInputPath = inputArtifactFingerprinter.normalizePath(inputArtifactSnapshot);
         CurrentFileCollectionFingerprint dependenciesFingerprint = dependencies.fingerprint(dependencyFingerprinter);
 
-        TransformationWorkspaceIdentity identity = getTransformationIdentity(producerProject, inputArtifactSnapshot, normalizedInputPath, transformer, dependenciesFingerprint);
+        UnitOfWork.Identity identity = getTransformationIdentity(producerProject, inputArtifactSnapshot, normalizedInputPath, transformer, dependenciesFingerprint);
 
         return new CacheableInvocation<ImmutableList<File>>() {
             @Override
@@ -177,13 +177,13 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
         };
     }
 
-    private static TransformationWorkspaceIdentity getTransformationIdentity(@Nullable ProjectInternal project, CompleteFileSystemLocationSnapshot inputArtifactSnapshot, String inputArtifactPath, Transformer transformer, CurrentFileCollectionFingerprint dependenciesFingerprint) {
+    private static UnitOfWork.Identity getTransformationIdentity(@Nullable ProjectInternal project, CompleteFileSystemLocationSnapshot inputArtifactSnapshot, String inputArtifactPath, Transformer transformer, CurrentFileCollectionFingerprint dependenciesFingerprint) {
         return project == null
             ? getImmutableTransformationIdentity(inputArtifactPath, inputArtifactSnapshot, transformer, dependenciesFingerprint)
             : getMutableTransformationIdentity(inputArtifactSnapshot, transformer, dependenciesFingerprint);
     }
 
-    private static TransformationWorkspaceIdentity getImmutableTransformationIdentity(String inputArtifactPath, CompleteFileSystemLocationSnapshot inputArtifactSnapshot, Transformer transformer, CurrentFileCollectionFingerprint dependenciesFingerprint) {
+    private static UnitOfWork.Identity getImmutableTransformationIdentity(String inputArtifactPath, CompleteFileSystemLocationSnapshot inputArtifactSnapshot, Transformer transformer, CurrentFileCollectionFingerprint dependenciesFingerprint) {
         return new ImmutableTransformationWorkspaceIdentity(
             inputArtifactPath,
             inputArtifactSnapshot.getHash(),
@@ -192,7 +192,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
         );
     }
 
-    private static TransformationWorkspaceIdentity getMutableTransformationIdentity(CompleteFileSystemLocationSnapshot inputArtifactSnapshot, Transformer transformer, CurrentFileCollectionFingerprint dependenciesFingerprint) {
+    private static UnitOfWork.Identity getMutableTransformationIdentity(CompleteFileSystemLocationSnapshot inputArtifactSnapshot, Transformer transformer, CurrentFileCollectionFingerprint dependenciesFingerprint) {
         return new MutableTransformationWorkspaceIdentity(
             inputArtifactSnapshot.getAbsolutePath(),
             transformer.getSecondaryInputHash(),
@@ -228,7 +228,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
     private static class TransformerExecution implements UnitOfWork {
         private final Transformer transformer;
         private final File inputArtifact;
-        private final TransformationWorkspaceIdentity identity;
+        private final UnitOfWork.Identity identity;
         private final CompleteFileSystemLocationSnapshot inputArtifactSnapshot;
         private final ArtifactTransformDependencies dependencies;
         private final CurrentFileCollectionFingerprint dependenciesFingerprint;
@@ -243,7 +243,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
 
         public TransformerExecution(
             Transformer transformer,
-            TransformationWorkspaceIdentity identity,
+            UnitOfWork.Identity identity,
             File inputArtifact,
             CompleteFileSystemLocationSnapshot inputArtifactSnapshot,
             ArtifactTransformDependencies dependencies,
@@ -270,13 +270,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
 
         @Override
         public Identity identify(Map<String, ValueSnapshot> identityInputs, Map<String, CurrentFileCollectionFingerprint> identityFileInputs) {
-            String identityString = identity.getIdentity();
-            return new Identity() {
-                @Override
-                public String getUniqueId() {
-                    return identityString;
-                }
-            };
+            return identity;
         }
 
         @Override
@@ -422,7 +416,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
         }
     }
 
-    private static class ImmutableTransformationWorkspaceIdentity implements TransformationWorkspaceIdentity {
+    private static class ImmutableTransformationWorkspaceIdentity implements UnitOfWork.Identity {
         private final String inputArtifactPath;
         private final HashCode inputArtifactHash;
         private final HashCode secondaryInputHash;
@@ -436,7 +430,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
         }
 
         @Override
-        public String getIdentity() {
+        public String getUniqueId() {
             Hasher hasher = Hashing.newHasher();
             hasher.putString(inputArtifactPath);
             hasher.putHash(inputArtifactHash);
@@ -477,7 +471,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
         }
     }
 
-    public static class MutableTransformationWorkspaceIdentity implements TransformationWorkspaceIdentity {
+    public static class MutableTransformationWorkspaceIdentity implements UnitOfWork.Identity {
         private final String inputArtifactAbsolutePath;
         private final HashCode secondaryInputsHash;
         private final HashCode dependenciesHash;
@@ -489,7 +483,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
         }
 
         @Override
-        public String getIdentity() {
+        public String getUniqueId() {
             Hasher hasher = Hashing.newHasher();
             hasher.putString(inputArtifactAbsolutePath);
             hasher.putHash(secondaryInputsHash);

@@ -16,10 +16,12 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
+import org.gradle.internal.execution.UnitOfWork;
+
 import javax.annotation.Nullable;
 
 public interface CachingTransformationWorkspaceProvider extends TransformationWorkspaceProvider {
 
     @Nullable
-    <T> T getCachedResult(TransformationWorkspaceIdentity identity);
+    <T> T getCachedResult(UnitOfWork.Identity identity);
 }
