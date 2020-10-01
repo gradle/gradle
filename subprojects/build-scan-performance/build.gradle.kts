@@ -34,7 +34,7 @@ dependencies {
     }
 }
 
-val generateTemplate = tasks.register<JvmProjectGeneratorTask>("javaProject") {
+performanceTest.registerTestProject<JvmProjectGeneratorTask>("javaProject") {
     dependencyGraph.run {
         size = 200
         depth = 5
