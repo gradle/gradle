@@ -153,9 +153,9 @@ class GeneratePluginAccessors(
 
     override fun identify(identityInputs: MutableMap<String, ValueSnapshot>, identityFileInputs: MutableMap<String, CurrentFileCollectionFingerprint>) = object : UnitOfWork.Identity {
         override fun getUniqueId() = classLoaderHash.toString()
-
-        override fun getHistory(): Optional<ExecutionHistoryStore> = Optional.of(executionHistoryStore)
     }
+
+    override fun getHistory(): Optional<ExecutionHistoryStore> = Optional.of(executionHistoryStore)
 
     override fun <T : Any?> withWorkspace(identity: String, action: UnitOfWork.WorkspaceAction<T>): T =
         workspaceProvider.withWorkspace("$accessorsWorkspacePrefix/$identity") { workspace, _ ->

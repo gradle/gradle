@@ -235,13 +235,6 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
                 public String getUniqueId() {
                     return task.getPath();
                 }
-
-                @Override
-                public Optional<ExecutionHistoryStore> getHistory() {
-                    return context.getTaskExecutionMode().isTaskHistoryMaintained()
-                        ? Optional.of(executionHistoryStore)
-                        : Optional.empty();
-                }
             };
         }
 
@@ -281,6 +274,13 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
                 task.getState().setExecuting(false);
                 actionListener.afterActions(task);
             }
+        }
+
+        @Override
+        public Optional<ExecutionHistoryStore> getHistory() {
+            return context.getTaskExecutionMode().isTaskHistoryMaintained()
+                ? Optional.of(executionHistoryStore)
+                : Optional.empty();
         }
 
         @Override

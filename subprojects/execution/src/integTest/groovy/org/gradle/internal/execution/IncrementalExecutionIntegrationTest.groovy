@@ -749,12 +749,12 @@ class IncrementalExecutionIntegrationTest extends Specification {
                         String getUniqueId() {
                             "myId"
                         }
-
-                        @Override
-                        Optional<ExecutionHistoryStore> getHistory() {
-                            return Optional.of(IncrementalExecutionIntegrationTest.this.executionHistoryStore)
-                        }
                     }
+                }
+
+                @Override
+                Optional<ExecutionHistoryStore> getHistory() {
+                    return Optional.of(IncrementalExecutionIntegrationTest.this.executionHistoryStore)
                 }
 
                 @Override

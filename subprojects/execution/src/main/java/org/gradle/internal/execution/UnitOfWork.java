@@ -52,14 +52,6 @@ public interface UnitOfWork extends Describable {
          * among the other work units of the same type in the current build.
          */
         String getUniqueId();
-
-        /**
-         * Returns the {@link ExecutionHistoryStore} to use to store the execution state of this work.
-         * When {@link Optional#empty()} no execution history will be maintained.
-         */
-        default Optional<ExecutionHistoryStore> getHistory() {
-            return Optional.empty();
-        }
     }
 
     <T> T withWorkspace(String identity, WorkspaceAction<T> action);
@@ -86,6 +78,14 @@ public interface UnitOfWork extends Describable {
 
     default Object loadRestoredOutput(File workspace) {
         throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Returns the {@link ExecutionHistoryStore} to use to store the execution state of this work.
+     * When {@link Optional#empty()} no execution history will be maintained.
+     */
+    default Optional<ExecutionHistoryStore> getHistory() {
+        return Optional.empty();
     }
 
     default Optional<Duration> getTimeout() {

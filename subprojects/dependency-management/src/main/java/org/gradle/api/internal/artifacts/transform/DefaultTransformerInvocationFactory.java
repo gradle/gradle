@@ -276,11 +276,6 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
                 public String getUniqueId() {
                     return identityString;
                 }
-
-                @Override
-                public Optional<ExecutionHistoryStore> getHistory() {
-                    return Optional.of(executionHistoryStore);
-                }
             };
         }
 
@@ -305,6 +300,11 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
         @Override
         public Object loadRestoredOutput(File workspace) {
             return readResultsFile(workspace);
+        }
+
+        @Override
+        public Optional<ExecutionHistoryStore> getHistory() {
+            return Optional.of(executionHistoryStore);
         }
 
         @Override

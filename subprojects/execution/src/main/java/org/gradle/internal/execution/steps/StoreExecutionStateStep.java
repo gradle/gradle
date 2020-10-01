@@ -43,7 +43,7 @@ public class StoreExecutionStateStep<C extends BeforeExecutionContext> implement
     public CurrentSnapshotResult execute(C context) {
         CurrentSnapshotResult result = delegate.execute(context);
         UnitOfWork.Identity identity = context.getIdentity();
-        identity.getHistory()
+        context.getWork().getHistory()
             .ifPresent(history -> storeState(context, history, identity.getUniqueId(), result));
         return result;
     }

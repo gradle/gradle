@@ -152,10 +152,10 @@ class GenerateProjectAccessors(
         val identityHash = hasher.hash().toString()
         return object : UnitOfWork.Identity {
             override fun getUniqueId() = identityHash
-
-            override fun getHistory(): Optional<ExecutionHistoryStore> = Optional.of(executionHistoryStore)
         }
     }
+
+    override fun getHistory(): Optional<ExecutionHistoryStore> = Optional.of(executionHistoryStore)
 
     override fun <T : Any?> withWorkspace(identity: String, action: UnitOfWork.WorkspaceAction<T>): T =
         workspaceProvider.withWorkspace("$accessorsWorkspacePrefix/$identity") { workspace, _ ->

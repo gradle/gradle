@@ -47,7 +47,7 @@ public class SkipEmptyWorkStep<C extends AfterPreviousExecutionContext> implemen
         UnitOfWork.Identity identity = context.getIdentity();
         return work.skipIfInputsEmpty(outputFilesAfterPreviousExecution)
             .map(skippedOutcome -> {
-                identity.getHistory()
+                work.getHistory()
                     .ifPresent(history -> history.remove(identity.getUniqueId()));
                 return (CachingResult) new CachingResult() {
                     @Override
