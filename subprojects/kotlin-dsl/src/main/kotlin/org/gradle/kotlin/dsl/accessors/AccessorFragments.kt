@@ -452,8 +452,9 @@ fun fragmentsForConfiguration(accessor: Accessor.ForConfiguration): Fragments = 
                      */
                     fun ArtifactHandler.`$kotlinIdentifier`(
                         artifactNotation: Any,
-                        configureAction:  ConfigurablePublishArtifact.() -> Unit): PublishArtifact =
-                            add("$stringLiteral", artifactNotation, configureAction)
+                        configureAction:  ConfigurablePublishArtifact.() -> Unit
+                    ): PublishArtifact =
+                        add("$stringLiteral", artifactNotation, configureAction)
                 """
             },
             bytecode = {
