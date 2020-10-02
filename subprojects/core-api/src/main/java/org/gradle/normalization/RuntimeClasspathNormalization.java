@@ -41,7 +41,7 @@ public interface RuntimeClasspathNormalization extends InputNormalization {
     void properties(String pattern, Action<? super PropertiesFileNormalization> configuration);
 
     /**
-     * Normalize all properties files according to the rules provided by {@code configuration}.  This is equivalent to calling {@link RuntimeClasspathNormalization#properties(String, Action)} with the '**\/*.properties' pattern.
+     * Normalize all properties files according to the rules provided by {@code configuration}.  This is equivalent to calling {@link RuntimeClasspathNormalization#properties(String, Action)} with the '**&#47;*.properties' pattern.
      *
      * @since 6.8
      */
