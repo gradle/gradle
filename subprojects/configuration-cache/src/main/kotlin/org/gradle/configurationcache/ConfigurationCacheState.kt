@@ -212,7 +212,7 @@ class ConfigurationCacheState(
             writeFile(buildRootDir)
             write(fromBuild)
         }
-        includedGradle.serviceOf<ConfigurationCacheIO>().writeIncludedConfigurationCacheState(
+        includedGradle.serviceOf<ConfigurationCacheIO>().writeIncludedBuildStateTo(
             stateFileFor(buildDefinition)
         )
     }
@@ -233,7 +233,7 @@ class ConfigurationCacheState(
         )
 
         val (includedBuild, confCacheBuild) = parentBuild.addIncludedBuild(buildDefinition)
-        confCacheBuild.gradle.serviceOf<ConfigurationCacheIO>().readIncludedConfigurationCacheState(
+        confCacheBuild.gradle.serviceOf<ConfigurationCacheIO>().readIncludedBuildStateFrom(
             stateFileFor(buildDefinition),
             confCacheBuild
         )

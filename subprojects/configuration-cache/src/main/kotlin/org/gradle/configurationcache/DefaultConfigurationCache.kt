@@ -174,7 +174,7 @@ class DefaultConfigurationCache internal constructor(
 
         buildOperationExecutor.withLoadOperation {
             cacheRepository.useForStateLoad(cacheKey.string) { stateFile ->
-                cacheIO.readConfigurationCacheState(stateFile)
+                cacheIO.readRootBuildStateFrom(stateFile)
             }
         }
     }
@@ -188,7 +188,7 @@ class DefaultConfigurationCache internal constructor(
     private
     fun writeConfigurationCacheState(stateFile: File) {
         service<ProjectStateRegistry>().withMutableStateOfAllProjects {
-            cacheIO.writeRootConfigurationCacheState(stateFile)
+            cacheIO.writeRootBuildStateTo(stateFile)
         }
     }
 

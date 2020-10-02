@@ -41,7 +41,7 @@ class ConfigurationCacheIO internal constructor(
 ) {
 
     internal
-    fun writeRootConfigurationCacheState(stateFile: File) {
+    fun writeRootBuildStateTo(stateFile: File) {
         writeConfigurationCacheState(stateFile) { cacheState ->
             cacheState.run {
                 writeRootBuildState(host.currentBuild)
@@ -50,10 +50,28 @@ class ConfigurationCacheIO internal constructor(
     }
 
     internal
-    fun writeIncludedConfigurationCacheState(stateFile: File) {
+    fun readRootBuildStateFrom(stateFile: File) {
+        withReadContextFor(stateFile) { codecs ->
+            ConfigurationCacheState(codecs, stateFile).run {
+                readRootBuildState(host::createBuild)
+            }
+        }
+    }
+
+    internal
+    fun writeIncludedBuildStateTo(stateFile: File) {
         writeConfigurationCacheState(stateFile) { cacheState ->
             cacheState.run {
                 writeBuildState(host.currentBuild)
+            }
+        }
+    }
+
+    internal
+    fun readIncludedBuildStateFrom(stateFile: File, includedBuild: ConfigurationCacheBuild) {
+        withReadContextFor(stateFile) { codecs ->
+            ConfigurationCacheState(codecs, stateFile).run {
+                readBuildState(includedBuild)
             }
         }
     }
@@ -65,24 +83,6 @@ class ConfigurationCacheIO internal constructor(
         context.useToRun {
             runWriteOperation {
                 action(ConfigurationCacheState(codecs, stateFile))
-            }
-        }
-    }
-
-    internal
-    fun readConfigurationCacheState(stateFile: File) {
-        withReadContextFor(stateFile) { codecs ->
-            ConfigurationCacheState(codecs, stateFile).run {
-                readRootBuildState(host::createBuild)
-            }
-        }
-    }
-
-    internal
-    fun readIncludedConfigurationCacheState(stateFile: File, build: ConfigurationCacheBuild) {
-        withReadContextFor(stateFile) { codecs ->
-            ConfigurationCacheState(codecs, stateFile).run {
-                readBuildState(build)
             }
         }
     }
