@@ -16,16 +16,81 @@
 
 package gradlebuild.performance.reporter
 
-import gradlebuild.performance.tasks.PerformanceTest
+import groovy.transform.CompileStatic
+import org.gradle.api.Action
+import org.gradle.api.GradleException
+import org.gradle.api.file.FileCollection
+import org.gradle.api.file.FileSystemOperations
+import org.gradle.process.ExecOperations
+import org.gradle.process.ExecResult
+import org.gradle.process.JavaExecSpec
 
-interface PerformanceReporter {
-    void report(PerformanceTest performanceTest)
+import javax.inject.Inject
 
-    enum NoOpPerformanceReporter implements PerformanceReporter {
-        INSTANCE
+/**
+ * A reported which generates HTML performance report based on the JUnit XML.
+ */
+@CompileStatic
+class PerformanceReporter {
+    private final FileSystemOperations fileOperations
+    private final ExecOperations execOperations
 
-        @Override
-        void report(PerformanceTest performanceTest) {
+    @Inject
+    PerformanceReporter(ExecOperations execOperations, FileSystemOperations fileOperations) {
+        this.execOperations = execOperations
+        this.fileOperations = fileOperations
+    }
+
+    void report(
+        String reportGeneratorClass,
+        File reportDir,
+        Iterable<File> resultJsons,
+        Map<String, String> databaseParameters,
+        String channel,
+        String branchName,
+        String commitId,
+        FileCollection classpath,
+        String projectName
+    ) {
+        fileOperations.delete {
+           it.delete(reportDir)
+        }
+        ByteArrayOutputStream output = new ByteArrayOutputStream()
+
+        ExecResult result = execOperations.javaexec(new Action<JavaExecSpec>() {
+            void execute(JavaExecSpec spec) {
+                spec.setMain(reportGeneratorClass)
+                spec.args(reportDir.path, projectName)
+                spec.args(resultJsons*.path)
+                spec.systemProperties(databaseParameters)
+                spec.systemProperty("org.gradle.performance.execution.channel", channel)
+                spec.systemProperty("org.gradle.performance.execution.branch", branchName)
+
+                // For org.gradle.performance.util.Git
+                spec.systemProperty("gradleBuildBranch", branchName)
+                spec.systemProperty("gradleBuildCommitId", commitId)
+
+                spec.setClasspath(classpath)
+
+                spec.ignoreExitValue = true
+                spec.setErrorOutput(output)
+                spec.setStandardOutput(output)
+            }
+        })
+
+        String message = output.toString().readLines().findAll { line ->
+            ! [
+                // WARNING: All illegal access operations will be denied in a future release
+                "WARNING",
+                // SLF4J: Class path contains multiple SLF4J bindings.
+                "SLF4J"
+            ].any { line.contains(it) }
+        }.join("\n")
+
+        if (result.exitValue != 0) {
+            throw new GradleException("Performance test failed: " + message)
+        } else {
+            println(message)
         }
     }
 }

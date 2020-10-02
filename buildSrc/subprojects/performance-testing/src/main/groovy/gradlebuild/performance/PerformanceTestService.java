@@ -14,27 +14,10 @@
  * limitations under the License.
  */
 
-package gradlebuild.performance.rerun;
+package gradlebuild.performance;
 
-import org.gradle.api.tasks.Input;
+import org.gradle.api.services.BuildService;
+import org.gradle.api.services.BuildServiceParameters;
 
-/**
- * Repeat each scenario {@link #times} times.
- */
-public class RepeatRerunStrategy implements PerformanceScenarioRerunStrategy {
-    private final int times;
-
-    public RepeatRerunStrategy(int times) {
-        this.times = times;
-    }
-
-    @Override
-    public boolean shouldRerun(int scenarioRunCount, boolean successful) {
-        return scenarioRunCount < times;
-    }
-
-    @Input
-    public int getTimes() {
-        return times;
-    }
+public abstract class PerformanceTestService implements BuildService<BuildServiceParameters.None> {
 }

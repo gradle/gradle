@@ -8,7 +8,6 @@ dependencies {
     implementation(project(":integration-testing"))
     implementation(project(":cleanup"))
 
-    implementation("org.codehaus.groovy.modules.http-builder:http-builder")
     implementation("org.openmbee.junit:junit-xml-parser") {
         exclude(module = "lombok") // don't need it at runtime
     }

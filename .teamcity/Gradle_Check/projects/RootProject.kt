@@ -44,10 +44,6 @@ class RootProject(model: CIBuildModel, functionalTestBucketProvider: FunctionalT
         prevStage = stage
     }
 
-    if (model.stages.map { stage -> stage.performanceTests }.flatten().isNotEmpty()) {
-        subProject(WorkersProject(model))
-    }
-
     buildTypesOrder = buildTypes
     subProjectsOrder = subProjects
 
