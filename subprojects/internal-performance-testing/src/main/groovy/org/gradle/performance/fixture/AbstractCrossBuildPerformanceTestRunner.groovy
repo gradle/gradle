@@ -75,6 +75,10 @@ abstract class AbstractCrossBuildPerformanceTestRunner<R extends CrossBuildPerfo
         buildMutators.add(buildMutator)
     }
 
+    void measureBuildOperation(String operation) {
+        measuredBuildOperations << operation
+    }
+
     List<String> getProjectMemoryOptions() {
         TestProjects.getProjectMemoryOptions(testProject)
     }

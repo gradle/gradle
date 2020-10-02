@@ -18,5 +18,7 @@ package org.gradle.performance.fixture;
 
 public interface IncrementalTestProject extends TestProject {
     void configureForAbiChange(CrossVersionPerformanceTestRunner runner);
+    void configureForAbiChange(GradleBuildExperimentSpec.GradleBuilder builder);
     void configureForNonAbiChange(CrossVersionPerformanceTestRunner runner);
+    void configureForNonAbiChange(GradleBuildExperimentSpec.GradleBuilder builder);
 }
