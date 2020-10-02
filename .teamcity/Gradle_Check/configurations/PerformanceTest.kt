@@ -51,7 +51,7 @@ class PerformanceTest(
     init = {
         this.uuid = performanceTestCoverage.asConfigurationId(model, "bucket${bucketIndex + 1}")
         this.id = AbsoluteId(uuid)
-        this.name = description
+        this.name = "$description${if (performanceTestCoverage.withoutDependencies) " (without dependencies)" else ""}"
         val type = performanceTestCoverage.type
         val os = performanceTestCoverage.os
         val performanceTestTaskNames = getPerformanceTestTaskNames(performanceSubProject, testProjects)
