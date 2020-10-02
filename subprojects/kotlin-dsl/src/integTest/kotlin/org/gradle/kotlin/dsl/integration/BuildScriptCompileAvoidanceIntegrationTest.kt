@@ -128,6 +128,40 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
         configureProject().buildScriptCompiled().andOutputContains("bar")
     }
 
+    @ToBeFixedForConfigurationCache
+    @Test
+    fun `does not recompile buildscript on non ABI change in precompiled script plugin`() {
+        val pluginId = "my-plugin"
+        withPrecompiledScriptPluginInBuildSrc(
+            pluginId,
+            """
+                println("foo")
+            """
+        )
+        withBuildScript(
+            """
+                plugins {
+                    id("$pluginId")
+                }
+            """
+        )
+        configureProject().buildScriptCompiled().andOutputContains("foo")
+
+        withPrecompiledScriptPluginInBuildSrc(
+            pluginId,
+            """
+                println("bar")
+            """
+        )
+        configureProject().buildScriptNotCompiled().andOutputContains("bar")
+    }
+
+    private
+    fun withPrecompiledScriptPluginInBuildSrc(pluginId: String, pluginSource: String) {
+        withKotlinDslPluginIn("buildSrc")
+        withFile("buildSrc/src/main/kotlin/$pluginId.gradle.kts", pluginSource)
+    }
+
     private
     fun buildJarForBuildScriptClasspath(classBody: String): Pair<String, String> {
         val baseDir = "buildscript"
