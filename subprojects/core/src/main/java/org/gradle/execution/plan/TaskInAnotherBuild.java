@@ -41,18 +41,17 @@ public abstract class TaskInAnotherBuild extends TaskNode {
         BuildIdentifier currentBuildId,
         IncludedBuildTaskGraph taskGraph
     ) {
-        BuildIdentifier targetBuild = ((ProjectInternal) task.getProject()).getServices().get(BuildState.class).getBuildIdentifier();
-        return new ResolvedTaskInAnotherBuild(task, currentBuildId, taskGraph, targetBuild);
+        return new Resolved(task, buildIdentifierOf(task), currentBuildId, taskGraph);
     }
 
     public static TaskInAnotherBuild ofUnresolved(
         Path taskIdentityPath,
         String taskPath,
-        BuildIdentifier thisBuild,
         BuildIdentifier targetBuild,
+        BuildIdentifier thisBuild,
         IncludedBuildTaskGraph taskGraph
     ) {
-        return new UnresolvedTaskInAnotherBuild(taskIdentityPath, taskPath, thisBuild, targetBuild, taskGraph);
+        return new Unresolved(taskIdentityPath, taskPath, targetBuild, thisBuild, taskGraph);
     }
 
     protected IncludedBuildTaskResource.State state = IncludedBuildTaskResource.State.WAITING;
@@ -179,14 +178,17 @@ public abstract class TaskInAnotherBuild extends TaskNode {
         // Assume for now that no task in the consuming build will destroy the outputs of this task or overlaps with this task
     }
 
-    private static class ResolvedTaskInAnotherBuild extends TaskInAnotherBuild {
+    private static BuildIdentifier buildIdentifierOf(TaskInternal task) {
+        return ((ProjectInternal) task.getProject()).getServices().get(BuildState.class).getBuildIdentifier();
+    }
+
+    private static class Resolved extends TaskInAnotherBuild {
         private final TaskInternal task;
 
-        ResolvedTaskInAnotherBuild(
+        Resolved(
             TaskInternal task,
-            BuildIdentifier thisBuild,
-            IncludedBuildTaskGraph taskGraph,
-            BuildIdentifier targetBuild
+            BuildIdentifier targetBuild, BuildIdentifier thisBuild,
+            IncludedBuildTaskGraph taskGraph
         ) {
             super(thisBuild, targetBuild, taskGraph);
             this.task = task;
@@ -209,16 +211,15 @@ public abstract class TaskInAnotherBuild extends TaskNode {
         }
     }
 
-    private static class UnresolvedTaskInAnotherBuild extends TaskInAnotherBuild {
+    private static class Unresolved extends TaskInAnotherBuild {
 
         private final Path taskIdentityPath;
         private final String taskPath;
 
-        public UnresolvedTaskInAnotherBuild(
+        public Unresolved(
             Path taskIdentityPath,
             String taskPath,
-            BuildIdentifier thisBuild,
-            BuildIdentifier targetBuild,
+            BuildIdentifier targetBuild, BuildIdentifier thisBuild,
             IncludedBuildTaskGraph taskGraph
         ) {
             super(thisBuild, targetBuild, taskGraph);

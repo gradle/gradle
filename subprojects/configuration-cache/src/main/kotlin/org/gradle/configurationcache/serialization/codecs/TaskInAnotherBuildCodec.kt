@@ -16,6 +16,7 @@
 
 package org.gradle.configurationcache.serialization.codecs
 
+import org.gradle.api.artifacts.component.BuildIdentifier
 import org.gradle.composite.internal.IncludedBuildTaskGraph
 import org.gradle.configurationcache.serialization.Codec
 import org.gradle.configurationcache.serialization.ReadContext
@@ -33,17 +34,21 @@ class TaskInAnotherBuildCodec(
         value.run {
             writeString(taskIdentityPath.toString())
             writeString(taskPath)
-            write(thisBuild)
             write(targetBuild)
+            write(thisBuild)
         }
     }
 
     override suspend fun ReadContext.decode(): TaskInAnotherBuild {
+        val taskIdentityPath = path(readString())
+        val taskPath = readString()
+        val targetBuild = readNonNull<BuildIdentifier>()
+        val thisBuild = readNonNull<BuildIdentifier>()
         return TaskInAnotherBuild.ofUnresolved(
-            path(readString()),
-            readString(),
-            readNonNull(),
-            readNonNull(),
+            taskIdentityPath,
+            taskPath,
+            targetBuild,
+            thisBuild,
             includedTaskGraph
         )
     }
