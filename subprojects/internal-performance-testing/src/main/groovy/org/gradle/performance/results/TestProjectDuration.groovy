@@ -20,17 +20,17 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import groovy.transform.CompileStatic
 
 /**
- * Used for generating performance-test-runtimes.json by Jackson.
+ * Used for generating performance-test-durations.json by Jackson.
  */
 @CompileStatic
 @JsonInclude(JsonInclude.Include.NON_NULL)
-class TestProjectRuntime {
+class TestProjectDuration {
     String testProject
     Long linux
     Long windows
     Long macOs
 
-    TestProjectRuntime(String testProject, Long linux, Long windows, Long macOs) {
+    TestProjectDuration(String testProject, Long linux, Long windows, Long macOs) {
         this.testProject = testProject
         this.linux = linux
         this.windows = windows

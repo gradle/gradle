@@ -19,15 +19,15 @@ package org.gradle.performance.results
 import groovy.transform.CompileStatic
 
 /**
- * Used for generating performance-test-runtimes.json by Jackson.
+ * Used for generating performance-test-durations.json by Jackson.
  */
 @CompileStatic
-class PerformanceScenarioRuntimes {
+class PerformanceScenarioDurations {
     String scenario
-    List<TestProjectRuntime> runtimes
+    List<TestProjectDuration> durations
 
-    PerformanceScenarioRuntimes(String scenario, List<TestProjectRuntime> runtimes) {
+    PerformanceScenarioDurations(String scenario, List<TestProjectDuration> durations) {
         this.scenario = scenario
-        this.runtimes = runtimes
+        this.durations = durations
     }
 }
