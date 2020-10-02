@@ -38,7 +38,7 @@ import java.util.SortedSet
  *
  * See [GradleDelegate] for why this is currently necessary.
  */
-abstract class NamedDomainObjectContainerDelegate<T> : NamedDomainObjectContainer<T> {
+abstract class NamedDomainObjectContainerDelegate<T : Any> : NamedDomainObjectContainer<T> {
 
     internal
     abstract val delegate: NamedDomainObjectContainer<T>

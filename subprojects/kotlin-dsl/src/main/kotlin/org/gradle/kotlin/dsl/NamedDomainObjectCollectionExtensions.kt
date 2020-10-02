@@ -366,13 +366,13 @@ fun <T : Any, U : NamedDomainObjectCollection<T>> U.getting(configuration: T.() 
 /**
  * Enables typed access to container elements via delegated properties.
  */
-class NamedDomainObjectCollectionDelegateProvider<T>
+class NamedDomainObjectCollectionDelegateProvider<T : Any>
 private constructor(
     internal val collection: NamedDomainObjectCollection<T>,
     internal val configuration: (T.() -> Unit)?
 ) {
     companion object {
-        fun <T> of(
+        fun <T : Any> of(
             collection: NamedDomainObjectCollection<T>,
             configuration: (T.() -> Unit)? = null
         ) =
