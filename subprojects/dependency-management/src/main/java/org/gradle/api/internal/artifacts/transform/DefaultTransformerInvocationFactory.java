@@ -71,7 +71,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
-import static org.gradle.internal.execution.UnitOfWork.IdentityKind.IDENTITY;
+import static org.gradle.internal.execution.UnitOfWork.IdentityKind.NON_IDENTITY;
 import static org.gradle.internal.execution.UnitOfWork.InputPropertyType.NON_INCREMENTAL;
 import static org.gradle.internal.execution.UnitOfWork.InputPropertyType.PRIMARY;
 
@@ -375,20 +375,22 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
 
         @Override
         public void visitInputProperties(Set<IdentityKind> filter, InputPropertyVisitor visitor) {
-            if (filter.contains(IDENTITY)) {
-                // Emulate secondary inputs as a single property for now
-                visitor.visitInputProperty(SECONDARY_INPUTS_HASH_PROPERTY_NAME, transformer.getSecondaryInputHash().toString());
+            if (!filter.contains(NON_IDENTITY)) {
+                return;
             }
+            // Emulate secondary inputs as a single property for now
+            visitor.visitInputProperty(SECONDARY_INPUTS_HASH_PROPERTY_NAME, transformer.getSecondaryInputHash().toString());
         }
 
         @Override
         public void visitInputFileProperties(Set<IdentityKind> filter, InputFilePropertyVisitor visitor) {
-            if (filter.contains(IDENTITY)) {
-                visitor.visitInputFileProperty(INPUT_ARTIFACT_PROPERTY_NAME, inputArtifactProvider, PRIMARY,
-                    () -> inputArtifactFingerprinter.fingerprint(ImmutableList.of(inputArtifactSnapshot)));
-                visitor.visitInputFileProperty(DEPENDENCIES_PROPERTY_NAME, dependencies, NON_INCREMENTAL,
-                    () -> dependenciesFingerprint);
+            if (!filter.contains(NON_IDENTITY)) {
+                return;
             }
+            visitor.visitInputFileProperty(INPUT_ARTIFACT_PROPERTY_NAME, inputArtifactProvider, PRIMARY,
+                () -> inputArtifactFingerprinter.fingerprint(ImmutableList.of(inputArtifactSnapshot)));
+            visitor.visitInputFileProperty(DEPENDENCIES_PROPERTY_NAME, dependencies, NON_INCREMENTAL,
+                () -> dependenciesFingerprint);
         }
 
         @Override
