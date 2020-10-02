@@ -119,7 +119,7 @@ public class GradleBuildExperimentRunner extends AbstractBuildExperimentRunner {
                 GradleConnector connector = GradleConnector.newConnector();
                 connector.forProjectDirectory(buildSpec.getWorkingDirectory());
                 connector.useInstallation(scenarioDefinition.getBuildConfiguration().getGradleHome());
-                // First initialise the Gradle instance using the default user home dir
+                // First initialize the Gradle instance using the default user home dir
                 // This sets some static state that uses files from the user home dir, such as DLLs
                 connector.useGradleUserHomeDir(context.getGradleUserHomeDir());
                 try (ProjectConnection connection = connector.connect()) {

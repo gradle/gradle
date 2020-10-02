@@ -41,6 +41,7 @@ import static org.gradle.performance.fixture.IncrementalAndroidTestProject.SANTA
 @Category(PerformanceExperiment)
 class FasterIncrementalAndroidBuildsPerformanceTest extends AbstractCrossBuildPerformanceTest {
     private static final String AGP_TARGET_VERSION = "4.0"
+    public static final String BASELINE_VERSION = "6.7-rc-2"
 
     def setup() {
         runner.testGroup = "incremental android changes"
@@ -79,7 +80,7 @@ class FasterIncrementalAndroidBuildsPerformanceTest extends AbstractCrossBuildPe
             testProject.configureForNonAbiChange(delegate)
             invocation {
                 args.addAll(Optimization.WATCH_FS.arguments)
-                distribution(buildContext.distribution("6.7-rc-2"))
+                distribution(buildContext.distribution(BASELINE_VERSION))
             }
         }
         runner.buildSpec {
@@ -88,6 +89,14 @@ class FasterIncrementalAndroidBuildsPerformanceTest extends AbstractCrossBuildPe
             testProject.configureForNonAbiChange(delegate)
             invocation {
                 args.addAll(Optimization.WATCH_FS.arguments)
+            }
+        }
+        runner.buildSpec {
+            displayName("without file system watching - Gradle 6.7")
+            configureForNonParallel(delegate)
+            testProject.configureForNonAbiChange(delegate)
+            invocation {
+                distribution(buildContext.distribution(BASELINE_VERSION))
             }
         }
         runner.buildSpec {
