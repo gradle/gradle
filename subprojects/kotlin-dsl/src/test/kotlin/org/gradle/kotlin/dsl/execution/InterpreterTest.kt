@@ -68,6 +68,7 @@ class InterpreterTest : TestWithTempFiles() {
         """.trimIndent()
 
         val sourceHash = HashCode.fromInt(42)
+        val compilationClassPathHash = HashCode.fromInt(11)
         val stage1TemplateId = "Settings/TopLevel/stage1"
         val stage2TemplateId = "Settings/TopLevel/stage2"
 
@@ -101,6 +102,8 @@ class InterpreterTest : TestWithTempFiles() {
 
         val host = mock<Interpreter.Host> {
 
+            on { hashOf(eq(testRuntimeClassPath)) } doReturn compilationClassPathHash
+
             on { serviceRegistryFor(any(), any()) } doReturn mock<ServiceRegistry>()
 
             on { startCompilerOperation(any()) } doReturn compilerOperation
@@ -112,12 +115,13 @@ class InterpreterTest : TestWithTempFiles() {
                     any(),
                     eq(stage1TemplateId),
                     eq(sourceHash),
+                    eq(compilationClassPathHash),
                     same(parentClassLoader),
                     isNull(),
                     any()
                 )
             } doAnswer {
-                it.getArgument<(File) -> Unit>(5).invoke(stage1CacheDir)
+                it.getArgument<(File) -> Unit>(6).invoke(stage1CacheDir)
                 stage1CacheDir
             }
 
@@ -126,12 +130,13 @@ class InterpreterTest : TestWithTempFiles() {
                     any(),
                     eq(stage2TemplateId),
                     eq(sourceHash),
+                    eq(compilationClassPathHash),
                     same(targetScopeExportClassLoader),
                     isNull(),
                     any()
                 )
             } doAnswer {
-                it.getArgument<(File) -> Unit>(5).invoke(stage2CacheDir)
+                it.getArgument<(File) -> Unit>(6).invoke(stage2CacheDir)
                 stage2CacheDir
             }
 
@@ -181,9 +186,9 @@ class InterpreterTest : TestWithTempFiles() {
 
                 verify(host).cachedClassFor(stage1ProgramId)
 
-                verify(host).startCompilerOperation(scriptSourceDisplayName)
-
                 verify(host).compilationClassPathOf(parentScope)
+
+                verify(host).startCompilerOperation(scriptSourceDisplayName)
 
                 verify(compilerOperation).close()
 
@@ -201,13 +206,13 @@ class InterpreterTest : TestWithTempFiles() {
                 )
 
                 val stage2ProgramId =
-                    ProgramId(stage2TemplateId, sourceHash, targetScopeExportClassLoader)
+                    ProgramId(stage2TemplateId, sourceHash, targetScopeExportClassLoader, null, compilationClassPathHash)
 
                 verify(host).cachedClassFor(stage2ProgramId)
 
-                verify(host).startCompilerOperation(scriptSourceDisplayName)
-
                 verify(host).compilationClassPathOf(targetScope)
+
+                verify(host).startCompilerOperation(scriptSourceDisplayName)
 
                 verify(compilerOperation).close()
 

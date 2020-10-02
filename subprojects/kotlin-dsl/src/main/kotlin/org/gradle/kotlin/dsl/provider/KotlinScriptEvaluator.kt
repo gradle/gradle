@@ -237,13 +237,14 @@ class StandardKotlinScriptEvaluator(
             scriptHost: KotlinScriptHost<*>,
             templateId: String,
             sourceHash: HashCode,
+            compilationClassPathHash: HashCode,
             parentClassLoader: ClassLoader,
             accessorsClassPath: ClassPath?,
             initializer: (File) -> Unit
         ): File = try {
 
             val baseCacheKey =
-                cacheKeySpecPrefix + templateId + sourceHash + parentClassLoader
+                cacheKeySpecPrefix + templateId + sourceHash + compilationClassPathHash
 
             val effectiveCacheKey =
                 accessorsClassPath?.let { baseCacheKey + it }

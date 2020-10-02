@@ -131,6 +131,7 @@ class SimplifiedKotlinScriptEvaluator(
             scriptHost: KotlinScriptHost<*>,
             templateId: String,
             sourceHash: HashCode,
+            compilationClassPathHash: HashCode,
             parentClassLoader: ClassLoader,
             accessorsClassPath: ClassPath?,
             initializer: (File) -> Unit

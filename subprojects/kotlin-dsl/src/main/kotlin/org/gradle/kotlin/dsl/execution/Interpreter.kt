@@ -81,6 +81,7 @@ class Interpreter(val host: Host) {
             scriptHost: KotlinScriptHost<*>,
             templateId: String,
             sourceHash: HashCode,
+            compilationClassPathHash: HashCode,
             parentClassLoader: ClassLoader,
             accessorsClassPath: ClassPath?,
             initializer: (File) -> Unit
@@ -254,11 +255,15 @@ class Interpreter(val host: Host) {
         val scriptPath =
             scriptHost.fileName
 
+        val compilationClassPath = host.compilationClassPathOf(targetScope.parent)
+        val compileClassPathHash = host.hashOf(compilationClassPath)
+
         val cachedDir =
             host.cachedDirFor(
                 scriptHost,
                 templateId,
                 sourceHash,
+                compileClassPathHash,
                 parentClassLoader,
                 null
             ) { cachedDir ->
@@ -284,7 +289,7 @@ class Interpreter(val host: Host) {
                     scriptSource.withLocationAwareExceptionHandling {
                         ResidualProgramCompiler(
                             outputDir = outputDir,
-                            classPath = host.compilationClassPathOf(targetScope.parent),
+                            classPath = compilationClassPath,
                             originalSourceHash = sourceHash,
                             programKind = programKind,
                             programTarget = programTarget,
@@ -394,8 +399,10 @@ class Interpreter(val host: Host) {
             val classPathHash: HashCode? =
                 accessorsClassPath?.let { host.hashOf(it) }
 
+            val compileClassPath = host.compilationClassPathOf(targetScope.parent)
+            val compileClassPathHash = host.hashOf(compileClassPath)
             val programId =
-                ProgramId(scriptTemplateId, sourceHash, parentClassLoader, classPathHash)
+                ProgramId(scriptTemplateId, sourceHash, parentClassLoader, classPathHash, compileClassPathHash)
 
             val cachedProgram =
                 host.cachedClassFor(programId)
@@ -453,24 +460,27 @@ class Interpreter(val host: Host) {
             val scriptSource =
                 scriptHost.scriptSource
 
+            val targetScopeClassPath =
+                host.compilationClassPathOf(targetScope)
+
+            val compilationClassPath =
+                accessorsClassPath?.let {
+                    targetScopeClassPath + it
+                } ?: targetScopeClassPath
+
+            val compileClassPathHash = host.hashOf(compilationClassPath)
+
             val cacheDir =
                 host.cachedDirFor(
                     scriptHost,
                     scriptTemplateId,
                     sourceHash,
+                    compileClassPathHash,
                     parentClassLoader,
                     accessorsClassPath
                 ) { outputDir ->
 
                     startCompilerOperationFor(scriptSource, scriptTemplateId).use {
-
-                        val targetScopeClassPath =
-                            host.compilationClassPathOf(targetScope)
-
-                        val compilationClassPath =
-                            accessorsClassPath?.let {
-                                targetScopeClassPath + it
-                            } ?: targetScopeClassPath
 
                         scriptSource.withLocationAwareExceptionHandling {
 

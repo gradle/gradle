@@ -19,24 +19,20 @@ package org.gradle.kotlin.dsl.provider
 import org.gradle.api.internal.ClassPathRegistry
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory
 import org.gradle.api.internal.classpath.ModuleRegistry
-
+import org.gradle.api.internal.file.FileCollectionFactory
+import org.gradle.api.internal.initialization.loadercache.CompileClasspathHasher
 import org.gradle.cache.internal.GeneratedGradleJarCache
-
 import org.gradle.groovy.scripts.internal.ScriptSourceHasher
-
 import org.gradle.initialization.ClassLoaderScopeRegistry
-
-import org.gradle.internal.classloader.ClasspathHasher
 import org.gradle.internal.classpath.CachedClasspathTransformer
 import org.gradle.internal.event.ListenerManager
+import org.gradle.internal.fingerprint.classpath.CompileClasspathFingerprinter
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.scripts.ScriptExecutionListener
-
 import org.gradle.kotlin.dsl.cache.ScriptCache
 import org.gradle.kotlin.dsl.support.EmbeddedKotlinProvider
 import org.gradle.kotlin.dsl.support.ImplicitImports
-
 import org.gradle.plugin.management.internal.autoapply.AutoAppliedPluginHandler
 import org.gradle.plugin.use.internal.PluginRequestApplicator
 
@@ -85,7 +81,7 @@ object BuildServices {
         classPathModeExceptionCollector: ClassPathModeExceptionCollector,
         kotlinScriptBasePluginsApplicator: KotlinScriptBasePluginsApplicator,
         scriptSourceHasher: ScriptSourceHasher,
-        classPathHasher: ClasspathHasher,
+        classPathHasher: CompileClasspathHasher,
         scriptCache: ScriptCache,
         implicitImports: ImplicitImports,
         progressLoggerFactory: ProgressLoggerFactory,
@@ -112,6 +108,11 @@ object BuildServices {
             cachedClasspathTransformer,
             listenerManager.getBroadcaster(ScriptExecutionListener::class.java)
         )
+
+    @Suppress("unused")
+    fun createCompileClasspathHasher(fingerprinter: CompileClasspathFingerprinter, fileCollectionFactory: FileCollectionFactory): CompileClasspathHasher {
+        return CompileClasspathHasher(fingerprinter, fileCollectionFactory)
+    }
 
     @Suppress("unused")
     fun createKotlinCompilerContextDisposer(listenerManager: ListenerManager) =
