@@ -112,6 +112,11 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
     }
 
     @Override
+    public IncludedBuildState addIncludedBuildOf(IncludedBuildFactory includedBuildFactory, BuildDefinition buildDefinition) {
+        return registerBuildOf(includedBuildFactory, buildDefinition, false);
+    }
+
+    @Override
     public synchronized IncludedBuildState addImplicitIncludedBuild(BuildDefinition buildDefinition) {
         // TODO: synchronization with other methods
         IncludedBuildState includedBuild = includedBuildsByRootDir.get(buildDefinition.getBuildRootDir());
@@ -214,6 +219,14 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
     }
 
     private IncludedBuildState registerBuild(BuildDefinition buildDefinition, boolean isImplicit) {
+        return registerBuildOf(includedBuildFactory, buildDefinition, isImplicit);
+    }
+
+    private IncludedBuildState registerBuildOf(
+        IncludedBuildFactory includedBuildFactory,
+        BuildDefinition buildDefinition,
+        boolean isImplicit
+    ) {
         // TODO: synchronization
         final File buildDir = buildDefinition.getBuildRootDir();
         if (buildDir == null) {

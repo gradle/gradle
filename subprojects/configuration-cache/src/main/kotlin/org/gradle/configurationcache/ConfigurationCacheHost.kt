@@ -16,6 +16,7 @@
 
 package org.gradle.configurationcache
 
+import org.gradle.api.artifacts.component.BuildIdentifier
 import org.gradle.api.initialization.ProjectDescriptor
 import org.gradle.api.internal.BuildDefinition
 import org.gradle.api.internal.GradleInternal
@@ -26,6 +27,7 @@ import org.gradle.api.internal.project.IProjectFactory
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.configuration.project.ConfigureProjectBuildOperationType
+import org.gradle.configurationcache.build.ConfigurationCacheIncludedBuildState
 import org.gradle.configurationcache.initialization.ConfigurationCacheStartParameter
 import org.gradle.execution.plan.Node
 import org.gradle.groovy.scripts.TextResourceScriptSource
@@ -43,6 +45,7 @@ import org.gradle.initialization.TaskExecutionPreparer
 import org.gradle.internal.Factory
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.build.BuildStateRegistry
+import org.gradle.internal.build.IncludedBuildFactory
 import org.gradle.internal.build.IncludedBuildState
 import org.gradle.internal.file.PathToFileResolver
 import org.gradle.internal.operations.BuildOperationCategory
@@ -53,6 +56,7 @@ import org.gradle.internal.operations.RunnableBuildOperation
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.resource.StringTextResource
 import org.gradle.internal.service.scopes.BuildScopeServiceRegistryFactory
+import org.gradle.internal.work.WorkerLeaseService
 import org.gradle.kotlin.dsl.support.serviceOf
 import org.gradle.util.Path
 import java.io.File
@@ -89,7 +93,7 @@ class ConfigurationCacheHost internal constructor(
         override val gradle: GradleInternal,
         private val fileResolver: PathToFileResolver,
         private val rootProjectName: String
-    ) : ConfigurationCacheBuild {
+    ) : ConfigurationCacheBuild, IncludedBuildFactory {
 
         private
         val buildDirs = mutableMapOf<Path, File>()
@@ -191,12 +195,27 @@ class ConfigurationCacheHost internal constructor(
         }
 
         override fun addIncludedBuild(buildDefinition: BuildDefinition): Pair<IncludedBuildState, ConfigurationCacheBuild> {
-            val includedBuild = service<BuildStateRegistry>().addIncludedBuild(buildDefinition) as IncludedBuildState
-            includedBuild.setConfiguredByCache()
+            val includedBuild = service<BuildStateRegistry>().addIncludedBuildOf(this, buildDefinition) as IncludedBuildState
             return includedBuild to includedBuild.withState { includedGradle ->
                 includedGradle.serviceOf<ConfigurationCacheHost>().createBuild(includedBuild.name)
             }
         }
+
+        override fun createBuild(
+            buildIdentifier: BuildIdentifier,
+            identityPath: Path,
+            buildDefinition: BuildDefinition,
+            isImplicit: Boolean,
+            owner: BuildState
+        ): IncludedBuildState = service<Instantiator>().newInstance(
+            ConfigurationCacheIncludedBuildState::class.java,
+            buildIdentifier,
+            identityPath,
+            buildDefinition,
+            isImplicit,
+            owner,
+            service<WorkerLeaseService>().currentWorkerLease
+        )
 
         private
         fun processSettings(): SettingsInternal {

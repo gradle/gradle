@@ -36,6 +36,7 @@ afterEvaluate {
 dependencies {
     implementation(project(":base-services"))
     implementation(project(":base-services-groovy"))
+    implementation(project(":composite-builds"))
     implementation(project(":core"))
     implementation(project(":core-api"))
     implementation(project(":dependency-management"))
