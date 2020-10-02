@@ -22,7 +22,7 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
 
     @Test
     fun `does not recompile buildscript on non ABI change in buildSrc`() {
-        val className = givenClassInBuildSrcContains(
+        val className = givenJavaClassInBuildSrcContains(
             """
             public void t1() {
                 System.out.println("foo");
@@ -32,7 +32,7 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
         withBuildScript("$className().t1()")
         configureProject().buildScriptCompiled().andOutputContains("foo")
 
-        givenClassInBuildSrcContains(
+        givenJavaClassInBuildSrcContains(
             """
             public void t1() {
                 System.out.println("bar");
@@ -44,7 +44,7 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
 
     @Test
     fun `recompiles buildscript on ABI change in buildSrc`() {
-        val className = givenClassInBuildSrcContains(
+        val className = givenJavaClassInBuildSrcContains(
             """
             public void t2() {
                 System.out.println("foo");
@@ -54,7 +54,7 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
         withBuildScript("$className().t2()")
         configureProject().buildScriptCompiled().andOutputContains("foo")
 
-        givenClassInBuildSrcContains(
+        givenJavaClassInBuildSrcContains(
             """
             public void t2() {
                 System.out.println("bar");
@@ -156,6 +156,63 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
         configureProject().buildScriptNotCompiled().andOutputContains("bar")
     }
 
+    @ToBeFixedForConfigurationCache
+    @Test
+    fun `recompiles buildscript when plugins applied from a precompiled plugin change`() {
+        val pluginId = "my-plugin"
+        withPrecompiledScriptPluginInBuildSrc(
+            pluginId,
+            """
+                plugins {
+                    id("java-library")
+                }
+                println("foo")
+            """
+        )
+        withBuildScript(
+            """
+                plugins {
+                    id("$pluginId")
+                }
+            """
+        )
+        configureProject().buildScriptCompiled().andOutputContains("foo")
+
+        withPrecompiledScriptPluginInBuildSrc(
+            pluginId,
+            """
+                plugins {
+                    id("java")
+                }
+                println("bar")
+            """
+        )
+        configureProject().buildScriptCompiled().andOutputContains("bar")
+    }
+
+    @ToBeFixedForConfigurationCache
+    @Test
+    fun `recompiles buildscript on inline function change in buildSrc`() {
+        val className = givenKotlinClassInBuildSrcContains(
+            """
+            inline fun t5() {
+                println("foo");
+            }
+            """
+        )
+        withBuildScript("$className().t5()")
+        configureProject().buildScriptCompiled().andOutputContains("foo")
+
+        givenKotlinClassInBuildSrcContains(
+            """
+            inline fun t5() {
+                println("bar");
+            }
+            """
+        )
+        configureProject().buildScriptCompiled().andOutputContains("bar")
+    }
+
     private
     fun withPrecompiledScriptPluginInBuildSrc(pluginId: String, pluginSource: String) {
         withKotlinDslPluginIn("buildSrc")
@@ -179,7 +236,7 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
                 }
             """
         )
-        val className = sourceFile(baseDir, classBody)
+        val className = javaSourceFile(baseDir, classBody)
         build(existing(baseDir), "build")
         val jarPath = "$baseDir/build/libs/buildscript.jar"
         assertTrue(existing(jarPath).exists())
@@ -187,16 +244,36 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
     }
 
     private
-    fun givenClassInBuildSrcContains(classBody: String): String =
-        sourceFile("buildSrc", classBody)
+    fun givenJavaClassInBuildSrcContains(classBody: String): String =
+        javaSourceFile("buildSrc", classBody)
 
     private
-    fun sourceFile(baseDir: String, classBody: String): String {
+    fun givenKotlinClassInBuildSrcContains(classBody: String): String {
+        withKotlinDslPluginIn("buildSrc")
+        return kotlinSourceFile("buildSrc", classBody)
+    }
+
+    private
+    fun javaSourceFile(baseDir: String, classBody: String): String {
         withFile(
             "$baseDir/src/main/java/com/example/Foo.java",
             """
             package com.example;
             public class Foo {
+                $classBody
+            }
+            """
+        )
+        return "com.example.Foo"
+    }
+
+    private
+    fun kotlinSourceFile(baseDir: String, classBody: String): String {
+        withFile(
+            "$baseDir/src/main/kotlin/com/example/Foo.kt",
+            """
+            package com.example
+            class Foo {
                 $classBody
             }
             """
