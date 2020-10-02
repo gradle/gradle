@@ -147,7 +147,10 @@ class TestKeyStore {
         try {
             KeyStore keyStore = KeyStore.getInstance("JKS");
             char[] keyStorePassword = testKeyStore.getKeyStorePassword().toCharArray();
-            keyStore.load(new FileInputStream(testKeyStore.getKeyStore()), keyStorePassword);
+
+            testKeyStore.getKeyStore().withInputStream {keyStoreIn ->
+                keyStore.load(keyStoreIn, keyStorePassword)
+            }
 
             // Create key manager
             KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance("SunX509");
