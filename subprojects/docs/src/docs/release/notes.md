@@ -78,6 +78,14 @@ Depending on the version of Java you use, Gradle will negotiate TLS v1.2 or TLS 
 which causes the exception `javax.net.ssl.SSLException: No PSK available. Unable to resume`. If you run into this issue,
 we recommend updating to the latest minor JDK version.
 
+## IDE integration
+
+### Importing projects with custom source sets 
+
+This version of Gradle fixes problems with projects that use custom source sets, like additional functional test source sets.
+
+Custom source sets are now imported into Eclipse automatically and no longer require manual configuration in the build.
+
 ## Promoted features
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
 See the User Manual section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
