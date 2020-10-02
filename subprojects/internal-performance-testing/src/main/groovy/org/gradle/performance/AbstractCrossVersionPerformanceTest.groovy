@@ -28,7 +28,6 @@ import org.gradle.performance.results.CrossVersionResultsStore
 import org.gradle.performance.results.GradleProfilerReporter
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 import org.junit.experimental.categories.Category
 import spock.lang.Specification
@@ -42,7 +41,6 @@ import static org.gradle.performance.results.ResultsStoreHelper.createResultsSto
  */
 @Category(PerformanceRegressionTest)
 @CleanupTestDirectory
-@UsesNativeServices // The TAPI invoker uses native services
 class AbstractCrossVersionPerformanceTest extends Specification {
 
     private static final RESULTS_STORE = createResultsStoreWhenDatabaseAvailable { new CrossVersionResultsStore() }
