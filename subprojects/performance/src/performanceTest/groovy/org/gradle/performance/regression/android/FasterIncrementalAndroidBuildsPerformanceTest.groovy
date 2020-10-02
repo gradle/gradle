@@ -109,6 +109,8 @@ class FasterIncrementalAndroidBuildsPerformanceTest extends AbstractCrossBuildPe
             args.add("-Dorg.gradle.parallel=false")
             args.add("-Dorg.gradle.workers.max=1")
         }
+        builder.warmUpCount(10)
+        builder.invocationCount(30)
     }
 
     private IncrementalTestProject getTestProject() {
