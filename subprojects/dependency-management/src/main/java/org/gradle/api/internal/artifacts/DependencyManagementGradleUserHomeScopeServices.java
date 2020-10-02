@@ -91,7 +91,12 @@ public class DependencyManagementGradleUserHomeScopeServices {
         CacheRepository cacheRepository,
         FileAccessTimeJournal fileAccessTimeJournal,
         ExecutionHistoryStore executionHistoryStore, ListenerManager listenerManager) {
-        ImmutableTransformationWorkspaceProvider workspaceProvider = new ImmutableTransformationWorkspaceProvider(artifactCaches.getWritableCacheMetadata().getTransformsStoreDirectory(), cacheRepository, fileAccessTimeJournal, executionHistoryStore);
+        ImmutableTransformationWorkspaceProvider workspaceProvider = new ImmutableTransformationWorkspaceProvider(
+            artifactCaches.getWritableCacheMetadata().getTransformsStoreDirectory(),
+            cacheRepository,
+            fileAccessTimeJournal,
+            executionHistoryStore
+        );
         listenerManager.addListener(new RootBuildLifecycleListener() {
             @Override
             public void afterStart(GradleInternal gradle) {
