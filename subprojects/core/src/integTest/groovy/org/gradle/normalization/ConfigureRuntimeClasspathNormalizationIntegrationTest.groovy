@@ -338,8 +338,7 @@ class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractInte
         then:
         executedAndNotSkipped(project.customTask)
     }
-
-    @ToBeFixedForConfigurationCache(because = "classpath normalization")
+    
     def "properties files are normalized against changes to whitespace and comments"() {
         def project = new ProjectWithRuntimeClasspathNormalization(true)
         project.propertiesFileInDir.overwriteProperties([
