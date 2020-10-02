@@ -11,7 +11,7 @@ import model.Stage
 class PerformanceTestProject(model: CIBuildModel, performanceTestBucketProvider: PerformanceTestBucketProvider, stage: Stage, val performanceTestCoverage: PerformanceTestCoverage) : Project({
     this.uuid = performanceTestCoverage.asConfigurationId(model)
     this.id = AbsoluteId(uuid)
-    this.name = performanceTestCoverage.asName()
+    this.name = "${performanceTestCoverage.asName()}${if (performanceTestCoverage.withoutDependencies) " without dependencies" else ""}"
 }) {
     val performanceTests: List<PerformanceTest> = performanceTestBucketProvider.createPerformanceTestsFor(stage, performanceTestCoverage)
 
