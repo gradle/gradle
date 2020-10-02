@@ -129,6 +129,17 @@ class EclipsePluginTest extends AbstractProjectBuilderSpec {
         folders == [project.file('generated-folder'), project.file('ws-generated'), project.file('generated-test'), project.file('test-resources'), project.file('../some/external/dir')]
     }
 
+    def "configures internal class folders for custom source sets"() {
+        when:
+        eclipsePlugin.apply(project)
+        project.apply(plugin: 'java')
+        project.sourceSets.create('custom')
+        project.sourceSets.custom.output.dir 'custom-output'
+
+        then:
+        project.eclipseClasspath.classpath.classFolders == [project.file('custom-output')]
+    }
+
     private void checkEclipseProjectTask(List buildCommands, List natures) {
         GenerateEclipseProject eclipseProjectTask = project.eclipseProject
         assert eclipseProjectTask instanceof GenerateEclipseProject
