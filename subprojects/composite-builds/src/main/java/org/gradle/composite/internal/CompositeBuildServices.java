@@ -29,6 +29,7 @@ import org.gradle.composite.internal.plugins.CompositeBuildPluginResolverContrib
 import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
+import org.gradle.internal.build.IncludedBuildFactory;
 import org.gradle.internal.buildtree.BuildTreeState;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.ListenerManager;

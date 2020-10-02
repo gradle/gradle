@@ -29,6 +29,7 @@ import org.gradle.initialization.NestedBuildFactory
 import org.gradle.internal.Actions
 import org.gradle.internal.build.BuildAddedListener
 import org.gradle.internal.build.BuildState
+import org.gradle.internal.build.IncludedBuildFactory
 import org.gradle.internal.build.IncludedBuildState
 import org.gradle.internal.build.RootBuildState
 import org.gradle.internal.buildtree.BuildTreeState
