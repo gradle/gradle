@@ -86,7 +86,7 @@ public class DefaultUrlArtifactRepository implements UrlArtifactRepository {
 
     private void nagUserOfInsecureProtocol() {
         DeprecationLogger
-            .deprecate("Using insecure protocols with repositories")
+            .deprecate("Using insecure protocols with repositories, without explicit opt-in,")
             .withAdvice(String.format(
                 "Switch %s repository '%s' to a secure protocol (like HTTPS) or allow insecure protocols.",
                 repositoryType,
@@ -106,7 +106,7 @@ public class DefaultUrlArtifactRepository implements UrlArtifactRepository {
             );
         }
         DeprecationLogger
-            .deprecate("Following insecure redirects")
+            .deprecate("Following insecure redirects, without explicit opt-in,")
             .withAdvice(String.format(
                 "Switch %s repository '%s' to redirect to a secure protocol (like HTTPS) or allow insecure protocols.",
                 repositoryType,
