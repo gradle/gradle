@@ -116,9 +116,9 @@ fun Project.createTasks(sourceSet: SourceSet, testType: TestType) {
     }
     // Create a variant of the test suite to force realization of component metadata
     if (testType == TestType.INTEGRATION) {
-        createTestTask(prefix + "ForceRealizeTest", defaultExecuter, sourceSet, testType, Action {
+        createTestTask(prefix + "ForceRealizeTest", defaultExecuter, sourceSet, testType) {
             systemProperties["org.gradle.integtest.force.realize.metadata"] = "true"
-        })
+        }
     }
 }
 

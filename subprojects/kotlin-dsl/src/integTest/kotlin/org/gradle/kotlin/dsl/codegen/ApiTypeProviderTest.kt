@@ -44,10 +44,14 @@ class ApiTypeProviderTest : AbstractKotlinIntegrationTest() {
     @Test
     fun `provides a source code generation oriented model over a classpath`() {
 
-        val jars = listOf(withClassJar("some.jar",
-            Plugin::class.java,
-            PluginCollection::class.java,
-            ObjectFactory::class.java))
+        val jars = listOf(
+            withClassJar(
+                "some.jar",
+                Plugin::class.java,
+                PluginCollection::class.java,
+                ObjectFactory::class.java
+            )
+        )
 
         apiTypeProviderFor(jars).use { api ->
 
@@ -154,12 +158,16 @@ class ApiTypeProviderTest : AbstractKotlinIntegrationTest() {
     @Test
     fun `provides if a type is a SAM`() {
 
-        val jars = listOf(withClassJar("some.jar",
-            Action::class.java,
-            NamedDomainObjectFactory::class.java,
-            ObjectFactory::class.java,
-            PluginCollection::class.java,
-            Spec::class.java))
+        val jars = listOf(
+            withClassJar(
+                "some.jar",
+                Action::class.java,
+                NamedDomainObjectFactory::class.java,
+                ObjectFactory::class.java,
+                PluginCollection::class.java,
+                Spec::class.java
+            )
+        )
 
         apiTypeProviderFor(jars).use { api ->
 
@@ -173,7 +181,8 @@ class ApiTypeProviderTest : AbstractKotlinIntegrationTest() {
                 api.type<PluginCollection<*>>().functions
                     .filter { it.name == "matching" }
                     .single { it.parameters.single().type.sourceName == Spec::class.qualifiedName }
-                    .parameters.single().type.type!!.isSAM)
+                    .parameters.single().type.type!!.isSAM
+            )
 
             assertTrue(api.type<Spec<*>>().isSAM)
         }

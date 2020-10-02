@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
+import Gradle_Check.configurations.PerformanceTest
 import Gradle_Check.model.JsonBasedGradleSubprojectProvider
 import Gradle_Check.model.PerformanceTestCoverage
 import common.JvmVendor
 import common.JvmVersion
 import common.Os
 import configurations.BaseGradleBuildType
-import configurations.PerformanceTestCoordinator
 import jetbrains.buildServer.configs.kotlin.v2019_2.BuildStep
 import jetbrains.buildServer.configs.kotlin.v2019_2.buildSteps.GradleBuildStep
 import model.CIBuildModel
@@ -40,7 +40,7 @@ class PerformanceTestBuildTypeTest {
 
     @Test
     fun `create correct PerformanceTest build type`() {
-        val performanceTest = PerformanceTestCoordinator(buildModel, PerformanceTestType.test, Stage(StageNames.READY_FOR_MERGE,
+        val performanceTest = PerformanceTest(buildModel, Stage(StageNames.READY_FOR_MERGE,
             specificBuilds = listOf(
                 SpecificBuild.BuildDistributions,
                 SpecificBuild.Gradleception,
@@ -49,9 +49,17 @@ class PerformanceTestBuildTypeTest {
                 TestCoverage(1, TestType.platform, Os.LINUX, JvmVersion.java8),
                 TestCoverage(2, TestType.platform, Os.WINDOWS, JvmVersion.java11, vendor = JvmVendor.openjdk)),
             performanceTests = listOf(PerformanceTestCoverage(1, PerformanceTestType.test, Os.LINUX)),
-            omitsSlowProjects = true))
+            omitsSlowProjects = true),
+            PerformanceTestCoverage(1, PerformanceTestType.test, Os.LINUX),
+            "Description",
+            "performance",
+            listOf("largeTestProject", "smallTestProject"),
+            2,
+            extraParameters = "extraParameters"
+        )
 
         assertEquals(listOf(
+            "KILL_GRADLE_PROCESSES",
             "GRADLE_RUNNER",
             "CHECK_CLEAN_M2"
         ), performanceTest.steps.items.map(BuildStep::name))
@@ -69,9 +77,6 @@ class PerformanceTestBuildTypeTest {
             "-s",
             "--daemon",
             "",
-            "-Porg.gradle.performance.buildTypeId=Gradle_Check_IndividualPerformanceScenarioWorkersLinux",
-            "-Porg.gradle.performance.workerTestTaskName=fullPerformanceTest",
-            "-Porg.gradle.performance.coordinatorBuildId=%teamcity.build.id%",
             "\"-Dscan.tag.PerformanceTest\"",
             "\"-Dgradle.cache.remote.url=%gradle.cache.remote.url%\"",
             "\"-Dgradle.cache.remote.username=%gradle.cache.remote.username%\"",
@@ -79,7 +84,12 @@ class PerformanceTestBuildTypeTest {
         )
 
         assertEquals(
-            (listOf("clean", ":performance:distributedPerformanceTest") + expectedRunnerParams).joinToString(" "),
+            (listOf(
+                "clean",
+                ":performance:largeTestProjectPerformanceTest --channel %performance.channel% ",
+                ":performance:smallTestProjectPerformanceTest --channel %performance.channel% ",
+                "extraParameters"
+            ) + expectedRunnerParams).joinToString(" "),
             performanceTest.getGradleStep("GRADLE_RUNNER").gradleParams!!.trim()
         )
         assertEquals(BuildStep.ExecutionMode.DEFAULT, performanceTest.getGradleStep("GRADLE_RUNNER").executionMode)

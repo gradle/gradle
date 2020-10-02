@@ -29,7 +29,8 @@ class KotlinSettingsScriptIntegrationTest : AbstractKotlinIntegrationTest() {
             publishTo(executer, pluginJar)
         }
 
-        withSettings("""
+        withSettings(
+            """
             buildscript {
                 dependencies {
                     classpath(files("${pluginJar.name}"))
@@ -38,7 +39,8 @@ class KotlinSettingsScriptIntegrationTest : AbstractKotlinIntegrationTest() {
             apply {
                 plugin<MySettingsPlugin>()
             }
-        """)
+            """
+        )
 
         withBuildScript("")
         build("help", "-q")
@@ -52,11 +54,13 @@ class KotlinSettingsScriptIntegrationTest : AbstractKotlinIntegrationTest() {
             publishAs("g", "m", "1.0", pluginPortal, createExecuter()).allowAll()
         }
 
-        withSettings("""
+        withSettings(
+            """
             plugins {
                 id("test.MySettingsPlugin").version("1.0")
             }
-        """)
+            """
+        )
 
         assertThat(
             build().output,
@@ -67,41 +71,55 @@ class KotlinSettingsScriptIntegrationTest : AbstractKotlinIntegrationTest() {
     @Test
     fun `Settings script path is resolved relative to parent script dir`() {
 
-        withFile("gradle/my.settings.gradle.kts", """
+        withFile(
+            "gradle/my.settings.gradle.kts",
+            """
             apply(from = "./answer.settings.gradle.kts")
-        """)
+            """
+        )
 
-        withFile("gradle/answer.settings.gradle.kts", """
+        withFile(
+            "gradle/answer.settings.gradle.kts",
+            """
             gradle.rootProject {
                 val answer by extra { "42" }
             }
-        """)
+            """
+        )
 
-        withSettings("""
+        withSettings(
+            """
             apply(from = "gradle/my.settings.gradle.kts")
-        """)
+            """
+        )
 
-        withBuildScript("""
+        withBuildScript(
+            """
             val answer: String by extra
             println("*" + answer + "*")
-        """)
+            """
+        )
 
         assertThat(
             build().output,
-            containsString("*42*"))
+            containsString("*42*")
+        )
     }
 
     @Test
     fun `pluginManagement block cannot appear twice in settings scripts`() {
 
-        withSettings("""
+        withSettings(
+            """
             pluginManagement {}
             pluginManagement {}
-        """)
+            """
+        )
 
         assertThat(
             buildAndFail("help").error,
-            containsString("settings.gradle.kts:3:13: Unexpected `pluginManagement` block found. Only one `pluginManagement` block is allowed per script."))
+            containsString("settings.gradle.kts:3:13: Unexpected `pluginManagement` block found. Only one `pluginManagement` block is allowed per script.")
+        )
     }
 
     @Test
@@ -109,7 +127,9 @@ class KotlinSettingsScriptIntegrationTest : AbstractKotlinIntegrationTest() {
 
         withClassJar("fixture.jar", DeepThought::class.java)
 
-        withFile("other.settings.gradle.kts", """
+        withFile(
+            "other.settings.gradle.kts",
+            """
             buildscript {
                 dependencies { classpath(files("fixture.jar")) }
             }
@@ -123,13 +143,17 @@ class KotlinSettingsScriptIntegrationTest : AbstractKotlinIntegrationTest() {
                     }
                 }
             }
-        """)
+            """
+        )
 
-        withSettings("""
+        withSettings(
+            """
             apply(from = "other.settings.gradle.kts")
-        """)
+            """
+        )
 
         assert(
-            build("compute").output.contains("*42*"))
+            build("compute").output.contains("*42*")
+        )
     }
 }

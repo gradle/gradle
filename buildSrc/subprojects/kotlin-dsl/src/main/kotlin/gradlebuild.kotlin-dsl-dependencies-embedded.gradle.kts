@@ -70,11 +70,12 @@ val writeEmbeddedKotlinDependencies by tasks.registering {
     inputs.files(values)
     val skippedModules = setOf(project.name, "distributions-dependencies", "kotlin-compiler-embeddable")
     // https://github.com/gradle/configuration-cache/issues/183
-    val modules = provider { embeddedKotlinBaseDependencies.incoming.resolutionResult.allComponents
-        .asSequence()
-        .mapNotNull { it.moduleVersion }
-        .filter { it.name !in skippedModules }
-        .associate { "${it.group}:${it.name}" to it.version }
+    val modules = provider {
+        embeddedKotlinBaseDependencies.incoming.resolutionResult.allComponents
+            .asSequence()
+            .mapNotNull { it.moduleVersion }
+            .filter { it.name !in skippedModules }
+            .associate { "${it.group}:${it.name}" to it.version }
     }
 
     doLast {

@@ -49,7 +49,8 @@ class PluginRequestsHandler @Inject constructor(
             effectivePluginRequests,
             scriptHandler,
             target.pluginManager,
-            targetScope)
+            targetScope
+        )
     }
 
     private

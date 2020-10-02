@@ -309,7 +309,8 @@ object ConfigurationCacheReportPage : Component<ConfigurationCacheReportPage.Mod
             emptyList()
         } else {
             listOf(viewNode(docLink))
-        })
+        }
+    )
 
     private
     fun treeButtonFor(child: Tree.Focus<ProblemNode>, treeIntent: (ProblemTreeIntent) -> Intent): View<Intent> =

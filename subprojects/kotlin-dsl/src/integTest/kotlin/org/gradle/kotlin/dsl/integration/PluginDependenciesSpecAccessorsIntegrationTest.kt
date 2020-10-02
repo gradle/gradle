@@ -35,17 +35,22 @@ class PluginDependenciesSpecAccessorsIntegrationTest : AbstractKotlinIntegration
         assumeNonEmbeddedGradleExecuter()
 
         withKotlinBuildSrc()
-        withFile("buildSrc/src/main/kotlin/my/plugin-a.gradle.kts", """
+        withFile(
+            "buildSrc/src/main/kotlin/my/plugin-a.gradle.kts",
+            """
             package my
             println("*my.plugin-a*")
-        """)
+            """
+        )
 
         withDefaultSettings()
-        withBuildScript("""
+        withBuildScript(
+            """
             plugins {
                 my.`plugin-a`
             }
-        """)
+            """
+        )
 
         assertThat(
             build("help", "-q").output,

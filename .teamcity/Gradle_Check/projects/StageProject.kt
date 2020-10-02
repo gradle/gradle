@@ -37,7 +37,7 @@ class StageProject(model: CIBuildModel, functionalTestBucketProvider: Functional
                 buildReportTab("Incubating APIs Report", "incubation-reports/all-incubating.html")
             }
             if (stage.performanceTests.isNotEmpty()) {
-                buildReportTab("Performance", "report-performance-performance-tests.zip!report/index.html")
+                buildReportTab("Performance", "performance-test-results.zip!report/index.html")
             }
         }
 

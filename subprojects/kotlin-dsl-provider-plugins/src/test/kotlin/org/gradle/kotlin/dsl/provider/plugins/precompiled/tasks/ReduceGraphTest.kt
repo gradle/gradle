@@ -28,18 +28,22 @@ class ReduceGraphTest {
     fun `only external node references are left in the graph`() {
 
         assertThat(
-            reduceGraph(mapOf(
-                "a" to listOf("b", "c"),
-                "b" to listOf("e1"),
-                "c" to listOf("d"),
-                "d" to listOf("b", "e2")
-            )),
-            equalTo(mapOf(
-                "a" to setOf("e1", "e2"),
-                "b" to setOf("e1"),
-                "c" to setOf("e1", "e2"),
-                "d" to setOf("e1", "e2")
-            ))
+            reduceGraph(
+                mapOf(
+                    "a" to listOf("b", "c"),
+                    "b" to listOf("e1"),
+                    "c" to listOf("d"),
+                    "d" to listOf("b", "e2")
+                )
+            ),
+            equalTo(
+                mapOf(
+                    "a" to setOf("e1", "e2"),
+                    "b" to setOf("e1"),
+                    "c" to setOf("e1", "e2"),
+                    "d" to setOf("e1", "e2")
+                )
+            )
         )
     }
 }

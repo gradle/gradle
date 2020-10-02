@@ -114,7 +114,8 @@ class InterpreterTest : TestWithTempFiles() {
                     eq(sourceHash),
                     same(parentClassLoader),
                     isNull(),
-                    any())
+                    any()
+                )
             } doAnswer {
                 it.getArgument<(File) -> Unit>(5).invoke(stage1CacheDir)
                 stage1CacheDir
@@ -127,7 +128,8 @@ class InterpreterTest : TestWithTempFiles() {
                     eq(sourceHash),
                     same(targetScopeExportClassLoader),
                     isNull(),
-                    any())
+                    any()
+                )
             } doAnswer {
                 it.getArgument<(File) -> Unit>(5).invoke(stage2CacheDir)
                 stage2CacheDir
@@ -148,9 +150,11 @@ class InterpreterTest : TestWithTempFiles() {
 
                 val newLocation = relocate(location)
 
-                DummyCompiledScript(classLoaderFor(newLocation)
-                    .also { classLoaders += it }
-                    .loadClass(className))
+                DummyCompiledScript(
+                    classLoaderFor(newLocation)
+                        .also { classLoaders += it }
+                        .loadClass(className)
+                )
             }
         }
 
@@ -166,7 +170,8 @@ class InterpreterTest : TestWithTempFiles() {
                     mock(),
                     targetScope,
                     baseScope,
-                    true)
+                    true
+                )
             }
 
             inOrder(host, compilerOperation) {
@@ -187,11 +192,13 @@ class InterpreterTest : TestWithTempFiles() {
                     "kotlin-dsl:$scriptPath:$stage1TemplateId",
                     stage1CacheDir.resolve("stage-1"),
                     "Program",
-                    null)
+                    null
+                )
 
                 verify(host).cache(
                     DummyCompiledScript(classLoaders[0].loadClass("Program")),
-                    stage1ProgramId)
+                    stage1ProgramId
+                )
 
                 val stage2ProgramId =
                     ProgramId(stage2TemplateId, sourceHash, targetScopeExportClassLoader)

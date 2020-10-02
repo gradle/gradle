@@ -42,12 +42,15 @@ class SourcePathProviderTest : FolderBasedTest() {
                 classPath = ClassPath.EMPTY,
                 projectDir = folder("project"),
                 gradleHomeDir = folder("gradle"),
-                sourceDistributionResolver = mock()).asFiles,
+                sourceDistributionResolver = mock()
+            ).asFiles,
             hasItems(
                 folder("project/buildSrc/src/main/foo"),
                 folder("project/buildSrc/src/main/bar"),
                 folder("gradle/src/gradle-foo"),
-                folder("gradle/src/gradle-bar")))
+                folder("gradle/src/gradle-bar")
+            )
+        )
     }
 
     @Test
@@ -76,11 +79,14 @@ class SourcePathProviderTest : FolderBasedTest() {
                 classPath = ClassPath.EMPTY,
                 projectDir = folder("project"),
                 gradleHomeDir = folder("gradle"),
-                sourceDistributionResolver = resolver).asFiles,
+                sourceDistributionResolver = resolver
+            ).asFiles,
             hasItems(
                 folder("project/buildSrc/src/main/foo"),
                 folder("project/buildSrc/src/main/bar"),
                 folder("sourceDistribution/src-foo"),
-                folder("sourceDistribution/src-bar")))
+                folder("sourceDistribution/src-bar")
+            )
+        )
     }
 }

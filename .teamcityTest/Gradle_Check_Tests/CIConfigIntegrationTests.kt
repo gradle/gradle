@@ -37,7 +37,7 @@ class CIConfigIntegrationTests {
 
     @Test
     fun configurationTreeCanBeGenerated() {
-        assertEquals(rootProject.subProjects.size, model.stages.size + 1)
+        assertEquals(rootProject.subProjects.size, model.stages.size)
         assertEquals(rootProject.buildTypes.size, model.stages.size)
     }
 

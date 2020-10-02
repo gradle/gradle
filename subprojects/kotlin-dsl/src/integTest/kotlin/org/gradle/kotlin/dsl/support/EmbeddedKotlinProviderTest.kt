@@ -27,7 +27,8 @@ class EmbeddedKotlinProviderTest : AbstractKotlinIntegrationTest() {
     @ToBeFixedForConfigurationCache(because = ":buildEnvironment")
     fun `embedded kotlin dependencies are pinned to the embedded version`() {
 
-        withBuildScript("""
+        withBuildScript(
+            """
             buildscript {
                 $repositoriesBlock
                 dependencies {
@@ -35,7 +36,8 @@ class EmbeddedKotlinProviderTest : AbstractKotlinIntegrationTest() {
                     classpath("org.jetbrains.kotlin:kotlin-reflect:1.0")
                 }
             }
-        """)
+            """
+        )
 
         val result = build("buildEnvironment")
 
@@ -47,11 +49,13 @@ class EmbeddedKotlinProviderTest : AbstractKotlinIntegrationTest() {
     @Test
     @ToBeFixedForConfigurationCache(because = ":buildEnvironment")
     fun `stdlib and reflect are pinned to the embedded kotlin version for requested plugins`() {
-        withBuildScript("""
+        withBuildScript(
+            """
             plugins {
                 kotlin("jvm") version "1.3.31"
             }
-        """)
+            """
+        )
 
         val result = build("buildEnvironment")
 
@@ -63,14 +67,16 @@ class EmbeddedKotlinProviderTest : AbstractKotlinIntegrationTest() {
     @Test
     @ToBeFixedForConfigurationCache(because = ":buildEnvironment")
     fun `compiler-embeddable is not pinned`() {
-        withBuildScript("""
+        withBuildScript(
+            """
             buildscript {
                 $repositoriesBlock
                 dependencies {
                     classpath("org.jetbrains.kotlin:kotlin-compiler-embeddable:1.3.31")
                 }
             }
-        """)
+            """
+        )
 
         val result = build("buildEnvironment")
 
@@ -80,7 +86,8 @@ class EmbeddedKotlinProviderTest : AbstractKotlinIntegrationTest() {
 
     @Test
     fun `fails with a reasonable message on conflict with embedded kotlin`() {
-        withBuildScript("""
+        withBuildScript(
+            """
             buildscript {
                 $repositoriesBlock
                 dependencies {
@@ -89,7 +96,8 @@ class EmbeddedKotlinProviderTest : AbstractKotlinIntegrationTest() {
                     }
                 }
             }
-        """)
+            """
+        )
 
         val result = buildAndFail("buildEnvironment")
 

@@ -68,7 +68,9 @@ class KotlinDslPluginGradlePluginCrossVersionSmokeTest(
         executer.withStackTraceChecksDisabled()
 
         withDefaultSettingsIn("buildSrc")
-        withBuildScriptIn("buildSrc", """
+        withBuildScriptIn(
+            "buildSrc",
+            """
             import org.jetbrains.kotlin.config.KotlinCompilerVersion
 
             plugins {
@@ -82,12 +84,15 @@ class KotlinDslPluginGradlePluginCrossVersionSmokeTest(
             }
 
             println("buildSrc build script classpath kotlin compiler version " + KotlinCompilerVersion.VERSION)
-        """)
-        withFile("buildSrc/src/main/kotlin/my-plugin.gradle.kts", """
-            apply<org.jetbrains.kotlin.gradle.plugin.KotlinPlatformJvmPlugin>()
-        """)
+            """
+        )
+        withFile(
+            "buildSrc/src/main/kotlin/my-plugin.gradle.kts",
+            "apply<org.jetbrains.kotlin.gradle.plugin.KotlinPlatformJvmPlugin>()"
+        )
 
-        withBuildScript("""
+        withBuildScript(
+            """
             import org.jetbrains.kotlin.config.KotlinCompilerVersion
 
             plugins {
@@ -103,7 +108,8 @@ class KotlinDslPluginGradlePluginCrossVersionSmokeTest(
             }
 
             println("root build script classpath kotlin compiler version " + KotlinCompilerVersion.VERSION)
-        """)
+            """
+        )
         withFile("src/main/kotlin/SomeSource.kt", "fun main(args: Array<String>) {}")
 
         build("classes").apply {

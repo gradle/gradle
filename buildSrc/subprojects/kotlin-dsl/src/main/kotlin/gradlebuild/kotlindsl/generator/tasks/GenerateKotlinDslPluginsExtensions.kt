@@ -37,6 +37,7 @@ package org.gradle.kotlin.dsl.plugins
 
 internal
 val appliedKotlinDslPluginsVersion = "${kotlinDslPluginsVersion.get()}"
-""")
+"""
+        )
     }
 }

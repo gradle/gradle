@@ -69,22 +69,24 @@ class ArtifactCollectionCodec(private val fileCollectionFactory: FileCollectionF
         val elements = readList().uncheckedCast<List<Any>>()
 
         @Suppress("implicit_cast_to_any")
-        val files = fileCollectionFactory.resolving(elements.map { element ->
-            when (element) {
-                is FixedFileArtifactSpec -> element.file
-                is TransformedProjectVariantSpec -> Callable {
-                    element.nodes.flatMap { it.transformedSubject.get().files }
+        val files = fileCollectionFactory.resolving(
+            elements.map { element ->
+                when (element) {
+                    is FixedFileArtifactSpec -> element.file
+                    is TransformedProjectVariantSpec -> Callable {
+                        element.nodes.flatMap { it.transformedSubject.get().files }
+                    }
+                    is TransformedLocalArtifactSpec -> Callable {
+                        element.transformation.isolateParameters()
+                        element.transformation.createInvocation(TransformationSubject.initial(element.origin), FixedDependenciesResolver(DefaultArtifactTransformDependencies(fileCollectionFactory.empty())), null).invoke().get().files
+                    }
+                    is TransformedExternalArtifactSet -> Callable {
+                        element.calculateResult()
+                    }
+                    else -> throw IllegalArgumentException("Unexpected element $element in artifact collection")
                 }
-                is TransformedLocalArtifactSpec -> Callable {
-                    element.transformation.isolateParameters()
-                    element.transformation.createInvocation(TransformationSubject.initial(element.origin), FixedDependenciesResolver(DefaultArtifactTransformDependencies(fileCollectionFactory.empty())), null).invoke().get().files
-                }
-                is TransformedExternalArtifactSet -> Callable {
-                    element.calculateResult()
-                }
-                else -> throw IllegalArgumentException("Unexpected element $element in artifact collection")
             }
-        })
+        )
         val failures = readList().uncheckedCast<List<Throwable>>()
         return FixedArtifactCollection(files, elements, failures, noDependencies)
     }

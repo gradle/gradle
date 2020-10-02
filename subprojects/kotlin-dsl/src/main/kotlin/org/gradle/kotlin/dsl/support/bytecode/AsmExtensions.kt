@@ -89,11 +89,14 @@ fun ClassVisitor.publicStaticMethod(
     methodBody: MethodVisitor.() -> Unit,
     annotations: MethodVisitor.() -> Unit
 ) {
-    method(Opcodes.ACC_PUBLIC + Opcodes.ACC_STATIC + if (deprecated) {
-        Opcodes.ACC_DEPRECATED
-    } else {
-        0
-    }, name, desc, signature, exceptions, annotations, methodBody)
+    method(
+        Opcodes.ACC_PUBLIC + Opcodes.ACC_STATIC + if (deprecated) {
+            Opcodes.ACC_DEPRECATED
+        } else {
+            0
+        },
+        name, desc, signature, exceptions, annotations, methodBody
+    )
 }
 
 

@@ -47,7 +47,8 @@ data class KotlinScriptTypeMatch(
                 KotlinScriptTypeMatch(KotlinScriptType.SETTINGS, Match.Whole("settings.gradle.kts")),
                 KotlinScriptTypeMatch(KotlinScriptType.SETTINGS, Match.Suffix(".settings.gradle.kts")),
                 KotlinScriptTypeMatch(KotlinScriptType.INIT, Match.Suffix(".init.gradle.kts")),
-                KotlinScriptTypeMatch(KotlinScriptType.PROJECT, Match.Suffix(".gradle.kts")))
+                KotlinScriptTypeMatch(KotlinScriptType.PROJECT, Match.Suffix(".gradle.kts"))
+            )
     }
 }
 

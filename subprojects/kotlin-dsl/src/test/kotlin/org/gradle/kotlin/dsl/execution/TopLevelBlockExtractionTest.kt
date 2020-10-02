@@ -43,12 +43,15 @@ class TopLevelBlockExtractionTest {
         val range = extractBuildscriptBlockFrom(script)!!
         assertThat(
             script.substring(range),
-            equalTo("""
+            equalTo(
+                """
                 buildscript {
                     val bar = 51
                     repositories {}
                     // also part of the content }}
-                }""".replaceIndent()))
+                }""".replaceIndent()
+            )
+        )
     }
 
     @Test
@@ -65,16 +68,19 @@ class TopLevelBlockExtractionTest {
 
     @Test
     fun `given top-level buildscript reference it returns null`() {
-        assertNoBuildscript("""
+        assertNoBuildscript(
+            """
             val a = buildscript
-            a.dependencies {}""")
+            a.dependencies {}"""
+        )
     }
 
     @Test
     fun `given top-level buildscript reference followed by top-level buildscript it returns correct range`() {
         assertThat(
             extractBuildscriptBlockFrom("val a = buildscript\nbuildscript {}"),
-            equalTo(20..33))
+            equalTo(20..33)
+        )
     }
 
     @Test

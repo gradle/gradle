@@ -19,7 +19,6 @@ import org.gradle.api.internal.initialization.DefaultClassLoaderScope
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 import org.jlleitschuh.gradle.ktlint.KtlintCheckTask
-import org.jlleitschuh.gradle.ktlint.KtlintFormatTask
 
 import gradlebuild.basics.accessors.kotlin
 
@@ -47,10 +46,6 @@ tasks {
         }
     }
 
-    withType<KtlintFormatTask>().configureEach {
-        enabled = false
-    }
-
     val ktlintCheckTasks = withType<KtlintCheckTask>()
 
     named("codeQuality") {
@@ -64,15 +59,16 @@ tasks {
         // enables stricter ClassLoaderScope behaviour
         systemProperty(
             DefaultClassLoaderScope.STRICT_MODE_PROPERTY,
-            true)
+            true
+        )
     }
 }
 
 fun KotlinCompile.configureKotlinCompilerForGradleBuild() {
     kotlinOptions {
         incremental = true
-        apiVersion = "1.3"
-        languageVersion = "1.3"
+        apiVersion = "1.4"
+        languageVersion = "1.4"
         freeCompilerArgs += listOf(
             "-Xjsr305=strict",
             "-java-parameters",

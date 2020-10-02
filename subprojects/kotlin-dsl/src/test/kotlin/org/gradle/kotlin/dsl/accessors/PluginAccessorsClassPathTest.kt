@@ -102,7 +102,8 @@ class PluginAccessorsClassPathTest : TestWithClassPath() {
             srcDir.resolve("org/gradle/kotlin/dsl/PluginAccessors.kt").readText().normaliseLineSeparators(),
             allOf(
                 containsString("import MyPlugin"),
-                containsMultiLineString("""
+                containsMultiLineString(
+                    """
 
                     /**
                      * The `my` plugin group.
@@ -137,7 +138,8 @@ class PluginAccessorsClassPathTest : TestWithClassPath() {
                      */
                     val `MyOwnPluginGroup`.`plugin`: PluginDependencySpec
                         get() = plugins.id("my.own.plugin")
-            """)
+                    """
+                )
             )
         )
 
@@ -183,8 +185,11 @@ class PluginAccessorsClassPathTest : TestWithClassPath() {
     private
     fun jarWithPluginDescriptors(file: File, vararg pluginIdsToImplClasses: Pair<String, String>) =
         file.also {
-            zipTo(it, pluginIdsToImplClasses.asSequence().map { (id, implClass) ->
-                pluginDescriptorEntryFor(id, implClass)
-            })
+            zipTo(
+                it,
+                pluginIdsToImplClasses.asSequence().map { (id, implClass) ->
+                    pluginDescriptorEntryFor(id, implClass)
+                }
+            )
         }
 }

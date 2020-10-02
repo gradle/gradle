@@ -289,7 +289,7 @@ class TypeAccessibilityProvider(classPath: ClassPath) : Closeable {
     val typeAccessibilityInfoPerClass = mutableMapOf<String, TypeAccessibilityInfo>()
 
     fun accessibilityForType(type: SchemaType): TypeAccessibility =
-    // TODO:accessors cache per SchemaType
+        // TODO:accessors cache per SchemaType
         inaccessibilityReasonsFor(classNamesFromTypeString(type)).let { inaccessibilityReasons ->
             if (inaccessibilityReasons.isNotEmpty()) inaccessible(type, inaccessibilityReasons)
             else accessible(type)
@@ -329,7 +329,8 @@ class TypeAccessibilityProvider(classPath: ClassPath) : Closeable {
                     ACC_SYNTHETIC in access -> synthetic(className)
                     isNonPublicKotlinType(classReader) -> nonPublic(className)
                     else -> null
-                }),
+                }
+            ),
             hasTypeParameters(classReader)
         )
     }
@@ -538,9 +539,9 @@ val accessorsCacheKeySpecPrefix = CacheKeySpec.withPrefix(accessorsWorkspacePref
 
 private
 fun cacheKeyFor(projectSchema: TypedProjectSchema, classPath: ClassPath): CacheKeySpec =
-    (accessorsCacheKeySpecPrefix
-        + hashCodeFor(projectSchema)
-        + classPath)
+    accessorsCacheKeySpecPrefix +
+        hashCodeFor(projectSchema) +
+        classPath
 
 
 fun hashCodeFor(schema: TypedProjectSchema): HashCode = Hashing.newHasher().run {

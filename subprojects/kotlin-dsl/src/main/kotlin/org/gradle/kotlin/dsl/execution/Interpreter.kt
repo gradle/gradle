@@ -225,7 +225,8 @@ class Interpreter(val host: Host) {
             scriptHandler,
             targetScope,
             baseScope,
-            host.serviceRegistryFor(programTarget, target))
+            host.serviceRegistryFor(programTarget, target)
+        )
 
     private
     fun programHostFor(options: EvalOptions) =
@@ -410,11 +411,13 @@ class Interpreter(val host: Host) {
                     scriptHost,
                     scriptTemplateId,
                     sourceHash,
-                    accessorsClassPath)
+                    accessorsClassPath
+                )
 
             host.cache(
                 specializedProgram,
-                programId)
+                programId
+            )
 
             eval(specializedProgram.programFor, scriptHost)
         }
@@ -497,7 +500,8 @@ class Interpreter(val host: Host) {
                 cacheDir,
                 scriptTemplateId,
                 accessorsClassPath,
-                scriptSource)
+                scriptSource
+            )
         }
 
         open fun eval(specializedProgram: Class<*>, scriptHost: KotlinScriptHost<*>) {

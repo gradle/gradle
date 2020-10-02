@@ -70,8 +70,7 @@ public abstract class AbstractJavaToolChain implements JavaToolChainInternal {
         @Override
         public <T extends CompileSpec> Compiler<T> newCompiler(Class<T> spec) {
             if (JavaCompileSpec.class.isAssignableFrom(spec)) {
-                @SuppressWarnings({"unchecked", "cast"}) Compiler<T> compiler = (Compiler<T>) compilerFactory.create(spec);
-                return compiler;
+                return compilerFactory.create(spec);
             }
             if (JavadocSpec.class.isAssignableFrom(spec)) {
                 @SuppressWarnings("unchecked") Compiler<T> compiler = (Compiler<T>) new JavadocCompilerAdapter(execActionFactory);

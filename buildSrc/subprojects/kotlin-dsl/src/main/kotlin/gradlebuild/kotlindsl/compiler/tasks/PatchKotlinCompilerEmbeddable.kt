@@ -121,10 +121,12 @@ abstract class PatchKotlinCompilerEmbeddable : DefaultTask() {
     private
     fun copyAdditionalRootFiles(patchedJar: ZipOutputStream) =
         additionalRootFiles.forEach { additionalRootFile ->
-            patchedJar.putNextEntry(ZipEntry(additionalRootFile.name).apply {
-                time = CONSTANT_TIME_FOR_ZIP_ENTRIES
-                size = additionalRootFile.length()
-            })
+            patchedJar.putNextEntry(
+                ZipEntry(additionalRootFile.name).apply {
+                    time = CONSTANT_TIME_FOR_ZIP_ENTRIES
+                    size = additionalRootFile.length()
+                }
+            )
             additionalRootFile.inputStream().buffered().use { input ->
                 input.copyTo(patchedJar)
             }

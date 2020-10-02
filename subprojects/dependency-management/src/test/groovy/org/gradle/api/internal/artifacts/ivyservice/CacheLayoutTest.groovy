@@ -62,7 +62,7 @@ class CacheLayoutTest extends Specification {
         cacheLayout.versionMapping.getVersionUsedBy(GradleVersion.version("1.9-rc-2")).get() == CacheVersion.of(2, 1)
 
         where:
-        expectedVersion = 97_123_001
+        expectedVersion = 97
     }
 
     def "use transforms layout"() {

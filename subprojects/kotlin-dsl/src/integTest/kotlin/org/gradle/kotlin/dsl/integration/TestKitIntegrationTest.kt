@@ -35,7 +35,8 @@ class TestKitIntegrationTest : AbstractKotlinIntegrationTest() {
 
         withDefaultSettings()
 
-        withBuildScript("""
+        withBuildScript(
+            """
 
             plugins {
                 `java-gradle-plugin`
@@ -59,9 +60,12 @@ class TestKitIntegrationTest : AbstractKotlinIntegrationTest() {
 
             $repositoriesBlock
 
-        """)
+            """
+        )
 
-        withFile("src/main/kotlin/plugin/TestPlugin.kt", """
+        withFile(
+            "src/main/kotlin/plugin/TestPlugin.kt",
+            """
 
             package plugin
 
@@ -77,9 +81,12 @@ class TestKitIntegrationTest : AbstractKotlinIntegrationTest() {
             open class TestExtension {
                 fun ack() = println("Ack!")
             }
-        """)
+            """
+        )
 
-        withFile("src/test/kotlin/plugin/TestPluginTest.kt", """
+        withFile(
+            "src/test/kotlin/plugin/TestPluginTest.kt",
+            """
 
             package plugin
 
@@ -127,9 +134,11 @@ class TestKitIntegrationTest : AbstractKotlinIntegrationTest() {
 
                 @Rule @JvmField val temporaryFolder = TemporaryFolder()
             }
-        """)
+            """
+        )
 
         println(
-            build("test").output)
+            build("test").output
+        )
     }
 }

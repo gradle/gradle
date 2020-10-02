@@ -398,11 +398,13 @@ class ResidualProgramCompilerTest : TestWithCompiler() {
     fun `Dynamic(Static(ApplyPluginsRequestsOf(Stage1Sequence), ApplyBasePlugins))`() {
 
         val source = ProgramSource(
-            "build.gradle.kts", """
+            "build.gradle.kts",
+            """
             buildscript { println("stage 1 buildscript") }
             plugins { println("stage 1 plugins") }
             print("stage 2")
-        """.replaceIndent())
+            """.replaceIndent()
+        )
 
         val buildscript = Program.Buildscript(source.fragment(0..10, 12..45))
         val plugins = Program.Plugins(source.fragment(47..52, 54..84))
@@ -449,10 +451,12 @@ class ResidualProgramCompilerTest : TestWithCompiler() {
     fun `Static(ApplyPluginRequestsOf(Stage1Sequence(pluginManagement, plugins))`() {
         // Given
         val source = ProgramSource(
-            "settings.gradle.kts", """
+            "settings.gradle.kts",
+            """
             pluginManagement { println("stage 1 pluginManagement") }
             plugins { println("stage 1 plugins") }
-        """.replaceIndent())
+            """.replaceIndent()
+        )
         val pluginManagement = Program.PluginManagement(source.fragment(0..15, 17..55))
         val plugins = Program.Plugins(source.fragment(57..62, 64..94))
         val stage1 = Program.Stage1Sequence(pluginManagement, null, plugins)
@@ -540,7 +544,8 @@ class ResidualProgramCompilerTest : TestWithCompiler() {
                     sourceHash,
                     ProgramKind.TopLevel,
                     programTarget,
-                    accessorsClassPath)
+                    accessorsClassPath
+                )
 
                 verifyNoMoreInteractions()
             }
@@ -582,7 +587,8 @@ class ResidualProgramCompilerTest : TestWithCompiler() {
                     sourceHash,
                     ProgramKind.TopLevel,
                     programTarget,
-                    accessorsClassPath)
+                    accessorsClassPath
+                )
 
                 verifyNoMoreInteractions()
             }

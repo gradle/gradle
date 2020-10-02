@@ -49,7 +49,8 @@ fun ExecOperations.pkill(pid: String) {
             logger.warn(
                 """Failed to kill daemon process $pid. Maybe already killed?
 Output: $killOutput
-""")
+"""
+            )
         }
     }
 }
@@ -79,11 +80,13 @@ fun ExecOperations.forEachLeakingJavaProcess(gradleHomeDir: File, rootProjectDir
         }
 
     if (result.exitValue != 0) {
-        throw RuntimeException("""Could not determine the process list:
+        throw RuntimeException(
+            """Could not determine the process list:
 [Output]
 $output
 [Error Output]
-$error""")
+$error"""
+        )
     }
 
     val processPattern = generateLeakingProcessKillPattern(rootProjectDir)

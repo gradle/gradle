@@ -36,7 +36,7 @@ class ExtensionContainerExtensionsTest {
     fun add() {
 
         val extensions = mock<ExtensionContainer>()
-        doNothing().`when`(extensions).add(any<TypeOf<*>>(), any(), any())
+        doNothing().`when`(extensions).add(any<TypeOf<SomeExtension<*>>>(), any(), any())
 
         val instance = SomeExtension("some")
         extensions.add<SomeExtension<String>>("name", instance)

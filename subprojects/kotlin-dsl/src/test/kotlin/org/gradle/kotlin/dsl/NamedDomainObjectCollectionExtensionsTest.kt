@@ -222,11 +222,13 @@ class NamedDomainObjectCollectionExtensionsTest {
 
         assertThat(
             domainObject.foo, // just to prove domainObject's type is inferred correctly
-            nullValue())
+            nullValue()
+        )
 
         assertThat(
             domainObject,
-            sameInstance(element))
+            sameInstance(element)
+        )
 
         inOrder(container, provider) {
             verify(provider, times(2)).get()

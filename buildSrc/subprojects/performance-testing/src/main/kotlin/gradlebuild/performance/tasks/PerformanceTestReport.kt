@@ -16,7 +16,7 @@
 
 package gradlebuild.performance.tasks
 
-import gradlebuild.performance.reporter.DefaultPerformanceReporter
+import gradlebuild.performance.reporter.PerformanceReporter
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.DirectoryProperty
@@ -89,7 +89,7 @@ abstract class PerformanceTestReport : DefaultTask() {
 
     @TaskAction
     fun generateReport() {
-        val reporter = DefaultPerformanceReporter(execOperations, fileOperations)
+        val reporter = PerformanceReporter(execOperations, fileOperations)
         reporter.report(
             reportGeneratorClass.get(),
             reportDir.get().asFile,

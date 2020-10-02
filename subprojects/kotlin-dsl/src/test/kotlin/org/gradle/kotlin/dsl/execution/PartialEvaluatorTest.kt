@@ -48,7 +48,9 @@ class PartialEvaluatorTest {
                     SetupEmbeddedKotlin,
                     ApplyDefaultPluginRequests,
                     ApplyBasePlugins
-                )))
+                )
+            )
+        )
     }
 
     @Test
@@ -70,7 +72,9 @@ class PartialEvaluatorTest {
                         ApplyBasePlugins
                     ),
                     source
-                )))
+                )
+            )
+        )
     }
 
     @Test
@@ -101,7 +105,9 @@ class PartialEvaluatorTest {
                         ApplyBasePlugins
                     ),
                     source
-                )))
+                )
+            )
+        )
     }
 
     @Test
@@ -122,7 +128,9 @@ class PartialEvaluatorTest {
                     SetupEmbeddedKotlin,
                     ApplyPluginRequestsOf(program),
                     ApplyBasePlugins
-                )))
+                )
+            )
+        )
     }
 
     @Test
@@ -142,7 +150,9 @@ class PartialEvaluatorTest {
                 Static(
                     SetupEmbeddedKotlin,
                     ApplyPluginRequestsOf(program)
-                )))
+                )
+            )
+        )
     }
 
     @Test
@@ -163,7 +173,9 @@ class PartialEvaluatorTest {
                     SetupEmbeddedKotlin,
                     Eval(fragment.source),
                     ApplyDefaultPluginRequests
-                )))
+                )
+            )
+        )
     }
 
     @Test
@@ -173,7 +185,8 @@ class PartialEvaluatorTest {
             Program.Stage1Sequence(
                 null,
                 Program.Buildscript(fragment("buildscript", "...")),
-                Program.Plugins(fragment("plugins", "...")))
+                Program.Plugins(fragment("plugins", "..."))
+            )
 
         assertThat(
             "reduces to static program that applies plugin requests and base plugins",
@@ -187,7 +200,9 @@ class PartialEvaluatorTest {
                     SetupEmbeddedKotlin,
                     ApplyPluginRequestsOf(program),
                     ApplyBasePlugins
-                )))
+                )
+            )
+        )
     }
 
     @Test
@@ -197,7 +212,8 @@ class PartialEvaluatorTest {
             Program.Stage1Sequence(
                 null,
                 Program.Buildscript(fragment("buildscript", "...")),
-                Program.Plugins(fragment("plugins", "...")))
+                Program.Plugins(fragment("plugins", "..."))
+            )
 
         assertThat(
             "reduces to static program that applies plugin requests without base plugins",
@@ -210,7 +226,9 @@ class PartialEvaluatorTest {
                 Static(
                     SetupEmbeddedKotlin,
                     ApplyPluginRequestsOf(program)
-                )))
+                )
+            )
+        )
     }
 
     @Test
@@ -241,7 +259,9 @@ class PartialEvaluatorTest {
                         ApplyBasePlugins
                     ),
                     program.stage2.source
-                )))
+                )
+            )
+        )
     }
 
     @Test
@@ -258,7 +278,9 @@ class PartialEvaluatorTest {
                 Static(
                     CloseTargetScope,
                     ApplyBasePlugins
-                )))
+                )
+            )
+        )
     }
 
     @Test
@@ -279,7 +301,9 @@ class PartialEvaluatorTest {
                     CloseTargetScope,
                     ApplyBasePlugins,
                     Eval(source)
-                )))
+                )
+            )
+        )
     }
 
     @Test
@@ -294,7 +318,8 @@ class PartialEvaluatorTest {
             ),
             isResidualProgram(
                 Static(CloseTargetScope)
-            ))
+            )
+        )
     }
 
     @Test
@@ -314,7 +339,9 @@ class PartialEvaluatorTest {
                 Static(
                     CloseTargetScope,
                     Eval(source)
-                )))
+                )
+            )
+        )
     }
 
     @Test
@@ -330,7 +357,9 @@ class PartialEvaluatorTest {
             isResidualProgram(
                 Static(
                     ApplyDefaultPluginRequests
-                )))
+                )
+            )
+        )
     }
 
     @Test
@@ -350,7 +379,9 @@ class PartialEvaluatorTest {
                 Static(
                     ApplyDefaultPluginRequests,
                     Eval(source)
-                )))
+                )
+            )
+        )
     }
 
     @Test
@@ -371,7 +402,9 @@ class PartialEvaluatorTest {
                     SetupEmbeddedKotlin,
                     Eval(fragment.source),
                     ApplyDefaultPluginRequests
-                )))
+                )
+            )
+        )
     }
 
     @Test
@@ -380,7 +413,8 @@ class PartialEvaluatorTest {
         val originalSource =
             ProgramSource(
                 "settings.gradle.kts",
-                "\nbuildscript { dependencies {} }; include(\"stage-2\")")
+                "\nbuildscript { dependencies {} }; include(\"stage-2\")"
+            )
 
         val buildscriptFragment =
             originalSource.fragment(1..10, 12..31)
@@ -409,7 +443,9 @@ class PartialEvaluatorTest {
                         ApplyDefaultPluginRequests
                     ),
                     scriptSource
-                )))
+                )
+            )
+        )
     }
 
     private

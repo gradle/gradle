@@ -49,16 +49,22 @@ fun IsolateContext.logUnsupported(
     actualType: Class<*>,
     documentationSection: DocumentationSection = RequirementsDisallowedTypes
 ) {
-    logPropertyProblem(action, PropertyProblem(trace,
-        build {
-            text("cannot ")
-            text(action)
-            text(" object of type ")
-            reference(GeneratedSubclasses.unpack(actualType))
-            text(", a subtype of ")
-            reference(baseType)
-            text(", as these are not supported with the configuration cache.")
-        }, null, documentationSection))
+    logPropertyProblem(
+        action,
+        PropertyProblem(
+            trace,
+            build {
+                text("cannot ")
+                text(action)
+                text(" object of type ")
+                reference(GeneratedSubclasses.unpack(actualType))
+                text(", a subtype of ")
+                reference(baseType)
+                text(", as these are not supported with the configuration cache.")
+            },
+            null, documentationSection
+        )
+    )
 }
 
 
@@ -68,14 +74,20 @@ fun IsolateContext.logUnsupported(
     baseType: KClass<*>,
     documentationSection: DocumentationSection = RequirementsDisallowedTypes
 ) {
-    logPropertyProblem(action, PropertyProblem(trace,
-        build {
-            text("cannot ")
-            text(action)
-            text(" object of type ")
-            reference(baseType)
-            text(" as these are not supported with the configuration cache.")
-        }, null, documentationSection))
+    logPropertyProblem(
+        action,
+        PropertyProblem(
+            trace,
+            build {
+                text("cannot ")
+                text(action)
+                text(" object of type ")
+                reference(baseType)
+                text(" as these are not supported with the configuration cache.")
+            },
+            null, documentationSection
+        )
+    )
 }
 
 
@@ -90,9 +102,15 @@ fun IsolateContext.logNotImplemented(baseType: Class<*>) {
 
 internal
 fun IsolateContext.logNotImplemented(feature: String, documentationSection: DocumentationSection = NotYetImplemented) {
-    onProblem(PropertyProblem(trace, build {
-        text("support for $feature is not yet implemented with the configuration cache.")
-    }, null, documentationSection))
+    onProblem(
+        PropertyProblem(
+            trace,
+            build {
+                text("support for $feature is not yet implemented with the configuration cache.")
+            },
+            null, documentationSection
+        )
+    )
 }
 
 

@@ -18,7 +18,9 @@ class KotlinInitScriptIntegrationTest : AbstractKotlinIntegrationTest() {
         withClassJar("fixture.jar", DeepThought::class.java)
 
         val initScript =
-            withFile("init.gradle.kts", """
+            withFile(
+                "init.gradle.kts",
+                """
 
                 initscript {
                     dependencies { classpath(files("fixture.jar")) }
@@ -27,35 +29,46 @@ class KotlinInitScriptIntegrationTest : AbstractKotlinIntegrationTest() {
                 val computer = ${DeepThought::class.qualifiedName}()
                 val answer = computer.compute()
                 println("*" + answer + "*")
-            """)
+                """
+            )
 
         assert(
             build("-I", initScript.canonicalPath)
-                .output.contains("*42*"))
+                .output.contains("*42*")
+        )
     }
 
     @Test
     fun `initscript file path is resolved relative to parent script dir`() {
 
         val initScript =
-            withFile("gradle/init.gradle.kts", """
+            withFile(
+                "gradle/init.gradle.kts",
+                """
                 apply(from = "./answer.gradle.kts")
-            """)
+                """
+            )
 
-        withFile("gradle/answer.gradle.kts", """
+        withFile(
+            "gradle/answer.gradle.kts",
+            """
             rootProject {
                 val answer by extra { "42" }
             }
-        """)
+            """
+        )
 
-        withBuildScript("""
+        withBuildScript(
+            """
             val answer: String by extra
             println("*" + answer + "*")
-        """)
+            """
+        )
 
         assert(
             build("-I", initScript.canonicalPath)
-                .output.contains("*42*"))
+                .output.contains("*42*")
+        )
     }
 
     @Test
@@ -66,7 +79,9 @@ class KotlinInitScriptIntegrationTest : AbstractKotlinIntegrationTest() {
         val guh = file("gradle-user-home").apply { mkdirs() }
         guh.withFolders {
             "init.d" {
-                withFile("init.gradle.kts", """
+                withFile(
+                    "init.gradle.kts",
+                    """
                     allprojects {
                         buildscript.repositories {
                             maven {
@@ -75,24 +90,28 @@ class KotlinInitScriptIntegrationTest : AbstractKotlinIntegrationTest() {
                             }
                         }
                     }
-                """)
+                    """
+                )
             }
         }
 
-        withBuildScript("""
+        withBuildScript(
+            """
             buildscript {
                 repositories.forEach {
                     println("*" + it.name + "*")
                 }
             }
-        """)
+            """
+        )
 
         executer.withGradleUserHomeDir(guh)
         executer.requireIsolatedDaemons()
 
         assertThat(
             build().output,
-            containsString("*test-repository*"))
+            containsString("*test-repository*")
+        )
     }
 
     @Test
@@ -100,7 +119,9 @@ class KotlinInitScriptIntegrationTest : AbstractKotlinIntegrationTest() {
 
         withClassJar("fixture.jar", DeepThought::class.java)
 
-        withFile("plugin.init.gradle.kts", """
+        withFile(
+            "plugin.init.gradle.kts",
+            """
             initscript {
                 dependencies { classpath(files("fixture.jar")) }
             }
@@ -114,17 +135,22 @@ class KotlinInitScriptIntegrationTest : AbstractKotlinIntegrationTest() {
                     }
                 }
             }
-        """)
+            """
+        )
 
         val initScript =
-            withFile("init.gradle.kts", """
+            withFile(
+                "init.gradle.kts",
+                """
                 apply(from = "plugin.init.gradle.kts")
-            """)
+                """
+            )
 
         withSettings("")
 
         assertThat(
             build("compute", "-I", initScript.canonicalPath).output,
-            containsString("*42*"))
+            containsString("*42*")
+        )
     }
 }

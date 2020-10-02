@@ -56,10 +56,13 @@ fun createAggregateTasks(sourceSet: SourceSet) {
 
     val releasedVersions = moduleIdentity.releasedVersions.forUseAtConfigurationTime().getOrNull()
     releasedVersions?.allTestedVersions?.forEach { targetVersion ->
-        val crossVersionTest = createTestTask("gradle${targetVersion.version}CrossVersionTest", "forking", sourceSet, TestType.CROSSVERSION, Action {
-            this.description = "Runs the cross-version tests against Gradle ${targetVersion.version}"
-            this.systemProperties["org.gradle.integtest.versions"] = targetVersion.version
-        })
+        val crossVersionTest = createTestTask(
+            "gradle${targetVersion.version}CrossVersionTest", "forking", sourceSet, TestType.CROSSVERSION,
+            Action {
+                this.description = "Runs the cross-version tests against Gradle ${targetVersion.version}"
+                this.systemProperties["org.gradle.integtest.versions"] = targetVersion.version
+            }
+        )
 
         allVersionsCrossVersionTests.configure { dependsOn(crossVersionTest) }
         if (targetVersion in releasedVersions.mainTestedVersions) {

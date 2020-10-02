@@ -232,10 +232,10 @@ class KotlinBuildScriptDependenciesResolver @VisibleForTesting constructor(
             ?: environment.gradleUri?.let(GradleInstallation::Remote)
             ?: environment.gradleVersion?.let(GradleInstallation::Version)
             ?: if ("embedded" == System.getProperty("org.gradle.integtest.executer")) {
-                    GradleInstallation.Embedded
-                } else {
-                    GradleInstallation.Wrapper
-                }
+                GradleInstallation.Embedded
+            } else {
+                GradleInstallation.Wrapper
+            }
 
     private
     fun dependenciesFrom(
@@ -290,7 +290,6 @@ object ResolverCoordinator {
 
     private
     fun sameClassPathBlocksHashAs(previousDependencies: KotlinScriptExternalDependencies?, hash: ByteArray?) =
-        @Suppress("DEPRECATION") // TODO Fix once we build with Kotlin 1.4
         hash?.let { nonNullHash -> classPathBlocksHashOf(previousDependencies)?.contentEquals(nonNullHash) }
             ?: false
 

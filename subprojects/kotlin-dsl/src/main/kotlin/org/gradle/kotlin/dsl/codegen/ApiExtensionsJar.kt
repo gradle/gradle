@@ -71,8 +71,8 @@ class ApiExtensionsJarGenerator(
 
     private
     fun sourceFilesFor(outputDir: File) =
-        (gradleApiExtensionsSourceFilesFor(outputDir)
-            + builtinPluginIdExtensionsSourceFileFor(outputDir))
+        gradleApiExtensionsSourceFilesFor(outputDir) +
+            builtinPluginIdExtensionsSourceFileFor(outputDir)
 
     private
     fun gradleApiExtensionsSourceFilesFor(outputDir: File) =
@@ -123,6 +123,7 @@ fun compileKotlinApiExtensionsTo(
             "Unable to compile Gradle Kotlin DSL API Extensions Jar\n" +
                 "\tFrom:\n" +
                 sourceFiles.joinToString("\n\t- ", prefix = "\t- ", postfix = "\n") +
-                "\tSee compiler logs for details.")
+                "\tSee compiler logs for details."
+        )
     }
 }

@@ -43,8 +43,10 @@ dependencies {
 
         withModule<ReplaceCglibNodepWithCglibRule>("org.spockframework:spock-core")
         // Prevent Spock from pulling in Groovy and third-party dependencies - see https://github.com/spockframework/spock/issues/899
-        withLibraryDependencies<DependencyRemovalByNameRule>("org.spockframework:spock-core",
-            setOf("groovy-groovysh", "groovy-json", "groovy-macro", "groovy-nio", "groovy-sql", "groovy-templates", "groovy-test", "groovy-xml"))
+        withLibraryDependencies<DependencyRemovalByNameRule>(
+            "org.spockframework:spock-core",
+            setOf("groovy-groovysh", "groovy-json", "groovy-macro", "groovy-nio", "groovy-sql", "groovy-templates", "groovy-test", "groovy-xml")
+        )
         withLibraryDependencies<DependencyRemovalByNameRule>("cglib:cglib", setOf("ant"))
 
         // asciidoctorj depends on a lot of stuff, which causes `Can't create process, argument list too long` on Windows
@@ -59,14 +61,18 @@ dependencies {
         withLibraryDependencies<KeepDependenciesByNameRule>("com.google.guava:guava", setOf("failureaccess"))
 
         // Test dependencies - minify: remove unused transitive dependencies
-        withLibraryDependencies<DependencyRemovalByNameRule>("org.gradle.org.littleshoot:littleproxy",
-            setOf("barchart-udt-bundle", "guava", "commons-cli"))
+        withLibraryDependencies<DependencyRemovalByNameRule>(
+            "org.gradle.org.littleshoot:littleproxy",
+            setOf("barchart-udt-bundle", "guava", "commons-cli")
+        )
 
         // TODO: Gradle profiler should use the bundled tooling API.
         //   This should actually be handled by conflict resolution, though it doesn't seem to work.
         //   See https://github.com/gradle/gradle/issues/12002.
-        withLibraryDependencies<DependencyRemovalByNameRule>("org.gradle.profiler:gradle-profiler",
-            setOf("gradle-tooling-api"))
+        withLibraryDependencies<DependencyRemovalByNameRule>(
+            "org.gradle.profiler:gradle-profiler",
+            setOf("gradle-tooling-api")
+        )
     }
 }
 
