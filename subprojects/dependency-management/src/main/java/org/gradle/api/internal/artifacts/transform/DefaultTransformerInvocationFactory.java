@@ -27,13 +27,10 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.provider.Provider;
-import org.gradle.internal.Cast;
 import org.gradle.internal.Try;
 import org.gradle.internal.UncheckedException;
-import org.gradle.internal.execution.CachingResult;
 import org.gradle.internal.execution.DeferredResultProcessor;
 import org.gradle.internal.execution.InputChangesContext;
-import org.gradle.internal.execution.Result;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.WorkExecutor;
 import org.gradle.internal.execution.caching.CachingDisabledReason;
@@ -144,23 +141,21 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
                 workspaceProvider
             );
 
-            return workExecutor.executeDeferred(execution, null, workspaceProvider.getIdentityCache(), new DeferredResultProcessor<CachingResult, CacheableInvocation<ImmutableList<File>>>() {
+            return workExecutor.executeDeferred(execution, null, workspaceProvider.getIdentityCache(), new DeferredResultProcessor<ImmutableList<File>, CacheableInvocation<ImmutableList<File>>>() {
                 @Override
-                public CacheableInvocation<ImmutableList<File>> processCachedResult(CachingResult cachedResult) {
-                    return CacheableInvocation.cached(mapResult(cachedResult));
+                public CacheableInvocation<ImmutableList<File>> processCachedOutput(Try<ImmutableList<File>> cachedOutput) {
+                    return CacheableInvocation.cached(mapResult(cachedOutput));
                 }
 
                 @Override
-                public CacheableInvocation<ImmutableList<File>> processDeferredResult(Supplier<CachingResult> deferredExecution) {
+                public CacheableInvocation<ImmutableList<File>> processDeferredOutput(Supplier<Try<ImmutableList<File>>> deferredExecution) {
                     return CacheableInvocation.nonCached(() -> mapResult(deferredExecution.get()));
                 }
 
                 @Nonnull
-                private Try<ImmutableList<File>> mapResult(CachingResult result) {
-                    return result.getExecutionResult()
-                        .mapFailure(failure -> new TransformException(String.format("Execution failed for %s.", execution.getDisplayName()), failure))
-                        .map(Result.ExecutionResult::getOutput)
-                        .map(Cast::uncheckedNonnullCast);
+                private Try<ImmutableList<File>> mapResult(Try<ImmutableList<File>> cachedOutput) {
+                    return cachedOutput
+                        .mapFailure(failure -> new TransformException(String.format("Execution failed for %s.", execution.getDisplayName()), failure));
                 }
             });
         });

@@ -17,6 +17,7 @@
 package org.gradle.internal.execution.impl;
 
 import com.google.common.cache.Cache;
+import org.gradle.internal.Try;
 import org.gradle.internal.execution.CachingResult;
 import org.gradle.internal.execution.DeferredExecutionAwareStep;
 import org.gradle.internal.execution.DeferredResultProcessor;
@@ -41,7 +42,7 @@ public class DefaultWorkExecutor implements WorkExecutor {
     }
 
     @Override
-    public <T> T executeDeferred(UnitOfWork work, @Nullable String rebuildReason, Cache<Identity, CachingResult> cache, DeferredResultProcessor<CachingResult, T> processor) {
+    public <T, O> T executeDeferred(UnitOfWork work, @Nullable String rebuildReason, Cache<Identity, Try<O>> cache, DeferredResultProcessor<O, T> processor) {
         return executeStep.executeDeferred(new Request(work, rebuildReason), cache, processor);
     }
 

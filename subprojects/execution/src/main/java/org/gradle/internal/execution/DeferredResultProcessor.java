@@ -16,10 +16,12 @@
 
 package org.gradle.internal.execution;
 
+import org.gradle.internal.Try;
+
 import java.util.function.Supplier;
 
 public interface DeferredResultProcessor<O, T> {
-    T processCachedResult(O cachedResult);
+    T processCachedOutput(Try<O> cachedResult);
 
-    T processDeferredResult(Supplier<O> deferredExecution);
+    T processDeferredOutput(Supplier<Try<O>> deferredExecution);
 }

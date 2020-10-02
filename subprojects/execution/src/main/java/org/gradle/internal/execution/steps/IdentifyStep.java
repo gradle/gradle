@@ -20,6 +20,7 @@ import com.google.common.cache.Cache;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Sets;
+import org.gradle.internal.Try;
 import org.gradle.internal.execution.DeferredExecutionAwareStep;
 import org.gradle.internal.execution.DeferredResultProcessor;
 import org.gradle.internal.execution.ExecutionRequestContext;
@@ -58,7 +59,7 @@ public class IdentifyStep<C extends ExecutionRequestContext, R extends Result> i
     }
 
     @Override
-    public <T> T executeDeferred(C context, Cache<Identity, R> cache, DeferredResultProcessor<R, T> processor) {
+    public <T, O> T executeDeferred(C context, Cache<Identity, Try<O>> cache, DeferredResultProcessor<O, T> processor) {
         return delegate.executeDeferred(createIdentityContext(context), cache, processor);
     }
 

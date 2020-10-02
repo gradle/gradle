@@ -17,7 +17,8 @@
 package org.gradle.api.internal.artifacts.transform;
 
 import com.google.common.cache.Cache;
-import org.gradle.internal.execution.CachingResult;
+import com.google.common.collect.ImmutableList;
+import org.gradle.internal.Try;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 
@@ -34,7 +35,7 @@ public interface TransformationWorkspaceProvider {
      */
     ExecutionHistoryStore getExecutionHistoryStore();
 
-    Cache<UnitOfWork.Identity, CachingResult> getIdentityCache();
+    Cache<UnitOfWork.Identity, Try<ImmutableList<File>>> getIdentityCache();
 
     @FunctionalInterface
     interface TransformationWorkspaceAction<T> {

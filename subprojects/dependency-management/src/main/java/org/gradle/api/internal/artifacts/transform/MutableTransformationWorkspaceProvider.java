@@ -18,10 +18,11 @@ package org.gradle.api.internal.artifacts.transform;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.provider.Provider;
-import org.gradle.internal.execution.CachingResult;
+import org.gradle.internal.Try;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.file.ReservedFileSystemLocation;
@@ -32,7 +33,7 @@ import java.io.File;
 @NotThreadSafe
 public class MutableTransformationWorkspaceProvider implements TransformationWorkspaceProvider, ReservedFileSystemLocation {
 
-    private final Cache<UnitOfWork.Identity, CachingResult> identityCache = CacheBuilder.newBuilder().build();
+    private final Cache<UnitOfWork.Identity, Try<ImmutableList<File>>> identityCache = CacheBuilder.newBuilder().build();
     private final Provider<Directory> baseDirectory;
     private final ExecutionHistoryStore executionHistoryStore;
 
@@ -47,7 +48,7 @@ public class MutableTransformationWorkspaceProvider implements TransformationWor
     }
 
     @Override
-    public Cache<UnitOfWork.Identity, CachingResult> getIdentityCache() {
+    public Cache<UnitOfWork.Identity, Try<ImmutableList<File>>> getIdentityCache() {
         return identityCache;
     }
 
