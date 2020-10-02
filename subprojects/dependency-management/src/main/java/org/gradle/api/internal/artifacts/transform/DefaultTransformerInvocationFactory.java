@@ -126,38 +126,38 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
 
         UnitOfWork.Identity identity = getTransformationIdentity(producerProject, inputArtifactSnapshot, normalizedInputPath, transformer, dependenciesFingerprint);
 
-        return fireTransformListeners(transformer, subject, () -> {
-            TransformerExecution execution = new TransformerExecution(
-                transformer,
-                identity,
-                inputArtifact,
-                inputArtifactSnapshot,
-                dependencies,
-                dependenciesFingerprint,
-                buildOperationExecutor,
-                workspaceProvider.getExecutionHistoryStore(),
-                fileCollectionFactory,
-                inputArtifactFingerprinter,
-                workspaceProvider
-            );
+        TransformerExecution execution = new TransformerExecution(
+            transformer,
+            identity,
+            inputArtifact,
+            inputArtifactSnapshot,
+            dependencies,
+            dependenciesFingerprint,
+            buildOperationExecutor,
+            workspaceProvider.getExecutionHistoryStore(),
+            fileCollectionFactory,
+            inputArtifactFingerprinter,
+            workspaceProvider
+        );
 
-            return workExecutor.executeDeferred(execution, null, workspaceProvider.getIdentityCache(), new DeferredResultProcessor<ImmutableList<File>, CacheableInvocation<ImmutableList<File>>>() {
-                @Override
-                public CacheableInvocation<ImmutableList<File>> processCachedOutput(Try<ImmutableList<File>> cachedOutput) {
-                    return CacheableInvocation.cached(mapResult(cachedOutput));
-                }
+        return workExecutor.executeDeferred(execution, null, workspaceProvider.getIdentityCache(), new DeferredResultProcessor<ImmutableList<File>, CacheableInvocation<ImmutableList<File>>>() {
+            @Override
+            public CacheableInvocation<ImmutableList<File>> processCachedOutput(Try<ImmutableList<File>> cachedOutput) {
+                return CacheableInvocation.cached(mapResult(cachedOutput));
+            }
 
-                @Override
-                public CacheableInvocation<ImmutableList<File>> processDeferredOutput(Supplier<Try<ImmutableList<File>>> deferredExecution) {
-                    return CacheableInvocation.nonCached(() -> mapResult(deferredExecution.get()));
-                }
+            @Override
+            public CacheableInvocation<ImmutableList<File>> processDeferredOutput(Supplier<Try<ImmutableList<File>>> deferredExecution) {
+                return CacheableInvocation.nonCached(() ->
+                    fireTransformListeners(transformer, subject, () ->
+                        mapResult(deferredExecution.get())));
+            }
 
-                @Nonnull
-                private Try<ImmutableList<File>> mapResult(Try<ImmutableList<File>> cachedOutput) {
-                    return cachedOutput
-                        .mapFailure(failure -> new TransformException(String.format("Execution failed for %s.", execution.getDisplayName()), failure));
-                }
-            });
+            @Nonnull
+            private Try<ImmutableList<File>> mapResult(Try<ImmutableList<File>> cachedOutput) {
+                return cachedOutput
+                    .mapFailure(failure -> new TransformException(String.format("Execution failed for %s.", execution.getDisplayName()), failure));
+            }
         });
     }
 
