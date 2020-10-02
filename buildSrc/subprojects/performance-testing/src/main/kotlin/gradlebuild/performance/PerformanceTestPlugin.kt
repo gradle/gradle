@@ -370,7 +370,7 @@ class PerformanceTestExtension(
 
             maxParallelForks = 1
             useJUnitPlatform()
-            jvmArgs("-Xmx5g", "-XX:+HeapDumpOnOutOfMemoryError")
+            jvmArgs("-Xmx1g", "-XX:+HeapDumpOnOutOfMemoryError")
             if (project.hasProperty(PropertyNames.performanceTestVerbose)) {
                 testLogging.showStandardStreams = true
             }
