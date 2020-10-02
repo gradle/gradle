@@ -62,8 +62,8 @@ abstract class ShadedJar : DefaultTask() {
     abstract val buildReceiptFile: ConfigurableFileCollection
 
     /**
-      * The output Jar file.
-      */
+     * The output Jar file.
+     */
     @get:OutputFile
     abstract val jarFile: RegularFileProperty
 

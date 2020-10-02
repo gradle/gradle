@@ -58,11 +58,13 @@ fun DistributionTest.configureGradleTestEnvironment() {
 
     gradleInstallationForTest.apply {
         if (executerRequiresDistribution(taskName)) {
-            gradleHomeDir.setFrom(if (executerRequiresFullDistribution(taskName)) {
-                configurations["${prefix}TestFullDistributionRuntimeClasspath"]
-            } else {
-                configurations["${prefix}TestDistributionRuntimeClasspath"]
-            })
+            gradleHomeDir.setFrom(
+                if (executerRequiresFullDistribution(taskName)) {
+                    configurations["${prefix}TestFullDistributionRuntimeClasspath"]
+                } else {
+                    configurations["${prefix}TestDistributionRuntimeClasspath"]
+                }
+            )
         }
         // Set the base user home dir to be share by integration tests.
         // The actual user home dir will be a subfolder using the name of the distribution.

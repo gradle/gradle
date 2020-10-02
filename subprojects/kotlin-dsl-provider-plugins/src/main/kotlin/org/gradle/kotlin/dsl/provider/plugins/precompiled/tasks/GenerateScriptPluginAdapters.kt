@@ -74,7 +74,8 @@ fun PrecompiledScriptPlugin.writeScriptPluginAdapterTo(outputDir: File) {
     val outputFile =
         packageDir.resolve("$simplePluginAdapterClassName.kt")
 
-    outputFile.writeText("""
+    outputFile.writeText(
+        """
 
         $packageDeclaration
 
@@ -96,7 +97,8 @@ fun PrecompiledScriptPlugin.writeScriptPluginAdapterTo(outputDir: File) {
             }
         }
 
-    """.normaliseLineSeparators().replaceIndent().trim() + "\n")
+        """.normaliseLineSeparators().replaceIndent().trim() + "\n"
+    )
 }
 
 

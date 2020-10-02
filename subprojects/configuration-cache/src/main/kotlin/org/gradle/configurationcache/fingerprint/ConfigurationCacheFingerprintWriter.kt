@@ -52,8 +52,12 @@ class ConfigurationCacheFingerprintWriter(
     private val writeContext: DefaultWriteContext,
     private val fileCollectionFactory: FileCollectionFactory,
     private val directoryFileTreeFactory: DirectoryFileTreeFactory
-) : ValueSourceProviderFactory.Listener, TaskInputsListener, ScriptExecutionListener,
-    UndeclaredBuildInputListener, ChangingValueDependencyResolutionListener, FileResourceListener {
+) : ValueSourceProviderFactory.Listener,
+    TaskInputsListener,
+    ScriptExecutionListener,
+    UndeclaredBuildInputListener,
+    ChangingValueDependencyResolutionListener,
+    FileResourceListener {
 
     interface Host {
         val gradleUserHomeDir: File

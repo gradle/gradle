@@ -13,7 +13,8 @@ class ResolverCoordinatorTest {
         val environment =
             environmentWithGetScriptSectionTokensReturning(
                 "buildscript" to sequenceOf(""),
-                "plugins" to sequenceOf(""))
+                "plugins" to sequenceOf("")
+            )
 
         val action1 = resolverActionFor(environment, null)
         org.gradle.kotlin.dsl.fixtures.withInstanceOf<ResolverAction.RequestNew>(action1) {

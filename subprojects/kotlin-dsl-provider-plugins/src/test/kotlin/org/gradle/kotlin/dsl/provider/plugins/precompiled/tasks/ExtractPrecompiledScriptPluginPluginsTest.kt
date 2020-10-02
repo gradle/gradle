@@ -56,7 +56,8 @@ class ExtractPrecompiledScriptPluginPluginsTest : TestWithTempFiles() {
 
         assertThat(
             outputFile("plugins-only.gradle.kts").readText(),
-            equalToMultiLineString("""
+            equalToMultiLineString(
+                """
                 ${"// this comment will be removed".replacedBySpaces()}
                 plugins {
                     java
@@ -71,15 +72,19 @@ class ExtractPrecompiledScriptPluginPluginsTest : TestWithTempFiles() {
         extractPluginsFrom(
             // the `buildscript` block is not really valid in precompiled script plugins (causes a runtime error)
             // but still worth testing here
-            scriptPlugin("buildscript-and-plugins.gradle.kts", """
+            scriptPlugin(
+                "buildscript-and-plugins.gradle.kts",
+                """
                 buildscript {}
                 plugins { java }
-            """)
+                """
+            )
         )
 
         assertThat(
             outputFile("buildscript-and-plugins.gradle.kts").readText(),
-            equalToMultiLineString("""
+            equalToMultiLineString(
+                """
                 ${"buildscript {}".replacedBySpaces()}
                 plugins { java }"""
             )
@@ -91,13 +96,19 @@ class ExtractPrecompiledScriptPluginPluginsTest : TestWithTempFiles() {
 
         extractPluginsFrom(
 
-            scriptPlugin("no-plugins.gradle.kts", """
+            scriptPlugin(
+                "no-plugins.gradle.kts",
+                """
                 buildscript {}
-            """),
+                """
+            ),
 
-            scriptPlugin("empty-plugins.gradle.kts", """
+            scriptPlugin(
+                "empty-plugins.gradle.kts",
+                """
                 plugins {}
-            """)
+                """
+            )
         )
 
         assertThat(

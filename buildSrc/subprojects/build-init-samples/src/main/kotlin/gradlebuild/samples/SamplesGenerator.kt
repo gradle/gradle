@@ -170,17 +170,17 @@ Enter selection (default: JUnit 4) [1..4]
         val extraCompileJava = if (descriptor.language != Language.JAVA) """
      > Task :$subprojectName:compileJava NO-SOURCE
 
-     """.trimIndent() else ""
+        """.trimIndent() else ""
         val extraCompileTestJava = if (descriptor.language != Language.JAVA) """
      > Task :$subprojectName:compileTestJava NO-SOURCE
 
-     """.trimIndent() else ""
+        """.trimIndent() else ""
         val nativeTestTaskPrefix = if (descriptor.language === Language.SWIFT) "xc" else "run"
         val classesUpToDate = if (descriptor.language === Language.KOTLIN) " UP-TO-DATE" else ""
         val inspectClassesForKotlinICTask = if (descriptor.language === Language.KOTLIN) """
      > Task :$subprojectName:inspectClassesForKotlinIC
 
-     """.trimIndent() else ""
+        """.trimIndent() else ""
         projectLayoutSetupRegistry.templateOperationFactory.newTemplateOperation()
             .withTemplate(templateFolder.template("$templateFragment-build.out"))
             .withTarget(settings.target.file("../tests/build.out").asFile)

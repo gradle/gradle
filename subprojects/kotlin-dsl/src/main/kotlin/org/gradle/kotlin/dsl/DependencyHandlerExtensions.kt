@@ -94,7 +94,9 @@ fun DependencyHandler.module(
             "version" to version,
             "configuration" to configuration,
             "classifier" to classifier,
-            "ext" to ext)) as ClientModule
+            "ext" to ext
+        )
+    ) as ClientModule
 
 
 /**
@@ -129,8 +131,11 @@ fun DependencyHandler.module(
                 "version" to version,
                 "configuration" to configuration,
                 "classifier" to classifier,
-                "ext" to ext)) as ClientModule,
-        clientModuleConfiguration)
+                "ext" to ext
+            )
+        ) as ClientModule,
+        clientModuleConfiguration
+    )
 
 
 /**
@@ -180,23 +185,27 @@ class ClientModuleScope(
     ) {
 
         clientModule.addDependency(
-            dependencyHandler.module(group, name, version, configuration, classifier, ext, setup))
+            dependencyHandler.module(group, name, version, configuration, classifier, ext, setup)
+        )
     }
 
     fun dependency(notation: Any) {
         clientModule.addDependency(
-            dependencyHandler.create(notation) as ModuleDependency)
+            dependencyHandler.create(notation) as ModuleDependency
+        )
     }
 
     fun dependency(notation: String, dependencyConfiguration: ExternalModuleDependency.() -> Unit) {
         clientModule.addDependency(
-            create(notation, dependencyConfiguration))
+            create(notation, dependencyConfiguration)
+        )
     }
 
     fun dependencies(vararg notations: Any) {
         notations.forEach {
             clientModule.addDependency(
-                dependencyHandler.create(it) as ModuleDependency)
+                dependencyHandler.create(it) as ModuleDependency
+            )
         }
     }
 
@@ -221,7 +230,9 @@ fun DependencyHandler.project(
     uncheckedCast(
         project(
             if (configuration != null) mapOf("path" to path, "configuration" to configuration)
-            else mapOf("path" to path)))
+            else mapOf("path" to path)
+        )
+    )
 
 
 /**

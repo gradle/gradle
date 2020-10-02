@@ -259,7 +259,8 @@ inline fun <T> withCompilationExceptionHandler(messageCollector: LoggingMessageC
         messageCollector.report(
             CompilerMessageSeverity.EXCEPTION,
             ex.localizedMessage,
-            MessageUtil.psiElementToMessageLocation(ex.element))
+            MessageUtil.psiElementToMessageLocation(ex.element)
+        )
 
         throw IllegalStateException("Internal compiler error: ${ex.localizedMessage}", ex)
     }
@@ -411,7 +412,8 @@ data class ScriptCompilationException(val errors: List<ScriptCompilationError>) 
         get() = (
             listOf("Script compilation $errorPlural:")
                 + indentedErrorMessages()
-                + "${errors.size} $errorPlural")
+                + "${errors.size} $errorPlural"
+            )
             .joinToString("\n\n")
 
     private
@@ -430,7 +432,8 @@ data class ScriptCompilationException(val errors: List<ScriptCompilationError>) 
         return "Line ${lineNumber(location)}: ${location.lineContent}\n" +
             "^ $message".lines().joinToString(
                 prefix = columnIndent,
-                separator = "\n$columnIndent  $indent")
+                separator = "\n$columnIndent  $indent"
+            )
     }
 
     private
@@ -446,8 +449,7 @@ data class ScriptCompilationException(val errors: List<ScriptCompilationError>) 
 
     private
     val maxLineNumberStringLength: Int by lazy {
-        @Suppress("DEPRECATION") // TODO Fix once we build with Kotlin 1.4
-        errors.mapNotNull { it.location?.line }.max().toString().length
+        errors.mapNotNull { it.location?.line }.maxOrNull()?.toString()?.length ?: 0
     }
 }
 

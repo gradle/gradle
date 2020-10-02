@@ -33,7 +33,7 @@ dependencies {
         api("me.champeau.gradle:jmh-gradle-plugin:0.5.2")
         api("org.asciidoctor:asciidoctor-gradle-plugin:1.5.10")
         api("org.gradle:test-retry-gradle-plugin:1.1.7")
-        api("org.gradle.kotlin:gradle-kotlin-dsl-conventions:0.5.0")
+        api("org.gradle.kotlin:gradle-kotlin-dsl-conventions:0.6.0")
 
         // Java Libraries
         api("com.github.javaparser:javaparser-core:$javaParserVersion")

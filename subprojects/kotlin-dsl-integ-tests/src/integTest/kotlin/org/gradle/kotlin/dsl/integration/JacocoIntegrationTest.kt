@@ -13,7 +13,8 @@ class JacocoIntegrationTest : AbstractPluginIntegrationTest() {
     @Test
     @ToBeFixedForConfigurationCache
     fun `jacoco ignore codegen`() {
-        withBuildScript("""
+        withBuildScript(
+            """
             plugins {
                 `kotlin-dsl`
                 jacoco
@@ -45,14 +46,18 @@ class JacocoIntegrationTest : AbstractPluginIntegrationTest() {
                     }
                 }
             }
-        """)
+            """
+        )
 
         withFile("src/main/kotlin/foo.gradle.kts", "plugins { base }")
-        withFile("src/test/kotlin/fooTest.kt", """
+        withFile(
+            "src/test/kotlin/fooTest.kt",
+            """
             import org.junit.Test
             class FooTest {
                 @Test fun testFoo() { }
-            }""".trimIndent()
+            }
+            """.trimIndent()
         )
 
         build("test", "jacocoTestCoverageVerification")

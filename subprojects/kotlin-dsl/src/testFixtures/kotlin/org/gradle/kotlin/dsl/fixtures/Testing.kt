@@ -56,7 +56,8 @@ fun classLoaderFor(classPath: ClassPath): URLClassLoader =
 
 fun classLoaderFor(vararg classPath: File): URLClassLoader =
     URLClassLoader.newInstance(
-        classPath.map { it.toURI().toURL() }.toTypedArray())
+        classPath.map { it.toURI().toURL() }.toTypedArray()
+    )
 
 
 val File.normalisedPath

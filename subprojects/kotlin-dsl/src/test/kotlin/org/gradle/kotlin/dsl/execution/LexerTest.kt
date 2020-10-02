@@ -41,7 +41,8 @@ class LexerTest {
                     "\n ... */" +
                     "\n}" +
                     "\n// ...",
-                buildscript, plugins),
+                buildscript, plugins
+            ),
             equalTo(
                 Packaged(
                     null,
@@ -51,10 +52,16 @@ class LexerTest {
                             10..15,
                             31..40,
                             54..63,
-                            67..72),
+                            67..72
+                        ),
                         listOf(
                             topLevelBlock(buildscript, 17..27, 29..42),
-                            topLevelBlock(plugins, 44..50, 52..65))))))
+                            topLevelBlock(plugins, 44..50, 52..65)
+                        )
+                    )
+                )
+            )
+        )
     }
 
     @Test
@@ -66,6 +73,10 @@ class LexerTest {
                     "com.example",
                     LexedScript(
                         listOf(1..9),
-                        listOf(topLevelBlock(plugins, 31..37, 39..41))))))
+                        listOf(topLevelBlock(plugins, 31..37, 39..41))
+                    )
+                )
+            )
+        )
     }
 }

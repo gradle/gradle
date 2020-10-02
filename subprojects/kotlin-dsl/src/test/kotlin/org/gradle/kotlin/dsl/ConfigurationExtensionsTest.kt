@@ -20,6 +20,7 @@ class ConfigurationExtensionsTest {
         whenever(configuration.exclude(mapOf("group" to "org.gradle", "module" to "test"))).thenReturn(configuration)
         assertThat(
             configuration.exclude(group = "org.gradle", module = "test"),
-            sameInstance(configuration))
+            sameInstance(configuration)
+        )
     }
 }

@@ -40,13 +40,15 @@ class LineAndColumnFromRangeTest(val given: Given) {
                 Given(1..1, 1 to 2),
                 Given(7..7, 2 to 1),
                 Given(8..8, 2 to 2),
-                Given(19..19, 3 to 6))
+                Given(19..19, 3 to 6)
+            )
     }
 
     @Test
     fun test() {
         assertThat(
             text.lineAndColumnFromRange(given.range),
-            equalTo(given.expected))
+            equalTo(given.expected)
+        )
     }
 }

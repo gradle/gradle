@@ -12,5 +12,8 @@ subprojects/hashing/                @gradle/execution
 subprojects/normalization-java/     @gradle/execution
 subprojects/snapshots/              @gradle/execution
 
+# Gradle Enterprise
+subprojects/enterprise/             @ldaley @marcphilipp
+
 # Release notes
 subprojects/docs/src/docs/release/notes.md @pioterj

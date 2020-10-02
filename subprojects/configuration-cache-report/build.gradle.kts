@@ -25,11 +25,10 @@ dependencies {
 
 tasks {
 
-    compileKotlin2Js {
+    compileKotlinJs {
         kotlinOptions {
-            outputFile = "$buildDir/js/configuration-cache-report.js"
             metaInfo = false
-            sourceMap = false
+            moduleKind = "plain"
         }
     }
 
@@ -37,7 +36,7 @@ tasks {
         group = "build"
         description = "Unpacks the Kotlin JavaScript standard library"
 
-        val kotlinStdLibJsJar = configurations.compileClasspath.map { compileClasspath ->
+        val kotlinStdLibJsJar = configurations.named("compileClasspath").map { compileClasspath ->
             val kotlinStdlibJsJarRegex = Regex("kotlin-stdlib-js-.+\\.jar")
             compileClasspath.single { file -> file.name.matches(kotlinStdlibJsJarRegex) }
         }
@@ -53,11 +52,20 @@ tasks {
     }
 
     val assembleReport by registering(MergeReportAssets::class) {
-        htmlFile.set(layout.projectDirectory.file("src/main/resources/configuration-cache-report.html"))
-        logoFile.set(layout.projectDirectory.file("src/main/resources/configuration-cache-report-logo.png"))
-        cssFile.set(layout.projectDirectory.file("src/main/resources/configuration-cache-report.css"))
-        jsFile.set(compileKotlin2Js.map { layout.projectDirectory.file(it.outputFile.absolutePath) })
-        kotlinJs.set(unpackKotlinJsStdlib.map { layout.projectDirectory.file(it.destinationDir.resolve("kotlin.js").absolutePath) })
+
+        fun projectFile(f: File) =
+            layout.projectDirectory.file(f.absolutePath)
+
+        fun webpackFile(fileName: String) =
+            browserProductionWebpack.map {
+                projectFile(it.destinationDirectory.resolve(fileName))
+            }
+
+        htmlFile.set(webpackFile("configuration-cache-report.html"))
+        logoFile.set(webpackFile("configuration-cache-report-logo.png"))
+        cssFile.set(webpackFile("configuration-cache-report.css"))
+        jsFile.set(webpackFile("configuration-cache-report.js"))
+        kotlinJs.set(unpackKotlinJsStdlib.map { projectFile(it.destinationDir.resolve("kotlin.js")) })
         outputFile.set(layout.buildDirectory.file("$name/configuration-cache-report.html"))
     }
 
@@ -65,14 +73,32 @@ tasks {
         dependsOn(assembleReport)
     }
 
+    val stageDir = layout.buildDirectory.dir("stageDevReport")
+
     val stageDevReport by registering(Sync::class) {
         from(assembleReport)
-        from(processTestResources)
-        into("$buildDir/$name")
+        from("src/test/resources")
+        into(stageDir)
+    }
+
+    val verifyDevWorkflow by registering {
+        dependsOn(stageDevReport)
+        doLast {
+            stageDir.get().asFile.let { stage ->
+                val stagedFiles = stage.listFiles()
+                val expected = setOf(
+                    stage.resolve("configuration-cache-report.html"),
+                    stage.resolve("configuration-cache-report-data.js")
+                )
+                require(stagedFiles.toSet() == expected) {
+                    "Unexpected staged files, found ${stagedFiles.map { it.relativeTo(stage).path }}"
+                }
+            }
+        }
     }
 
     test {
-        inputs.dir(stageDevReport.map { it.destinationDir })
+        dependsOn(verifyDevWorkflow)
     }
 }
 
@@ -122,13 +148,15 @@ abstract class MergeReportAssets : DefaultTask() {
                 </style>
                 """.trimIndent()
             ).replace(
-                kotlinJsTag, """
+                kotlinJsTag,
+                """
                 <script type="text/javascript">
                 ${kotlinJs.get().asFile.readText()}
                 </script>
                 """.trimIndent()
             ).replace(
-                jsTag, """
+                jsTag,
+                """
                 <script type="text/javascript">
                 ${jsFile.get().asFile.readText()}
                 </script>

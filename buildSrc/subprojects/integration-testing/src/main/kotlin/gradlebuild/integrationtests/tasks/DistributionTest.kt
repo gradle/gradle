@@ -149,10 +149,10 @@ class LocalRepositoryEnvironmentProvider(project: Project) : CommandLineArgument
     @get:PathSensitive(PathSensitivity.RELATIVE)
     val metadatas: FileCollection
         get() = localRepo.asFileTree.matching {
-                include("**/*.pom")
-                include("**/*.xml")
-                include("**/*.module")
-            }
+            include("**/*.pom")
+            include("**/*.xml")
+            include("**/*.module")
+        }
 
     override fun asArguments() =
         if (!localRepo.isEmpty) mapOf("integTest.localRepository" to localRepo.singleFile).asSystemPropertyJvmArguments()
@@ -200,7 +200,7 @@ class GradleInstallationForTestEnvironmentProvider(project: Project, private val
                 "org.gradle.integtest.daemon.registry" to absolutePathOf(daemonRegistry.dir(distributionName)),
                 "integTest.distZipVersion" to distZipVersion
             )
-        ).asSystemPropertyJvmArguments()
+            ).asSystemPropertyJvmArguments()
     }
 
     @Internal

@@ -32,7 +32,7 @@ addDependenciesAndConfigurations(TestType.INTEGRATION.prefix)
 createTasks(sourceSet, TestType.INTEGRATION)
 configureIde(TestType.INTEGRATION)
 
-createTestTask("integMultiVersionTest", "forking", sourceSet, TestType.INTEGRATION, Action {
+createTestTask("integMultiVersionTest", "forking", sourceSet, TestType.INTEGRATION) {
     // This test task runs only multi-version tests and is intended to be used in the late pipeline to sweep up versions not previously tested
     includeCategories("org.gradle.integtests.fixtures.ContextualMultiVersionTest")
-})
+}

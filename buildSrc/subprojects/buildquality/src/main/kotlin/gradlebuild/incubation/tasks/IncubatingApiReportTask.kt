@@ -61,9 +61,11 @@ open class IncubatingApiReportTask @Inject constructor(
     val releasedVersionsFile: RegularFileProperty = project.objects.fileProperty()
 
     @Input
-    val title: Property<String> = project.objects.property<String>().convention(project.provider {
-        project.name
-    })
+    val title: Property<String> = project.objects.property<String>().convention(
+        project.provider {
+            project.name
+        }
+    )
 
     @InputFiles
     @PathSensitive(PathSensitivity.RELATIVE)
@@ -120,10 +122,12 @@ class Analyzer @Inject constructor(
         val versionToIncubating = mutableMapOf<Version, MutableSet<IncubatingDescription>>()
         srcDirs.forEach { srcDir ->
             if (srcDir.exists()) {
-                val collector = CompositeVersionsToIncubatingCollector(listOf(
-                    JavaVersionsToIncubatingCollector(srcDir),
-                    KotlinVersionsToIncubatingCollector()
-                ))
+                val collector = CompositeVersionsToIncubatingCollector(
+                    listOf(
+                        JavaVersionsToIncubatingCollector(srcDir),
+                        KotlinVersionsToIncubatingCollector()
+                    )
+                )
                 srcDir.walkTopDown().forEach { sourceFile ->
                     try {
                         collector.collectFrom(sourceFile).forEach { (version, incubating) ->
@@ -143,7 +147,8 @@ class Analyzer @Inject constructor(
     fun generateHtmlReport(versionToIncubating: VersionsToIncubating) {
         htmlReportFile.parentFile.mkdirs()
         htmlReportFile.printWriter(Charsets.UTF_8).use { writer ->
-            writer.println("""<html lang="en">
+            writer.println(
+                """<html lang="en">
     <head>
        <META http-equiv="Content-Type" content="text/html; charset=UTF-8">
        <title>Incubating APIs for $title</title>
@@ -154,12 +159,15 @@ class Analyzer @Inject constructor(
     </head>
     <body>
        <h1>Incubating APIs for $title</h1>
-    """)
+    """
+            )
             val versions = versionsDates()
             versionToIncubating.toSortedMap().forEach { (version, incubatingDescriptions) ->
                 writer.println("<a name=\"sec_$version\"></a>")
-                writer.println("<h2>Incubating since $version (${versions[version]?.run { "released on $this" }
-                    ?: "unreleased"})</h2>")
+                writer.println(
+                    "<h2>Incubating since $version (${versions[version]?.run { "released on $this" }
+                        ?: "unreleased"})</h2>"
+                )
                 writer.println("<ul>")
                 incubatingDescriptions.sorted().forEach { incubating ->
                     writer.println("   <li>${incubating.escape()}</li>")

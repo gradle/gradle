@@ -23,12 +23,15 @@ class KotlinBuildScriptIntegrationTest : AbstractKotlinIntegrationTest() {
     @ToBeFixedForConfigurationCache
     fun `can apply plugin using ObjectConfigurationAction syntax`() {
 
-        withSettings("""
+        withSettings(
+            """
             rootProject.name = "foo"
             include("bar")
-        """)
+            """
+        )
 
-        withBuildScript("""
+        withBuildScript(
+            """
 
             open class ProjectPlugin : Plugin<Project> {
                 override fun apply(target: Project) {
@@ -43,7 +46,8 @@ class KotlinBuildScriptIntegrationTest : AbstractKotlinIntegrationTest() {
             subprojects {
                 apply { plugin<ProjectPlugin>() }
             }
-        """)
+            """
+        )
 
         assertThat(
             build("run", "-q").output,
@@ -57,10 +61,12 @@ class KotlinBuildScriptIntegrationTest : AbstractKotlinIntegrationTest() {
     @Test
     fun `Project receiver is undecorated`() {
 
-        withBuildScript("""
+        withBuildScript(
+            """
             fun Project.implicitReceiver() = this
             require(implicitReceiver() === rootProject)
-        """)
+            """
+        )
 
         build("help")
     }
@@ -68,11 +74,13 @@ class KotlinBuildScriptIntegrationTest : AbstractKotlinIntegrationTest() {
     @Test
     fun `scripts larger than 64KB are supported`() {
 
-        withBuildScriptLargerThan64KB("""
+        withBuildScriptLargerThan64KB(
+            """
             tasks.register("run") {
                 doLast { println("*42*") }
             }
-        """)
+            """
+        )
 
         assertThat(
             build("run").output,
@@ -82,24 +90,27 @@ class KotlinBuildScriptIntegrationTest : AbstractKotlinIntegrationTest() {
 
     private
     fun withBuildScriptLargerThan64KB(suffix: String) =
-        withBuildScript(StringWriter().run {
-            var bytesWritten = 0
-            var i = 0
-            while (bytesWritten < 64 * 1024) {
-                val stmt = "val v$i = $i\n"
-                write(stmt)
-                i += 1
-                bytesWritten += stmt.toByteArray().size
+        withBuildScript(
+            StringWriter().run {
+                var bytesWritten = 0
+                var i = 0
+                while (bytesWritten < 64 * 1024) {
+                    val stmt = "val v$i = $i\n"
+                    write(stmt)
+                    i += 1
+                    bytesWritten += stmt.toByteArray().size
+                }
+                write(suffix)
+                toString()
             }
-            write(suffix)
-            toString()
-        })
+        )
 
     @Test
     @ToBeFixedForConfigurationCache
     fun `can use Kotlin 1 dot 3 language features`() {
 
-        withBuildScript("""
+        withBuildScript(
+            """
 
             // Coroutines are no longer experimental
             val coroutine = sequence {
@@ -116,7 +127,8 @@ class KotlinBuildScriptIntegrationTest : AbstractKotlinIntegrationTest() {
                     }
                 }
             }
-        """)
+            """
+        )
 
         assertThat(
             build("test", "-q").output,
@@ -127,7 +139,8 @@ class KotlinBuildScriptIntegrationTest : AbstractKotlinIntegrationTest() {
     @Test
     fun `use of the plugins block on nested project block fails with reasonable error message`() {
 
-        withBuildScript("""
+        withBuildScript(
+            """
             plugins {
                 id("base")
             }
@@ -137,7 +150,8 @@ class KotlinBuildScriptIntegrationTest : AbstractKotlinIntegrationTest() {
                     id("java-base")
                 }
             }
-        """)
+            """
+        )
 
         buildAndFail("help").apply {
             assertThat(error, containsString("The plugins {} block must not be used here"))
@@ -147,7 +161,8 @@ class KotlinBuildScriptIntegrationTest : AbstractKotlinIntegrationTest() {
     @Test
     fun `non top-level use of the plugins block fails with reasonable error message`() {
 
-        withBuildScript("""
+        withBuildScript(
+            """
             plugins {
                 id("java-base")
             }
@@ -157,7 +172,8 @@ class KotlinBuildScriptIntegrationTest : AbstractKotlinIntegrationTest() {
                     id("java")
                 }
             }
-        """)
+            """
+        )
 
         buildAndFail("help").apply {
             assertThat(error, containsString("The plugins {} block must not be used here"))
@@ -171,7 +187,9 @@ class KotlinBuildScriptIntegrationTest : AbstractKotlinIntegrationTest() {
 
         withKotlinBuildSrc()
 
-        withFile("buildSrc/src/main/kotlin/my.kt", """
+        withFile(
+            "buildSrc/src/main/kotlin/my.kt",
+            """
             package my
 
             fun <T> applyActionTo(value: T, action: org.gradle.api.Action<T>) = action.execute(value)
@@ -179,9 +197,11 @@ class KotlinBuildScriptIntegrationTest : AbstractKotlinIntegrationTest() {
             fun <T> create(name: String, factory: org.gradle.api.NamedDomainObjectFactory<T>): T = factory.create(name)
 
             fun <T : Any> create(type: kotlin.reflect.KClass<T>, factory: org.gradle.api.NamedDomainObjectFactory<T>): T = factory.create(type.simpleName!!)
-        """)
+            """
+        )
 
-        withBuildScript("""
+        withBuildScript(
+            """
 
             import my.*
 
@@ -201,18 +221,21 @@ class KotlinBuildScriptIntegrationTest : AbstractKotlinIntegrationTest() {
                     }
                 }
             }
-         """.replaceIndent())
+            """.replaceIndent()
+        )
 
         assertThat(
             build("test", "-q").output,
-            containsMultiLineString("""
+            containsMultiLineString(
+                """
                 FOO
                 BAR
                 BAZ
                 STRING
                 STRING
                 ACTION
-            """)
+                """
+            )
         )
     }
 
@@ -227,27 +250,36 @@ class KotlinBuildScriptIntegrationTest : AbstractKotlinIntegrationTest() {
 
         withFile("foo.txt")
 
-        val initScript = withFile("init.gradle.kts", """
+        val initScript = withFile(
+            "init.gradle.kts",
+            """
             println("INIT: " + $fileTreeFromMap)
-        """)
+            """
+        )
 
-        withSettings("""
+        withSettings(
+            """
             println("SETTINGS: " + $fileTreeFromMap)
-        """)
+            """
+        )
 
-        withBuildScript("""
+        withBuildScript(
+            """
             task("test") {
                 doLast { println("PROJECT: " + $fileTreeFromMap) }
             }
-        """)
+            """
+        )
 
         assertThat(
             build("test", "-q", "-I", initScript.absolutePath).output.trim(),
-            equalToMultiLineString("""
+            equalToMultiLineString(
+                """
                 INIT: foo.txt
                 SETTINGS: foo.txt
                 PROJECT: foo.txt
-            """.replaceIndent())
+                """.replaceIndent()
+            )
         )
     }
 }

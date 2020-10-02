@@ -50,7 +50,8 @@ package org.gradle.kotlin.dsl.support
 @Suppress("unused")
 val expectedKotlinDslPluginsVersion: String
     get() = "$kotlinDslPluginsVersion"
-""")
+"""
+        )
 
         writeFile(
             "org/gradle/kotlin/dsl/KotlinDependencyExtensions.kt",
@@ -144,6 +145,7 @@ val PluginDependenciesSpec.`kotlin-dsl-base`: PluginDependencySpec
  */
 val PluginDependenciesSpec.`kotlin-dsl-precompiled-script-plugins`: PluginDependencySpec
     get() = id("org.gradle.kotlin.kotlin-dsl.precompiled-script-plugins") version "$kotlinDslPluginsVersion"
-""")
+"""
+        )
     }
 }

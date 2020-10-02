@@ -89,10 +89,12 @@ fun zipTo(outputStream: OutputStream, entries: Sequence<Pair<String, ByteArray>>
     ZipOutputStream(outputStream).use { zos ->
         entries.forEach { entry ->
             val (path, bytes) = entry
-            zos.putNextEntry(ZipEntry(path).apply {
-                time = CONSTANT_TIME_FOR_ZIP_ENTRIES
-                size = bytes.size.toLong()
-            })
+            zos.putNextEntry(
+                ZipEntry(path).apply {
+                    time = CONSTANT_TIME_FOR_ZIP_ENTRIES
+                    size = bytes.size.toLong()
+                }
+            )
             zos.write(bytes)
             zos.closeEntry()
         }

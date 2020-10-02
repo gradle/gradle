@@ -367,7 +367,8 @@ fun ApiTypeProvider.Context.apiTypeUsageFor(
             type(sourceName),
             variance,
             typeArguments.map { apiTypeUsageFor(it.binaryName, variance = it.variance, typeArguments = it.typeArguments) },
-            bounds.map { apiTypeUsageFor(it.binaryName, variance = it.variance, typeArguments = it.typeArguments) })
+            bounds.map { apiTypeUsageFor(it.binaryName, variance = it.variance, typeArguments = it.typeArguments) }
+        )
     }
 
 
@@ -399,7 +400,8 @@ fun ApiTypeProvider.Context.apiFunctionParametersFor(function: ApiFunction, dele
             parameterNamesFor(
                 function.owner.sourceName,
                 function.name,
-                parameterTypesBinaryNames)
+                parameterTypesBinaryNames
+            )
         }
         parameterTypesBinaryNames.mapIndexed { idx, parameterTypeBinaryName ->
             val isNullable = parametersNullability?.get(idx) == true
@@ -423,7 +425,8 @@ fun ApiTypeProvider.Context.apiTypeUsageForReturnType(delegate: MethodNode, retu
         returnType?.binaryName ?: Type.getReturnType(delegate.desc).className,
         delegate.visibleAnnotations.has<Nullable>(),
         returnType?.variance ?: Variance.INVARIANT,
-        returnType?.typeArguments ?: emptyList())
+        returnType?.typeArguments ?: emptyList()
+    )
 
 
 private
@@ -603,7 +606,8 @@ val mappedTypeStrings =
         "java.util.Map" to "kotlin.collections.Map",
         "java.util.Map.Entry" to "kotlin.collections.Map.Entry",
         "java.util.HashMap" to "kotlin.collections.HashMap",
-        "java.util.LinkedHashMap" to "kotlin.collections.LinkedHashMap")
+        "java.util.LinkedHashMap" to "kotlin.collections.LinkedHashMap"
+    )
 
 
 private

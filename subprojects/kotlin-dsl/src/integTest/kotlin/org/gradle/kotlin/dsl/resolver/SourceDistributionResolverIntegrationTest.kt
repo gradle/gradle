@@ -10,7 +10,8 @@ class SourceDistributionResolverIntegrationTest : AbstractKotlinIntegrationTest(
     @Test
     fun `can download source distribution`() {
 
-        withBuildScript("""
+        withBuildScript(
+            """
 
             val sourceDirs =
                 ${SourceDistributionResolver::class.qualifiedName}(project).run {
@@ -20,7 +21,8 @@ class SourceDistributionResolverIntegrationTest : AbstractKotlinIntegrationTest(
                 "Expected source directories but got none"
             }
 
-        """)
+            """
+        )
 
         build()
     }

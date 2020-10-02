@@ -47,7 +47,8 @@ fun classLoaderHierarchyJsonFor(
     classLoaderHierarchyJsonFor(
         hierarchyOf(klass.classLoader),
         hierarchyOf(targetScope),
-        pathFormatter)
+        pathFormatter
+    )
 
 
 private
@@ -80,16 +81,19 @@ fun classLoaderHierarchyJsonFor(
                     "id" to it.id,
                     "label" to it.label,
                     "classPath" to it.classPath.map { pathFormatter(it.toString()) },
-                    "parents" to it.parents)
+                    "parents" to it.parents
+                )
             },
             "scopes" to scopes.map {
                 mapOf(
                     "label" to labelFor(it),
                     "localClassLoader" to idOf(it.localClassLoader),
                     "exportClassLoader" to idOf(it.exportClassLoader),
-                    "isLocked" to it.isLocked)
+                    "isLocked" to it.isLocked
+                )
             }
-        ))
+        )
+    )
 }
 
 

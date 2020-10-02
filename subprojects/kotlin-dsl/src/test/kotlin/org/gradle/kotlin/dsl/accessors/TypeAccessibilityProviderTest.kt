@@ -22,8 +22,10 @@ class TypeAccessibilityProviderTest : TestWithClassPath() {
         assertThat(
             accessibilityFor(
                 genericTypeWithPrimitiveComponent,
-                classPath = jarClassPathWith(PublicGenericType::class)),
-            equalTo(accessible(genericTypeWithPrimitiveComponent)))
+                classPath = jarClassPathWith(PublicGenericType::class)
+            ),
+            equalTo(accessible(genericTypeWithPrimitiveComponent))
+        )
     }
 
     @Test
@@ -33,8 +35,10 @@ class TypeAccessibilityProviderTest : TestWithClassPath() {
         assertThat(
             accessibilityFor(
                 internalType,
-                classPath = jarClassPathWith(InternalType::class)),
-            equalTo(inaccessible(internalType, InaccessibilityReason.NonPublic(internalType.kotlinString))))
+                classPath = jarClassPathWith(InternalType::class)
+            ),
+            equalTo(inaccessible(internalType, InaccessibilityReason.NonPublic(internalType.kotlinString)))
+        )
     }
 
     @Test

@@ -20,7 +20,7 @@ import java.util.Properties
 plugins {
     java
     `kotlin-dsl` apply false
-    id("org.gradle.kotlin-dsl.ktlint-convention") version "0.5.0" apply false
+    id("org.gradle.kotlin-dsl.ktlint-convention") version "0.6.0" apply false
 }
 
 subprojects {

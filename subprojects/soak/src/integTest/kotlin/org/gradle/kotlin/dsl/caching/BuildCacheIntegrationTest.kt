@@ -40,7 +40,8 @@ class BuildCacheIntegrationTest : AbstractScriptCachingIntegrationTest() {
         withLocalBuildCacheSettings(buildCacheDir)
 
         val settingsFile = existing("settings.gradle.kts")
-        settingsFile.writeText("""
+        settingsFile.writeText(
+            """
             plugins {
                 `gradle-enterprise`
             }
@@ -49,7 +50,8 @@ class BuildCacheIntegrationTest : AbstractScriptCachingIntegrationTest() {
                 termsOfServiceUrl = "https://gradle.com/terms-of-service"
                 termsOfServiceAgree = "yes"
             }
-        """ + settingsFile.readText())
+            """ + settingsFile.readText()
+        )
 
         build("--scan", "--build-cache", "-Dscan.dump").apply {
             assertThat(output, containsString("Build scan written to"))
@@ -68,14 +70,15 @@ class BuildCacheIntegrationTest : AbstractScriptCachingIntegrationTest() {
             val settingsFile =
                 withLocalBuildCacheSettings(buildCacheDir)
 
-            val buildFile =
-                withBuildScript("""
+            val buildFile = withBuildScript(
+                """
                     plugins {
                         java // force the generation of accessors
                     }
 
                     println("$expectedOutput")
-                """)
+                """
+            )
 
             return cachedSettingsFile(settingsFile, hasBody = true) to cachedBuildFile(buildFile, hasBody = true)
         }
@@ -114,11 +117,13 @@ class BuildCacheIntegrationTest : AbstractScriptCachingIntegrationTest() {
             }
 
             // Cache miss without build cache integration (disabled via system property)
-            executer.withGradleUserHomeDir(newDir("guh-3").apply {
-                resolve("gradle.properties").writeText(
-                    "systemProp.org.gradle.kotlin.dsl.caching.buildcache=false"
-                )
-            })
+            executer.withGradleUserHomeDir(
+                newDir("guh-3").apply {
+                    resolve("gradle.properties").writeText(
+                        "systemProp.org.gradle.kotlin.dsl.caching.buildcache=false"
+                    )
+                }
+            )
             buildForCacheInspection("--build-cache").apply {
 
                 compilationCache {
@@ -133,7 +138,8 @@ class BuildCacheIntegrationTest : AbstractScriptCachingIntegrationTest() {
 
     private
     fun withLocalBuildCacheSettings(buildCacheDir: File): File =
-        withSettings("""
+        withSettings(
+            """
             buildCache {
                 local {
                     directory = file("${buildCacheDir.normalisedPath}")
@@ -141,5 +147,6 @@ class BuildCacheIntegrationTest : AbstractScriptCachingIntegrationTest() {
                     isPush = true
                 }
             }
-        """)
+            """
+        )
 }

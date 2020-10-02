@@ -192,9 +192,11 @@ class KotlinInternalFilteringTest : AbstractBinaryCompatibilityTest() {
             v1 = internalSource,
             v2 = publicSource
         ).apply {
-            assertHasErrors(*reportedMembers.map {
-                added(it.first, it.second)
-            }.toTypedArray())
+            assertHasErrors(
+                *reportedMembers.map {
+                    added(it.first, it.second)
+                }.toTypedArray()
+            )
             assertHasNoWarning()
             assertHasNoInformation()
         }
@@ -207,9 +209,11 @@ class KotlinInternalFilteringTest : AbstractBinaryCompatibilityTest() {
             v1 = publicSource,
             v2 = internalSource
         ).apply {
-            assertHasErrors(*reportedMembers.map {
-                removed(it.first, it.second)
-            }.toTypedArray())
+            assertHasErrors(
+                *reportedMembers.map {
+                    removed(it.first, it.second)
+                }.toTypedArray()
+            )
             assertHasNoWarning()
             assertHasNoInformation()
         }
