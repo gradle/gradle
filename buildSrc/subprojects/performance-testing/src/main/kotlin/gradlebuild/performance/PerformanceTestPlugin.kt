@@ -304,38 +304,42 @@ class PerformanceTestExtension(
         registeredPerformanceTests.forEach {
             it.configure { mustRunAfter(generatorTask) }
         }
-        registeredPerformanceTests.add(createPerformanceTest("${testProject}PerformanceAdHocTest", generatorTask) {
-            description = "Runs ad-hoc performance tests on $testProject - can be used locally"
-            channel = "adhoc"
-            outputs.doNotCacheIf("Is adhoc performance test") { true }
-            mustRunAfter(currentlyRegisteredTestProjects)
+        registeredPerformanceTests.add(
+            createPerformanceTest("${testProject}PerformanceAdHocTest", generatorTask) {
+                description = "Runs ad-hoc performance tests on $testProject - can be used locally"
+                channel = "adhoc"
+                outputs.doNotCacheIf("Is adhoc performance test") { true }
+                mustRunAfter(currentlyRegisteredTestProjects)
 
-            retry {
-                maxRetries.set(0)
+                retry {
+                    maxRetries.set(0)
+                }
             }
-        })
+        )
 
         val channelSuffix = if (OperatingSystem.current().isLinux) "" else "-${OperatingSystem.current().familyName.toLowerCase()}"
 
-        registeredPerformanceTests.add(createPerformanceTest("${testProject}PerformanceTest", generatorTask) {
-            description = "Runs performance tests on $testProject - supposed to be used on CI"
-            channel = "commits$channelSuffix"
+        registeredPerformanceTests.add(
+            createPerformanceTest("${testProject}PerformanceTest", generatorTask) {
+                description = "Runs performance tests on $testProject - supposed to be used on CI"
+                channel = "commits$channelSuffix"
 
-            retry {
-                maxRetries.set(1)
-            }
+                retry {
+                    maxRetries.set(1)
+                }
 
-            if (shouldLoadScenariosFromFile) {
-                val scenariosFromFile = project.loadScenariosFromFile(testProject)
-                if (scenariosFromFile.isNotEmpty()) {
-                    setTestNameIncludePatterns(scenariosFromFile)
+                if (shouldLoadScenariosFromFile) {
+                    val scenariosFromFile = project.loadScenariosFromFile(testProject)
+                    if (scenariosFromFile.isNotEmpty()) {
+                        setTestNameIncludePatterns(scenariosFromFile)
+                    }
+                    doFirst {
+                        assert((filter as DefaultTestFilter).includePatterns.isNotEmpty()) { "Running $name requires to add a test filter" }
+                    }
                 }
-                doFirst {
-                    assert((filter as DefaultTestFilter).includePatterns.isNotEmpty()) { "Running $name requires to add a test filter" }
-                }
+                mustRunAfter(currentlyRegisteredTestProjects)
             }
-            mustRunAfter(currentlyRegisteredTestProjects)
-        })
+        )
         registeredTestProjects.add(generatorTask)
         return generatorTask
     }
@@ -417,7 +421,8 @@ fun Project.propertiesForPerformanceDb(): Map<String, String> =
     selectStringProperties(
         PropertyNames.dbUrl,
         PropertyNames.dbUsername,
-        PropertyNames.dbPassword)
+        PropertyNames.dbPassword
+    )
 
 
 private
