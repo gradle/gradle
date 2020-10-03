@@ -20,6 +20,12 @@ import org.gradle.StartParameter;
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheProblemsOption;
 
 import java.io.File;
+import java.util.Collection;
+import java.util.Set;
+
+import static com.google.common.collect.Lists.newArrayList;
+import static com.google.common.collect.Sets.newLinkedHashSet;
+import static org.gradle.internal.Cast.uncheckedCast;
 
 public class StartParameterInternal extends StartParameter {
     private boolean watchFileSystem;
@@ -152,5 +158,18 @@ public class StartParameterInternal extends StartParameter {
 
     public void setConfigurationCacheQuiet(boolean configurationCacheQuiet) {
         this.configurationCacheQuiet = configurationCacheQuiet;
+    }
+
+    public boolean addTaskNames(Iterable<String> taskPaths) {
+        Set<String> allTasks = newLinkedHashSet(getTaskNames());
+        boolean added = allTasks.addAll(
+            taskPaths instanceof Collection
+                ? uncheckedCast(taskPaths)
+                : newArrayList(taskPaths)
+        );
+        if (added) {
+            setTaskNames(allTasks);
+        }
+        return added;
     }
 }
