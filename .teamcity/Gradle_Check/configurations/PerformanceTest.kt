@@ -71,7 +71,8 @@ class PerformanceTest(
             steps {
                 preBuildSteps()
                 killGradleProcessesStep(os)
-                substDirOnWindows(os)
+                substDirOnWindows(os, model.parentBuildCache)
+
                 gradleWrapper {
                     name = "GRADLE_RUNNER"
                     tasks = ""
@@ -88,7 +89,7 @@ class PerformanceTest(
                             model.parentBuildCache.gradleParameters(os)
                         ).joinToString(separator = " ")
                 }
-                removeSubstDirOnWindows(os)
+                removeSubstDirOnWindows(os, model.parentBuildCache)
                 checkCleanM2(os)
             }
         }
