@@ -54,10 +54,10 @@ public class DefaultJavaToolchainProvisioningService implements JavaToolchainPro
     }
 
     public Optional<File> tryInstall(JavaToolchainSpec spec) {
+        if (!isAutoDownloadEnabled()) {
+            return Optional.empty();
+        }
         synchronized (provisioningProcessLock) {
-            if (!isAutoDownloadEnabled()) {
-                return Optional.empty();
-            }
             String destinationFilename = openJdkBinary.toFilename(spec);
             File destinationFile = cacheDirProvider.getDownloadLocation(destinationFilename);
             final FileLock fileLock = cacheDirProvider.acquireWriteLock(destinationFile, "Downloading toolchain");
