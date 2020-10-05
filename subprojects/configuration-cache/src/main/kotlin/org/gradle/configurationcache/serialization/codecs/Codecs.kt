@@ -140,6 +140,7 @@ class Codecs(
         bind(TransformDependenciesCodec)
         bind(PublishArtifactLocalArtifactMetadataCodec)
         bind(TransformedExternalArtifactSetCodec(transformationNodeRegistry))
+        bind(LocalFileDependencyBackedArtifactSetCodec(instantiator, attributesFactory, fileCollectionFactory))
 
         bind(DefaultCopySpecCodec(patternSetFactory, fileCollectionFactory, instantiator))
         bind(DestinationRootCopySpecCodec(fileResolver))

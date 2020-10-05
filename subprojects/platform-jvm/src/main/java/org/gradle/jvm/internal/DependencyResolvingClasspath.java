@@ -59,6 +59,7 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Consumer;
 
 public class DependencyResolvingClasspath extends AbstractOpaqueFileCollection {
     private final GlobalDependencyResolutionRules globalRules = GlobalDependencyResolutionRules.NO_OP;
@@ -151,6 +152,11 @@ public class DependencyResolvingClasspath extends AbstractOpaqueFileCollection {
             @Override
             public ImmutableAttributes mapAttributesFor(ImmutableAttributes attributes, Iterable<? extends ComponentArtifactMetadata> artifacts) {
                 return attributes;
+            }
+
+            @Override
+            public void visitArtifactTypes(Consumer<String> action) {
+                throw new UnsupportedOperationException();
             }
 
             @Override

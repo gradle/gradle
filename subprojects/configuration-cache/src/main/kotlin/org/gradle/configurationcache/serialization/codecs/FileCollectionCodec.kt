@@ -20,10 +20,7 @@ import org.gradle.api.file.FileCollection
 import org.gradle.api.file.FileTree
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSetToFileCollectionFactory
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.LocalFileDependencyBackedArtifactSet
-import org.gradle.api.internal.artifacts.transform.DefaultArtifactTransformDependencies
-import org.gradle.api.internal.artifacts.transform.Transformation
 import org.gradle.api.internal.artifacts.transform.TransformationNode
-import org.gradle.api.internal.artifacts.transform.TransformationSubject
 import org.gradle.api.internal.artifacts.transform.TransformedExternalArtifactSet
 import org.gradle.api.internal.artifacts.transform.TransformedProjectArtifactSet
 import org.gradle.api.internal.file.FileCollectionFactory
@@ -42,7 +39,6 @@ import org.gradle.api.tasks.util.PatternSet
 import org.gradle.configurationcache.serialization.Codec
 import org.gradle.configurationcache.serialization.ReadContext
 import org.gradle.configurationcache.serialization.WriteContext
-import org.gradle.configurationcache.serialization.codecs.transform.FixedDependenciesResolver
 import org.gradle.configurationcache.serialization.decodePreservingIdentity
 import org.gradle.configurationcache.serialization.encodePreservingIdentityOf
 import org.gradle.configurationcache.serialization.logPropertyProblem
@@ -55,9 +51,6 @@ class FileCollectionCodec(
     private val fileCollectionFactory: FileCollectionFactory,
     private val artifactSetConverter: ArtifactSetToFileCollectionFactory
 ) : Codec<FileCollectionInternal> {
-
-    private
-    val noDependencies = FixedDependenciesResolver(DefaultArtifactTransformDependencies(fileCollectionFactory.empty()))
 
     override suspend fun WriteContext.encode(value: FileCollectionInternal) {
         encodePreservingIdentityOf(value) {
@@ -95,10 +88,7 @@ class FileCollectionCodec(
                             is ProviderBackedFileCollectionSpec -> element.provider
                             is FileTree -> element
                             is TransformedExternalArtifactSet -> artifactSetConverter.asFileCollection(element)
-                            is TransformedLocalFileSpec -> Callable {
-                                element.transformation.isolateParameters()
-                                element.transformation.createInvocation(TransformationSubject.initial(element.origin), noDependencies, null).invoke().get().files
-                            }
+                            is LocalFileDependencyBackedArtifactSet -> artifactSetConverter.asFileCollection(element)
                             else -> throw IllegalArgumentException("Unexpected item $element in file collection contents")
                         }
                     }
@@ -119,10 +109,6 @@ class SubtractingFileCollectionSpec(val left: FileCollection, val right: FileCol
 
 private
 class FilteredFileCollectionSpec(val collection: FileCollection, val filter: Spec<in File>)
-
-
-private
-class TransformedLocalFileSpec(val origin: File, val transformation: Transformation)
 
 
 private
@@ -161,7 +147,7 @@ class CollectingVisitor : FileCollectionStructureVisitor {
         }
 
     override fun prepareForVisit(source: FileCollectionInternal.Source): FileCollectionStructureVisitor.VisitType =
-        if (source is TransformedProjectArtifactSet || source is LocalFileDependencyBackedArtifactSet.TransformedLocalFileArtifactSet || source is TransformedExternalArtifactSet) {
+        if (source is TransformedProjectArtifactSet || source is LocalFileDependencyBackedArtifactSet || source is TransformedExternalArtifactSet) {
             // Represents artifact transform outputs. Visit the source rather than the files
             // Transforms may have inputs or parameters that are task outputs or other changing files
             // When this is not the case, we should run the transform now and write the result.
@@ -177,8 +163,8 @@ class CollectingVisitor : FileCollectionStructureVisitor {
             is TransformedProjectArtifactSet -> {
                 elements.addAll(source.scheduledNodes)
             }
-            is LocalFileDependencyBackedArtifactSet.TransformedLocalFileArtifactSet -> {
-                elements.add(TransformedLocalFileSpec(source.file, source.transformation))
+            is LocalFileDependencyBackedArtifactSet -> {
+                elements.add(source)
             }
             is TransformedExternalArtifactSet -> {
                 elements.add(source)

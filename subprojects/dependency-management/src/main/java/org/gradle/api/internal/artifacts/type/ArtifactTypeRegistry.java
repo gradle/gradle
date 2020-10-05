@@ -22,9 +22,12 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 
 import java.io.File;
+import java.util.function.Consumer;
 
 public interface ArtifactTypeRegistry extends Factory<ArtifactTypeContainer> {
     ImmutableAttributes mapAttributesFor(ImmutableAttributes attributes, Iterable<? extends ComponentArtifactMetadata> artifacts);
 
     ImmutableAttributes mapAttributesFor(File file);
+
+    void visitArtifactTypes(Consumer<String> action);
 }

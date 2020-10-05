@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.type.ArtifactTypeDefinition
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.CollectionCallbackActionDecorator
 import org.gradle.api.internal.artifacts.ArtifactAttributes
+import org.gradle.api.internal.artifacts.VariantTransformRegistry
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.internal.component.model.ComponentArtifactMetadata
 import org.gradle.internal.component.model.IvyArtifactName
@@ -30,7 +31,7 @@ import spock.lang.Specification
 
 class DefaultArtifactTypeRegistryTest extends Specification {
     def attributesFactory = AttributeTestUtil.attributesFactory()
-    def registry = new DefaultArtifactTypeRegistry(TestUtil.instantiatorFactory().decorateLenient(), attributesFactory, CollectionCallbackActionDecorator.NOOP)
+    def registry = new DefaultArtifactTypeRegistry(TestUtil.instantiatorFactory().decorateLenient(), attributesFactory, CollectionCallbackActionDecorator.NOOP, Stub(VariantTransformRegistry))
 
     def "creates as required and reuses"() {
         expect:
