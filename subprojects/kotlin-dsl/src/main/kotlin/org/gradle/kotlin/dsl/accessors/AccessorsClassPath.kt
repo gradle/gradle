@@ -172,7 +172,7 @@ class GenerateProjectAccessors(
 
     override fun visitInputProperties(filter: Set<UnitOfWork.IdentityKind>, visitor: UnitOfWork.InputPropertyVisitor) {
         if (filter.contains(IDENTITY)) {
-            visitor.visitInputProperty(PROJECT_SCHEMA_INPUT_PROPERTY, hashCodeFor(projectSchema))
+            visitor.visitInputProperty(PROJECT_SCHEMA_INPUT_PROPERTY) { -> hashCodeFor(projectSchema) }
         }
     }
 

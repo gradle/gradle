@@ -305,7 +305,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
             ImmutableSortedSet<InputPropertySpec> inputProperties = context.getTaskProperties().getInputProperties();
             for (InputPropertySpec inputProperty : inputProperties) {
                 Object value = InputParameterUtils.prepareInputParameterValue(inputProperty, task);
-                visitor.visitInputProperty(inputProperty.getPropertyName(), value);
+                visitor.visitInputProperty(inputProperty.getPropertyName(), () -> value);
             }
         }
 

@@ -379,7 +379,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
                 return;
             }
             // Emulate secondary inputs as a single property for now
-            visitor.visitInputProperty(SECONDARY_INPUTS_HASH_PROPERTY_NAME, transformer.getSecondaryInputHash().toString());
+            visitor.visitInputProperty(SECONDARY_INPUTS_HASH_PROPERTY_NAME, () -> transformer.getSecondaryInputHash().toString());
         }
 
         @Override

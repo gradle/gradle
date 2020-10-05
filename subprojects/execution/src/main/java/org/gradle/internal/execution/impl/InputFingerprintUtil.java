@@ -42,10 +42,11 @@ public class InputFingerprintUtil {
             }
             try {
                 ValueSnapshot previousSnapshot = previousSnapshots.get(propertyName);
+                Object resolvedValue = value.resolveValue();
                 if (previousSnapshot == null) {
-                    builder.put(propertyName, valueSnapshotter.snapshot(value));
+                    builder.put(propertyName, valueSnapshotter.snapshot(resolvedValue));
                 } else {
-                    builder.put(propertyName, valueSnapshotter.snapshot(value, previousSnapshot));
+                    builder.put(propertyName, valueSnapshotter.snapshot(resolvedValue, previousSnapshot));
                 }
             } catch (Exception e) {
                 throw new UncheckedIOException(String.format("Unable to store input properties for %s. Property '%s' with value '%s' cannot be serialized.",

@@ -172,7 +172,7 @@ class GeneratePluginAccessors(
 
     override fun visitInputProperties(filter: Set<UnitOfWork.IdentityKind>, visitor: UnitOfWork.InputPropertyVisitor) {
         if (filter.contains(IDENTITY)) {
-            visitor.visitInputProperty(BUILD_SRC_CLASSLOADER_INPUT_PROPERTY, classLoaderHash)
+            visitor.visitInputProperty(BUILD_SRC_CLASSLOADER_INPUT_PROPERTY) { -> classLoaderHash }
         }
     }
 

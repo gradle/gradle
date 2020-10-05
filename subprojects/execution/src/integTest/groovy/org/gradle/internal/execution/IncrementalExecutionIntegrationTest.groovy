@@ -802,7 +802,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
                         return
                     }
                     inputProperties.each { propertyName, value ->
-                        visitor.visitInputProperty(propertyName, value)
+                        visitor.visitInputProperty(propertyName, { -> value } as UnitOfWork.ValueSupplier)
                     }
                 }
 
