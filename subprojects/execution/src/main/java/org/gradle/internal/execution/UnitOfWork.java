@@ -111,7 +111,7 @@ public interface UnitOfWork extends Describable {
 
     interface ValueSupplier {
         @Nullable
-        Object resolveValue();
+        Object getValue();
     }
 
     void visitInputFileProperties(InputFilePropertyVisitor visitor);

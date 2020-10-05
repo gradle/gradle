@@ -41,17 +41,17 @@ public class InputFingerprintUtil {
             if (!filter.include(propertyName, identity)) {
                 return;
             }
+            Object actualValue = value.getValue();
             try {
                 ValueSnapshot previousSnapshot = previousSnapshots.get(propertyName);
-                Object resolvedValue = value.resolveValue();
                 if (previousSnapshot == null) {
-                    builder.put(propertyName, valueSnapshotter.snapshot(resolvedValue));
+                    builder.put(propertyName, valueSnapshotter.snapshot(actualValue));
                 } else {
-                    builder.put(propertyName, valueSnapshotter.snapshot(resolvedValue, previousSnapshot));
+                    builder.put(propertyName, valueSnapshotter.snapshot(actualValue, previousSnapshot));
                 }
             } catch (Exception e) {
                 throw new UncheckedIOException(String.format("Unable to store input properties for %s. Property '%s' with value '%s' cannot be serialized.",
-                    work.getDisplayName(), propertyName, value), e);
+                    work.getDisplayName(), propertyName, value.getValue()), e);
             }
         });
         return builder.build();
