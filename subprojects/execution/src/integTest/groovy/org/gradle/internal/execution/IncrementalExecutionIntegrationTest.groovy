@@ -16,11 +16,15 @@
 
 package org.gradle.internal.execution
 
+import com.google.common.cache.Cache
+import com.google.common.cache.CacheBuilder
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.Iterables
 import com.google.common.collect.Maps
+import groovy.transform.Immutable
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.caching.internal.controller.BuildCacheController
+import org.gradle.internal.Try
 import org.gradle.internal.execution.caching.CachingDisabledReason
 import org.gradle.internal.execution.history.ExecutionHistoryStore
 import org.gradle.internal.execution.history.OutputFilesRepository
@@ -568,6 +572,23 @@ class IncrementalExecutionIntegrationTest extends Specification {
         ex.causes*.message as List == ["Type '$Object.simpleName': Validation error."]
     }
 
+    def "results are loaded from identity cache"() {
+        def work = builder.build()
+        def cache = CacheBuilder.newBuilder().<UnitOfWork.Identity, Try<Object>>build()
+
+        when:
+        def executedResult = executeDeferred(work, cache)
+
+        then:
+        executedResult == "deferred"
+
+        when:
+        def cachedResult = executeDeferred(work, cache)
+
+        then:
+        cachedResult == "cached"
+    }
+
     List<String> inputFilesRemoved(Map<String, List<File>> removedFiles) {
         filesRemoved('Input', removedFiles)
     }
@@ -629,6 +650,22 @@ class IncrementalExecutionIntegrationTest extends Specification {
     UpToDateResult execute(UnitOfWork unitOfWork) {
         virtualFileSystem.update(VirtualFileSystem.INVALIDATE_ALL)
         executor.execute(unitOfWork, null)
+    }
+
+    String executeDeferred(UnitOfWork unitOfWork, Cache<UnitOfWork.Identity, Try<Object>> cache) {
+        virtualFileSystem.update(VirtualFileSystem.INVALIDATE_ALL)
+        executor.executeDeferred(unitOfWork, null, cache, new DeferredResultProcessor<Object, String>() {
+            @Override
+            String processCachedOutput(Try<Object> cachedResult) {
+                return "cached"
+            }
+
+            @Override
+            String processDeferredOutput(Supplier<Try<Object>> deferredExecution) {
+                deferredExecution.get()
+                return "deferred"
+            }
+        })
     }
 
     private TestFile file(Object... path) {
@@ -736,6 +773,11 @@ class IncrementalExecutionIntegrationTest extends Specification {
             return this
         }
 
+        @Immutable
+        private static class SimpleIdentity implements UnitOfWork.Identity {
+            final String uniqueId
+        }
+
         UnitOfWork build() {
             Map<String, OutputPropertySpec> outputFileSpecs = Maps.transformEntries(outputFiles, { key, value -> outputFileSpec(value) } )
             Map<String, OutputPropertySpec> outputDirSpecs = Maps.transformEntries(outputDirs, { key, value -> outputDirectorySpec(value) } )
@@ -746,12 +788,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
 
                 @Override
                 UnitOfWork.Identity identify(Map<String, ValueSnapshot> identityInputs, Map<String, CurrentFileCollectionFingerprint> identityFileInputs) {
-                    new UnitOfWork.Identity() {
-                        @Override
-                        String getUniqueId() {
-                            "myId"
-                        }
-                    }
+                    new SimpleIdentity("myId")
                 }
 
                 @Override
@@ -776,7 +813,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
 
                         @Override
                         Object getOutput() {
-                            throw new UnsupportedOperationException()
+                            return "output"
                         }
                     }
                 }
