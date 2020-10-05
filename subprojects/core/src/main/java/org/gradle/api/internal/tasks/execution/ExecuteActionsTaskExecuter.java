@@ -19,7 +19,6 @@ import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Lists;
-import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.execution.TaskActionListener;
 import org.gradle.api.execution.TaskExecutionListener;
 import org.gradle.api.file.FileCollection;
@@ -305,12 +304,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
             }
             ImmutableSortedSet<InputPropertySpec> inputProperties = context.getTaskProperties().getInputProperties();
             for (InputPropertySpec inputProperty : inputProperties) {
-                Object value;
-                try {
-                    value = InputParameterUtils.prepareInputParameterValue(inputProperty.getValue());
-                } catch (Exception ex) {
-                    throw new InvalidUserDataException(String.format("Error while evaluating property '%s' of %s", inputProperty.getPropertyName(), task), ex);
-                }
+                Object value = InputParameterUtils.prepareInputParameterValue(inputProperty, task);
                 visitor.visitInputProperty(inputProperty.getPropertyName(), value);
             }
         }
