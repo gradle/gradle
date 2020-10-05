@@ -249,7 +249,7 @@ class HttpBuildCacheServiceIntegrationTest extends AbstractIntegrationSpec imple
         executer.expectDeprecationWarning()
         withBuildCache().run "jar"
         succeeds "clean"
-        executer.expectDocumentedDeprecationWarning("Using insecure protocols with remote build cache has been deprecated. This is scheduled to be removed in Gradle 7.0. " +
+        executer.expectDocumentedDeprecationWarning("Using insecure protocols with remote build cache, without explicit opt-in, has been deprecated. This is scheduled to be removed in Gradle 7.0. " +
             "Switch remote build cache to a secure protocol (like HTTPS) or allow insecure protocols. " +
             "See https://docs.gradle.org/current/dsl/org.gradle.caching.http.HttpBuildCache.html#org.gradle.caching.http.HttpBuildCache:allowInsecureProtocol for more details.")
 

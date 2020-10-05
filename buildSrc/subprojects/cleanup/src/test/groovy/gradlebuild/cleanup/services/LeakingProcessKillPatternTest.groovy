@@ -39,6 +39,14 @@ class LeakingProcessKillPatternTest extends Specification {
         (line =~ LeakingProcessKillPattern.generate(projectDir)).find()
     }
 
+    def "matches daemon process started by performance test on Windows"() {
+        def line = 'java.exe  "C:\\Program Files\\Java\\jdk1.8\\bin\\java.exe" -Xms1536m -Xmx1536m -Dfile.encoding=windows-1252 -Duser.country=US -Duser.language=en -Duser.variant -cp P:\\subprojects\\performance\\build\\tmp\\performance-test-files\\FileSystemW.Test\\assemble_fo.hing\\fh0xl\\6.7-202010012357270000\\gradle-home\\lib\\gradle-launcher-6.7.jar org.gradle.launcher.daemon.bootstrap.GradleDaemon 6.7-20201001235727+0000'
+        def projectDir = 'C:\\some\\agent\\workspace'
+
+        expect:
+        (line =~ LeakingProcessKillPattern.generate(projectDir)).find()
+    }
+
     def "does not match worker process started by main build VM on Windows"() {
         def line = '"C:\\Program Files\\Java\\jdk1.7\\bin\\java.exe" -Djava.security.manager=worker.org.gradle.process.internal.worker.child.BootstrapSecurityManager -Dfile.encoding=UTF-8 -Duser.country=US -Duser.language=en -Duser.variant -cp C:\\some\\agent\\.gradle\\caches\\4.4-rc-1\\workerMain\\gradle-worker.jar worker.org.gradle.process.internal.worker.GradleWorkerMain "\'Gradle Worker Daemon 318\'"'
         def projectDir = 'C:\\some\\agent\\workspace'

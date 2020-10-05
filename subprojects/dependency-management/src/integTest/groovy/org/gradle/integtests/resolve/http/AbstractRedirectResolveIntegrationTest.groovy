@@ -52,7 +52,7 @@ abstract class AbstractRedirectResolveIntegrationTest extends AbstractHttpDepend
 
     void optionallyExpectDeprecation() {
         if (shouldWarnAboutDeprecation()) {
-            outputContains("Following insecure redirects has been deprecated. This is scheduled to be removed in Gradle 7.0.")
+            outputContains("Following insecure redirects, without explicit opt-in, has been deprecated. This is scheduled to be removed in Gradle 7.0.")
             outputContains("Switch "); outputContains(" repository ")
             outputContains(" to redirect to a secure protocol (like HTTPS) or allow insecure protocols.")
         }

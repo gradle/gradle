@@ -26,5 +26,5 @@ object LeakingProcessKillPattern {
 
     @JvmStatic
     fun generate(rootProjectDir: String): String =
-        "(?i)[/\\\\](java(?:\\.exe)?.+?(?:(?:-cp.+${Pattern.quote(rootProjectDir)}.+?(org\\.gradle\\.|[a-zA-Z]+))|(?:-classpath.+${Pattern.quote(rootProjectDir)}.+?${Pattern.quote("\\build\\")}.+?(org\\.gradle\\.|[a-zA-Z]+))|(?:-classpath.+${Pattern.quote(rootProjectDir)}.+?(play\\.core\\.server\\.NettyServer))|$kotlinCompilerPattern).+)"
+        """(?i)[/\\](java(?:\.exe)?.+?(?:(?:-cp.+(${Pattern.quote(rootProjectDir)}|build\\tmp\\performance-test-files).+?(org\.gradle\.|[a-zA-Z]+))|(?:-classpath.+${Pattern.quote(rootProjectDir)}.+?${Pattern.quote("\\build\\")}.+?(org\.gradle\.|[a-zA-Z]+))|(?:-classpath.+${Pattern.quote(rootProjectDir)}.+?(play\.core\.server\.NettyServer))|$kotlinCompilerPattern).+)"""
 }
