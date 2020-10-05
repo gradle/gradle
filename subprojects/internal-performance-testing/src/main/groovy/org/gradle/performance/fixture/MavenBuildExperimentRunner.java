@@ -65,9 +65,7 @@ public class MavenBuildExperimentRunner extends AbstractBuildExperimentRunner {
 
             Consumer<BuildInvocationResult> scenarioReporter = getResultCollector(scenarioDefinition.getName()).scenario(
                 scenarioDefinition,
-                ImmutableList.<Sample<? super BuildInvocationResult>>builder()
-                    .add(BuildInvocationResult.EXECUTION_TIME)
-                    .build()
+                scenarioInvoker.samplesFor(invocationSettings, scenarioDefinition)
             );
             scenarioInvoker.run(scenarioDefinition, invocationSettings, new BenchmarkResultCollector() {
                 @Override

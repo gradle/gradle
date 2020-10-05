@@ -36,7 +36,6 @@ import org.gradle.profiler.Logging;
 import org.gradle.profiler.RunTasksAction;
 import org.gradle.profiler.instrument.PidInstrumentation;
 import org.gradle.profiler.report.CsvGenerator;
-import org.gradle.profiler.result.Sample;
 import org.gradle.tooling.GradleConnector;
 import org.gradle.tooling.ProjectConnection;
 import org.gradle.tooling.internal.consumer.ConnectorServices;
@@ -60,7 +59,7 @@ import static java.util.Collections.emptyMap;
 @CompileStatic
 public class GradleBuildExperimentRunner extends AbstractBuildExperimentRunner {
     private static final String GRADLE_USER_HOME_NAME = "gradleUserHome";
-    private PidInstrumentation pidInstrumentation;
+    private final PidInstrumentation pidInstrumentation;
     private final IntegrationTestBuildContext context = new IntegrationTestBuildContext();
 
     public GradleBuildExperimentRunner(GradleProfilerReporter gradleProfilerReporter) {
@@ -70,14 +69,6 @@ public class GradleBuildExperimentRunner extends AbstractBuildExperimentRunner {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-    }
-
-    public PidInstrumentation getPidInstrumentation() {
-        return pidInstrumentation;
-    }
-
-    public void setPidInstrumentation(PidInstrumentation pidInstrumentation) {
-        this.pidInstrumentation = pidInstrumentation;
     }
 
     @Override
@@ -99,19 +90,13 @@ public class GradleBuildExperimentRunner extends AbstractBuildExperimentRunner {
         GradleBuildExperimentSpec gradleExperiment = (GradleBuildExperimentSpec) experiment;
         InvocationSettings invocationSettings = createInvocationSettings(buildSpec, gradleExperiment);
         GradleScenarioDefinition scenarioDefinition = createScenarioDefinition(gradleExperiment, invocationSettings, invocation);
-        List<Sample<GradleBuildInvocationResult>> buildOperationSamples = scenarioDefinition.getMeasuredBuildOperations().stream()
-            .map(GradleBuildInvocationResult::sampleBuildOperation)
-            .collect(Collectors.toList());
-        Consumer<GradleBuildInvocationResult> scenarioReporter = getResultCollector(scenarioDefinition.getName()).scenario(
-            scenarioDefinition,
-            ImmutableList.<Sample<? super GradleBuildInvocationResult>>builder()
-                .add(GradleBuildInvocationResult.EXECUTION_TIME)
-                .addAll(buildOperationSamples)
-                .build()
-        );
 
         try {
             GradleScenarioInvoker scenarioInvoker = createScenarioInvoker(new File(buildSpec.getWorkingDirectory(), GRADLE_USER_HOME_NAME));
+            Consumer<GradleBuildInvocationResult> scenarioReporter = getResultCollector(scenarioDefinition.getName()).scenario(
+                scenarioDefinition,
+                scenarioInvoker.samplesFor(invocationSettings, scenarioDefinition)
+            );
             AtomicInteger iterationCount = new AtomicInteger(0);
             Logging.setupLogging(workingDirectory);
             if (gradleExperiment.getInvocation().isUseToolingApi()) {
