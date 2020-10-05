@@ -28,11 +28,14 @@ import org.gradle.configurationcache.serialization.runWriteOperation
 import org.gradle.internal.serialize.Encoder
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder
 import org.gradle.internal.serialize.kryo.KryoBackedEncoder
+import org.gradle.internal.service.scopes.Scopes
+import org.gradle.internal.service.scopes.ServiceScope
 import org.gradle.kotlin.dsl.support.useToRun
 import java.io.File
 import java.io.OutputStream
 
 
+@ServiceScope(Scopes.Gradle::class)
 class ConfigurationCacheIO internal constructor(
     private val host: DefaultConfigurationCache.Host,
     private val problems: ConfigurationCacheProblems,
