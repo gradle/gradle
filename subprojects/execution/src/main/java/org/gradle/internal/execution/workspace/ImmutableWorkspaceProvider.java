@@ -26,6 +26,8 @@ public interface ImmutableWorkspaceProvider {
      */
     <T> T withWorkspace(String identity, WorkspaceAction<T> action);
 
+    ExecutionHistoryStore getHistory();
+
     @FunctionalInterface
     interface WorkspaceAction<T> {
         T executeInWorkspace(File workspace, ExecutionHistoryStore executionHistoryStore);

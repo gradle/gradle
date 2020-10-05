@@ -20,6 +20,7 @@ import org.gradle.internal.Try;
 import org.gradle.internal.execution.ExecutionOutcome;
 import org.gradle.internal.execution.InputChangesContext;
 import org.gradle.internal.execution.Result;
+import org.gradle.internal.execution.Result.ExecutionResult;
 import org.gradle.internal.execution.Step;
 import org.gradle.internal.execution.UnitOfWork;
 
@@ -29,25 +30,39 @@ public class ExecuteStep<C extends InputChangesContext> implements Step<C, Resul
     public Result execute(C context) {
         UnitOfWork work = context.getWork();
         try {
-            ExecutionOutcome outcome = context.getInputChanges()
-                .map(inputChanges -> determineOutcome(work.execute(inputChanges, context), inputChanges.isIncremental()))
-                .orElseGet(() -> determineOutcome(work.execute(null, context), false));
-            return () -> Try.successful(outcome);
+            ExecutionResult executionResult = context.getInputChanges()
+                .map(inputChanges -> determineResult(work.execute(inputChanges, context), inputChanges.isIncremental()))
+                .orElseGet(() -> determineResult(work.execute(null, context), false));
+            return () -> Try.successful(executionResult);
         } catch (Throwable t) {
             return () -> Try.failure(t);
         }
     }
 
-    private static ExecutionOutcome determineOutcome(UnitOfWork.WorkResult result, boolean incremental) {
-        switch (result) {
+    private static ExecutionResult determineResult(UnitOfWork.WorkOutput workOutput, boolean incremental) {
+        ExecutionOutcome outcome;
+        switch (workOutput.getDidWork()) {
             case DID_NO_WORK:
-                return ExecutionOutcome.UP_TO_DATE;
+                outcome = ExecutionOutcome.UP_TO_DATE;
+                break;
             case DID_WORK:
-                return incremental
+                outcome = incremental
                     ? ExecutionOutcome.EXECUTED_INCREMENTALLY
                     : ExecutionOutcome.EXECUTED_NON_INCREMENTALLY;
+                break;
             default:
-                throw new IllegalArgumentException("Unknown result: " + result);
+                throw new AssertionError();
         }
+        return new ExecutionResult() {
+            @Override
+            public ExecutionOutcome getOutcome() {
+                return outcome;
+            }
+
+            @Override
+            public Object getOutput() {
+                return workOutput.getOutput();
+            }
+        };
     }
 }

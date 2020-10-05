@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,16 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.transform;
+package org.gradle.internal.execution;
 
-import com.google.common.collect.ImmutableList;
+import com.google.common.cache.Cache;
 import org.gradle.internal.Try;
+import org.gradle.internal.execution.UnitOfWork.Identity;
 
-import javax.annotation.Nullable;
-import java.io.File;
-
-public interface CachingTransformationWorkspaceProvider extends TransformationWorkspaceProvider {
-
-    @Nullable
-    Try<ImmutableList<File>> getCachedResult(TransformationWorkspaceIdentity identity);
+public interface DeferredExecutionAwareStep<C extends Context, R extends Result> extends Step<C, R> {
+    <T, O> T executeDeferred(C context, Cache<Identity, Try<O>> cache, DeferredResultProcessor<O, T> processor);
 }

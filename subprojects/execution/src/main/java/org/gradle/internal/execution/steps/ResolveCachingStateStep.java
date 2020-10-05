@@ -25,7 +25,6 @@ import org.gradle.internal.Try;
 import org.gradle.internal.execution.BeforeExecutionContext;
 import org.gradle.internal.execution.CachingContext;
 import org.gradle.internal.execution.CachingResult;
-import org.gradle.internal.execution.ExecutionOutcome;
 import org.gradle.internal.execution.Step;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.UpToDateResult;
@@ -37,11 +36,14 @@ import org.gradle.internal.execution.caching.impl.DefaultCachingStateBuilder;
 import org.gradle.internal.execution.caching.impl.LoggingCachingStateBuilder;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.execution.history.BeforeExecutionState;
+import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.fingerprint.overlap.OverlappingOutputs;
+import org.gradle.internal.snapshot.ValueSnapshot;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.util.Formatter;
 import java.util.List;
 import java.util.Optional;
@@ -103,6 +105,26 @@ public class ResolveCachingStateStep implements Step<BeforeExecutionContext, Cac
             }
 
             @Override
+            public ImmutableSortedMap<String, ValueSnapshot> getInputProperties() {
+                return context.getInputProperties();
+            }
+
+            @Override
+            public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getInputFileProperties() {
+                return context.getInputFileProperties();
+            }
+
+            @Override
+            public UnitOfWork.Identity getIdentity() {
+                return context.getIdentity();
+            }
+
+            @Override
+            public File getWorkspace() {
+                return context.getWorkspace();
+            }
+
+            @Override
             public Optional<AfterPreviousExecutionState> getAfterPreviousExecutionState() {
                 return context.getAfterPreviousExecutionState();
             }
@@ -139,8 +161,8 @@ public class ResolveCachingStateStep implements Step<BeforeExecutionContext, Cac
             }
 
             @Override
-            public Try<ExecutionOutcome> getOutcome() {
-                return result.getOutcome();
+            public Try<ExecutionResult> getExecutionResult() {
+                return result.getExecutionResult();
             }
         };
     }

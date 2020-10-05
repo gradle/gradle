@@ -184,7 +184,7 @@ class CleanupOutputsStepTest extends StepSpec<InputChangesContext> implements Fi
         _ * work.shouldCleanupOutputsOnNonIncrementalExecution() >> true
         _ * context.beforeExecutionState >> Optional.of(beforeExecutionState)
         1 * beforeExecutionState.detectedOverlappingOutputs >> Optional.of(new OverlappingOutputs("test", "/absolute/path"))
-        _ * work.visitOutputProperties(_) >> { OutputPropertyVisitor visitor ->
+        _ * work.visitOutputProperties(_, _) >> { File workspace, OutputPropertyVisitor visitor ->
             visitor.visitOutputProperty("dir", TreeType.DIRECTORY, outputs.dir, TestFiles.fixed(outputs.dir))
             visitor.visitOutputProperty("file", TreeType.FILE, outputs.file, TestFiles.fixed(outputs.file))
         }
@@ -199,7 +199,7 @@ class CleanupOutputsStepTest extends StepSpec<InputChangesContext> implements Fi
         _ * work.shouldCleanupOutputsOnNonIncrementalExecution() >> true
         _ * context.beforeExecutionState >> Optional.of(beforeExecutionState)
         1 * beforeExecutionState.detectedOverlappingOutputs >> Optional.empty()
-        _ * work.visitOutputProperties(_) >> { OutputPropertyVisitor visitor ->
+        _ * work.visitOutputProperties(_, _) >> { File workspace, OutputPropertyVisitor visitor ->
             visitor.visitOutputProperty("dir", TreeType.DIRECTORY, outputs.dir, TestFiles.fixed(outputs.dir))
             visitor.visitOutputProperty("file", TreeType.FILE, outputs.file, TestFiles.fixed(outputs.file))
         }

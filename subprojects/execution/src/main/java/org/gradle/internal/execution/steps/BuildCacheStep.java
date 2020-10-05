@@ -37,12 +37,13 @@ import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.Optional;
 
-public class CacheStep implements Step<IncrementalChangesContext, CurrentSnapshotResult> {
-    private static final Logger LOGGER = LoggerFactory.getLogger(CacheStep.class);
+public class BuildCacheStep implements Step<IncrementalChangesContext, CurrentSnapshotResult> {
+    private static final Logger LOGGER = LoggerFactory.getLogger(BuildCacheStep.class);
 
     private final BuildCacheController buildCache;
     private final BuildCacheCommandFactory commandFactory;
@@ -50,7 +51,7 @@ public class CacheStep implements Step<IncrementalChangesContext, CurrentSnapsho
     private final OutputChangeListener outputChangeListener;
     private final Step<? super IncrementalChangesContext, ? extends CurrentSnapshotResult> delegate;
 
-    public CacheStep(
+    public BuildCacheStep(
         BuildCacheController buildCache,
         BuildCacheCommandFactory commandFactory,
         Deleter deleter,
@@ -75,7 +76,7 @@ public class CacheStep implements Step<IncrementalChangesContext, CurrentSnapsho
 
     private CurrentSnapshotResult executeWithCache(IncrementalChangesContext context, BuildCacheKey cacheKey) {
         UnitOfWork work = context.getWork();
-        CacheableWork cacheableWork = new CacheableWork(work);
+        CacheableWork cacheableWork = new CacheableWork(context.getIdentity().getUniqueId(), context.getWorkspace(), work);
         return Try.ofFailable(() -> work.isAllowedToLoadFromCache()
                 ? buildCache.load(commandFactory.createLoad(cacheKey, cacheableWork))
                 : Optional.<LoadMetadata>empty()
@@ -91,8 +92,18 @@ public class CacheStep implements Step<IncrementalChangesContext, CurrentSnapsho
                     ImmutableSortedMap<String, CurrentFileCollectionFingerprint> finalOutputs = cacheHit.getResultingSnapshots();
                     return (CurrentSnapshotResult) new CurrentSnapshotResult() {
                         @Override
-                        public Try<ExecutionOutcome> getOutcome() {
-                            return Try.successful(ExecutionOutcome.FROM_CACHE);
+                        public Try<ExecutionResult> getExecutionResult() {
+                            return Try.successful(new ExecutionResult() {
+                                @Override
+                                public ExecutionOutcome getOutcome() {
+                                    return ExecutionOutcome.FROM_CACHE;
+                                }
+
+                                @Override
+                                public Object getOutput() {
+                                    return work.loadRestoredOutput(context.getWorkspace());
+                                }
+                            });
                         }
 
                         @Override
@@ -134,12 +145,12 @@ public class CacheStep implements Step<IncrementalChangesContext, CurrentSnapsho
     }
 
     private CurrentSnapshotResult executeAndStoreInCache(CacheableWork work, BuildCacheKey cacheKey, IncrementalChangesContext context) {
-        CurrentSnapshotResult executionResult = executeWithoutCache(context);
-        executionResult.getOutcome().ifSuccessfulOrElse(
-            outcome -> store(work, cacheKey, executionResult),
+        CurrentSnapshotResult result = executeWithoutCache(context);
+        result.getExecutionResult().ifSuccessfulOrElse(
+            executionResult -> store(work, cacheKey, result),
             failure -> LOGGER.debug("Not storing result of {} in cache because the execution failed", context.getWork().getDisplayName())
         );
-        return executionResult;
+        return result;
     }
 
     private void store(CacheableWork work, BuildCacheKey cacheKey, CurrentSnapshotResult result) {
@@ -162,15 +173,19 @@ public class CacheStep implements Step<IncrementalChangesContext, CurrentSnapsho
     }
 
     private static class CacheableWork implements CacheableEntity {
+        private final String identity;
+        private final File workspace;
         private final UnitOfWork work;
 
-        public CacheableWork(UnitOfWork work) {
+        public CacheableWork(String identity, File workspace, UnitOfWork work) {
+            this.identity = identity;
+            this.workspace = workspace;
             this.work = work;
         }
 
         @Override
         public String getIdentity() {
-            return work.getIdentity();
+            return identity;
         }
 
         @Override
@@ -185,7 +200,7 @@ public class CacheStep implements Step<IncrementalChangesContext, CurrentSnapsho
 
         @Override
         public void visitOutputTrees(CacheableTreeVisitor visitor) {
-            work.visitOutputProperties((propertyName, type, root, contents) -> visitor.visitOutputTree(propertyName, type, root));
+            work.visitOutputProperties(workspace, (propertyName, type, root, contents) -> visitor.visitOutputTree(propertyName, type, root));
         }
     }
 }

@@ -16,6 +16,7 @@
 
 package org.gradle.internal.execution.steps;
 
+import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.internal.execution.IncrementalChangesContext;
 import org.gradle.internal.execution.InputChangesContext;
 import org.gradle.internal.execution.Result;
@@ -25,10 +26,13 @@ import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.execution.history.changes.ExecutionStateChanges;
 import org.gradle.internal.execution.history.changes.InputChangesInternal;
+import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
+import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.work.InputChanges;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.util.Optional;
 
 public class ResolveInputChangesStep<C extends IncrementalChangesContext> implements Step<C, Result> {
@@ -60,6 +64,26 @@ public class ResolveInputChangesStep<C extends IncrementalChangesContext> implem
             @Override
             public Optional<String> getRebuildReason() {
                 return context.getRebuildReason();
+            }
+
+            @Override
+            public ImmutableSortedMap<String, ValueSnapshot> getInputProperties() {
+                return context.getInputProperties();
+            }
+
+            @Override
+            public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getInputFileProperties() {
+                return context.getInputFileProperties();
+            }
+
+            @Override
+            public UnitOfWork.Identity getIdentity() {
+                return context.getIdentity();
+            }
+
+            @Override
+            public File getWorkspace() {
+                return context.getWorkspace();
             }
 
             @Override

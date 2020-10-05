@@ -42,22 +42,22 @@ public class StoreExecutionStateStep<C extends BeforeExecutionContext> implement
     @Override
     public CurrentSnapshotResult execute(C context) {
         CurrentSnapshotResult result = delegate.execute(context);
-        context.getWork().getExecutionHistoryStore()
-            .ifPresent(executionHistoryStore -> storeState(context, executionHistoryStore, result));
+        UnitOfWork.Identity identity = context.getIdentity();
+        context.getWork().getHistory()
+            .ifPresent(history -> storeState(context, history, identity.getUniqueId(), result));
         return result;
     }
 
-    private void storeState(C context, ExecutionHistoryStore executionHistoryStore, CurrentSnapshotResult result) {
+    private void storeState(C context, ExecutionHistoryStore executionHistoryStore, String uniqueId, CurrentSnapshotResult result) {
         ImmutableSortedMap<String, CurrentFileCollectionFingerprint> finalOutputs = result.getFinalOutputs();
         context.getBeforeExecutionState().ifPresent(beforeExecutionState -> {
-            boolean successful = result.getOutcome().isSuccessful();
+            boolean successful = result.getExecutionResult().isSuccessful();
             // We do not store the history if there was a failure and the outputs did not change, since then the next execution can be incremental.
             // For example the current execution fails because of a compile failure and for the next execution the source file is fixed, so only the one changed source file needs to be compiled.
             if (successful
                 || didChangeOutput(context.getAfterPreviousExecutionState(), finalOutputs)) {
-                UnitOfWork work = context.getWork();
                 executionHistoryStore.store(
-                    work.getIdentity(),
+                    uniqueId,
                     result.getOriginMetadata(),
                     beforeExecutionState.getImplementation(),
                     beforeExecutionState.getAdditionalImplementations(),

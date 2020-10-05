@@ -378,6 +378,11 @@ public class Hashing {
         }
 
         @Override
+        public void put(Hashable hashable) {
+            hashable.appendToHasher(this);
+        }
+
+        @Override
         public void putNull() {
             this.putInt(0);
         }

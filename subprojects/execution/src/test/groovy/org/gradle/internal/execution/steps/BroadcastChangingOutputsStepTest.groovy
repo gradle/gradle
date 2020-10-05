@@ -20,12 +20,18 @@ import org.gradle.api.file.FileCollection
 import org.gradle.internal.execution.OutputChangeListener
 import org.gradle.internal.execution.Result
 import org.gradle.internal.execution.UnitOfWork
+import org.gradle.internal.execution.WorkspaceContext
 import org.gradle.internal.file.TreeType
 
-class BroadcastChangingOutputsStepTest extends ContextInsensitiveStepSpec {
+class BroadcastChangingOutputsStepTest extends StepSpec<WorkspaceContext> {
     def outputChangeListener = Mock(OutputChangeListener)
     def step = new BroadcastChangingOutputsStep<>(outputChangeListener, delegate)
     def delegateResult = Mock(Result)
+
+    @Override
+    protected WorkspaceContext createContext() {
+        return Stub(WorkspaceContext)
+    }
 
     def "notifies listener about specific outputs changing"() {
         def outputDir = file("output-dir")
@@ -38,7 +44,7 @@ class BroadcastChangingOutputsStepTest extends ContextInsensitiveStepSpec {
         then:
         result == delegateResult
 
-        _ * work.visitOutputProperties(_ as UnitOfWork.OutputPropertyVisitor) >> { UnitOfWork.OutputPropertyVisitor visitor ->
+        _ * work.visitOutputProperties(_ as File, _ as UnitOfWork.OutputPropertyVisitor) >> { File workspace, UnitOfWork.OutputPropertyVisitor visitor ->
             visitor.visitOutputProperty("output", TreeType.DIRECTORY, outputDir, Mock(FileCollection))
         }
         _ * work.visitDestroyableRoots(_ as UnitOfWork.DestroyableVisitor) >> { UnitOfWork.DestroyableVisitor visitor ->

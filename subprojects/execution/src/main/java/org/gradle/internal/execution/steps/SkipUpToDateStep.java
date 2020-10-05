@@ -49,14 +49,15 @@ public class SkipUpToDateStep<C extends IncrementalChangesContext> implements St
 
     @Override
     public UpToDateResult execute(C context) {
+        final UnitOfWork work = context.getWork();
         if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("Determining if {} is up-to-date", context.getWork().getDisplayName());
+            LOGGER.debug("Determining if {} is up-to-date", work.getDisplayName());
         }
         return context.getChanges().map(changes -> {
             ImmutableList<String> reasons = changes.getAllChangeMessages();
             if (reasons.isEmpty()) {
                 if (LOGGER.isInfoEnabled()) {
-                    LOGGER.info("Skipping {} as it is up-to-date.", context.getWork().getDisplayName());
+                    LOGGER.info("Skipping {} as it is up-to-date.", work.getDisplayName());
                 }
                 @SuppressWarnings("OptionalGetWithoutIsPresent")
                 AfterPreviousExecutionState afterPreviousExecutionState = context.getAfterPreviousExecutionState().get();
@@ -77,8 +78,18 @@ public class SkipUpToDateStep<C extends IncrementalChangesContext> implements St
                     }
 
                     @Override
-                    public Try<ExecutionOutcome> getOutcome() {
-                        return Try.successful(ExecutionOutcome.UP_TO_DATE);
+                    public Try<ExecutionResult> getExecutionResult() {
+                        return Try.successful(new ExecutionResult() {
+                            @Override
+                            public ExecutionOutcome getOutcome() {
+                                return ExecutionOutcome.UP_TO_DATE;
+                            }
+
+                            @Override
+                            public Object getOutput() {
+                                return work.loadRestoredOutput(context.getWorkspace());
+                            }
+                        });
                     }
                 };
             } else {
@@ -109,8 +120,8 @@ public class SkipUpToDateStep<C extends IncrementalChangesContext> implements St
             }
 
             @Override
-            public Try<ExecutionOutcome> getOutcome() {
-                return result.getOutcome();
+            public Try<ExecutionResult> getExecutionResult() {
+                return result.getExecutionResult();
             }
         };
     }

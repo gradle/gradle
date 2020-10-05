@@ -87,8 +87,7 @@ import org.gradle.api.internal.artifacts.transform.DefaultTransformedVariantFact
 import org.gradle.api.internal.artifacts.transform.DefaultTransformerInvocationFactory;
 import org.gradle.api.internal.artifacts.transform.DefaultVariantTransformRegistry;
 import org.gradle.api.internal.artifacts.transform.ExecutionGraphDependenciesResolver;
-import org.gradle.api.internal.artifacts.transform.ImmutableCachingTransformationWorkspaceProvider;
-import org.gradle.api.internal.artifacts.transform.MutableCachingTransformationWorkspaceProvider;
+import org.gradle.api.internal.artifacts.transform.ImmutableTransformationWorkspaceProvider;
 import org.gradle.api.internal.artifacts.transform.MutableTransformationWorkspaceProvider;
 import org.gradle.api.internal.artifacts.transform.Transformation;
 import org.gradle.api.internal.artifacts.transform.TransformationNode;
@@ -131,8 +130,6 @@ import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.BeforeExecutionContext;
 import org.gradle.internal.execution.CachingContext;
 import org.gradle.internal.execution.CachingResult;
-import org.gradle.internal.execution.ExecutionOutcome;
-import org.gradle.internal.execution.ExecutionRequestContext;
 import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.OutputSnapshotter;
 import org.gradle.internal.execution.Step;
@@ -145,11 +142,14 @@ import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.history.changes.ExecutionStateChangeDetector;
 import org.gradle.internal.execution.impl.DefaultWorkExecutor;
+import org.gradle.internal.execution.steps.AssignWorkspaceStep;
 import org.gradle.internal.execution.steps.BroadcastChangingOutputsStep;
 import org.gradle.internal.execution.steps.CaptureStateBeforeExecutionStep;
 import org.gradle.internal.execution.steps.CleanupOutputsStep;
 import org.gradle.internal.execution.steps.CreateOutputsStep;
 import org.gradle.internal.execution.steps.ExecuteStep;
+import org.gradle.internal.execution.steps.IdentifyStep;
+import org.gradle.internal.execution.steps.IdentityCacheStep;
 import org.gradle.internal.execution.steps.LoadExecutionStateStep;
 import org.gradle.internal.execution.steps.ResolveChangesStep;
 import org.gradle.internal.execution.steps.ResolveInputChangesStep;
@@ -160,6 +160,7 @@ import org.gradle.internal.execution.steps.TimeoutStep;
 import org.gradle.internal.execution.steps.ValidateStep;
 import org.gradle.internal.execution.timeout.TimeoutHandler;
 import org.gradle.internal.file.Deleter;
+import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry;
 import org.gradle.internal.fingerprint.FileCollectionSnapshotter;
@@ -182,6 +183,7 @@ import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshotter;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.internal.vfs.FileSystemAccess;
@@ -189,6 +191,7 @@ import org.gradle.util.internal.SimpleMapInterner;
 import org.gradle.vcs.internal.VcsMappingsStore;
 
 import javax.annotation.Nullable;
+import java.io.File;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -256,7 +259,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
          *
          * Currently used for running artifact transformations in buildscript blocks.
          */
-        WorkExecutor<ExecutionRequestContext, CachingResult> createWorkExecutor(
+        WorkExecutor createWorkExecutor(
                 BuildOperationExecutor buildOperationExecutor,
                 ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
                 Deleter deleter,
@@ -272,7 +275,10 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             // TODO: Figure out how to get rid of origin scope id in snapshot outputs step
             UniqueId fixedUniqueId = UniqueId.from("dhwwyv4tqrd43cbxmdsf24wquu");
             // @formatter:off
-            return new DefaultWorkExecutor<>(
+            return new DefaultWorkExecutor(
+                new IdentifyStep<>(valueSnapshotter,
+                new IdentityCacheStep<>(
+                new AssignWorkspaceStep<>(
                 new LoadExecutionStateStep<>(
                 new ValidateStep<>(validationWarningReporter,
                 new CaptureStateBeforeExecutionStep(buildOperationExecutor, classLoaderHierarchyHasher, outputSnapshotter, overlappingOutputDetector, valueSnapshotter,
@@ -287,7 +293,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 new ResolveInputChangesStep<>(
                 new CleanupOutputsStep<>(deleter, outputChangeListener,
                 new ExecuteStep<>(
-            )))))))))))))));
+            ))))))))))))))))));
             // @formatter:on
         }
     }
@@ -310,6 +316,26 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 @Override
                 public Optional<String> getRebuildReason() {
                     return context.getRebuildReason();
+                }
+
+                @Override
+                public ImmutableSortedMap<String, ValueSnapshot> getInputProperties() {
+                    return context.getInputProperties();
+                }
+
+                @Override
+                public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getInputFileProperties() {
+                    return context.getInputFileProperties();
+                }
+
+                @Override
+                public UnitOfWork.Identity getIdentity() {
+                    return context.getIdentity();
+                }
+
+                @Override
+                public File getWorkspace() {
+                    return context.getWorkspace();
                 }
 
                 @Override
@@ -349,8 +375,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 }
 
                 @Override
-                public Try<ExecutionOutcome> getOutcome() {
-                    return result.getOutcome();
+                public Try<ExecutionResult> getExecutionResult() {
+                    return result.getExecutionResult();
                 }
             };
         }
@@ -378,14 +404,10 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             return new MutableTransformationWorkspaceProvider(projectLayout.getBuildDirectory().dir(".transforms"), executionHistoryStore);
         }
 
-        MutableCachingTransformationWorkspaceProvider createCachingTransformerWorkspaceProvider(MutableTransformationWorkspaceProvider workspaceProvider) {
-            return new MutableCachingTransformationWorkspaceProvider(workspaceProvider);
-        }
-
         TransformerInvocationFactory createTransformerInvocationFactory(
-                WorkExecutor<ExecutionRequestContext, CachingResult> workExecutor,
+                WorkExecutor workExecutor,
                 FileSystemAccess fileSystemAccess,
-                ImmutableCachingTransformationWorkspaceProvider transformationWorkspaceProvider,
+                ImmutableTransformationWorkspaceProvider transformationWorkspaceProvider,
                 ArtifactTransformListener artifactTransformListener,
                 FileCollectionFactory fileCollectionFactory,
                 ProjectStateRegistry projectStateRegistry,
