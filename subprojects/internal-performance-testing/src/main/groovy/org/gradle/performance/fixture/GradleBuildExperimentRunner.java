@@ -40,6 +40,7 @@ import org.gradle.tooling.GradleConnector;
 import org.gradle.tooling.ProjectConnection;
 import org.gradle.tooling.internal.consumer.ConnectorServices;
 import org.gradle.tooling.model.build.BuildEnvironment;
+import org.gradle.util.GradleVersion;
 
 import java.io.File;
 import java.io.IOException;
@@ -139,6 +140,9 @@ public class GradleBuildExperimentRunner extends AbstractBuildExperimentRunner {
             : (daemonInvoker == GradleBuildInvoker.ToolingApi
             ? daemonInvoker.withColdDaemon()
             : GradleBuildInvoker.CliNoDaemon);
+        boolean measureGarbageCollection = experiment.isMeasureGarbageCollection()
+            // Measuring GC needs build services which have been introduced in Gradle 6.1
+            && experiment.getInvocation().getGradleDistribution().getVersion().getBaseVersion().compareTo(GradleVersion.version("6.1")) >= 0;
         return new InvocationSettings.InvocationSettingsBuilder()
             .setProjectDir(invocationSpec.getWorkingDirectory())
             .setProfiler(getProfiler())
@@ -155,7 +159,7 @@ public class GradleBuildExperimentRunner extends AbstractBuildExperimentRunner {
             .setIterations(invocationsForExperiment(experiment))
             .setMeasureConfigTime(false)
             .setMeasuredBuildOperations(experiment.getMeasuredBuildOperations())
-            .setMeasureGarbageCollection(experiment.isMeasureGarbageCollection())
+            .setMeasureGarbageCollection(measureGarbageCollection)
             .setCsvFormat(CsvGenerator.Format.LONG)
             .setBuildLog(invocationSpec.getBuildLog())
             .build();
