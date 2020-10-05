@@ -197,7 +197,7 @@ The `init` task generates the new project with the following structure:
 <3> Settings file to define build name and subprojects
 <4> Build script of _buildSrc_ to configure dependencies of the build logic
 <5> Source folder for _convention plugins_ written in Groovy or Kotlin DSL
-<6> Build script of the three subproject `app`, `list` and `utilities`
+<6> Build script of the three subprojects - `app`, `list` and `utilities`
 <7> ${language.raw} source folders in each of the subprojects
 <8> ${language.raw} test source folders in the subprojects
 
