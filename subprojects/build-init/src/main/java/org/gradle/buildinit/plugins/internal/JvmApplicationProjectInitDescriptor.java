@@ -57,6 +57,8 @@ public class JvmApplicationProjectInitDescriptor extends JvmProjectInitDescripto
             });
         }
 
+        buildScriptBuilder.dependencies().dependency("implementation", null, "org.apache.commons:commons-lang3");
+
         if (isSingleProject(settings)) {
             applyApplicationPlugin(buildScriptBuilder);
             buildScriptBuilder.implementationDependency("This dependency is used by the application.",

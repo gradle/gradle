@@ -7,11 +7,13 @@ import ${basePackageName.raw}.list.LinkedList
 import static ${basePackageName.raw}.utilities.StringUtils.join
 import static ${basePackageName.raw}.utilities.StringUtils.split
 import static ${basePackageName.raw}.app.MessageUtils.getMessage
+import org.apache.commons.lang3.math.NumberUtils
 
 class App {
     static void main(String[] args) {
         LinkedList tokens
         tokens = split(getMessage())
         println(join(tokens))
+        println(NumberUtils.createNumber("42"))
     }
 }

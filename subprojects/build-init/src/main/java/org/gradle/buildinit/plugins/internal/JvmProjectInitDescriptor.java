@@ -175,6 +175,9 @@ public abstract class JvmProjectInitDescriptor extends LanguageLibraryProjectIni
     }
 
     private void addStandardDependencies(BuildScriptBuilder buildScriptBuilder) {
+        String commonsLangVersion = libraryVersionProvider.getVersion("commons-lang");
+        buildScriptBuilder.implementationDependencyConstraint("Define dependency versions as constraints", "org.apache.commons:commons-lang3:" + commonsLangVersion);
+
         if (getLanguage() == Language.GROOVY) {
             buildScriptBuilder.implementationDependency("Use the latest Groovy version for building this library", "org.codehaus.groovy:groovy-all:" + libraryVersionProvider.getVersion("groovy"));
         }

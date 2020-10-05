@@ -131,6 +131,17 @@ public class BuildScriptBuilder {
     }
 
     /**
+     * Adds one or more dependency constraints to the implementation scope.
+     *
+     * @param comment A description of why the constraints are required
+     * @param dependencies The constraints, in string notation
+     */
+    public BuildScriptBuilder implementationDependencyConstraint(@Nullable String comment, String... dependencies) {
+        dependencies().dependencyConstraint("implementation", comment, dependencies);
+        return this;
+    }
+
+    /**
      * Adds one or more external test implementation dependencies.
      *
      * @param comment A description of why the dependencies are required
@@ -895,10 +906,16 @@ public class BuildScriptBuilder {
 
     private static class DependenciesBlock implements DependenciesBuilder, Statement, BlockBody {
         final ListMultimap<String, Statement> dependencies = MultimapBuilder.linkedHashKeys().arrayListValues().build();
+        final ListMultimap<String, Statement> constraints = MultimapBuilder.linkedHashKeys().arrayListValues().build();
 
         @Override
         public void dependency(String configuration, @Nullable String comment, String... dependencies) {
             this.dependencies.put(configuration, new DepSpec(configuration, comment, Arrays.asList(dependencies)));
+        }
+
+        @Override
+        public void dependencyConstraint(String configuration, @Nullable String comment, String... constraints) {
+            this.constraints.put(configuration, new DepSpec(configuration, comment, Arrays.asList(constraints)));
         }
 
         @Override
@@ -919,7 +936,7 @@ public class BuildScriptBuilder {
 
         @Override
         public Type type() {
-            return dependencies.isEmpty() ? Type.Empty : Type.Group;
+            return dependencies.isEmpty() && constraints.isEmpty() ? Type.Empty : Type.Group;
         }
 
         @Override
@@ -929,6 +946,16 @@ public class BuildScriptBuilder {
 
         @Override
         public void writeBodyTo(PrettyPrinter printer) {
+            if (!this.constraints.isEmpty()) {
+                ScriptBlockImpl constraintsBlock = new ScriptBlockImpl();
+                for (String config : this.constraints.keySet()) {
+                    for (Statement constraintSpec : this.constraints.get(config)) {
+                            constraintsBlock.add(constraintSpec);
+                    }
+                }
+                printer.printBlock("constraints", constraintsBlock);
+            }
+
             for (String config : dependencies.keySet()) {
                 for (Statement depSpec : dependencies.get(config)) {
                     printer.printStatement(depSpec);
@@ -939,6 +966,16 @@ public class BuildScriptBuilder {
         @Override
         public List<Statement> getStatements() {
             List<Statement> statements = new ArrayList<>();
+            if (!constraints.isEmpty()) {
+                ScriptBlock constraintsBlock = new ScriptBlock(null, "constraints");
+                for (String config : constraints.keySet()) {
+                    for(Statement statement : constraints.get(config)) {
+                        constraintsBlock.add(statement);
+                    }
+                }
+                statements.add(constraintsBlock);
+            }
+
             for (String config : dependencies.keySet()) {
                 statements.addAll(dependencies.get(config));
             }
