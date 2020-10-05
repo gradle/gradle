@@ -27,7 +27,7 @@ import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot
 import org.gradle.internal.snapshot.RegularFileSnapshot
 import org.gradle.internal.snapshot.SnapshotHierarchy
 import org.gradle.internal.snapshot.impl.DirectorySnapshotter
-import org.gradle.internal.vfs.VirtualFileSystem
+import org.gradle.internal.vfs.impl.AbstractVirtualFileSystem
 import org.gradle.internal.vfs.impl.DefaultSnapshotHierarchy
 import org.gradle.internal.watch.registry.FileWatcherUpdater
 import org.gradle.internal.watch.registry.SnapshotCollectingDiffListener
@@ -52,7 +52,7 @@ abstract class AbstractFileWatcherUpdaterTest extends Specification {
     Predicate<String> watchFilter = { path -> !ignoredForWatching.contains(path) }
     def directorySnapshotter = new DirectorySnapshotter(TestFiles.fileHasher(), new StringInterner(), [])
     FileWatcherUpdater updater
-    def virtualFileSystem = new VirtualFileSystem() {
+    def virtualFileSystem = new AbstractVirtualFileSystem() {
         private SnapshotHierarchy root = DefaultSnapshotHierarchy.empty(CaseSensitivity.CASE_SENSITIVE)
         @Override
         SnapshotHierarchy getRoot() {
@@ -60,7 +60,7 @@ abstract class AbstractFileWatcherUpdaterTest extends Specification {
         }
 
         @Override
-        void update(VirtualFileSystem.UpdateFunction updateFunction) {
+        protected void update(AbstractVirtualFileSystem.UpdateFunction updateFunction) {
             def diffListener = new SnapshotCollectingDiffListener()
             root = updateFunction.update(root, diffListener)
             diffListener.publishSnapshotDiff {removed, added ->
@@ -233,11 +233,11 @@ abstract class AbstractFileWatcherUpdaterTest extends Specification {
     }
 
     void addSnapshot(CompleteFileSystemLocationSnapshot snapshot) {
-        virtualFileSystem.update({ currentRoot, listener -> currentRoot.store(snapshot.absolutePath, snapshot, listener) })
+        virtualFileSystem.store(snapshot.absolutePath, snapshot)
     }
 
     void invalidate(String absolutePath) {
-        virtualFileSystem.update({ currentRoot, listener -> currentRoot.invalidate(absolutePath, listener) })
+        virtualFileSystem.invalidate(absolutePath)
     }
 
     void invalidate(CompleteFileSystemLocationSnapshot snapshot) {
@@ -278,17 +278,12 @@ abstract class AbstractFileWatcherUpdaterTest extends Specification {
 
     void registerWatchableHierarchies(Iterable<File> watchableHierarchies) {
         watchableHierarchies.each { watchableHierarchy ->
-            virtualFileSystem.update { root, diffListener ->
-                updater.registerWatchableHierarchy(watchableHierarchy, root)
-                return root
-            }
+            updater.registerWatchableHierarchy(watchableHierarchy, virtualFileSystem.root)
         }
     }
 
     void buildFinished(int maximumNumberOfWatchedHierarchies = Integer.MAX_VALUE) {
-        virtualFileSystem.update { root, diffListener ->
-            updater.buildFinished(root, maximumNumberOfWatchedHierarchies)
-        }
+        virtualFileSystem.root = updater.buildFinished(virtualFileSystem.root, maximumNumberOfWatchedHierarchies)
     }
 
     private static class CheckIfNonEmptySnapshotVisitor implements SnapshotHierarchy.SnapshotVisitor {

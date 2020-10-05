@@ -58,7 +58,6 @@ import org.gradle.internal.scopeids.id.BuildInvocationScopeId
 import org.gradle.internal.snapshot.ValueSnapshot
 import org.gradle.internal.snapshot.impl.DefaultValueSnapshotter
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot
-import org.gradle.internal.vfs.VirtualFileSystem
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -627,7 +626,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
     }
 
     UpToDateResult execute(UnitOfWork unitOfWork) {
-        virtualFileSystem.update(VirtualFileSystem.INVALIDATE_ALL)
+        virtualFileSystem.invalidateAll()
         executor.execute(unitOfWork, null)
     }
 

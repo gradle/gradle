@@ -43,6 +43,7 @@ import org.gradle.internal.snapshot.SnapshotHierarchy;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.vfs.FileSystemAccess;
 import org.gradle.internal.vfs.VirtualFileSystem;
+import org.gradle.internal.vfs.impl.AbstractVirtualFileSystem;
 import org.gradle.internal.vfs.impl.DefaultFileSystemAccess;
 import org.gradle.internal.vfs.impl.DefaultSnapshotHierarchy;
 import org.gradle.internal.vfs.impl.VfsRootReference;
@@ -197,14 +198,14 @@ public class TestFiles {
     public static VirtualFileSystem virtualFileSystem() {
         CaseSensitivity caseSensitivity = fileSystem().isCaseSensitive() ? CASE_SENSITIVE : CASE_INSENSITIVE;
         VfsRootReference rootReference = new VfsRootReference(DefaultSnapshotHierarchy.empty(caseSensitivity));
-        return new VirtualFileSystem() {
+        return new AbstractVirtualFileSystem() {
             @Override
             public SnapshotHierarchy getRoot() {
                 return rootReference.getRoot();
             }
 
             @Override
-            public void update(UpdateFunction updateFunction) {
+            protected void update(UpdateFunction updateFunction) {
                 rootReference.update(root -> updateFunction.update(root, SnapshotHierarchy.NodeDiffListener.NOOP));
             }
         };
