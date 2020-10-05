@@ -403,6 +403,41 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
         legacy << [true, false]
     }
 
+    def "many tasks in the same project can consume the output of transform of external dependencies"() {
+        setupBuildWithArtifactTransformsOfExternalDependencies(false)
+        buildFile << """
+            for (i in 0..5) {
+                task "resolve\$i" {
+                    def view = configurations.implementation.incoming.artifactView {
+                        attributes.attribute(color, 'green')
+                    }.files
+                    inputs.files view
+                    doLast {
+                        println "result = \${view.files.name}"
+                    }
+                }
+            }
+        """
+        def fixture = newConfigurationCacheFixture()
+
+        when:
+        configurationCacheRun(":resolve0", ":resolve1", ":resolve2", ":resolve3", ":resolve4")
+
+        then:
+        fixture.assertStateStored()
+        output.count("processing thing1-1.2.jar") == 1
+        output.count("processing thing2-1.2.jar") == 1
+        output.count("result = [thing1-1.2.jar.green, thing2-1.2.jar.green]") == 5
+
+        when:
+        configurationCacheRun(":resolve0", ":resolve1", ":resolve2", ":resolve3", ":resolve4")
+
+        then:
+        fixture.assertStateLoaded()
+        outputDoesNotContain("processing")
+        output.count("result = [thing1-1.2.jar.green, thing2-1.2.jar.green]") == 5
+    }
+
     def setupBuildWithArtifactTransformsOfPrebuiltFileDependencies(boolean legacy) {
         if (legacy) {
             setupBuildWithLegacyColorTransformImplementation()
