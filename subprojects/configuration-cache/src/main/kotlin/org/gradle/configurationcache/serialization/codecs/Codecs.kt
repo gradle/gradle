@@ -16,6 +16,7 @@
 
 package org.gradle.configurationcache.serialization.codecs
 
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSetToFileCollectionFactory
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.BuildIdentifierSerializer
 import org.gradle.api.internal.artifacts.transform.ArtifactTransformActionScheme
 import org.gradle.api.internal.artifacts.transform.ArtifactTransformListener
@@ -78,6 +79,7 @@ import java.io.Externalizable
 class Codecs(
     directoryFileTreeFactory: DirectoryFileTreeFactory,
     fileCollectionFactory: FileCollectionFactory,
+    artifactSetConverter: ArtifactSetToFileCollectionFactory,
     fileLookup: FileLookup,
     propertyFactory: PropertyFactory,
     filePropertyFactory: FilePropertyFactory,
@@ -118,7 +120,7 @@ class Codecs(
         bind(ListenerBroadcastCodec(listenerManager))
         bind(LoggerCodec)
 
-        fileCollectionTypes(directoryFileTreeFactory, fileCollectionFactory, fileOperations, fileFactory, patternSetFactory)
+        fileCollectionTypes(directoryFileTreeFactory, fileCollectionFactory, artifactSetConverter, fileOperations, fileFactory, patternSetFactory)
 
         bind(ApiTextResourceAdapterCodec)
 
@@ -126,7 +128,7 @@ class Codecs(
         bind(GroovyMetaClassCodec)
 
         // Dependency management types
-        bind(ArtifactCollectionCodec(fileCollectionFactory))
+        bind(ArtifactCollectionCodec(fileCollectionFactory, artifactSetConverter))
         bind(ImmutableAttributesCodec(attributesFactory, managedFactoryRegistry))
         bind(AttributeContainerCodec(attributesFactory, managedFactoryRegistry))
         bind(TransformationNodeReferenceCodec)
@@ -177,7 +179,7 @@ class Codecs(
         baseTypes()
 
         providerTypes(propertyFactory, filePropertyFactory, buildServiceRegistry, valueSourceProviderFactory)
-        fileCollectionTypes(directoryFileTreeFactory, fileCollectionFactory, fileOperations, fileFactory, patternSetFactory)
+        fileCollectionTypes(directoryFileTreeFactory, fileCollectionFactory, artifactSetConverter, fileOperations, fileFactory, patternSetFactory)
 
         bind(BuildIdentifierSerializer())
         bind(TaskNodeCodec(userTypesCodec, taskNodeFactory))
@@ -207,12 +209,12 @@ class Codecs(
     }
 
     private
-    fun BindingsBuilder.fileCollectionTypes(directoryFileTreeFactory: DirectoryFileTreeFactory, fileCollectionFactory: FileCollectionFactory, fileOperations: FileOperations, fileFactory: FileFactory, patternSetFactory: Factory<PatternSet>) {
+    fun BindingsBuilder.fileCollectionTypes(directoryFileTreeFactory: DirectoryFileTreeFactory, fileCollectionFactory: FileCollectionFactory, artifactSetConverter: ArtifactSetToFileCollectionFactory, fileOperations: FileOperations, fileFactory: FileFactory, patternSetFactory: Factory<PatternSet>) {
         bind(DirectoryCodec(fileFactory))
         bind(RegularFileCodec(fileFactory))
         bind(ConfigurableFileTreeCodec(fileCollectionFactory))
         bind(FileTreeCodec(fileCollectionFactory, directoryFileTreeFactory, fileOperations))
-        val fileCollectionCodec = FileCollectionCodec(fileCollectionFactory)
+        val fileCollectionCodec = FileCollectionCodec(fileCollectionFactory, artifactSetConverter)
         bind(ConfigurableFileCollectionCodec(fileCollectionCodec, fileCollectionFactory))
         bind(fileCollectionCodec)
         bind(IntersectPatternSetCodec)

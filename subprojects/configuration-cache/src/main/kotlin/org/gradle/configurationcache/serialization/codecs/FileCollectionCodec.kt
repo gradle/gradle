@@ -18,6 +18,7 @@ package org.gradle.configurationcache.serialization.codecs
 
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.FileTree
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSetToFileCollectionFactory
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.LocalFileDependencyBackedArtifactSet
 import org.gradle.api.internal.artifacts.transform.DefaultArtifactTransformDependencies
 import org.gradle.api.internal.artifacts.transform.Transformation
@@ -51,7 +52,8 @@ import java.util.concurrent.Callable
 
 internal
 class FileCollectionCodec(
-    private val fileCollectionFactory: FileCollectionFactory
+    private val fileCollectionFactory: FileCollectionFactory,
+    private val artifactSetConverter: ArtifactSetToFileCollectionFactory
 ) : Codec<FileCollectionInternal> {
 
     private
@@ -92,9 +94,7 @@ class FileCollectionCodec(
                             is FilteredFileCollectionSpec -> element.collection.filter(element.filter)
                             is ProviderBackedFileCollectionSpec -> element.provider
                             is FileTree -> element
-                            is TransformedExternalArtifactSet -> Callable {
-                                element.calculateResult()
-                            }
+                            is TransformedExternalArtifactSet -> artifactSetConverter.asFileCollection(element)
                             is TransformedLocalFileSpec -> Callable {
                                 element.transformation.isolateParameters()
                                 element.transformation.createInvocation(TransformationSubject.initial(element.origin), noDependencies, null).invoke().get().files

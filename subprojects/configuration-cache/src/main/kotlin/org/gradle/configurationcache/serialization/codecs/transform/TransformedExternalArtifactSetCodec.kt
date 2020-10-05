@@ -20,6 +20,7 @@ import org.gradle.api.Action
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.artifacts.PreResolvedResolvableArtifact
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet
 import org.gradle.api.internal.artifacts.transform.ArtifactTransformDependencies
@@ -39,6 +40,7 @@ import org.gradle.configurationcache.serialization.WriteContext
 import org.gradle.configurationcache.serialization.decodePreservingSharedIdentity
 import org.gradle.configurationcache.serialization.encodePreservingSharedIdentityOf
 import org.gradle.configurationcache.serialization.readNonNull
+import org.gradle.internal.Describables
 import org.gradle.internal.Try
 import org.gradle.internal.component.local.model.ComponentFileArtifactIdentifier
 import org.gradle.internal.component.model.DefaultIvyArtifactName
@@ -107,7 +109,18 @@ class FixedFilesArtifactSet(private val ownerId: ComponentIdentifier, private va
     }
 
     override fun startVisit(actions: BuildOperationQueue<RunnableBuildOperation>, listener: ResolvedArtifactSet.AsyncArtifactListener): ResolvedArtifactSet.Completion {
-        throw UnsupportedOperationException("should not be called")
+        val artifacts = artifacts
+        for (artifact in artifacts) {
+            listener.artifactAvailable(artifact)
+        }
+        return object : ResolvedArtifactSet.Completion {
+            override fun visit(visitor: ArtifactVisitor) {
+                val displayName = Describables.of(ownerId)
+                for (artifact in artifacts) {
+                    visitor.visitArtifact(displayName, ImmutableAttributes.EMPTY, artifact)
+                }
+            }
+        }
     }
 
     override fun visitLocalArtifacts(visitor: ResolvedArtifactSet.LocalArtifactVisitor) {
@@ -115,8 +128,12 @@ class FixedFilesArtifactSet(private val ownerId: ComponentIdentifier, private va
     }
 
     override fun visitExternalArtifacts(visitor: Action<ResolvableArtifact>) {
-        for (file in files) {
-            visitor.execute(PreResolvedResolvableArtifact(null, DefaultIvyArtifactName.forFile(file, null), ComponentFileArtifactIdentifier(ownerId, file.name), file, TaskDependencyContainer.EMPTY))
+        for (artifact in artifacts) {
+            visitor.execute(artifact)
         }
     }
+
+    private
+    val artifacts: List<ResolvableArtifact>
+        get() = files.map { file -> PreResolvedResolvableArtifact(null, DefaultIvyArtifactName.forFile(file, null), ComponentFileArtifactIdentifier(ownerId, file.name), file, TaskDependencyContainer.EMPTY) }
 }

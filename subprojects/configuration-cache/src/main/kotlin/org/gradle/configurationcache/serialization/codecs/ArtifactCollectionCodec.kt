@@ -23,6 +23,7 @@ import org.gradle.api.attributes.AttributeContainer
 import org.gradle.api.component.Artifact
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.artifacts.configurations.ArtifactCollectionInternal
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSetToFileCollectionFactory
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.LocalFileDependencyBackedArtifactSet
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact
@@ -53,7 +54,10 @@ import java.util.concurrent.Callable
 
 
 internal
-class ArtifactCollectionCodec(private val fileCollectionFactory: FileCollectionFactory) : Codec<ArtifactCollectionInternal> {
+class ArtifactCollectionCodec(
+    private val fileCollectionFactory: FileCollectionFactory,
+    private val artifactSetConverter: ArtifactSetToFileCollectionFactory
+) : Codec<ArtifactCollectionInternal> {
 
     private
     val noDependencies = FixedDependenciesResolver(DefaultArtifactTransformDependencies(fileCollectionFactory.empty()))
@@ -80,15 +84,13 @@ class ArtifactCollectionCodec(private val fileCollectionFactory: FileCollectionF
                         element.transformation.isolateParameters()
                         element.transformation.createInvocation(TransformationSubject.initial(element.origin), FixedDependenciesResolver(DefaultArtifactTransformDependencies(fileCollectionFactory.empty())), null).invoke().get().files
                     }
-                    is TransformedExternalArtifactSet -> Callable {
-                        element.calculateResult()
-                    }
+                    is TransformedExternalArtifactSet -> artifactSetConverter.asFileCollection(element)
                     else -> throw IllegalArgumentException("Unexpected element $element in artifact collection")
                 }
             }
         )
         val failures = readList().uncheckedCast<List<Throwable>>()
-        return FixedArtifactCollection(files, elements, failures, noDependencies)
+        return FixedArtifactCollection(files, elements, failures, artifactSetConverter, noDependencies)
     }
 }
 
@@ -166,6 +168,7 @@ class FixedArtifactCollection(
     private val artifactFiles: FileCollection,
     private val elements: List<Any>,
     private val failures: List<Throwable>,
+    private val artifactSetConverter: ArtifactSetToFileCollectionFactory,
     private val noDependencies: ExecutionGraphDependenciesResolver
 ) : ArtifactCollectionInternal {
 
@@ -221,20 +224,7 @@ class FixedArtifactCollection(
                     }
                 }
                 is TransformedExternalArtifactSet -> {
-                    val displayName = Describables.of(element.ownerId, element.targetVariantAttributes)
-                    for (file in element.calculateResult()) {
-                        // TODO - preserve artifact id, for error reporting
-                        val artifactId = ComponentFileArtifactIdentifier(element.ownerId, file.name)
-                        result.add(
-                            DefaultResolvedArtifactResult(
-                                artifactId,
-                                element.targetVariantAttributes,
-                                displayName,
-                                Artifact::class.java,
-                                file
-                            )
-                        )
-                    }
+                    result.addAll(artifactSetConverter.asResolvedArtifactSupplier(element).get())
                 }
                 is TransformedLocalArtifactSpec -> {
                     element.transformation.isolateParameters()

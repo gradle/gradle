@@ -69,7 +69,7 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
     public Completion startVisit(BuildOperationQueue<RunnableBuildOperation> actions, AsyncArtifactListener listener) {
         FileCollectionStructureVisitor.VisitType visitType = listener.prepareForVisit(this);
         if (visitType == FileCollectionStructureVisitor.VisitType.NoContents) {
-            return EMPTY_RESULT;
+            return visitor -> visitor.endVisitCollection(this);
         }
 
         ComponentIdentifier componentIdentifier = dependencyMetadata.getComponentId();
