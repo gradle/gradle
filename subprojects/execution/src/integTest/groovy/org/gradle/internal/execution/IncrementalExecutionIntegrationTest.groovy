@@ -797,25 +797,20 @@ class IncrementalExecutionIntegrationTest extends Specification {
                 }
 
                 @Override
-                void visitInputProperties(Set<UnitOfWork.IdentityKind> filter, UnitOfWork.InputPropertyVisitor visitor) {
-                    if (!filter.contains(NON_IDENTITY)) {
-                        return
-                    }
+                void visitInputProperties(UnitOfWork.InputPropertyVisitor visitor) {
                     inputProperties.each { propertyName, value ->
-                        visitor.visitInputProperty(propertyName, { -> value } as UnitOfWork.ValueSupplier)
+                        visitor.visitInputProperty(propertyName, NON_IDENTITY, { -> value } as UnitOfWork.ValueSupplier)
                     }
                 }
 
                 @Override
-                void visitInputFileProperties(Set<UnitOfWork.IdentityKind> filter, UnitOfWork.InputFilePropertyVisitor visitor) {
-                    if (!filter.contains(NON_IDENTITY)) {
-                        return
-                    }
+                void visitInputFileProperties(UnitOfWork.InputFilePropertyVisitor visitor) {
                     for (entry in inputs.entrySet()) {
                         visitor.visitInputFileProperty(
                             entry.key,
-                            entry.value,
                             NON_INCREMENTAL,
+                            NON_IDENTITY,
+                            entry.value,
                             { -> fingerprinter.fingerprint(TestFiles.fixed(entry.value)) }
                         )
                     }

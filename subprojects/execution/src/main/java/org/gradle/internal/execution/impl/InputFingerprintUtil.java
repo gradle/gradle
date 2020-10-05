@@ -23,8 +23,6 @@ import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshotter;
 
-import java.util.Set;
-
 public class InputFingerprintUtil {
 
     public static ImmutableSortedMap<String, ValueSnapshot> fingerprintInputProperties(
@@ -32,12 +30,15 @@ public class InputFingerprintUtil {
         ImmutableSortedMap<String, ValueSnapshot> previousSnapshots,
         ValueSnapshotter valueSnapshotter,
         ImmutableSortedMap<String, ValueSnapshot> alreadyKnownSnapshots,
-        Set<UnitOfWork.IdentityKind> filter
+        InputPropertyPredicate filter
     ) {
         ImmutableSortedMap.Builder<String, ValueSnapshot> builder = ImmutableSortedMap.naturalOrder();
         builder.putAll(alreadyKnownSnapshots);
-        work.visitInputProperties(filter, (propertyName, value) -> {
+        work.visitInputProperties((propertyName, identity, value) -> {
             if (alreadyKnownSnapshots.containsKey(propertyName)) {
+                return;
+            }
+            if (!filter.include(propertyName, identity)) {
                 return;
             }
             try {
@@ -63,12 +64,15 @@ public class InputFingerprintUtil {
     public static ImmutableSortedMap<String, CurrentFileCollectionFingerprint> fingerprintInputFiles(
         UnitOfWork work,
         ImmutableSortedMap<String, CurrentFileCollectionFingerprint> alreadyKnownFingerprints,
-        Set<UnitOfWork.IdentityKind> filter
+        InputFilePropertyPredicate filter
     ) {
         ImmutableSortedMap.Builder<String, CurrentFileCollectionFingerprint> builder = ImmutableSortedMap.naturalOrder();
         builder.putAll(alreadyKnownFingerprints);
-        work.visitInputFileProperties(filter, (propertyName, value, type, fingerprinter) -> {
+        work.visitInputFileProperties((propertyName, type, identity, value, fingerprinter) -> {
             if (alreadyKnownFingerprints.containsKey(propertyName)) {
+                return;
+            }
+            if (!filter.include(propertyName, type, identity)) {
                 return;
             }
             builder.put(propertyName, fingerprinter.get());

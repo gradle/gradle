@@ -37,7 +37,6 @@ import org.gradle.internal.execution.caching.CachingDisabledReason;
 import org.gradle.internal.execution.caching.CachingDisabledReasonCategory;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.history.changes.InputChangesInternal;
-import org.gradle.internal.file.TreeType;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinter;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry;
@@ -66,7 +65,6 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
@@ -74,6 +72,8 @@ import java.util.stream.Stream;
 import static org.gradle.internal.execution.UnitOfWork.IdentityKind.NON_IDENTITY;
 import static org.gradle.internal.execution.UnitOfWork.InputPropertyType.NON_INCREMENTAL;
 import static org.gradle.internal.execution.UnitOfWork.InputPropertyType.PRIMARY;
+import static org.gradle.internal.file.TreeType.DIRECTORY;
+import static org.gradle.internal.file.TreeType.FILE;
 
 public class DefaultTransformerInvocationFactory implements TransformerInvocationFactory {
     private static final CachingDisabledReason NOT_CACHEABLE = new CachingDisabledReason(CachingDisabledReasonCategory.NOT_CACHEABLE, "Caching not enabled.");
@@ -374,22 +374,19 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
         }
 
         @Override
-        public void visitInputProperties(Set<IdentityKind> filter, InputPropertyVisitor visitor) {
-            if (!filter.contains(NON_IDENTITY)) {
-                return;
-            }
+        public void visitInputProperties(InputPropertyVisitor visitor) {
             // Emulate secondary inputs as a single property for now
-            visitor.visitInputProperty(SECONDARY_INPUTS_HASH_PROPERTY_NAME, () -> transformer.getSecondaryInputHash().toString());
+            visitor.visitInputProperty(SECONDARY_INPUTS_HASH_PROPERTY_NAME, NON_IDENTITY,
+                () -> transformer.getSecondaryInputHash().toString());
         }
 
         @Override
-        public void visitInputFileProperties(Set<IdentityKind> filter, InputFilePropertyVisitor visitor) {
-            if (!filter.contains(NON_IDENTITY)) {
-                return;
-            }
-            visitor.visitInputFileProperty(INPUT_ARTIFACT_PROPERTY_NAME, inputArtifactProvider, PRIMARY,
+        public void visitInputFileProperties(InputFilePropertyVisitor visitor) {
+            visitor.visitInputFileProperty(INPUT_ARTIFACT_PROPERTY_NAME, PRIMARY, NON_IDENTITY,
+                inputArtifactProvider,
                 () -> inputArtifactFingerprinter.fingerprint(ImmutableList.of(inputArtifactSnapshot)));
-            visitor.visitInputFileProperty(DEPENDENCIES_PROPERTY_NAME, dependencies, NON_INCREMENTAL,
+            visitor.visitInputFileProperty(DEPENDENCIES_PROPERTY_NAME, NON_INCREMENTAL, NON_IDENTITY,
+                dependencies,
                 () -> dependenciesFingerprint);
         }
 
@@ -397,8 +394,12 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
         public void visitOutputProperties(File workspace, OutputPropertyVisitor visitor) {
             File outputDir = getOutputDir(workspace);
             File resultsFile = getResultsFile(workspace);
-            visitor.visitOutputProperty(OUTPUT_DIRECTORY_PROPERTY_NAME, TreeType.DIRECTORY, outputDir, fileCollectionFactory.fixed(outputDir));
-            visitor.visitOutputProperty(RESULTS_FILE_PROPERTY_NAME, TreeType.FILE, resultsFile, fileCollectionFactory.fixed(resultsFile));
+            visitor.visitOutputProperty(OUTPUT_DIRECTORY_PROPERTY_NAME, DIRECTORY,
+                outputDir,
+                fileCollectionFactory.fixed(outputDir));
+            visitor.visitOutputProperty(RESULTS_FILE_PROPERTY_NAME, FILE,
+                resultsFile,
+                fileCollectionFactory.fixed(resultsFile));
         }
 
         @Override
