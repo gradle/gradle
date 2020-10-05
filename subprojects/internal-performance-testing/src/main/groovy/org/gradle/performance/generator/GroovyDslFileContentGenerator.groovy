@@ -99,7 +99,7 @@ class GroovyDslFileContentGenerator extends FileContentGenerator {
     }
 
     @Override
-    protected String configurationsIfMissingJavaLibrarySupport(boolean hasParent) {
+    protected String addJavaLibraryConfigurationsIfNecessary(boolean hasParent) {
         """
         if (noJavaLibraryPlugin) {
             configurations {

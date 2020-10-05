@@ -435,7 +435,7 @@ abstract class FileContentGenerator {
                     $subProjectDependencies
         """
         return """
-            ${configurationsIfMissingJavaLibrarySupport(hasParent)}
+            ${addJavaLibraryConfigurationsIfNecessary(hasParent)}
             if (hasProperty("compileConfiguration")) {
                 dependencies {
                     ${block.replace(api, 'compile').replace(implementation, 'compile').replace(testImplementation, 'testCompile')}
@@ -470,7 +470,7 @@ abstract class FileContentGenerator {
 
     protected abstract String createTaskThatDependsOnAllIncludedBuildsTaskWithSameName(String taskName)
 
-    protected abstract String configurationsIfMissingJavaLibrarySupport(boolean hasParent)
+    protected abstract String addJavaLibraryConfigurationsIfNecessary(boolean hasParent)
 
     protected abstract String directDependencyDeclaration(String configuration, String notation)
 
