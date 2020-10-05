@@ -28,6 +28,7 @@ import java.util.function.Function
 class GradleBuildExperimentSpec extends BuildExperimentSpec {
     final GradleInvocationSpec invocation
     final ImmutableList<String> measuredBuildOperations
+    final boolean measureGarbageCollection
 
     GradleBuildExperimentSpec(
         String displayName,
@@ -37,10 +38,12 @@ class GradleBuildExperimentSpec extends BuildExperimentSpec {
         Integer warmUpCount,
         Integer invocationCount,
         ImmutableList<Function<InvocationSettings, BuildMutator>> buildMutators,
-        ImmutableList<String> measuredBuildOperations
+        ImmutableList<String> measuredBuildOperations,
+        boolean measureGarbageCollection
     ) {
         super(displayName, projectName, workingDirectory, warmUpCount, invocationCount, buildMutators)
         this.measuredBuildOperations = measuredBuildOperations
+        this.measureGarbageCollection = measureGarbageCollection
         this.invocation = invocation
     }
 
@@ -62,6 +65,7 @@ class GradleBuildExperimentSpec extends BuildExperimentSpec {
         Integer invocationCount
         final List<Function<InvocationSettings, BuildMutator>> buildMutators = []
         final List<String> measuredBuildOperations = []
+        boolean measureGarbageCollection
 
         GradleBuilder displayName(String displayName) {
             this.displayName = displayName
@@ -105,12 +109,27 @@ class GradleBuildExperimentSpec extends BuildExperimentSpec {
             this
         }
 
+        GradleBuilder measureGarbageCollection(boolean measureGarbageCollectionTime) {
+            this.measureGarbageCollection = measureGarbageCollectionTime
+            this
+        }
+
         BuildExperimentSpec build() {
             assert projectName != null
             assert displayName != null
             assert invocation != null
 
-            new GradleBuildExperimentSpec(displayName, projectName, workingDirectory, invocation.build(), warmUpCount, invocationCount, ImmutableList.copyOf(buildMutators), ImmutableList.copyOf(measuredBuildOperations))
+            new GradleBuildExperimentSpec(
+                displayName,
+                projectName,
+                workingDirectory,
+                invocation.build(),
+                warmUpCount,
+                invocationCount,
+                ImmutableList.copyOf(buildMutators),
+                ImmutableList.copyOf(measuredBuildOperations),
+                measureGarbageCollection
+            )
         }
     }
 }

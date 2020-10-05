@@ -47,6 +47,7 @@ abstract class AbstractCrossBuildPerformanceTestRunner<R extends CrossBuildPerfo
     String testGroup
     String testProject
     List<BuildExperimentSpec> specs = []
+    boolean measureGarbageCollection = true
 
     final DataReporter<R> reporter
     final ResultsStore resultsStore
@@ -85,6 +86,7 @@ abstract class AbstractCrossBuildPerformanceTestRunner<R extends CrossBuildPerfo
 
     protected void configureGradleSpec(GradleBuildExperimentSpec.GradleBuilder builder) {
         builder.measuredBuildOperations.addAll(measuredBuildOperations)
+        builder.measureGarbageCollection(measureGarbageCollection)
         builder.invocation.distribution(gradleDistribution)
     }
 

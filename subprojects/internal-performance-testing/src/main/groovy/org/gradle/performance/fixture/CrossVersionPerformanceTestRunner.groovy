@@ -87,6 +87,7 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
      * Minimum base version to be used. For example, a 6.0-nightly target version is OK if minimumBaseVersion is 6.0.
      */
     String minimumBaseVersion
+    boolean measureGarbageCollection = true
     private final List<Function<InvocationSettings, BuildMutator>> buildMutators = []
     private final List<String> measuredBuildOperations = []
     private BuildAction buildAction
@@ -287,6 +288,7 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
             .invocationCount(runs)
             .buildMutators(buildMutators)
             .measuredBuildOperations(measuredBuildOperations)
+            .measureGarbageCollection(measureGarbageCollection)
             .invocation {
                 workingDirectory(workingDir)
                 distribution(new PerformanceTestGradleDistribution(dist, workingDir))

@@ -155,7 +155,7 @@ public class GradleBuildExperimentRunner extends AbstractBuildExperimentRunner {
             .setIterations(invocationsForExperiment(experiment))
             .setMeasureConfigTime(false)
             .setMeasuredBuildOperations(experiment.getMeasuredBuildOperations())
-            .setMeasureGarbageCollection(true)
+            .setMeasureGarbageCollection(experiment.isMeasureGarbageCollection())
             .setCsvFormat(CsvGenerator.Format.LONG)
             .setBuildLog(invocationSpec.getBuildLog())
             .build();
