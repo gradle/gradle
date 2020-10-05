@@ -47,7 +47,7 @@ abstract class AbstractMultiBuildIdeIntegrationTest extends AbstractIntegrationS
         } // else, unspecified
     }
 
-    @ToBeFixedForConfigurationCache(because = "composite builds")
+    @ToBeFixedForConfigurationCache(because = "ide plugins")
     def "workspace includes projects from included builds"() {
         buildTestFixture.withBuildInSubDir()
         def buildA = singleProjectBuild("buildA") {
