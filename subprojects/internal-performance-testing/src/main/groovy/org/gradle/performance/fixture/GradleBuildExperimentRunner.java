@@ -25,7 +25,6 @@ import org.gradle.internal.jvm.Jvm;
 import org.gradle.performance.results.GradleProfilerReporter;
 import org.gradle.performance.results.MeasuredOperationList;
 import org.gradle.profiler.BuildAction;
-import org.gradle.profiler.BuildMutatorFactory;
 import org.gradle.profiler.DaemonControl;
 import org.gradle.profiler.GradleBuildConfiguration;
 import org.gradle.profiler.GradleBuildInvocationResult;
@@ -190,10 +189,9 @@ public class GradleBuildExperimentRunner extends AbstractBuildExperimentRunner {
                 : new RunTasksAction(cleanTasks),
             invocationSpec.getArgs(),
             invocationSettings.getSystemProperties(),
-            new BuildMutatorFactory(experimentSpec.getBuildMutators().stream()
-                .map(mutatorFunction -> toMutatorSupplierForSettings(invocationSettings, mutatorFunction))
-                .collect(Collectors.toList())
-            ),
+            experimentSpec.getBuildMutators().stream()
+                .map(mutatorFunction -> mutatorFunction.apply(invocationSettings))
+                .collect(Collectors.toList()),
             invocationSettings.getWarmUpCount(),
             invocationSettings.getBuildCount(),
             invocationSettings.getOutputDir(),
