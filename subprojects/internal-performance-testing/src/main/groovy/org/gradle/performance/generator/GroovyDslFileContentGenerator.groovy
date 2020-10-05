@@ -37,11 +37,6 @@ class GroovyDslFileContentGenerator extends FileContentGenerator {
     }
 
     @Override
-    protected String missingJavaLibrarySupportFlag() {
-        "def missingJavaLibrarySupport = GradleVersion.current() < GradleVersion.version('3.4')"
-    }
-
-    @Override
     protected String noJavaLibraryPluginFlag() {
         "def noJavaLibraryPlugin = hasProperty('noJavaLibraryPlugin')"
     }
@@ -68,14 +63,14 @@ class GroovyDslFileContentGenerator extends FileContentGenerator {
             groovyOptions.forkOptions.memoryMaximumSize = compilerMemory
             groovyOptions.forkOptions.jvmArgs.addAll(javaCompileJvmArgs)
         }
-        
+
         tasks.withType(Test) {
             ${config.useTestNG ? 'useTestNG()' : ''}
             minHeapSize = testRunnerMemory
             maxHeapSize = testRunnerMemory
             maxParallelForks = ${config.maxParallelForks}
             forkEvery = testForkEvery
-            
+
             if (!JavaVersion.current().java8Compatible) {
                 jvmArgs '-XX:MaxPermSize=512m'
             }
@@ -104,18 +99,9 @@ class GroovyDslFileContentGenerator extends FileContentGenerator {
     }
 
     @Override
-    protected String configurationsIfMissingJavaLibrarySupport(boolean hasParent) {
+    protected String addJavaLibraryConfigurationsIfNecessary(boolean hasParent) {
         """
-        if (missingJavaLibrarySupport) {
-            configurations {
-                ${hasParent ? 'api' : ''}
-                implementation
-                testImplementation
-                ${hasParent ? 'compile.extendsFrom api' : ''}
-                compile.extendsFrom implementation
-                testCompile.extendsFrom testImplementation
-            }
-        } else if (noJavaLibraryPlugin) {
+        if (noJavaLibraryPlugin) {
             configurations {
                 ${hasParent ? 'api' : ''}
                 ${hasParent ? 'compile.extendsFrom api' : ''}
