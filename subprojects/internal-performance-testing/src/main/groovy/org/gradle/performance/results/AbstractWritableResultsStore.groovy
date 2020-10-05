@@ -61,7 +61,7 @@ abstract class AbstractWritableResultsStore<T extends PerformanceTestResult> imp
     """
 
     @Override
-    public Map<PerformanceExperimentOnOs, Long> getEstimatedExperimentTimesInMillis() {
+    public Map<PerformanceExperimentOnOs, Long> getEstimatedExperimentDurationsInMillis() {
         return this.<Map<PerformanceExperimentOnOs, Long>>withConnection("load estimated runtimes") { connection ->
             Timestamp since = Timestamp.valueOf(LocalDateTime.now().minusDays(LATEST_EXECUTION_TIMES_DAYS))
             ImmutableMap.Builder<PerformanceExperimentOnOs, Long> builder = ImmutableMap.builder()

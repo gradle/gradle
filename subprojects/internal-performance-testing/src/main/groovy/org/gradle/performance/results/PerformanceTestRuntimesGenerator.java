@@ -33,15 +33,15 @@ public class PerformanceTestRuntimesGenerator {
 
     public void generate(File runtimesFile) throws IOException {
         AllResultsStore resultsStore = new AllResultsStore();
-        Map<PerformanceExperimentOnOs, Long> estimatedExperimentTimes = resultsStore.getEstimatedExperimentTimesInMillis();
+        Map<PerformanceExperimentOnOs, Long> estimatedExperimentDurations = resultsStore.getEstimatedExperimentDurationsInMillis();
         Map<PerformanceScenario, List<Map.Entry<PerformanceExperimentOnOs, Long>>> performanceScenarioMap =
-            estimatedExperimentTimes.entrySet().stream()
+            estimatedExperimentDurations.entrySet().stream()
                 .collect(Collectors.groupingBy(
                     it -> it.getKey().getPerformanceExperiment().getScenario(),
                     LinkedHashMap::new,
                     Collectors.toList())
                 );
-        List<PerformanceScenarioRuntimes> json = performanceScenarioMap.entrySet().stream()
+        List<PerformanceScenarioDurations> json = performanceScenarioMap.entrySet().stream()
             .map(entry -> {
                 PerformanceScenario scenario = entry.getKey();
                 Map<String, Map<OperatingSystem, Long>> perTestProject = entry.getValue().stream()
@@ -50,12 +50,12 @@ public class PerformanceTestRuntimesGenerator {
                         LinkedHashMap::new,
                         Collectors.toMap(it -> it.getKey().getOperatingSystem(), Map.Entry::getValue)
                     ));
-                return new PerformanceScenarioRuntimes(
+                return new PerformanceScenarioDurations(
                     scenario.getClassName() + "." + scenario.getTestName(),
                     perTestProject.entrySet().stream()
                         .map(experimentEntry -> {
                                 Map<OperatingSystem, Long> perOs = experimentEntry.getValue();
-                                return new TestProjectRuntime(
+                                return new TestProjectDuration(
                                     experimentEntry.getKey(),
                                     perOs.get(OperatingSystem.LINUX),
                                     perOs.get(OperatingSystem.WINDOWS),

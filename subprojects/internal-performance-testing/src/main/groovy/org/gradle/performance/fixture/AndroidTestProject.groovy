@@ -59,6 +59,7 @@ class AndroidTestProject implements TestProject {
         runner.gradleOpts = ["-Xms$memory", "-Xmx$memory"]
     }
 
+    @Override
     void configure(GradleBuildExperimentSpec.GradleBuilder builder) {
         builder.invocation {
             gradleOpts("-Xms$memory", "-Xmx$memory")
