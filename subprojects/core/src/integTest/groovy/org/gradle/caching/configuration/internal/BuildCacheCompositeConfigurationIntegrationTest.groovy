@@ -123,7 +123,6 @@ class BuildCacheCompositeConfigurationIntegrationTest extends AbstractIntegratio
     }
 
     @Issue("https://github.com/gradle/gradle/issues/4216")
-    @ToBeFixedForConfigurationCache(because = "composite builds")
     def "build cache service is closed only after all included builds are finished"() {
         executer.beforeExecute { it.withBuildCacheEnabled() }
         def localCache = new TestBuildCache(file("local-cache"))

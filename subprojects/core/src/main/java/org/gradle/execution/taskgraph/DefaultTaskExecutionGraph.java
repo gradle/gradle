@@ -37,6 +37,7 @@ import org.gradle.api.tasks.TaskState;
 import org.gradle.configuration.internal.ListenerBuildOperationDecorator;
 import org.gradle.execution.ProjectExecutionServiceRegistry;
 import org.gradle.execution.plan.DefaultExecutionPlan;
+import org.gradle.execution.plan.LocalTaskNode;
 import org.gradle.execution.plan.Node;
 import org.gradle.execution.plan.NodeExecutor;
 import org.gradle.execution.plan.PlanExecutor;
@@ -316,7 +317,7 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
         Node node = executionPlan.getNode(task);
         ImmutableSet.Builder<Task> builder = ImmutableSet.builder();
         for (Node dependencyNode : node.getDependencySuccessors()) {
-            if (dependencyNode instanceof TaskNode) {
+            if (dependencyNode instanceof LocalTaskNode) {
                 builder.add(((TaskNode) dependencyNode).getTask());
             }
         }
