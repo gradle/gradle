@@ -15,11 +15,14 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 
+import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ProjectDependency;
+import org.gradle.api.component.AdhocComponentWithVariants;
 import org.gradle.api.component.ComponentWithVariants;
 import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
+import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.execution.ProjectConfigurer;
 import org.gradle.internal.logging.text.TreeFormatter;
@@ -79,9 +82,19 @@ public class DefaultProjectDependencyPublicationResolver implements ProjectDepen
         // Select all entry points. An entry point is a publication that does not contain a component whose parent is also published
         Set<SoftwareComponent> ignored = new HashSet<>();
         for (ProjectComponentPublication publication : publications) {
-            if (publication.getComponent() != null && publication.getComponent() instanceof ComponentWithVariants) {
-                ComponentWithVariants parent = (ComponentWithVariants) publication.getComponent();
-                ignored.addAll(parent.getVariants());
+            SoftwareComponentInternal component = publication.getComponent();
+            if (component != null) {
+                if (component instanceof ComponentWithVariants) {
+                    ComponentWithVariants parent = (ComponentWithVariants) component;
+                    ignored.addAll(parent.getVariants());
+                } else if (component instanceof AdhocComponentWithVariants) {
+                    AdhocComponentWithVariants adHocComponent = (AdhocComponentWithVariants) component;
+                    String targetConfiguration = dependency.getTargetConfiguration();
+                    Set<? extends Configuration> configurations = adHocComponent.getAssociatedConfigurations();
+                    if (targetConfiguration != null && configurations.stream().noneMatch(conf -> conf.getName().equals(targetConfiguration))){
+                        ignored.add(component);
+                    }
+                }
             }
         }
         Set<ProjectComponentPublication> topLevel = new LinkedHashSet<>();
