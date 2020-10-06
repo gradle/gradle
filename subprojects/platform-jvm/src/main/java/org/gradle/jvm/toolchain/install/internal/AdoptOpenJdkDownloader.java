@@ -69,11 +69,17 @@ public class AdoptOpenJdkDownloader {
         return getTransport(source).getRepository().withProgressLogging().resource(resourceName);
     }
 
-    private void downloadResource(URI source, File tmpFile, ExternalResource resource) {
-        resource.withContent(inputStream -> {
-            LOGGER.info("Downloading {} to {}", resource.getDisplayName(), tmpFile);
-            copyIntoFile(source, inputStream, tmpFile);
-        });
+    private void downloadResource(URI source, File targetFile, ExternalResource resource) {
+        final File downloadFile = new File(targetFile.getAbsoluteFile() + ".part");
+        try {
+            resource.withContent(inputStream -> {
+                LOGGER.info("Downloading {} to {}", resource.getDisplayName(), targetFile);
+                copyIntoFile(source, inputStream, downloadFile);
+            });
+            downloadFile.renameTo(targetFile);
+        } finally {
+            downloadFile.delete();
+        }
     }
 
     private void copyIntoFile(URI source, InputStream inputStream, File destination) {
