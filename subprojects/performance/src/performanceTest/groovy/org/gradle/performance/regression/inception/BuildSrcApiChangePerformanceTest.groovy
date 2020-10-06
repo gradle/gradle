@@ -17,8 +17,8 @@ package org.gradle.performance.regression.inception
 
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
 import org.gradle.performance.categories.SlowPerformanceRegressionTest
-import org.gradle.profiler.BuildContext
-import org.gradle.profiler.BuildMutator
+import org.gradle.performance.mutator.ApplyAbiChangeToGroovySourceFileMutator
+import org.gradle.performance.mutator.ApplyNonAbiChangeToGroovySourceFileMutator
 import org.gradle.profiler.ScenarioContext
 import org.gradle.util.GradleVersion
 import org.junit.experimental.categories.Category
@@ -38,14 +38,16 @@ class BuildSrcApiChangePerformanceTest extends AbstractCrossVersionPerformanceTe
         runner.runs = determineNumberOfRuns(runner.testProject)
 
         and:
-        def changingClassFilePath = "buildSrc/src/main/groovy/ChangingClass.groovy"
-        runner.addBuildMutator { invocationSettings ->
-            new BuildMutator() {
+        runner.addBuildMutator { settings ->
+            def changingClassFile = new File(settings.projectDir, 'buildSrc/src/main/groovy/ChangingClass.groovy')
+            new ApplyAbiChangeToGroovySourceFileMutator(changingClassFile) {
                 @Override
-                void beforeBuild(BuildContext context) {
-                    writeFile(new File(invocationSettings.projectDir, changingClassFilePath), """
+                void beforeScenario(ScenarioContext context) {
+                    writeFile(changingClassFile, """
                         class ChangingClass {
-                            void changingMethod${context.phase}${context.iteration}() {}
+                            void changingMethod() {
+                                System.out.println("Do the thing");
+                            }
                         }
                     """)
                 }
@@ -66,25 +68,14 @@ class BuildSrcApiChangePerformanceTest extends AbstractCrossVersionPerformanceTe
 
         and:
         runner.addBuildMutator { settings ->
-            def changingClassFilePath = new File(settings.projectDir, 'buildSrc/src/main/groovy/ChangingClass.groovy')
-            new BuildMutator() {
+            def changingClassFile = new File(settings.projectDir, 'buildSrc/src/main/groovy/ChangingClass.groovy')
+            new ApplyNonAbiChangeToGroovySourceFileMutator(changingClassFile) {
                 @Override
                 void beforeScenario(ScenarioContext context) {
-                    writeFile(changingClassFilePath, """
+                    writeFile(changingClassFile, """
                         class ChangingClass {
                             void changingMethod() {
                                 System.out.println("Do the thing");
-                            }
-                        }
-                    """)
-                }
-
-                @Override
-                void beforeBuild(BuildContext context) {
-                    writeFile(changingClassFilePath, """
-                        class ChangingClass {
-                            void changingMethod() {
-                                System.out.println("Do the other thing");
                             }
                         }
                     """)
