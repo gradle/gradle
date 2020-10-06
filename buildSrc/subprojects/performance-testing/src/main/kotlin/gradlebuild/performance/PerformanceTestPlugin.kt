@@ -262,7 +262,7 @@ class PerformanceTestPlugin : Plugin<Project> {
 private
 fun Project.performanceReportZipTaskFor(performanceReport: TaskProvider<out PerformanceTestReport>): TaskProvider<Zip> =
     tasks.register("${performanceReport.name}ResultsZip", Zip::class) {
-        from(performanceReport.get().reportDir) {
+        from(performanceReport.get().reportDir.locationOnly) {
             into("report")
         }
         from(performanceReport.get().performanceResults) {
