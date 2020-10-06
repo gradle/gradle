@@ -93,7 +93,7 @@ class RepositoryHandlerExtensionsTest {
     }
 
     private
-    fun <T> InvocationOnMock.configureWithAction(repository: T): T = repository.also {
+    fun <T : Any> InvocationOnMock.configureWithAction(repository: T): T = repository.also {
         getArgument<Action<T>>(0).execute(it)
     }
 }
