@@ -27,7 +27,7 @@ pulls:
 
 issues:
   # We're going to reduce the stale window incrementally, targeting 365
-  daysUntilStale: 500
+  daysUntilStale: 400
 
   # Number of days of inactivity before an Issue with the stale label is closed.
   # Set to false to disable. If disabled, issues still need to be closed manually, but will remain marked as stale.
