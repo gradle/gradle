@@ -39,6 +39,8 @@ class NamedDomainObjectContainerExtensionsTest {
             on { maybeCreate("john") } doReturn john
             on { named("marty") } doReturn marty
             on { register("doc") } doReturn doc
+            on { getByName(eq("alice"), any<Action<DomainObject>>()) } doReturn alice
+            on { create(eq("bob"), any<Action<DomainObject>>()) } doReturn bob
         }
 
         // regular syntax
@@ -83,6 +85,7 @@ class NamedDomainObjectContainerExtensionsTest {
             on { getByName("alice") } doReturn alice
             on { maybeCreate("alice", DomainObjectBase.Foo::class.java) } doReturn alice
             on { create(eq("bob"), eq(DomainObjectBase.Bar::class.java), any<Action<DomainObjectBase.Bar>>()) } doReturn bob
+            on { create("john") } doReturn default
             on { create("john", DomainObjectBase.Default::class.java) } doReturn default
             onNamedWithAction("marty", DomainObjectBase.Foo::class, martyProvider)
             on { register(eq("doc"), eq(DomainObjectBase.Bar::class.java)) } doReturn docProviderAsBarProvider
