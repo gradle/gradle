@@ -18,6 +18,7 @@ package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.test.fixtures.file.TestFile
 
 class JavaExecMainClassIntegrationTest extends AbstractIntegrationSpec {
 
@@ -30,52 +31,84 @@ class JavaExecMainClassIntegrationTest extends AbstractIntegrationSpec {
                 id 'java'
             }
 
-            abstract class ComputeMain extends DefaultTask {
+            interface BootExtension {
+                Property<String> getMainClassName()
+            }
+
+            abstract class ResolveMainClassName extends DefaultTask {
 
                 @Classpath
                 @InputFiles
                 abstract ConfigurableFileCollection getClasspath()
+
+                @Internal
+                abstract Property<String> getMainClassFromBootExtension()
+
+                @Internal
+                abstract Property<String> getMainClassFromJavaApplication()
 
                 @OutputFile
                 abstract RegularFileProperty getMainClassFile()
 
                 @TaskAction
                 def computeMainClass() {
-                    // automagically discover main class name from classpath here
-                    mainClassFile.get().asFile.text = 'Main'
+                    mainClassFile.get().asFile.text = mainClassFromBootExtension.orNull
+                        ?: mainClassFromJavaApplication.orNull
+                        ?: resolveMainClassName()
+                }
+
+                def resolveMainClassName() {
+                    // Find first root package class with a name that ends with `Main`
+                    def rootPackageFiles = classpath.files.collectMany { it.isDirectory() ? it.listFiles().toList() : [] }
+                    def mainClassFile = rootPackageFiles.find { it.name.endsWith 'Main.class' }
+                    mainClassFile.name.with {
+                        take(length() - '.class'.length())
+                    }
                 }
             }
 
-            def computeMainClass = tasks.register('computeMainClass', ComputeMain) {
+            def resolveMainClassName = tasks.register('resolveMainClassName', ResolveMainClassName) {
                 classpath.from(compileJava)
+                mainClassFromBootExtension.set(
+                    project.convention.findByType(BootExtension.class)?.mainClassName
+                )
+                mainClassFromJavaApplication.set(
+                    project.convention.findByType(JavaApplication.class)?.mainClass
+                )
                 mainClassFile = layout.buildDirectory.file('mainClass.txt')
             }
 
             tasks.register('run', JavaExec) {
                 classpath = layout.files(compileJava)
-                mainClass.convention(
-                    computeMainClass.flatMap { it.mainClassFile }.map { it.asFile.text }
+                mainClass.set(
+                    resolveMainClassName.flatMap { it.mainClassFile }.map { it.asFile.text }
                 )
             }
         """
-        file("src/main/java/Main.java") << """
-            class Main { public static void main(String[] args) {
-                System.out.println("it works!");
-            } }
-        """
+        def originalMain = writeMainClass 'Main', 'it works!'
 
         when:
-        succeeds 'run'
+        succeeds 'run', '--configuration-cache'
 
         then:
         outputContains 'it works!'
         configurationCache?.assertStateStored() ?: true
 
         when:
-        succeeds 'run'
+        originalMain.delete()
+        writeMainClass 'AppMain', 'it certainly does!'
+        succeeds 'run', '--configuration-cache'
 
         then:
-        outputContains 'it works!'
+        outputContains 'it certainly does!'
         configurationCache?.assertStateLoaded() ?: true
+    }
+
+    private TestFile writeMainClass(className, String message) {
+        file("src/main/java/${className}.java") << """
+            class $className { public static void main(String[] args) {
+                System.out.println("$message");
+            } }
+        """
     }
 }
