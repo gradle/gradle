@@ -19,6 +19,7 @@ import org.gradle.performance.AbstractCrossVersionPerformanceTest
 import org.gradle.performance.categories.SlowPerformanceRegressionTest
 import org.gradle.profiler.BuildContext
 import org.gradle.profiler.BuildMutator
+import org.gradle.profiler.ScenarioContext
 import org.gradle.util.GradleVersion
 import org.junit.experimental.categories.Category
 
@@ -42,14 +43,11 @@ class BuildSrcApiChangePerformanceTest extends AbstractCrossVersionPerformanceTe
             new BuildMutator() {
                 @Override
                 void beforeBuild(BuildContext context) {
-                    new File(invocationSettings.projectDir, changingClassFilePath).tap {
-                        parentFile.mkdirs()
-                        text = """
+                    writeFile(new File(invocationSettings.projectDir, changingClassFilePath), """
                         class ChangingClass {
                             void changingMethod${context.phase}${context.iteration}() {}
                         }
-                    """.stripIndent()
-                    }
+                    """)
                 }
             }
         }
@@ -59,6 +57,40 @@ class BuildSrcApiChangePerformanceTest extends AbstractCrossVersionPerformanceTe
 
         then:
         result.assertCurrentVersionHasNotRegressed()
+    }
+
+    def "buildSrc non-abi change"() {
+        given:
+        runner.tasksToRun = ['help']
+        runner.runs = determineNumberOfRuns(runner.testProject)
+
+        and:
+        runner.addBuildMutator { settings ->
+            def changingClassFilePath = new File(settings.projectDir, 'buildSrc/src/main/groovy/ChangingClass.groovy')
+            new BuildMutator() {
+                @Override
+                void beforeScenario(ScenarioContext context) {
+                    writeFile(changingClassFilePath, """
+                        class ChangingClass {
+                            void changingMethod${context.phase}${context.iteration}() {
+                                System.out.println("Do the thing");
+                            }
+                        }
+                    """)
+                }
+
+                @Override
+                void beforeBuild(BuildContext context) {
+                    writeFile(changingClassFilePath, """
+                        class ChangingClass {
+                            void changingMethod${context.phase}${context.iteration}() {
+                                System.out.println("Do the other thing");
+                            }
+                        }
+                    """)
+                }
+            }
+        }
     }
 
     private static int determineNumberOfRuns(String testProject) {
@@ -71,6 +103,13 @@ class BuildSrcApiChangePerformanceTest extends AbstractCrossVersionPerformanceTe
                 return 10
             default:
                 20
+        }
+    }
+
+    private static void writeFile(File file, String content) {
+        file.tap {
+            parentFile.mkdirs()
+            text = content
         }
     }
 }
