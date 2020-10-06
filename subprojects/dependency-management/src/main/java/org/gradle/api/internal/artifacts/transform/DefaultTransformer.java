@@ -216,7 +216,7 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction<?>> 
     @Override
     public void isolateParameters(FileCollectionFingerprinterRegistry fingerprinterRegistry) {
         if (!owner.hasMutableState()) {
-            // This may happen when a task visits artifacts using a FileCollection instance created by a different project via a Configuration instance (not a dependencies produced by a different project, these work fine)
+            // This may happen when a task visits artifacts using a FileCollection instance created from a Configuration instance in a different project (not an artifact produced by a different project, these work fine)
             // There is also a check in DefaultConfiguration that deprecates resolving dependencies via FileCollection instance created by a different project, however that check may not
             // necessarily be triggered. For example, the configuration may be legitimately resolved by some other task prior to the problematic task running
             // TODO - hoist this up into configuration file collection visiting (and not when visiting the upstream dependencies of a transform), and deprecate this in Gradle 7.x
@@ -229,7 +229,11 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction<?>> 
         try {
             isolatedParameters.update(current -> {
                 if (current != null) {
-                    throw new IllegalStateException("Transform parameters are already isolated.");
+                    // Already isolated. This can happen when a given transformer is shared by the inputs of multiple tasks of the same project and these tasks run in parallel due to
+                    // the configuration cache being enabled. In this case, multiple worker threads may attempt to isolate the transformer parameters.
+                    // It would be better to ensure that there is always an isolation node in the execution graph on which all of the consuming tasks depend and assert that the transform
+                    // has been isolated by the time the transform needs to run
+                    return current;
                 }
                 return doIsolateParameters(fingerprinterRegistry);
             });

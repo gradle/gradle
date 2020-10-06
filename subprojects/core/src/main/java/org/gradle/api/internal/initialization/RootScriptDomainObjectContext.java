@@ -117,9 +117,11 @@ public class RootScriptDomainObjectContext implements DomainObjectContext, Model
 
         @Override
         public T update(Function<T, T> updateFunction) {
-            T newValue = updateFunction.apply(value);
-            value = newValue;
-            return newValue;
+            synchronized (this) {
+                T newValue = updateFunction.apply(value);
+                value = newValue;
+                return newValue;
+            }
         }
     }
 }
