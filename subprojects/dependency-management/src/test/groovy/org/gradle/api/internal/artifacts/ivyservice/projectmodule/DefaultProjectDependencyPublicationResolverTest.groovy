@@ -15,8 +15,10 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.projectmodule
 
+import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.ProjectDependency
+import org.gradle.api.component.AdhocComponentWithVariants
 import org.gradle.api.component.ComponentWithVariants
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.component.SoftwareComponentInternal
@@ -25,6 +27,7 @@ import org.gradle.execution.ProjectConfigurer
 import org.gradle.internal.Describables
 import org.gradle.util.Path
 import org.gradle.util.internal.TextUtil
+import spock.lang.Issue
 import spock.lang.Specification
 
 class DefaultProjectDependencyPublicationResolverTest extends Specification {
@@ -198,6 +201,38 @@ Found the following publications in <project>:
         }
     }
 
+    @Issue("gradle/gradle#12324")
+    def "resolve succeeds when target project has multiple component publications with different coordinates that are associated to a specific configuration"() {
+        given:
+        def configuration1 = Stub(Configuration)
+        configuration1.name >> "config1"
+        def configuration2 = Stub(Configuration)
+        configuration2.name >> "config2"
+        def component1 = Stub(TestAdhocComponent)
+        component1.associatedConfigurations >> Set.of(configuration1)
+        def component2 = Stub(TestAdhocComponent)
+        component2.associatedConfigurations >> Set.of(configuration2)
+
+        when:
+        def publication = pub('pub1', "pub-group", "pub-name1", "pub-version")
+        publication.component >> component1
+        def publication2 = pub('pub2', "pub-group", "pub-name2", "pub-version")
+        publication2.component >> component2
+
+        dependentProjectHasPublications(publication, publication2)
+        projectDependency.targetConfiguration >> "config1"
+
+        and:
+        resolve()
+
+        then:
+        with (resolve()) {
+            group == "pub-group"
+            name == "pub-name1"
+            version == "pub-version"
+        }
+    }
+
     def "resolve fails when target project has no publications with coordinate of requested type and no default available"() {
         when:
         dependentProjectHasPublications()
@@ -234,5 +269,8 @@ Found the following publications in <project>:
     }
 
     interface TestComponent extends SoftwareComponentInternal, ComponentWithVariants {
+    }
+
+    interface TestAdhocComponent extends SoftwareComponentInternal, AdhocComponentWithVariants {
     }
 }

@@ -16,7 +16,10 @@
 package org.gradle.api.component;
 
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.Configuration;
+
+import java.util.Set;
 
 /**
  * A component which can declare additional variants corresponding to
@@ -46,4 +49,14 @@ public interface AdhocComponentWithVariants extends SoftwareComponent {
      */
     void withVariantsFromConfiguration(Configuration outgoingConfiguration, Action<? super ConfigurationVariantDetails> action);
 
+
+    /**
+     * The configurations for which variants were created.
+     *
+     * @return the configurations this component is associated with, if any. Empty if none.
+     *
+     * @since 7.6
+     */
+    @Incubating
+    Set<? extends Configuration> getAssociatedConfigurations();
 }

@@ -60,6 +60,11 @@ public class DefaultAdhocSoftwareComponent implements AdhocComponentWithVariants
     }
 
     @Override
+    public Set<? extends Configuration> getAssociatedConfigurations() {
+        return variants.keySet();
+    }
+
+    @Override
     public Set<? extends UsageContext> getUsages() {
         ImmutableSet.Builder<UsageContext> builder = new ImmutableSet.Builder<>();
         for (ConfigurationVariantMapping variant : variants.values()) {
