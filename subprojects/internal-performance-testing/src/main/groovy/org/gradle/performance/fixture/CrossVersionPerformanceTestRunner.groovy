@@ -348,11 +348,8 @@ class ToolingApiAction<T extends LongRunningOperation> extends GradleInvokerBuil
 
     @Override
     void run(GradleInvoker buildInvoker, List<String> gradleArgs, List<String> jvmArgs) {
-        // TODO: Add a public API to configure this in a nice way on the Gradle profiler side
         def toolingApiInvoker = (ToolingApiGradleClient) buildInvoker
-        def projectConnection = toolingApiInvoker.projectConnection
-        def longRunningOperation = initialAction.apply(projectConnection)
-        toolingApiInvoker.run(longRunningOperation) { builder ->
+        toolingApiInvoker.runOperation(initialAction) { builder ->
             builder.setJvmArguments(jvmArgs)
             builder.withArguments(gradleArgs)
             tapiAction.accept(builder)
