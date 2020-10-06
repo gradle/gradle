@@ -131,19 +131,18 @@ class BuildCacheCompositeConfigurationIntegrationTest extends AbstractIntegratio
         buildTestFixture.withBuildInSubDir()
         multiProjectBuild('included', ['first', 'second']) {
             buildFile << """
-                    gradle.startParameter.setTaskNames(['clean', 'build'])
-                    allprojects {
-                        apply plugin: 'java-library'
+                gradle.startParameter.setTaskNames(['clean', 'build'])
+                allprojects {
+                    apply plugin: 'java-library'
 
-                        tasks.withType(Jar) {
-                            doFirst {
-                                // this makes it more probable that tasks from the included build finish after the root build
-                                Thread.sleep(1000)
-                            }
+                    tasks.withType(Jar) {
+                        doFirst {
+                            // this makes it more probable that tasks from the included build finish after the root build
+                            Thread.sleep(1000)
                         }
                     }
-                """
-
+                }
+            """
             file("src/test/java/Test.java") << """class Test {}"""
             file("first/src/test/java/Test.java") << """class TestFirst {}"""
             file("second/src/test/java/Test.java") << """class TestSecond {}"""

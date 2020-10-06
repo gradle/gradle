@@ -33,10 +33,12 @@ import org.gradle.configurationcache.serialization.readCollection
 import org.gradle.configurationcache.serialization.readFile
 import org.gradle.configurationcache.serialization.readList
 import org.gradle.configurationcache.serialization.readNonNull
+import org.gradle.configurationcache.serialization.readStrings
 import org.gradle.configurationcache.serialization.withDebugFrame
 import org.gradle.configurationcache.serialization.withGradleIsolate
 import org.gradle.configurationcache.serialization.writeCollection
 import org.gradle.configurationcache.serialization.writeFile
+import org.gradle.configurationcache.serialization.writeStrings
 import org.gradle.execution.plan.Node
 import org.gradle.internal.Actions
 import org.gradle.internal.build.IncludedBuildState
@@ -207,10 +209,12 @@ class ConfigurationCacheState(
         val buildState = includedBuild as IncludedBuildState
         val includedGradle = buildState.configuredBuild
         val buildDefinition = includedGradle.serviceOf<BuildDefinition>()
+        val startParameterTaskNames = includedGradle.startParameter.taskNames
         buildDefinition.run {
             writeString(name!!)
             writeFile(buildRootDir)
             write(fromBuild)
+            writeStrings(startParameterTaskNames)
         }
         includedGradle.serviceOf<ConfigurationCacheIO>().writeIncludedBuildStateTo(
             stateFileFor(buildDefinition)
@@ -222,6 +226,7 @@ class ConfigurationCacheState(
         val includedBuildName = readString()
         val includedBuildRootDir = readFile()
         val fromBuild = readNonNull<PublicBuildPath>()
+        val startParameterTaskNames = readStrings()
 
         val buildDefinition = BuildDefinition.fromStartParameterForBuild(
             parentBuild.gradle.startParameter,
@@ -233,6 +238,9 @@ class ConfigurationCacheState(
         )
 
         val (includedBuild, confCacheBuild) = parentBuild.addIncludedBuild(buildDefinition)
+        // Restore startParameter.taskNames to enable `gradle.startParameter.setTaskNames(...)` idiom in included build scripts
+        // See org/gradle/caching/configuration/internal/BuildCacheCompositeConfigurationIntegrationTest.groovy:134
+        includedBuild.configuredBuild.gradle.startParameter.setTaskNames(startParameterTaskNames)
         confCacheBuild.gradle.serviceOf<ConfigurationCacheIO>().readIncludedBuildStateFrom(
             stateFileFor(buildDefinition),
             confCacheBuild
