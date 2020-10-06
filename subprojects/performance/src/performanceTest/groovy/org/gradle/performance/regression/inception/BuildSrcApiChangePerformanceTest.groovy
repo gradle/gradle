@@ -15,13 +15,18 @@
  */
 package org.gradle.performance.regression.inception
 
+
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
 import org.gradle.performance.categories.SlowPerformanceRegressionTest
 import org.gradle.performance.mutator.ApplyAbiChangeToGroovySourceFileMutator
 import org.gradle.performance.mutator.ApplyNonAbiChangeToGroovySourceFileMutator
+import org.gradle.profiler.BuildMutator
+import org.gradle.profiler.InvocationSettings
 import org.gradle.profiler.ScenarioContext
 import org.gradle.util.GradleVersion
 import org.junit.experimental.categories.Category
+
+import java.util.function.Function
 
 @Category(SlowPerformanceRegressionTest)
 class BuildSrcApiChangePerformanceTest extends AbstractCrossVersionPerformanceTest {
@@ -38,21 +43,9 @@ class BuildSrcApiChangePerformanceTest extends AbstractCrossVersionPerformanceTe
         runner.runs = determineNumberOfRuns(runner.testProject)
 
         and:
-        runner.addBuildMutator { settings ->
-            def changingClassFile = new File(settings.projectDir, 'buildSrc/src/main/groovy/ChangingClass.groovy')
-            new ApplyAbiChangeToGroovySourceFileMutator(changingClassFile) {
-                @Override
-                void beforeScenario(ScenarioContext context) {
-                    writeFile(changingClassFile, """
-                        class ChangingClass {
-                            void changingMethod() {
-                                System.out.println("Do the thing");
-                            }
-                        }
-                    """)
-                }
-            }
-        }
+        def changingClassFilePath = "buildSrc/src/main/groovy/ChangingClass.groovy"
+        runner.addBuildMutator(createChangingClassInBuildSrcBeforeScenario(changingClassFilePath))
+        runner.addBuildMutator { new ApplyAbiChangeToGroovySourceFileMutator(new File(it.projectDir, changingClassFilePath)) }
 
         when:
         def result = runner.run()
@@ -67,21 +60,9 @@ class BuildSrcApiChangePerformanceTest extends AbstractCrossVersionPerformanceTe
         runner.runs = determineNumberOfRuns(runner.testProject)
 
         and:
-        runner.addBuildMutator { settings ->
-            def changingClassFile = new File(settings.projectDir, 'buildSrc/src/main/groovy/ChangingClass.groovy')
-            new ApplyNonAbiChangeToGroovySourceFileMutator(changingClassFile) {
-                @Override
-                void beforeScenario(ScenarioContext context) {
-                    writeFile(changingClassFile, """
-                        class ChangingClass {
-                            void changingMethod() {
-                                System.out.println("Do the thing");
-                            }
-                        }
-                    """)
-                }
-            }
-        }
+        def changingClassFilePath = "buildSrc/src/main/groovy/ChangingClass.groovy"
+        runner.addBuildMutator(createChangingClassInBuildSrcBeforeScenario(changingClassFilePath))
+        runner.addBuildMutator { new ApplyNonAbiChangeToGroovySourceFileMutator(new File(it.projectDir, changingClassFilePath)) }
     }
 
     private static int determineNumberOfRuns(String testProject) {
@@ -102,5 +83,25 @@ class BuildSrcApiChangePerformanceTest extends AbstractCrossVersionPerformanceTe
             parentFile.mkdirs()
             text = content
         }
+    }
+
+    static Function<InvocationSettings, BuildMutator> createChangingClassInBuildSrcBeforeScenario(String filePath) {
+         new Function<InvocationSettings, BuildMutator>() {
+             @Override
+             BuildMutator apply(InvocationSettings settings) {
+                 new BuildMutator() {
+                     @Override
+                     void beforeScenario(ScenarioContext context) {
+                         writeFile(new File(settings.projectDir, filePath), """
+                             class ChangingClass {
+                                 void changingMethod() {
+                                     System.out.println("Do the thing");
+                                 }
+                             }
+                        """)
+                     }
+                 }
+             }
+         }
     }
 }
