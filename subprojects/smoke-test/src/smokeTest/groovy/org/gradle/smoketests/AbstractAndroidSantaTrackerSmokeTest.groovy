@@ -57,7 +57,7 @@ class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest {
         return runnerForLocation(projectDir, agpVersion, "clean").build()
     }
 
-    private GradleRunner runnerForLocation(File projectDir, String agpVersion, String... tasks) {
+    protected GradleRunner runnerForLocation(File projectDir, String agpVersion, String... tasks) {
         def runner = runner(*[["-DagpVersion=$agpVersion"], tasks].flatten())
             .withProjectDir(projectDir)
             .withTestKitDir(homeDir)
