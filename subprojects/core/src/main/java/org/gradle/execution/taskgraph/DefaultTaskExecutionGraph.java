@@ -317,7 +317,7 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
         Node node = executionPlan.getNode(task);
         ImmutableSet.Builder<Task> builder = ImmutableSet.builder();
         for (Node dependencyNode : node.getDependencySuccessors()) {
-            if (dependencyNode instanceof LocalTaskNode) {
+            if (dependencyNode instanceof TaskNode) {
                 builder.add(((TaskNode) dependencyNode).getTask());
             }
         }
