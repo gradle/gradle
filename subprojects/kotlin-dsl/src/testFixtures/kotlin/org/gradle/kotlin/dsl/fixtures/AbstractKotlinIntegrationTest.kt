@@ -128,10 +128,10 @@ abstract class AbstractKotlinIntegrationTest : AbstractIntegrationTest() {
     }
 
     protected
-    fun givenPrecompiledKotlinScript(fileName: String, code: String) {
+    fun givenPrecompiledKotlinScript(fileName: String, code: String): ExecutionResult {
         withKotlinDslPlugin()
         withPrecompiledKotlinScript(fileName, code)
-        compileKotlin()
+        return compileKotlin()
     }
 
     protected

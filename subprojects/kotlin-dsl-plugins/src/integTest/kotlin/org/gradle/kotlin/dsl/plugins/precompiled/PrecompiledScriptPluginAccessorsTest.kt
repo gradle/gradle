@@ -62,6 +62,20 @@ import java.io.File
 @LeaksFileHandles("Kotlin Compiler Daemon working directory")
 class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest() {
 
+    @Test
+    @ToBeFixedForConfigurationCache
+    fun `generated type-safe accessors suppress deprecation warnings`() {
+        // `java-gradle-plugin` adds deprecated task `ValidateTaskProperties`
+        givenPrecompiledKotlinScript(
+            "java-project.gradle.kts",
+            """
+            plugins { `java-gradle-plugin` }
+            """
+        ).apply {
+            assertNotOutput("'ValidateTaskProperties' is deprecated.")
+        }
+    }
+
     @ToBeFixedForConfigurationCache
     @Test
     fun `can use type-safe accessors for plugin relying on gradleProperty provider`() {
