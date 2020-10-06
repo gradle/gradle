@@ -122,19 +122,15 @@ public class DefaultFileSystemAccess implements FileSystemAccess {
         if (filter.isEmpty()) {
             visitor.accept(readLocation(location));
         } else {
-            FileSystemSnapshot filteredSnapshot = virtualFileSystem.getSnapshot(location)
-                .map(snapshot -> FileSystemSnapshotFilter.filterSnapshot(filter.getAsSnapshotPredicate(), snapshot))
-                .orElseGet(() -> producingSnapshots.guardByKey(location,
-                    () -> virtualFileSystem.getSnapshot(location)
-                        .map(snapshot -> FileSystemSnapshotFilter.filterSnapshot(filter.getAsSnapshotPredicate(), snapshot))
-                        .orElseGet(() -> {
-                            CompleteFileSystemLocationSnapshot snapshot = snapshot(location, filter);
-                            return snapshot.getType() == FileType.Directory
-                                // Directory snapshots have been filtered while walking the file system
-                                ? snapshot
-                                : FileSystemSnapshotFilter.filterSnapshot(filter.getAsSnapshotPredicate(), snapshot);
-                        })
-                ));
+            FileSystemSnapshot filteredSnapshot = readSnapshotFromLocation(location,
+                snapshot -> FileSystemSnapshotFilter.filterSnapshot(filter.getAsSnapshotPredicate(), snapshot),
+                () -> {
+                    CompleteFileSystemLocationSnapshot snapshot = snapshot(location, filter);
+                    return snapshot.getType() == FileType.Directory
+                        // Directory snapshots have been filtered while walking the file system
+                        ? snapshot
+                        : FileSystemSnapshotFilter.filterSnapshot(filter.getAsSnapshotPredicate(), snapshot);
+                });
 
             if (filteredSnapshot instanceof CompleteFileSystemLocationSnapshot) {
                 visitor.accept((CompleteFileSystemLocationSnapshot) filteredSnapshot);
@@ -168,10 +164,33 @@ public class DefaultFileSystemAccess implements FileSystemAccess {
     }
 
     private CompleteFileSystemLocationSnapshot readLocation(String location) {
+        return readSnapshotFromLocation(location, () -> snapshot(location, SnapshottingFilter.EMPTY));
+    }
+
+    private CompleteFileSystemLocationSnapshot readSnapshotFromLocation(
+        String location,
+        Supplier<CompleteFileSystemLocationSnapshot> readFromDisk
+    ) {
+        return readSnapshotFromLocation(
+            location,
+            Function.identity(),
+            readFromDisk
+        );
+    }
+
+    private <T> T readSnapshotFromLocation(
+        String location,
+        Function<CompleteFileSystemLocationSnapshot, T> snapshotProcessor,
+        Supplier<T> readFromDisk
+    ) {
         return virtualFileSystem.getSnapshot(location)
+            .map(snapshotProcessor)
+            // Avoid snapshotting the same location at the same time
             .orElseGet(() -> producingSnapshots.guardByKey(location,
-                () -> virtualFileSystem.getSnapshot(location).orElseGet(() -> snapshot(location, SnapshottingFilter.EMPTY)))
-            );
+                () -> virtualFileSystem.getSnapshot(location)
+                    .map(snapshotProcessor)
+                    .orElseGet(readFromDisk)
+            ));
     }
 
     @Override
