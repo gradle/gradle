@@ -73,7 +73,7 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
     }
 
     @Override
-    public SnapshotHierarchy getRoot() {
+    protected SnapshotHierarchy getRoot() {
         return rootReference.getRoot();
     }
 

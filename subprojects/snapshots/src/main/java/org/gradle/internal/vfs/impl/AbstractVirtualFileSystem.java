@@ -16,11 +16,24 @@
 
 package org.gradle.internal.vfs.impl;
 
+import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.MetadataSnapshot;
 import org.gradle.internal.snapshot.SnapshotHierarchy;
 import org.gradle.internal.vfs.VirtualFileSystem;
 
+import java.util.Optional;
+
 public abstract class AbstractVirtualFileSystem implements VirtualFileSystem {
+
+    @Override
+    public Optional<CompleteFileSystemLocationSnapshot> getSnapshot(String absolutePath) {
+        return getRoot().getSnapshot(absolutePath);
+    }
+
+    @Override
+    public Optional<MetadataSnapshot> getMetadata(String absolutePath) {
+        return getRoot().getMetadata(absolutePath);
+    }
 
     @Override
     public void store(String absolutePath, MetadataSnapshot snapshot) {
@@ -41,6 +54,8 @@ public abstract class AbstractVirtualFileSystem implements VirtualFileSystem {
     }
 
     protected abstract void update(UpdateFunction updateFunction);
+
+    protected abstract SnapshotHierarchy getRoot();
 
     /**
      * Updates the snapshot hierarchy, passing a {@link SnapshotHierarchy.NodeDiffListener} to the calls on {@link SnapshotHierarchy}.

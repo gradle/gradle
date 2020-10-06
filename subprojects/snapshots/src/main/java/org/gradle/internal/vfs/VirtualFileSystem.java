@@ -16,11 +16,23 @@
 
 package org.gradle.internal.vfs;
 
+import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.MetadataSnapshot;
-import org.gradle.internal.snapshot.SnapshotHierarchy;
+
+import java.util.Optional;
 
 public interface VirtualFileSystem {
-    SnapshotHierarchy getRoot();
+
+    /**
+     * Returns the complete snapshot stored at the absolute path.
+     */
+    Optional<CompleteFileSystemLocationSnapshot> getSnapshot(String absolutePath);
+
+    /**
+     * Returns the complete snapshot stored at the absolute path.
+     */
+    Optional<MetadataSnapshot> getMetadata(String absolutePath);
+
     /**
      * Returns a hierarchy augmented by the information of the snapshot at the absolute path.
      */
