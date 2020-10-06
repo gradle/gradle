@@ -23,6 +23,7 @@ import org.gradle.api.internal.BuildDefinition
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.provider.Provider
 import org.gradle.caching.configuration.BuildCache
+import org.gradle.configurationcache.extensions.serviceOf
 import org.gradle.configurationcache.problems.DocumentationSection.NotYetImplementedSourceDependencies
 import org.gradle.configurationcache.serialization.DefaultReadContext
 import org.gradle.configurationcache.serialization.DefaultWriteContext
@@ -49,7 +50,6 @@ import org.gradle.internal.enterprise.core.GradleEnterprisePluginAdapter
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager
 import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.Encoder
-import org.gradle.kotlin.dsl.support.serviceOf
 import org.gradle.plugin.management.internal.PluginRequests
 import org.gradle.tooling.events.OperationCompletionListener
 import org.gradle.vcs.internal.VcsMappingsStore

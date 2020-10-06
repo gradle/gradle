@@ -28,6 +28,7 @@ import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.configuration.project.ConfigureProjectBuildOperationType
 import org.gradle.configurationcache.build.ConfigurationCacheIncludedBuildState
+import org.gradle.configurationcache.extensions.serviceOf
 import org.gradle.configurationcache.initialization.ConfigurationCacheStartParameter
 import org.gradle.execution.plan.Node
 import org.gradle.groovy.scripts.TextResourceScriptSource
@@ -57,7 +58,6 @@ import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.resource.StringTextResource
 import org.gradle.internal.service.scopes.BuildScopeServiceRegistryFactory
 import org.gradle.internal.work.WorkerLeaseService
-import org.gradle.kotlin.dsl.support.serviceOf
 import org.gradle.util.Path
 import java.io.File
 

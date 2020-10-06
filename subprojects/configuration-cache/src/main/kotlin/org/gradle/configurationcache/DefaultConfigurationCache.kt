@@ -20,7 +20,6 @@ import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.Logging
 import org.gradle.configurationcache.ConfigurationCacheRepository.CheckedFingerprint
-import org.gradle.configurationcache.extensions.useToRun
 import org.gradle.configurationcache.fingerprint.ConfigurationCacheFingerprintController
 import org.gradle.configurationcache.fingerprint.InvalidationReason
 import org.gradle.configurationcache.initialization.ConfigurationCacheBuildEnablement

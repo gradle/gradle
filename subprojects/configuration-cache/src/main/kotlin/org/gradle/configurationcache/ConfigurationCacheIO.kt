@@ -16,6 +16,7 @@
 
 package org.gradle.configurationcache
 
+import org.gradle.configurationcache.extensions.useToRun
 import org.gradle.configurationcache.problems.ConfigurationCacheProblems
 import org.gradle.configurationcache.serialization.DefaultReadContext
 import org.gradle.configurationcache.serialization.DefaultWriteContext
@@ -30,7 +31,6 @@ import org.gradle.internal.serialize.kryo.KryoBackedDecoder
 import org.gradle.internal.serialize.kryo.KryoBackedEncoder
 import org.gradle.internal.service.scopes.Scopes
 import org.gradle.internal.service.scopes.ServiceScope
-import org.gradle.kotlin.dsl.support.useToRun
 import java.io.File
 import java.io.OutputStream
 
