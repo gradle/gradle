@@ -72,7 +72,7 @@ class BuildSrcApiChangePerformanceTest extends AbstractCrossVersionPerformanceTe
                 void beforeScenario(ScenarioContext context) {
                     writeFile(changingClassFilePath, """
                         class ChangingClass {
-                            void changingMethod${context.phase}${context.iteration}() {
+                            void changingMethod() {
                                 System.out.println("Do the thing");
                             }
                         }
@@ -83,7 +83,7 @@ class BuildSrcApiChangePerformanceTest extends AbstractCrossVersionPerformanceTe
                 void beforeBuild(BuildContext context) {
                     writeFile(changingClassFilePath, """
                         class ChangingClass {
-                            void changingMethod${context.phase}${context.iteration}() {
+                            void changingMethod() {
                                 System.out.println("Do the other thing");
                             }
                         }
