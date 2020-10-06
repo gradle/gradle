@@ -78,13 +78,6 @@ class BuildSrcApiChangePerformanceTest extends AbstractCrossVersionPerformanceTe
         }
     }
 
-    private static void writeFile(File file, String content) {
-        file.tap {
-            parentFile.mkdirs()
-            text = content
-        }
-    }
-
     static Function<InvocationSettings, BuildMutator> createChangingClassInBuildSrcBeforeScenario(String filePath) {
          new Function<InvocationSettings, BuildMutator>() {
              @Override
@@ -92,13 +85,16 @@ class BuildSrcApiChangePerformanceTest extends AbstractCrossVersionPerformanceTe
                  new BuildMutator() {
                      @Override
                      void beforeScenario(ScenarioContext context) {
-                         writeFile(new File(settings.projectDir, filePath), """
-                             class ChangingClass {
-                                 void changingMethod() {
-                                     System.out.println("Do the thing");
+                         new File(settings.projectDir, filePath).tap {
+                             parentFile.mkdirs()
+                             text = """
+                                 class ChangingClass {
+                                     void changingMethod() {
+                                         System.out.println("Do the thing");
+                                     }
                                  }
-                             }
-                        """)
+                             """
+                         }
                      }
                  }
              }
