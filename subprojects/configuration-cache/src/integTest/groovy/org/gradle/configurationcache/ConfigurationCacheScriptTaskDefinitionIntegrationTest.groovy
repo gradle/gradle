@@ -213,7 +213,7 @@ class ConfigurationCacheScriptTaskDefinitionIntegrationTest extends AbstractConf
         then:
         problems.assertFailureHasProblems(failure) {
             withUniqueProblems(
-                "Task `:some` of type `org.gradle.api.DefaultTask`: cannot serialize object of type 'Build_gradle', a subtype of 'org.gradle.kotlin.dsl.KotlinScript', as these are not supported with the configuration cache."
+                "Task `:some` of type `org.gradle.api.DefaultTask`: cannot serialize Gradle script object references as these are not supported with the configuration cache."
             )
             withProblemsWithStackTraceCount(0)
         }

@@ -23,8 +23,6 @@ import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshotter;
 
-import java.util.Set;
-
 public class InputFingerprintUtil {
 
     public static ImmutableSortedMap<String, ValueSnapshot> fingerprintInputProperties(
@@ -32,24 +30,28 @@ public class InputFingerprintUtil {
         ImmutableSortedMap<String, ValueSnapshot> previousSnapshots,
         ValueSnapshotter valueSnapshotter,
         ImmutableSortedMap<String, ValueSnapshot> alreadyKnownSnapshots,
-        Set<UnitOfWork.IdentityKind> filter
+        InputPropertyPredicate filter
     ) {
         ImmutableSortedMap.Builder<String, ValueSnapshot> builder = ImmutableSortedMap.naturalOrder();
         builder.putAll(alreadyKnownSnapshots);
-        work.visitInputProperties(filter, (propertyName, value) -> {
+        work.visitInputProperties((propertyName, identity, value) -> {
             if (alreadyKnownSnapshots.containsKey(propertyName)) {
                 return;
             }
+            if (!filter.include(propertyName, identity)) {
+                return;
+            }
+            Object actualValue = value.getValue();
             try {
                 ValueSnapshot previousSnapshot = previousSnapshots.get(propertyName);
                 if (previousSnapshot == null) {
-                    builder.put(propertyName, valueSnapshotter.snapshot(value));
+                    builder.put(propertyName, valueSnapshotter.snapshot(actualValue));
                 } else {
-                    builder.put(propertyName, valueSnapshotter.snapshot(value, previousSnapshot));
+                    builder.put(propertyName, valueSnapshotter.snapshot(actualValue, previousSnapshot));
                 }
             } catch (Exception e) {
                 throw new UncheckedIOException(String.format("Unable to store input properties for %s. Property '%s' with value '%s' cannot be serialized.",
-                    work.getDisplayName(), propertyName, value), e);
+                    work.getDisplayName(), propertyName, value.getValue()), e);
             }
         });
         return builder.build();
@@ -62,12 +64,15 @@ public class InputFingerprintUtil {
     public static ImmutableSortedMap<String, CurrentFileCollectionFingerprint> fingerprintInputFiles(
         UnitOfWork work,
         ImmutableSortedMap<String, CurrentFileCollectionFingerprint> alreadyKnownFingerprints,
-        Set<UnitOfWork.IdentityKind> filter
+        InputFilePropertyPredicate filter
     ) {
         ImmutableSortedMap.Builder<String, CurrentFileCollectionFingerprint> builder = ImmutableSortedMap.naturalOrder();
         builder.putAll(alreadyKnownFingerprints);
-        work.visitInputFileProperties(filter, (propertyName, value, type, fingerprinter) -> {
+        work.visitInputFileProperties((propertyName, type, identity, value, fingerprinter) -> {
             if (alreadyKnownFingerprints.containsKey(propertyName)) {
+                return;
+            }
+            if (!filter.include(propertyName, type, identity)) {
                 return;
             }
             builder.put(propertyName, fingerprinter.get());

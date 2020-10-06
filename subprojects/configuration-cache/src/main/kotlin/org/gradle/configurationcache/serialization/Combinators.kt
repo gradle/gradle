@@ -18,6 +18,7 @@ package org.gradle.configurationcache.serialization
 
 import org.gradle.configurationcache.extensions.uncheckedCast
 import org.gradle.configurationcache.problems.DocumentationSection
+import org.gradle.configurationcache.problems.StructuredMessageBuilder
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.serialize.BaseSerializerFactory
@@ -40,12 +41,38 @@ fun <T> singleton(value: T): Codec<T> =
 
 
 internal
-inline fun <reified T : Any> unsupported(documentationSection: DocumentationSection = DocumentationSection.RequirementsDisallowedTypes): Codec<T> = codec(
+inline fun <reified T : Any> unsupported(
+    documentationSection: DocumentationSection = DocumentationSection.RequirementsDisallowedTypes
+): Codec<T> = codec(
     encode = { value ->
         logUnsupported("serialize", T::class, value.javaClass, documentationSection)
     },
     decode = {
         logUnsupported("deserialize", T::class, documentationSection)
+        null
+    }
+)
+
+
+internal
+inline fun <reified T : Any> unsupported(
+    description: String,
+    documentationSection: DocumentationSection = DocumentationSection.RequirementsDisallowedTypes
+) = unsupported<T>(documentationSection) {
+    text(description)
+}
+
+
+internal
+inline fun <reified T : Any> unsupported(
+    documentationSection: DocumentationSection = DocumentationSection.RequirementsDisallowedTypes,
+    noinline unsupportedMessage: StructuredMessageBuilder
+): Codec<T> = codec(
+    encode = { _ ->
+        logUnsupported("serialize", documentationSection, unsupportedMessage)
+    },
+    decode = {
+        logUnsupported("deserialize", documentationSection, unsupportedMessage)
         null
     }
 )

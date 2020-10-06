@@ -22,14 +22,11 @@ import org.gradle.configurationcache.problems.DocumentationSection.NotYetImpleme
 import org.gradle.configurationcache.problems.DocumentationSection.RequirementsDisallowedTypes
 
 import org.gradle.configurationcache.problems.PropertyProblem
-import org.gradle.configurationcache.problems.StructuredMessage
 import org.gradle.configurationcache.problems.StructuredMessage.Companion.build
+import org.gradle.configurationcache.problems.StructuredMessageBuilder
 import org.gradle.configurationcache.problems.propertyDescriptionFor
 
 import kotlin.reflect.KClass
-
-
-typealias StructuredMessageBuilder = StructuredMessage.Builder.() -> Unit
 
 
 fun IsolateContext.logPropertyProblem(
@@ -49,22 +46,13 @@ fun IsolateContext.logUnsupported(
     actualType: Class<*>,
     documentationSection: DocumentationSection = RequirementsDisallowedTypes
 ) {
-    logPropertyProblem(
-        action,
-        PropertyProblem(
-            trace,
-            build {
-                text("cannot ")
-                text(action)
-                text(" object of type ")
-                reference(GeneratedSubclasses.unpack(actualType))
-                text(", a subtype of ")
-                reference(baseType)
-                text(", as these are not supported with the configuration cache.")
-            },
-            null, documentationSection
-        )
-    )
+    logUnsupported(action, documentationSection) {
+        text(" object of type ")
+        reference(GeneratedSubclasses.unpack(actualType))
+        text(", a subtype of ")
+        reference(baseType)
+        text(",")
+    }
 }
 
 
@@ -74,6 +62,19 @@ fun IsolateContext.logUnsupported(
     baseType: KClass<*>,
     documentationSection: DocumentationSection = RequirementsDisallowedTypes
 ) {
+    logUnsupported(action, documentationSection) {
+        text(" object of type ")
+        reference(baseType)
+    }
+}
+
+
+internal
+fun IsolateContext.logUnsupported(
+    action: String,
+    documentationSection: DocumentationSection = RequirementsDisallowedTypes,
+    unsupportedThings: StructuredMessageBuilder
+) {
     logPropertyProblem(
         action,
         PropertyProblem(
@@ -81,11 +82,11 @@ fun IsolateContext.logUnsupported(
             build {
                 text("cannot ")
                 text(action)
-                text(" object of type ")
-                reference(baseType)
+                unsupportedThings()
                 text(" as these are not supported with the configuration cache.")
             },
-            null, documentationSection
+            null,
+            documentationSection
         )
     )
 }

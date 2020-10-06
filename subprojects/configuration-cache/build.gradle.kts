@@ -42,7 +42,6 @@ dependencies {
     implementation(project(":dependency-management"))
     implementation(project(":execution"))
     implementation(project(":file-collections"))
-    implementation(project(":kotlin-dsl"))
     implementation(project(":logging"))
     implementation(project(":messaging"))
     implementation(project(":model-core"))

@@ -17,6 +17,7 @@
 package org.gradle.kotlin.dsl.support
 
 import org.gradle.api.Action
+import org.gradle.internal.scripts.GradleScript
 import org.gradle.api.PathValidation
 import org.gradle.api.Project
 import org.gradle.api.file.ConfigurableFileCollection
@@ -46,7 +47,7 @@ import java.net.URI
  */
 open class DefaultKotlinScript internal constructor(
     host: Host
-) : KotlinScript {
+) : KotlinScript, GradleScript {
 
     internal
     interface Host {

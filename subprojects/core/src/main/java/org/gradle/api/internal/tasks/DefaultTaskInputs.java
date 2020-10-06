@@ -17,7 +17,6 @@ package org.gradle.api.internal.tasks;
 
 import com.google.common.collect.Lists;
 import org.gradle.api.Describable;
-import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.FilePropertyContainer;
@@ -163,13 +162,7 @@ public class DefaultTaskInputs implements TaskInputsInternal {
         TaskPropertyUtils.visitProperties(propertyWalker, task, visitor);
         Map<String, Object> result = new HashMap<>();
         for (InputPropertySpec inputProperty : visitor.getProperties()) {
-            String propertyName = inputProperty.getPropertyName();
-            try {
-                Object value = InputParameterUtils.prepareInputParameterValue(inputProperty.getValue());
-                result.put(propertyName, value);
-            } catch (Exception ex) {
-                throw new InvalidUserDataException(String.format("Error while evaluating property '%s' of %s", propertyName, task), ex);
-            }
+            result.put(inputProperty.getPropertyName(), InputParameterUtils.prepareInputParameterValue(inputProperty, task));
         }
         return Collections.unmodifiableMap(result);
     }
