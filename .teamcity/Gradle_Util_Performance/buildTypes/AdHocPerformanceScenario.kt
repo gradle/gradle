@@ -68,7 +68,7 @@ abstract class AdHocPerformanceScenario(os: Os) : BuildType({
 
     steps {
         killGradleProcessesStep(os)
-        substDirOnWindows(os)
+        substDirOnWindows(os, builtInRemoteBuildCacheNode)
         gradleWrapper {
             name = "GRADLE_RUNNER"
             workingDir = os.perfTestWorkingDir
@@ -83,7 +83,7 @@ abstract class AdHocPerformanceScenario(os: Os) : BuildType({
                     builtInRemoteBuildCacheNode.gradleParameters(os)
                 ).joinToString(separator = " ")
         }
-        removeSubstDirOnWindows(os)
+        removeSubstDirOnWindows(os, builtInRemoteBuildCacheNode)
         checkCleanM2(os)
     }
 })

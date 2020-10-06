@@ -180,7 +180,7 @@ class PerformanceTestPlugin : Plugin<Project> {
             classpath(performanceSourceSet.runtimeClasspath)
             mainClass.set("org.gradle.performance.results.PerformanceTestRuntimesGenerator")
             systemProperties(project.propertiesForPerformanceDb())
-            args(project.rootProject.file(".teamcity/performance-test-runtimes.json").absolutePath)
+            args(project.rootProject.file(".teamcity/performance-test-durations.json").absolutePath)
             // Never up-to-date since it reads data from the database.
             outputs.upToDateWhen { false }
         }

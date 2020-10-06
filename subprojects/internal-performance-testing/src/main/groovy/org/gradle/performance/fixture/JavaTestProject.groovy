@@ -20,6 +20,8 @@ package org.gradle.performance.fixture
 import org.gradle.performance.generator.JavaTestProjectGenerator
 import org.gradle.performance.mutator.ApplyAbiChangeToGroovySourceFileMutator
 import org.gradle.performance.mutator.ApplyNonAbiChangeToGroovySourceFileMutator
+import org.gradle.profiler.BuildMutator
+import org.gradle.profiler.InvocationSettings
 import org.gradle.profiler.mutations.ApplyAbiChangeToJavaSourceFileMutator
 import org.gradle.profiler.mutations.ApplyNonAbiChangeToJavaSourceFileMutator
 import org.gradle.test.fixtures.language.Language
@@ -51,31 +53,63 @@ class JavaTestProject implements IncrementalTestProject {
 
     @Override
     void configure(CrossVersionPerformanceTestRunner runner) {
-        runner.gradleOpts.addAll(["-Xms${generator.daemonMemory}".toString(), "-Xmx${generator.daemonMemory}".toString()])
+        runner.gradleOpts.addAll(getMemoryOptions())
+    }
+
+    @Override
+    void configure(GradleBuildExperimentSpec.GradleBuilder builder) {
+        builder.invocation {
+            gradleOpts(memoryOptions)
+        }
+    }
+
+    private List<String> getMemoryOptions() {
+        ["-Xms${generator.daemonMemory}".toString(), "-Xmx${generator.daemonMemory}".toString()]
     }
 
     @Override
     void configureForAbiChange(CrossVersionPerformanceTestRunner runner) {
         configure(runner)
         runner.tasksToRun = ['assemble']
-        runner.addBuildMutator { invocationSettings ->
-            File fileToChange = new File(invocationSettings.projectDir, generator.config.fileToChangeByScenario['assemble'])
-            (generator.config.language == Language.GROOVY) ?
-                new ApplyAbiChangeToGroovySourceFileMutator(fileToChange) :
-                new ApplyAbiChangeToJavaSourceFileMutator(fileToChange)
+        runner.addBuildMutator(this.&abiChangeBuildMutator)
+    }
+
+    @Override
+    void configureForAbiChange(GradleBuildExperimentSpec.GradleBuilder builder) {
+        configure(builder)
+        builder.invocation {
+            tasksToRun = ['assemble']
         }
+        builder.addBuildMutator(this.&abiChangeBuildMutator)
+    }
+
+    private BuildMutator abiChangeBuildMutator(InvocationSettings invocationSettings) {
+        File fileToChange = new File(invocationSettings.projectDir, generator.config.fileToChangeByScenario['assemble'])
+        return (generator.config.language == Language.GROOVY) ?
+            new ApplyAbiChangeToGroovySourceFileMutator(fileToChange) :
+            new ApplyAbiChangeToJavaSourceFileMutator(fileToChange)
     }
 
     @Override
     void configureForNonAbiChange(CrossVersionPerformanceTestRunner runner) {
         configure(runner)
         runner.tasksToRun = ['assemble']
-        runner.addBuildMutator { invocationSettings ->
-            File fileToChange = new File(invocationSettings.projectDir, config.fileToChangeByScenario['assemble'])
-            (config.language == Language.GROOVY) ?
-                new ApplyNonAbiChangeToGroovySourceFileMutator(fileToChange) :
-                new ApplyNonAbiChangeToJavaSourceFileMutator(fileToChange)
-        }
+        runner.addBuildMutator(this.&nonAbiChangeBuildMutator)
+    }
 
+    @Override
+    void configureForNonAbiChange(GradleBuildExperimentSpec.GradleBuilder builder) {
+        configure(builder)
+        builder.invocation {
+            tasksToRun = ['assemble']
+        }
+        builder.addBuildMutator(this.&nonAbiChangeBuildMutator)
+    }
+
+    private BuildMutator nonAbiChangeBuildMutator(InvocationSettings invocationSettings) {
+        File fileToChange = new File(invocationSettings.projectDir, generator.config.fileToChangeByScenario['assemble'])
+        return (generator.config.language == Language.GROOVY) ?
+            new ApplyNonAbiChangeToGroovySourceFileMutator(fileToChange) :
+            new ApplyNonAbiChangeToJavaSourceFileMutator(fileToChange)
     }
 }

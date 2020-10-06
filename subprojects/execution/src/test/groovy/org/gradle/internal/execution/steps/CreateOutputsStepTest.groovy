@@ -19,10 +19,16 @@ package org.gradle.internal.execution.steps
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.execution.Result
 import org.gradle.internal.execution.UnitOfWork
+import org.gradle.internal.execution.WorkspaceContext
 import org.gradle.internal.file.TreeType
 
-class CreateOutputsStepTest extends ContextInsensitiveStepSpec {
+class CreateOutputsStepTest extends StepSpec<WorkspaceContext> {
     def step = new CreateOutputsStep<>(delegate)
+
+    @Override
+    protected WorkspaceContext createContext() {
+        Stub(WorkspaceContext)
+    }
 
     def "outputs are created"() {
         def outputDir = file("outDir")
@@ -31,7 +37,7 @@ class CreateOutputsStepTest extends ContextInsensitiveStepSpec {
         step.execute(context)
 
         then:
-        _ * work.visitOutputProperties(_ as UnitOfWork.OutputPropertyVisitor) >> { UnitOfWork.OutputPropertyVisitor visitor ->
+        _ * work.visitOutputProperties(_ as File, _ as UnitOfWork.OutputPropertyVisitor) >> { File workspace, UnitOfWork.OutputPropertyVisitor visitor ->
             visitor.visitOutputProperty("dir", TreeType.DIRECTORY, outputDir, TestFiles.fixed(outputDir))
             visitor.visitOutputProperty("file", TreeType.FILE, outputFile, TestFiles.fixed(outputFile))
         }
@@ -56,7 +62,7 @@ class CreateOutputsStepTest extends ContextInsensitiveStepSpec {
         then:
         result == expected
 
-        _ * work.visitOutputProperties(_ as UnitOfWork.OutputPropertyVisitor)
+        _ * work.visitOutputProperties(_ as File, _ as UnitOfWork.OutputPropertyVisitor)
         1 * delegate.execute(context) >> expected
         0 * _
     }

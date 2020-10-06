@@ -26,7 +26,11 @@ import javax.lang.model.element.TypeElement;
 import javax.tools.JavaFileManager;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
+import java.lang.reflect.Field;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -37,6 +41,9 @@ import static org.gradle.api.internal.tasks.compile.incremental.processing.Incre
  * @see AggregatingProcessor
  */
 class AggregatingProcessingStrategy extends IncrementalProcessingStrategy {
+
+    private static final Map<Class<?>, Optional<Field>> FIELD_CACHE = new HashMap<>(5);
+    private static Boolean canAccessJDKTypes;
 
     AggregatingProcessingStrategy(AnnotationProcessorResult result) {
         super(result);
@@ -77,11 +84,59 @@ class AggregatingProcessingStrategy extends IncrementalProcessingStrategy {
         return orig
             .stream()
             .map(ElementUtils::getTopLevelType)
-            .filter(Symbol.ClassSymbol.class::isInstance)
-            .map(Symbol.ClassSymbol.class::cast)
-            .filter(e -> e.sourcefile != null)
+            .filter(AggregatingProcessingStrategy::filterElements)
             .map(ElementUtils::getElementName)
             .collect(Collectors.toSet());
+    }
+
+    private static boolean filterElements(Element element) {
+        if (canAccessJDKTypes()) {
+            return filterElementsDirect(element);
+        } else {
+            return filterElementsReflection(element);
+        }
+    }
+
+    private static boolean filterElementsReflection(Element element) {
+        try {
+            Optional<Field> field = FIELD_CACHE.computeIfAbsent(element.getClass(), AggregatingProcessingStrategy::getField);
+            if (field.isPresent()) {
+                return field.get().get(element) != null;
+            } else {
+                return false;
+            }
+        } catch (IllegalAccessException e) {
+            FIELD_CACHE.put(element.getClass(), Optional.empty());
+        }
+        return false;
+    }
+
+    private static Optional<Field> getField(Class<?> clazz) {
+        try {
+            Field sourceFile = clazz.getField("sourceFile");
+            return Optional.of(sourceFile);
+        } catch (NoSuchFieldException e) {
+            return Optional.empty();
+        }
+    }
+
+    private static boolean filterElementsDirect(Element element) {
+        if (element instanceof Symbol.ClassSymbol) {
+            return ((Symbol.ClassSymbol) element).sourcefile != null;
+        }
+        return false;
+    }
+
+    private static boolean canAccessJDKTypes() {
+        if (canAccessJDKTypes == null) {
+            try {
+                AggregatingProcessingStrategy.class.getClassLoader().loadClass("com.sun.tools.javac.code.Symbol");
+                canAccessJDKTypes = Boolean.TRUE;
+            } catch (Throwable t) {
+                canAccessJDKTypes = Boolean.FALSE;
+            }
+        }
+        return canAccessJDKTypes;
     }
 
     @Override

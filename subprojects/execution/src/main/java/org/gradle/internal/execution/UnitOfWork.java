@@ -28,21 +28,65 @@ import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.fingerprint.overlap.OverlappingOutputs;
 import org.gradle.internal.reflect.TypeValidationContext;
+import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 
 import javax.annotation.Nullable;
 import java.io.File;
 import java.time.Duration;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Supplier;
 
 public interface UnitOfWork extends Describable {
-    String getIdentity();
+    /**
+     * Determine the identity of the work unit that uniquely identifies it
+     * among the other work units of the same type in the current build.
+     */
+    Identity identify(Map<String, ValueSnapshot> identityInputs, Map<String, CurrentFileCollectionFingerprint> identityFileInputs);
+
+    interface Identity {
+        /**
+         * The identity of the work unit that uniquely identifies it
+         * among the other work units of the same type in the current build.
+         */
+        String getUniqueId();
+    }
+
+    <T> T withWorkspace(String identity, WorkspaceAction<T> action);
+
+    interface WorkspaceAction<T> {
+        T executeInWorkspace(File workspace);
+    }
 
     /**
      * Executes the work synchronously.
      */
-    WorkResult execute(@Nullable InputChangesInternal inputChanges, InputChangesContext context);
+    WorkOutput execute(@Nullable InputChangesInternal inputChanges, InputChangesContext context);
+
+    interface WorkOutput {
+        WorkResult getDidWork();
+
+        Object getOutput();
+    }
+
+    enum WorkResult {
+        DID_WORK,
+        DID_NO_WORK
+    }
+
+    default Object loadRestoredOutput(File workspace) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Returns the {@link ExecutionHistoryStore} to use to store the execution state of this work.
+     * When {@link Optional#empty()} no execution history will be maintained.
+     */
+    default Optional<ExecutionHistoryStore> getHistory() {
+        return Optional.empty();
+    }
 
     default Optional<Duration> getTimeout() {
         return Optional.empty();
@@ -60,19 +104,57 @@ public interface UnitOfWork extends Describable {
         void visitAdditionalImplementation(ImplementationSnapshot implementation);
     }
 
-    void visitInputProperties(InputPropertyVisitor visitor);
+    void visitInputProperties(Set<IdentityKind> filter, InputPropertyVisitor visitor);
 
     interface InputPropertyVisitor {
-        void visitInputProperty(String propertyName, Object value);
+        void visitInputProperty(String propertyName, @Nullable Object value);
     }
 
-    void visitInputFileProperties(InputFilePropertyVisitor visitor);
+    void visitInputFileProperties(Set<IdentityKind> filter, InputFilePropertyVisitor visitor);
 
     interface InputFilePropertyVisitor {
-        void visitInputFileProperty(String propertyName, @Nullable Object value, boolean incremental, Supplier<CurrentFileCollectionFingerprint> fingerprinter);
+        void visitInputFileProperty(String propertyName, @Nullable Object value, InputPropertyType type, Supplier<CurrentFileCollectionFingerprint> fingerprinter);
     }
 
-    void visitOutputProperties(OutputPropertyVisitor visitor);
+    enum InputPropertyType {
+        /**
+         * Non-incremental inputs.
+         */
+        NON_INCREMENTAL(false, false),
+
+        /**
+         * Incremental inputs.
+         */
+        INCREMENTAL(true, false),
+
+        /**
+         * These are the primary inputs to the incremental work item;
+         * if they are empty the work item shouldn't be executed.
+         */
+        PRIMARY(true, true);
+
+        private final boolean incremental;
+        private final boolean skipWhenEmpty;
+
+        InputPropertyType(boolean incremental, boolean skipWhenEmpty) {
+            this.incremental = incremental;
+            this.skipWhenEmpty = skipWhenEmpty;
+        }
+
+        public boolean isIncremental() {
+            return incremental;
+        }
+
+        public boolean isSkipWhenEmpty() {
+            return skipWhenEmpty;
+        }
+    }
+
+    enum IdentityKind {
+        NON_IDENTITY, IDENTITY
+    }
+
+    void visitOutputProperties(File workspace, OutputPropertyVisitor visitor);
 
     interface OutputPropertyVisitor {
         void visitOutputProperty(String propertyName, TreeType type, File root, FileCollection contents);
@@ -152,11 +234,6 @@ public interface UnitOfWork extends Describable {
         return true;
     }
 
-    enum WorkResult {
-        DID_WORK,
-        DID_NO_WORK
-    }
-
     enum InputChangeTrackingStrategy {
         /**
          * No incremental parameters, nothing to track.
@@ -184,14 +261,6 @@ public interface UnitOfWork extends Describable {
         public boolean requiresInputChanges() {
             return requiresInputChanges;
         }
-    }
-
-    /**
-     * Returns the {@link ExecutionHistoryStore} to use to store the execution state of this work.
-     * When {@link Optional#empty()} no execution history will be maintained.
-     */
-    default Optional<ExecutionHistoryStore> getExecutionHistoryStore() {
-        return Optional.empty();
     }
 
     /**

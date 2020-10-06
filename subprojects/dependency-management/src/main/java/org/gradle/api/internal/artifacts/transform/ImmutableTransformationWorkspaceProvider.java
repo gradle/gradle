@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
+import com.google.common.cache.Cache;
 import com.google.common.collect.ImmutableList;
 import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheRepository;
@@ -26,6 +27,7 @@ import org.gradle.cache.internal.CompositeCleanupAction;
 import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup;
 import org.gradle.cache.internal.SingleDepthFilesFinder;
 import org.gradle.internal.Try;
+import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.file.FileAccessTimeJournal;
 import org.gradle.internal.file.impl.SingleDepthFileAccessTracker;
@@ -41,6 +43,7 @@ import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 public class ImmutableTransformationWorkspaceProvider implements TransformationWorkspaceProvider, Closeable {
     private static final int FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP = 1;
 
+    private final Cache<UnitOfWork.Identity, Try<ImmutableList<File>>> identityCache = com.google.common.cache.CacheBuilder.newBuilder().build();
     private final SingleDepthFileAccessTracker fileAccessTracker;
     private final File baseDirectory;
     private final ExecutionHistoryStore executionHistoryStore;
@@ -71,9 +74,14 @@ public class ImmutableTransformationWorkspaceProvider implements TransformationW
     }
 
     @Override
-    public Try<ImmutableList<File>> withWorkspace(TransformationWorkspaceIdentity identity, TransformationWorkspaceAction workspaceAction) {
+    public Cache<UnitOfWork.Identity, Try<ImmutableList<File>>> getIdentityCache() {
+        return identityCache;
+    }
+
+    @Override
+    public <T> T withWorkspace(UnitOfWork.Identity identity, TransformationWorkspaceAction<T> workspaceAction) {
         return cache.withFileLock(() -> {
-            String workspacePath = identity.getIdentity();
+            String workspacePath = identity.getUniqueId();
             File workspaceDir = new File(baseDirectory, workspacePath);
             fileAccessTracker.markAccessed(workspaceDir);
             return workspaceAction.useWorkspace(workspacePath, workspaceDir);

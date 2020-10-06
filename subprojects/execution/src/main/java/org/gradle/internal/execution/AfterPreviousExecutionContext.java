@@ -20,7 +20,7 @@ import org.gradle.internal.execution.history.AfterPreviousExecutionState;
 
 import java.util.Optional;
 
-public interface AfterPreviousExecutionContext extends ExecutionRequestContext {
+public interface AfterPreviousExecutionContext extends WorkspaceContext {
     /**
      * Returns the execution state after the previous execution if available.
      * Empty when execution history is not available.

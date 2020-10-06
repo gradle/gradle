@@ -47,8 +47,6 @@ import org.gradle.execution.taskgraph.TaskListenerInternal;
 import org.gradle.internal.cleanup.BuildOutputCleanupRegistry;
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager;
 import org.gradle.internal.event.ListenerManager;
-import org.gradle.internal.execution.CachingResult;
-import org.gradle.internal.execution.ExecutionRequestContext;
 import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.WorkExecutor;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
@@ -128,7 +126,7 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
         TaskExecutionListener taskExecutionListener,
         TaskExecutionModeResolver repository,
         TaskListenerInternal taskListenerInternal,
-        WorkExecutor<ExecutionRequestContext, CachingResult> workExecutor
+        WorkExecutor workExecutor
     ) {
         TaskExecuter executer = new ExecuteActionsTaskExecuter(
             buildCacheController.isEnabled()

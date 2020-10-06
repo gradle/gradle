@@ -80,7 +80,7 @@ public class TransformingAsyncArtifactListener implements ResolvedArtifactSet.As
         return invocation.getCachedResult()
             .<TransformationResult>map(PrecomputedTransformationResult::new)
             .orElseGet(() -> {
-                TransformationOperation operation = new TransformationOperation(invocation, "Transform " + initialSubject.getDisplayName() + " with " + transformation.getDisplayName());
+                TransformationOperation operation = new TransformationOperation(invocation);
                 actions.add(operation);
                 return operation;
             });

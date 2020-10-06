@@ -50,9 +50,9 @@ public class CompositeResultsStore implements ResultsStore {
     }
 
     @Override
-    public Map<PerformanceExperimentOnOs, Long> getEstimatedExperimentTimesInMillis() {
+    public Map<PerformanceExperimentOnOs, Long> getEstimatedExperimentDurationsInMillis() {
         return stores.stream()
-            .flatMap(store -> store.getEstimatedExperimentTimesInMillis().entrySet().stream())
+            .flatMap(store -> store.getEstimatedExperimentDurationsInMillis().entrySet().stream())
             .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, Math::max));
     }
 

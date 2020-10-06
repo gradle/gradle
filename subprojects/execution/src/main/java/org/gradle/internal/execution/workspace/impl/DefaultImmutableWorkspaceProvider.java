@@ -86,6 +86,11 @@ public class DefaultImmutableWorkspaceProvider implements ImmutableWorkspaceProv
     }
 
     @Override
+    public ExecutionHistoryStore getHistory() {
+        return executionHistoryStore;
+    }
+
+    @Override
     public void close() {
         cache.close();
     }

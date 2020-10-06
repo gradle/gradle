@@ -16,16 +16,19 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.ImmutableList;
 import org.gradle.internal.Try;
+import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 
-import javax.annotation.Nullable;
 import java.io.File;
 
-public class TestTransformationWorkspaceProvider implements CachingTransformationWorkspaceProvider {
+public class TestTransformationWorkspaceProvider implements TransformationWorkspaceProvider {
     private final File transformationsStoreDirectory;
     private final ExecutionHistoryStore executionHistoryStore;
+    private final Cache<UnitOfWork.Identity, Try<ImmutableList<File>>> emptyCache = CacheBuilder.newBuilder().maximumSize(0).build();
 
     public TestTransformationWorkspaceProvider(File transformationsStoreDirectory, ExecutionHistoryStore executionHistoryStore) {
         this.transformationsStoreDirectory = transformationsStoreDirectory;
@@ -38,14 +41,13 @@ public class TestTransformationWorkspaceProvider implements CachingTransformatio
     }
 
     @Override
-    public Try<ImmutableList<File>> withWorkspace(TransformationWorkspaceIdentity identity, TransformationWorkspaceAction workspaceAction) {
-        String identityString = identity.getIdentity();
-        return workspaceAction.useWorkspace(identityString, new File(transformationsStoreDirectory, identityString));
+    public Cache<UnitOfWork.Identity, Try<ImmutableList<File>>> getIdentityCache() {
+        return emptyCache;
     }
 
-    @Nullable
     @Override
-    public Try<ImmutableList<File>> getCachedResult(TransformationWorkspaceIdentity identity) {
-        return null;
+    public <T> T withWorkspace(UnitOfWork.Identity identity, TransformationWorkspaceAction<T> workspaceAction) {
+        String identityString = identity.getUniqueId();
+        return workspaceAction.useWorkspace(identityString, new File(transformationsStoreDirectory, identityString));
     }
 }

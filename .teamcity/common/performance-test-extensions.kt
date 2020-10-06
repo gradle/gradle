@@ -16,6 +16,7 @@
 
 package common
 
+import configurations.buildScanTag
 import jetbrains.buildServer.configs.kotlin.v2019_2.BuildStep
 import jetbrains.buildServer.configs.kotlin.v2019_2.BuildSteps
 import jetbrains.buildServer.configs.kotlin.v2019_2.BuildType
@@ -71,22 +72,50 @@ fun BuildSteps.killGradleProcessesStep(os: Os) {
 }
 
 // to avoid pathname too long error
-fun BuildSteps.substDirOnWindows(os: Os) {
+fun BuildSteps.substDirOnWindows(os: Os, buildCache: BuildCache) {
     if (os == Os.WINDOWS) {
         script {
             name = "SETUP_VIRTUAL_DISK_FOR_PERF_TEST"
             executionMode = BuildStep.ExecutionMode.ALWAYS
             scriptContent = """subst p: "%teamcity.build.checkoutDir%" """
         }
+        // Gradle detects overlapping outputs when running first on a subst drive and then in the original location.
+        // Even when running clean builds on CI, we don't run clean in buildSrc, so there may be stale leftover files there.
+        // This means that we need to clean buildSrc before running for the first time on the subst drive
+        // and before running the first time on the original location again.
+        gradleWrapper {
+            name = "CLEAN_BUILD_SRC_ON_SUBST_DRIVE"
+            tasks = "clean"
+            workingDir = "P:/buildSrc"
+            executionMode = BuildStep.ExecutionMode.ALWAYS
+            gradleWrapperPath = "../"
+            gradleParams = (
+                buildToolGradleParameters() +
+                    buildScanTag("PerformanceTest") +
+                    buildCache.gradleParameters(os)
+                ).joinToString(separator = " ")
+        }
     }
 }
 
-fun BuildSteps.removeSubstDirOnWindows(os: Os) {
+fun BuildSteps.removeSubstDirOnWindows(os: Os, buildCache: BuildCache) {
     if (os == Os.WINDOWS) {
         script {
             name = "REMOVE_VIRTUAL_DISK_FOR_PERF_TEST"
             executionMode = BuildStep.ExecutionMode.ALWAYS
             scriptContent = """subst p: /d"""
+        }
+        gradleWrapper {
+            name = "CLEAN_BUILD_SRC_ON_CHECKOUT"
+            tasks = "clean"
+            workingDir = "%teamcity.build.checkoutDir%/buildSrc"
+            gradleWrapperPath = "../"
+            executionMode = BuildStep.ExecutionMode.ALWAYS
+            gradleParams = (
+                buildToolGradleParameters() +
+                    buildScanTag("PerformanceTest") +
+                    buildCache.gradleParameters(os)
+                ).joinToString(separator = " ")
         }
     }
 }

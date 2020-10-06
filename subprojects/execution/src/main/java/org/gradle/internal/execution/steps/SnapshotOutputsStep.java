@@ -21,7 +21,6 @@ import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.Try;
 import org.gradle.internal.execution.BeforeExecutionContext;
 import org.gradle.internal.execution.CurrentSnapshotResult;
-import org.gradle.internal.execution.ExecutionOutcome;
 import org.gradle.internal.execution.OutputSnapshotter;
 import org.gradle.internal.execution.Result;
 import org.gradle.internal.execution.Step;
@@ -89,8 +88,8 @@ public class SnapshotOutputsStep<C extends BeforeExecutionContext> extends Build
             }
 
             @Override
-            public Try<ExecutionOutcome> getOutcome() {
-                return result.getOutcome();
+            public Try<ExecutionResult> getExecutionResult() {
+                return result.getExecutionResult();
             }
 
             @Override
@@ -115,7 +114,7 @@ public class SnapshotOutputsStep<C extends BeforeExecutionContext> extends Build
             .flatMap(BeforeExecutionState::getDetectedOverlappingOutputs)
             .isPresent();
 
-        ImmutableSortedMap<String, FileSystemSnapshot> afterExecutionOutputSnapshots = outputSnapshotter.snapshotOutputs(work);
+        ImmutableSortedMap<String, FileSystemSnapshot> afterExecutionOutputSnapshots = outputSnapshotter.snapshotOutputs(work, context.getWorkspace());
 
         return copyOfSorted(transformEntries(
             afterExecutionOutputSnapshots,

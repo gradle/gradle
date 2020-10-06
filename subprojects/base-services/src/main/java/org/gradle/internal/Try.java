@@ -205,6 +205,11 @@ public abstract class Try<T> {
         public int hashCode() {
             return value.hashCode();
         }
+
+        @Override
+        public String toString() {
+            return "Successful(" + value + ")";
+        }
     }
 
     private static final class Failure<T> extends Try<T> {
@@ -280,6 +285,11 @@ public abstract class Try<T> {
         @Override
         public int hashCode() {
             return failure.hashCode();
+        }
+
+        @Override
+        public String toString() {
+            return "Failed(" + failure + ")";
         }
     }
 }

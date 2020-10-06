@@ -14,26 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.performance.results
+package org.gradle.internal.execution;
 
-import com.fasterxml.jackson.annotation.JsonInclude
-import groovy.transform.CompileStatic
+import com.google.common.cache.Cache;
+import org.gradle.internal.Try;
+import org.gradle.internal.execution.UnitOfWork.Identity;
 
-/**
- * Used for generating performance-test-runtimes.json by Jackson.
- */
-@CompileStatic
-@JsonInclude(JsonInclude.Include.NON_NULL)
-class TestProjectRuntime {
-    String testProject
-    Long linux
-    Long windows
-    Long macOs
-
-    TestProjectRuntime(String testProject, Long linux, Long windows, Long macOs) {
-        this.testProject = testProject
-        this.linux = linux
-        this.windows = windows
-        this.macOs = macOs
-    }
+public interface DeferredExecutionAwareStep<C extends Context, R extends Result> extends Step<C, R> {
+    <T, O> T executeDeferred(C context, Cache<Identity, Try<O>> cache, DeferredResultProcessor<O, T> processor);
 }

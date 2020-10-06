@@ -17,7 +17,6 @@
 package org.gradle.api.internal.artifacts.transform;
 
 import org.gradle.internal.Try;
-import org.gradle.internal.operations.BuildOperationCategory;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.RunnableBuildOperation;
@@ -26,11 +25,9 @@ import javax.annotation.Nullable;
 
 class TransformationOperation implements TransformationResult, RunnableBuildOperation {
     private final CacheableInvocation<TransformationSubject> invocation;
-    private final String displayName;
     private Try<TransformationSubject> transformedSubject;
 
-    TransformationOperation(CacheableInvocation<TransformationSubject> invocation, String displayName) {
-        this.displayName = displayName;
+    TransformationOperation(CacheableInvocation<TransformationSubject> invocation) {
         this.invocation = invocation;
     }
 
@@ -41,9 +38,7 @@ class TransformationOperation implements TransformationResult, RunnableBuildOper
 
     @Override
     public BuildOperationDescriptor.Builder description() {
-        return BuildOperationDescriptor.displayName(displayName)
-            .progressDisplayName(displayName)
-            .metadata(BuildOperationCategory.UNCATEGORIZED);
+        return BuildOperationDescriptor.displayName("Execute transform");
     }
 
     @Override

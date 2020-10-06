@@ -14,22 +14,26 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.execution.workspace;
+package org.gradle.performance.results
 
-import org.gradle.internal.execution.history.ExecutionHistoryStore;
+import com.fasterxml.jackson.annotation.JsonInclude
+import groovy.transform.CompileStatic
 
-import java.io.File;
+/**
+ * Used for generating performance-test-durations.json by Jackson.
+ */
+@CompileStatic
+@JsonInclude(JsonInclude.Include.NON_NULL)
+class TestProjectDuration {
+    String testProject
+    Long linux
+    Long windows
+    Long macOs
 
-public interface ImmutableWorkspaceProvider {
-    /**
-     * Provides a workspace and execution history store for executing the transformation.
-     */
-    <T> T withWorkspace(String identity, WorkspaceAction<T> action);
-
-    ExecutionHistoryStore getHistory();
-
-    @FunctionalInterface
-    interface WorkspaceAction<T> {
-        T executeInWorkspace(File workspace, ExecutionHistoryStore executionHistoryStore);
+    TestProjectDuration(String testProject, Long linux, Long windows, Long macOs) {
+        this.testProject = testProject
+        this.linux = linux
+        this.windows = windows
+        this.macOs = macOs
     }
 }

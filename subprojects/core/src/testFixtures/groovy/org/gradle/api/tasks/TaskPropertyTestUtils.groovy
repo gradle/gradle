@@ -35,9 +35,9 @@ class TaskPropertyTestUtils {
     }
 
     static Map<String, Object> getProperties(TaskInternal task, PropertyWalker propertyWalker) {
-        GetInputPropertiesVisitor visitor = new GetInputPropertiesVisitor(task.getName())
+        GetInputPropertiesVisitor visitor = new GetInputPropertiesVisitor()
         TaskPropertyUtils.visitProperties(propertyWalker, task, visitor)
-        return visitor.getPropertyValuesSupplier().get()
+        return visitor.getProperties().collectEntries { [it.propertyName, it.value.call()] }
     }
 
     static FileCollection getInputFiles(AbstractTask task) {

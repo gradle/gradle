@@ -16,20 +16,53 @@
 
 package org.gradle.internal.execution.impl;
 
-import org.gradle.internal.execution.Context;
-import org.gradle.internal.execution.Result;
-import org.gradle.internal.execution.Step;
+import com.google.common.cache.Cache;
+import org.gradle.internal.Try;
+import org.gradle.internal.execution.CachingResult;
+import org.gradle.internal.execution.DeferredExecutionAwareStep;
+import org.gradle.internal.execution.DeferredResultProcessor;
+import org.gradle.internal.execution.ExecutionRequestContext;
+import org.gradle.internal.execution.UnitOfWork;
+import org.gradle.internal.execution.UnitOfWork.Identity;
 import org.gradle.internal.execution.WorkExecutor;
 
-public class DefaultWorkExecutor<C extends Context, R extends Result> implements WorkExecutor<C, R> {
-    private final Step<? super C, ? extends R> executeStep;
+import javax.annotation.Nullable;
+import java.util.Optional;
 
-    public DefaultWorkExecutor(Step<? super C, ? extends R> executeStep) {
+public class DefaultWorkExecutor implements WorkExecutor {
+    private final DeferredExecutionAwareStep<? super ExecutionRequestContext, CachingResult> executeStep;
+
+    public DefaultWorkExecutor(DeferredExecutionAwareStep<? super ExecutionRequestContext, CachingResult> executeStep) {
         this.executeStep = executeStep;
     }
 
     @Override
-    public R execute(C context) {
-        return executeStep.execute(context);
+    public CachingResult execute(UnitOfWork work, @Nullable String rebuildReason) {
+        return executeStep.execute(new Request(work, rebuildReason));
+    }
+
+    @Override
+    public <T, O> T executeDeferred(UnitOfWork work, @Nullable String rebuildReason, Cache<Identity, Try<O>> cache, DeferredResultProcessor<O, T> processor) {
+        return executeStep.executeDeferred(new Request(work, rebuildReason), cache, processor);
+    }
+
+    private static class Request implements ExecutionRequestContext {
+        private final String rebuildReason;
+        private final UnitOfWork work;
+
+        public Request(UnitOfWork work, @Nullable String rebuildReason) {
+            this.rebuildReason = rebuildReason;
+            this.work = work;
+        }
+
+        @Override
+        public Optional<String> getRebuildReason() {
+            return Optional.ofNullable(rebuildReason);
+        }
+
+        @Override
+        public UnitOfWork getWork() {
+            return work;
+        }
     }
 }

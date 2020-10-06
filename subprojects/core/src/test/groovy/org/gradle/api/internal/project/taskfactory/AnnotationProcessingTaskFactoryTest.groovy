@@ -750,7 +750,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         def taskProperties = DefaultTaskProperties.resolve(propertyWalker, fileCollectionFactory, task)
 
         then:
-        taskProperties.inputPropertyValues.get().keySet() == inputs as Set
+        taskProperties.inputProperties*.propertyName as Set == inputs as Set
         taskProperties.inputFileProperties*.propertyName as Set == inputFiles as Set
         taskProperties.outputFileProperties*.propertyName as Set == outputFiles as Set
         taskProperties.destroyableFiles.empty
@@ -797,7 +797,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
 
         then:
         taskProperties.localStateFiles.files as List == [localState]
-        taskProperties.inputPropertyValues.get().isEmpty()
+        taskProperties.inputProperties.empty
         taskProperties.inputFileProperties.empty
         taskProperties.outputFileProperties.empty
         taskProperties.destroyableFiles.empty
@@ -813,7 +813,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
 
         then:
         taskProperties.destroyableFiles.files as List == [destroyable]
-        taskProperties.inputPropertyValues.get().isEmpty()
+        taskProperties.inputProperties.empty
         taskProperties.inputFileProperties.empty
         taskProperties.outputFileProperties.empty
         taskProperties.localStateFiles.empty

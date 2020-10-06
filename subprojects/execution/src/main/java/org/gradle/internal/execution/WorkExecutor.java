@@ -16,6 +16,14 @@
 
 package org.gradle.internal.execution;
 
-public interface WorkExecutor<C extends Context, R extends Result> {
-    R execute(C context);
+import com.google.common.cache.Cache;
+import org.gradle.internal.Try;
+import org.gradle.internal.execution.UnitOfWork.Identity;
+
+import javax.annotation.Nullable;
+
+public interface WorkExecutor {
+    CachingResult execute(UnitOfWork work, @Nullable String rebuildReason);
+
+    <T, O> T executeDeferred(UnitOfWork work, @Nullable String rebuildReason, Cache<Identity, Try<O>> cache, DeferredResultProcessor<O, T> processor);
 }

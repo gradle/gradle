@@ -74,6 +74,7 @@ class IncrementalAndroidTestProject extends AndroidTestProject implements Increm
         }
     }
 
+    @Override
     void configureForAbiChange(GradleBuildExperimentSpec.GradleBuilder builder) {
         configure(builder)
         builder.invocation {
@@ -93,6 +94,7 @@ class IncrementalAndroidTestProject extends AndroidTestProject implements Increm
         }
     }
 
+    @Override
     void configureForNonAbiChange(GradleBuildExperimentSpec.GradleBuilder builder) {
         configure(builder)
         builder.invocation {

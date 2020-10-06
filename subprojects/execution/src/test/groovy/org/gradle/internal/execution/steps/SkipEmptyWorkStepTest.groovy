@@ -39,7 +39,7 @@ class SkipEmptyWorkStepTest extends StepSpec<AfterPreviousExecutionContext> {
     }
 
     def setup() {
-        _ * work.executionHistoryStore >> Optional.of(executionHistoryStore)
+        _ * work.history >> Optional.of(executionHistoryStore)
     }
 
     def "delegates when work is not skipped"() {
@@ -64,14 +64,14 @@ class SkipEmptyWorkStepTest extends StepSpec<AfterPreviousExecutionContext> {
         def result = step.execute(context)
 
         then:
-        result.outcome.get() == outcome
+        result.executionResult.get().outcome == outcome
 
         _ * context.afterPreviousExecutionState >> Optional.of(afterPreviousExecutionState)
         1 * afterPreviousExecutionState.outputFileProperties >> outputFingerprints
         _ * work.skipIfInputsEmpty(outputFingerprints) >> Optional.of(outcome)
 
         then:
-        1 * executionHistoryStore.remove(identity)
+        1 * executionHistoryStore.remove(identity.uniqueId)
         0 * _
 
         where:

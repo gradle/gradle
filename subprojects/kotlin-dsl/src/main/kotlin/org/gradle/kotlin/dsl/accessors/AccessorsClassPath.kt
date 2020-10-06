@@ -19,22 +19,23 @@ package org.gradle.kotlin.dsl.accessors
 import org.gradle.api.Project
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.cache.internal.CacheKeyBuilder
 import org.gradle.cache.internal.CacheKeyBuilder.CacheKeySpec
 import org.gradle.internal.classanalysis.AsmConstants.ASM_LEVEL
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
-import org.gradle.internal.execution.CachingResult
-import org.gradle.internal.execution.ExecutionRequestContext
 import org.gradle.internal.execution.InputChangesContext
 import org.gradle.internal.execution.UnitOfWork
+import org.gradle.internal.execution.UnitOfWork.IdentityKind.IDENTITY
 import org.gradle.internal.execution.WorkExecutor
 import org.gradle.internal.execution.history.ExecutionHistoryStore
 import org.gradle.internal.execution.history.changes.InputChangesInternal
 import org.gradle.internal.file.TreeType
+import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
+import org.gradle.internal.fingerprint.classpath.ClasspathFingerprinter
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.Hasher
 import org.gradle.internal.hash.Hashing
+import org.gradle.internal.snapshot.ValueSnapshot
 import org.gradle.kotlin.dsl.cache.KotlinDslWorkspaceProvider
 import org.gradle.kotlin.dsl.codegen.fileHeaderFor
 import org.gradle.kotlin.dsl.codegen.kotlinDslPackageName
@@ -61,10 +62,10 @@ import javax.inject.Inject
 
 
 class ProjectAccessorsClassPathGenerator @Inject constructor(
-    private val cacheKeyBuilder: CacheKeyBuilder,
+    private val classpathFingerprinter: ClasspathFingerprinter,
     private val fileCollectionFactory: FileCollectionFactory,
     private val projectSchemaProvider: ProjectSchemaProvider,
-    private val workExecutor: WorkExecutor<ExecutionRequestContext, CachingResult>,
+    private val workExecutor: WorkExecutor,
     private val workspaceProvider: KotlinDslWorkspaceProvider
 ) {
 
@@ -78,31 +79,17 @@ class ProjectAccessorsClassPathGenerator @Inject constructor(
     private
     fun buildAccessorsClassPathFor(project: Project, classPath: ClassPath): AccessorsClassPath? {
         return configuredProjectSchemaOf(project)?.let { projectSchema ->
-            // TODO:accessors make cache key computation more efficient
-            val cacheKeySpec = cacheKeyFor(projectSchema, classPath)
-            val cacheKey = cacheKeyBuilder.build(cacheKeySpec)
-            workspaceProvider.withWorkspace(cacheKey) { workspace, executionHistoryStore ->
-                val sourcesOutputDir = File(workspace, "sources")
-                val classesOutputDir = File(workspace, "classes")
-                val work = GenerateProjectAccessors(
-                    project,
-                    projectSchema,
-                    classPath,
-                    cacheKey,
-                    sourcesOutputDir,
-                    classesOutputDir,
-                    executionHistoryStore,
-                    fileCollectionFactory
-                )
-                workExecutor.execute(object : ExecutionRequestContext {
-                    override fun getWork() = work
-                    override fun getRebuildReason() = Optional.empty<String>()
-                })
-                AccessorsClassPath(
-                    DefaultClassPath.of(classesOutputDir),
-                    DefaultClassPath.of(sourcesOutputDir)
-                )
-            }
+            val work = GenerateProjectAccessors(
+                project,
+                projectSchema,
+                classPath,
+                classpathFingerprinter,
+                workspaceProvider.history,
+                fileCollectionFactory,
+                workspaceProvider
+            )
+            val result = workExecutor.execute(work, null)
+            result.executionResult.get().output as AccessorsClassPath
         }
     }
 
@@ -122,20 +109,22 @@ class GenerateProjectAccessors(
     private val project: Project,
     private val projectSchema: TypedProjectSchema,
     private val classPath: ClassPath,
-    private val cacheKey: String,
-    private val sourcesOutputDir: File,
-    private val classesOutputDir: File,
+    private val classpathFingerprinter: ClasspathFingerprinter,
     private val executionHistoryStore: ExecutionHistoryStore,
-    private val fileCollectionFactory: FileCollectionFactory
+    private val fileCollectionFactory: FileCollectionFactory,
+    private val workspaceProvider: KotlinDslWorkspaceProvider
 ) : UnitOfWork {
 
     companion object {
-        const val CACHE_KEY_INPUT_PROPERTY = "cacheKey"
+        const val PROJECT_SCHEMA_INPUT_PROPERTY = "projectSchema"
+        const val CLASSPATH_INPUT_PROPERTY = "classpath"
         const val SOURCES_OUTPUT_PROPERTY = "sources"
         const val CLASSES_OUTPUT_PROPERTY = "classes"
     }
 
-    override fun execute(inputChanges: InputChangesInternal?, context: InputChangesContext): UnitOfWork.WorkResult {
+    override fun execute(inputChanges: InputChangesInternal?, context: InputChangesContext): UnitOfWork.WorkOutput {
+        val sourcesOutputDir = File(context.workspace, "sources")
+        val classesOutputDir = File(context.workspace, "classes")
         withAsynchronousIO(project) {
             buildAccessorsFor(
                 projectSchema,
@@ -144,32 +133,72 @@ class GenerateProjectAccessors(
                 binDir = classesOutputDir
             )
         }
-        return UnitOfWork.WorkResult.DID_WORK
+        return object : UnitOfWork.WorkOutput {
+            override fun getDidWork() = UnitOfWork.WorkResult.DID_WORK
+
+            override fun getOutput() = loadRestoredOutput(context.workspace)
+        }
     }
 
-    override fun getIdentity() = cacheKey
+    override fun loadRestoredOutput(workspace: File) = AccessorsClassPath(
+        DefaultClassPath.of(getClassesOutputDir(workspace)),
+        DefaultClassPath.of(getSourcesOutputDir(workspace))
+    )
+
+    override fun identify(identityInputs: Map<String, ValueSnapshot>, identityFileInputs: Map<String, CurrentFileCollectionFingerprint>): UnitOfWork.Identity {
+        val hasher = Hashing.newHasher()
+        requireNotNull(identityInputs[PROJECT_SCHEMA_INPUT_PROPERTY]).appendToHasher(hasher)
+        hasher.putHash(requireNotNull(identityFileInputs[CLASSPATH_INPUT_PROPERTY]).hash)
+        val identityHash = hasher.hash().toString()
+        return object : UnitOfWork.Identity {
+            override fun getUniqueId() = identityHash
+        }
+    }
+
+    override fun getHistory(): Optional<ExecutionHistoryStore> = Optional.of(executionHistoryStore)
+
+    override fun <T : Any?> withWorkspace(identity: String, action: UnitOfWork.WorkspaceAction<T>): T =
+        workspaceProvider.withWorkspace("$accessorsWorkspacePrefix/$identity") { workspace, _ ->
+            action.executeInWorkspace(workspace)
+        }
 
     override fun getDisplayName(): String = "Kotlin DSL accessors for $project"
 
     override fun markExecutionTime(): Long = 0
 
-    override fun getExecutionHistoryStore(): Optional<ExecutionHistoryStore> = Optional.of(executionHistoryStore)
-
     override fun visitImplementations(visitor: UnitOfWork.ImplementationVisitor) {
         visitor.visitImplementation(GenerateProjectAccessors::class.java)
     }
 
-    override fun visitInputProperties(visitor: UnitOfWork.InputPropertyVisitor) {
-        visitor.visitInputProperty(CACHE_KEY_INPUT_PROPERTY, cacheKey)
+    override fun visitInputProperties(filter: Set<UnitOfWork.IdentityKind>, visitor: UnitOfWork.InputPropertyVisitor) {
+        if (filter.contains(IDENTITY)) {
+            visitor.visitInputProperty(PROJECT_SCHEMA_INPUT_PROPERTY, hashCodeFor(projectSchema))
+        }
     }
 
-    override fun visitInputFileProperties(visitor: UnitOfWork.InputFilePropertyVisitor) = Unit
+    override fun visitInputFileProperties(filter: Set<UnitOfWork.IdentityKind>, visitor: UnitOfWork.InputFilePropertyVisitor) {
+        if (filter.contains(IDENTITY)) {
+            visitor.visitInputFileProperty(CLASSPATH_INPUT_PROPERTY, classPath, UnitOfWork.InputPropertyType.NON_INCREMENTAL) {
+                classpathFingerprinter.fingerprint(fileCollectionFactory.fixed(classPath.asFiles))
+            }
+        }
+    }
 
-    override fun visitOutputProperties(visitor: UnitOfWork.OutputPropertyVisitor) {
+    override fun visitOutputProperties(workspace: File, visitor: UnitOfWork.OutputPropertyVisitor) {
+        val sourcesOutputDir = getSourcesOutputDir(workspace)
+        val classesOutputDir = getClassesOutputDir(workspace)
         visitor.visitOutputProperty(SOURCES_OUTPUT_PROPERTY, TreeType.DIRECTORY, sourcesOutputDir, fileCollectionFactory.fixed(sourcesOutputDir))
         visitor.visitOutputProperty(CLASSES_OUTPUT_PROPERTY, TreeType.DIRECTORY, classesOutputDir, fileCollectionFactory.fixed(classesOutputDir))
     }
 }
+
+
+private
+fun getClassesOutputDir(workspace: File) = File(workspace, "classes")
+
+
+private
+fun getSourcesOutputDir(workspace: File): File = File(workspace, "sources")
 
 
 data class AccessorsClassPath(val bin: ClassPath, val src: ClassPath) {
@@ -535,13 +564,6 @@ const val accessorsWorkspacePrefix = "accessors"
 
 internal
 val accessorsCacheKeySpecPrefix = CacheKeySpec.withPrefix(accessorsWorkspacePrefix)
-
-
-private
-fun cacheKeyFor(projectSchema: TypedProjectSchema, classPath: ClassPath): CacheKeySpec =
-    accessorsCacheKeySpecPrefix +
-        hashCodeFor(projectSchema) +
-        classPath
 
 
 fun hashCodeFor(schema: TypedProjectSchema): HashCode = Hashing.newHasher().run {

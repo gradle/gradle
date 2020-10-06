@@ -16,41 +16,17 @@
 
 package org.gradle.api.internal.tasks.properties;
 
-import org.gradle.api.InvalidUserDataException;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.function.Supplier;
+import com.google.common.collect.ImmutableSortedSet;
 
 public class GetInputPropertiesVisitor extends PropertyVisitor.Adapter {
-    private final String beanName;
-    private final List<InputPropertySpec> inputProperties = new ArrayList<>();
-
-    public GetInputPropertiesVisitor(String beanName) {
-        this.beanName = beanName;
-    }
+    private final ImmutableSortedSet.Builder<InputPropertySpec> inputProperties = ImmutableSortedSet.naturalOrder();
 
     @Override
     public void visitInputProperty(String propertyName, PropertyValue value, boolean optional) {
-        InputPropertySpec spec = new DefaultInputPropertySpec(propertyName, value);
-        inputProperties.add(spec);
+        inputProperties.add(new DefaultInputPropertySpec(propertyName, value));
     }
 
-    public Supplier<Map<String, Object>> getPropertyValuesSupplier() {
-        return () -> {
-            Map<String, Object> result = new HashMap<>();
-            for (InputPropertySpec inputProperty : inputProperties) {
-                String propertyName = inputProperty.getPropertyName();
-                try {
-                    Object value = InputParameterUtils.prepareInputParameterValue(inputProperty.getValue());
-                    result.put(propertyName, value);
-                } catch (Exception ex) {
-                    throw new InvalidUserDataException(String.format("Error while evaluating property '%s' of %s", propertyName, beanName), ex);
-                }
-            }
-            return result;
-        };
+    public ImmutableSortedSet<InputPropertySpec> getProperties() {
+        return inputProperties.build();
     }
 }
