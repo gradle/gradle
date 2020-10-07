@@ -62,7 +62,7 @@ public class GradleProfilerReporter implements DataReporter<PerformanceTestResul
         );
         try {
             InvocationSettings settings = new InvocationSettings.InvocationSettingsBuilder()
-                .setBenchmarkTitle(experiment.getDisplayName() + " | " + experiment.getScenario().getSimpleClassName())
+                .setBenchmarkTitle(experiment.getDisplayName())
                 .build();
             resultCollector.write(settings);
         } catch (IOException e) {
