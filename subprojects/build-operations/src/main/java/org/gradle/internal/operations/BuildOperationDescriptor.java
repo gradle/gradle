@@ -113,7 +113,7 @@ public final class BuildOperationDescriptor {
     }
 
     public BuildOperationDescriptor withParentId(@Nullable OperationIdentifier parentId) {
-        if (parentId == this.parentId || (parentId != null && parentId.equals((this.parentId)))) {
+        if (parentId == this.parentId || (parentId != null && parentId.equals(this.parentId))) {
             return this;
         }
         return new BuildOperationDescriptor(id, parentId, name, displayName, progressDisplayName, details, metadata, totalProgress);
