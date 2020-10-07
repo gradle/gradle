@@ -36,6 +36,7 @@ import org.gradle.internal.jvm.inspection.DefaultJvmVersionDetector;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.jvm.toolchain.internal.AsdfInstallationSupplier;
+import org.gradle.jvm.toolchain.internal.CurrentInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.InstallationLocation;
 import org.gradle.jvm.toolchain.internal.InstallationSupplier;
 import org.gradle.jvm.toolchain.internal.JabbaInstallationSupplier;
@@ -220,15 +221,16 @@ public abstract class AvailableJavaHomes {
     private static List<InstallationSupplier> defaultInstallationSuppliers() {
         WindowsRegistry windowsRegistry = NativeServicesTestFixture.getInstance().get(WindowsRegistry.class);
         return Lists.newArrayList(
-            new SdkmanInstallationSupplier(providerFactory()),
             new AsdfInstallationSupplier(providerFactory()),
-            new JabbaInstallationSupplier(providerFactory()),
-            new EnvVariableJvmLocator(),
-            new DevInfrastructureJvmLocator(),
             new BaseDirJvmLocator("/opt"),
             new BaseDirJvmLocator(SystemProperties.getInstance().getUserHome()),
+            new CurrentInstallationSupplier(providerFactory()),
+            new DevInfrastructureJvmLocator(),
+            new EnvVariableJvmLocator(),
+            new JabbaInstallationSupplier(providerFactory()),
             new LinuxInstallationSupplier(providerFactory()),
             new OsXInstallationSupplier(TestFiles.execHandleFactory(), providerFactory(), OperatingSystem.current()),
+            new SdkmanInstallationSupplier(providerFactory()),
             new WindowsInstallationSupplier(windowsRegistry, OperatingSystem.current(), providerFactory())
         );
     }
