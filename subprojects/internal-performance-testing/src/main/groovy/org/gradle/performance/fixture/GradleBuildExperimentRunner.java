@@ -92,6 +92,7 @@ public class GradleBuildExperimentRunner extends AbstractBuildExperimentRunner {
         InvocationSettings invocationSettings = createInvocationSettings(buildSpec, gradleExperiment);
         GradleScenarioDefinition scenarioDefinition = createScenarioDefinition(gradleExperiment, invocationSettings, invocation);
 
+        GradleConnector connector = null;
         try {
             GradleScenarioInvoker scenarioInvoker = createScenarioInvoker(new File(buildSpec.getWorkingDirectory(), GRADLE_USER_HOME_NAME));
             Consumer<GradleBuildInvocationResult> scenarioReporter = getResultCollector().scenario(
@@ -101,7 +102,7 @@ public class GradleBuildExperimentRunner extends AbstractBuildExperimentRunner {
             AtomicInteger iterationCount = new AtomicInteger(0);
             Logging.setupLogging(workingDirectory);
             if (gradleExperiment.getInvocation().isUseToolingApi()) {
-                GradleConnector connector = GradleConnector.newConnector();
+                connector = GradleConnector.newConnector();
                 connector.forProjectDirectory(buildSpec.getWorkingDirectory());
                 connector.useInstallation(scenarioDefinition.getBuildConfiguration().getGradleHome());
                 // First initialize the Gradle instance using the default user home dir
@@ -122,6 +123,9 @@ public class GradleBuildExperimentRunner extends AbstractBuildExperimentRunner {
                 Logging.resetLogging();
             } catch (IOException e) {
                 e.printStackTrace();
+            }
+            if (connector != null) {
+                connector.disconnect();
             }
             ConnectorServices.reset();
         }
