@@ -21,9 +21,11 @@ import org.gradle.internal.build.event.BuildEventListenerFactory;
 import org.gradle.internal.build.event.BuildEventSubscriptions;
 import org.gradle.internal.build.event.OperationResultPostProcessor;
 import org.gradle.internal.build.event.OperationResultPostProcessorFactory;
+import org.gradle.internal.operations.BuildOperationCategory;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationIdFactory;
 import org.gradle.internal.operations.BuildOperationListener;
+import org.gradle.internal.operations.FilteringBuildOperationBuildOperationListener;
 import org.gradle.internal.operations.OperationFinishEvent;
 import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.internal.operations.OperationProgressEvent;
@@ -58,6 +60,7 @@ public class ToolingApiBuildEventListenerFactory implements BuildEventListenerFa
             if (subscriptions.isRequested(OperationType.TEST_OUTPUT)) {
                 buildListener = new ClientForwardingTestOutputOperationListener(buildListener, progressEventConsumer, idFactory);
             }
+            buildListener = filterProgressOperations(buildListener);
             listeners.add(buildListener);
         }
         if (subscriptions.isAnyRequested(OperationType.GENERIC, OperationType.WORK_ITEM, OperationType.TASK, OperationType.PROJECT_CONFIGURATION, OperationType.TRANSFORM)) {
@@ -95,9 +98,20 @@ public class ToolingApiBuildEventListenerFactory implements BuildEventListenerFa
                 operationDependenciesResolver.addLookup(taskOperationListener);
                 buildListener = taskOperationListener;
             }
-            listeners.add(new ClientForwardingProjectConfigurationOperationListener(progressEventConsumer, subscriptions, buildListener, parentTracker, pluginApplicationTracker));
+            buildListener = new ClientForwardingProjectConfigurationOperationListener(progressEventConsumer, subscriptions, buildListener, parentTracker, pluginApplicationTracker);
+            buildListener = filterProgressOperations(buildListener);
+            listeners.add(buildListener);
         }
         return listeners;
+    }
+
+    /**
+     * Do not pass build operations that have no category nor progress display name.
+     */
+    private static BuildOperationListener filterProgressOperations(BuildOperationListener buildListener) {
+        return new FilteringBuildOperationBuildOperationListener(buildListener, buildOperation ->
+            buildOperation.getMetadata() != BuildOperationCategory.UNCATEGORIZED
+                || buildOperation.getProgressDisplayName() != null);
     }
 
     private static final BuildOperationListener NO_OP = new BuildOperationListener() {
