@@ -132,7 +132,7 @@ abstract class AbstractCrossBuildPerformanceTestRunner<R extends CrossBuildPerfo
         assert testId
 
         // TODO: Make sure cross build scenarios only run on one test project
-        Assume.assumeTrue(TestScenarioSelector.shouldRun(testClassName, testId, specs.first().projectName, resultsStore))
+        Assume.assumeTrue(TestScenarioSelector.shouldRun(testId))
 
         def results = newResult()
 

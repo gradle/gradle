@@ -168,7 +168,7 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
             throw new IllegalStateException("Working directory has not been specified")
         }
 
-        Assume.assumeTrue(TestScenarioSelector.shouldRun(testClassName, testId, testProject, resultsStore))
+        Assume.assumeTrue(TestScenarioSelector.shouldRun(testId))
     }
 
     private File perVersionWorkingDirectory(String version, int maxWorkingDirLength) {
