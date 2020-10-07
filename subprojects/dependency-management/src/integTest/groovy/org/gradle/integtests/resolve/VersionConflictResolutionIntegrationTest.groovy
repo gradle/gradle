@@ -1885,7 +1885,6 @@ project(':sub') {
     }
 
     @Issue("gradle/gradle#11844")
-    @spock.lang.Ignore
     @ToBeFixedForConfigurationCache(because = ":dependencies")
     def 'does not fail serialization in recursive error case'() {
         // org:lib:1.0 -> org:between:1.0 -> org:lib:1.1
@@ -1914,10 +1913,7 @@ project(':sub') {
             }
         """
         expect:
-        //succeeds 'dependencies', '--configuration', 'runtimeClasspath'
-        fails 'dependencies', '--configuration', 'runtimeClasspath'
-        failure.assertHasCause("Problems reading data from Binary store")
-        failure.error.contains("Corrupt serialized resolution result. Cannot find selected module (4) for runtimeClasspath -> org:lib:1.0")
+        succeeds 'dependencies', '--configuration', 'runtimeClasspath'
     }
 
     @ToBeFixedForConfigurationCache(because = ":dependencies")
