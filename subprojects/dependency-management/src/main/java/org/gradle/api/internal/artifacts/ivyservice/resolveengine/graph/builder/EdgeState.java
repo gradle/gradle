@@ -190,9 +190,9 @@ class EdgeState implements DependencyGraphEdge {
         }
     }
 
-    public void restartConnected(boolean checkUnattached) {
+    public void restartConnected() {
         if (from.isSelected() && isUsed()) {
-            restartInternal(checkUnattached);
+            restartInternal(true);
         }
     }
 
