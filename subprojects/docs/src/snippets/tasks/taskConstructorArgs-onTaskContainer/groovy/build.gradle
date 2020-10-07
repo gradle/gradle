@@ -1,5 +1,3 @@
-import javax.inject.Inject
-
 // tag::inject-task-constructor[]
 class CustomTask extends DefaultTask {
     final String message

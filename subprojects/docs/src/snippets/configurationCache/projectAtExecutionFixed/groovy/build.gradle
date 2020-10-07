@@ -1,7 +1,5 @@
 // tag::task-type[]
 // tag::ad-hoc-task[]
-import javax.inject.Inject
-
 // end::ad-hoc-task[]
 abstract class SomeTask extends DefaultTask {
 

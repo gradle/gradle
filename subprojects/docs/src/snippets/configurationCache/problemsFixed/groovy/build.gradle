@@ -1,6 +1,4 @@
 // tag::fixed[]
-import javax.inject.Inject
-
 abstract class MyCopyTask extends DefaultTask { // <1>
 
     @InputDirectory abstract DirectoryProperty getSource() // <2>

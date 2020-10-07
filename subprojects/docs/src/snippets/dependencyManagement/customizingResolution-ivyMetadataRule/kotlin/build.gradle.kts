@@ -1,5 +1,3 @@
-import javax.inject.Inject
-
 plugins {
     `java-library`
 }

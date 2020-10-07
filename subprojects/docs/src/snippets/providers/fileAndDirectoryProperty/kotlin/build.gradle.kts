@@ -1,5 +1,5 @@
 // A task that generates a source file and writes the result to an output directory
-open class GenerateSource @javax.inject.Inject constructor(objects: ObjectFactory): DefaultTask() {
+open class GenerateSource @Inject constructor(objects: ObjectFactory) : DefaultTask() {
     @InputFile
     val configFile: RegularFileProperty = objects.fileProperty()
 

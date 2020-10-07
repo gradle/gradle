@@ -1,5 +1,3 @@
-import javax.inject.Inject
-
 abstract class MyCopyTask : DefaultTask() {
 
     @get:InputDirectory abstract val source: DirectoryProperty

@@ -1,6 +1,4 @@
 // tag::fixed[]
-import javax.inject.Inject
-
 abstract class MyCopyTask : DefaultTask() { // <1>
 
     @get:InputDirectory abstract val source: DirectoryProperty // <2>
