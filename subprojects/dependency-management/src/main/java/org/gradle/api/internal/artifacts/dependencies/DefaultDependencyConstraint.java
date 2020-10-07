@@ -52,9 +52,9 @@ public class DefaultDependencyConstraint implements DependencyConstraintInternal
         this.versionConstraint = new DefaultMutableVersionConstraint(version);
     }
 
-    public static DefaultDependencyConstraint of(String group, String name, Action<? super MutableVersionConstraint> versionSpec) {
+    public static DefaultDependencyConstraint strictly(String group, String name, String strictVersion) {
         DefaultMutableVersionConstraint versionConstraint = new DefaultMutableVersionConstraint((String) null);
-        versionSpec.execute(versionConstraint);
+        versionConstraint.strictly(strictVersion);
         return new DefaultDependencyConstraint(DefaultModuleIdentifier.newId(group, name), versionConstraint);
     }
 

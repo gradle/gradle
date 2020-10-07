@@ -712,10 +712,10 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private void registerConsistentResolutionConstraint(ResolvedComponentResult result) {
         if (result.getId() instanceof ModuleComponentIdentifier) {
             ModuleVersionIdentifier moduleVersion = result.getModuleVersion();
-            DefaultDependencyConstraint constraint = DefaultDependencyConstraint.of(
+            DefaultDependencyConstraint constraint = DefaultDependencyConstraint.strictly(
                 moduleVersion.getGroup(),
                 moduleVersion.getName(),
-                vc -> vc.strictly(moduleVersion.getVersion()));
+                moduleVersion.getVersion());
             constraint.because(consistentResolutionReason);
             this.dependencyConstraints.addInternalDependencyConstraint(constraint);
         }
@@ -1427,9 +1427,16 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     @Override
-    public Configuration resolveConsistentlyWith(Configuration versionsSource) {
+    public Configuration shouldResolveConsistentlyWith(Configuration versionsSource) {
         this.consistentResolutionSource = (ConfigurationInternal) versionsSource;
         this.consistentResolutionReason = "version resolved in " + versionsSource + " by consistent resolution";
+        return this;
+    }
+
+    @Override
+    public Configuration disableConsistentResolution() {
+        this.consistentResolutionSource = null;
+        this.consistentResolutionReason = null;
         return this;
     }
 
