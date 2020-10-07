@@ -33,6 +33,8 @@ class RootProject(model: CIBuildModel, functionalTestBucketProvider: FunctionalT
 
     params {
         param("env.GRADLE_ENTERPRISE_ACCESS_KEY", "%ge.gradle.org.access.key%")
+        param("env.NPM_CONFIG_REGISTRY", "https://repo.gradle.org/gradle/api/npm/npm-temporary/")
+        param("env.YARN_REGISTRY", "https://repo.gradle.org/gradle/api/npm/npm-temporary/")
     }
 
     var prevStage: Stage? = null
