@@ -154,8 +154,6 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
             include('project5')
         """
         buildFile << """
-            import javax.inject.Inject
-
             abstract class SubmitsAndWaits extends DefaultTask {
                 @Inject
                 abstract WorkerExecutor getWorkerExecutor()

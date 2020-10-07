@@ -30,7 +30,6 @@ class TaskServiceInjectionIntegrationTest extends AbstractIntegrationSpec {
         given:
         buildFile << """
             import org.gradle.workers.WorkerExecutor
-            import javax.inject.Inject
 
             class CustomTask extends DefaultTask {
                 private final WorkerExecutor executor
@@ -60,7 +59,6 @@ class TaskServiceInjectionIntegrationTest extends AbstractIntegrationSpec {
         given:
         buildFile << """
             import org.gradle.workers.WorkerExecutor
-            import javax.inject.Inject
 
             class CustomTask extends DefaultTask {
                 private final int number
@@ -92,7 +90,6 @@ class TaskServiceInjectionIntegrationTest extends AbstractIntegrationSpec {
         given:
         buildFile << """
             import org.gradle.workers.WorkerExecutor
-            import javax.inject.Inject
 
             class CustomTask extends DefaultTask {
                 @Inject
@@ -118,7 +115,6 @@ class TaskServiceInjectionIntegrationTest extends AbstractIntegrationSpec {
         given:
         buildFile << """
             import org.gradle.workers.WorkerExecutor
-            import javax.inject.Inject
 
             class CustomTask extends DefaultTask {
                 CustomTask() {
@@ -173,7 +169,6 @@ class TaskServiceInjectionIntegrationTest extends AbstractIntegrationSpec {
         given:
         buildFile << """
             import org.gradle.workers.WorkerExecutor
-            import javax.inject.Inject
             import groovy.transform.PackageScope
 
             class CustomTask extends DefaultTask {
@@ -205,7 +200,6 @@ class TaskServiceInjectionIntegrationTest extends AbstractIntegrationSpec {
             import org.gradle.api.*
             import org.gradle.api.tasks.*
             import org.gradle.workers.WorkerExecutor
-            import javax.inject.Inject
 
             open class CustomTask @Inject constructor(private val executor: WorkerExecutor) : DefaultTask() {
                 @TaskAction fun run() = println(if (executor != null) "got it" else "NOT IT")
@@ -228,7 +222,6 @@ class TaskServiceInjectionIntegrationTest extends AbstractIntegrationSpec {
             import org.gradle.api.*
             import org.gradle.api.tasks.*
             import org.gradle.workers.WorkerExecutor
-            import javax.inject.Inject
 
             open class CustomTask @Inject constructor(private val number: Int, private val executor: WorkerExecutor) : DefaultTask() {
                 @TaskAction fun run() = println(if (executor != null) "got it \$number" else "\$number NOT IT")
@@ -248,8 +241,6 @@ class TaskServiceInjectionIntegrationTest extends AbstractIntegrationSpec {
     def "service of type #serviceType is available for injection into task"() {
         given:
         buildFile << """
-            import javax.inject.Inject
-
             class CustomTask extends DefaultTask {
                 private final ${serviceType} service
 

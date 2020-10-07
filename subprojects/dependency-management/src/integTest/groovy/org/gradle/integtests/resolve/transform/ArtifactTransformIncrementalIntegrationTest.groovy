@@ -27,7 +27,6 @@ class ArtifactTransformIncrementalIntegrationTest extends AbstractDependencyReso
 
         file("buildSrc/src/main/groovy/MakeGreen.groovy") << """
             import java.io.File
-            import javax.inject.Inject
             import groovy.transform.CompileStatic
             import org.gradle.api.provider.*
             import org.gradle.api.file.*
@@ -52,18 +51,18 @@ class ArtifactTransformIncrementalIntegrationTest extends AbstractDependencyReso
 
                 @Inject
                 abstract InputChanges getInputChanges()
-                
+
                 @InputArtifact
                 abstract Provider<FileSystemLocation> getInput()
-            
+
                 void transform(TransformOutputs outputs) {
                     println "Transforming " + input.get().asFile.name
                     println "incremental: " + inputChanges.incremental
                     assert parameters.incrementalExecution.get() == inputChanges.incremental
                     def changes = inputChanges.getFileChanges(input)
                     println "changes: \\n" + changes.join("\\n")
-                    assert changes.findAll { it.changeType == ChangeType.ADDED }*.file as Set == resolveFiles(parameters.addedFiles.get())                    
-                    assert changes.findAll { it.changeType == ChangeType.REMOVED }*.file as Set == resolveFiles(parameters.removedFiles.get())                    
+                    assert changes.findAll { it.changeType == ChangeType.ADDED }*.file as Set == resolveFiles(parameters.addedFiles.get())
+                    assert changes.findAll { it.changeType == ChangeType.REMOVED }*.file as Set == resolveFiles(parameters.removedFiles.get())
                     assert changes.findAll { it.changeType == ChangeType.MODIFIED }*.file as Set == resolveFiles(parameters.modifiedFiles.get())
                     def outputDirectory = outputs.dir("output")
                     changes.each { change ->

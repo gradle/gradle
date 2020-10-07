@@ -204,7 +204,6 @@ task("dumpKotlinBuildScriptModelClassPath") {
         buildFile << """
             import org.gradle.api.*
             import org.gradle.api.tasks.*
-            import javax.inject.Inject
 
             open class PrintInputToFile @Inject constructor(objects: ObjectFactory): DefaultTask() {
                 @get:Input

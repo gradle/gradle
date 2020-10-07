@@ -25,7 +25,6 @@ class SharedJavaInstallationRegistryIntegrationTest extends AbstractIntegrationS
     def "installation registry has no installations without environment setup or auto-detection"() {
         buildFile << """
             import org.gradle.jvm.toolchain.internal.SharedJavaInstallationRegistry;
-            import javax.inject.Inject
 
             abstract class ShowPlugin implements Plugin<Project> {
                 @Inject
@@ -58,7 +57,6 @@ class SharedJavaInstallationRegistryIntegrationTest extends AbstractIntegrationS
 
         buildFile << """
             import org.gradle.jvm.toolchain.internal.SharedJavaInstallationRegistry;
-            import javax.inject.Inject
 
             abstract class ShowPlugin implements Plugin<Project> {
                 @Inject

@@ -173,7 +173,6 @@ class WorkerExecutorParallelBuildOperationsIntegrationTest extends AbstractWorke
 
     String getMultipleActionTaskType() {
         return """
-            import javax.inject.Inject
             import org.gradle.test.FileHelper
 
             class MultipleWorkItemTask extends DefaultTask {

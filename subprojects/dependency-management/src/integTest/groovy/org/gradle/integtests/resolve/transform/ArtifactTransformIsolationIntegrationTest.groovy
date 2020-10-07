@@ -30,8 +30,6 @@ class ArtifactTransformIsolationIntegrationTest extends AbstractHttpDependencyRe
         """
 
         buildFile << """
-import javax.inject.Inject
-
 def artifactType = Attribute.of('artifactType', String)
 
 class Counter implements Serializable {

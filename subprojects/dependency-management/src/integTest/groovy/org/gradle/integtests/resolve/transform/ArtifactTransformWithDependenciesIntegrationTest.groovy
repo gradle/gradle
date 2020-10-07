@@ -97,8 +97,6 @@ project(':app') {
     }
 }
 
-import javax.inject.Inject
-
 abstract class TestTransform implements TransformAction<Parameters> {
     interface Parameters extends TransformParameters {
         @Input

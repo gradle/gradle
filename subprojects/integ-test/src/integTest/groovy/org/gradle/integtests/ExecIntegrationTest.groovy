@@ -33,8 +33,6 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
     def 'can execute java with #task'() {
         given:
         buildFile << """
-            import javax.inject.Inject
-
             apply plugin: 'java'
 
             task javaexecTask(type: JavaExec) {
@@ -92,7 +90,6 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
         given:
         buildFile << """
             import org.gradle.internal.jvm.Jvm
-            import javax.inject.Inject
 
             apply plugin: 'java'
 
@@ -273,7 +270,6 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
         given:
         buildFile << """
             import org.gradle.internal.jvm.Jvm
-            import javax.inject.Inject
             import static org.gradle.util.TextUtil.normaliseFileAndLineSeparators
 
             apply plugin: 'java'

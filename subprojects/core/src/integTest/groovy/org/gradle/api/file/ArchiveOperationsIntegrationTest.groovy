@@ -28,8 +28,6 @@ class ArchiveOperationsIntegrationTest extends AbstractIntegrationSpec {
         given:
         file("inputs/file.txt") << "some text"
         buildFile << """
-            import javax.inject.Inject
-
             def createArchive = tasks.register("createArchive", ${archiveType.capitalize()}) {
                 destinationDirectory.set(layout.buildDirectory.dir("archives"))
                 archiveFileName.set("archive.$archiveType")
@@ -71,8 +69,6 @@ class ArchiveOperationsIntegrationTest extends AbstractIntegrationSpec {
         given:
         file("inputs/file.txt") << "some text"
         buildFile << """
-            import javax.inject.Inject
-
             def createArchive = tasks.register("createArchive", ${archiveType.capitalize()}) {
                 destinationDirectory.set(layout.buildDirectory.dir("archives"))
                 archiveFileName.set("archive.$archiveType")

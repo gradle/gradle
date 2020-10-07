@@ -1287,8 +1287,6 @@ task generate(type: TransformerTask) {
     def "private inputs can be overridden in subclass"() {
         given:
         buildFile << '''
-            import javax.inject.Inject
-
             abstract class MyBaseTask extends DefaultTask {
 
                 @Inject
@@ -1354,8 +1352,6 @@ task generate(type: TransformerTask) {
     def "private inputs in superclass are respected"() {
         given:
         buildFile << '''
-            import javax.inject.Inject
-
             abstract class MyBaseTask extends DefaultTask {
 
                 @Inject

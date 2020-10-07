@@ -18,7 +18,6 @@ package org.gradle.workers.internal
 
 import org.gradle.api.services.BuildServiceParameters
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.workers.IsolationMode
 import org.gradle.workers.fixtures.WorkerExecutorFixture
 import spock.lang.Ignore
 import spock.lang.Issue
@@ -34,7 +33,6 @@ class WorkerExecutorParametersIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
         buildFile << """
-            import javax.inject.Inject
             import org.gradle.workers.WorkerExecutor
 
             class ParameterTask extends DefaultTask {

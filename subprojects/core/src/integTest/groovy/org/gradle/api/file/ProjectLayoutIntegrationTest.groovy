@@ -64,8 +64,6 @@ class ProjectLayoutIntegrationTest extends AbstractIntegrationSpec {
 
     def "layout is available for injection"() {
         buildFile << """
-            import javax.inject.Inject
-
             class SomeTask extends DefaultTask {
                 @Inject
                 ProjectLayout getLayout() { null }
