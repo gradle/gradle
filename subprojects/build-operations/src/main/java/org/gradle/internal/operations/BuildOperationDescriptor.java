@@ -112,6 +112,13 @@ public final class BuildOperationDescriptor {
         return new Builder(displayName);
     }
 
+    public BuildOperationDescriptor withParentId(@Nullable OperationIdentifier parentId) {
+        if (parentId == this.parentId || (parentId != null && parentId.equals((this.parentId)))) {
+            return this;
+        }
+        return new BuildOperationDescriptor(id, parentId, name, displayName, progressDisplayName, details, metadata, totalProgress);
+    }
+
     public static final class Builder {
         private final String displayName;
         private String name;
