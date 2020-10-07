@@ -64,14 +64,8 @@ class KotlinApiMemberWriter(apiMemberAdapter: ClassVisitor, val inlineMethodWrit
                     inlineFunctions.addAll(extractInlineFunctions(kotlinMetadata.toKmClass()))
                 is KotlinClassMetadata.FileFacade ->
                     inlineFunctions.addAll(extractInlineFunctions(kotlinMetadata.toKmPackage()))
-                /*
-                TODO:
-                is KotlinClassMetadata.SyntheticClass -> TODO()
-                is KotlinClassMetadata.MultiFileClassFacade -> TODO()
-                is KotlinClassMetadata.MultiFileClassPart -> TODO()
-                is KotlinClassMetadata.Unknown -> TODO()
-                */
                 else -> {
+                    // KotlinClassMetadata.SyntheticClass || KotlinClassMetadata.MultiFileClassFacade || KotlinClassMetadata.MultiFileClassPart || KotlinClassMetadata.Unknown
                 }
             }
         }
