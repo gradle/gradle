@@ -60,7 +60,7 @@ class ComponentSelectionRulesTest {
     }
 
     private
-    fun <E> InvocationOnMock.executeActionOn(element: E): Any? {
+    fun <E : Any> InvocationOnMock.executeActionOn(element: E): Any? {
         getArgument<Action<E>>(0).execute(element)
         return mock
     }

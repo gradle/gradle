@@ -22,6 +22,10 @@ plugins {
 val javaParserVersion = "3.6.11"
 val asmVersion = "7.1"
 
+val kotlinVersion = providers.gradleProperty("buildKotlinVersion")
+    .forUseAtConfigurationTime()
+    .getOrElse(embeddedKotlinVersion)
+
 dependencies {
     constraints {
         // Gradle Plugins
@@ -33,6 +37,7 @@ dependencies {
         api("me.champeau.gradle:jmh-gradle-plugin:0.5.2")
         api("org.asciidoctor:asciidoctor-gradle-plugin:1.5.10")
         api("org.gradle:test-retry-gradle-plugin:1.1.7")
+        api("org.jetbrains.kotlin:kotlin-gradle-plugin") { version { strictly(kotlinVersion) } }
         api("org.gradle.kotlin:gradle-kotlin-dsl-conventions:0.6.0")
 
         // Java Libraries
