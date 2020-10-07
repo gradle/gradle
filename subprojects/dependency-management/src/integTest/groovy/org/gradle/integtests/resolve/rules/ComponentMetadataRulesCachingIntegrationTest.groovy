@@ -191,7 +191,6 @@ dependencies {
         }
         buildFile << """
 
-import javax.inject.Inject
 import org.gradle.api.artifacts.repositories.RepositoryResourceAccessor
 
 @CacheableRule
@@ -259,8 +258,6 @@ dependencies {
         }
         buildFile << """
 
-import javax.inject.Inject
-
 @CacheableRule
 class AttributeCachedRule implements ComponentMetadataRule {
 
@@ -314,8 +311,6 @@ dependencies {
         def expectedStatus = useIvy() ? 'integration' : 'release'
 
         buildFile << """
-
-import javax.inject.Inject
 
 @CacheableRule
 class AttributeCachedRule implements ComponentMetadataRule {

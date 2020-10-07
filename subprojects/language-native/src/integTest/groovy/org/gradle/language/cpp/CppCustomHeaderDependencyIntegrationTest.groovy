@@ -52,8 +52,6 @@ class CppCustomHeaderDependencyIntegrationTest extends AbstractInstalledToolChai
 
     def consumerBuildScript(String repoType) {
         return """
-            import javax.inject.Inject
-
             apply plugin: 'cpp-application'
 
             repositories {

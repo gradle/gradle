@@ -56,8 +56,6 @@ class FailingIncrementalTasksIntegrationTest extends AbstractIntegrationSpec {
     def "incremental task after previous failure #description"() {
         file("src/input.txt") << "input"
         buildFile << """
-            import javax.inject.Inject
-
             abstract class IncrementalTask extends DefaultTask {
 
                 @Inject

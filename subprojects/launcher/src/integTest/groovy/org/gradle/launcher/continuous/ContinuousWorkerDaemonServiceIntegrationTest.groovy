@@ -69,7 +69,6 @@ class ContinuousWorkerDaemonServiceIntegrationTest extends AbstractContinuousInt
 
     String getTaskTypeUsingWorkerDaemon() {
         return """
-            import javax.inject.Inject
             import org.gradle.api.file.ProjectLayout
             import org.gradle.workers.WorkerExecutor
             import org.gradle.workers.internal.WorkerDaemonFactory

@@ -23,8 +23,8 @@ import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.api.provider.SetProperty
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.TestBuildCache
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.internal.Actions
 import spock.lang.Issue
 import spock.lang.Unroll
@@ -654,8 +654,6 @@ task someTask(type: SomeTask) {
     @ToBeFixedForConfigurationCache(because = "task references other task")
     def "input and output properties are not evaluated too often"() {
         buildFile << """
-            import javax.inject.Inject
-
             @CacheableTask
             abstract class CustomTask extends DefaultTask {
 

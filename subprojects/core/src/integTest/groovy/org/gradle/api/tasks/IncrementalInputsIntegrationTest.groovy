@@ -392,8 +392,6 @@ class IncrementalInputsIntegrationTest extends AbstractIncrementalTasksIntegrati
     def "provides the file type"() {
         file("buildSrc").deleteDir()
         buildFile.text = """
-            import javax.inject.Inject
-
             abstract class MyCopy extends DefaultTask {
                 @Incremental
                 @PathSensitive(PathSensitivity.RELATIVE)

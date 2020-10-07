@@ -36,7 +36,6 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         settingsFile << 'include "a", "b"'
 
         buildFile << """
-            import javax.inject.Inject
             import org.gradle.workers.WorkerExecutor
             import org.gradle.workers.IsolationMode
 

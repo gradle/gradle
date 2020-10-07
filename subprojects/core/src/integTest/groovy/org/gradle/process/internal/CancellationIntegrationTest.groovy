@@ -115,8 +115,6 @@ class CancellationIntegrationTest extends DaemonIntegrationSpec implements Direc
         file('outputFile') << ''
         blockCode()
         buildFile << """
-            import javax.inject.Inject
-
             apply plugin: 'java'
 
             @CacheableTask

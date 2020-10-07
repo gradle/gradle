@@ -373,7 +373,6 @@ class BuildEventsIntegrationTest extends AbstractIntegrationSpec {
     def registeringPlugin() {
         buildFile << """
             import ${BuildEventsListenerRegistry.name}
-            import javax.inject.Inject
 
             abstract class LoggingPlugin implements Plugin<Project> {
                 @Inject

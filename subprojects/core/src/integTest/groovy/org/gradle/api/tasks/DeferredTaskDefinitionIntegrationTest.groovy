@@ -24,8 +24,6 @@ import spock.lang.Unroll
 
 class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
     private static final String CUSTOM_TASK_WITH_CONSTRUCTOR_ARGS = """
-        import javax.inject.Inject
-
         class CustomTask extends DefaultTask {
             @Internal
             final String message
@@ -738,7 +736,6 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         given:
         buildFile << """
             import org.gradle.workers.WorkerExecutor
-            import javax.inject.Inject
 
             class CustomTask extends DefaultTask {
                 private final WorkerExecutor executor
@@ -768,7 +765,6 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         given:
         buildFile << """
             import org.gradle.workers.WorkerExecutor
-            import javax.inject.Inject
 
             class CustomTask extends DefaultTask {
                 private final int number

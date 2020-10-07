@@ -87,7 +87,6 @@ class JavaCompileTaskOperationResultCrossVersionTest extends ToolingApiSpecifica
     @TargetGradleVersion(">=6.7")
     def "reports annotation processor results for JavaCompile task even when build event listener is used"() {
         settingsFile << """
-            import javax.inject.Inject
             import org.gradle.api.services.BuildService
             import org.gradle.api.services.BuildServiceParameters
             import org.gradle.tooling.events.OperationCompletionListener

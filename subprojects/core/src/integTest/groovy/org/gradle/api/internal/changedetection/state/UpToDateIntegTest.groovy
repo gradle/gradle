@@ -24,8 +24,6 @@ class UpToDateIntegTest extends AbstractIntegrationSpec {
     def "empty output directories created automatically are part of up-to-date checking"() {
         given:
         buildFile << '''
-import javax.inject.Inject
-
 apply plugin: 'base'
 
 task checkCreated {

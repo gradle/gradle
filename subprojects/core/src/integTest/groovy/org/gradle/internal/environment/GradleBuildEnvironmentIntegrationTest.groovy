@@ -28,7 +28,6 @@ class GradleBuildEnvironmentIntegrationTest extends AbstractIntegrationSpec {
         given:
         buildFile << """
             import org.gradle.internal.environment.GradleBuildEnvironment
-            import javax.inject.Inject
             class DaemonJudge extends DefaultTask {
                 @Internal
                 GradleBuildEnvironment buildEnvironment
@@ -37,12 +36,12 @@ class GradleBuildEnvironmentIntegrationTest extends AbstractIntegrationSpec {
                 DaemonJudge(GradleBuildEnvironment buildEnvironment) {
                     this.buildEnvironment = buildEnvironment
                 }
-                
+
                 @TaskAction
                 void run() {
                     assert buildEnvironment.isLongLivingProcess() == ${daemon}
-                } 
-            } 
+                }
+            }
 
             task judge(type: DaemonJudge)
         """

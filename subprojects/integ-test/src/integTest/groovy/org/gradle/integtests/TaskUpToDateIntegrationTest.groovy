@@ -232,8 +232,6 @@ class TaskUpToDateIntegrationTest extends AbstractIntegrationSpec {
     def "task stays up-to-date when filtered-out output is changed"() {
         file("build").mkdirs()
         buildFile << """
-            import javax.inject.Inject
-
             abstract class CustomTask extends DefaultTask {
                 @OutputFiles
                 FileTree outputFiles
@@ -314,8 +312,6 @@ class TaskUpToDateIntegrationTest extends AbstractIntegrationSpec {
 
     def "can register multiple file trees within a single output property"() {
         buildFile << """
-            import javax.inject.Inject
-
             abstract class MyTask extends DefaultTask {
                 @OutputFiles
                 abstract ConfigurableFileCollection getOutputFiles()

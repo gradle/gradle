@@ -68,7 +68,6 @@ class SftpClientReuseIntegrationTest extends AbstractIntegrationSpec {
 
     String getSftpTask() {
         return """
-            import javax.inject.Inject
             import org.gradle.internal.resource.transport.sftp.SftpClientFactory
             import org.gradle.api.artifacts.repositories.PasswordCredentials
             import org.gradle.internal.credentials.DefaultPasswordCredentials

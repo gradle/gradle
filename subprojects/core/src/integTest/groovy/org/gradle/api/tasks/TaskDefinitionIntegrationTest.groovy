@@ -23,8 +23,6 @@ import spock.lang.Unroll
 
 class TaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
     private static final String CUSTOM_TASK_WITH_CONSTRUCTOR_ARGS = """
-        import javax.inject.Inject
-
         class CustomTask extends DefaultTask {
             @Internal
             final String message
@@ -518,7 +516,6 @@ class TaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         file("build.gradle.kts") << """
             import org.gradle.api.*
             import org.gradle.api.tasks.*
-            import javax.inject.Inject
 
             open class CustomTask @Inject constructor(private val message: String, private val number: Int) : DefaultTask() {
                 @TaskAction fun run() = println("\$message \$number")

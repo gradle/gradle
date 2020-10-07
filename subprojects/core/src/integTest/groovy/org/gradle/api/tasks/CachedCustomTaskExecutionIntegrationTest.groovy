@@ -515,8 +515,6 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         file("input.txt") << "data"
 
         buildFile << """
-            import javax.inject.Inject
-
             @CacheableTask
             abstract class CustomTask extends DefaultTask {
                 @InputFile
@@ -921,7 +919,6 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         """
             import org.gradle.api.*
             import org.gradle.api.tasks.*
-            import javax.inject.Inject
 
             @CacheableTask
             abstract class ProducerTask extends DefaultTask {

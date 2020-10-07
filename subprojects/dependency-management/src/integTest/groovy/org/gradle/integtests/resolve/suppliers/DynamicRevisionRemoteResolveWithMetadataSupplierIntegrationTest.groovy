@@ -1269,7 +1269,6 @@ group:projectB:2.2;release
         file << """import org.gradle.api.artifacts.ComponentMetadataSupplier
           import org.gradle.api.artifacts.ComponentMetadataSupplierDetails
           import org.gradle.api.artifacts.repositories.RepositoryResourceAccessor
-          import javax.inject.Inject
           import org.gradle.api.artifacts.CacheableRule
 
           ${cacheable ? '@CacheableRule' : ''}
@@ -1345,8 +1344,6 @@ group:projectB:2.2;release
 
     void addDependenciesTo(TestFile buildFile) {
         buildFile << """
-          import javax.inject.Inject
-
           if (project.hasProperty('refreshDynamicVersions')) {
                 configurations.all {
                     resolutionStrategy.cacheDynamicVersionsFor 0, "seconds"
