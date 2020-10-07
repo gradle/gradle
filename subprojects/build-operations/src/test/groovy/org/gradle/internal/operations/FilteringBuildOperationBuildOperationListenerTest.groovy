@@ -154,7 +154,7 @@ class FilteringBuildOperationBuildOperationListenerTest extends Specification {
         when:
         listener.finished(child, finishEvent)
         then:
-        1 * delegate.finished(_ as BuildOperationDescriptor, finishEvent) >> { BuildOperationDescriptor buildOperation, OperationFinishEvent startEvent ->
+        1 * delegate.finished(_ as BuildOperationDescriptor, finishEvent) >> { BuildOperationDescriptor buildOperation, OperationFinishEvent finishEvent ->
             assert buildOperation.parentId == rootId
         }
         0 * _
