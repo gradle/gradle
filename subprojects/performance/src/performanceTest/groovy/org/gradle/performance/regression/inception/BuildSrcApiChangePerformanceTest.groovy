@@ -15,7 +15,6 @@
  */
 package org.gradle.performance.regression.inception
 
-
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
 import org.gradle.performance.categories.SlowPerformanceRegressionTest
 import org.gradle.performance.mutator.ApplyAbiChangeToGroovySourceFileMutator
@@ -25,8 +24,6 @@ import org.gradle.profiler.InvocationSettings
 import org.gradle.profiler.ScenarioContext
 import org.gradle.util.GradleVersion
 import org.junit.experimental.categories.Category
-
-import java.util.function.Function
 
 @Category(SlowPerformanceRegressionTest)
 class BuildSrcApiChangePerformanceTest extends AbstractCrossVersionPerformanceTest {
