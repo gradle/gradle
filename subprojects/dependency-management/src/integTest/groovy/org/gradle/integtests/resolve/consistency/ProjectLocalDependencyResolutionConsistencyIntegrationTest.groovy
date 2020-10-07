@@ -18,6 +18,7 @@ package org.gradle.integtests.resolve.consistency
 
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 
@@ -62,6 +63,7 @@ class ProjectLocalDependencyResolutionConsistencyIntegrationTest extends Abstrac
         }
     }
 
+    @ToBeFixedForConfigurationCache(because = "dependency resolution errors are not supported by the CC")
     def "fails if there's a conflict between a first level dependency version and a strict version from consistency"() {
         repository {
             'org:foo:1.0'()
@@ -222,6 +224,7 @@ class ProjectLocalDependencyResolutionConsistencyIntegrationTest extends Abstrac
         }
     }
 
+    @ToBeFixedForConfigurationCache(because = "dependency resolution errors are not supported by the CC")
     def "detects cycles in consistency"() {
         repository {
             'org:foo:1.0'()
