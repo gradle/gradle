@@ -43,6 +43,7 @@ class ImplicitImports(private val importsReader: ImportsReader) {
             "java.util.concurrent.TimeUnit",
             "java.math.BigDecimal",
             "java.math.BigInteger",
-            "java.io.File"
+            "java.io.File",
+            "javax.inject.Inject"
         )
 }
