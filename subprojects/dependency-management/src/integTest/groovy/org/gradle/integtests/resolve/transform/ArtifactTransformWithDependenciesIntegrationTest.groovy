@@ -390,6 +390,126 @@ project(':common') {
         outputContains("result = [a.jar.local, test-1.2.jar.external.local]")
     }
 
+    def "file collection queried during task graph calculation can contain the transform of external artifact can consume different transform of external artifact as dependency"() {
+        given:
+        def m1 = mavenHttpRepo.module("test", "test", "1.2")
+            .adhocVariants()
+            .variant('runtime', [color: 'blue'])
+            .variant('test', [color: 'orange'])
+            .withModuleMetadata()
+            .publish()
+            .allowAll()
+        mavenHttpRepo.module("test", "test2", "1.5")
+            .hasType("thing")
+            .dependsOn(m1)
+            .publish()
+            .allowAll()
+        mavenHttpRepo.module("test", "test3", "1.5")
+            .hasType("thing")
+            .dependsOn(m1)
+            .publish()
+            .allowAll()
+
+        setupBuildWithColorAttributes()
+        buildFile << """
+            allprojects {
+                repositories {
+                    maven { url = '${mavenHttpRepo.uri}' }
+                }
+                dependencies {
+                    artifactTypes {
+                        thing {
+                            attributes.attribute(color, 'purple')
+                        }
+                    }
+                    registerTransform(ExternalTransform) {
+                        from.attribute(color, 'blue')
+                        to.attribute(color, 'purple')
+                        parameters {
+                            transformName = 'external'
+                        }
+                    }
+                    registerTransform(LocalTransform) {
+                        from.attribute(color, 'purple')
+                        to.attribute(color, 'green')
+                        parameters {
+                            transformName = 'local'
+                        }
+                    }
+                }
+            }
+
+            interface Params extends TransformParameters {
+                @Input
+                Property<String> getTransformName()
+            }
+
+            abstract class ExternalTransform implements TransformAction<Params> {
+                @InputArtifact
+                abstract Provider<FileSystemLocation> getInputArtifact()
+
+                void transform(TransformOutputs outputs) {
+                    println("transform external " + inputArtifact.get().asFile.name)
+                    def input = inputArtifact.get().asFile
+                    def output = outputs.file(input.name + ".external")
+                    output.text = "content"
+                }
+            }
+
+            interface LocalParams extends Params {}
+
+            abstract class LocalTransform implements TransformAction<LocalParams> {
+                @InputArtifact
+                abstract Provider<FileSystemLocation> getInputArtifact()
+
+                @InputArtifactDependencies
+                abstract FileCollection getInputArtifactDependencies()
+
+                void transform(TransformOutputs outputs) {
+                    println("transform local " + inputArtifact.get().asFile.name + " using " + inputArtifactDependencies.files.name)
+                    def input = inputArtifact.get().asFile
+                    def output = outputs.file(input.name + ".local")
+                    output.text = "content"
+                }
+            }
+
+            dependencies {
+                implementation 'test:test2:1.5'
+                implementation 'test:test3:1.5'
+            }
+
+            def view = configurations.implementation.incoming.artifactView {
+                attributes.attribute(color, 'green')
+                // NOTE: filter out the dependency to trigger the problem, so that the main thread, which holds the project lock, does not see and isolate the second transform while
+                // queuing the transforms for execution
+                // The problem can potentially also be triggered by including many direct dependencies so that the queued transforms start to execute before the main thread sees the second transform
+                componentFilter { it instanceof ModuleComponentIdentifier && it.module != 'test' }
+            }.artifacts
+
+            resolve.dependsOn {
+                view.forEach { println("artifact = " + it) }
+                []
+            }
+        """
+
+        when:
+        run(":resolve")
+
+        then:
+        outputContains("transform external test-1.2.jar")
+        outputContains("transform local test2-1.5.thing using [test-1.2.jar.external]")
+        outputContains("transform local test3-1.5.thing using [test-1.2.jar.external]")
+        outputContains("transform local test-1.2.jar.external using []")
+        outputContains("result = [test2-1.5.thing.local, test3-1.5.thing.local, test-1.2.jar.external.local]")
+
+        when:
+        run(":resolve")
+
+        then:
+        outputDoesNotContain("transform")
+        outputContains("result = [test2-1.5.thing.local, test3-1.5.thing.local, test-1.2.jar.external.local]")
+    }
+
     @Issue("https://github.com/gradle/gradle/issues/14529")
     def "transform of project artifact can consume transform of external artifact whose upstream dependency has been substituted with local project"() {
         given:

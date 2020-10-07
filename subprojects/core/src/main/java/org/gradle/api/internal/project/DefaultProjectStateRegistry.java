@@ -131,6 +131,7 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
     @Override
     public <T> T withMutableStateOfAllProjects(Factory<T> factory) {
         if (!ownerOfAllProjects.compareAndSet(null, Thread.currentThread())) {
+            // Already own all the projects
             if (ownerOfAllProjects.get() == Thread.currentThread()) {
                 return factory.create();
             }
@@ -144,12 +145,20 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
     }
 
     @Override
+    public void allowUncontrolledAccessToAnyProject(Runnable runnable) {
+        allowUncontrolledAccessToAnyProject(Factories.toFactory(runnable));
+    }
+
+    @Override
     public <T> T allowUncontrolledAccessToAnyProject(Factory<T> factory) {
-        canDoAnything.add(Thread.currentThread());
+        Thread currentThread = Thread.currentThread();
+        boolean added = canDoAnything.add(currentThread);
         try {
             return factory.create();
         } finally {
-            canDoAnything.remove(Thread.currentThread());
+            if (added) {
+                canDoAnything.remove(currentThread);
+            }
         }
     }
 
