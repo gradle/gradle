@@ -1,4 +1,5 @@
 The Gradle team is excited to announce Gradle @version@.
+The Gradle team is excited to announce Gradle @version@.
 
 We would like to thank the following community contributors to this release of Gradle:
 
@@ -80,7 +81,7 @@ we recommend updating to the latest minor JDK version.
 
 ## IDE integration
 
-### Importing projects with custom source sets 
+### Importing projects with custom source sets into Eclipse 
 
 This version of Gradle fixes problems with projects that use custom source sets, like additional functional test source sets.
 
