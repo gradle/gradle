@@ -108,6 +108,11 @@ class MultiProjectJvmApplicationInitIntegrationTest extends AbstractIntegrationS
         [jvmLanguage, scriptDsl] << [[JAVA, GROOVY, KOTLIN, SCALA], ScriptDslFixture.SCRIPT_DSLS].combinations()
     }
 
+    def "can explicitly configure application not to split projects"() {
+        expect:
+        succeeds('init', '--type', "java-application", '--dsl', 'groovy')
+    }
+
     void assertTestPassed(String subprojectName, String className, String name) {
         def result = new DefaultTestExecutionResult(targetDir.file(subprojectName))
         result.assertTestClassesExecuted(className)
