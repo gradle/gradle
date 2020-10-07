@@ -67,6 +67,44 @@ class KotlinApiClassExtractorTest : TestWithTempFiles() {
         ).assertApiChanged()
     }
 
+    @Test
+    fun `changes to standalone inline method bodies change generated API class`() {
+        givenChangingScript(
+            "Foo",
+            """
+                inline fun foo(): String {
+                    return "foo"
+                }
+            """,
+            { assertThat(it.callStatic("foo"), equalTo("foo")) },
+            """
+                inline fun foo(): String {
+                    return "bar"
+                }
+            """,
+            { assertThat(it.callStatic("foo"), equalTo("bar")) }
+        ).assertApiChanged()
+    }
+
+    @Test
+    fun `API class is unaffected by changes to standalone method bodies`() {
+        givenChangingScript(
+            "Foo",
+            """
+                fun foo(): String {
+                    return "foo"
+                }
+            """,
+            { assertThat(it.callStatic("foo"), equalTo("foo")) },
+            """
+                fun foo(): String {
+                    return "bar"
+                }
+            """,
+            { assertThat(it.callStatic("foo"), equalTo("bar")) }
+        ).assertApiUnchanged()
+    }
+
     private
     fun givenChangingClass(
         className: String,
@@ -83,13 +121,37 @@ class KotlinApiClassExtractorTest : TestWithTempFiles() {
     }
 
     private
+    fun givenChangingScript(
+        scriptName: String,
+        initialBody: String,
+        initialAssertion: (ClassFixture) -> Unit,
+        changedBody: String,
+        changedAssertion: (ClassFixture) -> Unit
+    ): ClassChangeFixture {
+        val scriptClass = "${scriptName}Kt.class"
+        val initialClass = compileScript(scriptName, initialBody, scriptClass)
+        initialAssertion(initialClass)
+        val changedClass = compileScript(scriptName, changedBody, scriptClass)
+        changedAssertion(changedClass)
+        return ClassChangeFixture(initialClass, changedClass)
+    }
+
+    private
     fun compileClass(className: String, classBody: String): ClassFixture {
-        val fileContent = """
+        return compileScript(
+            className,
+            """
             class $className {
             $classBody
             }
-        """
-        val sourceFile = newFile("$className.kt", fileContent)
+            """,
+            "$className.class"
+        )
+    }
+
+    private
+    fun compileScript(scriptName: String, scriptBody: String, scriptClass: String): ClassFixture {
+        val sourceFile = newFile("$scriptName.kt", scriptBody)
 
         val binDir = newFolder("bin")
         compileToDirectory(
@@ -100,7 +162,7 @@ class KotlinApiClassExtractorTest : TestWithTempFiles() {
             emptyList()
         )
 
-        return ClassFixture(fileContent, binDir.toPath().resolve("$className.class").toFile().readBytes())
+        return ClassFixture(scriptBody, binDir.toPath().resolve(scriptClass).toFile().readBytes())
     }
 }
 
@@ -153,6 +215,12 @@ class ClassFixture(val sourceContent: String, val bytes: ByteArray) {
         val method = loadedClass.getMethod(methodName)
         val instance = loadedClass.getDeclaredConstructor().newInstance()
         return method.invoke(instance)
+    }
+
+    fun callStatic(methodName: String): Any {
+        val loadedClass = loadClass()
+        val method = loadedClass.getMethod(methodName)
+        return method.invoke(loadedClass)
     }
 }
 

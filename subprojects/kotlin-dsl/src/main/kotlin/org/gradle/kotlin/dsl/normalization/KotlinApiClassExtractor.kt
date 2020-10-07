@@ -17,6 +17,7 @@
 package org.gradle.kotlin.dsl.normalization
 
 import kotlinx.metadata.Flag
+import kotlinx.metadata.KmDeclarationContainer
 import kotlinx.metadata.jvm.KotlinClassHeader
 import kotlinx.metadata.jvm.KotlinClassMetadata
 import kotlinx.metadata.jvm.signature
@@ -60,17 +61,16 @@ class KotlinApiMemberWriter(apiMemberAdapter: ClassVisitor, val inlineMethodWrit
             val kotlinHeader = parseKotlinClassHeader(annotationMember)
             when (val kotlinMetadata = KotlinClassMetadata.read(kotlinHeader)) {
                 is KotlinClassMetadata.Class ->
-                    inlineFunctions.addAll(
-                        kotlinMetadata.toKmClass().functions
-                            .filter { Flag.Function.IS_INLINE(it.flags) }
-                            .mapNotNull { it.signature?.asString() }
-                    )
-                // TODO:
-                /*is KotlinClassMetadata.FileFacade -> TODO()
+                    inlineFunctions.addAll(extractInlineFunctions(kotlinMetadata.toKmClass()))
+                is KotlinClassMetadata.FileFacade ->
+                    inlineFunctions.addAll(extractInlineFunctions(kotlinMetadata.toKmPackage()))
+                /*
+                TODO:
                 is KotlinClassMetadata.SyntheticClass -> TODO()
                 is KotlinClassMetadata.MultiFileClassFacade -> TODO()
                 is KotlinClassMetadata.MultiFileClassPart -> TODO()
-                is KotlinClassMetadata.Unknown -> TODO()*/
+                is KotlinClassMetadata.Unknown -> TODO()
+                */
                 else -> {
                 }
             }
@@ -86,6 +86,12 @@ class KotlinApiMemberWriter(apiMemberAdapter: ClassVisitor, val inlineMethodWrit
             super.writeMethod(method)
         }
     }
+
+    private
+    fun extractInlineFunctions(container: KmDeclarationContainer) =
+        container.functions
+            .filter { Flag.Function.IS_INLINE(it.flags) }
+            .mapNotNull { it.signature?.asString() }
 
     private
     fun parseKotlinClassHeader(kotlinMetadataAnnotation: AnnotationMember): KotlinClassHeader {
