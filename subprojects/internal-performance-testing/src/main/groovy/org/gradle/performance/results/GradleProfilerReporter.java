@@ -34,7 +34,7 @@ import java.util.function.Consumer;
 
 public class GradleProfilerReporter implements DataReporter<PerformanceTestResult> {
     private static final String DEBUG_ARTIFACTS_DIRECTORY_PROPERTY_NAME = "org.gradle.performance.debugArtifactsDirectory";
-    private final DelegatingReportGenerator delegatingReportGenerator;
+    private final CompositeReportGenerator compositeReportGenerator;
     private final BenchmarkResultCollector resultCollector;
     private final File debugArtifactsDirectory;
 
@@ -43,8 +43,8 @@ public class GradleProfilerReporter implements DataReporter<PerformanceTestResul
         this.debugArtifactsDirectory = Strings.isNullOrEmpty(debugArtifactsDirectoryPath)
             ? fallbackDirectory
             : new File(debugArtifactsDirectoryPath);
-        this.delegatingReportGenerator = new DelegatingReportGenerator();
-        this.resultCollector = new BenchmarkResultCollector(delegatingReportGenerator);
+        this.compositeReportGenerator = new CompositeReportGenerator();
+        this.resultCollector = new BenchmarkResultCollector(compositeReportGenerator);
     }
 
     @Override
@@ -52,7 +52,7 @@ public class GradleProfilerReporter implements DataReporter<PerformanceTestResul
         PerformanceExperiment experiment = results.getPerformanceExperiment();
         File baseDir = new File(debugArtifactsDirectory, experiment.getScenario().getTestName().replaceAll("[^a-zA-Z0-9]", "_"));
         baseDir.mkdirs();
-        delegatingReportGenerator.setDelegates(ImmutableList.of(
+        compositeReportGenerator.setGenerators(ImmutableList.of(
             new CsvGenerator(new File(baseDir, "benchmark.csv"), CsvGenerator.Format.LONG),
             new HtmlGenerator(new File(baseDir, "benchmark.html"))
         ));
@@ -78,29 +78,29 @@ public class GradleProfilerReporter implements DataReporter<PerformanceTestResul
     public void close() {
     }
 
-    private static class DelegatingReportGenerator extends AbstractGenerator {
+    private static class CompositeReportGenerator extends AbstractGenerator {
 
-        List<AbstractGenerator> delegates;
+        List<AbstractGenerator> generators;
 
-        public DelegatingReportGenerator() {
+        public CompositeReportGenerator() {
             super(null);
         }
 
-        public void setDelegates(List<AbstractGenerator> delegates) {
-            this.delegates = delegates;
+        public void setGenerators(List<AbstractGenerator> generators) {
+            this.generators = generators;
         }
 
         @Override
         public void write(InvocationSettings settings, BenchmarkResult result) throws IOException {
-            for (AbstractGenerator delegate : delegates) {
-                delegate.write(settings, result);
+            for (AbstractGenerator generator : generators) {
+                generator.write(settings, result);
             }
         }
 
         @Override
         public void summarizeResults(Consumer<String> consumer) {
-            for (AbstractGenerator delegate : delegates) {
-                delegate.summarizeResults(consumer);
+            for (AbstractGenerator generator : generators) {
+                generator.summarizeResults(consumer);
             }
         }
 
