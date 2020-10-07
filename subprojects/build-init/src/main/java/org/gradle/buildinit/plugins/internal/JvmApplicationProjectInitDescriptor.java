@@ -55,12 +55,13 @@ public class JvmApplicationProjectInitDescriptor extends JvmProjectInitDescripto
                 }
                 b.propertyAssignment("Define the main class for the application.", "mainClass", withPackage(settings, mainClass), false);
             });
-        }
 
-        buildScriptBuilder.dependencies().dependency("implementation", null, "org.apache.commons:commons-lang3");
+            buildScriptBuilder.dependencies().dependency("implementation", "This dependency is used by the application.", "org.apache.commons:commons-text");
+        }
 
         if (isSingleProject(settings)) {
             applyApplicationPlugin(buildScriptBuilder);
+            // TODO (donat) declare guava version in buildSrc convention
             buildScriptBuilder.implementationDependency("This dependency is used by the application.",
                     "com.google.guava:guava:" + libraryVersionProvider.getVersion("guava"));
         } else {
