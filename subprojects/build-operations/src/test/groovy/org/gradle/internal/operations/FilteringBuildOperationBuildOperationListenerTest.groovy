@@ -171,6 +171,45 @@ class FilteringBuildOperationBuildOperationListenerTest extends Specification {
         0 * _
     }
 
+    def "re-parents if root is filtered"() {
+        def filteredRootId = id(1)
+        def filteredRoot = BuildOperationDescriptor
+            .displayName("filtered-root")
+            .build(filteredRootId, null)
+        def childId = id(2)
+        def child = BuildOperationDescriptor
+            .displayName("child")
+            .build(childId, filteredRootId)
+
+        def listener = createListener { it.id != filteredRootId }
+
+        when:
+        listener.started(filteredRoot, startEvent)
+        then:
+        0 * _
+
+        when:
+        listener.started(child, startEvent)
+        then:
+        1 * delegate.started(_ as BuildOperationDescriptor, startEvent) >> { BuildOperationDescriptor buildOperation, OperationStartEvent startEvent ->
+            assert buildOperation.parentId == null
+        }
+        0 * _
+
+        when:
+        listener.finished(child, finishEvent)
+        then:
+        1 * delegate.finished(_ as BuildOperationDescriptor, finishEvent) >> { BuildOperationDescriptor buildOperation, OperationFinishEvent finishEvent ->
+            assert buildOperation.parentId == null
+        }
+        0 * _
+
+        when:
+        listener.finished(filteredRoot, finishEvent)
+        then:
+        0 * _
+    }
+
     private createListener(FilteringBuildOperationBuildOperationListener.Filter filter) {
         new FilteringBuildOperationBuildOperationListener(delegate, filter)
     }

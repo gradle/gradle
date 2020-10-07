@@ -24,10 +24,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * Filters build operations and re-writes parents for their descendants as needed.
  */
 public class FilteringBuildOperationBuildOperationListener implements BuildOperationListener {
-    // A map from progress operation id seen in event -> progress operation id that should be forwarded
-    private final Map<OperationIdentifier, OperationIdentifier> parentMapping = new ConcurrentHashMap<OperationIdentifier, OperationIdentifier>();
-    // A set of progress operations that have been forwarded
-    private final Map<OperationIdentifier, BuildOperationDescriptor> forwarded = new ConcurrentHashMap<OperationIdentifier, BuildOperationDescriptor>();
+    private final Map<OperationIdentifier, Op> mapping = new ConcurrentHashMap<OperationIdentifier, Op>();
 
     private final BuildOperationListener delegate;
     private final Filter filter;
@@ -41,51 +38,95 @@ public class FilteringBuildOperationBuildOperationListener implements BuildOpera
     public void started(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent) {
         OperationIdentifier id = buildOperation.getId();
         OperationIdentifier parentId = buildOperation.getParentId();
-        OperationIdentifier mappedParent = getEffectiveId(parentId);
+        OperationIdentifier mappedParentId;
+        OperationIdentifier effectiveParentId;
+        if (parentId != null) {
+            Op mapping = this.mapping.get(parentId);
+            if (mapping == null) {
+                effectiveParentId = parentId;
+                mappedParentId = null;
+            } else {
+                mappedParentId = mapping.getMappedId();
+                effectiveParentId = mappedParentId;
+            }
+        } else {
+            mappedParentId = null;
+            effectiveParentId = null;
+        }
+        Op op;
         if (filter.shouldForward(buildOperation)) {
-            BuildOperationDescriptor forwardedDescriptor = buildOperation.withParentId(mappedParent);
-            forwarded.put(id, forwardedDescriptor);
+            BuildOperationDescriptor forwardedDescriptor = buildOperation.withParentId(effectiveParentId);
             delegate.started(forwardedDescriptor, startEvent);
+            op = new ForwardedOp(forwardedDescriptor);
         } else {
             // Ignore this operation, and map any reference to it to its parent (or whatever its parent is mapped to
-            if (mappedParent != null) {
-                parentMapping.put(id, mappedParent);
-            }
+            op = new MappedOp(mappedParentId);
         }
+        mapping.put(id, op);
     }
 
     @Override
     public void progress(OperationIdentifier buildOperationId, OperationProgressEvent progressEvent) {
-        if (forwarded.containsKey(buildOperationId)) {
-            delegate.progress(buildOperationId, progressEvent);
-        }
+        mapping.get(buildOperationId).delegateProgress(progressEvent, delegate);
     }
 
     @Override
     public void finished(BuildOperationDescriptor buildOperation, OperationFinishEvent result) {
-        OperationIdentifier id = buildOperation.getId();
-        OperationIdentifier mappedEvent = parentMapping.remove(id);
-        if (mappedEvent != null) {
-            return;
-        }
-        BuildOperationDescriptor forwardedDescriptor = forwarded.remove(id);
-        if (forwardedDescriptor != null) {
-            delegate.finished(forwardedDescriptor, result);
-        }
-    }
-
-    @Nullable
-    private OperationIdentifier getEffectiveId(@Nullable OperationIdentifier id) {
-        if (id == null) {
-            return null;
-        }
-        OperationIdentifier effectiveId = parentMapping.get(id);
-        return effectiveId == null
-            ? id
-            : effectiveId;
+        mapping.remove(buildOperation.getId()).delegateFinished(result, delegate);
     }
 
     public interface Filter {
         boolean shouldForward(BuildOperationDescriptor buildOperation);
+    }
+
+    private interface Op {
+        @Nullable
+        OperationIdentifier getMappedId();
+        void delegateProgress(OperationProgressEvent progressEvent, BuildOperationListener delegate);
+        void delegateFinished(OperationFinishEvent result, BuildOperationListener delegate);
+    }
+
+    private static class MappedOp implements Op {
+        private final OperationIdentifier mappedId;
+
+        public MappedOp(@Nullable OperationIdentifier mappedId) {
+            this.mappedId = mappedId;
+        }
+
+        @Override
+        public OperationIdentifier getMappedId() {
+            return mappedId;
+        }
+
+        @Override
+        public void delegateProgress(OperationProgressEvent progressEvent, BuildOperationListener delegate) {
+        }
+
+        @Override
+        public void delegateFinished(OperationFinishEvent result, BuildOperationListener delegate) {
+        }
+    }
+
+    private static class ForwardedOp implements Op {
+        private final BuildOperationDescriptor forwardedDescriptor;
+
+        public ForwardedOp(BuildOperationDescriptor forwardedDescriptor) {
+            this.forwardedDescriptor = forwardedDescriptor;
+        }
+
+        @Override
+        public OperationIdentifier getMappedId() {
+            return forwardedDescriptor.getId();
+        }
+
+        @Override
+        public void delegateProgress(OperationProgressEvent progressEvent, BuildOperationListener delegate) {
+            delegate.progress(forwardedDescriptor.getId(), progressEvent);
+        }
+
+        @Override
+        public void delegateFinished(OperationFinishEvent result, BuildOperationListener delegate) {
+            delegate.finished(forwardedDescriptor, result);
+        }
     }
 }
