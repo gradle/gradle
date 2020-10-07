@@ -87,10 +87,9 @@ class PerformanceReporter {
             ].any { line.contains(it) }
         }.join("\n")
 
+        println(message)
         if (result.exitValue != 0) {
             throw new GradleException("Performance test failed: " + message)
-        } else {
-            println(message)
         }
     }
 }
