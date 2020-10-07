@@ -43,7 +43,7 @@ public abstract class AbstractVirtualFileSystem implements VirtualFileSystem {
     }
 
     @Override
-    public void store(String absolutePath, MetadataSnapshot snapshot) {
+    public void store(String absolutePath, CompleteFileSystemLocationSnapshot snapshot) {
         update((root, diffListener) -> root.store(absolutePath, snapshot, diffListener));
     }
 

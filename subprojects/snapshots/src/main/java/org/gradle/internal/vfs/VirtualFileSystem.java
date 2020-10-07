@@ -36,7 +36,7 @@ public interface VirtualFileSystem {
     /**
      * Adds the information of the snapshot at the absolute path to the VFS.
      */
-    void store(String absolutePath, MetadataSnapshot snapshot);
+    void store(String absolutePath, CompleteFileSystemLocationSnapshot snapshot);
 
     /**
      * Removes any information at the absolute paths from the VFS.
