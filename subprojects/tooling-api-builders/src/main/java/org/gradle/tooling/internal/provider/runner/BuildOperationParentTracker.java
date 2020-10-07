@@ -34,7 +34,7 @@ class BuildOperationParentTracker implements BuildOperationListener {
     private final Map<OperationIdentifier, OperationIdentifier> parents = new ConcurrentHashMap<>();
 
     @Nullable
-    OperationIdentifier findClosestMatchingAncestor(OperationIdentifier id, Predicate<? super OperationIdentifier> predicate) {
+    OperationIdentifier findClosestMatchingAncestor(@Nullable OperationIdentifier id, Predicate<? super OperationIdentifier> predicate) {
         if (id == null || predicate.test(id)) {
             return id;
         }
@@ -42,7 +42,7 @@ class BuildOperationParentTracker implements BuildOperationListener {
     }
 
     @Nullable
-    <T> T findClosestExistingAncestor(OperationIdentifier id, Function<? super OperationIdentifier, T> lookupFunction) {
+    <T> T findClosestExistingAncestor(@Nullable OperationIdentifier id, Function<? super OperationIdentifier, T> lookupFunction) {
         if (id == null) {
             return null;
         }
