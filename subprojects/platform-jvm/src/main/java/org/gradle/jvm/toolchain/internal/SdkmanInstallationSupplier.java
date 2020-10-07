@@ -32,12 +32,16 @@ public class SdkmanInstallationSupplier extends AutoDetectingInstallationSupplie
     @Inject
     public SdkmanInstallationSupplier(ProviderFactory factory) {
         super(factory);
-        candidatesDir = getEnvironmentProperty("SDKMAN_CANDIDATES_DIR");
+        candidatesDir = getEnvironmentProperty("SDKMAN_CANDIDATES_DIR").orElse(defaultSdkmanCandidatesDirectory());
     }
 
     @Override
     protected Set<InstallationLocation> findCandidates() {
         return candidatesDir.map(findJavaCandidates()).getOrElse(Collections.emptySet());
+    }
+
+    private String defaultSdkmanCandidatesDirectory() {
+        return new File(System.getProperty("user.home"), ".sdkman/candidates").getAbsolutePath();
     }
 
     private Transformer<Set<InstallationLocation>, String> findJavaCandidates() {
