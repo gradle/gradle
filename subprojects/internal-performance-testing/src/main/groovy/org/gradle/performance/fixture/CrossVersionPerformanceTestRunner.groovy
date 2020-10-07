@@ -144,15 +144,16 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
             .build()
         int maxWorkingDirLength = allVersions.collect { sanitizeVersionWorkingDir(it) }*.length().max()
 
-        runVersion(testId, current, perVersionWorkingDirectory('current', maxWorkingDirLength), results.current)
+        try {
+            runVersion(testId, current, perVersionWorkingDirectory('current', maxWorkingDirLength), results.current)
 
-        baselineVersions.each { baselineVersion ->
-            runVersion(testId, buildContext.distribution(baselineVersion.version), perVersionWorkingDirectory(baselineVersion.version, maxWorkingDirLength), baselineVersion.results)
+            baselineVersions.each { baselineVersion ->
+                runVersion(testId, buildContext.distribution(baselineVersion.version), perVersionWorkingDirectory(baselineVersion.version, maxWorkingDirLength), baselineVersion.results)
+            }
+        } finally {
+            results.endTime = clock.getCurrentTime()
+            reporter.report(results)
         }
-
-        results.endTime = clock.getCurrentTime()
-
-        reporter.report(results)
 
         return results
     }

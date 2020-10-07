@@ -136,12 +136,12 @@ abstract class AbstractCrossBuildPerformanceTestRunner<R extends CrossBuildPerfo
 
         def results = newResult()
 
-        runAllSpecifications(results)
-
-        results.endTime = clock.getCurrentTime()
-
-        reporter.report(results)
-
+        try {
+            runAllSpecifications(results)
+        } finally {
+            results.endTime = clock.getCurrentTime()
+            reporter.report(results)
+        }
         return results
     }
 
