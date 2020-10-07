@@ -111,8 +111,7 @@ public class ToolingApiBuildEventListenerFactory implements BuildEventListenerFa
      * Do not pass build operations that have no category nor progress display name.
      */
     private static BuildOperationListener filterProgressOperations(BuildOperationListener buildListener) {
-        return new FilteringBuildOperationBuildOperationListener(buildListener, buildOperation ->
-        {
+        return new FilteringBuildOperationBuildOperationListener(buildListener, buildOperation -> {
             BuildOperationMetadata metadata = buildOperation.getMetadata();
             return (metadata != BuildOperationMetadata.NONE && metadata != BuildOperationCategory.UNCATEGORIZED)
                 || buildOperation.getProgressDisplayName() != null
