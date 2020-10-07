@@ -579,6 +579,7 @@ class AndroidSantaTrackerKotlinCachingSmokeTest extends AbstractAndroidSantaTrac
         ':santa-tracker:signingConfigWriterDebug': FROM_CACHE,
         ':santa-tracker:stripDebugDebugSymbols': NO_SOURCE,
         ':santa-tracker:validateSigningDebug': FROM_CACHE,
+        ':santa-tracker:writeDebugAppMetadata': FROM_CACHE,
         ':santa-tracker:writeDebugModuleMetadata': SUCCESS,
         ':snowballrun:assembleDebug': SUCCESS,
         ':snowballrun:checkDebugAarMetadata': FROM_CACHE,
@@ -704,6 +705,7 @@ class AndroidSantaTrackerKotlinCachingSmokeTest extends AbstractAndroidSantaTrac
         ':wearable:processDebugResources': SUCCESS,
         ':wearable:stripDebugDebugSymbols': NO_SOURCE,
         ':wearable:validateSigningDebug': FROM_CACHE,
+        ':wearable:writeDebugAppMetadata': FROM_CACHE,
     ]
 
     private static final EXPECTED_RESULTS_4_1 = [

@@ -323,6 +323,7 @@ class AndroidSantaTrackerJavaCachingSmokeTest extends AbstractAndroidSantaTracke
         ':santa-tracker:processDevelopmentDebugResources': SUCCESS,
         ':santa-tracker:stripDevelopmentDebugDebugSymbols': NO_SOURCE,
         ':santa-tracker:validateSigningDevelopmentDebug': FROM_CACHE,
+        ':santa-tracker:writeDevelopmentDebugAppMetadata': FROM_CACHE,
         ':village:assembleDebug': SUCCESS,
         ':village:bundleDebugAar': SUCCESS,
         ':village:bundleLibCompileToJarDebug': FROM_CACHE,
