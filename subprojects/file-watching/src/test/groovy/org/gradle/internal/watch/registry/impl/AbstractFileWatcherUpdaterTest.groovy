@@ -19,6 +19,7 @@ package org.gradle.internal.watch.registry.impl
 import net.rubygrapefruit.platform.file.FileWatcher
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.file.TestFiles
+import org.gradle.api.internal.file.TestVirtualFileSystem
 import org.gradle.internal.file.FileMetadata.AccessType
 import org.gradle.internal.file.impl.DefaultFileMetadata
 import org.gradle.internal.snapshot.CaseSensitivity
@@ -27,7 +28,6 @@ import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot
 import org.gradle.internal.snapshot.RegularFileSnapshot
 import org.gradle.internal.snapshot.SnapshotHierarchy
 import org.gradle.internal.snapshot.impl.DirectorySnapshotter
-import org.gradle.internal.vfs.impl.AbstractVirtualFileSystem
 import org.gradle.internal.vfs.impl.DefaultSnapshotHierarchy
 import org.gradle.internal.watch.registry.FileWatcherUpdater
 import org.gradle.internal.watch.registry.SnapshotCollectingDiffListener
@@ -40,6 +40,7 @@ import spock.lang.Specification
 import java.nio.file.Files
 import java.nio.file.attribute.BasicFileAttributes
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.function.Function
 import java.util.function.Predicate
 
 @CleanupTestDirectory
@@ -52,20 +53,15 @@ abstract class AbstractFileWatcherUpdaterTest extends Specification {
     Predicate<String> watchFilter = { path -> !ignoredForWatching.contains(path) }
     def directorySnapshotter = new DirectorySnapshotter(TestFiles.fileHasher(), new StringInterner(), [])
     FileWatcherUpdater updater
-    def virtualFileSystem = new AbstractVirtualFileSystem() {
-        private SnapshotHierarchy root = DefaultSnapshotHierarchy.empty(CaseSensitivity.CASE_SENSITIVE)
+    def virtualFileSystem = new TestVirtualFileSystem(DefaultSnapshotHierarchy.empty(CaseSensitivity.CASE_SENSITIVE)) {
         @Override
-        SnapshotHierarchy getRoot() {
-            return root
-        }
-
-        @Override
-        protected void update(AbstractVirtualFileSystem.UpdateFunction updateFunction) {
+        protected SnapshotHierarchy updateNotifyingListeners(Function<SnapshotHierarchy.NodeDiffListener, SnapshotHierarchy> updateFunction) {
             def diffListener = new SnapshotCollectingDiffListener()
-            root = updateFunction.update(root, diffListener)
+            def newRoot = updateFunction.apply(diffListener)
             diffListener.publishSnapshotDiff {removed, added ->
-                updater.virtualFileSystemContentsChanged(removed, added, root)
+                updater.virtualFileSystemContentsChanged(removed, added, newRoot)
             }
+            return newRoot
         }
     }
 
@@ -237,7 +233,7 @@ abstract class AbstractFileWatcherUpdaterTest extends Specification {
     }
 
     void invalidate(String absolutePath) {
-        virtualFileSystem.invalidate(absolutePath)
+        virtualFileSystem.invalidate([absolutePath])
     }
 
     void invalidate(CompleteFileSystemLocationSnapshot snapshot) {

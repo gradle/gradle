@@ -196,9 +196,7 @@ public class DefaultFileSystemAccess implements FileSystemAccess {
     @Override
     public void write(Iterable<String> locations, Runnable action) {
         writeListener.locationsWritten(locations);
-        for (String location : locations) {
-            virtualFileSystem.invalidate(location);
-        }
+        virtualFileSystem.invalidate(locations);
         action.run();
     }
 

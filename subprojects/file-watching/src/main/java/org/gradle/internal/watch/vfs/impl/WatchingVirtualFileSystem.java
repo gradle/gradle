@@ -44,6 +44,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem implements BuildLifecycleAwareVirtualFileSystem, Closeable {
@@ -52,7 +53,6 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
     private static final String FILE_WATCHING_ERROR_MESSAGE_AT_END_OF_BUILD = "Gradle was unable to watch the file system for changes";
 
     private final FileWatcherRegistryFactory watcherRegistryFactory;
-    private final VfsRootReference rootReference;
     private final DaemonDocumentationIndex daemonDocumentationIndex;
     private final LocationsWrittenByCurrentBuild locationsWrittenByCurrentBuild;
     private final Set<File> watchableHierarchies = new HashSet<>();
@@ -66,28 +66,19 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
         DaemonDocumentationIndex daemonDocumentationIndex,
         LocationsWrittenByCurrentBuild locationsWrittenByCurrentBuild
     ) {
+        super(rootReference);
         this.watcherRegistryFactory = watcherRegistryFactory;
-        this.rootReference = rootReference;
         this.daemonDocumentationIndex = daemonDocumentationIndex;
         this.locationsWrittenByCurrentBuild = locationsWrittenByCurrentBuild;
     }
 
     @Override
-    protected SnapshotHierarchy getRoot() {
-        return rootReference.getRoot();
-    }
-
-    @Override
-    protected void update(UpdateFunction updateFunction) {
-        rootReference.update(currentRoot -> updateRootNotifyingWatchers(currentRoot, updateFunction));
-    }
-
-    private SnapshotHierarchy updateRootNotifyingWatchers(SnapshotHierarchy currentRoot, UpdateFunction updateFunction) {
+    protected SnapshotHierarchy updateNotifyingListeners(Function<SnapshotHierarchy.NodeDiffListener, SnapshotHierarchy> updateFunction) {
         if (watchRegistry == null) {
-            return updateFunction.update(currentRoot, SnapshotHierarchy.NodeDiffListener.NOOP);
+            return updateFunction.apply(SnapshotHierarchy.NodeDiffListener.NOOP);
         } else {
             SnapshotCollectingDiffListener diffListener = new SnapshotCollectingDiffListener();
-            SnapshotHierarchy newRoot = updateFunction.update(currentRoot, diffListener);
+            SnapshotHierarchy newRoot = updateFunction.apply(diffListener);
             return withWatcherChangeErrorHandling(newRoot, () -> diffListener.publishSnapshotDiff((removedSnapshots, addedSnapshots) ->
                 watchRegistry.virtualFileSystemContentsChanged(removedSnapshots, addedSnapshots, newRoot)
             ));

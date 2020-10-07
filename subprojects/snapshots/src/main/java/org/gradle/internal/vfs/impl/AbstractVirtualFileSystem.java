@@ -22,17 +22,24 @@ import org.gradle.internal.snapshot.SnapshotHierarchy;
 import org.gradle.internal.vfs.VirtualFileSystem;
 
 import java.util.Optional;
+import java.util.function.Function;
 
 public abstract class AbstractVirtualFileSystem implements VirtualFileSystem {
 
+    protected final VfsRootReference rootReference;
+
+    protected AbstractVirtualFileSystem(VfsRootReference rootReference) {
+        this.rootReference = rootReference;
+    }
+
     @Override
     public Optional<CompleteFileSystemLocationSnapshot> getSnapshot(String absolutePath) {
-        return getRoot().getSnapshot(absolutePath);
+        return rootReference.getRoot().getSnapshot(absolutePath);
     }
 
     @Override
     public Optional<MetadataSnapshot> getMetadata(String absolutePath) {
-        return getRoot().getMetadata(absolutePath);
+        return rootReference.getRoot().getMetadata(absolutePath);
     }
 
     @Override
@@ -41,8 +48,15 @@ public abstract class AbstractVirtualFileSystem implements VirtualFileSystem {
     }
 
     @Override
-    public void invalidate(String absolutePath) {
-        update((root, diffListener) -> root.invalidate(absolutePath, diffListener));
+    public void invalidate(Iterable<String> locations) {
+        rootReference.update(root -> {
+            SnapshotHierarchy result = root;
+            for (String location : locations) {
+                SnapshotHierarchy currentRoot = result;
+                result = updateNotifyingListeners(diffListener -> currentRoot.invalidate(location, diffListener));
+            }
+            return result;
+        });
     }
 
     @Override
@@ -53,9 +67,13 @@ public abstract class AbstractVirtualFileSystem implements VirtualFileSystem {
         });
     }
 
-    protected abstract void update(UpdateFunction updateFunction);
+    protected void update(UpdateFunction updateFunction) {
+        rootReference.update(root -> updateNotifyingListeners(
+            diffListener -> updateFunction.update(root, diffListener)
+        ));
+    }
 
-    protected abstract SnapshotHierarchy getRoot();
+    protected abstract SnapshotHierarchy updateNotifyingListeners(Function<SnapshotHierarchy.NodeDiffListener, SnapshotHierarchy> updateFunction);
 
     /**
      * Updates the snapshot hierarchy, passing a {@link SnapshotHierarchy.NodeDiffListener} to the calls on {@link SnapshotHierarchy}.

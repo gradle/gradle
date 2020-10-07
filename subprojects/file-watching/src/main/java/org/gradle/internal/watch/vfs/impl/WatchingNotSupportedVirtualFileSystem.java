@@ -31,6 +31,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.util.function.Function;
 
 /**
  * A {@link VirtualFileSystem} which is not able to register any watches.
@@ -42,17 +43,13 @@ public class WatchingNotSupportedVirtualFileSystem extends AbstractVirtualFileSy
     private final VfsRootReference rootReference;
 
     public WatchingNotSupportedVirtualFileSystem(VfsRootReference rootReference) {
+        super(rootReference);
         this.rootReference = rootReference;
     }
 
     @Override
-    protected SnapshotHierarchy getRoot() {
-        return rootReference.getRoot();
-    }
-
-    @Override
-    protected void update(UpdateFunction updateFunction) {
-        rootReference.update(root -> updateFunction.update(root, SnapshotHierarchy.NodeDiffListener.NOOP));
+    protected SnapshotHierarchy updateNotifyingListeners(Function<SnapshotHierarchy.NodeDiffListener, SnapshotHierarchy> updateFunction) {
+        return updateFunction.apply(SnapshotHierarchy.NodeDiffListener.NOOP);
     }
 
     @Override

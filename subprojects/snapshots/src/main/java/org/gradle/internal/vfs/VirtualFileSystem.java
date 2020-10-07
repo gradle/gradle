@@ -34,15 +34,18 @@ public interface VirtualFileSystem {
     Optional<MetadataSnapshot> getMetadata(String absolutePath);
 
     /**
-     * Returns a hierarchy augmented by the information of the snapshot at the absolute path.
+     * Adds the information of the snapshot at the absolute path to the VFS.
      */
     void store(String absolutePath, MetadataSnapshot snapshot);
 
     /**
-     * Returns a hierarchy without any information at the absolute path.
+     * Removes any information at the absolute paths from the VFS.
      */
-    void invalidate(String absolutePath);
+    void invalidate(Iterable<String> locations);
 
+    /**
+     * Removes any information from the VFS.
+     */
     void invalidateAll();
 
 }
