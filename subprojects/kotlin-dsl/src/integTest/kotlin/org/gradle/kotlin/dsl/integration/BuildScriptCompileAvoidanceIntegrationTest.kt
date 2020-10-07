@@ -2,6 +2,7 @@ package org.gradle.kotlin.dsl.integration
 
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
+import org.gradle.kotlin.dsl.integration.BuildScriptCompileAvoidanceIntegrationTest.CacheBuster.cacheBuster
 import org.hamcrest.CoreMatchers
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Assert.assertTrue
@@ -11,8 +12,13 @@ import org.junit.Test
 
 class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest() {
 
+    object CacheBuster {
+        var cacheBuster: Int = 0
+    }
+
     @Before
     fun init() {
+        cacheBuster++
         withSettings(
             """
             rootProject.name = "test-project"
@@ -24,17 +30,17 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
     fun `avoids buildscript recompilation on non ABI change in buildSrc`() {
         val className = givenJavaClassInBuildSrcContains(
             """
-            public void t1() {
+            public void foo() {
                 System.out.println("foo");
             }
             """
         )
-        withBuildScript("$className().t1()")
+        withBuildScript("$className().foo()")
         configureProject().buildScriptCompiled().andOutputContains("foo")
 
         givenJavaClassInBuildSrcContains(
             """
-            public void t1() {
+            public void foo() {
                 System.out.println("bar");
             }
             """
@@ -46,17 +52,17 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
     fun `recompiles buildscript on ABI change in buildSrc`() {
         val className = givenJavaClassInBuildSrcContains(
             """
-            public void t2() {
+            public void foo() {
                 System.out.println("foo");
             }
             """
         )
-        withBuildScript("$className().t2()")
+        withBuildScript("$className().foo()")
         configureProject().buildScriptCompiled().andOutputContains("foo")
 
         givenJavaClassInBuildSrcContains(
             """
-            public void t2() {
+            public void foo() {
                 System.out.println("bar");
             }
             public void bar() {}
@@ -70,7 +76,7 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
     fun `avoids buildscript recompilation on non ABI change in buildscript classpath`() {
         val (className, jarPath) = buildJarForBuildScriptClasspath(
             """
-            public void t3() {
+            public void foo() {
                 System.out.println("foo");
             }
             """
@@ -81,14 +87,14 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
             buildscript {
                 dependencies { classpath(files("$jarPath")) }
             }
-            $className().t3()
+            $className().foo()
             """
         )
         configureProject().buildScriptCompiled().andOutputContains("foo")
 
         buildJarForBuildScriptClasspath(
             """
-            public void t3() {
+            public void foo() {
                 System.out.println("bar");
             }
             """
@@ -101,7 +107,7 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
     fun `recompiles buildscript on ABI change in buildscript classpath`() {
         val (className, jarPath) = buildJarForBuildScriptClasspath(
             """
-            public void t4() {
+            public void foo() {
                 System.out.println("foo");
             }
             """
@@ -112,17 +118,17 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
             buildscript {
                 dependencies { classpath(files("$jarPath")) }
             }
-            $className().t4()
+            $className().foo()
             """
         )
         configureProject().buildScriptCompiled().andOutputContains("foo")
 
         buildJarForBuildScriptClasspath(
             """
-            public void t4() {
+            public void foo() {
                 System.out.println("bar");
             }
-            public void foo() {}
+            public void bar() {}
             """
         )
         configureProject().buildScriptCompiled().andOutputContains("bar")
@@ -195,17 +201,17 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
     fun `recompiles buildscript on inline function change in buildSrc class`() {
         val className = givenKotlinClassInBuildSrcContains(
             """
-            inline fun t5() {
+            inline fun foo() {
                 println("foo");
             }
             """
         )
-        withBuildScript("$className().t5()")
+        withBuildScript("$className().foo()")
         configureProject().buildScriptCompiled().andOutputContains("foo")
 
         givenKotlinClassInBuildSrcContains(
             """
-            inline fun t5() {
+            inline fun foo() {
                 println("bar");
             }
             """
@@ -219,18 +225,18 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
         val packageName = givenKotlinScriptInBuildSrcContains(
             "Foo",
             """
-            fun t6() {
+            fun foo() {
                 println("foo");
             }
             """
         )
-        withBuildScript("$packageName.t6()")
+        withBuildScript("$packageName.foo()")
         configureProject().buildScriptCompiled().andOutputContains("foo")
 
         givenKotlinScriptInBuildSrcContains(
             "Foo",
             """
-            fun t6() {
+            fun foo() {
                 println("bar");
             }
             """
@@ -244,18 +250,18 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
         val packageName = givenKotlinScriptInBuildSrcContains(
             "Foo",
             """
-            inline fun t7() {
+            inline fun foo() {
                 println("foo");
             }
             """
         )
-        withBuildScript("$packageName.t7()")
+        withBuildScript("$packageName.foo()")
         configureProject().buildScriptCompiled().andOutputContains("foo")
 
         givenKotlinScriptInBuildSrcContains(
             "Foo",
             """
-            inline fun t7() {
+            inline fun foo() {
                 println("bar");
             }
             """
@@ -311,21 +317,22 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
 
     private
     fun javaSourceFile(baseDir: String, classBody: String): String {
+        val className = "Foo$cacheBuster"
         withFile(
-            "$baseDir/src/main/java/com/example/Foo.java",
+            "$baseDir/src/main/java/com/example/$className.java",
             """
             package com.example;
-            public class Foo {
+            public class $className {
                 $classBody
             }
             """
         )
-        return "com.example.Foo"
+        return "com.example.$className"
     }
 
     private
     fun kotlinClassSourceFile(baseDir: String, classBody: String): String {
-        val className = "Foo"
+        val className = "Foo$cacheBuster"
         val packageName = kotlinScriptSourceFile(
             baseDir,
             className,
