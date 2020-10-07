@@ -20,6 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.artifacts.DependencySubstitution;
 import org.gradle.api.attributes.AttributesSchema;
+import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.ComponentSelectorConverter;
 import org.gradle.api.internal.artifacts.GlobalDependencyResolutionRules;
@@ -91,6 +92,7 @@ public class DefaultArtifactDependencyResolver implements ArtifactDependencyReso
     private final ComponentMetadataSupplierRuleExecutor componentMetadataSupplierRuleExecutor;
     private final Instantiator instantiator;
     private final ComponentSelectionDescriptorFactory componentSelectionDescriptorFactory;
+    private final FeaturePreviews featurePreviews;
 
     public DefaultArtifactDependencyResolver(BuildOperationExecutor buildOperationExecutor,
                                              List<ResolverProviderFactory> resolverFactories,
@@ -105,7 +107,8 @@ public class DefaultArtifactDependencyResolver implements ArtifactDependencyReso
                                              VersionParser versionParser,
                                              ComponentMetadataSupplierRuleExecutor componentMetadataSupplierRuleExecutor,
                                              InstantiatorFactory instantiatorFactory,
-                                             ComponentSelectionDescriptorFactory componentSelectionDescriptorFactory) {
+                                             ComponentSelectionDescriptorFactory componentSelectionDescriptorFactory,
+                                             FeaturePreviews featurePreviews) {
         this.resolverFactories = resolverFactories;
         this.projectDependencyResolver = projectDependencyResolver;
         this.ivyFactory = ivyFactory;
@@ -120,6 +123,7 @@ public class DefaultArtifactDependencyResolver implements ArtifactDependencyReso
         this.componentMetadataSupplierRuleExecutor = componentMetadataSupplierRuleExecutor;
         this.instantiator = instantiatorFactory.decorateScheme().instantiator();
         this.componentSelectionDescriptorFactory = componentSelectionDescriptorFactory;
+        this.featurePreviews = featurePreviews;
     }
 
     @Override
@@ -200,7 +204,7 @@ public class DefaultArtifactDependencyResolver implements ArtifactDependencyReso
     private ModuleConflictHandler createModuleConflictHandler(ResolutionStrategyInternal resolutionStrategy, GlobalDependencyResolutionRules metadataHandler) {
         ConflictResolution conflictResolution = resolutionStrategy.getConflictResolution();
         ModuleConflictResolver<ComponentState> conflictResolver =
-            new ConflictResolverFactory(versionComparator, versionParser).createConflictResolver(conflictResolution);
+            new ConflictResolverFactory(versionComparator, versionParser, featurePreviews).createConflictResolver(conflictResolution);
         return new DefaultConflictHandler(conflictResolver, metadataHandler.getModuleMetadataProcessor().getModuleReplacements());
     }
 

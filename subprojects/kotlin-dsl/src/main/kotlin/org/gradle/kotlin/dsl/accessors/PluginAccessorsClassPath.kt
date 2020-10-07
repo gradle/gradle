@@ -32,7 +32,7 @@ import org.gradle.internal.execution.UnitOfWork.IdentityKind.IDENTITY
 import org.gradle.internal.execution.WorkExecutor
 import org.gradle.internal.execution.history.ExecutionHistoryStore
 import org.gradle.internal.execution.history.changes.InputChangesInternal
-import org.gradle.internal.file.TreeType
+import org.gradle.internal.file.TreeType.DIRECTORY
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import org.gradle.internal.hash.HashCode
@@ -151,13 +151,11 @@ class GeneratePluginAccessors(
         DefaultClassPath.of(getSourcesOutputDir(workspace))
     )
 
-    override fun identify(identityInputs: MutableMap<String, ValueSnapshot>, identityFileInputs: MutableMap<String, CurrentFileCollectionFingerprint>) = object : UnitOfWork.Identity {
-        override fun getUniqueId() = classLoaderHash.toString()
-    }
+    override fun identify(identityInputs: MutableMap<String, ValueSnapshot>, identityFileInputs: MutableMap<String, CurrentFileCollectionFingerprint>) = UnitOfWork.Identity { classLoaderHash.toString() }
 
     override fun getHistory(): Optional<ExecutionHistoryStore> = Optional.of(executionHistoryStore)
 
-    override fun <T : Any?> withWorkspace(identity: String, action: UnitOfWork.WorkspaceAction<T>): T =
+    override fun <T : Any> withWorkspace(identity: String, action: UnitOfWork.WorkspaceAction<T>): T =
         workspaceProvider.withWorkspace("$accessorsWorkspacePrefix/$identity") { workspace, _ ->
             action.executeInWorkspace(workspace)
         }
@@ -170,19 +168,17 @@ class GeneratePluginAccessors(
         visitor.visitImplementation(GeneratePluginAccessors::class.java)
     }
 
-    override fun visitInputProperties(filter: Set<UnitOfWork.IdentityKind>, visitor: UnitOfWork.InputPropertyVisitor) {
-        if (filter.contains(IDENTITY)) {
-            visitor.visitInputProperty(BUILD_SRC_CLASSLOADER_INPUT_PROPERTY, classLoaderHash)
-        }
+    override fun visitInputProperties(visitor: UnitOfWork.InputPropertyVisitor) {
+        visitor.visitInputProperty(BUILD_SRC_CLASSLOADER_INPUT_PROPERTY, IDENTITY) { classLoaderHash }
     }
 
-    override fun visitInputFileProperties(filter: Set<UnitOfWork.IdentityKind>, visitor: UnitOfWork.InputFilePropertyVisitor) = Unit
+    override fun visitInputFileProperties(visitor: UnitOfWork.InputFilePropertyVisitor) = Unit
 
     override fun visitOutputProperties(workspace: File, visitor: UnitOfWork.OutputPropertyVisitor) {
         val sourcesOutputDir = getSourcesOutputDir(workspace)
         val classesOutputDir = getClassesOutputDir(workspace)
-        visitor.visitOutputProperty(SOURCES_OUTPUT_PROPERTY, TreeType.DIRECTORY, sourcesOutputDir, fileCollectionFactory.fixed(sourcesOutputDir))
-        visitor.visitOutputProperty(CLASSES_OUTPUT_PROPERTY, TreeType.DIRECTORY, classesOutputDir, fileCollectionFactory.fixed(classesOutputDir))
+        visitor.visitOutputProperty(SOURCES_OUTPUT_PROPERTY, DIRECTORY, sourcesOutputDir, fileCollectionFactory.fixed(sourcesOutputDir))
+        visitor.visitOutputProperty(CLASSES_OUTPUT_PROPERTY, DIRECTORY, classesOutputDir, fileCollectionFactory.fixed(classesOutputDir))
     }
 }
 

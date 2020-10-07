@@ -26,10 +26,11 @@ import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.execution.InputChangesContext
 import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.execution.UnitOfWork.IdentityKind.IDENTITY
+import org.gradle.internal.execution.UnitOfWork.InputPropertyType.NON_INCREMENTAL
 import org.gradle.internal.execution.WorkExecutor
 import org.gradle.internal.execution.history.ExecutionHistoryStore
 import org.gradle.internal.execution.history.changes.InputChangesInternal
-import org.gradle.internal.file.TreeType
+import org.gradle.internal.file.TreeType.DIRECTORY
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.fingerprint.classpath.ClasspathFingerprinter
 import org.gradle.internal.hash.HashCode
@@ -150,14 +151,12 @@ class GenerateProjectAccessors(
         requireNotNull(identityInputs[PROJECT_SCHEMA_INPUT_PROPERTY]).appendToHasher(hasher)
         hasher.putHash(requireNotNull(identityFileInputs[CLASSPATH_INPUT_PROPERTY]).hash)
         val identityHash = hasher.hash().toString()
-        return object : UnitOfWork.Identity {
-            override fun getUniqueId() = identityHash
-        }
+        return UnitOfWork.Identity { identityHash }
     }
 
     override fun getHistory(): Optional<ExecutionHistoryStore> = Optional.of(executionHistoryStore)
 
-    override fun <T : Any?> withWorkspace(identity: String, action: UnitOfWork.WorkspaceAction<T>): T =
+    override fun <T : Any> withWorkspace(identity: String, action: UnitOfWork.WorkspaceAction<T>): T =
         workspaceProvider.withWorkspace("$accessorsWorkspacePrefix/$identity") { workspace, _ ->
             action.executeInWorkspace(workspace)
         }
@@ -170,25 +169,21 @@ class GenerateProjectAccessors(
         visitor.visitImplementation(GenerateProjectAccessors::class.java)
     }
 
-    override fun visitInputProperties(filter: Set<UnitOfWork.IdentityKind>, visitor: UnitOfWork.InputPropertyVisitor) {
-        if (filter.contains(IDENTITY)) {
-            visitor.visitInputProperty(PROJECT_SCHEMA_INPUT_PROPERTY, hashCodeFor(projectSchema))
-        }
+    override fun visitInputProperties(visitor: UnitOfWork.InputPropertyVisitor) {
+        visitor.visitInputProperty(PROJECT_SCHEMA_INPUT_PROPERTY, IDENTITY) { hashCodeFor(projectSchema) }
     }
 
-    override fun visitInputFileProperties(filter: Set<UnitOfWork.IdentityKind>, visitor: UnitOfWork.InputFilePropertyVisitor) {
-        if (filter.contains(IDENTITY)) {
-            visitor.visitInputFileProperty(CLASSPATH_INPUT_PROPERTY, classPath, UnitOfWork.InputPropertyType.NON_INCREMENTAL) {
-                classpathFingerprinter.fingerprint(fileCollectionFactory.fixed(classPath.asFiles))
-            }
+    override fun visitInputFileProperties(visitor: UnitOfWork.InputFilePropertyVisitor) {
+        visitor.visitInputFileProperty(CLASSPATH_INPUT_PROPERTY, NON_INCREMENTAL, IDENTITY, classPath) {
+            classpathFingerprinter.fingerprint(fileCollectionFactory.fixed(classPath.asFiles))
         }
     }
 
     override fun visitOutputProperties(workspace: File, visitor: UnitOfWork.OutputPropertyVisitor) {
         val sourcesOutputDir = getSourcesOutputDir(workspace)
         val classesOutputDir = getClassesOutputDir(workspace)
-        visitor.visitOutputProperty(SOURCES_OUTPUT_PROPERTY, TreeType.DIRECTORY, sourcesOutputDir, fileCollectionFactory.fixed(sourcesOutputDir))
-        visitor.visitOutputProperty(CLASSES_OUTPUT_PROPERTY, TreeType.DIRECTORY, classesOutputDir, fileCollectionFactory.fixed(classesOutputDir))
+        visitor.visitOutputProperty(SOURCES_OUTPUT_PROPERTY, DIRECTORY, sourcesOutputDir, fileCollectionFactory.fixed(sourcesOutputDir))
+        visitor.visitOutputProperty(CLASSES_OUTPUT_PROPERTY, DIRECTORY, classesOutputDir, fileCollectionFactory.fixed(classesOutputDir))
     }
 }
 

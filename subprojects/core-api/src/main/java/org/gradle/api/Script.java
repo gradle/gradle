@@ -36,7 +36,7 @@ import java.util.Map;
 import java.util.concurrent.Callable;
 
 /**
- * <p>This interface is implemented by all Gradle scripts to add in some Gradle-specific methods. As your compiled
+ * <p>This interface is implemented by all Gradle Groovy DSL scripts to add in some Gradle-specific methods. As your compiled
  * script class will implement this interface, you can use the methods and properties declared by this interface
  * directly in your script.</p>
  *

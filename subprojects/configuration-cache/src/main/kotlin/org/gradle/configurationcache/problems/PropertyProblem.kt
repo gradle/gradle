@@ -46,6 +46,9 @@ enum class DocumentationSection(val anchor: String) {
 }
 
 
+typealias StructuredMessageBuilder = StructuredMessage.Builder.() -> Unit
+
+
 data class StructuredMessage(val fragments: List<Fragment>) {
 
     override fun toString(): String = fragments.joinToString(separator = "") { fragment ->
@@ -64,7 +67,7 @@ data class StructuredMessage(val fragments: List<Fragment>) {
 
     companion object {
 
-        fun build(builder: Builder.() -> Unit) = StructuredMessage(
+        fun build(builder: StructuredMessageBuilder) = StructuredMessage(
             Builder().apply(builder).fragments
         )
     }

@@ -70,8 +70,9 @@ import static org.gradle.resolve.scenarios.VersionRangeResolveTestScenarios.SCEN
 class SelectorStateResolverTest extends Specification {
     private final TestComponentResolutionState root = new TestComponentResolutionState(DefaultModuleVersionIdentifier.newId("other", "root", "1"))
     private final componentIdResolver = new TestDependencyToComponentIdResolver()
-    private final DefaultVersionComparator versionComparator = new DefaultVersionComparator(new FeaturePreviews())
-    private final conflictResolver = new ConflictResolverFactory(versionComparator, new VersionParser()).createConflictResolver(ConflictResolution.latest)
+    private final FeaturePreviews featurePreviews = new FeaturePreviews()
+    private final DefaultVersionComparator versionComparator = new DefaultVersionComparator(featurePreviews)
+    private final conflictResolver = new ConflictResolverFactory(versionComparator, new VersionParser(), featurePreviews).createConflictResolver(ConflictResolution.latest)
     private final componentFactory = new TestComponentFactory()
     private final ModuleIdentifier moduleId = DefaultModuleIdentifier.newId("org", "module")
     private final ResolveOptimizations resolveOptimizations = new ResolveOptimizations()
