@@ -48,11 +48,13 @@ dependencies {
     implementation(project(":build-cache"))
     implementation(project(":tooling-api"))
     implementation(project(":execution"))
+    implementation(project(":normalization-java"))
 
     implementation(libs.groovy)
     implementation(libs.slf4jApi)
     implementation(libs.guava)
     implementation(libs.inject)
+    implementation(libs.asm)
 
     implementation(libs.futureKotlin("script-runtime"))
     implementation(libs.futureKotlin("daemon-embeddable"))
@@ -88,7 +90,6 @@ dependencies {
     testImplementation(project(":plugins"))
     testImplementation(project(":version-control"))
     testImplementation(libs.ant)
-    testImplementation(libs.asm)
     testImplementation(libs.mockitoKotlin)
     testImplementation(libs.jacksonKotlin)
 
