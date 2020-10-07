@@ -1,6 +1,4 @@
 
-import javax.inject.Inject
-
 // The parameters for a single unit of work
 interface ReverseParameters : WorkParameters {
     val fileToReverse : RegularFileProperty

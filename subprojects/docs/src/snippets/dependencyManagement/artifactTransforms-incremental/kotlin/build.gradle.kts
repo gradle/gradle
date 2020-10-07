@@ -1,5 +1,3 @@
-import javax.inject.Inject
-
 import org.gradle.api.artifacts.transform.TransformParameters
 
 // tag::artifact-transform-countloc[]

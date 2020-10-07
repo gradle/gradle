@@ -1,5 +1,3 @@
-import javax.inject.Inject
-
 open class CustomTask @Inject constructor(
     private val message: String,
     private val number: Int

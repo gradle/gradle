@@ -3,7 +3,6 @@ class MessageExtension {
     // A configurable greeting
     final Property<String> greeting
 
-    @javax.inject.Inject
     MessageExtension(ObjectFactory objects) {
         greeting = objects.property(String)
     }
