@@ -23,7 +23,6 @@ import org.gradle.performance.results.GradleProfilerReporter;
 import org.gradle.performance.results.MeasuredOperationList;
 import org.gradle.profiler.BenchmarkResultCollector;
 import org.gradle.profiler.BuildInvoker;
-import org.gradle.profiler.BuildMutatorFactory;
 import org.gradle.profiler.InvocationSettings;
 import org.gradle.profiler.Logging;
 import org.gradle.profiler.MavenScenarioDefinition;
@@ -64,11 +63,9 @@ public class MavenBuildExperimentRunner extends AbstractBuildExperimentRunner {
             AtomicInteger iterationCount = new AtomicInteger(0);
             Logging.setupLogging(workingDirectory);
 
-            Consumer<BuildInvocationResult> scenarioReporter = getResultCollector(scenarioDefinition.getName()).scenario(
+            Consumer<BuildInvocationResult> scenarioReporter = getResultCollector().scenario(
                 scenarioDefinition,
-                ImmutableList.<Sample<? super BuildInvocationResult>>builder()
-                    .add(BuildInvocationResult.EXECUTION_TIME)
-                    .build()
+                scenarioInvoker.samplesFor(invocationSettings, scenarioDefinition)
             );
             scenarioInvoker.run(scenarioDefinition, invocationSettings, new BenchmarkResultCollector() {
                 @Override
@@ -116,10 +113,9 @@ public class MavenBuildExperimentRunner extends AbstractBuildExperimentRunner {
             experimentSpec.getDisplayName(),
             experimentSpec.getDisplayName(),
             arguments,
-            new BuildMutatorFactory(experimentSpec.getBuildMutators().stream()
-                .map(mutatorFunction -> toMutatorSupplierForSettings(invocationSettings, mutatorFunction))
-                .collect(Collectors.toList())
-            ),
+            experimentSpec.getBuildMutators().stream()
+                .map(mutatorFunction -> mutatorFunction.apply(invocationSettings))
+                .collect(Collectors.toList()),
             invocationSettings.getWarmUpCount(),
             invocationSettings.getBuildCount(),
             invocationSettings.getOutputDir(),

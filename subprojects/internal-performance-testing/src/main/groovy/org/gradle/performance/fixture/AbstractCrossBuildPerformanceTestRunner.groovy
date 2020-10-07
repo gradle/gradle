@@ -47,6 +47,7 @@ abstract class AbstractCrossBuildPerformanceTestRunner<R extends CrossBuildPerfo
     String testGroup
     String testProject
     List<BuildExperimentSpec> specs = []
+    boolean measureGarbageCollection = true
 
     final DataReporter<R> reporter
     final ResultsStore resultsStore
@@ -85,6 +86,7 @@ abstract class AbstractCrossBuildPerformanceTestRunner<R extends CrossBuildPerfo
 
     protected void configureGradleSpec(GradleBuildExperimentSpec.GradleBuilder builder) {
         builder.measuredBuildOperations.addAll(measuredBuildOperations)
+        builder.measureGarbageCollection(measureGarbageCollection)
         builder.invocation.distribution(gradleDistribution)
     }
 
@@ -130,16 +132,16 @@ abstract class AbstractCrossBuildPerformanceTestRunner<R extends CrossBuildPerfo
         assert testId
 
         // TODO: Make sure cross build scenarios only run on one test project
-        Assume.assumeTrue(TestScenarioSelector.shouldRun(testClassName, testId, specs.first().projectName, resultsStore))
+        Assume.assumeTrue(TestScenarioSelector.shouldRun(testId))
 
         def results = newResult()
 
-        runAllSpecifications(results)
-
-        results.endTime = clock.getCurrentTime()
-
-        reporter.report(results)
-
+        try {
+            runAllSpecifications(results)
+        } finally {
+            results.endTime = clock.getCurrentTime()
+            reporter.report(results)
+        }
         return results
     }
 

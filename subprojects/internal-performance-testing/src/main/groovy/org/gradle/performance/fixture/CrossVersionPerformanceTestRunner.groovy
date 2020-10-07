@@ -87,6 +87,7 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
      * Minimum base version to be used. For example, a 6.0-nightly target version is OK if minimumBaseVersion is 6.0.
      */
     String minimumBaseVersion
+    boolean measureGarbageCollection = true
     private final List<Function<InvocationSettings, BuildMutator>> buildMutators = []
     private final List<String> measuredBuildOperations = []
     private BuildAction buildAction
@@ -143,15 +144,16 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
             .build()
         int maxWorkingDirLength = allVersions.collect { sanitizeVersionWorkingDir(it) }*.length().max()
 
-        runVersion(testId, current, perVersionWorkingDirectory('current', maxWorkingDirLength), results.current)
+        try {
+            runVersion(testId, current, perVersionWorkingDirectory('current', maxWorkingDirLength), results.current)
 
-        baselineVersions.each { baselineVersion ->
-            runVersion(testId, buildContext.distribution(baselineVersion.version), perVersionWorkingDirectory(baselineVersion.version, maxWorkingDirLength), baselineVersion.results)
+            baselineVersions.each { baselineVersion ->
+                runVersion(testId, buildContext.distribution(baselineVersion.version), perVersionWorkingDirectory(baselineVersion.version, maxWorkingDirLength), baselineVersion.results)
+            }
+        } finally {
+            results.endTime = clock.getCurrentTime()
+            reporter.report(results)
         }
-
-        results.endTime = clock.getCurrentTime()
-
-        reporter.report(results)
 
         return results
     }
@@ -167,7 +169,7 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
             throw new IllegalStateException("Working directory has not been specified")
         }
 
-        Assume.assumeTrue(TestScenarioSelector.shouldRun(testClassName, testId, testProject, resultsStore))
+        Assume.assumeTrue(TestScenarioSelector.shouldRun(testId))
     }
 
     private File perVersionWorkingDirectory(String version, int maxWorkingDirLength) {
@@ -287,6 +289,7 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
             .invocationCount(runs)
             .buildMutators(buildMutators)
             .measuredBuildOperations(measuredBuildOperations)
+            .measureGarbageCollection(measureGarbageCollection)
             .invocation {
                 workingDirectory(workingDir)
                 distribution(new PerformanceTestGradleDistribution(dist, workingDir))
@@ -346,11 +349,8 @@ class ToolingApiAction<T extends LongRunningOperation> extends GradleInvokerBuil
 
     @Override
     void run(GradleInvoker buildInvoker, List<String> gradleArgs, List<String> jvmArgs) {
-        // TODO: Add a public API to configure this in a nice way on the Gradle profiler side
         def toolingApiInvoker = (ToolingApiGradleClient) buildInvoker
-        def projectConnection = toolingApiInvoker.projectConnection
-        def longRunningOperation = initialAction.apply(projectConnection)
-        toolingApiInvoker.run(longRunningOperation) { builder ->
+        toolingApiInvoker.runOperation(initialAction) { builder ->
             builder.setJvmArguments(jvmArgs)
             builder.withArguments(gradleArgs)
             tapiAction.accept(builder)
