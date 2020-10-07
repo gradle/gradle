@@ -16,11 +16,8 @@
 
 package org.gradle.integtests.composite
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-
 class CompositeBuildLookupIntegrationTest extends AbstractCompositeBuildIntegrationTest {
 
-    @ToBeFixedForConfigurationCache(because = "composite builds")
     def "can query the included builds defined by the root build"() {
         given:
         def buildB = singleProjectBuild("buildB") {
@@ -51,7 +48,6 @@ class CompositeBuildLookupIntegrationTest extends AbstractCompositeBuildIntegrat
         failure.assertHasCause("Included build 'unknown' not found in build 'buildA'.")
     }
 
-    @ToBeFixedForConfigurationCache(because = "composite builds")
     def "dir name is used as build name"() {
         given:
         def buildB = singleProjectBuild("buildB") {
@@ -88,7 +84,6 @@ class CompositeBuildLookupIntegrationTest extends AbstractCompositeBuildIntegrat
         failure.assertHasCause("Included build 'b' not found in build 'buildA'.")
     }
 
-    @ToBeFixedForConfigurationCache(because = "composite builds")
     def "build name can be specified at include time"() {
         given:
         def buildB = singleProjectBuild("buildB") {
@@ -125,7 +120,6 @@ class CompositeBuildLookupIntegrationTest extends AbstractCompositeBuildIntegrat
         failure.assertHasCause("Included build 'buildB' not found in build 'buildA'.")
     }
 
-    @ToBeFixedForConfigurationCache(because = "composite builds")
     def "included builds added from command-line are visible to root build"() {
         given:
         def buildB = singleProjectBuild("buildB") {
@@ -168,7 +162,6 @@ class CompositeBuildLookupIntegrationTest extends AbstractCompositeBuildIntegrat
         execute(buildA, "withoutBuild")
     }
 
-    @ToBeFixedForConfigurationCache(because = "composite builds")
     def "parent and sibling builds are not visible from included build"() {
         given:
         def buildB = singleProjectBuild("buildB") {

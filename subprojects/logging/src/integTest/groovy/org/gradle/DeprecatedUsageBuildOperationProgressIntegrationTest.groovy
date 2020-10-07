@@ -18,7 +18,6 @@ package org.gradle
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.internal.featurelifecycle.DeprecatedUsageProgressDetails
 
 class DeprecatedUsageBuildOperationProgressIntegrationTest extends AbstractIntegrationSpec {
@@ -177,7 +176,6 @@ class DeprecatedUsageBuildOperationProgressIntegrationTest extends AbstractInteg
         buildSrcDeprecations.details.stackTrace[0].lineNumber == 2
     }
 
-    @ToBeFixedForConfigurationCache(because = "composite builds")
     def "emits deprecation warnings as build operation progress events for composite builds"() {
         file('included/settings.gradle') << "rootProject.name = 'included'"
         file('included/build.gradle') << """

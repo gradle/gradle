@@ -27,7 +27,7 @@ import org.gradle.play.integtest.fixtures.app.WithFailingTestsApp
 
 class PopulateRepositoryPreparationTest extends PlayMultiVersionIntegrationTest {
 
-    @ToBeFixedForConfigurationCache(because = "composite builds")
+    @ToBeFixedForConfigurationCache(because = "uses configurations at execution time")
     void "populates repository"() {
         playApp.writeSources(testDirectory)
         buildFile << """

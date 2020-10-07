@@ -943,7 +943,6 @@ class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest imple
         sharedLibrary("app/build/install/main/debug/lib/Log").file.assertExists()
     }
 
-    @ToBeFixedForConfigurationCache
     def "can compile and link against libraries in included builds"() {
         settingsFile << """
             rootProject.name = 'app'

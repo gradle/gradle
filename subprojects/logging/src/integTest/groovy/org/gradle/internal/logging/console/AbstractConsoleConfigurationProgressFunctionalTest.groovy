@@ -18,7 +18,6 @@ package org.gradle.internal.logging.console
 
 import org.gradle.api.logging.configuration.ConsoleOutput
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.RichConsoleStyling
 import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.test.fixtures.ConcurrentTestUtil
@@ -68,7 +67,6 @@ abstract class AbstractConsoleConfigurationProgressFunctionalTest extends Abstra
         gradle.waitForFinish()
     }
 
-    @ToBeFixedForConfigurationCache(because = "composite builds")
     def "shows work in progress with included build"() {
         settingsFile << """
             includeBuild "child"

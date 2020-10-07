@@ -92,15 +92,29 @@ public class BuildDefinition {
         return dependencySubstitutions;
     }
 
-    public static BuildDefinition fromStartParameterForBuild(StartParameter startParameter, String name, File buildRootDir, PluginRequests pluginRequests, Action<? super DependencySubstitutions> dependencySubstitutions, PublicBuildPath fromBuild) {
-        return new BuildDefinition(name, buildRootDir, configure(startParameter, buildRootDir), pluginRequests, dependencySubstitutions, fromBuild);
+    public static BuildDefinition fromStartParameterForBuild(
+        StartParameter startParameter,
+        String name,
+        File buildRootDir,
+        PluginRequests pluginRequests,
+        Action<? super DependencySubstitutions> dependencySubstitutions,
+        PublicBuildPath fromBuild
+    ) {
+        return new BuildDefinition(
+            name,
+            buildRootDir,
+            startParameterForIncludedBuildFrom(startParameter, buildRootDir),
+            pluginRequests,
+            dependencySubstitutions,
+            fromBuild
+        );
     }
 
     public static BuildDefinition fromStartParameter(StartParameter startParameter, @Nullable PublicBuildPath fromBuild) {
         return new BuildDefinition(null, null, startParameter, PluginRequests.EMPTY, Actions.doNothing(), fromBuild);
     }
 
-    private static StartParameter configure(StartParameter startParameter, File buildRootDir) {
+    private static StartParameter startParameterForIncludedBuildFrom(StartParameter startParameter, File buildRootDir) {
         StartParameter includedBuildStartParam = startParameter.newBuild();
         includedBuildStartParam.setCurrentDir(buildRootDir);
         ((StartParameterInternal) includedBuildStartParam).setSearchUpwardsWithoutDeprecationWarning(false);

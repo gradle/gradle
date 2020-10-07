@@ -617,7 +617,6 @@ If the artifacts are trustworthy, you will need to update the gradle/verificatio
     }
 
     @Unroll
-    @ToBeFixedForConfigurationCache
     def "dependency verification also checks included build dependencies (terse output=#terse)"() {
         createMetadataFile {
             addChecksum("org:foo", "sha1", "16e066e005a935ac60f06216115436ab97c5da02")

@@ -14,12 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.composite.internal;
+package org.gradle.internal.build;
 
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.BuildDefinition;
-import org.gradle.internal.build.BuildState;
-import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.util.Path;
 
 public interface IncludedBuildFactory {

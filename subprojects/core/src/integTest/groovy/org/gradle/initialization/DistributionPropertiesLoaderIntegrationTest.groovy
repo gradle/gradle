@@ -25,7 +25,7 @@ import spock.lang.Issue
 class DistributionPropertiesLoaderIntegrationTest extends AbstractIntegrationSpec {
 
     @Issue('https://github.com/gradle/gradle/issues/11173')
-    @ToBeFixedForConfigurationCache(because = "composite builds")
+    @ToBeFixedForConfigurationCache(because = "undeclared system properties")
     @IgnoreIf({ GradleContextualExecuter.embedded })
     def "System properties defined in gradle.properties are available in buildSrc and in included builds"() {
         given:

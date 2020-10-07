@@ -243,7 +243,6 @@ class LoggingBuildOperationProgressIntegTest extends AbstractIntegrationSpec {
         assertNestedTaskOutputTracked(':buildSrc')
     }
 
-    @ToBeFixedForConfigurationCache(because = "composite builds")
     def "captures output from composite builds"() {
         given:
         configureNestedBuild()

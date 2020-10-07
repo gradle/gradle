@@ -108,7 +108,6 @@ class BuildOperationNotificationIntegrationTest extends AbstractIntegrationSpec 
         notifications.finished(ExecuteTaskBuildOperationType.Result, [actionable: false, originExecutionTime: null, cachingDisabledReasonMessage: "Cacheability was not determined", upToDateMessages: [], cachingDisabledReasonCategory: "UNKNOWN", skipMessage: "UP-TO-DATE", originBuildInvocationId: null])
     }
 
-    @ToBeFixedForConfigurationCache(because = "composite builds")
     def "can emit notifications for nested builds"() {
         when:
         file("buildSrc/build.gradle") << ""

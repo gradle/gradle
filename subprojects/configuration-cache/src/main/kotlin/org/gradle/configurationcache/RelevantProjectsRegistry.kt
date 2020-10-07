@@ -28,8 +28,8 @@ class RelevantProjectsRegistry : ProjectAccessHandler {
     private
     val targetProjects = mutableSetOf<ProjectInternal>()
 
-    fun relevantProjects(nodes: List<Node>): List<ProjectInternal> =
-        targetProjects.toList() +
+    fun relevantProjects(nodes: List<Node>): Set<ProjectInternal> =
+        targetProjects +
             nodes.mapNotNullTo(mutableListOf()) { node ->
                 node.owningProject?.takeIf { it.parent != null }
             }

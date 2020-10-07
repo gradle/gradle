@@ -16,13 +16,11 @@
 
 package org.gradle.integtests.composite
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.util.ToBeImplemented
 
 class CompositeBuildRootProjectIntegrationTest extends AbstractCompositeBuildIntegrationTest {
 
-    @ToBeFixedForConfigurationCache(because = "composite builds")
     def "root of a composite build can refer to own subprojects by GA coordinates"() {
         given:
         def buildB = multiProjectBuild("buildB", ['c1', 'c2', 'c3']) {

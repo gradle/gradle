@@ -16,12 +16,10 @@
 
 package org.gradle.integtests.composite
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.file.TestFile
 
 class CompositeBuildArtifactTransformIntegrationTest extends AbstractCompositeBuildIntegrationTest {
 
-    @ToBeFixedForConfigurationCache
     def "can apply a transform to the outputs of included builds"() {
         def buildB = singleProjectBuild("buildB") {
             buildFile << """

@@ -17,14 +17,10 @@
 package org.gradle.configurationcache
 
 import org.gradle.api.internal.GradleInternal
-import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.execution.plan.Node
 
 
 interface VintageGradleBuild {
     val gradle: GradleInternal
-
-    val rootProject: ProjectInternal
-
     val scheduledWork: List<Node>
 }

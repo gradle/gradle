@@ -27,7 +27,6 @@ import org.gradle.vcs.fixtures.GitFileRepository
 class SwiftDependenciesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     def app = new SwiftAppWithLibraries()
 
-    @ToBeFixedForConfigurationCache
     def "can combine swift builds in a composite"() {
         given:
         settingsFile << """

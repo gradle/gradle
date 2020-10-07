@@ -17,13 +17,14 @@
 package org.gradle.configurationcache.serialization.codecs
 
 import org.gradle.api.internal.GradleInternal
-import org.gradle.execution.plan.Node
-import org.gradle.execution.plan.TaskNode
 import org.gradle.configurationcache.serialization.Codec
 import org.gradle.configurationcache.serialization.ReadContext
 import org.gradle.configurationcache.serialization.WriteContext
 import org.gradle.configurationcache.serialization.readNonNull
 import org.gradle.configurationcache.serialization.withGradleIsolate
+import org.gradle.execution.plan.Node
+import org.gradle.execution.plan.TaskInAnotherBuild
+import org.gradle.execution.plan.TaskNode
 
 
 internal
@@ -99,7 +100,10 @@ class WorkNodeCodec(
             isRequired -> node.require()
             else -> node.mustNotRun() // finalizer nodes and their dependencies
         }
-        node.dependenciesProcessed()
+        if (node !is TaskInAnotherBuild) {
+            // we want TaskInAnotherBuild dependencies to be processed later
+            node.dependenciesProcessed()
+        }
     }
 
     private

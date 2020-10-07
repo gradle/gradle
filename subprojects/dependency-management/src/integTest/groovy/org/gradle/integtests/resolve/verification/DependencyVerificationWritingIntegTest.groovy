@@ -627,7 +627,6 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
 """
     }
 
-    @ToBeFixedForConfigurationCache(because = "composite builds")
     def "included build dependencies are used when generating the verification file"() {
         given:
         javaLibrary()

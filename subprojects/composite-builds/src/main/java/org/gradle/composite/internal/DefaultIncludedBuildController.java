@@ -130,11 +130,7 @@ class DefaultIncludedBuildController implements Runnable, Stoppable, IncludedBui
         lock.lock();
         try {
             while (state == State.RunningTasks) {
-                try {
-                    stateChange.await();
-                } catch (InterruptedException e) {
-                    throw UncheckedException.throwAsUncheckedException(e);
-                }
+                awaitStateChange();
             }
             taskFailures.addAll(this.taskFailures);
             this.taskFailures.clear();
@@ -164,11 +160,7 @@ class DefaultIncludedBuildController implements Runnable, Stoppable, IncludedBui
         lock.lock();
         try {
             while (state == State.CollectingTasks && !stopRequested) {
-                try {
-                    stateChange.await();
-                } catch (InterruptedException e) {
-                    throw UncheckedException.throwAsUncheckedException(e);
-                }
+                awaitStateChange();
             }
             if (stopRequested) {
                 return null;
@@ -183,6 +175,14 @@ class DefaultIncludedBuildController implements Runnable, Stoppable, IncludedBui
             return tasksToExecute;
         } finally {
             lock.unlock();
+        }
+    }
+
+    private void awaitStateChange() {
+        try {
+            stateChange.await();
+        } catch (InterruptedException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 

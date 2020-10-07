@@ -17,10 +17,8 @@
 package org.gradle.integtests.composite
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
 class CompositeBuildIsolationIntegrationTest extends AbstractIntegrationSpec {
-    @ToBeFixedForConfigurationCache
     def "included build can access root project sneakily"() {
         given:
         buildTestFixture.withBuildInSubDir()
@@ -53,7 +51,6 @@ class CompositeBuildIsolationIntegrationTest extends AbstractIntegrationSpec {
         succeeds("assemble")
     }
 
-    @ToBeFixedForConfigurationCache
     def "included build can access root project sneakily when used as a plugin"() {
         given:
         buildTestFixture.withBuildInSubDir()

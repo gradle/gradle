@@ -17,7 +17,6 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.util.Path
 import spock.lang.Unroll
@@ -59,10 +58,6 @@ abstract class AbstractProjectDependencyConflictResolutionIntegrationSpec extend
     abstract boolean isAutoDependencySubstitution();
 
     @Unroll
-    @ToBeFixedForConfigurationCache(bottomSpecs = [
-        "CompositeBuildProjectDependencyConflictResolutionIntegrationTest",
-        "CompositeBuildIncludesMultiProjectProjectDependencyConflictResolutionIntegrationTest"
-    ])
     def "project dependency (#projectDep) vs external dependency (#transitiveDep) resolves to winner (#winner), when preferProjectModules=#preferProjectModules and force=#force and depSubstitution=#depSubstitution"() {
         given:
         //required for composite builds

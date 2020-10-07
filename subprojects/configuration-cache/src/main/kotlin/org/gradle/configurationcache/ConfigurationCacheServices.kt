@@ -68,6 +68,7 @@ class ConfigurationCacheServices : AbstractPluginServiceRegistry() {
         registration.run {
             add(ConfigurationCacheRepository::class.java)
             add(ConfigurationCacheHost::class.java)
+            add(ConfigurationCacheIO::class.java)
             add(DefaultConfigurationCache::class.java)
         }
     }

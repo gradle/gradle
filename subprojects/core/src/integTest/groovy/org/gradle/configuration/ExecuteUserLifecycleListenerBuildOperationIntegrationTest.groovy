@@ -627,7 +627,6 @@ class ExecuteUserLifecycleListenerBuildOperationIntegrationTest extends Abstract
         verifyHasChildren(whenReadyEvaluated, initScriptAppId, 'init', expectedGradleOps)
     }
 
-    @ToBeFixedForConfigurationCache(because = "composite builds")
     def 'no extra executions for composite builds'() {
         // This test does two things:
         // - shake out internal listener registration that isn't using InternalListener.

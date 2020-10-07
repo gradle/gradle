@@ -26,6 +26,7 @@ class ConfigurationCacheDebugLogIntegrationTest extends AbstractConfigurationCac
     def "logs categorized open/close frame events for state and fingerprint files"() {
         given:
         settingsFile << """
+            rootProject.name = 'root'
             include 'sub'
         """
         buildFile << """
@@ -44,21 +45,21 @@ class ConfigurationCacheDebugLogIntegrationTest extends AbstractConfigurationCac
         events.contains([profile: "fingerprint", type: "C", "frame": GradleEnvironment.name])
 
         and: "Gradle and Work Graph events are logged"
-        events.contains([profile: "state", type: "O", frame: "Gradle"])
-        events.contains([profile: "state", type: "O", frame: "Work Graph"])
+        events.contains([profile: "root state", type: "O", frame: "Gradle"])
+        events.contains([profile: "root state", type: "O", frame: "Work Graph"])
 
         and: "state frame events are logged"
-        events.contains([profile: "state", type: "O", frame: ":ok"])
-        events.contains([profile: "state", type: "C", frame: ":ok"])
-        events.contains([profile: "state", type: "O", frame: ":sub:ok"])
-        events.contains([profile: "state", type: "C", frame: ":sub:ok"])
+        events.contains([profile: "root state", type: "O", frame: ":ok"])
+        events.contains([profile: "root state", type: "C", frame: ":ok"])
+        events.contains([profile: "root state", type: "O", frame: ":sub:ok"])
+        events.contains([profile: "root state", type: "C", frame: ":sub:ok"])
 
         and: "task type frame follows task path frame follows LocalTaskNode frame"
         def firstTaskNodeIndex = events.findIndexOf { it.frame == LocalTaskNode.name }
         firstTaskNodeIndex > 0
-        events[firstTaskNodeIndex] == [profile: "state", type: "O", frame: LocalTaskNode.name]
-        events[firstTaskNodeIndex + 1] == [profile: "state", type: "O", frame: ":ok"]
-        events[firstTaskNodeIndex + 2] == [profile: "state", type: "O", frame: DefaultTask.name]
+        events[firstTaskNodeIndex] == [profile: "root state", type: "O", frame: LocalTaskNode.name]
+        events[firstTaskNodeIndex + 1] == [profile: "root state", type: "O", frame: ":ok"]
+        events[firstTaskNodeIndex + 2] == [profile: "root state", type: "O", frame: DefaultTask.name]
     }
 
     private Collection<Map<String, Object>> collectOutputEvents() {
