@@ -85,4 +85,11 @@ public interface ProjectStateRegistry {
      * DO NOT USE THIS METHOD. It is here to allow some very specific backwards compatibility.
      */
     <T> T allowUncontrolledAccessToAnyProject(Factory<T> factory);
+
+    /**
+     * Allows the given code to access the mutable state of any project, regardless of which other threads may be accessing the project.
+     *
+     * DO NOT USE THIS METHOD. It is here to allow some very specific backwards compatibility.
+     */
+    void allowUncontrolledAccessToAnyProject(Runnable runnable);
 }
