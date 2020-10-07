@@ -53,6 +53,10 @@ public abstract class PerformanceTestResult {
         return Arrays.asList("true", "all").contains(check);
     }
 
+    public PerformanceExperiment getPerformanceExperiment() {
+        return new PerformanceExperiment(testProject, new PerformanceScenario(testClass, testId));
+    }
+
     public String getTestClass() {
         return testClass;
     }

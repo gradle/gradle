@@ -94,7 +94,7 @@ public class GradleBuildExperimentRunner extends AbstractBuildExperimentRunner {
 
         try {
             GradleScenarioInvoker scenarioInvoker = createScenarioInvoker(new File(buildSpec.getWorkingDirectory(), GRADLE_USER_HOME_NAME));
-            Consumer<GradleBuildInvocationResult> scenarioReporter = getResultCollector(scenarioDefinition.getName()).scenario(
+            Consumer<GradleBuildInvocationResult> scenarioReporter = getResultCollector().scenario(
                 scenarioDefinition,
                 scenarioInvoker.samplesFor(invocationSettings, scenarioDefinition)
             );

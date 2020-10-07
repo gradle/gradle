@@ -63,7 +63,7 @@ public class MavenBuildExperimentRunner extends AbstractBuildExperimentRunner {
             AtomicInteger iterationCount = new AtomicInteger(0);
             Logging.setupLogging(workingDirectory);
 
-            Consumer<BuildInvocationResult> scenarioReporter = getResultCollector(scenarioDefinition.getName()).scenario(
+            Consumer<BuildInvocationResult> scenarioReporter = getResultCollector().scenario(
                 scenarioDefinition,
                 scenarioInvoker.samplesFor(invocationSettings, scenarioDefinition)
             );

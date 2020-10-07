@@ -82,8 +82,8 @@ public abstract class AbstractBuildExperimentRunner implements BuildExperimentRu
         return flameGraphGenerator;
     }
 
-    protected BenchmarkResultCollector getResultCollector(String name) {
-        return gradleProfilerReporter.getResultCollector(name);
+    protected BenchmarkResultCollector getResultCollector() {
+        return gradleProfilerReporter.getResultCollector();
     }
 
     protected Profiler getProfiler() {

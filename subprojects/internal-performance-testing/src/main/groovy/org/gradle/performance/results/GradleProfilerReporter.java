@@ -17,18 +17,25 @@
 package org.gradle.performance.results;
 
 import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableList;
 import org.gradle.profiler.BenchmarkResultCollector;
 import org.gradle.profiler.InvocationSettings;
+import org.gradle.profiler.report.AbstractGenerator;
+import org.gradle.profiler.report.BenchmarkResult;
 import org.gradle.profiler.report.CsvGenerator;
 import org.gradle.profiler.report.HtmlGenerator;
 
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.util.List;
+import java.util.function.Consumer;
 
 public class GradleProfilerReporter implements DataReporter<PerformanceTestResult> {
     private static final String DEBUG_ARTIFACTS_DIRECTORY_PROPERTY_NAME = "org.gradle.performance.debugArtifactsDirectory";
-    private BenchmarkResultCollector resultCollector;
+    private final DelegatingReportGenerator delegatingReportGenerator;
+    private final BenchmarkResultCollector resultCollector;
     private final File debugArtifactsDirectory;
 
     public GradleProfilerReporter(File fallbackDirectory) {
@@ -36,18 +43,26 @@ public class GradleProfilerReporter implements DataReporter<PerformanceTestResul
         this.debugArtifactsDirectory = Strings.isNullOrEmpty(debugArtifactsDirectoryPath)
             ? fallbackDirectory
             : new File(debugArtifactsDirectoryPath);
-
+        this.delegatingReportGenerator = new DelegatingReportGenerator();
+        this.resultCollector = new BenchmarkResultCollector(delegatingReportGenerator);
     }
 
     @Override
     public void report(PerformanceTestResult results) {
+        PerformanceExperiment experiment = results.getPerformanceExperiment();
+        File baseDir = new File(debugArtifactsDirectory, experiment.getScenario().getTestName().replaceAll("[^a-zA-Z0-9]", "_"));
+        baseDir.mkdirs();
+        delegatingReportGenerator.setDelegates(ImmutableList.of(
+            new CsvGenerator(new File(baseDir, "benchmark.csv"), CsvGenerator.Format.LONG),
+            new HtmlGenerator(new File(baseDir, "benchmark.html"))
+        ));
+
         resultCollector.summarizeResults(line ->
             System.out.println("  " + line)
         );
         try {
-            // TODO Properly pass in the invocation settings for this benchmark here
             InvocationSettings settings = new InvocationSettings.InvocationSettingsBuilder()
-                .setBenchmarkTitle(results.getTestId())
+                .setBenchmarkTitle(experiment.getDisplayName() + " | " + experiment.getScenario().getSimpleClassName())
                 .build();
             resultCollector.write(settings);
         } catch (IOException e) {
@@ -55,19 +70,43 @@ public class GradleProfilerReporter implements DataReporter<PerformanceTestResul
         }
     }
 
-    public BenchmarkResultCollector getResultCollector(String displayName) {
-        if (resultCollector == null) {
-            File baseDir = new File(debugArtifactsDirectory, displayName.replaceAll("[^a-zA-Z0-9]", "_"));
-            baseDir.mkdirs();
-            this.resultCollector = new BenchmarkResultCollector(
-                new CsvGenerator(new File(baseDir, "benchmark.csv"), CsvGenerator.Format.LONG),
-                new HtmlGenerator(new File(baseDir, "benchmark.html"))
-            );
-        }
+    public BenchmarkResultCollector getResultCollector() {
         return resultCollector;
     }
 
     @Override
     public void close() {
+    }
+
+    private static class DelegatingReportGenerator extends AbstractGenerator {
+
+        List<AbstractGenerator> delegates;
+
+        public DelegatingReportGenerator() {
+            super(null);
+        }
+
+        public void setDelegates(List<AbstractGenerator> delegates) {
+            this.delegates = delegates;
+        }
+
+        @Override
+        public void write(InvocationSettings settings, BenchmarkResult result) throws IOException {
+            for (AbstractGenerator delegate : delegates) {
+                delegate.write(settings, result);
+            }
+        }
+
+        @Override
+        public void summarizeResults(Consumer<String> consumer) {
+            for (AbstractGenerator delegate : delegates) {
+                delegate.summarizeResults(consumer);
+            }
+        }
+
+        @Override
+        protected void write(InvocationSettings settings, BenchmarkResult result, BufferedWriter writer) {
+            throw new UnsupportedOperationException();
+        }
     }
 }
