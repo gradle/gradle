@@ -36,7 +36,6 @@ public class FilteringBuildOperationBuildOperationListener implements BuildOpera
 
     @Override
     public void started(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent) {
-        OperationIdentifier id = buildOperation.getId();
         OperationIdentifier parentId = buildOperation.getParentId();
         OperationIdentifier mappedParentId;
         OperationIdentifier effectiveParentId;
@@ -62,7 +61,7 @@ public class FilteringBuildOperationBuildOperationListener implements BuildOpera
             // Ignore this operation, and map any reference to it to its parent (or whatever its parent is mapped to
             op = new MappedOp(mappedParentId);
         }
-        mapping.put(id, op);
+        mapping.put(buildOperation.getId(), op);
     }
 
     @Override
