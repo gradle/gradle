@@ -16,6 +16,7 @@
 
 package org.gradle.tooling.internal.provider.runner;
 
+import org.gradle.api.internal.tasks.testing.operations.ExecuteTestBuildOperationType;
 import org.gradle.initialization.BuildEventConsumer;
 import org.gradle.internal.build.event.BuildEventListenerFactory;
 import org.gradle.internal.build.event.BuildEventSubscriptions;
@@ -25,6 +26,7 @@ import org.gradle.internal.operations.BuildOperationCategory;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationIdFactory;
 import org.gradle.internal.operations.BuildOperationListener;
+import org.gradle.internal.operations.BuildOperationMetadata;
 import org.gradle.internal.operations.FilteringBuildOperationBuildOperationListener;
 import org.gradle.internal.operations.OperationFinishEvent;
 import org.gradle.internal.operations.OperationIdentifier;
@@ -110,8 +112,12 @@ public class ToolingApiBuildEventListenerFactory implements BuildEventListenerFa
      */
     private static BuildOperationListener filterProgressOperations(BuildOperationListener buildListener) {
         return new FilteringBuildOperationBuildOperationListener(buildListener, buildOperation ->
-            buildOperation.getMetadata() != BuildOperationCategory.UNCATEGORIZED
-                || buildOperation.getProgressDisplayName() != null);
+        {
+            BuildOperationMetadata metadata = buildOperation.getMetadata();
+            return (metadata != BuildOperationMetadata.NONE && metadata != BuildOperationCategory.UNCATEGORIZED)
+                || buildOperation.getProgressDisplayName() != null
+                || buildOperation.getDetails() instanceof ExecuteTestBuildOperationType.Details;
+        });
     }
 
     private static final BuildOperationListener NO_OP = new BuildOperationListener() {
