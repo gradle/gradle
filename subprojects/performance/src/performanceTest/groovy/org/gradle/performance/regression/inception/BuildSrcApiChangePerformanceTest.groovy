@@ -44,7 +44,7 @@ class BuildSrcApiChangePerformanceTest extends AbstractCrossVersionPerformanceTe
 
         and:
         def changingClassFilePath = "buildSrc/src/main/groovy/ChangingClass.groovy"
-        runner.addBuildMutator { createChangingClass(it, changingClassFilePath) }
+        runner.addBuildMutator { new CreateChangingClassMutator(it, changingClassFilePath) }
         runner.addBuildMutator { new ApplyAbiChangeToGroovySourceFileMutator(new File(it.projectDir, changingClassFilePath)) }
 
         when:
@@ -61,7 +61,7 @@ class BuildSrcApiChangePerformanceTest extends AbstractCrossVersionPerformanceTe
 
         and:
         def changingClassFilePath = "buildSrc/src/main/groovy/ChangingClass.groovy"
-        runner.addBuildMutator { createChangingClass(changingClassFilePath) }
+        runner.addBuildMutator { new CreateChangingClassMutator(it, changingClassFilePath) }
         runner.addBuildMutator { new ApplyNonAbiChangeToGroovySourceFileMutator(new File(it.projectDir, changingClassFilePath)) }
     }
 
@@ -78,21 +78,28 @@ class BuildSrcApiChangePerformanceTest extends AbstractCrossVersionPerformanceTe
         }
     }
 
-    static BuildMutator createChangingClass(InvocationSettings settings, String filePath) {
-         new BuildMutator() {
-             @Override
-             void beforeScenario(ScenarioContext context) {
-                 new File(settings.projectDir, filePath).tap {
-                     parentFile.mkdirs()
-                     text = """
-                         class ChangingClass {
-                             void changingMethod() {
-                                 System.out.println("Do the thing");
-                             }
-                         }
-                     """
-                 }
-             }
-         }
+    private static class CreateChangingClassMutator implements BuildMutator {
+
+        private final InvocationSettings settings
+        private final String filePath
+
+        CreateChangingClassMutator(InvocationSettings settings, String filePath) {
+            this.settings = settings
+            this.filePath = filePath
+        }
+
+        @Override
+        void beforeScenario(ScenarioContext context) {
+            new File(settings.projectDir, filePath).with {
+                parentFile.mkdirs()
+                text = """
+                    class ChangingClass {
+                        void changingMethod() {
+                            System.out.println("Do the thing");
+                        }
+                    }
+                """
+            }
+        }
     }
 }
