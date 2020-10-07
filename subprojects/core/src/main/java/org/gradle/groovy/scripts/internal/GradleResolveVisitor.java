@@ -61,6 +61,7 @@ import org.codehaus.groovy.syntax.Types;
 import org.codehaus.groovy.transform.trait.Traits;
 import org.objectweb.asm.Opcodes;
 
+import javax.inject.Inject;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.reflect.Modifier;
@@ -576,7 +577,10 @@ public class GradleResolveVisitor extends ResolveVisitor {
                     return true;
                 }
             }
-            if (name.equals("BigInteger")) {
+            if (name.equals("Inject")) {
+                type.setRedirect(ClassHelper.makeCached(Inject.class));
+                return true;
+            } else if (name.equals("BigInteger")) {
                 type.setRedirect(ClassHelper.BigInteger_TYPE);
                 return true;
             } else if (name.equals("BigDecimal")) {
