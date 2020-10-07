@@ -35,7 +35,7 @@ class ProjectLocalDependencyResolutionConsistencyIntegrationTest extends Abstrac
         buildFile << """
             configurations {
                 other
-                conf.resolveConsistentlyWith(other)
+                conf.shouldResolveConsistentlyWith(other)
             }
 
             dependencies {
@@ -56,7 +56,7 @@ class ProjectLocalDependencyResolutionConsistencyIntegrationTest extends Abstrac
         resolve.expectGraph {
             root(':', ':test:') {
                 edge('org:foo:1.0', 'org:foo:1.1') {
-                    byConstraint("version resolved in configuration ':other' by consistent resolution")
+                    byConsistentResolution('other')
                 }
                 constraint("org:foo:{strictly 1.1}", "org:foo:1.1")
             }
@@ -73,7 +73,7 @@ class ProjectLocalDependencyResolutionConsistencyIntegrationTest extends Abstrac
         buildFile << """
             configurations {
                 other
-                conf.resolveConsistentlyWith(other)
+                conf.shouldResolveConsistentlyWith(other)
             }
 
             dependencies {
@@ -108,7 +108,7 @@ class ProjectLocalDependencyResolutionConsistencyIntegrationTest extends Abstrac
         buildFile << """
             configurations {
                 other
-                conf.resolveConsistentlyWith(other)
+                conf.shouldResolveConsistentlyWith(other)
             }
 
             dependencies {
@@ -133,7 +133,7 @@ class ProjectLocalDependencyResolutionConsistencyIntegrationTest extends Abstrac
         resolve.expectGraph {
             root(':', ':test:') {
                 edge('org:foo:{prefer 1.1}', 'org:foo:1.0') {
-                    byConstraint("version resolved in configuration ':other' by consistent resolution")
+                    byConsistentResolution('other')
                 }
                 constraint("org:foo:{strictly 1.0}", "org:foo:1.0")
             }
@@ -165,7 +165,7 @@ class ProjectLocalDependencyResolutionConsistencyIntegrationTest extends Abstrac
                 compileClasspath.extendsFrom(implementation)
                 runtimeClasspath.extendsFrom(implementation, runtimeOnly)
                 runtimeClasspath {
-                   resolveConsistentlyWith(compileClasspath)
+                   shouldResolveConsistentlyWith(compileClasspath)
                 }
             }
 
@@ -201,18 +201,18 @@ class ProjectLocalDependencyResolutionConsistencyIntegrationTest extends Abstrac
         resolve.expectGraph {
             root(':', ':test:') {
                 module('org:foo:1.0') {
-                    byConstraint("version resolved in configuration ':compileClasspath' by consistent resolution")
+                    byConsistentResolution('compileClasspath')
                     module('org:fooA:1.0') {
-                        byConstraint("version resolved in configuration ':compileClasspath' by consistent resolution")
+                        byConsistentResolution('compileClasspath')
                         module("org:transitive:1.0") {
-                            byConstraint("version resolved in configuration ':compileClasspath' by consistent resolution")
+                            byConsistentResolution('compileClasspath')
                         }
                     }
                 }
                 module('org:bar:1.0') {
                     module('org:barA:1.0') {
                         edge("org:transitive:2.0", "org:transitive:1.0") {
-                            byConstraint("version resolved in configuration ':compileClasspath' by consistent resolution")
+                            byConsistentResolution('compileClasspath')
                         }
                     }
                 }
@@ -232,9 +232,9 @@ class ProjectLocalDependencyResolutionConsistencyIntegrationTest extends Abstrac
         }
         buildFile << """
             configurations {
-                other.resolveConsistentlyWith(another)
-                another.resolveConsistentlyWith(conf)
-                conf.resolveConsistentlyWith(other)
+                other.shouldResolveConsistentlyWith(another)
+                another.shouldResolveConsistentlyWith(conf)
+                conf.shouldResolveConsistentlyWith(other)
             }
 
             dependencies {
@@ -260,7 +260,7 @@ class ProjectLocalDependencyResolutionConsistencyIntegrationTest extends Abstrac
         buildFile << """
             configurations {
                 other
-                conf.resolveConsistentlyWith(other)
+                conf.shouldResolveConsistentlyWith(other)
 
                 conf.resolutionStrategy.eachDependency { details ->
                     if (details.requested.name == 'foo') {

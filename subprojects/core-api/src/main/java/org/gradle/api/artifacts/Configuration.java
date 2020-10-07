@@ -546,13 +546,19 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
      * expected that the versions of the runtime classpath are the same as the versions
      * from the compile classpath.
      *
-     * Setting to null would disable any previously configured consistency source.
-     *
      * @param versionsSource another resolvable configuration to use as reference for versions
      * @return this configuration
      *
      * @since 6.8
      */
     @Incubating
-    Configuration resolveConsistentlyWith(@Nullable Configuration versionsSource);
+    Configuration shouldResolveConsistentlyWith(Configuration versionsSource);
+
+    /**
+     * Disables consistent resolution for this configuration
+     *
+     * @since 6.8
+     */
+    @Incubating
+    Configuration disableConsistentResolution();
 }
