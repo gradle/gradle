@@ -61,7 +61,6 @@ public class JvmApplicationProjectInitDescriptor extends JvmProjectInitDescripto
 
         if (isSingleProject(settings)) {
             applyApplicationPlugin(buildScriptBuilder);
-            // TODO (donat) declare guava version in buildSrc convention
             buildScriptBuilder.implementationDependency("This dependency is used by the application.",
                     "com.google.guava:guava:" + libraryVersionProvider.getVersion("guava"));
         } else {
