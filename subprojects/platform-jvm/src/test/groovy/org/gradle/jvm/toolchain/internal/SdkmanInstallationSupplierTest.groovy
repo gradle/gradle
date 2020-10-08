@@ -174,7 +174,6 @@ class SdkmanInstallationSupplierTest extends Specification {
         SystemProperties.instance.withSystemProperty("user.home", userhome) {
             new SdkmanInstallationSupplier(createProviderFactory(propertyValue))
         }
-
     }
 
     ProviderFactory createProviderFactory(String propertyValue) {
