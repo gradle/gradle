@@ -25,8 +25,6 @@ import org.gradle.api.internal.tasks.testing.TestStartEvent;
 import org.gradle.api.internal.tasks.testing.results.AttachParentTestResultProcessor;
 import org.gradle.internal.time.Clock;
 
-import javax.annotation.Nullable;
-
 public class TestMainAction implements Runnable {
     private final Runnable detector;
     private final TestClassProcessor processor;
@@ -63,12 +61,6 @@ public class TestMainAction implements Runnable {
     private static final class RootTestSuiteDescriptor extends DefaultTestSuiteDescriptor {
         private RootTestSuiteDescriptor(Object id, String name) {
             super(id, name);
-        }
-
-        @Nullable
-        @Override
-        public Object getOwnerBuildOperationId() {
-            return null;
         }
 
         @Override

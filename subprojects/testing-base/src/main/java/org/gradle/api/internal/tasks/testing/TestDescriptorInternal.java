@@ -30,13 +30,6 @@ public interface TestDescriptorInternal extends TestDescriptor {
     Object getId();
 
     /**
-     * Returns the identifier for the build operation (eg test task) that owns this test.
-     * Not null only for a root test suite with no parent test.
-     */
-    @Nullable
-    Object getOwnerBuildOperationId();
-
-    /**
      * The class name for display. It may be the same as or different from {@link #getClassName()}
      * @return the class name for display.
      */

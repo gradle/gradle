@@ -103,7 +103,6 @@ class TestExecutionResultEvaluatorTest extends Specification {
 
         testDescriptorInternal.getName() >> "someTest"
         testDescriptorInternal.getClassName() >> "acme.SomeTestClass"
-        testDescriptorInternal.getOwnerBuildOperationId() >> new OperationIdentifier(1)
 
         def testResult = Mock(TestResult)
         1 * testResult.getTestCount() >> 1
