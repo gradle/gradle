@@ -195,6 +195,40 @@ class KotlinApiClassExtractorTest : TestWithTempFiles() {
         ).assertSameApi()
     }
 
+    @Test
+    fun `changes to standalone const val field change generated API class`() {
+        givenChangingScript(
+            "Foo",
+            """
+                const val FOO = "foo"
+                fun foo() = FOO
+            """,
+            { assertThat(it.callStatic("foo"), equalTo("foo")) },
+            """
+                const val FOO = "bar"
+                fun foo() = FOO
+            """,
+            { assertThat(it.callStatic("foo"), equalTo("bar")) }
+        ).assertApiChanged()
+    }
+
+    @Test
+    fun `changes to const val field in object change generated API class`() {
+        givenChangingObject(
+            "Foo",
+            """
+                const val FOO = "foo"
+                fun foo() = FOO
+            """,
+            { assertThat(it.callOnObjectIntance("foo"), equalTo("foo")) },
+            """
+                const val FOO = "bar"
+                fun foo() = FOO
+            """,
+            { assertThat(it.callOnObjectIntance("foo"), equalTo("bar")) }
+        ).assertApiChanged()
+    }
+
     private
     fun givenChangingClass(
         className: String,
@@ -206,6 +240,21 @@ class KotlinApiClassExtractorTest : TestWithTempFiles() {
         val initialClass = compileClass(className, initialBody)
         initialAssertion(initialClass)
         val changedClass = compileClass(className, changedBody)
+        changedAssertion(changedClass)
+        return ClassChangeFixture(initialClass, changedClass)
+    }
+
+    private
+    fun givenChangingObject(
+        className: String,
+        initialBody: String,
+        initialAssertion: (ClassFixture) -> Unit,
+        changedBody: String,
+        changedAssertion: (ClassFixture) -> Unit
+    ): ClassChangeFixture {
+        val initialClass = compileObject(className, initialBody)
+        initialAssertion(initialClass)
+        val changedClass = compileObject(className, changedBody)
         changedAssertion(changedClass)
         return ClassChangeFixture(initialClass, changedClass)
     }
@@ -236,6 +285,19 @@ class KotlinApiClassExtractorTest : TestWithTempFiles() {
             }
             """,
             "$className.class"
+        )
+    }
+
+    private
+    fun compileObject(objectName: String, classBody: String): ClassFixture {
+        return compileScript(
+            objectName,
+            """
+            object $objectName {
+            $classBody
+            }
+            """,
+            "$objectName.class"
         )
     }
 
@@ -311,6 +373,13 @@ class ClassFixture(val sourceContent: String, val bytes: ByteArray) {
         val loadedClass = loadClass()
         val method = loadedClass.getMethod(methodName)
         return method.invoke(loadedClass)
+    }
+
+    fun callOnObjectIntance(methodName: String): Any {
+        val loadedClass = loadClass()
+        val method = loadedClass.getMethod(methodName)
+        val instance = loadedClass.getField("INSTANCE")
+        return method.invoke(instance.get(loadedClass))
     }
 }
 

@@ -302,6 +302,27 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
         configureProject().assertBuildScriptCompilationAvoided().assertOutputContains("bar")
     }
 
+    @ToBeFixedForConfigurationCache
+    @Test
+    fun `recompiles buildscript on const val field change in buildSrc script`() {
+        val packageName = givenKotlinScriptInBuildSrcContains(
+            "foo",
+            """
+            const val FOO = "foo"
+            """
+        )
+        withBuildScript("println($packageName.FOO)")
+        configureProject().assertBuildScriptCompiled().assertOutputContains("foo")
+
+        givenKotlinScriptInBuildSrcContains(
+            "foo",
+            """
+            const val FOO = "bar"
+            """
+        )
+        configureProject().assertBuildScriptCompiled().assertOutputContains("bar")
+    }
+
     private
     fun withPrecompiledScriptPluginInBuildSrc(pluginId: String, pluginSource: String) {
         withKotlinDslPluginIn("buildSrc")
