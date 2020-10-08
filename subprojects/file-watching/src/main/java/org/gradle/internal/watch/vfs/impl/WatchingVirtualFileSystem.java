@@ -246,7 +246,9 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
                     try {
                         String absolutePath = path.toString();
                         if (!locationsWrittenByCurrentBuild.wasLocationWritten(absolutePath)) {
-                            update((root, diffListener) -> root.invalidate(absolutePath, new VfsChangeLoggingNodeDiffListener(type, path, diffListener)));
+                            rootReference.update(root -> updateNotifyingListeners(
+                                diffListener -> root.invalidate(absolutePath, new VfsChangeLoggingNodeDiffListener(type, path, diffListener))
+                            ));
                         }
                     } catch (Exception e) {
                         LOGGER.error("Error while processing file events", e);

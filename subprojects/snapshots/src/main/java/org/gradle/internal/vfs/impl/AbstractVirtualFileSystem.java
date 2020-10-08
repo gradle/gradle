@@ -44,7 +44,7 @@ public abstract class AbstractVirtualFileSystem implements VirtualFileSystem {
 
     @Override
     public void store(String absolutePath, CompleteFileSystemLocationSnapshot snapshot) {
-        update((root, diffListener) -> root.store(absolutePath, snapshot, diffListener));
+        rootReference.update(root -> updateNotifyingListeners(diffListener -> root.store(absolutePath, snapshot, diffListener)));
     }
 
     @Override
@@ -61,24 +61,14 @@ public abstract class AbstractVirtualFileSystem implements VirtualFileSystem {
 
     @Override
     public void invalidateAll() {
-        update((root, diffListener) -> {
+        rootReference.update(root -> updateNotifyingListeners(diffListener -> {
             root.visitSnapshotRoots(diffListener::nodeRemoved);
             return root.empty();
-        });
+        }));
     }
-
-    protected void update(UpdateFunction updateFunction) {
-        rootReference.update(root -> updateNotifyingListeners(
-            diffListener -> updateFunction.update(root, diffListener)
-        ));
-    }
-
-    protected abstract SnapshotHierarchy updateNotifyingListeners(Function<SnapshotHierarchy.NodeDiffListener, SnapshotHierarchy> updateFunction);
 
     /**
-     * Updates the snapshot hierarchy, passing a {@link SnapshotHierarchy.NodeDiffListener} to the calls on {@link SnapshotHierarchy}.
+     * Runs a single update on a {@link SnapshotHierarchy} and notifies the currently active listeners after the update.
      */
-    public interface UpdateFunction {
-        SnapshotHierarchy update(SnapshotHierarchy root, SnapshotHierarchy.NodeDiffListener diffListener);
-    }
+    protected abstract SnapshotHierarchy updateNotifyingListeners(Function<SnapshotHierarchy.NodeDiffListener, SnapshotHierarchy> updateFunction);
 }
