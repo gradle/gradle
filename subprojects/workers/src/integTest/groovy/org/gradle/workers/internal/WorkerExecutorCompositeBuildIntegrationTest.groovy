@@ -103,6 +103,7 @@ class WorkerExecutorCompositeBuildIntegrationTest extends AbstractIntegrationSpe
         """
 
         plugin.file('src/main/java/LegacyRunnable.java') << """
+            import javax.inject.Inject;
             import java.io.File;
             import org.gradle.test.FileHelper;
 
@@ -125,6 +126,7 @@ class WorkerExecutorCompositeBuildIntegrationTest extends AbstractIntegrationSpe
             import org.gradle.api.Action;
             import org.gradle.api.tasks.*;
             import org.gradle.workers.*;
+            import javax.inject.Inject;
             import java.io.File;
 
             public class LegacyWorkerTask extends DefaultTask {
@@ -211,6 +213,7 @@ class WorkerExecutorCompositeBuildIntegrationTest extends AbstractIntegrationSpe
             import org.gradle.api.file.RegularFileProperty;
             import org.gradle.api.tasks.*;
             import org.gradle.workers.*;
+            import javax.inject.Inject;
             import java.io.File;
 
             public class TypedWorkerTask extends DefaultTask {

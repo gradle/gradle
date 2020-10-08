@@ -74,6 +74,7 @@ class ProviderIntegrationTest extends AbstractIntegrationSpec {
             import ${ProviderFactory.name};
             import ${TaskAction.name};
 
+            import javax.inject.Inject;
             import java.util.concurrent.Callable;
 
             public class MyTask extends DefaultTask {

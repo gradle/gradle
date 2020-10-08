@@ -38,6 +38,8 @@ class DefaultSourceDirectorySetFactoryTest extends AbstractIntegrationSpec {
             import org.gradle.api.Task;
             import org.gradle.api.internal.file.SourceDirectorySetFactory;
 
+            import javax.inject.Inject;
+
             public class TestPlugin implements Plugin<Project> {
 
                 private final SourceDirectorySetFactory sourceDirectorySetFactory;
