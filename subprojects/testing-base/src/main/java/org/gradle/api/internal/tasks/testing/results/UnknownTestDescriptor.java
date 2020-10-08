@@ -17,8 +17,6 @@ package org.gradle.api.internal.tasks.testing.results;
 
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
 
-import javax.annotation.Nullable;
-
 public class UnknownTestDescriptor implements TestDescriptorInternal {
 
     @Override
@@ -43,12 +41,6 @@ public class UnknownTestDescriptor implements TestDescriptorInternal {
 
     @Override
     public TestDescriptorInternal getParent() {
-        return null;
-    }
-
-    @Nullable
-    @Override
-    public Object getOwnerBuildOperationId() {
         return null;
     }
 

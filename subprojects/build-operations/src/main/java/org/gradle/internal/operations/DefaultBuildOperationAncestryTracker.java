@@ -14,41 +14,39 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.provider.runner;
-
-import org.gradle.internal.operations.BuildOperationDescriptor;
-import org.gradle.internal.operations.BuildOperationListener;
-import org.gradle.internal.operations.OperationFinishEvent;
-import org.gradle.internal.operations.OperationIdentifier;
-import org.gradle.internal.operations.OperationProgressEvent;
-import org.gradle.internal.operations.OperationStartEvent;
+package org.gradle.internal.operations;
 
 import javax.annotation.Nullable;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
-class BuildOperationParentTracker implements BuildOperationListener {
+@SuppressWarnings("Since15")
+public class DefaultBuildOperationAncestryTracker implements BuildOperationListener, BuildOperationAncestryTracker {
 
-    private final Map<OperationIdentifier, OperationIdentifier> parents = new ConcurrentHashMap<>();
+    private final Map<OperationIdentifier, OperationIdentifier> parents = new ConcurrentHashMap<OperationIdentifier, OperationIdentifier>();
 
-    @Nullable
-    OperationIdentifier findClosestMatchingAncestor(OperationIdentifier id, Predicate<? super OperationIdentifier> predicate) {
-        if (id == null || predicate.test(id)) {
-            return id;
+    @Override
+    public Optional<OperationIdentifier> findClosestMatchingAncestor(@Nullable OperationIdentifier id, Predicate<? super OperationIdentifier> predicate) {
+        if (id == null) {
+            return Optional.empty();
+        }
+        if (predicate.test(id)) {
+            return Optional.of(id);
         }
         return findClosestMatchingAncestor(parents.get(id), predicate);
     }
 
-    @Nullable
-    <T> T findClosestExistingAncestor(OperationIdentifier id, Function<? super OperationIdentifier, T> lookupFunction) {
+    @Override
+    public <T> Optional<T> findClosestExistingAncestor(@Nullable OperationIdentifier id, Function<? super OperationIdentifier, T> lookupFunction) {
         if (id == null) {
-            return null;
+            return Optional.empty();
         }
         T value = lookupFunction.apply(id);
         if (value != null) {
-            return value;
+            return Optional.of(value);
         }
         return findClosestExistingAncestor(parents.get(id), lookupFunction);
     }
@@ -68,5 +66,4 @@ class BuildOperationParentTracker implements BuildOperationListener {
     public void finished(BuildOperationDescriptor buildOperation, OperationFinishEvent finishEvent) {
         parents.remove(buildOperation.getId());
     }
-
 }

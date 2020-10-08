@@ -25,7 +25,7 @@ class TestMainActionTest extends Specification {
     private final TestResultProcessor resultProcessor = Mock()
     private final Runnable detector = Mock()
     private final Clock timeProvider = Mock()
-    private final TestMainAction action = new TestMainAction(detector, processor, resultProcessor, timeProvider, "taskOperationId123", "rootTestSuiteId456", "Test Run")
+    private final TestMainAction action = new TestMainAction(detector, processor, resultProcessor, timeProvider, "rootTestSuiteId456", "Test Run")
 
     def 'fires start and end events around detector execution'() {
         when:
