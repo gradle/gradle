@@ -121,8 +121,10 @@ class ClientForwardingTestOperationListener implements BuildOperationListener {
         return new DefaultTestDescriptor(id, name, displayName, testKind, null, className, methodName, parentId, taskPath);
     }
 
+    @Nullable
     private String getTaskPath(OperationIdentifier buildOperationId) {
-        return ancestryTracker.findClosestExistingAncestor(buildOperationId, runningTasks::get);
+        return ancestryTracker.findClosestExistingAncestor(buildOperationId, runningTasks::get)
+            .orElse(null);
     }
 
     private Object getParentId(OperationIdentifier buildOperationId, TestDescriptorInternal descriptor) {
@@ -132,7 +134,8 @@ class ClientForwardingTestOperationListener implements BuildOperationListener {
         }
         // only set the TaskOperation as the parent if the Tooling API Consumer is listening to task progress events
         if (clientSubscriptions.isRequested(OperationType.TASK)) {
-            return ancestryTracker.findClosestMatchingAncestor(buildOperationId, runningTasks::containsKey);
+            return ancestryTracker.findClosestMatchingAncestor(buildOperationId, runningTasks::containsKey)
+                .orElse(null);
         }
         return null;
     }

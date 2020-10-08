@@ -18,6 +18,7 @@ package org.gradle.internal.operations;
 
 import javax.annotation.Nullable;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -27,22 +28,23 @@ public class BuildOperationAncestryTracker implements BuildOperationListener {
 
     private final Map<OperationIdentifier, OperationIdentifier> parents = new ConcurrentHashMap<OperationIdentifier, OperationIdentifier>();
 
-    @Nullable
-    public OperationIdentifier findClosestMatchingAncestor(@Nullable OperationIdentifier id, Predicate<? super OperationIdentifier> predicate) {
-        if (id == null || predicate.test(id)) {
-            return id;
+    public Optional<OperationIdentifier> findClosestMatchingAncestor(@Nullable OperationIdentifier id, Predicate<? super OperationIdentifier> predicate) {
+        if (id == null) {
+            return Optional.empty();
+        }
+        if (predicate.test(id)) {
+            return Optional.of(id);
         }
         return findClosestMatchingAncestor(parents.get(id), predicate);
     }
 
-    @Nullable
-    public <T> T findClosestExistingAncestor(@Nullable OperationIdentifier id, Function<? super OperationIdentifier, T> lookupFunction) {
+    public <T> Optional<T> findClosestExistingAncestor(@Nullable OperationIdentifier id, Function<? super OperationIdentifier, T> lookupFunction) {
         if (id == null) {
-            return null;
+            return Optional.empty();
         }
         T value = lookupFunction.apply(id);
         if (value != null) {
-            return value;
+            return Optional.of(value);
         }
         return findClosestExistingAncestor(parents.get(id), lookupFunction);
     }

@@ -64,12 +64,13 @@ class PluginApplicationTracker implements BuildOperationListener {
         return ancestryTracker.findClosestMatchingAncestor(id, parent -> {
             PluginApplication pluginApplication = runningPluginApplications.get(parent);
             return pluginApplication != null && predicate.test(pluginApplication);
-        }) != null;
+        }).isPresent();
     }
 
     @Nullable
     public PluginApplication findRunningPluginApplication(OperationIdentifier id) {
-        return ancestryTracker.findClosestExistingAncestor(id, runningPluginApplications::get);
+        return ancestryTracker.findClosestExistingAncestor(id, runningPluginApplications::get)
+            .orElse(null);
     }
 
     @Override

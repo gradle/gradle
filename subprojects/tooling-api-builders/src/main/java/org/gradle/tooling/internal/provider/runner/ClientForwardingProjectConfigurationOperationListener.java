@@ -75,10 +75,11 @@ class ClientForwardingProjectConfigurationOperationListener extends SubtreeFilte
         if (isEnabled()) {
             PluginApplication pluginApplication = pluginApplicationTracker.getRunningPluginApplication(buildOperation.getId());
             if (pluginApplication != null) {
-                ProjectConfigurationResult result = ancestryTracker.findClosestExistingAncestor(buildOperation.getParentId(), results::get);
-                if (result != null && hasNoEnclosingRunningPluginApplicationForSamePlugin(buildOperation, pluginApplication.getPlugin())) {
-                    result.increment(pluginApplication, finishEvent.getEndTime() - finishEvent.getStartTime());
-                }
+                ancestryTracker.findClosestExistingAncestor(buildOperation.getParentId(), results::get).ifPresent(result -> {
+                    if (hasNoEnclosingRunningPluginApplicationForSamePlugin(buildOperation, pluginApplication.getPlugin())) {
+                        result.increment(pluginApplication, finishEvent.getEndTime() - finishEvent.getStartTime());
+                    }
+                });
             }
         }
     }
@@ -102,7 +103,7 @@ class ClientForwardingProjectConfigurationOperationListener extends SubtreeFilte
     private DefaultProjectConfigurationDescriptor toProjectConfigurationDescriptor(BuildOperationDescriptor buildOperation, ConfigureProjectBuildOperationType.Details details) {
         Object id = buildOperation.getId();
         String displayName = buildOperation.getDisplayName();
-        Object parentId = eventConsumer.findStartedParentId(buildOperation);
+        OperationIdentifier parentId = eventConsumer.findStartedParentId(buildOperation);
         return new DefaultProjectConfigurationDescriptor(id, displayName, parentId, details.getRootDir(), details.getProjectPath());
     }
 
@@ -139,7 +140,7 @@ class ClientForwardingProjectConfigurationOperationListener extends SubtreeFilte
 
     private static class PluginApplicationResult {
 
-        private AtomicLong duration = new AtomicLong();
+        private final AtomicLong duration = new AtomicLong();
         private final InternalPluginIdentifier plugin;
         private final long firstApplicationId;
 
