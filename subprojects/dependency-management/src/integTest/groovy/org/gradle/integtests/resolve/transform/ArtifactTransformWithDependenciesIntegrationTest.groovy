@@ -390,8 +390,7 @@ project(':common') {
         outputContains("result = [a.jar.local, test-1.2.jar.external.local]")
     }
 
-    def "file collection queried during task graph calculation can contain the transform of external artifact can consume different transform of external artifact as dependency"() {
-        given:
+    def setupBuildWithTransformOfExternalDependencyThatUsesDifferentTransformForUpstreamDependencies() {
         def m1 = mavenHttpRepo.module("test", "test", "1.2")
             .adhocVariants()
             .variant('runtime', [color: 'blue'])
@@ -485,29 +484,63 @@ project(':common') {
                 // The problem can potentially also be triggered by including many direct dependencies so that the queued transforms start to execute before the main thread sees the second transform
                 componentFilter { it instanceof ModuleComponentIdentifier && it.module != 'test' }
             }.artifacts
+        """
+    }
 
-            resolve.dependsOn {
+    def "file collection queried can contain the transform of external artifact can consume different transform of external artifact as dependency"() {
+        given:
+        setupBuildWithTransformOfExternalDependencyThatUsesDifferentTransformForUpstreamDependencies()
+
+        buildFile << """
+            resolveArtifacts.collection = view
+        """
+
+        when:
+        run(":resolveArtifacts")
+
+        then:
+        output.count("transform") == 3
+        outputContains("transform external test-1.2.jar")
+        outputContains("transform local test2-1.5.thing using [test-1.2.jar.external]")
+        outputContains("transform local test3-1.5.thing using [test-1.2.jar.external]")
+        outputContains("artifacts = [test2-1.5.thing.local (test:test2:1.5), test3-1.5.thing.local (test:test3:1.5)]")
+
+        when:
+        run(":resolveArtifacts")
+
+        then:
+        outputDoesNotContain("transform")
+        outputContains("artifacts = [test2-1.5.thing.local (test:test2:1.5), test3-1.5.thing.local (test:test3:1.5)]")
+    }
+
+    def "file collection queried during task graph calculation can contain the transform of external artifact can consume different transform of external artifact as dependency"() {
+        given:
+        setupBuildWithTransformOfExternalDependencyThatUsesDifferentTransformForUpstreamDependencies()
+
+        buildFile << """
+            resolveArtifacts.collection = view
+            resolveArtifacts.dependsOn {
                 view.forEach { println("artifact = " + it) }
                 []
             }
         """
 
         when:
-        run(":resolve")
+        run(":resolveArtifacts")
 
         then:
+        output.count("transform") == 3
         outputContains("transform external test-1.2.jar")
         outputContains("transform local test2-1.5.thing using [test-1.2.jar.external]")
         outputContains("transform local test3-1.5.thing using [test-1.2.jar.external]")
-        outputContains("transform local test-1.2.jar.external using []")
-        outputContains("result = [test2-1.5.thing.local, test3-1.5.thing.local, test-1.2.jar.external.local]")
+        outputContains("artifacts = [test2-1.5.thing.local (test:test2:1.5), test3-1.5.thing.local (test:test3:1.5)]")
 
         when:
-        run(":resolve")
+        run(":resolveArtifacts")
 
         then:
         outputDoesNotContain("transform")
-        outputContains("result = [test2-1.5.thing.local, test3-1.5.thing.local, test-1.2.jar.external.local]")
+        outputContains("artifacts = [test2-1.5.thing.local (test:test2:1.5), test3-1.5.thing.local (test:test3:1.5)]")
     }
 
     @Issue("https://github.com/gradle/gradle/issues/14529")

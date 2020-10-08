@@ -199,7 +199,7 @@ class DefaultConfigurationCache internal constructor(
 
     private
     fun writeConfigurationCacheState(stateFile: File) {
-        service<ProjectStateRegistry>().allowUncontrolledAccessToAnyProject {
+        service<ProjectStateRegistry>().withMutableStateOfAllProjects {
             withWriteContextFor(stateFile, "state") {
                 configurationCacheState().run {
                     writeState()
