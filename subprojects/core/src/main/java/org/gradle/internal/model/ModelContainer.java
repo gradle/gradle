@@ -34,6 +34,11 @@ public interface ModelContainer<T> {
     <S> S fromMutableState(Function<? super T, ? extends S> factory);
 
     /**
+     * DO NOT USE THIS METHOD. It is here to provide some specific backwards compatibility.
+     */
+    void forceAccessToMutableState(Consumer<? super T> action);
+
+    /**
      * Runs the given action against the public mutable model. Applies best effort synchronization to prevent concurrent access to a particular project from multiple threads.
      * However, it is currently easy for state to leak from one project to another so this is not a strong guarantee.
      */

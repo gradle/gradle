@@ -161,7 +161,7 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
         ensurePopulated();
         if (!hasFiredWhenReady) {
             // We know that we're running single-threaded here, so we can use coarse grained project locks
-            projectStateRegistry.allowUncontrolledAccessToAnyProject(() -> buildOperationExecutor.run(new NotifyTaskGraphWhenReady(DefaultTaskExecutionGraph.this, graphListeners.getSource(), gradleInternal)));
+            projectStateRegistry.withMutableStateOfAllProjects(() -> buildOperationExecutor.run(new NotifyTaskGraphWhenReady(DefaultTaskExecutionGraph.this, graphListeners.getSource(), gradleInternal)));
             hasFiredWhenReady = true;
         } else if (!graphListeners.isEmpty()) {
             LOGGER.warn("Ignoring listeners of task graph ready event, as this build (" + gradleInternal.getIdentityPath() + ") has already executed work.");
