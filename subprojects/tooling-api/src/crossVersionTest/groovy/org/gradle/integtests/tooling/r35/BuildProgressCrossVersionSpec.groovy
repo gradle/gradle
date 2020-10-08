@@ -37,7 +37,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
     def "generates events for interleaved project configuration and dependency resolution"() {
         given:
         settingsFile << """
-            
+
             rootProject.name = 'multi'
             include 'a', 'b'
         """
@@ -114,7 +114,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
             repositories {
                maven { url '${mavenHttpRepo.uri}' }
             }
-            
+
             dependencies {
                 implementation project(':a')
                 implementation "group:projectB:1.0"
@@ -260,7 +260,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         and:
         def compileJavaActions = events.operations.findAll { it.descriptor.displayName.matches('Execute .*( action [0-9]+/[0-9]+)? for :compileJava') }
         compileJavaActions.size() > 0
-        compileJavaActions[0].parent.descriptor.displayName == 'Task :compileJava'
+        compileJavaActions[0].hasAncestor { it.descriptor.displayName == 'Task :compileJava' }
     }
 
     @TargetGradleVersion('>=3.5 <5.1')

@@ -35,6 +35,8 @@ import org.gradle.tooling.events.transform.TransformOperationDescriptor
 import org.gradle.tooling.events.work.WorkItemOperationDescriptor
 import org.gradle.util.GradleVersion
 
+import java.util.function.Predicate
+
 class ProgressEvents implements ProgressListener {
     private final List<ProgressEvent> events = []
     private boolean dirty
@@ -437,9 +439,13 @@ class ProgressEvents implements ProgressListener {
         }
 
         boolean hasAncestor(Operation ancestor) {
+            return hasAncestor({ it == ancestor })
+        }
+
+        boolean hasAncestor(Predicate<? super Operation> predicate) {
             return parent == null
                 ? false
-                : (parent == ancestor || parent.hasAncestor(ancestor))
+                : (predicate.test(parent) || parent.hasAncestor(predicate))
         }
     }
 
