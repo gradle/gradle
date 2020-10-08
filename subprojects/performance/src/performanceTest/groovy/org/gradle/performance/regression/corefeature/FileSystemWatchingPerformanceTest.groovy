@@ -17,6 +17,7 @@
 package org.gradle.performance.regression.corefeature
 
 import org.gradle.initialization.StartParameterBuildOptions
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
 import org.gradle.performance.fixture.IncrementalAndroidTestProject
 import org.gradle.performance.fixture.IncrementalTestProject
@@ -31,6 +32,13 @@ class FileSystemWatchingPerformanceTest extends AbstractCrossVersionPerformanceT
         runner.minimumBaseVersion = "6.7"
         runner.targetVersions = ["6.8-20201007220043+0000"]
         runner.useToolingApi = true
+        if (OperatingSystem.current().windows) {
+            runner.warmUpRuns = 5
+            runner.runs = 20
+        } else {
+            runner.warmUpRuns = 10
+            runner.runs = 40
+        }
     }
 
     def "assemble for non-abi change with file system watching"() {
