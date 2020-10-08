@@ -94,7 +94,7 @@ public class GradleBuildExperimentRunner extends AbstractBuildExperimentRunner {
 
         GradleConnector connector = null;
         try {
-            GradleScenarioInvoker scenarioInvoker = createScenarioInvoker(new File(buildSpec.getWorkingDirectory(), GRADLE_USER_HOME_NAME));
+            GradleScenarioInvoker scenarioInvoker = createScenarioInvoker(invocationSettings.getGradleUserHome());
             Consumer<GradleBuildInvocationResult> scenarioReporter = getResultCollector().scenario(
                 scenarioDefinition,
                 scenarioInvoker.samplesFor(invocationSettings, scenarioDefinition)
@@ -158,7 +158,7 @@ public class GradleBuildExperimentRunner extends AbstractBuildExperimentRunner {
             .setVersions(ImmutableList.of(invocationSpec.getGradleDistribution().getVersion().getVersion()))
             .setTargets(invocationSpec.getTasksToRun())
             .setSysProperties(emptyMap())
-            .setGradleUserHome(new File(invocationSpec.getWorkingDirectory(), GRADLE_USER_HOME_NAME))
+            .setGradleUserHome(determineGradleUserHome(invocationSpec))
             .setWarmupCount(warmupsForExperiment(experiment))
             .setIterations(invocationsForExperiment(experiment))
             .setMeasureConfigTime(false)
@@ -167,6 +167,12 @@ public class GradleBuildExperimentRunner extends AbstractBuildExperimentRunner {
             .setCsvFormat(CsvGenerator.Format.LONG)
             .setBuildLog(invocationSpec.getBuildLog())
             .build();
+    }
+
+    private File determineGradleUserHome(GradleInvocationSpec invocationSpec) {
+        File projectDirectory = invocationSpec.getWorkingDirectory();
+        // do not add the Gradle user home in the project directory, so it is not watched
+        return new File(projectDirectory.getParent(), projectDirectory.getName() + "-" + GRADLE_USER_HOME_NAME);
     }
 
     private GradleScenarioDefinition createScenarioDefinition(GradleBuildExperimentSpec experimentSpec, InvocationSettings invocationSettings, GradleInvocationSpec invocationSpec) {

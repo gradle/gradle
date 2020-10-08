@@ -18,7 +18,6 @@ package org.gradle.performance.fixture
 
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.base.Splitter
-import com.google.common.collect.ImmutableList
 import groovy.transform.CompileStatic
 import groovy.transform.TypeCheckingMode
 import org.apache.commons.io.FileUtils
@@ -138,17 +137,12 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
         )
 
         def baselineVersions = toBaselineVersions(releases, targetVersions, minimumBaseVersion).collect { results.baseline(it) }
-        def allVersions = ImmutableList.<String> builder()
-            .add('current')
-            .addAll(baselineVersions*.version as List<String>)
-            .build()
-        int maxWorkingDirLength = allVersions.collect { sanitizeVersionWorkingDir(it) }*.length().max()
-
         try {
-            runVersion(testId, current, perVersionWorkingDirectory('current', maxWorkingDirLength), results.current)
+            int runIndex = 0
+            runVersion(testId, current, perVersionWorkingDirectory(runIndex++), results.current)
 
             baselineVersions.each { baselineVersion ->
-                runVersion(testId, buildContext.distribution(baselineVersion.version), perVersionWorkingDirectory(baselineVersion.version, maxWorkingDirLength), baselineVersion.results)
+                runVersion(testId, buildContext.distribution(baselineVersion.version), perVersionWorkingDirectory(runIndex++), baselineVersion.results)
             }
         } finally {
             results.endTime = clock.getCurrentTime()
@@ -172,8 +166,9 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
         Assume.assumeTrue(TestScenarioSelector.shouldRun(testId))
     }
 
-    private File perVersionWorkingDirectory(String version, int maxWorkingDirLength) {
-        def perVersion = new File(workingDir, sanitizeVersionWorkingDir(version).padRight(maxWorkingDirLength, '_'))
+    private File perVersionWorkingDirectory(int runIndex) {
+        def versionWorkingDirName = String.format('%03d', runIndex)
+        def perVersion = new File(workingDir, versionWorkingDirName)
         if (!perVersion.exists()) {
             perVersion.mkdirs()
         } else {
