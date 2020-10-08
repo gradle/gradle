@@ -110,7 +110,7 @@ abstract class AbstractCrossBuildPerformanceTestRunner<R extends CrossBuildPerfo
         assert builder.projectName
         assert builder.workingDirectory
         // Use a working directory based on the index of the spec
-        builder.invocation.workingDirectory = new File(builder.workingDirectory, specs.size().toString())
+        builder.invocation.workingDirectory = new File(builder.workingDirectory, String.format("%03d", specs.size()))
         if (builder instanceof GradleBuildExperimentSpec.GradleBuilder) {
             finalizeGradleSpec(builder)
         }

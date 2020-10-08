@@ -24,3 +24,7 @@ dependencies {
         because("IDE tests use the Tooling API.")
     }
 }
+
+testFilesCleanup {
+    policy.set(gradlebuild.cleanup.WhenNotEmpty.REPORT)
+}

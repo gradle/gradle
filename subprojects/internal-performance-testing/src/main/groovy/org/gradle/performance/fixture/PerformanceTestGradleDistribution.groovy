@@ -45,7 +45,7 @@ class PerformanceTestGradleDistribution implements GradleDistribution {
 
     TestFile getGradleHomeDir() {
         if (!gradleHome) {
-            gradleHome = new TestFile(testDir, "gradle-home")
+            gradleHome = new TestFile(testDir.parentFile, testDir.name + "-gradle-home")
             GFileUtils.copyDirectory(delegate.gradleHomeDir, gradleHome)
             gradleHome.file("bin/gradle").setExecutable(true, true)
         }

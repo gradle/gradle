@@ -93,7 +93,7 @@ public class GradleBuildExperimentRunner extends AbstractBuildExperimentRunner {
         GradleScenarioDefinition scenarioDefinition = createScenarioDefinition(gradleExperiment, invocationSettings, invocation);
 
         try {
-            GradleScenarioInvoker scenarioInvoker = createScenarioInvoker(new File(buildSpec.getWorkingDirectory(), GRADLE_USER_HOME_NAME));
+            GradleScenarioInvoker scenarioInvoker = createScenarioInvoker(invocationSettings.getGradleUserHome());
             Consumer<GradleBuildInvocationResult> scenarioReporter = getResultCollector().scenario(
                 scenarioDefinition,
                 scenarioInvoker.samplesFor(invocationSettings, scenarioDefinition)
@@ -101,15 +101,7 @@ public class GradleBuildExperimentRunner extends AbstractBuildExperimentRunner {
             AtomicInteger iterationCount = new AtomicInteger(0);
             Logging.setupLogging(workingDirectory);
             if (gradleExperiment.getInvocation().isUseToolingApi()) {
-                GradleConnector connector = GradleConnector.newConnector();
-                connector.forProjectDirectory(buildSpec.getWorkingDirectory());
-                connector.useInstallation(scenarioDefinition.getBuildConfiguration().getGradleHome());
-                // First initialize the Gradle instance using the default user home dir
-                // This sets some static state that uses files from the user home dir, such as DLLs
-                connector.useGradleUserHomeDir(context.getGradleUserHomeDir());
-                try (ProjectConnection connection = connector.connect()) {
-                    connection.getModel(BuildEnvironment.class);
-                }
+                initializeNativeServicesForTapiClient(buildSpec, scenarioDefinition);
             }
             scenarioInvoker.doRun(scenarioDefinition,
                 invocationSettings,
@@ -124,6 +116,22 @@ public class GradleBuildExperimentRunner extends AbstractBuildExperimentRunner {
                 e.printStackTrace();
             }
             ConnectorServices.reset();
+        }
+    }
+
+    private void initializeNativeServicesForTapiClient(GradleInvocationSpec buildSpec, GradleScenarioDefinition scenarioDefinition) {
+        GradleConnector connector = GradleConnector.newConnector();
+        try {
+            connector.forProjectDirectory(buildSpec.getWorkingDirectory());
+            connector.useInstallation(scenarioDefinition.getBuildConfiguration().getGradleHome());
+            // First initialize the Gradle instance using the default user home dir
+            // This sets some static state that uses files from the user home dir, such as DLLs
+            connector.useGradleUserHomeDir(context.getGradleUserHomeDir());
+            try (ProjectConnection connection = connector.connect()) {
+                connection.getModel(BuildEnvironment.class);
+            }
+        } finally {
+            connector.disconnect();
         }
     }
 
@@ -154,7 +162,7 @@ public class GradleBuildExperimentRunner extends AbstractBuildExperimentRunner {
             .setVersions(ImmutableList.of(invocationSpec.getGradleDistribution().getVersion().getVersion()))
             .setTargets(invocationSpec.getTasksToRun())
             .setSysProperties(emptyMap())
-            .setGradleUserHome(new File(invocationSpec.getWorkingDirectory(), GRADLE_USER_HOME_NAME))
+            .setGradleUserHome(determineGradleUserHome(invocationSpec))
             .setWarmupCount(warmupsForExperiment(experiment))
             .setIterations(invocationsForExperiment(experiment))
             .setMeasureConfigTime(false)
@@ -163,6 +171,12 @@ public class GradleBuildExperimentRunner extends AbstractBuildExperimentRunner {
             .setCsvFormat(CsvGenerator.Format.LONG)
             .setBuildLog(invocationSpec.getBuildLog())
             .build();
+    }
+
+    private File determineGradleUserHome(GradleInvocationSpec invocationSpec) {
+        File projectDirectory = invocationSpec.getWorkingDirectory();
+        // do not add the Gradle user home in the project directory, so it is not watched
+        return new File(projectDirectory.getParent(), projectDirectory.getName() + "-" + GRADLE_USER_HOME_NAME);
     }
 
     private GradleScenarioDefinition createScenarioDefinition(GradleBuildExperimentSpec experimentSpec, InvocationSettings invocationSettings, GradleInvocationSpec invocationSpec) {
