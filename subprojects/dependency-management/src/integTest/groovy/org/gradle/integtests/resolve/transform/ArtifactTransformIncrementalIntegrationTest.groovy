@@ -27,6 +27,7 @@ class ArtifactTransformIncrementalIntegrationTest extends AbstractDependencyReso
 
         file("buildSrc/src/main/groovy/MakeGreen.groovy") << """
             import java.io.File
+            import javax.inject.Inject;
             import groovy.transform.CompileStatic
             import org.gradle.api.provider.*
             import org.gradle.api.file.*
