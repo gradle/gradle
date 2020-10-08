@@ -23,7 +23,6 @@ import com.nhaarman.mockito_kotlin.eq
 import com.nhaarman.mockito_kotlin.inOrder
 import com.nhaarman.mockito_kotlin.isNull
 import com.nhaarman.mockito_kotlin.mock
-import com.nhaarman.mockito_kotlin.same
 
 import org.gradle.api.initialization.Settings
 import org.gradle.api.internal.initialization.ClassLoaderScope
@@ -116,12 +115,11 @@ class InterpreterTest : TestWithTempFiles() {
                     eq(stage1TemplateId),
                     eq(sourceHash),
                     eq(compilationClassPathHash),
-                    same(parentClassLoader),
                     isNull(),
                     any()
                 )
             } doAnswer {
-                it.getArgument<(File) -> Unit>(6).invoke(stage1CacheDir)
+                it.getArgument<(File) -> Unit>(5).invoke(stage1CacheDir)
                 stage1CacheDir
             }
 
@@ -131,12 +129,11 @@ class InterpreterTest : TestWithTempFiles() {
                     eq(stage2TemplateId),
                     eq(sourceHash),
                     eq(compilationClassPathHash),
-                    same(targetScopeExportClassLoader),
                     isNull(),
                     any()
                 )
             } doAnswer {
-                it.getArgument<(File) -> Unit>(6).invoke(stage2CacheDir)
+                it.getArgument<(File) -> Unit>(5).invoke(stage2CacheDir)
                 stage2CacheDir
             }
 

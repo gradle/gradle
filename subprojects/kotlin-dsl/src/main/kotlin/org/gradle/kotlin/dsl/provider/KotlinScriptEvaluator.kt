@@ -238,7 +238,6 @@ class StandardKotlinScriptEvaluator(
             templateId: String,
             sourceHash: HashCode,
             compilationClassPathHash: HashCode,
-            parentClassLoader: ClassLoader,
             accessorsClassPath: ClassPath?,
             initializer: (File) -> Unit
         ): File = try {

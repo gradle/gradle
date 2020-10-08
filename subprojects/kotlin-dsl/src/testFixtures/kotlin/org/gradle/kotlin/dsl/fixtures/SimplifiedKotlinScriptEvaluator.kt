@@ -132,7 +132,6 @@ class SimplifiedKotlinScriptEvaluator(
             templateId: String,
             sourceHash: HashCode,
             compilationClassPathHash: HashCode,
-            parentClassLoader: ClassLoader,
             accessorsClassPath: ClassPath?,
             initializer: (File) -> Unit
         ): File = baseCacheDir.resolve(sourceHash.toString()).resolve(templateId).also { cacheDir ->

@@ -82,7 +82,6 @@ class Interpreter(val host: Host) {
             templateId: String,
             sourceHash: HashCode,
             compilationClassPathHash: HashCode,
-            parentClassLoader: ClassLoader,
             accessorsClassPath: ClassPath?,
             initializer: (File) -> Unit
         ): File
@@ -187,7 +186,6 @@ class Interpreter(val host: Host) {
                 scriptSource,
                 sourceHash,
                 templateId,
-                parentClassLoader,
                 targetScope,
                 baseScope,
                 programKind,
@@ -239,7 +237,6 @@ class Interpreter(val host: Host) {
         scriptSource: ScriptSource,
         sourceHash: HashCode,
         templateId: String,
-        parentClassLoader: ClassLoader,
         targetScope: ClassLoaderScope,
         baseScope: ClassLoaderScope,
         programKind: ProgramKind,
@@ -264,7 +261,6 @@ class Interpreter(val host: Host) {
                 templateId,
                 sourceHash,
                 compileClassPathHash,
-                parentClassLoader,
                 null
             ) { cachedDir ->
 
@@ -454,9 +450,6 @@ class Interpreter(val host: Host) {
             val targetScope =
                 scriptHost.targetScope
 
-            val parentClassLoader =
-                targetScope.exportClassLoader
-
             val scriptSource =
                 scriptHost.scriptSource
 
@@ -476,7 +469,6 @@ class Interpreter(val host: Host) {
                     scriptTemplateId,
                     sourceHash,
                     compileClassPathHash,
-                    parentClassLoader,
                     accessorsClassPath
                 ) { outputDir ->
 
