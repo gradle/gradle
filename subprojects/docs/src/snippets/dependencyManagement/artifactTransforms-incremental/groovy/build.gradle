@@ -1,7 +1,10 @@
+import org.gradle.api.artifacts.transform.TransformParameters
+
 // tag::artifact-transform-countloc[]
 abstract class CountLoc implements TransformAction<TransformParameters.None> {
 
-    @Inject                                                             // <1>
+    @Inject
+    // <1>
     abstract InputChanges getInputChanges()
 
     @PathSensitive(PathSensitivity.RELATIVE)
