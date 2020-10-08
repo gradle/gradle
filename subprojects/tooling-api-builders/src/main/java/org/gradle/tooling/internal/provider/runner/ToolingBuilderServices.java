@@ -33,11 +33,14 @@ public class ToolingBuilderServices extends AbstractPluginServiceRegistry {
     @Override
     public void registerGlobalServices(ServiceRegistration registration) {
         registration.addProvider(new Object() {
-            BuildActionRunner createBuildActionRunner(final BuildOperationListenerManager buildOperationListenerManager) {
+            BuildActionRunner createBuildActionRunner(
+                BuildOperationAncestryTracker ancestryTracker,
+                BuildOperationListenerManager buildOperationListenerManager
+            ) {
                 return new ChainingBuildActionRunner(
                     Arrays.asList(
                         new BuildModelActionRunner(),
-                        new TestExecutionRequestActionRunner(buildOperationListenerManager),
+                        new TestExecutionRequestActionRunner(ancestryTracker, buildOperationListenerManager),
                         new ClientProvidedBuildActionRunner(),
                         new ClientProvidedPhasedActionRunner()));
             }
