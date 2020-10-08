@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.initialization.loadercache;
 
-import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.internal.classloader.ClasspathHasher;
 import org.gradle.internal.classpath.ClassPath;
@@ -24,7 +23,6 @@ import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.classpath.CompileClasspathFingerprinter;
 import org.gradle.internal.hash.HashCode;
 
-@NonNullApi
 public class CompileClasspathHasher implements ClasspathHasher {
     private final CompileClasspathFingerprinter fingerprinter;
     private final FileCollectionFactory fileCollectionFactory;
