@@ -16,6 +16,7 @@
 
 package org.gradle.configurationcache
 
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.file.TestFile
 
 
@@ -45,11 +46,22 @@ class ConfigurationCacheCompositeBuildsIntegrationTest extends AbstractConfigura
 
         when:
         inDirectory 'app'
-        configurationCacheRun'run'
+        configurationCacheRun 'run'
 
         then:
         outputContains 'Before!'
         configurationCache.assertStateStored()
+
+        and: 'included build state is stored in a separate file with the correct permissions'
+        def confCacheDir = file("./app/.gradle/configuration-cache")
+        confCacheDir.isDirectory()
+        def confCacheFiles = confCacheDir.allDescendants().findAll { it != 'configuration-cache.lock' && it != 'gc.properties' }
+        confCacheFiles.size() == 3 // fingerprint, root build state file, included build state file
+        if (!OperatingSystem.current().isWindows()) {
+            confCacheFiles.forEach {
+                assert confCacheDir.file(it).mode == 384
+            }
+        }
 
         when: 'changing source file from included build'
         file('lib/src/main/java/Lib.java').text = """

@@ -16,6 +16,7 @@
 
 package org.gradle.configurationcache
 
+import org.gradle.api.internal.BuildDefinition
 import org.gradle.cache.CacheBuilder
 import org.gradle.cache.CacheRepository
 import org.gradle.cache.FileLockManager
@@ -32,6 +33,8 @@ import org.gradle.internal.file.FileAccessTimeJournal
 import org.gradle.internal.file.impl.SingleDepthFileAccessTracker
 import org.gradle.internal.nativeintegration.filesystem.FileSystem
 import java.io.File
+import java.io.InputStream
+import java.io.OutputStream
 
 
 internal
@@ -51,7 +54,7 @@ class ConfigurationCacheRepository(
                 else -> {
                     when (val invalidReason = check(fingerprint)) {
                         null -> {
-                            fileAccessTracker.markAccessed(fingerprint) // Prevent cleanup before state load
+                            markAccessed(fingerprint) // Prevent cleanup before state load
                             CheckedFingerprint.Valid
                         }
                         else -> CheckedFingerprint.Invalid(invalidReason)
@@ -60,32 +63,93 @@ class ConfigurationCacheRepository(
             }
         }
 
-    fun useForStateLoad(cacheKey: String, action: (File) -> Unit) {
-        withBaseCacheDirFor(cacheKey) { cacheDir ->
-            val stateFile = cacheDir.stateFile
-            fileAccessTracker.markAccessed(stateFile)
-            action(stateFile)
-        }
+    sealed class CheckedFingerprint {
+        object NotFound : CheckedFingerprint()
+        object Valid : CheckedFingerprint()
+        class Invalid(val reason: String) : CheckedFingerprint()
     }
 
-    class Layout(val fingerprint: File, val state: File)
+    fun useForStateLoad(cacheKey: String, action: (ConfigurationCacheStateFile) -> Unit) {
+        withBaseCacheDirFor(cacheKey) { cacheDir ->
+            action(readableConfigurationCacheStateFileFor(cacheDir.stateFile))
+        }
+    }
 
     fun useForStore(cacheKey: String, action: (Layout) -> Unit) {
         withBaseCacheDirFor(cacheKey) { cacheDir ->
             // TODO GlobalCache require(!cacheDir.isDirectory)
             cacheDir.mkdirs()
-            fileSystem.chmod(cacheDir, 448) // octal 0700
-            fileAccessTracker.markAccessed(cacheDir)
-            val layout = Layout(cacheDir.fingerprintFile, cacheDir.stateFile)
+            chmod(cacheDir, 448) // octal 0700
+            markAccessed(cacheDir)
+            val stateFiles = mutableListOf<File>()
+            val rootStateFile = WriteableConfigurationCacheStateFile(cacheDir.stateFile, stateFiles::add)
+            val layout = Layout(cacheDir.fingerprintFile, rootStateFile)
             try {
                 action(layout)
             } finally {
-                sequenceOf(layout.state, layout.fingerprint)
+                (sequenceOf(layout.fingerprint) + stateFiles.asSequence())
                     .filter(File::isFile)
-                    .forEach { fileSystem.chmod(it, 384) } // octal 0600
+                    .forEach {
+                        chmod(it, 384) // octal 0600
+                    }
             }
         }
     }
+
+    class Layout(
+        val fingerprint: File,
+        val state: ConfigurationCacheStateFile
+    )
+
+    override fun stop() {
+        cache.close()
+    }
+
+    private
+    fun readableConfigurationCacheStateFileFor(stateFile: File): ReadableConfigurationCacheStateFile {
+        markAccessed(stateFile)
+        return ReadableConfigurationCacheStateFile(stateFile)
+    }
+
+    inner class ReadableConfigurationCacheStateFile(
+        private val file: File
+    ) : ConfigurationCacheStateFile {
+
+        override fun outputStream(): OutputStream =
+            throw UnsupportedOperationException()
+
+        override fun inputStream(): InputStream =
+            file.inputStream()
+
+        override fun stateFileForIncludedBuild(build: BuildDefinition): ConfigurationCacheStateFile =
+            readableConfigurationCacheStateFileFor(
+                includedBuildFileFor(file, build)
+            )
+    }
+
+    inner class WriteableConfigurationCacheStateFile(
+        private val file: File,
+        private val onFileAccess: (File) -> Unit
+    ) : ConfigurationCacheStateFile {
+
+        override fun outputStream(): OutputStream =
+            file.also(onFileAccess).outputStream()
+
+        override fun inputStream(): InputStream =
+            throw UnsupportedOperationException()
+
+        override fun stateFileForIncludedBuild(build: BuildDefinition): ConfigurationCacheStateFile =
+            WriteableConfigurationCacheStateFile(
+                includedBuildFileFor(file, build),
+                onFileAccess
+            )
+    }
+
+    private
+    fun includedBuildFileFor(parentStateFile: File, build: BuildDefinition) =
+        parentStateFile.run {
+            resolveSibling("$name.${build.name}")
+        }
 
     private
     val cacheRootDir
@@ -125,19 +189,19 @@ class ConfigurationCacheRepository(
             )
         )
 
-    override fun stop() {
-        cache.close()
-    }
-
     private
     val fileAccessTracker by unsafeLazy {
         SingleDepthFileAccessTracker(fileAccessTimeJournal, cacheRootDir, cleanupDepth)
     }
 
-    sealed class CheckedFingerprint {
-        object NotFound : CheckedFingerprint()
-        object Valid : CheckedFingerprint()
-        class Invalid(val reason: String) : CheckedFingerprint()
+    private
+    fun chmod(file: File, mode: Int) {
+        fileSystem.chmod(file, mode)
+    }
+
+    private
+    fun markAccessed(stateFile: File) {
+        fileAccessTracker.markAccessed(stateFile)
     }
 
     private
