@@ -210,7 +210,7 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
         val className = givenKotlinClassInBuildSrcContains(
             """
             inline fun foo() {
-                println("foo");
+                println("foo")
             }
             """
         )
@@ -220,7 +220,7 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
         givenKotlinClassInBuildSrcContains(
             """
             inline fun foo() {
-                println("bar");
+                println("bar")
             }
             """
         )
@@ -234,7 +234,7 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
             "Foo",
             """
             fun foo() {
-                println("foo");
+                println("foo")
             }
             """
         )
@@ -245,7 +245,7 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
             "Foo",
             """
             fun foo() {
-                println("bar");
+                println("bar")
             }
             """
         )
@@ -259,7 +259,7 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
             "Foo",
             """
             inline fun foo() {
-                println("foo");
+                println("foo")
             }
             """
         )
@@ -270,11 +270,36 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
             "Foo",
             """
             inline fun foo() {
-                println("bar");
+                println("bar")
             }
             """
         )
         configureProject().assertBuildScriptCompiled().assertOutputContains("bar")
+    }
+
+    @ToBeFixedForConfigurationCache
+    @Test
+    fun `avoids buildscript recompilation on internal inline function change in buildSrc class`() {
+        val className = givenKotlinClassInBuildSrcContains(
+            """
+            fun foo() = bar()
+            internal inline fun bar() {
+                println("foo")
+            }
+            """
+        )
+        withBuildScript("$className().foo()")
+        configureProject().assertBuildScriptCompiled().assertOutputContains("foo")
+
+        givenKotlinClassInBuildSrcContains(
+            """
+            fun foo() = bar()
+            internal inline fun bar() {
+                println("bar")
+            }
+            """
+        )
+        configureProject().assertBuildScriptCompilationAvoided().assertOutputContains("bar")
     }
 
     private

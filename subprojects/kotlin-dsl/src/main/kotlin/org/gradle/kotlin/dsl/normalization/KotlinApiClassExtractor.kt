@@ -52,18 +52,18 @@ class KotlinApiClassExtractor : ApiClassExtractor(
 private
 class KotlinApiMemberWriter(apiMemberAdapter: ClassVisitor, val inlineMethodWriter: MethodCopyingApiMemberAdapter) : ApiMemberWriter(apiMemberAdapter) {
 
+    val kotlinMetadataAnnotationSignature = "Lkotlin/Metadata;"
+
     val inlineFunctions: MutableSet<String> = HashSet()
+    val internalFunctions: MutableSet<String> = HashSet()
 
     override fun writeClass(classMember: ClassMember, methods: Set<MethodMember>, fields: Set<FieldMember>, innerClasses: Set<InnerClassMember>) {
         classMember.annotations.firstOrNull {
-            it.name == "Lkotlin/Metadata;"
-        }?.let { annotationMember ->
-            val kotlinHeader = parseKotlinClassHeader(annotationMember)
-            when (val kotlinMetadata = KotlinClassMetadata.read(kotlinHeader)) {
-                is KotlinClassMetadata.Class ->
-                    inlineFunctions.addAll(extractInlineFunctions(kotlinMetadata.toKmClass()))
-                is KotlinClassMetadata.FileFacade ->
-                    inlineFunctions.addAll(extractInlineFunctions(kotlinMetadata.toKmPackage()))
+            it.name == kotlinMetadataAnnotationSignature
+        }?.let {
+            when (val kotlinMetadata = KotlinClassMetadata.read(parseKotlinClassHeader(it))) {
+                is KotlinClassMetadata.Class -> kotlinMetadata.toKmClass().extractFunctionMetadata()
+                is KotlinClassMetadata.FileFacade -> kotlinMetadata.toKmPackage().extractFunctionMetadata()
                 else -> {
                     // KotlinClassMetadata.SyntheticClass || KotlinClassMetadata.MultiFileClassFacade || KotlinClassMetadata.MultiFileClassPart || KotlinClassMetadata.Unknown
                 }
@@ -73,8 +73,16 @@ class KotlinApiMemberWriter(apiMemberAdapter: ClassVisitor, val inlineMethodWrit
         super.writeClass(classMember, methods, fields, innerClasses)
     }
 
+    override fun writeClassAnnotations(annotationMembers: Set<AnnotationMember>) {
+        super.writeClassAnnotations(annotationMembers.filter { it.name != kotlinMetadataAnnotationSignature }.toSet())
+    }
+
     override fun writeMethod(method: MethodMember) {
-        if (inlineFunctions.contains(method.name + method.typeDesc)) {
+        if (method.isInternal()) {
+            return
+        }
+
+        if (method.isInline()) {
             inlineMethodWriter.writeMethod(method)
         } else {
             super.writeMethod(method)
@@ -82,10 +90,28 @@ class KotlinApiMemberWriter(apiMemberAdapter: ClassVisitor, val inlineMethodWrit
     }
 
     private
-    fun extractInlineFunctions(container: KmDeclarationContainer) =
-        container.functions
-            .filter { Flag.Function.IS_INLINE(it.flags) }
-            .mapNotNull { it.signature?.asString() }
+    fun KmDeclarationContainer.extractFunctionMetadata() {
+        this.extractInternalFunctions()
+        this.extractInlineFunctions()
+    }
+
+    private
+    fun KmDeclarationContainer.extractInlineFunctions() {
+        inlineFunctions.addAll(
+            this.functions
+                .filter { Flag.Function.IS_INLINE(it.flags) }
+                .mapNotNull { it.signature?.asString() }
+        )
+    }
+
+    private
+    fun KmDeclarationContainer.extractInternalFunctions() {
+        internalFunctions.addAll(
+            this.functions
+                .filter { Flag.Common.IS_INTERNAL(it.flags) }
+                .mapNotNull { it.signature?.asString() }
+        )
+    }
 
     private
     fun parseKotlinClassHeader(kotlinMetadataAnnotation: AnnotationMember): KotlinClassHeader {
@@ -118,6 +144,15 @@ class KotlinApiMemberWriter(apiMemberAdapter: ClassVisitor, val inlineMethodWrit
         }
         return KotlinClassHeader(kind, metadataVersion, bytecodeVersion, data1, data2, extraString, packageName, extraInt)
     }
+
+    private
+    fun MethodMember.binarySignature() = this.name + this.typeDesc
+
+    private
+    fun MethodMember.isInternal() = internalFunctions.contains(this.binarySignature())
+
+    private
+    fun MethodMember.isInline() = inlineFunctions.contains(this.binarySignature())
 }
 
 

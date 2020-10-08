@@ -45,7 +45,7 @@ class KotlinApiClassExtractorTest : TestWithTempFiles() {
                 }
             """,
             { assertThat(it.instantiateAndCall("foo"), equalTo("bar")) }
-        ).assertApiUnchanged()
+        ).assertSameApi()
     }
 
     @Test
@@ -102,7 +102,97 @@ class KotlinApiClassExtractorTest : TestWithTempFiles() {
                 }
             """,
             { assertThat(it.callStatic("foo"), equalTo("bar")) }
-        ).assertApiUnchanged()
+        ).assertSameApi()
+    }
+
+    @Test
+    fun `API class is unaffected by addition of private method`() {
+        givenChangingClass(
+            "Foo",
+            """
+                fun foo(): String {
+                    return "foo"
+                }
+            """,
+            { assertThat(it.instantiateAndCall("foo"), equalTo("foo")) },
+            """
+                fun foo(): String {
+                    return bar()
+                }
+                private fun bar(): String {
+                    return "bar"
+                }
+            """,
+            { assertThat(it.instantiateAndCall("foo"), equalTo("bar")) }
+        ).assertSameApi()
+    }
+
+    @Test
+    fun `API class is unaffected by addition of internal method`() {
+        givenChangingClass(
+            "Foo",
+            """
+                fun foo(): String {
+                    return "foo"
+                }
+            """,
+            { assertThat(it.instantiateAndCall("foo"), equalTo("foo")) },
+            """
+                fun foo(): String {
+                    return bar()
+                }
+                internal fun bar(): String {
+                    return "bar"
+                }
+            """,
+            { assertThat(it.instantiateAndCall("foo"), equalTo("bar")) }
+        ).assertSameApi()
+    }
+
+    @Test
+    fun `API class is unaffected by changes to internal inline method`() {
+        givenChangingClass(
+            "Foo",
+            """
+                internal inline fun foo(): String {
+                    return "foo"
+                }
+
+                fun bar(): String = foo()
+            """,
+            { assertThat(it.instantiateAndCall("bar"), equalTo("foo")) },
+            """
+                internal inline fun foo(): String {
+                    return "bar"
+                }
+
+                fun bar(): String = foo()
+            """,
+            { assertThat(it.instantiateAndCall("bar"), equalTo("bar")) }
+        ).assertSameApi()
+    }
+
+    @Test
+    fun `API class is unaffected by changes to private inline method`() {
+        givenChangingClass(
+            "Foo",
+            """
+                private inline fun foo(): String {
+                    return "foo"
+                }
+
+                fun bar(): String = foo()
+            """,
+            { assertThat(it.instantiateAndCall("bar"), equalTo("foo")) },
+            """
+                private inline fun foo(): String {
+                    return "bar"
+                }
+
+                fun bar(): String = foo()
+            """,
+            { assertThat(it.instantiateAndCall("bar"), equalTo("bar")) }
+        ).assertSameApi()
     }
 
     private
@@ -183,7 +273,7 @@ class ClassChangeFixture(val initialClass: ClassFixture, val changedClass: Class
         assertion(changedClass)
     }
 
-    fun assertApiUnchanged() {
+    fun assertSameApi() {
         assertThat(
             "expected:\n${initialClass.sourceContent}\n to the same API as:\n${changedClass.sourceContent}",
             initialApiClassBytes,

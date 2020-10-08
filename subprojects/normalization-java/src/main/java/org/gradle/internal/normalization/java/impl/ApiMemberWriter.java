@@ -66,7 +66,7 @@ public class ApiMemberWriter {
         mv.visitEnd();
     }
 
-    private void writeClassAnnotations(Set<AnnotationMember> annotationMembers) {
+    protected void writeClassAnnotations(Set<AnnotationMember> annotationMembers) {
         for (AnnotationMember annotation : annotationMembers) {
             AnnotationVisitor annotationVisitor =
                 apiMemberAdapter.visitAnnotation(annotation.getName(), annotation.isVisible());
