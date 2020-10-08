@@ -16,20 +16,21 @@
 
 package org.gradle.tooling.internal.provider.runner
 
-import org.gradle.api.internal.tasks.execution.ExecuteTaskBuildOperationDetails
 import org.gradle.api.internal.TaskInternal
+import org.gradle.api.internal.tasks.execution.ExecuteTaskBuildOperationDetails
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal
 import org.gradle.api.internal.tasks.testing.operations.ExecuteTestBuildOperationType
 import org.gradle.api.tasks.testing.TestExecutionException
 import org.gradle.api.tasks.testing.TestResult
 import org.gradle.execution.plan.LocalTaskNode
+import org.gradle.internal.build.event.types.DefaultTestDescriptor
+import org.gradle.internal.operations.BuildOperationAncestryTracker
 import org.gradle.internal.operations.BuildOperationDescriptor
 import org.gradle.internal.operations.OperationFinishEvent
 import org.gradle.internal.operations.OperationIdentifier
 import org.gradle.internal.operations.OperationStartEvent
 import org.gradle.tooling.internal.protocol.test.InternalJvmTestRequest
 import org.gradle.tooling.internal.provider.TestExecutionRequestAction
-import org.gradle.internal.build.event.types.DefaultTestDescriptor
 import spock.lang.Specification
 
 import static org.gradle.util.TextUtil.normaliseLineSeparators
@@ -38,8 +39,9 @@ class TestExecutionResultEvaluatorTest extends Specification {
 
     def "evaluate throws exception if no results tracked"() {
         given:
+        def ancestryTracker = Mock(BuildOperationAncestryTracker)
         def testExecutionRequest = Mock(TestExecutionRequestAction)
-        TestExecutionResultEvaluator evaluator = new TestExecutionResultEvaluator(testExecutionRequest)
+        TestExecutionResultEvaluator evaluator = new TestExecutionResultEvaluator(ancestryTracker, testExecutionRequest)
 
         def testDescriptorInternal = Mock(TestDescriptorInternal)
         def defaultTestDescriptor = Mock(DefaultTestDescriptor)
@@ -92,14 +94,15 @@ class TestExecutionResultEvaluatorTest extends Specification {
 
     def "evaluate throws exception if test failed"() {
         given:
+        def ancestryTracker = Mock(BuildOperationAncestryTracker)
+        1 * ancestryTracker.findClosestExistingAncestor(_, _) >> Optional.of(":someproject:someTestTask")
         def testExecutionRequest = Mock(TestExecutionRequestAction)
-        TestExecutionResultEvaluator evaluator = new TestExecutionResultEvaluator(testExecutionRequest)
+        TestExecutionResultEvaluator evaluator = new TestExecutionResultEvaluator(ancestryTracker, testExecutionRequest)
 
         def testDescriptorInternal = Mock(TestDescriptorInternal)
 
         testDescriptorInternal.getName() >> "someTest"
         testDescriptorInternal.getClassName() >> "acme.SomeTestClass"
-        testDescriptorInternal.getOwnerBuildOperationId() >> new OperationIdentifier(1)
 
         def testResult = Mock(TestResult)
         1 * testResult.getTestCount() >> 1

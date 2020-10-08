@@ -20,10 +20,11 @@ import org.gradle.internal.execution.ExecutionOutcome
 import org.gradle.internal.execution.InputChangesContext
 import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.execution.history.changes.InputChangesInternal
+import org.gradle.internal.operations.TestBuildOperationExecutor
 import spock.lang.Unroll
 
 class ExecuteStepTest extends StepSpec<InputChangesContext> {
-    def step = new ExecuteStep<>()
+    def step = new ExecuteStep<>(new TestBuildOperationExecutor())
     def inputChanges = Mock(InputChangesInternal)
 
     @Override

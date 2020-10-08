@@ -22,6 +22,9 @@ import org.gradle.api.internal.ExecuteDomainObjectCollectionCallbackBuildOperati
 import org.gradle.api.internal.plugins.ApplyPluginBuildOperationType;
 import org.gradle.configuration.ApplyScriptPluginBuildOperationType;
 import org.gradle.configuration.internal.ExecuteListenerBuildOperationType;
+import org.gradle.internal.build.event.types.DefaultBinaryPluginIdentifier;
+import org.gradle.internal.build.event.types.DefaultScriptPluginIdentifier;
+import org.gradle.internal.operations.BuildOperationAncestryTracker;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationListener;
 import org.gradle.internal.operations.OperationFinishEvent;
@@ -31,8 +34,6 @@ import org.gradle.internal.operations.OperationStartEvent;
 import org.gradle.tooling.internal.protocol.events.InternalBinaryPluginIdentifier;
 import org.gradle.tooling.internal.protocol.events.InternalPluginIdentifier;
 import org.gradle.tooling.internal.protocol.events.InternalScriptPluginIdentifier;
-import org.gradle.internal.build.event.types.DefaultBinaryPluginIdentifier;
-import org.gradle.internal.build.event.types.DefaultScriptPluginIdentifier;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -48,10 +49,10 @@ class PluginApplicationTracker implements BuildOperationListener {
 
     private final Map<OperationIdentifier, PluginApplication> runningPluginApplications = new ConcurrentHashMap<>();
     private final Map<Long, PluginApplication> pluginApplicationRegistry = new ConcurrentHashMap<>();
-    private final BuildOperationParentTracker parentTracker;
+    private final BuildOperationAncestryTracker ancestryTracker;
 
-    PluginApplicationTracker(BuildOperationParentTracker parentTracker) {
-        this.parentTracker = parentTracker;
+    PluginApplicationTracker(BuildOperationAncestryTracker ancestryTracker) {
+        this.ancestryTracker = ancestryTracker;
     }
 
     @Nullable
@@ -60,15 +61,16 @@ class PluginApplicationTracker implements BuildOperationListener {
     }
 
     public boolean hasRunningPluginApplication(OperationIdentifier id, Predicate<? super PluginApplication> predicate) {
-        return parentTracker.findClosestMatchingAncestor(id, parent -> {
+        return ancestryTracker.findClosestMatchingAncestor(id, parent -> {
             PluginApplication pluginApplication = runningPluginApplications.get(parent);
             return pluginApplication != null && predicate.test(pluginApplication);
-        }) != null;
+        }).isPresent();
     }
 
     @Nullable
     public PluginApplication findRunningPluginApplication(OperationIdentifier id) {
-        return parentTracker.findClosestExistingAncestor(id, runningPluginApplications::get);
+        return ancestryTracker.findClosestExistingAncestor(id, runningPluginApplications::get)
+            .orElse(null);
     }
 
     @Override

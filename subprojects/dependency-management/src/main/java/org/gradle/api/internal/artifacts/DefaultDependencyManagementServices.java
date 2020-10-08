@@ -284,7 +284,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 new TimeoutStep<>(timeoutHandler,
                 new ResolveInputChangesStep<>(
                 new CleanupOutputsStep<>(deleter, outputChangeListener,
-                new ExecuteStep<>(
+                new ExecuteStep<>(buildOperationExecutor
             )))))))))))))));
             // @formatter:on
         }

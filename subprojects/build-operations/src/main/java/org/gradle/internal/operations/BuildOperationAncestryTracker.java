@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,25 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.testing;
-
-import org.gradle.api.tasks.testing.TestDescriptor;
-import org.gradle.internal.scan.UsedByScanPlugin;
+package org.gradle.internal.operations;
 
 import javax.annotation.Nullable;
+import java.util.Optional;
+import java.util.function.Function;
+import java.util.function.Predicate;
 
-@UsedByScanPlugin
-public interface TestDescriptorInternal extends TestDescriptor {
-    @Nullable
-    @Override
-    TestDescriptorInternal getParent();
+@SuppressWarnings("Since15")
+public interface BuildOperationAncestryTracker {
+    Optional<OperationIdentifier> findClosestMatchingAncestor(@Nullable OperationIdentifier id, Predicate<? super OperationIdentifier> predicate);
 
-    Object getId();
-
-    /**
-     * The class name for display. It may be the same as or different from {@link #getClassName()}
-     * @return the class name for display.
-     */
-    String getClassDisplayName();
-
+    <T> Optional<T> findClosestExistingAncestor(@Nullable OperationIdentifier id, Function<? super OperationIdentifier, T> lookupFunction);
 }
