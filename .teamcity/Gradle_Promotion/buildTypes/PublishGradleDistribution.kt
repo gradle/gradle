@@ -19,7 +19,6 @@ package Gradle_Promotion.buildTypes
 import common.Os
 import common.builtInRemoteBuildCacheNode
 import common.gradleWrapper
-import common.requiresOs
 import jetbrains.buildServer.configs.kotlin.v2019_2.AbsoluteId
 import jetbrains.buildServer.configs.kotlin.v2019_2.vcs.GitVcsRoot
 
@@ -56,10 +55,6 @@ abstract class PublishGradleDistribution(
                 cleanDestination = true
                 artifactRules = "build-receipt.properties => incoming-build-receipt/"
             }
-        }
-
-        requirements {
-            requiresOs(Os.LINUX)
         }
     }
 }
