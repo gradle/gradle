@@ -22,7 +22,6 @@ import org.gradle.internal.snapshot.SnapshotHierarchy;
 import org.gradle.internal.vfs.VirtualFileSystem;
 
 import java.util.Optional;
-import java.util.function.Function;
 
 public abstract class AbstractVirtualFileSystem implements VirtualFileSystem {
 
@@ -70,5 +69,14 @@ public abstract class AbstractVirtualFileSystem implements VirtualFileSystem {
     /**
      * Runs a single update on a {@link SnapshotHierarchy} and notifies the currently active listeners after the update.
      */
-    protected abstract SnapshotHierarchy updateNotifyingListeners(Function<SnapshotHierarchy.NodeDiffListener, SnapshotHierarchy> updateFunction);
+    protected abstract SnapshotHierarchy updateNotifyingListeners(UpdateFunction updateFunction);
+
+    public interface UpdateFunction {
+        /**
+         * Runs a single update on a {@link SnapshotHierarchy}, notifying the diffListener about changes.
+         *
+         * @return updated ${@link SnapshotHierarchy}.
+         */
+        SnapshotHierarchy update(SnapshotHierarchy.NodeDiffListener diffListener);
+    }
 }

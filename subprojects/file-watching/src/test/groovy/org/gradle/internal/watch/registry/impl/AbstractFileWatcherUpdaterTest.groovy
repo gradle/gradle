@@ -28,6 +28,7 @@ import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot
 import org.gradle.internal.snapshot.RegularFileSnapshot
 import org.gradle.internal.snapshot.SnapshotHierarchy
 import org.gradle.internal.snapshot.impl.DirectorySnapshotter
+import org.gradle.internal.vfs.impl.AbstractVirtualFileSystem
 import org.gradle.internal.vfs.impl.DefaultSnapshotHierarchy
 import org.gradle.internal.watch.registry.FileWatcherUpdater
 import org.gradle.internal.watch.registry.SnapshotCollectingDiffListener
@@ -40,7 +41,6 @@ import spock.lang.Specification
 import java.nio.file.Files
 import java.nio.file.attribute.BasicFileAttributes
 import java.util.concurrent.atomic.AtomicBoolean
-import java.util.function.Function
 import java.util.function.Predicate
 
 @CleanupTestDirectory
@@ -55,9 +55,9 @@ abstract class AbstractFileWatcherUpdaterTest extends Specification {
     FileWatcherUpdater updater
     def virtualFileSystem = new TestVirtualFileSystem(DefaultSnapshotHierarchy.empty(CaseSensitivity.CASE_SENSITIVE)) {
         @Override
-        protected SnapshotHierarchy updateNotifyingListeners(Function<SnapshotHierarchy.NodeDiffListener, SnapshotHierarchy> updateFunction) {
+        protected SnapshotHierarchy updateNotifyingListeners(AbstractVirtualFileSystem.UpdateFunction updateFunction) {
             def diffListener = new SnapshotCollectingDiffListener()
-            def newRoot = updateFunction.apply(diffListener)
+            def newRoot = updateFunction.update(diffListener)
             diffListener.publishSnapshotDiff {removed, added ->
                 updater.virtualFileSystemContentsChanged(removed, added, newRoot)
             }

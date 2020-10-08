@@ -31,7 +31,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.util.function.Function;
 
 /**
  * A {@link VirtualFileSystem} which is not able to register any watches.
@@ -48,8 +47,8 @@ public class WatchingNotSupportedVirtualFileSystem extends AbstractVirtualFileSy
     }
 
     @Override
-    protected SnapshotHierarchy updateNotifyingListeners(Function<SnapshotHierarchy.NodeDiffListener, SnapshotHierarchy> updateFunction) {
-        return updateFunction.apply(SnapshotHierarchy.NodeDiffListener.NOOP);
+    protected SnapshotHierarchy updateNotifyingListeners(UpdateFunction updateFunction) {
+        return updateFunction.update(SnapshotHierarchy.NodeDiffListener.NOOP);
     }
 
     @Override

@@ -20,8 +20,6 @@ import org.gradle.internal.snapshot.SnapshotHierarchy;
 import org.gradle.internal.vfs.impl.AbstractVirtualFileSystem;
 import org.gradle.internal.vfs.impl.VfsRootReference;
 
-import java.util.function.Function;
-
 public class TestVirtualFileSystem extends AbstractVirtualFileSystem {
 
     public TestVirtualFileSystem(SnapshotHierarchy root) {
@@ -29,8 +27,8 @@ public class TestVirtualFileSystem extends AbstractVirtualFileSystem {
     }
 
     @Override
-    protected SnapshotHierarchy updateNotifyingListeners(Function<SnapshotHierarchy.NodeDiffListener, SnapshotHierarchy> updateFunction) {
-        return updateFunction.apply(SnapshotHierarchy.NodeDiffListener.NOOP);
+    protected SnapshotHierarchy updateNotifyingListeners(UpdateFunction updateFunction) {
+        return updateFunction.update(SnapshotHierarchy.NodeDiffListener.NOOP);
     }
 
     public void setRoot(SnapshotHierarchy newRoot) {
