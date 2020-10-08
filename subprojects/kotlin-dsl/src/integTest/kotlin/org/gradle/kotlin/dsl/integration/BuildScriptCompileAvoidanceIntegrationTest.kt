@@ -3,8 +3,8 @@ package org.gradle.kotlin.dsl.integration
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
-import org.gradle.kotlin.dsl.integration.BuildScriptCompileAvoidanceIntegrationTest.CacheBuster.cacheBuster
 import org.gradle.kotlin.dsl.provider.BUILDSCRIPT_COMPILE_AVOIDANCE_ENABLED
+import org.gradle.kotlin.dsl.provider.SCRIPT_CACHE_BASE_DIR_OVERRIDE_PROPERTY
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.MatcherAssert.assertThat
@@ -18,10 +18,6 @@ import java.util.regex.Pattern
 
 class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest() {
 
-    object CacheBuster {
-        var cacheBuster: Int = 0
-    }
-
     @Rule
     @JvmField
     val temporaryFolder = TestNameTestDirectoryProvider(javaClass)
@@ -29,7 +25,7 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
     @Before
     fun init() {
         assumeTrue(BUILDSCRIPT_COMPILE_AVOIDANCE_ENABLED)
-        cacheBuster++
+
         withSettings(
             """
             rootProject.name = "test-project"
@@ -374,7 +370,7 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
 
     private
     fun javaSourceFile(baseDir: String, classBody: String): String {
-        val className = "Foo$cacheBuster"
+        val className = "Foo"
         withFile(
             "$baseDir/src/main/java/com/example/$className.java",
             """
@@ -389,7 +385,7 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
 
     private
     fun kotlinClassSourceFile(baseDir: String, classBody: String): String {
-        val className = "Foo$cacheBuster"
+        val className = "Foo"
         val packageName = kotlinScriptSourceFile(
             baseDir,
             className,
@@ -417,6 +413,7 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
     private
     fun configureProject(): BuildOperationsAssertions {
         val buildOperations = BuildOperationsFixture(executer, temporaryFolder)
+        executer.withArgument("-D$SCRIPT_CACHE_BASE_DIR_OVERRIDE_PROPERTY=${temporaryFolder.testDirectory}")
         val output = executer.run().normalizedOutput
         return BuildOperationsAssertions(buildOperations, output)
     }
@@ -425,8 +422,10 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
     // An assertion fails at BuildOperationTrace.java:338
     // leaving this one as a workaround for test cases that have precompiled script plugins until the underlying issue is fixed
     private
-    fun configureProjectWithDebugOutput() =
-        OutputFixture(gradleExecuterFor(arrayOf("--debug")).withStackTraceChecksDisabled().run().output)
+    fun configureProjectWithDebugOutput(): OutputFixture {
+        executer.withArgument("-D$SCRIPT_CACHE_BASE_DIR_OVERRIDE_PROPERTY=${temporaryFolder.testDirectory}")
+        return OutputFixture(executer.withArgument("--debug").run().normalizedOutput)
+    }
 }
 
 
