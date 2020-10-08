@@ -53,14 +53,23 @@ import org.gradle.internal.serialize.Encoder
 import org.gradle.plugin.management.internal.PluginRequests
 import org.gradle.tooling.events.OperationCompletionListener
 import org.gradle.vcs.internal.VcsMappingsStore
-import java.io.File
+import java.io.InputStream
+import java.io.OutputStream
 import java.util.ArrayList
+
+
+internal
+interface ConfigurationCacheStateFile {
+    fun outputStream(): OutputStream
+    fun inputStream(): InputStream
+    fun stateFileForIncludedBuild(build: BuildDefinition): ConfigurationCacheStateFile
+}
 
 
 internal
 class ConfigurationCacheState(
     private val codecs: Codecs,
-    private val stateFile: File
+    private val stateFile: ConfigurationCacheStateFile
 ) {
 
     suspend fun DefaultWriteContext.writeRootBuildState(build: VintageGradleBuild) {
@@ -101,7 +110,7 @@ class ConfigurationCacheState(
         }
         withDebugFrame({ "Work Graph" }) {
             val scheduledNodes = build.scheduledWork
-            writeRelevantProjectsFor(scheduledNodes, build.gradle.serviceOf<RelevantProjectsRegistry>())
+            writeRelevantProjectsFor(scheduledNodes, build.gradle.serviceOf())
             WorkNodeCodec(build.gradle, internalTypesCodec).run {
                 writeWork(scheduledNodes)
             }
@@ -336,9 +345,7 @@ class ConfigurationCacheState(
 
     private
     fun stateFileFor(buildDefinition: BuildDefinition) =
-        stateFile.run {
-            resolveSibling("$name.${buildDefinition.name!!}")
-        }
+        stateFile.stateFileForIncludedBuild(buildDefinition)
 
     private
     val internalTypesCodec

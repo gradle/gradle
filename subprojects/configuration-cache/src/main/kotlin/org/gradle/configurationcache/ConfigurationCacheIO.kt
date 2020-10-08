@@ -31,7 +31,7 @@ import org.gradle.internal.serialize.kryo.KryoBackedDecoder
 import org.gradle.internal.serialize.kryo.KryoBackedEncoder
 import org.gradle.internal.service.scopes.Scopes
 import org.gradle.internal.service.scopes.ServiceScope
-import java.io.File
+import java.io.InputStream
 import java.io.OutputStream
 
 
@@ -44,7 +44,7 @@ class ConfigurationCacheIO internal constructor(
 ) {
 
     internal
-    fun writeRootBuildStateTo(stateFile: File) {
+    fun writeRootBuildStateTo(stateFile: ConfigurationCacheStateFile) {
         writeConfigurationCacheState(stateFile) { cacheState ->
             cacheState.run {
                 writeRootBuildState(host.currentBuild)
@@ -53,8 +53,8 @@ class ConfigurationCacheIO internal constructor(
     }
 
     internal
-    fun readRootBuildStateFrom(stateFile: File) {
-        withReadContextFor(stateFile) { codecs ->
+    fun readRootBuildStateFrom(stateFile: ConfigurationCacheStateFile) {
+        withReadContextFor(stateFile.inputStream()) { codecs ->
             ConfigurationCacheState(codecs, stateFile).run {
                 readRootBuildState(host::createBuild)
             }
@@ -62,7 +62,7 @@ class ConfigurationCacheIO internal constructor(
     }
 
     internal
-    fun writeIncludedBuildStateTo(stateFile: File) {
+    fun writeIncludedBuildStateTo(stateFile: ConfigurationCacheStateFile) {
         writeConfigurationCacheState(stateFile) { cacheState ->
             cacheState.run {
                 writeBuildState(host.currentBuild)
@@ -71,8 +71,8 @@ class ConfigurationCacheIO internal constructor(
     }
 
     internal
-    fun readIncludedBuildStateFrom(stateFile: File, includedBuild: ConfigurationCacheBuild) {
-        withReadContextFor(stateFile) { codecs ->
+    fun readIncludedBuildStateFrom(stateFile: ConfigurationCacheStateFile, includedBuild: ConfigurationCacheBuild) {
+        withReadContextFor(stateFile.inputStream()) { codecs ->
             ConfigurationCacheState(codecs, stateFile).run {
                 readBuildState(includedBuild)
             }
@@ -80,7 +80,10 @@ class ConfigurationCacheIO internal constructor(
     }
 
     private
-    fun writeConfigurationCacheState(stateFile: File, action: suspend DefaultWriteContext.(ConfigurationCacheState) -> Unit) {
+    fun writeConfigurationCacheState(
+        stateFile: ConfigurationCacheStateFile,
+        action: suspend DefaultWriteContext.(ConfigurationCacheState) -> Unit
+    ) {
         val build = host.currentBuild
         val (context, codecs) = writerContextFor(stateFile.outputStream(), build.gradle.rootProject.name + " state")
         context.useToRun {
@@ -104,9 +107,12 @@ class ConfigurationCacheIO internal constructor(
         }
 
     internal
-    fun <R> withReadContextFor(file: File, readOperation: suspend DefaultReadContext.(Codecs) -> R): R =
+    fun <R> withReadContextFor(
+        inputStream: InputStream,
+        readOperation: suspend DefaultReadContext.(Codecs) -> R
+    ): R =
         codecs().let { codecs ->
-            KryoBackedDecoder(file.inputStream()).use { decoder ->
+            KryoBackedDecoder(inputStream).use { decoder ->
                 readContextFor(decoder, codecs).run {
                     initClassLoader(javaClass.classLoader)
                     runReadOperation {
