@@ -31,6 +31,7 @@ import org.gradle.internal.build.event.types.DefaultTestFinishedProgressEvent;
 import org.gradle.internal.build.event.types.DefaultTestSkippedResult;
 import org.gradle.internal.build.event.types.DefaultTestStartedProgressEvent;
 import org.gradle.internal.build.event.types.DefaultTestSuccessResult;
+import org.gradle.internal.operations.BuildOperationAncestryTracker;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationListener;
 import org.gradle.internal.operations.OperationFinishEvent;
@@ -51,13 +52,13 @@ import java.util.Map;
 class ClientForwardingTestOperationListener implements BuildOperationListener {
 
     private final ProgressEventConsumer eventConsumer;
-    private final BuildOperationParentTracker parentTracker;
+    private final BuildOperationAncestryTracker ancestryTracker;
     private final BuildEventSubscriptions clientSubscriptions;
     private final Map<Object, String> runningTasks = Maps.newConcurrentMap();
 
-    ClientForwardingTestOperationListener(ProgressEventConsumer eventConsumer, BuildOperationParentTracker parentTracker, BuildEventSubscriptions clientSubscriptions) {
+    ClientForwardingTestOperationListener(ProgressEventConsumer eventConsumer, BuildOperationAncestryTracker ancestryTracker, BuildEventSubscriptions clientSubscriptions) {
         this.eventConsumer = eventConsumer;
-        this.parentTracker = parentTracker;
+        this.ancestryTracker = ancestryTracker;
         this.clientSubscriptions = clientSubscriptions;
     }
 
@@ -121,7 +122,7 @@ class ClientForwardingTestOperationListener implements BuildOperationListener {
     }
 
     private String getTaskPath(OperationIdentifier buildOperationId) {
-        return parentTracker.findClosestExistingAncestor(buildOperationId, runningTasks::get);
+        return ancestryTracker.findClosestExistingAncestor(buildOperationId, runningTasks::get);
     }
 
     private Object getParentId(OperationIdentifier buildOperationId, TestDescriptorInternal descriptor) {
@@ -131,7 +132,7 @@ class ClientForwardingTestOperationListener implements BuildOperationListener {
         }
         // only set the TaskOperation as the parent if the Tooling API Consumer is listening to task progress events
         if (clientSubscriptions.isRequested(OperationType.TASK)) {
-            return parentTracker.findClosestMatchingAncestor(buildOperationId, runningTasks::containsKey);
+            return ancestryTracker.findClosestMatchingAncestor(buildOperationId, runningTasks::containsKey);
         }
         return null;
     }

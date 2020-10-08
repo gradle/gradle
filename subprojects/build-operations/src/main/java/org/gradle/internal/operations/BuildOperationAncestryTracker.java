@@ -14,14 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.provider.runner;
-
-import org.gradle.internal.operations.BuildOperationDescriptor;
-import org.gradle.internal.operations.BuildOperationListener;
-import org.gradle.internal.operations.OperationFinishEvent;
-import org.gradle.internal.operations.OperationIdentifier;
-import org.gradle.internal.operations.OperationProgressEvent;
-import org.gradle.internal.operations.OperationStartEvent;
+package org.gradle.internal.operations;
 
 import javax.annotation.Nullable;
 import java.util.Map;
@@ -29,12 +22,13 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
-class BuildOperationParentTracker implements BuildOperationListener {
+@SuppressWarnings("Since15")
+public class BuildOperationAncestryTracker implements BuildOperationListener {
 
-    private final Map<OperationIdentifier, OperationIdentifier> parents = new ConcurrentHashMap<>();
+    private final Map<OperationIdentifier, OperationIdentifier> parents = new ConcurrentHashMap<OperationIdentifier, OperationIdentifier>();
 
     @Nullable
-    OperationIdentifier findClosestMatchingAncestor(@Nullable OperationIdentifier id, Predicate<? super OperationIdentifier> predicate) {
+    public OperationIdentifier findClosestMatchingAncestor(@Nullable OperationIdentifier id, Predicate<? super OperationIdentifier> predicate) {
         if (id == null || predicate.test(id)) {
             return id;
         }
@@ -42,7 +36,7 @@ class BuildOperationParentTracker implements BuildOperationListener {
     }
 
     @Nullable
-    <T> T findClosestExistingAncestor(@Nullable OperationIdentifier id, Function<? super OperationIdentifier, T> lookupFunction) {
+    public <T> T findClosestExistingAncestor(@Nullable OperationIdentifier id, Function<? super OperationIdentifier, T> lookupFunction) {
         if (id == null) {
             return null;
         }
@@ -68,5 +62,4 @@ class BuildOperationParentTracker implements BuildOperationListener {
     public void finished(BuildOperationDescriptor buildOperation, OperationFinishEvent finishEvent) {
         parents.remove(buildOperation.getId());
     }
-
 }

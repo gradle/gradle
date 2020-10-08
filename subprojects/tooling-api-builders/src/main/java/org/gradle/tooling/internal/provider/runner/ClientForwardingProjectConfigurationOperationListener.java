@@ -18,6 +18,15 @@ package org.gradle.tooling.internal.provider.runner;
 
 import org.gradle.configuration.project.ConfigureProjectBuildOperationType;
 import org.gradle.internal.build.event.BuildEventSubscriptions;
+import org.gradle.internal.build.event.types.AbstractProjectConfigurationResult;
+import org.gradle.internal.build.event.types.DefaultFailure;
+import org.gradle.internal.build.event.types.DefaultOperationFinishedProgressEvent;
+import org.gradle.internal.build.event.types.DefaultOperationStartedProgressEvent;
+import org.gradle.internal.build.event.types.DefaultPluginApplicationResult;
+import org.gradle.internal.build.event.types.DefaultProjectConfigurationDescriptor;
+import org.gradle.internal.build.event.types.DefaultProjectConfigurationFailureResult;
+import org.gradle.internal.build.event.types.DefaultProjectConfigurationSuccessResult;
+import org.gradle.internal.operations.BuildOperationAncestryTracker;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationListener;
 import org.gradle.internal.operations.OperationFinishEvent;
@@ -28,14 +37,6 @@ import org.gradle.tooling.internal.protocol.events.InternalOperationFinishedProg
 import org.gradle.tooling.internal.protocol.events.InternalOperationStartedProgressEvent;
 import org.gradle.tooling.internal.protocol.events.InternalPluginIdentifier;
 import org.gradle.tooling.internal.protocol.events.InternalProjectConfigurationResult.InternalPluginApplicationResult;
-import org.gradle.internal.build.event.types.AbstractProjectConfigurationResult;
-import org.gradle.internal.build.event.types.DefaultFailure;
-import org.gradle.internal.build.event.types.DefaultOperationFinishedProgressEvent;
-import org.gradle.internal.build.event.types.DefaultOperationStartedProgressEvent;
-import org.gradle.internal.build.event.types.DefaultPluginApplicationResult;
-import org.gradle.internal.build.event.types.DefaultProjectConfigurationDescriptor;
-import org.gradle.internal.build.event.types.DefaultProjectConfigurationFailureResult;
-import org.gradle.internal.build.event.types.DefaultProjectConfigurationSuccessResult;
 import org.gradle.tooling.internal.provider.runner.PluginApplicationTracker.PluginApplication;
 
 import java.time.Duration;
@@ -58,13 +59,13 @@ import static java.util.stream.Collectors.toCollection;
 class ClientForwardingProjectConfigurationOperationListener extends SubtreeFilteringBuildOperationListener<ConfigureProjectBuildOperationType.Details> {
 
     private final Map<OperationIdentifier, ProjectConfigurationResult> results = new ConcurrentHashMap<>();
-    private final BuildOperationParentTracker parentTracker;
+    private final BuildOperationAncestryTracker ancestryTracker;
     private final PluginApplicationTracker pluginApplicationTracker;
 
     ClientForwardingProjectConfigurationOperationListener(ProgressEventConsumer eventConsumer, BuildEventSubscriptions clientSubscriptions, BuildOperationListener delegate,
-                                                          BuildOperationParentTracker parentTracker, PluginApplicationTracker pluginApplicationTracker) {
+                                                          BuildOperationAncestryTracker ancestryTracker, PluginApplicationTracker pluginApplicationTracker) {
         super(eventConsumer, clientSubscriptions, delegate, OperationType.PROJECT_CONFIGURATION, ConfigureProjectBuildOperationType.Details.class);
-        this.parentTracker = parentTracker;
+        this.ancestryTracker = ancestryTracker;
         this.pluginApplicationTracker = pluginApplicationTracker;
     }
 
@@ -74,7 +75,7 @@ class ClientForwardingProjectConfigurationOperationListener extends SubtreeFilte
         if (isEnabled()) {
             PluginApplication pluginApplication = pluginApplicationTracker.getRunningPluginApplication(buildOperation.getId());
             if (pluginApplication != null) {
-                ProjectConfigurationResult result = parentTracker.findClosestExistingAncestor(buildOperation.getParentId(), results::get);
+                ProjectConfigurationResult result = ancestryTracker.findClosestExistingAncestor(buildOperation.getParentId(), results::get);
                 if (result != null && hasNoEnclosingRunningPluginApplicationForSamePlugin(buildOperation, pluginApplication.getPlugin())) {
                     result.increment(pluginApplication, finishEvent.getEndTime() - finishEvent.getStartTime());
                 }
