@@ -24,6 +24,7 @@ import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.project.IsolatedAntBuilder;
+import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.InputFiles;
@@ -181,7 +182,11 @@ public abstract class JacocoReportBase extends JacocoBase {
      */
     @Internal
     public FileCollection getAllClassDirs() {
-        return classDirectories.plus(getAdditionalClassDirs());
+        FileCollection classes = classDirectories.plus(getAdditionalClassDirs());
+        JacocoTaskExtension jacocoTaskExtension = getProject().getTasks().named(JavaPlugin.TEST_TASK_NAME).get()
+            .getExtensions().getByType(JacocoTaskExtension.class);
+        return classes.getAsFileTree().matching(patterns ->
+            patterns.exclude(jacocoTaskExtension.getExcludes()).include(jacocoTaskExtension.getIncludes()));
     }
 
     /**
