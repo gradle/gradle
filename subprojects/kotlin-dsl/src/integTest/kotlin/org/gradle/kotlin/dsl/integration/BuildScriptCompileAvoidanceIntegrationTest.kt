@@ -1,13 +1,17 @@
 package org.gradle.kotlin.dsl.integration
 
+import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.gradle.kotlin.dsl.integration.BuildScriptCompileAvoidanceIntegrationTest.CacheBuster.cacheBuster
-import org.hamcrest.CoreMatchers
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Assert.assertTrue
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
+import java.util.regex.Pattern
 
 
 class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest() {
@@ -15,6 +19,10 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
     object CacheBuster {
         var cacheBuster: Int = 0
     }
+
+    @Rule
+    @JvmField
+    val temporaryFolder = TestNameTestDirectoryProvider(javaClass)
 
     @Before
     fun init() {
@@ -36,7 +44,7 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
             """
         )
         withBuildScript("$className().foo()")
-        configureProject().buildScriptCompiled().andOutputContains("foo")
+        configureProject().assertBuildScriptCompiled().assertOutputContains("foo")
 
         givenJavaClassInBuildSrcContains(
             """
@@ -45,7 +53,7 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
             }
             """
         )
-        configureProject().buildScriptCompilationAvoided().andOutputContains("bar")
+        configureProject().assertBuildScriptCompilationAvoided().assertOutputContains("bar")
     }
 
     @Test
@@ -58,7 +66,7 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
             """
         )
         withBuildScript("$className().foo()")
-        configureProject().buildScriptCompiled().andOutputContains("foo")
+        configureProject().assertBuildScriptCompiled().assertOutputContains("foo")
 
         givenJavaClassInBuildSrcContains(
             """
@@ -68,7 +76,7 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
             public void bar() {}
             """
         )
-        configureProject().buildScriptCompiled().andOutputContains("bar")
+        configureProject().assertBuildScriptCompiled().assertOutputContains("bar")
     }
 
     @ToBeFixedForConfigurationCache
@@ -90,7 +98,7 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
             $className().foo()
             """
         )
-        configureProject().buildScriptCompiled().andOutputContains("foo")
+        configureProject().assertBuildScriptCompiled().assertOutputContains("foo")
 
         buildJarForBuildScriptClasspath(
             """
@@ -99,7 +107,7 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
             }
             """
         )
-        configureProject().buildScriptCompilationAvoided().andOutputContains("bar")
+        configureProject().assertBuildScriptCompilationAvoided().assertOutputContains("bar")
     }
 
     @ToBeFixedForConfigurationCache
@@ -121,7 +129,7 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
             $className().foo()
             """
         )
-        configureProject().buildScriptCompiled().andOutputContains("foo")
+        configureProject().assertBuildScriptCompiled().assertOutputContains("foo")
 
         buildJarForBuildScriptClasspath(
             """
@@ -131,7 +139,7 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
             public void bar() {}
             """
         )
-        configureProject().buildScriptCompiled().andOutputContains("bar")
+        configureProject().assertBuildScriptCompiled().assertOutputContains("bar")
     }
 
     @ToBeFixedForConfigurationCache
@@ -151,7 +159,7 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
                 }
             """
         )
-        configureProject().buildScriptCompiled().andOutputContains("foo")
+        configureProjectWithDebugOutput().assertBuildScriptCompiled().assertOutputContains("foo")
 
         withPrecompiledScriptPluginInBuildSrc(
             pluginId,
@@ -159,7 +167,7 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
                 println("bar")
             """
         )
-        configureProject().buildScriptCompilationAvoided().andOutputContains("bar")
+        configureProjectWithDebugOutput().assertBuildScriptCompilationAvoided().assertOutputContains("bar")
     }
 
     @ToBeFixedForConfigurationCache
@@ -182,7 +190,7 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
                 }
             """
         )
-        configureProject().buildScriptCompiled().andOutputContains("foo")
+        configureProjectWithDebugOutput().assertBuildScriptCompiled().assertOutputContains("foo")
 
         withPrecompiledScriptPluginInBuildSrc(
             pluginId,
@@ -193,7 +201,7 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
                 println("bar")
             """
         )
-        configureProject().buildScriptCompiled().andOutputContains("bar")
+        configureProjectWithDebugOutput().assertBuildScriptCompiled().assertOutputContains("bar")
     }
 
     @ToBeFixedForConfigurationCache
@@ -207,7 +215,7 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
             """
         )
         withBuildScript("$className().foo()")
-        configureProject().buildScriptCompiled().andOutputContains("foo")
+        configureProject().assertBuildScriptCompiled().assertOutputContains("foo")
 
         givenKotlinClassInBuildSrcContains(
             """
@@ -216,7 +224,7 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
             }
             """
         )
-        configureProject().buildScriptCompiled().andOutputContains("bar")
+        configureProject().assertBuildScriptCompiled().assertOutputContains("bar")
     }
 
     @ToBeFixedForConfigurationCache
@@ -231,7 +239,7 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
             """
         )
         withBuildScript("$packageName.foo()")
-        configureProject().buildScriptCompiled().andOutputContains("foo")
+        configureProject().assertBuildScriptCompiled().assertOutputContains("foo")
 
         givenKotlinScriptInBuildSrcContains(
             "Foo",
@@ -241,7 +249,7 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
             }
             """
         )
-        configureProject().buildScriptCompilationAvoided().andOutputContains("bar")
+        configureProject().assertBuildScriptCompilationAvoided().assertOutputContains("bar")
     }
 
     @ToBeFixedForConfigurationCache
@@ -256,7 +264,7 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
             """
         )
         withBuildScript("$packageName.foo()")
-        configureProject().buildScriptCompiled().andOutputContains("foo")
+        configureProject().assertBuildScriptCompiled().assertOutputContains("foo")
 
         givenKotlinScriptInBuildSrcContains(
             "Foo",
@@ -266,7 +274,7 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
             }
             """
         )
-        configureProject().buildScriptCompiled().andOutputContains("bar")
+        configureProject().assertBuildScriptCompiled().assertOutputContains("bar")
     }
 
     private
@@ -358,32 +366,78 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
     }
 
     private
-    fun configureProject() =
+    fun configureProject(): BuildOperationsAssertions {
+        val buildOperations = BuildOperationsFixture(executer, temporaryFolder)
+        val output = executer.run().normalizedOutput
+        return BuildOperationsAssertions(buildOperations, output)
+    }
+
+    // There seems to be a bug in BuildOperationTrace handling of projects with precompiled script plugins
+    // An assertion fails at BuildOperationTrace.java:338
+    // leaving this one as a workaround for test cases that have precompiled script plugins until the underlying issue is fixed
+    private
+    fun configureProjectWithDebugOutput() =
         OutputFixture(gradleExecuterFor(arrayOf("--debug")).withStackTraceChecksDisabled().run().output)
+}
 
-    class OutputFixture(val output: String) {
-        private
-        val scriptClasspathCompileOperationStartMarker = "Build operation 'Compile script build.gradle.kts (CLASSPATH)' started"
 
-        private
-        val scriptBodyCompileOperationStartMarker = "Build operation 'Compile script build.gradle.kts (BODY)' started"
+private
+class BuildOperationsAssertions(buildOperationsFixture: BuildOperationsFixture, val output: String) {
+    private
+    val classpathCompileOperations = buildOperationsFixture.all(Pattern.compile("Compile script build.gradle.kts \\(CLASSPATH\\)"))
 
-        fun buildScriptCompiled(): OutputFixture {
-            if (!output.contains(scriptClasspathCompileOperationStartMarker) && !output.contains(scriptBodyCompileOperationStartMarker)) {
-                throw AssertionError("Expected script to be compiled, but it wasn't")
-            }
+    private
+    val bodyCompileOperations = buildOperationsFixture.all(Pattern.compile("Compile script build.gradle.kts \\(BODY\\)"))
+
+    fun assertBuildScriptCompiled(): BuildOperationsAssertions {
+        if (classpathCompileOperations.size == 1 || bodyCompileOperations.size == 1) {
             return this
         }
+        throw AssertionError(
+            "Expected script to be compiled, but it wasn't, or there were more compile operations than expected. " +
+                "classpath compile operations: $classpathCompileOperations, body compile operations: $bodyCompileOperations"
+        )
+    }
 
-        fun buildScriptCompilationAvoided(): OutputFixture {
-            if (output.contains(scriptClasspathCompileOperationStartMarker) || output.contains(scriptBodyCompileOperationStartMarker)) {
-                throw AssertionError("Expected script compilation to be avoided, but the buildscript was recompiled")
-            }
+    fun assertBuildScriptCompilationAvoided(): BuildOperationsAssertions {
+        if (classpathCompileOperations.isEmpty() && bodyCompileOperations.isEmpty()) {
             return this
         }
+        throw AssertionError(
+            "Expected script compilation to be avoided, but the buildscript was recompiled. " +
+                "classpath compile operations: $classpathCompileOperations, body compile operations: $bodyCompileOperations"
+        )
+    }
 
-        fun andOutputContains(expectedOutput: String) {
-            assertThat(output, CoreMatchers.containsString("[system.out] $expectedOutput"))
+    fun assertOutputContains(expectedOutput: String) {
+        assertThat(output, containsString(expectedOutput))
+    }
+}
+
+
+private
+class OutputFixture(val output: String) {
+    private
+    val scriptClasspathCompileOperationStartMarker = "Build operation 'Compile script build.gradle.kts (CLASSPATH)' started"
+
+    private
+    val scriptBodyCompileOperationStartMarker = "Build operation 'Compile script build.gradle.kts (BODY)' started"
+
+    fun assertBuildScriptCompiled(): OutputFixture {
+        if (output.contains(scriptClasspathCompileOperationStartMarker) || output.contains(scriptBodyCompileOperationStartMarker)) {
+            return this
         }
+        throw AssertionError("Expected script to be compiled, but it wasn't")
+    }
+
+    fun assertBuildScriptCompilationAvoided(): OutputFixture {
+        if (output.contains(scriptClasspathCompileOperationStartMarker) || output.contains(scriptBodyCompileOperationStartMarker)) {
+            throw AssertionError("Expected script compilation to be avoided, but the buildscript was recompiled")
+        }
+        return this
+    }
+
+    fun assertOutputContains(expectedOutput: String) {
+        assertThat(output, containsString("[system.out] $expectedOutput"))
     }
 }
