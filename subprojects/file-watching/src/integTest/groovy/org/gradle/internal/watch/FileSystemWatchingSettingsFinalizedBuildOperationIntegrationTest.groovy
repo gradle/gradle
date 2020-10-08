@@ -17,7 +17,6 @@
 package org.gradle.internal.watch
 
 import org.gradle.integtests.fixtures.BuildOperationsFixture
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.operations.trace.BuildOperationRecord
 import org.gradle.internal.watch.options.FileSystemWatchingSettingsFinalizedProgressDetails
@@ -28,7 +27,6 @@ class FileSystemWatchingSettingsFinalizedBuildOperationIntegrationTest extends A
 
     def operations = new BuildOperationsFixture(executer, temporaryFolder)
 
-    @ToBeFixedForConfigurationCache(because = "uses included builds")
     def "emits once when not used"() {
         given:
         settingsFile << "includeBuild 'plugin'"

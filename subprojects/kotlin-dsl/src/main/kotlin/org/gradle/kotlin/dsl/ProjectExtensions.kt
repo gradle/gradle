@@ -218,7 +218,7 @@ inline fun <reified T> Project.container(): NamedDomainObjectContainer<T> =
  *
  * @see [Project.container]
  */
-inline fun <reified T> Project.container(noinline factory: (String) -> T): NamedDomainObjectContainer<T> =
+inline fun <reified T : Any> Project.container(noinline factory: (String) -> T): NamedDomainObjectContainer<T> =
     container(T::class.java, factory)
 
 

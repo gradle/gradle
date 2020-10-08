@@ -24,6 +24,7 @@ import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.Describable;
 import org.gradle.api.DomainObjectSet;
+import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.ArtifactCollection;
 import org.gradle.api.artifacts.ArtifactView;
@@ -36,6 +37,7 @@ import org.gradle.api.artifacts.DependencyConstraintSet;
 import org.gradle.api.artifacts.DependencyResolutionListener;
 import org.gradle.api.artifacts.DependencySet;
 import org.gradle.api.artifacts.ExcludeRule;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.PublishArtifactSet;
 import org.gradle.api.artifacts.ResolutionStrategy;
@@ -43,6 +45,7 @@ import org.gradle.api.artifacts.ResolvableDependencies;
 import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.ResolvedConfiguration;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.result.DependencyResult;
 import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
@@ -128,6 +131,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 import static org.gradle.api.internal.artifacts.configurations.ConfigurationInternal.InternalState.ARTIFACTS_RESOLVED;
 import static org.gradle.api.internal.artifacts.configurations.ConfigurationInternal.InternalState.BUILD_DEPENDENCIES_RESOLVED;
@@ -219,6 +223,9 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private List<String> resolutionAlternatives;
 
     private final CalculatedModelValue<ResolveState> currentResolveState;
+
+    private ConfigurationInternal consistentResolutionSource;
+    private String consistentResolutionReason;
 
     public DefaultConfiguration(DomainObjectContext domainObjectContext,
                                 String name,
@@ -611,6 +618,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
                 ResolvableDependenciesInternal incoming = (ResolvableDependenciesInternal) getIncoming();
                 performPreResolveActions(incoming);
+                maybeConfigureConsistentResolution();
                 DefaultResolverResults results = new DefaultResolverResults();
                 resolver.resolveGraph(DefaultConfiguration.this, results);
                 dependenciesModified = false;
@@ -668,6 +676,49 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                     ));
             }
         });
+    }
+
+    @Override
+    public ConfigurationInternal getConsistentResolutionSource() {
+        return consistentResolutionSource;
+    }
+
+    private void maybeConfigureConsistentResolution() {
+        if (consistentResolutionSource != null) {
+            assertThatConsistentResolutionIsPropertyConfigured();
+            consistentResolutionSource.getIncoming().getResolutionResult().allComponents(this::registerConsistentResolutionConstraint);
+        }
+    }
+
+    private void assertThatConsistentResolutionIsPropertyConfigured() {
+        if (!consistentResolutionSource.isCanBeResolved()) {
+            throw new InvalidUserCodeException("You can't use " + consistentResolutionSource + " as a consistent resolution source for " + this + " because it isn't a resolvable configuration.");
+        }
+        assertNoDependencyResolutionConsistencyCycle();
+    }
+
+    private void assertNoDependencyResolutionConsistencyCycle() {
+        Set<ConfigurationInternal> sources = Sets.newLinkedHashSet();
+        ConfigurationInternal src = this;
+        while (src != null) {
+            if (!sources.add(src)) {
+                String cycle = sources.stream().map(Configuration::getName).collect(Collectors.joining(" -> ")) + " -> " + getName();
+                throw new InvalidUserDataException("Cycle detected in consistent resolution sources: " + cycle);
+            }
+            src = src.getConsistentResolutionSource();
+        }
+    }
+
+    private void registerConsistentResolutionConstraint(ResolvedComponentResult result) {
+        if (result.getId() instanceof ModuleComponentIdentifier) {
+            ModuleVersionIdentifier moduleVersion = result.getModuleVersion();
+            DefaultDependencyConstraint constraint = DefaultDependencyConstraint.strictly(
+                moduleVersion.getGroup(),
+                moduleVersion.getName(),
+                moduleVersion.getVersion());
+            constraint.because(consistentResolutionReason);
+            this.dependencyConstraints.addInternalDependencyConstraint(constraint);
+        }
     }
 
     private void performPreResolveActions(ResolvableDependencies incoming) {
@@ -986,16 +1037,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     private DefaultConfiguration createCopy(Set<Dependency> dependencies, Set<DependencyConstraint> dependencyConstraints) {
-        DetachedConfigurationsProvider configurationsProvider = new DetachedConfigurationsProvider();
-        RootComponentMetadataBuilder rootComponentMetadataBuilder = this.rootComponentMetadataBuilder.withConfigurationsProvider(configurationsProvider);
-
-        String newName = getNameWithCopySuffix();
-
-        Factory<ResolutionStrategyInternal> childResolutionStrategy = resolutionStrategy != null ? Factories.constant(resolutionStrategy.copy()) : resolutionStrategyFactory;
-        DefaultConfiguration copiedConfiguration = instantiator.newInstance(DefaultConfiguration.class, domainObjectContext, newName,
-            configurationsProvider, resolver, listenerManager, metaDataProvider, childResolutionStrategy, projectAccessListener, fileCollectionFactory, buildOperationExecutor, instantiator, artifactNotationParser, capabilityNotationParser, attributesFactory,
-            rootComponentMetadataBuilder, documentationRegistry, userCodeApplicationContext, owner, projectStateRegistry, domainObjectCollectionFactory);
-        configurationsProvider.setTheOnlyConfiguration(copiedConfiguration);
+        DefaultConfiguration copiedConfiguration = newConfiguration();
         // state, cachedResolvedConfiguration, and extendsFrom intentionally not copied - must re-resolve copy
         // copying extendsFrom could mess up dependencies when copy was re-resolved
 
@@ -1034,6 +1076,20 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         for (DependencyConstraint dependencyConstraint : dependencyConstraints) {
             copiedDependencyConstraints.add(((DefaultDependencyConstraint) dependencyConstraint).copy());
         }
+        return copiedConfiguration;
+    }
+
+    private DefaultConfiguration newConfiguration() {
+        DetachedConfigurationsProvider configurationsProvider = new DetachedConfigurationsProvider();
+        RootComponentMetadataBuilder rootComponentMetadataBuilder = this.rootComponentMetadataBuilder.withConfigurationsProvider(configurationsProvider);
+
+        String newName = getNameWithCopySuffix();
+
+        Factory<ResolutionStrategyInternal> childResolutionStrategy = resolutionStrategy != null ? Factories.constant(resolutionStrategy.copy()) : resolutionStrategyFactory;
+        DefaultConfiguration copiedConfiguration = instantiator.newInstance(DefaultConfiguration.class, domainObjectContext, newName,
+            configurationsProvider, resolver, listenerManager, metaDataProvider, childResolutionStrategy, projectAccessListener, fileCollectionFactory, buildOperationExecutor, instantiator, artifactNotationParser, capabilityNotationParser, attributesFactory,
+            rootComponentMetadataBuilder, documentationRegistry, userCodeApplicationContext, owner, projectStateRegistry, domainObjectCollectionFactory);
+        configurationsProvider.setTheOnlyConfiguration(copiedConfiguration);
         return copiedConfiguration;
     }
 
@@ -1367,6 +1423,20 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     @Override
     public DeprecatableConfiguration deprecateForResolution(String... alternativesForResolving) {
         this.resolutionAlternatives = ImmutableList.copyOf(alternativesForResolving);
+        return this;
+    }
+
+    @Override
+    public Configuration shouldResolveConsistentlyWith(Configuration versionsSource) {
+        this.consistentResolutionSource = (ConfigurationInternal) versionsSource;
+        this.consistentResolutionReason = "version resolved in " + versionsSource + " by consistent resolution";
+        return this;
+    }
+
+    @Override
+    public Configuration disableConsistentResolution() {
+        this.consistentResolutionSource = null;
+        this.consistentResolutionReason = null;
         return this;
     }
 

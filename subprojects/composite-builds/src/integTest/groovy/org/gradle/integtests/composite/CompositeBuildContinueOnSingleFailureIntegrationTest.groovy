@@ -17,7 +17,6 @@
 package org.gradle.integtests.composite
 
 import org.gradle.initialization.StartParameterBuildOptions.ContinueOption
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import spock.lang.Issue
 
@@ -56,7 +55,6 @@ class CompositeBuildContinueOnSingleFailureIntegrationTest extends AbstractCompo
         includedBuilds << buildB << buildC
     }
 
-    @ToBeFixedForConfigurationCache
     def "aborts build when delegated task in same build fails"() {
         when:
         buildA.buildFile << """
@@ -75,7 +73,6 @@ class CompositeBuildContinueOnSingleFailureIntegrationTest extends AbstractCompo
         assertTaskNotExecuted(":", ":delegate")
     }
 
-    @ToBeFixedForConfigurationCache
     def "attempts all dependencies when run with --continue when one delegated task dependency fails"() {
         when:
         buildA.buildFile << """
@@ -97,7 +94,6 @@ class CompositeBuildContinueOnSingleFailureIntegrationTest extends AbstractCompo
     }
 
     @Issue("https://github.com/gradle/gradle/issues/2520")
-    @ToBeFixedForConfigurationCache
     def "continues build when delegated task fails when run with --continue"() {
         when:
         buildA.buildFile << """
@@ -122,7 +118,6 @@ class CompositeBuildContinueOnSingleFailureIntegrationTest extends AbstractCompo
         assertTaskNotExecuted(":", ":delegateWithFailure")
     }
 
-    @ToBeFixedForConfigurationCache
     def "executes delegate task with --continue"() {
         when:
         buildB.buildFile << """
@@ -149,7 +144,6 @@ class CompositeBuildContinueOnSingleFailureIntegrationTest extends AbstractCompo
         assertTaskNotExecuted(":", ":delegate")
     }
 
-    @ToBeFixedForConfigurationCache
     def "passes continueOnFailure flag when building dependency artifact"() {
         when:
         buildB.buildFile << """

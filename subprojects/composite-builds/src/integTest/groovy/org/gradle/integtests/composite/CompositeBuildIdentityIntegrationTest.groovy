@@ -35,7 +35,6 @@ class CompositeBuildIdentityIntegrationTest extends AbstractCompositeBuildIntegr
     }
 
     @Unroll
-    @ToBeFixedForConfigurationCache
     def "includes build identifier in logging output with #display"() {
         dependency "org.test:${dependencyName}:1.0"
 
@@ -61,7 +60,7 @@ class CompositeBuildIdentityIntegrationTest extends AbstractCompositeBuildIntegr
     }
 
     @Unroll
-    @ToBeFixedForConfigurationCache
+    @ToBeFixedForConfigurationCache(because = ":dependencies")
     def "includes build identifier in dependency report with #display"() {
         dependency "org.test:${dependencyName}:1.0"
 
@@ -112,7 +111,6 @@ Required by:
     }
 
     @Unroll
-    @ToBeFixedForConfigurationCache
     def "includes build identifier in task failure error message with #display"() {
         dependency "org.test:${dependencyName}:1.0"
 
@@ -137,7 +135,6 @@ Required by:
     }
 
     @Unroll
-    @ToBeFixedForConfigurationCache
     def "includes build identifier in dependency resolution results with #display"() {
         dependency "org.test:${dependencyName}:1.0"
 

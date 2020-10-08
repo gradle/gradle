@@ -306,6 +306,11 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
     }
 
     @Override
+    public List<Node> getScheduledWorkPlusDependencies() {
+        return executionPlan.getScheduledNodesPlusDependencies();
+    }
+
+    @Override
     public Set<Task> getDependencies(Task task) {
         ensurePopulated();
         Node node = executionPlan.getNode(task);

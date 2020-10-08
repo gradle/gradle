@@ -16,6 +16,7 @@
 
 package org.gradle.configurationcache.serialization.codecs
 
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.BuildIdentifierSerializer
 import org.gradle.api.internal.artifacts.transform.ArtifactTransformActionScheme
 import org.gradle.api.internal.artifacts.transform.ArtifactTransformListener
 import org.gradle.api.internal.artifacts.transform.ArtifactTransformParameterScheme
@@ -32,6 +33,7 @@ import org.gradle.api.internal.provider.PropertyFactory
 import org.gradle.api.internal.provider.ValueSourceProviderFactory
 import org.gradle.api.services.internal.BuildServiceRegistryInternal
 import org.gradle.api.tasks.util.PatternSet
+import org.gradle.composite.internal.IncludedBuildTaskGraph
 import org.gradle.configurationcache.problems.DocumentationSection.NotYetImplementedJavaSerialization
 import org.gradle.configurationcache.serialization.codecs.jos.JavaObjectSerializationCodec
 import org.gradle.configurationcache.serialization.codecs.transform.ChainedTransformationNodeCodec
@@ -98,7 +100,8 @@ class Codecs(
     valueSourceProviderFactory: ValueSourceProviderFactory,
     patternSetFactory: Factory<PatternSet>,
     fileOperations: FileOperations,
-    fileFactory: FileFactory
+    fileFactory: FileFactory,
+    includedTaskGraph: IncludedBuildTaskGraph
 ) {
 
     val userTypesCodec = BindingsBackedCodec {
@@ -176,7 +179,9 @@ class Codecs(
         providerTypes(propertyFactory, filePropertyFactory, buildServiceRegistry, valueSourceProviderFactory)
         fileCollectionTypes(directoryFileTreeFactory, fileCollectionFactory, fileOperations, fileFactory, patternSetFactory)
 
+        bind(BuildIdentifierSerializer())
         bind(TaskNodeCodec(userTypesCodec, taskNodeFactory))
+        bind(TaskInAnotherBuildCodec(includedTaskGraph))
         bind(InitialTransformationNodeCodec(userTypesCodec, buildOperationExecutor, transformListener))
         bind(ChainedTransformationNodeCodec(userTypesCodec, buildOperationExecutor, transformListener))
         bind(IsolateTransformerParametersNodeCodec(userTypesCodec))

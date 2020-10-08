@@ -16,7 +16,6 @@
 
 package org.gradle.integtests.composite
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import spock.lang.Unroll
 
@@ -41,7 +40,6 @@ class CompositeBuildTaskDependencyIntegrationTest extends AbstractCompositeBuild
         includedBuilds << buildB
     }
 
-    @ToBeFixedForConfigurationCache
     def "can depend on task in root project of included build"() {
         when:
         buildA.buildFile << """
@@ -57,7 +55,6 @@ class CompositeBuildTaskDependencyIntegrationTest extends AbstractCompositeBuild
         output.contains("Executing build 'buildB' project ':' task ':logProject'")
     }
 
-    @ToBeFixedForConfigurationCache
     def "can depend on task in subproject of included build"() {
         when:
         buildA.buildFile << """
@@ -73,7 +70,6 @@ class CompositeBuildTaskDependencyIntegrationTest extends AbstractCompositeBuild
         output.contains("Executing build 'buildB' project ':b1' task ':b1:logProject'")
     }
 
-    @ToBeFixedForConfigurationCache
     def "can depend on multiple tasks of included build"() {
         when:
         buildA.buildFile << """
@@ -100,7 +96,6 @@ class CompositeBuildTaskDependencyIntegrationTest extends AbstractCompositeBuild
         output.contains("Executing build 'buildB' project ':b1' task ':b1:logProject'")
     }
 
-    @ToBeFixedForConfigurationCache
     def "executes tasks only once for included build"() {
         when:
         buildA.buildFile << """
@@ -124,7 +119,6 @@ class CompositeBuildTaskDependencyIntegrationTest extends AbstractCompositeBuild
         output.contains("Executing build 'buildB' project ':b1' task ':b1:logProject'")
     }
 
-    @ToBeFixedForConfigurationCache
     def "can depend on task from subproject of composing build"() {
         given:
         buildA.settingsFile << """
@@ -157,7 +151,6 @@ class CompositeBuildTaskDependencyIntegrationTest extends AbstractCompositeBuild
         output.contains("Executing build 'buildB' project ':' task ':logProject'")
     }
 
-    @ToBeFixedForConfigurationCache
     def "can depend on task with name in all included builds"() {
         when:
         BuildTestFile buildC = singleProjectBuild("buildC") {
@@ -179,7 +172,6 @@ class CompositeBuildTaskDependencyIntegrationTest extends AbstractCompositeBuild
         output.contains("Executing build 'buildC' project ':' task ':logProject'")
     }
 
-    @ToBeFixedForConfigurationCache
     def "substitutes dependency of included build when executed via task dependency"() {
         given:
         buildA.buildFile << """

@@ -18,7 +18,6 @@ package org.gradle.initialization.buildsrc
 
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.plugin.PluginBuilder
 
@@ -36,7 +35,6 @@ class BuildSrcIncludedBuildIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasDescription("Cannot include build 'child' in build 'buildSrc'. This is not supported yet.")
     }
 
-    @ToBeFixedForConfigurationCache(because="composite build")
     def "buildSrc can apply plugins contributed by other included builds"() {
         file("buildSrc/build.gradle") << """
             plugins {
@@ -55,7 +53,6 @@ class BuildSrcIncludedBuildIntegrationTest extends AbstractIntegrationSpec {
         outputContains("test-plugin applied to :buildSrc")
     }
 
-    @ToBeFixedForConfigurationCache(because="composite build")
     def "buildSrc can apply plugins contributed by other included builds from CLI"() {
         file("buildSrc/build.gradle") << """
             plugins {
@@ -70,7 +67,6 @@ class BuildSrcIncludedBuildIntegrationTest extends AbstractIntegrationSpec {
         outputContains("test-plugin applied to :buildSrc")
     }
 
-    @ToBeFixedForConfigurationCache(because="composite build")
     def "buildSrc can apply settings plugins contributed by other included builds"() {
         file("buildSrc/settings.gradle") << """
             plugins {
@@ -91,7 +87,6 @@ class BuildSrcIncludedBuildIntegrationTest extends AbstractIntegrationSpec {
         outputContains("test-settings-plugin applied to :buildSrc")
     }
 
-    @ToBeFixedForConfigurationCache(because="composite build")
     def "buildSrc can apply plugins contributed by nested included build"() {
         file("buildSrc/build.gradle") << """
             plugins {
@@ -113,13 +108,12 @@ class BuildSrcIncludedBuildIntegrationTest extends AbstractIntegrationSpec {
         outputContains("test-plugin applied to :buildSrc")
     }
 
-    @ToBeFixedForConfigurationCache(because="composite build")
     def "buildSrc can depend on dependencies contributed by other included builds"() {
         file("buildSrc/build.gradle") << """
             plugins {
                 id "groovy-gradle-plugin"
             }
-            
+
             dependencies {
                 implementation("org.gradle.test:included")
             }
@@ -152,7 +146,7 @@ class BuildSrcIncludedBuildIntegrationTest extends AbstractIntegrationSpec {
             plugins {
                 id "groovy-gradle-plugin"
             }
-            
+
             dependencies {
                 implementation("org.gradle.test:included")
             }
@@ -181,14 +175,13 @@ class BuildSrcIncludedBuildIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause("Compilation failed; see the compiler error output for details.")
     }
 
-    @ToBeFixedForConfigurationCache(because="composite build")
     def "buildSrc can apply plugins contributed by other included builds and use them in plugins for the root build"() {
         file("buildSrc/build.gradle") << """
             plugins {
                 id "test-plugin"
                 id "groovy-gradle-plugin"
             }
-            
+
             dependencies {
                 implementation("org.gradle.test:included")
             }

@@ -33,7 +33,7 @@ public class PerformanceExperiment implements Comparable<PerformanceExperiment> 
     }
 
     public String getDisplayName() {
-        return getScenario().getTestName() + " | " + getTestProject();
+        return getScenario().getTestName() + " | " + getTestProject() + " | " + scenario.getSimpleClassName();
     }
 
     public String getTestProject() {

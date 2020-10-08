@@ -27,6 +27,7 @@ import org.gradle.internal.DisplayName;
 import org.gradle.internal.deprecation.DeprecatableConfiguration;
 import org.gradle.util.Path;
 
+import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Set;
 
@@ -85,6 +86,9 @@ public interface ConfigurationInternal extends ResolveContext, Configuration, De
     Set<ExcludeRule> getAllExcludeRules();
 
     ExtraExecutionGraphDependenciesResolverFactory getDependenciesResolver();
+
+    @Nullable
+    ConfigurationInternal getConsistentResolutionSource();
 
     interface VariantVisitor {
         // The artifacts to use when this configuration is used as a configuration

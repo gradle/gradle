@@ -24,6 +24,7 @@ import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.internal.snapshot.FileSystemNode;
 import org.gradle.internal.snapshot.SnapshotHierarchy;
+import org.gradle.internal.vfs.impl.AbstractVirtualFileSystem;
 import org.gradle.internal.vfs.impl.VfsRootReference;
 import org.gradle.internal.watch.WatchingNotSupportedException;
 import org.gradle.internal.watch.registry.FileWatcherRegistry;
@@ -45,13 +46,12 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Supplier;
 
-public class WatchingVirtualFileSystem implements BuildLifecycleAwareVirtualFileSystem, Closeable {
+public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem implements BuildLifecycleAwareVirtualFileSystem, Closeable {
     private static final Logger LOGGER = LoggerFactory.getLogger(WatchingVirtualFileSystem.class);
     private static final String FILE_WATCHING_ERROR_MESSAGE_DURING_BUILD = "Unable to watch the file system for changes";
     private static final String FILE_WATCHING_ERROR_MESSAGE_AT_END_OF_BUILD = "Gradle was unable to watch the file system for changes";
 
     private final FileWatcherRegistryFactory watcherRegistryFactory;
-    private final VfsRootReference rootReference;
     private final DaemonDocumentationIndex daemonDocumentationIndex;
     private final LocationsWrittenByCurrentBuild locationsWrittenByCurrentBuild;
     private final Set<File> watchableHierarchies = new HashSet<>();
@@ -65,28 +65,19 @@ public class WatchingVirtualFileSystem implements BuildLifecycleAwareVirtualFile
         DaemonDocumentationIndex daemonDocumentationIndex,
         LocationsWrittenByCurrentBuild locationsWrittenByCurrentBuild
     ) {
+        super(rootReference);
         this.watcherRegistryFactory = watcherRegistryFactory;
-        this.rootReference = rootReference;
         this.daemonDocumentationIndex = daemonDocumentationIndex;
         this.locationsWrittenByCurrentBuild = locationsWrittenByCurrentBuild;
     }
 
     @Override
-    public SnapshotHierarchy getRoot() {
-        return rootReference.getRoot();
-    }
-
-    @Override
-    public void update(UpdateFunction updateFunction) {
-        rootReference.update(currentRoot -> updateRootNotifyingWatchers(currentRoot, updateFunction));
-    }
-
-    private SnapshotHierarchy updateRootNotifyingWatchers(SnapshotHierarchy currentRoot, UpdateFunction updateFunction) {
+    protected SnapshotHierarchy updateNotifyingListeners(UpdateFunction updateFunction) {
         if (watchRegistry == null) {
-            return updateFunction.update(currentRoot, SnapshotHierarchy.NodeDiffListener.NOOP);
+            return updateFunction.update(SnapshotHierarchy.NodeDiffListener.NOOP);
         } else {
             SnapshotCollectingDiffListener diffListener = new SnapshotCollectingDiffListener();
-            SnapshotHierarchy newRoot = updateFunction.update(currentRoot, diffListener);
+            SnapshotHierarchy newRoot = updateFunction.update(diffListener);
             return withWatcherChangeErrorHandling(newRoot, () -> diffListener.publishSnapshotDiff((removedSnapshots, addedSnapshots) ->
                 watchRegistry.virtualFileSystemContentsChanged(removedSnapshots, addedSnapshots, newRoot)
             ));
@@ -254,7 +245,9 @@ public class WatchingVirtualFileSystem implements BuildLifecycleAwareVirtualFile
                     try {
                         String absolutePath = path.toString();
                         if (!locationsWrittenByCurrentBuild.wasLocationWritten(absolutePath)) {
-                            update((root, diffListener) -> root.invalidate(absolutePath, new VfsChangeLoggingNodeDiffListener(type, path, diffListener)));
+                            rootReference.update(root -> updateNotifyingListeners(
+                                diffListener -> root.invalidate(absolutePath, new VfsChangeLoggingNodeDiffListener(type, path, diffListener))
+                            ));
                         }
                     } catch (Exception e) {
                         LOGGER.error("Error while processing file events", e);

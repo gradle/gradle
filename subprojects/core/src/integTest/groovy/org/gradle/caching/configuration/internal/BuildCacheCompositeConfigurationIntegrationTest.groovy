@@ -37,7 +37,7 @@ class BuildCacheCompositeConfigurationIntegrationTest extends AbstractIntegratio
     }
 
     @Unroll
-    @ToBeFixedForConfigurationCache(because = "composite builds & GradleBuild")
+    @ToBeFixedForConfigurationCache(because = "GradleBuild")
     def "can configure with settings.gradle - enabled by #by"() {
         def enablingCode = by == EnabledBy.PROGRAMMATIC ? """\ngradle.startParameter.buildCacheEnabled = true\n""" : ""
         if (by == EnabledBy.INVOCATION_SWITCH) {
@@ -123,7 +123,6 @@ class BuildCacheCompositeConfigurationIntegrationTest extends AbstractIntegratio
     }
 
     @Issue("https://github.com/gradle/gradle/issues/4216")
-    @ToBeFixedForConfigurationCache(because = "composite builds")
     def "build cache service is closed only after all included builds are finished"() {
         executer.beforeExecute { it.withBuildCacheEnabled() }
         def localCache = new TestBuildCache(file("local-cache"))
@@ -132,19 +131,18 @@ class BuildCacheCompositeConfigurationIntegrationTest extends AbstractIntegratio
         buildTestFixture.withBuildInSubDir()
         multiProjectBuild('included', ['first', 'second']) {
             buildFile << """
-                    gradle.startParameter.setTaskNames(['clean', 'build'])
-                    allprojects {
-                        apply plugin: 'java-library'
+                gradle.startParameter.setTaskNames(['clean', 'build'])
+                allprojects {
+                    apply plugin: 'java-library'
 
-                        tasks.withType(Jar) {
-                            doFirst {
-                                // this makes it more probable that tasks from the included build finish after the root build
-                                Thread.sleep(1000)
-                            }
+                    tasks.withType(Jar) {
+                        doFirst {
+                            // this makes it more probable that tasks from the included build finish after the root build
+                            Thread.sleep(1000)
                         }
                     }
-                """
-
+                }
+            """
             file("src/test/java/Test.java") << """class Test {}"""
             file("first/src/test/java/Test.java") << """class TestFirst {}"""
             file("second/src/test/java/Test.java") << """class TestSecond {}"""

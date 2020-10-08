@@ -24,6 +24,8 @@ import org.gradle.internal.resource.TextResource;
 
 import java.util.Collection;
 
+import static org.gradle.api.internal.SettingsInternal.BUILD_SRC;
+
 public class DeprecateUndefinedBuildWorkExecutor implements BuildWorkExecutor {
     private final BuildWorkExecutor delegate;
 
@@ -55,6 +57,6 @@ public class DeprecateUndefinedBuildWorkExecutor implements BuildWorkExecutor {
     }
 
     private static boolean isBuildSrcExecution(GradleInternal gradle) {
-        return gradle.getRootProject().getName().equals("buildSrc") && gradle.getParent() != null;
+        return gradle.getRootProject().getName().equals(BUILD_SRC) && gradle.getParent() != null;
     }
 }

@@ -17,14 +17,12 @@
 package org.gradle.integtests.composite
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import spock.lang.Unroll
 
 class CompositeBuildDependencyCapabilitiesResolveIntegrationTest extends AbstractIntegrationSpec {
 
     @Unroll
-    @ToBeFixedForConfigurationCache(because = "composite builds")
     def "dependency capabilities travel to the included build"() {
         mavenRepo.module('com.acme.external', 'external', '1.0')
 

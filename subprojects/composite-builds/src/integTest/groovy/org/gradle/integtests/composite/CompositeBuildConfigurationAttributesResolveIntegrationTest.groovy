@@ -17,7 +17,6 @@
 package org.gradle.integtests.composite
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import spock.lang.Unroll
 
 class CompositeBuildConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationSpec {
@@ -26,7 +25,6 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
         using m2
     }
 
-    @ToBeFixedForConfigurationCache
     def "context travels to transitive dependencies"() {
         given:
         file('settings.gradle') << """
@@ -116,7 +114,6 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
         notExecuted ':includedBuild:fooJar'
     }
 
-    @ToBeFixedForConfigurationCache
     def "context travels to transitive dependencies via external components (Maven)"() {
         given:
         mavenRepo.module('com.acme.external', 'external', '1.2')
@@ -211,7 +208,6 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
         notExecuted ':includedBuild:fooJar'
     }
 
-    @ToBeFixedForConfigurationCache
     def "context travels to transitive dependencies via external components (Ivy)"() {
         given:
         ivyRepo.module('com.acme.external', 'external', '1.2')
@@ -307,7 +303,6 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
     }
 
     @Unroll
-    @ToBeFixedForConfigurationCache
     def "attribute values are matched across builds - #type"() {
         given:
         file('settings.gradle') << """
@@ -407,7 +402,6 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
         'OtherThing' | 'new OtherThing(name: "free")' | 'new OtherThing(name: "paid")'
     }
 
-    @ToBeFixedForConfigurationCache
     def "compatibility and disambiguation rules can be defined by consuming build"() {
         given:
         file('settings.gradle') << """
@@ -622,7 +616,6 @@ All of them match the consumer attributes:
     }
 
     @Unroll("context travels down to transitive dependencies with typed attributes using plugin [#v1, #v2, pluginsDSL=#usePluginsDSL]")
-    @ToBeFixedForConfigurationCache
     def "context travels down to transitive dependencies with typed attributes"() {
         buildTypedAttributesPlugin('1.0')
         buildTypedAttributesPlugin('1.1')

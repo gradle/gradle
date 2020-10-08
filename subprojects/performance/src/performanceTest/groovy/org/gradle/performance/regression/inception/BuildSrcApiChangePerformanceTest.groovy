@@ -17,8 +17,11 @@ package org.gradle.performance.regression.inception
 
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
 import org.gradle.performance.categories.SlowPerformanceRegressionTest
-import org.gradle.profiler.BuildContext
+import org.gradle.performance.mutator.ApplyAbiChangeToGroovySourceFileMutator
+import org.gradle.performance.mutator.ApplyNonAbiChangeToGroovySourceFileMutator
 import org.gradle.profiler.BuildMutator
+import org.gradle.profiler.InvocationSettings
+import org.gradle.profiler.ScenarioContext
 import org.gradle.util.GradleVersion
 import org.junit.experimental.categories.Category
 
@@ -38,27 +41,25 @@ class BuildSrcApiChangePerformanceTest extends AbstractCrossVersionPerformanceTe
 
         and:
         def changingClassFilePath = "buildSrc/src/main/groovy/ChangingClass.groovy"
-        runner.addBuildMutator { invocationSettings ->
-            new BuildMutator() {
-                @Override
-                void beforeBuild(BuildContext context) {
-                    new File(invocationSettings.projectDir, changingClassFilePath).tap {
-                        parentFile.mkdirs()
-                        text = """
-                        class ChangingClass {
-                            void changingMethod${context.phase}${context.iteration}() {}
-                        }
-                    """.stripIndent()
-                    }
-                }
-            }
-        }
+        runner.addBuildMutator { new CreateChangingClassMutator(it, changingClassFilePath) }
+        runner.addBuildMutator { new ApplyAbiChangeToGroovySourceFileMutator(new File(it.projectDir, changingClassFilePath)) }
 
         when:
         def result = runner.run()
 
         then:
         result.assertCurrentVersionHasNotRegressed()
+    }
+
+    def "buildSrc non-abi change"() {
+        given:
+        runner.tasksToRun = ['help']
+        runner.runs = determineNumberOfRuns(runner.testProject)
+
+        and:
+        def changingClassFilePath = "buildSrc/src/main/groovy/ChangingClass.groovy"
+        runner.addBuildMutator { new CreateChangingClassMutator(it, changingClassFilePath) }
+        runner.addBuildMutator { new ApplyNonAbiChangeToGroovySourceFileMutator(new File(it.projectDir, changingClassFilePath)) }
     }
 
     private static int determineNumberOfRuns(String testProject) {
@@ -71,6 +72,31 @@ class BuildSrcApiChangePerformanceTest extends AbstractCrossVersionPerformanceTe
                 return 10
             default:
                 20
+        }
+    }
+
+    private static class CreateChangingClassMutator implements BuildMutator {
+
+        private final InvocationSettings settings
+        private final String filePath
+
+        CreateChangingClassMutator(InvocationSettings settings, String filePath) {
+            this.settings = settings
+            this.filePath = filePath
+        }
+
+        @Override
+        void beforeScenario(ScenarioContext context) {
+            new File(settings.projectDir, filePath).with {
+                parentFile.mkdirs()
+                text = """
+                    class ChangingClass {
+                        void changingMethod() {
+                            System.out.println("Do the thing");
+                        }
+                    }
+                """
+            }
         }
     }
 }

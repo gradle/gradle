@@ -16,7 +16,6 @@
 
 package org.gradle.integtests.composite
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.maven.MavenModule
@@ -69,7 +68,6 @@ class CompositeBuildConfigurationTimeResolveIntegrationTest extends AbstractComp
 
     }
 
-    @ToBeFixedForConfigurationCache(because = "composite builds")
     def "references but does not build substituted dependency resolved at configuration time"() {
         configurationTimeDependency 'org.test:buildB:1.0'
 
@@ -84,7 +82,6 @@ class CompositeBuildConfigurationTimeResolveIntegrationTest extends AbstractComp
         configured("buildB") == 1
     }
 
-    @ToBeFixedForConfigurationCache(because = "composite builds")
     def "uses substituted dependency when same root build dependency is resolved at both configuration and execution time"() {
         configurationTimeDependency 'org.test:buildB:1.0'
         dependency 'org.test:buildB:1.0'
@@ -99,7 +96,6 @@ class CompositeBuildConfigurationTimeResolveIntegrationTest extends AbstractComp
         configured("buildB") == 1
     }
 
-    @ToBeFixedForConfigurationCache(because = "composite builds")
     def "references substituted dependencies when root build dependencies are resolved at both configuration and execution time"() {
         configurationTimeDependency 'org.test:buildB:1.0'
         dependency 'org.test:b1:1.0'
@@ -117,7 +113,6 @@ class CompositeBuildConfigurationTimeResolveIntegrationTest extends AbstractComp
         configured("buildB") == 1
     }
 
-    @ToBeFixedForConfigurationCache(because = "composite builds")
     def "included build references substituted dependency from preceding included build"() {
         dependency 'org.test:buildC:1.0'
         configurationTimeDependency buildC, 'org.test:buildB:1.0'
@@ -133,7 +128,6 @@ class CompositeBuildConfigurationTimeResolveIntegrationTest extends AbstractComp
         configured("buildB") == 1
     }
 
-    @ToBeFixedForConfigurationCache(because = "composite builds")
     def "included build does not use substituted dependency from subsequent included build"() {
         dependency 'org.test:buildB:1.0'
         configurationTimeDependency buildB, 'org.test:buildC:1.0'

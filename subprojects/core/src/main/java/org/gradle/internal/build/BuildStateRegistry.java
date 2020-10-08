@@ -83,6 +83,12 @@ public interface BuildStateRegistry {
     IncludedBuildState addIncludedBuild(BuildDefinition buildDefinition);
 
     /**
+     * Same as {@link #addIncludedBuild(BuildDefinition)} except the {@link IncludedBuildState} will be instantiated by
+     * the given factory.
+     */
+    IncludedBuildState addIncludedBuildOf(IncludedBuildFactory includedBuildFactory, BuildDefinition buildDefinition);
+
+    /**
      * Creates an implicit included build. An implicit build is-a nested build that is managed by Gradle and whose outputs are used by dependency resolution.
      */
     IncludedBuildState addImplicitIncludedBuild(BuildDefinition buildDefinition);

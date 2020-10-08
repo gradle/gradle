@@ -16,6 +16,7 @@
 
 package org.gradle.smoketests
 
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.profiler.DefaultScenarioContext
 import org.gradle.profiler.Phase
@@ -33,7 +34,7 @@ class AndroidSantaTrackerSmokeTest extends AbstractAndroidSantaTrackerSmokeTest 
     // TODO:configuration-cache remove once fixed upstream
     @Override
     protected int maxConfigurationCacheProblems() {
-        return 100
+        return 150
     }
 
     @Unroll
@@ -98,5 +99,33 @@ class AndroidSantaTrackerSmokeTest extends AbstractAndroidSantaTrackerSmokeTest 
 
         where:
         agpVersion << TESTED_AGP_VERSIONS
+    }
+
+    @Unroll
+    @UnsupportedWithConfigurationCache(iterationMatchers = [AGP_3_ITERATION_MATCHER, AGP_4_0_ITERATION_MATCHER, AGP_4_1_ITERATION_MATCHER])
+    @ToBeFixedForConfigurationCache(iterationMatchers = AGP_4_2_ITERATION_MATCHER)
+    def "can lint Santa-Tracker #flavour (agp=#agpVersion)"() {
+
+        given:
+        def checkoutDir = temporaryFolder.createDir("checkout")
+        setupCopyOfSantaTracker(checkoutDir, flavour, agpVersion)
+
+        when:
+        def result = runnerForLocation(checkoutDir, agpVersion, "lintDebug").buildAndFail()
+
+        then:
+        assertConfigurationCacheStateStored()
+        result.output.contains("Lint found errors in the project; aborting build.")
+
+        when:
+        runnerForLocation(checkoutDir, agpVersion, "clean").build()
+        result = runnerForLocation(checkoutDir, agpVersion, "lintDebug").buildAndFail()
+
+        then:
+        assertConfigurationCacheStateLoaded()
+        result.output.contains("Lint found errors in the project; aborting build.")
+
+        where:
+        [agpVersion, flavour] << [TESTED_AGP_VERSIONS, ['Java', 'Kotlin']].combinations()
     }
 }

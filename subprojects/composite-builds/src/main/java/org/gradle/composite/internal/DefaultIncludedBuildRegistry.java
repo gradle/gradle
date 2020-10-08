@@ -27,6 +27,7 @@ import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.internal.build.BuildAddedListener;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
+import org.gradle.internal.build.IncludedBuildFactory;
 import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.internal.build.NestedRootBuild;
 import org.gradle.internal.build.RootBuildState;
@@ -105,6 +106,26 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
         buildAddedBroadcaster.buildAdded(build);
     }
 
+    @Override
+    public IncludedBuildState addIncludedBuild(BuildDefinition buildDefinition) {
+        return registerBuild(buildDefinition, false);
+    }
+
+    @Override
+    public IncludedBuildState addIncludedBuildOf(IncludedBuildFactory includedBuildFactory, BuildDefinition buildDefinition) {
+        return registerBuildOf(includedBuildFactory, buildDefinition, false);
+    }
+
+    @Override
+    public synchronized IncludedBuildState addImplicitIncludedBuild(BuildDefinition buildDefinition) {
+        // TODO: synchronization with other methods
+        IncludedBuildState includedBuild = includedBuildsByRootDir.get(buildDefinition.getBuildRootDir());
+        if (includedBuild == null) {
+            includedBuild = registerBuild(buildDefinition, true);
+        }
+        return includedBuild;
+    }
+
     public boolean hasIncludedBuilds() {
         return !includedBuildsByRootDir.isEmpty();
     }
@@ -112,11 +133,6 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
     @Override
     public Collection<IncludedBuildState> getIncludedBuilds() {
         return includedBuildsByRootDir.values();
-    }
-
-    @Override
-    public IncludedBuildState addIncludedBuild(BuildDefinition buildDefinition) {
-        return registerBuild(buildDefinition, false);
     }
 
     @Override
@@ -169,16 +185,6 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
     }
 
     @Override
-    public synchronized IncludedBuildState addImplicitIncludedBuild(BuildDefinition buildDefinition) {
-        // TODO: synchronization with other methods
-        IncludedBuildState includedBuild = includedBuildsByRootDir.get(buildDefinition.getBuildRootDir());
-        if (includedBuild == null) {
-            includedBuild = registerBuild(buildDefinition, true);
-        }
-        return includedBuild;
-    }
-
-    @Override
     public StandAloneNestedBuild addBuildSrcNestedBuild(BuildDefinition buildDefinition, BuildState owner) {
         if (!SettingsInternal.BUILD_SRC.equals(buildDefinition.getName())) {
             throw new IllegalStateException("Expected buildSrc build, got: " + buildDefinition.getName());
@@ -213,16 +219,24 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
     }
 
     private IncludedBuildState registerBuild(BuildDefinition buildDefinition, boolean isImplicit) {
+        return registerBuildOf(includedBuildFactory, buildDefinition, isImplicit);
+    }
+
+    private IncludedBuildState registerBuildOf(
+        IncludedBuildFactory includedBuildFactory,
+        BuildDefinition buildDefinition,
+        boolean isImplicit
+    ) {
         // TODO: synchronization
         final File buildDir = buildDefinition.getBuildRootDir();
         if (buildDir == null) {
             throw new IllegalArgumentException("Included build must have a root directory defined");
         }
-        if (rootBuild == null) {
-            throw new IllegalStateException("No root build attached yet.");
-        }
         IncludedBuildState includedBuild = includedBuildsByRootDir.get(buildDir);
         if (includedBuild == null) {
+            if (rootBuild == null) {
+                throw new IllegalStateException("No root build attached yet.");
+            }
             String buildName = buildDefinition.getName();
             if (buildName == null) {
                 throw new IllegalStateException("build name is required");

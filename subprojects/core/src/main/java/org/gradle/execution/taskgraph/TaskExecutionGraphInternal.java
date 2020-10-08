@@ -77,4 +77,10 @@ public interface TaskExecutionGraphInternal extends TaskExecutionGraph {
      * Returns all of the work items in this graph scheduled for execution.
      */
     List<Node> getScheduledWork();
+
+    /**
+     * Returns all of the work items in this graph scheduled for execution plus all
+     * dependencies from other builds.
+     */
+    List<Node> getScheduledWorkPlusDependencies();
 }

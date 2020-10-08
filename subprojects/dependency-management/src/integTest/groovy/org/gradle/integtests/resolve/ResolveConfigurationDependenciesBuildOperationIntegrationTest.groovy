@@ -119,7 +119,6 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
         op.result.resolvedDependenciesCount == 1
     }
 
-    @ToBeFixedForConfigurationCache
     def "resolved configurations in composite builds are exposed via build operation"() {
         setup:
         def m1 = mavenHttpRepo.module('org.foo', 'app-dep').publish()
@@ -274,7 +273,6 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
         "init"          | 'initscript'  | 'init.gradle'
     }
 
-    @ToBeFixedForConfigurationCache(because = "composite builds")
     def "included build classpath configuration resolution result is exposed"() {
         setup:
         def m1 = mavenHttpRepo.module('org.foo', 'some-dep').publish()

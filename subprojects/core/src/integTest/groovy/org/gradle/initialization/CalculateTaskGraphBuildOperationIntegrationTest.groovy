@@ -19,7 +19,6 @@ package org.gradle.initialization
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationNotificationsFixture
 import org.gradle.integtests.fixtures.BuildOperationsFixture
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.internal.operations.trace.BuildOperationRecord
 import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType
 
@@ -109,7 +108,6 @@ class CalculateTaskGraphBuildOperationIntegrationTest extends AbstractIntegratio
         operation().failure.contains("Task 'someNonexistent' not found in root project")
     }
 
-    @ToBeFixedForConfigurationCache(because = "composite builds")
     def "build path for calculated task graph is exposed"() {
         settingsFile << """
             includeBuild "b"
@@ -147,7 +145,6 @@ class CalculateTaskGraphBuildOperationIntegrationTest extends AbstractIntegratio
         taskGraphCalculations[2].result.requestedTaskPaths == [":compileJava", ":jar"]
     }
 
-    @ToBeFixedForConfigurationCache(because = "composite builds")
     def "exposes task plan details"() {
         file("included-build").mkdir()
         file("included-build/settings.gradle")

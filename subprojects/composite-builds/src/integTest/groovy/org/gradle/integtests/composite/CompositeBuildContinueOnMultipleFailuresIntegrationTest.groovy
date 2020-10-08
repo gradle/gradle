@@ -17,7 +17,6 @@
 package org.gradle.integtests.composite
 
 import org.gradle.initialization.StartParameterBuildOptions.ContinueOption
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.build.BuildTestFile
 
 /**
@@ -55,7 +54,6 @@ class CompositeBuildContinueOnMultipleFailuresIntegrationTest extends AbstractCo
         }
     }
 
-    @ToBeFixedForConfigurationCache
     def "can collect build failures from multiple included builds"() {
         when:
         includedBuilds << buildB << buildC << buildD
@@ -83,7 +81,6 @@ class CompositeBuildContinueOnMultipleFailuresIntegrationTest extends AbstractCo
         failure.assertHasDescription("Execution failed for task ':buildD:test'.")
     }
 
-    @ToBeFixedForConfigurationCache
     def "can collect build failure in root and included build"() {
         when:
         includedBuilds << buildC

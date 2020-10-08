@@ -21,13 +21,16 @@ import org.gradle.performance.AbstractCrossVersionPerformanceTest
 import org.gradle.performance.fixture.IncrementalAndroidTestProject
 import org.gradle.performance.fixture.IncrementalTestProject
 import org.gradle.performance.fixture.TestProjects
+import org.gradle.test.fixtures.file.LeaksFileHandles
 
+@LeaksFileHandles("The TAPI keeps handles to the distribution it starts open in the test JVM")
 class FileSystemWatchingPerformanceTest extends AbstractCrossVersionPerformanceTest {
     private static final String AGP_TARGET_VERSION = "4.0"
 
     def setup() {
         runner.minimumBaseVersion = "6.7"
         runner.targetVersions = ["6.8-20201002220441+0000"]
+        runner.useToolingApi = true
     }
 
     def "assemble for non-abi change with file system watching"() {

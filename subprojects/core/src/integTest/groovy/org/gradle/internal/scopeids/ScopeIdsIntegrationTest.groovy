@@ -42,7 +42,6 @@ class ScopeIdsIntegrationTest extends AbstractIntegrationSpec {
         scopeIds.lastBuildPaths() == [":", ":buildSrc"]
     }
 
-    @ToBeFixedForConfigurationCache(because = "composite builds")
     def "composite participants inherit the same ids"() {
         when:
         settingsFile << """

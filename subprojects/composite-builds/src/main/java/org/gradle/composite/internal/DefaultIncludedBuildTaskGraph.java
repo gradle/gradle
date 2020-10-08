@@ -16,7 +16,6 @@
 package org.gradle.composite.internal;
 
 import com.google.common.collect.LinkedHashMultimap;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
@@ -28,6 +27,8 @@ import org.gradle.util.Path;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+
+import static com.google.common.collect.Lists.newArrayList;
 
 public class DefaultIncludedBuildTaskGraph implements IncludedBuildTaskGraph {
     private final Multimap<BuildIdentifier, BuildIdentifier> buildDependencies = LinkedHashMultimap.create();
@@ -41,8 +42,7 @@ public class DefaultIncludedBuildTaskGraph implements IncludedBuildTaskGraph {
     public synchronized void addTask(BuildIdentifier requestingBuild, BuildIdentifier targetBuild, String taskPath) {
         boolean newBuildDependency = buildDependencies.put(requestingBuild, targetBuild);
         if (newBuildDependency) {
-            List<BuildIdentifier> candidateCycle = Lists.newArrayList();
-            checkNoCycles(requestingBuild, targetBuild, candidateCycle);
+            checkNoCycles(requestingBuild, targetBuild, newArrayList());
         }
 
         getBuildController(targetBuild).queueForExecution(taskPath);

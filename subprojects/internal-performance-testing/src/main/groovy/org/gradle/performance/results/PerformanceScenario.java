@@ -36,6 +36,10 @@ public class PerformanceScenario implements Comparable<PerformanceScenario> {
         return className;
     }
 
+    public String getSimpleClassName() {
+        return className.substring(className.lastIndexOf('.') + 1);
+    }
+
     public String getTestName() {
         return testName;
     }

@@ -570,7 +570,7 @@ class NamedDomainObjectCollectionExtensionsTest {
 
 
 internal
-fun <T> KStubbing<NamedDomainObjectContainer<T>>.onCreateWithAction(name: String, domainObject: T) {
+fun <T : Any> KStubbing<NamedDomainObjectContainer<T>>.onCreateWithAction(name: String, domainObject: T) {
     on { create(eq(name), any<Action<T>>()) } doAnswer {
         it.getArgument<Action<T>>(1).execute(domainObject)
         domainObject
@@ -579,7 +579,7 @@ fun <T> KStubbing<NamedDomainObjectContainer<T>>.onCreateWithAction(name: String
 
 
 internal
-fun <T> KStubbing<NamedDomainObjectContainer<T>>.onRegisterWithAction(name: String, provider: NamedDomainObjectProvider<T>) {
+fun <T : Any> KStubbing<NamedDomainObjectContainer<T>>.onRegisterWithAction(name: String, provider: NamedDomainObjectProvider<T>) {
     on { register(eq(name), any<Action<T>>()) } doAnswer {
         it.getArgument<Action<T>>(1).execute(provider.get())
         provider

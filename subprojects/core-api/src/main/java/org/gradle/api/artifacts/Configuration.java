@@ -18,6 +18,7 @@ package org.gradle.api.artifacts;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.attributes.HasConfigurableAttributes;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.specs.Spec;
@@ -539,4 +540,25 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
      */
     boolean isCanBeResolved();
 
+    /**
+     * Tells that this configuration, when resolved, should resolve versions consistently
+     * from the resolution result of another resolvable configuration. For example, it's
+     * expected that the versions of the runtime classpath are the same as the versions
+     * from the compile classpath.
+     *
+     * @param versionsSource another resolvable configuration to use as reference for versions
+     * @return this configuration
+     *
+     * @since 6.8
+     */
+    @Incubating
+    Configuration shouldResolveConsistentlyWith(Configuration versionsSource);
+
+    /**
+     * Disables consistent resolution for this configuration
+     *
+     * @since 6.8
+     */
+    @Incubating
+    Configuration disableConsistentResolution();
 }

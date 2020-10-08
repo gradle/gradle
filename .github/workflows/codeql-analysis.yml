@@ -1,12 +1,8 @@
 name: "Code scanning - action"
 
 on:
-  push:
-    branches: [ main, master, release ]
-  pull_request:
-    branches: [ main, master, release ]
   schedule:
-    - cron: '0 5 * * 4'
+    - cron: '0 5 * * *'
 
 jobs:
   CodeQL-Build:

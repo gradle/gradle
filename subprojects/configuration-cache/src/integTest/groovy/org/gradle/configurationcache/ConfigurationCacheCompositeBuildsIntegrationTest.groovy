@@ -16,55 +16,139 @@
 
 package org.gradle.configurationcache
 
+import org.gradle.test.fixtures.file.TestFile
+
 
 class ConfigurationCacheCompositeBuildsIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
-    def "reports a problem when included builds are present"() {
-
+    def "can use lib produced by included build"() {
         given:
         def configurationCache = newConfigurationCacheFixture()
-        settingsFile << """includeBuild("included")"""
-        file("included/settings.gradle") << ""
+        withAppBuild()
+        createDir('lib') {
+            file('settings.gradle') << """
+                rootProject.name = 'lib'
+            """
 
-        and:
-        def expectedProblem = "Gradle runtime: support for included builds is not yet implemented with the configuration cache."
+            file('build.gradle') << """
+                plugins { id 'java' }
+                group = 'org.test'
+                version = '1.0'
+            """
 
-        when:
-        configurationCacheFails("help")
-
-        then:
-        problems.assertFailureHasProblems(failure) {
-            withUniqueProblems(expectedProblem)
-            withProblemsWithStackTraceCount(0)
+            file('src/main/java/Lib.java') << """
+                public class Lib { public static void main() {
+                    System.out.println("Before!");
+                } }
+            """
         }
 
         when:
-        configurationCacheRunLenient("help")
+        inDirectory 'app'
+        configurationCacheRun'run'
 
         then:
-        problems.assertResultHasProblems(result) {
-            withUniqueProblems(expectedProblem)
-            withProblemsWithStackTraceCount(0)
-        }
+        outputContains 'Before!'
+        configurationCache.assertStateStored()
 
-        when:
-        configurationCacheFails("help")
+        when: 'changing source file from included build'
+        file('lib/src/main/java/Lib.java').text = """
+            public class Lib { public static void main() {
+                System.out.println("After!");
+            } }
+        """
 
-        then:
+        and: 'rerunning the build'
+        inDirectory 'app'
+        configurationCacheRun 'run'
+
+        then: 'it should pick up the changes'
+        outputContains 'After!'
         configurationCache.assertStateLoaded()
-        problems.assertFailureHasProblems(failure) {
-            withUniqueProblems(expectedProblem)
-            withProblemsWithStackTraceCount(0)
+    }
+
+    def "can use lib produced by multi-project included build with custom task"() {
+        given:
+        def configurationCache = newConfigurationCacheFixture()
+        withAppBuild()
+        createDir('lib') {
+            file('settings.gradle') << """
+                rootProject.name = 'lib-root'
+                include 'lib'
+            """
+
+            file('lib/build.gradle') << """
+                plugins { id 'java' }
+                group = 'org.test'
+                version = '1.0'
+
+                class CustomTask extends DefaultTask {
+                    @TaskAction def act() {
+                        println 'custom task...'
+                    }
+                }
+
+                def customTask = tasks.register('customTask', CustomTask)
+                tasks.named('jar') {
+                    dependsOn customTask
+                }
+            """
+
+            file('lib/src/main/java/Lib.java') << """
+                public class Lib { public static void main() {
+                    System.out.println("Before!");
+                } }
+            """
         }
 
         when:
-        configurationCacheRunLenient("help")
+        inDirectory 'app'
+        configurationCacheRun 'run'
 
         then:
+        outputContains 'custom task...'
+        outputContains 'Before!'
+        configurationCache.assertStateStored()
+
+        when: 'changing source file from included build'
+        file('lib/lib/src/main/java/Lib.java').text = """
+            public class Lib { public static void main() {
+                System.out.println("After!");
+            } }
+        """
+
+        and: 'rerunning the build'
+        inDirectory 'app'
+        configurationCacheRun 'run'
+
+        then: 'it should pick up the changes'
+        outputContains 'custom task...'
+        outputContains 'After!'
         configurationCache.assertStateLoaded()
-        problems.assertResultHasProblems(result) {
-            withUniqueProblems(expectedProblem)
-            withProblemsWithStackTraceCount(0)
+    }
+
+    private TestFile withAppBuild() {
+        createDir('app') {
+            file('settings.gradle') << """
+                includeBuild '../lib'
+            """
+            file('build.gradle') << """
+                plugins {
+                    id 'java'
+                    id 'application'
+                }
+                application {
+                   mainClass = 'Main'
+                }
+                dependencies {
+                    implementation 'org.test:lib:1.0'
+                }
+            """
+            file('src/main/java/Main.java') << """
+                class Main { public static void main(String[] args) {
+                    Lib.main();
+                } }
+            """
         }
     }
 

@@ -62,6 +62,9 @@ class ConfigurationCacheStartParameter(
     val settingsDirectory: File
         get() = buildLayout.settingsDir
 
+    val settingsFile: File?
+        get() = startParameter.settingsFile
+
     val rootDirectory: File
         get() = buildLayout.rootDirectory
 
