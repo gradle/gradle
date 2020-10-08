@@ -81,7 +81,6 @@ import java.io.File;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import java.util.Map;
-import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -216,22 +215,38 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction<?>> 
     @Override
     public void isolateParameters(FileCollectionFingerprinterRegistry fingerprinterRegistry) {
         if (!owner.hasMutableState()) {
-            // This may happen when a task visits artifacts using a FileCollection instance created by a different project via a Configuration instance (not a dependencies produced by a different project, these work fine)
-            // There is also a check in DefaultConfiguration that deprecates resolving dependencies via FileCollection instance created by a different project, however that check may not
+            // This may happen when a task visits artifacts using a FileCollection instance created from a Configuration instance in a different project (not an artifact produced by a different project, these work fine)
+            // There is a check in DefaultConfiguration that deprecates resolving dependencies via FileCollection instance created by a different project, however that check may not
             // necessarily be triggered. For example, the configuration may be legitimately resolved by some other task prior to the problematic task running
             // TODO - hoist this up into configuration file collection visiting (and not when visiting the upstream dependencies of a transform), and deprecate this in Gradle 7.x
-            owner.fromMutableState((Function<Object, Object>) o -> {
-                isolateParameters(fingerprinterRegistry);
-                return null;
-            });
-            return;
+            //
+            // This may also happen when a transform takes upstream dependencies and the dependencies are transformed using a different transform
+            // In this case, the main thread that schedules the work should isolate the transform parameters prior to scheduling the work. However, the dependencies may
+            // be filtered from the result, so that the transform is not visited by the main thread, or the transform worker may start work before the main thread
+            // has a chance to isolate the upstream transform
+            // TODO - ensure all transform parameters required by a transform worker are isolated prior to starting the worker
+            //
+            // Force access to the state of the owner, regardless of whether any other thread has access. This is because attempting to acquire a lock for a project may deadlock
+            // when performed from a worker thread (see DefaultBuildOperationQueue.waitForCompletion() which intentionally does not release the project locks while waiting)
+            // TODO - add validation to fail eagerly when a worker attempts to lock a project
+            //
+            owner.forceAccessToMutableState(o -> doIsolateParameters(fingerprinterRegistry));
+        } else {
+            doIsolateParameters(fingerprinterRegistry);
         }
+    }
+
+    private void doIsolateParameters(FileCollectionFingerprinterRegistry fingerprinterRegistry) {
         try {
             isolatedParameters.update(current -> {
                 if (current != null) {
-                    throw new IllegalStateException("Transform parameters are already isolated.");
+                    // Already isolated. This can happen when a given transformer is shared by the inputs of multiple tasks of the same project and these tasks run in parallel due to
+                    // the configuration cache being enabled. In this case, multiple worker threads may attempt to isolate the transformer parameters.
+                    // It would be better to ensure that there is always an isolation node in the execution graph on which all of the consuming tasks depend and assert that the transform
+                    // has been isolated by the time the transform needs to run
+                    return current;
                 }
-                return doIsolateParameters(fingerprinterRegistry);
+                return isolateParametersExclusively(fingerprinterRegistry);
             });
         } catch (Exception e) {
             TreeFormatter formatter = new TreeFormatter();
@@ -240,7 +255,7 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction<?>> 
         }
     }
 
-    protected IsolatedParameters doIsolateParameters(FileCollectionFingerprinterRegistry fingerprinterRegistry) {
+    private IsolatedParameters isolateParametersExclusively(FileCollectionFingerprinterRegistry fingerprinterRegistry) {
         Isolatable<TransformParameters> isolatedParameterObject = isolatableFactory.isolate(parameterObject);
 
         Hasher hasher = Hashing.newHasher();

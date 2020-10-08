@@ -1,0 +1,44 @@
+import javax.inject.Inject;
+
+class CustomTaskUsingToolchains extends DefaultTask {
+
+    @Input
+    final Property<JavaLauncher> launcher = project.objects.property(JavaLauncher.class);
+
+    @Inject
+    CustomTaskUsingToolchains(ObjectFactory factory) {
+        // Access the default toolchain
+        def toolchain = project.getExtensions().getByType(JavaPluginExtension.class).toolchain
+
+        // aquire a provider that returns the launcher for the toolchain
+        JavaToolchainService service = project.getExtensions().getByType(JavaToolchainService.class);
+        Provider<JavaLauncher> defaultLauncher = service.launcherFor(toolchain);
+
+        // use it as our default for the property
+        launcher.convention(defaultLauncher);
+    }
+
+    @TaskAction
+    def showConfiguredToolchain() {
+        println launcher.get().executablePath
+        println launcher.get().metadata.installationPath
+    }
+}
+
+plugins {
+    id 'java'
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(8)
+    }
+}
+
+task showDefaultToolchain(type: CustomTaskUsingToolchains)
+
+task showCustomToolchain(type: CustomTaskUsingToolchains) {
+    launcher = javaToolchains.launcherFor {
+        languageVersion = JavaLanguageVersion.of(14)
+    }
+}
