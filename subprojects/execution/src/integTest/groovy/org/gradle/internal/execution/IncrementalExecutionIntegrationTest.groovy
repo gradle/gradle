@@ -652,7 +652,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
     }
 
     String executeDeferred(UnitOfWork unitOfWork, Cache<UnitOfWork.Identity, Try<Object>> cache) {
-        virtualFileSystem.update(VirtualFileSystem.INVALIDATE_ALL)
+        virtualFileSystem.invalidateAll()
         executor.executeDeferred(unitOfWork, null, cache, new DeferredResultProcessor<Object, String>() {
             @Override
             String processCachedOutput(Try<Object> cachedResult) {
