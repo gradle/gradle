@@ -43,9 +43,9 @@ class KotlinDslPluginGradlePluginCrossVersionSmokeTest(
         @Parameterized.Parameters(name = "{0}")
         @JvmStatic
         fun testedKotlinVersions() = listOf(
-            "1.4.10",
-            "1.4.0",
             embeddedKotlinVersion,
+            "1.4.0",
+            "1.3.72",
             "1.3.60",
             "1.3.40",
             "1.3.30"
@@ -88,7 +88,7 @@ class KotlinDslPluginGradlePluginCrossVersionSmokeTest(
         )
         withFile(
             "buildSrc/src/main/kotlin/my-plugin.gradle.kts",
-            "apply<org.jetbrains.kotlin.gradle.plugin.KotlinPlatformJvmPlugin>()"
+            "apply(plugin = \"kotlin\")"
         )
 
         withBuildScript(
