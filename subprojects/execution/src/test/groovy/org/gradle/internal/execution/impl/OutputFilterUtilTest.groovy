@@ -27,7 +27,6 @@ import org.gradle.internal.snapshot.CompleteDirectorySnapshot
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot
 import org.gradle.internal.snapshot.FileSystemSnapshot
 import org.gradle.internal.snapshot.FileSystemSnapshotVisitor
-import org.gradle.internal.vfs.VirtualFileSystem
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
@@ -57,7 +56,7 @@ class OutputFilterUtilTest extends Specification {
 
         when:
         def outputDirFile = outputDir.file("in-output-dir").createFile()
-        virtualFileSystem.update(VirtualFileSystem.INVALIDATE_ALL)
+        virtualFileSystem.invalidateAll()
         def afterExecution = snapshotOutput(outputDir)
         filteredOutputs = filterOutputSnapshotAfterExecution(EMPTY_OUTPUT_FINGERPRINT, beforeExecution, afterExecution)
         then:
@@ -166,7 +165,7 @@ class OutputFilterUtilTest extends Specification {
     }
 
     private FileSystemSnapshot snapshotOutput(File output) {
-        virtualFileSystem.update(VirtualFileSystem.INVALIDATE_ALL)
+        virtualFileSystem.invalidateAll()
         MutableReference<CompleteFileSystemLocationSnapshot> result = MutableReference.empty()
         fileSystemAccess.read(output.getAbsolutePath(), result.&set)
         return result.get()

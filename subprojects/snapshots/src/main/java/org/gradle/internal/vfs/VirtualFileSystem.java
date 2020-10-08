@@ -16,21 +16,36 @@
 
 package org.gradle.internal.vfs;
 
-import org.gradle.internal.snapshot.SnapshotHierarchy;
+import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
+import org.gradle.internal.snapshot.MetadataSnapshot;
+
+import java.util.Optional;
 
 public interface VirtualFileSystem {
-    SnapshotHierarchy getRoot();
-    void update(UpdateFunction updateFunction);
 
     /**
-     * Updates the snapshot hierarchy, passing a {@link SnapshotHierarchy.NodeDiffListener} to the calls on {@link SnapshotHierarchy}.
+     * Returns the complete snapshot stored at the absolute path.
      */
-    interface UpdateFunction {
-        SnapshotHierarchy update(SnapshotHierarchy root, SnapshotHierarchy.NodeDiffListener diffListener);
-    }
+    Optional<CompleteFileSystemLocationSnapshot> getSnapshot(String absolutePath);
 
-    UpdateFunction INVALIDATE_ALL = (root, diffListener) -> {
-        root.visitSnapshotRoots(diffListener::nodeRemoved);
-        return root.empty();
-    };
+    /**
+     * Returns the complete snapshot stored at the absolute path.
+     */
+    Optional<MetadataSnapshot> getMetadata(String absolutePath);
+
+    /**
+     * Adds the information of the snapshot at the absolute path to the VFS.
+     */
+    void store(String absolutePath, CompleteFileSystemLocationSnapshot snapshot);
+
+    /**
+     * Removes any information at the absolute paths from the VFS.
+     */
+    void invalidate(Iterable<String> locations);
+
+    /**
+     * Removes any information from the VFS.
+     */
+    void invalidateAll();
+
 }

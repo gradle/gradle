@@ -22,6 +22,7 @@ import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.internal.snapshot.SnapshotHierarchy;
 import org.gradle.internal.vfs.VirtualFileSystem;
+import org.gradle.internal.vfs.impl.AbstractVirtualFileSystem;
 import org.gradle.internal.vfs.impl.VfsRootReference;
 import org.gradle.internal.watch.vfs.BuildFinishedFileSystemWatchingBuildOperationType;
 import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem;
@@ -34,24 +35,20 @@ import java.io.File;
 /**
  * A {@link VirtualFileSystem} which is not able to register any watches.
  */
-public class WatchingNotSupportedVirtualFileSystem implements BuildLifecycleAwareVirtualFileSystem {
+public class WatchingNotSupportedVirtualFileSystem extends AbstractVirtualFileSystem implements BuildLifecycleAwareVirtualFileSystem {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(WatchingNotSupportedVirtualFileSystem.class);
 
     private final VfsRootReference rootReference;
 
     public WatchingNotSupportedVirtualFileSystem(VfsRootReference rootReference) {
+        super(rootReference);
         this.rootReference = rootReference;
     }
 
     @Override
-    public SnapshotHierarchy getRoot() {
-        return rootReference.getRoot();
-    }
-
-    @Override
-    public void update(UpdateFunction updateFunction) {
-        rootReference.update(root -> updateFunction.update(root, SnapshotHierarchy.NodeDiffListener.NOOP));
+    protected SnapshotHierarchy updateNotifyingListeners(UpdateFunction updateFunction) {
+        return updateFunction.update(SnapshotHierarchy.NodeDiffListener.NOOP);
     }
 
     @Override
