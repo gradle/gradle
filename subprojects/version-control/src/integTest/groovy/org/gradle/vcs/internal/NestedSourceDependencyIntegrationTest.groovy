@@ -76,7 +76,7 @@ class NestedSourceDependencyIntegrationTest extends AbstractIntegrationSpec {
                 ext.message = "hello world"
                 doLast {
                     // write to outputFile
-                    println "Generating " + message
+                    println "Generating " + message + " against " + configurations.runtime.files
                     outputFile.parentFile.mkdirs()
                     outputFile.text = message
                 }
