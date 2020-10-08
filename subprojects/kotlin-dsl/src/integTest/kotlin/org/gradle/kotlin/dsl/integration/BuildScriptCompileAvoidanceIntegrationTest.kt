@@ -4,10 +4,12 @@ import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.gradle.kotlin.dsl.integration.BuildScriptCompileAvoidanceIntegrationTest.CacheBuster.cacheBuster
+import org.gradle.kotlin.dsl.provider.BUILDSCRIPT_COMPILE_AVOIDANCE_ENABLED
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Assert.assertTrue
+import org.junit.Assume.assumeTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -26,6 +28,7 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
 
     @Before
     fun init() {
+        assumeTrue(BUILDSCRIPT_COMPILE_AVOIDANCE_ENABLED)
         cacheBuster++
         withSettings(
             """

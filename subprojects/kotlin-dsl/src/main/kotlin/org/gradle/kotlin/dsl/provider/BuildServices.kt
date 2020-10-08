@@ -24,12 +24,15 @@ import org.gradle.api.internal.changedetection.state.ResourceSnapshotterCacheSer
 import org.gradle.api.internal.classpath.ModuleRegistry
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.initialization.loadercache.CompileClasspathHasher
+import org.gradle.api.internal.initialization.loadercache.DefaultClasspathHasher
 import org.gradle.cache.internal.GeneratedGradleJarCache
 import org.gradle.groovy.scripts.internal.ScriptSourceHasher
 import org.gradle.initialization.ClassLoaderScopeRegistry
+import org.gradle.internal.classloader.ClasspathHasher
 import org.gradle.internal.classpath.CachedClasspathTransformer
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.fingerprint.FileCollectionSnapshotter
+import org.gradle.internal.fingerprint.classpath.ClasspathFingerprinter
 import org.gradle.internal.fingerprint.classpath.impl.DefaultCompileClasspathFingerprinter
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
 import org.gradle.internal.operations.BuildOperationExecutor
@@ -40,6 +43,9 @@ import org.gradle.kotlin.dsl.support.EmbeddedKotlinProvider
 import org.gradle.kotlin.dsl.support.ImplicitImports
 import org.gradle.plugin.management.internal.autoapply.AutoAppliedPluginHandler
 import org.gradle.plugin.use.internal.PluginRequestApplicator
+
+
+const val BUILDSCRIPT_COMPILE_AVOIDANCE_ENABLED = true
 
 
 internal
@@ -86,7 +92,7 @@ object BuildServices {
         classPathModeExceptionCollector: ClassPathModeExceptionCollector,
         kotlinScriptBasePluginsApplicator: KotlinScriptBasePluginsApplicator,
         scriptSourceHasher: ScriptSourceHasher,
-        classPathHasher: CompileClasspathHasher,
+        classpathHasher: ClasspathHasher,
         scriptCache: ScriptCache,
         implicitImports: ImplicitImports,
         progressLoggerFactory: ProgressLoggerFactory,
@@ -105,7 +111,7 @@ object BuildServices {
             classPathModeExceptionCollector,
             kotlinScriptBasePluginsApplicator,
             scriptSourceHasher,
-            classPathHasher,
+            classpathHasher,
             scriptCache,
             implicitImports,
             progressLoggerFactory,
@@ -119,17 +125,21 @@ object BuildServices {
         cacheService: ResourceSnapshotterCacheService,
         fileCollectionSnapshotter: FileCollectionSnapshotter,
         stringInterner: StringInterner,
-        fileCollectionFactory: FileCollectionFactory
+        fileCollectionFactory: FileCollectionFactory,
+        classpathFingerprinter: ClasspathFingerprinter
     ) =
-        CompileClasspathHasher(
-            DefaultCompileClasspathFingerprinter(
-                AbiExtractingClasspathResourceHasher(KotlinApiClassExtractor()),
-                cacheService,
-                fileCollectionSnapshotter,
-                stringInterner
-            ),
-            fileCollectionFactory
-        )
+        if (BUILDSCRIPT_COMPILE_AVOIDANCE_ENABLED)
+            CompileClasspathHasher(
+                DefaultCompileClasspathFingerprinter(
+                    AbiExtractingClasspathResourceHasher(KotlinApiClassExtractor()),
+                    cacheService,
+                    fileCollectionSnapshotter,
+                    stringInterner
+                ),
+                fileCollectionFactory
+            )
+        else
+            DefaultClasspathHasher(classpathFingerprinter, fileCollectionFactory)
 
     @Suppress("unused")
     fun createKotlinCompilerContextDisposer(listenerManager: ListenerManager) =

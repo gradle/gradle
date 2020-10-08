@@ -97,7 +97,7 @@ class StandardKotlinScriptEvaluator(
     private val classPathModeExceptionCollector: ClassPathModeExceptionCollector,
     private val kotlinScriptBasePluginsApplicator: KotlinScriptBasePluginsApplicator,
     private val scriptSourceHasher: ScriptSourceHasher,
-    private val classPathHasher: ClasspathHasher,
+    private val classpathHasher: ClasspathHasher,
     private val scriptCache: ScriptCache,
     private val implicitImports: ImplicitImports,
     private val progressLoggerFactory: ProgressLoggerFactory,
@@ -193,7 +193,7 @@ class StandardKotlinScriptEvaluator(
         }
 
         override fun hashOf(classPath: ClassPath): HashCode =
-            classPathHasher.hash(classPath)
+            classpathHasher.hash(classPath)
 
         override fun applyPluginsTo(scriptHost: KotlinScriptHost<*>, pluginRequests: PluginRequests) {
             pluginRequestsHandler.handle(
