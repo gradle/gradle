@@ -159,7 +159,7 @@ class BuildCacheCompositeConfigurationIntegrationTest extends AbstractIntegratio
 
         expect:
         succeeds "build"
-        succeeds "build"
+        succeeds "build", "--info"
 
         and:
         // Will run after the root build has finished
