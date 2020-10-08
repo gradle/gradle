@@ -92,7 +92,6 @@ public class GradleBuildExperimentRunner extends AbstractBuildExperimentRunner {
         InvocationSettings invocationSettings = createInvocationSettings(buildSpec, gradleExperiment);
         GradleScenarioDefinition scenarioDefinition = createScenarioDefinition(gradleExperiment, invocationSettings, invocation);
 
-        GradleConnector connector = null;
         try {
             GradleScenarioInvoker scenarioInvoker = createScenarioInvoker(invocationSettings.getGradleUserHome());
             Consumer<GradleBuildInvocationResult> scenarioReporter = getResultCollector().scenario(
@@ -102,15 +101,7 @@ public class GradleBuildExperimentRunner extends AbstractBuildExperimentRunner {
             AtomicInteger iterationCount = new AtomicInteger(0);
             Logging.setupLogging(workingDirectory);
             if (gradleExperiment.getInvocation().isUseToolingApi()) {
-                connector = GradleConnector.newConnector();
-                connector.forProjectDirectory(buildSpec.getWorkingDirectory());
-                connector.useInstallation(scenarioDefinition.getBuildConfiguration().getGradleHome());
-                // First initialize the Gradle instance using the default user home dir
-                // This sets some static state that uses files from the user home dir, such as DLLs
-                connector.useGradleUserHomeDir(context.getGradleUserHomeDir());
-                try (ProjectConnection connection = connector.connect()) {
-                    connection.getModel(BuildEnvironment.class);
-                }
+                initializeNativeServicesForTapiClient(buildSpec, scenarioDefinition);
             }
             scenarioInvoker.doRun(scenarioDefinition,
                 invocationSettings,
@@ -124,10 +115,23 @@ public class GradleBuildExperimentRunner extends AbstractBuildExperimentRunner {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            if (connector != null) {
-                connector.disconnect();
-            }
             ConnectorServices.reset();
+        }
+    }
+
+    private void initializeNativeServicesForTapiClient(GradleInvocationSpec buildSpec, GradleScenarioDefinition scenarioDefinition) {
+        GradleConnector connector = GradleConnector.newConnector();
+        try {
+            connector.forProjectDirectory(buildSpec.getWorkingDirectory());
+            connector.useInstallation(scenarioDefinition.getBuildConfiguration().getGradleHome());
+            // First initialize the Gradle instance using the default user home dir
+            // This sets some static state that uses files from the user home dir, such as DLLs
+            connector.useGradleUserHomeDir(context.getGradleUserHomeDir());
+            try (ProjectConnection connection = connector.connect()) {
+                connection.getModel(BuildEnvironment.class);
+            }
+        } finally {
+            connector.disconnect();
         }
     }
 
