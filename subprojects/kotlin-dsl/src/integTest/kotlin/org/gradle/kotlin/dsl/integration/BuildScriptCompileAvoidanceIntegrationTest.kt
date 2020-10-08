@@ -76,7 +76,7 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
             public void bar() {}
             """
         )
-        configureProject().assertBuildScriptCompiled().assertOutputContains("bar")
+        configureProject().assertBuildScriptBodyRecompiled().assertOutputContains("bar")
     }
 
     @ToBeFixedForConfigurationCache
@@ -139,7 +139,7 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
             public void bar() {}
             """
         )
-        configureProject().assertBuildScriptCompiled().assertOutputContains("bar")
+        configureProject().assertBuildScriptBodyRecompiled().assertOutputContains("bar")
     }
 
     @ToBeFixedForConfigurationCache
@@ -224,7 +224,7 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
             }
             """
         )
-        configureProject().assertBuildScriptCompiled().assertOutputContains("bar")
+        configureProject().assertBuildScriptBodyRecompiled().assertOutputContains("bar")
     }
 
     @ToBeFixedForConfigurationCache
@@ -274,7 +274,7 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
             }
             """
         )
-        configureProject().assertBuildScriptCompiled().assertOutputContains("bar")
+        configureProject().assertBuildScriptBodyRecompiled().assertOutputContains("bar")
     }
 
     @ToBeFixedForConfigurationCache
@@ -320,7 +320,7 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
             const val FOO = "bar"
             """
         )
-        configureProject().assertBuildScriptCompiled().assertOutputContains("bar")
+        configureProject().assertBuildScriptBodyRecompiled().assertOutputContains("bar")
     }
 
     private
@@ -436,13 +436,20 @@ class BuildOperationsAssertions(buildOperationsFixture: BuildOperationsFixture, 
     val bodyCompileOperations = buildOperationsFixture.all(Pattern.compile("Compile script build.gradle.kts \\(BODY\\)"))
 
     fun assertBuildScriptCompiled(): BuildOperationsAssertions {
-        if (classpathCompileOperations.size == 1 || bodyCompileOperations.size == 1) {
+        if (classpathCompileOperations.isNotEmpty() || bodyCompileOperations.isNotEmpty()) {
             return this
         }
-        throw AssertionError(
-            "Expected script to be compiled, but it wasn't, or there were more compile operations than expected. " +
-                "classpath compile operations: $classpathCompileOperations, body compile operations: $bodyCompileOperations"
-        )
+        throw AssertionError("Expected script to be compiled, but it wasn't.")
+    }
+
+    fun assertBuildScriptBodyRecompiled(): BuildOperationsAssertions {
+        if (bodyCompileOperations.size == 1) {
+            return this
+        }
+        if (bodyCompileOperations.isEmpty()) {
+            throw AssertionError("Expected build script body to be recompiled, but it wasn't.")
+        }
+        throw AssertionError("Expected build script body to be recompiled, but there was more than one body compile operation: $bodyCompileOperations")
     }
 
     fun assertBuildScriptCompilationAvoided(): BuildOperationsAssertions {
