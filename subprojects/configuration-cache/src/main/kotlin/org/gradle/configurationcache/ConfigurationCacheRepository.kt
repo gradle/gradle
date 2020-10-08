@@ -71,7 +71,9 @@ class ConfigurationCacheRepository(
 
     fun useForStateLoad(cacheKey: String, action: (ConfigurationCacheStateFile) -> Unit) {
         withBaseCacheDirFor(cacheKey) { cacheDir ->
-            action(readableConfigurationCacheStateFileFor(cacheDir.stateFile))
+            action(
+                ReadableConfigurationCacheStateFile(cacheDir.stateFile)
+            )
         }
     }
 
@@ -106,11 +108,6 @@ class ConfigurationCacheRepository(
     }
 
     private
-    fun readableConfigurationCacheStateFileFor(stateFile: File): ReadableConfigurationCacheStateFile {
-        markAccessed(stateFile)
-        return ReadableConfigurationCacheStateFile(stateFile)
-    }
-
     inner class ReadableConfigurationCacheStateFile(
         private val file: File
     ) : ConfigurationCacheStateFile {
@@ -119,14 +116,15 @@ class ConfigurationCacheRepository(
             throw UnsupportedOperationException()
 
         override fun inputStream(): InputStream =
-            file.inputStream()
+            file.also(::markAccessed).inputStream()
 
         override fun stateFileForIncludedBuild(build: BuildDefinition): ConfigurationCacheStateFile =
-            readableConfigurationCacheStateFileFor(
+            ReadableConfigurationCacheStateFile(
                 includedBuildFileFor(file, build)
             )
     }
 
+    private
     inner class WriteableConfigurationCacheStateFile(
         private val file: File,
         private val onFileAccess: (File) -> Unit
