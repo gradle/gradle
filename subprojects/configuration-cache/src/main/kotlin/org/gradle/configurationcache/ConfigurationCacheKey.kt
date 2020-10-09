@@ -52,6 +52,12 @@ class ConfigurationCacheKey(
             } ?: ""
         )
 
+        putAll(
+            startParameter.includedBuilds.map {
+                relativePathOf(it, startParameter.rootDirectory)
+            }
+        )
+
         val requestedTaskNames = startParameter.requestedTaskNames
         putAll(requestedTaskNames)
 
