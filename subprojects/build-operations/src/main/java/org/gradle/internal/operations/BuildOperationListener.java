@@ -18,6 +18,8 @@ package org.gradle.internal.operations;
 import org.gradle.internal.service.scopes.EventScope;
 import org.gradle.internal.service.scopes.Scope.Global;
 
+import javax.annotation.Nullable;
+
 /**
  * A listener that is notified as build operations are executed.
  *
@@ -36,7 +38,7 @@ public interface BuildOperationListener {
 
     void started(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent);
 
-    void progress(OperationIdentifier operationIdentifier, OperationProgressEvent progressEvent);
+    void progress(@Nullable OperationIdentifier operationIdentifier, OperationProgressEvent progressEvent);
 
     void finished(BuildOperationDescriptor buildOperation, OperationFinishEvent finishEvent);
 

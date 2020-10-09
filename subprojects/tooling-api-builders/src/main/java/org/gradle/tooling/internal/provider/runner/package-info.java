@@ -13,14 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+@NonNullApi
+package org.gradle.tooling.internal.provider.runner;
 
-package org.gradle.internal.operations;
-
-public interface BuildOperationMetadata {
-    BuildOperationMetadata NONE = new BuildOperationMetadata() {
-        @Override
-        public String toString() {
-            return "NONE";
-        }
-    };
-}
+import org.gradle.api.NonNullApi;
