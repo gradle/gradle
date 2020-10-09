@@ -21,7 +21,6 @@ import org.gradle.performance.mutator.ApplyAbiChangeToGroovySourceFileMutator
 import org.gradle.performance.mutator.ApplyNonAbiChangeToGroovySourceFileMutator
 import org.gradle.profiler.BuildMutator
 import org.gradle.profiler.InvocationSettings
-import org.gradle.profiler.ScenarioContext
 import org.junit.experimental.categories.Category
 
 @Category(SlowPerformanceRegressionTest)
@@ -84,16 +83,7 @@ class BuildSrcApiChangePerformanceTest extends AbstractCrossVersionPerformanceTe
 
     private static class CreateChangingClassMutator implements BuildMutator {
 
-        private final InvocationSettings settings
-        private final String filePath
-
         CreateChangingClassMutator(InvocationSettings settings, String filePath) {
-            this.settings = settings
-            this.filePath = filePath
-        }
-
-        @Override
-        void beforeScenario(ScenarioContext context) {
             new File(settings.projectDir, filePath).with {
                 parentFile.mkdirs()
                 text = """
