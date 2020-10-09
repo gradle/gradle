@@ -51,7 +51,7 @@ jobs:
 
     - name: Compile with Gradle
       if: ${{ matrix.language != 'javascript' }}
-      run: ./gradlew --init-script .github/workflows/codeql-anlysis.init.gradle -S testClasses
+      run: ./gradlew --init-script .github/workflows/codeql-analysis.init.gradle -S testClasses
       env:
         # Set the GRADLE_ENTERPRISE_ACCESS_KEY so that Gradle Build Scans are generated
         GRADLE_ENTERPRISE_ACCESS_KEY: ${{ secrets.GRADLE_ENTERPRISE_ACCESS_KEY }}
