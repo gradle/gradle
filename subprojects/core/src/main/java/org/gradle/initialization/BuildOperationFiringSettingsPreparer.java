@@ -23,15 +23,18 @@ import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.RunnableBuildOperation;
 
+import javax.annotation.Nullable;
+
 public class BuildOperationFiringSettingsPreparer implements SettingsPreparer {
     private static final LoadBuildBuildOperationType.Result RESULT = new LoadBuildBuildOperationType.Result() {
     };
 
     private final SettingsPreparer delegate;
     private final BuildOperationExecutor buildOperationExecutor;
+    @Nullable
     private final PublicBuildPath fromBuild;
 
-    public BuildOperationFiringSettingsPreparer(SettingsPreparer delegate, BuildOperationExecutor buildOperationExecutor, PublicBuildPath fromBuild) {
+    public BuildOperationFiringSettingsPreparer(SettingsPreparer delegate, BuildOperationExecutor buildOperationExecutor, @Nullable PublicBuildPath fromBuild) {
         this.delegate = delegate;
         this.buildOperationExecutor = buildOperationExecutor;
         this.fromBuild = fromBuild;
