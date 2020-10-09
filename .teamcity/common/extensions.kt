@@ -57,6 +57,12 @@ fun Requirements.requiresOs(os: Os) {
     contains("teamcity.agent.jvm.os.name", os.agentRequirement)
 }
 
+fun Requirements.requiresNoEc2Agent() {
+    doesNotContain("teamcity.agent.name", "ec2")
+    // US region agents have name "EC2-XXX"
+    doesNotContain("teamcity.agent.name", "EC2")
+}
+
 fun VcsSettings.filterDefaultBranch() {
     branchFilter = allBranchesFilter
 }
