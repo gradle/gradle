@@ -35,6 +35,7 @@ dependencies {
     implementation(project(":platform-jvm"))
     implementation(project(":plugins"))
     implementation(project(":tooling-api"))
+    implementation(project(":logging"))
 
     testImplementation(testFixtures(project(":kotlin-dsl")))
     integTestImplementation(project(":internal-testing"))

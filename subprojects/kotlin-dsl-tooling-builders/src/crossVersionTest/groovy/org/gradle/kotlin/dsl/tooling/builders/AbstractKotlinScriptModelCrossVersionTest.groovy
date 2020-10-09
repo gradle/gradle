@@ -27,6 +27,7 @@ import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.fixtures.file.TestFile
 
 import org.gradle.kotlin.dsl.tooling.models.KotlinBuildScriptModel
+import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptsModel
 
 import org.hamcrest.Description
 import org.hamcrest.Matcher
@@ -40,6 +41,7 @@ import java.util.zip.ZipOutputStream
 import static org.gradle.kotlin.dsl.resolver.KotlinBuildScriptModelRequestKt.fetchKotlinBuildScriptModelFor
 
 import static org.hamcrest.CoreMatchers.allOf
+import static org.hamcrest.CoreMatchers.containsString
 import static org.hamcrest.CoreMatchers.hasItem
 import static org.hamcrest.CoreMatchers.hasItems
 import static org.hamcrest.CoreMatchers.not
@@ -348,5 +350,35 @@ abstract class AbstractKotlinScriptModelCrossVersionTest extends ToolingApiSpeci
 
     protected static String normalizedPathOf(File file) {
         return TextUtil.normaliseFileSeparators(file.path)
+    }
+
+    protected static class BuildSpec {
+        Map<String, TestFile> scripts
+        Map<String, TestFile> appliedScripts
+        Map<String, TestFile> jars
+    }
+
+    protected KotlinDslScriptsModel kotlinDslScriptsModelFor(boolean lenient = false, File... scripts) {
+        return kotlinDslScriptsModelFor(lenient, scripts.toList())
+    }
+
+    protected KotlinDslScriptsModel kotlinDslScriptsModelFor(boolean lenient = false, Iterable<File> scripts) {
+        return withConnection { connection ->
+            new KotlinDslScriptsModelClient().fetchKotlinDslScriptsModel(
+                connection,
+                new KotlinDslScriptsModelRequest(
+                    scripts.toList(),
+                    null, null, [], [], lenient
+                )
+            )
+        }
+    }
+
+    protected static List<File> canonicalClasspathOf(KotlinDslScriptsModel model, File script) {
+        return model.scriptModels[script].classPath.collect { it.canonicalFile }
+    }
+
+    protected static void assertHasExceptionMessage(KotlinDslScriptsModel model, TestFile script, String message) {
+        assertThat(model.scriptModels[script].exceptions, hasItem(containsString(message)))
     }
 }
