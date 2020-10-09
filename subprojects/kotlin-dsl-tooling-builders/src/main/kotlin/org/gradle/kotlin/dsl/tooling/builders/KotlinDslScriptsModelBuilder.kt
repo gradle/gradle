@@ -200,6 +200,15 @@ fun Project.collectKotlinDslScripts(): List<File> = sequence<File> {
 
     val extension = ".gradle.kts"
 
+    // Init Scripts
+    project
+        .gradle
+        .startParameter
+        .allInitScripts
+        .filter(File::isFile)
+        .filter { it.name.endsWith(extension) }
+        .forEach { yield(it) }
+
     // Settings Script
     val settingsScriptFile = File((project as ProjectInternal).gradle.settings.settingsScript.fileName)
     if (settingsScriptFile.isFile && settingsScriptFile.name.endsWith(extension)) {

@@ -18,8 +18,6 @@ package org.gradle.kotlin.dsl.tooling.builders.r60
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.kotlin.dsl.tooling.builders.AbstractKotlinScriptModelCrossVersionTest
-import org.gradle.kotlin.dsl.tooling.builders.KotlinDslScriptsModelClient
-import org.gradle.kotlin.dsl.tooling.builders.KotlinDslScriptsModelRequest
 import org.gradle.kotlin.dsl.tooling.models.KotlinBuildScriptModel
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.file.TestFile
@@ -29,9 +27,6 @@ import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptsModel
 import java.lang.reflect.Proxy
 
 import static org.gradle.integtests.tooling.fixture.TextUtil.escapeString
-import static org.hamcrest.CoreMatchers.containsString
-import static org.hamcrest.CoreMatchers.hasItem
-import static org.hamcrest.MatcherAssert.assertThat
 
 
 @TargetGradleVersion(">=6.0")
@@ -190,32 +185,6 @@ class KotlinDslScriptsModelCrossVersionSpec extends AbstractKotlinScriptModelCro
         buildFileKtsModel.exceptions.isEmpty()
     }
 
-    private KotlinDslScriptsModel kotlinDslScriptsModelFor(boolean lenient = false, File... scripts) {
-        return kotlinDslScriptsModelFor(lenient, scripts.toList())
-    }
-
-    private KotlinDslScriptsModel kotlinDslScriptsModelFor(boolean lenient = false, Iterable<File> scripts) {
-        return withConnection { connection ->
-            new KotlinDslScriptsModelClient().fetchKotlinDslScriptsModel(
-                connection,
-                new KotlinDslScriptsModelRequest(
-                    scripts.toList(),
-                    null, null, [], [], lenient
-                )
-            )
-        }
-    }
-
-    private static List<File> canonicalClasspathOf(KotlinDslScriptsModel model, File script) {
-        return model.scriptModels[script].classPath.collect { it.canonicalFile }
-    }
-
-    private static class BuildSpec {
-        Map<String, TestFile> scripts
-        Map<String, TestFile> appliedScripts
-        Map<String, TestFile> jars
-    }
-
     private BuildSpec withMultiProjectBuildWithBuildSrc() {
         withBuildSrc()
         def someJar = withEmptyJar("classes_some.jar")
@@ -339,9 +308,5 @@ class KotlinDslScriptsModelCrossVersionSpec extends AbstractKotlinScriptModelCro
             assertIncludes(classPath, appliedJar)
             assertExcludes(classPath, *(spec.jars.values() - appliedJar) as TestFile[])
         }
-    }
-
-    private static void assertHasExceptionMessage(KotlinDslScriptsModel model, TestFile script, String message) {
-        assertThat(model.scriptModels[script].exceptions, hasItem(containsString(message)))
     }
 }
