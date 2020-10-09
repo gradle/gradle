@@ -98,7 +98,12 @@ class StagePasses(model: CIBuildModel, stage: Stage, prevStage: Stage?, stagePro
         }
 
         snapshotDependencies(stageProject.specificBuildTypes)
-        snapshotDependencies(stageProject.performanceTests)
+        snapshotDependencies(stageProject.performanceTests) { performanceTestPass ->
+            if (!performanceTestPass.performanceTestCoverage.failsStage) {
+                onDependencyFailure = FailureAction.IGNORE
+                onDependencyCancel = FailureAction.IGNORE
+            }
+        }
         snapshotDependencies(stageProject.functionalTests)
     }
 })
@@ -109,11 +114,11 @@ fun stageTriggerId(model: CIBuildModel, stage: Stage) = stageTriggerId(model, st
 
 fun stageTriggerId(model: CIBuildModel, stageName: StageName) = AbsoluteId("${model.projectPrefix}Stage_${stageName.id}_Trigger")
 
-fun Dependencies.snapshotDependencies(buildTypes: Iterable<BuildType>, snapshotConfig: SnapshotDependency.() -> Unit = {}) {
-    buildTypes.forEach {
-        dependency(it.id!!) {
+fun <T : BuildType> Dependencies.snapshotDependencies(buildTypes: Iterable<T>, snapshotConfig: SnapshotDependency.(T) -> Unit = {}) {
+    buildTypes.forEach { buildType ->
+        dependency(buildType.id!!) {
             snapshot {
-                snapshotConfig()
+                snapshotConfig(buildType)
             }
         }
     }
