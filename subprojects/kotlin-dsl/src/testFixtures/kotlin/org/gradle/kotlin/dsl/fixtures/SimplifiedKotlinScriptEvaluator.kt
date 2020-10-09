@@ -131,7 +131,7 @@ class SimplifiedKotlinScriptEvaluator(
             scriptHost: KotlinScriptHost<*>,
             templateId: String,
             sourceHash: HashCode,
-            parentClassLoader: ClassLoader,
+            compilationClassPathHash: HashCode,
             accessorsClassPath: ClassPath?,
             initializer: (File) -> Unit
         ): File = baseCacheDir.resolve(sourceHash.toString()).resolve(templateId).also { cacheDir ->

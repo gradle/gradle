@@ -23,7 +23,6 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.ModuleVisitor;
 import org.objectweb.asm.Opcodes;
 
-import java.util.Set;
 import java.util.SortedSet;
 
 import static com.google.common.collect.Sets.newTreeSet;
@@ -48,17 +47,17 @@ public class ApiMemberSelector extends ClassVisitor {
     private final SortedSet<InnerClassMember> innerClasses = newTreeSet();
 
     private final String className;
-    private final ClassVisitor apiMemberAdapter;
+    private final ApiMemberWriter apiMemberWriter;
     private final boolean apiIncludesPackagePrivateMembers;
 
     private boolean isInnerClass;
     private ClassMember classMember;
     private boolean thisClassIsPrivateInnerClass;
 
-    public ApiMemberSelector(String className, ClassVisitor apiMemberAdapter, boolean apiIncludesPackagePrivateMembers) {
+    public ApiMemberSelector(String className, ApiMemberWriter apiMemberWriter, boolean apiIncludesPackagePrivateMembers) {
         super(Opcodes.ASM7);
         this.className = className;
-        this.apiMemberAdapter = apiMemberAdapter;
+        this.apiMemberWriter = apiMemberWriter;
         this.apiIncludesPackagePrivateMembers = apiIncludesPackagePrivateMembers;
     }
 
@@ -75,92 +74,14 @@ public class ApiMemberSelector extends ClassVisitor {
 
     @Override
     public ModuleVisitor visitModule(String name, int access, String version) {
-        return apiMemberAdapter.visitModule(name, access, version);
+        return apiMemberWriter.writeModule(name, access, version);
     }
 
     @Override
     public void visitEnd() {
         super.visitEnd();
 
-        apiMemberAdapter.visit(
-            classMember.getVersion(), classMember.getAccess(), classMember.getName(), classMember.getSignature(),
-            classMember.getSuperName(), classMember.getInterfaces());
-        visitAnnotationMembers(classMember.getAnnotations());
-        for (MethodMember method : methods) {
-            MethodVisitor mv = apiMemberAdapter.visitMethod(
-                method.getAccess(), method.getName(), method.getTypeDesc(), method.getSignature(),
-                method.getExceptions().toArray(new String[0]));
-            visitAnnotationMembers(mv, method.getAnnotations());
-            visitAnnotationMembers(mv, method.getParameterAnnotations());
-            mv.visitEnd();
-        }
-        for (FieldMember field : fields) {
-            FieldVisitor fieldVisitor = apiMemberAdapter.visitField(
-                field.getAccess(), field.getName(), field.getTypeDesc(), field.getSignature(), field.getValue());
-            visitAnnotationMembers(fieldVisitor, field.getAnnotations());
-            fieldVisitor.visitEnd();
-        }
-        for (InnerClassMember innerClass : innerClasses) {
-            apiMemberAdapter.visitInnerClass(
-                innerClass.getName(), innerClass.getOuterName(), innerClass.getInnerName(), innerClass.getAccess());
-        }
-        apiMemberAdapter.visitEnd();
-    }
-
-    private void visitAnnotationMembers(Set<AnnotationMember> annotationMembers) {
-        for (AnnotationMember annotation : annotationMembers) {
-            AnnotationVisitor annotationVisitor =
-                apiMemberAdapter.visitAnnotation(annotation.getName(), annotation.isVisible());
-            visitAnnotationValues(annotation, annotationVisitor);
-        }
-    }
-
-    private void visitAnnotationMembers(MethodVisitor mv, Set<AnnotationMember> annotationMembers) {
-        for (AnnotationMember annotation : annotationMembers) {
-            AnnotationVisitor annotationVisitor;
-            if (annotation instanceof ParameterAnnotationMember) {
-                annotationVisitor = mv.visitParameterAnnotation(
-                    ((ParameterAnnotationMember) annotation).getParameter(), annotation.getName(),
-                    annotation.isVisible());
-            } else {
-                annotationVisitor = mv.visitAnnotation(annotation.getName(), annotation.isVisible());
-            }
-            visitAnnotationValues(annotation, annotationVisitor);
-        }
-    }
-
-    private void visitAnnotationMembers(FieldVisitor fv, Set<AnnotationMember> annotationMembers) {
-        for (AnnotationMember annotation : annotationMembers) {
-            AnnotationVisitor annotationVisitor = fv.visitAnnotation(annotation.getName(), annotation.isVisible());
-            visitAnnotationValues(annotation, annotationVisitor);
-        }
-    }
-
-    private void visitAnnotationValues(AnnotationMember annotation, AnnotationVisitor annotationVisitor) {
-        for (AnnotationValue<?> value : annotation.getValues()) {
-            visitAnnotationValue(annotationVisitor, value);
-        }
-        annotationVisitor.visitEnd();
-    }
-
-    private void visitAnnotationValue(AnnotationVisitor annotationVisitor, AnnotationValue<?> value) {
-        String name = value.getName();
-        if (value instanceof EnumAnnotationValue) {
-            annotationVisitor.visitEnum(name, ((EnumAnnotationValue) value).getTypeDesc(), (String) value.getValue());
-        } else if (value instanceof SimpleAnnotationValue) {
-            annotationVisitor.visit(name, value.getValue());
-        } else if (value instanceof ArrayAnnotationValue) {
-            AnnotationVisitor arrayVisitor = annotationVisitor.visitArray(name);
-            AnnotationValue<?>[] values = ((ArrayAnnotationValue) value).getValue();
-            for (AnnotationValue<?> annotationValue : values) {
-                visitAnnotationValue(arrayVisitor, annotationValue);
-            }
-            arrayVisitor.visitEnd();
-        } else if (value instanceof AnnotationAnnotationValue) {
-            AnnotationMember annotation = ((AnnotationAnnotationValue) value).getValue();
-            AnnotationVisitor annVisitor = annotationVisitor.visitAnnotation(name, annotation.getName());
-            visitAnnotationValues(annotation, annVisitor);
-        }
+        apiMemberWriter.writeClass(classMember, methods, fields, innerClasses);
     }
 
     @Override

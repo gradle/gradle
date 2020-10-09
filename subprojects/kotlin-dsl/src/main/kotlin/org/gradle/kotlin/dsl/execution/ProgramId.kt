@@ -25,6 +25,7 @@ class ProgramId(
     private val templateId: String,
     private val sourceHash: HashCode,
     parentClassLoader: ClassLoader,
+    private val accessorsClassPathHash: HashCode? = null,
     private val classPathHash: HashCode? = null
 ) {
 
@@ -41,6 +42,7 @@ class ProgramId(
             && thisParentLoader == that.parentClassLoader.get()
             && templateId == that.templateId
             && sourceHash == that.sourceHash
+            && accessorsClassPathHash == that.accessorsClassPathHash
             && classPathHash == that.classPathHash
     }
 
@@ -49,6 +51,9 @@ class ProgramId(
         result = 31 * result + sourceHash.hashCode()
         parentClassLoader.get()?.let { loader ->
             result = 31 * result + loader.hashCode()
+        }
+        accessorsClassPathHash?.let { classPathHash ->
+            result = 31 * result + classPathHash.hashCode()
         }
         classPathHash?.let { classPathHash ->
             result = 31 * result + classPathHash.hashCode()
