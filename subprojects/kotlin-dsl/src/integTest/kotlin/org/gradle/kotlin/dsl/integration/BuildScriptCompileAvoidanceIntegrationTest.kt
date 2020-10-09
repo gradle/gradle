@@ -171,6 +171,64 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
 
     @ToBeFixedForConfigurationCache
     @Test
+    fun `recompiles buildscript when new task is registered in precompiled script plugin`() {
+        val pluginId = "my-plugin"
+        withPrecompiledScriptPluginInBuildSrc(
+            pluginId,
+            """
+                println("foo")
+            """
+        )
+        withBuildScript(
+            """
+                plugins {
+                    id("$pluginId")
+                }
+            """
+        )
+        configureProjectWithDebugOutput().assertBuildScriptCompiled().assertOutputContains("foo")
+
+        withPrecompiledScriptPluginInBuildSrc(
+            pluginId,
+            """
+                println("bar")
+                tasks.register("foo")
+            """
+        )
+        configureProjectWithDebugOutput().assertBuildScriptCompiled().assertOutputContains("bar")
+    }
+
+    @ToBeFixedForConfigurationCache
+    @Test
+    fun `avoids buildscript recompilation when task is configured in precompiled script plugin`() {
+        val pluginId = "my-plugin"
+        withPrecompiledScriptPluginInBuildSrc(
+            pluginId,
+            """
+                println("foo")
+                tasks.register("foo")
+            """
+        )
+        withBuildScript(
+            """
+                plugins {
+                    id("$pluginId")
+                }
+            """
+        )
+        configureProjectWithDebugOutput().assertBuildScriptCompiled().assertOutputContains("foo")
+
+        withPrecompiledScriptPluginInBuildSrc(
+            pluginId,
+            """
+                tasks.register("foo") { doLast { println("bar from task") } }
+            """
+        )
+        configureProjectWithDebugOutput("foo").assertBuildScriptCompilationAvoided().assertOutputContains("bar from task")
+    }
+
+    @ToBeFixedForConfigurationCache
+    @Test
     fun `recompiles buildscript when plugins applied from a precompiled plugin change`() {
         val pluginId = "my-plugin"
         withPrecompiledScriptPluginInBuildSrc(
@@ -449,10 +507,10 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
     }
 
     private
-    fun configureProject(): BuildOperationsAssertions {
+    fun configureProject(vararg tasks: String): BuildOperationsAssertions {
         val buildOperations = BuildOperationsFixture(executer, temporaryFolder)
         executer.withArgument("-D$SCRIPT_CACHE_BASE_DIR_OVERRIDE_PROPERTY=${temporaryFolder.testDirectory}")
-        val output = executer.run().normalizedOutput
+        val output = executer.withTasks(*tasks).run().normalizedOutput
         return BuildOperationsAssertions(buildOperations, output)
     }
 
@@ -467,9 +525,9 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
     // An assertion fails at BuildOperationTrace.java:338
     // leaving this one as a workaround for test cases that have precompiled script plugins until the underlying issue is fixed
     private
-    fun configureProjectWithDebugOutput(): DebugOutputFixture {
+    fun configureProjectWithDebugOutput(vararg tasks: String): DebugOutputFixture {
         executer.withArgument("-D$SCRIPT_CACHE_BASE_DIR_OVERRIDE_PROPERTY=${temporaryFolder.testDirectory}")
-        return DebugOutputFixture(executer.withArgument("--debug").run().normalizedOutput)
+        return DebugOutputFixture(executer.withArgument("--debug").withTasks(*tasks).run().normalizedOutput)
     }
 }
 
