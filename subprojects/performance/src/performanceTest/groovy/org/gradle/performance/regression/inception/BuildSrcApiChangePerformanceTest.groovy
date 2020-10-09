@@ -22,7 +22,6 @@ import org.gradle.performance.mutator.ApplyNonAbiChangeToGroovySourceFileMutator
 import org.gradle.profiler.BuildMutator
 import org.gradle.profiler.InvocationSettings
 import org.gradle.profiler.ScenarioContext
-import org.gradle.util.GradleVersion
 import org.junit.experimental.categories.Category
 
 @Category(SlowPerformanceRegressionTest)
@@ -31,13 +30,15 @@ class BuildSrcApiChangePerformanceTest extends AbstractCrossVersionPerformanceTe
     def setup() {
         def targetVersion = "6.8-20200927220040+0000"
         runner.targetVersions = [targetVersion]
-        runner.minimumBaseVersion = GradleVersion.version(targetVersion).baseVersion.version
+        runner.minimumBaseVersion = "6.8"
+        runner.warmUpRuns = 3
     }
 
     def "buildSrc abi change"() {
         given:
         runner.tasksToRun = ['help']
         runner.runs = determineNumberOfRuns(runner.testProject)
+        runner.gradleOpts = runner.projectMemoryOptions
 
         and:
         def changingClassFilePath = "buildSrc/src/main/groovy/ChangingClass.groovy"
@@ -55,11 +56,17 @@ class BuildSrcApiChangePerformanceTest extends AbstractCrossVersionPerformanceTe
         given:
         runner.tasksToRun = ['help']
         runner.runs = determineNumberOfRuns(runner.testProject)
+        runner.gradleOpts = runner.projectMemoryOptions
 
         and:
         def changingClassFilePath = "buildSrc/src/main/groovy/ChangingClass.groovy"
         runner.addBuildMutator { new CreateChangingClassMutator(it, changingClassFilePath) }
         runner.addBuildMutator { new ApplyNonAbiChangeToGroovySourceFileMutator(new File(it.projectDir, changingClassFilePath)) }
+
+        when:
+        def result = runner.run()
+        then:
+        result.assertCurrentVersionHasNotRegressed()
     }
 
     private static int determineNumberOfRuns(String testProject) {
