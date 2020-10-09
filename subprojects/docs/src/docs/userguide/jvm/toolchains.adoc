@@ -149,12 +149,11 @@ org.gradle.java.installations.paths=/custom/path/jdk1.8,/shared/jre11
 [[sec:plugins]]
 == Toolchains for plugin authors
 
-For plugin authors, custom tasks that require a tool from the JDK should expose a `Property<T>` with the desired tool as generic type.
-By injecting the `JavaToolchainService` in the plugin, it is also possible to wire a convention in those properties by obtaining the `JavaToolchainSpec` from the `java` extension on the project.
+Custom tasks that require a tool from the JDK should expose a `Property<T>` with the desired tool as generic type.
+By injecting the `JavaToolchainService` in the plugin or task, it is also possible to wire a convention in those properties by obtaining the `JavaToolchainSpec` from the `java` extension on the project.
+The example below showcases how to use the default toolchain as convention while allowing users to individually configure the toolchain per task.
 
-```
-JavaPluginExtension extension = project.getExtensions().getByType(JavaPluginExtension.class);
-JavaToolchainService service = project.getExtensions().getByType(JavaToolchainService.class);
-Provider<JavaCompiler> defaultCompiler = service.compilerFor(extension.getToolchain());
-myTask.getJavaCompiler().convention(defaultCompiler);
-```
+====
+include::sample[dir="snippets/java/toolchain-task/groovy/",files="build.gradle"]
+include::sample[dir="snippets/java/toolchain-task/kotlin/",files="build.gradle.kts"]
+====

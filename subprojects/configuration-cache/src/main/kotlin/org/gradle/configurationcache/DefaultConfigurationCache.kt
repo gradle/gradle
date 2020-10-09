@@ -186,7 +186,7 @@ class DefaultConfigurationCache internal constructor(
     }
 
     private
-    fun writeConfigurationCacheState(stateFile: File) {
+    fun writeConfigurationCacheState(stateFile: ConfigurationCacheStateFile) {
         service<ProjectStateRegistry>().withMutableStateOfAllProjects {
             cacheIO.writeRootBuildStateTo(stateFile)
         }
@@ -224,7 +224,7 @@ class DefaultConfigurationCache internal constructor(
 
     private
     fun checkConfigurationCacheFingerprintFile(fingerprintFile: File): InvalidationReason? =
-        cacheIO.withReadContextFor(fingerprintFile) { codecs ->
+        cacheIO.withReadContextFor(fingerprintFile.inputStream()) { codecs ->
             withIsolate(IsolateOwner.OwnerHost(host), codecs.userTypesCodec) {
                 cacheFingerprintController.run {
                     checkFingerprint()

@@ -25,7 +25,7 @@ class DefaultBuildConfigurationActionExecuterTest extends Specification {
     final ProjectStateRegistry projectStateRegistry = Stub()
 
     def setup() {
-        _ * projectStateRegistry.withMutableStateOfAllProjects(_) >> { args -> args[0].run() }
+        _ * projectStateRegistry.withMutableStateOfAllProjects(_) >> { Runnable r -> r.run() }
     }
 
     def "select method calls configure method on first configuration action"() {

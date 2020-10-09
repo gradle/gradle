@@ -21,6 +21,7 @@ import org.gradle.internal.build.event.BuildEventListenerFactory;
 import org.gradle.internal.build.event.BuildEventSubscriptions;
 import org.gradle.internal.build.event.OperationResultPostProcessor;
 import org.gradle.internal.build.event.OperationResultPostProcessorFactory;
+import org.gradle.internal.operations.BuildOperationAncestryTracker;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationIdFactory;
 import org.gradle.internal.operations.BuildOperationListener;
@@ -36,10 +37,12 @@ import java.util.List;
 import static java.util.Collections.emptyList;
 
 public class ToolingApiBuildEventListenerFactory implements BuildEventListenerFactory {
+    private final BuildOperationAncestryTracker ancestryTracker;
     private final BuildOperationIdFactory idFactory;
     private final List<OperationResultPostProcessorFactory> postProcessorFactories;
 
-    ToolingApiBuildEventListenerFactory(BuildOperationIdFactory idFactory, List<OperationResultPostProcessorFactory> postProcessorFactories) {
+    ToolingApiBuildEventListenerFactory(BuildOperationAncestryTracker ancestryTracker, BuildOperationIdFactory idFactory, List<OperationResultPostProcessorFactory> postProcessorFactories) {
+        this.ancestryTracker = ancestryTracker;
         this.idFactory = idFactory;
         this.postProcessorFactories = postProcessorFactories;
     }
@@ -49,12 +52,11 @@ public class ToolingApiBuildEventListenerFactory implements BuildEventListenerFa
         if (!subscriptions.isAnyOperationTypeRequested()) {
             return emptyList();
         }
-        BuildOperationParentTracker parentTracker = new BuildOperationParentTracker();
-        ProgressEventConsumer progressEventConsumer = new ProgressEventConsumer(consumer, parentTracker);
+        ProgressEventConsumer progressEventConsumer = new ProgressEventConsumer(consumer, ancestryTracker);
         List<Object> listeners = new ArrayList<>();
-        listeners.add(parentTracker);
+        listeners.add(ancestryTracker);
         if (subscriptions.isRequested(OperationType.TEST)) {
-            BuildOperationListener buildListener = new ClientForwardingTestOperationListener(progressEventConsumer, subscriptions);
+            BuildOperationListener buildListener = new ClientForwardingTestOperationListener(progressEventConsumer, ancestryTracker, subscriptions);
             if (subscriptions.isRequested(OperationType.TEST_OUTPUT)) {
                 buildListener = new ClientForwardingTestOutputOperationListener(buildListener, progressEventConsumer, idFactory);
             }
@@ -74,7 +76,7 @@ public class ToolingApiBuildEventListenerFactory implements BuildEventListenerFa
                 operationDependenciesResolver.addLookup(transformOperationListener);
                 buildListener = transformOperationListener;
             }
-            PluginApplicationTracker pluginApplicationTracker = new PluginApplicationTracker(parentTracker);
+            PluginApplicationTracker pluginApplicationTracker = new PluginApplicationTracker(ancestryTracker);
             if (subscriptions.isAnyRequested(OperationType.PROJECT_CONFIGURATION, OperationType.TASK)) {
                 listeners.add(pluginApplicationTracker);
             }
@@ -95,7 +97,7 @@ public class ToolingApiBuildEventListenerFactory implements BuildEventListenerFa
                 operationDependenciesResolver.addLookup(taskOperationListener);
                 buildListener = taskOperationListener;
             }
-            listeners.add(new ClientForwardingProjectConfigurationOperationListener(progressEventConsumer, subscriptions, buildListener, parentTracker, pluginApplicationTracker));
+            listeners.add(new ClientForwardingProjectConfigurationOperationListener(progressEventConsumer, subscriptions, buildListener, ancestryTracker, pluginApplicationTracker));
         }
         return listeners;
     }

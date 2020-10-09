@@ -138,6 +138,10 @@ abstract class AbstractCrossBuildPerformanceTestRunner<R extends CrossBuildPerfo
 
         try {
             runAllSpecifications(results)
+        } catch (Exception e) {
+            // Print the exception here, so it is reported even when the reporting fails
+            e.printStackTrace()
+            throw e
         } finally {
             results.endTime = clock.getCurrentTime()
             reporter.report(results)

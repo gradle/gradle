@@ -24,6 +24,8 @@ import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
 import org.gradle.api.internal.tasks.testing.operations.ExecuteTestBuildOperationType;
 import org.gradle.api.tasks.testing.TestExecutionException;
 import org.gradle.api.tasks.testing.TestResult;
+import org.gradle.internal.build.event.types.DefaultTestDescriptor;
+import org.gradle.internal.operations.BuildOperationAncestryTracker;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationListener;
 import org.gradle.internal.operations.OperationFinishEvent;
@@ -33,7 +35,6 @@ import org.gradle.internal.operations.OperationStartEvent;
 import org.gradle.tooling.internal.protocol.events.InternalTestDescriptor;
 import org.gradle.tooling.internal.protocol.test.InternalJvmTestRequest;
 import org.gradle.tooling.internal.provider.TestExecutionRequestAction;
-import org.gradle.internal.build.event.types.DefaultTestDescriptor;
 
 import java.util.Collection;
 import java.util.Map;
@@ -44,13 +45,18 @@ import java.util.concurrent.atomic.AtomicLong;
 class TestExecutionResultEvaluator implements BuildOperationListener {
     private static final String INDENT = "    ";
 
+    private final BuildOperationAncestryTracker ancestryTracker;
     private final TestExecutionRequestAction internalTestExecutionRequest;
 
     private final AtomicLong resultCount = new AtomicLong();
     private final Map<Object, String> runningTasks = Maps.newConcurrentMap();
     private final Queue<FailedTest> failedTests = new ConcurrentLinkedQueue<FailedTest>();
 
-    public TestExecutionResultEvaluator(TestExecutionRequestAction internalTestExecutionRequest) {
+    public TestExecutionResultEvaluator(
+        BuildOperationAncestryTracker ancestryTracker,
+        TestExecutionRequestAction internalTestExecutionRequest
+    ) {
+        this.ancestryTracker = ancestryTracker;
         this.internalTestExecutionRequest = internalTestExecutionRequest;
     }
 
@@ -120,21 +126,14 @@ class TestExecutionResultEvaluator implements BuildOperationListener {
                 resultCount.addAndGet(testResult.getTestCount());
             }
             if (!testDescriptor.isComposite() && testResult.getFailedTestCount() != 0) {
-                failedTests.add(new FailedTest(testDescriptor.getName(), testDescriptor.getClassName(), getTaskPath(testDescriptor)));
+                failedTests.add(new FailedTest(testDescriptor.getName(), testDescriptor.getClassName(), getTaskPath(buildOperation.getId(), testDescriptor)));
             }
         }
     }
 
-    private String getTaskPath(TestDescriptorInternal givenDescriptor) {
-        TestDescriptorInternal descriptor = givenDescriptor;
-        while (descriptor.getOwnerBuildOperationId() == null && descriptor.getParent() != null) {
-            descriptor = descriptor.getParent();
-        }
-        String taskPath = runningTasks.get(descriptor.getOwnerBuildOperationId());
-        if (taskPath == null) {
-            throw new IllegalStateException("No parent task for test " + givenDescriptor);
-        }
-        return taskPath;
+    private String getTaskPath(OperationIdentifier buildOperationId, TestDescriptorInternal descriptor) {
+        return ancestryTracker.findClosestExistingAncestor(buildOperationId, runningTasks::get)
+            .orElseThrow(() -> new IllegalStateException("No parent task for test " + descriptor));
     }
 
     private static class FailedTest {

@@ -26,6 +26,7 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.IConventionAware;
@@ -37,6 +38,7 @@ import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.JavaPluginConvention;
 import org.gradle.api.plugins.WarPlugin;
 import org.gradle.api.plugins.scala.ScalaBasePlugin;
+import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.internal.xml.XmlTransformer;
@@ -60,6 +62,7 @@ import org.gradle.plugins.ide.internal.configurer.UniqueProjectNameProvider;
 
 import javax.inject.Inject;
 import java.io.File;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Callable;
@@ -237,21 +240,37 @@ public class EclipsePlugin extends IdePlugin {
         project.getPlugins().withType(JavaPlugin.class, new Action<JavaPlugin>() {
             @Override
             public void execute(JavaPlugin javaPlugin) {
-                model.getClasspath().setPlusConfigurations(Lists.newArrayList(project.getConfigurations().getByName("compileClasspath"), project.getConfigurations().getByName("runtimeClasspath"), project.getConfigurations().getByName("testCompileClasspath"), project.getConfigurations().getByName("testRuntimeClasspath")));
+                ((IConventionAware) model.getClasspath()).getConventionMapping().map("plusConfigurations", new Callable<Collection<Configuration>>() {
+                    @Override
+                    public Collection<Configuration> call() {
+                        SourceSetContainer sourceSets = project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets();
+                        List<Configuration> sourceSetsConfigurations = Lists.newArrayListWithCapacity(sourceSets.size() * 2);
+                        ConfigurationContainer configurations = project.getConfigurations();
+                        for (SourceSet sourceSet : sourceSets) {
+                            sourceSetsConfigurations.add(configurations.getByName(sourceSet.getCompileClasspathConfigurationName()));
+                            sourceSetsConfigurations.add(configurations.getByName(sourceSet.getRuntimeClasspathConfigurationName()));
+                        }
+                        return sourceSetsConfigurations;
+                    }
+                }).cache();
+
                 ((IConventionAware) model.getClasspath()).getConventionMapping().map("classFolders", new Callable<List<File>>() {
                     @Override
                     public List<File> call() {
-                        SourceSetContainer sourceSets = project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets();
-                        return Lists.newArrayList(Iterables.concat(sourceSets.getByName("main").getOutput().getDirs(), sourceSets.getByName("test").getOutput().getDirs()));
+                        List<File> result = Lists.newArrayList();
+                        for (SourceSet sourceSet : project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets()) {
+                            result.addAll(sourceSet.getOutput().getDirs().getFiles());
+                        }
+                        return result;
                     }
                 });
 
                 task.configure(new Action<GenerateEclipseClasspath>() {
                     @Override
                     public void execute(GenerateEclipseClasspath task) {
-                        SourceSetContainer sourceSets = project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets();
-                        task.dependsOn(sourceSets.getByName("main").getOutput().getDirs());
-                        task.dependsOn(sourceSets.getByName("test").getOutput().getDirs());
+                        for (SourceSet sourceSet : project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets()) {
+                            task.dependsOn(sourceSet.getOutput().getDirs());
+                        }
                     }
                 });
             }

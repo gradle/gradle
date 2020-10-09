@@ -70,6 +70,11 @@ public class RootScriptDomainObjectContext implements DomainObjectContext, Model
     }
 
     @Override
+    public void forceAccessToMutableState(Consumer<? super Object> action) {
+        action.accept(MODEL);
+    }
+
+    @Override
     public void applyToMutableState(Consumer<? super Object> action) {
         action.accept(MODEL);
     }
@@ -117,9 +122,11 @@ public class RootScriptDomainObjectContext implements DomainObjectContext, Model
 
         @Override
         public T update(Function<T, T> updateFunction) {
-            T newValue = updateFunction.apply(value);
-            value = newValue;
-            return newValue;
+            synchronized (this) {
+                T newValue = updateFunction.apply(value);
+                value = newValue;
+                return newValue;
+            }
         }
     }
 }

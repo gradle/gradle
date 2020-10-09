@@ -261,21 +261,27 @@ class DefaultProjectStateRegistryTest extends ConcurrentSpec {
         def project1 = project("p1")
         def state1 = registry.stateFor(project1)
         state1.attachMutableModel(project1)
+        def state2 = registry.stateFor(project("p2"))
 
         when:
         async {
             start {
                 state1.applyToMutableState { p ->
+                    assert state1.hasMutableState()
+                    assert !state2.hasMutableState()
                     instant.mutating1
                     thread.blockUntil.finished1
                 }
                 state1.applyToMutableState { p ->
+                    assert state1.hasMutableState()
                     instant.mutating2
                     thread.blockUntil.finished2
                 }
             }
             start {
                 registry.allowUncontrolledAccessToAnyProject {
+                    assert state1.hasMutableState()
+                    assert state2.hasMutableState()
                     thread.blockUntil.mutating1
                     // both threads are accessing project
                     instant.finished1
@@ -284,6 +290,127 @@ class DefaultProjectStateRegistryTest extends ConcurrentSpec {
                     instant.finished2
                 }
             }
+        }
+
+        then:
+        noExceptionThrown()
+    }
+
+    def "multiple threads can nest calls with uncontrolled access to all projects"() {
+        given:
+        registry.registerProjects(build("p1", "p2"))
+        def project1 = project("p1")
+        def state1 = registry.stateFor(project1)
+        state1.attachMutableModel(project1)
+        def state2 = registry.stateFor(project("p2"))
+
+        when:
+        async {
+            def action = {
+                registry.allowUncontrolledAccessToAnyProject {
+                    assert state1.hasMutableState()
+                    assert state2.hasMutableState()
+                    registry.allowUncontrolledAccessToAnyProject {
+                        assert state1.hasMutableState()
+                        assert state2.hasMutableState()
+                    }
+                    state1.applyToMutableState {
+                        assert state1.hasMutableState()
+                        assert state2.hasMutableState()
+                    }
+                    assert state1.hasMutableState()
+                    assert state2.hasMutableState()
+                }
+            }
+            start(action)
+            start(action)
+            start(action)
+            start(action)
+            start(action)
+        }
+
+        then:
+        noExceptionThrown()
+    }
+
+    def "thread can be granted uncontrolled access to a single project"() {
+        given:
+        registry.registerProjects(build("p1", "p2"))
+        def project1 = project("p1")
+        def state1 = registry.stateFor(project1)
+        state1.attachMutableModel(project1)
+        def state2 = registry.stateFor(project("p2"))
+
+        when:
+        async {
+            start {
+                state1.applyToMutableState { p ->
+                    assert state1.hasMutableState()
+                    assert !state2.hasMutableState()
+                    instant.mutating1
+                    thread.blockUntil.finished1
+                }
+                state1.applyToMutableState { p ->
+                    assert state1.hasMutableState()
+                    instant.mutating2
+                    thread.blockUntil.finished2
+                }
+            }
+            start {
+                state1.forceAccessToMutableState {
+                    assert state1.hasMutableState()
+                    assert !state2.hasMutableState()
+                    thread.blockUntil.mutating1
+                    // both threads are accessing project
+                    instant.finished1
+                    thread.blockUntil.mutating2
+                    // both threads are accessing project
+                    instant.finished2
+                }
+            }
+        }
+
+        then:
+        noExceptionThrown()
+    }
+
+    def "multiple threads can nest calls with uncontrolled access to specific projects"() {
+        given:
+        registry.registerProjects(build("p1", "p2"))
+        def project1 = project("p1")
+        def state1 = registry.stateFor(project1)
+        state1.attachMutableModel(project1)
+        def project2 = project("p2")
+        def state2 = registry.stateFor(project2)
+        state2.attachMutableModel(project2)
+
+        when:
+        async {
+            def action = {
+                state1.forceAccessToMutableState {
+                    assert state1.hasMutableState()
+                    assert !state2.hasMutableState()
+                    state1.forceAccessToMutableState {
+                        assert state1.hasMutableState()
+                        assert !state2.hasMutableState()
+                    }
+                    state1.applyToMutableState {
+                        assert state1.hasMutableState()
+                        assert !state2.hasMutableState()
+                    }
+                    state2.applyToMutableState {
+                        assert state1.hasMutableState()
+                        assert state2.hasMutableState()
+                    }
+                    assert state1.hasMutableState()
+                    assert !state2.hasMutableState()
+                }
+            }
+            start(action)
+            start(action)
+            start(action)
+            start(action)
+            start(action)
         }
 
         then:

@@ -19,35 +19,32 @@ package org.gradle.api.internal.tasks.testing.processors;
 import org.gradle.api.internal.tasks.testing.DefaultTestSuiteDescriptor;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestCompleteEvent;
+import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.TestStartEvent;
 import org.gradle.api.internal.tasks.testing.results.AttachParentTestResultProcessor;
 import org.gradle.internal.time.Clock;
-
-import javax.annotation.Nullable;
 
 public class TestMainAction implements Runnable {
     private final Runnable detector;
     private final TestClassProcessor processor;
     private final TestResultProcessor resultProcessor;
     private final Clock clock;
-    private final Object testTaskOperationId;
     private final Object rootTestSuiteId;
     private final String displayName;
 
-    public TestMainAction(Runnable detector, TestClassProcessor processor, TestResultProcessor resultProcessor, Clock clock, Object testTaskOperationId, Object rootTestSuiteId, String displayName) {
+    public TestMainAction(Runnable detector, TestClassProcessor processor, TestResultProcessor resultProcessor, Clock clock, Object rootTestSuiteId, String displayName) {
         this.detector = detector;
         this.processor = processor;
         this.resultProcessor = new AttachParentTestResultProcessor(resultProcessor);
         this.clock = clock;
-        this.testTaskOperationId = testTaskOperationId;
         this.rootTestSuiteId = rootTestSuiteId;
         this.displayName = displayName;
     }
 
     @Override
     public void run() {
-        RootTestSuiteDescriptor suite = new RootTestSuiteDescriptor(rootTestSuiteId, displayName, testTaskOperationId);
+        TestDescriptorInternal suite = new RootTestSuiteDescriptor(rootTestSuiteId, displayName);
         resultProcessor.started(suite, new TestStartEvent(clock.getCurrentTime()));
         try {
             processor.startProcessing(resultProcessor);
@@ -61,18 +58,9 @@ public class TestMainAction implements Runnable {
         }
     }
 
-    public static final class RootTestSuiteDescriptor extends DefaultTestSuiteDescriptor {
-        private final Object testTaskOperationId;
-
-        private RootTestSuiteDescriptor(Object id, String name, Object testTaskOperationId) {
+    private static final class RootTestSuiteDescriptor extends DefaultTestSuiteDescriptor {
+        private RootTestSuiteDescriptor(Object id, String name) {
             super(id, name);
-            this.testTaskOperationId = testTaskOperationId;
-        }
-
-        @Nullable
-        @Override
-        public Object getOwnerBuildOperationId() {
-            return testTaskOperationId;
         }
 
         @Override

@@ -37,7 +37,6 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.Factory;
 import org.gradle.internal.actor.ActorFactory;
-import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.time.Clock;
 import org.gradle.internal.work.WorkerLeaseRegistry;
 import org.gradle.process.internal.worker.WorkerProcessFactory;
@@ -57,7 +56,6 @@ public class DefaultTestExecuter implements TestExecuter<JvmTestExecutionSpec> {
     private final ActorFactory actorFactory;
     private final ModuleRegistry moduleRegistry;
     private final WorkerLeaseRegistry workerLeaseRegistry;
-    private final BuildOperationExecutor buildOperationExecutor;
     private final int maxWorkerCount;
     private final Clock clock;
     private final DocumentationRegistry documentationRegistry;
@@ -65,13 +63,12 @@ public class DefaultTestExecuter implements TestExecuter<JvmTestExecutionSpec> {
     private TestClassProcessor processor;
 
     public DefaultTestExecuter(WorkerProcessFactory workerFactory, ActorFactory actorFactory, ModuleRegistry moduleRegistry,
-                               WorkerLeaseRegistry workerLeaseRegistry, BuildOperationExecutor buildOperationExecutor, int maxWorkerCount,
+                               WorkerLeaseRegistry workerLeaseRegistry, int maxWorkerCount,
                                Clock clock, DocumentationRegistry documentationRegistry, DefaultTestFilter testFilter) {
         this.workerFactory = workerFactory;
         this.actorFactory = actorFactory;
         this.moduleRegistry = moduleRegistry;
         this.workerLeaseRegistry = workerLeaseRegistry;
-        this.buildOperationExecutor = buildOperationExecutor;
         this.maxWorkerCount = maxWorkerCount;
         this.clock = clock;
         this.documentationRegistry = documentationRegistry;
@@ -116,9 +113,7 @@ public class DefaultTestExecuter implements TestExecuter<JvmTestExecutionSpec> {
             detector = new DefaultTestClassScanner(testClassFiles, null, processor);
         }
 
-        final Object testTaskOperationId = buildOperationExecutor.getCurrentOperation().getParentId();
-
-        new TestMainAction(detector, processor, testResultProcessor, clock, testTaskOperationId, testExecutionSpec.getPath(), "Gradle Test Run " + testExecutionSpec.getIdentityPath()).run();
+        new TestMainAction(detector, processor, testResultProcessor, clock, testExecutionSpec.getPath(), "Gradle Test Run " + testExecutionSpec.getIdentityPath()).run();
     }
 
     @Override

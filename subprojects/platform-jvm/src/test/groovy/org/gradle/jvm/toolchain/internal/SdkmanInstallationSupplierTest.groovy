@@ -19,6 +19,7 @@ package org.gradle.jvm.toolchain.internal
 
 import org.gradle.api.internal.provider.Providers
 import org.gradle.api.provider.ProviderFactory
+import org.gradle.internal.SystemProperties
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Requires
@@ -32,7 +33,7 @@ import static org.gradle.api.internal.file.TestFiles.systemSpecificAbsolutePath
 class SdkmanInstallationSupplierTest extends Specification {
 
     @Rule
-    public final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass());
+    public final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
 
     def candidates = temporaryFolder.createDir("sdkman")
 
@@ -115,6 +116,31 @@ class SdkmanInstallationSupplierTest extends Specification {
         directories*.source == ["SDKMAN", "SDKMAN", "SDKMAN"]
     }
 
+    def "falls back to default location if environment variable is not set"() {
+        given:
+        def candidates = temporaryFolder.createDir(".sdkman/candidates")
+        candidates.createDir("java/11.0.6.hs-adpt")
+        candidates.createDir("java/14")
+        candidates.createDir("java/8.0.262.fx-librca")
+        def directories = createSupplier(null, temporaryFolder.getTestDirectory().getCanonicalPath()).get()
+
+        expect:
+        directoriesAsStablePaths(directories) == stablePaths([
+            new File(candidates, "java/11.0.6.hs-adpt").absolutePath,
+            new File(candidates, "java/14").absolutePath,
+            new File(candidates, "java/8.0.262.fx-librca").absolutePath
+        ])
+        directories*.source == ["SDKMAN", "SDKMAN", "SDKMAN"]
+    }
+
+    def "ignores fallback location if not existing"() {
+        given:
+        def directories = createSupplier(null, temporaryFolder.getTestDirectory().getCanonicalPath()).get()
+
+        expect:
+        directories.empty
+    }
+
     @Requires(TestPrecondition.SYMLINKS)
     def "supplies installations with symlinked candidate"() {
         given:
@@ -144,8 +170,10 @@ class SdkmanInstallationSupplierTest extends Specification {
         expectedPaths
     }
 
-    SdkmanInstallationSupplier createSupplier(String propertyValue) {
-        new SdkmanInstallationSupplier(createProviderFactory(propertyValue))
+    SdkmanInstallationSupplier createSupplier(String propertyValue, String userhome = null) {
+        SystemProperties.instance.withSystemProperty("user.home", userhome) {
+            new SdkmanInstallationSupplier(createProviderFactory(propertyValue))
+        }
     }
 
     ProviderFactory createProviderFactory(String propertyValue) {

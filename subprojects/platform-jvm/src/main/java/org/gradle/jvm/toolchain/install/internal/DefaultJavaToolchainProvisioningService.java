@@ -44,6 +44,7 @@ public class DefaultJavaToolchainProvisioningService implements JavaToolchainPro
     private final AdoptOpenJdkRemoteBinary openJdkBinary;
     private final JdkCacheDirectory cacheDirProvider;
     private final Provider<Boolean> downloadEnabled;
+    private static Object provisioningProcessLock = new Object();
 
     @Inject
     public DefaultJavaToolchainProvisioningService(AdoptOpenJdkRemoteBinary openJdkBinary, JdkCacheDirectory cacheDirProvider, ProviderFactory factory) {
@@ -56,23 +57,28 @@ public class DefaultJavaToolchainProvisioningService implements JavaToolchainPro
         if (!isAutoDownloadEnabled()) {
             return Optional.empty();
         }
-        String destinationFilename = openJdkBinary.toFilename(spec);
-        File destinationFile = cacheDirProvider.getDownloadLocation(destinationFilename);
-        final FileLock fileLock = cacheDirProvider.acquireWriteLock(destinationFile, "Downloading toolchain");
-        try {
-            final Optional<File> jdkArchive;
-            if (destinationFile.exists()) {
-                jdkArchive = Optional.of(destinationFile);
-            } else {
-                jdkArchive = openJdkBinary.download(spec, destinationFile);
+        synchronized (provisioningProcessLock) {
+            String destinationFilename = openJdkBinary.toFilename(spec);
+            File destinationFile = cacheDirProvider.getDownloadLocation(destinationFilename);
+            final FileLock fileLock = cacheDirProvider.acquireWriteLock(destinationFile, "Downloading toolchain");
+            try {
+                return provisionJdk(spec, destinationFile);
+            } catch (Exception e) {
+                throw new MissingToolchainException(spec, e);
+            } finally {
+                fileLock.close();
             }
-            return jdkArchive.map(cacheDirProvider::provisionFromArchive);
-        } catch (Exception e) {
-            throw new MissingToolchainException(spec, e);
-        } finally {
-            fileLock.close();
         }
+    }
 
+    private Optional<File> provisionJdk(JavaToolchainSpec spec, File destinationFile) {
+        final Optional<File> jdkArchive;
+        if (destinationFile.exists()) {
+            jdkArchive = Optional.of(destinationFile);
+        } else {
+            jdkArchive = openJdkBinary.download(spec, destinationFile);
+        }
+        return jdkArchive.map(cacheDirProvider::provisionFromArchive);
     }
 
     private boolean isAutoDownloadEnabled() {
