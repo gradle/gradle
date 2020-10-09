@@ -15,6 +15,7 @@
  */
 package org.gradle.tooling.internal.consumer.connection;
 
+import com.google.common.util.concurrent.MoreExecutors;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
@@ -30,6 +31,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
@@ -52,14 +54,11 @@ public class LazyConsumerActionExecutor implements ConsumerActionExecutor {
     private final ConnectionParameters connectionParameters;
     private BuildCancellationToken cancellationToken;
 
-    private final ExecutorService executorService;
-
     public LazyConsumerActionExecutor(Distribution distribution, ToolingImplementationLoader implementationLoader, LoggingProvider loggingProvider, ConnectionParameters connectionParameters) {
         this.distribution = distribution;
         this.implementationLoader = implementationLoader;
         this.loggingProvider = loggingProvider;
         this.connectionParameters = connectionParameters;
-        this.executorService = Executors.newSingleThreadExecutor();
     }
 
     @Override
@@ -115,22 +114,19 @@ public class LazyConsumerActionExecutor implements ConsumerActionExecutor {
 
             @Override
             public Void run(final ConsumerConnection c) {
+                ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(1);
+                ExecutorService executorService = MoreExecutors.getExitingExecutorService(executor, 3, TimeUnit.SECONDS);
+
                 executorService.submit(new Runnable() {
                     @Override
                     public void run() {
                         c.stopWhenIdle(getParameters());
                     }
                 });
-                try {
-                    if (!executorService.awaitTermination(3, TimeUnit.SECONDS)) {
-                        System.err.println("Cannot send stop when idle message to daemon");
-                    }
 
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
+                executor.shutdown();
                 return null;
-            }
+        }
         });
     }
 
