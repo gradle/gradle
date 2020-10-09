@@ -86,6 +86,9 @@ class BuildSrcApiChangePerformanceTest extends AbstractCrossVersionPerformanceTe
         CreateChangingClassMutator(InvocationSettings settings, String filePath) {
             new File(settings.projectDir, filePath).with {
                 parentFile.mkdirs()
+                // We need to create the file in the constructor, since the file change mutators read the text of the file in the constructor as well.
+                // It would be better if the file change mutators would read the original test in `beforeScenario`, so we could create the file here
+                // as well in beforeScenario.
                 text = """
                     class ChangingClass {
                         void changingMethod() {
