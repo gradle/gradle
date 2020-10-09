@@ -49,6 +49,25 @@ Garbage collection time goes from [2.6 seconds](https://scans.gradle.com/s/3bg67
 
 While the impact on your build may vary, most builds can expect a noticeably shorter feedback loop when editing Kotlin DSL build logic thanks to this improvement.
 
+### Compile avoidance for Kotlin DSL build scripts
+
+Until now, any changes to build logic in [buildSrc](userguide/organizing_gradle_projects.html#sec:build_sources) required all the build scripts in the project to be recompiled.
+
+This release introduces compile avoidance for [Gradle Kotlin DSL](userguide/kotlin_dsl.html) build scripts. 
+This feature will only cause the build scripts to be recompiled if a change to shared build logic changes the 
+ABI (application binary interface) of the resulting artifact.
+In simpler terms, changes to private implementation details of build logic, such as private methods or classes, 
+bodies of non-private methods or classes,
+as well as internal changes to [precompiled script plugins](userguide/custom_plugins.html#sec:precompiled_plugins) 
+such as configuration of tasks will no longer trigger recompilation of the project's build scripts.
+
+On a sample build with 100 subprojects, full recompilation of build scripts caused by a change in `buildSrc` can take [~20 seconds](https://scans.gradle.com/s/7b3fnkbd5kjq2/performance/configuration?showScriptCompilationTimes).
+A non-ABI change can [eliminate build script recompilation altogether now](https://scans.gradle.com/s/nra3wis3dve4w/performance/configuration#summary-script-compile), saving those 20 seconds.
+
+While changes to `buildSrc` immediately affect the classpath of all the buildscripts, this improvement is more general and applies to changes in
+any jar on the buildscript's classpath that can be added by a plugin applied from an included build or added directly via `buildscript {}` block.
+
+
 ### Configuration cache improvements
 
 [//]: # (TODO context and overview of improvements)
