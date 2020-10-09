@@ -322,6 +322,44 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
         configureProject().assertBuildScriptBodyRecompiled().assertOutputContains("bar")
     }
 
+    @ToBeFixedForConfigurationCache
+    @Test
+    fun `recompiles buildscript when plugin extension registration name changes from a precompiled plugin`() {
+        val pluginId = "my-plugin"
+        val extensionClass = """
+            open class TestExtension {
+                var message = "some-message"
+            }
+        """
+        withPrecompiledScriptPluginInBuildSrc(
+            pluginId,
+            """
+                $extensionClass
+                project.extensions.create<TestExtension>("foo")
+            """
+        )
+        withBuildScript(
+            """
+                plugins {
+                    id("$pluginId")
+                }
+                foo {
+                    message = "foo"
+                }
+            """
+        )
+        configureProjectWithDebugOutput().assertBuildScriptCompiled()
+
+        withPrecompiledScriptPluginInBuildSrc(
+            pluginId,
+            """
+                $extensionClass
+                project.extensions.create<TestExtension>("bar")
+            """
+        )
+        configureProjectAndExpectCompileFailure("Unresolved reference: foo")
+    }
+
     private
     fun withPrecompiledScriptPluginInBuildSrc(pluginId: String, pluginSource: String) {
         withKotlinDslPluginIn("buildSrc")
@@ -418,13 +456,20 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
         return BuildOperationsAssertions(buildOperations, output)
     }
 
+    private
+    fun configureProjectAndExpectCompileFailure(expectedFailure: String) {
+        executer.withArgument("-D$SCRIPT_CACHE_BASE_DIR_OVERRIDE_PROPERTY=${temporaryFolder.testDirectory}")
+        val error = executer.runWithFailure().error
+        assertThat(error, containsString(expectedFailure))
+    }
+
     // There seems to be a bug in BuildOperationTrace handling of projects with precompiled script plugins
     // An assertion fails at BuildOperationTrace.java:338
     // leaving this one as a workaround for test cases that have precompiled script plugins until the underlying issue is fixed
     private
-    fun configureProjectWithDebugOutput(): OutputFixture {
+    fun configureProjectWithDebugOutput(): DebugOutputFixture {
         executer.withArgument("-D$SCRIPT_CACHE_BASE_DIR_OVERRIDE_PROPERTY=${temporaryFolder.testDirectory}")
-        return OutputFixture(executer.withArgument("--debug").run().normalizedOutput)
+        return DebugOutputFixture(executer.withArgument("--debug").run().normalizedOutput)
     }
 }
 
@@ -471,21 +516,21 @@ class BuildOperationsAssertions(buildOperationsFixture: BuildOperationsFixture, 
 
 
 private
-class OutputFixture(val output: String) {
+class DebugOutputFixture(val output: String) {
     private
     val scriptClasspathCompileOperationStartMarker = "Build operation 'Compile script build.gradle.kts (CLASSPATH)' started"
 
     private
     val scriptBodyCompileOperationStartMarker = "Build operation 'Compile script build.gradle.kts (BODY)' started"
 
-    fun assertBuildScriptCompiled(): OutputFixture {
+    fun assertBuildScriptCompiled(): DebugOutputFixture {
         if (output.contains(scriptClasspathCompileOperationStartMarker) || output.contains(scriptBodyCompileOperationStartMarker)) {
             return this
         }
         throw AssertionError("Expected script to be compiled, but it wasn't")
     }
 
-    fun assertBuildScriptCompilationAvoided(): OutputFixture {
+    fun assertBuildScriptCompilationAvoided(): DebugOutputFixture {
         if (output.contains(scriptClasspathCompileOperationStartMarker) || output.contains(scriptBodyCompileOperationStartMarker)) {
             throw AssertionError("Expected script compilation to be avoided, but the buildscript was recompiled")
         }
