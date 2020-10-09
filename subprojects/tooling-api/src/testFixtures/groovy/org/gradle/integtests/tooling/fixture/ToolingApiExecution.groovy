@@ -38,7 +38,7 @@ class ToolingApiExecution extends AbstractMultiTestRunner.Execution implements T
 
     @Override
     protected String getDisplayName() {
-        return "TAPI: ${displayName(toolingApi.version)}, target: ${displayName(gradle.version)}"
+        return "TAPI ${displayName(toolingApi.version)} -> Gradle ${displayName(gradle.version)}"
     }
 
     @Override
