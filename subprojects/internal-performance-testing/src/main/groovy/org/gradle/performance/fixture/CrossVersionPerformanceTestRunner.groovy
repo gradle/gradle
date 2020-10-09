@@ -144,6 +144,10 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
             baselineVersions.each { baselineVersion ->
                 runVersion(testId, buildContext.distribution(baselineVersion.version), perVersionWorkingDirectory(runIndex++), baselineVersion.results)
             }
+        } catch (Exception e) {
+            // Print the exception here, so it is reported even when the reporting fails
+            e.printStackTrace()
+            throw e
         } finally {
             results.endTime = clock.getCurrentTime()
             reporter.report(results)
