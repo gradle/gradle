@@ -350,6 +350,7 @@ public class XmlTransformer implements Transformer<String, String> {
                 org.w3c.dom.Node child = children.item(i);
                 if (child.getNodeType() == org.w3c.dom.Node.TEXT_NODE && child.getNodeValue().trim().length() == 0) {
                     node.removeChild(child);
+                    i--;
                 } else {
                     removeEmptyTextNodes(child);
                 }
