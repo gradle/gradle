@@ -1,4 +1,5 @@
 The Gradle team is excited to announce Gradle @version@.
+The Gradle team is excited to announce Gradle @version@.
 
 We would like to thank the following community contributors to this release of Gradle:
 
@@ -79,6 +80,14 @@ Depending on the version of Java you use, Gradle will negotiate TLS v1.2 or TLS 
 **Note**: Early versions of JDK 11 & JDK 12 contained [race condition bug in the `TLSv1.3` handling logic](https://bugs.openjdk.java.net/browse/JDK-8213202)
 which causes the exception `javax.net.ssl.SSLException: No PSK available. Unable to resume`. If you run into this issue,
 we recommend updating to the latest minor JDK version.
+
+## IDE integration
+
+### Importing projects with custom source sets into Eclipse 
+
+This version of Gradle fixes problems with projects that use custom source sets, like additional functional test source sets.
+
+Custom source sets are now imported into Eclipse automatically and no longer require manual configuration in the build.
 
 ## Promoted features
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
