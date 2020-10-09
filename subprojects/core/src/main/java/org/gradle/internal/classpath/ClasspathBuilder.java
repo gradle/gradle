@@ -83,6 +83,7 @@ public class ClasspathBuilder {
         public void put(String name, byte[] content) throws IOException {
             maybeAddParent(name);
             ZipEntry zipEntry = newZipEntryWithFixedTime(name);
+            outputStream.setEncoding("UTF-8");
             outputStream.putNextEntry(zipEntry);
             outputStream.write(content);
             outputStream.closeEntry();
