@@ -73,8 +73,8 @@ data class CIBuildModel(
                 TestCoverage(6, TestType.quickFeedbackCrossVersion, Os.WINDOWS, JvmCategory.MIN_VERSION),
                 TestCoverage(28, TestType.watchFs, Os.LINUX, JvmCategory.MAX_VERSION)),
             performanceTests = listOf(
-                PerformanceTestCoverage(6, PerformanceTestType.test, Os.WINDOWS, numberOfBuckets = 5),
-                PerformanceTestCoverage(7, PerformanceTestType.test, Os.MACOS, numberOfBuckets = 5)
+                PerformanceTestCoverage(6, PerformanceTestType.test, Os.WINDOWS, numberOfBuckets = 5, failsStage = false),
+                PerformanceTestCoverage(7, PerformanceTestType.test, Os.MACOS, numberOfBuckets = 5, failsStage = false)
             )
         ),
         Stage(StageNames.READY_FOR_RELEASE,

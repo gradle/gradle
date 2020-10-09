@@ -16,6 +16,7 @@
 
 package Gradle_Check.configurations
 
+import Gradle_Check.model.PerformanceTestCoverage
 import common.Os
 import common.applyDefaultSettings
 import configurations.BaseGradleBuildType
@@ -99,4 +100,6 @@ subprojects/$performanceProjectName/build/performance-test-results.zip
             }
         }
     }
-})
+}) {
+    val performanceTestCoverage: PerformanceTestCoverage = performanceTestProject.performanceTestCoverage
+}
