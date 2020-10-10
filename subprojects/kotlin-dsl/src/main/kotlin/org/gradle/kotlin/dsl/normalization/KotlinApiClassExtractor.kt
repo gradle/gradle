@@ -78,14 +78,10 @@ class KotlinApiMemberWriter(apiMemberAdapter: ClassVisitor, val inlineMethodWrit
     }
 
     override fun writeMethod(method: MethodMember) {
-        if (method.isInternal()) {
-            return
-        }
-
-        if (method.isInline()) {
-            inlineMethodWriter.writeMethod(method)
-        } else {
-            super.writeMethod(method)
+        when {
+            method.isInternal() -> return
+            method.isInline() -> inlineMethodWriter.writeMethod(method)
+            else -> super.writeMethod(method)
         }
     }
 
@@ -98,7 +94,7 @@ class KotlinApiMemberWriter(apiMemberAdapter: ClassVisitor, val inlineMethodWrit
     private
     fun KmDeclarationContainer.extractInlineFunctions() {
         inlineFunctions.addAll(
-            this.functions
+            this.functions.asSequence()
                 .filter { Flag.Function.IS_INLINE(it.flags) }
                 .mapNotNull { it.signature?.asString() }
         )
@@ -107,7 +103,7 @@ class KotlinApiMemberWriter(apiMemberAdapter: ClassVisitor, val inlineMethodWrit
     private
     fun KmDeclarationContainer.extractInternalFunctions() {
         internalFunctions.addAll(
-            this.functions
+            this.functions.asSequence()
                 .filter { Flag.Common.IS_INTERNAL(it.flags) }
                 .mapNotNull { it.signature?.asString() }
         )
