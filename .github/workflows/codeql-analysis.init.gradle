@@ -16,6 +16,6 @@
 
 allprojects {
     tasks.withType(JavaCompile).configureEach {
-        outputs.doNotCacheIf("CodeQL scanning", { false })
+        outputs.doNotCacheIf("CodeQL scanning", { true })
     }
 }
