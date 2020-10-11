@@ -16,7 +16,8 @@
 
 package org.gradle.internal.snapshot;
 
-import java.util.List;
+import org.gradle.internal.snapshot.children.ChildMap;
+
 import java.util.Optional;
 
 /**
@@ -27,7 +28,7 @@ import java.util.Optional;
  */
 public class UnknownSnapshot extends AbstractIncompleteSnapshotWithChildren {
 
-    public UnknownSnapshot(String pathToParent, List<? extends FileSystemNode> children) {
+    public UnknownSnapshot(String pathToParent, ChildMap<? extends FileSystemNode> children) {
         super(pathToParent, children);
         assert !children.isEmpty();
     }
@@ -38,7 +39,7 @@ public class UnknownSnapshot extends AbstractIncompleteSnapshotWithChildren {
     }
 
     @Override
-    protected FileSystemNode withIncompleteChildren(String pathToParent, List<? extends FileSystemNode> merged) {
+    protected FileSystemNode withIncompleteChildren(String pathToParent, ChildMap<? extends FileSystemNode> merged) {
         return new UnknownSnapshot(pathToParent, merged);
     }
 

@@ -27,7 +27,7 @@ import static org.gradle.internal.snapshot.CaseSensitivity.CASE_SENSITIVE
 class CompleteDirectorySnapshotTest extends AbstractSnapshotWithChildrenTest<FileSystemNode, CompleteFileSystemLocationSnapshot> {
     @Override
     protected FileSystemNode createInitialRootNode(String pathToParent, List<CompleteFileSystemLocationSnapshot> children) {
-        return new CompleteDirectorySnapshot("/root/${pathToParent}", PathUtil.getFileName(pathToParent), children, HashCode.fromInt(1234), AccessType.DIRECT).asFileSystemNode(pathToParent)
+        return new CompleteDirectorySnapshot("/root/${pathToParent}", PathUtil.getFileName(pathToParent), children, HashCode.fromInt(1234), AccessType.DIRECT).asFileSystemNode()
     }
 
     @Override
@@ -43,7 +43,7 @@ class CompleteDirectorySnapshotTest extends AbstractSnapshotWithChildrenTest<Fil
         then:
         resultRoot instanceof PartialDirectorySnapshot
         resultRoot.children == children
-        resultRoot.pathToParent == initialRoot.pathToParent
+//        resultRoot.pathToParent == initialRoot.pathToParent
         removedNodes == [initialRoot.getSnapshot().get()]
         addedNodes == children
         interaction { noMoreInteractions() }
@@ -60,7 +60,7 @@ class CompleteDirectorySnapshotTest extends AbstractSnapshotWithChildrenTest<Fil
         then:
         resultRoot instanceof PartialDirectorySnapshot
         resultRoot.children == childrenWithSelectedChildRemoved()
-        resultRoot.pathToParent == initialRoot.pathToParent
+//        resultRoot.pathToParent == initialRoot.pathToParent
         removedNodes == [initialRoot.getSnapshot().get()]
         addedNodes == childrenWithSelectedChildRemoved()
         interaction { noMoreInteractions() }
@@ -71,14 +71,14 @@ class CompleteDirectorySnapshotTest extends AbstractSnapshotWithChildrenTest<Fil
 
     def "invalidate descendant #vfsSpec.searchedPath of child #vfsSpec.selectedChildPath creates a partial directory snapshot with the invalidated child (#vfsSpec)"() {
         setupTest(vfsSpec)
-        def invalidatedChild = mockChild(selectedChild.pathToParent)
+//        def invalidatedChild = mockChild(selectedChild.pathToParent)
 
         when:
         def resultRoot = initialRoot.invalidate(searchedPath, CASE_SENSITIVE, diffListener).get()
         then:
         resultRoot instanceof PartialDirectorySnapshot
         resultRoot.children == childrenWithSelectedChildReplacedBy(invalidatedChild)
-        resultRoot.pathToParent == initialRoot.pathToParent
+//        resultRoot.pathToParent == initialRoot.pathToParent
         removedNodes == [initialRoot.getSnapshot().get()]
         addedNodes == childrenWithSelectedChildRemoved()
 
@@ -99,7 +99,7 @@ class CompleteDirectorySnapshotTest extends AbstractSnapshotWithChildrenTest<Fil
         then:
         resultRoot instanceof PartialDirectorySnapshot
         resultRoot.children == childrenWithSelectedChildRemoved()
-        resultRoot.pathToParent == initialRoot.pathToParent
+//        resultRoot.pathToParent == initialRoot.pathToParent
         removedNodes == [initialRoot.getSnapshot().get()]
         addedNodes == childrenWithSelectedChildRemoved()
 

@@ -16,9 +16,9 @@
 
 package org.gradle.internal.snapshot;
 
-import com.google.common.collect.ImmutableList;
+import org.gradle.internal.snapshot.children.ChildMap;
+import org.gradle.internal.snapshot.children.EmptyChildMap;
 
-import java.util.List;
 import java.util.Optional;
 
 /**
@@ -28,22 +28,23 @@ import java.util.Optional;
  */
 public class PartialDirectorySnapshot extends AbstractIncompleteSnapshotWithChildren {
 
-    public static PartialDirectorySnapshot withoutKnownChildren(String pathToParent) {
-        return new PartialDirectorySnapshot(pathToParent, ImmutableList.of());
+    public static PartialDirectorySnapshot withoutKnownChildren() {
+        // TODO: case sensitivity
+        return new PartialDirectorySnapshot(null, EmptyChildMap.getInstance(CaseSensitivity.CASE_INSENSITIVE));
     }
 
-    public PartialDirectorySnapshot(String pathToParent, List<? extends FileSystemNode> children) {
+    public PartialDirectorySnapshot(String pathToParent, ChildMap<? extends FileSystemNode> children) {
         super(pathToParent, children);
     }
 
     @Override
-    protected FileSystemNode withIncompleteChildren(String prefix, List<? extends FileSystemNode> newChildren) {
+    protected FileSystemNode withIncompleteChildren(String prefix, ChildMap<? extends FileSystemNode> newChildren) {
         return new PartialDirectorySnapshot(prefix, newChildren);
     }
 
     @Override
     protected Optional<FileSystemNode> withAllChildrenRemoved() {
-        return Optional.of(withoutKnownChildren(getPathToParent()));
+        return Optional.of(withoutKnownChildren());
     }
 
     @Override

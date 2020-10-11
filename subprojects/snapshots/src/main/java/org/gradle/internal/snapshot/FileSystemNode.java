@@ -34,14 +34,4 @@ public interface FileSystemNode extends ReadOnlyFileSystemNode {
      * Invalidates part of the node.
      */
     Optional<FileSystemNode> invalidate(VfsRelativePath relativePath, CaseSensitivity caseSensitivity, SnapshotHierarchy.NodeDiffListener diffListener);
-
-    /**
-     * The path to the parent snapshot or the root of the file system.
-     */
-    String getPathToParent();
-
-    /**
-     * Creates a new node with the same children, but a different path to the parent.
-     */
-    FileSystemNode withPathToParent(String newPathToParent);
 }

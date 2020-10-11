@@ -737,27 +737,39 @@ class DefaultSnapshotHierarchyTest extends Specification {
             return []
         }
         List<String> prefixes = new ArrayList<>()
-        collectPrefixes(set.rootNode, 0, prefixes)
+        def node = set.rootNode
+        def unpackedNode = (node.getSnapshot().filter { it instanceof CompleteFileSystemLocationSnapshot }.orElse(node))
+        if (unpackedNode instanceof CompleteDirectorySnapshot) {
+            def children = unpackedNode.children
+            children.forEach { child ->
+                collectPrefixes(child.name, child, 0, prefixes)
+            }
+        } else if (unpackedNode instanceof AbstractIncompleteSnapshotWithChildren) {
+            def children = unpackedNode.children
+            children.visitChildren { path, child ->
+                collectPrefixes(path, child, 0, prefixes)
+            }
+        }
         return prefixes
     }
 
-    private static void collectPrefixes(FileSystemNode node, int depth, List<String> prefixes) {
+    private static void collectPrefixes(String path, FileSystemNode node, int depth, List<String> prefixes) {
         if (depth == 0) {
-            prefixes.add((File.separator == '/' ? '/' : "") + node.getPathToParent())
+            prefixes.add((File.separator == '/' ? '/' : "") + path)
         } else {
-            prefixes.add(depth + ":" + node.getPathToParent().replace(File.separatorChar, (char) '/'))
+            prefixes.add(depth + ":" + path.replace(File.separatorChar, (char) '/'))
         }
-        List<? extends FileSystemNode> children
         def unpackedNode = (node.getSnapshot().filter { it instanceof CompleteFileSystemLocationSnapshot }.orElse(node))
         if (unpackedNode instanceof CompleteDirectorySnapshot) {
-            children = unpackedNode.children
+            def children = unpackedNode.children
+            children.forEach { child ->
+                collectPrefixes(child.name, child, depth + 1, prefixes)
+            }
         } else if (unpackedNode instanceof AbstractIncompleteSnapshotWithChildren) {
-            children = unpackedNode.children
-        } else {
-            children = []
-        }
-        children.forEach { child ->
-            collectPrefixes(child, depth + 1, prefixes)
+            def children = unpackedNode.children
+            children.visitChildren { childPath, child ->
+                collectPrefixes(childPath, child, depth + 1, prefixes)
+            }
         }
     }
 }

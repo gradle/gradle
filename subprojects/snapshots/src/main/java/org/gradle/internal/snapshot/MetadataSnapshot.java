@@ -30,8 +30,8 @@ public interface MetadataSnapshot {
         }
 
         @Override
-        public FileSystemNode asFileSystemNode(String pathToParent) {
-            return PartialDirectorySnapshot.withoutKnownChildren(pathToParent);
+        public FileSystemNode asFileSystemNode() {
+            return PartialDirectorySnapshot.withoutKnownChildren();
         }
     };
 
@@ -40,5 +40,5 @@ public interface MetadataSnapshot {
      */
     FileType getType();
 
-    FileSystemNode asFileSystemNode(String pathToParent);
+    FileSystemNode asFileSystemNode();
 }

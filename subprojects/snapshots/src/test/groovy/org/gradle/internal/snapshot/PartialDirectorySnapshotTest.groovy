@@ -57,7 +57,7 @@ class PartialDirectorySnapshotTest extends AbstractIncompleteSnapshotWithChildre
 
     def "invalidate #vfsSpec.searchedPath invalidates children of #vfsSpec.selectedChildPath (#vfsSpec)"() {
         setupTest(vfsSpec)
-        def invalidatedChild = mockChild(selectedChild.pathToParent)
+//        def invalidatedChild = mockChild(selectedChild.pathToParent)
 
         when:
         def resultRoot = initialRoot.invalidate(searchedPath, CASE_SENSITIVE, diffListener).get()

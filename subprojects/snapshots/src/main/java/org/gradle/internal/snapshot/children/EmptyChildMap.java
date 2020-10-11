@@ -19,10 +19,23 @@ package org.gradle.internal.snapshot.children;
 import org.gradle.internal.snapshot.CaseSensitivity;
 import org.gradle.internal.snapshot.VfsRelativePath;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
+import java.util.function.BiConsumer;
 
 public class EmptyChildMap<T> implements ChildMap<T> {
-    public EmptyChildMap(CaseSensitivity caseSensitivity) {
+    private static final EmptyChildMap<Object> CASE_SENSITIVE = new EmptyChildMap<>(CaseSensitivity.CASE_SENSITIVE);
+    private static final EmptyChildMap<Object> CASE_INSENSITIVE = new EmptyChildMap<>(CaseSensitivity.CASE_INSENSITIVE);
+
+    @SuppressWarnings("unchecked")
+    public static <T> EmptyChildMap<T> getInstance(CaseSensitivity caseSensitivity) {
+        return (EmptyChildMap<T>) (caseSensitivity == CaseSensitivity.CASE_SENSITIVE
+                    ? CASE_SENSITIVE
+                    : CASE_INSENSITIVE);
+    }
+
+    private EmptyChildMap(CaseSensitivity caseSensitivity) {
         this.caseSensitivity = caseSensitivity;
     }
 
@@ -44,6 +57,16 @@ public class EmptyChildMap<T> implements ChildMap<T> {
     }
 
     @Override
+    public boolean isEmpty() {
+        return true;
+    }
+
+    @Override
+    public List<T> values() {
+        return Collections.emptyList();
+    }
+
+    @Override
     public ChildMap<T> withNewChild(int insertBefore, String path, T newChild) {
         if (insertBefore != 0) {
             throw indexOutOfBoundsException(insertBefore);
@@ -52,13 +75,17 @@ public class EmptyChildMap<T> implements ChildMap<T> {
     }
 
     @Override
-    public ChildMap<T> withReplacedChild(int childIndex, T newChild) {
+    public ChildMap<T> withReplacedChild(int childIndex, String newPath, T newChild) {
         throw indexOutOfBoundsException(childIndex);
     }
 
     @Override
     public ChildMap<T> withRemovedChild(int childIndex) {
         throw indexOutOfBoundsException(childIndex);
+    }
+
+    @Override
+    public void visitChildren(BiConsumer<String, T> visitor) {
     }
 
     private static IndexOutOfBoundsException indexOutOfBoundsException(int childIndex) {

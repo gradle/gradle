@@ -56,7 +56,7 @@ abstract class AbstractSnapshotWithChildrenTest<NODE extends FileSystemNode, CHI
         this.children = createChildren(spec.childPaths)
         this.initialRoot = createInitialRootNode("path/to/parent", children)
         this.searchedPath = spec.searchedPath
-        this.selectedChild = children.find { it.pathToParent == spec.selectedChildPath }
+//        this.selectedChild = children.find { it.pathToParent == spec.selectedChildPath }
     }
 
     List<CHILD> createChildren(List<String> pathsToParent) {
@@ -86,15 +86,15 @@ abstract class AbstractSnapshotWithChildrenTest<NODE extends FileSystemNode, CHI
     }
 
     private int getInsertionPoint() {
-        int childIndex = SearchUtil.binarySearch(children) {
-            candidate -> searchedPath.compareToFirstSegment(candidate.pathToParent, CASE_SENSITIVE)
-        }
-        assert childIndex < 0
-        return -childIndex - 1
+//        int childIndex = SearchUtil.binarySearch(children) {
+//            candidate -> searchedPath.compareToFirstSegment(candidate.pathToParent, CASE_SENSITIVE)
+//        }
+//        assert childIndex < 0
+//        return -childIndex - 1
     }
 
     String getCommonPrefix() {
-        return selectedChild.pathToParent.substring(0, searchedPath.lengthOfCommonPrefix(selectedChild.pathToParent, CASE_SENSITIVE))
+//        return selectedChild.pathToParent.substring(0, searchedPath.lengthOfCommonPrefix(selectedChild.pathToParent, CASE_SENSITIVE))
     }
 
     String getPathFromCommonPrefix() {
@@ -102,22 +102,22 @@ abstract class AbstractSnapshotWithChildrenTest<NODE extends FileSystemNode, CHI
     }
 
     String getSelectedChildPathFromCommonPrefix() {
-        return selectedChild.pathToParent.substring(commonPrefix.length() + 1)
+//        return selectedChild.pathToParent.substring(commonPrefix.length() + 1)
     }
 
     def getDescendantSnapshotOfSelectedChild(@Nullable MetadataSnapshot foundSnapshot) {
-        def descendantOffset = selectedChild.pathToParent.length() + 1
-        1 * selectedChild.getSnapshot(searchedPath.suffixStartingFrom(descendantOffset), CASE_SENSITIVE) >> Optional.ofNullable(foundSnapshot)
+//        def descendantOffset = selectedChild.pathToParent.length() + 1
+//        1 * selectedChild.getSnapshot(searchedPath.suffixStartingFrom(descendantOffset), CASE_SENSITIVE) >> Optional.ofNullable(foundSnapshot)
     }
 
     def getDescendantNodeOfSelectedChild(ReadOnlyFileSystemNode foundNode) {
-        def descendantOffset = selectedChild.pathToParent.length() + 1
-        1 * selectedChild.getNode(searchedPath.suffixStartingFrom(descendantOffset), CASE_SENSITIVE) >> foundNode
+//        def descendantOffset = selectedChild.pathToParent.length() + 1
+//        1 * selectedChild.getNode(searchedPath.suffixStartingFrom(descendantOffset), CASE_SENSITIVE) >> foundNode
     }
 
     def invalidateDescendantOfSelectedChild(@Nullable FileSystemNode invalidatedChild) {
-        def descendantOffset = selectedChild.pathToParent.length() + 1
-        1 * selectedChild.invalidate(searchedPath.suffixStartingFrom(descendantOffset), CASE_SENSITIVE, _) >> Optional.ofNullable(invalidatedChild)
+//        def descendantOffset = selectedChild.pathToParent.length() + 1
+//        1 * selectedChild.invalidate(searchedPath.suffixStartingFrom(descendantOffset), CASE_SENSITIVE, _) >> Optional.ofNullable(invalidatedChild)
     }
 
     @SuppressWarnings("GrMethodMayBeStatic")

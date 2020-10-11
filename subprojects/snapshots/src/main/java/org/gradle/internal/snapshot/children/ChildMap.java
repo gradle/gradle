@@ -19,7 +19,9 @@ package org.gradle.internal.snapshot.children;
 import org.gradle.internal.snapshot.CaseSensitivity;
 import org.gradle.internal.snapshot.VfsRelativePath;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.function.BiConsumer;
 
 public interface ChildMap<T> {
     Optional<T> get(VfsRelativePath relativePath);
@@ -28,11 +30,17 @@ public interface ChildMap<T> {
 
     T get(int index);
 
+    boolean isEmpty();
+
+    List<T> values();
+
     ChildMap<T> withNewChild(int insertBefore, String path, T newChild);
 
-    ChildMap<T> withReplacedChild(int childIndex, T newChild);
+    ChildMap<T> withReplacedChild(int childIndex, String childPath, T newChild);
 
     ChildMap<T> withRemovedChild(int childIndex);
+
+    void visitChildren(BiConsumer<String, T> visitor);
 
     class Entry<T> {
         private final String path;
@@ -48,10 +56,6 @@ public interface ChildMap<T> {
             int relativePathLength = relativePath.length();
             int maxPos = Math.min(pathToParentLength, relativePathLength);
             int commonPrefixLength = relativePath.lengthOfCommonPrefix(path, caseSensitivity);
-            if (commonPrefixLength == 0) {
-                int compared = relativePath.compareToFirstSegment(path, caseSensitivity);
-                return handler.handleDifferent(compared < 0 ? currentChildIndex : currentChildIndex + 1);
-            }
             if (commonPrefixLength == maxPos) {
                 if (pathToParentLength > relativePathLength) {
                     return handler.handleAncestor(path, currentChildIndex);
@@ -60,6 +64,10 @@ public interface ChildMap<T> {
                     return handler.handleSame(currentChildIndex);
                 }
                 return handler.handleDescendant(path, currentChildIndex);
+            }
+            if (commonPrefixLength == 0) {
+                int compared = relativePath.compareToFirstSegment(path, caseSensitivity);
+                return handler.handleDifferent(compared < 0 ? currentChildIndex : currentChildIndex + 1);
             }
             return handler.handleCommonPrefix(commonPrefixLength, path, currentChildIndex);
         }

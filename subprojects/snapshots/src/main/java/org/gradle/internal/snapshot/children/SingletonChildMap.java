@@ -20,8 +20,10 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.internal.snapshot.CaseSensitivity;
 import org.gradle.internal.snapshot.VfsRelativePath;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.BiConsumer;
 
 public class SingletonChildMap<T> implements ChildMap<T> {
     private final Entry<T> entry;
@@ -53,6 +55,16 @@ public class SingletonChildMap<T> implements ChildMap<T> {
     }
 
     @Override
+    public boolean isEmpty() {
+        return false;
+    }
+
+    @Override
+    public List<T> values() {
+        return Collections.singletonList(entry.getValue());
+    }
+
+    @Override
     public ChildMap<T> withNewChild(int insertBefore, String path, T newChild) {
         Entry<T> newEntry = new Entry<>(path, newChild);
         List<Entry<T>> newChildren = insertBefore == 0
@@ -62,18 +74,23 @@ public class SingletonChildMap<T> implements ChildMap<T> {
     }
 
     @Override
-    public ChildMap<T> withReplacedChild(int childIndex, T newChild) {
+    public ChildMap<T> withReplacedChild(int childIndex, String newPath, T newChild) {
         checkIndex(childIndex);
-        if (entry.getValue().equals(newChild)) {
+        if (entry.getPath().equals(newPath) && entry.getValue().equals(newChild)) {
             return this;
         }
-        return new SingletonChildMap<>(entry.getPath(), newChild, caseSensitivity);
+        return new SingletonChildMap<>(newPath, newChild, caseSensitivity);
     }
 
     @Override
     public ChildMap<T> withRemovedChild(int childIndex) {
         checkIndex(childIndex);
-        return new EmptyChildMap<>(caseSensitivity);
+        return EmptyChildMap.getInstance(caseSensitivity);
+    }
+
+    @Override
+    public void visitChildren(BiConsumer<String, T> visitor) {
+        visitor.accept(entry.getPath(), entry.getValue());
     }
 
     private void checkIndex(int childIndex) {

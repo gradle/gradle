@@ -18,241 +18,223 @@ package org.gradle.internal.snapshot;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.internal.file.FileType;
+import org.gradle.internal.snapshot.children.ChildMap;
+import org.gradle.internal.snapshot.children.DefaultChildMap;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
 
 public class SnapshotUtil {
-    /**
-     * If a node has fewer children, we use a linear search for the child.
-     * We use this limit since {@link VfsRelativePath#compareToFirstSegment(String, CaseSensitivity)}
-     * is about twice as slow as {@link VfsRelativePath#hasPrefix(String, CaseSensitivity)},
-     * so comparing the searched path to all of the children is actually faster than doing a binary search.
-     */
-    private static final int MINIMUM_CHILD_COUNT_FOR_BINARY_SEARCH = 10;
 
-    public static Optional<MetadataSnapshot> getMetadataFromChildren(List<? extends FileSystemNode> children, VfsRelativePath relativePath, CaseSensitivity caseSensitivity, Supplier<Optional<MetadataSnapshot>> noChildFoundResult) {
-        int numberOfChildren = children.size();
-        switch (numberOfChildren) {
-            case 0:
+    public static <T extends FileSystemNode> Optional<MetadataSnapshot> getMetadataFromChildren(ChildMap<T> children, VfsRelativePath relativePath, CaseSensitivity caseSensitivity, Supplier<Optional<MetadataSnapshot>> noChildFoundResult) {
+        return children.handlePath(relativePath, new ChildMap.PathRelationshipHandler<Optional<MetadataSnapshot>>() {
+            @Override
+            public Optional<MetadataSnapshot> handleDescendant(String childPath, int childIndex) {
+                return children.get(childIndex).getSnapshot(relativePath.fromChild(childPath), caseSensitivity);
+            }
+
+            @Override
+            public Optional<MetadataSnapshot> handleAncestor(String childPath, int childIndex) {
                 return noChildFoundResult.get();
-            case 1:
-                FileSystemNode onlyChild = children.get(0);
-                return relativePath.hasPrefix(onlyChild.getPathToParent(), caseSensitivity)
-                    ? getSnapshotFromChild(onlyChild, relativePath, caseSensitivity)
-                    : noChildFoundResult.get();
-            case 2:
-                FileSystemNode firstChild = children.get(0);
-                FileSystemNode secondChild = children.get(1);
-                if (relativePath.hasPrefix(firstChild.getPathToParent(), caseSensitivity)) {
-                    return getSnapshotFromChild(firstChild, relativePath, caseSensitivity);
-                }
-                if (relativePath.hasPrefix(secondChild.getPathToParent(), caseSensitivity)) {
-                    return getSnapshotFromChild(secondChild, relativePath, caseSensitivity);
-                }
+            }
+
+            @Override
+            public Optional<MetadataSnapshot> handleSame(int childIndex) {
+                return children.get(childIndex).getSnapshot();
+            }
+
+            @Override
+            public Optional<MetadataSnapshot> handleCommonPrefix(int commonPrefixLength, String childPath, int childIndex) {
                 return noChildFoundResult.get();
-            default:
-                if (numberOfChildren < MINIMUM_CHILD_COUNT_FOR_BINARY_SEARCH) {
-                    for (FileSystemNode currentChild : children) {
-                        if (relativePath.hasPrefix(currentChild.getPathToParent(), caseSensitivity)) {
-                            return getSnapshotFromChild(currentChild, relativePath, caseSensitivity);
-                        }
-                    }
-                    return noChildFoundResult.get();
-                } else {
-                    int foundChild = SearchUtil.binarySearch(children, child -> relativePath.compareToFirstSegment(child.getPathToParent(), caseSensitivity));
-                    return (foundChild >= 0 && relativePath.hasPrefix(children.get(foundChild).getPathToParent(), caseSensitivity))
-                        ? getSnapshotFromChild(children.get(foundChild), relativePath, caseSensitivity)
-                        : noChildFoundResult.get();
-                }
-        }
+            }
+
+            @Override
+            public Optional<MetadataSnapshot> handleDifferent(int indexOfNextBiggerChild) {
+                return noChildFoundResult.get();
+            }
+        });
     }
 
-    public static Optional<MetadataSnapshot> getSnapshotFromChild(FileSystemNode child, VfsRelativePath relativePath, CaseSensitivity caseSensitivity) {
-        if (relativePath.length() == child.getPathToParent().length()) {
-            return child.getSnapshot();
-        }
-        return child.getSnapshot(relativePath.fromChild(child.getPathToParent()), caseSensitivity);
-    }
+    public static <T extends FileSystemNode> ReadOnlyFileSystemNode getChild(ChildMap<T> children, VfsRelativePath relativePath, CaseSensitivity caseSensitivity) {
+        return children.handlePath(relativePath, new ChildMap.PathRelationshipHandler<ReadOnlyFileSystemNode>() {
+            @Override
+            public ReadOnlyFileSystemNode handleDescendant(String childPath, int childIndex) {
+                FileSystemNode child = children.get(childIndex);
+                return child.getNode(relativePath.fromChild(childPath), caseSensitivity);
+            }
 
-    public static ReadOnlyFileSystemNode getChild(List<? extends FileSystemNode> children, VfsRelativePath relativePath, CaseSensitivity caseSensitivity) {
-        int numberOfChildren = children.size();
-        switch (numberOfChildren) {
-            case 0:
+            @Override
+            public ReadOnlyFileSystemNode handleAncestor(String childPath, int childIndex) {
+                return children.get(childIndex);
+            }
+
+            @Override
+            public ReadOnlyFileSystemNode handleSame(int childIndex) {
+                return children.get(childIndex);
+            }
+
+            @Override
+            public ReadOnlyFileSystemNode handleCommonPrefix(int commonPrefixLength, String childPath, int childIndex) {
                 return ReadOnlyFileSystemNode.EMPTY;
-            case 1:
-                FileSystemNode onlyChild = children.get(0);
-                return getNodeFromChild(onlyChild, relativePath, caseSensitivity)
-                    .orElse(ReadOnlyFileSystemNode.EMPTY);
-            case 2:
-                FileSystemNode firstChild = children.get(0);
-                FileSystemNode secondChild = children.get(1);
-                return getNodeFromChild(firstChild, relativePath, caseSensitivity)
-                    .orElseGet(() -> getNodeFromChild(secondChild, relativePath, caseSensitivity).orElse(ReadOnlyFileSystemNode.EMPTY));
-            default:
-                if (numberOfChildren < MINIMUM_CHILD_COUNT_FOR_BINARY_SEARCH) {
-                    for (FileSystemNode currentChild : children) {
-                        Optional<ReadOnlyFileSystemNode> node = getNodeFromChild(currentChild, relativePath, caseSensitivity);
-                        if (node.isPresent()) {
-                            return node.get();
-                        }
-                    }
-                    return ReadOnlyFileSystemNode.EMPTY;
-                } else {
-                    int foundChild = SearchUtil.binarySearch(children, child -> relativePath.compareToFirstSegment(child.getPathToParent(), caseSensitivity));
-                    if (foundChild >= 0) {
-                        return getNodeFromChild(children.get(foundChild), relativePath, caseSensitivity).orElse(ReadOnlyFileSystemNode.EMPTY);
-                    }
-                    return ReadOnlyFileSystemNode.EMPTY;
-                }
-        }
+            }
+
+            @Override
+            public ReadOnlyFileSystemNode handleDifferent(int indexOfNextBiggerChild) {
+                return ReadOnlyFileSystemNode.EMPTY;
+            }
+        });
     }
 
-    public static Optional<ReadOnlyFileSystemNode> getNodeFromChild(FileSystemNode child, VfsRelativePath relativePath, CaseSensitivity caseSensitivity) {
-        return handlePathRelationship(child.getPathToParent(), relativePath, caseSensitivity, new PathRelationshipHandler<Optional<ReadOnlyFileSystemNode>>() {
+    public static Optional<ReadOnlyFileSystemNode> getNodeFromChildren(ChildMap<FileSystemNode> children, VfsRelativePath relativePath, CaseSensitivity caseSensitivity) {
+        return children.handlePath(relativePath, new ChildMap.PathRelationshipHandler<Optional<ReadOnlyFileSystemNode>>() {
             @Override
-            public Optional<ReadOnlyFileSystemNode> handleDescendant() {
-                return Optional.of(child.getNode(relativePath.fromChild(child.getPathToParent()), caseSensitivity));
+            public Optional<ReadOnlyFileSystemNode> handleDescendant(String childPath, int childIndex) {
+                FileSystemNode child = children.get(childIndex);
+                return Optional.of(child.getNode(relativePath.fromChild(childPath), caseSensitivity));
             }
 
             @Override
-            public Optional<ReadOnlyFileSystemNode> handleAncestor() {
-                return Optional.of(child.withPathToParent(child.getPathToParent().substring(relativePath.length() + 1)));
+            public Optional<ReadOnlyFileSystemNode> handleAncestor(String childPath, int childIndex) {
+                return Optional.of(children.get(childIndex));
             }
 
             @Override
-            public Optional<ReadOnlyFileSystemNode> handleSame() {
-                return Optional.of(child);
+            public Optional<ReadOnlyFileSystemNode> handleSame(int childIndex) {
+                return Optional.of(children.get(childIndex));
             }
 
             @Override
-            public Optional<ReadOnlyFileSystemNode> handleDifferent(int commonPrefixLength) {
+            public Optional<ReadOnlyFileSystemNode> handleCommonPrefix(int commonPrefixLength, String childPath, int childIndex) {
+                return Optional.empty();
+            }
+
+            @Override
+            public Optional<ReadOnlyFileSystemNode> handleDifferent(int indexOfNextBiggerChild) {
                 return Optional.empty();
             }
         });
     }
 
-    public static FileSystemNode storeSingleChild(FileSystemNode child, VfsRelativePath relativePath, CaseSensitivity caseSensitivity, MetadataSnapshot snapshot, SnapshotHierarchy.NodeDiffListener diffListener) {
-        return handlePathRelationship(child.getPathToParent(), relativePath, caseSensitivity, new PathRelationshipHandler<FileSystemNode>() {
+    public static ChildMap<FileSystemNode> storeSnapshot(ChildMap<FileSystemNode> children, VfsRelativePath relativePath, CaseSensitivity caseSensitivity, MetadataSnapshot snapshot, SnapshotHierarchy.NodeDiffListener diffListener) {
+        return children.handlePath(relativePath, new ChildMap.PathRelationshipHandler<ChildMap<FileSystemNode>>() {
             @Override
-            public FileSystemNode handleDescendant() {
-                return child.store(
-                    relativePath.fromChild(child.getPathToParent()),
-                    caseSensitivity,
-                    snapshot,
-                    diffListener
-                );
+            public ChildMap<FileSystemNode> handleDescendant(String childPath, int childIndex) {
+                FileSystemNode oldChild = children.get(childIndex);
+                FileSystemNode newChild = oldChild.store(relativePath.fromChild(childPath), caseSensitivity, snapshot, diffListener);
+                return replacedChild(childIndex, childPath, childPath, newChild);
             }
 
             @Override
-            public FileSystemNode handleAncestor() {
-                return replacedNode();
+            public ChildMap<FileSystemNode> handleAncestor(String childPath, int childIndex) {
+                return replacedChild(childIndex, childPath, relativePath.getAsString(), snapshot.asFileSystemNode());
             }
 
             @Override
-            public FileSystemNode handleSame() {
-                return snapshot instanceof CompleteFileSystemLocationSnapshot
-                    ? replacedNode()
-                    : child.getSnapshot()
-                        .filter(oldSnapshot -> oldSnapshot instanceof CompleteFileSystemLocationSnapshot)
-                        .map(it -> child)
-                        .orElseGet(this::replacedNode);
+            public ChildMap<FileSystemNode> handleSame(int childIndex) {
+                FileSystemNode oldChild = children.get(childIndex);
+                FileSystemNode newChild = mergeSnapshotWithNode(relativePath, snapshot, oldChild);
+                return replacedChild(childIndex, relativePath.getAsString(), relativePath.getAsString(), newChild);
             }
 
-            private FileSystemNode replacedNode() {
-                diffListener.nodeRemoved(child);
-                FileSystemNode newNode = snapshot.asFileSystemNode(relativePath.getAsString());
-                diffListener.nodeAdded(newNode);
-                return newNode;
+            private ChildMap<FileSystemNode> replacedChild(int childIndex, String oldChildPath, String newChildPath, FileSystemNode newChild) {
+                FileSystemNode oldChild = children.get(childIndex);
+                if (oldChildPath.equals(newChildPath) && oldChild.equals(newChild)) {
+                    return children;
+                }
+                diffListener.nodeRemoved(oldChild);
+                diffListener.nodeAdded(newChild);
+                return children.withReplacedChild(
+                        childIndex,
+                    newChildPath,
+                        newChild
+                    );
             }
 
             @Override
-            public FileSystemNode handleDifferent(int commonPrefixLength) {
-                String prefix = child.getPathToParent();
-                String commonPrefix = prefix.substring(0, commonPrefixLength);
-                boolean emptyCommonPrefix = commonPrefixLength == 0;
-                FileSystemNode newChild = emptyCommonPrefix ? child : child.withPathToParent(prefix.substring(commonPrefixLength + 1));
-                FileSystemNode sibling = snapshot.asFileSystemNode(emptyCommonPrefix ? relativePath.getAsString() : relativePath.suffixStartingFrom(commonPrefixLength + 1).getAsString());
-                ImmutableList<FileSystemNode> newChildren = PathUtil.getPathComparator(caseSensitivity).compare(newChild.getPathToParent(), sibling.getPathToParent()) < 0
+            public ChildMap<FileSystemNode> handleCommonPrefix(int commonPrefixLength, String childPath, int childIndex) {
+                FileSystemNode oldChild = children.get(childIndex);
+                String commonPrefix = childPath.substring(0, commonPrefixLength);
+                String newChildPath = childPath.substring(commonPrefixLength + 1);
+                ChildMap.Entry<FileSystemNode> newChild = new ChildMap.Entry<>(newChildPath, oldChild);
+                String siblingPath = relativePath.suffixStartingFrom(commonPrefixLength + 1).getAsString();
+                ChildMap.Entry<FileSystemNode> sibling = new ChildMap.Entry<FileSystemNode>(siblingPath, snapshot.asFileSystemNode());
+                DefaultChildMap<FileSystemNode> newChildren = new DefaultChildMap<FileSystemNode>(PathUtil.getPathComparator(caseSensitivity).compare(newChild.getPath(), sibling.getPath()) < 0
                     ? ImmutableList.of(newChild, sibling)
-                    : ImmutableList.of(sibling, newChild);
+                    : ImmutableList.of(sibling, newChild),
+                caseSensitivity);
 
-                diffListener.nodeAdded(sibling);
+                diffListener.nodeAdded(sibling.getValue());
 
-                boolean isDirectory = child.getSnapshot().filter(SnapshotUtil::isRegularFileOrDirectory).isPresent() || isRegularFileOrDirectory(snapshot);
-                return isDirectory ? new PartialDirectorySnapshot(commonPrefix, newChildren) : new UnknownSnapshot(commonPrefix, newChildren);
+                boolean isDirectory = oldChild.getSnapshot().filter(SnapshotUtil::isRegularFileOrDirectory).isPresent() || SnapshotUtil.isRegularFileOrDirectory(snapshot);
+                return children.withReplacedChild(
+                        childIndex,
+                        commonPrefix,
+                        isDirectory ? new PartialDirectorySnapshot(commonPrefix, newChildren) : new UnknownSnapshot(commonPrefix, newChildren)
+                    );
+            }
+
+            @Override
+            public ChildMap<FileSystemNode> handleDifferent(int indexOfNextBiggerChild) {
+                String path = relativePath.getAsString();
+                FileSystemNode newNode = snapshot.asFileSystemNode();
+                diffListener.nodeAdded(newNode);
+                return children.withNewChild(indexOfNextBiggerChild, path, newNode);
             }
         });
+    }
+
+    private static FileSystemNode mergeSnapshotWithNode(VfsRelativePath relativePath, MetadataSnapshot snapshot, FileSystemNode oldNode) {
+        return snapshot instanceof CompleteFileSystemLocationSnapshot
+            ? snapshot.asFileSystemNode()
+            : oldNode.getSnapshot()
+            .filter(oldSnapshot -> oldSnapshot instanceof CompleteFileSystemLocationSnapshot)
+            .map(it -> oldNode)
+            .orElseGet(() -> snapshot.asFileSystemNode());
     }
 
     private static boolean isRegularFileOrDirectory(MetadataSnapshot metadataSnapshot) {
         return metadataSnapshot.getType() != FileType.Missing;
     }
 
-    public static Optional<FileSystemNode> invalidateSingleChild(FileSystemNode child, VfsRelativePath relativePath, CaseSensitivity caseSensitivity, SnapshotHierarchy.NodeDiffListener diffListener) {
-        return handlePathRelationship(child.getPathToParent(), relativePath, caseSensitivity, new PathRelationshipHandler<Optional<FileSystemNode>>() {
+    public static ChildMap<FileSystemNode> invalidateChild(ChildMap<FileSystemNode> children, VfsRelativePath relativePath, CaseSensitivity caseSensitivity, SnapshotHierarchy.NodeDiffListener diffListener) {
+        return children.handlePath(relativePath, new ChildMap.PathRelationshipHandler<ChildMap<FileSystemNode>>() {
             @Override
-            public Optional<FileSystemNode> handleDescendant() {
-                return child.invalidate(relativePath.fromChild(child.getPathToParent()), caseSensitivity, diffListener);
+            public ChildMap<FileSystemNode> handleDescendant(String childPath, int childIndex) {
+                FileSystemNode oldChild = children.get(childIndex);
+                Optional<FileSystemNode> invalidatedChild = oldChild.invalidate(relativePath.fromChild(childPath), caseSensitivity, diffListener);
+                return invalidatedChild
+                    .map(newChild -> children.withReplacedChild(childIndex, childPath, newChild))
+                    .orElseGet(() -> children.withRemovedChild(childIndex));
             }
 
             @Override
-            public Optional<FileSystemNode> handleAncestor() {
+            public ChildMap<FileSystemNode> handleAncestor(String childPath, int childIndex) {
+                FileSystemNode child = children.get(childIndex);
                 diffListener.nodeRemoved(child);
-                return Optional.empty();
+                return children.withRemovedChild(childIndex);
             }
 
             @Override
-            public Optional<FileSystemNode> handleSame() {
-                diffListener.nodeRemoved(child);
-                return Optional.empty();
+            public ChildMap<FileSystemNode> handleSame(int childIndex) {
+                diffListener.nodeRemoved(children.get(childIndex));
+                return children.withRemovedChild(childIndex);
             }
 
             @Override
-            public Optional<FileSystemNode> handleDifferent(int commonPrefixLength) {
-                return Optional.of(child);
+            public ChildMap<FileSystemNode> handleCommonPrefix(int commonPrefixLength, String childPath, int childIndex) {
+                return children;
+            }
+
+            @Override
+            public ChildMap<FileSystemNode> handleDifferent(int indexOfNextBiggerChild) {
+                return children;
             }
         });
-    }
-
-    public static <T> T handleChildren(List<? extends FileSystemNode> children, VfsRelativePath relativePath, CaseSensitivity caseSensitivity, ChildHandler<T> childHandler) {
-        int childIndex = SearchUtil.binarySearch(
-            children,
-            candidate -> relativePath.compareToFirstSegment(candidate.getPathToParent(), caseSensitivity)
-        );
-        if (childIndex >= 0) {
-            return childHandler.handleChildOfExisting(childIndex);
-        }
-        return childHandler.handleNewChild(-childIndex - 1);
     }
 
     public interface ChildHandler<T> {
         T handleNewChild(int insertBefore);
         T handleChildOfExisting(int childIndex);
-    }
-
-    /**
-     * Handles the relationship between two relative paths, pathToParent and relativePath.
-     *
-     * Typically, pathToParent is the path from the current node to one of its children,
-     * and relativePath is the path we are trying to look up in the children.
-     */
-    private static <T> T handlePathRelationship(String pathToParent, VfsRelativePath relativePath, CaseSensitivity caseSensitivity, PathRelationshipHandler<T> pathRelationshipHandler) {
-        int pathToParentLength = pathToParent.length();
-        int relativePathLength = relativePath.length();
-        int maxPos = Math.min(pathToParentLength, relativePathLength);
-        int commonPrefixLength = relativePath.lengthOfCommonPrefix(pathToParent, caseSensitivity);
-        if (commonPrefixLength == maxPos) {
-            if (pathToParentLength > relativePathLength) {
-                return pathRelationshipHandler.handleAncestor();
-            }
-            if (pathToParentLength == relativePathLength) {
-                return pathRelationshipHandler.handleSame();
-            }
-            return pathRelationshipHandler.handleDescendant();
-        }
-        return pathRelationshipHandler.handleDifferent(commonPrefixLength);
     }
 
     private interface PathRelationshipHandler<T> {

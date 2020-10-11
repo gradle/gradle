@@ -50,7 +50,6 @@ public abstract class AbstractCompleteFileSystemLocationSnapshot implements Comp
         return accessType;
     }
 
-    @Override
     public String getPathToParent() {
         return getName();
     }
@@ -71,17 +70,8 @@ public abstract class AbstractCompleteFileSystemLocationSnapshot implements Comp
     }
 
     @Override
-    public FileSystemNode asFileSystemNode(String pathToParent) {
-        return getPathToParent().equals(pathToParent)
-            ? this
-            : new PathCompressingSnapshotWrapper(pathToParent, this);
-    }
-
-    @Override
-    public FileSystemNode withPathToParent(String newPathToParent) {
-        return getPathToParent().equals(newPathToParent)
-            ? this
-            : new PathCompressingSnapshotWrapper(newPathToParent, this);
+    public FileSystemNode asFileSystemNode() {
+        return this;
     }
 
     @Override
@@ -122,7 +112,7 @@ public abstract class AbstractCompleteFileSystemLocationSnapshot implements Comp
 
         @Override
         public Optional<FileSystemNode> invalidate(VfsRelativePath relativePath, CaseSensitivity caseSensitivity, SnapshotHierarchy.NodeDiffListener diffListener) {
-            return delegate.invalidate(relativePath, caseSensitivity, diffListener).map(splitSnapshot -> splitSnapshot.withPathToParent(getPathToParent()));
+            return delegate.invalidate(relativePath, caseSensitivity, diffListener);
         }
 
         @Override
@@ -148,13 +138,6 @@ public abstract class AbstractCompleteFileSystemLocationSnapshot implements Comp
         @Override
         public ReadOnlyFileSystemNode getNode(VfsRelativePath relativePath, CaseSensitivity caseSensitivity) {
             return delegate.getNode(relativePath, caseSensitivity);
-        }
-
-        @Override
-        public FileSystemNode withPathToParent(String newPathToParent) {
-            return getPathToParent().equals(newPathToParent)
-                ? this
-                : delegate.asFileSystemNode(newPathToParent);
         }
 
         @Override

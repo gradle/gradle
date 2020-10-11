@@ -24,7 +24,6 @@ public abstract class AbstractFileSystemNode implements FileSystemNode {
         this.pathToParent = pathToParent;
     }
 
-    @Override
     public String getPathToParent() {
         return pathToParent;
     }

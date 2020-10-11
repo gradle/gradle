@@ -23,6 +23,8 @@ import org.gradle.internal.snapshot.VfsRelativePath;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.BiConsumer;
+import java.util.stream.Collectors;
 
 public class DefaultChildMap<T> implements ChildMap<T> {
     private final List<Entry<T>> children;
@@ -56,6 +58,18 @@ public class DefaultChildMap<T> implements ChildMap<T> {
     }
 
     @Override
+    public boolean isEmpty() {
+        return false;
+    }
+
+    @Override
+    public List<T> values() {
+        return children.stream()
+            .map(Entry::getValue)
+            .collect(Collectors.toList());
+    }
+
+    @Override
     public ChildMap<T> withNewChild(int insertBefore, String path, T newChild) {
         List<Entry<T>> newChildren = new ArrayList<>(children);
         newChildren.add(insertBefore, new Entry<>(path, newChild));
@@ -63,13 +77,13 @@ public class DefaultChildMap<T> implements ChildMap<T> {
     }
 
     @Override
-    public ChildMap<T> withReplacedChild(int childIndex, T newChild) {
+    public ChildMap<T> withReplacedChild(int childIndex, String newPath, T newChild) {
         Entry<T> oldEntry = children.get(childIndex);
-        if (oldEntry.getValue().equals(newChild)) {
+        if (oldEntry.getPath().equals(newPath) && oldEntry.getValue().equals(newChild)) {
             return this;
         }
         List<Entry<T>> newChildren = new ArrayList<>(children);
-        newChildren.set(childIndex, new Entry<>(oldEntry.getPath(), newChild));
+        newChildren.set(childIndex, new Entry<>(newPath, newChild));
         return new DefaultChildMap<>(newChildren, caseSensitivity);
     }
 
@@ -82,5 +96,12 @@ public class DefaultChildMap<T> implements ChildMap<T> {
             return new SingletonChildMap<>(onlyChild, caseSensitivity);
         }
         return new DefaultChildMap<>(newChildren, caseSensitivity);
+    }
+
+    @Override
+    public void visitChildren(BiConsumer<String, T> visitor) {
+        for (Entry<T> child : children) {
+            visitor.accept(child.getPath(), child.getValue());
+        }
     }
 }
