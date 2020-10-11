@@ -42,6 +42,7 @@ val nativePlatformVersion = "0.22-milestone-8"
 val pmavenVersion = "0.8-20100325"
 val slf4jVersion = "1.7.28"
 val sshdVersion = "2.0.0"
+val tomljVersion = "1.0.0"
 
 dependencies {
     constraints {
@@ -141,6 +142,7 @@ dependencies {
         api(libs.slf4jApi)              { version { strictly(slf4jVersion) }}
         api(libs.snakeyaml)             { version { strictly("1.17") }}
         api(libs.testng)                { version { strictly("6.3.1"); because("later versions break test cross-version test filtering") }}
+        api(libs.tomlj)                 { version { strictly(tomljVersion) }}
         api(libs.trove4j)               { version { strictly("1.0.20181211") }}
         api(libs.xbeanReflect)          { version { strictly("3.7") }}
         api(libs.xerces)                { version { strictly("2.12.0") }}

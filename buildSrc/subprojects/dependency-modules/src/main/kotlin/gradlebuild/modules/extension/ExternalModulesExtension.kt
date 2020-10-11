@@ -119,6 +119,7 @@ abstract class ExternalModulesExtension {
     val slf4jApi = "org.slf4j:slf4j-api"
     val snakeyaml = "org.yaml:snakeyaml"
     val testng = "org.testng:testng"
+    val tomlj = "org.tomlj:tomlj"
     val trove4j = "org.jetbrains.intellij.deps:trove4j"
     val xbeanReflect = "org.apache.xbean:xbean-reflect"
     val xerces = "xerces:xercesImpl"
@@ -254,6 +255,7 @@ abstract class ExternalModulesExtension {
         slf4jApi to License.MIT,
         snakeyaml to License.Apache2,
         testng to License.Apache2,
+        tomlj to License.Apache2,
         trove4j to License.LGPL21,
         xbeanReflect to License.Apache2,
         xerces to License.Apache2,

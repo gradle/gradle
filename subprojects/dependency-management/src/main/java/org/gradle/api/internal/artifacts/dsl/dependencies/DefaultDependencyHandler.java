@@ -24,6 +24,7 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ExternalModuleDependency;
+import org.gradle.api.artifacts.MinimalExternalModuleDependency;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.dsl.ComponentMetadataHandler;
@@ -40,8 +41,13 @@ import org.gradle.api.attributes.Category;
 import org.gradle.api.attributes.HasConfigurableAttributes;
 import org.gradle.api.internal.artifacts.VariantTransformRegistry;
 import org.gradle.api.internal.artifacts.query.ArtifactResolutionQueryFactory;
-import org.gradle.api.internal.model.NamedObjectInstantiator;
+import org.gradle.api.internal.provider.DefaultValueSourceProviderFactory;
+import org.gradle.api.internal.std.DependencyBundleValueSource;
+import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.ValueSource;
+import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 import org.gradle.internal.component.external.model.ImmutableCapability;
 import org.gradle.internal.component.external.model.ProjectTestFixtures;
@@ -51,7 +57,9 @@ import org.gradle.internal.metaobject.MethodMixIn;
 import org.gradle.util.ConfigureUtil;
 
 import javax.annotation.Nullable;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static org.gradle.api.internal.artifacts.ArtifactAttributes.ARTIFACT_FORMAT;
 import static org.gradle.internal.component.external.model.TestFixturesSupport.TEST_FIXTURES_CAPABILITY_APPENDIX;
@@ -67,7 +75,7 @@ public abstract class DefaultDependencyHandler implements DependencyHandler, Met
     private final AttributesSchema attributesSchema;
     private final VariantTransformRegistry transforms;
     private final Factory<ArtifactTypeContainer> artifactTypeContainer;
-    private final NamedObjectInstantiator namedObjectInstantiator;
+    private final ObjectFactory objects;
     private final PlatformSupport platformSupport;
     private final DynamicAddDependencyMethods dynamicMethods;
 
@@ -81,7 +89,7 @@ public abstract class DefaultDependencyHandler implements DependencyHandler, Met
                                     AttributesSchema attributesSchema,
                                     VariantTransformRegistry transforms,
                                     Factory<ArtifactTypeContainer> artifactTypeContainer,
-                                    NamedObjectInstantiator namedObjectInstantiator,
+                                    ObjectFactory objects,
                                     PlatformSupport platformSupport) {
         this.configurationContainer = configurationContainer;
         this.dependencyFactory = dependencyFactory;
@@ -93,7 +101,7 @@ public abstract class DefaultDependencyHandler implements DependencyHandler, Met
         this.attributesSchema = attributesSchema;
         this.transforms = transforms;
         this.artifactTypeContainer = artifactTypeContainer;
-        this.namedObjectInstantiator = namedObjectInstantiator;
+        this.objects = objects;
         this.platformSupport = platformSupport;
         configureSchema();
         dynamicMethods = new DynamicAddDependencyMethods(configurationContainer, new DirectDependencyAdder());
@@ -146,9 +154,26 @@ public abstract class DefaultDependencyHandler implements DependencyHandler, Met
     }
 
     private Dependency doAddProvider(Configuration configuration, Provider<?> dependencyNotation, Closure<?> configureClosure) {
+        if (dependencyNotation instanceof DefaultValueSourceProviderFactory.ValueSourceProvider) {
+            Class<? extends ValueSource<?, ?>> valueSourceType = ((DefaultValueSourceProviderFactory.ValueSourceProvider<?, ?>) dependencyNotation).getValueSourceType();
+            if (valueSourceType.isAssignableFrom(DependencyBundleValueSource.class)) {
+                return doAddListProvider(configuration, dependencyNotation, configureClosure);
+            }
+        }
         Provider<Dependency> lazyDependency = dependencyNotation.map(mapDependencyProvider(configuration, configureClosure));
         configuration.getDependencies().addLater(lazyDependency);
         // Return null here because we don't want to prematurely realize the dependency
+        return null;
+    }
+
+    private Dependency doAddListProvider(Configuration configuration, Provider<?> dependencyNotation, Closure<?> configureClosure) {
+        // workaround for the fact that mapping to a list will not create a `CollectionProviderInternal`
+        ListProperty<Dependency> dependencies = objects.listProperty(Dependency.class);
+        dependencies.set(dependencyNotation.map(notation -> {
+            List<MinimalExternalModuleDependency> deps = Cast.uncheckedCast(notation);
+            return deps.stream().map(d -> create(d, configureClosure)).collect(Collectors.toList());
+        }));
+        configuration.getDependencies().addAllLater(dependencies);
         return null;
     }
 
@@ -342,7 +367,7 @@ public abstract class DefaultDependencyHandler implements DependencyHandler, Met
     }
 
     private Category toCategory(String category) {
-        return namedObjectInstantiator.named(Category.class, category);
+        return objects.named(Category.class, category);
     }
 
     private class DirectDependencyAdder implements DynamicAddDependencyMethods.DependencyAdder<Dependency> {

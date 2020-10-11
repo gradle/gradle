@@ -58,6 +58,13 @@ public class DefaultClassPathProvider implements ClassPathProvider {
         if (name.equals("JAVA-COMPILER")) {
             return addJavaCompilerModules(ClassPath.EMPTY);
         }
+        if (name.equals("DEPENDENCIES-EXTENSION-COMPILER")) {
+            ClassPath classpath = ClassPath.EMPTY;
+            classpath = classpath.plus(moduleRegistry.getModule("gradle-core-api").getImplementationClasspath());
+            classpath = classpath.plus(moduleRegistry.getModule("gradle-dependency-management").getImplementationClasspath());
+            classpath = classpath.plus(moduleRegistry.getExternalModule("javax.inject").getClasspath());
+            return classpath;
+        }
         if (name.equals("JAVA-COMPILER-PLUGIN")) {
             return addJavaCompilerModules(moduleRegistry.getModule("gradle-java-compiler-plugin").getImplementationClasspath());
         }

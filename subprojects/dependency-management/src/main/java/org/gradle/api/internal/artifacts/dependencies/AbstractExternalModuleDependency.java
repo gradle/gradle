@@ -45,6 +45,15 @@ public abstract class AbstractExternalModuleDependency extends AbstractModuleDep
         this.versionConstraint = new DefaultMutableVersionConstraint(version);
     }
 
+    public AbstractExternalModuleDependency(ModuleIdentifier module, MutableVersionConstraint version) {
+        super(null);
+        if (module == null) {
+            throw new InvalidUserDataException("Module must not be null!");
+        }
+        this.moduleIdentifier = module;
+        this.versionConstraint = (DefaultMutableVersionConstraint) version;
+    }
+
     protected void copyTo(AbstractExternalModuleDependency target) {
         super.copyTo(target);
         DeprecationLogger.whileDisabled(() -> target.setForce(isForce()));

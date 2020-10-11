@@ -127,12 +127,17 @@ import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.properties.GradleProperties;
 import org.gradle.api.internal.resources.ApiTextResourceAdapter;
 import org.gradle.api.internal.runtimeshaded.RuntimeShadedJarFactory;
+import org.gradle.api.internal.std.DefaultDependenciesAccessors;
+import org.gradle.api.internal.std.DependenciesAccessorsWorkspace;
+import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.ProviderFactory;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.internal.CacheScopeMapping;
 import org.gradle.cache.internal.CleaningInMemoryCacheDecoratorFactory;
 import org.gradle.cache.internal.GeneratedGradleJarCache;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.internal.ProducerGuard;
+import org.gradle.initialization.DependenciesAccessors;
 import org.gradle.configuration.internal.UserCodeApplicationContext;
 import org.gradle.internal.management.DefaultDependencyResolutionManagement;
 import org.gradle.internal.management.DependencyResolutionManagementInternal;
@@ -674,4 +679,9 @@ class DependencyManagementBuildScopeServices {
             }
         });
     }
+
+    DependenciesAccessors createDependenciesAccessorGenerator(ClassPathRegistry registry, DependenciesAccessorsWorkspace workspace, ProviderFactory providers, ObjectFactory objects) {
+        return new DefaultDependenciesAccessors(registry, workspace, providers, objects);
+    }
+
 }

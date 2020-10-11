@@ -53,6 +53,7 @@ dependencies {
     implementation(libs.ant)
     implementation(libs.ivy)
     implementation(libs.maven3)
+    implementation(libs.tomlj)
 
     testImplementation(project(":process-services"))
     testImplementation(project(":diagnostics"))
