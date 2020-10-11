@@ -18,6 +18,8 @@ package org.gradle.api.internal.artifacts.dependencies;
 
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ExternalModuleDependency;
+import org.gradle.api.artifacts.ModuleIdentifier;
+import org.gradle.api.artifacts.MutableVersionConstraint;
 
 public class DefaultExternalModuleDependency extends AbstractExternalModuleDependency implements ExternalModuleDependency {
 
@@ -27,6 +29,10 @@ public class DefaultExternalModuleDependency extends AbstractExternalModuleDepen
 
     public DefaultExternalModuleDependency(String group, String name, String version, String configuration) {
         super(assertModuleId(group, name), version, configuration);
+    }
+
+    public DefaultExternalModuleDependency(ModuleIdentifier id, MutableVersionConstraint versionConstraint) {
+        super(id, versionConstraint);
     }
 
     @Override
