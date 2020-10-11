@@ -28,16 +28,16 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class DependenciesSourceGenerator {
-    private static final Pattern SEPARATOR_PATTERN = Pattern.compile("[.-]");
+    private static final Pattern SEPARATOR_PATTERN = Pattern.compile("[.\\-_]");
 
     private final Writer writer;
-    private final DependenciesConfig config;
+    private final AllDependenciesModel config;
     private final String tomlFileLink;
     private final String ln = System.getProperty("line.separator", "\n");
 
     public DependenciesSourceGenerator(Writer writer,
                                        File tomlFileLocation,
-                                       DependenciesConfig config) {
+                                       AllDependenciesModel config) {
         this.writer = writer;
         this.config = config;
         this.tomlFileLink = toLink(tomlFileLocation);
@@ -53,7 +53,7 @@ public class DependenciesSourceGenerator {
 
     public static void generateSource(Writer writer,
                                       File tomFile,
-                                      DependenciesConfig config,
+                                      AllDependenciesModel config,
                                       String packageName,
                                       String className) {
         DependenciesSourceGenerator generator = new DependenciesSourceGenerator(writer, tomFile, config);
@@ -77,14 +77,14 @@ public class DependenciesSourceGenerator {
         addImport("org.gradle.api.provider.Provider");
         addImport("org.gradle.api.provider.ProviderFactory");
         addImport("org.gradle.api.internal.std.AbstractExternalDependencyFactory");
-        addImport("org.gradle.api.internal.std.DependenciesConfig");
+        addImport("org.gradle.api.internal.std.AllDependenciesModel");
         addImport("java.util.Map");
         addImport("javax.inject.Inject");
         writeLn();
         writeLn("public class " + className + " extends AbstractExternalDependencyFactory {");
         writeLn();
         writeLn("    @Inject");
-        writeLn("    public " + className + "(DependenciesConfig config, ProviderFactory providers) {");
+        writeLn("    public " + className + "(AllDependenciesModel config, ProviderFactory providers) {");
         writeLn("        super(config, providers);");
         writeLn("    }");
         writeLn();
@@ -105,7 +105,7 @@ public class DependenciesSourceGenerator {
         writeLn("}");
     }
 
-    private String coordinatesDescriptorFor(DependencyData dependencyData) {
+    private String coordinatesDescriptorFor(DependencyModel dependencyData) {
         return dependencyData.getGroup() + ":" + dependencyData.getName();
     }
 
@@ -141,7 +141,7 @@ public class DependenciesSourceGenerator {
         writeLn("     * </ul>");
         writeLinkToToml();
         writeLn("     */");
-        writeLn("    public Provider<ExternalModuleDependencyBundle> get" + toMethodName(alias) + "() { return createBundle(\"" + alias + "\"); }");
+        writeLn("    public Provider<ExternalModuleDependencyBundle> get" + toMethodName(alias) + "Bundle() { return createBundle(\"" + alias + "\"); }");
         writeLn();
     }
 

@@ -24,11 +24,11 @@ import org.gradle.api.provider.ProviderFactory;
 import javax.inject.Inject;
 
 public abstract class AbstractExternalDependencyFactory implements ExternalModuleDependencyFactory {
-    private final DependenciesConfig config;
+    private final AllDependenciesModel config;
     private final ProviderFactory providers;
 
     @Inject
-    protected AbstractExternalDependencyFactory(DependenciesConfig config,
+    protected AbstractExternalDependencyFactory(AllDependenciesModel config,
                                                 ProviderFactory providers) {
         this.config = config;
         this.providers = providers;
@@ -36,7 +36,7 @@ public abstract class AbstractExternalDependencyFactory implements ExternalModul
 
     protected Provider<MutableVersionConstraint> createVersion(String alias) {
         return providers.of(DependencyDataVersionConstraintValueSource.class,
-            spec -> spec.getParameters().getDependencyData().set(config.getDependencyData(alias)))
+            spec -> spec.getParameters().getVersion().set(config.getDependencyData(alias).getVersion()))
             .forUseAtConfigurationTime();
     }
 

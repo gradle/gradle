@@ -26,18 +26,19 @@ import org.gradle.api.provider.ValueSourceParameters;
 public abstract class DependencyValueSource implements ValueSource<MinimalExternalModuleDependency, DependencyValueSource.Params> {
 
     interface Params extends ValueSourceParameters {
-        Property<DependencyData> getDependencyData();
+        Property<DependencyModel> getDependencyData();
     }
 
     @Override
     public MinimalExternalModuleDependency obtain() {
-        DependencyData data = getParameters().getDependencyData().get();
+        DependencyModel data = getParameters().getDependencyData().get();
+        DependencyVersionModel version = data.getVersion();
         MutableVersionConstraint vc = DependenciesFactoryHelper.createVersionConstraint(
-            data.getRequiredVersion(),
-            data.getPreferredVersion(),
-            data.getStrictlyVersion(),
-            data.getRejectedVersions(),
-            data.getRejectAll());
+            version.getRequiredVersion(),
+            version.getPreferredVersion(),
+            version.getStrictlyVersion(),
+            version.getRejectedVersions(),
+            version.getRejectAll());
         return new DefaultMinimalDependency(
             DefaultModuleIdentifier.newId(data.getGroup(), data.getName()), vc
         );

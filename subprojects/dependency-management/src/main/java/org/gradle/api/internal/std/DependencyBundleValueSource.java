@@ -33,13 +33,13 @@ public abstract class DependencyBundleValueSource implements ValueSource<Externa
     interface Params extends ValueSourceParameters {
         Property<String> getBundleName();
 
-        Property<DependenciesConfig> getConfig();
+        Property<AllDependenciesModel> getConfig();
     }
 
     @Override
     public ExternalModuleDependencyBundle obtain() {
         String bundle = getParameters().getBundleName().get();
-        DependenciesConfig config = getParameters().getConfig().get();
+        AllDependenciesModel config = getParameters().getConfig().get();
         List<String> aliases = config.getBundle(bundle);
         return aliases.stream()
             .map(config::getDependencyData)
@@ -48,13 +48,14 @@ public abstract class DependencyBundleValueSource implements ValueSource<Externa
 
     }
 
-    private DefaultMinimalDependency createDependency(DependencyData data) {
+    private DefaultMinimalDependency createDependency(DependencyModel data) {
+        DependencyVersionModel version = data.getVersion();
         MutableVersionConstraint vc = DependenciesFactoryHelper.createVersionConstraint(
-            data.getRequiredVersion(),
-            data.getPreferredVersion(),
-            data.getStrictlyVersion(),
-            data.getRejectedVersions(),
-            data.getRejectAll());
+            version.getRequiredVersion(),
+            version.getPreferredVersion(),
+            version.getStrictlyVersion(),
+            version.getRejectedVersions(),
+            version.getRejectAll());
         return new DefaultMinimalDependency(
             DefaultModuleIdentifier.newId(data.getGroup(), data.getName()), vc
         );

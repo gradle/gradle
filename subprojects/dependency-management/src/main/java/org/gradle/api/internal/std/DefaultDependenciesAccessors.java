@@ -42,7 +42,7 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
     private final DependenciesAccessorsWorkspace workspace;
     private final ProviderFactory providerFactory;
     private final ObjectFactory objects;
-    private DependenciesConfig dependenciesConfiguration;
+    private AllDependenciesModel dependenciesConfiguration;
     private Class<? extends ExternalModuleDependencyFactory> factory;
     private ClassPath sources;
     private ClassPath classes;

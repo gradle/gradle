@@ -23,18 +23,18 @@ import org.gradle.api.provider.ValueSourceParameters;
 public abstract class DependencyDataVersionConstraintValueSource implements ValueSource<MutableVersionConstraint, DependencyDataVersionConstraintValueSource.Params> {
 
     interface Params extends ValueSourceParameters {
-        Property<DependencyData> getDependencyData();
+        Property<DependencyVersionModel> getVersion();
     }
 
     @Override
     public MutableVersionConstraint obtain() {
-        DependencyData data = getParameters().getDependencyData().get();
+        DependencyVersionModel version = getParameters().getVersion().get();
         return DependenciesFactoryHelper.createVersionConstraint(
-            data.getRequiredVersion(),
-            data.getPreferredVersion(),
-            data.getStrictlyVersion(),
-            data.getRejectedVersions(),
-            data.getRejectAll());
+            version.getRequiredVersion(),
+            version.getPreferredVersion(),
+            version.getStrictlyVersion(),
+            version.getRejectedVersions(),
+            version.getRejectAll());
     }
 
 }

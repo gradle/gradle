@@ -19,7 +19,6 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Interner;
 import com.google.common.collect.Interners;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 import org.gradle.api.InvalidUserDataException;
 import org.tomlj.Toml;
 import org.tomlj.TomlArray;
@@ -38,49 +37,47 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class DependenciesFileParser {
-    private static final String ALIAS_PATTERN = "^[a-z0-9.-]+$";
+    private static final String ALIAS_PATTERN = "^[a-z0-9-_]+$";
     private static final Pattern ALIAS_COMPILED_PATTERN = Pattern.compile(ALIAS_PATTERN);
     private static final String DEPENDENCIES_KEY = "dependencies";
     private static final String BUNDLES_KEY = "bundles";
 
     private final Interner<String> strings = Interners.newStrongInterner();
+    private final Interner<DependencyVersionModel> versions = Interners.newStrongInterner();
 
-    public DependenciesConfig parse(InputStream in) throws IOException {
+    public AllDependenciesModel parse(InputStream in) throws IOException {
         TomlParseResult result = Toml.parse(in);
         TomlTable dependenciesTable = result.getTable(DEPENDENCIES_KEY);
         TomlTable bundlesTable = result.getTable(BUNDLES_KEY);
-        Map<String, DependencyData> dependencies = ImmutableMap.copyOf(parseDependencies(dependenciesTable));
+        Map<String, DependencyModel> dependencies = ImmutableMap.copyOf(parseDependencies(dependenciesTable));
         Map<String, List<String>> bundles = ImmutableMap.copyOf(parseBundles(bundlesTable, dependencies));
-        return new DependenciesConfig(dependencies, bundles);
+        return new AllDependenciesModel(dependencies, bundles);
     }
 
-    private Map<String, DependencyData> parseDependencies(@Nullable TomlTable dependenciesTable) {
+    private Map<String, DependencyModel> parseDependencies(@Nullable TomlTable dependenciesTable) {
         if (dependenciesTable == null) {
             return Collections.emptyMap();
         }
-        List<String> keys = Sets.difference(dependenciesTable.dottedKeySet(true), dependenciesTable.dottedKeySet(false))
+        List<String> keys = dependenciesTable.keySet()
             .stream()
             .peek(DependenciesFileParser::validateAlias)
             .sorted(Comparator.comparing(String::length))
             .collect(Collectors.toList());
-        Map<String, DependencyData> dependencies = Maps.newLinkedHashMap();
+        Map<String, DependencyModel> dependencies = Maps.newLinkedHashMap();
         for (String alias : keys) {
-            DependencyData data = parseDependency(alias, dependenciesTable, dependencies);
+            DependencyModel data = parseDependency(alias, dependenciesTable, dependencies);
             dependencies.put(alias, data);
         }
         return dependencies;
     }
 
-    private Map<String, List<String>> parseBundles(@Nullable TomlTable bundlesTable, Map<String, DependencyData> dependencies) {
+    private Map<String, List<String>> parseBundles(@Nullable TomlTable bundlesTable, Map<String, DependencyModel> dependencies) {
         if (bundlesTable == null) {
             return Collections.emptyMap();
         }
         List<String> keys = bundlesTable.keySet().stream().sorted().collect(Collectors.toList());
         Map<String, List<String>> bundles = Maps.newLinkedHashMap();
         for (String alias : keys) {
-            if (dependencies.containsKey(alias)) {
-                throw new InvalidUserDataException("A bundle with name '" + alias + "' is declared but a dependency with the same name already exists");
-            }
             List<String> bundled = bundlesTable.getArray(alias).toList().stream()
                 .map(String::valueOf)
                 .peek(d -> {
@@ -94,17 +91,24 @@ public class DependenciesFileParser {
         return bundles;
     }
 
-    private DependencyData parseDependency(String alias, TomlTable dependenciesTable, Map<String, DependencyData> dependencies) {
+    private DependencyModel parseDependency(String alias, TomlTable dependenciesTable, Map<String, DependencyModel> dependencies) {
         String group = dependenciesTable.getString(alias + ".group");
         String name = dependenciesTable.getString(alias + ".name");
-        String version = dependenciesTable.getString(alias + ".version");
-        String require = dependenciesTable.getString(alias + ".require");
-        if (require == null) {
-            // if the user sets 'version', we assume it's a 'require'
-            require = version;
+        Object version = dependenciesTable.get(alias + ".version");
+        String mi = dependenciesTable.getString(alias + ".module");
+        if (mi != null) {
+            String[] splitted = mi.split(":");
+            if (splitted.length == 2) {
+                group = splitted[0];
+                name = splitted[1];
+            }
         }
-        String prefer = dependenciesTable.getString(alias + ".prefer");
-        String strictly = dependenciesTable.getString(alias + ".strictly");
+        String require = null;
+        String strictly = null;
+        String prefer = null;
+        List<String> rejectedVersions = null;
+        Boolean rejectAll = null;
+        DependencyVersionModel versionModel = null;
         String gav = dependenciesTable.getString(alias + ".gav");
         if (gav != null) {
             String[] splitted = gav.split(":");
@@ -114,24 +118,26 @@ public class DependenciesFileParser {
                 require = splitted[2];
             }
         }
-        String mi = dependenciesTable.getString(alias + ".module");
-        if (mi != null) {
-            String[] splitted = mi.split(":");
-            if (splitted.length == 2) {
-                group = splitted[0];
-                name = splitted[1];
-            }
+        if (version instanceof String) {
+            require = (String) version;
+        } else if (version instanceof TomlTable) {
+            TomlTable versionTable = (TomlTable) version;
+            require = versionTable.getString("require");
+            prefer = versionTable.getString("prefer");
+            strictly = versionTable.getString("strictly");
+            TomlArray rejectedArray = versionTable.getArray("reject");
+            rejectedVersions = rejectedArray != null ? rejectedArray.toList().stream().map(String::valueOf).map(this::intern).collect(Collectors.toList()) : null;
+            rejectAll = versionTable.getBoolean("rejectAll");
         }
-        TomlArray rejectedArray = dependenciesTable.getArray(alias + ".reject");
-        List<String> rejectedVersions = rejectedArray != null ? rejectedArray.toList().stream().map(String::valueOf).map(this::intern).collect(Collectors.toList()) : null;
-        Boolean rejectAll = dependenciesTable.getBoolean(alias + ".rejectAll");
-
+        if (require != null || prefer != null || strictly != null || rejectedVersions != null || rejectAll != null) {
+            versionModel = versions.intern(new DependencyVersionModel(intern(prefer), intern(require), intern(strictly), rejectedVersions, rejectAll));
+        }
         // We have implicit inheritance from parents so for all "null" values we're going to look into the parent
         int idx;
         String cur = alias;
-        while ((idx = cur.lastIndexOf(".")) > 0) {
+        while ((idx = cur.lastIndexOf("_")) > 0) {
             cur = cur.substring(0, idx);
-            DependencyData parent = dependencies.get(cur);
+            DependencyModel parent = dependencies.get(cur);
             if (parent != null) {
                 if (group == null) {
                     group = parent.getGroup();
@@ -139,33 +145,17 @@ public class DependenciesFileParser {
                 if (name == null) {
                     name = parent.getName();
                 }
-                if (prefer == null) {
-                    prefer = parent.getPreferredVersion();
-                }
-                if (require == null) {
-                    require = parent.getRequiredVersion();
-                }
-                if (strictly == null) {
-                    strictly = parent.getStrictlyVersion();
-                }
-                if (rejectedVersions == null) {
-                    rejectedVersions = parent.getRejectedVersions();
-                }
-                if (rejectAll != null) {
-                    rejectAll = parent.getRejectAll();
+                if (versionModel == null) {
+                    versionModel = parent.getVersion();
                 }
                 break;
             }
         }
 
-        return new DependencyData(
+        return new DependencyModel(
             intern(group),
             intern(name),
-            intern(prefer),
-            intern(require),
-            intern(strictly),
-            rejectedVersions,
-            rejectAll
+            versionModel
         );
     }
 
@@ -186,8 +176,8 @@ public class DependenciesFileParser {
 
     public static void main(String[] args) throws IOException {
         DependenciesFileParser dependenciesFileParser = new DependenciesFileParser();
-        FileInputStream in = new FileInputStream("/home/cchampeau/DEV/PROJECTS/repros/mylib/dependencies.toml");
-        DependenciesConfig parse = dependenciesFileParser.parse(in);
+        FileInputStream in = new FileInputStream("/home/cchampeau/DEV/PROJECTS/repros/mylib/gradle/dependencies.toml");
+        AllDependenciesModel parse = dependenciesFileParser.parse(in);
         System.out.println("parse = " + parse);
     }
 }

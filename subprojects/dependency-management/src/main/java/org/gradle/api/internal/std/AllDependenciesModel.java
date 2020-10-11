@@ -20,12 +20,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public class DependenciesConfig implements Serializable {
-    private final Map<String, DependencyData> aliasToDependency;
+public class AllDependenciesModel implements Serializable {
+    private final Map<String, DependencyModel> aliasToDependency;
     private final Map<String, List<String>> bundles;
     private final int hashCode;
 
-    public DependenciesConfig(Map<String, DependencyData> aliasToDependency, Map<String, List<String>> bundles) {
+    public AllDependenciesModel(Map<String, DependencyModel> aliasToDependency, Map<String, List<String>> bundles) {
         this.aliasToDependency = aliasToDependency;
         this.bundles = bundles;
         this.hashCode = doComputeHashCode();
@@ -45,7 +45,7 @@ public class DependenciesConfig implements Serializable {
             .collect(Collectors.toList());
     }
 
-    public DependencyData getDependencyData(String alias) {
+    public DependencyModel getDependencyData(String alias) {
         return aliasToDependency.get(alias);
     }
 
@@ -62,7 +62,7 @@ public class DependenciesConfig implements Serializable {
             return false;
         }
 
-        DependenciesConfig that = (DependenciesConfig) o;
+        AllDependenciesModel that = (AllDependenciesModel) o;
 
         if (!aliasToDependency.equals(that.aliasToDependency)) {
             return false;

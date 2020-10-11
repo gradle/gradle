@@ -19,9 +19,7 @@ import javax.annotation.Nullable;
 import java.io.Serializable;
 import java.util.List;
 
-public class DependencyData implements Serializable {
-    private final String group;
-    private final String name;
+public class DependencyVersionModel implements Serializable {
     private final String preferredVersion;
     private final String requiredVersion;
     private final String strictlyVersion;
@@ -29,15 +27,11 @@ public class DependencyData implements Serializable {
     private final Boolean rejectAll;
     private final int hashCode;
 
-    public DependencyData(String group,
-                          String name,
-                          @Nullable String preferredVersion,
-                          @Nullable String requiredVersion,
-                          @Nullable String strictlyVersion,
-                          @Nullable List<String> rejectedVersions,
-                          @Nullable Boolean rejectAll) {
-        this.group = group;
-        this.name = name;
+    public DependencyVersionModel(@Nullable String preferredVersion,
+                                  @Nullable String requiredVersion,
+                                  @Nullable String strictlyVersion,
+                                  @Nullable List<String> rejectedVersions,
+                                  @Nullable Boolean rejectAll) {
         this.preferredVersion = preferredVersion;
         this.requiredVersion = requiredVersion;
         this.strictlyVersion = strictlyVersion;
@@ -46,35 +40,22 @@ public class DependencyData implements Serializable {
         this.hashCode = doComputeHashCode();
     }
 
-    public String getGroup() {
-        return group;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    @Nullable
     public String getPreferredVersion() {
         return preferredVersion;
     }
 
-    @Nullable
     public String getRequiredVersion() {
         return requiredVersion;
     }
 
-    @Nullable
     public String getStrictlyVersion() {
         return strictlyVersion;
     }
 
-    @Nullable
     public List<String> getRejectedVersions() {
         return rejectedVersions;
     }
 
-    @Nullable
     public Boolean getRejectAll() {
         return rejectAll;
     }
@@ -88,14 +69,8 @@ public class DependencyData implements Serializable {
             return false;
         }
 
-        DependencyData that = (DependencyData) o;
+        DependencyVersionModel that = (DependencyVersionModel) o;
 
-        if (!group.equals(that.group)) {
-            return false;
-        }
-        if (!name.equals(that.name)) {
-            return false;
-        }
         if (preferredVersion != null ? !preferredVersion.equals(that.preferredVersion) : that.preferredVersion != null) {
             return false;
         }
@@ -116,27 +91,24 @@ public class DependencyData implements Serializable {
         return hashCode;
     }
 
+    @Override
+    public String toString() {
+        return "DependencyVersionModel{" +
+            "preferredVersion='" + preferredVersion + '\'' +
+            ", requiredVersion='" + requiredVersion + '\'' +
+            ", strictlyVersion='" + strictlyVersion + '\'' +
+            ", rejectedVersions=" + rejectedVersions +
+            ", rejectAll=" + rejectAll +
+            ", hashCode=" + hashCode +
+            '}';
+    }
+
     private int doComputeHashCode() {
-        int result = group.hashCode();
-        result = 31 * result + name.hashCode();
-        result = 31 * result + (preferredVersion != null ? preferredVersion.hashCode() : 0);
+        int result = preferredVersion != null ? preferredVersion.hashCode() : 0;
         result = 31 * result + (requiredVersion != null ? requiredVersion.hashCode() : 0);
         result = 31 * result + (strictlyVersion != null ? strictlyVersion.hashCode() : 0);
         result = 31 * result + (rejectedVersions != null ? rejectedVersions.hashCode() : 0);
         result = 31 * result + (rejectAll != null ? rejectAll.hashCode() : 0);
         return result;
-    }
-
-    @Override
-    public String toString() {
-        return "DependencyData{" +
-            "group='" + group + '\'' +
-            ", name='" + name + '\'' +
-            ", preferredVersion='" + preferredVersion + '\'' +
-            ", requiredVersion='" + requiredVersion + '\'' +
-            ", strictlyVersion='" + strictlyVersion + '\'' +
-            ", rejectedVersions=" + rejectedVersions +
-            ", rejectAll=" + rejectAll +
-            '}';
     }
 }
