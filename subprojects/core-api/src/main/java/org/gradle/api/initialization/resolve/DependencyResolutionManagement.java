@@ -20,6 +20,7 @@ import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.dsl.ComponentMetadataHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.provider.Property;
+import org.gradle.api.initialization.dsl.DependenciesModelBuilder;
 import org.gradle.internal.HasInternalProtocol;
 
 /**
@@ -52,4 +53,10 @@ public interface DependencyResolutionManagement {
      */
     ComponentMetadataHandler getComponents();
 
+    /**
+     * Configures the dependency model, which will be used
+     * to generate type safe accessors for dependencies.
+     * @param spec the spec to configure the dependencies
+     */
+    void dependenciesModel(Action<? super DependenciesModelBuilder> spec);
 }

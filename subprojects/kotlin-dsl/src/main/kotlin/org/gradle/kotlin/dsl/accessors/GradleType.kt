@@ -30,6 +30,7 @@ import org.gradle.api.artifacts.dsl.DependencyConstraintHandler
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.api.plugins.ExtensionContainer
+import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.TaskProvider
 
 import org.gradle.kotlin.dsl.support.bytecode.genericTypeOf
@@ -64,6 +65,10 @@ object GradleType {
     val providerOfConfiguration = genericTypeOf(namedDomainObjectProvider, configuration)
 
     val publishArtifact = classOf<PublishArtifact>()
+
+    val provider = classOf<Provider<*>>()
+
+    val providerOfAny = genericTypeOf(provider, classOf<Any>())
 }
 
 

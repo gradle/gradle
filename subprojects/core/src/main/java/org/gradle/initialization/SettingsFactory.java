@@ -62,10 +62,8 @@ public class SettingsFactory {
             settingsScript,
             startParameter
         );
-
         DynamicObject dynamicObject = ((DynamicObjectAware) settings).getAsDynamicObject();
         ((ExtensibleDynamicObject) dynamicObject).addProperties(gradleProperties);
         return settings;
     }
-
 }

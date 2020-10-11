@@ -20,6 +20,7 @@ import groovy.lang.Closure
 
 import org.gradle.api.Action
 import org.gradle.api.artifacts.Dependency
+import org.gradle.api.artifacts.ExternalModuleDependency
 import org.gradle.api.artifacts.dsl.ComponentMetadataHandler
 import org.gradle.api.artifacts.dsl.ComponentModuleMetadataHandler
 import org.gradle.api.artifacts.dsl.DependencyConstraintHandler
@@ -31,6 +32,7 @@ import org.gradle.api.artifacts.transform.TransformSpec
 import org.gradle.api.artifacts.type.ArtifactTypeContainer
 import org.gradle.api.attributes.AttributesSchema
 import org.gradle.api.plugins.ExtensionContainer
+import org.gradle.api.provider.Provider
 
 
 /**
@@ -51,6 +53,9 @@ abstract class DependencyHandlerDelegate : DependencyHandler {
 
     override fun add(configurationName: String, dependencyNotation: Any, configureClosure: Closure<Any>): Dependency =
         delegate.add(configurationName, dependencyNotation, configureClosure)
+
+    override fun <T : Any, U : ExternalModuleDependency> addProvider(configurationName: String, dependencyNotation: Provider<T>, configuration: Action<in U>) =
+        delegate.addProvider(configurationName, dependencyNotation, configuration)
 
     override fun create(dependencyNotation: Any): Dependency =
         delegate.create(dependencyNotation)
