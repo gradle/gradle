@@ -27,15 +27,13 @@ import java.util.function.BiConsumer;
 
 public class SingletonChildMap<T> implements ChildMap<T> {
     private final Entry<T> entry;
-    private final CaseSensitivity caseSensitivity;
 
-    public SingletonChildMap(String path, T child, CaseSensitivity caseSensitivity) {
-        this(new Entry<>(path, child), caseSensitivity);
+    public SingletonChildMap(String path, T child) {
+        this(new Entry<>(path, child));
     }
 
-    public SingletonChildMap(Entry<T> entry, CaseSensitivity caseSensitivity) {
+    public SingletonChildMap(Entry<T> entry) {
         this.entry = entry;
-        this.caseSensitivity = caseSensitivity;
     }
 
     @Override
@@ -44,7 +42,7 @@ public class SingletonChildMap<T> implements ChildMap<T> {
     }
 
     @Override
-    public <R> R handlePath(VfsRelativePath relativePath, PathRelationshipHandler<R> handler) {
+    public <R> R handlePath(VfsRelativePath relativePath, CaseSensitivity caseSensitivity, PathRelationshipHandler<R> handler) {
         return entry.handlePath(relativePath, 0, caseSensitivity, handler);
     }
 
@@ -70,7 +68,7 @@ public class SingletonChildMap<T> implements ChildMap<T> {
         List<Entry<T>> newChildren = insertBefore == 0
             ? ImmutableList.of(newEntry, entry)
             : ImmutableList.of(entry, newEntry);
-        return new DefaultChildMap<>(newChildren, caseSensitivity);
+        return new DefaultChildMap<>(newChildren);
     }
 
     @Override
@@ -79,13 +77,13 @@ public class SingletonChildMap<T> implements ChildMap<T> {
         if (entry.getPath().equals(newPath) && entry.getValue().equals(newChild)) {
             return this;
         }
-        return new SingletonChildMap<>(newPath, newChild, caseSensitivity);
+        return new SingletonChildMap<>(newPath, newChild);
     }
 
     @Override
     public ChildMap<T> withRemovedChild(int childIndex) {
         checkIndex(childIndex);
-        return EmptyChildMap.getInstance(caseSensitivity);
+        return EmptyChildMap.getInstance();
     }
 
     @Override

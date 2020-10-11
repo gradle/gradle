@@ -26,7 +26,7 @@ import java.util.function.BiConsumer;
 public interface ChildMap<T> {
     Optional<T> get(VfsRelativePath relativePath);
 
-    <R> R handlePath(VfsRelativePath relativePath, PathRelationshipHandler<R> handler);
+    <R> R handlePath(VfsRelativePath relativePath, CaseSensitivity caseSensitivity, PathRelationshipHandler<R> handler);
 
     T get(int index);
 

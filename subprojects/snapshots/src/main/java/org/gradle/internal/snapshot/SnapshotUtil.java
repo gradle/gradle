@@ -27,7 +27,7 @@ import java.util.function.Supplier;
 public class SnapshotUtil {
 
     public static <T extends FileSystemNode> Optional<MetadataSnapshot> getMetadataFromChildren(ChildMap<T> children, VfsRelativePath relativePath, CaseSensitivity caseSensitivity, Supplier<Optional<MetadataSnapshot>> noChildFoundResult) {
-        return children.handlePath(relativePath, new ChildMap.PathRelationshipHandler<Optional<MetadataSnapshot>>() {
+        return children.handlePath(relativePath, caseSensitivity, new ChildMap.PathRelationshipHandler<Optional<MetadataSnapshot>>() {
             @Override
             public Optional<MetadataSnapshot> handleDescendant(String childPath, int childIndex) {
                 return children.get(childIndex).getSnapshot(relativePath.fromChild(childPath), caseSensitivity);
@@ -56,7 +56,7 @@ public class SnapshotUtil {
     }
 
     public static <T extends FileSystemNode> ReadOnlyFileSystemNode getChild(ChildMap<T> children, VfsRelativePath relativePath, CaseSensitivity caseSensitivity) {
-        return children.handlePath(relativePath, new ChildMap.PathRelationshipHandler<ReadOnlyFileSystemNode>() {
+        return children.handlePath(relativePath, caseSensitivity, new ChildMap.PathRelationshipHandler<ReadOnlyFileSystemNode>() {
             @Override
             public ReadOnlyFileSystemNode handleDescendant(String childPath, int childIndex) {
                 FileSystemNode child = children.get(childIndex);
@@ -86,7 +86,7 @@ public class SnapshotUtil {
     }
 
     public static Optional<ReadOnlyFileSystemNode> getNodeFromChildren(ChildMap<FileSystemNode> children, VfsRelativePath relativePath, CaseSensitivity caseSensitivity) {
-        return children.handlePath(relativePath, new ChildMap.PathRelationshipHandler<Optional<ReadOnlyFileSystemNode>>() {
+        return children.handlePath(relativePath, caseSensitivity, new ChildMap.PathRelationshipHandler<Optional<ReadOnlyFileSystemNode>>() {
             @Override
             public Optional<ReadOnlyFileSystemNode> handleDescendant(String childPath, int childIndex) {
                 FileSystemNode child = children.get(childIndex);
@@ -116,7 +116,7 @@ public class SnapshotUtil {
     }
 
     public static ChildMap<FileSystemNode> storeSnapshot(ChildMap<FileSystemNode> children, VfsRelativePath relativePath, CaseSensitivity caseSensitivity, MetadataSnapshot snapshot, SnapshotHierarchy.NodeDiffListener diffListener) {
-        return children.handlePath(relativePath, new ChildMap.PathRelationshipHandler<ChildMap<FileSystemNode>>() {
+        return children.handlePath(relativePath, caseSensitivity, new ChildMap.PathRelationshipHandler<ChildMap<FileSystemNode>>() {
             @Override
             public ChildMap<FileSystemNode> handleDescendant(String childPath, int childIndex) {
                 FileSystemNode oldChild = children.get(childIndex);
@@ -157,11 +157,11 @@ public class SnapshotUtil {
                 String newChildPath = childPath.substring(commonPrefixLength + 1);
                 ChildMap.Entry<FileSystemNode> newChild = new ChildMap.Entry<>(newChildPath, oldChild);
                 String siblingPath = relativePath.suffixStartingFrom(commonPrefixLength + 1).getAsString();
-                ChildMap.Entry<FileSystemNode> sibling = new ChildMap.Entry<FileSystemNode>(siblingPath, snapshot.asFileSystemNode());
-                DefaultChildMap<FileSystemNode> newChildren = new DefaultChildMap<FileSystemNode>(PathUtil.getPathComparator(caseSensitivity).compare(newChild.getPath(), sibling.getPath()) < 0
+                ChildMap.Entry<FileSystemNode> sibling = new ChildMap.Entry<>(siblingPath, snapshot.asFileSystemNode());
+                DefaultChildMap<FileSystemNode> newChildren = new DefaultChildMap<>(PathUtil.getPathComparator(caseSensitivity).compare(newChild.getPath(), sibling.getPath()) < 0
                     ? ImmutableList.of(newChild, sibling)
-                    : ImmutableList.of(sibling, newChild),
-                caseSensitivity);
+                    : ImmutableList.of(sibling, newChild)
+                );
 
                 diffListener.nodeAdded(sibling.getValue());
 
@@ -189,7 +189,7 @@ public class SnapshotUtil {
             : oldNode.getSnapshot()
             .filter(oldSnapshot -> oldSnapshot instanceof CompleteFileSystemLocationSnapshot)
             .map(it -> oldNode)
-            .orElseGet(() -> snapshot.asFileSystemNode());
+            .orElseGet(snapshot::asFileSystemNode);
     }
 
     private static boolean isRegularFileOrDirectory(MetadataSnapshot metadataSnapshot) {
@@ -197,7 +197,7 @@ public class SnapshotUtil {
     }
 
     public static ChildMap<FileSystemNode> invalidateChild(ChildMap<FileSystemNode> children, VfsRelativePath relativePath, CaseSensitivity caseSensitivity, SnapshotHierarchy.NodeDiffListener diffListener) {
-        return children.handlePath(relativePath, new ChildMap.PathRelationshipHandler<ChildMap<FileSystemNode>>() {
+        return children.handlePath(relativePath, caseSensitivity, new ChildMap.PathRelationshipHandler<ChildMap<FileSystemNode>>() {
             @Override
             public ChildMap<FileSystemNode> handleDescendant(String childPath, int childIndex) {
                 FileSystemNode oldChild = children.get(childIndex);

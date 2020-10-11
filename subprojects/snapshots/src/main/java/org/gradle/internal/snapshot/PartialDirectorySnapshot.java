@@ -29,8 +29,7 @@ import java.util.Optional;
 public class PartialDirectorySnapshot extends AbstractIncompleteSnapshotWithChildren {
 
     public static PartialDirectorySnapshot withoutKnownChildren() {
-        // TODO: case sensitivity
-        return new PartialDirectorySnapshot(null, EmptyChildMap.getInstance(CaseSensitivity.CASE_INSENSITIVE));
+        return new PartialDirectorySnapshot(null, EmptyChildMap.getInstance());
     }
 
     public PartialDirectorySnapshot(String pathToParent, ChildMap<? extends FileSystemNode> children) {

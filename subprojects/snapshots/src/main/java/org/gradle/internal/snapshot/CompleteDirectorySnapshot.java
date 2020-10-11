@@ -41,7 +41,7 @@ public class CompleteDirectorySnapshot extends AbstractCompleteFileSystemLocatio
         List<ChildMap.Entry<CompleteFileSystemLocationSnapshot>> childEntries = children.stream()
             .map(it -> new ChildMap.Entry<>(it.getName(), it))
             .collect(Collectors.toList());
-        this.children = new DefaultChildMap<>(childEntries, CaseSensitivity.CASE_SENSITIVE);
+        this.children = new DefaultChildMap<>(childEntries);
         this.contentHash = contentHash;
     }
 
@@ -92,7 +92,7 @@ public class CompleteDirectorySnapshot extends AbstractCompleteFileSystemLocatio
 
     @Override
     public Optional<FileSystemNode> invalidate(VfsRelativePath relativePath, CaseSensitivity caseSensitivity, SnapshotHierarchy.NodeDiffListener diffListener) {
-        return children.handlePath(relativePath, new ChildMap.PathRelationshipHandler<Optional<FileSystemNode>>() {
+        return children.handlePath(relativePath, caseSensitivity, new ChildMap.PathRelationshipHandler<Optional<FileSystemNode>>() {
             @Override
             public Optional<FileSystemNode> handleDescendant(String childPath, int childIndex) {
                 diffListener.nodeRemoved(CompleteDirectorySnapshot.this);

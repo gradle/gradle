@@ -28,11 +28,9 @@ import java.util.stream.Collectors;
 
 public class DefaultChildMap<T> implements ChildMap<T> {
     private final List<Entry<T>> children;
-    private final CaseSensitivity caseSensitivity;
 
-    public DefaultChildMap(List<Entry<T>> children, CaseSensitivity caseSensitivity) {
+    public DefaultChildMap(List<Entry<T>> children) {
         this.children = children;
-        this.caseSensitivity = caseSensitivity;
     }
 
     @Override
@@ -41,7 +39,7 @@ public class DefaultChildMap<T> implements ChildMap<T> {
     }
 
     @Override
-    public <R> R handlePath(VfsRelativePath relativePath, PathRelationshipHandler<R> handler) {
+    public <R> R handlePath(VfsRelativePath relativePath, CaseSensitivity caseSensitivity, PathRelationshipHandler<R> handler) {
         int childIndex = SearchUtil.binarySearch(
             children,
             candidate -> relativePath.compareToFirstSegment(candidate.getPath(), caseSensitivity)
@@ -73,7 +71,7 @@ public class DefaultChildMap<T> implements ChildMap<T> {
     public ChildMap<T> withNewChild(int insertBefore, String path, T newChild) {
         List<Entry<T>> newChildren = new ArrayList<>(children);
         newChildren.add(insertBefore, new Entry<>(path, newChild));
-        return new DefaultChildMap<>(newChildren, caseSensitivity);
+        return new DefaultChildMap<>(newChildren);
     }
 
     @Override
@@ -84,7 +82,7 @@ public class DefaultChildMap<T> implements ChildMap<T> {
         }
         List<Entry<T>> newChildren = new ArrayList<>(children);
         newChildren.set(childIndex, new Entry<>(newPath, newChild));
-        return new DefaultChildMap<>(newChildren, caseSensitivity);
+        return new DefaultChildMap<>(newChildren);
     }
 
     @Override
@@ -93,9 +91,9 @@ public class DefaultChildMap<T> implements ChildMap<T> {
         newChildren.remove(childIndex);
         if (newChildren.size() == 1) {
             Entry<T> onlyChild = newChildren.get(0);
-            return new SingletonChildMap<>(onlyChild, caseSensitivity);
+            return new SingletonChildMap<>(onlyChild);
         }
-        return new DefaultChildMap<>(newChildren, caseSensitivity);
+        return new DefaultChildMap<>(newChildren);
     }
 
     @Override

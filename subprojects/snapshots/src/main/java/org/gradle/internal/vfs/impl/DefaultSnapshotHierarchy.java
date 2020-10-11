@@ -139,7 +139,7 @@ public class DefaultSnapshotHierarchy implements SnapshotHierarchy {
         public SnapshotHierarchy store(String absolutePath, MetadataSnapshot snapshot, NodeDiffListener diffListener) {
             VfsRelativePath relativePath = VfsRelativePath.of(absolutePath);
             String childPath = relativePath.getAsString();
-            SingletonChildMap<FileSystemNode> children = new SingletonChildMap<>(childPath, snapshot.asFileSystemNode(), caseSensitivity);
+            SingletonChildMap<FileSystemNode> children = new SingletonChildMap<>(childPath, snapshot.asFileSystemNode());
             FileSystemNode rootNode = snapshot.getType() == FileType.Missing
                 ? new UnknownSnapshot(childPath, children)
                 : new PartialDirectorySnapshot(childPath, children);

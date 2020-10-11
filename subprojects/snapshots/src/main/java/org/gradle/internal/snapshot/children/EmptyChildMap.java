@@ -25,21 +25,15 @@ import java.util.Optional;
 import java.util.function.BiConsumer;
 
 public class EmptyChildMap<T> implements ChildMap<T> {
-    private static final EmptyChildMap<Object> CASE_SENSITIVE = new EmptyChildMap<>(CaseSensitivity.CASE_SENSITIVE);
-    private static final EmptyChildMap<Object> CASE_INSENSITIVE = new EmptyChildMap<>(CaseSensitivity.CASE_INSENSITIVE);
+    private static final EmptyChildMap<Object> INSTANCE = new EmptyChildMap<>();
 
     @SuppressWarnings("unchecked")
-    public static <T> EmptyChildMap<T> getInstance(CaseSensitivity caseSensitivity) {
-        return (EmptyChildMap<T>) (caseSensitivity == CaseSensitivity.CASE_SENSITIVE
-                    ? CASE_SENSITIVE
-                    : CASE_INSENSITIVE);
+    public static <T> EmptyChildMap<T> getInstance() {
+        return (EmptyChildMap<T>) INSTANCE;
     }
 
-    private EmptyChildMap(CaseSensitivity caseSensitivity) {
-        this.caseSensitivity = caseSensitivity;
+    private EmptyChildMap() {
     }
-
-    private final CaseSensitivity caseSensitivity;
 
     @Override
     public Optional<T> get(VfsRelativePath relativePath) {
@@ -47,7 +41,7 @@ public class EmptyChildMap<T> implements ChildMap<T> {
     }
 
     @Override
-    public <R> R handlePath(VfsRelativePath relativePath, PathRelationshipHandler<R> handler) {
+    public <R> R handlePath(VfsRelativePath relativePath, CaseSensitivity caseSensitivity, PathRelationshipHandler<R> handler) {
         return handler.handleDifferent(0);
     }
 
@@ -71,7 +65,7 @@ public class EmptyChildMap<T> implements ChildMap<T> {
         if (insertBefore != 0) {
             throw indexOutOfBoundsException(insertBefore);
         }
-        return new SingletonChildMap<>(path, newChild, caseSensitivity);
+        return new SingletonChildMap<>(path, newChild);
     }
 
     @Override
