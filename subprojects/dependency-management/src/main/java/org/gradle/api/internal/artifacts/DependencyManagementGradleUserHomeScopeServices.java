@@ -31,6 +31,7 @@ import org.gradle.cache.internal.CacheScopeMapping;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.internal.UsedGradleVersions;
 import org.gradle.initialization.RootBuildLifecycleListener;
+import org.gradle.initialization.layout.ProjectCacheDir;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.history.ExecutionHistoryCacheAccess;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
@@ -109,10 +110,6 @@ public class DependencyManagementGradleUserHomeScopeServices {
             }
         });
         return workspaceProvider;
-    }
-
-    DependenciesAccessorsWorkspace createDependenciesAccessorsWorkspace(CacheScopeMapping cacheScopeMapping, CacheRepository cacheRepository, FileAccessTimeJournal fileAccessTimeJournal, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory, StringInterner stringInterner) {
-        return new DependenciesAccessorsWorkspace(cacheScopeMapping, cacheRepository, fileAccessTimeJournal, inMemoryCacheDecoratorFactory, stringInterner);
     }
 
 }

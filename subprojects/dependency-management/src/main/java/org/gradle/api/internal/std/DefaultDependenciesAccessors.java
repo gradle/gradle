@@ -73,7 +73,7 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
                 File srcDir = new File(workspace, "sources");
                 File dstDir = new File(workspace, "classes");
                 if (!srcDir.exists() || !dstDir.exists()) {
-                    DependenciesSourceGenerator.generateSource(writer, dependenciesConfiguration, ACCESSORS_PACKAGE, ACCESSORS_CLASSNAME);
+                    DependenciesSourceGenerator.generateSource(writer, source, dependenciesConfiguration, ACCESSORS_PACKAGE, ACCESSORS_CLASSNAME);
                     DependenciesClassGenerator.compile(srcDir, dstDir, ACCESSORS_PACKAGE, ACCESSORS_CLASSNAME, writer.toString(), classPath);
                 }
                 sources = DefaultClassPath.of(srcDir);

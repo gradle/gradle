@@ -13,19 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.std;
+package org.gradle.api.internal.artifacts;
 
 import org.gradle.api.internal.cache.StringInterner;
+import org.gradle.api.internal.std.DependenciesAccessorsWorkspace;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.internal.CacheScopeMapping;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
-import org.gradle.cache.internal.VersionStrategy;
 import org.gradle.initialization.layout.ProjectCacheDir;
-import org.gradle.internal.execution.workspace.impl.DefaultImmutableWorkspaceProvider;
 import org.gradle.internal.file.FileAccessTimeJournal;
 
-public class DependenciesAccessorsWorkspace extends DefaultImmutableWorkspaceProvider {
-    public DependenciesAccessorsWorkspace(ProjectCacheDir projectCacheDir, CacheScopeMapping cacheScopeMapping, CacheRepository cacheRepository, FileAccessTimeJournal fileAccessTimeJournal, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory, StringInterner stringInterner) {
-        super("dependencies-accessors", cacheScopeMapping.getBaseDirectory(projectCacheDir.getDir(), "dependencies-accessors", VersionStrategy.CachePerVersion), cacheRepository, fileAccessTimeJournal, inMemoryCacheDecoratorFactory, stringInterner);
+public class DependencyManagementBuildSessionScopeServices {
+
+    DependenciesAccessorsWorkspace createDependenciesAccessorsWorkspace(ProjectCacheDir projectCacheDir, CacheScopeMapping cacheScopeMapping, CacheRepository cacheRepository, FileAccessTimeJournal fileAccessTimeJournal, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory, StringInterner stringInterner) {
+        return new DependenciesAccessorsWorkspace(projectCacheDir, cacheScopeMapping, cacheRepository, fileAccessTimeJournal, inMemoryCacheDecoratorFactory, stringInterner);
     }
+
 }
