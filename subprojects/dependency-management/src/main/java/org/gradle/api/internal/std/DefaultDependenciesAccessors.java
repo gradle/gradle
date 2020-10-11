@@ -44,8 +44,8 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
     private final ObjectFactory objects;
     private AllDependenciesModel dependenciesConfiguration;
     private Class<? extends ExternalModuleDependencyFactory> factory;
-    private ClassPath sources;
-    private ClassPath classes;
+    private ClassPath sources = DefaultClassPath.of();
+    private ClassPath classes = DefaultClassPath.of();
 
     public DefaultDependenciesAccessors(ClassPathRegistry registry, DependenciesAccessorsWorkspace workspace, ProviderFactory providerFactory, ObjectFactory objects) {
         this.classPath = registry.getClassPath("DEPENDENCIES-EXTENSION-COMPILER");

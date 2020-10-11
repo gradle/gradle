@@ -119,6 +119,28 @@ public abstract class DefaultDependencyHandler implements DependencyHandler, Met
     }
 
     @Override
+    public <T, U extends ExternalModuleDependency> void addProvider(String configurationName, Provider<T> dependencyNotation, Action<? super U> configuration) {
+        doAddProvider(configurationContainer.getByName(configurationName), dependencyNotation, closureOf(configuration));
+    }
+
+    @SuppressWarnings("ConstantConditions")
+    private <U extends ExternalModuleDependency> Closure<Object> closureOf(Action<? super U> configuration) {
+        return new Closure<Object>(this, this) {
+            @Override
+            public Object call() {
+                configuration.execute(Cast.uncheckedCast(getDelegate()));
+                return null;
+            }
+
+            @Override
+            public Object call(Object arguments) {
+                configuration.execute(Cast.uncheckedCast(arguments));
+                return null;
+            }
+        };
+    }
+
+    @Override
     public Dependency create(Object dependencyNotation) {
         return create(dependencyNotation, null);
     }
