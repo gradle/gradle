@@ -29,7 +29,7 @@ import static org.gradle.performance.generator.JavaTestProjectGenerator.LARGE_JA
 class JavaFirstUsePerformanceTest extends AbstractCrossVersionPerformanceTest {
 
     def setup() {
-        runner.targetVersions = ["6.8-20201005220043+0000"]
+        runner.targetVersions = ["6.8-20201011220037+0000"]
     }
 
     def "first use"() {
