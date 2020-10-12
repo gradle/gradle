@@ -10,7 +10,7 @@ class CustomTaskUsingToolchains extends DefaultTask {
         // Access the default toolchain
         def toolchain = project.getExtensions().getByType(JavaPluginExtension.class).toolchain
 
-        // aquire a provider that returns the launcher for the toolchain
+        // acquire a provider that returns the launcher for the toolchain
         JavaToolchainService service = project.getExtensions().getByType(JavaToolchainService.class);
         Provider<JavaLauncher> defaultLauncher = service.launcherFor(toolchain);
 

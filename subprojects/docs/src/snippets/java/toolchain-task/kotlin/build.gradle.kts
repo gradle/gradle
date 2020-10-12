@@ -10,7 +10,7 @@ open class CustomTaskUsingToolchains : DefaultTask {
         // Access the default toolchain
         val toolchain = project.extensions.getByType<JavaPluginExtension>().toolchain
 
-        // aquire a provider that returns the launcher for the toolchain
+        // acquire a provider that returns the launcher for the toolchain
         val service = project.extensions.getByType<JavaToolchainService>()
         val defaultLauncher = service.launcherFor(toolchain)
 

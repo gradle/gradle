@@ -41,13 +41,21 @@ Executing the build (e.g. using `gradle check`) will now handle several things f
 3. Gradle chooses a JRE/JDK matching the requirements of the build (in this case a JVM supporting Java 14)
 4. If no matching JVM is found, it will automatically download a matching JDK from https://adoptopenjdk.net/[AdoptOpenJDK]
 
+[NOTE]
+====
+Toolchain support is only available in the Java plugins and for the tasks they define.
+Support for Groovy and Scala plugins will be released later.
+The support will cover the specific compilation and documentation tasks added by these plugins.
+However _running tests_ can leverage the toolchain support since the `Test` task does support toolchains.
+====
+
 == Specify custom toolchains for individual tasks
 
 In case you want to tweak which toolchain is used for a specific task, you can specify the exact tool a task is using.
-For example, a `Test` task exposes a `JavaLauncher` property that defines which java executable to use to launch the tests.
+For example, the `Test` task exposes a `JavaLauncher` property that defines which java executable to use for launching the tests.
 
 In the example below, we configure the default toolchain to use JDK8 for compiling and testing.
-Additionally, we introduce a new Test task that is going to run our unit tests but using a JDK 14.
+Additionally, we introduce a new `Test` task that is going to run our unit tests but using a JDK 14.
 
 ====
 include::sample[dir="samples/java/jvm-multi-project-with-toolchains/groovy/",files="list/build.gradle[tags=customToolchain]"]
@@ -64,6 +72,22 @@ Three tools are available:
 * A `JavaCompiler` which is the tool used by the `JavaCompile` task
 * A `JavaLauncher` which is the tool used by the `JavaExec` or `Test` tasks
 * A `JavadocTool` which is the tool used by the `Javadoc` task
+
+=== Integration with tasks relying on a Java executable or Java home
+
+Any tasks that can be configured with a path to a Java executable, or a Java home location, can benefit from toolchains.
+
+While you will not be able to wire a toolchain tool directly, they all have metadata that gives access to their full path or to the path of the Java installation they belong to.
+
+For example, you can configure the executable for a Kotlin compile tasks as follows:
+
+====
+include::sample[dir="snippets/java/toolchain-kotlin/groovy/",files="build.gradle[tags=compiler-kotlin]"]
+include::sample[dir="snippets/java/toolchain-kotlin/kotlin/",files="build.gradle.kts[tags=compiler-kotlin]"]
+====
+
+Similarly, doing `compiler.get().executablePath` would give you the full path to `javac` for the given toolchain.
+Please note however that this may realize (and provision) a toolchain eagerly.
 
 [[sec:auto_detection]]
 == Auto detection of installed toolchains
