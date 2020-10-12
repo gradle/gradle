@@ -35,14 +35,10 @@ public interface JavaResolutionConsistency {
      * {@link #useRuntimeClasspathVersions()} for different reasons:
      * <p>
      * <ul>
-     *     <li>when working with code, what you care about first is what
-     *     dependencies you use for compile. It is expected that the versions
-     *     at runtime would be the same.
+     *     <li>As code is compiled first against the given dependencies,
+     *     it is expected that the versions at runtime would be the same.
      *     </li>
-     *     <li>it's more performant, as in most situations you always start
-     *     with compiling code, then run it. This means that the runtime
-     *     classpath wouldn't have to be resolved, for example, if you have
-     *     a compile error.
+     *     <li>It avoids resolving the runtime classpath in case of a compile error.
      *     </li>
      * </ul>
      *
