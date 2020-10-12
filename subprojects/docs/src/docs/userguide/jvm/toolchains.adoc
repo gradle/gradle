@@ -73,6 +73,22 @@ Three tools are available:
 * A `JavaLauncher` which is the tool used by the `JavaExec` or `Test` tasks
 * A `JavadocTool` which is the tool used by the `Javadoc` task
 
+=== Integration with tasks relying on a Java executable or Java home
+
+Any tasks that can be configured with a path to a Java executable, or a Java home location, can benefit from toolchains.
+
+While you will not be able to wire a toolchain tool directly, they all have metadata that gives access to their full path or to the path of the Java installation they belong to.
+
+For example, you can configure the executable for a Kotlin compile tasks as follows:
+
+====
+include::sample[dir="snippets/java/toolchain-kotlin/groovy/",files="build.gradle[tags=compiler-kotlin]"]
+include::sample[dir="snippets/java/toolchain-kotlin/kotlin/",files="build.gradle.kts[tags=compiler-kotlin]"]
+====
+
+Similarly, doing `compiler.get().executablePath` would give you the full path to `javac` for the given toolchain.
+Please note however that this may realize (and provision) a toolchain eagerly.
+
 [[sec:auto_detection]]
 == Auto detection of installed toolchains
 

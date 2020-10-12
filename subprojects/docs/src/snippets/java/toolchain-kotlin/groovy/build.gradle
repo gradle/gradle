@@ -1,0 +1,15 @@
+import org.jetbrains.kotlin.gradle.dsl.KotlinJvmCompile
+
+plugins {
+    id "org.jetbrains.kotlin.jvm" version "1.4.10"
+}
+
+// tag::compiler-kotlin[]
+def compiler = javaToolchains.compilerFor {
+    languageVersion = JavaLanguageVersion.of(11)
+}
+
+tasks.withType(KotlinJvmCompile).configureEach {
+    kotlinOptions.jdkHome = compiler.get().metadata.installationPath.asFile.absolutePath
+}
+// end::compiler-kotlin[]
