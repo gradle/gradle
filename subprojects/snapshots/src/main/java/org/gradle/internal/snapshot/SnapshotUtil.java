@@ -121,33 +121,35 @@ public class SnapshotUtil {
             public ChildMap<FileSystemNode> handleDescendant(String childPath, int childIndex) {
                 FileSystemNode oldChild = children.get(childIndex);
                 FileSystemNode newChild = oldChild.store(relativePath.fromChild(childPath), caseSensitivity, snapshot, diffListener);
-                return replacedChild(childIndex, childPath, childPath, newChild);
+                return replacedChild(childIndex, childPath, childPath, newChild, false);
             }
 
             @Override
             public ChildMap<FileSystemNode> handleAncestor(String childPath, int childIndex) {
-                return replacedChild(childIndex, childPath, relativePath.getAsString(), snapshot.asFileSystemNode());
+                return replacedChild(childIndex, childPath, relativePath.getAsString(), snapshot.asFileSystemNode(), true);
             }
 
             @Override
             public ChildMap<FileSystemNode> handleSame(int childIndex) {
                 FileSystemNode oldChild = children.get(childIndex);
                 FileSystemNode newChild = mergeSnapshotWithNode(relativePath, snapshot, oldChild);
-                return replacedChild(childIndex, relativePath.getAsString(), relativePath.getAsString(), newChild);
+                return replacedChild(childIndex, relativePath.getAsString(), relativePath.getAsString(), newChild, true);
             }
 
-            private ChildMap<FileSystemNode> replacedChild(int childIndex, String oldChildPath, String newChildPath, FileSystemNode newChild) {
+            private ChildMap<FileSystemNode> replacedChild(int childIndex, String oldChildPath, String newChildPath, FileSystemNode newChild, boolean notifyListener) {
                 FileSystemNode oldChild = children.get(childIndex);
                 if (oldChildPath.equals(newChildPath) && oldChild.equals(newChild)) {
                     return children;
                 }
-                diffListener.nodeRemoved(oldChild);
-                diffListener.nodeAdded(newChild);
+                if (notifyListener) {
+                    diffListener.nodeRemoved(oldChild);
+                    diffListener.nodeAdded(newChild);
+                }
                 return children.withReplacedChild(
-                        childIndex,
+                    childIndex,
                     newChildPath,
-                        newChild
-                    );
+                    newChild
+                );
             }
 
             @Override

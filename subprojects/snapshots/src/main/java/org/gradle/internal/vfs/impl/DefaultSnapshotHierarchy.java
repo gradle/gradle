@@ -89,6 +89,7 @@ public class DefaultSnapshotHierarchy implements SnapshotHierarchy {
     public SnapshotHierarchy invalidate(String absolutePath, NodeDiffListener diffListener) {
         VfsRelativePath relativePath = VfsRelativePath.of(absolutePath);
         if (relativePath.length() == 0) {
+            diffListener.nodeRemoved(rootNode);
             return empty();
         }
         return rootNode.invalidate(relativePath, caseSensitivity, diffListener)

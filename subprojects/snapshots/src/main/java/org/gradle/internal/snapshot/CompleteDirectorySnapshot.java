@@ -118,7 +118,6 @@ public class CompleteDirectorySnapshot extends AbstractCompleteFileSystemLocatio
                 ChildMap<FileSystemNode> newChildren = invalidated
                     .map(invalidatedChild -> nodeChildren.withReplacedChild(childIndex, childPath, invalidatedChild))
                     .orElseGet(() -> nodeChildren.withRemovedChild(childIndex));
-                newChildren.visitChildren((__, child) -> diffListener.nodeAdded(child));
                 return Optional.of(new PartialDirectorySnapshot(newChildren));
             }
 
@@ -129,6 +128,7 @@ public class CompleteDirectorySnapshot extends AbstractCompleteFileSystemLocatio
 
             @Override
             public Optional<FileSystemNode> handleSame(int childIndex) {
+                diffListener.nodeRemoved(CompleteDirectorySnapshot.this);
                 @SuppressWarnings({"unchecked", "rawtypes"})
                 ChildMap<FileSystemNode> nodeChildren = (ChildMap<FileSystemNode>) ((ChildMap) children);
                 ChildMap<FileSystemNode> newChildren = nodeChildren.withRemovedChild(childIndex);

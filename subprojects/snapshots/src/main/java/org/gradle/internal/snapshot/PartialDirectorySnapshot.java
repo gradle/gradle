@@ -43,7 +43,7 @@ public class PartialDirectorySnapshot extends AbstractIncompleteSnapshotWithChil
 
     @Override
     protected Optional<FileSystemNode> withAllChildrenRemoved() {
-        return Optional.of(withoutKnownChildren());
+        return Optional.of(children.isEmpty() ? this : withoutKnownChildren());
     }
 
     @Override
