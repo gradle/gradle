@@ -16,8 +16,6 @@
 
 package org.gradle.internal.snapshot;
 
-import org.gradle.internal.snapshot.children.ChildMap;
-
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 

@@ -16,9 +16,6 @@
 
 package org.gradle.internal.snapshot;
 
-import org.gradle.internal.snapshot.children.ChildMap;
-import org.gradle.internal.snapshot.children.EmptyChildMap;
-
 import java.util.Optional;
 
 /**

@@ -22,10 +22,10 @@ import org.gradle.internal.snapshot.CaseSensitivity;
 import org.gradle.internal.snapshot.FileSystemNode;
 import org.gradle.internal.snapshot.MetadataSnapshot;
 import org.gradle.internal.snapshot.PartialDirectorySnapshot;
+import org.gradle.internal.snapshot.SingletonChildMap;
 import org.gradle.internal.snapshot.SnapshotHierarchy;
 import org.gradle.internal.snapshot.UnknownSnapshot;
 import org.gradle.internal.snapshot.VfsRelativePath;
-import org.gradle.internal.snapshot.children.SingletonChildMap;
 
 import java.util.Optional;
 

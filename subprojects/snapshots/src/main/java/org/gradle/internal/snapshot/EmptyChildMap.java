@@ -14,10 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.snapshot.children;
-
-import org.gradle.internal.snapshot.CaseSensitivity;
-import org.gradle.internal.snapshot.VfsRelativePath;
+package org.gradle.internal.snapshot;
 
 import java.util.Collections;
 import java.util.List;
@@ -48,6 +45,11 @@ public class EmptyChildMap<T> implements ChildMap<T> {
     @Override
     public T get(int index) {
         throw indexOutOfBoundsException(index);
+    }
+
+    @Override
+    public int indexOf(String path, CaseSensitivity caseSensitivity) {
+        return -1;
     }
 
     @Override

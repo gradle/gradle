@@ -25,7 +25,7 @@ import static org.gradle.internal.snapshot.CaseSensitivity.CASE_SENSITIVE
 
 abstract class AbstractSnapshotWithChildrenTest<NODE extends FileSystemNode, CHILD extends FileSystemNode> extends Specification {
     NODE initialRoot
-    List<CHILD> children
+    ChildMap<CHILD> children
     VfsRelativePath searchedPath
 
     List<FileSystemNode> removedNodes = []
@@ -43,58 +43,84 @@ abstract class AbstractSnapshotWithChildrenTest<NODE extends FileSystemNode, CHI
         }
     }
 
+    String selectedChildPath
     /**
-     * The child, if any, which has a common prefix with the selected path, i.e. (absolutePath/offset).
+     * The child, if any, which has a common prefix with the selected path.
      */
     FileSystemNode selectedChild
 
-    abstract protected NODE createInitialRootNode(String pathToParent, List<CHILD> children);
+    abstract protected NODE createInitialRootNode(ChildMap<CHILD> children);
 
-    abstract protected CHILD mockChild(String pathToParent)
+    abstract protected CHILD mockChild()
 
     void setupTest(VirtualFileSystemTestSpec spec) {
         this.children = createChildren(spec.childPaths)
-        this.initialRoot = createInitialRootNode("path/to/parent", children)
+        this.initialRoot = createInitialRootNode(children)
         this.searchedPath = spec.searchedPath
-//        this.selectedChild = children.find { it.pathToParent == spec.selectedChildPath }
+        this.selectedChildPath = spec.selectedChildPath
+        if (selectedChildPath != null) {
+            def selectedChildIndex = children.indexOf(selectedChildPath, CASE_SENSITIVE)
+            this.selectedChild = selectedChildIndex == -1 ? null : children.get(selectedChildIndex)
+        }
     }
 
-    List<CHILD> createChildren(List<String> pathsToParent) {
-        return pathsToParent.stream()
+    ChildMap<CHILD> createChildren(List<String> pathsToParent) {
+        return ChildMap.of(pathsToParent.stream()
             .sorted(PathUtil.getPathComparator(CASE_SENSITIVE))
-            .map { childPath -> mockChild(childPath) }
-            .collect(Collectors.toList())
+            .map { childPath -> new ChildMap.Entry(childPath, mockChild()) }
+            .collect(Collectors.toList()))
     }
 
-    List<FileSystemNode> childrenWithSelectedChildReplacedBy(FileSystemNode replacement) {
-        children.collect { it == selectedChild ? replacement : it }
+    ChildMap<FileSystemNode> childrenWithSelectedChildReplacedBy(FileSystemNode replacement) {
+        children.withReplacedChild(children.indexOf(selectedChildPath, CASE_SENSITIVE), selectedChildPath, replacement)
     }
 
-    List<FileSystemNode> childrenWithAdditionalChild(FileSystemNode newChild) {
-        List<FileSystemNode> newChildren = new ArrayList<>(children)
-        newChildren.add(insertionPoint, newChild)
-        return newChildren
+    ChildMap<FileSystemNode> childrenWithSelectedChildReplacedBy(String replacementPath, FileSystemNode replacement) {
+        children.withReplacedChild(children.indexOf(selectedChildPath, CASE_SENSITIVE), replacementPath, replacement)
     }
 
-    List<CHILD> childrenWithSelectedChildRemoved() {
-        children.findAll { it != selectedChild }
+    ChildMap<FileSystemNode> childrenWithAdditionalChild(String path, FileSystemNode newChild) {
+        children.handlePath(VfsRelativePath.of(path), CASE_SENSITIVE, new ChildMap.PathRelationshipHandler<ChildMap<FileSystemNode>>() {
+            @Override
+            ChildMap<FileSystemNode> handleDescendant(String childPath, int childIndex) {
+                throw new AssertionError()
+            }
+
+            @Override
+            ChildMap<FileSystemNode> handleAncestor(String childPath, int childIndex) {
+                throw new AssertionError()
+            }
+
+            @Override
+            ChildMap<FileSystemNode> handleSame(int childIndex) {
+                throw new AssertionError()
+            }
+
+            @Override
+            ChildMap<FileSystemNode> handleCommonPrefix(int commonPrefixLength, String childPath, int childIndex) {
+                return PathUtil.getPathComparator(CASE_SENSITIVE).compare(path, childPath) < 0
+                    ? children.withNewChild(childIndex, path, newChild)
+                    : children.withNewChild(childIndex + 1, path, newChild)
+            }
+
+            @Override
+            ChildMap<FileSystemNode> handleDifferent(int indexOfNextBiggerChild) {
+                return children.withNewChild(indexOfNextBiggerChild, path, newChild)
+            }
+        })
     }
 
-    CHILD getNodeWithIndexOfSelectedChild(List<CHILD> newChildren) {
-        int index = children.indexOf(selectedChild)
-        return newChildren[index]
+    ChildMap<CHILD> childrenWithSelectedChildRemoved() {
+        children.withRemovedChild(children.indexOf(selectedChildPath, CASE_SENSITIVE))
     }
 
-    private int getInsertionPoint() {
-//        int childIndex = SearchUtil.binarySearch(children) {
-//            candidate -> searchedPath.compareToFirstSegment(candidate.pathToParent, CASE_SENSITIVE)
-//        }
-//        assert childIndex < 0
-//        return -childIndex - 1
+    CHILD getNodeWithIndexOfSelectedChild(ChildMap<CHILD> newChildren) {
+        int index = children.indexOf(selectedChildPath, CASE_SENSITIVE)
+        return newChildren.get(index)
     }
 
     String getCommonPrefix() {
-//        return selectedChild.pathToParent.substring(0, searchedPath.lengthOfCommonPrefix(selectedChild.pathToParent, CASE_SENSITIVE))
+        return selectedChildPath.substring(0, searchedPath.lengthOfCommonPrefix(selectedChildPath, CASE_SENSITIVE))
     }
 
     String getPathFromCommonPrefix() {
@@ -102,22 +128,22 @@ abstract class AbstractSnapshotWithChildrenTest<NODE extends FileSystemNode, CHI
     }
 
     String getSelectedChildPathFromCommonPrefix() {
-//        return selectedChild.pathToParent.substring(commonPrefix.length() + 1)
+        return selectedChildPath.substring(commonPrefix.length() + 1)
     }
 
     def getDescendantSnapshotOfSelectedChild(@Nullable MetadataSnapshot foundSnapshot) {
-//        def descendantOffset = selectedChild.pathToParent.length() + 1
-//        1 * selectedChild.getSnapshot(searchedPath.suffixStartingFrom(descendantOffset), CASE_SENSITIVE) >> Optional.ofNullable(foundSnapshot)
+        def descendantOffset = selectedChildPath.length() + 1
+        1 * selectedChild.getSnapshot(searchedPath.suffixStartingFrom(descendantOffset), CASE_SENSITIVE) >> Optional.ofNullable(foundSnapshot)
     }
 
     def getDescendantNodeOfSelectedChild(ReadOnlyFileSystemNode foundNode) {
-//        def descendantOffset = selectedChild.pathToParent.length() + 1
-//        1 * selectedChild.getNode(searchedPath.suffixStartingFrom(descendantOffset), CASE_SENSITIVE) >> foundNode
+        def descendantOffset = selectedChildPath.length() + 1
+        1 * selectedChild.getNode(searchedPath.suffixStartingFrom(descendantOffset), CASE_SENSITIVE) >> foundNode
     }
 
     def invalidateDescendantOfSelectedChild(@Nullable FileSystemNode invalidatedChild) {
-//        def descendantOffset = selectedChild.pathToParent.length() + 1
-//        1 * selectedChild.invalidate(searchedPath.suffixStartingFrom(descendantOffset), CASE_SENSITIVE, _) >> Optional.ofNullable(invalidatedChild)
+        def descendantOffset = selectedChildPath.length() + 1
+        1 * selectedChild.invalidate(searchedPath.suffixStartingFrom(descendantOffset), CASE_SENSITIVE, _) >> Optional.ofNullable(invalidatedChild)
     }
 
     @SuppressWarnings("GrMethodMayBeStatic")

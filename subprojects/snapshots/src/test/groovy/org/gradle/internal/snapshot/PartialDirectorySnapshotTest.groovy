@@ -25,8 +25,8 @@ import static org.gradle.internal.snapshot.CaseSensitivity.CASE_SENSITIVE
 class PartialDirectorySnapshotTest extends AbstractIncompleteSnapshotWithChildrenTest<PartialDirectorySnapshot> {
 
     @Override
-    protected PartialDirectorySnapshot createInitialRootNode(String pathToParent, List<FileSystemNode> children) {
-        return new PartialDirectorySnapshot(pathToParent, children)
+    protected PartialDirectorySnapshot createInitialRootNode(ChildMap<FileSystemNode> children) {
+        return new PartialDirectorySnapshot(children)
     }
 
     @Override
@@ -57,7 +57,7 @@ class PartialDirectorySnapshotTest extends AbstractIncompleteSnapshotWithChildre
 
     def "invalidate #vfsSpec.searchedPath invalidates children of #vfsSpec.selectedChildPath (#vfsSpec)"() {
         setupTest(vfsSpec)
-//        def invalidatedChild = mockChild(selectedChild.pathToParent)
+        def invalidatedChild = mockChild()
 
         when:
         def resultRoot = initialRoot.invalidate(searchedPath, CASE_SENSITIVE, diffListener).get()
@@ -96,7 +96,7 @@ class PartialDirectorySnapshotTest extends AbstractIncompleteSnapshotWithChildre
     }
 
     def "returns Directory for snapshot"() {
-        def node = new PartialDirectorySnapshot("some/prefix", [])
+        def node = new PartialDirectorySnapshot(EmptyChildMap.getInstance())
 
         expect:
         node.getSnapshot().get().type == FileType.Directory

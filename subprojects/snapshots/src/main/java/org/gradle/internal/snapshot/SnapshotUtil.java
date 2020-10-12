@@ -18,8 +18,6 @@ package org.gradle.internal.snapshot;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.internal.file.FileType;
-import org.gradle.internal.snapshot.children.ChildMap;
-import org.gradle.internal.snapshot.children.DefaultChildMap;
 
 import java.util.Optional;
 import java.util.function.Supplier;

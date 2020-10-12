@@ -14,11 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.snapshot.children;
+package org.gradle.internal.snapshot;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.internal.snapshot.CaseSensitivity;
-import org.gradle.internal.snapshot.VfsRelativePath;
 
 import java.util.Collections;
 import java.util.List;
@@ -50,6 +48,11 @@ public class SingletonChildMap<T> implements ChildMap<T> {
     public T get(int index) {
         checkIndex(index);
         return entry.getValue();
+    }
+
+    @Override
+    public int indexOf(String path, CaseSensitivity caseSensitivity) {
+        return (entry.getPath().equals(path)) ? 0 : -1;
     }
 
     @Override
@@ -95,5 +98,24 @@ public class SingletonChildMap<T> implements ChildMap<T> {
         if (childIndex != 0) {
             throw new IndexOutOfBoundsException("Index out of range: " + childIndex);
         }
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        SingletonChildMap<?> that = (SingletonChildMap<?>) o;
+
+        return entry.equals(that.entry);
+    }
+
+    @Override
+    public int hashCode() {
+        return entry.hashCode();
     }
 }

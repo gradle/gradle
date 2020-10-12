@@ -20,8 +20,6 @@ import com.google.common.annotations.VisibleForTesting;
 import org.gradle.internal.file.FileMetadata.AccessType;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.hash.HashCode;
-import org.gradle.internal.snapshot.children.ChildMap;
-import org.gradle.internal.snapshot.children.DefaultChildMap;
 
 import java.util.List;
 import java.util.Optional;
@@ -37,11 +35,20 @@ public class CompleteDirectorySnapshot extends AbstractCompleteFileSystemLocatio
     private final HashCode contentHash;
 
     public CompleteDirectorySnapshot(String absolutePath, String name, List<CompleteFileSystemLocationSnapshot> children, HashCode contentHash, AccessType accessType) {
+        this(
+            absolutePath,
+            name,
+            ChildMap.of(children.stream()
+                .map(it -> new ChildMap.Entry<>(it.getName(), it))
+                .collect(Collectors.toList())),
+            contentHash,
+            accessType
+        );
+    }
+
+    public CompleteDirectorySnapshot(String absolutePath, String name, ChildMap<CompleteFileSystemLocationSnapshot> children, HashCode contentHash, AccessType accessType) {
         super(absolutePath, name, accessType);
-        List<ChildMap.Entry<CompleteFileSystemLocationSnapshot>> childEntries = children.stream()
-            .map(it -> new ChildMap.Entry<>(it.getName(), it))
-            .collect(Collectors.toList());
-        this.children = new DefaultChildMap<>(childEntries);
+        this.children = children;
         this.contentHash = contentHash;
     }
 

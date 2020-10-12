@@ -166,7 +166,7 @@ class DirectorySnapshotterTest extends Specification {
         when:
         def snapshot = directorySnapshotter.snapshot(rootDir.absolutePath, null, new AtomicBoolean(false))
         then:
-        snapshot.children.size == 1
+        snapshot.children.size() == 1
         def brokenSymlinkSnapshot = snapshot.children[0]
         brokenSymlinkSnapshot.class == MissingFileSnapshot
         brokenSymlinkSnapshot.accessType == AccessType.VIA_SYMLINK
@@ -188,7 +188,7 @@ class DirectorySnapshotterTest extends Specification {
         when:
         def snapshot = directorySnapshotter.snapshot(rootDir.absolutePath, null, new AtomicBoolean(false))
         then:
-        snapshot.children.size == 1
+        snapshot.children.size() == 1
         def dirSnapshot = snapshot.children[0]
         dirSnapshot.class == CompleteDirectorySnapshot
         dirSnapshot.accessType == AccessType.DIRECT

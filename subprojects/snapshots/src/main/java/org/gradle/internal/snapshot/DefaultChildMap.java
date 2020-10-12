@@ -14,11 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.snapshot.children;
-
-import org.gradle.internal.snapshot.CaseSensitivity;
-import org.gradle.internal.snapshot.SearchUtil;
-import org.gradle.internal.snapshot.VfsRelativePath;
+package org.gradle.internal.snapshot;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -53,6 +49,36 @@ public class DefaultChildMap<T> implements ChildMap<T> {
     @Override
     public T get(int index) {
         return children.get(index).getValue();
+    }
+
+    @Override
+    public int indexOf(String path, CaseSensitivity caseSensitivity) {
+        return handlePath(VfsRelativePath.of(path), caseSensitivity, new PathRelationshipHandler<Integer>() {
+            @Override
+            public Integer handleDescendant(String childPath, int childIndex) {
+                return -1;
+            }
+
+            @Override
+            public Integer handleAncestor(String childPath, int childIndex) {
+                return -1;
+            }
+
+            @Override
+            public Integer handleSame(int childIndex) {
+                return childIndex;
+            }
+
+            @Override
+            public Integer handleCommonPrefix(int commonPrefixLength, String childPath, int childIndex) {
+                return -1;
+            }
+
+            @Override
+            public Integer handleDifferent(int indexOfNextBiggerChild) {
+                return -1;
+            }
+        });
     }
 
     @Override
@@ -101,5 +127,24 @@ public class DefaultChildMap<T> implements ChildMap<T> {
         for (Entry<T> child : children) {
             visitor.accept(child.getPath(), child.getValue());
         }
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        DefaultChildMap<?> that = (DefaultChildMap<?>) o;
+
+        return children.equals(that.children);
+    }
+
+    @Override
+    public int hashCode() {
+        return children.hashCode();
     }
 }

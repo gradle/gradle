@@ -14,21 +14,31 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.snapshot.children;
-
-import org.gradle.internal.snapshot.CaseSensitivity;
-import org.gradle.internal.snapshot.VfsRelativePath;
+package org.gradle.internal.snapshot;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.function.BiConsumer;
 
 public interface ChildMap<T> {
+    static <T> ChildMap<T> of(List<Entry<T>> entries) {
+        switch (entries.size()) {
+            case 0:
+                return EmptyChildMap.getInstance();
+            case 1:
+                return new SingletonChildMap<>(entries.get(0));
+            default:
+                return new DefaultChildMap<>(entries);
+        }
+    }
+
     Optional<T> get(VfsRelativePath relativePath);
 
     <R> R handlePath(VfsRelativePath relativePath, CaseSensitivity caseSensitivity, PathRelationshipHandler<R> handler);
 
     T get(int index);
+
+    int indexOf(String path, CaseSensitivity caseSensitivity);
 
     boolean isEmpty();
 
@@ -78,6 +88,35 @@ public interface ChildMap<T> {
 
         public T getValue() {
             return value;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+
+            Entry<?> entry = (Entry<?>) o;
+
+            if (!path.equals(entry.path)) {
+                return false;
+            }
+            return value.equals(entry.value);
+        }
+
+        @Override
+        public int hashCode() {
+            int result = path.hashCode();
+            result = 31 * result + value.hashCode();
+            return result;
+        }
+
+        @Override
+        public String toString() {
+            return "Entry{" + path + " : " + value + '}';
         }
     }
 

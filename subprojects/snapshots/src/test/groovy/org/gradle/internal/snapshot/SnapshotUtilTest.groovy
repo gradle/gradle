@@ -107,6 +107,6 @@ class SnapshotUtilTest extends Specification {
 //    }
 
     protected FileSystemNode mockChild(String pathToParent) {
-        Mock(FileSystemNode, defaultResponse: new RespondWithPathToParent(pathToParent), name: pathToParent)
+        Mock(FileSystemNode)
     }
 }
