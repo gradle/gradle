@@ -143,7 +143,7 @@ public class DefaultJavaPluginExtension implements JavaPluginExtension {
 
     @Override
     public void consistentResolution(Action<? super JavaResolutionConsistency> action) {
-        final ConfigurationContainer configurations = project.getConfigurations();;
+        final ConfigurationContainer configurations = project.getConfigurations();
         final SourceSetContainer sourceSets = convention.getSourceSets();
 
         action.execute(project.getObjects().newInstance(DefaultJavaResolutionConsistency.class, sourceSets, configurations));
