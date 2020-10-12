@@ -46,6 +46,7 @@ The API supporting the Java Toolchain feature in `org.gradle.jvm.toolchain` is n
 
 - JaCoCo has been updated to http://www.jacoco.org/jacoco/trunk/doc/changes.html[0.8.6].
 - Checkstyle has been updated to https://checkstyle.sourceforge.io/releasenotes.html#Release_8.37[Checkstyle 8.37].
+- CodeNarc has been updated to https://github.com/CodeNarc/CodeNarc/blob/v2.0.0/CHANGELOG.md[CodeNarc 2.0.0].
 
 ==== Updates to bundled Gradle dependencies
 
