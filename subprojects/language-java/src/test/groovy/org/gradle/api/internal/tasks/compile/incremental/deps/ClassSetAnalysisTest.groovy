@@ -221,7 +221,7 @@ class ClassSetAnalysisTest extends Specification {
     def "some classes may depend on any change"() {
         def a = analysis([
             "A": dependentClasses([] as Set, ["B"] as Set), "B": empty(), "DependsOnAny" : dependentClasses([] as Set, ["C"] as Set)
-        ], [:], empty(), dependentClasses([] as Set, ["DependsOnAny"] as Set) )
+        ], [:], dependentClasses([] as Set, ["A"] as Set), dependentClasses([] as Set, ["DependsOnAny"] as Set) )
         def deps = a.getRelevantDependents(["A"], IntSets.EMPTY_SET)
 
         expect:

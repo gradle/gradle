@@ -15,6 +15,13 @@ repositories { handler ->
     googleApisJs(handler)
 }
 
+// TODO Disable check temporarily due to https://github.com/junit-team/junit4/issues/1674
+tasks.withType(org.gradle.docs.internal.tasks.CheckLinks) {
+    if (name == 'checkJvmMultiProjectWithCodeCoverageSampleLinks') {
+        enabled = false
+    }
+}
+
 configurations {
     gradleFullDocsElements {
         attributes {

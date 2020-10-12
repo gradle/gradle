@@ -52,6 +52,14 @@ public class AnnotationProcessingData {
         this.fullRebuildCause = fullRebuildCause;
     }
 
+    public boolean participatesInClassGeneration(String clazzName) {
+        return aggregatedTypes.contains(clazzName) || generatedTypesByOrigin.containsKey(clazzName);
+    }
+
+    public boolean participatesInResourceGeneration(String clazzName) {
+        return aggregatedTypes.contains(clazzName) || generatedResourcesByOrigin.containsKey(clazzName);
+    }
+
     public Map<String, Set<String>> getGeneratedTypesByOrigin() {
         return generatedTypesByOrigin;
     }

@@ -276,6 +276,31 @@ class AggregatingIncrementalAnnotationProcessingIntegrationTest extends Abstract
         }
     }
 
+    def "updating an unrelated file doesn't delete generated resources built by an aggregating processor"() {
+        def locations = [StandardLocation.SOURCE_OUTPUT.toString(), StandardLocation.NATIVE_HEADER_OUTPUT.toString(), StandardLocation.CLASS_OUTPUT.toString()]
+        withProcessor(new ResourceGeneratingProcessorFixture().withOutputLocations(locations).withDeclaredType(IncrementalAnnotationProcessorType.AGGREGATING))
+        def a = java "@Thing class A {}"
+        def unrelated = java "class Unrelated {}"
+
+        when:
+        outputs.snapshot { succeeds "compileJava" }
+
+        then:
+        file("build/generated/sources/annotationProcessor/java/main/A.txt").exists()
+        file("build/generated/sources/headers/java/main/A.txt").exists()
+        file("build/classes/java/main/A.txt").exists()
+
+        when:
+        unrelated.delete()
+        succeeds "compileJava"
+
+        then: "they all get cleaned"
+        outputs.deletedClasses("Unrelated")
+        file("build/generated/sources/annotationProcessor/java/main/A.txt").exists()
+        file("build/generated/sources/headers/java/main/A.txt").exists()
+        file("build/classes/java/main/A.txt").exists()
+    }
+
     private boolean serviceRegistryReferences(String... services) {
         def registry = file("build/generated/sources/annotationProcessor/java/main/ServiceRegistry.java").text
         services.every() {

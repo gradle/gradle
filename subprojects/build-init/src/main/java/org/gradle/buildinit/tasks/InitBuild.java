@@ -178,6 +178,8 @@ public class InitBuild extends DefaultTask {
             modularizationOption = splitProject.get() ? ModularizationOption.WITH_LIBRARY_PROJECTS : ModularizationOption.SINGLE_PROJECT;
         } else if (initDescriptor.getModularizationOptions().size() == 1) {
             modularizationOption = initDescriptor.getModularizationOptions().iterator().next();
+        } else if (!isNullOrEmpty(type)) {
+            modularizationOption = ModularizationOption.SINGLE_PROJECT;
         } else {
             modularizationOption = inputHandler.selectOption("Split functionality across multiple subprojects?",
                 initDescriptor.getModularizationOptions(), ModularizationOption.SINGLE_PROJECT);
