@@ -190,7 +190,7 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
         }
 
         FileHasher createCachingFileHasher(StringInterner stringInterner, CrossBuildFileHashCache fileStore, FileSystem fileSystem, GradleUserHomeScopeFileTimeStampInspector fileTimeStampInspector, StreamHasher streamHasher) {
-            CachingFileHasher fileHasher = new CachingFileHasher(new DefaultFileHasher(streamHasher), fileStore, stringInterner, fileTimeStampInspector, "fileHashes", fileSystem);
+            CachingFileHasher fileHasher = new CachingFileHasher(new DefaultFileHasher(streamHasher), fileStore, stringInterner, fileTimeStampInspector, "fileHashes", fileSystem, 400000);
             fileTimeStampInspector.attach(fileHasher);
             return fileHasher;
         }
@@ -340,7 +340,7 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
             StreamHasher streamHasher,
             StringInterner stringInterner
         ) {
-            CachingFileHasher localHasher = new CachingFileHasher(new DefaultFileHasher(streamHasher), cacheAccess, stringInterner, fileTimeStampInspector, "fileHashes", fileSystem);
+            CachingFileHasher localHasher = new CachingFileHasher(new DefaultFileHasher(streamHasher), cacheAccess, stringInterner, fileTimeStampInspector, "fileHashes", fileSystem, 400000);
             return new SplitFileHasher(globalHasher, localHasher, globalCacheLocations);
         }
 

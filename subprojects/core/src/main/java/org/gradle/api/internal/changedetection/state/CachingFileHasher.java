@@ -50,10 +50,6 @@ public class CachingFileHasher implements FileHasher {
         this.timestampInspector = timestampInspector;
     }
 
-    public CachingFileHasher(FileHasher delegate, CrossBuildFileHashCache store, StringInterner stringInterner, FileTimeStampInspector timestampInspector, String cacheName, FileSystem fileSystem) {
-        this(delegate, store, stringInterner, timestampInspector, cacheName, fileSystem, 400000);
-    }
-
     @Override
     public String toString() {
         return "{hasher cache: " + cache + "}";
