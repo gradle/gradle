@@ -132,7 +132,7 @@ class PropertiesFileAwareClasspathResourceHasherTest extends Specification {
         given:
         filters = [
             '**/*.properties': ResourceEntryFilter.FILTER_NOTHING,
-            (fooPattern.toString()): filter("created-by", "पशुपतिरपि")
+            (fooPattern): filter("created-by", "पशुपतिरपि")
         ]
 
         def propertiesEntry1 = zipEntry('some/path/to/foo.properties', ["created-by": "1.8.0_232-b18 (Azul Systems, Inc.)"])
