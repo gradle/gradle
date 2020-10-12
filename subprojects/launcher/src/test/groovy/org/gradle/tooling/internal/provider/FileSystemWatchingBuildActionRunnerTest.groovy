@@ -23,10 +23,10 @@ import org.gradle.internal.invocation.BuildActionRunner
 import org.gradle.internal.invocation.BuildController
 import org.gradle.internal.operations.BuildOperationRunner
 import org.gradle.internal.service.ServiceRegistry
+import org.gradle.internal.service.scopes.VirtualFileSystemStatisticsCollector
 import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem
 import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem.VfsLogging
 import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem.WatchLogging
-import org.gradle.internal.watch.vfs.VirtualFileSystemStatistics
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -36,14 +36,15 @@ class FileSystemWatchingBuildActionRunnerTest extends Specification {
     def watchingHandler = Mock(BuildLifecycleAwareVirtualFileSystem)
     def startParameter = Stub(StartParameterInternal)
     def buildOperationRunner = Mock(BuildOperationRunner)
-    def virtualFileSystemStatistics = Mock(VirtualFileSystemStatistics)
+    def statistics = Stub(VirtualFileSystemStatisticsCollector.Statistics)
+    def virtualFileSystemStatisticsCollector = Mock(VirtualFileSystemStatisticsCollector)
     def buildController = Stub(BuildController) {
         getGradle() >> Stub(GradleInternal) {
             getStartParameter() >> startParameter
             getServices() >> Stub(ServiceRegistry) {
                 get(BuildLifecycleAwareVirtualFileSystem) >> watchingHandler
                 get(BuildOperationRunner) >> buildOperationRunner
-                get(VirtualFileSystemStatistics) >> virtualFileSystemStatistics
+                get(VirtualFileSystemStatisticsCollector) >> virtualFileSystemStatisticsCollector
             }
         }
     }
@@ -70,7 +71,7 @@ class FileSystemWatchingBuildActionRunnerTest extends Specification {
         1 * watchingHandler.beforeBuildFinished(watchFsEnabled, vfsLogging, watchLogging, buildOperationRunner, _)
 
         then:
-        1 * virtualFileSystemStatistics.reportStatistics()
+        1 * virtualFileSystemStatisticsCollector.collect() >> statistics
         0 * _
 
         where:

@@ -38,8 +38,18 @@ public class CachingFileHasher implements FileHasher {
     private final FileSystem fileSystem;
     private final StringInterner stringInterner;
     private final FileTimeStampInspector timestampInspector;
+    private final CachingFileHasherStatisticsCollector statisticsCollector;
 
-    public CachingFileHasher(FileHasher delegate, CrossBuildFileHashCache store, StringInterner stringInterner, FileTimeStampInspector timestampInspector, String cacheName, FileSystem fileSystem, int inMemorySize) {
+    public CachingFileHasher(
+        FileHasher delegate,
+        CrossBuildFileHashCache store,
+        StringInterner stringInterner,
+        FileTimeStampInspector timestampInspector,
+        String cacheName,
+        FileSystem fileSystem,
+        int inMemorySize,
+        CachingFileHasherStatisticsCollector statisticsCollector
+    ) {
         this.delegate = delegate;
         this.fileSystem = fileSystem;
         this.cache = store.createCache(
@@ -48,6 +58,7 @@ public class CachingFileHasher implements FileHasher {
             true);
         this.stringInterner = stringInterner;
         this.timestampInspector = timestampInspector;
+        this.statisticsCollector = statisticsCollector;
     }
 
     @Override
@@ -72,18 +83,25 @@ public class CachingFileHasher implements FileHasher {
 
     private FileInfo snapshot(File file, long length, long timestamp) {
         String absolutePath = file.getAbsolutePath();
+        FileInfo snapshot = null;
+        boolean servedFromCache = false;
         if (timestampInspector.timestampCanBeUsedToDetectFileChange(absolutePath, timestamp)) {
-            FileInfo info = cache.get(absolutePath);
+            FileInfo cachedSnapshot = cache.get(absolutePath);
 
-            if (info != null && length == info.length && timestamp == info.timestamp) {
-                return info;
+            if (cachedSnapshot != null && length == cachedSnapshot.length && timestamp == cachedSnapshot.timestamp) {
+                snapshot = cachedSnapshot;
+                servedFromCache = true;
             }
         }
 
-        HashCode hash = delegate.hash(file);
-        FileInfo info = new FileInfo(hash, length, timestamp);
-        cache.put(stringInterner.intern(absolutePath), info);
-        return info;
+        if (snapshot == null) {
+            HashCode hash = delegate.hash(file);
+            snapshot = new FileInfo(hash, length, timestamp);
+            cache.put(stringInterner.intern(absolutePath), snapshot);
+            servedFromCache = false;
+        }
+        statisticsCollector.reportFileHashRequested(length, servedFromCache);
+        return snapshot;
     }
 
     public void discard(String path) {

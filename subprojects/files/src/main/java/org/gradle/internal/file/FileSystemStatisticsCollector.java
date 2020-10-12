@@ -30,10 +30,10 @@ public class FileSystemStatisticsCollector {
         unixModeCounter.incrementAndGet();
     }
 
-    public Stats collect() {
+    public Statistics collect() {
         final long unixModeCount = unixModeCounter.getAndSet(0);
         final long statsCount = statCounter.getAndSet(0);
-        return new Stats() {
+        return new Statistics() {
             @Override
             public long getStatsCount() {
                 return statsCount;
@@ -46,7 +46,7 @@ public class FileSystemStatisticsCollector {
         };
     }
 
-    public interface Stats {
+    public interface Statistics {
         long getStatsCount();
         long getUnixModeCount();
     }

@@ -14,8 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.watch.vfs;
+package org.gradle.internal.service.scopes;
 
-public interface VirtualFileSystemStatistics {
-    void reportStatistics();
+import org.gradle.api.internal.changedetection.state.CachingFileHasherStatisticsCollector;
+import org.gradle.internal.file.FileSystemStatisticsCollector;
+
+public interface VirtualFileSystemStatisticsCollector {
+    Statistics collect();
+
+    interface Statistics {
+        FileSystemStatisticsCollector.Statistics getFileSystemStatistics();
+        CachingFileHasherStatisticsCollector.Statistics getCachingFileHasherStatistics();
+    }
 }

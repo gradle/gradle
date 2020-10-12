@@ -17,6 +17,7 @@ package org.gradle.internal.hash;
 
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.state.CachingFileHasher;
+import org.gradle.api.internal.changedetection.state.CachingFileHasherStatisticsCollector;
 import org.gradle.api.internal.changedetection.state.CrossBuildFileHashCache;
 import org.gradle.api.internal.changedetection.state.FileTimeStampInspector;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
@@ -32,15 +33,29 @@ public class DefaultChecksumService implements ChecksumService {
     private final CachingFileHasher sha256;
     private final CachingFileHasher sha512;
 
-    public DefaultChecksumService(StringInterner stringInterner, CrossBuildFileHashCache fileStore, FileSystem fileSystem, FileTimeStampInspector fileTimeStampInspector) {
-        md5 = createCache(stringInterner, fileStore, fileSystem, fileTimeStampInspector, "md5", Hashing.md5());
-        sha1 = createCache(stringInterner, fileStore, fileSystem, fileTimeStampInspector, "sha1", Hashing.sha1());
-        sha256 = createCache(stringInterner, fileStore, fileSystem, fileTimeStampInspector, "sha256", Hashing.sha256());
-        sha512 = createCache(stringInterner, fileStore, fileSystem, fileTimeStampInspector, "sha512", Hashing.sha512());
+    public DefaultChecksumService(
+        StringInterner stringInterner,
+        CrossBuildFileHashCache fileStore,
+        FileSystem fileSystem,
+        FileTimeStampInspector fileTimeStampInspector,
+        CachingFileHasherStatisticsCollector statisticsCollector
+    ) {
+        md5 = createCache(stringInterner, fileStore, fileSystem, fileTimeStampInspector, "md5", Hashing.md5(), statisticsCollector);
+        sha1 = createCache(stringInterner, fileStore, fileSystem, fileTimeStampInspector, "sha1", Hashing.sha1(), statisticsCollector);
+        sha256 = createCache(stringInterner, fileStore, fileSystem, fileTimeStampInspector, "sha256", Hashing.sha256(), statisticsCollector);
+        sha512 = createCache(stringInterner, fileStore, fileSystem, fileTimeStampInspector, "sha512", Hashing.sha512(), statisticsCollector);
     }
 
-    private CachingFileHasher createCache(StringInterner stringInterner, CrossBuildFileHashCache fileStore, FileSystem fileSystem, FileTimeStampInspector fileTimeStampInspector, String name, HashFunction hashFunction) {
-        return new CachingFileHasher(new ChecksumHasher(hashFunction), fileStore, stringInterner, fileTimeStampInspector, name + "-checksums", fileSystem, 1000);
+    private CachingFileHasher createCache(
+        StringInterner stringInterner,
+        CrossBuildFileHashCache fileStore,
+        FileSystem fileSystem,
+        FileTimeStampInspector fileTimeStampInspector,
+        String name,
+        HashFunction hashFunction,
+        CachingFileHasherStatisticsCollector statisticsCollector
+    ) {
+        return new CachingFileHasher(new ChecksumHasher(hashFunction), fileStore, stringInterner, fileTimeStampInspector, name + "-checksums", fileSystem, 1000, statisticsCollector);
     }
 
     @Override
