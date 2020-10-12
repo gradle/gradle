@@ -21,12 +21,11 @@ import org.gradle.internal.snapshot.children.ChildMap;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public abstract class AbstractIncompleteSnapshotWithChildren extends AbstractFileSystemNode {
+public abstract class AbstractIncompleteSnapshotWithChildren implements FileSystemNode {
     protected final ChildMap<FileSystemNode> children;
 
     @SuppressWarnings("unchecked")
-    public AbstractIncompleteSnapshotWithChildren(String pathToParent, ChildMap<? extends FileSystemNode> children) {
-        super(pathToParent);
+    public AbstractIncompleteSnapshotWithChildren(ChildMap<? extends FileSystemNode> children) {
         this.children = (ChildMap<FileSystemNode>) children;
     }
 
@@ -44,7 +43,7 @@ public abstract class AbstractIncompleteSnapshotWithChildren extends AbstractFil
         if (newChildren == children) {
             return Optional.of(withIncompleteChildren());
         }
-        return Optional.of(withIncompleteChildren(getPathToParent(), newChildren));
+        return Optional.of(withIncompleteChildren(newChildren));
     }
 
     @Override
@@ -53,7 +52,7 @@ public abstract class AbstractIncompleteSnapshotWithChildren extends AbstractFil
         if (newChildren == children) {
             return this;
         }
-        return withIncompleteChildren(getPathToParent(), newChildren);
+        return withIncompleteChildren(newChildren);
     }
 
     @Override
@@ -73,7 +72,7 @@ public abstract class AbstractIncompleteSnapshotWithChildren extends AbstractFil
      * Caller must ensure the child list is not be mutated as the method
      * doesn't make a defensive copy.
      */
-    protected abstract FileSystemNode withIncompleteChildren(String prefix, ChildMap<? extends FileSystemNode> newChildren);
+    protected abstract FileSystemNode withIncompleteChildren(ChildMap<? extends FileSystemNode> newChildren);
 
     /**
      * Returns an updated node with all children removed, or {@link Optional#empty()}

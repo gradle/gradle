@@ -29,16 +29,16 @@ import java.util.Optional;
 public class PartialDirectorySnapshot extends AbstractIncompleteSnapshotWithChildren {
 
     public static PartialDirectorySnapshot withoutKnownChildren() {
-        return new PartialDirectorySnapshot(null, EmptyChildMap.getInstance());
+        return new PartialDirectorySnapshot(EmptyChildMap.getInstance());
     }
 
-    public PartialDirectorySnapshot(String pathToParent, ChildMap<? extends FileSystemNode> children) {
-        super(pathToParent, children);
+    public PartialDirectorySnapshot(ChildMap<? extends FileSystemNode> children) {
+        super(children);
     }
 
     @Override
-    protected FileSystemNode withIncompleteChildren(String prefix, ChildMap<? extends FileSystemNode> newChildren) {
-        return new PartialDirectorySnapshot(prefix, newChildren);
+    protected FileSystemNode withIncompleteChildren(ChildMap<? extends FileSystemNode> newChildren) {
+        return new PartialDirectorySnapshot(newChildren);
     }
 
     @Override

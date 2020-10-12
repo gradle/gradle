@@ -119,7 +119,7 @@ public class CompleteDirectorySnapshot extends AbstractCompleteFileSystemLocatio
                     .map(invalidatedChild -> nodeChildren.withReplacedChild(childIndex, childPath, invalidatedChild))
                     .orElseGet(() -> nodeChildren.withRemovedChild(childIndex));
                 newChildren.visitChildren((__, child) -> diffListener.nodeAdded(child));
-                return Optional.of(new PartialDirectorySnapshot(getPathToParent(), newChildren));
+                return Optional.of(new PartialDirectorySnapshot(newChildren));
             }
 
             @Override
@@ -133,7 +133,7 @@ public class CompleteDirectorySnapshot extends AbstractCompleteFileSystemLocatio
                 ChildMap<FileSystemNode> nodeChildren = (ChildMap<FileSystemNode>) ((ChildMap) children);
                 ChildMap<FileSystemNode> newChildren = nodeChildren.withRemovedChild(childIndex);
                 newChildren.visitChildren((__, child) -> diffListener.nodeAdded(child));
-                return Optional.of(new PartialDirectorySnapshot(getPathToParent(), newChildren));
+                return Optional.of(new PartialDirectorySnapshot(newChildren));
             }
 
             @Override
@@ -145,7 +145,7 @@ public class CompleteDirectorySnapshot extends AbstractCompleteFileSystemLocatio
             public Optional<FileSystemNode> handleDifferent(int indexOfNextBiggerChild) {
                 diffListener.nodeRemoved(CompleteDirectorySnapshot.this);
                 children.visitChildren((__, child) -> diffListener.nodeAdded(child));
-                return Optional.of(new PartialDirectorySnapshot(getPathToParent(), children));
+                return Optional.of(new PartialDirectorySnapshot(children));
             }
         });
     }

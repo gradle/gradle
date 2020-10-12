@@ -169,7 +169,7 @@ public class SnapshotUtil {
                 return children.withReplacedChild(
                         childIndex,
                         commonPrefix,
-                        isDirectory ? new PartialDirectorySnapshot(commonPrefix, newChildren) : new UnknownSnapshot(commonPrefix, newChildren)
+                        isDirectory ? new PartialDirectorySnapshot(newChildren) : new UnknownSnapshot(newChildren)
                     );
             }
 

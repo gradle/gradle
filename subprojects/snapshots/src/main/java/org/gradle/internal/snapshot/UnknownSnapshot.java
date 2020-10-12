@@ -28,8 +28,8 @@ import java.util.Optional;
  */
 public class UnknownSnapshot extends AbstractIncompleteSnapshotWithChildren {
 
-    public UnknownSnapshot(String pathToParent, ChildMap<? extends FileSystemNode> children) {
-        super(pathToParent, children);
+    public UnknownSnapshot(ChildMap<? extends FileSystemNode> children) {
+        super(children);
         assert !children.isEmpty();
     }
 
@@ -39,8 +39,8 @@ public class UnknownSnapshot extends AbstractIncompleteSnapshotWithChildren {
     }
 
     @Override
-    protected FileSystemNode withIncompleteChildren(String pathToParent, ChildMap<? extends FileSystemNode> merged) {
-        return new UnknownSnapshot(pathToParent, merged);
+    protected FileSystemNode withIncompleteChildren(ChildMap<? extends FileSystemNode> merged) {
+        return new UnknownSnapshot(merged);
     }
 
     @Override

@@ -141,8 +141,8 @@ public class DefaultSnapshotHierarchy implements SnapshotHierarchy {
             String childPath = relativePath.getAsString();
             SingletonChildMap<FileSystemNode> children = new SingletonChildMap<>(childPath, snapshot.asFileSystemNode());
             FileSystemNode rootNode = snapshot.getType() == FileType.Missing
-                ? new UnknownSnapshot(childPath, children)
-                : new PartialDirectorySnapshot(childPath, children);
+                ? new UnknownSnapshot(children)
+                : new PartialDirectorySnapshot(children);
             diffListener.nodeAdded(rootNode);
             return from(rootNode, caseSensitivity);
         }
