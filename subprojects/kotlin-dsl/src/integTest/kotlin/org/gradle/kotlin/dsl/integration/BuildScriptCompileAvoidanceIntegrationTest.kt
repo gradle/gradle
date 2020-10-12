@@ -545,6 +545,45 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
         configureProject().assertBuildScriptCompilationAvoided().assertOutputContains("barfoo")
     }
 
+    @Test
+    fun `recompiles buildscript when not able to determine Kotlin metadata kind for class on buildscript classpath`() {
+        givenJavaClassInBuildSrcContains(
+            """
+            public static String foo() {
+                return "foo";
+            }
+            """,
+            "@kotlin.Metadata(k=42, mv={1, 4, 0})"
+        )
+        withBuildScript("println(\"foo\")")
+        configureProject().assertBuildScriptCompiled().assertOutputContains("foo")
+
+        givenJavaClassInBuildSrcContains(
+            """
+            public static String foo() {
+                return "bar";
+            }
+            """,
+            "@kotlin.Metadata(k=42, mv={1, 4, 0})"
+        )
+        configureProject().assertBuildScriptBodyRecompiled().assertOutputContains("foo")
+    }
+
+    @Test
+    fun `avoids recompiling buildscript when not able to determine Kotlin metadata kind for unchanged class on buildscript classpath`() {
+        givenJavaClassInBuildSrcContains(
+            """
+            public static String bar() {
+                return "bar";
+            }
+            """,
+            "@kotlin.Metadata(k=42, mv={1, 4, 0})"
+        )
+        withBuildScript("println(\"foo\")")
+        configureProject().assertBuildScriptCompiled().assertOutputContains("foo")
+        configureProject().assertBuildScriptCompilationAvoided().assertOutputContains("foo")
+    }
+
     private
     fun withPrecompiledScriptPluginInBuildSrc(pluginId: String, pluginSource: String) {
         withKotlinDslPluginIn("buildSrc")
@@ -576,8 +615,8 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
     }
 
     private
-    fun givenJavaClassInBuildSrcContains(classBody: String): String =
-        javaSourceFile("buildSrc", classBody)
+    fun givenJavaClassInBuildSrcContains(classBody: String, classAnnotations: String = ""): String =
+        javaSourceFile("buildSrc", classBody, classAnnotations)
 
     private
     fun givenKotlinClassInBuildSrcContains(classBody: String): String {
@@ -592,12 +631,13 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
     }
 
     private
-    fun javaSourceFile(baseDir: String, classBody: String): String {
+    fun javaSourceFile(baseDir: String, classBody: String, classAnnotations: String = ""): String {
         val className = "Foo"
         withFile(
             "$baseDir/src/main/java/com/example/$className.java",
             """
             package com.example;
+            $classAnnotations
             public class $className {
                 $classBody
             }
@@ -695,8 +735,9 @@ class BuildOperationsAssertions(buildOperationsFixture: BuildOperationsFixture, 
         )
     }
 
-    fun assertOutputContains(expectedOutput: String) {
+    fun assertOutputContains(expectedOutput: String): BuildOperationsAssertions {
         assertThat(output, containsString(expectedOutput))
+        return this
     }
 }
 

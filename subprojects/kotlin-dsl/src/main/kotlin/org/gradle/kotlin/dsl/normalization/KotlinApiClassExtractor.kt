@@ -21,6 +21,7 @@ import kotlinx.metadata.KmDeclarationContainer
 import kotlinx.metadata.jvm.KotlinClassHeader
 import kotlinx.metadata.jvm.KotlinClassMetadata
 import kotlinx.metadata.jvm.signature
+import org.gradle.api.GradleException
 import org.gradle.internal.normalization.java.ApiClassExtractor
 import org.gradle.internal.normalization.java.impl.AnnotationMember
 import org.gradle.internal.normalization.java.impl.ApiMemberWriter
@@ -73,6 +74,7 @@ class KotlinApiMemberWriter(apiMemberAdapter: ClassVisitor, val inlineMethodWrit
                 is KotlinClassMetadata.SyntheticClass -> {
                 }
                 is KotlinClassMetadata.Unknown -> {
+                    throw GradleException("Unknown Kotlin metadata with kind: ${kotlinMetadata.header.kind} on class ${classMember.name} - don't know how to extract its API class")
                 }
             }
         }
