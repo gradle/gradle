@@ -4,6 +4,10 @@ plugins {
     id "org.jetbrains.kotlin.jvm" version "1.4.10"
 }
 
+repositories {
+    jcenter()
+}
+
 // tag::compiler-kotlin[]
 def compiler = javaToolchains.compilerFor {
     languageVersion = JavaLanguageVersion.of(11)

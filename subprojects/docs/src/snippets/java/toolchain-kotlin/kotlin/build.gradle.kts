@@ -4,6 +4,10 @@ plugins {
     kotlin("jvm") version "1.4.10"
 }
 
+repositories {
+    jcenter()
+}
+
 // tag::compiler-kotlin[]
 val compiler = javaToolchains.compilerFor {
     languageVersion.set(JavaLanguageVersion.of(11))
