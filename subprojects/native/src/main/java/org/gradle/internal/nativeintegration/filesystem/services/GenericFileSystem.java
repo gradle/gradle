@@ -20,6 +20,7 @@ import com.google.common.io.Files;
 import org.apache.commons.io.FileUtils;
 import org.gradle.internal.file.FileException;
 import org.gradle.internal.file.FileMetadata;
+import org.gradle.internal.file.FileSystemStatisticsCollector;
 import org.gradle.internal.nativeintegration.filesystem.FileMetadataAccessor;
 import org.gradle.internal.nativeintegration.filesystem.FileModeAccessor;
 import org.gradle.internal.nativeintegration.filesystem.FileModeMutator;
@@ -42,6 +43,7 @@ class GenericFileSystem implements FileSystem {
     private final FileModeAccessor stat;
     private final Symlink symlink;
     private final FileMetadataAccessor metadata;
+    private final FileSystemStatisticsCollector statisticsCollector;
 
     @Override
     public boolean isCaseSensitive() {
@@ -70,6 +72,7 @@ class GenericFileSystem implements FileSystem {
 
     @Override
     public int getUnixMode(File f) {
+        statisticsCollector.reportUnixModeQueried();
         try {
             return stat.getUnixMode(f);
         } catch (Exception e) {
@@ -79,6 +82,7 @@ class GenericFileSystem implements FileSystem {
 
     @Override
     public FileMetadata stat(File f) throws FileException {
+        statisticsCollector.reportFileStated();
         return metadata.stat(f);
     }
 
@@ -91,12 +95,19 @@ class GenericFileSystem implements FileSystem {
         }
     }
 
-    public GenericFileSystem(FileModeMutator chmod, FileModeAccessor stat, Symlink symlink, FileMetadataAccessor metadata) {
+    public GenericFileSystem(
+        FileModeMutator chmod,
+        FileModeAccessor stat,
+        Symlink symlink,
+        FileMetadataAccessor metadata,
+        FileSystemStatisticsCollector statisticsCollector
+    ) {
         this.metadata = metadata;
         this.stat = stat;
         this.symlink = symlink;
         this.chmod = chmod;
-        canCreateSymbolicLink = symlink.isSymlinkCreationSupported();
+        this.canCreateSymbolicLink = symlink.isSymlinkCreationSupported();
+        this.statisticsCollector = statisticsCollector;
     }
 
     private void initializeCaseSensitive() {

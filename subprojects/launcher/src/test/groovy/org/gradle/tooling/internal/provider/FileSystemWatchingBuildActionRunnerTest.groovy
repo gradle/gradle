@@ -26,6 +26,7 @@ import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem
 import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem.VfsLogging
 import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem.WatchLogging
+import org.gradle.internal.watch.vfs.VirtualFileSystemStatistics
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -33,14 +34,16 @@ import spock.lang.Unroll
 class FileSystemWatchingBuildActionRunnerTest extends Specification {
 
     def watchingHandler = Mock(BuildLifecycleAwareVirtualFileSystem)
-    def startParameter = Mock(StartParameterInternal)
+    def startParameter = Stub(StartParameterInternal)
     def buildOperationRunner = Mock(BuildOperationRunner)
+    def virtualFileSystemStatistics = Mock(VirtualFileSystemStatistics)
     def buildController = Stub(BuildController) {
         getGradle() >> Stub(GradleInternal) {
             getStartParameter() >> startParameter
             getServices() >> Stub(ServiceRegistry) {
                 get(BuildLifecycleAwareVirtualFileSystem) >> watchingHandler
                 get(BuildOperationRunner) >> buildOperationRunner
+                get(VirtualFileSystemStatistics) >> virtualFileSystemStatistics
             }
         }
     }
@@ -65,6 +68,10 @@ class FileSystemWatchingBuildActionRunnerTest extends Specification {
 
         then:
         1 * watchingHandler.beforeBuildFinished(watchFsEnabled, vfsLogging, watchLogging, buildOperationRunner, _)
+
+        then:
+        1 * virtualFileSystemStatistics.reportStatistics()
+        0 * _
 
         where:
         watchFsEnabled | vfsLogging         | watchLogging

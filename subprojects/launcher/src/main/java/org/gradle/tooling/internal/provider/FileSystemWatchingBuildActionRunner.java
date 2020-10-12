@@ -28,6 +28,7 @@ import org.gradle.internal.service.scopes.VirtualFileSystemServices;
 import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem;
 import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem.VfsLogging;
 import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem.WatchLogging;
+import org.gradle.internal.watch.vfs.VirtualFileSystemStatistics;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,6 +46,7 @@ public class FileSystemWatchingBuildActionRunner implements BuildActionRunner {
         GradleInternal gradle = buildController.getGradle();
         StartParameterInternal startParameter = gradle.getStartParameter();
         BuildLifecycleAwareVirtualFileSystem virtualFileSystem = gradle.getServices().get(BuildLifecycleAwareVirtualFileSystem.class);
+        VirtualFileSystemStatistics statistics = gradle.getServices().get(VirtualFileSystemStatistics.class);
         BuildOperationRunner buildOperationRunner = gradle.getServices().get(BuildOperationRunner.class);
 
         boolean watchFileSystem = startParameter.isWatchFileSystem();
@@ -67,6 +69,7 @@ public class FileSystemWatchingBuildActionRunner implements BuildActionRunner {
         } finally {
             int maximumNumberOfWatchedHierarchies = VirtualFileSystemServices.getMaximumNumberOfWatchedHierarchies(startParameter);
             virtualFileSystem.beforeBuildFinished(watchFileSystem, verboseVfsLogging, debugWatchLogging, buildOperationRunner, maximumNumberOfWatchedHierarchies);
+            statistics.reportStatistics();
         }
     }
 

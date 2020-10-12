@@ -17,6 +17,7 @@
 package org.gradle.internal.nativeintegration.filesystem.services;
 
 import net.rubygrapefruit.platform.file.PosixFiles;
+import org.gradle.internal.file.FileSystemStatisticsCollector;
 import org.gradle.internal.nativeintegration.filesystem.FileCanonicalizer;
 import org.gradle.internal.nativeintegration.filesystem.FileMetadataAccessor;
 import org.gradle.internal.nativeintegration.filesystem.FileModeAccessor;
@@ -37,12 +38,16 @@ public class FileSystemServices {
         return newInstanceOrFallback("org.gradle.internal.nativeintegration.filesystem.jdk7.Jdk7FileCanonicalizer", FileSystemServices.class.getClassLoader(), FallbackFileCanonicalizer.class);
     }
 
+    FileSystemStatisticsCollector createFileSystemStatisticsCollector() {
+        return new FileSystemStatisticsCollector();
+    }
+
     @SuppressWarnings("UnusedDeclaration")
-    public FileSystem createFileSystem(OperatingSystem operatingSystem, PosixFiles posixFiles, FileMetadataAccessor metadataAccessor) {
+    public FileSystem createFileSystem(OperatingSystem operatingSystem, PosixFiles posixFiles, FileMetadataAccessor metadataAccessor, FileSystemStatisticsCollector statisticsCollector) {
 
         if (operatingSystem.isWindows()) {
             Symlink symlink = newInstanceOrFallback("org.gradle.internal.nativeintegration.filesystem.jdk7.WindowsJdk7Symlink", FileSystemServices.class.getClassLoader(), WindowsSymlink.class);
-            return new GenericFileSystem(new EmptyChmod(), new FallbackStat(), symlink, metadataAccessor);
+            return new GenericFileSystem(new EmptyChmod(), new FallbackStat(), symlink, metadataAccessor, statisticsCollector);
         }
 
         if (posixFiles instanceof UnavailablePosixFiles) {
@@ -51,7 +56,7 @@ public class FileSystemServices {
             Symlink symlink = new NativePlatformBackedSymlink(posixFiles);
             FileModeMutator chmod = new NativePlatformBackedChmod(posixFiles);
             FileModeAccessor stat = new NativePlatformBackedStat(posixFiles);
-            return new GenericFileSystem(chmod, stat, symlink, metadataAccessor);
+            return new GenericFileSystem(chmod, stat, symlink, metadataAccessor, statisticsCollector);
         }
 
         Symlink symlink = newInstanceOrFallback("org.gradle.internal.nativeintegration.filesystem.jdk7.Jdk7Symlink", FileSystemServices.class.getClassLoader(), UnsupportedSymlink.class);
@@ -59,7 +64,7 @@ public class FileSystemServices {
 
         // Use java 7 APIs, if available, otherwise fallback to no-op
         Object handler = newInstanceOrFallback("org.gradle.internal.nativeintegration.filesystem.jdk7.PosixJdk7FilePermissionHandler", FileSystemServices.class.getClassLoader(), UnsupportedFilePermissions.class);
-        return new GenericFileSystem((FileModeMutator) handler, (FileModeAccessor) handler, symlink, metadataAccessor);
+        return new GenericFileSystem((FileModeMutator) handler, (FileModeAccessor) handler, symlink, metadataAccessor, statisticsCollector);
     }
 
 }
