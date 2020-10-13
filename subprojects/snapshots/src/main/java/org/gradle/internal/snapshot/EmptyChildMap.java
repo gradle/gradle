@@ -47,11 +47,6 @@ public class EmptyChildMap<T> extends AbstractChildMap<T> {
     }
 
     @Override
-    protected int indexOf(String path, CaseSensitivity caseSensitivity) {
-        return -1;
-    }
-
-    @Override
     public boolean isEmpty() {
         return true;
     }

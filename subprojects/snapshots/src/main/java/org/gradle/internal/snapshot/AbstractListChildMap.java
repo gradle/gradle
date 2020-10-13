@@ -65,36 +65,6 @@ public abstract class AbstractListChildMap<T> extends AbstractChildMap<T> {
     }
 
     @Override
-    protected int indexOf(String path, CaseSensitivity caseSensitivity) {
-        return handlePath(VfsRelativePath.of(path), caseSensitivity, new PathRelationshipHandler<Integer>() {
-            @Override
-            public Integer handleDescendant(String childPath, int childIndex) {
-                return -1;
-            }
-
-            @Override
-            public Integer handleAncestor(String childPath, int childIndex) {
-                return -1;
-            }
-
-            @Override
-            public Integer handleSame(int childIndex) {
-                return childIndex;
-            }
-
-            @Override
-            public Integer handleCommonPrefix(int commonPrefixLength, String childPath, int childIndex) {
-                return -1;
-            }
-
-            @Override
-            public Integer handleDifferent(int indexOfNextBiggerChild) {
-                return -1;
-            }
-        });
-    }
-
-    @Override
     public boolean isEmpty() {
         return false;
     }

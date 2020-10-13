@@ -50,11 +50,6 @@ public class SingletonChildMap<T> extends AbstractChildMap<T> {
     }
 
     @Override
-    protected int indexOf(String path, CaseSensitivity caseSensitivity) {
-        return (entry.getPath().equals(path)) ? 0 : -1;
-    }
-
-    @Override
     public boolean isEmpty() {
         return false;
     }

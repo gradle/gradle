@@ -59,7 +59,7 @@ abstract class AbstractSnapshotWithChildrenTest<NODE extends FileSystemNode, CHI
         this.searchedPath = spec.searchedPath
         this.selectedChildPath = spec.selectedChildPath
         if (selectedChildPath != null) {
-            def selectedChildIndex = children.indexOf(selectedChildPath, CASE_SENSITIVE)
+            def selectedChildIndex = indexOfSelectedChild
             this.selectedChild = selectedChildIndex == -1 ? null : children.get(selectedChildIndex)
         }
     }
@@ -72,11 +72,40 @@ abstract class AbstractSnapshotWithChildrenTest<NODE extends FileSystemNode, CHI
     }
 
     ChildMap<FileSystemNode> childrenWithSelectedChildReplacedBy(FileSystemNode replacement) {
-        children.withReplacedChild(children.indexOf(selectedChildPath, CASE_SENSITIVE), selectedChildPath, replacement)
+        children.withReplacedChild(indexOfSelectedChild, selectedChildPath, replacement)
     }
 
     ChildMap<FileSystemNode> childrenWithSelectedChildReplacedBy(String replacementPath, FileSystemNode replacement) {
-        children.withReplacedChild(children.indexOf(selectedChildPath, CASE_SENSITIVE), replacementPath, replacement)
+        children.withReplacedChild(indexOfSelectedChild, replacementPath, replacement)
+    }
+
+    int getIndexOfSelectedChild() {
+        return ((AbstractChildMap<CHILD>) children).handlePath(VfsRelativePath.of(selectedChildPath), CASE_SENSITIVE, new AbstractChildMap.PathRelationshipHandler<Integer>() {
+            @Override
+            Integer handleDescendant(String childPath, int childIndex) {
+                return -1
+            }
+
+            @Override
+            Integer handleAncestor(String childPath, int childIndex) {
+                return -1
+            }
+
+            @Override
+            Integer handleSame(int childIndex) {
+                return childIndex
+            }
+
+            @Override
+            Integer handleCommonPrefix(int commonPrefixLength, String childPath, int childIndex) {
+                return -1
+            }
+
+            @Override
+            Integer handleDifferent(int indexOfNextBiggerChild) {
+                return -1
+            }
+        })
     }
 
     ChildMap<FileSystemNode> childrenWithAdditionalChild(String path, FileSystemNode newChild) {
@@ -111,11 +140,11 @@ abstract class AbstractSnapshotWithChildrenTest<NODE extends FileSystemNode, CHI
     }
 
     ChildMap<CHILD> childrenWithSelectedChildRemoved() {
-        children.withRemovedChild(children.indexOf(selectedChildPath, CASE_SENSITIVE))
+        children.withRemovedChild(indexOfSelectedChild)
     }
 
     CHILD getNodeWithIndexOfSelectedChild(ChildMap<CHILD> newChildren) {
-        int index = children.indexOf(selectedChildPath, CASE_SENSITIVE)
+        int index = indexOfSelectedChild
         return newChildren.get(index)
     }
 
@@ -168,6 +197,7 @@ abstract class AbstractSnapshotWithChildrenTest<NODE extends FileSystemNode, CHI
         ['name', 'name1/some', 'name2/other/third'],
         ['aa/b1', 'ab/a1', 'name', 'name1/some', 'name2/other/third'],
         ("a".."z").toList(),
+        ("a".."z").collect { "$it/$it".toString() }.toList(),
     ]
 
     /**

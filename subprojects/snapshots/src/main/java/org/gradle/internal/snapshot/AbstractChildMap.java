@@ -168,8 +168,6 @@ public abstract class AbstractChildMap<T> implements ChildMap<T> {
         });
     }
 
-    protected abstract int indexOf(String path, CaseSensitivity caseSensitivity);
-
     protected abstract AbstractChildMap<T> withNewChild(int insertBefore, String path, T newChild);
 
     protected abstract AbstractChildMap<T> withReplacedChild(int childIndex, String childPath, T newChild);
