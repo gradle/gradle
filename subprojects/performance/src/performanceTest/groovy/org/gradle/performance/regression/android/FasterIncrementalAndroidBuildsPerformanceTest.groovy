@@ -75,7 +75,7 @@ class FasterIncrementalAndroidBuildsPerformanceTest extends AbstractCrossBuildPe
         given:
         runner.measureBuildOperation(ExecuteTaskActionBuildOperationType.name)
         runner.buildSpec {
-            displayName("with file system watching - Gradle 6.7")
+            displayName("with file system watching - baseline")
             configureForNonParallel(delegate)
             testProject.configureForNonAbiChange(delegate)
             invocation {
@@ -92,7 +92,7 @@ class FasterIncrementalAndroidBuildsPerformanceTest extends AbstractCrossBuildPe
             }
         }
         runner.buildSpec {
-            displayName("without file system watching - Gradle 6.7")
+            displayName("without file system watching - baseline")
             configureForNonParallel(delegate)
             testProject.configureForNonAbiChange(delegate)
             invocation {
