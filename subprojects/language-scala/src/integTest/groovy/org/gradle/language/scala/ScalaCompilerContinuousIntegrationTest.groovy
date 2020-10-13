@@ -68,4 +68,15 @@ class ScalaCompilerContinuousIntegrationTest extends AbstractCompilerContinuousI
             }
         """
     }
+
+    @Override
+    String getVerifyDaemonsTask() {
+        """
+            task verifyDaemons {
+                doLast {
+                    assert services.get(WorkerDaemonClientsManager).allClients.size() == 1
+                }
+            }
+"""
+    }
 }
