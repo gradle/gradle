@@ -27,9 +27,9 @@ import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.state.BuildSessionScopeFileTimeStampInspector;
 import org.gradle.api.internal.changedetection.state.CachingFileHasher;
-import org.gradle.api.internal.changedetection.state.CachingFileHasherStatistics;
 import org.gradle.api.internal.changedetection.state.CrossBuildFileHashCache;
 import org.gradle.api.internal.changedetection.state.DefaultResourceSnapshotterCacheService;
+import org.gradle.api.internal.changedetection.state.FileHasherStatistics;
 import org.gradle.api.internal.changedetection.state.GradleUserHomeScopeFileTimeStampInspector;
 import org.gradle.api.internal.changedetection.state.ResourceEntryFilter;
 import org.gradle.api.internal.changedetection.state.ResourceFilter;
@@ -190,8 +190,8 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
     }
 
     private static class GlobalScopeServices {
-        CachingFileHasherStatistics.Collector createCachingFileHasherStatisticsCollector() {
-            return new CachingFileHasherStatistics.Collector();
+        FileHasherStatistics.Collector createCachingFileHasherStatisticsCollector() {
+            return new FileHasherStatistics.Collector();
         }
 
         DirectorySnapshotterStatistics.Collector createDirectorySnapshotterStatisticsCollector() {
@@ -207,7 +207,7 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
         }
 
         FileHasher createCachingFileHasher(
-            CachingFileHasherStatistics.Collector statisticsCollector,
+            FileHasherStatistics.Collector statisticsCollector,
             CrossBuildFileHashCache fileStore,
             FileSystem fileSystem,
             GradleUserHomeScopeFileTimeStampInspector fileTimeStampInspector,
@@ -365,7 +365,7 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
             FileSystem fileSystem,
             StreamHasher streamHasher,
             StringInterner stringInterner,
-            CachingFileHasherStatistics.Collector statisticsCollector
+            FileHasherStatistics.Collector statisticsCollector
         ) {
             CachingFileHasher localHasher = new CachingFileHasher(new DefaultFileHasher(streamHasher), cacheAccess, stringInterner, fileTimeStampInspector, "fileHashes", fileSystem, 400000, statisticsCollector);
             return new SplitFileHasher(globalHasher, localHasher, globalCacheLocations);

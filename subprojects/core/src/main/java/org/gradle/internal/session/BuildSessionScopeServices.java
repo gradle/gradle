@@ -21,8 +21,8 @@ import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.attributes.DefaultImmutableAttributesFactory;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.state.BuildSessionScopeFileTimeStampInspector;
-import org.gradle.api.internal.changedetection.state.CachingFileHasherStatistics;
 import org.gradle.api.internal.changedetection.state.CrossBuildFileHashCache;
+import org.gradle.api.internal.changedetection.state.FileHasherStatistics;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
@@ -204,7 +204,7 @@ public class BuildSessionScopeServices {
         FileSystem fileSystem,
         CrossBuildFileHashCacheWrapper crossBuildCache,
         BuildSessionScopeFileTimeStampInspector inspector,
-        CachingFileHasherStatistics.Collector statisticsCollector
+        FileHasherStatistics.Collector statisticsCollector
     ) {
         return new DefaultChecksumService(stringInterner, crossBuildCache.delegate, fileSystem, inspector, statisticsCollector);
     }

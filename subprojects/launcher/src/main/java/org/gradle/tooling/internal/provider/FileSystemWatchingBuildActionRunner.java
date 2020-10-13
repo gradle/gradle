@@ -18,7 +18,7 @@ package org.gradle.tooling.internal.provider;
 
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.StartParameterInternal;
-import org.gradle.api.internal.changedetection.state.CachingFileHasherStatistics;
+import org.gradle.api.internal.changedetection.state.FileHasherStatistics;
 import org.gradle.initialization.StartParameterBuildOptions;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.file.StatStatistics;
@@ -51,7 +51,7 @@ public class FileSystemWatchingBuildActionRunner implements BuildActionRunner {
         ServiceRegistry services = gradle.getServices();
         BuildLifecycleAwareVirtualFileSystem virtualFileSystem = services.get(BuildLifecycleAwareVirtualFileSystem.class);
         StatStatistics.Collector statStatisticsCollector = services.get(StatStatistics.Collector.class);
-        CachingFileHasherStatistics.Collector cachingFileHasherStatisticsCollector = services.get(CachingFileHasherStatistics.Collector.class);
+        FileHasherStatistics.Collector fileHasherStatisticsCollector = services.get(FileHasherStatistics.Collector.class);
         DirectorySnapshotterStatistics.Collector directorySnapshotterStatisticsCollector = services.get(DirectorySnapshotterStatistics.Collector.class);
         BuildOperationRunner buildOperationRunner = services.get(BuildOperationRunner.class);
 
@@ -77,7 +77,7 @@ public class FileSystemWatchingBuildActionRunner implements BuildActionRunner {
             virtualFileSystem.beforeBuildFinished(watchFileSystem, verboseVfsLogging, debugWatchLogging, buildOperationRunner, maximumNumberOfWatchedHierarchies);
             if (startParameter.isVfsDebugLogging()) {
                 LOGGER.warn("STAT> Stat: {}", statStatisticsCollector.collect());
-                LOGGER.warn("STAT> FileHasher: {}", cachingFileHasherStatisticsCollector.collect());
+                LOGGER.warn("STAT> FileHasher: {}", fileHasherStatisticsCollector.collect());
                 LOGGER.warn("STAT> DirectorySnapshotter: {}", directorySnapshotterStatisticsCollector.collect());
             }
         }

@@ -39,7 +39,7 @@ class CachingFileHasherTest extends Specification {
     def oldHash = HashCode.fromInt(0x0321)
     def file = tmpDir.createFile("testfile")
     def fileSystem = TestFiles.fileSystem()
-    def statisticsCollector = Mock(CachingFileHasherStatistics.Collector)
+    def statisticsCollector = Mock(FileHasherStatistics.Collector)
     CachingFileHasher hasher
 
     def setup() {
@@ -66,7 +66,7 @@ class CachingFileHasherTest extends Specification {
             assert fileInfo.length == stat.length
             assert fileInfo.timestamp == stat.lastModified
         }
-        1 * statisticsCollector.reportFileHashRequested(file.length(), false)
+        1 * statisticsCollector.reportFileHashed(file.length())
         0 * _
     }
 
@@ -88,7 +88,7 @@ class CachingFileHasherTest extends Specification {
             assert fileInfo.length == stat.length
             assert fileInfo.timestamp == stat.lastModified
         }
-        1 * statisticsCollector.reportFileHashRequested(file.length(), false)
+        1 * statisticsCollector.reportFileHashed(file.length())
         0 * _
     }
 
@@ -110,7 +110,7 @@ class CachingFileHasherTest extends Specification {
             assert fileInfo.length == stat.length
             assert fileInfo.timestamp == stat.lastModified
         }
-        1 * statisticsCollector.reportFileHashRequested(file.length(), false)
+        1 * statisticsCollector.reportFileHashed(file.length())
         0 * _
     }
 
@@ -126,7 +126,6 @@ class CachingFileHasherTest extends Specification {
         and:
         1 * timeStampInspector.timestampCanBeUsedToDetectFileChange(file.absolutePath, stat.lastModified) >> true
         1 * cache.get(file.absolutePath) >> new FileInfo(hash, stat.length, stat.lastModified)
-        1 * statisticsCollector.reportFileHashRequested(file.length(), true)
         0 * _
     }
 
@@ -147,7 +146,7 @@ class CachingFileHasherTest extends Specification {
             assert fileInfo.length == stat.length
             assert fileInfo.timestamp == stat.lastModified
         }
-        1 * statisticsCollector.reportFileHashRequested(file.length(), false)
+        1 * statisticsCollector.reportFileHashed(file.length())
         0 * _
     }
 
@@ -171,7 +170,7 @@ class CachingFileHasherTest extends Specification {
             assert fileInfo.length == length
             assert fileInfo.timestamp == lastModified
         }
-        1 * statisticsCollector.reportFileHashRequested(length, false)
+        1 * statisticsCollector.reportFileHashed(length)
         0 * _
     }
 }

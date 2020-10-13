@@ -24,7 +24,7 @@ public interface StatStatistics {
     /**
      * Number of times {@link Stat#stat(File)} was called.
      */
-    long getStatsCount();
+    long getStatCount();
 
     /**
      * Number of times {@link Stat#getUnixMode(File)} was called.
@@ -32,24 +32,25 @@ public interface StatStatistics {
     long getUnixModeCount();
 
     class Collector {
-        private final AtomicLong statCounter = new AtomicLong();
-        private final AtomicLong unixModeCounter = new AtomicLong();
+        private final AtomicLong statCount = new AtomicLong();
+        private final AtomicLong unixModeCount = new AtomicLong();
 
         public void reportFileStated() {
-            statCounter.incrementAndGet();
+            statCount.incrementAndGet();
         }
 
         public void reportUnixModeQueried() {
-            unixModeCounter.incrementAndGet();
+            unixModeCount.incrementAndGet();
         }
 
         public StatStatistics collect() {
-            final long unixModeCount = unixModeCounter.getAndSet(0);
-            final long statsCount = statCounter.getAndSet(0);
+            final long unixModeCount = this.unixModeCount.getAndSet(0);
+            final long statCount = this.statCount.getAndSet(0);
+
             return new StatStatistics() {
                 @Override
-                public long getStatsCount() {
-                    return statsCount;
+                public long getStatCount() {
+                    return statCount;
                 }
 
                 @Override
@@ -60,8 +61,7 @@ public interface StatStatistics {
                 @Override
                 public String toString() {
                     return MessageFormat.format("Executed stat() x {0,number,integer}. getUnixMode() x {1,number,integer}",
-                        statsCount,
-                        unixModeCount);
+                        statCount, unixModeCount);
                 }
             };
         }
