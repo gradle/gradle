@@ -41,7 +41,7 @@ public interface JavaResolutionConsistency {
      *     <li>It avoids resolving the runtime classpath in case of a compile error.
      *     </li>
      * </ul>
-     *
+     * </p>
      * In addition, the test compile classpath is going to be configured to
      * be consistent with the main compile classpath.
      */
@@ -55,7 +55,7 @@ public interface JavaResolutionConsistency {
      * <p>
      * In addition, the test runtime classpath is going to be configured to
      * be consistent with the main runtime classpath.
-     * <p>
+     * </p>
      * Prefer {@link #useCompileClasspathVersions()} unless you have special
      * requirements at runtime.
      */
