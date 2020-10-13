@@ -85,6 +85,12 @@ In this release a number of core Gradle plugins got improved to support the conf
 
 See the [matrix of supported core plugins](userguide/configuration_cache.html#config_cache:plugins:core) in the user manual.
 
+## New features and usability improvements
+
+### Implicit imports
+
+This version of Gradle allows you to use the `@Inject` annotation without explicitly importing it into your build scripts the same way it works for other Gradle API classes.
+
 ## Security Improvements
 
 ### Outdated TLS versions are no longer enabled by default
