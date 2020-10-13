@@ -16,7 +16,6 @@
 
 package org.gradle.jvm.toolchain.install.internal;
 
-import com.google.common.io.Files;
 import org.apache.commons.io.IOUtils;
 import org.gradle.api.GradleException;
 import org.gradle.api.InvalidUserCodeException;
@@ -37,6 +36,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.file.AtomicMoveNotSupportedException;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.Collections;
 
 public class AdoptOpenJdkDownloader {
@@ -78,11 +80,19 @@ public class AdoptOpenJdkDownloader {
                 LOGGER.info("Downloading {} to {}", resource.getDisplayName(), targetFile);
                 copyIntoFile(source, inputStream, downloadFile);
             });
-            Files.move(downloadFile, targetFile);
+            moveFile(targetFile, downloadFile);
         } catch (IOException e) {
             throw new GradleException("Unable to move downloaded toolchain to target destination", e);
         } finally {
             downloadFile.delete();
+        }
+    }
+
+    private void moveFile(File targetFile, File downloadFile) throws IOException {
+        try {
+            Files.move(downloadFile.toPath(), targetFile.toPath(), StandardCopyOption.ATOMIC_MOVE);
+        } catch (AtomicMoveNotSupportedException e) {
+            Files.move(downloadFile.toPath(), targetFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
         }
     }
 
