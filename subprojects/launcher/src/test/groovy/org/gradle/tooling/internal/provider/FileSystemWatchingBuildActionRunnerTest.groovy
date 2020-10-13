@@ -58,6 +58,7 @@ class FileSystemWatchingBuildActionRunnerTest extends Specification {
         _ * startParameter.isWatchFileSystem() >> watchFsEnabled
         _ * startParameter.isWatchFileSystemDebugLogging() >> (watchLogging == WatchLogging.DEBUG)
         _ * startParameter.isVfsVerboseLogging() >> (vfsLogging == VfsLogging.VERBOSE)
+        _ * startParameter.isVfsDebugLogging() >> false
 
         def runner = new FileSystemWatchingBuildActionRunner(delegate)
 

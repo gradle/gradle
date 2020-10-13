@@ -73,8 +73,10 @@ public class FileSystemWatchingBuildActionRunner implements BuildActionRunner {
         } finally {
             int maximumNumberOfWatchedHierarchies = VirtualFileSystemServices.getMaximumNumberOfWatchedHierarchies(startParameter);
             virtualFileSystem.beforeBuildFinished(watchFileSystem, verboseVfsLogging, debugWatchLogging, buildOperationRunner, maximumNumberOfWatchedHierarchies);
-            LOGGER.warn("STAT:STAT   {}", statStatisticsCollector.collect());
-            LOGGER.warn("STAT:HASHER {}", cachingFileHasherStatisticsCollector.collect());
+            if (startParameter.isVfsDebugLogging()) {
+                LOGGER.warn("STAT:STAT {}", statStatisticsCollector.collect());
+                LOGGER.warn("STAT:HASHER {}", cachingFileHasherStatisticsCollector.collect());
+            }
         }
     }
 
