@@ -47,7 +47,7 @@ public abstract class AbstractListChildMap<T> extends AbstractChildMap<T> {
         }
         return relativePath.length() == entry.getPath().length()
             ? handler.getFromChild(entry.getValue())
-            : handler.findInChild(entry.getPath(), entry.getValue());
+            : handler.findInChild(relativePath.fromChild(entry.getPath()), entry.getValue());
     }
 
     @Override

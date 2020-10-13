@@ -22,6 +22,7 @@ import org.gradle.internal.snapshot.CaseSensitivity;
 import org.gradle.internal.snapshot.FileSystemNode;
 import org.gradle.internal.snapshot.MetadataSnapshot;
 import org.gradle.internal.snapshot.PartialDirectorySnapshot;
+import org.gradle.internal.snapshot.ReadOnlyFileSystemNode;
 import org.gradle.internal.snapshot.SingletonChildMap;
 import org.gradle.internal.snapshot.SnapshotHierarchy;
 import org.gradle.internal.snapshot.UnknownSnapshot;
@@ -66,11 +67,7 @@ public class DefaultSnapshotHierarchy implements SnapshotHierarchy {
 
     @Override
     public boolean hasDescendantsUnder(String absolutePath) {
-        VfsRelativePath relativePath = VfsRelativePath.of(absolutePath);
-        if (relativePath.length() == 0) {
-            return rootNode.hasDescendants();
-        }
-        return rootNode.getNode(relativePath, caseSensitivity).hasDescendants();
+        return getNode(absolutePath).hasDescendants();
     }
 
     @Override
@@ -109,11 +106,12 @@ public class DefaultSnapshotHierarchy implements SnapshotHierarchy {
 
     @Override
     public void visitSnapshotRoots(String absolutePath, SnapshotVisitor snapshotVisitor) {
+        getNode(absolutePath).accept(snapshotVisitor);
+    }
+
+    private ReadOnlyFileSystemNode getNode(String absolutePath) {
         VfsRelativePath relativePath = VfsRelativePath.of(absolutePath);
-        if (relativePath.length() == 0) {
-            rootNode.accept(snapshotVisitor);
-        }
-        rootNode.getNode(relativePath, caseSensitivity).accept(snapshotVisitor);
+        return (relativePath.length() == 0) ? rootNode : rootNode.getNode(relativePath, caseSensitivity);
     }
 
     private enum EmptySnapshotHierarchy implements SnapshotHierarchy {

@@ -24,8 +24,8 @@ public class SnapshotUtil {
     public static <T extends FileSystemNode> Optional<MetadataSnapshot> getMetadataFromChildren(ChildMap<T> children, VfsRelativePath relativePath, CaseSensitivity caseSensitivity, Supplier<Optional<MetadataSnapshot>> noChildFoundResult) {
         return children.findChild(relativePath, caseSensitivity, new ChildMap.FindChildHandler<T, Optional<MetadataSnapshot>>() {
             @Override
-            public Optional<MetadataSnapshot> findInChild(String childPath, T child) {
-                return child.getSnapshot(relativePath.fromChild(childPath), caseSensitivity);
+            public Optional<MetadataSnapshot> findInChild(VfsRelativePath pathInChild, T child) {
+                return child.getSnapshot(pathInChild, caseSensitivity);
             }
 
             @Override

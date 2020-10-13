@@ -26,6 +26,7 @@ import org.gradle.internal.snapshot.AbstractIncompleteSnapshotWithChildren
 import org.gradle.internal.snapshot.CompleteDirectorySnapshot
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot
 import org.gradle.internal.snapshot.FileSystemNode
+import org.gradle.internal.snapshot.MetadataSnapshot
 import org.gradle.internal.snapshot.MissingFileSnapshot
 import org.gradle.internal.snapshot.PathUtil
 import org.gradle.internal.snapshot.RegularFileSnapshot
@@ -651,6 +652,78 @@ class DefaultSnapshotHierarchyTest extends Specification {
         invalidated.getMetadata(firstPath).present
         invalidated.getMetadata(secondPath).present
         !invalidated.getMetadata(thirdPath).present
+    }
+
+    def "getSnapshot returns root node when queried at the root"() {
+        def rootNode = Mock(FileSystemNode)
+        def hierarchy = DefaultSnapshotHierarchy.from(rootNode, CASE_SENSITIVE)
+
+        when:
+        def foundSnapshot = hierarchy.getMetadata("/")
+        then:
+        foundSnapshot.present
+        1 * rootNode.snapshot >> Optional.of(Mock(MetadataSnapshot))
+        0 * _
+    }
+
+    def "hasDescendants can query the root"() {
+        def rootNode = Mock(FileSystemNode)
+        def hierarchy = DefaultSnapshotHierarchy.from(rootNode, CASE_SENSITIVE)
+
+        when:
+        def hasDescendants = hierarchy.hasDescendantsUnder("/")
+        then:
+        hasDescendants
+        1 * rootNode.hasDescendants() >> true
+        0 * _
+    }
+
+    def "visitRootSnapshots can visit the root"() {
+        def rootNode = Mock(FileSystemNode)
+        def hierarchy = DefaultSnapshotHierarchy.from(rootNode, CASE_SENSITIVE)
+        def snapshotVisitor = Mock(SnapshotHierarchy.SnapshotVisitor)
+
+        when:
+        hierarchy.visitSnapshotRoots("/", snapshotVisitor)
+        then:
+        1 * rootNode.accept(snapshotVisitor)
+        0 * _
+    }
+
+    def "store overwrites root node when storing at the root"() {
+        def rootNode = Mock(FileSystemNode)
+        def newRoot = Mock(FileSystemNode)
+        def snapshot = Mock(MetadataSnapshot)
+        def hierarchy = DefaultSnapshotHierarchy.from(rootNode, CASE_SENSITIVE)
+
+        when:
+        def newHierarchy = hierarchy.store("/", snapshot, SnapshotHierarchy.NodeDiffListener.NOOP)
+        then:
+        1 * snapshot.asFileSystemNode() >> newRoot
+        0 * _
+
+        when:
+        def foundSnapshot = newHierarchy.getMetadata("/")
+        then:
+        foundSnapshot.get() is snapshot
+        1 * newRoot.snapshot >> Optional.of(snapshot)
+        0 * _
+    }
+
+    def "can invalidate the root"() {
+        def rootNode = Mock(FileSystemNode)
+        def hierarchy = DefaultSnapshotHierarchy.from(rootNode, CASE_SENSITIVE)
+
+        when:
+        def newHierarchy = hierarchy.invalidate("/", SnapshotHierarchy.NodeDiffListener.NOOP)
+        then:
+        0 * _
+
+        when:
+        def rootMetadata = newHierarchy.getMetadata("/")
+        then:
+        !rootMetadata.present
+        0 * _
     }
 
     private static CompleteDirectorySnapshot rootDirectorySnapshot() {

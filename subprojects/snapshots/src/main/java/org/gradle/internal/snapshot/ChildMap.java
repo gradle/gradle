@@ -35,7 +35,7 @@ public interface ChildMap<T> {
         /**
          * relativePath is a descendant of child.
          */
-        RESULT findInChild(String childPath, T child);
+        RESULT findInChild(VfsRelativePath pathInChild, T child);
         /**
          * child is at relativePath.
          */

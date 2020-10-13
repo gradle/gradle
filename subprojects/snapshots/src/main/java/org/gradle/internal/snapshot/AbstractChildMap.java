@@ -214,7 +214,7 @@ public abstract class AbstractChildMap<T> implements ChildMap<T> {
             }
             return relativePath.length() == path.length()
                 ? handler.getFromChild(value)
-                : handler.findInChild(path, value);
+                : handler.findInChild(relativePath.fromChild(path), value);
         }
 
         public <R> R handlePath(VfsRelativePath relativePath, int currentChildIndex, CaseSensitivity caseSensitivity, PathRelationshipHandler<R> handler) {
