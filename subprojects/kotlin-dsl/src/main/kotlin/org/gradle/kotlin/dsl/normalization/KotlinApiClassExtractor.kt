@@ -64,8 +64,15 @@ class KotlinApiMemberWriter(apiMemberAdapter: ClassVisitor, val inlineMethodWrit
             when (val kotlinMetadata = KotlinClassMetadata.read(parseKotlinClassHeader(it))) {
                 is KotlinClassMetadata.Class -> kotlinMetadata.toKmClass().extractFunctionMetadata()
                 is KotlinClassMetadata.FileFacade -> kotlinMetadata.toKmPackage().extractFunctionMetadata()
-                else -> {
-                    // KotlinClassMetadata.SyntheticClass || KotlinClassMetadata.MultiFileClassFacade || KotlinClassMetadata.MultiFileClassPart || KotlinClassMetadata.Unknown
+                is KotlinClassMetadata.MultiFileClassPart -> kotlinMetadata.toKmPackage().extractFunctionMetadata()
+                is KotlinClassMetadata.MultiFileClassFacade -> {
+                    // This metadata appears on a generated Java class resulting from @file:JvmName("ClassName") + @file:JvmMultiFileClass annotations in Kotlin scripts.
+                    // The resulting facade class contains references to classes generated from each script pointing to this class.
+                    // Each of those classes is visited separately and have KotlinClassMetadata.MultiFileClassPart on them
+                }
+                is KotlinClassMetadata.SyntheticClass -> {
+                }
+                is KotlinClassMetadata.Unknown -> {
                 }
             }
         }

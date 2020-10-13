@@ -418,6 +418,133 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
         configureProjectAndExpectCompileFailure("Unresolved reference: foo")
     }
 
+    @ToBeFixedForConfigurationCache
+    @Test
+    fun `avoids buildscript recompilation on non ABI changes to multifile class in buildSrc`() {
+        val multifileAnnotations = """
+            @file:JvmName("Utils")
+            @file:JvmMultifileClass
+        """
+        val packageName = givenKotlinScriptInBuildSrcContains(
+            "foo",
+            """
+            fun foo() = "foo"
+            """,
+            multifileAnnotations
+        )
+        givenKotlinScriptInBuildSrcContains(
+            "bar",
+            """
+            fun bar() = "bar"
+            """,
+            multifileAnnotations
+        )
+        withBuildScript("println($packageName.foo() + $packageName.bar())")
+        configureProject().assertBuildScriptCompiled().assertOutputContains("foobar")
+
+        givenKotlinScriptInBuildSrcContains(
+            "foo",
+            """
+            fun foo() = "bar"
+            """,
+            multifileAnnotations
+        )
+        givenKotlinScriptInBuildSrcContains(
+            "bar",
+            """
+            fun bar() = "foo"
+            """,
+            multifileAnnotations
+        )
+        configureProject().assertBuildScriptCompilationAvoided().assertOutputContains("barfoo")
+    }
+
+    @ToBeFixedForConfigurationCache
+    @Test
+    fun `recompiles buildscript when inline function changes in multifile class in buildSrc`() {
+        val multifileAnnotations = """
+            @file:JvmName("Utils")
+            @file:JvmMultifileClass
+        """
+        val packageName = givenKotlinScriptInBuildSrcContains(
+            "foo",
+            """
+            inline fun foo() = "foo"
+            """,
+            multifileAnnotations
+        )
+        givenKotlinScriptInBuildSrcContains(
+            "bar",
+            """
+            inline fun bar() = "bar"
+            """,
+            multifileAnnotations
+        )
+        withBuildScript("println($packageName.foo() + $packageName.bar())")
+        configureProject().assertBuildScriptCompiled().assertOutputContains("foobar")
+
+        givenKotlinScriptInBuildSrcContains(
+            "foo",
+            """
+            inline fun foo() = "bar"
+            """,
+            multifileAnnotations
+        )
+        givenKotlinScriptInBuildSrcContains(
+            "bar",
+            """
+            inline fun bar() = "foo"
+            """,
+            multifileAnnotations
+        )
+        configureProject().assertBuildScriptBodyRecompiled().assertOutputContains("barfoo")
+    }
+
+    @ToBeFixedForConfigurationCache
+    @Test
+    fun `avoids buildscript recompilation on internal inline function changes in multifile class in buildSrc`() {
+        val multifileAnnotations = """
+            @file:JvmName("Utils")
+            @file:JvmMultifileClass
+        """
+        val packageName = givenKotlinScriptInBuildSrcContains(
+            "foo",
+            """
+            fun foo() = fooInternal()
+            internal inline fun fooInternal() = "foo"
+            """,
+            multifileAnnotations
+        )
+        givenKotlinScriptInBuildSrcContains(
+            "bar",
+            """
+            fun bar() = barInternal()
+            internal inline fun barInternal() = "bar"
+            """,
+            multifileAnnotations
+        )
+        withBuildScript("println($packageName.foo() + $packageName.bar())")
+        configureProject().assertBuildScriptCompiled().assertOutputContains("foobar")
+
+        givenKotlinScriptInBuildSrcContains(
+            "foo",
+            """
+            fun foo() = fooInternal()
+            internal inline fun fooInternal() = "bar"
+            """,
+            multifileAnnotations
+        )
+        givenKotlinScriptInBuildSrcContains(
+            "bar",
+            """
+            fun bar() = barInternal()
+            internal inline fun barInternal() = "foo"
+            """,
+            multifileAnnotations
+        )
+        configureProject().assertBuildScriptCompilationAvoided().assertOutputContains("barfoo")
+    }
+
     private
     fun withPrecompiledScriptPluginInBuildSrc(pluginId: String, pluginSource: String) {
         withKotlinDslPluginIn("buildSrc")
@@ -459,9 +586,9 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
     }
 
     private
-    fun givenKotlinScriptInBuildSrcContains(scriptName: String, scriptBody: String): String {
+    fun givenKotlinScriptInBuildSrcContains(scriptName: String, scriptBody: String, scriptPrefix: String = ""): String {
         withKotlinDslPluginIn("buildSrc")
-        return kotlinScriptSourceFile("buildSrc", scriptName, scriptBody)
+        return kotlinScriptSourceFile("buildSrc", scriptName, scriptBody, scriptPrefix)
     }
 
     private
@@ -495,10 +622,11 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
     }
 
     private
-    fun kotlinScriptSourceFile(baseDir: String, scriptName: String, scriptBody: String): String {
+    fun kotlinScriptSourceFile(baseDir: String, scriptName: String, scriptBody: String, scriptPrefix: String = ""): String {
         withFile(
             "$baseDir/src/main/kotlin/com/example/$scriptName.kt",
             """
+            $scriptPrefix
             package com.example
             $scriptBody
             """
