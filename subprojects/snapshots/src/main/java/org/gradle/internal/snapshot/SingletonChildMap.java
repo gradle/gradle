@@ -40,6 +40,11 @@ public class SingletonChildMap<T> implements ChildMap<T> {
     }
 
     @Override
+    public <R> R findChild(VfsRelativePath relativePath, CaseSensitivity caseSensitivity, FindChildHandler<T, R> handler) {
+        return entry.findPath(relativePath, caseSensitivity, handler);
+    }
+
+    @Override
     public <R> R handlePath(VfsRelativePath relativePath, CaseSensitivity caseSensitivity, PathRelationshipHandler<R> handler) {
         return entry.handlePath(relativePath, 0, caseSensitivity, handler);
     }

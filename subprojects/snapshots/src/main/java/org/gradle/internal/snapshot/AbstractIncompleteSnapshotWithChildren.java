@@ -16,6 +16,9 @@
 
 package org.gradle.internal.snapshot;
 
+import org.gradle.internal.file.FileType;
+
+import java.util.Comparator;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -34,7 +37,26 @@ public abstract class AbstractIncompleteSnapshotWithChildren implements FileSyst
 
     @Override
     public Optional<FileSystemNode> invalidate(VfsRelativePath relativePath, CaseSensitivity caseSensitivity, SnapshotHierarchy.NodeDiffListener diffListener) {
-        ChildMap<FileSystemNode> newChildren = SnapshotUtil.invalidateChild(children, relativePath, caseSensitivity, diffListener);
+        ChildMap<FileSystemNode> newChildren = children.invalidate(relativePath, caseSensitivity, new ChildMap.InvalidationHandler<FileSystemNode, FileSystemNode>() {
+            @Override
+            public Optional<FileSystemNode> invalidateDescendantOfChild(VfsRelativePath pathInChild, FileSystemNode child) {
+                return child.invalidate(pathInChild, caseSensitivity, diffListener);
+            }
+
+            @Override
+            public void ancestorInvalidated(FileSystemNode child) {
+                diffListener.nodeRemoved(child);
+            }
+
+            @Override
+            public void childInvalidated(FileSystemNode child) {
+                diffListener.nodeRemoved(child);
+            }
+
+            @Override
+            public void invalidatedChildNotFound() {
+            }
+        });
         if (newChildren.isEmpty()) {
             return withAllChildrenRemoved();
         }
@@ -46,7 +68,55 @@ public abstract class AbstractIncompleteSnapshotWithChildren implements FileSyst
 
     @Override
     public FileSystemNode store(VfsRelativePath relativePath, CaseSensitivity caseSensitivity, MetadataSnapshot snapshot, SnapshotHierarchy.NodeDiffListener diffListener) {
-        ChildMap<FileSystemNode> newChildren = SnapshotUtil.storeSnapshot(children, relativePath, caseSensitivity, snapshot, diffListener);
+        ChildMap<FileSystemNode> newChildren = children.store(relativePath, caseSensitivity, new ChildMap.StoreHandler<FileSystemNode>() {
+            @Override
+            public FileSystemNode storeInChild(VfsRelativePath pathInChild, FileSystemNode child) {
+                return child.store(pathInChild, caseSensitivity, snapshot, diffListener);
+            }
+
+            @Override
+            public FileSystemNode storeAsAncestor(VfsRelativePath pathToChild, FileSystemNode child) {
+                FileSystemNode newChild = snapshot.asFileSystemNode();
+                diffListener.nodeRemoved(child);
+                diffListener.nodeAdded(newChild);
+                return newChild;
+            }
+
+            @Override
+            public FileSystemNode mergeWithExisting(FileSystemNode child) {
+                if (snapshot instanceof CompleteFileSystemLocationSnapshot || !child.getSnapshot().map(oldSnapshot -> oldSnapshot instanceof CompleteFileSystemLocationSnapshot).orElse(false)) {
+                    FileSystemNode newChild = snapshot.asFileSystemNode();
+                    diffListener.nodeRemoved(child);
+                    diffListener.nodeAdded(newChild);
+                    return newChild;
+                } else {
+                    return child;
+                }
+            }
+
+            @Override
+            public FileSystemNode createChild() {
+                FileSystemNode newChild = snapshot.asFileSystemNode();
+                diffListener.nodeAdded(newChild);
+                return newChild;
+            }
+
+            @Override
+            public FileSystemNode createNodeFromChildren(ChildMap<FileSystemNode> children) {
+                AtomicBoolean isDirectory = new AtomicBoolean(false);
+                children.visitChildren((__, child) -> child.getSnapshot().map(this::isRegularFileOrDirectory).ifPresent(notMissing -> isDirectory.compareAndSet(false, notMissing)));
+                return isDirectory.get() ? new PartialDirectorySnapshot(children) : new UnknownSnapshot(children);
+            }
+
+            @Override
+            public Comparator<String> getPathComparator() {
+                return PathUtil.getPathComparator(caseSensitivity);
+            }
+
+            private boolean isRegularFileOrDirectory(MetadataSnapshot metadataSnapshot) {
+                return metadataSnapshot.getType() != FileType.Missing;
+            }
+        });
         if (newChildren == children) {
             return this;
         }

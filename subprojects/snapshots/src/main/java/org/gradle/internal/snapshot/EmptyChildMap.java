@@ -38,6 +38,11 @@ public class EmptyChildMap<T> implements ChildMap<T> {
     }
 
     @Override
+    public <R> R findChild(VfsRelativePath relativePath, CaseSensitivity caseSensitivity, FindChildHandler<T, R> handler) {
+        return handler.handleNotFound();
+    }
+
+    @Override
     public <R> R handlePath(VfsRelativePath relativePath, CaseSensitivity caseSensitivity, PathRelationshipHandler<R> handler) {
         return handler.handleDifferent(0);
     }

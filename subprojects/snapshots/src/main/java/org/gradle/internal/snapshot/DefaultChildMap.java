@@ -35,15 +35,30 @@ public class DefaultChildMap<T> implements ChildMap<T> {
     }
 
     @Override
+    public <R> R findChild(VfsRelativePath relativePath, CaseSensitivity caseSensitivity, FindChildHandler<T, R> handler) {
+        int childIndex = findChildIndexWithCommonPrefix(relativePath, caseSensitivity);
+        if (childIndex < 0) {
+            return handler.handleNotFound();
+        }
+        Entry<T> entry = children.get(childIndex);
+        return entry.findPath(relativePath, caseSensitivity, handler);
+    }
+
+    @Override
     public <R> R handlePath(VfsRelativePath relativePath, CaseSensitivity caseSensitivity, PathRelationshipHandler<R> handler) {
-        int childIndex = SearchUtil.binarySearch(
-            children,
-            candidate -> relativePath.compareToFirstSegment(candidate.getPath(), caseSensitivity)
-        );
+        int childIndex = findChildIndexWithCommonPrefix(relativePath, caseSensitivity);
         if (childIndex >= 0) {
             return children.get(childIndex).handlePath(relativePath, childIndex, caseSensitivity, handler);
         }
         return handler.handleDifferent(-childIndex - 1);
+    }
+
+    private int findChildIndexWithCommonPrefix(VfsRelativePath relativePath, CaseSensitivity caseSensitivity) {
+        int childIndex = SearchUtil.binarySearch(
+            children,
+            candidate -> relativePath.compareToFirstSegment(candidate.getPath(), caseSensitivity)
+        );
+        return childIndex;
     }
 
     @Override

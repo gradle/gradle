@@ -99,12 +99,11 @@ public class CompleteDirectorySnapshot extends AbstractCompleteFileSystemLocatio
 
     @Override
     public Optional<FileSystemNode> invalidate(VfsRelativePath relativePath, CaseSensitivity caseSensitivity, SnapshotHierarchy.NodeDiffListener diffListener) {
-        return children.handlePath(relativePath, caseSensitivity, new ChildMap.PathRelationshipHandler<Optional<FileSystemNode>>() {
+        ChildMap<FileSystemNode> newChildren = children.invalidate(relativePath, caseSensitivity, new ChildMap.InvalidationHandler<CompleteFileSystemLocationSnapshot, FileSystemNode>() {
             @Override
-            public Optional<FileSystemNode> handleDescendant(String childPath, int childIndex) {
+            public Optional<FileSystemNode> invalidateDescendantOfChild(VfsRelativePath pathInChild, CompleteFileSystemLocationSnapshot child) {
                 diffListener.nodeRemoved(CompleteDirectorySnapshot.this);
-                CompleteFileSystemLocationSnapshot foundChild = children.get(childIndex);
-                Optional<FileSystemNode> invalidated = foundChild.invalidate(relativePath.suffixStartingFrom(childPath.length() + 1), caseSensitivity, new SnapshotHierarchy.NodeDiffListener() {
+                Optional<FileSystemNode> invalidated = child.invalidate(pathInChild, caseSensitivity, new SnapshotHierarchy.NodeDiffListener() {
                     @Override
                     public void nodeRemoved(FileSystemNode node) {
                         // the parent already has been removed. No children need to be removed.
@@ -115,45 +114,35 @@ public class CompleteDirectorySnapshot extends AbstractCompleteFileSystemLocatio
                         diffListener.nodeAdded(node);
                     }
                 });
-                children.visitChildren((__, child) -> {
-                    if (child != foundChild) {
-                        diffListener.nodeAdded(child);
+                children.visitChildren((__, existingChild) -> {
+                    if (existingChild != child) {
+                        diffListener.nodeAdded(existingChild);
                     }
                 });
-                @SuppressWarnings({"unchecked", "rawtypes"})
-                ChildMap<FileSystemNode> nodeChildren = (ChildMap<FileSystemNode>) ((ChildMap) children);
-                ChildMap<FileSystemNode> newChildren = invalidated
-                    .map(invalidatedChild -> nodeChildren.withReplacedChild(childIndex, childPath, invalidatedChild))
-                    .orElseGet(() -> nodeChildren.withRemovedChild(childIndex));
-                return Optional.of(new PartialDirectorySnapshot(newChildren));
+                return invalidated;
             }
 
             @Override
-            public Optional<FileSystemNode> handleAncestor(String childPath, int childIndex) {
+            public void ancestorInvalidated(CompleteFileSystemLocationSnapshot child) {
                 throw new IllegalStateException("Can't have an ancestor of a single path element");
             }
 
             @Override
-            public Optional<FileSystemNode> handleSame(int childIndex) {
+            public void childInvalidated(CompleteFileSystemLocationSnapshot child) {
                 diffListener.nodeRemoved(CompleteDirectorySnapshot.this);
-                @SuppressWarnings({"unchecked", "rawtypes"})
-                ChildMap<FileSystemNode> nodeChildren = (ChildMap<FileSystemNode>) ((ChildMap) children);
-                ChildMap<FileSystemNode> newChildren = nodeChildren.withRemovedChild(childIndex);
-                newChildren.visitChildren((__, child) -> diffListener.nodeAdded(child));
-                return Optional.of(new PartialDirectorySnapshot(newChildren));
+                children.visitChildren((__, existingChild) -> {
+                    if (existingChild != child) {
+                        diffListener.nodeAdded(existingChild);
+                    }
+                });
             }
 
             @Override
-            public Optional<FileSystemNode> handleCommonPrefix(int commonPrefixLength, String childPath, int childIndex) {
-                throw new IllegalStateException("Can't have a common prefix of a single path element");
-            }
-
-            @Override
-            public Optional<FileSystemNode> handleDifferent(int indexOfNextBiggerChild) {
+            public void invalidatedChildNotFound() {
                 diffListener.nodeRemoved(CompleteDirectorySnapshot.this);
                 children.visitChildren((__, child) -> diffListener.nodeAdded(child));
-                return Optional.of(new PartialDirectorySnapshot(children));
             }
         });
+        return Optional.of(new PartialDirectorySnapshot(newChildren));
     }
 }

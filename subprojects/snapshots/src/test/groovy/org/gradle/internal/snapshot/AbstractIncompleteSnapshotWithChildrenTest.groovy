@@ -61,6 +61,7 @@ abstract class AbstractIncompleteSnapshotWithChildrenTest<T extends FileSystemNo
         removedNodes.empty
 
         1 * snapshot.asFileSystemNode() >> newGrandChild
+        _ * newGrandChild.snapshot >> Optional.of(snapshot)
         1 * selectedChild.snapshot >> Optional.empty()
         1 * snapshot.type >> fileType
         interaction { noMoreInteractions() }
@@ -92,6 +93,7 @@ abstract class AbstractIncompleteSnapshotWithChildrenTest<T extends FileSystemNo
         removedNodes.empty
 
         1 * snapshot.asFileSystemNode() >> newGrandChild
+        _ * newGrandChild.snapshot >> Optional.of(snapshot)
         1 * selectedChild.snapshot >> Optional.empty()
         1 * snapshot.type >> FileType.Missing
         interaction { noMoreInteractions() }
@@ -146,20 +148,20 @@ abstract class AbstractIncompleteSnapshotWithChildrenTest<T extends FileSystemNo
 
     def "storing a complete snapshot with same path #vfsSpec.searchedPath does replace child (#vfsSpec)"() {
         setupTest(vfsSpec)
-        def newChildPath = searchedPath.asString
         def snapshot = Mock(CompleteFileSystemLocationSnapshot)
-        def snapshotWithParent = mockChild()
+        def newChild = mockChild()
 
         when:
         def resultRoot = initialRoot.store(searchedPath, CASE_SENSITIVE, snapshot, diffListener)
         then:
-        resultRoot.children == childrenWithSelectedChildReplacedBy(snapshotWithParent)
+        resultRoot.children == childrenWithSelectedChildReplacedBy(newChild)
         isSameNodeType(resultRoot)
 
-        addedNodes == [snapshotWithParent]
+        addedNodes == [newChild]
         removedNodes == [selectedChild]
 
-        1 * snapshot.asFileSystemNode() >> snapshotWithParent
+        1 * snapshot.asFileSystemNode() >> newChild
+        _ * newChild.snapshot >> snapshot
         interaction { noMoreInteractions() }
 
         where:
