@@ -578,7 +578,10 @@ ${compilerConfiguration()}
 
     def writeAnnotationProcessorProject() {
         file("processor").create {
-            file("build.gradle") << "apply plugin: 'java'"
+            file("build.gradle") << """apply plugin: 'java'
+
+${annotationProcessorExtraSetup()}
+"""
             "src/main" {
                 file("resources/META-INF/services/javax.annotation.processing.Processor") << "com.test.SimpleAnnotationProcessor"
                 "java/com/test/" {
@@ -663,6 +666,10 @@ ${compilerConfiguration()}
                 }
             }
         }
+    }
+
+    String annotationProcessorExtraSetup() {
+        ""
     }
 
     String checkCompileOutput(String errorMessage) {
