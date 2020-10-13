@@ -581,7 +581,7 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
         )
         withBuildScript("println(\"foo\")")
         configureProject().assertBuildScriptCompiled().assertOutputContains("foo")
-        configureProject().assertBuildScriptCompilationAvoided().assertOutputContains("foo")
+        configureProject().assertBuildScriptCompilationAvoided()
     }
 
     private
