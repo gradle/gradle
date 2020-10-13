@@ -17,8 +17,13 @@
 package org.gradle.performance.regression.nativeplatform
 
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
+import org.gradle.performance.annotations.RunFor
+import org.gradle.performance.annotations.Scenario
 import org.gradle.performance.categories.SlowPerformanceRegressionTest
 import org.junit.experimental.categories.Category
+
+import static org.gradle.performance.annotations.ScenarioType.SLOW
+import static org.gradle.performance.results.OperatingSystem.LINUX
 
 @Category(SlowPerformanceRegressionTest)
 class NativeCleanBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
@@ -27,6 +32,23 @@ class NativeCleanBuildPerformanceTest extends AbstractCrossVersionPerformanceTes
         runner.targetVersions = ["6.7-20200824220048+0000"]
     }
 
+    @RunFor([
+        @Scenario(type = SLOW, oses = [LINUX],
+            testProjectNames =  [
+                'smallNative',
+                'mediumNative',
+                'bigNative',
+                'multiNative',
+                'smallCppApp',
+                'mediumCppApp',
+                'mediumCppAppWithMacroIncludes',
+                'bigCppApp',
+                'smallCppMulti',
+                'mediumCppMulti',
+                'mediumCppMultiWithMacroIncludes',
+                'bigCppMulti'
+            ])
+    ])
     def "clean assemble (native)"() {
         given:
         def iterations = runner.testProject in ['smallNative', 'smallCppApp', 'smallCppMulti'] ? 40 : null
@@ -43,6 +65,9 @@ class NativeCleanBuildPerformanceTest extends AbstractCrossVersionPerformanceTes
         result.assertCurrentVersionHasNotRegressed()
     }
 
+    @RunFor([
+        @Scenario(type = SLOW, oses = [LINUX], testProjectNames =  ['manyProjectsNative'])
+    ])
     def "clean assemble (native, parallel)"() {
         given:
         runner.tasksToRun = ["assemble"]

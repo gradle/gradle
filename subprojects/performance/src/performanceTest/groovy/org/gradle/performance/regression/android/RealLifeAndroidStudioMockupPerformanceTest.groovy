@@ -19,8 +19,16 @@ package org.gradle.performance.regression.android
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
 import org.gradle.performance.android.GetModel
 import org.gradle.performance.android.SyncAction
+import org.gradle.performance.annotations.RunFor
+import org.gradle.performance.annotations.Scenario
 import org.gradle.performance.fixture.AndroidTestProject
 
+import static org.gradle.performance.annotations.ScenarioType.TEST
+import static org.gradle.performance.results.OperatingSystem.LINUX
+
+@RunFor([
+    @Scenario(type = TEST, oses = [LINUX], testProjectNames = ["largeAndroidBuild", "k9AndroidBuild"])
+])
 class RealLifeAndroidStudioMockupPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
     def "get IDE model for Android Studio"() {

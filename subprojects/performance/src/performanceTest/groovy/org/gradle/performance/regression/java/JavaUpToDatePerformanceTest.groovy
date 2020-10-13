@@ -18,12 +18,23 @@ package org.gradle.performance.regression.java
 
 import org.gradle.initialization.StartParameterBuildOptions
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
+import org.gradle.performance.annotations.RunFor
+import org.gradle.performance.annotations.Scenario
 import org.gradle.profiler.mutations.AbstractCleanupMutator
 import org.gradle.profiler.mutations.ClearBuildCacheMutator
 import spock.lang.Unroll
 
-class JavaUpToDatePerformanceTest extends AbstractCrossVersionPerformanceTest {
+import static org.gradle.performance.annotations.ScenarioType.TEST
+import static org.gradle.performance.generator.JavaTestProjectGenerator.LARGE_JAVA_MULTI_PROJECT
+import static org.gradle.performance.generator.JavaTestProjectGenerator.LARGE_MONOLITHIC_JAVA_PROJECT
+import static org.gradle.performance.results.OperatingSystem.LINUX
+import static org.gradle.performance.results.OperatingSystem.WINDOWS
 
+class JavaUpToDatePerformanceTest extends AbstractCrossVersionPerformanceTest {
+    @RunFor([
+        @Scenario(type = TEST, oses = [LINUX, WINDOWS], testProjects = [LARGE_JAVA_MULTI_PROJECT], iterationMatcher = '.*parallel true.*'),
+        @Scenario(type = TEST, oses = [LINUX], testProjects = [LARGE_JAVA_MULTI_PROJECT, LARGE_MONOLITHIC_JAVA_PROJECT], iterationMatcher = '.*parallel false.*'),
+    ])
     @Unroll
     def "up-to-date assemble (parallel #parallel)"() {
         given:
@@ -42,6 +53,10 @@ class JavaUpToDatePerformanceTest extends AbstractCrossVersionPerformanceTest {
         parallel << [true, false]
     }
 
+    @RunFor([
+        @Scenario(type = TEST, oses = [LINUX], testProjects = [LARGE_JAVA_MULTI_PROJECT], iterationMatcher = '.*parallel true.*'),
+        @Scenario(type = TEST, oses = [LINUX], testProjects = [LARGE_JAVA_MULTI_PROJECT, LARGE_MONOLITHIC_JAVA_PROJECT], iterationMatcher = '.*parallel false.*'),
+    ])
     @Unroll
     def "up-to-date assemble with local build cache enabled (parallel #parallel)"() {
         given:

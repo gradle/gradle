@@ -18,10 +18,18 @@ package org.gradle.performance.regression.nativeplatform
 
 import org.apache.commons.io.FileUtils
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
+import org.gradle.performance.annotations.RunFor
+import org.gradle.performance.annotations.Scenario
 import org.gradle.profiler.BuildContext
 import org.gradle.profiler.BuildMutator
 import spock.lang.Unroll
 
+import static org.gradle.performance.annotations.ScenarioType.TEST
+import static org.gradle.performance.results.OperatingSystem.LINUX
+
+@RunFor([
+    @Scenario(type = TEST, oses = [LINUX], testProjectNames = ["nativeMonolithic", "nativeMonolithicOverlapping"])
+])
 class RealWorldNativePluginPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
     def setup() {
@@ -51,6 +59,10 @@ class RealWorldNativePluginPerformanceTest extends AbstractCrossVersionPerforman
         parallelWorkers << [0, 12]
     }
 
+    @RunFor([
+        @Scenario(type = TEST, oses = [LINUX], testProjectNames = ["mediumNativeMonolithic"], iterationMatcher = ".*(header|source) file.*"),
+        @Scenario(type = TEST, oses = [LINUX], testProjectNames = ["smallNativeMonolithic"], iterationMatcher = ".*build file.*")
+    ])
     @Unroll
     def "build with #changeType file change"() {
         given:

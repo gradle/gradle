@@ -17,8 +17,16 @@
 package org.gradle.performance.regression.buildcache
 
 import org.gradle.initialization.ParallelismBuildOptions
+import org.gradle.performance.annotations.RunFor
+import org.gradle.performance.annotations.Scenario
+
+import static org.gradle.performance.annotations.ScenarioType.TEST
+import static org.gradle.performance.results.OperatingSystem.LINUX
 
 // TODO: Merge with TaskOutputCachingJavaPerformanceTest
+@RunFor([
+    @Scenario(type = TEST, oses = [LINUX], testProjectNames = ["bigCppApp", "bigCppMulti", "bigNative"])
+])
 class TaskOutputCachingNativePerformanceTest extends AbstractTaskOutputCachingPerformanceTest {
 
     def setup() {

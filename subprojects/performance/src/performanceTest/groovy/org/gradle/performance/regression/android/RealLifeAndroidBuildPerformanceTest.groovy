@@ -16,14 +16,27 @@
 
 package org.gradle.performance.regression.android
 
+import org.gradle.performance.annotations.RunFor
+import org.gradle.performance.annotations.Scenario
 import org.gradle.performance.fixture.AndroidTestProject
 import org.gradle.performance.fixture.IncrementalAndroidTestProject
 import spock.lang.Unroll
 
+import static org.gradle.performance.annotations.ScenarioType.TEST
 import static org.gradle.performance.fixture.AndroidTestProject.K9_ANDROID
+import static org.gradle.performance.results.OperatingSystem.LINUX
 
+@RunFor([
+    @Scenario(type = TEST, oses = [LINUX], testProjectNames = ["santaTrackerAndroidBuild"])
+])
 class RealLifeAndroidBuildPerformanceTest extends AbstractRealLifeAndroidBuildPerformanceTest {
+
     @Unroll
+    @RunFor([
+        @Scenario(type = TEST, oses = [LINUX], testProjectNames = ["k9AndroidBuild", "largeAndroidBuild"], iterationMatcher = "run help"),
+        @Scenario(type = TEST, oses = [LINUX], testProjectNames = ["k9AndroidBuild", "largeAndroidBuild", "santaTrackerAndroidBuild"], iterationMatcher = "run assembleDebug"),
+        @Scenario(type = TEST, oses = [LINUX], testProjectNames = ["largeAndroidBuild"], iterationMatcher = ".*phthalic.*")
+    ])
     def "run #tasks"() {
         given:
         AndroidTestProject testProject = androidTestProject
@@ -49,9 +62,9 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractRealLifeAndroidBuildPe
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        tasks                         | warmUpRuns | runs
-        'help'                        | null       | null
-        'assembleDebug'               | null       | null
+        tasks                          | warmUpRuns | runs
+        'help'                         | null       | null
+        'assembleDebug'                | null       | null
         'clean phthalic:assembleDebug' | 2          | 8
     }
 

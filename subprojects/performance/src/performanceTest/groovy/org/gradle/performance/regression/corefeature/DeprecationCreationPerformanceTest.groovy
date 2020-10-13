@@ -17,7 +17,15 @@
 package org.gradle.performance.regression.corefeature
 
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
+import org.gradle.performance.annotations.RunFor
+import org.gradle.performance.annotations.Scenario
 
+import static org.gradle.performance.annotations.ScenarioType.TEST
+import static org.gradle.performance.results.OperatingSystem.LINUX
+
+@RunFor([
+    @Scenario(type = TEST, oses = [LINUX], testProjectNames = ["generateLotsOfDeprecationWarnings"])
+])
 class DeprecationCreationPerformanceTest extends AbstractCrossVersionPerformanceTest {
     def "create many deprecation warnings"() {
         given:

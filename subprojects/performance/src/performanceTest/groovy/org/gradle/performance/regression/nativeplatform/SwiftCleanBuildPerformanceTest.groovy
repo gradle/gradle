@@ -18,9 +18,17 @@ package org.gradle.performance.regression.nativeplatform
 
 import org.gradle.initialization.ParallelismBuildOptions
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
+import org.gradle.performance.annotations.RunFor
+import org.gradle.performance.annotations.Scenario
 import org.gradle.performance.categories.SlowPerformanceRegressionTest
 import org.junit.experimental.categories.Category
 
+import static org.gradle.performance.annotations.ScenarioType.SLOW
+import static org.gradle.performance.results.OperatingSystem.LINUX
+
+@RunFor([
+    @Scenario(type = SLOW, oses = [LINUX], testProjectNames = ['mediumSwiftMulti', 'bigSwiftApp'])
+])
 @Category(SlowPerformanceRegressionTest)
 class SwiftCleanBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
@@ -42,5 +50,4 @@ class SwiftCleanBuildPerformanceTest extends AbstractCrossVersionPerformanceTest
         then:
         result.assertCurrentVersionHasNotRegressed()
     }
-
 }

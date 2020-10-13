@@ -17,9 +17,17 @@
 package org.gradle.performance.experiment.nativeplatform
 
 import org.gradle.performance.AbstractCrossBuildPerformanceTest
+import org.gradle.performance.annotations.RunFor
+import org.gradle.performance.annotations.Scenario
 import org.gradle.performance.categories.PerformanceExperiment
 import org.junit.experimental.categories.Category
 
+import static org.gradle.performance.annotations.ScenarioType.EXPERIMENT
+import static org.gradle.performance.results.OperatingSystem.LINUX
+
+@RunFor([
+    @Scenario(type = EXPERIMENT, oses = [LINUX], testProjectNames = ["smallPCHNative", "mediumPCHNative", "bigPCHNative"])
+])
 @Category(PerformanceExperiment)
 class NativePreCompiledHeaderPerformanceTest extends AbstractCrossBuildPerformanceTest {
 

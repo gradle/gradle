@@ -17,7 +17,12 @@
 package org.gradle.performance.regression.corefeature
 
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
+import org.gradle.performance.annotations.RunFor
+import org.gradle.performance.annotations.Scenario
 import spock.lang.Unroll
+
+import static org.gradle.performance.annotations.ScenarioType.TEST
+import static org.gradle.performance.results.OperatingSystem.LINUX
 
 class RichConsolePerformanceTest extends AbstractCrossVersionPerformanceTest {
 
@@ -25,6 +30,12 @@ class RichConsolePerformanceTest extends AbstractCrossVersionPerformanceTest {
         runner.args << '--console=rich'
     }
 
+    @RunFor([
+        @Scenario(type = TEST, oses = [LINUX], testProjectNames = ["largeMonolithicJavaProject", "largeJavaMultiProject", "bigNative"],
+            iterationMatcher = "^clean assemble.*"),
+        @Scenario(type = TEST, oses = [LINUX], testProjectNames = ["withVerboseJUnit"],
+            iterationMatcher = "^cleanTest.*")
+    ])
     @Unroll
     def "#tasks with rich console"() {
         given:

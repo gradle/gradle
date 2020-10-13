@@ -17,7 +17,12 @@
 package org.gradle.performance.regression.nativeplatform
 
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
+import org.gradle.performance.annotations.RunFor
+import org.gradle.performance.annotations.Scenario
 import spock.lang.Unroll
+
+import static org.gradle.performance.annotations.ScenarioType.TEST
+import static org.gradle.performance.results.OperatingSystem.LINUX
 
 class NativeBuildDependentsPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
@@ -26,6 +31,9 @@ class NativeBuildDependentsPerformanceTest extends AbstractCrossVersionPerforman
         runner.minimumBaseVersion = "4.0"
     }
 
+    @RunFor([
+        @Scenario(type = TEST, oses = [LINUX], testProjectNames = ["nativeDependents"], iterationMatcher = ".*libA0.*")
+    ])
     @Unroll
     def "run #task"() {
         // TODO Enable once runnable on CI (google test & target platform)
@@ -34,7 +42,7 @@ class NativeBuildDependentsPerformanceTest extends AbstractCrossVersionPerforman
         // The generated dependency graph is rather complex and deep, unrealistic?
         // 'nativeDependentsDeep' | 'libA0:buildDependentsLibA0'
         given:
-        runner.tasksToRun = [ task ]
+        runner.tasksToRun = [task]
         runner.args += ["--parallel", "--max-workers=4"]
         runner.gradleOpts = runner.projectMemoryOptions
 
@@ -48,6 +56,9 @@ class NativeBuildDependentsPerformanceTest extends AbstractCrossVersionPerforman
         task << ['libA0:buildDependentsLibA0', 'project432:buildDependentsExternalComponent111']
     }
 
+    @RunFor([
+        @Scenario(type = TEST, oses = [LINUX], testProjectNames = ["nativeDependents"], iterationMatcher = ".*libA0.*")
+    ])
     @Unroll
     def "run #subprojectPath:dependentComponents"() {
         // TODO Enable once runnable on CI (google test & target platform)
@@ -56,7 +67,7 @@ class NativeBuildDependentsPerformanceTest extends AbstractCrossVersionPerforman
         // The generated dependency graph is rather complex and deep, unrealistic?
         // 'nativeDependentsDeep' | 'libA0'
         given:
-        runner.tasksToRun = [ "$subprojectPath:dependentComponents" ]
+        runner.tasksToRun = ["$subprojectPath:dependentComponents"]
         runner.args += ["--parallel", "--max-workers=4"]
         runner.gradleOpts = runner.projectMemoryOptions
 

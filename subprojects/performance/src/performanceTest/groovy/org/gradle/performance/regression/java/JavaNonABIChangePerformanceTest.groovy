@@ -17,13 +17,25 @@
 package org.gradle.performance.regression.java
 
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
+import org.gradle.performance.annotations.RunFor
+import org.gradle.performance.annotations.Scenario
 import org.gradle.performance.fixture.JavaTestProject
 import org.gradle.performance.mutator.ApplyNonAbiChangeToGroovySourceFileMutator
 import org.gradle.profiler.mutations.ApplyNonAbiChangeToJavaSourceFileMutator
 import spock.lang.Unroll
 
-class JavaNonABIChangePerformanceTest extends AbstractCrossVersionPerformanceTest {
+import static org.gradle.performance.annotations.ScenarioType.TEST
+import static org.gradle.performance.generator.JavaTestProjectGenerator.LARGE_GROOVY_MULTI_PROJECT
+import static org.gradle.performance.generator.JavaTestProjectGenerator.LARGE_JAVA_MULTI_PROJECT
+import static org.gradle.performance.generator.JavaTestProjectGenerator.LARGE_MONOLITHIC_GROOVY_PROJECT
+import static org.gradle.performance.generator.JavaTestProjectGenerator.LARGE_MONOLITHIC_JAVA_PROJECT
+import static org.gradle.performance.results.OperatingSystem.LINUX
 
+@RunFor([
+    @Scenario(type = TEST, oses = [LINUX],
+        testProjects = [LARGE_JAVA_MULTI_PROJECT, LARGE_GROOVY_MULTI_PROJECT, LARGE_MONOLITHIC_JAVA_PROJECT, LARGE_MONOLITHIC_GROOVY_PROJECT])
+])
+class JavaNonABIChangePerformanceTest extends AbstractCrossVersionPerformanceTest {
     @Unroll
     def "assemble for non-abi change"() {
         given:

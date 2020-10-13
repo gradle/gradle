@@ -23,6 +23,8 @@ import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCachePr
 import org.gradle.integtests.fixtures.versions.AndroidGradlePluginVersions
 import org.gradle.internal.scan.config.fixtures.ApplyGradleEnterprisePluginFixture
 import org.gradle.performance.AbstractCrossBuildPerformanceTest
+import org.gradle.performance.annotations.RunFor
+import org.gradle.performance.annotations.Scenario
 import org.gradle.performance.categories.PerformanceExperiment
 import org.gradle.performance.fixture.GradleBuildExperimentSpec
 import org.gradle.performance.fixture.IncrementalAndroidTestProject
@@ -36,8 +38,15 @@ import org.gradle.profiler.mutations.ClearConfigurationCacheStateMutator
 import org.gradle.profiler.mutations.ClearProjectCacheMutator
 import org.junit.experimental.categories.Category
 
+import static org.gradle.performance.annotations.ScenarioType.EXPERIMENT
 import static org.gradle.performance.fixture.IncrementalAndroidTestProject.SANTA_TRACKER_KOTLIN
+import static org.gradle.performance.results.OperatingSystem.LINUX
+import static org.gradle.performance.results.OperatingSystem.MAC_OS
+import static org.gradle.performance.results.OperatingSystem.WINDOWS
 
+@RunFor([
+    @Scenario(type = EXPERIMENT, oses = [LINUX], testProjectNames = ["santaTrackerAndroidBuild", "santaTrackerAndroidJavaBuild"])
+])
 @Category(PerformanceExperiment)
 class FasterIncrementalAndroidBuildsPerformanceTest extends AbstractCrossBuildPerformanceTest {
     private static final String AGP_TARGET_VERSION = "4.2"
@@ -71,6 +80,9 @@ class FasterIncrementalAndroidBuildsPerformanceTest extends AbstractCrossBuildPe
         results
     }
 
+    @RunFor([
+        @Scenario(type = EXPERIMENT, oses = [LINUX, MAC_OS, WINDOWS], testProjectNames = ["santaTrackerAndroidBuild"])
+    ])
     def "file system watching baseline non-abi change (build comparison)"() {
         given:
         runner.measureBuildOperation(ExecuteTaskActionBuildOperationType.name)

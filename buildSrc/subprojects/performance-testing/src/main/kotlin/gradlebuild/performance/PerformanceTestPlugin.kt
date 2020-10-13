@@ -44,6 +44,7 @@ import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.api.tasks.bundling.Zip
+import org.gradle.api.tasks.testing.Test
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.kotlin.dsl.*
 import org.gradle.plugins.ide.eclipse.EclipsePlugin
@@ -182,6 +183,26 @@ class PerformanceTestPlugin : Plugin<Project> {
             systemProperties(project.propertiesForPerformanceDb())
             args(project.rootProject.file(".teamcity/performance-test-durations.json").absolutePath)
             // Never up-to-date since it reads data from the database.
+            outputs.upToDateWhen { false }
+        }
+
+        createPerformanceDefinitionJsonTask("writePerformanceScenarioDefinitions", performanceSourceSet, true)
+        createPerformanceDefinitionJsonTask("verifyPerformanceScenarioDefinitions", performanceSourceSet, false)
+    }
+
+    /**
+     * Scan performance test scenarios and:
+     * 1. Write to the scenario JSON file if write=true;
+     * 2. Only verify the scenario JSON file is correct if write=false.
+     */
+    private
+    fun Project.createPerformanceDefinitionJsonTask(name: String, performanceSourceSet: SourceSet, write: Boolean) {
+        tasks.register<Test>(name) {
+            testClassesDirs = performanceSourceSet.output.classesDirs
+            classpath = performanceSourceSet.runtimeClasspath
+            maxParallelForks = 1
+            systemProperty("org.gradle.performance.scenario.json", project.rootProject.file(".teamcity/performance-tests-ci.json").absolutePath)
+            systemProperty("org.gradle.performance.write.scenario.json", write)
             outputs.upToDateWhen { false }
         }
     }

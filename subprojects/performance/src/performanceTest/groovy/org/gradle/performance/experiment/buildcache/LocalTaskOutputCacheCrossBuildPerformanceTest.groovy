@@ -17,6 +17,8 @@
 package org.gradle.performance.experiment.buildcache
 
 import org.gradle.performance.AbstractCrossBuildPerformanceTest
+import org.gradle.performance.annotations.RunFor
+import org.gradle.performance.annotations.Scenario
 import org.gradle.performance.categories.PerformanceExperiment
 import org.gradle.performance.fixture.GradleBuildExperimentSpec
 import org.gradle.profiler.InvocationSettings
@@ -25,10 +27,16 @@ import org.gradle.profiler.mutations.ClearBuildCacheMutator
 import org.junit.experimental.categories.Category
 
 import static org.gradle.integtests.tooling.fixture.TextUtil.escapeString
+import static org.gradle.performance.annotations.ScenarioType.EXPERIMENT
+import static org.gradle.performance.generator.JavaTestProjectGenerator.LARGE_JAVA_MULTI_PROJECT
+import static org.gradle.performance.generator.JavaTestProjectGenerator.LARGE_MONOLITHIC_JAVA_PROJECT
+import static org.gradle.performance.results.OperatingSystem.LINUX
 
+@RunFor([
+    @Scenario(type = EXPERIMENT, oses = [LINUX], testProjects = [LARGE_JAVA_MULTI_PROJECT, LARGE_MONOLITHIC_JAVA_PROJECT])
+])
 @Category(PerformanceExperiment)
 class LocalTaskOutputCacheCrossBuildPerformanceTest extends AbstractCrossBuildPerformanceTest {
-
     def "assemble with local cache (build comparison)"() {
         def noPushInitScript = temporaryFolder.file("no-push.gradle")
         noPushInitScript << """
