@@ -18,12 +18,13 @@ package org.gradle.tooling.internal.provider
 
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.StartParameterInternal
+import org.gradle.api.internal.changedetection.state.CachingFileHasherStatisticsCollector
+import org.gradle.internal.file.FileSystemStatisticsCollector
 import org.gradle.internal.invocation.BuildAction
 import org.gradle.internal.invocation.BuildActionRunner
 import org.gradle.internal.invocation.BuildController
 import org.gradle.internal.operations.BuildOperationRunner
 import org.gradle.internal.service.ServiceRegistry
-import org.gradle.internal.service.scopes.VirtualFileSystemStatisticsCollector
 import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem
 import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem.VfsLogging
 import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem.WatchLogging
@@ -36,15 +37,16 @@ class FileSystemWatchingBuildActionRunnerTest extends Specification {
     def watchingHandler = Mock(BuildLifecycleAwareVirtualFileSystem)
     def startParameter = Stub(StartParameterInternal)
     def buildOperationRunner = Mock(BuildOperationRunner)
-    def statistics = Stub(VirtualFileSystemStatisticsCollector.Statistics)
-    def virtualFileSystemStatisticsCollector = Mock(VirtualFileSystemStatisticsCollector)
+    def cachingFileHasherStatisticsCollector = Stub(CachingFileHasherStatisticsCollector)
+    def fileSystemStatisticsCollector = Stub(FileSystemStatisticsCollector)
     def buildController = Stub(BuildController) {
         getGradle() >> Stub(GradleInternal) {
             getStartParameter() >> startParameter
             getServices() >> Stub(ServiceRegistry) {
                 get(BuildLifecycleAwareVirtualFileSystem) >> watchingHandler
                 get(BuildOperationRunner) >> buildOperationRunner
-                get(VirtualFileSystemStatisticsCollector) >> virtualFileSystemStatisticsCollector
+                get(CachingFileHasherStatisticsCollector) >> cachingFileHasherStatisticsCollector
+                get(FileSystemStatisticsCollector) >> fileSystemStatisticsCollector
             }
         }
     }
@@ -71,7 +73,6 @@ class FileSystemWatchingBuildActionRunnerTest extends Specification {
         1 * watchingHandler.beforeBuildFinished(watchFsEnabled, vfsLogging, watchLogging, buildOperationRunner, _)
 
         then:
-        1 * virtualFileSystemStatisticsCollector.collect() >> statistics
         0 * _
 
         where:

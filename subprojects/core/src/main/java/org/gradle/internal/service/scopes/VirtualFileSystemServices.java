@@ -55,7 +55,6 @@ import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.DefaultOutputSnapshotter;
 import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.OutputSnapshotter;
-import org.gradle.internal.file.FileSystemStatisticsCollector;
 import org.gradle.internal.file.Stat;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinter;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry;
@@ -193,13 +192,6 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
         CachingFileHasherStatisticsCollector createCachingFileHasherStatisticsCollector() {
             return new CachingFileHasherStatisticsCollector();
         }
-
-        VirtualFileSystemStatisticsCollector createVirtualFileSystemStatistics(
-            CachingFileHasherStatisticsCollector cachingFileHasherStatisticsCollector,
-            FileSystemStatisticsCollector fileSystemStatisticsCollector
-        ) {
-            return new DefaultVirtualFileSystemStatisticsCollector(cachingFileHasherStatisticsCollector, fileSystemStatisticsCollector);
-        }
     }
 
     @VisibleForTesting
@@ -244,8 +236,7 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
             NativeCapabilities nativeCapabilities,
             ListenerManager listenerManager,
             FileSystem fileSystem,
-            GlobalCacheLocations globalCacheLocations,
-            VirtualFileSystemStatisticsCollector statistics
+            GlobalCacheLocations globalCacheLocations
         ) {
             CaseSensitivity caseSensitivity = fileSystem.isCaseSensitive() ? CASE_SENSITIVE : CASE_INSENSITIVE;
             VfsRootReference rootReference = new VfsRootReference(DefaultSnapshotHierarchy.empty(caseSensitivity));
@@ -444,36 +435,6 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
 
         CompileClasspathFingerprinter createCompileClasspathFingerprinter(ResourceSnapshotterCacheService resourceSnapshotterCacheService, FileCollectionSnapshotter fileCollectionSnapshotter, StringInterner stringInterner) {
             return new DefaultCompileClasspathFingerprinter(resourceSnapshotterCacheService, fileCollectionSnapshotter, stringInterner);
-        }
-    }
-
-    private static class DefaultVirtualFileSystemStatisticsCollector implements VirtualFileSystemStatisticsCollector {
-        private final CachingFileHasherStatisticsCollector cachingFileHasherStatisticsCollector;
-        private final FileSystemStatisticsCollector fileSystemStatisticsCollector;
-
-        public DefaultVirtualFileSystemStatisticsCollector(
-            CachingFileHasherStatisticsCollector cachingFileHasherStatisticsCollector,
-            FileSystemStatisticsCollector fileSystemStatisticsCollector
-        ) {
-            this.cachingFileHasherStatisticsCollector = cachingFileHasherStatisticsCollector;
-            this.fileSystemStatisticsCollector = fileSystemStatisticsCollector;
-        }
-
-        @Override
-        public Statistics collect() {
-            FileSystemStatisticsCollector.Statistics fileSystemStatistics = fileSystemStatisticsCollector.collect();
-            CachingFileHasherStatisticsCollector.Statistics cachingFileHasherStatistics = cachingFileHasherStatisticsCollector.collect();
-            return new Statistics() {
-                @Override
-                public FileSystemStatisticsCollector.Statistics getFileSystemStatistics() {
-                    return fileSystemStatistics;
-                }
-
-                @Override
-                public CachingFileHasherStatisticsCollector.Statistics getCachingFileHasherStatistics() {
-                    return cachingFileHasherStatistics;
-                }
-            };
         }
     }
 

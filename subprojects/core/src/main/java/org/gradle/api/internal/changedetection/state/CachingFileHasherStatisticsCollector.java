@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.changedetection.state;
 
+import java.text.MessageFormat;
 import java.util.concurrent.atomic.AtomicLong;
 
 public class CachingFileHasherStatisticsCollector {
@@ -58,6 +59,16 @@ public class CachingFileHasherStatisticsCollector {
             @Override
             public long getCachedContentLength() {
                 return totalCachedContentLength;
+            }
+
+            @Override
+            public String toString() {
+                return MessageFormat.format("Hashed {0,number,integer} files ({1,number} kB), served hash from cache for {2,number,integer} files ({3,number} kB)",
+                    totalHashedFileCount,
+                    totalHashedContentLength / 1024D,
+                    totalCachedFileCount,
+                    totalCachedContentLength / 1024D
+                );
             }
         };
     }

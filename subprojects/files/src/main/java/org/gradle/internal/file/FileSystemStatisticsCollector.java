@@ -16,6 +16,7 @@
 
 package org.gradle.internal.file;
 
+import java.text.MessageFormat;
 import java.util.concurrent.atomic.AtomicLong;
 
 public class FileSystemStatisticsCollector {
@@ -42,6 +43,13 @@ public class FileSystemStatisticsCollector {
             @Override
             public long getUnixModeCount() {
                 return unixModeCount;
+            }
+
+            @Override
+            public String toString() {
+                return MessageFormat.format("Executed stat() x {0,number,integer}. getUnixMode() x {1,number,integer}",
+                    statsCount,
+                    unixModeCount);
             }
         };
     }
