@@ -93,6 +93,5 @@ public interface CachingFileHasherStatistics {
                 }
             };
         }
-
     }
 }

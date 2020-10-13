@@ -21,7 +21,7 @@ import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.changedetection.state.CachingFileHasherStatistics;
 import org.gradle.initialization.StartParameterBuildOptions;
 import org.gradle.internal.deprecation.DeprecationLogger;
-import org.gradle.internal.file.FileSystemStatistics;
+import org.gradle.internal.file.StatStatistics;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.invocation.BuildActionRunner;
 import org.gradle.internal.invocation.BuildController;
@@ -49,7 +49,7 @@ public class FileSystemWatchingBuildActionRunner implements BuildActionRunner {
         StartParameterInternal startParameter = gradle.getStartParameter();
         ServiceRegistry services = gradle.getServices();
         BuildLifecycleAwareVirtualFileSystem virtualFileSystem = services.get(BuildLifecycleAwareVirtualFileSystem.class);
-        FileSystemStatistics.Collector fileSystemStatisticsCollector = services.get(FileSystemStatistics.Collector.class);
+        StatStatistics.Collector statStatisticsCollector = services.get(StatStatistics.Collector.class);
         CachingFileHasherStatistics.Collector cachingFileHasherStatisticsCollector = services.get(CachingFileHasherStatistics.Collector.class);
         BuildOperationRunner buildOperationRunner = services.get(BuildOperationRunner.class);
 
@@ -73,7 +73,7 @@ public class FileSystemWatchingBuildActionRunner implements BuildActionRunner {
         } finally {
             int maximumNumberOfWatchedHierarchies = VirtualFileSystemServices.getMaximumNumberOfWatchedHierarchies(startParameter);
             virtualFileSystem.beforeBuildFinished(watchFileSystem, verboseVfsLogging, debugWatchLogging, buildOperationRunner, maximumNumberOfWatchedHierarchies);
-            LOGGER.warn("STAT:FS {}", fileSystemStatisticsCollector.collect());
+            LOGGER.warn("STAT:STAT   {}", statStatisticsCollector.collect());
             LOGGER.warn("STAT:HASHER {}", cachingFileHasherStatisticsCollector.collect());
         }
     }

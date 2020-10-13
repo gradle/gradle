@@ -20,7 +20,7 @@ import java.io.File;
 import java.text.MessageFormat;
 import java.util.concurrent.atomic.AtomicLong;
 
-public interface FileSystemStatistics {
+public interface StatStatistics {
     /**
      * Number of times {@link Stat#stat(File)} was called.
      */
@@ -43,10 +43,10 @@ public interface FileSystemStatistics {
             unixModeCounter.incrementAndGet();
         }
 
-        public FileSystemStatistics collect() {
+        public StatStatistics collect() {
             final long unixModeCount = unixModeCounter.getAndSet(0);
             final long statsCount = statCounter.getAndSet(0);
-            return new FileSystemStatistics() {
+            return new StatStatistics() {
                 @Override
                 public long getStatsCount() {
                     return statsCount;
@@ -65,6 +65,5 @@ public interface FileSystemStatistics {
                 }
             };
         }
-
     }
 }
