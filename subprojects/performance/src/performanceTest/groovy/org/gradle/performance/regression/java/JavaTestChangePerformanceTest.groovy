@@ -19,11 +19,9 @@ package org.gradle.performance.regression.java
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
 import org.gradle.performance.fixture.JavaTestProject
 import org.gradle.profiler.mutations.ApplyNonAbiChangeToJavaSourceFileMutator
-import spock.lang.Unroll
 
 class JavaTestChangePerformanceTest extends AbstractCrossVersionPerformanceTest {
 
-    @Unroll
     def "test for non-abi change"() {
         given:
         def testProject = JavaTestProject.projectFor(runner.testProject)
@@ -32,6 +30,8 @@ class JavaTestChangePerformanceTest extends AbstractCrossVersionPerformanceTest 
         runner.runs = 6
         runner.tasksToRun = ['test']
         runner.targetVersions = ["6.7-20200824220048+0000"]
+        // Pre-4.0 versions run into memory problems with this test
+        runner.minimumBaseVersion = "4.0"
         runner.addBuildMutator { new ApplyNonAbiChangeToJavaSourceFileMutator(new File(it.projectDir, testProject.config.fileToChangeByScenario['test'])) }
 
         when:
