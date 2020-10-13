@@ -25,6 +25,7 @@ import org.gradle.internal.invocation.BuildActionRunner
 import org.gradle.internal.invocation.BuildController
 import org.gradle.internal.operations.BuildOperationRunner
 import org.gradle.internal.service.ServiceRegistry
+import org.gradle.internal.snapshot.impl.DirectorySnapshotterStatistics
 import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem
 import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem.VfsLogging
 import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem.WatchLogging
@@ -39,6 +40,7 @@ class FileSystemWatchingBuildActionRunnerTest extends Specification {
     def buildOperationRunner = Mock(BuildOperationRunner)
     def cachingFileHasherStatisticsCollector = Stub(CachingFileHasherStatistics.Collector)
     def statStatisticsCollector = Stub(StatStatistics.Collector)
+    def directorySnapshotterStatisticsCollector = Stub(DirectorySnapshotterStatistics.Collector)
     def buildController = Stub(BuildController) {
         getGradle() >> Stub(GradleInternal) {
             getStartParameter() >> startParameter
@@ -47,6 +49,7 @@ class FileSystemWatchingBuildActionRunnerTest extends Specification {
                 get(BuildOperationRunner) >> buildOperationRunner
                 get(CachingFileHasherStatistics.Collector) >> cachingFileHasherStatisticsCollector
                 get(StatStatistics.Collector) >> statStatisticsCollector
+                get(DirectorySnapshotterStatistics.Collector) >> directorySnapshotterStatisticsCollector
             }
         }
     }
