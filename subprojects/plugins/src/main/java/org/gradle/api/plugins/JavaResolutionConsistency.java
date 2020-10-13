@@ -30,10 +30,10 @@ public interface JavaResolutionConsistency {
      * with the compile classpath. For dependencies which are common between
      * the compile classpath and the runtime classpath, the version from the
      * compile classpath is going to be used.
-     * <p>
+     *
      * Unless you have a good reason to, this option should be preferred to
      * {@link #useRuntimeClasspathVersions()} for different reasons:
-     * <p>
+     *
      * <ul>
      *     <li>As code is compiled first against the given dependencies,
      *     it is expected that the versions at runtime would be the same.
@@ -41,7 +41,7 @@ public interface JavaResolutionConsistency {
      *     <li>It avoids resolving the runtime classpath in case of a compile error.
      *     </li>
      * </ul>
-     * </p>
+     *
      * In addition, the test compile classpath is going to be configured to
      * be consistent with the main compile classpath.
      */
@@ -52,10 +52,10 @@ public interface JavaResolutionConsistency {
      * with the runtime classpath. For dependencies which are common between
      * the compile classpath and the runtime classpath, the version from the
      * runtime classpath is going to be used.
-     * <p>
+     *
      * In addition, the test runtime classpath is going to be configured to
      * be consistent with the main runtime classpath.
-     * </p>
+     * 
      * Prefer {@link #useCompileClasspathVersions()} unless you have special
      * requirements at runtime.
      */
