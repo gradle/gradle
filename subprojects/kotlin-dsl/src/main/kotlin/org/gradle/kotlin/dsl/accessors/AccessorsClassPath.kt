@@ -124,14 +124,12 @@ class GenerateProjectAccessors(
     }
 
     override fun execute(inputChanges: InputChangesInternal?, context: InputChangesContext): UnitOfWork.WorkOutput {
-        val sourcesOutputDir = File(context.workspace, "sources")
-        val classesOutputDir = File(context.workspace, "classes")
         withAsynchronousIO(project) {
             buildAccessorsFor(
                 projectSchema,
                 classPath,
-                srcDir = sourcesOutputDir,
-                binDir = classesOutputDir
+                srcDir = getSourcesOutputDir(context.workspace),
+                binDir = getClassesOutputDir(context.workspace)
             )
         }
         return object : UnitOfWork.WorkOutput {
