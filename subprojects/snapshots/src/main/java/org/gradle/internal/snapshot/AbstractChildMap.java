@@ -23,14 +23,25 @@ import java.util.Optional;
 
 public abstract class AbstractChildMap<T> implements ChildMap<T> {
 
-    public static <T> ChildMap<T> of(List<Entry<T>> entries) {
-        switch (entries.size()) {
+    /**
+     * If a node has fewer children, we use a linear search for the child.
+     * We use this limit since {@link VfsRelativePath#compareToFirstSegment(String, CaseSensitivity)}
+     * is about twice as slow as {@link VfsRelativePath#hasPrefix(String, CaseSensitivity)},
+     * so comparing the searched path to all of the children is actually faster than doing a binary search.
+     */
+    private static final int MINIMUM_CHILD_COUNT_FOR_BINARY_SEARCH = 10;
+
+    public static <T> AbstractChildMap<T> childMap(List<Entry<T>> entries) {
+        int size = entries.size();
+        switch (size) {
             case 0:
                 return EmptyChildMap.getInstance();
             case 1:
                 return new SingletonChildMap<>(entries.get(0));
             default:
-                return new DefaultChildMap<>(entries);
+                return (size < MINIMUM_CHILD_COUNT_FOR_BINARY_SEARCH)
+                    ? new MediumChildMap<>(entries)
+                    : new LargeChildMap<>(entries);
         }
     }
 
@@ -141,7 +152,7 @@ public abstract class AbstractChildMap<T> implements ChildMap<T> {
                 Entry<T> newChild = new Entry<>(newChildPath, oldChild);
                 String siblingPath = relativePath.suffixStartingFrom(commonPrefixLength + 1).getAsString();
                 Entry<T> sibling = new Entry<>(siblingPath, storeHandler.createChild());
-                ChildMap<T> newChildren = of(storeHandler.getPathComparator().compare(newChild.getPath(), sibling.getPath()) < 0
+                ChildMap<T> newChildren = childMap(storeHandler.getPathComparator().compare(newChild.getPath(), sibling.getPath()) < 0
                     ? ImmutableList.of(newChild, sibling)
                     : ImmutableList.of(sibling, newChild)
                 );

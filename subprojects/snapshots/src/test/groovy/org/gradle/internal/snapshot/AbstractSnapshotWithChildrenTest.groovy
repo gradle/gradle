@@ -65,7 +65,7 @@ abstract class AbstractSnapshotWithChildrenTest<NODE extends FileSystemNode, CHI
     }
 
     ChildMap<CHILD> createChildren(List<String> pathsToParent) {
-        return AbstractChildMap.of(pathsToParent.stream()
+        return AbstractChildMap.childMap(pathsToParent.stream()
             .sorted(PathUtil.getPathComparator(CASE_SENSITIVE))
             .map { childPath -> new AbstractChildMap.Entry(childPath, mockChild()) }
             .collect(Collectors.toList()))

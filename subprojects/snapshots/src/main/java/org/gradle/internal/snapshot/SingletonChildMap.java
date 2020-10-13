@@ -70,7 +70,7 @@ public class SingletonChildMap<T> extends AbstractChildMap<T> {
         List<Entry<T>> newChildren = insertBefore == 0
             ? ImmutableList.of(newEntry, entry)
             : ImmutableList.of(entry, newEntry);
-        return new DefaultChildMap<>(newChildren);
+        return new LargeChildMap<>(newChildren);
     }
 
     @Override

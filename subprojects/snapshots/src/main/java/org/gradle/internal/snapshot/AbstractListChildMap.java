@@ -16,26 +16,38 @@
 
 package org.gradle.internal.snapshot;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 
-public class DefaultChildMap<T> extends AbstractChildMap<T> {
-    private final List<Entry<T>> children;
+public abstract class AbstractListChildMap<T> extends AbstractChildMap<T> {
+    protected final List<Entry<T>> children;
 
-    public DefaultChildMap(List<Entry<T>> children) {
+    protected AbstractListChildMap(List<Entry<T>> children) {
         this.children = children;
+    }
+
+    @Nullable
+    protected abstract Entry<T> findEntryWithPrefix(VfsRelativePath relativePath, CaseSensitivity caseSensitivity);
+
+    protected int findChildIndexWithCommonPrefix(VfsRelativePath relativePath, CaseSensitivity caseSensitivity) {
+        return SearchUtil.binarySearch(
+            children,
+            candidate -> relativePath.compareToFirstSegment(candidate.getPath(), caseSensitivity)
+        );
     }
 
     @Override
     public <R> R findChild(VfsRelativePath relativePath, CaseSensitivity caseSensitivity, FindChildHandler<T, R> handler) {
-        int childIndex = findChildIndexWithCommonPrefix(relativePath, caseSensitivity);
-        if (childIndex < 0) {
+        Entry<T> entry = findEntryWithPrefix(relativePath, caseSensitivity);
+        if (entry == null) {
             return handler.handleNotFound();
         }
-        Entry<T> entry = children.get(childIndex);
-        return entry.findPath(relativePath, caseSensitivity, handler);
+        return relativePath.length() == entry.getPath().length()
+            ? handler.getFromChild(entry.getValue())
+            : handler.findInChild(entry.getPath(), entry.getValue());
     }
 
     @Override
@@ -45,14 +57,6 @@ public class DefaultChildMap<T> extends AbstractChildMap<T> {
             return children.get(childIndex).handlePath(relativePath, childIndex, caseSensitivity, handler);
         }
         return handler.handleDifferent(-childIndex - 1);
-    }
-
-    private int findChildIndexWithCommonPrefix(VfsRelativePath relativePath, CaseSensitivity caseSensitivity) {
-        int childIndex = SearchUtil.binarySearch(
-            children,
-            candidate -> relativePath.compareToFirstSegment(candidate.getPath(), caseSensitivity)
-        );
-        return childIndex;
     }
 
     @Override
@@ -106,7 +110,7 @@ public class DefaultChildMap<T> extends AbstractChildMap<T> {
     protected AbstractChildMap<T> withNewChild(int insertBefore, String path, T newChild) {
         List<Entry<T>> newChildren = new ArrayList<>(children);
         newChildren.add(insertBefore, new Entry<>(path, newChild));
-        return new DefaultChildMap<>(newChildren);
+        return childMap(newChildren);
     }
 
     @Override
@@ -117,18 +121,14 @@ public class DefaultChildMap<T> extends AbstractChildMap<T> {
         }
         List<Entry<T>> newChildren = new ArrayList<>(children);
         newChildren.set(childIndex, new Entry<>(newPath, newChild));
-        return new DefaultChildMap<>(newChildren);
+        return childMap(newChildren);
     }
 
     @Override
     protected AbstractChildMap<T> withRemovedChild(int childIndex) {
         List<Entry<T>> newChildren = new ArrayList<>(children);
         newChildren.remove(childIndex);
-        if (newChildren.size() == 1) {
-            Entry<T> onlyChild = newChildren.get(0);
-            return new SingletonChildMap<>(onlyChild);
-        }
-        return new DefaultChildMap<>(newChildren);
+        return childMap(newChildren);
     }
 
     @Override
@@ -147,7 +147,7 @@ public class DefaultChildMap<T> extends AbstractChildMap<T> {
             return false;
         }
 
-        DefaultChildMap<?> that = (DefaultChildMap<?>) o;
+        AbstractListChildMap<?> that = (AbstractListChildMap<?>) o;
 
         return children.equals(that.children);
     }
