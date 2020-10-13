@@ -3,7 +3,8 @@ The Gradle team is excited to announce Gradle @version@.
 
 We would like to thank the following community contributors to this release of Gradle:
 
-[Jeff](https://github.com/mathjeff).
+[Jeff](https://github.com/mathjeff),
+[Björn Kautler](https://github.com/Vampire).
 
 <!-- 
 Include only their name, impactful features should be called out separately below.
