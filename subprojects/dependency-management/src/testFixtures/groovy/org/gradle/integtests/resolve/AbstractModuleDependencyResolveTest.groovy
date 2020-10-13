@@ -144,13 +144,26 @@ abstract class AbstractModuleDependencyResolveTest extends AbstractHttpDependenc
         useIvy() ? ivyRepository : mavenRepository
     }
 
+    boolean isDeclareRepositoriesInSettings() {
+        false
+    }
+
     def setup() {
         resolve = new ResolveTestFixture(buildFile, testConfiguration)
         resolve.expectDefaultConfiguration(usesJavaLibraryVariants() ? "runtime" : "default")
         settingsFile << "rootProject.name = '$rootProjectName'"
+        def repoBlock = repositoryDeclaration
+        if (declareRepositoriesInSettings) {
+            settingsFile << """
+                dependencyResolutionManagement {
+                    $repoBlock
+                }
+            """
+            repoBlock = ''
+        }
         resolve.prepare()
         buildFile << """
-            $repositoryDeclaration
+            $repoBlock
 
             configurations {
                 $testConfiguration

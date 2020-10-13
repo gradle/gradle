@@ -28,6 +28,7 @@ import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.component.DefaultComponentIdentifierFactory;
+import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParserFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheLockingManager;
@@ -109,6 +110,7 @@ import org.gradle.api.internal.artifacts.verification.signatures.DefaultSignatur
 import org.gradle.api.internal.artifacts.verification.signatures.SignatureVerificationServiceFactory;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.file.TmpDirTemporaryFileProvider;
 import org.gradle.api.internal.filestore.ArtifactIdentifierFileStore;
@@ -194,6 +196,13 @@ class DependencyManagementBuildScopeServices {
         registration.add(ProjectArtifactResolver.class);
         registration.add(ProjectArtifactSetResolver.class);
         registration.add(ProjectDependencyResolver.class);
+    }
+
+    SharedDependencyResolutionServices createSharedDependencyResolutionServices(DependencyManagementServices dependencyManagementServices,
+                                                                                FileResolver fileResolver,
+                                                                                FileCollectionFactory fileCollectionFactory,
+                                                                                DependencyMetaDataProvider dependencyMetaDataProvider) {
+        return new DefaultSharedDependencyResolutionServices(dependencyManagementServices, fileResolver, fileCollectionFactory, dependencyMetaDataProvider);
     }
 
     DependencyManagementServices createDependencyManagementServices(ServiceRegistry parent) {
