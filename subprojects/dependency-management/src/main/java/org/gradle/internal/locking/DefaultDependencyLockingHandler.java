@@ -26,6 +26,8 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvi
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
 
+import java.util.function.Supplier;
+
 public class DefaultDependencyLockingHandler implements DependencyLockingHandler {
 
     private static final Action<Configuration> ACTIVATE_LOCKING = configuration -> configuration.getResolutionStrategy().activateDependencyLocking();
@@ -34,22 +36,22 @@ public class DefaultDependencyLockingHandler implements DependencyLockingHandler
     private static final Action<Configuration> DEACTIVATE_LOCKING = configuration -> configuration.getResolutionStrategy().deactivateDependencyLocking();
 
 
-    private final ConfigurationContainer configurationContainer;
+    private final Supplier<ConfigurationContainer> configurationContainer;
     private final DependencyLockingProvider dependencyLockingProvider;
 
-    public DefaultDependencyLockingHandler(ConfigurationContainer configurationContainer, DependencyLockingProvider dependencyLockingProvider) {
+    public DefaultDependencyLockingHandler(Supplier<ConfigurationContainer> configurationContainer, DependencyLockingProvider dependencyLockingProvider) {
         this.configurationContainer = configurationContainer;
         this.dependencyLockingProvider = dependencyLockingProvider;
     }
 
     @Override
     public void lockAllConfigurations() {
-        configurationContainer.all(ACTIVATE_LOCKING);
+        configurationContainer.get().all(ACTIVATE_LOCKING);
     }
 
     @Override
     public void unlockAllConfigurations() {
-        configurationContainer.all(DEACTIVATE_LOCKING);
+        configurationContainer.get().all(DEACTIVATE_LOCKING);
     }
 
     @Override

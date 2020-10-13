@@ -23,6 +23,7 @@ import org.gradle.api.artifacts.type.ArtifactTypeContainer;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.GlobalDependencyResolutionRules;
+import org.gradle.api.internal.artifacts.RepositoriesSupplier;
 import org.gradle.api.internal.artifacts.ResolveContext;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
@@ -36,7 +37,6 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.Dependen
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphSelector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.RootGraphNode;
-import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
@@ -63,7 +63,7 @@ import java.util.function.Consumer;
 
 public class DependencyResolvingClasspath extends AbstractOpaqueFileCollection {
     private final GlobalDependencyResolutionRules globalRules = GlobalDependencyResolutionRules.NO_OP;
-    private final List<ResolutionAwareRepository> remoteRepositories;
+    private final RepositoriesSupplier repositoriesSupplier;
     private final BinarySpecInternal binary;
     private final ArtifactDependencyResolver dependencyResolver;
     private final ResolveContext resolveContext;
@@ -78,7 +78,7 @@ public class DependencyResolvingClasspath extends AbstractOpaqueFileCollection {
         BinarySpecInternal binarySpec,
         String descriptor,
         ArtifactDependencyResolver dependencyResolver,
-        List<ResolutionAwareRepository> remoteRepositories,
+        RepositoriesSupplier repositoriesSupplier,
         ResolveContext resolveContext,
         AttributesSchemaInternal attributesSchema,
         BuildOperationExecutor buildOperationExecutor,
@@ -86,7 +86,7 @@ public class DependencyResolvingClasspath extends AbstractOpaqueFileCollection {
         this.binary = binarySpec;
         this.descriptor = descriptor;
         this.dependencyResolver = dependencyResolver;
-        this.remoteRepositories = remoteRepositories;
+        this.repositoriesSupplier = repositoriesSupplier;
         this.resolveContext = resolveContext;
         this.attributesSchema = attributesSchema;
         this.buildOperationExecutor = buildOperationExecutor;
@@ -143,7 +143,7 @@ public class DependencyResolvingClasspath extends AbstractOpaqueFileCollection {
 
     private ResolveResult resolve() {
         ResolveResult result = new ResolveResult();
-        dependencyResolver.resolve(resolveContext, remoteRepositories, globalRules, Specs.<DependencyMetadata>satisfyAll(), result, result, attributesSchema, new ArtifactTypeRegistry() {
+        dependencyResolver.resolve(resolveContext, repositoriesSupplier.get(), globalRules, Specs.<DependencyMetadata>satisfyAll(), result, result, attributesSchema, new ArtifactTypeRegistry() {
             @Override
             public ImmutableAttributes mapAttributesFor(File file) {
                 return ImmutableAttributes.EMPTY;

@@ -68,4 +68,6 @@ public interface SettingsInternal extends Settings, PluginAwareInternal {
 
     @Override
     BuildCacheConfigurationInternal getBuildCache();
+
+    void preventFromFurtherMutation();
 }

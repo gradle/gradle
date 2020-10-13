@@ -50,9 +50,15 @@ public class SettingsFactory {
         ClassLoaderScope classLoaderScope = baseClassLoaderScope.createChild("settings");
         ScriptHandlerInternal settingsScriptHandler = scriptHandlerFactory.create(settingsScript, classLoaderScope);
         DefaultSettings settings = instantiator.newInstance(DefaultSettings.class,
-            serviceRegistryFactory, gradle,
-            classLoaderScope, baseClassLoaderScope, settingsScriptHandler,
-            settingsDir, settingsScript, startParameter
+            serviceRegistryFactory,
+            gradle,
+            classLoaderScope,
+            baseClassLoaderScope,
+            settingsScriptHandler,
+            settingsDir,
+            settingsScript,
+            startParameter,
+            instantiator
         );
 
         DynamicObject dynamicObject = ((DynamicObjectAware) settings).getAsDynamicObject();
