@@ -82,6 +82,7 @@ import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.serialize.HashCodeSerializer;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.snapshot.CaseSensitivity;
+import org.gradle.internal.snapshot.impl.DirectorySnapshotterStatistics;
 import org.gradle.internal.vfs.FileSystemAccess;
 import org.gradle.internal.vfs.VirtualFileSystem;
 import org.gradle.internal.vfs.impl.DefaultFileSystemAccess;
@@ -192,6 +193,10 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
         CachingFileHasherStatistics.Collector createCachingFileHasherStatisticsCollector() {
             return new CachingFileHasherStatistics.Collector();
         }
+
+        DirectorySnapshotterStatistics.Collector createDirectorySnapshotterStatisticsCollector() {
+            return new DirectorySnapshotterStatistics.Collector();
+        }
     }
 
     @VisibleForTesting
@@ -265,7 +270,8 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
             StringInterner stringInterner,
             ListenerManager listenerManager,
             PatternSpecFactory patternSpecFactory,
-            FileSystemAccess.WriteListener writeListener
+            FileSystemAccess.WriteListener writeListener,
+            DirectorySnapshotterStatistics.Collector statisticsCollector
         ) {
             DefaultFileSystemAccess fileSystemAccess = new DefaultFileSystemAccess(
                 hasher,
@@ -273,6 +279,7 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
                 stat,
                 virtualFileSystem,
                 writeListener,
+                statisticsCollector,
                 DirectoryScanner.getDefaultExcludes()
             );
             listenerManager.addListener(new DefaultExcludesBuildListener(fileSystemAccess) {
@@ -370,7 +377,8 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
             Stat stat,
             StringInterner stringInterner,
             VirtualFileSystem root,
-            FileSystemAccess.WriteListener writeListener
+            FileSystemAccess.WriteListener writeListener,
+            DirectorySnapshotterStatistics.Collector statisticsCollector
         ) {
             DefaultFileSystemAccess buildSessionsScopedVirtualFileSystem = new DefaultFileSystemAccess(
                 hasher,
@@ -378,6 +386,7 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
                 stat,
                 root,
                 writeListener,
+                statisticsCollector,
                 DirectoryScanner.getDefaultExcludes()
             );
 

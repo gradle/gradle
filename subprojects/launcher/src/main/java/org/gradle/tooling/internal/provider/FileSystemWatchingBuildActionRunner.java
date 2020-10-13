@@ -28,6 +28,7 @@ import org.gradle.internal.invocation.BuildController;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.VirtualFileSystemServices;
+import org.gradle.internal.snapshot.impl.DirectorySnapshotterStatistics;
 import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem;
 import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem.VfsLogging;
 import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem.WatchLogging;
@@ -51,6 +52,7 @@ public class FileSystemWatchingBuildActionRunner implements BuildActionRunner {
         BuildLifecycleAwareVirtualFileSystem virtualFileSystem = services.get(BuildLifecycleAwareVirtualFileSystem.class);
         StatStatistics.Collector statStatisticsCollector = services.get(StatStatistics.Collector.class);
         CachingFileHasherStatistics.Collector cachingFileHasherStatisticsCollector = services.get(CachingFileHasherStatistics.Collector.class);
+        DirectorySnapshotterStatistics.Collector directorySnapshotterStatisticsCollector = services.get(DirectorySnapshotterStatistics.Collector.class);
         BuildOperationRunner buildOperationRunner = services.get(BuildOperationRunner.class);
 
         boolean watchFileSystem = startParameter.isWatchFileSystem();
@@ -74,8 +76,9 @@ public class FileSystemWatchingBuildActionRunner implements BuildActionRunner {
             int maximumNumberOfWatchedHierarchies = VirtualFileSystemServices.getMaximumNumberOfWatchedHierarchies(startParameter);
             virtualFileSystem.beforeBuildFinished(watchFileSystem, verboseVfsLogging, debugWatchLogging, buildOperationRunner, maximumNumberOfWatchedHierarchies);
             if (startParameter.isVfsDebugLogging()) {
-                LOGGER.warn("STAT:STAT {}", statStatisticsCollector.collect());
-                LOGGER.warn("STAT:HASHER {}", cachingFileHasherStatisticsCollector.collect());
+                LOGGER.warn("STAT> Stat: {}", statStatisticsCollector.collect());
+                LOGGER.warn("STAT> FileHasher: {}", cachingFileHasherStatisticsCollector.collect());
+                LOGGER.warn("STAT> DirectorySnapshotter: {}", directorySnapshotterStatisticsCollector.collect());
             }
         }
     }

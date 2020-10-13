@@ -40,6 +40,7 @@ import java.io.UncheckedIOException;
 import java.nio.file.FileSystemLoopException;
 import java.nio.file.FileVisitOption;
 import java.nio.file.FileVisitResult;
+import java.nio.file.FileVisitor;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -60,18 +61,20 @@ public class DirectorySnapshotter {
     private final FileHasher hasher;
     private final Interner<String> stringInterner;
     private final DefaultExcludes defaultExcludes;
+    private final DirectorySnapshotterStatistics.Collector collector;
 
-    public DirectorySnapshotter(FileHasher hasher, Interner<String> stringInterner, Collection<String> defaultExcludes) {
+    public DirectorySnapshotter(FileHasher hasher, Interner<String> stringInterner, Collection<String> defaultExcludes, DirectorySnapshotterStatistics.Collector collector) {
         this.hasher = hasher;
         this.stringInterner = stringInterner;
         this.defaultExcludes = new DefaultExcludes(defaultExcludes);
+        this.collector = collector;
     }
 
     public CompleteFileSystemLocationSnapshot snapshot(String absolutePath, @Nullable SnapshottingFilter.DirectoryWalkerPredicate predicate, final AtomicBoolean hasBeenFiltered) {
         try {
             Path rootPath = Paths.get(absolutePath);
             PathVisitor visitor = new PathVisitor(predicate, hasBeenFiltered, hasher, stringInterner, defaultExcludes);
-            Files.walkFileTree(rootPath, DONT_FOLLOW_SYMLINKS, Integer.MAX_VALUE, visitor);
+            Files.walkFileTree(rootPath, DONT_FOLLOW_SYMLINKS, Integer.MAX_VALUE, new StatisticsCollectingVisitor(collector, visitor));
             return visitor.getResult();
         } catch (IOException e) {
             throw new UncheckedIOException(String.format("Could not list contents of directory '%s'.", absolutePath), e);
@@ -356,6 +359,40 @@ public class DirectorySnapshotter {
 
         public CompleteFileSystemLocationSnapshot getResult() {
             return builder.getResult();
+        }
+    }
+
+    private static class StatisticsCollectingVisitor implements java.nio.file.FileVisitor<Path> {
+        private final DirectorySnapshotterStatistics.Collector collector;
+        private final java.nio.file.FileVisitor<Path> delegate;
+
+        public StatisticsCollectingVisitor(DirectorySnapshotterStatistics.Collector collector, FileVisitor<Path> delegate) {
+            this.collector = collector;
+            this.delegate = delegate;
+            collector.recordVisitHierarchy();
+        }
+
+        @Override
+        public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
+            collector.recordVisitDirectory();
+            return delegate.preVisitDirectory(dir, attrs);
+        }
+
+        @Override
+        public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+            collector.recordVisitFile();
+            return delegate.visitFile(file, attrs);
+        }
+
+        @Override
+        public FileVisitResult visitFileFailed(Path file, IOException exc) throws IOException {
+            collector.recordVisitFileFailed();
+            return delegate.visitFileFailed(file, exc);
+        }
+
+        @Override
+        public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
+            return delegate.postVisitDirectory(dir, exc);
         }
     }
 }

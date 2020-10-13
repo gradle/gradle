@@ -84,11 +84,11 @@ public interface CachingFileHasherStatistics {
 
                 @Override
                 public String toString() {
-                    return MessageFormat.format("Hashed {0,number,integer} files ({1,number} kB), served hash from cache for {2,number,integer} files ({3,number} kB)",
+                    return MessageFormat.format("Hashed {0,number,integer} files ({1,number,integer} bytes), served hash from cache for {2,number,integer} files ({3,number,integer} bytes)",
                         totalHashedFileCount,
-                        totalHashedContentLength / 1024D,
+                        totalHashedContentLength,
                         totalCachedFileCount,
-                        totalCachedContentLength / 1024D
+                        totalCachedContentLength
                     );
                 }
             };
