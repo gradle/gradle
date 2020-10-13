@@ -35,13 +35,14 @@ import org.gradle.plugin.use.resolve.internal.PluginResolveContext;
 import org.gradle.plugin.use.resolve.internal.PluginResolver;
 
 import java.io.File;
+import java.util.Collection;
 
-public class InjectedClasspathPluginResolver implements PluginResolver {
+public class DefaultInjectedClasspathPluginResolver implements ClientInjectedClasspathPluginResolver, PluginResolver {
 
     private final ClassPath injectedClasspath;
     private final PluginRegistry pluginRegistry;
 
-    public InjectedClasspathPluginResolver(ClassLoaderScope parentScope, CachedClasspathTransformer classpathTransformer, PluginInspector pluginInspector, ClassPath injectedClasspath, InjectedClasspathInstrumentationStrategy instrumentationStrategy) {
+    public DefaultInjectedClasspathPluginResolver(ClassLoaderScope parentScope, CachedClasspathTransformer classpathTransformer, PluginInspector pluginInspector, ClassPath injectedClasspath, InjectedClasspathInstrumentationStrategy instrumentationStrategy) {
         this.injectedClasspath = injectedClasspath;
         ClassPath cachedClassPath = classpathTransformer.transform(injectedClasspath, instrumentationStrategy.getTransform());
         this.pluginRegistry = new DefaultPluginRegistry(pluginInspector,
@@ -49,6 +50,11 @@ public class InjectedClasspathPluginResolver implements PluginResolver {
                 .local(cachedClassPath)
                 .lock()
         );
+    }
+
+    @Override
+    public void collectResolversInto(Collection<? super PluginResolver> dest) {
+        dest.add(this);
     }
 
     @Override

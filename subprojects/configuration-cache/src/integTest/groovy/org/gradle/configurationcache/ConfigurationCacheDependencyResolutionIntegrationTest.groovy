@@ -227,11 +227,6 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
         }
 
         buildFile << """
-            dependencies.artifactTypes {
-                green {
-                    attributes.attribute(color, 'green')
-                }
-            }
             dependencies {
                 implementation project(':a')
                 implementation project(':b')
@@ -941,6 +936,78 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
         configurationCache.assertStateLoaded()
         output.count("processing") == 0
         outputContains("result = [thing3-1.2.jar.red.green, thing1-1.2.jar.red.green, thing2-1.2.jar.red.green]")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/14513")
+    def "task input file collection can include transformed outputs of file collection containing transform outputs"() {
+        setupBuildWithArtifactTransformOfProjectDependencies(false)
+        buildFile << """
+            abstract class MakeRed implements TransformAction<TransformParameters.None> {
+                @InputArtifact
+                abstract Provider<FileSystemLocation> getInputArtifact()
+
+                void transform(TransformOutputs outputs) {
+                    def input = inputArtifact.get().asFile
+                    println "converting \${input.name} to red"
+                    assert input.file
+                    def output = outputs.file(input.name + ".red")
+                    output.text = input.text + ".red"
+                }
+            }
+
+            dependencies {
+                artifactTypes {
+                    green {
+                        attributes.attribute(color, 'green')
+                    }
+                }
+                registerTransform(MakeRed) {
+                    from.attribute(color, 'green')
+                    to.attribute(color, 'red')
+                }
+            }
+
+            configurations {
+                transformed
+            }
+
+            def intermediateFiles = configurations.implementation.incoming.artifactView {
+                attributes.attribute(color, 'green')
+            }.files
+
+            dependencies {
+                transformed files(intermediateFiles)
+            }
+
+            def transformedFiles = configurations.transformed.incoming.artifactView {
+                attributes.attribute(color, 'red')
+            }.files
+
+            task resolveTransformed(type: ShowFileCollection) {
+                files.from(transformedFiles)
+            }
+        """
+        def fixture = newConfigurationCacheFixture()
+
+        when:
+        configurationCacheRun("resolveTransformed")
+
+        then:
+        fixture.assertStateStored()
+        outputContains("processing a.jar")
+        outputContains("processing b.jar")
+        outputContains("converting a.jar.green to red")
+        outputContains("converting b.jar.green to red")
+        outputContains("result = [a.jar.green.red, b.jar.green.red]")
+
+        when:
+        configurationCacheRun("resolveTransformed")
+
+        then:
+        fixture.assertStateLoaded()
+        outputDoesNotContain("processing")
+        outputDoesNotContain("converting")
+        outputContains("result = [a.jar.green.red, b.jar.green.red]")
     }
 
     def "buildSrc output may require transform output"() {

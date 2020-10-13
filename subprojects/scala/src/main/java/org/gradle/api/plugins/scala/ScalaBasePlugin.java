@@ -229,12 +229,7 @@ public class ScalaBasePlugin implements Plugin<Project> {
                     @Override
                     public void execute(ArtifactView.ViewConfiguration viewConfiguration) {
                         viewConfiguration.lenient(true);
-                        viewConfiguration.componentFilter(new Spec<ComponentIdentifier>() {
-                            @Override
-                            public boolean isSatisfiedBy(ComponentIdentifier element) {
-                                return element instanceof ProjectComponentIdentifier;
-                            }
-                        });
+                        viewConfiguration.componentFilter(new IsProjectComponent());
                     }
                 }).getFiles());
 
@@ -329,6 +324,13 @@ public class ScalaBasePlugin implements Plugin<Project> {
                     details.closestMatch(javaRuntime);
                 }
             }
+        }
+    }
+
+    private static class IsProjectComponent implements Spec<ComponentIdentifier> {
+        @Override
+        public boolean isSatisfiedBy(ComponentIdentifier element) {
+            return element instanceof ProjectComponentIdentifier;
         }
     }
 }

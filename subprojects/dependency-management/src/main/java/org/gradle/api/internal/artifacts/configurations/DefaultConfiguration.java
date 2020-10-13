@@ -71,7 +71,6 @@ import org.gradle.api.internal.artifacts.dependencies.DefaultDependencyConstrain
 import org.gradle.api.internal.artifacts.ivyservice.DefaultLenientConfiguration;
 import org.gradle.api.internal.artifacts.ivyservice.ResolvedArtifactCollectingVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.ResolvedFileCollectionVisitor;
-import org.gradle.api.internal.artifacts.ivyservice.ResolvedFilesCollectingVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.RootComponentMetadataBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.SelectedArtifactSet;
@@ -1305,14 +1304,10 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
         @Override
         protected void visitContents(FileCollectionStructureVisitor visitor) {
-            visitArtifacts(new ResolvedFileCollectionVisitor(visitor));
-        }
-
-        private void visitArtifacts(ResolvedFilesCollectingVisitor visitor) {
-            getSelectedArtifacts().visitArtifacts(visitor, lenient);
-
+            ResolvedFileCollectionVisitor collectingVisitor = new ResolvedFileCollectionVisitor(visitor);
+            getSelectedArtifacts().visitArtifacts(collectingVisitor, lenient);
             if (!lenient) {
-                rethrowFailure("files", visitor.getFailures());
+                rethrowFailure("files", collectingVisitor.getFailures());
             }
         }
 

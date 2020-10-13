@@ -27,7 +27,8 @@ import org.gradle.plugin.use.resolve.internal.CorePluginResolver;
 import org.gradle.plugin.use.resolve.internal.NoopPluginResolver;
 import org.gradle.plugin.use.resolve.internal.PluginResolver;
 import org.gradle.plugin.use.resolve.internal.PluginResolverContributor;
-import org.gradle.plugin.use.resolve.service.internal.InjectedClasspathPluginResolver;
+import org.gradle.plugin.use.resolve.service.internal.DefaultInjectedClasspathPluginResolver;
+import org.gradle.plugin.use.resolve.service.internal.ClientInjectedClasspathPluginResolver;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -36,18 +37,18 @@ public class PluginResolverFactory implements Factory<PluginResolver> {
 
     private final PluginRegistry pluginRegistry;
     private final DocumentationRegistry documentationRegistry;
-    private final InjectedClasspathPluginResolver injectedClasspathPluginResolver;
+    private final ClientInjectedClasspathPluginResolver injectedClasspathPluginResolver;
     private final DependencyResolutionServices dependencyResolutionServices;
     private final List<PluginResolverContributor> pluginResolverContributors;
     private final VersionSelectorScheme versionSelectorScheme;
 
     public PluginResolverFactory(
-            PluginRegistry pluginRegistry,
-            DocumentationRegistry documentationRegistry,
-            InjectedClasspathPluginResolver injectedClasspathPluginResolver,
-            DependencyResolutionServices dependencyResolutionServices,
-            List<PluginResolverContributor> pluginResolverContributors,
-            VersionSelectorScheme versionSelectorScheme) {
+        PluginRegistry pluginRegistry,
+        DocumentationRegistry documentationRegistry,
+        ClientInjectedClasspathPluginResolver injectedClasspathPluginResolver,
+        DependencyResolutionServices dependencyResolutionServices,
+        List<PluginResolverContributor> pluginResolverContributors,
+        VersionSelectorScheme versionSelectorScheme) {
         this.pluginRegistry = pluginRegistry;
         this.documentationRegistry = documentationRegistry;
         this.injectedClasspathPluginResolver = injectedClasspathPluginResolver;
@@ -76,7 +77,7 @@ public class PluginResolverFactory implements Factory<PluginResolver> {
      * <ol>
      *     <li>{@link NoopPluginResolver} - Only used in tests.</li>
      *     <li>{@link CorePluginResolver} - distributed with Gradle</li>
-     *     <li>{@link InjectedClasspathPluginResolver} - from a TestKit test's ClassPath</li>
+     *     <li>{@link DefaultInjectedClasspathPluginResolver} - from a TestKit test's ClassPath</li>
      *     <li>Resolvers contributed by this distribution.</li>
      *     <li>Resolvers based on the entries of the `pluginRepositories` block</li>
      *     <li>{@link org.gradle.plugin.use.resolve.internal.ArtifactRepositoriesPluginResolver} - from Gradle Plugin Portal if no `pluginRepositories` were defined</li>
@@ -89,9 +90,7 @@ public class PluginResolverFactory implements Factory<PluginResolver> {
         resolvers.add(new NoopPluginResolver(pluginRegistry));
         resolvers.add(new CorePluginResolver(documentationRegistry, pluginRegistry));
 
-        if (!injectedClasspathPluginResolver.isClasspathEmpty()) {
-            resolvers.add(injectedClasspathPluginResolver);
-        }
+        injectedClasspathPluginResolver.collectResolversInto(resolvers);
 
         for (PluginResolverContributor contributor : pluginResolverContributors) {
             contributor.collectResolversInto(resolvers);

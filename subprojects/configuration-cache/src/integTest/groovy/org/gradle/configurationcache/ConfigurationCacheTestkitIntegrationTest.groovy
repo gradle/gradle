@@ -48,6 +48,7 @@ class ConfigurationCacheTestkitIntegrationTest extends AbstractConfigurationCach
         runner.withArguments("--configuration-cache")
         runner.forwardOutput()
         runner.withProjectDir(testDirectory)
+        runner.withPluginClasspath([new File("some-dir")])
         def result = runner.buildAndFail()
         def output = result.output
 

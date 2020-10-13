@@ -65,11 +65,27 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
         this.artifactTypeRegistry = artifactTypeRegistry;
     }
 
+    public LocalFileDependencyMetadata getDependencyMetadata() {
+        return dependencyMetadata;
+    }
+
+    public ArtifactTypeRegistry getArtifactTypeRegistry() {
+        return artifactTypeRegistry;
+    }
+
+    public Spec<? super ComponentIdentifier> getComponentFilter() {
+        return componentFilter;
+    }
+
+    public VariantSelector getSelector() {
+        return selector;
+    }
+
     @Override
     public Completion startVisit(BuildOperationQueue<RunnableBuildOperation> actions, AsyncArtifactListener listener) {
         FileCollectionStructureVisitor.VisitType visitType = listener.prepareForVisit(this);
         if (visitType == FileCollectionStructureVisitor.VisitType.NoContents) {
-            return EMPTY_RESULT;
+            return visitor -> visitor.endVisitCollection(this);
         }
 
         ComponentIdentifier componentIdentifier = dependencyMetadata.getComponentId();
@@ -222,7 +238,7 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
     /**
      * An artifact set that contains a single transformed local file.
      */
-    public static class TransformedLocalFileArtifactSet extends AbstractTransformedArtifactSet implements FileCollectionInternal.Source {
+    private static class TransformedLocalFileArtifactSet extends AbstractTransformedArtifactSet implements FileCollectionInternal.Source {
         private final SingletonFileResolvedVariant delegate;
         private final Transformation transformation;
 
