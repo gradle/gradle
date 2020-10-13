@@ -23,6 +23,43 @@ import org.gradle.internal.HasInternalProtocol;
 /**
  * Configuration of runtime classpath normalization.
  *
+ * <p>Several methods accept a file pattern to selectively normalize files.  Patterns may include:</p>
+ *
+ * <ul>
+ *
+ * <li>'*' to match any number of characters
+ *
+ * <li>'?' to match any single character
+ *
+ * <li>'**' to match any number of directories or files
+ *
+ * </ul>
+ *
+ * <p>Either '/' or '\' may be used in a pattern to separate directories. Patterns ending with '/' or '\' will have '**'
+ * automatically appended.</p>
+ *
+ * <p>Examples:</p>
+ *
+ * <pre>
+ * all files ending with '.json' (including files in subdirectories)
+ *    &#42;&#42;&#47;&#42;.json
+ * </pre>
+ *
+ * <pre>
+ * all files beginning with 'build-' in the level1/level2 directory
+ *    level1/level2/build-&#42;
+ * </pre>
+ *
+ * <pre>
+ * all files (including subdirectories) beneath config/build-data
+ *   config/build-data/
+ * </pre>
+ *
+ * <pre>
+ * all properties files in a build directory beneath com/acme (including subdirectories)
+ *   com/acme/&#42;&#42;&#47;build/&#42;.properties
+ * </pre>
+ *
  * @since 4.0
  */
 @HasInternalProtocol

@@ -50,6 +50,7 @@ Garbage collection time goes from [2.6 seconds](https://scans.gradle.com/s/3bg67
 
 While the impact on your build may vary, most builds can expect a noticeably shorter feedback loop when editing Kotlin DSL build logic thanks to this improvement.
 
+<<<<<<< HEAD
 ### Compilation avoidance for Kotlin DSL scripts
 
 Until now, any changes to build logic in [buildSrc](userguide/organizing_gradle_projects.html#sec:build_sources) required all the build scripts in the project to be recompiled.
@@ -70,9 +71,9 @@ A non-ABI change can [eliminate build script recompilation altogether now](https
 While changes to `buildSrc` immediately affect the classpath of all the scripts, this improvement is more general and applies to changes in
 any jar on the scripts classpath that can be added by a plugin applied from an included build or added directly via `buildscript {}` block.
 
-### Improved cache hits with normalized runtime classpaths
+### Improved cache hits when normalizing runtime classpaths
 
-For [up-to-date checks](userguide/more_about_tasks.html#sec:up_to_date_checks) and the [build cache](userguide/build_cache.html), Gradle needs to determine if two task input properties have the same value. In order to do so, Gradle first normalizes both inputs and then compares the result.
+For [up-to-date checks](userguide/more_about_tasks.html#sec:up_to_date_checks) and the [build cache](userguide/build_cache.html), Gradle needs to determine if two task input properties have the same value. In order to do so, Gradle first [normalizes](userguide/more_about_tasks.html#sec:configure_input_normalization) both inputs and then compares the result.
 
 Runtime classpath analysis now smartly inspects all properties files, ignoring changes to comments, whitespace, and differences in property order.  Moreover, you can selectively ignore properties that don't impact the runtime classpath.
 

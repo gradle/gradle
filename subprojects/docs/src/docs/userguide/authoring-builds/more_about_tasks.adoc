@@ -1164,9 +1164,18 @@ The effect of this configuration would be that changes to `build-info.properties
 Note that this will not change the runtime behavior of the `test` task — i.e. any test is still able to load `build-info.properties` and the runtime classpath is still the same as before.
 
 [[sec:property_file_normalization]]
-==== Properties file normalization
+===== Properties file normalization
 
-By default, properties files (i.e. files that end in a `.properties` extension) will be normalized to ignore differences in comments, whitespace and the order of properties.  It is sometimes the case, though, that certain properties have a runtime impact, while others do not.  If a property is changing that does not have an impact on the runtime classpath, it may be desirable to exclude it from up-to-date checks and <<build_cache.adoc#build_cache,build cache>> key calculations.  However, excluding the entire file would also exclude the properties that do have a runtime impact.  In this case, properties can be excluded selectively from any or all properties files on the runtime classpath.
+By default, properties files (i.e. files that end in a `.properties` extension) will be normalized to ignore differences in comments, whitespace and the order of properties.
+Gradle does this by loading the properties files and only considering the individual properties during up-to-date checks or build cache key calculations.
+
+It is sometimes the case, though, that certain properties have a runtime impact, while others do not.
+If a property is changing that does not have an impact on the runtime classpath, it may be desirable to exclude it from up-to-date checks and <<build_cache.adoc#build_cache,build cache>> key calculations.
+However, excluding the entire file would also exclude the properties that do have a runtime impact.
+In this case, properties can be excluded selectively from any or all properties files on the runtime classpath.
+
+A rule for ignoring properties can be applied to a specific set of files using the patterns described in link:{groovyDslPath}/org.gradle.normalization.RuntimeClasspathNormalization.html[RuntimeClasspathNormalization].
+In the event that a file matches a rule, but cannot be loaded as a properties file (e.g. because it is not formatted properly or uses a non-standard encoding), it will be ignored by the rule and will be incorporated into the up-to-date or build cache key calculation as a normal file.
 
 .Ignore a property in selected properties files
 ====
@@ -1185,7 +1194,9 @@ include::sample[dir="snippets/tasks/inputNormalizationPropertiesFiles/kotlin",fi
 
 For files in the `META-INF` directory of jar archives it's not always possible to ignore files completely due to their runtime impact.
 
-Manifests and properties files within `META-INF` are normalized to ignore comments, whitespace and order differences. Manifest attribute names are compared case-and-order insensitively. Properties file keys are order insensitive.
+Manifest files within `META-INF` are normalized to ignore comments, whitespace and order differences.
+Manifest attribute names are compared case-and-order insensitively.
+Manifest properties files are normalized according to <<more_about_tasks.adoc#sec:property_file_normalization,Properties File Normalization>>.
 
 .Ignore `META-INF` manifest attributes
 ====
