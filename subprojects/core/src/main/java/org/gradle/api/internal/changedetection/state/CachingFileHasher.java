@@ -38,7 +38,7 @@ public class CachingFileHasher implements FileHasher {
     private final FileSystem fileSystem;
     private final StringInterner stringInterner;
     private final FileTimeStampInspector timestampInspector;
-    private final CachingFileHasherStatisticsCollector statisticsCollector;
+    private final CachingFileHasherStatistics.Collector statisticsCollector;
 
     public CachingFileHasher(
         FileHasher delegate,
@@ -48,7 +48,7 @@ public class CachingFileHasher implements FileHasher {
         String cacheName,
         FileSystem fileSystem,
         int inMemorySize,
-        CachingFileHasherStatisticsCollector statisticsCollector
+        CachingFileHasherStatistics.Collector statisticsCollector
     ) {
         this.delegate = delegate;
         this.fileSystem = fileSystem;

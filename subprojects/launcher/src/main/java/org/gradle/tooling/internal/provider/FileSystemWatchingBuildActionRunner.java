@@ -18,10 +18,10 @@ package org.gradle.tooling.internal.provider;
 
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.StartParameterInternal;
-import org.gradle.api.internal.changedetection.state.CachingFileHasherStatisticsCollector;
+import org.gradle.api.internal.changedetection.state.CachingFileHasherStatistics;
 import org.gradle.initialization.StartParameterBuildOptions;
 import org.gradle.internal.deprecation.DeprecationLogger;
-import org.gradle.internal.file.FileSystemStatisticsCollector;
+import org.gradle.internal.file.FileSystemStatistics;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.invocation.BuildActionRunner;
 import org.gradle.internal.invocation.BuildController;
@@ -49,8 +49,8 @@ public class FileSystemWatchingBuildActionRunner implements BuildActionRunner {
         StartParameterInternal startParameter = gradle.getStartParameter();
         ServiceRegistry services = gradle.getServices();
         BuildLifecycleAwareVirtualFileSystem virtualFileSystem = services.get(BuildLifecycleAwareVirtualFileSystem.class);
-        FileSystemStatisticsCollector fileSystemStatisticsCollector = services.get(FileSystemStatisticsCollector.class);
-        CachingFileHasherStatisticsCollector cachingFileHasherStatisticsCollector = services.get(CachingFileHasherStatisticsCollector.class);
+        FileSystemStatistics.Collector fileSystemStatisticsCollector = services.get(FileSystemStatistics.Collector.class);
+        CachingFileHasherStatistics.Collector cachingFileHasherStatisticsCollector = services.get(CachingFileHasherStatistics.Collector.class);
         BuildOperationRunner buildOperationRunner = services.get(BuildOperationRunner.class);
 
         boolean watchFileSystem = startParameter.isWatchFileSystem();

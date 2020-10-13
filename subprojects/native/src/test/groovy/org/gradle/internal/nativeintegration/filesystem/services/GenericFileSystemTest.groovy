@@ -15,8 +15,9 @@
  */
 
 package org.gradle.internal.nativeintegration.filesystem.services
+
 import org.gradle.internal.file.FileException
-import org.gradle.internal.file.FileSystemStatisticsCollector
+import org.gradle.internal.file.FileSystemStatistics
 import org.gradle.internal.nativeintegration.filesystem.FileMetadataAccessor
 import org.gradle.internal.nativeintegration.filesystem.FileModeAccessor
 import org.gradle.internal.nativeintegration.filesystem.FileModeMutator
@@ -28,7 +29,7 @@ class GenericFileSystemTest extends Specification {
     def fileModeAccessor = Stub(FileModeAccessor)
     def symlink = Stub(Symlink)
     def fileMetadataAccessor = Stub(FileMetadataAccessor)
-    def statistics = Mock(FileSystemStatisticsCollector)
+    def statistics = Mock(FileSystemStatistics.Collector)
     def fileSystem = new GenericFileSystem(fileModeMutator, fileModeAccessor, symlink, fileMetadataAccessor, statistics)
 
     def "wraps failure to set file mode"() {

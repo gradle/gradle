@@ -18,8 +18,8 @@ package org.gradle.tooling.internal.provider
 
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.StartParameterInternal
-import org.gradle.api.internal.changedetection.state.CachingFileHasherStatisticsCollector
-import org.gradle.internal.file.FileSystemStatisticsCollector
+import org.gradle.api.internal.changedetection.state.CachingFileHasherStatistics
+import org.gradle.internal.file.FileSystemStatistics
 import org.gradle.internal.invocation.BuildAction
 import org.gradle.internal.invocation.BuildActionRunner
 import org.gradle.internal.invocation.BuildController
@@ -37,16 +37,16 @@ class FileSystemWatchingBuildActionRunnerTest extends Specification {
     def watchingHandler = Mock(BuildLifecycleAwareVirtualFileSystem)
     def startParameter = Stub(StartParameterInternal)
     def buildOperationRunner = Mock(BuildOperationRunner)
-    def cachingFileHasherStatisticsCollector = Stub(CachingFileHasherStatisticsCollector)
-    def fileSystemStatisticsCollector = Stub(FileSystemStatisticsCollector)
+    def cachingFileHasherStatisticsCollector = Stub(CachingFileHasherStatistics.Collector)
+    def fileSystemStatisticsCollector = Stub(FileSystemStatistics.Collector)
     def buildController = Stub(BuildController) {
         getGradle() >> Stub(GradleInternal) {
             getStartParameter() >> startParameter
             getServices() >> Stub(ServiceRegistry) {
                 get(BuildLifecycleAwareVirtualFileSystem) >> watchingHandler
                 get(BuildOperationRunner) >> buildOperationRunner
-                get(CachingFileHasherStatisticsCollector) >> cachingFileHasherStatisticsCollector
-                get(FileSystemStatisticsCollector) >> fileSystemStatisticsCollector
+                get(CachingFileHasherStatistics.Collector) >> cachingFileHasherStatisticsCollector
+                get(FileSystemStatistics.Collector) >> fileSystemStatisticsCollector
             }
         }
     }

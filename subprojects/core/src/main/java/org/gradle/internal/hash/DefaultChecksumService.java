@@ -17,7 +17,7 @@ package org.gradle.internal.hash;
 
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.state.CachingFileHasher;
-import org.gradle.api.internal.changedetection.state.CachingFileHasherStatisticsCollector;
+import org.gradle.api.internal.changedetection.state.CachingFileHasherStatistics;
 import org.gradle.api.internal.changedetection.state.CrossBuildFileHashCache;
 import org.gradle.api.internal.changedetection.state.FileTimeStampInspector;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
@@ -38,7 +38,7 @@ public class DefaultChecksumService implements ChecksumService {
         CrossBuildFileHashCache fileStore,
         FileSystem fileSystem,
         FileTimeStampInspector fileTimeStampInspector,
-        CachingFileHasherStatisticsCollector statisticsCollector
+        CachingFileHasherStatistics.Collector statisticsCollector
     ) {
         md5 = createCache(stringInterner, fileStore, fileSystem, fileTimeStampInspector, "md5", Hashing.md5(), statisticsCollector);
         sha1 = createCache(stringInterner, fileStore, fileSystem, fileTimeStampInspector, "sha1", Hashing.sha1(), statisticsCollector);
@@ -53,7 +53,7 @@ public class DefaultChecksumService implements ChecksumService {
         FileTimeStampInspector fileTimeStampInspector,
         String name,
         HashFunction hashFunction,
-        CachingFileHasherStatisticsCollector statisticsCollector
+        CachingFileHasherStatistics.Collector statisticsCollector
     ) {
         return new CachingFileHasher(new ChecksumHasher(hashFunction), fileStore, stringInterner, fileTimeStampInspector, name + "-checksums", fileSystem, 1000, statisticsCollector);
     }

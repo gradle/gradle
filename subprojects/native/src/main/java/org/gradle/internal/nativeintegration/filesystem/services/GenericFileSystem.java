@@ -20,7 +20,7 @@ import com.google.common.io.Files;
 import org.apache.commons.io.FileUtils;
 import org.gradle.internal.file.FileException;
 import org.gradle.internal.file.FileMetadata;
-import org.gradle.internal.file.FileSystemStatisticsCollector;
+import org.gradle.internal.file.FileSystemStatistics;
 import org.gradle.internal.nativeintegration.filesystem.FileMetadataAccessor;
 import org.gradle.internal.nativeintegration.filesystem.FileModeAccessor;
 import org.gradle.internal.nativeintegration.filesystem.FileModeMutator;
@@ -43,7 +43,7 @@ class GenericFileSystem implements FileSystem {
     private final FileModeAccessor stat;
     private final Symlink symlink;
     private final FileMetadataAccessor metadata;
-    private final FileSystemStatisticsCollector statisticsCollector;
+    private final FileSystemStatistics.Collector statisticsCollector;
 
     @Override
     public boolean isCaseSensitive() {
@@ -100,7 +100,7 @@ class GenericFileSystem implements FileSystem {
         FileModeAccessor stat,
         Symlink symlink,
         FileMetadataAccessor metadata,
-        FileSystemStatisticsCollector statisticsCollector
+        FileSystemStatistics.Collector statisticsCollector
     ) {
         this.metadata = metadata;
         this.stat = stat;

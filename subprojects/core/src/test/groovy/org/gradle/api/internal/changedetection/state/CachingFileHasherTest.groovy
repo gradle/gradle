@@ -39,7 +39,7 @@ class CachingFileHasherTest extends Specification {
     def oldHash = HashCode.fromInt(0x0321)
     def file = tmpDir.createFile("testfile")
     def fileSystem = TestFiles.fileSystem()
-    def statisticsCollector = Mock(CachingFileHasherStatisticsCollector)
+    def statisticsCollector = Mock(CachingFileHasherStatistics.Collector)
     CachingFileHasher hasher
 
     def setup() {
