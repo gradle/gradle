@@ -18,10 +18,9 @@ package org.gradle.internal.snapshot;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 import java.util.function.BiConsumer;
 
-public class EmptyChildMap<T> implements ChildMap<T> {
+public class EmptyChildMap<T> extends AbstractChildMap<T> {
     private static final EmptyChildMap<Object> INSTANCE = new EmptyChildMap<>();
 
     @SuppressWarnings("unchecked")
@@ -33,27 +32,22 @@ public class EmptyChildMap<T> implements ChildMap<T> {
     }
 
     @Override
-    public Optional<T> get(VfsRelativePath relativePath) {
-        return Optional.empty();
-    }
-
-    @Override
     public <R> R findChild(VfsRelativePath relativePath, CaseSensitivity caseSensitivity, FindChildHandler<T, R> handler) {
         return handler.handleNotFound();
     }
 
     @Override
-    public <R> R handlePath(VfsRelativePath relativePath, CaseSensitivity caseSensitivity, PathRelationshipHandler<R> handler) {
+    protected <R> R handlePath(VfsRelativePath relativePath, CaseSensitivity caseSensitivity, PathRelationshipHandler<R> handler) {
         return handler.handleDifferent(0);
     }
 
     @Override
-    public T get(int index) {
+    protected T get(int index) {
         throw indexOutOfBoundsException(index);
     }
 
     @Override
-    public int indexOf(String path, CaseSensitivity caseSensitivity) {
+    protected int indexOf(String path, CaseSensitivity caseSensitivity) {
         return -1;
     }
 
@@ -68,7 +62,7 @@ public class EmptyChildMap<T> implements ChildMap<T> {
     }
 
     @Override
-    public ChildMap<T> withNewChild(int insertBefore, String path, T newChild) {
+    protected AbstractChildMap<T> withNewChild(int insertBefore, String path, T newChild) {
         if (insertBefore != 0) {
             throw indexOutOfBoundsException(insertBefore);
         }
@@ -76,12 +70,12 @@ public class EmptyChildMap<T> implements ChildMap<T> {
     }
 
     @Override
-    public ChildMap<T> withReplacedChild(int childIndex, String newPath, T newChild) {
+    protected AbstractChildMap<T> withReplacedChild(int childIndex, String newPath, T newChild) {
         throw indexOutOfBoundsException(childIndex);
     }
 
     @Override
-    public ChildMap<T> withRemovedChild(int childIndex) {
+    protected AbstractChildMap<T> withRemovedChild(int childIndex) {
         throw indexOutOfBoundsException(childIndex);
     }
 

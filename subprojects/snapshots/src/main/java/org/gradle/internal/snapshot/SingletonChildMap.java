@@ -20,10 +20,9 @@ import com.google.common.collect.ImmutableList;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 import java.util.function.BiConsumer;
 
-public class SingletonChildMap<T> implements ChildMap<T> {
+public class SingletonChildMap<T> extends AbstractChildMap<T> {
     private final Entry<T> entry;
 
     public SingletonChildMap(String path, T child) {
@@ -35,28 +34,23 @@ public class SingletonChildMap<T> implements ChildMap<T> {
     }
 
     @Override
-    public Optional<T> get(VfsRelativePath relativePath) {
-        return Optional.empty();
-    }
-
-    @Override
     public <R> R findChild(VfsRelativePath relativePath, CaseSensitivity caseSensitivity, FindChildHandler<T, R> handler) {
         return entry.findPath(relativePath, caseSensitivity, handler);
     }
 
     @Override
-    public <R> R handlePath(VfsRelativePath relativePath, CaseSensitivity caseSensitivity, PathRelationshipHandler<R> handler) {
+    protected <R> R handlePath(VfsRelativePath relativePath, CaseSensitivity caseSensitivity, PathRelationshipHandler<R> handler) {
         return entry.handlePath(relativePath, 0, caseSensitivity, handler);
     }
 
     @Override
-    public T get(int index) {
+    protected T get(int index) {
         checkIndex(index);
         return entry.getValue();
     }
 
     @Override
-    public int indexOf(String path, CaseSensitivity caseSensitivity) {
+    protected int indexOf(String path, CaseSensitivity caseSensitivity) {
         return (entry.getPath().equals(path)) ? 0 : -1;
     }
 
@@ -71,7 +65,7 @@ public class SingletonChildMap<T> implements ChildMap<T> {
     }
 
     @Override
-    public ChildMap<T> withNewChild(int insertBefore, String path, T newChild) {
+    protected AbstractChildMap<T> withNewChild(int insertBefore, String path, T newChild) {
         Entry<T> newEntry = new Entry<>(path, newChild);
         List<Entry<T>> newChildren = insertBefore == 0
             ? ImmutableList.of(newEntry, entry)
@@ -80,7 +74,7 @@ public class SingletonChildMap<T> implements ChildMap<T> {
     }
 
     @Override
-    public ChildMap<T> withReplacedChild(int childIndex, String newPath, T newChild) {
+    protected AbstractChildMap<T> withReplacedChild(int childIndex, String newPath, T newChild) {
         checkIndex(childIndex);
         if (entry.getPath().equals(newPath) && entry.getValue().equals(newChild)) {
             return this;
@@ -89,7 +83,7 @@ public class SingletonChildMap<T> implements ChildMap<T> {
     }
 
     @Override
-    public ChildMap<T> withRemovedChild(int childIndex) {
+    protected AbstractChildMap<T> withRemovedChild(int childIndex) {
         checkIndex(childIndex);
         return EmptyChildMap.getInstance();
     }

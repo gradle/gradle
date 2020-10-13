@@ -18,20 +18,14 @@ package org.gradle.internal.snapshot;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 
-public class DefaultChildMap<T> implements ChildMap<T> {
+public class DefaultChildMap<T> extends AbstractChildMap<T> {
     private final List<Entry<T>> children;
 
     public DefaultChildMap(List<Entry<T>> children) {
         this.children = children;
-    }
-
-    @Override
-    public Optional<T> get(VfsRelativePath relativePath) {
-        return Optional.empty();
     }
 
     @Override
@@ -45,7 +39,7 @@ public class DefaultChildMap<T> implements ChildMap<T> {
     }
 
     @Override
-    public <R> R handlePath(VfsRelativePath relativePath, CaseSensitivity caseSensitivity, PathRelationshipHandler<R> handler) {
+    protected <R> R handlePath(VfsRelativePath relativePath, CaseSensitivity caseSensitivity, PathRelationshipHandler<R> handler) {
         int childIndex = findChildIndexWithCommonPrefix(relativePath, caseSensitivity);
         if (childIndex >= 0) {
             return children.get(childIndex).handlePath(relativePath, childIndex, caseSensitivity, handler);
@@ -62,12 +56,12 @@ public class DefaultChildMap<T> implements ChildMap<T> {
     }
 
     @Override
-    public T get(int index) {
+    protected T get(int index) {
         return children.get(index).getValue();
     }
 
     @Override
-    public int indexOf(String path, CaseSensitivity caseSensitivity) {
+    protected int indexOf(String path, CaseSensitivity caseSensitivity) {
         return handlePath(VfsRelativePath.of(path), caseSensitivity, new PathRelationshipHandler<Integer>() {
             @Override
             public Integer handleDescendant(String childPath, int childIndex) {
@@ -109,14 +103,14 @@ public class DefaultChildMap<T> implements ChildMap<T> {
     }
 
     @Override
-    public ChildMap<T> withNewChild(int insertBefore, String path, T newChild) {
+    protected AbstractChildMap<T> withNewChild(int insertBefore, String path, T newChild) {
         List<Entry<T>> newChildren = new ArrayList<>(children);
         newChildren.add(insertBefore, new Entry<>(path, newChild));
         return new DefaultChildMap<>(newChildren);
     }
 
     @Override
-    public ChildMap<T> withReplacedChild(int childIndex, String newPath, T newChild) {
+    protected AbstractChildMap<T> withReplacedChild(int childIndex, String newPath, T newChild) {
         Entry<T> oldEntry = children.get(childIndex);
         if (oldEntry.getPath().equals(newPath) && oldEntry.getValue().equals(newChild)) {
             return this;
@@ -127,7 +121,7 @@ public class DefaultChildMap<T> implements ChildMap<T> {
     }
 
     @Override
-    public ChildMap<T> withRemovedChild(int childIndex) {
+    protected AbstractChildMap<T> withRemovedChild(int childIndex) {
         List<Entry<T>> newChildren = new ArrayList<>(children);
         newChildren.remove(childIndex);
         if (newChildren.size() == 1) {

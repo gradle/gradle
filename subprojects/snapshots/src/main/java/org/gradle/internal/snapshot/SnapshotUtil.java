@@ -24,7 +24,7 @@ public class SnapshotUtil {
     public static <T extends FileSystemNode> Optional<MetadataSnapshot> getMetadataFromChildren(ChildMap<T> children, VfsRelativePath relativePath, CaseSensitivity caseSensitivity, Supplier<Optional<MetadataSnapshot>> noChildFoundResult) {
         return children.findChild(relativePath, caseSensitivity, new ChildMap.FindChildHandler<T, Optional<MetadataSnapshot>>() {
             @Override
-            public Optional<MetadataSnapshot> handleDescendant(String childPath, T child) {
+            public Optional<MetadataSnapshot> findInChild(String childPath, T child) {
                 return child.getSnapshot(relativePath.fromChild(childPath), caseSensitivity);
             }
 
@@ -34,38 +34,32 @@ public class SnapshotUtil {
             }
 
             @Override
-            public Optional<MetadataSnapshot> handleSame(T child) {
+            public Optional<MetadataSnapshot> getFromChild(T child) {
                 return child.getSnapshot();
             }
         });
     }
 
     public static <T extends FileSystemNode> ReadOnlyFileSystemNode getChild(ChildMap<T> children, VfsRelativePath relativePath, CaseSensitivity caseSensitivity) {
-        return children.handlePath(relativePath, caseSensitivity, new ChildMap.PathRelationshipHandler<ReadOnlyFileSystemNode>() {
+        return children.getNode(relativePath, caseSensitivity, new ChildMap.GetNodeHandler<T, ReadOnlyFileSystemNode>() {
             @Override
-            public ReadOnlyFileSystemNode handleDescendant(String childPath, int childIndex) {
-                FileSystemNode child = children.get(childIndex);
-                return child.getNode(relativePath.fromChild(childPath), caseSensitivity);
+            public ReadOnlyFileSystemNode getInChild(VfsRelativePath pathInChild, T child) {
+                return child.getNode(pathInChild, caseSensitivity);
             }
 
             @Override
-            public ReadOnlyFileSystemNode handleAncestor(String childPath, int childIndex) {
+            public ReadOnlyFileSystemNode getForAncestorOf(String childPath, T child) {
                 // TODO: This is not correct, it should be a node with the child at relativePath.fromChild(childPath).
-                return children.get(childIndex);
+                return child;
             }
 
             @Override
-            public ReadOnlyFileSystemNode handleSame(int childIndex) {
-                return children.get(childIndex);
+            public ReadOnlyFileSystemNode getForChild(T child) {
+                return child;
             }
 
             @Override
-            public ReadOnlyFileSystemNode handleCommonPrefix(int commonPrefixLength, String childPath, int childIndex) {
-                return ReadOnlyFileSystemNode.EMPTY;
-            }
-
-            @Override
-            public ReadOnlyFileSystemNode handleDifferent(int indexOfNextBiggerChild) {
+            public ReadOnlyFileSystemNode notFound() {
                 return ReadOnlyFileSystemNode.EMPTY;
             }
         });

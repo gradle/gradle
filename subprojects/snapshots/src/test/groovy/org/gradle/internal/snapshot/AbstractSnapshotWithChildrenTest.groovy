@@ -65,9 +65,9 @@ abstract class AbstractSnapshotWithChildrenTest<NODE extends FileSystemNode, CHI
     }
 
     ChildMap<CHILD> createChildren(List<String> pathsToParent) {
-        return ChildMap.of(pathsToParent.stream()
+        return AbstractChildMap.of(pathsToParent.stream()
             .sorted(PathUtil.getPathComparator(CASE_SENSITIVE))
-            .map { childPath -> new ChildMap.Entry(childPath, mockChild()) }
+            .map { childPath -> new AbstractChildMap.Entry(childPath, mockChild()) }
             .collect(Collectors.toList()))
     }
 
@@ -80,7 +80,7 @@ abstract class AbstractSnapshotWithChildrenTest<NODE extends FileSystemNode, CHI
     }
 
     ChildMap<FileSystemNode> childrenWithAdditionalChild(String path, FileSystemNode newChild) {
-        children.handlePath(VfsRelativePath.of(path), CASE_SENSITIVE, new ChildMap.PathRelationshipHandler<ChildMap<FileSystemNode>>() {
+        children.handlePath(VfsRelativePath.of(path), CASE_SENSITIVE, new AbstractChildMap.PathRelationshipHandler<ChildMap<FileSystemNode>>() {
             @Override
             ChildMap<FileSystemNode> handleDescendant(String childPath, int childIndex) {
                 throw new AssertionError()
