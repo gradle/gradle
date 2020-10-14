@@ -8,7 +8,7 @@
     /**
      * Configures the [extra][org.gradle.api.plugins.ExtraPropertiesExtension] extension.
      */
-    fun org.gradle.api.Project.`extra`(configure: org.gradle.api.plugins.ExtraPropertiesExtension.() -> Unit): Unit =
+    fun org.gradle.api.Project.`extra`(configure: Action<org.gradle.api.plugins.ExtraPropertiesExtension>): Unit =
         (this as org.gradle.api.plugins.ExtensionAware).extensions.configure("extra", configure)
 
 
@@ -21,8 +21,8 @@
     /**
      * Configures the [application][org.gradle.api.plugins.ApplicationPluginConvention] convention.
      */
-    fun org.gradle.api.Project.`application`(configure: org.gradle.api.plugins.ApplicationPluginConvention.() -> Unit): Unit =
-        configure(`application`)
+    fun org.gradle.api.Project.`application`(configure: Action<org.gradle.api.plugins.ApplicationPluginConvention>): Unit =
+        configure.execute(`application`)
 
 
 

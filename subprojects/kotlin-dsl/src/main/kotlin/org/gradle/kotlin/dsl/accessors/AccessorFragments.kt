@@ -16,7 +16,6 @@
 
 package org.gradle.kotlin.dsl.accessors
 
-
 import kotlinx.metadata.KmVariance
 import kotlinx.metadata.jvm.JvmMethodSignature
 import kotlinx.metadata.jvm.KotlinClassMetadata
@@ -34,7 +33,6 @@ import org.gradle.kotlin.dsl.support.bytecode.KmTypeBuilder
 import org.gradle.kotlin.dsl.support.bytecode.LDC
 import org.gradle.kotlin.dsl.support.bytecode.RETURN
 import org.gradle.kotlin.dsl.support.bytecode.actionTypeOf
-import org.gradle.kotlin.dsl.support.bytecode.extensionFunctionTypeOf
 import org.gradle.kotlin.dsl.support.bytecode.genericTypeOf
 import org.gradle.kotlin.dsl.support.bytecode.internalName
 import org.gradle.kotlin.dsl.support.bytecode.jvmGetterSignatureFor
@@ -611,7 +609,7 @@ fun fragmentsForExtension(accessor: Accessor.ForExtension): Fragments {
             source = "",
             signature = JvmMethodSignature(
                 propertyName,
-                "(L$receiverTypeName;Lkotlin/jvm/functions/Function1;)V"
+                "(L$receiverTypeName;Lorg/gradle/api/Action;)V"
             ),
             bytecode = {
                 publicStaticMethod(signature) {
@@ -624,10 +622,6 @@ fun fragmentsForExtension(accessor: Accessor.ForExtension): Fragments {
                     )
                     LDC(name.original)
                     ALOAD(1)
-                    invokeRuntime(
-                        "functionToAction",
-                        "(Lkotlin/jvm/functions/Function1;)Lorg/gradle/api/Action;"
-                    )
                     INVOKEINTERFACE(
                         GradleTypeName.extensionContainer,
                         "configure",
@@ -643,7 +637,7 @@ fun fragmentsForExtension(accessor: Accessor.ForExtension): Fragments {
                     parameters = {
                         visitParameter(
                             "configure",
-                            extensionFunctionTypeOf(kotlinExtensionType, KotlinType.unit)
+                            actionTypeOf(kotlinExtensionType)
                         )
                     },
                     name = propertyName,
