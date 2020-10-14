@@ -75,7 +75,7 @@ class TransformationSpec(val transformation: Transformation, val dependencies: L
 fun unpackTransformation(transformation: Transformation, dependenciesResolver: ExecutionGraphDependenciesResolver): TransformationSpec {
     val dependencies = mutableListOf<TransformDependencies>()
     transformation.visitTransformationSteps {
-        dependencies.add(transformDependencies(it.transformer, dependenciesResolver))
+        dependencies.add(transformDependencies(transformer, dependenciesResolver))
     }
     return TransformationSpec(transformation, dependencies)
 }
