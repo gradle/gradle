@@ -79,15 +79,14 @@ New: ${firstDifferentElementIndex < definitionInJson.performanceTests.size() ? d
             return "Test($testId)"
         }
 
+        @JsonInclude(JsonInclude.Include.NON_NULL)
         static class GroupsBean {
             /**
              * testProject : largeJavaMultiProject
              * coverage : {"test":["linux","windows"]}
              */
-
             String testProject
 
-            @JsonInclude(JsonInclude.Include.NON_NULL)
             String comment
 
             TreeMap<String, List<String>> coverage

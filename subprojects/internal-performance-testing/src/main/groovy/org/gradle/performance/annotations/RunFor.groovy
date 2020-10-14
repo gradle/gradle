@@ -141,6 +141,8 @@ class RunForExtension extends AbstractAnnotationDrivenExtension<RunFor> {
                     scenarioDefinition.getPerformanceTests().add(new PerformanceTestScenarioDefinition.PerformanceTestsBean("${invocation.getSpec().getReflection().getName()}.$testId", groups))
                 }
                 Assume.assumeFalse(true)
+            } else {
+                invocation.proceed()
             }
         }
     }

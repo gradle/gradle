@@ -205,10 +205,9 @@ class PerformanceTestPlugin : Plugin<Project> {
             systemProperty("org.gradle.performance.scenario.json", outputJson.absolutePath)
             systemProperty("org.gradle.performance.write.scenario.json", write)
 
-            if (write) {
-                outputs.cacheIf { true }
-                outputs.file(outputJson)
-            } else {
+            outputs.cacheIf { false }
+
+            if (!write) {
                 inputs.file(outputJson)
             }
         }
