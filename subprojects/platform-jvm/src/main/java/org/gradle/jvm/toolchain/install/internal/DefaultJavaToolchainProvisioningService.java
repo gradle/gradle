@@ -21,12 +21,17 @@ import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.cache.FileLock;
 import org.gradle.internal.exceptions.Contextual;
+import org.gradle.internal.operations.BuildOperationContext;
+import org.gradle.internal.operations.BuildOperationDescriptor;
+import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.util.Optional;
+import java.util.concurrent.Callable;
 
 public class DefaultJavaToolchainProvisioningService implements JavaToolchainProvisioningService {
 
@@ -44,25 +49,33 @@ public class DefaultJavaToolchainProvisioningService implements JavaToolchainPro
     private final AdoptOpenJdkRemoteBinary openJdkBinary;
     private final JdkCacheDirectory cacheDirProvider;
     private final Provider<Boolean> downloadEnabled;
+    private final BuildOperationExecutor buildOperationExecutor;
     private static final Object PROVISIONING_PROCESS_LOCK = new Object();
 
     @Inject
-    public DefaultJavaToolchainProvisioningService(AdoptOpenJdkRemoteBinary openJdkBinary, JdkCacheDirectory cacheDirProvider, ProviderFactory factory) {
+    public DefaultJavaToolchainProvisioningService(AdoptOpenJdkRemoteBinary openJdkBinary, JdkCacheDirectory cacheDirProvider, ProviderFactory factory, BuildOperationExecutor executor) {
         this.openJdkBinary = openJdkBinary;
         this.cacheDirProvider = cacheDirProvider;
         this.downloadEnabled = factory.gradleProperty(AUTO_DOWNLOAD).forUseAtConfigurationTime().map(Boolean::parseBoolean);
+        this.buildOperationExecutor = executor;
     }
 
     public Optional<File> tryInstall(JavaToolchainSpec spec) {
         if (!isAutoDownloadEnabled()) {
             return Optional.empty();
         }
+        return provisionInstallation(spec);
+    }
+
+    private Optional<File> provisionInstallation(JavaToolchainSpec spec) {
         synchronized (PROVISIONING_PROCESS_LOCK) {
             String destinationFilename = openJdkBinary.toFilename(spec);
             File destinationFile = cacheDirProvider.getDownloadLocation(destinationFilename);
             final FileLock fileLock = cacheDirProvider.acquireWriteLock(destinationFile, "Downloading toolchain");
             try {
-                return provisionJdk(spec, destinationFile);
+                return wrapInOperation(
+                    "Provisioning toolchain " + destinationFile.getName(),
+                    () -> provisionJdk(spec, destinationFile));
             } catch (Exception e) {
                 throw new MissingToolchainException(spec, e);
             } finally {
@@ -78,11 +91,36 @@ public class DefaultJavaToolchainProvisioningService implements JavaToolchainPro
         } else {
             jdkArchive = openJdkBinary.download(spec, destinationFile);
         }
-        return jdkArchive.map(cacheDirProvider::provisionFromArchive);
+        return wrapInOperation("Unpacking toolchain archive", () -> jdkArchive.map(cacheDirProvider::provisionFromArchive));
     }
 
     private boolean isAutoDownloadEnabled() {
         return downloadEnabled.getOrElse(true);
     }
 
+    private <T> T wrapInOperation(String displayName, Callable<T> provisioningStep) {
+        return buildOperationExecutor.call(new ToolchainProvisioningBuildOperation<>(displayName, provisioningStep));
+    }
+
+    private static class ToolchainProvisioningBuildOperation<T> implements CallableBuildOperation<T> {
+        private final String displayName;
+        private final Callable<T> provisioningStep;
+
+        public ToolchainProvisioningBuildOperation(String displayName, Callable<T> provisioningStep) {
+            this.displayName = displayName;
+            this.provisioningStep = provisioningStep;
+        }
+
+        @Override
+        public T call(BuildOperationContext context) throws Exception {
+            return provisioningStep.call();
+        }
+
+        @Override
+        public BuildOperationDescriptor.Builder description() {
+            return BuildOperationDescriptor
+                .displayName(displayName)
+                .progressDisplayName(displayName);
+        }
+    }
 }
