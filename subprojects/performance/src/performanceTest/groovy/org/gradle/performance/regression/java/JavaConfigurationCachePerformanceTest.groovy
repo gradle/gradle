@@ -20,11 +20,9 @@ import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheOp
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
 import org.gradle.performance.annotations.RunFor
 import org.gradle.performance.annotations.Scenario
-import org.gradle.performance.categories.PerformanceRegressionTest
 import org.gradle.profiler.BuildContext
 import org.gradle.profiler.BuildMutator
 import org.gradle.profiler.InvocationSettings
-import org.junit.experimental.categories.Category
 import spock.lang.Unroll
 
 import java.nio.file.Files
@@ -35,7 +33,6 @@ import static org.gradle.performance.generator.JavaTestProjectGenerator.SMALL_JA
 import static org.gradle.performance.results.OperatingSystem.LINUX
 import static org.junit.Assert.assertTrue
 
-@Category(PerformanceRegressionTest)
 class JavaConfigurationCachePerformanceTest extends AbstractCrossVersionPerformanceTest {
     private File stateDirectory
 

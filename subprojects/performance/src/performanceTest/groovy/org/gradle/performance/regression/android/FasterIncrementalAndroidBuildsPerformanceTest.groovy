@@ -25,7 +25,6 @@ import org.gradle.internal.scan.config.fixtures.ApplyGradleEnterprisePluginFixtu
 import org.gradle.performance.AbstractCrossBuildPerformanceTest
 import org.gradle.performance.annotations.RunFor
 import org.gradle.performance.annotations.Scenario
-import org.gradle.performance.categories.PerformanceExperiment
 import org.gradle.performance.fixture.GradleBuildExperimentSpec
 import org.gradle.performance.fixture.IncrementalAndroidTestProject
 import org.gradle.performance.fixture.IncrementalTestProject
@@ -36,7 +35,6 @@ import org.gradle.profiler.ScenarioContext
 import org.gradle.profiler.mutations.AbstractCleanupMutator
 import org.gradle.profiler.mutations.ClearConfigurationCacheStateMutator
 import org.gradle.profiler.mutations.ClearProjectCacheMutator
-import org.junit.experimental.categories.Category
 
 import static org.gradle.performance.annotations.ScenarioType.EXPERIMENT
 import static org.gradle.performance.fixture.IncrementalAndroidTestProject.SANTA_TRACKER_KOTLIN
@@ -47,7 +45,6 @@ import static org.gradle.performance.results.OperatingSystem.WINDOWS
 @RunFor([
     @Scenario(type = EXPERIMENT, oses = [LINUX], testProjectNames = ["santaTrackerAndroidBuild", "santaTrackerAndroidJavaBuild"])
 ])
-@Category(PerformanceExperiment)
 class FasterIncrementalAndroidBuildsPerformanceTest extends AbstractCrossBuildPerformanceTest {
     private static final String AGP_TARGET_VERSION = "4.2"
     private static final String BASELINE_VERSION = "6.8-milestone-1"

@@ -39,7 +39,6 @@ import static org.gradle.performance.results.ResultsStoreHelper.createResultsSto
  *
  * This base class uses Gradle profiler as a backend for running the performance tests.
  */
-@Category(PerformanceRegressionTest)
 @CleanupTestDirectory
 class AbstractCrossVersionPerformanceTest extends Specification {
 

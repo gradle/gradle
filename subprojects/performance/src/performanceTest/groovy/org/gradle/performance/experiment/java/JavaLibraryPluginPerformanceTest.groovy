@@ -20,10 +20,8 @@ import org.gradle.internal.os.OperatingSystem
 import org.gradle.performance.AbstractCrossBuildPerformanceTest
 import org.gradle.performance.annotations.RunFor
 import org.gradle.performance.annotations.Scenario
-import org.gradle.performance.categories.SlowPerformanceRegressionTest
 import org.gradle.performance.results.BaselineVersion
 import org.gradle.performance.results.CrossBuildPerformanceResults
-import org.junit.experimental.categories.Category
 
 import static org.gradle.performance.annotations.ScenarioType.SLOW
 import static org.gradle.performance.generator.JavaTestProjectGenerator.LARGE_JAVA_MULTI_PROJECT
@@ -33,7 +31,6 @@ import static org.gradle.performance.results.OperatingSystem.WINDOWS
 @RunFor([
     @Scenario(type = SLOW, oses = [LINUX, WINDOWS], testProjects = [LARGE_JAVA_MULTI_PROJECT])
 ])
-@Category(SlowPerformanceRegressionTest)
 class JavaLibraryPluginPerformanceTest extends AbstractCrossBuildPerformanceTest {
 
     def "java-library vs java"() {

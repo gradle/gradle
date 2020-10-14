@@ -23,9 +23,10 @@ import org.gradle.performance.mutator.ApplyAbiChangeToGroovySourceFileMutator
 import org.gradle.performance.mutator.ApplyNonAbiChangeToGroovySourceFileMutator
 import org.gradle.profiler.BuildMutator
 import org.gradle.profiler.InvocationSettings
-import org.junit.experimental.categories.Category
 
-@Category(SlowPerformanceRegressionTest)
+import spock.lang.Ignore
+
+@Ignore // TODO (donat) there's a memory leak probably. Will investigate later.
 class BuildSrcApiChangePerformanceTest extends AbstractCrossVersionPerformanceTest {
 
     def setup() {

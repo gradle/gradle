@@ -19,13 +19,10 @@ package org.gradle.performance.regression.nativeplatform
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
 import org.gradle.performance.annotations.RunFor
 import org.gradle.performance.annotations.Scenario
-import org.gradle.performance.categories.SlowPerformanceRegressionTest
-import org.junit.experimental.categories.Category
 
 import static org.gradle.performance.annotations.ScenarioType.SLOW
 import static org.gradle.performance.results.OperatingSystem.LINUX
 
-@Category(SlowPerformanceRegressionTest)
 class NativeCleanBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
     def setup() {
         runner.minimumBaseVersion = '4.1' // minimum version that contains new C++ plugins

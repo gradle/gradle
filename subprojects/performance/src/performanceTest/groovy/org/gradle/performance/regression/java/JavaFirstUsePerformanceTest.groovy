@@ -19,11 +19,9 @@ package org.gradle.performance.regression.java
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
 import org.gradle.performance.annotations.RunFor
 import org.gradle.performance.annotations.Scenario
-import org.gradle.performance.categories.SlowPerformanceRegressionTest
 import org.gradle.profiler.mutations.AbstractCleanupMutator
 import org.gradle.profiler.mutations.ClearGradleUserHomeMutator
 import org.gradle.profiler.mutations.ClearProjectCacheMutator
-import org.junit.experimental.categories.Category
 
 import static org.gradle.performance.annotations.ScenarioType.SLOW
 import static org.gradle.performance.generator.JavaTestProjectGenerator.LARGE_JAVA_MULTI_PROJECT
@@ -34,7 +32,6 @@ import static org.gradle.performance.results.OperatingSystem.LINUX
 @RunFor([
     @Scenario(type = SLOW, oses = [LINUX], testProjects = [LARGE_MONOLITHIC_JAVA_PROJECT, LARGE_JAVA_MULTI_PROJECT, LARGE_JAVA_MULTI_PROJECT_KOTLIN_DSL])
 ])
-@Category(SlowPerformanceRegressionTest)
 class JavaFirstUsePerformanceTest extends AbstractCrossVersionPerformanceTest {
 
     def setup() {

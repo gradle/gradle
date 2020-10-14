@@ -19,19 +19,14 @@ package org.gradle.performance.regression.corefeature
 import org.gradle.performance.AbstractCrossBuildPerformanceTest
 import org.gradle.performance.annotations.RunFor
 import org.gradle.performance.annotations.Scenario
-import org.gradle.performance.categories.PerformanceRegressionTest
 import org.gradle.performance.fixture.GradleBuildExperimentSpec
 import org.gradle.performance.generator.JavaTestProjectGenerator
-import org.junit.experimental.categories.Category
 
 import static org.gradle.performance.annotations.ScenarioType.TEST
 import static org.gradle.performance.generator.JavaTestProjectGenerator.LARGE_MONOLITHIC_JAVA_PROJECT
 import static org.gradle.performance.results.OperatingSystem.LINUX
 
-@Category(PerformanceRegressionTest)
-@RunFor([
-    @Scenario(type = TEST, oses = [LINUX], testProjects =  [JavaTestProjectGenerator.LARGE_JAVA_MULTI_PROJECT, LARGE_MONOLITHIC_JAVA_PROJECT])
-])
+@RunFor(@Scenario(type = TEST, oses = [LINUX], testProjects =  [JavaTestProjectGenerator.LARGE_JAVA_MULTI_PROJECT, LARGE_MONOLITHIC_JAVA_PROJECT]))
 class TaskAvoidancePerformanceTest extends AbstractCrossBuildPerformanceTest {
 
     def "help with lazy and eager tasks"() {

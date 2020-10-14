@@ -35,7 +35,6 @@ import spock.lang.Specification
 
 import static org.gradle.performance.results.ResultsStoreHelper.createResultsStoreWhenDatabaseAvailable
 
-@Category(PerformanceExperiment)
 @CompileStatic
 @CleanupTestDirectory
 class AbstractGradleVsMavenPerformanceTest extends Specification {
