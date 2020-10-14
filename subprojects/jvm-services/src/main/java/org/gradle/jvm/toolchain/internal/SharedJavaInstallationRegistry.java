@@ -32,6 +32,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
 
 
@@ -57,20 +58,7 @@ public class SharedJavaInstallationRegistry {
     }
 
     private Set<File> collectInBuildOperation(List<InstallationSupplier> suppliers) {
-        return executor.call(new CallableBuildOperation<Set<File>>() {
-            @Override
-            public Set<File> call(BuildOperationContext context) {
-                return collectInstallations(suppliers);
-            }
-
-            @Override
-            public BuildOperationDescriptor.Builder description() {
-                return BuildOperationDescriptor
-                    .displayName("Toolchain detection")
-                    .progressDisplayName("Detecting local java toolchains");
-            }
-
-        });
+        return executor.call(new ToolchainDetectionBuildOperation(() -> collectInstallations(suppliers)));
     }
 
     public Set<File> listInstallations() {
@@ -105,6 +93,26 @@ public class SharedJavaInstallationRegistry {
             return file.getCanonicalFile();
         } catch (IOException e) {
             throw new GradleException(String.format("Could not canonicalize path to java installation: %s.", file), e);
+        }
+    }
+
+    private static class ToolchainDetectionBuildOperation implements CallableBuildOperation<Set<File>> {
+        private final Callable<Set<File>> detectionStrategy;
+
+        public ToolchainDetectionBuildOperation(Callable<Set<File>> detectionStrategy) {
+            this.detectionStrategy = detectionStrategy;
+        }
+
+        @Override
+        public Set<File> call(BuildOperationContext context) throws Exception {
+            return detectionStrategy.call();
+        }
+
+        @Override
+        public BuildOperationDescriptor.Builder description() {
+            return BuildOperationDescriptor
+                .displayName("Toolchain detection")
+                .progressDisplayName("Detecting local java toolchains");
         }
     }
 
