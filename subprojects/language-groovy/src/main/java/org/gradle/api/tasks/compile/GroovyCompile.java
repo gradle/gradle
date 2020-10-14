@@ -90,12 +90,7 @@ public class GroovyCompile extends AbstractCompile implements HasCompileOptions 
     private final ConfigurableFileCollection astTransformationClasspath;
     private final CompileOptions compileOptions;
     private final GroovyCompileOptions groovyCompileOptions = new GroovyCompileOptions();
-    private final FileCollection stableSources = getProject().files(new Callable<FileTree>() {
-        @Override
-        public FileTree call() {
-            return getSource();
-        }
-    });
+    private final FileCollection stableSources = getProject().files((Callable<FileTree>) this::getSource);
     private final Property<JavaLauncher> javaLauncher;
     private File sourceClassesMappingFile;
 
@@ -107,12 +102,7 @@ public class GroovyCompile extends AbstractCompile implements HasCompileOptions 
         this.astTransformationClasspath = objectFactory.fileCollection();
         this.javaLauncher = objectFactory.property(JavaLauncher.class);
         if (!experimentalCompilationAvoidanceEnabled()) {
-            this.astTransformationClasspath.from(new Callable<FileCollection>() {
-                @Override
-                public FileCollection call() {
-                    return getClasspath();
-                }
-            });
+            this.astTransformationClasspath.from((Callable<FileCollection>) this::getClasspath);
         }
         CompilerForkUtils.doNotCacheIfForkingViaExecutable(compileOptions, getOutputs());
     }
@@ -292,6 +282,7 @@ public class GroovyCompile extends AbstractCompile implements HasCompileOptions 
     private GroovyJavaJointCompileSpec createSpec() {
         validateConfiguration();
         DefaultGroovyJavaJointCompileSpec spec = new DefaultGroovyJavaJointCompileSpecFactory(compileOptions, getToolchain()).create();
+        assert spec != null;
 
         FileTreeInternal stableSourcesAsFileTree = (FileTreeInternal) getStableSources().getAsFileTree();
         List<File> sourceRoots = CompilationSourceDirs.inferSourceRoots(stableSourcesAsFileTree);
@@ -388,7 +379,6 @@ public class GroovyCompile extends AbstractCompile implements HasCompileOptions 
      * @since 4.0
      */
     @Nested
-    @SuppressWarnings("deprecation")
     @Deprecated
     protected org.gradle.jvm.toolchain.JavaToolChain getJavaToolChain() {
         return getJavaToolChainFactory().forCompileOptions(getOptions());
