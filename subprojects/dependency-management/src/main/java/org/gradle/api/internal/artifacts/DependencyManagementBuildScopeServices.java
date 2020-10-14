@@ -133,6 +133,9 @@ import org.gradle.cache.internal.CleaningInMemoryCacheDecoratorFactory;
 import org.gradle.cache.internal.GeneratedGradleJarCache;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.internal.ProducerGuard;
+import org.gradle.configuration.internal.UserCodeApplicationContext;
+import org.gradle.initialization.DefaultDependencyResolutionManagement;
+import org.gradle.initialization.DependencyResolutionManagementInternal;
 import org.gradle.initialization.InternalBuildFinishedListener;
 import org.gradle.initialization.ProjectAccessListener;
 import org.gradle.initialization.layout.BuildLayout;
@@ -198,11 +201,18 @@ class DependencyManagementBuildScopeServices {
         registration.add(ProjectDependencyResolver.class);
     }
 
-    SharedDependencyResolutionServices createSharedDependencyResolutionServices(DependencyManagementServices dependencyManagementServices,
-                                                                                FileResolver fileResolver,
-                                                                                FileCollectionFactory fileCollectionFactory,
-                                                                                DependencyMetaDataProvider dependencyMetaDataProvider) {
-        return new DefaultSharedDependencyResolutionServices(dependencyManagementServices, fileResolver, fileCollectionFactory, dependencyMetaDataProvider);
+    DependencyResolutionManagementInternal createSharedDependencyResolutionServices(Instantiator instantiator,
+                                                                                    UserCodeApplicationContext context,
+                                                                                    DependencyManagementServices dependencyManagementServices,
+                                                                                    FileResolver fileResolver,
+                                                                                    FileCollectionFactory fileCollectionFactory,
+                                                                                    DependencyMetaDataProvider dependencyMetaDataProvider) {
+        return instantiator.newInstance(DefaultDependencyResolutionManagement.class,
+            context,
+            dependencyManagementServices,
+            fileResolver,
+            fileCollectionFactory,
+            dependencyMetaDataProvider);
     }
 
     DependencyManagementServices createDependencyManagementServices(ServiceRegistry parent) {

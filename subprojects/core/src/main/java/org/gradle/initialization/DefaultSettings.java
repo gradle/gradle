@@ -17,10 +17,7 @@ package org.gradle.initialization;
 
 import org.gradle.StartParameter;
 import org.gradle.api.Action;
-import org.gradle.api.InvalidUserCodeException;
-import org.gradle.api.NamedDomainObjectList;
 import org.gradle.api.UnknownProjectException;
-import org.gradle.api.artifacts.repositories.ArtifactRepository;
 import org.gradle.api.initialization.ConfigurableIncludedBuild;
 import org.gradle.api.initialization.DependencyResolutionManagement;
 import org.gradle.api.initialization.ProjectDescriptor;
@@ -30,7 +27,6 @@ import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.FeaturePreviews.Feature;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
-import org.gradle.api.internal.artifacts.SharedDependencyResolutionServices;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
@@ -44,7 +40,6 @@ import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.Actions;
 import org.gradle.internal.deprecation.DeprecationLogger;
-import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resource.TextUriResourceLoader;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
@@ -84,8 +79,7 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
                            ScriptHandler settingsScriptHandler,
                            File settingsDir,
                            ScriptSource settingsScript,
-                           StartParameter startParameter,
-                           Instantiator instantiator) {
+                           StartParameter startParameter) {
         this.gradle = gradle;
         this.classLoaderScope = classLoaderScope;
         this.baseClassLoaderScope = baseClassLoaderScope;
@@ -95,7 +89,7 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
         this.startParameter = startParameter;
         this.services = serviceRegistryFactory.createFor(this);
         this.rootProjectDescriptor = createProjectDescriptor(null, settingsDir.getName(), settingsDir);
-        this.dependencyResolutionManagement = instantiator.newInstance(DefaultDependencyResolutionManagement.class, services.get(SharedDependencyResolutionServices.class));
+        this.dependencyResolutionManagement = services.get(DependencyResolutionManagementInternal.class);
     }
 
     @Override
@@ -372,12 +366,6 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
 
     @Override
     public void preventFromFurtherMutation() {
-        NamedDomainObjectList<ArtifactRepository> repositoryHandler = dependencyResolutionManagement.getRepositoryHandler();
-        repositoryHandler.whenObjectAdded(this::mutationDisallowed);
-        repositoryHandler.whenObjectRemoved(this::mutationDisallowed);
-    }
-
-    private void mutationDisallowed(ArtifactRepository artifactRepository) {
-        throw new InvalidUserCodeException("Mutation of repositories declared in settings is only allowed during settings evaluation");
+        dependencyResolutionManagement.preventFromFurtherMutation();
     }
 }

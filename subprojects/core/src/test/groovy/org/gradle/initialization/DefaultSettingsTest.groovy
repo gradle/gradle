@@ -72,7 +72,7 @@ class DefaultSettingsTest extends Specification {
         def instantiator = TestUtil.instantiatorFactory().decorateLenient()
         settings = instantiator.newInstance(DefaultSettings, serviceRegistryFactory,
                 gradleMock, classLoaderScope, rootClassLoaderScope, settingsScriptHandler,
-                settingsDir, scriptSourceMock, startParameter, instantiator)
+                settingsDir, scriptSourceMock, startParameter)
     }
 
     def 'is wired properly'() {
