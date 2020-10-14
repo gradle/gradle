@@ -18,7 +18,7 @@ import gradlebuild.cleanup.WhenNotEmpty
 plugins {
     id("gradlebuild.distribution.api-kotlin")
     id("gradlebuild.kotlin-dsl-dependencies-embedded")
-    id("kotlin-sam-with-receiver")
+    id("gradlebuild.kotlin-dsl-sam-with-receiver")
 }
 
 description = "Kotlin DSL Provider"
@@ -132,8 +132,4 @@ classycle {
 
 testFilesCleanup {
     policy.set(WhenNotEmpty.REPORT)
-}
-
-samWithReceiver {
-    annotation("org.gradle.api.HasImplicitReceiver")
 }
